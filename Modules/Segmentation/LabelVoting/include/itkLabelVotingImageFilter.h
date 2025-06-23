@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class LabelVotingImageFilter
+ * \class LabelVotingImageFilter
  *
  * \brief This filter performs pixelwise voting among an arbitrary number
  * of input images, where each of them represents a segmentation of the same
@@ -35,10 +35,7 @@ namespace itk
  * commonly used as a way of boosting segmentation performance.
  *
  * The use of label voting for combination of multiple segmentations is
- * described in
- *
- * T. Rohlfing and C. R. Maurer, Jr., "Multi-classifier framework for
- * atlas-based image segmentation," Pattern Recognition Letters, 2005.
+ * described in \cite rohlfing2005.
  *
  * \par INPUTS
  * All input volumes to this filter must be segmentations of an image,
@@ -87,8 +84,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(LabelVotingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelVotingImageFilter);
 
   /** Extract some information from the image types. Dimensionality
    * of the two images is assumed to be the same. */
@@ -109,7 +106,7 @@ public:
   using LabelCountType = unsigned long;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Set label value for undecided pixels. */
   void
@@ -144,8 +141,6 @@ public:
     }
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputPixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
@@ -154,8 +149,6 @@ public:
   itkConceptMacro(InputPlusIntCheck, (Concept::AdditiveOperators<InputPixelType, int>));
   itkConceptMacro(InputIncrementDecrementOperatorsCheck, (Concept::IncrementDecrementOperators<InputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   LabelVotingImageFilter();
@@ -178,7 +171,7 @@ protected:
   ComputeMaximumInputValue();
 
 private:
-  OutputPixelType m_LabelForUndecidedPixels;
+  OutputPixelType m_LabelForUndecidedPixels{};
   bool            m_HasLabelForUndecidedPixels{ false };
   size_t          m_TotalLabelCount{ 0 };
 };

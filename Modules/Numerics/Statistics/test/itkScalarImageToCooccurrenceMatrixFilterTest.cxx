@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,13 +40,12 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
 
 
-  InputImageType::Pointer image = InputImageType::New();
+  auto image = InputImageType::New();
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
-  InputImageType::IndexType index;
-  index.Fill(0);
-  InputImageType::RegionType region;
+  constexpr InputImageType::IndexType index{};
+  InputImageType::RegionType          region;
 
   region.SetSize(inputImageSize);
   region.SetIndex(index);
@@ -68,7 +67,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
   imageIt.GoToBegin();
 
-  for (unsigned int i = 0; i < 5; i++)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     for (unsigned int j = 0; j < 5; j++, ++imageIt)
     {
@@ -98,7 +97,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
     using FilterType = itk::Statistics::ScalarImageToCooccurrenceMatrixFilter<InputImageType>;
 
-    FilterType::Pointer filter = FilterType::New();
+    auto filter = FilterType::New();
 
     // Invoke update before adding an input. An exception should be
     // thrown.
@@ -118,17 +117,13 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
     if (filter->GetInput() != nullptr)
     {
-      std::cerr << "GetInput() should return nullptr since the input is\
-                    not set yet "
-                << std::endl;
+      std::cerr << "GetInput() should return nullptr since the input is not set yet " << std::endl;
       passed = false;
     }
 
     if (filter->GetMaskImage() != nullptr)
     {
-      std::cerr << "GetMaskImage() should return nullptr since the mask image is\
-                    not set yet "
-                << std::endl;
+      std::cerr << "GetMaskImage() should return nullptr since the mask image is not set yet " << std::endl;
       passed = false;
     }
 
@@ -158,9 +153,9 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
     filter->SetInput(image);
 
-    InputImageType::OffsetType      offset1 = { { 0, 1 } };
-    InputImageType::OffsetType      offset2 = { { 1, 0 } };
-    FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
+    constexpr InputImageType::OffsetType  offset1 = { { 0, 1 } };
+    constexpr InputImageType::OffsetType  offset2 = { { 1, 0 } };
+    const FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
     offsetV->push_back(offset1);
     offsetV->push_back(offset2);
 
@@ -178,14 +173,14 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
     // First make sure the bins are sized properly:
 
-    float max = hist->GetBinMax(0, 255);
-    float min = hist->GetBinMin(0, 255);
+    const float max = hist->GetBinMax(0, 255);
+    const float min = hist->GetBinMin(0, 255);
 
     if (itk::Math::NotAlmostEquals(max, 256) || itk::Math::NotAlmostEquals(min, 255))
     {
       std::cerr << "Error" << std::endl;
       std::cerr << "The calculated bin sizes are incorrect" << std::endl;
-      std::cerr << "Expected [255, 256), got [" << min << ", " << max << ")" << std::endl << std::endl;
+      std::cerr << "Expected [255, 256), got [" << min << ", " << max << ')' << std::endl << std::endl;
       passed = false;
     }
 
@@ -208,12 +203,11 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     two_two[0] = 2;
     two_two[1] = 2;
 
-    float ooF, otF, toF, ttF, totalF;
-    ooF = hist->GetFrequency(one_one);
-    otF = hist->GetFrequency(one_two);
-    toF = hist->GetFrequency(two_one);
-    ttF = hist->GetFrequency(two_two);
-    totalF = hist->GetTotalFrequency();
+    float ooF = hist->GetFrequency(one_one);
+    float otF = hist->GetFrequency(one_two);
+    float toF = hist->GetFrequency(two_one);
+    float ttF = hist->GetFrequency(two_two);
+    float totalF = hist->GetTotalFrequency();
 
     if (itk::Math::NotAlmostEquals(ooF, 24.0f) || itk::Math::NotAlmostEquals(ttF, 16.0f) ||
         itk::Math::NotAlmostEquals(otF, 20.0f) || itk::Math::NotAlmostEquals(toF, 20.0f) ||
@@ -232,7 +226,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     //--------------------------------------------------------------------------
 
 
-    FilterType::Pointer filter0 = FilterType::New();
+    auto filter0 = FilterType::New();
 
     filter0->SetInput(image);
     filter0->SetOffsets(offsetV);
@@ -268,10 +262,10 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     //--------------------------------------------------------------------------
 
     // First a histogram with 2 bins per axis
-    FilterType::Pointer filter2 = FilterType::New();
+    auto filter2 = FilterType::New();
 
     filter2->SetInput(image);
-    InputImageType::OffsetType offset3 = { { 0, 1 } };
+    constexpr InputImageType::OffsetType offset3 = { { 0, 1 } };
 
     filter2->SetOffset(offset3);
     filter2->SetNumberOfBinsPerAxis(2);
@@ -289,8 +283,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     zero_zero[0] = 0;
     zero_zero[1] = 0;
 
-    float zzF;
-    zzF = hist2->GetFrequency(zero_zero);
+    float zzF = hist2->GetFrequency(zero_zero);
     totalF = hist2->GetTotalFrequency();
 
     if (itk::Math::NotAlmostEquals(zzF, 40.0f) || itk::Math::NotAlmostEquals(zzF, totalF))
@@ -303,10 +296,10 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
 
 
     // Next a histogram with a smaller range.
-    FilterType::Pointer filter3 = FilterType::New();
+    auto filter3 = FilterType::New();
 
     filter3->SetInput(image);
-    InputImageType::OffsetType offset4 = { { 1, 1 } };
+    constexpr InputImageType::OffsetType offset4 = { { 1, 1 } };
 
     filter3->SetOffset(offset4);
 
@@ -341,10 +334,9 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     one_zero[0] = 1;
     one_zero[1] = 0;
 
-    float zoF, ozF;
     zzF = hist3->GetFrequency(zero_zero);
-    zoF = hist3->GetFrequency(zero_one);
-    ozF = hist3->GetFrequency(one_zero);
+    float zoF = hist3->GetFrequency(zero_one);
+    float ozF = hist3->GetFrequency(one_zero);
     ooF = hist3->GetFrequency(one_one);
     totalF = hist3->GetTotalFrequency();
 
@@ -361,7 +353,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
     }
 
     // Next a histogram with a truncated range.
-    FilterType::Pointer filter4 = FilterType::New();
+    auto filter4 = FilterType::New();
 
     filter4->SetInput(image);
     filter4->SetOffsets(offsetV);
@@ -403,11 +395,9 @@ itkScalarImageToCooccurrenceMatrixFilterTest(int, char *[])
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cerr << "Test succeeded" << std::endl;
-      return EXIT_SUCCESS;
-    }
+
+    std::cerr << "Test succeeded" << std::endl;
+    return EXIT_SUCCESS;
   }
   catch (const itk::ExceptionObject & err)
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@
 namespace itk
 {
 /**
- *\class FFTConvolutionImageFilter
+ * \class FFTConvolutionImageFilter
  * \brief Convolve a given image with an arbitrary image kernel using
  * multiplication in the Fourier domain.
  *
@@ -41,14 +41,13 @@ namespace itk
  * of the kernel image and treats them as identical to those in the
  * input image.
  *
- * This code was adapted from the Insight Journal contribution:
- *
- * "FFT Based Convolution"
- * by Gaetan Lehmann
- * https://www.insight-journal.org/browse/publication/717
+ * This code was adapted from the Insight Journal contribution
+ * \cite Lehmann_2010_b.
  *
  * \ingroup ITKConvolution
  * \sa ConvolutionImageFilter
+ * \sa InverseDeconvolutionImageFilter
+ * \sa IterativeDeconvolutionImageFilter
  *
  */
 template <typename TInputImage,
@@ -70,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(FFTConvolutionImageFilter, ConvolutionImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FFTConvolutionImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -95,14 +94,16 @@ public:
 
   /** Internal types used by the FFT filters. */
   using InternalImageType = Image<TInternalPrecision, TInputImage::ImageDimension>;
+  using InternalRegionType = typename InternalImageType::RegionType;
+  using InternalSizeType = typename InternalImageType::SizeType;
+  using InternalIndexType = typename InternalImageType::IndexType;
   using InternalImagePointerType = typename InternalImageType::Pointer;
   using InternalComplexType = std::complex<TInternalPrecision>;
   using InternalComplexImageType = Image<InternalComplexType, TInputImage::ImageDimension>;
   using InternalComplexImagePointerType = typename InternalComplexImageType::Pointer;
 
   /** Typedef to describe the boundary condition. */
-  using BoundaryConditionType = typename Superclass::BoundaryConditionType;
-  using BoundaryConditionPointerType = typename Superclass::BoundaryConditionPointerType;
+  using typename Superclass::BoundaryConditionType;
 
   itkSetMacro(SizeGreatestPrimeFactor, SizeValueType);
   itkGetMacro(SizeGreatestPrimeFactor, SizeValueType);
@@ -116,11 +117,10 @@ protected:
   using FFTFilterType = RealToHalfHermitianForwardFFTImageFilter<InternalImageType, InternalComplexImageType>;
   using IFFTFilterType = HalfHermitianToRealInverseFFTImageFilter<InternalComplexImageType, InternalImageType>;
 
-  /** FFTConvolutionImageFilter needs the entire image kernel, which in
-   * general is going to be a different size than the output requested
-   * region. As such, this filter needs to provide an implementation
-   * for GenerateInputRequestedRegion() in order to inform the
-   * pipeline execution model.
+  /** Convolution uses a spatial region equivalent to the
+   *  output region padded by the kernel radius on all sides.
+   *  The input requested region is expanded by the kernel radius
+   *  within the bounds of the input largest possible region.
    *
    * \sa ProcessObject::GenerateInputRequestedRegion()  */
   void
@@ -181,28 +181,31 @@ protected:
   void
   CropOutput(InternalImageType * paddedOutput, ProgressAccumulator * progress, float progressWeight);
 
-  /** Get the lower bound for the padding of both the kernel and input
-   * images. Assuming that the regions of the kernel and input are the
-   * same, then this lower bound can be used to move the index of the
-   * padded kernel and padded input so that they are the same. This
-   * is important to avoid exceptions in filters that operate on these
-   * images. */
-  InputSizeType
-  GetPadLowerBound() const;
+  /** Get the radius of the kernel image. Used to pad the input image
+   *  for convolution. */
+  KernelSizeType
+  GetKernelRadius() const;
 
-  /** Get the pad size. */
-  InputSizeType
-  GetPadSize() const;
+  /** Get padding around the region of interest that results from FFT
+   *  factoring requirements. FFT typically requires that image side lengths
+   *  are factorable only by a fixed set of prime numbers (often 2, 3, and 5).
+   *  After the input image is padded for the kernel width and cropped to the
+   *  region of interest the result is then padded for FFT execution. This value
+   *  is reused for kernel padding and output cropping. */
+  InternalSizeType
+  GetFFTPadSize() const;
 
   /** Get whether the X dimension has an odd size. */
-  bool
+  [[nodiscard]] bool
   GetXDimensionIsOdd() const;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  SizeValueType m_SizeGreatestPrimeFactor;
+  SizeValueType      m_SizeGreatestPrimeFactor{};
+  InternalSizeType   m_FFTPadSize{ { 0 } };
+  InternalRegionType m_PaddedInputRegion{};
 };
 } // namespace itk
 

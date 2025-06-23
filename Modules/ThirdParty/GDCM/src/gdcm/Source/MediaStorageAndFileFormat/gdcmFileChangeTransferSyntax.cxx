@@ -35,16 +35,15 @@ namespace gdcm
 class FileChangeTransferSyntaxInternals
 {
 public:
-  FileChangeTransferSyntaxInternals():
-    IC(nullptr),
-    InitializeCopy(false)
-  {}
+  FileChangeTransferSyntaxInternals()
+    
+  = default;
   ~FileChangeTransferSyntaxInternals()
     {
     delete IC;
     }
-  ImageCodec *IC;
-  bool InitializeCopy;
+  ImageCodec *IC{nullptr};
+  bool InitializeCopy{false};
   std::streampos PixelDataPos;
   std::string InFilename;
   std::string OutFilename;
@@ -132,7 +131,7 @@ bool FileChangeTransferSyntax::Change()
     std::vector<char> vbuffer;
     vbuffer.resize( dims[0] * pixsize );
 
-    char *data = &vbuffer[0];
+    char *data = vbuffer.data();
     const size_t datalen = vbuffer.size();
 
     const size_t nscanlines = dims[2] * dims[1];
@@ -177,7 +176,7 @@ bool FileChangeTransferSyntax::Change()
     std::vector<char> vbuffer;
     vbuffer.resize( dims[0] * dims[1] * pixsize );
 
-    char *data = &vbuffer[0];
+    char *data = vbuffer.data();
     const size_t datalen = vbuffer.size();
 
     const size_t nscanlines = dims[2];
@@ -288,7 +287,7 @@ void FileChangeTransferSyntax::SetTransferSyntax( TransferSyntax const & ts )
     &jpeg2000,
     &rle
   };
-  const int n = sizeof( codecs ) / sizeof( *codecs );
+  const int n = sizeof( codecs ) / sizeof( codecs[0] );
   for( int i = 0; i < n; ++i )
     {
     if( codecs[i]->CanCode( ts ) )
@@ -455,6 +454,7 @@ bool FileChangeTransferSyntax::InitializeCopy()
         ISO_14495_1 = JPEG-LS Near-lossless Compression
         ISO_15444_1 = JPEG 2000 Irreversible Compression
         ISO_13818_2 = MPEG2 Compression
+        ISO_15444_15 = High-Throughput JPEG 2000 Irreversible Compression
          */
         Attribute<0x0028,0x2114> at3;
         const TransferSyntax ts_orig = Internals->TS;
@@ -466,6 +466,14 @@ bool FileChangeTransferSyntax::InitializeCopy()
         else if( ts_orig == TransferSyntax::JPEGLSNearLossless )
           {
           static const CSComp newvalues2[] = {"ISO_14495_1"};
+          at3.SetValues( newvalues2, 1 );
+          }
+        else if (
+          ts_orig == TransferSyntax::HTJ2KLossless ||
+          ts_orig == TransferSyntax::HTJ2KRPCLLossless ||
+          ts_orig == TransferSyntax::HTJ2K )
+          {
+          static const CSComp newvalues2[] = {"ISO_15444_15"};
           at3.SetValues( newvalues2, 1 );
           }
         else if (

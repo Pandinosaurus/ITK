@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkAnchorOpenCloseImageFilter_hxx
 #define itkAnchorOpenCloseImageFilter_hxx
 
-#include "itkAnchorOpenCloseImageFilter.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkAnchorUtilities.h"
@@ -27,8 +26,8 @@ namespace itk
 {
 template <typename TImage, typename TKernel, typename TCompare1, typename TCompare2>
 AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::AnchorOpenCloseImageFilter()
-  : m_Boundary1(NumericTraits<InputImagePixelType>::ZeroValue())
-  , m_Boundary2(NumericTraits<InputImagePixelType>::ZeroValue())
+  : m_Boundary1(InputImagePixelType{})
+  , m_Boundary2(InputImagePixelType{})
 {
   this->DynamicMultiThreadingOn();
 }
@@ -42,7 +41,6 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
   if (!this->GetKernel().GetDecomposable())
   {
     itkExceptionMacro("Anchor morphology only works with decomposable structuring elements");
-    return;
   }
   // TFunction1 will be < for erosions
   // TFunction2 will be <=
@@ -68,16 +66,16 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
   IReg.Crop(this->GetInput()->GetRequestedRegion());
 
   // allocate an internal buffer
-  typename InputImageType::Pointer internalbuffer = InputImageType::New();
+  auto internalbuffer = InputImageType::New();
   internalbuffer->SetRegions(IReg);
   internalbuffer->Allocate();
-  InputImagePointer output = internalbuffer;
+  const InputImagePointer output = internalbuffer;
 
   // get the region size
-  InputImageRegionType OReg = outputRegionForThread;
+  const InputImageRegionType OReg = outputRegionForThread;
   // maximum buffer length is sum of dimensions
   unsigned int bufflength = 0;
-  for (unsigned i = 0; i < TImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TImage::ImageDimension; ++i)
   {
     bufflength += IReg.GetSize()[i];
   }
@@ -93,11 +91,11 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
   BresType                        BresLine;
 
   // first stage -- all of the erosions if we are doing an opening
-  for (unsigned i = 0; i < decomposition.size() - 1; i++)
+  for (unsigned int i = 0; i < decomposition.size() - 1; ++i)
   {
-    KernelLType     ThisLine = decomposition[i];
-    BresOffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
-    unsigned int    SELength = GetLinePixels<KernelLType>(ThisLine);
+    const KernelLType     ThisLine = decomposition[i];
+    const BresOffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
+    unsigned int          SELength = GetLinePixels<KernelLType>(ThisLine);
     // want lines to be odd
     if (!(SELength % 2))
     {
@@ -105,7 +103,7 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
     }
     AnchorLineErode.SetSize(SELength);
 
-    InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
+    const InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
     DoAnchorFace<TImage, BresType, AnchorLineErodeType, KernelLType>(
       input, output, m_Boundary1, ThisLine, AnchorLineErode, TheseOffsets, inbuffer, buffer, IReg, BigFace);
 
@@ -114,10 +112,10 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
   }
   // now do the opening in the middle of the chain
   {
-    unsigned                       i = static_cast<unsigned>(decomposition.size()) - 1;
-    KernelLType                    ThisLine = decomposition[i];
-    typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
-    unsigned int                   SELength = GetLinePixels<KernelLType>(ThisLine);
+    const unsigned int                   i = static_cast<unsigned int>(decomposition.size()) - 1;
+    const KernelLType                    ThisLine = decomposition[i];
+    const typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
+    unsigned int                         SELength = GetLinePixels<KernelLType>(ThisLine);
     // want lines to be odd
     if (!(SELength % 2))
     {
@@ -125,7 +123,7 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
     }
 
     AnchorLineOpen.SetSize(SELength);
-    InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
+    const InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
 
     // Now figure out which faces of the image we should be starting
     // from with this line
@@ -136,9 +134,9 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
   // Now for the rest of the dilations -- note that i needs to be signed
   for (int i = static_cast<int>(decomposition.size()) - 2; i >= 0; --i)
   {
-    KernelLType                    ThisLine = decomposition[i];
-    typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
-    unsigned int                   SELength = GetLinePixels<KernelLType>(ThisLine);
+    const KernelLType                    ThisLine = decomposition[i];
+    const typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
+    unsigned int                         SELength = GetLinePixels<KernelLType>(ThisLine);
     // want lines to be odd
     if (!(SELength % 2))
     {
@@ -147,7 +145,7 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DynamicThread
 
     AnchorLineDilate.SetSize(SELength);
 
-    InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
+    const InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
     DoAnchorFace<TImage, BresType, AnchorLineDilateType, KernelLType>(
       input, output, m_Boundary2, ThisLine, AnchorLineDilate, TheseOffsets, inbuffer, buffer, IReg, BigFace);
   }
@@ -188,21 +186,22 @@ AnchorOpenCloseImageFilter<TImage, TKernel, TCompare1, TCompare2>::DoFaceOpen(
   // using ItType = ImageRegionConstIteratorWithIndex<TImage>;
   // ItType it(input, face);
 
-  typename TImage::Pointer dumbImg = TImage::New();
+  auto dumbImg = TImage::New();
   dumbImg->SetRegions(face);
 
   KernelLType NormLine = line;
   NormLine.Normalize();
   // set a generous tolerance
-  float tol = 1.0 / LineOffsets.size();
-  for (unsigned int it = 0; it < face.GetNumberOfPixels(); it++)
+  const float tol = 1.0 / LineOffsets.size();
+  for (unsigned int it = 0; it < face.GetNumberOfPixels(); ++it)
   {
-    typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
-    unsigned                   start, end, len;
+    const typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
+    unsigned int                     start = 0;
+    unsigned int                     end = 0;
     if (FillLineBuffer<TImage, BresType, KernelLType>(
           input, Ind, NormLine, tol, LineOffsets, AllImage, outbuffer, start, end))
     {
-      len = end - start + 1;
+      const unsigned int len = end - start + 1;
       // compat
       outbuffer[0] = border;
       outbuffer[len + 1] = border;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,13 +39,13 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  std::string inputVolume(argv[1]);
-  std::string input3DSkullStripVolume(argv[2]);
-  std::string outputLabelMapVolume(argv[3]);
-  float       numberOfStdDeviations = 10.0;
+  const std::string inputVolume(argv[1]);
+  const std::string input3DSkullStripVolume(argv[2]);
+  const std::string outputLabelMapVolume(argv[3]);
+  constexpr float   numberOfStdDeviations = 10.0;
 
 
-  bool debug = true;
+  const bool debug = true;
   if (debug)
   {
     std::cout << "Input T1 Image: " << inputVolume << std::endl;
@@ -72,34 +72,34 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
   }
   if (violated)
   {
-    exit(1);
+    return EXIT_FAILURE;
   }
 
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer T1Reader = ReaderType::New();
+  auto T1Reader = ReaderType::New();
   T1Reader->SetFileName(inputVolume);
 
-  ReaderType::Pointer maskReader = ReaderType::New();
+  auto maskReader = ReaderType::New();
   maskReader->SetFileName(input3DSkullStripVolume);
 
-  const PixelType     imageExclusion = -32000;
+  constexpr PixelType imageExclusion = -32000;
   constexpr PixelType maskThresholdBelow = 5; // someday with more generality?
 
   /* The Threshold Image Filter is used to produce the brain clipping mask from a 3DSkullStrip result image. */
   using ThresholdFilterType = itk::ThresholdImageFilter<ImageType>;
-  ThresholdFilterType::Pointer brainMaskFilter = ThresholdFilterType::New();
+  auto brainMaskFilter = ThresholdFilterType::New();
   brainMaskFilter->SetInput(maskReader->GetOutput());
   brainMaskFilter->ThresholdBelow(maskThresholdBelow);
   brainMaskFilter->Update();
 
   /* The Not Image Filter is used to produce the other clipping mask. */
   using NotFilterType = itk::NotImageFilter<ImageType, ImageType>;
-  NotFilterType::Pointer nonBrainMaskFilter = NotFilterType::New();
+  auto nonBrainMaskFilter = NotFilterType::New();
   nonBrainMaskFilter->SetInput(maskReader->GetOutput());
   nonBrainMaskFilter->Update();
 
@@ -107,7 +107,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
      Should this be limited to the excluded region of the clipped T1 image?  */
   using LabelStatisticsFilterType = itk::LabelStatisticsImageFilter<ImageType, ImageType>;
   using StatisticRealType = LabelStatisticsFilterType::RealType;
-  LabelStatisticsFilterType::Pointer statisticsFilter = LabelStatisticsFilterType::New();
+  auto statisticsFilter = LabelStatisticsFilterType::New();
   statisticsFilter->SetInput(T1Reader->GetOutput());
   statisticsFilter->SetLabelInput(maskReader->GetOutput());
   statisticsFilter->Update();
@@ -125,7 +125,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   /* The Statistics Image Filter lets us find the initial cluster means.
      Should this be limited to the excluded region of the clipped T1 image?  */
-  LabelStatisticsFilterType::Pointer nonBrainStatisticsFilter = LabelStatisticsFilterType::New();
+  auto nonBrainStatisticsFilter = LabelStatisticsFilterType::New();
   nonBrainStatisticsFilter->SetInput(T1Reader->GetOutput());
   nonBrainStatisticsFilter->SetLabelInput(nonBrainMaskFilter->GetOutput());
   nonBrainStatisticsFilter->Update();
@@ -145,7 +145,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
   /* The Mask Image Filter applies the clipping mask by stepping
      on the excluded region with the imageExclusion value. */
   using MaskFilterType = itk::MaskImageFilter<ImageType, ImageType>;
-  MaskFilterType::Pointer clippedBrainT1Filter = MaskFilterType::New();
+  auto clippedBrainT1Filter = MaskFilterType::New();
   clippedBrainT1Filter->SetInput1(T1Reader->GetOutput());
   clippedBrainT1Filter->SetInput2(brainMaskFilter->GetOutput());
   clippedBrainT1Filter->SetOutsideValue(imageExclusion);
@@ -156,7 +156,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   if (numberOfStdDeviations > 0.0)
   {
-    ThresholdFilterType::Pointer clipArterialBloodFilter = ThresholdFilterType::New();
+    auto clipArterialBloodFilter = ThresholdFilterType::New();
     clipArterialBloodFilter->SetInput(clippedBrainT1Filter->GetOutput());
     clipArterialBloodFilter->ThresholdAbove(static_cast<PixelType>(imageMean + numberOfStdDeviations * imageSigma));
     clipArterialBloodFilter->SetOutsideValue(imageExclusion);
@@ -171,7 +171,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   /* The Mask Image Filter applies the clipping mask by stepping
      on the excluded region with the imageExclusion value. */
-  MaskFilterType::Pointer clippedNonBrainT1Filter = MaskFilterType::New();
+  auto clippedNonBrainT1Filter = MaskFilterType::New();
   clippedNonBrainT1Filter->SetInput1(T1Reader->GetOutput());
   clippedNonBrainT1Filter->SetInput2(nonBrainMaskFilter->GetOutput());
   clippedNonBrainT1Filter->SetOutsideValue(imageExclusion);
@@ -182,10 +182,10 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
      for the interior of the mask, plus a code for the exterior of the mask. */
   using KMeansFilterType = itk::ScalarImageKmeansImageFilter<ImageType>;
   using RealPixelType = KMeansFilterType::RealPixelType;
-  KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
+  auto kmeansFilter = KMeansFilterType::New();
   kmeansFilter->SetInput(clippedBrainT1Pointer);
 
-  constexpr unsigned int useNonContiguousLabels = 1;
+  constexpr bool useNonContiguousLabels = true;
 
   RealPixelType backgroundInitialMean = imageExclusion;
   //  RealPixelType bloodInitialMean = imageMax;    // ARTERIAL blood.
@@ -204,16 +204,9 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
   kmeansFilter->SetUseNonContiguousLabels(useNonContiguousLabels);
 
   std::cout << "kmeansFilter->Update [[Watch out for infinite loop here!]] " << std::endl;
-  try
-  {
-    kmeansFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem encountered while running K-means segmentation ";
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(kmeansFilter->Update());
+
 
   KMeansFilterType::ParametersType estimatedMeans = kmeansFilter->GetFinalMeans();
 
@@ -228,7 +221,7 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   /* The Scalar Image Kmeans Image Filter will find a code image in 3 classes
      for the interior of the mask, plus a code for the exterior of the mask. */
-  KMeansFilterType::Pointer kmeansNonBrainFilter = KMeansFilterType::New();
+  auto kmeansNonBrainFilter = KMeansFilterType::New();
   kmeansNonBrainFilter->SetInput(clippedNonBrainT1Filter->GetOutput());
 
   backgroundInitialMean = imageExclusion;
@@ -245,17 +238,8 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
   kmeansNonBrainFilter->AddClassWithInitialMean(fatInitialMean);
   kmeansNonBrainFilter->SetUseNonContiguousLabels(useNonContiguousLabels);
 
-  std::cout << "kmeansNonBrainFilter->Update " << std::endl;
-  try
-  {
-    kmeansNonBrainFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem encountered while Background K-Means segmentation ";
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(kmeansNonBrainFilter->Update());
+
 
   estimatedMeans = kmeansNonBrainFilter->GetFinalMeans();
 
@@ -269,15 +253,15 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   /* Now remap the labels - background first followed by brain */
   using LabelImageType = KMeansFilterType::OutputImageType;
-  LabelImageType::Pointer kmeansLabelImage = LabelImageType::New();
+  auto kmeansLabelImage = LabelImageType::New();
   kmeansLabelImage->SetRegions(maskReader->GetOutput()->GetLargestPossibleRegion());
   kmeansLabelImage->SetSpacing(maskReader->GetOutput()->GetSpacing());
   kmeansLabelImage->SetDirection(maskReader->GetOutput()->GetDirection());
   kmeansLabelImage->SetOrigin(maskReader->GetOutput()->GetOrigin());
-  kmeansLabelImage->Allocate(true);
+  kmeansLabelImage->AllocateInitialized();
 
   using LabelMapStatisticsFilterType = itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType>;
-  LabelMapStatisticsFilterType::Pointer statisticsNonBrainFilter = LabelMapStatisticsFilterType::New();
+  auto statisticsNonBrainFilter = LabelMapStatisticsFilterType::New();
   statisticsNonBrainFilter->SetInput(kmeansNonBrainFilter->GetOutput());
   statisticsNonBrainFilter->SetLabelInput(kmeansNonBrainFilter->GetOutput());
   std::cout << "statisticsNonBrainFilter->Update " << std::endl;
@@ -285,12 +269,12 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
 
   /* Background Tissues are Lower Label values */
   unsigned char currentLabel = 0;
-  for (unsigned int i = 1; i < 256; i++)
+  for (unsigned int i = 1; i < 256; ++i)
   {
     if (statisticsNonBrainFilter->HasLabel(static_cast<unsigned char>(i)))
     {
       currentLabel++;
-      LabelImageType::RegionType labelRegion = statisticsNonBrainFilter->GetRegion(static_cast<unsigned char>(i));
+      const LabelImageType::RegionType labelRegion = statisticsNonBrainFilter->GetRegion(static_cast<unsigned char>(i));
       itk::ImageRegionIterator<LabelImageType> it(kmeansNonBrainFilter->GetOutput(), labelRegion);
 
       it.GoToBegin();
@@ -307,18 +291,18 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
   }
 
   /* Brain Tissues are Higher Label values */
-  LabelMapStatisticsFilterType::Pointer statisticsBrainFilter = LabelMapStatisticsFilterType::New();
+  auto statisticsBrainFilter = LabelMapStatisticsFilterType::New();
   statisticsBrainFilter->SetInput(kmeansFilter->GetOutput());
   statisticsBrainFilter->SetLabelInput(kmeansFilter->GetOutput());
   std::cout << "statisticsBrainFilter->Update " << std::endl;
   statisticsBrainFilter->Update();
 
-  for (unsigned int i = 1; i < 256; i++)
+  for (unsigned int i = 1; i < 256; ++i)
   {
     if (statisticsBrainFilter->HasLabel(static_cast<unsigned char>(i)))
     {
       currentLabel++;
-      LabelImageType::RegionType labelRegion = statisticsBrainFilter->GetRegion(static_cast<unsigned char>(i));
+      const LabelImageType::RegionType labelRegion = statisticsBrainFilter->GetRegion(static_cast<unsigned char>(i));
       itk::ImageRegionIterator<LabelImageType> it(kmeansFilter->GetOutput(), labelRegion);
 
       it.GoToBegin();
@@ -334,13 +318,13 @@ itkScalarImageKmeansImageFilter3DTest(int argc, char * argv[])
     }
   }
 
-  /* Write out the resulting Label Image */
+  // Write out the resulting Label Image
   using WriterType = itk::ImageFileWriter<LabelImageType>;
-  WriterType::Pointer labelWriter = WriterType::New();
+  auto labelWriter = WriterType::New();
   labelWriter->SetInput(kmeansLabelImage);
   labelWriter->SetFileName(outputLabelMapVolume);
-  std::cout << "labelWriter->Update " << std::endl;
-  labelWriter->Update();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(labelWriter->Update());
 
 
   return EXIT_SUCCESS;

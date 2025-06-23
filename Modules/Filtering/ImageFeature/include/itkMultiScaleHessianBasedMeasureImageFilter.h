@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,14 +24,14 @@
 
 namespace itk
 {
-/**\class MultiScaleHessianBasedMeasureImageFilterEnums
+/** \class MultiScaleHessianBasedMeasureImageFilterEnums
  * \brief This class contains all enum classes used by MultiScaleHessianBasedMeasureImageFilter class.
  * \ingroup ITKImageFeature
  */
 class MultiScaleHessianBasedMeasureImageFilterEnums
 {
 public:
-  /**\class SigmaStepMethod
+  /** \class SigmaStepMethod
    * \ingroup ITKImageFeature
    * \ingroup IntensityImageFilters
    * Sigma step method type
@@ -44,9 +44,9 @@ public:
 };
 // Define how to print enumeration
 extern ITKImageFeature_EXPORT std::ostream &
-                              operator<<(std::ostream & out, const MultiScaleHessianBasedMeasureImageFilterEnums::SigmaStepMethod value);
+operator<<(std::ostream & out, const MultiScaleHessianBasedMeasureImageFilterEnums::SigmaStepMethod value);
 
-/**\class MultiScaleHessianBasedMeasureImageFilter
+/** \class MultiScaleHessianBasedMeasureImageFilter
  * \brief A filter to enhance structures using Hessian eigensystem-based
  * measures in a multiscale framework
  *
@@ -66,7 +66,7 @@ extern ITKImageFeature_EXPORT std::ostream &
  * This code was contributed in the Insight Journal paper:
  * "Generalizing vesselness with respect to dimensionality and shape"
  * by Antiga L.
- * https://www.insight-journal.org/browse/publication/175
+ * https://doi.org/10.54294/urgadx
  *
  *
  * \author Luca Antiga Ph.D.  Medical Imaging Unit,
@@ -123,42 +123,47 @@ public:
   using UpdateBufferType = Image<double, Self::ImageDimension>;
   using BufferValueType = typename UpdateBufferType::ValueType;
 
-  using DataObjectPointer = typename Superclass::DataObjectPointer;
+  using typename Superclass::DataObjectPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MultiScaleHessianBasedMeasureImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiScaleHessianBasedMeasureImageFilter);
 
   /** Set/Get macros for SigmaMin */
+  /** @ITKStartGrouping */
   itkSetMacro(SigmaMinimum, double);
   itkGetConstMacro(SigmaMinimum, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get macros for SigmaMax */
+  /** @ITKStartGrouping */
   itkSetMacro(SigmaMaximum, double);
   itkGetConstMacro(SigmaMaximum, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get macros for Number of Scales */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfSigmaSteps, unsigned int);
   itkGetConstMacro(NumberOfSigmaSteps, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get HessianToMeasureFilter. This will be a filter that takes
    Hessian input image and produces enhanced output scalar image. The filter must derive from
    itk::ImageToImage filter */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(HessianToMeasureFilter, HessianToMeasureFilterType);
   itkGetModifiableObjectMacro(HessianToMeasureFilter, HessianToMeasureFilterType);
-
+  /** @ITKEndGrouping */
   /** Methods to turn on/off flag to inform the filter that the Hessian-based measure
    is non-negative (classical measures like Sato's and Frangi's are), hence it has a minimum
    at zero. In this case, the update buffer is initialized at zero, and the output scale and Hessian
    are zero in case the Hessian-based measure returns zero for all scales. Otherwise, the minimum
    output scale and Hessian are the ones obtained at scale SigmaMinimum. On by default.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NonNegativeHessianBasedMeasure, bool);
   itkGetConstMacro(NonNegativeHessianBasedMeasure, bool);
   itkBooleanMacro(NonNegativeHessianBasedMeasure);
-
+  /** @ITKEndGrouping */
   using SigmaStepMethodEnum = MultiScaleHessianBasedMeasureImageFilterEnums::SigmaStepMethod;
 #if !defined(ITK_LEGACY_REMOVE)
   /**Exposes enums values for backwards compatibility*/
@@ -168,9 +173,10 @@ public:
 
   /** Set/Get the method used to generate scale sequence (Equispaced
    * or Logarithmic) */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(SigmaStepMethod, SigmaStepMethodEnum);
   itkGetConstMacro(SigmaStepMethod, SigmaStepMethodEnum);
-
+  /** @ITKEndGrouping */
   /**Set equispaced sigma step method */
   void
   SetSigmaStepMethodToEquispaced();
@@ -191,16 +197,18 @@ public:
 
   /** Methods to turn on/off flag to generate an image with scale values at
    *  each pixel for the best vesselness response */
+  /** @ITKStartGrouping */
   itkSetMacro(GenerateScalesOutput, bool);
   itkGetConstMacro(GenerateScalesOutput, bool);
   itkBooleanMacro(GenerateScalesOutput);
-
+  /** @ITKEndGrouping */
   /** Methods to turn on/off flag to generate an image with hessian values at
    *  each pixel for the best vesselness response */
+  /** @ITKStartGrouping */
   itkSetMacro(GenerateHessianOutput, bool);
   itkGetConstMacro(GenerateHessianOutput, bool);
   itkBooleanMacro(GenerateHessianOutput);
-
+  /** @ITKEndGrouping */
   /** This is overloaded to create the Scales and Hessian output images */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
 
@@ -231,22 +239,22 @@ private:
   void
   AllocateUpdateBuffer();
 
-  bool m_NonNegativeHessianBasedMeasure;
+  bool m_NonNegativeHessianBasedMeasure{};
 
-  double m_SigmaMinimum;
-  double m_SigmaMaximum;
+  double m_SigmaMinimum{};
+  double m_SigmaMaximum{};
 
-  unsigned int        m_NumberOfSigmaSteps;
-  SigmaStepMethodEnum m_SigmaStepMethod;
+  unsigned int        m_NumberOfSigmaSteps{};
+  SigmaStepMethodEnum m_SigmaStepMethod{};
 
-  typename HessianToMeasureFilterType::Pointer m_HessianToMeasureFilter;
+  typename HessianToMeasureFilterType::Pointer m_HessianToMeasureFilter{};
 
-  typename HessianFilterType::Pointer m_HessianFilter;
+  typename HessianFilterType::Pointer m_HessianFilter{};
 
-  typename UpdateBufferType::Pointer m_UpdateBuffer;
+  typename UpdateBufferType::Pointer m_UpdateBuffer{};
 
-  bool m_GenerateScalesOutput;
-  bool m_GenerateHessianOutput;
+  bool m_GenerateScalesOutput{};
+  bool m_GenerateHessianOutput{};
 };
 } // end namespace itk
 

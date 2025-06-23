@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,7 @@
  *=========================================================================*/
 
 #include "itkGPUDataManager.h"
-//#define VERBOSE
+// #define VERBOSE
 
 namespace itk
 {
@@ -191,7 +191,7 @@ GPUDataManager::Update()
 void
 GPUDataManager::SetCurrentCommandQueue(int queueid)
 {
-  if (queueid >= 0 && queueid < (int)m_ContextManager->GetNumberOfCommandQueues())
+  if (queueid >= 0 && queueid < static_cast<int>(m_ContextManager->GetNumberOfCommandQueues()))
   {
     this->UpdateCPUBuffer();
 
@@ -264,12 +264,16 @@ GPUDataManager::Initialize()
 void
 GPUDataManager::PrintSelf(std::ostream & os, Indent indent) const
 {
-  os << indent << "GPUDataManager (" << this << ")" << std::endl;
-  os << indent << "m_BufferSize: " << m_BufferSize << std::endl;
-  os << indent << "m_IsGPUBufferDirty: " << m_IsGPUBufferDirty << std::endl;
-  os << indent << "m_GPUBuffer: " << m_GPUBuffer << std::endl;
-  os << indent << "m_IsCPUBufferDirty: " << m_IsCPUBufferDirty << std::endl;
-  os << indent << "m_CPUBuffer: " << m_CPUBuffer << std::endl;
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "BufferSize: " << m_BufferSize << std::endl;
+  os << indent << "ContextManager: " << m_ContextManager << std::endl;
+  os << indent << "CommandQueueId: " << m_CommandQueueId << std::endl;
+  os << indent << "MemFlags: " << m_MemFlags << std::endl;
+  os << indent << "GPUBuffer: " << m_GPUBuffer << std::endl;
+  os << indent << "CPUBuffer: " << m_CPUBuffer << std::endl;
+  itkPrintSelfBooleanMacro(IsGPUBufferDirty);
+  itkPrintSelfBooleanMacro(IsCPUBufferDirty);
 }
 
 } // namespace itk

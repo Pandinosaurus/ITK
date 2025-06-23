@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,7 @@
  *=========================================================================*/
 /**
  *         The specification for this file format is taken from the
- *         web site http://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
+ *         web site https://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
  * \author Hans J. Johnson
  *         The University of Iowa 2002
  */
@@ -27,6 +27,7 @@
 #include "ITKIOHDF5Export.h"
 #include "itkMetaDataObjectBase.h"
 #include "itkMetaDataDictionary.h"
+#include <memory> // For unique_ptr.
 
 // itk namespace first suppresses
 // kwstyle error for the H5 namespace below
@@ -44,7 +45,7 @@ class DataSet;
 namespace itk
 {
 /**
- *\class HDF5ImageIO
+ * \class HDF5ImageIO
  *
  * \author Kent Williams
  * \brief Class that defines how to read HDF5 file format.
@@ -63,7 +64,7 @@ namespace itk
  * \li \/ITKImage\/\<name\>\/Origin     N-D point double
  * \li \/ITKImage\/\<name\>\/Directions N N-vectors double
  * \li \/ITKImage\/\<name\>\/Spacing    N-vector double
- * \li \/ITKImage\/\<name\>\/Dimensions N-vector ::itk::SizeValueType
+ * \li \/ITKImage\/\<name\>\/Dimensions N-vector itk::SizeValueType
  * \li \/ITKImage\/\<name\>\/VoxelType  String representing voxel type.
  *                             This can be inferred from the VoxelData
  *                             type info, but it makes the file more
@@ -95,8 +96,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HDF5ImageIO, StreamingImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HDF5ImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -120,7 +121,7 @@ public:
   /*-------- This part of the interfaces deals with writing data. ----- */
 
   /** Determine if the file can be written with this ImageIO implementation.
-   * \param FileNameToWrite The name of the file to test for writing.
+   * \param name The name of the file to test for writing.
    * \author Hans J. Johnson
    * \post Sets classes ImageIOBase::m_FileName variable to be FileNameToWrite
    * \return Returns true if this ImageIO can write the file specified.
@@ -156,15 +157,15 @@ private:
   ReadString(const std::string & path);
 
   void
-  WriteScalar(const std::string & path, const bool & value);
+  WriteScalar(const std::string & path, const bool value);
   void
-  WriteScalar(const std::string & path, const long & value);
+  WriteScalar(const std::string & path, const long value);
   void
-  WriteScalar(const std::string & path, const unsigned long & value);
+  WriteScalar(const std::string & path, const unsigned long value);
   void
-  WriteScalar(const std::string & path, const long long & value);
+  WriteScalar(const std::string & path, const long long value);
   void
-  WriteScalar(const std::string & path, const unsigned long long & value);
+  WriteScalar(const std::string & path, const unsigned long long value);
 
   template <typename TScalar>
   void
@@ -203,14 +204,19 @@ private:
   void
   SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace * slabSpace);
 
+  /* A convenience function to ensure that the
+   * state of the HDF5ImageIO object is returned
+   * to a state similar to constructing a new
+   * object.  This is needed to ensure that
+   * an HDF5ImageIO object can be used multiple
+   * times to read/write many images.
+   */
   void
-  CloseH5File();
-  void
-  CloseDataSet();
+  ResetToInitialState();
 
-  H5::H5File *  m_H5File{ nullptr };
-  H5::DataSet * m_VoxelDataSet{ nullptr };
-  bool          m_ImageInformationWritten{ false };
+  std::unique_ptr<H5::H5File>  m_H5File;
+  std::unique_ptr<H5::DataSet> m_VoxelDataSet;
+  bool                         m_ImageInformationWritten{ false };
 };
 } // end namespace itk
 

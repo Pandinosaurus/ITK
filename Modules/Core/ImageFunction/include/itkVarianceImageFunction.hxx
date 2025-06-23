@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,45 +18,35 @@
 #ifndef itkVarianceImageFunction_hxx
 #define itkVarianceImageFunction_hxx
 
-#include "itkVarianceImageFunction.h"
 
 #include "itkConstNeighborhoodIterator.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TInputImage, typename TCoordRep>
-VarianceImageFunction<TInputImage, TCoordRep>::VarianceImageFunction()
-{
-  m_NeighborhoodRadius = 1;
-}
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
+VarianceImageFunction<TInputImage, TCoordinate>::VarianceImageFunction()
+  : m_NeighborhoodRadius(1)
+{}
+
+template <typename TInputImage, typename TCoordinate>
 void
-VarianceImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+VarianceImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "NeighborhoodRadius: " << m_NeighborhoodRadius << std::endl;
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
-typename VarianceImageFunction<TInputImage, TCoordRep>::RealType
-VarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+VarianceImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> RealType
 {
   RealType sum;
   RealType sumOfSquares;
   RealType var;
 
-  sum = NumericTraits<RealType>::ZeroValue();
-  sumOfSquares = NumericTraits<RealType>::ZeroValue();
+  sum = RealType{};
+  sumOfSquares = RealType{};
 
   if (!this->GetInputImage())
   {
@@ -69,8 +59,7 @@ VarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType &
   }
 
   // Create an N-d neighborhood kernel, using a zeroflux boundary condition
-  typename InputImageType::SizeType kernelSize;
-  kernelSize.Fill(m_NeighborhoodRadius);
+  auto kernelSize = InputImageType::SizeType::Filled(m_NeighborhoodRadius);
 
   ConstNeighborhoodIterator<InputImageType> it(
     kernelSize, this->GetInputImage(), this->GetInputImage()->GetBufferedRegion());

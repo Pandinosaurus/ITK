@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,10 @@
 
 #include "itkWatershedSegmenter.h"
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /**
- *\class EquivalenceRelabeler
+ * \class EquivalenceRelabeler
  *
  * This class is part of the set of watershed segmentation component objects.
  * It is an image-to-image filter that relabels its input according to a set of
@@ -54,6 +52,8 @@ template <typename TScalar, unsigned int TImageDimension>
 class ITK_TEMPLATE_EXPORT EquivalenceRelabeler : public ProcessObject
 {
 public:
+  ITK_DISALLOW_COPY_AND_MOVE(EquivalenceRelabeler);
+
   /** Expose templated image dimension parameter at run time */
   static constexpr unsigned int ImageDimension = TImageDimension;
 
@@ -67,12 +67,14 @@ public:
   using DataObjectPointer = DataObject::Pointer;
 
   /**  Define smart pointers for this object.   */
+  /** @ITKStartGrouping */
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(WatershedEquivalenceRelabeler, ProcessObject);
-
+  itkOverrideGetNameOfClassMacro(EquivalenceRelabeler);
+  /** @ITKEndGrouping */
   /** Set/Get the image to relabel.   */
+  /** @ITKStartGrouping */
   void
   SetInputImage(ImageType * img)
   {
@@ -83,7 +85,7 @@ public:
   {
     return static_cast<ImageType *>(this->ProcessObject::GetInput(0));
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the output image */
   void
   SetOutputImage(ImageType * img)
@@ -123,16 +125,13 @@ public:
 protected:
   EquivalenceRelabeler()
   {
-    typename ImageType::Pointer img = static_cast<ImageType *>(this->MakeOutput(0).GetPointer());
+    const typename ImageType::Pointer img = static_cast<ImageType *>(this->MakeOutput(0).GetPointer());
     this->SetNumberOfRequiredOutputs(1);
     this->ProcessObject::SetNthOutput(0, img.GetPointer());
   }
 
   ~EquivalenceRelabeler() override = default;
-  EquivalenceRelabeler(const Self &) {}
-  void
-  operator=(const Self &)
-  {}
+
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -142,8 +141,7 @@ protected:
   void
   GenerateInputRequestedRegion() override;
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedEquivalenceRelabeler.hxx"

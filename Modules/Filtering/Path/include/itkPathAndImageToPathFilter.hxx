@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPathAndImageToPathFilter_hxx
 #define itkPathAndImageToPathFilter_hxx
 
-#include "itkPathAndImageToPathFilter.h"
 
 namespace itk
 {
@@ -46,8 +45,8 @@ PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::SetPathInput(con
 }
 
 template <typename TInputPath, typename TInputImage, typename TOutputPath>
-const typename PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::InputPathType *
-PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::GetPathInput()
+auto
+PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::GetPathInput() -> const InputPathType *
 {
   return itkDynamicCastInDebugMode<const TInputPath *>(this->GetPrimaryInput());
 }
@@ -63,8 +62,8 @@ PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::SetImageInput(co
 }
 
 template <typename TInputPath, typename TInputImage, typename TOutputPath>
-const typename PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::InputImageType *
-PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::GetImageInput()
+auto
+PathAndImageToPathFilter<TInputPath, TInputImage, TOutputPath>::GetImageInput() -> const InputImageType *
 {
   return static_cast<const TInputImage *>(this->ProcessObject::GetInput(1));
 }

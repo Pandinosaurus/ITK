@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,7 @@
 
 #include "itkConvergenceMonitoringFunction.h"
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 /**
  * \class WindowConvergenceMonitoringFunction
@@ -49,15 +47,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(WindowConvergenceMonitoringFunction, ConvergenceMonitoringFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WindowConvergenceMonitoringFunction);
 
   using ScalarType = TScalar;
   using RealType = typename NumericTraits<ScalarType>::RealType;
 
-  using EnergyValueType = typename Superclass::EnergyValueType;
-  using EnergyValueContainerType = typename Superclass::EnergyValueContainerType;
-  using EnergyValueContainerSizeType = typename Superclass::EnergyValueContainerSizeType;
+  using typename Superclass::EnergyValueType;
+  using typename Superclass::EnergyValueContainerType;
+  using typename Superclass::EnergyValueContainerSizeType;
   using EnergyValueIterator = typename EnergyValueContainerType::iterator;
   using EnergyValueConstIterator = typename EnergyValueContainerType::const_iterator;
 
@@ -70,10 +68,11 @@ public:
   ClearEnergyValues() override;
 
   /** Set/Get window size over which the convergence value is calculated */
+  /** @ITKStartGrouping */
   itkSetMacro(WindowSize, EnergyValueContainerSizeType);
   itkGetConstMacro(WindowSize, EnergyValueContainerSizeType);
-
-  /** Calculate convergence value by fitting to a window of the enrgy profile */
+  /** @ITKEndGrouping */
+  /** Calculate convergence value by fitting to a window of the energy profile */
   RealType
   GetConvergenceValue() const override;
 
@@ -86,12 +85,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  EnergyValueContainerSizeType m_WindowSize;
+  EnergyValueContainerSizeType m_WindowSize{};
 
-  RealType m_TotalEnergy;
+  RealType m_TotalEnergy{};
 };
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWindowConvergenceMonitoringFunction.hxx"

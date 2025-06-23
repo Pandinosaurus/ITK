@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,7 @@ namespace itk
 /** \class ElasticBodyReciprocalSplineKernelTransform
  * This class defines the elastic body spline (EBS) transformation.
  * It is implemented in as straightforward a manner as possible from
- * the IEEE TMI paper by Davis, Khotanzad, Flamig, and Harms,
- * Vol. 16 No. 3 June 1997
+ * \cite davis1997.
  * Taken from the paper:
  * The EBS "is based on a physical model of a homogeneous, isotropic,
  * three-dimensional elastic body. The model can approximate the way
@@ -34,37 +33,37 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType = double, unsigned int NDimensions = 3>
+template <typename TParametersValueType = double, unsigned int VDimension = 3>
 class ITK_TEMPLATE_EXPORT ElasticBodyReciprocalSplineKernelTransform
-  : public KernelTransform<TParametersValueType, NDimensions>
+  : public KernelTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ElasticBodyReciprocalSplineKernelTransform);
 
   /** Standard class type aliases. */
   using Self = ElasticBodyReciprocalSplineKernelTransform;
-  using Superclass = KernelTransform<TParametersValueType, NDimensions>;
+  using Superclass = KernelTransform<TParametersValueType, VDimension>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ElasticBodyReciprocalSplineKernelTransform, KernelTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ElasticBodyReciprocalSplineKernelTransform);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** Scalar type. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Parameters type. */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
 
   /** Jacobian type. */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Dimension of the domain space. */
   static constexpr unsigned int SpaceDimension = Superclass::SpaceDimension;
@@ -77,12 +76,12 @@ public:
   /** Get alpha */
   itkGetConstMacro(Alpha, TParametersValueType);
 
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
 
 protected:
   ElasticBodyReciprocalSplineKernelTransform();
@@ -90,7 +89,7 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  using GMatrixType = typename Superclass::GMatrixType;
+  using typename Superclass::GMatrixType;
   /** Compute G(x)
    * For the elastic body spline, this is:
    * G(x) = [alpha*r(x)*I - 3*x*x'/r(x)]
@@ -105,7 +104,7 @@ protected:
   ComputeG(const InputVectorType & x, GMatrixType & gmatrix) const override;
 
   /** alpha, Poisson's ratio */
-  TParametersValueType m_Alpha;
+  TParametersValueType m_Alpha{};
 };
 } // namespace itk
 

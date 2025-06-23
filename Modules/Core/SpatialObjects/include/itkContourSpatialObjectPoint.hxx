@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,25 +18,15 @@
 #ifndef itkContourSpatialObjectPoint_hxx
 #define itkContourSpatialObjectPoint_hxx
 
-#include "itkContourSpatialObjectPoint.h"
 
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TPointDimension>
 ContourSpatialObjectPoint<TPointDimension>::ContourSpatialObjectPoint()
 {
   m_NormalInObjectSpace.Fill(0);
   m_PickedPointInObjectSpace.Fill(0);
-}
-
-/** Copy Constructor */
-template <unsigned int TPointDimension>
-ContourSpatialObjectPoint<TPointDimension>::ContourSpatialObjectPoint(const ContourSpatialObjectPoint & other)
-  : Superclass(other)
-{
-  this->m_NormalInObjectSpace = other.GetNormalInObjectSpace();
-  this->m_PickedPointInObjectSpace = other.GetPickedPointInObjectSpace();
 }
 
 template <unsigned int TPointDimension>
@@ -47,8 +37,8 @@ ContourSpatialObjectPoint<TPointDimension>::SetPickedPointInObjectSpace(const Po
 }
 
 template <unsigned int TPointDimension>
-const typename ContourSpatialObjectPoint<TPointDimension>::PointType &
-ContourSpatialObjectPoint<TPointDimension>::GetPickedPointInObjectSpace() const
+auto
+ContourSpatialObjectPoint<TPointDimension>::GetPickedPointInObjectSpace() const -> const PointType &
 {
   return m_PickedPointInObjectSpace;
 }
@@ -61,23 +51,10 @@ ContourSpatialObjectPoint<TPointDimension>::SetNormalInObjectSpace(const Covaria
 }
 
 template <unsigned int TPointDimension>
-const typename ContourSpatialObjectPoint<TPointDimension>::CovariantVectorType &
-ContourSpatialObjectPoint<TPointDimension>::GetNormalInObjectSpace() const
+auto
+ContourSpatialObjectPoint<TPointDimension>::GetNormalInObjectSpace() const -> const CovariantVectorType &
 {
   return m_NormalInObjectSpace;
-}
-
-template <unsigned int TPointDimension>
-typename ContourSpatialObjectPoint<TPointDimension>::Self &
-ContourSpatialObjectPoint<TPointDimension>::operator=(const ContourSpatialObjectPoint & rhs)
-{
-  if (this != &rhs)
-  {
-    Superclass::operator=(rhs);
-    this->m_NormalInObjectSpace = rhs.GetNormalInObjectSpace();
-    this->m_PickedPointInObjectSpace = rhs.GetPickedPointInObjectSpace();
-  }
-  return *this;
 }
 
 template <unsigned int TPointDimension>
@@ -86,8 +63,10 @@ ContourSpatialObjectPoint<TPointDimension>::PrintSelf(std::ostream & os, Indent 
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Picked PointInObjectSpace: " << m_PickedPointInObjectSpace << std::endl;
-  os << indent << "NormalInObjectSpace: " << m_NormalInObjectSpace << std::endl;
+  os << indent << "PickedPointInObjectSpace: " << m_PickedPointInObjectSpace << std::endl;
+  os << indent
+     << "NormalInObjectSpace: " << static_cast<typename NumericTraits<PointType>::PrintType>(m_NormalInObjectSpace)
+     << std::endl;
 }
 } // end namespace itk
 

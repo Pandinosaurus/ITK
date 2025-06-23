@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 //  Software Guide : BeginLatex
 //
 //  Due to the use of
-//  \href{http://www.boost.org/more/generic_programming.html}{Generic
+//  \href{https://www.boost.org/more/generic_programming.html}{Generic
 //  Programming} in the toolkit, most types are resolved at compile-time. Few
 //  decisions regarding type conversion are left to run-time. It is up to the
 //  user to anticipate the pixel type-conversions required in the data
@@ -153,7 +153,7 @@ main(int argc, char * argv[])
     itk::NormalizeImageFilter<InputImageType, OutputImageType>;
   // Software Guide : EndCodeSnippet
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
 
   //  Software Guide : BeginLatex
@@ -174,10 +174,10 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  CastFilterType::Pointer       castFilter = CastFilterType::New();
-  RescaleFilterType::Pointer    rescaleFilter = RescaleFilterType::New();
-  ShiftScaleFilterType::Pointer shiftFilter = ShiftScaleFilterType::New();
-  NormalizeFilterType::Pointer  normalizeFilter = NormalizeFilterType::New();
+  auto castFilter = CastFilterType::New();
+  auto rescaleFilter = RescaleFilterType::New();
+  auto shiftFilter = ShiftScaleFilterType::New();
+  auto normalizeFilter = NormalizeFilterType::New();
   // Software Guide : EndCodeSnippet
 
 

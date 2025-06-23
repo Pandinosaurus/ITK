@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLandweberDeconvolutionImageFilter_hxx
 #define itkLandweberDeconvolutionImageFilter_hxx
 
-#include "itkLandweberDeconvolutionImageFilter.h"
 
 namespace itk
 {
@@ -26,10 +25,9 @@ namespace itk
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 LandweberDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>::
   LandweberDeconvolutionImageFilter()
-{
-  m_Alpha = 0.1;
-  m_TransformedInput = nullptr;
-}
+  : m_Alpha(0.1)
+  , m_TransformedInput(nullptr)
+{}
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 LandweberDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>::

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 #include "ITKFEMExport.h"
 #include "vnl/vnl_vector.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class LoadNode
@@ -52,8 +50,8 @@ public:
   /** New macro for creation of through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoadNode, Load);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoadNode);
 
   using Float = Element::Node::Float;
 
@@ -92,7 +90,7 @@ public:
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
 protected:
@@ -108,9 +106,8 @@ protected:
    * Force applied on the node. Dimension of F should equal
    * element->GetNumberOfDegreesOfFreedomPerNode().
    */
-  vnl_vector<Float> m_Force;
+  vnl_vector<Float> m_Force{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLoadNode_h

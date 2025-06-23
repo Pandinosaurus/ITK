@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,7 @@
 #ifndef itkFEMElement3DStrain_hxx
 #define itkFEMElement3DStrain_hxx
 
-#include "itkFEMElement3DStrain.h"
-
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 template <typename TBaseClass>
 Element3DStrain<TBaseClass>::Element3DStrain()
@@ -50,7 +46,7 @@ Element3DStrain<TBaseClass>::GetStrainDisplacementMatrix(MatrixType & B, const M
 
   // Copy the shape function derivatives wrt global coordinates
   // in right position in B matrix.
-  for (unsigned int i = 0; i < Nn; i++)
+  for (unsigned int i = 0; i < Nn; ++i)
   {
     p = i / 3;
 
@@ -106,19 +102,19 @@ Element3DStrain<TBaseClass>::GetMaterialMatrix(MatrixType & D) const
   Float fac = (m_mat->GetThickness() * m_mat->GetYoungsModulus()) /
               ((1 + m_mat->GetPoissonsRatio()) * (1 - 2 * m_mat->GetPoissonsRatio()));
   /** Set the elements in the top left quadrant */
-  for (int j = 0; j < 3; j++)
+  for (int j = 0; j < 3; ++j)
   {
-    for (int k = 0; k < 3; k++)
+    for (int k = 0; k < 3; ++k)
     {
       D[j][k] = m_mat->GetPoissonsRatio();
     }
   }
   /** Set the diagonal elements */
-  for (int k = 0; k < 3; k++)
+  for (int k = 0; k < 3; ++k)
   {
     D[k][k] = 1 - m_mat->GetPoissonsRatio();
   }
-  for (int k = 3; k < 6; k++)
+  for (int k = 3; k < 6; ++k)
   {
     D[k][k] = (1 - (2 * m_mat->GetPoissonsRatio())) * 0.5;
   }
@@ -135,7 +131,6 @@ Element3DStrain<TBaseClass>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Materials: " << this->m_mat << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

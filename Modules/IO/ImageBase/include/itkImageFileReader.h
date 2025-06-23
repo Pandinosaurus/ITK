@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,8 +85,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageFileReader, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageFileReader);
 
   /** The size of the output image. */
   using SizeType = typename TOutputImage::SizeType;
@@ -109,15 +109,18 @@ public:
    * instance that is created. Or you can directly specify the ImageIO
    * to use to read a particular file in case the factory mechanism will
    * not work properly (e.g., unknown or unusual extension). */
+  /** @ITKStartGrouping */
   void
   SetImageIO(ImageIOBase * imageIO);
   itkGetModifiableObjectMacro(ImageIO, ImageIOBase);
+  /** @ITKEndGrouping */
 
   /** Set the stream On or Off */
+  /** @ITKStartGrouping */
   itkSetMacro(UseStreaming, bool);
   itkGetConstReferenceMacro(UseStreaming, bool);
   itkBooleanMacro(UseStreaming);
-
+  /** @ITKEndGrouping */
 protected:
   ImageFileReader();
   ~ImageFileReader() override = default;
@@ -126,7 +129,7 @@ protected:
 
   /** Convert a block of pixels from one type to another. */
   void
-  DoConvertBuffer(void * inputData, size_t numberOfPixels);
+  DoConvertBuffer(const void * inputData, size_t numberOfPixels);
 
   /** Test whether the given filename exist and it is readable, this
    * is intended to be called before attempting to use  ImageIO
@@ -153,19 +156,19 @@ protected:
   void
   GenerateData() override;
 
-  ImageIOBase::Pointer m_ImageIO;
+  ImageIOBase::Pointer m_ImageIO{};
 
-  bool m_UserSpecifiedImageIO; // keep track whether the
-                               // ImageIO is user specified
+  bool m_UserSpecifiedImageIO{}; // keep track whether the
+                                 // ImageIO is user specified
 
-  bool m_UseStreaming;
+  bool m_UseStreaming{};
 
 private:
-  std::string m_ExceptionMessage;
+  std::string m_ExceptionMessage{};
 
   // The region that the ImageIO class will return when we ask to
   // produce the requested region.
-  ImageIORegion m_ActualIORegion;
+  ImageIORegion m_ActualIORegion{};
 };
 
 
@@ -189,14 +192,13 @@ ReadImage(const std::string & filename)
   return reader->GetOutput();
 }
 
-
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageFileReader.hxx"
 #endif
 
-#ifdef ITK_IO_FACTORY_REGISTER_MANAGER
+#if defined ITK_IMAGEIO_FACTORY_REGISTER_MANAGER || defined ITK_IO_FACTORY_REGISTER_MANAGER
 #  include "itkImageIOFactoryRegisterManager.h"
 #endif
 

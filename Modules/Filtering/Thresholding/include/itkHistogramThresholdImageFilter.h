@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
 {
 
 /**
- *\class HistogramThresholdImageFilter
+ * \class HistogramThresholdImageFilter
  * \brief Threshold an image using a HistogramThresholdCalculator
  *
  * This filter creates a binary thresholded image that separates an
@@ -52,7 +52,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \ingroup Multithreaded
  * \ingroup ITKThresholding
@@ -73,8 +73,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(HistogramThresholdImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramThresholdImageFilter);
 
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
@@ -120,9 +120,10 @@ public:
   static constexpr unsigned int MaskImageDimension = MaskImageType::ImageDimension;
 
   /** Set and Get the mask image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, TMaskImage);
   itkGetInputMacro(MaskImage, TMaskImage);
-
+  /** @ITKEndGrouping */
   /** Set the input image */
   void
   SetInput1(const TInputImage * input)
@@ -138,7 +139,7 @@ public:
   }
 
   /** Set the "outside" pixel value. The default value
-   * NumericTraits<OutputPixelType>::ZeroValue(). */
+   * OutputPixelType{}. */
   itkSetMacro(OutsideValue, OutputPixelType);
 
   /** Get the "outside" pixel value. */
@@ -152,42 +153,43 @@ public:
   itkGetConstMacro(InsideValue, OutputPixelType);
 
   /** Set the number of histogram bins */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfHistogramBins, unsigned int);
   itkGetConstMacro(NumberOfHistogramBins, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Does histogram generator compute min and max from data?
    * Default is true for all but char types */
+  /** @ITKStartGrouping */
   itkSetMacro(AutoMinimumMaximum, bool);
   itkGetConstMacro(AutoMinimumMaximum, bool);
   itkBooleanMacro(AutoMinimumMaximum);
-
+  /** @ITKEndGrouping */
   /** Do you want the output to be masked by the mask used in
    * histogram construction. Only relevant if masking is in
    * use. Default is true. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskOutput, bool);
   itkGetConstMacro(MaskOutput, bool);
   itkBooleanMacro(MaskOutput);
-
+  /** @ITKEndGrouping */
   /** The value in the mask image, if used, indicating voxels that
   should be included. Default is the max of pixel type, as in the
   MaskedImageToHistogramFilter */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskValue, MaskPixelType);
   itkGetConstMacro(MaskValue, MaskPixelType);
-
+  /** @ITKEndGrouping */
   /** Get the computed threshold. */
   itkGetConstMacro(Threshold, InputPixelType);
 
   /** Set/Get the calculator to use to compute the threshold */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Calculator, CalculatorType);
   itkGetModifiableObjectMacro(Calculator, CalculatorType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   HistogramThresholdImageFilter();
@@ -201,12 +203,12 @@ protected:
   GenerateData() override;
 
   void
-  VerifyPreconditions() ITKv5_CONST override
+  VerifyPreconditions() const override
   {
     Superclass::VerifyPreconditions();
     if (m_Calculator.IsNull())
     {
-      itkExceptionMacro(<< "No threshold calculator set.");
+      itkExceptionMacro("No threshold calculator set.");
     }
   }
 
@@ -215,13 +217,13 @@ private:
   void
   SetUpHistogramGenerator(HistogramGeneratorPointer histogramGenerator);
 
-  OutputPixelType   m_InsideValue;
-  OutputPixelType   m_OutsideValue;
-  InputPixelType    m_Threshold;
-  MaskPixelType     m_MaskValue;
-  CalculatorPointer m_Calculator;
-  unsigned          m_NumberOfHistogramBins{ 256 };
-  bool              m_AutoMinimumMaximum;
+  OutputPixelType   m_InsideValue{};
+  OutputPixelType   m_OutsideValue{};
+  InputPixelType    m_Threshold{};
+  MaskPixelType     m_MaskValue{};
+  CalculatorPointer m_Calculator{};
+  unsigned int      m_NumberOfHistogramBins{ 256 };
+  bool              m_AutoMinimumMaximum{};
   bool              m_MaskOutput{ true };
 };
 

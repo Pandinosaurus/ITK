@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,12 +60,11 @@ int
 main(int argc, char ** argv)
 {
   // Verify the number of parameters in the command line
-  if (argc < 3)
+  if (argc < 4)
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " input3DImageFile  output2DImageFile "
+    std::cerr << argv[0] << " input3DImageFile output2DImageFile sliceNumber"
               << std::endl;
-    std::cerr << " sliceNumber " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -78,8 +77,8 @@ main(int argc, char ** argv)
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using InputPixelType = signed short;
-  using OutputPixelType = signed short;
+  using InputPixelType = short;
+  using OutputPixelType = short;
 
   using InputImageType = itk::Image<InputPixelType, 3>;
   using OutputImageType = itk::Image<OutputPixelType, 2>;
@@ -118,8 +117,8 @@ main(int argc, char ** argv)
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -151,7 +150,7 @@ main(int argc, char ** argv)
 
   // Software Guide : BeginCodeSnippet
   using FilterType = itk::ExtractImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->InPlaceOn();
   filter->SetDirectionCollapseToSubmatrix();
   // Software Guide : EndCodeSnippet
@@ -176,7 +175,7 @@ main(int argc, char ** argv)
 
   // Software Guide : BeginCodeSnippet
   reader->UpdateOutputInformation();
-  InputImageType::RegionType inputRegion =
+  const InputImageType::RegionType inputRegion =
     reader->GetOutput()->GetLargestPossibleRegion();
   // Software Guide : EndCodeSnippet
 

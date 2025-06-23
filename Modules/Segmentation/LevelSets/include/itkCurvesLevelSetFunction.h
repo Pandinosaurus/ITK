@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,10 +46,8 @@ namespace itk
  * from the negative gradient of the edge potential image. This term behaves like
  * a doublet attracting the contour to the edges.
  *
- * \par This implementation is based on:
- *  L. Lorigo, O. Faugeras, W.E.L. Grimson, R. Keriven, R. Kikinis, A. Nabavi,
- *  and C.-F. Westin, Curves: Curve evolution for vessel segmentation.
- *  Medical Image Analysis, 5:195-206, 2001.
+ * \par Reference:
+ * This implementation is based on \cite lorigo2001.
  *
  * \sa LevelSetFunction
  * \sa SegmentationLevelSetImageFunction
@@ -75,19 +73,19 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CurvesLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CurvesLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
   using PixelType = typename SuperSuperclass::PixelType;
-  using ImageType = typename Superclass::ImageType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::ImageType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
   using FloatOffsetType = typename SuperSuperclass::FloatOffsetType;
   using GlobalDataStruct = typename SuperSuperclass::GlobalDataStruct;
-  using VectorImageType = typename Superclass::VectorImageType;
+  using typename Superclass::VectorImageType;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -111,6 +109,7 @@ public:
 
   /** Set/Get the sigma for the Gaussian kernel used to compute the gradient
    * of the feature image needed for the advection term of the equation. */
+  /** @ITKStartGrouping */
   void
   SetDerivativeSigma(const double v)
   {
@@ -121,7 +120,7 @@ public:
   {
     return m_DerivativeSigma;
   }
-
+  /** @ITKEndGrouping */
   void
   Initialize(const RadiusType & r) override;
 
@@ -153,7 +152,7 @@ private:
   OffsetValueType m_Center{ 0 };
 
   /** Stride length along the y-dimension. */
-  OffsetValueType m_xStride[ImageDimension];
+  OffsetValueType m_xStride[ImageDimension]{};
 
   double m_DerivativeSigma{ 1.0 };
 };

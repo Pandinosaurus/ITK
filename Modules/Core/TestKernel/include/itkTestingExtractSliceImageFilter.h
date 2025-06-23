@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,11 +22,9 @@
 #include "itkImageSource.h"
 #include "itkExtractImageFilterRegionCopier.h"
 
-namespace itk
+namespace itk::Testing
 {
-namespace Testing
-{
-/**\class ExtractSliceImageFilterEnums
+/** \class ExtractSliceImageFilterEnums
  * \brief Contains all enum classes used by the ExtractSliceImageFilterEnums class.
  * \ingroup ITKTestKernel
  */
@@ -34,7 +32,6 @@ class ExtractSliceImageFilterEnums
 {
 public:
   /**
-   *\class TestExtractSliceImageFilterCollapseStrategy
    * \ingroup ITKTestKernel
    */
   enum class TestExtractSliceImageFilterCollapseStrategy : uint8_t
@@ -50,7 +47,7 @@ extern std::ostream &
 operator<<(std::ostream & out, const ExtractSliceImageFilterEnums::TestExtractSliceImageFilterCollapseStrategy value);
 
 /**
- *\class ExtractSliceImageFilter
+ * \class ExtractSliceImageFilter
  * \brief Decrease the image size by cropping the image to the selected
  * region bounds.
  *
@@ -92,7 +89,7 @@ operator<<(std::ostream & out, const ExtractSliceImageFilterEnums::TestExtractSl
  *            define their desired behavior.
  *    1)  DirectionCollapseToIdentity();
  *            Output has identity direction no matter what
- *    2)  DirectionCollaspeToSubmatrix();
+ *    2)  DirectionCollapseToSubmatrix();
  *            Output direction is the sub-matrix if it is positive definite, else throw an exception.
  *
  * This filter is implemented as a multithreaded filter.  It provides a
@@ -118,8 +115,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExtractSliceImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExtractSliceImageFilter);
 
   /** Image type information. */
   using InputImageType = TInputImage;
@@ -158,7 +155,7 @@ public:
 #endif
 
   /**
-   * Set the strategy to be used to collapse pysical space dimensions.
+   * Set the strategy to be used to collapse physical space dimensions.
    *
    * itk::itkExtractSliceImageFilter::DIRECTIONCOLLAPSETOIDENTITY
    * Set the strategy so that all collapsed images have an identity direction.
@@ -192,7 +189,7 @@ public:
         break;
       case TestExtractSliceImageFilterCollapseStrategyEnum::DIRECTIONCOLLAPSETOUNKOWN:
       default:
-        itkExceptionMacro(<< "Invalid Strategy Chosen for itk::ExtractSliceImageFilter");
+        itkExceptionMacro("Invalid Strategy Chosen for itk::ExtractSliceImageFilter");
     }
 
     this->m_DirectionCollaspeStrategy = choosenStrategy;
@@ -207,8 +204,11 @@ public:
   /**
    * Get the currently set strategy for collapsing directions of physical space.
    */
-  DIRECTIONCOLLAPSESTRATEGY
-  GetDirectionCollapseToStrategy() const { return this->m_DirectionCollaspeStrategy; }
+  [[nodiscard]] DIRECTIONCOLLAPSESTRATEGY
+  GetDirectionCollapseToStrategy() const
+  {
+    return this->m_DirectionCollaspeStrategy;
+  }
 
   /** \sa SetDirectionCollapseToStrategy */
   void
@@ -255,11 +255,7 @@ public:
   const TInputImage *
   GetInput() const;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputCovertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   ExtractSliceImageFilter();
@@ -301,17 +297,16 @@ protected:
   void
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
 
-  InputImageRegionType m_ExtractionRegion;
+  InputImageRegionType m_ExtractionRegion{};
 
-  OutputImageRegionType m_OutputImageRegion;
+  OutputImageRegionType m_OutputImageRegion{};
 
 private:
   DIRECTIONCOLLAPSESTRATEGY m_DirectionCollaspeStrategy{
     TestExtractSliceImageFilterCollapseStrategyEnum::DIRECTIONCOLLAPSETOUNKOWN
   };
 };
-} // end namespace Testing
-} // end namespace itk
+} // namespace itk::Testing
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkTestingExtractSliceImageFilter.hxx"

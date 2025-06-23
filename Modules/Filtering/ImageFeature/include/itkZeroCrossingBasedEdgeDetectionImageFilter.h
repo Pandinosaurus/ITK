@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,8 @@
 namespace itk
 {
 /**
- *\class ZeroCrossingBasedEdgeDetectionImageFilter
- * \brief This filter implements a zero-crossing based edge detecor.
+ * \class ZeroCrossingBasedEdgeDetectionImageFilter
+ * \brief This filter implements a zero-crossing based edge detector.
  *
  * The zero-crossing based edge detector looks for pixels in the Laplacian of
  * an image where the value of the Laplacian passes through zero --- points
@@ -100,8 +100,8 @@ public:
   /** Typedef to describe the output image region type. */
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(ZeroCrossingBasedEdgeDetectionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ZeroCrossingBasedEdgeDetectionImageFilter);
 
   /** ImageDimension enumeration   */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -111,17 +111,19 @@ public:
   using ArrayType = FixedArray<double, Self::ImageDimension>;
 
   /** Standard get/set macros for Gaussian filter parameters.  */
+  /** @ITKStartGrouping */
   itkSetMacro(Variance, ArrayType);
   itkGetConstMacro(Variance, const ArrayType);
   itkSetMacro(MaximumError, ArrayType);
   itkGetConstMacro(MaximumError, const ArrayType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the label values for the ZeroCrossingImageFilter */
+  /** @ITKStartGrouping */
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(ForegroundValue, OutputImagePixelType);
   itkSetMacro(ForegroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set the variance parameter needed by the embedded gaussian filter  */
   void
   SetVariance(const typename ArrayType::ValueType v)
@@ -141,15 +143,11 @@ public:
     m_MaximumError.Fill(v);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(SameTypeCheck, (Concept::SameType<InputImagePixelType, OutputImagePixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
   itkConceptMacro(PixelTypeIsFloatingPointCheck, (Concept::IsFloatingPoint<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   ZeroCrossingBasedEdgeDetectionImageFilter();
@@ -169,14 +167,14 @@ protected:
 
 private:
   /** The variance of the Gaussian Filter used in this filter */
-  ArrayType m_Variance;
+  ArrayType m_Variance{};
 
   /** The maximum error of the gaussian blurring kernel in each dimensional
    * direction.  */
-  ArrayType m_MaximumError;
+  ArrayType m_MaximumError{};
 
-  OutputImagePixelType m_BackgroundValue;
-  OutputImagePixelType m_ForegroundValue;
+  OutputImagePixelType m_BackgroundValue{};
+  OutputImagePixelType m_ForegroundValue{};
 };
 } // end of namespace itk
 

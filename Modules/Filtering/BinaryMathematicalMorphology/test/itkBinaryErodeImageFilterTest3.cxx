@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,14 +21,15 @@
 #include "itkSimpleFilterWatcher.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
+#include "itkTestingMacros.h"
 
 int
 itkBinaryErodeImageFilterTest3(int argc, char * argv[])
 {
   if (argc < 7)
   {
-    std::cerr << "Missing Parameters " << std::endl;
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " InputImage OutputImage Foreground Background BoundaryToForeground Radius" << std::endl;
     return EXIT_FAILURE;
   }
@@ -38,7 +39,7 @@ itkBinaryErodeImageFilterTest3(int argc, char * argv[])
   using IType = itk::Image<PType, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using SRType = itk::BinaryBallStructuringElement<PType, dim>;
@@ -47,7 +48,7 @@ itkBinaryErodeImageFilterTest3(int argc, char * argv[])
   kernel.CreateStructuringElement();
 
   using FilterType = itk::BinaryErodeImageFilter<IType, IType, SRType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(reader->GetOutput());
   filter->SetKernel(kernel);
 
@@ -97,28 +98,21 @@ itkBinaryErodeImageFilterTest3(int argc, char * argv[])
   }
 
   filter->SetBoundaryToForeground(std::stoi(argv[5]));
-  if (filter->GetBoundaryToForeground() != (bool)std::stoi(argv[5]))
+  if (filter->GetBoundaryToForeground() != static_cast<bool>(std::stoi(argv[5])))
   {
     std::cerr << "Set/Get BoundaryToForeground value problem." << std::endl;
     return EXIT_FAILURE;
   }
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

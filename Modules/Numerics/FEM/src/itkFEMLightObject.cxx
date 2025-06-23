@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,7 @@
 
 #include "itkFEMLightObject.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * Here we just read the global number from the stream.
@@ -46,5 +44,4 @@ FEMLightObject::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Global Number: " << this->m_GlobalNumber << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
  * \ingroup ITKSpatialObjects
  */
 
-template <unsigned int TDimension = 3>
+template <unsigned int TDimension = 3, class TSpatialObjectPointType = SurfaceSpatialObjectPoint<TDimension>>
 class ITK_TEMPLATE_EXPORT SurfaceSpatialObject
   : public PointBasedSpatialObject<TDimension, SurfaceSpatialObjectPoint<TDimension>>
 {
@@ -43,47 +43,49 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(SurfaceSpatialObject);
 
   using Self = SurfaceSpatialObject;
-  using Superclass = PointBasedSpatialObject<TDimension, SurfaceSpatialObjectPoint<TDimension>>;
+  using Superclass = PointBasedSpatialObject<TDimension, TSpatialObjectPointType>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   using ScalarType = double;
 
-  using SurfacePointType = SurfaceSpatialObjectPoint<TDimension>;
+  using SurfacePointType = TSpatialObjectPointType;
   using SurfacePointListType = std::vector<SurfacePointType>;
 
-  using SpatialObjectPointType = typename Superclass::SpatialObjectPointType;
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using PointContainerType = VectorContainer<IdentifierType, PointType>;
+  using typename Superclass::SpatialObjectPointType;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::BoundingBoxType;
+  using typename Superclass::CovariantVectorType;
+
+  using PointContainerType = VectorContainer<PointType>;
   using PointContainerPointer = SmartPointer<PointContainerType>;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
-  using CovariantVectorType = typename Superclass::CovariantVectorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(SurfaceSpatialObject, PointBasedSpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SurfaceSpatialObject);
 
   /** Restore a spatial object to its initial state, yet preserves Id as well as
    *   parent and children relationships */
   void
   Clear() override;
 
-  /** Compute the normals to the surface from neighboring points */
+#if !defined(ITK_LEGACY_REMOVE)
+  /** Approximate the normals of the surface. */
+  itkLegacyMacro(bool Approximate3DNormals();)
+#endif
+
+  /** Compute the normals to the surface from neighboring points. */
   bool
-  Approximate3DNormals();
+  ComputeNormals();
 
 protected:
   SurfaceSpatialObject();
   ~SurfaceSpatialObject() override = default;
 
-  /** Method to print the object.*/
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override;
-
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 };
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ namespace itk
  *
  * Template parameters for VoronoiDiagram2D:
  *
- * TCoordType = The type associated with the coordination of the seeds and
+ * TCoordinate = The type associated with the coordination of the seeds and
  * the resulting vertices.
  *
  * \ingroup MeshObjects
@@ -47,27 +47,27 @@ namespace itk
  * \sphinxexample{Segmentation/Voronoi/VoronoiDiagram,Voronoi Diagram}
  * \endsphinx
  */
-template <typename TCoordType>
+template <typename TCoordinate>
 class ITK_TEMPLATE_EXPORT VoronoiDiagram2D
-  : public Mesh<TCoordType, 2, DefaultDynamicMeshTraits<TCoordType, 2, 2, TCoordType>>
+  : public Mesh<TCoordinate, 2, DefaultDynamicMeshTraits<TCoordinate, 2, 2, TCoordinate>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VoronoiDiagram2D);
 
   /** Standard class type aliases. */
   using Self = VoronoiDiagram2D;
-  using Superclass = Mesh<TCoordType, 2, DefaultDynamicMeshTraits<TCoordType, 2, 2, TCoordType>>;
+  using Superclass = Mesh<TCoordinate, 2, DefaultDynamicMeshTraits<TCoordinate, 2, 2, TCoordinate>>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(VoronoiDiagram2D, Mesh);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VoronoiDiagram2D);
 
   /** Define the mesh traits. */
-  using MeshTraits = DefaultDynamicMeshTraits<TCoordType, 2, 2, TCoordType>;
+  using MeshTraits = DefaultDynamicMeshTraits<TCoordinate, 2, 2, TCoordinate>;
 
   /** Dimensions of the points and topology. */
   static constexpr unsigned int PointDimension = MeshTraits::PointDimension;
@@ -75,7 +75,11 @@ public:
 
   /** Typedefs from itkMesh */
   using PixelType = typename MeshTraits::PixelType;
-  using CoordRepType = typename MeshTraits::CoordRepType;
+  using CoordinateType = typename MeshTraits::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using InterpolationWeightType = typename MeshTraits::InterpolationWeightType;
   using PointIdentifier = typename MeshTraits::PointIdentifier;
   using CellIdentifier = typename MeshTraits::CellIdentifier;
@@ -89,7 +93,7 @@ public:
   using PointDataContainer = typename MeshTraits::PointDataContainer;
   using CellDataContainer = typename MeshTraits::CellDataContainer;
   using genericCellPointer = typename MeshTraits::CellAutoPointer;
-  using BoundingBoxType = BoundingBox<PointIdentifier, Self::PointDimension, CoordRepType, PointsContainer>;
+  using BoundingBoxType = BoundingBox<PointIdentifier, Self::PointDimension, CoordinateType, PointsContainer>;
   using PointsContainerPointer = typename PointsContainer::Pointer;
   using CellsContainerPointer = typename CellsContainer::Pointer;
   using CellLinksContainerPointer = typename CellLinksContainer::Pointer;
@@ -106,8 +110,8 @@ public:
   using PointCellLinksContainerIterator = typename PointCellLinksContainer::const_iterator;
 
   using CellFeatureCount = CellFeatureIdentifier;
-  using CellType = typename Superclass::CellType;
-  using CellAutoPointer = typename Superclass::CellAutoPointer;
+  using typename Superclass::CellType;
+  using typename Superclass::CellAutoPointer;
   using PolygonCellType = PolygonCell<CellType>;
   using EdgeInfo = Point<int, 2>;
   using EdgeInfoDQ = std::deque<EdgeInfo>;
@@ -320,15 +324,15 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  SeedsType                      m_Seeds;
-  unsigned int                   m_NumberOfSeeds;
-  std::vector<PolygonCellType *> m_VoronoiRegions;
-  PointType                      m_VoronoiBoundary;
-  PointType                      m_VoronoiBoundaryOrigin;
-  std::vector<std::vector<int>>  m_CellNeighborsID;
+  SeedsType                      m_Seeds{};
+  unsigned int                   m_NumberOfSeeds{};
+  std::vector<PolygonCellType *> m_VoronoiRegions{};
+  PointType                      m_VoronoiBoundary{};
+  PointType                      m_VoronoiBoundaryOrigin{};
+  std::vector<std::vector<int>>  m_CellNeighborsID{};
 
-  std::vector<EdgeInfo>    m_LineList;
-  std::vector<VoronoiEdge> m_EdgeList;
+  std::vector<EdgeInfo>    m_LineList{};
+  std::vector<VoronoiEdge> m_EdgeList{};
 };
 
 } // end namespace itk

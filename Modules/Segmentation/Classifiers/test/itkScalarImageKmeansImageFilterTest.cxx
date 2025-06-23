@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ itkScalarImageKmeansImageFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
@@ -51,7 +51,7 @@ itkScalarImageKmeansImageFilterTest(int argc, char * argv[])
 
   using KMeansFilterType = itk::ScalarImageKmeansImageFilter<ImageType>;
 
-  KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
+  auto kmeansFilter = KMeansFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(kmeansFilter, ScalarImageKmeansImageFilter, ImageToImageFilter);
 
@@ -59,6 +59,14 @@ itkScalarImageKmeansImageFilterTest(int argc, char * argv[])
 
   auto useNonContiguousLabels = static_cast<bool>(std::stoi(argv[3]));
   ITK_TEST_SET_GET_BOOLEAN(kmeansFilter, UseNonContiguousLabels, useNonContiguousLabels);
+
+  typename KMeansFilterType::ImageRegionType                      region;
+  constexpr typename KMeansFilterType::ImageRegionType::IndexType index = { { 50, 50 } };
+  constexpr typename KMeansFilterType::ImageRegionType::SizeType  size = { { 80, 100 } };
+  region.SetIndex(index);
+  region.SetSize(size);
+  kmeansFilter->SetImageRegion(region);
+  ITK_TEST_SET_GET_VALUE(region, kmeansFilter->GetImageRegion());
 
   const unsigned int numberOfInitialClasses = std::stoi(argv[4]);
 
@@ -72,11 +80,11 @@ itkScalarImageKmeansImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  // Before we add any mean check that an expection is thrown
+  // Before we add any mean check that an exception is thrown
   ITK_TRY_EXPECT_EXCEPTION(kmeansFilter->Update());
 
 
-  for (unsigned k = 0; k < numberOfInitialClasses; k++)
+  for (unsigned int k = 0; k < numberOfInitialClasses; ++k)
   {
     kmeansFilter->AddClassWithInitialMean(std::stod(argv[k + numberOfArgumentsBeforeMeans]));
   }
@@ -99,12 +107,12 @@ itkScalarImageKmeansImageFilterTest(int argc, char * argv[])
   using RelabelFilterType = itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>;
 
 
-  RelabelFilterType::Pointer relabeler = RelabelFilterType::New();
+  auto relabeler = RelabelFilterType::New();
 
   relabeler->SetInput(kmeansFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(relabeler->GetOutput());
   writer->SetFileName(argv[2]);
 

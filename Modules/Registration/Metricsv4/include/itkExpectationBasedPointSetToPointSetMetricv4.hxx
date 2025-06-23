@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,18 @@
 #ifndef itkExpectationBasedPointSetToPointSetMetricv4_hxx
 #define itkExpectationBasedPointSetToPointSetMetricv4_hxx
 
-#include "itkExpectationBasedPointSetToPointSetMetricv4.h"
 #include "itkArray.h"
 #include "itkCompensatedSummation.h"
 
 namespace itk
 {
 
-/** Constructor */
 template <typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
 ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>::
   ExpectationBasedPointSetToPointSetMetricv4()
   : m_PointSetSigma(1.0)
   , m_PreFactor(0.0)
   , m_Denominator(0.0)
-
 {}
 
 template <typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
@@ -41,7 +38,7 @@ ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInt
 {
   Superclass::Initialize();
 
-  if (this->m_PointSetSigma <= NumericTraits<CoordRepType>::epsilon())
+  if (this->m_PointSetSigma <= NumericTraits<CoordinateType>::epsilon())
   {
     itkExceptionMacro("m_PointSetSigma is too small. <= epsilon");
   }
@@ -60,9 +57,9 @@ typename ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPoint
   NeighborsIdentifierType neighborhood;
   this->m_MovingTransformedPointsLocator->FindClosestNPoints(point, this->m_EvaluationKNeighborhood, neighborhood);
 
-  for (NeighborsIterator it = neighborhood.begin(); it != neighborhood.end(); ++it)
+  for (auto it = neighborhood.begin(); it != neighborhood.end(); ++it)
   {
-    PointType         neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
+    const PointType   neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
     const MeasureType distance = point.SquaredEuclideanDistanceTo(neighbor);
     localValue -= this->m_PreFactor * std::exp(-distance / this->m_Denominator);
   }
@@ -86,31 +83,30 @@ ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInt
 
   localDerivative.Fill(0.0);
 
-  PointType weightedPoint;
-  weightedPoint.Fill(0.0);
+  PointType weightedPoint{};
 
   NeighborsIdentifierType neighborhood;
 
   this->m_MovingTransformedPointsLocator->FindClosestNPoints(point, this->m_EvaluationKNeighborhood, neighborhood);
 
-  for (NeighborsIterator it = neighborhood.begin(); it != neighborhood.end(); ++it)
+  for (auto it = neighborhood.begin(); it != neighborhood.end(); ++it)
   {
-    PointType         neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
+    const PointType   neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
     const MeasureType distance = point.SquaredEuclideanDistanceTo(neighbor);
     measureValues[it - neighborhood.begin()] = -this->m_PreFactor * std::exp(-distance / this->m_Denominator);
     measureSum += measureValues[it - neighborhood.begin()];
   }
 
   measure = measureSum.GetSum();
-  if (std::fabs(measure) <= NumericTraits<MeasureType>::epsilon())
+  if (itk::Math::abs(measure) <= NumericTraits<MeasureType>::epsilon())
   {
     return;
   }
 
-  for (NeighborsIterator it = neighborhood.begin(); it != neighborhood.end(); ++it)
+  for (auto it = neighborhood.begin(); it != neighborhood.end(); ++it)
   {
-    PointType  neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
-    VectorType neighborVector = neighbor.GetVectorFromOrigin();
+    const PointType  neighbor = this->m_MovingTransformedPointSet->GetPoint(*it);
+    const VectorType neighborVector = neighbor.GetVectorFromOrigin();
     weightedPoint += (neighborVector * measureValues[it - neighborhood.begin()] / measure);
   }
 
@@ -120,7 +116,7 @@ ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInt
 
   VectorType force = (weightedPoint - point) * weight;
 
-  for (unsigned int d = 0; d < localDerivative.Size(); d++)
+  for (unsigned int d = 0; d < localDerivative.Size(); ++d)
   {
     localDerivative[d] = force[d];
   }
@@ -131,7 +127,7 @@ typename LightObject::Pointer
 ExpectationBasedPointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>::
   InternalClone() const
 {
-  typename Self::Pointer rval = Self::New();
+  auto rval = Self::New();
   rval->SetMovingPointSet(this->m_MovingPointSet);
   rval->SetFixedPointSet(this->m_FixedPointSet);
   rval->SetPointSetSigma(this->m_PointSetSigma);

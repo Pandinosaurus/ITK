@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,9 @@
 #ifndef itkScalarToRGBPixelFunctor_hxx
 #define itkScalarToRGBPixelFunctor_hxx
 
-#include "itkScalarToRGBPixelFunctor.h"
 #include "itkByteSwapper.h"
 
-namespace itk
-{
-namespace Functor
+namespace itk::Functor
 {
 template <typename TScalar>
 ScalarToRGBPixelFunctor<TScalar>::ScalarToRGBPixelFunctor()
@@ -45,16 +42,16 @@ ScalarToRGBPixelFunctor<TScalar>::ScalarToRGBPixelFunctor()
 }
 
 template <typename TScalar>
-typename ScalarToRGBPixelFunctor<TScalar>::RGBPixelType
-ScalarToRGBPixelFunctor<TScalar>::operator()(const TScalar & v) const
+auto
+ScalarToRGBPixelFunctor<TScalar>::operator()(const TScalar & v) const -> RGBPixelType
 {
   TScalar      buf = v;
   const auto * bytes = reinterpret_cast<const unsigned char *>(&buf);
 
-  if (this->m_UseMSBForHashing == true)
+  if (this->m_UseMSBForHashing)
   { // swap bytes
     // always swap regardless of system endianness
-    if (ByteSwapper<TScalar>::SystemIsBigEndian())
+    if constexpr (ByteSwapper<TScalar>::SystemIsBigEndian())
     {
       ByteSwapper<TScalar>::SwapFromSystemToLittleEndian(&buf);
     }
@@ -72,7 +69,6 @@ ScalarToRGBPixelFunctor<TScalar>::operator()(const TScalar & v) const
 
   return ans;
 }
-} // end namespace Functor
-} // end namespace itk
+} // namespace itk::Functor
 
 #endif

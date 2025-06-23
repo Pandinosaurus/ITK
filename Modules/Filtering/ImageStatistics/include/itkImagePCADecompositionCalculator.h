@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,8 +70,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImagePCADecompositionCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImagePCADecompositionCalculator);
 
   /** Type definitions for the input images. */
   using InputImageType = TInputImage;
@@ -87,6 +87,7 @@ public:
 
   /** Basis image pixel type: this is also the type of the output vector */
   using BasisPixelType = typename TBasisImage::PixelType;
+
   /** Input Image dimension */
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
 
@@ -101,13 +102,15 @@ public:
   using BasisVectorType = vnl_vector<BasisPixelType>;
 
   /** Set and get the input image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Image, InputImageType);
   itkGetConstObjectMacro(Image, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the mean image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MeanImage, BasisImageType);
   itkGetConstObjectMacro(MeanImage, BasisImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the basis images. */
   void
   SetBasisImages(const BasisImagePointerVector &);
@@ -120,6 +123,7 @@ public:
 
   /** Type definition of a compatible ImagePCAShapeModelEstimator */
   using ModelPointerType = typename ImagePCAShapeModelEstimator<TInputImage, TBasisImage>::Pointer;
+
   /** Set the basis images from a ImagePCAShapeModelEstimator */
   void
   SetBasisFromModel(ModelPointerType model);
@@ -137,24 +141,26 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Convert a vector of basis images into a matrix flattening each image into 1-D. */
   void
   CalculateBasisMatrix();
 
+  /** Convert an image into a 1-D vector changing the pixel type if necessary. */
   void
   CalculateRecenteredImageAsVector();
 
 private:
   using BasisSizeType = typename BasisImageType::SizeType;
 
-  BasisVectorType         m_Projection;
-  BasisVectorType         m_ImageAsVector;
-  BasisImagePointerVector m_BasisImages;
-  BasisImageConstPointer  m_MeanImage;
-  BasisSizeType           m_Size;
-  InputImageConstPointer  m_Image;
-  BasisMatrixType         m_BasisMatrix;
-  bool                    m_BasisMatrixCalculated;
-  SizeValueType           m_NumPixels;
+  BasisVectorType         m_Projection{};
+  BasisVectorType         m_ImageAsVector{};
+  BasisImagePointerVector m_BasisImages{};
+  BasisImageConstPointer  m_MeanImage{};
+  BasisSizeType           m_Size{};
+  InputImageConstPointer  m_Image{};
+  BasisMatrixType         m_BasisMatrix{};
+  bool                    m_BasisMatrixCalculated{};
+  SizeValueType           m_NumPixels{};
 };
 } // end namespace itk
 

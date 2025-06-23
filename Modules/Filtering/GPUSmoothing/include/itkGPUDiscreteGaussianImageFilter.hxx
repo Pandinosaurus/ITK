@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUDiscreteGaussianImageFilter_hxx
 #define itkGPUDiscreteGaussianImageFilter_hxx
 
-#include "itkGPUDiscreteGaussianImageFilter.h"
 #include "itkGPUNeighborhoodOperatorImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkImageRegionIterator.h"
@@ -52,13 +51,13 @@ GPUDiscreteGaussianImageFilter<TInputImage, TOutputImage>::GPUDiscreteGaussianIm
     m_LastFilter = LastFilterType::New();
     for (unsigned int i = 1; i < filterDimensionality - 1; ++i)
     {
-      typename IntermediateFilterType::Pointer f = IntermediateFilterType::New();
+      auto f = IntermediateFilterType::New();
       m_IntermediateFilters.push_back(f);
     }
   }
   else
   {
-    itkExceptionMacro("GPUDiscreteGaussianImageFilter only supports n-Dimensional image.");
+    itkExceptionMacro("GPUDiscreteGaussianImageFilter only supports n-dimensional image.");
   }
 }
 
@@ -90,8 +89,8 @@ GPUDiscreteGaussianImageFilter<TInputImage, TOutputImage>::GPUGenerateData()
   // Create an internal image to protect the input image's metadata
   // (e.g. RequestedRegion). The StreamingImageFilter changes the
   // requested region as part of its normal processing.
-  // typename TInputImage::Pointer localInput = TInputImage::New();
-  typename GPUInputImage::Pointer localInput = GPUInputImage::New();
+  // auto localInput = TInputImage::New();
+  auto localInput = GPUInputImage::New();
   localInput->Graft(this->GetInput());
 
   // Determine the dimensionality to filter
@@ -154,12 +153,11 @@ GPUDiscreteGaussianImageFilter<TInputImage, TOutputImage>::GPUGenerateData()
   oper.resize(filterDimensionality);
 
   // Create a process accumulator for tracking the progress of minipipeline
-  // ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  // auto progress = ProgressAccumulator::New();
   // progress->SetMiniPipelineFilter(this);
 
   // Set up the operators
-  unsigned int i;
-  for (i = 0; i < filterDimensionality; ++i)
+  for (unsigned int i = 0; i < filterDimensionality; ++i)
   {
     // we reverse the direction to minimize computation while, because
     // the largest dimension will be split slice wise for streaming
@@ -167,11 +165,11 @@ GPUDiscreteGaussianImageFilter<TInputImage, TOutputImage>::GPUGenerateData()
 
     // Set up the operator for this dimension
     oper[reverse_i].SetDirection(i);
-    if (this->GetUseImageSpacing() == true)
+    if (this->GetUseImageSpacing())
     {
       if (localInput->GetSpacing()[i] == 0.0)
       {
-        itkExceptionMacro(<< "Pixel spacing cannot be zero");
+        itkExceptionMacro("Pixel spacing cannot be zero");
       }
       else
       {
@@ -232,7 +230,7 @@ GPUDiscreteGaussianImageFilter<TInputImage, TOutputImage>::GPUGenerateData()
     // Middle filters convolves from real to real
     if (filterDimensionality > 2)
     {
-      for (i = 1; i < filterDimensionality - 1; ++i)
+      for (unsigned int i = 1; i < filterDimensionality - 1; ++i)
       {
         typename IntermediateFilterType::Pointer f = m_IntermediateFilters[i - 1];
         f->SetOperator(oper[i]);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,12 @@
 #include "itkTestingMacros.h"
 
 int
-itkMaskNeighborhoodOperatorImageFilterTest(int ac, char * av[])
+itkMaskNeighborhoodOperatorImageFilterTest(int argc, char * argv[])
 {
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage OutputImage\n";
-    return -1;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage\n";
+    return EXIT_FAILURE;
   }
 
   constexpr unsigned int Dimension = 2;
@@ -40,29 +40,29 @@ itkMaskNeighborhoodOperatorImageFilterTest(int ac, char * av[])
   using InputImageType = itk::Image<PixelType, Dimension>;
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
-  itk::ImageFileReader<InputImageType>::Pointer input = itk::ImageFileReader<InputImageType>::New();
-  input->SetFileName(av[1]);
+  const itk::ImageFileReader<InputImageType>::Pointer input = itk::ImageFileReader<InputImageType>::New();
+  input->SetFileName(argv[1]);
   input->Update();
 
   // create a mask the size of the input file
   using MaskImageType = itk::Image<unsigned char, Dimension>;
-  MaskImageType::Pointer    mask1 = MaskImageType::New();
-  MaskImageType::Pointer    mask2 = MaskImageType::New();
+  auto                      mask1 = MaskImageType::New();
+  auto                      mask2 = MaskImageType::New();
   MaskImageType::RegionType region;
   MaskImageType::SizeType   size;
   MaskImageType::IndexType  index;
 
   region = input->GetOutput()->GetBufferedRegion();
   mask1->SetRegions(region);
-  mask1->Allocate(true); // initialize buffer to zero
+  mask1->AllocateInitialized();
 
   mask2->SetRegions(region);
-  mask2->Allocate(true); // initialize buffer to zero
+  mask2->AllocateInitialized();
 
 
   size = region.GetSize();
   index = region.GetIndex();
-  unsigned int width = size[0];
+  const unsigned int width = size[0];
   size[0] = width / 2 - static_cast<unsigned int>(.25 * static_cast<float>(width));
   index[0] = size[0] + static_cast<unsigned int>(.25 * static_cast<float>(width));
   region.SetSize(size);
@@ -99,49 +99,46 @@ itkMaskNeighborhoodOperatorImageFilterTest(int ac, char * av[])
   sobelVertical.SetDirection(1);
   sobelVertical.CreateDirectional();
 
-  FilterType::Pointer filter1 = FilterType::New();
+  auto filter1 = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter1, MaskNeighborhoodOperatorImageFilter, NeighborhoodOperatorImageFilter);
 
   filter1->SetInput(input->GetOutput());
   filter1->SetMaskImage(mask1);
   filter1->SetOperator(sobelHorizontal);
-  filter1->UseDefaultValueOff();
 
-  FilterType::Pointer filter2 = FilterType::New();
+  constexpr typename FilterType::OutputPixelType defaultValue{};
+  filter1->SetDefaultValue(defaultValue);
+  ITK_TEST_SET_GET_VALUE(defaultValue, filter1->GetDefaultValue());
+
+  constexpr bool useDefaultValue = false;
+  ITK_TEST_SET_GET_BOOLEAN(filter1, UseDefaultValue, useDefaultValue);
+
+  auto filter2 = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter2, MaskNeighborhoodOperatorImageFilter, NeighborhoodOperatorImageFilter);
 
   filter2->SetInput(filter1->GetOutput());
   filter2->SetMaskImage(mask2);
   filter2->SetOperator(sobelVertical);
-  filter2->UseDefaultValueOff();
+
+  filter2->SetDefaultValue(defaultValue);
+  ITK_TEST_SET_GET_VALUE(defaultValue, filter2->GetDefaultValue());
+
+  ITK_TEST_SET_GET_BOOLEAN(filter2, UseDefaultValue, useDefaultValue);
 
   using RescaleFilterType = itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
   rescaler->SetInput(filter2->GetOutput());
 
   // Generate test image
-  itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
+  const itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
   writer->SetInput(rescaler->GetOutput());
-  writer->SetFileName(av[2]);
+  writer->SetFileName(argv[2]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return -1;
-  }
-  catch (...)
-  {
-    std::cerr << "Some other exception occurred" << std::endl;
-    return -2;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
   return EXIT_SUCCESS;
 }

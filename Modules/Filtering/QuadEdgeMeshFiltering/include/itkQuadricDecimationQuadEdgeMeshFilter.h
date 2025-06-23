@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,8 +40,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = EdgeDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(QuadricDecimationQuadEdgeMeshFilter, EdgeDecimationQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadricDecimationQuadEdgeMeshFilter);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
@@ -53,7 +53,7 @@ public:
   using OutputMeshPointer = typename OutputMeshType::Pointer;
   using OutputPointIdentifier = typename OutputMeshType::PointIdentifier;
   using OutputPointType = typename OutputMeshType::PointType;
-  using OutputCoordType = typename OutputPointType::CoordRepType;
+  using OutputCoordType = typename OutputPointType::CoordinateType;
   using OutputQEType = typename OutputMeshType::QEType;
   using OutputEdgeCellType = typename OutputMeshType::EdgeCellType;
   using OutputCellsContainerIterator = typename OutputMeshType::CellsContainerIterator;
@@ -65,16 +65,16 @@ public:
   using CriterionType = TCriterion;
   using MeasureType = typename CriterionType::MeasureType;
 
-  using PriorityType = typename Superclass::PriorityType;
-  using PriorityQueueItemType = typename Superclass::PriorityQueueItemType;
-  using PriorityQueueType = typename Superclass::PriorityQueueType;
-  using PriorityQueuePointer = typename Superclass::PriorityQueuePointer;
+  using typename Superclass::PriorityType;
+  using typename Superclass::PriorityQueueItemType;
+  using typename Superclass::PriorityQueueType;
+  using typename Superclass::PriorityQueuePointer;
 
-  using QueueMapType = typename Superclass::QueueMapType;
-  using QueueMapIterator = typename Superclass::QueueMapIterator;
+  using typename Superclass::QueueMapType;
+  using typename Superclass::QueueMapIterator;
 
-  using OperatorType = typename Superclass::OperatorType;
-  using OperatorPointer = typename Superclass::OperatorPointer;
+  using typename Superclass::OperatorType;
+  using typename Superclass::OperatorPointer;
 
   using QuadricElementType = QuadEdgeMeshDecimationQuadricElementHelper<OutputPointType>;
 
@@ -105,7 +105,7 @@ protected:
 
     OutputPointType p[3];
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; ++i)
     {
       p[i] = outputMesh->GetPoint(id[i]);
     }
@@ -120,17 +120,17 @@ protected:
   MeasureType
   MeasureEdge(OutputQEType * iEdge) override
   {
-    OutputPointIdentifier id_org = iEdge->GetOrigin();
-    OutputPointIdentifier id_dest = iEdge->GetDestination();
-    QuadricElementType    Q = m_Quadric[id_org] + m_Quadric[id_dest];
+    const OutputPointIdentifier id_org = iEdge->GetOrigin();
+    const OutputPointIdentifier id_dest = iEdge->GetDestination();
+    QuadricElementType          Q = m_Quadric[id_org] + m_Quadric[id_dest];
 
-    OutputPointType org = this->m_OutputMesh->GetPoint(id_org);
-    OutputPointType dest = this->m_OutputMesh->GetPoint(id_dest);
+    const OutputPointType org = this->m_OutputMesh->GetPoint(id_org);
+    const OutputPointType dest = this->m_OutputMesh->GetPoint(id_dest);
 
     OutputPointType mid;
 
     mid.SetToMidPoint(org, dest);
-    OutputPointType p = Q.ComputeOptimalLocation(mid);
+    const OutputPointType p = Q.ComputeOptimalLocation(mid);
 
     return static_cast<MeasureType>(Q.ComputeError(p));
   }
@@ -154,7 +154,7 @@ protected:
   Initialize() override;
 
 private:
-  QuadricElementMapType m_Quadric;
+  QuadricElementMapType m_Quadric{};
 };
 } // namespace itk
 #ifndef ITK_MANUAL_INSTANTIATION

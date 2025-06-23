@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,8 @@
 
 #include "itkDomainThreader.h"
 #include "itkCompensatedSummation.h"
+
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -53,11 +55,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(ImageToImageMetricv4GetValueAndDerivativeThreaderBase, DomainThreader);
+  itkOverrideGetNameOfClassMacro(ImageToImageMetricv4GetValueAndDerivativeThreaderBase);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   /** Types of the target class. */
   using ImageToImageMetricv4Type = TImageToImageMetricv4;
@@ -95,7 +97,7 @@ public:
 
 protected:
   ImageToImageMetricv4GetValueAndDerivativeThreaderBase();
-  ~ImageToImageMetricv4GetValueAndDerivativeThreaderBase() override;
+  ~ImageToImageMetricv4GetValueAndDerivativeThreaderBase() override = default;
 
   /** Resize and initialize per thread objects. */
   void
@@ -185,18 +187,19 @@ protected:
     JacobianType MovingTransformJacobian;
     JacobianType MovingTransformJacobianPositional;
   };
+
   itkPadStruct(ITK_CACHE_LINE_ALIGNMENT,
                GetValueAndDerivativePerThreadStruct,
                PaddedGetValueAndDerivativePerThreadStruct);
   itkAlignedTypedef(ITK_CACHE_LINE_ALIGNMENT,
                     PaddedGetValueAndDerivativePerThreadStruct,
                     AlignedGetValueAndDerivativePerThreadStruct);
-  mutable AlignedGetValueAndDerivativePerThreadStruct * m_GetValueAndDerivativePerThreadVariables;
+  std::unique_ptr<AlignedGetValueAndDerivativePerThreadStruct[]> m_GetValueAndDerivativePerThreadVariables;
 
   /** Cached values to avoid call overhead.
    *  These will only be set once threading has been started. */
-  mutable NumberOfParametersType m_CachedNumberOfParameters;
-  mutable NumberOfParametersType m_CachedNumberOfLocalParameters;
+  mutable NumberOfParametersType m_CachedNumberOfParameters{};
+  mutable NumberOfParametersType m_CachedNumberOfLocalParameters{};
 };
 
 } // end namespace itk

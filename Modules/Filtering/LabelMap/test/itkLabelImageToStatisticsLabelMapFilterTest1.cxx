@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,8 @@ itkLabelImageToStatisticsLabelMapFilterTest1(int argc, char * argv[])
 
   if (argc != 9)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputLabelImage inputGrayscaleImage outputStatisticsLabelMap";
     std::cerr << " backgroundValue";
     std::cerr << " feretDiameter, perimeter, histogram, numberOfBins";
@@ -43,33 +44,33 @@ itkLabelImageToStatisticsLabelMapFilterTest1(int argc, char * argv[])
 
   // reading image to file
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
   // converting Label image to Statistics label map
   // don't set the output type to test the default value of the template parameter
   using I2LType = itk::LabelImageToStatisticsLabelMapFilter<ImageType, ImageType>;
-  I2LType::Pointer         i2l = I2LType::New();
-  itk::SimpleFilterWatcher watcher1(i2l);
+  auto                           i2l = I2LType::New();
+  const itk::SimpleFilterWatcher watcher1(i2l);
 
   i2l->SetInput(reader->GetOutput());
 
   // test all the possible ways to set the feature image. Be sure they can work with const images.
-  ImageType::ConstPointer constOutput = reader2->GetOutput();
+  const ImageType::ConstPointer constOutput = reader2->GetOutput();
   i2l->SetInput2(constOutput);
   i2l->SetFeatureImage(constOutput);
   i2l->SetInput(1, constOutput);
 
   // testing get/set BackgroundValue macro
-  int BackgroundValue = (std::stoi(argv[4]));
+  const int BackgroundValue = (std::stoi(argv[4]));
   i2l->SetBackgroundValue(BackgroundValue);
   ITK_TEST_SET_GET_VALUE(BackgroundValue, i2l->GetBackgroundValue());
 
   // testing get/set ComputeFeretDiameter macro
-  bool computeFeretDiameter = (std::stoi(argv[5]));
+  const bool computeFeretDiameter = (std::stoi(argv[5]));
   i2l->SetComputeFeretDiameter(computeFeretDiameter);
   ITK_TEST_SET_GET_VALUE(computeFeretDiameter, i2l->GetComputeFeretDiameter());
 
@@ -81,7 +82,7 @@ itkLabelImageToStatisticsLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(true, i2l->GetComputeFeretDiameter());
 
   // testing get/set ComputePerimeter macro
-  bool computePerimeter = std::stoi(argv[6]);
+  const bool computePerimeter = std::stoi(argv[6]);
   i2l->SetComputePerimeter(computePerimeter);
   ITK_TEST_SET_GET_VALUE(computePerimeter, i2l->GetComputePerimeter());
 
@@ -93,7 +94,7 @@ itkLabelImageToStatisticsLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(true, i2l->GetComputePerimeter());
 
   // testing get/set ComputeHistogram macro
-  bool computeHistogram = (std::stoi(argv[7]));
+  const bool computeHistogram = (std::stoi(argv[7]));
   i2l->SetComputeHistogram(computeHistogram);
   ITK_TEST_SET_GET_VALUE(computeHistogram, i2l->GetComputeHistogram());
 
@@ -105,18 +106,18 @@ itkLabelImageToStatisticsLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(true, i2l->GetComputeHistogram());
 
   // testing get/set NumberOfBins macro
-  unsigned int numberOfBins = (std::stoi(argv[8]));
+  const unsigned int numberOfBins = (std::stoi(argv[8]));
   i2l->SetNumberOfBins(numberOfBins);
   ITK_TEST_SET_GET_VALUE(numberOfBins, i2l->GetNumberOfBins());
 
   using L2IType = itk::LabelMapToLabelImageFilter<I2LType::OutputImageType, ImageType>;
-  L2IType::Pointer         l2i = L2IType::New();
-  itk::SimpleFilterWatcher watcher2(l2i);
+  auto                           l2i = L2IType::New();
+  const itk::SimpleFilterWatcher watcher2(l2i);
 
   l2i->SetInput(i2l->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[3]);
   writer->UseCompressionOn();

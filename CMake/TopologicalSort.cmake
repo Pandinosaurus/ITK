@@ -71,13 +71,17 @@ function(topological_sort LIST PREFIX SUFFIX)
   # Loop over all of the vertices, starting the topological sort from
   # each one.
   foreach(VERTEX ${VERTICES})
-
     # If we haven't already processed this vertex, start a depth-first
     # search from where.
-    if (NOT FOUND_${VERTEX})
+    if(NOT FOUND_${VERTEX})
       # Push this vertex onto the stack with all of its outgoing edges
-      string(REPLACE ";" " " NEW_ELEMENT
-        "${VERTEX};${${PREFIX}${VERTEX}${SUFFIX}}")
+      string(
+        REPLACE
+        ";"
+        " "
+        NEW_ELEMENT
+        "${VERTEX};${${PREFIX}${VERTEX}${SUFFIX}}"
+      )
       list(APPEND STACK ${NEW_ELEMENT})
 
       # We've now seen this vertex
@@ -98,12 +102,12 @@ function(topological_sort LIST PREFIX SUFFIX)
 
         # While there are still out-edges remaining
         list(LENGTH OUT_EDGES OUT_DEGREE)
-        while (OUT_DEGREE GREATER 0)
+        while(OUT_DEGREE GREATER 0)
           # Pull off the first outgoing edge
           list(GET OUT_EDGES 0 TARGET)
           list(REMOVE_AT OUT_EDGES 0)
 
-          if (NOT FOUND_${TARGET})
+          if(NOT FOUND_${TARGET})
             # We have not seen the target before, so we will traverse
             # its outgoing edges before coming back to our
             # source. This is the key to the depth-first traversal.
@@ -113,18 +117,16 @@ function(topological_sort LIST PREFIX SUFFIX)
 
             # Push the remaining edges for the current vertex onto the
             # stack
-            string(REPLACE ";" " " NEW_ELEMENT
-              "${SOURCE};${OUT_EDGES}")
+            string(REPLACE ";" " " NEW_ELEMENT "${SOURCE};${OUT_EDGES}")
             list(APPEND STACK ${NEW_ELEMENT})
 
             # Setup the new source and outgoing edges
             set(SOURCE ${TARGET})
-            set(OUT_EDGES
-              ${${PREFIX}${SOURCE}${SUFFIX}})
+            set(OUT_EDGES ${${PREFIX}${SOURCE}${SUFFIX}})
           endif()
 
           list(LENGTH OUT_EDGES OUT_DEGREE)
-        endwhile ()
+        endwhile()
 
         # We have finished all of the outgoing edges for
         # SOURCE; add it to the resulting list.
@@ -133,7 +135,7 @@ function(topological_sort LIST PREFIX SUFFIX)
         # Check the length of the stack
         list(LENGTH STACK STACK_LENGTH)
       endwhile()
-    endif ()
+    endif()
   endforeach()
 
   set(${LIST} ${${LIST}} PARENT_SCOPE)

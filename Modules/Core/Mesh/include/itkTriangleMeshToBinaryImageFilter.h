@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,24 +38,19 @@ public:
 
   Point1D() = default;
   Point1D(const double p, const int s)
-  {
-    m_X = p;
-    m_Sign = s;
-  }
+    : m_X(p)
+    , m_Sign(s)
+  {}
 
-  Point1D(const Point1D & point)
-  {
-    m_X = point.m_X;
-    m_Sign = point.m_Sign;
-  }
+  Point1D(const Point1D & point) = default;
 
-  double
+  [[nodiscard]] double
   getX() const
   {
     return m_X;
   }
 
-  int
+  [[nodiscard]] int
   getSign() const
   {
     return m_Sign;
@@ -66,7 +61,7 @@ public:
  *
  * \brief 3D Rasterization algorithm Courtesy of Dr David Gobbi of Atamai Inc.
 
- * \author Leila Baghdadi, MICe, Hospital for Sick Childern, Toronto, Canada,
+ * \author Leila Baghdadi, MICe, Hospital for Sick Children, Toronto, Canada,
  * \ingroup ITKMesh
  */
 template <typename TInputMesh, typename TOutputImage>
@@ -92,11 +87,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TriangleMeshToBinaryImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TriangleMeshToBinaryImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Some convenient type alias. */
   using InputMeshType = TInputMesh;
@@ -129,64 +124,70 @@ public:
   using PointVector = std::vector<PointType>;
   using PointArray = std::vector<std::vector<PointType>>;
 
-  using StencilIndexVector = std::vector<int>;
   /** Spacing (size of a pixel) of the output image. The
    * spacing is the geometric distance between image samples.
    * It is stored internally as double, but may be set from
    * float. \sa GetSpacing() */
+  /** @ITKStartGrouping */
   itkSetMacro(Spacing, SpacingType);
   virtual void
   SetSpacing(const double spacing[3]);
-
+  /** @ITKEndGrouping */
   virtual void
   SetSpacing(const float spacing[3]);
 
   itkGetConstReferenceMacro(Spacing, SpacingType);
 
-  /** The Direction is a matix of direction cosines
+  /** The Direction is a matrix of direction cosines
    *  that specify the direction between samples.
    * */
+  /** @ITKStartGrouping */
   itkSetMacro(Direction, DirectionType);
   itkGetConstMacro(Direction, DirectionType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value for pixels inside the spatial object.
    * By default, this filter will return an image
    * If this "inside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(InsideValue, ValueType);
   itkGetConstMacro(InsideValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value for pixels outside the spatial object.
    * By default, this filter will return an image
    * If this "outside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutsideValue, ValueType);
   itkGetConstMacro(OutsideValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** The origin of the output image. The origin is the geometric
    * coordinates of the index (0,0,...,0).  It is stored internally
    * as double but may be set from float.
    * \sa GetOrigin() */
+  /** @ITKStartGrouping */
   itkSetMacro(Origin, PointType);
   virtual void
   SetOrigin(const double origin[3]);
-
+  /** @ITKEndGrouping */
   virtual void
   SetOrigin(const float origin[3]);
 
   itkGetConstReferenceMacro(Origin, PointType);
 
   /** Set/Get Index */
+  /** @ITKStartGrouping */
   itkSetMacro(Index, IndexType);
   itkGetConstMacro(Index, IndexType);
-
+  /** @ITKEndGrouping */
   /** Set/Get Size */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
-
-  /** Set the mesh input of this process object.  */
+  /** @ITKEndGrouping */
+  /** Set the input mesh. */
   using Superclass::SetInput;
   void
   SetInput(InputMeshType * input);
@@ -201,7 +202,7 @@ public:
     }
   }
 
-  /** Get the mesh input of this process object.  */
+  /** Get the input mesh. */
   InputMeshType *
   GetInput();
 
@@ -225,27 +226,26 @@ protected:
   virtual void
   RasterizeTriangles();
 
+  /** Convert a single polygon/triangle to raster format. */
   static int
   PolygonToImageRaster(PointVector coords, Point1DArray & zymatrix, int extent[6]);
 
-  OutputImageType * m_InfoImage;
+  OutputImageType * m_InfoImage{};
 
-  IndexType m_Index;
+  IndexType m_Index{};
 
-  SizeType m_Size;
+  SizeType m_Size{};
 
-  SpacingType m_Spacing;
+  SpacingType m_Spacing{};
 
-  PointType m_Origin; // start value
+  PointType m_Origin{}; // start value
 
-  double m_Tolerance;
+  double m_Tolerance{};
 
-  ValueType m_InsideValue;
-  ValueType m_OutsideValue;
+  ValueType m_InsideValue{};
+  ValueType m_OutsideValue{};
 
-  DirectionType m_Direction;
-
-  StencilIndexVector m_StencilIndex;
+  DirectionType m_Direction{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

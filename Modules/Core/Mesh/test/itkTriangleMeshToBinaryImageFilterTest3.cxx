@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ itkTriangleMeshToBinaryImageFilterTest3(int argc, char * argv[])
   using MeshType = itk::Mesh<float, Dimension>;
   using ReaderType = itk::MeshFileReader<MeshType>;
 
-  ReaderType::Pointer polyDataReader = ReaderType::New();
+  auto polyDataReader = ReaderType::New();
 
   polyDataReader->SetFileName(argv[1]);
 
@@ -60,7 +60,7 @@ itkTriangleMeshToBinaryImageFilterTest3(int argc, char * argv[])
 
   using TriangleImageType = itk::TriangleMeshToBinaryImageFilter<MeshType, ImageType>;
 
-  TriangleImageType::Pointer imageFilter = TriangleImageType::New();
+  auto imageFilter = TriangleImageType::New();
 
   imageFilter->SetInput(polyDataReader->GetOutput());
 

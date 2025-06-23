@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -203,10 +203,10 @@ main(int argc, char * argv[])
   // Software Guide : EndCodeSnippet
 
 
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetOptimizer(optimizer);
   registration->SetTransform(transform);
@@ -221,7 +221,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
   registration->SetMetric(metric);
   // Software Guide : EndCodeSnippet
 
@@ -252,10 +252,8 @@ main(int argc, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -275,11 +273,9 @@ main(int argc, char * argv[])
   using MovingNormalizeFilterType =
     itk::NormalizeImageFilter<MovingImageType, InternalImageType>;
 
-  FixedNormalizeFilterType::Pointer fixedNormalizer =
-    FixedNormalizeFilterType::New();
+  auto fixedNormalizer = FixedNormalizeFilterType::New();
 
-  MovingNormalizeFilterType::Pointer movingNormalizer =
-    MovingNormalizeFilterType::New();
+  auto movingNormalizer = MovingNormalizeFilterType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -294,8 +290,8 @@ main(int argc, char * argv[])
   using GaussianFilterType =
     itk::DiscreteGaussianImageFilter<InternalImageType, InternalImageType>;
 
-  GaussianFilterType::Pointer fixedSmoother = GaussianFilterType::New();
-  GaussianFilterType::Pointer movingSmoother = GaussianFilterType::New();
+  auto fixedSmoother = GaussianFilterType::New();
+  auto movingSmoother = GaussianFilterType::New();
 
   fixedSmoother->SetVariance(2.0);
   movingSmoother->SetVariance(2.0);
@@ -323,7 +319,7 @@ main(int argc, char * argv[])
 
 
   fixedNormalizer->Update();
-  FixedImageType::RegionType fixedImageRegion =
+  const FixedImageType::RegionType fixedImageRegion =
     fixedNormalizer->GetOutput()->GetBufferedRegion();
   registration->SetFixedImageRegion(fixedImageRegion);
 
@@ -428,7 +424,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
 
@@ -448,12 +444,12 @@ main(int argc, char * argv[])
 
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
-  double TranslationAlongX = finalParameters[0];
-  double TranslationAlongY = finalParameters[1];
+  const double TranslationAlongX = finalParameters[0];
+  const double TranslationAlongY = finalParameters[1];
 
-  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
 
-  double bestValue = optimizer->GetValue();
+  const double bestValue = optimizer->GetValue();
 
 
   // Print out results
@@ -504,17 +500,17 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  TransformType::Pointer finalTransform = TransformType::New();
+  auto finalTransform = TransformType::New();
 
   finalTransform->SetParameters(finalParameters);
   finalTransform->SetFixedParameters(transform->GetFixedParameters());
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(finalTransform);
   resample->SetInput(movingImageReader->GetOutput());
 
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   resample->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
   resample->SetOutputOrigin(fixedImage->GetOrigin());
@@ -533,8 +529,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
 
   writer->SetFileName(argv[3]);
@@ -549,7 +545,7 @@ main(int argc, char * argv[])
   //
   using CheckerBoardFilterType = itk::CheckerBoardImageFilter<FixedImageType>;
 
-  CheckerBoardFilterType::Pointer checker = CheckerBoardFilterType::New();
+  auto checker = CheckerBoardFilterType::New();
 
   checker->SetInput1(fixedImage);
   checker->SetInput2(resample->GetOutput());
@@ -558,7 +554,7 @@ main(int argc, char * argv[])
   writer->SetInput(caster->GetOutput());
 
   // Before registration
-  TransformType::Pointer identityTransform = TransformType::New();
+  auto identityTransform = TransformType::New();
   identityTransform->SetIdentity();
   resample->SetTransform(identityTransform);
 
@@ -666,7 +662,7 @@ main(int argc, char * argv[])
   //  Data for the plots was taken directly from the output that the
   //  Command/Observer in this example prints out to the console. The output
   //  was processed with the UNIX editor
-  //  \code{sed}\footnote{\url{http://www.gnu.org/software/sed/sed.html}} in
+  //  \code{sed}\footnote{\url{https://www.gnu.org/software/sed/sed.html}} in
   //  order to remove commas and brackets that were confusing for Gnuplot's
   //  parser. Both the shell script for running \code{sed} and for running
   //  {Gnuplot} are available in the directory indicated above. You may find

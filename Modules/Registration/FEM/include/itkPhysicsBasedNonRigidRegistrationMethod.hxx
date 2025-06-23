@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,28 +20,23 @@
 
 #include <iostream>
 #include "itkTimeProbe.h"
-#include "itkPhysicsBasedNonRigidRegistrationMethod.h"
 
-
-namespace itk
-{
-
-namespace fem
+namespace itk::fem
 {
 
 template <typename TFixedImage, typename TMovingImage, typename TMaskImage, typename TMesh, typename TDeformationField>
 PhysicsBasedNonRigidRegistrationMethod<TFixedImage, TMovingImage, TMaskImage, TMesh, TDeformationField>::
   PhysicsBasedNonRigidRegistrationMethod()
+  : m_FeatureSelectionFilter(FeatureSelectionFilterType::New())
+  , m_BlockMatchingFilter(BlockMatchingFilterType::New())
+  , m_FEMFilter(FEMFilterType::New())
 {
   this->m_BlockRadius.Fill(2);
   this->m_SearchRadius.Fill(5);
 
   // Set up internal pipeline
-  this->m_FeatureSelectionFilter = FeatureSelectionFilterType::New();
   this->m_FeatureSelectionFilter->ComputeStructureTensorsOn();
-  this->m_BlockMatchingFilter = BlockMatchingFilterType::New();
   this->m_BlockMatchingFilter->SetFeaturePoints(this->m_FeatureSelectionFilter->GetOutput());
-  this->m_FEMFilter = FEMFilterType::New();
   this->m_FEMFilter->SetConfidencePointSet(this->m_BlockMatchingFilter->GetSimilarities());
   this->m_FEMFilter->SetTensorPointSet(this->m_FeatureSelectionFilter->GetOutput());
 
@@ -105,18 +100,19 @@ PhysicsBasedNonRigidRegistrationMethod<TFixedImage, TMovingImage, TMaskImage, TM
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "m_SelectFraction: " << m_SelectFraction << std::endl;
-  os << indent << "m_NonConnectivity: " << m_NonConnectivity << std::endl;
-  os << indent << "m_BlockRadius: " << m_BlockRadius << std::endl;
-  os << indent << "m_SearchRadius: " << m_SearchRadius << std::endl;
-  os << indent << "m_ApproximationSteps: " << m_ApproximationSteps << std::endl;
-  os << indent << "m_OutlierRejectionSteps: " << m_OutlierRejectionSteps << std::endl;
+  os << indent << "SelectFraction: " << m_SelectFraction << std::endl;
+  os << indent << "NonConnectivity: " << m_NonConnectivity << std::endl;
+  os << indent << "BlockRadius: " << static_cast<typename NumericTraits<ImageSizeType>::PrintType>(m_BlockRadius)
+     << std::endl;
+  os << indent << "SearchRadius: " << static_cast<typename NumericTraits<ImageSizeType>::PrintType>(m_SearchRadius)
+     << std::endl;
+  os << indent << "ApproximationSteps: " << m_ApproximationSteps << std::endl;
+  os << indent << "OutlierRejectionSteps: " << m_OutlierRejectionSteps << std::endl;
 
   itkPrintSelfObjectMacro(FeatureSelectionFilter);
   itkPrintSelfObjectMacro(BlockMatchingFilter);
   itkPrintSelfObjectMacro(FEMFilter);
 }
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,8 +41,9 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-itk_fetch_module(MultipleImageIterator
-"Several applications such as multi-atlas segmentation
+itk_fetch_module(
+  MultipleImageIterator
+  "Several applications such as multi-atlas segmentation
 require frequent iteration over multiple image volumes at the same time.
 Doing so with the regular ITK iterators is tedious and error prone
 as it requires updating each iterator at end of each iteration.
@@ -51,10 +52,10 @@ The MultipleImageIterator is a simple wrapper class that tries to make this more
 
 A more detailed description can be found in the Insight Journal article::
 Schaerer J. \"A MultipleImageIterator for iterating over multiple images simultaneously\".
-  https://www.insight-journal.org/browse/publication/915
+  https://doi.org/10.54294/e5lmyz
   December, 2014.
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/KitwareMedical/MultipleImageIterator.git
-  GIT_TAG 05b4b9ed851a14fb1c68264e23b5f130dd9f9528
+  GIT_REPOSITORY https://github.com/KitwareMedical/MultipleImageIterator.git
+  GIT_TAG e755ddbb97b4949d09170f0d5b2971b59840bafb
   )

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,15 @@
 #ifndef itkFEMImageMetricLoad_hxx
 #define itkFEMImageMetricLoad_hxx
 
-#include "itkFEMImageMetricLoad.h"
-
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 // Overload the CreateAnother() method.
 template <typename TMoving, typename TFixed>
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 ImageMetricLoad<TMoving, TFixed>::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   // Copy Load Contents
   copyPtr->m_MetricGradientImage = this->m_MetricGradientImage;
@@ -87,7 +83,7 @@ ImageMetricLoad<TMoving, TFixed>::InitializeMetric()
   typename FixedType::IndexType  tindex;
   //  typename MovingType::IndexType rindex;
   // initialize the offset/vector part
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     // Set the size of the image region
     size[k] = 1;
@@ -118,22 +114,20 @@ ImageMetricLoad<TMoving, TFixed>::InitializeMetric()
   {
     m_Metric->Initialize();
   }
-  catch (ExceptionObject & e)
+  catch (const ExceptionObject & e)
   {
-    std::cout << "Metric initialization failed" << std::endl;
-    std::cout << "Reason " << e.GetDescription() << std::endl;
+    std::cout << "Metric initialization failed" << std::endl << "Reason " << e.GetDescription() << std::endl;
   }
 }
 
 template <typename TMoving, typename TFixed>
 ImageMetricLoad<TMoving, TFixed>::ImageMetricLoad()
+  : m_Metric(nullptr)
+  , m_Sign(1.0)
+  , m_SolutionIndex(1)
+  , m_Transform(nullptr)
 {
-  m_Metric = nullptr;
-  m_Transform = nullptr;
-  m_SolutionIndex = 1;
-  m_SolutionIndex2 = 0;
-  m_Sign = 1.0;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     m_MetricRadius[i] = 1;
   }
@@ -141,8 +135,8 @@ ImageMetricLoad<TMoving, TFixed>::ImageMetricLoad()
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::Float
-ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Element::ArrayType * element, Float step)
+auto
+ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Element::ArrayType * element, Float step) -> Float
 {
   Float energy = 0.0, defe = 0.0;
 
@@ -156,9 +150,9 @@ ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Element::ArrayType
   const unsigned int Nnodes = (*elt)->GetNumberOfNodes();
 
   solmat.set_size(Nnodes * ImageDimension, 1);
-  for (; elt != element->end(); elt++)
+  for (; elt != element->end(); ++elt)
   {
-    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; i++)
+    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; ++i)
     {
       static_cast<Element *>((*elt))->GetIntegrationPointAndWeight(i, ip, w, m_NumberOfIntegrationPoints);
       // FIXME REMOVE WHEN ELEMENT NEW IS BASE CLASS
@@ -166,11 +160,11 @@ ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Element::ArrayType
 
       float solval, posval;
       Float detJ = (*elt)->JacobianDeterminant(ip);
-      for (unsigned int f = 0; f < ImageDimension; f++)
+      for (unsigned int f = 0; f < ImageDimension; ++f)
       {
         solval = 0.0;
         posval = 0.0;
-        for (unsigned int n = 0; n < Nnodes; n++)
+        for (unsigned int n = 0; n < Nnodes; ++n)
         {
           posval += shapef[n] * (((*elt)->GetNodeCoordinates(n))[f]);
           float nodeval =
@@ -187,30 +181,30 @@ ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Element::ArrayType
       float tempe = 0.0;
       try
       {
-        tempe = std::fabs(GetMetric(InVec));
+        tempe = itk::Math::abs(GetMetric(InVec));
       }
-      catch (itk::ExceptionObject &)
+      catch (const itk::ExceptionObject &)
       {
-        // do nothing we dont care if the metric region is outside the image
+        // do nothing we don't care if the metric region is outside the image
         // std::cerr << e << std::endl;
       }
-      for (unsigned int n = 0; n < Nnodes; n++)
+      for (unsigned int n = 0; n < Nnodes; ++n)
       {
         itk::fem::Element::Float temp = shapef[n] * tempe * w * detJ;
         energy += temp;
       }
     }
 
-    defe += 0.0; // (double)(*elt)->GetElementDeformationEnergy( solmat );
+    defe += 0.0; // static_cast<double>(*elt)->GetElementDeformationEnergy( solmat );
   }
 
   // std::cout << " def e " << defe << " sim e " << energy*m_Gamma << std::endl;
-  return std::fabs((double)energy * (double)m_Gamma - (double)defe);
+  return itk::Math::abs(static_cast<double>(energy) * static_cast<double>(m_Gamma) - static_cast<double>(defe));
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::Float
-ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution1(Element::ArrayType * element, Float step)
+auto
+ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution1(Element::ArrayType * element, Float step) -> Float
 {
   Float energy = 0.0, defe = 0.0;
 
@@ -224,20 +218,20 @@ ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution1(Element::ArrayTyp
   const unsigned int Nnodes = (*elt)->GetNumberOfNodes();
 
   solmat.set_size(Nnodes * ImageDimension, 1);
-  for (; elt != element->end(); elt++)
+  for (; elt != element->end(); ++elt)
   {
-    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; i++)
+    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; ++i)
     {
       static_cast<Element *>((*elt))->GetIntegrationPointAndWeight(i, ip, w, m_NumberOfIntegrationPoints);
       // FIXME REMOVE WHEN ELEMENT NEW IS BASE CLASS
       shapef = (*elt)->ShapeFunctions(ip);
 
       Float detJ = (*elt)->JacobianDeterminant(ip);
-      for (unsigned int f = 0; f < ImageDimension; f++)
+      for (unsigned int f = 0; f < ImageDimension; ++f)
       {
         float solval = 0.0;
         float posval = 0.0;
-        for (unsigned int n = 0; n < Nnodes; n++)
+        for (unsigned int n = 0; n < Nnodes; ++n)
         {
           posval += shapef[n] * (((*elt)->GetNodeCoordinates(n))[f]);
           float nodeval =
@@ -254,30 +248,30 @@ ImageMetricLoad<TMoving, TFixed>::EvaluateMetricGivenSolution1(Element::ArrayTyp
       float tempe = 0.0;
       try
       {
-        tempe = std::fabs(GetMetric(InVec));
+        tempe = itk::Math::abs(GetMetric(InVec));
       }
-      catch (itk::ExceptionObject &)
+      catch (const itk::ExceptionObject &)
       {
-        // do nothing we dont care if the metric region is outside the image
+        // do nothing we don't care if the metric region is outside the image
         // std::cerr << e << std::endl;
       }
-      for (unsigned int n = 0; n < Nnodes; n++)
+      for (unsigned int n = 0; n < Nnodes; ++n)
       {
         itk::fem::Element::Float temp = shapef[n] * tempe * w * detJ;
         energy += temp;
       }
     }
 
-    defe += 0.0; // (double)(*elt)->GetElementDeformationEnergy( solmat );
+    defe += 0.0; // static_cast<double>(*elt)->GetElementDeformationEnergy( solmat );
   }
 
   // std::cout << " def e " << defe << " sim e " << energy*m_Gamma << std::endl;
-  return std::fabs((double)energy * (double)m_Gamma - (double)defe);
+  return itk::Math::abs(static_cast<double>(energy) * static_cast<double>(m_Gamma) - static_cast<double>(defe));
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::VectorType
-ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol)
+auto
+ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol) -> VectorType
 {
   // We assume the vector input is of size 2*ImageDimension.
   // The 0 to ImageDimension-1 elements contain the position, p,
@@ -292,10 +286,10 @@ ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol)
   // ------------------------------------------------------------
 
   VectorType OutVec;
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     if (itk::Math::isnan(Gpos[k]) || itk::Math::isinf(Gpos[k]) || itk::Math::isnan(Gsol[k]) ||
-        itk::Math::isinf(Gsol[k]) || std::fabs(Gpos[k]) > 1.e33 || std::fabs(Gsol[k]) > 1.e33)
+        itk::Math::isinf(Gsol[k]) || itk::Math::abs(Gpos[k]) > 1.e33 || itk::Math::abs(Gsol[k]) > 1.e33)
     {
       OutVec.set_size(ImageDimension);
       OutVec.fill(0.0);
@@ -312,31 +306,31 @@ ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol)
   OutVec.set_size(ImageDimension);
 
   int lobordercheck = 0, hibordercheck = 0;
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     // Set the size of the image region
     parameters[k] = Gsol[k];
     // this gives the translation by the vector field
     // where the piece of reference image currently lines up under the above translation
     // position in reference image
-    rindex[k] = (long)(Gpos[k] + Gsol[k] + 0.5);
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)m_MetricRadius[k] / 2;
-    hibordercheck = (int)tindex[k] + (int)m_MetricRadius[k] - (int)m_TarSize[k];
-    lobordercheck = (int)tindex[k] - (int)m_MetricRadius[k];
+    rindex[k] = static_cast<long>(Gpos[k] + Gsol[k] + 0.5);
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(m_MetricRadius[k]) / 2;
+    hibordercheck = static_cast<int>(tindex[k]) + static_cast<int>(m_MetricRadius[k]) - static_cast<int>(m_TarSize[k]);
+    lobordercheck = static_cast<int>(tindex[k]) - static_cast<int>(m_MetricRadius[k]);
     if (hibordercheck >= 0)
     {
-      regionRadius[k] = m_MetricRadius[k] - (long)hibordercheck - 1;
+      regionRadius[k] = m_MetricRadius[k] - static_cast<long>(hibordercheck) - 1;
     }
     else if (lobordercheck < 0)
     {
-      regionRadius[k] = m_MetricRadius[k] + (long)lobordercheck;
+      regionRadius[k] = m_MetricRadius[k] + static_cast<long>(lobordercheck);
     }
     else
     {
       regionRadius[k] = m_MetricRadius[k];
     }
     // position in reference image
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)regionRadius[k] / 2;
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(regionRadius[k]) / 2;
   }
 
   // Set the associated region
@@ -364,9 +358,9 @@ ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol)
     // std::cerr << e << std::endl;
   }
 
-  m_Energy += (double)measure;
+  m_Energy += static_cast<double>(measure);
   float gmag = 0.0;
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     if (lobordercheck < 0 || hibordercheck >= 0 || itk::Math::isnan(derivative[k]) || itk::Math::isinf(derivative[k]))
     {
@@ -392,8 +386,8 @@ ImageMetricLoad<TMoving, TFixed>::Fe(VectorType Gpos, VectorType Gsol)
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::Float
-ImageMetricLoad<TMoving, TFixed>::GetMetric(VectorType InVec)
+auto
+ImageMetricLoad<TMoving, TFixed>::GetMetric(VectorType InVec) -> Float
 {
   // We assume the vector input is of size 2*ImageDimension.
   // The 0 to ImageDimension-1 elements contain the position, p,
@@ -415,54 +409,32 @@ ImageMetricLoad<TMoving, TFixed>::GetMetric(VectorType InVec)
   VectorType                     OutVec(ImageDimension, 0.0); // gradient direction
   // std::cout << " pos   translation " << InVec  << endl;
   // initialize the offset/vector part
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     // Set the size of the image region
-    parameters[k] = InVec[k + ImageDimension];                        // this
-                                                                      // gives
-                                                                      // the
-                                                                      // translation
-                                                                      // by
-                                                                      // the
-                                                                      // vector
-                                                                      // field
-    rindex[k] = (long)(InVec[k] + InVec[k + ImageDimension] + 0.5);   // where
-                                                                      // the
-                                                                      // piece
-                                                                      // of
-                                                                      // reference
-                                                                      // image
-                                                                      // currently
-                                                                      // lines
-                                                                      // up
-                                                                      // under
-                                                                      // the
-                                                                      // above
-                                                                      // translation
-    tindex[k] = (long)(InVec[k] + 0.5) - (long)m_MetricRadius[k] / 2; //
-                                                                      // position
-                                                                      // in
-                                                                      // reference
-                                                                      // image
-    int hibordercheck = (int)tindex[k] + (int)m_MetricRadius[k] - (int)m_TarSize[k];
-    int lobordercheck = (int)tindex[k] - (int)m_MetricRadius[k];
+    // this gives the translation by the vector field
+    parameters[k] = InVec[k + ImageDimension];
+    // where the piece of reference image currently lines up under the above translation
+    rindex[k] = static_cast<long>(InVec[k] + InVec[k + ImageDimension] + 0.5);
+    // position in reference image
+    tindex[k] = static_cast<long>(InVec[k] + 0.5) - static_cast<long>(m_MetricRadius[k]) / 2;
+    int hibordercheck =
+      static_cast<int>(tindex[k]) + static_cast<int>(m_MetricRadius[k]) - static_cast<int>(m_TarSize[k]);
+    int lobordercheck = static_cast<int>(tindex[k]) - static_cast<int>(m_MetricRadius[k]);
     if (hibordercheck > 0)
     {
-      regionRadius[k] = m_MetricRadius[k] - (long)hibordercheck - 1;
+      regionRadius[k] = m_MetricRadius[k] - static_cast<long>(hibordercheck) - 1;
     }
     else if (lobordercheck < 0)
     {
-      regionRadius[k] = m_MetricRadius[k] + (long)lobordercheck;
+      regionRadius[k] = m_MetricRadius[k] + static_cast<long>(lobordercheck);
     }
     else
     {
       regionRadius[k] = m_MetricRadius[k];
     }
-    tindex[k] = (long)(InVec[k] + 0.5) - (long)regionRadius[k] / 2; //
-                                                                    // position
-                                                                    // in
-                                                                    // reference
-                                                                    // image
+    // position in reference image
+    tindex[k] = static_cast<long>(InVec[k] + 0.5) - static_cast<long>(regionRadius[k]) / 2;
   }
 
   // Set the associated region
@@ -483,7 +455,7 @@ ImageMetricLoad<TMoving, TFixed>::GetMetric(VectorType InVec)
   }
   catch (...)
   {
-    // do nothing we dont care if the metric lies outside the image sometimes
+    // do nothing we don't care if the metric lies outside the image sometimes
     // std::cerr << e << std::endl;
   }
 
@@ -491,8 +463,8 @@ ImageMetricLoad<TMoving, TFixed>::GetMetric(VectorType InVec)
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::VectorType
-ImageMetricLoad<TMoving, TFixed>::MetricFiniteDiff(VectorType Gpos, VectorType Gsol)
+auto
+ImageMetricLoad<TMoving, TFixed>::MetricFiniteDiff(VectorType Gpos, VectorType Gsol) -> VectorType
 {
   typename MetricBaseType::MeasureType measure;
 
@@ -504,50 +476,39 @@ ImageMetricLoad<TMoving, TFixed>::MetricFiniteDiff(VectorType Gpos, VectorType G
 
   VectorType OutVec;
   OutVec.set_size(ImageDimension);
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
-    parameters[k] = Gsol[k];                                         // this
-                                                                     // gives
-                                                                     // the
-                                                                     // translation
-                                                                     // by the
-                                                                     // vector
-                                                                     // field
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)m_MetricRadius[k] / 2; //
-                                                                     // position
-                                                                     // in
-                                                                     // reference
-                                                                     // image
+    // this gives the translation by the vector field
+    parameters[k] = Gsol[k];
+    // position in reference image
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(m_MetricRadius[k]) / 2;
     if (tindex[k] > m_TarSize[k] - 1 || tindex[k] < 0)
     {
-      tindex[k] = (long)(Gpos[k] + 0.5);
+      tindex[k] = static_cast<long>(Gpos[k] + 0.5);
     }
-    int hibordercheck = (int)tindex[k] + (int)m_MetricRadius[k] - (int)m_TarSize[k];
-    int lobordercheck = (int)tindex[k] - (int)m_MetricRadius[k];
+    int hibordercheck =
+      static_cast<int>(tindex[k]) + static_cast<int>(m_MetricRadius[k]) - static_cast<int>(m_TarSize[k]);
+    int lobordercheck = static_cast<int>(tindex[k]) - static_cast<int>(m_MetricRadius[k]);
     if (hibordercheck >= 0)
     {
-      regionRadius[k] = m_MetricRadius[k] - (long)hibordercheck - 1;
+      regionRadius[k] = m_MetricRadius[k] - static_cast<long>(hibordercheck) - 1;
     }
     else if (lobordercheck < 0)
     {
-      regionRadius[k] = m_MetricRadius[k] + (long)lobordercheck;
+      regionRadius[k] = m_MetricRadius[k] + static_cast<long>(lobordercheck);
     }
     else
     {
       regionRadius[k] = m_MetricRadius[k];
     }
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)regionRadius[k] / 2; //
-                                                                   // position
-                                                                   // in
-                                                                   // reference
-                                                                   // image
+    // position in reference image
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(regionRadius[k]) / 2;
   }
 
-  unsigned int                  row;
   typename ImageType::IndexType difIndex[ImageDimension][2];
 
   typename MetricBaseType::MeasureType dPixL, dPixR;
-  for (row = 0; row < ImageDimension; row++)
+  for (unsigned int row = 0; row < ImageDimension; ++row)
   {
     difIndex[row][0] = tindex;
     difIndex[row][1] = tindex;
@@ -590,8 +551,8 @@ ImageMetricLoad<TMoving, TFixed>::MetricFiniteDiff(VectorType Gpos, VectorType G
 }
 
 template <typename TMoving, typename TFixed>
-typename ImageMetricLoad<TMoving, TFixed>::VectorType
-ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, VectorType Gsol)
+auto
+ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, VectorType Gsol) -> VectorType
 {
   // discrete orthogonal polynomial fitting
   // see p.394-403 haralick computer and robot vision
@@ -610,9 +571,6 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
 
   VectorType chebycoefs; // gradient direction
   chebycoefs.set_size(ImageDimension);
-  double chebycoefs0 = 0.0; // the constant term
-  double datatotal = 0.0;
-  double a0norm = 1.0;
   double a1norm = 1.0 / 2.0;
 
   double met, ind1, ind2;
@@ -620,61 +578,50 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
   inds[0] = -1.0;
   inds[1] = 0.0;
   inds[2] = 1.0;
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
-    a0norm /= 3.0;
     if (k < ImageDimension - 1)
     {
       a1norm /= 3.0;
     }
     chebycoefs[k] = 0.0;
-    parameters[k] = Gsol[k];                                         // this
-                                                                     // gives
-                                                                     // the
-                                                                     // translation
-                                                                     // by the
-                                                                     // vector
-                                                                     // field
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)m_MetricRadius[k] / 2; //
-                                                                     // position
-                                                                     // in
-                                                                     // reference
-                                                                     // image
+    // this gives the translation by the vector field
+    parameters[k] = Gsol[k];
+    // position in reference image
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(m_MetricRadius[k]) / 2;
     if (tindex[k] > m_TarSize[k] - 1 || tindex[k] < 0)
     {
-      tindex[k] = (long)(Gpos[k] + 0.5);
+      tindex[k] = static_cast<long>(Gpos[k] + 0.5);
     }
-    int hibordercheck = (int)tindex[k] + (int)m_MetricRadius[k] - (int)m_TarSize[k];
-    int lobordercheck = (int)tindex[k] - (int)m_MetricRadius[k];
+    int hibordercheck =
+      static_cast<int>(tindex[k]) + static_cast<int>(m_MetricRadius[k]) - static_cast<int>(m_TarSize[k]);
+    int lobordercheck = static_cast<int>(tindex[k]) - static_cast<int>(m_MetricRadius[k]);
     if (hibordercheck >= 0)
     {
-      regionRadius[k] = m_MetricRadius[k] - (long)hibordercheck - 1;
+      regionRadius[k] = m_MetricRadius[k] - static_cast<long>(hibordercheck) - 1;
     }
     else if (lobordercheck < 0)
     {
-      regionRadius[k] = m_MetricRadius[k] + (long)lobordercheck;
+      regionRadius[k] = m_MetricRadius[k] + static_cast<long>(lobordercheck);
     }
     else
     {
       regionRadius[k] = m_MetricRadius[k];
     }
-    tindex[k] = (long)(Gpos[k] + 0.5) - (long)regionRadius[k] / 2; //
-                                                                   // position
-                                                                   // in
-                                                                   // reference
-                                                                   // image
+    // position in reference image
+    tindex[k] = static_cast<long>(Gpos[k] + 0.5) - static_cast<long>(regionRadius[k]) / 2;
   }
 
-  if (ImageDimension == 2)
+  if constexpr (ImageDimension == 2)
   {
     double measure[3][3];
-    for (int row = -1; row < 2; row++)
+    for (int row = -1; row < 2; ++row)
     {
-      for (int col = -1; col < 2; col++)
+      for (int col = -1; col < 2; ++col)
       {
-        temp[0] = tindex[0] + (long)row;
-        temp[1] = tindex[1] + (long)col;
-        for (unsigned int i = 0; i < ImageDimension; i++)
+        temp[0] = tindex[0] + static_cast<long>(row);
+        temp[1] = tindex[1] + static_cast<long>(col);
+        for (unsigned int i = 0; i < ImageDimension; ++i)
         {
           if (temp[i] > m_TarSize[i] - 1)
           {
@@ -698,13 +645,11 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
         }
         catch (...)
         {}
-
-        datatotal += measure[row + 1][col + 1];
       }
     }
-    for (unsigned int cb1 = 0; cb1 < 3; cb1++)
+    for (unsigned int cb1 = 0; cb1 < 3; ++cb1)
     {
-      for (unsigned int cb2 = 0; cb2 < 3; cb2++)
+      for (unsigned int cb2 = 0; cb2 < 3; ++cb2)
       {
         met = measure[cb1][cb2];
         ind1 = inds[cb1] * a1norm;
@@ -714,19 +659,19 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
       }
     }
   }
-  else if (ImageDimension == 3)
+  else if constexpr (ImageDimension == 3)
   {
     double measure3D[3][3][3];
-    for (int row = -1; row < 2; row++)
+    for (int row = -1; row < 2; ++row)
     {
-      for (int col = -1; col < 2; col++)
+      for (int col = -1; col < 2; ++col)
       {
-        for (int z = -1; z < 2; z++)
+        for (int z = -1; z < 2; ++z)
         {
-          temp[0] = tindex[0] + (long)row;
-          temp[1] = tindex[1] + (long)col;
-          temp[2] = tindex[2] + (long)z;
-          for (unsigned int i = 0; i < ImageDimension; i++)
+          temp[0] = tindex[0] + static_cast<long>(row);
+          temp[1] = tindex[1] + static_cast<long>(col);
+          temp[2] = tindex[2] + static_cast<long>(z);
+          for (unsigned int i = 0; i < ImageDimension; ++i)
           {
             if (temp[i] > m_TarSize[i] - 1)
             {
@@ -750,16 +695,14 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
           }
           catch (...)
           {}
-
-          datatotal += measure3D[row + 1][col + 1][z + 1];
         }
       }
     }
-    for (unsigned int cb1 = 0; cb1 < 2; cb1++)
+    for (unsigned int cb1 = 0; cb1 < 2; ++cb1)
     {
-      for (unsigned int cb2 = 0; cb2 < 2; cb2++)
+      for (unsigned int cb2 = 0; cb2 < 2; ++cb2)
       {
-        for (unsigned int cb3 = 0; cb3 < 2; cb3++)
+        for (unsigned int cb3 = 0; cb3 < 2; ++cb3)
         {
           chebycoefs[0] += measure3D[cb1][cb2][cb3] * inds[cb1] * a1norm;
           chebycoefs[1] += measure3D[cb1][cb2][cb3] * inds[cb2] * a1norm;
@@ -768,9 +711,6 @@ ImageMetricLoad<TMoving, TFixed>::GetPolynomialFitToMetric(VectorType Gpos, Vect
       }
     }
   }
-
-  chebycoefs0 = a0norm * datatotal;
-  //  std::cout << " cb " << chebycoefs << std::endl;
   return chebycoefs;
 }
 
@@ -810,7 +750,7 @@ ImageMetricLoad<TMoving, TFixed>::ApplyLoad(Element::ConstPointer element, Eleme
   //
   Element::Float      w;
   Element::VectorType force(Ndofs, 0.0);
-  for (unsigned int i = 0; i < Nip; i++)
+  for (unsigned int i = 0; i < Nip; ++i)
   {
     element->GetIntegrationPointAndWeight(i, ip, w, order);
     if (Ndofs == 3)
@@ -838,11 +778,11 @@ ImageMetricLoad<TMoving, TFixed>::ApplyLoad(Element::ConstPointer element, Eleme
       shapef = element->ShapeFunctions(ip);
     }
     const Element::Float detJ = element->JacobianDeterminant(ip);
-    for (unsigned int f = 0; f < Ndofs; f++)
+    for (unsigned int f = 0; f < Ndofs; ++f)
     {
       float solval = 0.0;
       float posval = 0.0;
-      for (unsigned int n = 0; n < Nnodes; n++)
+      for (unsigned int n = 0; n < Nnodes; ++n)
       {
         posval += shapef[n] * ((element->GetNodeCoordinates(n))[f]);
         solval += shapef[n] * S->GetSolutionValue(element->GetNode(n)->GetDegreeOfFreedom(f), TotalSolutionIndex);
@@ -859,9 +799,9 @@ ImageMetricLoad<TMoving, TFixed>::ApplyLoad(Element::ConstPointer element, Eleme
       0.0); // HACK:  Is this setting to all zeros necessary given that the next line overwrites the values anyway
     force = this->Fe(gip, gsol);
     // Calculate the equivalent nodal loads
-    for (unsigned int n = 0; n < Nnodes; n++)
+    for (unsigned int n = 0; n < Nnodes; ++n)
     {
-      for (unsigned int d = 0; d < Ndofs; d++)
+      for (unsigned int d = 0; d < Ndofs; ++d)
       {
         itk::fem::Element::Float temp = shapef[n] * force[d] * w * detJ;
         _Fe[n * Ndofs + d] += temp;
@@ -894,7 +834,6 @@ ImageMetricLoad<TMoving, TFixed>::PrintSelf(std::ostream & os, Indent indent) co
   os << indent << "Energy: " << this->m_Energy << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

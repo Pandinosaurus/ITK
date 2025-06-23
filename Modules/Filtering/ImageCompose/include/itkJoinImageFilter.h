@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,9 +48,6 @@ template <typename TPixel1, typename TPixel2>
 class JoinFunctor
 {
 public:
-  JoinFunctor() = default;
-  ~JoinFunctor() = default;
-
   /** Standard type alias */
   using Self = JoinFunctor;
 
@@ -68,16 +65,12 @@ public:
   using JoinType = Vector<JoinValueType, Self::JoinDimension>;
 
   bool
-  operator!=(const JoinFunctor &) const
+  operator==(const JoinFunctor &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const JoinFunctor & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(JoinFunctor);
 
   /** operator().  This is the "call" method of the functor. */
   inline JoinType
@@ -134,7 +127,8 @@ private:
   }
 
   /** Copier function specific to a scalar first pixel. */
-  void FirstCopier(CopierDispatch<1>, JoinType & out, unsigned int idx, const TPixel1 & A) const
+  void
+  FirstCopier(CopierDispatch<1>, JoinType & out, unsigned int idx, const TPixel1 & A) const
   {
     out[idx] = static_cast<JoinValueType>(A);
   }
@@ -161,22 +155,24 @@ private:
   }
 
   /** Copier function specific to a scalar second pixel. */
-  void SecondCopier(CopierDispatch<1>, JoinType & out, unsigned int idx, const TPixel2 & B) const
+  void
+  SecondCopier(CopierDispatch<1>, JoinType & out, unsigned int idx, const TPixel2 & B) const
   {
     out[idx] = static_cast<JoinValueType>(B);
   }
+
 }; // class JoinFunction
 
 template <typename TImage1, typename TImage2>
 struct MakeJoin
 {
   using FunctorType = JoinFunctor<typename TImage1::PixelType, typename TImage2::PixelType>;
-  using ImageType = Image<typename FunctorType::JoinType, TImage1 ::ImageDimension>;
+  using ImageType = Image<typename FunctorType::JoinType, TImage1::ImageDimension>;
 };
 } // namespace Functor
 
 /**
- *\class JoinImageFilter
+ * \class JoinImageFilter
  * \brief Join two images, resulting in an image where each pixel has the components of the first image followed by the
  * components of the second image.
  *
@@ -234,18 +230,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(JoinImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JoinImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1HasPixelTraitsCheck, (Concept::HasPixelTraits<typename TInputImage1::PixelType>));
   itkConceptMacro(Input2HasPixelTraitsCheck, (Concept::HasPixelTraits<typename TInputImage2::PixelType>));
   itkConceptMacro(Input1Input2HasJoinTraitsCheck,
                   (Concept::HasJoinTraits<typename PixelTraits<typename TInputImage1::PixelType>::ValueType,
                                           typename PixelTraits<typename TInputImage2::PixelType>::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   JoinImageFilter() { Superclass::SetFunctor(FunctorType()); }

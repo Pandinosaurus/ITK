@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,7 +78,7 @@ BuildInformation::GetMap()
 }
 
 const BuildInformation::MapValueType
-BuildInformation::GetValue(const MapKeyType &&key)
+BuildInformation::GetValue(const MapKeyType & key)
 {
   const MapType &localMap = BuildInformation::GetInstance()->GetMap();
 
@@ -87,11 +87,11 @@ BuildInformation::GetValue(const MapKeyType &&key)
   {
     return it->second.m_Value;
   }
-  return {""};
+  return {};
 }
 
 const BuildInformation::MapValueDescriptionType
-BuildInformation::GetDescription(const MapKeyType && key)
+BuildInformation::GetDescription(const MapKeyType & key)
 {
   const MapType &localMap = BuildInformation::GetInstance()->GetMap();
 
@@ -100,7 +100,7 @@ BuildInformation::GetDescription(const MapKeyType && key)
   {
     return it->second.m_Description;
   }
-  return {""};
+  return {};
 }
 
 const std::vector<  BuildInformation::MapKeyType >

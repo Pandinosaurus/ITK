@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkThreadedImageRegionPartitioner.h"
+#include "itkTestingMacros.h"
 
 /*
  * Main test entry function
@@ -26,24 +27,23 @@ itkThreadedImageRegionPartitionerTest(int, char *[])
   constexpr unsigned int Dimension = 2;
 
   using ThreadedImageRegionPartitionerType = itk::ThreadedImageRegionPartitioner<Dimension>;
-  ThreadedImageRegionPartitionerType::Pointer threadedImageRegionPartitioner =
+  const ThreadedImageRegionPartitionerType::Pointer threadedImageRegionPartitioner =
     ThreadedImageRegionPartitionerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    threadedImageRegionPartitioner, ThreadedImageRegionPartitioner, ThreadedDomainPartitioner);
+
 
   using ImageRegionType = ThreadedImageRegionPartitionerType::DomainType;
 
   using SizeType = ImageRegionType::SizeType;
   using IndexType = ImageRegionType::IndexType;
 
-  SizeType  size;
-  IndexType index;
+  auto size = itk::MakeFilled<SizeType>(97);
 
-  size.Fill(97);
-  index.Fill(4);
+  auto index = itk::MakeFilled<IndexType>(4);
 
-  ImageRegionType completeRegion;
-
-  completeRegion.SetSize(size);
-  completeRegion.SetIndex(index);
+  const ImageRegionType completeRegion{ index, size };
 
   // Define the expected results
   ImageRegionType              expectedRegion;

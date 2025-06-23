@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,7 @@
 #include "itkRandomVariateGeneratorBase.h"
 #include "ITKStatisticsExport.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class NormalVariateGenerator
  * \brief Normal random variate generator
@@ -36,13 +34,11 @@ namespace Statistics
  * You should run Initialize() function before call GetNormalVariate()
  * function.
  *
- * The followings are original comments.
+ * The following are original comments.
  *
  *  Revision date 31 May 1996
  *      This is a revised version of the algorithm described in
- *
- *      ACM Transactions on Mathematical Software, Vol 22, No 1
- *      March 1996, pp 119-127.
+ *      \cite wallace1996.
  *
  * It is somewhat faster, and uses less memory as the vector of variates is
  * updated in-situ. It has passed all the same statistical tests as described
@@ -62,13 +58,13 @@ namespace Statistics
    \code
    #include "FastNorm.h"
    \endcode
- * and be linked with the maths library (-lm)
+ * and be linked with the math library (-lm)
  *        FastNorm.h contains declaration of the initialization routine
  * 'initnorm()', definition of a macro 'FastGauss' used to generate variates,
  * and three variables used in the macro.
  *        Read below for calling conventions.
  *
- * THIS CODE ASSUMES TWO'S-COMPLEMENT 32-BIT INTEGER ARITHMATIC.  IT ALSO
+ * THIS CODE ASSUMES TWO'S-COMPLEMENT 32-BIT INTEGER ARITHMETIC.  IT ALSO
  * ASSUMES THE 'C' COMPILER COMPILES THE LEFT-SHIFT OPERATOR "<<" AS A LOGICAL
  * SHIFT, DISCARDING THE SIGN DIGIT AND SHIFTING IN ZEROS ON THE RIGHT, SO
  * " X << 1" IS EQUIVALENT TO " X+X ".   IT ALSO ASSUMES THE RIGHT-SHIFT
@@ -104,8 +100,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NormalVariateGenerator, RandomVariateGeneratorBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalVariateGenerator);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -139,27 +135,28 @@ private:
     return static_cast<int>((irs <= 0) ? ((uirs << 1) ^ 333556017) : (uirs << 1));
   }
 
-  double m_Scale;
-  double m_Rscale;
-  double m_Rcons;
-  int    m_ELEN;
-  int    m_LEN;
-  int    m_LMASK;
-  int    m_TLEN;
+  double m_Scale{};
+  double m_Rscale{};
+  double m_Rcons{};
 
-  int   m_Gaussfaze;
-  int * m_Gausssave;
+  static constexpr int m_ELEN{ 7 };
+  // LEN must be 2 ** ELEN
+  static constexpr int m_LEN{ 128 };
+  static constexpr int m_LMASK{ 4 * (m_LEN - 1) };
+  static constexpr int m_TLEN{ 8 * m_LEN };
 
-  double m_GScale;
+  int   m_Gaussfaze{};
+  int * m_Gausssave{};
 
-  int *  m_Vec1;
-  int    m_Nslew;
-  int    m_Irs;
-  int    m_Lseed;
-  double m_Chic1;
-  double m_Chic2;
-  double m_ActualRSD;
+  double m_GScale{};
+
+  int    m_Vec1[m_TLEN]{};
+  int    m_Nslew{};
+  int    m_Irs{};
+  int    m_Lseed{};
+  double m_Chic1{};
+  double m_Chic2{};
+  double m_ActualRSD{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 #endif

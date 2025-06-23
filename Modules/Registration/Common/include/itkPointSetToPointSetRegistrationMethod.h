@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,8 +77,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToPointSetRegistrationMethod, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToPointSetRegistrationMethod);
 
   /**  Type of the Fixed PointSet. */
   using FixedPointSetType = TFixedPointSet;
@@ -113,25 +113,30 @@ public:
   using DataObjectPointer = typename DataObject::Pointer;
 
   /** Set/Get the Fixed PointSet. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedPointSet, FixedPointSetType);
   itkGetConstObjectMacro(FixedPointSet, FixedPointSetType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Moving PointSet. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingPointSet, MovingPointSetType);
   itkGetConstObjectMacro(MovingPointSet, MovingPointSetType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Metric. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
   itkGetModifiableObjectMacro(Metric, MetricType);
-
-  /** Set/Get the Transfrom. */
+  /** @ITKEndGrouping */
+  /** Set/Get the Transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Transform, TransformType);
   itkGetModifiableObjectMacro(Transform, TransformType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the initial transformation parameters. */
   virtual void
   SetInitialTransformParameters(const ParametersType & param);
@@ -170,16 +175,16 @@ protected:
   GenerateData() override;
 
 private:
-  MetricPointer          m_Metric;
-  OptimizerType::Pointer m_Optimizer;
+  MetricPointer          m_Metric{};
+  OptimizerType::Pointer m_Optimizer{};
 
-  MovingPointSetConstPointer m_MovingPointSet;
-  FixedPointSetConstPointer  m_FixedPointSet;
+  MovingPointSetConstPointer m_MovingPointSet{};
+  FixedPointSetConstPointer  m_FixedPointSet{};
 
-  TransformPointer m_Transform;
+  TransformPointer m_Transform{};
 
-  ParametersType m_InitialTransformParameters;
-  ParametersType m_LastTransformParameters;
+  ParametersType m_InitialTransformParameters{};
+  ParametersType m_LastTransformParameters{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,9 +47,10 @@
 
 
 #include "itkImageFileReader.h"
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 2)
@@ -80,24 +81,9 @@ main(int argc, char * argv[])
   using RGBImageType = itk::Image<RGBPixelType, Dimension>;
   // Software Guide : EndCodeSnippet
 
+  RGBImageType::Pointer input;
 
-  using ReaderType = itk::ImageFileReader<RGBImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName(argv[1]);
-
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem encoutered while reading image file : " << argv[1]
-              << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  input = itk::ReadImage<RGBImageType>(argv[1]);
 
 
   // Software Guide : BeginLatex
@@ -112,7 +98,7 @@ main(int argc, char * argv[])
   using HistogramFilterType =
     itk::Statistics::ImageToHistogramFilter<RGBImageType>;
 
-  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+  auto histogramFilter = HistogramFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -192,7 +178,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  histogramFilter->SetInput(reader->GetOutput());
+  histogramFilter->SetInput(input);
 
   histogramFilter->Update();
   // Software Guide : EndCodeSnippet
@@ -209,7 +195,7 @@ main(int argc, char * argv[])
   // to assign the histogram to a const smart pointer as shown in previous
   // examples.
   //
-  // \index{itk::Statistics::ImageTohistogramFilter!GetOutput()}
+  // \index{itk::Statistics::ImageToHistogramFilter!GetOutput()}
   //
   // Software Guide : EndLatex
 
@@ -245,7 +231,7 @@ main(int argc, char * argv[])
   // the three RGB components. However, given that we set the resolution of
   // the green and blue channels to be just one bin, the histogram is in
   // practice representing just the red channel.  In the general case, we can
-  // alway access the frequency of a particular channel in a joint histogram,
+  // always access the frequency of a particular channel in a joint histogram,
   // thanks to the fact that the histogram class offers a
   // \code{GetFrequency()} method that accepts a channel as argument. This is
   // illustrated in the following lines of code.
@@ -347,4 +333,26 @@ main(int argc, char * argv[])
   // Software Guide : EndCodeSnippet
 
   return EXIT_SUCCESS;
+}
+} // namespace
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

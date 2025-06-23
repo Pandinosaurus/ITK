@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class NormalizedCorrelationImageFilter
+ * \class NormalizedCorrelationImageFilter
  * \brief Computes the normalized correlation of an image and a template.
  *
  * This filter calculates the normalized correlation between an image
@@ -69,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NormalizedCorrelationImageFilter, NeighborhoodOperatorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalizedCorrelationImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -98,11 +98,11 @@ public:
   using ImageBoundaryConditionPointerType = ImageBoundaryCondition<OutputImageType> *;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OperatorValueType = typename Superclass::OperatorValueType;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OperatorValueType;
 
   /** Neighborhood types */
-  using OutputNeighborhoodType = typename Superclass::OutputNeighborhoodType;
+  using typename Superclass::OutputNeighborhoodType;
 
   /** Set the mask image. Using a mask is optional.  When a mask is
    * specified, the normalized correlation is only calculated for
@@ -125,15 +125,11 @@ public:
     this->SetOperator(t);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, MaskImageDimension>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
   itkConceptMacro(OperatorHasNumericTraitsCheck, (Concept::HasNumericTraits<OperatorValueType>));
   // This filter can only operate on data types that are signed.
   itkConceptMacro(SignedOutputPixelType, (Concept::Signed<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   NormalizedCorrelationImageFilter() = default;

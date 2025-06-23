@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkShapedFloodFilledFunctionConditionalConstIterator_hxx
 #define itkShapedFloodFilledFunctionConditionalConstIterator_hxx
 
-#include "itkShapedFloodFilledFunctionConditionalConstIterator.h"
 #include "itkImageRegionConstIterator.h"
 
 namespace itk
@@ -28,10 +27,10 @@ ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::ShapedFloo
   const ImageType * imagePtr,
   FunctionType *    fnPtr,
   IndexType         startIndex)
-  : m_FullyConnected(false)
+  : m_Function(fnPtr)
+
 {
   this->m_Image = imagePtr;
-  m_Function = fnPtr;
   m_Seeds.push_back(startIndex);
 
   // Set up the temporary image
@@ -44,12 +43,10 @@ ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::ShapedFloo
   FunctionType *           fnPtr,
   std::vector<IndexType> & startIndex)
   : m_Function(fnPtr)
-  , m_FullyConnected(false)
+
 {
   this->m_Image = imagePtr; // can not be done in the initialization list
-
-  unsigned int i;
-  for (i = 0; i < startIndex.size(); ++i)
+  for (unsigned int i = 0; i < startIndex.size(); ++i)
   {
     m_Seeds.push_back(startIndex[i]);
   }
@@ -62,11 +59,10 @@ template <typename TImage, typename TFunction>
 ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::ShapedFloodFilledFunctionConditionalConstIterator(
   const ImageType * imagePtr,
   FunctionType *    fnPtr)
-  : m_FullyConnected(false)
+  : m_Function(fnPtr)
+
 {
   this->m_Image = imagePtr;
-  m_Function = fnPtr;
-
   // Set up the temporary image
   this->InitializeIterator();
 }
@@ -81,22 +77,19 @@ ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::Initialize
   m_ImageRegion = this->m_Image->GetBufferedRegion();
 
   // Build and setup the neighborhood iterator
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
-  NeighborhoodIteratorType tmp_iter(radius, this->m_Image, m_ImageRegion);
+  const NeighborhoodIteratorType tmp_iter(radius, this->m_Image, m_ImageRegion);
   m_NeighborhoodIterator = tmp_iter;
 
   setConnectivity(&m_NeighborhoodIterator, m_FullyConnected);
 
   // Build a temporary image of chars for use in the flood algorithm
   m_TempPtr = TTempImage::New();
-  typename TTempImage::RegionType tempRegion = this->m_Image->GetBufferedRegion();
+  const typename TTempImage::RegionType tempRegion = this->m_Image->GetBufferedRegion();
 
-  m_TempPtr->SetLargestPossibleRegion(tempRegion);
-  m_TempPtr->SetBufferedRegion(tempRegion);
-  m_TempPtr->SetRequestedRegion(tempRegion);
-  m_TempPtr->Allocate(true); // initialize buffer to zero
+  m_TempPtr->SetRegions(tempRegion);
+  m_TempPtr->AllocateInitialized();
 
   // Initialize the queue by adding the start index assuming one of
   // the m_Seeds is "inside" This might not be true, in which
@@ -120,12 +113,11 @@ ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FindSeedPi
 {
   // Create an iterator that will walk the input image
   using IRIType = typename itk::ImageRegionConstIterator<TImage>;
-  IRIType it = IRIType(this->m_Image, this->m_Image->GetBufferedRegion());
 
   // Now we search the input image for the first pixel which is inside
   // the function of interest
   m_Seeds.clear();
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  for (IRIType it(this->m_Image, this->m_Image->GetBufferedRegion()); !it.IsAtEnd(); ++it)
   {
     if (this->IsPixelIncluded(it.GetIndex()))
     {
@@ -145,13 +137,12 @@ ShapedFloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FindSeedPi
 {
   // Create an iterator that will walk the input image
   using IRIType = typename itk::ImageRegionConstIterator<TImage>;
-  IRIType it = IRIType(this->m_Image, this->m_Image->GetBufferedRegion());
 
   // Now we search the input image for the first pixel which is inside
   // the function of interest
   m_Seeds.clear();
   bool found = false;
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  for (IRIType it(this->m_Image, this->m_Image->GetBufferedRegion()); !it.IsAtEnd(); ++it)
   {
     if (this->IsPixelIncluded(it.GetIndex()))
     {

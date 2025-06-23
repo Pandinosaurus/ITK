@@ -27,12 +27,12 @@
 #--   - [ X ] Some tests exist and pass on at least some platform
 #--   - [ X ] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [ X ] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [ X ] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [ X ] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,20 +41,21 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-itk_fetch_module(AdaptiveDenoising
+itk_fetch_module(
+  AdaptiveDenoising
   "A spatially adaptive denoising image filter using non-local means.
   A patch-based framework for new ITK functionality: Joint fusion, denoising,
   and non-local super-resolution.
   Tustison N., Avants B., Wang H., Xie L., Coupe P., Yushkevich P., Manjon J.
   Insight Journal.
-  http://insight-journal.org/browse/publication/982.
+  https://doi.org/10.54294/ywuouh.
   Two Luis Miguel fans walk into a bar in Nagoya ---> (yada, yada, yada)
   ---> an ITK-implementation of a popular patch-based denoising filter.
   Tustison N., Manjon J.V.
   Insight Journal.
-  http://insight-journal.org/browse/publication/979.
+  https://doi.org/10.54294/9f5wt3.
   "
   MODULE_COMPLIANCE_LEVEL 3
-  GIT_REPOSITORY ${git_protocol}://github.com/ntustison/ITKAdaptiveDenoising.git
-  GIT_TAG 062c050c0163f49ae66e97a0f56188be15964cb2
-)
+  GIT_REPOSITORY https://github.com/ntustison/ITKAdaptiveDenoising.git
+  GIT_TAG 853934c352f83cb1e8f87e3051e1b8e75dbb41fe
+  )

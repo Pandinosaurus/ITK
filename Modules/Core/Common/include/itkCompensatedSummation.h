@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace itk
  * performing a running sum of floats, the accumulated errors get progressively
  * worse as the magnitude of the sum gets large relative to new elements.
  *
- * From Wikipedia, http://en.wikipedia.org/wiki/Kahan_summation_algorithm
+ * From Wikipedia, https://en.wikipedia.org/wiki/Kahan_summation_algorithm
  *
  * "In numerical analysis, the Kahan summation algorithm (also known as
  * compensated summation) significantly reduces the numerical error in the total
@@ -76,34 +76,38 @@ public:
   using Self = CompensatedSummation;
 
   /** Constructors. */
-  CompensatedSummation();
+  /** @ITKStartGrouping */
+  CompensatedSummation() = default;
   CompensatedSummation(FloatType value);
-
+  /** @ITKEndGrouping */
   /** Copy constructor. */
-  CompensatedSummation(const Self & rhs);
+  CompensatedSummation(const Self &) = default;
+
   /** Assignment operator. */
   Self &
-  operator=(const Self & rhs);
+  operator=(const Self &) = default;
 
   /** Add an element to the sum. */
+  /** @ITKStartGrouping */
   void
   AddElement(const FloatType & element);
   Self &
   operator+=(const FloatType & rhs);
   Self &
   operator+=(const Self & rhs);
-
+  /** @ITKEndGrouping */
   /** Subtract an element from the sum. */
   Self &
   operator-=(const FloatType & rhs);
 
   /** Division and multiplication. These do not provide any numerical advantages
    * relative to vanilla division and multiplication. */
+  /** @ITKStartGrouping */
   Self &
   operator*=(const FloatType & rhs);
   Self &
   operator/=(const FloatType & rhs);
-
+  /** @ITKEndGrouping */
   /** Reset the sum and compensation to zero. */
   void
   ResetToZero();
@@ -113,26 +117,25 @@ public:
   operator=(const FloatType & rhs);
 
   /** Get the sum. */
-  const AccumulateType &
+  [[nodiscard]] const AccumulateType &
   GetSum() const;
 
   /** explicit conversion */
-  explicit operator FloatType() const;
+  explicit
+  operator FloatType() const;
 
 private:
-  AccumulateType m_Sum;
-  AccumulateType m_Compensation;
+  AccumulateType m_Sum{};
+  AccumulateType m_Compensation{};
 
-// Maybe support more types in the future with template specialization.
-#ifdef ITK_USE_CONCEPT_CHECKING
+  // Maybe support more types in the future with template specialization.
   itkConceptMacro(OnlyDefinedForFloatingPointTypes, (itk::Concept::IsFloatingPoint<TFloat>));
-#endif // ITK_USE_CONCEPT_CHECKING
 };
 
 void ITKCommon_EXPORT
-     CompensatedSummationAddElement(float & compensation, float & sum, const float & element);
+CompensatedSummationAddElement(float & compensation, float & sum, const float element);
 void ITKCommon_EXPORT
-     CompensatedSummationAddElement(double & compensation, double & sum, const double & element);
+CompensatedSummationAddElement(double & compensation, double & sum, const double element);
 
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,14 @@
 #ifndef itkScalarImageToTextureFeaturesFilter_hxx
 #define itkScalarImageToTextureFeaturesFilter_hxx
 
-#include "itkScalarImageToTextureFeaturesFilter.h"
 #include "itkNeighborhood.h"
 #include "itkMath.h"
 
-namespace itk
+namespace itk::Statistics
 {
-namespace Statistics
-{
-template <typename TImage, typename THistogramFrequencyContainer>
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::ScalarImageToTextureFeaturesFilter()
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::
+  ScalarImageToTextureFeaturesFilter()
 {
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
@@ -46,7 +44,7 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::Scalar
   // Set the requested features to the default value:
   // {Energy, Entropy, InverseDifferenceMoment, Inertia, ClusterShade,
   // ClusterProminence}
-  FeatureNameVectorPointer requestedFeatures = FeatureNameVector::New();
+  const FeatureNameVectorPointer requestedFeatures = FeatureNameVector::New();
   // can't directly set m_RequestedFeatures since it is const!
   requestedFeatures->push_back(
     static_cast<uint8_t>(itk::Statistics::HistogramToTextureFeaturesFilterEnums::TextureFeature::Energy));
@@ -72,10 +70,10 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::Scalar
 
   // select all "previous" neighbors that are face+edge+vertex
   // connected to the current pixel. do not include the center pixel.
-  unsigned int        centerIndex = hood.GetCenterNeighborhoodIndex();
-  OffsetType          offset;
-  OffsetVectorPointer offsets = OffsetVector::New();
-  for (unsigned int d = 0; d < centerIndex; d++)
+  const unsigned int        centerIndex = hood.GetCenterNeighborhoodIndex();
+  OffsetType                offset;
+  const OffsetVectorPointer offsets = OffsetVector::New();
+  for (unsigned int d = 0; d < centerIndex; ++d)
   {
     offset = hood.GetOffset(d);
     offsets->push_back(offset);
@@ -84,17 +82,17 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::Scalar
   m_FastCalculations = false;
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
-typename ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::DataObjectPointer
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::MakeOutput(
-  DataObjectPointerArraySizeType itkNotUsed(idx))
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+auto
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::MakeOutput(
+  DataObjectPointerArraySizeType itkNotUsed(idx)) -> DataObjectPointer
 {
   return FeatureValueVectorDataObjectType::New().GetPointer();
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::GenerateData()
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::GenerateData()
 {
   if (m_FastCalculations)
   {
@@ -106,39 +104,40 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::Genera
   }
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FullCompute()
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::FullCompute()
 {
-  size_t    numOffsets = m_Offsets->size();
-  size_t    numFeatures = m_RequestedFeatures->size();
-  double ** features;
-
-  features = new double *[numOffsets];
-  for (size_t i = 0; i < numOffsets; i++)
+  const size_t numOffsets = m_Offsets->size();
+  const size_t numFeatures = m_RequestedFeatures->size();
+  auto **      features = new double *[numOffsets];
+  for (size_t i = 0; i < numOffsets; ++i)
   {
     features[i] = new double[numFeatures];
   }
 
   // For each offset, calculate each feature
-  typename OffsetVector::ConstIterator offsetIt;
-  size_t                               offsetNum, featureNum;
   using InternalTextureFeatureName = itk::Statistics::HistogramToTextureFeaturesFilterEnums::TextureFeature;
 
-  for (offsetIt = m_Offsets->Begin(), offsetNum = 0; offsetIt != m_Offsets->End(); ++offsetIt, offsetNum++)
+  size_t offsetNum = 0;
+  for (typename OffsetVector::ConstIterator offsetIt = m_Offsets->Begin(); offsetIt != m_Offsets->End();
+       ++offsetIt, offsetNum++)
   {
     this->m_GLCMGenerator->SetOffset(offsetIt.Value());
     this->m_GLCMCalculator->Update();
 
-    typename FeatureNameVector::ConstIterator fnameIt;
-    for (fnameIt = m_RequestedFeatures->Begin(), featureNum = 0; fnameIt != m_RequestedFeatures->End();
+
+    size_t featureNum = 0;
+    for (typename FeatureNameVector::ConstIterator fnameIt = m_RequestedFeatures->Begin();
+         fnameIt != m_RequestedFeatures->End();
          ++fnameIt, featureNum++)
     {
-      features[offsetNum][featureNum] = this->m_GLCMCalculator->GetFeature((InternalTextureFeatureName)fnameIt.Value());
+      features[offsetNum][featureNum] =
+        this->m_GLCMCalculator->GetFeature(static_cast<InternalTextureFeatureName>(fnameIt.Value()));
     }
   }
 
-  // Now get the mean and deviaton of each feature across the offsets.
+  // Now get the mean and deviation of each feature across the offsets.
   m_FeatureMeans->clear();
   m_FeatureStandardDeviations->clear();
   auto * tempFeatureMeans = new double[numFeatures];
@@ -155,29 +154,29 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FullCo
   */
 
   // Set up the initial conditions (k = 1)
-  for (featureNum = 0; featureNum < numFeatures; featureNum++)
+  for (size_t featureNum = 0; featureNum < numFeatures; ++featureNum)
   {
     tempFeatureMeans[featureNum] = features[0][featureNum];
     tempFeatureDevs[featureNum] = 0;
   }
   // Run through the recurrence (k = 2 ... N)
-  for (offsetNum = 1; offsetNum < numOffsets; offsetNum++)
+  for (offsetNum = 1; offsetNum < numOffsets; ++offsetNum)
   {
-    size_t k = offsetNum + 1;
-    for (featureNum = 0; featureNum < numFeatures; featureNum++)
+    const size_t k = offsetNum + 1;
+    for (size_t featureNum = 0; featureNum < numFeatures; ++featureNum)
     {
-      double M_k_minus_1 = tempFeatureMeans[featureNum];
-      double S_k_minus_1 = tempFeatureDevs[featureNum];
-      double x_k = features[offsetNum][featureNum];
+      const double M_k_minus_1 = tempFeatureMeans[featureNum];
+      const double S_k_minus_1 = tempFeatureDevs[featureNum];
+      const double x_k = features[offsetNum][featureNum];
 
-      double M_k = M_k_minus_1 + (x_k - M_k_minus_1) / k;
-      double S_k = S_k_minus_1 + (x_k - M_k_minus_1) * (x_k - M_k);
+      const double M_k = M_k_minus_1 + (x_k - M_k_minus_1) / k;
+      const double S_k = S_k_minus_1 + (x_k - M_k_minus_1) * (x_k - M_k);
 
       tempFeatureMeans[featureNum] = M_k;
       tempFeatureDevs[featureNum] = S_k;
     }
   }
-  for (featureNum = 0; featureNum < numFeatures; featureNum++)
+  for (size_t featureNum = 0; featureNum < numFeatures; ++featureNum)
   {
     tempFeatureDevs[featureNum] = std::sqrt(tempFeatureDevs[featureNum] / numOffsets);
 
@@ -195,19 +194,19 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FullCo
 
   delete[] tempFeatureMeans;
   delete[] tempFeatureDevs;
-  for (size_t i = 0; i < numOffsets; i++)
+  for (size_t i = 0; i < numOffsets; ++i)
   {
     delete[] features[i];
   }
   delete[] features;
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FastCompute()
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::FastCompute()
 {
   // Compute the feature for the first offset
-  typename OffsetVector::ConstIterator offsetIt = m_Offsets->Begin();
+  const typename OffsetVector::ConstIterator offsetIt = m_Offsets->Begin();
   this->m_GLCMGenerator->SetOffset(offsetIt.Value());
   this->m_GLCMCalculator->Update();
 
@@ -217,7 +216,8 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FastCo
   typename FeatureNameVector::ConstIterator fnameIt;
   for (fnameIt = m_RequestedFeatures->Begin(); fnameIt != m_RequestedFeatures->End(); ++fnameIt)
   {
-    m_FeatureMeans->push_back(this->m_GLCMCalculator->GetFeature((InternalTextureFeatureName)fnameIt.Value()));
+    m_FeatureMeans->push_back(
+      this->m_GLCMCalculator->GetFeature(static_cast<InternalTextureFeatureName>(fnameIt.Value())));
     m_FeatureStandardDeviations->push_back(0.0);
   }
 
@@ -230,9 +230,10 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::FastCo
   standardDeviationOutputObject->Set(m_FeatureStandardDeviations);
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetInput(const ImageType * image)
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::SetInput(
+  const ImageType * image)
 {
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(0, const_cast<ImageType *>(image));
@@ -240,9 +241,9 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetInp
   m_GLCMGenerator->SetInput(image);
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetNumberOfBinsPerAxis(
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::SetNumberOfBinsPerAxis(
   unsigned int numberOfBins)
 {
   itkDebugMacro("setting NumberOfBinsPerAxis to " << numberOfBins);
@@ -250,70 +251,75 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetNum
   this->Modified();
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetPixelValueMinMax(PixelType min,
-                                                                                              PixelType max)
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::SetPixelValueMinMax(
+  PixelType min,
+  PixelType max)
 {
   itkDebugMacro("setting Min to " << min << "and Max to " << max);
   m_GLCMGenerator->SetPixelValueMinMax(min, max);
   this->Modified();
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetMaskImage(const ImageType * image)
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::SetMaskImage(
+  const MaskImageType * image)
 {
   // Process object is not const-correct so the const_cast is required here
-  this->ProcessObject::SetNthInput(1, const_cast<ImageType *>(image));
+  this->ProcessObject::SetNthInput(1, const_cast<MaskImageType *>(image));
 
   m_GLCMGenerator->SetMaskImage(image);
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
-const TImage *
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::GetInput() const
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+const TImageType *
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::GetInput() const
 {
   return itkDynamicCastInDebugMode<const ImageType *>(this->GetPrimaryInput());
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
-const typename ScalarImageToTextureFeaturesFilter<TImage,
-                                                  THistogramFrequencyContainer>::FeatureValueVectorDataObjectType *
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::GetFeatureMeansOutput() const
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+const typename ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::
+  FeatureValueVectorDataObjectType *
+  ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::GetFeatureMeansOutput()
+    const
 {
   return itkDynamicCastInDebugMode<const FeatureValueVectorDataObjectType *>(this->ProcessObject::GetOutput(0));
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
-const typename ScalarImageToTextureFeaturesFilter<TImage,
-                                                  THistogramFrequencyContainer>::FeatureValueVectorDataObjectType *
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::GetFeatureStandardDeviationsOutput() const
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+const typename ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::
+  FeatureValueVectorDataObjectType *
+  ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::
+    GetFeatureStandardDeviationsOutput() const
 {
   return itkDynamicCastInDebugMode<const FeatureValueVectorDataObjectType *>(this->ProcessObject::GetOutput(1));
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
-const TImage *
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::GetMaskImage() const
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
+const TMaskImageType *
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::GetMaskImage() const
 {
-  return static_cast<const ImageType *>(this->ProcessObject::GetInput(1));
+  return static_cast<const MaskImageType *>(this->ProcessObject::GetInput(1));
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::SetInsidePixelValue(
-  PixelType insidePixelValue)
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::SetInsidePixelValue(
+  MaskPixelType insidePixelValue)
 {
   itkDebugMacro("setting InsidePixelValue to " << insidePixelValue);
   m_GLCMGenerator->SetInsidePixelValue(insidePixelValue);
   this->Modified();
 }
 
-template <typename TImage, typename THistogramFrequencyContainer>
+template <typename TImageType, typename THistogramFrequencyContainer, typename TMaskImageType>
 void
-ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::PrintSelf(std::ostream & os,
-                                                                                    Indent         indent) const
+ScalarImageToTextureFeaturesFilter<TImageType, THistogramFrequencyContainer, TMaskImageType>::PrintSelf(
+  std::ostream & os,
+  Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "RequestedFeatures: " << this->GetRequestedFeatures() << std::endl;
@@ -322,7 +328,6 @@ ScalarImageToTextureFeaturesFilter<TImage, THistogramFrequencyContainer>::PrintS
   os << indent << "Offsets: " << this->GetOffsets() << std::endl;
   os << indent << "FeatureMeans: " << this->GetFeatureMeans() << std::endl;
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

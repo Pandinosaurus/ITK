@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkAnnulusOperator.h"
 #include "itkStdStreamStateSave.h"
+#include "itkTestingMacros.h"
 
 int
 itkAnnulusOperatorTest(int, char *[])
@@ -25,18 +26,24 @@ itkAnnulusOperatorTest(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   constexpr unsigned int Dimension = 2;
   using PixelType = float;
   using OperatorType = itk::AnnulusOperator<PixelType, Dimension>;
 
-
   OperatorType normalizedAnnulus;
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS((&normalizedAnnulus), AnnulusOperator, NeighborhoodOperator);
+
+
   normalizedAnnulus.NormalizeOn();
   normalizedAnnulus.SetInnerRadius(3);
   normalizedAnnulus.SetThickness(2);
-  normalizedAnnulus.BrightCenterOff();
+
+  constexpr bool brightCenter = false;
+  ITK_TEST_SET_GET_BOOLEAN((&normalizedAnnulus), BrightCenter, brightCenter);
+
   try
   {
     normalizedAnnulus.CreateOperator();
@@ -46,7 +53,7 @@ itkAnnulusOperatorTest(int, char *[])
     std::cout << e;
     return EXIT_FAILURE;
   }
-  catch (std::exception & e)
+  catch (const std::exception & e)
   {
     std::cout << "Std exception" << e.what();
     return EXIT_FAILURE;
@@ -57,45 +64,40 @@ itkAnnulusOperatorTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  std::cout << "Normalized annulus" << std::endl;
-  normalizedAnnulus.Print(std::cout);
-  std::cout << std::endl << std::endl;
-
   OperatorType::SizeType normalizedAnnulusSize;
   normalizedAnnulusSize = normalizedAnnulus.GetSize();
 
   std::cout << std::endl;
   std::cout << "Annulus, N = " << normalizedAnnulusSize << ", r = " << normalizedAnnulus.GetInnerRadius()
             << ", t = " << normalizedAnnulus.GetThickness() << std::endl;
-  unsigned int i, j, k;
 
-  for (i = 0, k = 0; i < normalizedAnnulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < normalizedAnnulusSize[1]; ++i)
   {
-    for (j = 0; j < normalizedAnnulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < normalizedAnnulusSize[0]; ++j, ++k)
     {
       std::cout.width(6);
       std::cout.precision(3);
-      std::cout << normalizedAnnulus[k] << "\t";
+      std::cout << normalizedAnnulus[k] << '\t';
     }
     std::cout << std::endl;
   }
 
   // Compute again having the center bright
   std::cout << std::endl << std::endl;
-  std::cout << "Rebuiling annulus with a bright center";
+  std::cout << "Rebuilding annulus with a bright center";
   normalizedAnnulus.BrightCenterOn();
   normalizedAnnulus.CreateOperator();
   std::cout << ", N = " << normalizedAnnulusSize << ", r = " << normalizedAnnulus.GetInnerRadius()
             << ", t = " << normalizedAnnulus.GetThickness() << std::endl;
 
 
-  for (i = 0, k = 0; i < normalizedAnnulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < normalizedAnnulusSize[1]; ++i)
   {
-    for (j = 0; j < normalizedAnnulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < normalizedAnnulusSize[0]; ++j, ++k)
     {
       std::cout.width(6);
       std::cout.precision(3);
-      std::cout << normalizedAnnulus[k] << "\t";
+      std::cout << normalizedAnnulus[k] << '\t';
     }
     std::cout << std::endl;
   }
@@ -104,12 +106,30 @@ itkAnnulusOperatorTest(int, char *[])
   std::cout << std::endl << std::endl;
   std::cout << "Creating an annulus by specifying values";
   OperatorType annulus;
-  annulus.NormalizeOff();
-  annulus.SetInnerRadius(2);
-  annulus.SetThickness(1);
-  annulus.SetExteriorValue(1);
-  annulus.SetAnnulusValue(8);
-  annulus.SetInteriorValue(4);
+
+  constexpr bool normalize = false;
+  ITK_TEST_SET_GET_BOOLEAN((&annulus), Normalize, normalize);
+
+  constexpr double innerRadius = 2;
+  annulus.SetInnerRadius(innerRadius);
+  ITK_TEST_SET_GET_VALUE(innerRadius, annulus.GetInnerRadius());
+
+  constexpr double thickness = 1;
+  annulus.SetThickness(thickness);
+  ITK_TEST_SET_GET_VALUE(thickness, annulus.GetThickness());
+
+  constexpr typename OperatorType::PixelType exteriorValue = 1;
+  annulus.SetExteriorValue(exteriorValue);
+  ITK_TEST_SET_GET_VALUE(exteriorValue, annulus.GetExteriorValue());
+
+  constexpr typename OperatorType::PixelType annulusValue = 8;
+  annulus.SetAnnulusValue(annulusValue);
+  ITK_TEST_SET_GET_VALUE(annulusValue, annulus.GetAnnulusValue());
+
+  constexpr typename OperatorType::PixelType interiorValue = 4;
+  annulus.SetInteriorValue(interiorValue);
+  ITK_TEST_SET_GET_VALUE(interiorValue, annulus.GetInteriorValue());
+
   annulus.CreateOperator();
 
   OperatorType::SizeType annulusSize;
@@ -118,13 +138,13 @@ itkAnnulusOperatorTest(int, char *[])
             << ", i = " << annulus.GetInteriorValue() << ", a = " << annulus.GetAnnulusValue()
             << ", e = " << annulus.GetExteriorValue() << std::endl;
 
-  for (i = 0, k = 0; i < annulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < annulusSize[1]; ++i)
   {
-    for (j = 0; j < annulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < annulusSize[0]; ++j, ++k)
     {
       std::cout.width(3);
       std::cout.precision(3);
-      std::cout << annulus[k] << "\t";
+      std::cout << annulus[k] << '\t';
     }
     std::cout << std::endl;
   }
@@ -140,13 +160,13 @@ itkAnnulusOperatorTest(int, char *[])
             << ", i = " << annulus.GetInteriorValue() << ", a = " << annulus.GetAnnulusValue()
             << ", e = " << annulus.GetExteriorValue() << std::endl;
 
-  for (i = 0, k = 0; i < annulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < annulusSize[1]; ++i)
   {
-    for (j = 0; j < annulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < annulusSize[0]; ++j, ++k)
     {
       std::cout.width(3);
       std::cout.precision(3);
-      std::cout << annulus[k] << "\t";
+      std::cout << annulus[k] << '\t';
     }
     std::cout << std::endl;
   }
@@ -164,13 +184,13 @@ itkAnnulusOperatorTest(int, char *[])
             << ", i = " << annulus.GetInteriorValue() << ", a = " << annulus.GetAnnulusValue()
             << ", e = " << annulus.GetExteriorValue() << std::endl;
 
-  for (i = 0, k = 0; i < annulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < annulusSize[1]; ++i)
   {
-    for (j = 0; j < annulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < annulusSize[0]; ++j, ++k)
     {
       std::cout.width(3);
       std::cout.precision(3);
-      std::cout << annulus[k] << "\t";
+      std::cout << annulus[k] << '\t';
     }
     std::cout << std::endl;
   }
@@ -182,9 +202,13 @@ itkAnnulusOperatorTest(int, char *[])
   OperatorType::SpacingType spacing;
   spacing[0] = 0.5;
   spacing[1] = 0.25;
+
+  annulus.SetSpacing(spacing);
+  ITK_TEST_SET_GET_VALUE(spacing, annulus.GetSpacing());
+
   annulus.SetInnerRadius(2);
   annulus.SetThickness(1);
-  annulus.SetSpacing(spacing);
+
   annulus.CreateOperator();
 
   annulusSize = annulus.GetSize();
@@ -192,16 +216,18 @@ itkAnnulusOperatorTest(int, char *[])
             << ", s = " << annulus.GetSpacing() << ", i = " << annulus.GetInteriorValue()
             << ", a = " << annulus.GetAnnulusValue() << ", e = " << annulus.GetExteriorValue() << std::endl;
 
-  for (i = 0, k = 0; i < annulusSize[1]; ++i)
+  for (unsigned int i = 0, k = 0; i < annulusSize[1]; ++i)
   {
-    for (j = 0; j < annulusSize[0]; ++j, ++k)
+    for (unsigned int j = 0; j < annulusSize[0]; ++j, ++k)
     {
       std::cout.width(3);
       std::cout.precision(3);
-      std::cout << annulus[k] << "\t";
+      std::cout << annulus[k] << '\t';
     }
     std::cout << std::endl;
   }
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

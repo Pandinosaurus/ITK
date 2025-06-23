@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,12 +34,12 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
-  itkTypeMacro(ObjectToObjectMetricTestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(ObjectToObjectMetricTestMetric);
 
   itkNewMacro(Self);
 
@@ -97,7 +97,7 @@ public:
   {}
 
   void
-  Initialize() throw() override
+  Initialize() noexcept override
   {}
 
   void
@@ -119,7 +119,7 @@ itkObjectToObjectMetricBaseTest(int, char *[])
   using ImageType = itk::Image<unsigned char, 3>;
   using ObjectMetricType = ObjectToObjectMetricTestMetric<ImageType, ImageType>;
 
-  ObjectMetricType::Pointer objectMetric = ObjectMetricType::New();
+  auto objectMetric = ObjectMetricType::New();
 
   objectMetric->Print(std::cout);
 

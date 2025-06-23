@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,11 +53,11 @@ testMemoryAccess(OptimizerParametersType & params, ImageVectorPointer imageOfVec
 
       // The image index returns a N-dim vector, so have to check each
       // element against the values returned by parameter object.
-      itk::OffsetValueType offset = (x + y * dimLength) * VectorDimension;
-      VectorPixelType      vectorpixel = imageOfVectors->GetPixel(index);
+      const itk::OffsetValueType offset = (x + y * dimLength) * VectorDimension;
+      VectorPixelType            vectorpixel = imageOfVectors->GetPixel(index);
       for (itk::SizeValueType ind = 0; ind < VectorDimension; ++ind)
       {
-        ValueType paramsValue = params[offset + ind];
+        const ValueType paramsValue = params[offset + ind];
         if (itk::Math::NotExactlyEquals(vectorpixel[ind], paramsValue))
         {
           std::cout << "VectorImage pixel value does not match params value."
@@ -80,33 +80,20 @@ itkImageVectorOptimizerParametersHelperTest(int, char *[])
 {
   int result = EXIT_SUCCESS;
 
-  ImageVectorPointer imageOfVectors = ImageVectorType::New();
-
-  IndexType start;
-  start.Fill(0);
+  constexpr IndexType start{};
 
   SizeType      size;
   constexpr int dimLength = 3;
   size.Fill(dimLength);
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const RegionType region{ start, size };
 
+  const ImageVectorPointer imageOfVectors = ImageVectorType::New();
   imageOfVectors->SetRegions(region);
   imageOfVectors->Allocate();
 
-  ImageVectorType::PointType   origin;
-  ImageVectorType::SpacingType spacing;
-
-  origin.Fill(0.0);
-  spacing.Fill(1.0);
-
-  imageOfVectors->SetOrigin(origin);
-  imageOfVectors->SetSpacing(spacing);
-
-  ValueType       vectorinitvalues[VectorDimension] = { 0.0, 0.1, 0.2, 0.3 };
-  VectorPixelType vectorvalues(vectorinitvalues);
+  ValueType             vectorinitvalues[VectorDimension] = { 0.0, 0.1, 0.2, 0.3 };
+  const VectorPixelType vectorvalues(vectorinitvalues);
 
   //
   // Fill up the image values with the function
@@ -128,7 +115,7 @@ itkImageVectorOptimizerParametersHelperTest(int, char *[])
       vectorpixel.Fill(value);
       vectorpixel += vectorvalues;
 
-      std::cout << value << " ";
+      std::cout << value << ' ';
     }
     std::cout << std::endl;
   }
@@ -156,7 +143,7 @@ itkImageVectorOptimizerParametersHelperTest(int, char *[])
 
   // Test setting an image of wrong type
   using BadImageType = itk::Image<char, 2>;
-  BadImageType::Pointer badImage = BadImageType::New();
+  auto badImage = BadImageType::New();
   ITK_TRY_EXPECT_EXCEPTION(params.SetParametersObject(badImage));
 
   return result;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkConvertPixelBuffer_hxx
 #define itkConvertPixelBuffer_hxx
-#include "itkConvertPixelBuffer.h"
 
 #include "itkRGBPixel.h"
 #include "itkDefaultConvertPixelTraits.h"
@@ -29,7 +28,7 @@ namespace itk
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 template <typename UComponentType>
-typename DisableIfC<NumericTraits<UComponentType>::IsInteger, UComponentType>::Type
+std::enable_if_t<!std::is_integral_v<UComponentType>, UComponentType>
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::DefaultAlphaValue()
 {
   return NumericTraits<UComponentType>::One;
@@ -37,7 +36,7 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Defaul
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 template <typename UComponentType>
-typename EnableIfC<NumericTraits<UComponentType>::IsInteger, UComponentType>::Type
+std::enable_if_t<std::is_integral_v<UComponentType>, UComponentType>
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::DefaultAlphaValue()
 {
   return NumericTraits<UComponentType>::max();
@@ -45,7 +44,7 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Defaul
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Convert(InputPixelType * inputData,
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Convert(const InputPixelType * inputData,
                                                                                   int inputNumberOfComponents,
                                                                                   OutputPixelType * outputData,
                                                                                   size_t            size)
@@ -147,41 +146,51 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
       break;
     }
     default:
-      itkGenericExceptionMacro("No conversion available from "
-                               << inputNumberOfComponents
-                               << " components to: " << OutputConvertTraits::GetNumberOfComponents() << " components");
+    {
+      if (inputNumberOfComponents == static_cast<int>(OutputConvertTraits::GetNumberOfComponents()))
+      {
+        ConvertVectorToVector(inputData, inputNumberOfComponents, outputData, size);
+      }
+      else
+      {
+        itkGenericExceptionMacro("No conversion available from " << inputNumberOfComponents << " components to: "
+                                                                 << OutputConvertTraits::GetNumberOfComponents()
+                                                                 << " components");
+      }
       break;
+    }
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertGrayToGray(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size;
+  const InputPixelType * endInput = inputData + size;
 
   while (inputData != endInput)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData++, static_cast<OutputComponentType>(*inputData));
-    inputData++;
+    ++inputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToGray(InputPixelType *  inputData,
-                                                                                           OutputPixelType * outputData,
-                                                                                           size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToGray(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   // Weights convert from linear RGB to CIE luminance assuming a
-  // modern monitor.  See Charles Pontyon's Colour FAQ
+  // modern monitor.  See Charles Poynton's Colour FAQ
   // http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
   // NOTE: The scale factors are converted to whole numbers for precision
 
-  InputPixelType * endInput = inputData + size * 3;
+  const InputPixelType * endInput = inputData + size * 3;
 
   while (inputData != endInput)
   {
@@ -197,19 +206,19 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBAToGray(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   // Weights convert from linear RGB to CIE luminance assuming a
-  // modern monitor.  See Charles Pontyon's Colour FAQ
+  // modern monitor.  See Charles Poynton's Colour FAQ
   // http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
   // NOTE: The scale factors are converted to whole numbers for
   // precision
-  InputPixelType * endInput = inputData + size * 4;
-  double           maxAlpha(DefaultAlphaValue<InputPixelType>());
+  const InputPixelType * endInput = inputData + size * 4;
+  double                 maxAlpha(DefaultAlphaValue<InputPixelType>());
   //
-  // To be backwards campatible, if the output pixel type
+  // To be backwards compatible, if the output pixel type
   // isn't a short or char type, don't fix the problem.
   if (sizeof(*outputData) > 2)
   {
@@ -218,12 +227,12 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
   while (inputData != endInput)
   {
     // this is an ugly implementation of the simple equation
-    // greval = (.2125 * red + .7154 * green + .0721 * blue) / alpha
+    // greyval = (.2125 * red + .7154 * green + .0721 * blue) / alpha
     //
-    double tempval = ((2125.0 * static_cast<double>(*inputData) + 7154.0 * static_cast<double>(*(inputData + 1)) +
-                       0721.0 * static_cast<double>(*(inputData + 2))) /
-                      10000.0) *
-                     static_cast<double>(*(inputData + 3)) / maxAlpha;
+    const double tempval = ((2125.0 * static_cast<double>(*inputData) + 7154.0 * static_cast<double>(*(inputData + 1)) +
+                             0721.0 * static_cast<double>(*(inputData + 2))) /
+                            10000.0) *
+                           static_cast<double>(*(inputData + 3)) / maxAlpha;
     inputData += 4;
     auto val = static_cast<OutputComponentType>(tempval);
     OutputConvertTraits::SetNthComponent(0, *outputData++, val);
@@ -233,13 +242,13 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertMultiComponentToGray(
-  InputPixelType *  inputData,
-  int               inputNumberOfComponents,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   //
-  // To be backwards campatible, if the output pixel type
+  // To be backwards compatible, if the output pixel type
   // isn't a short or char type, don't fix the problem.
   double maxAlpha(DefaultAlphaValue<InputPixelType>());
   if (sizeof(*outputData) > 2)
@@ -249,10 +258,10 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
   // 2 components assumed intensity and alpha
   if (inputNumberOfComponents == 2)
   {
-    InputPixelType * endInput = inputData + size * 2;
+    const InputPixelType * endInput = inputData + size * 2;
     while (inputData != endInput)
     {
-      OutputComponentType val =
+      const OutputComponentType val =
         static_cast<OutputComponentType>(*inputData) * static_cast<OutputComponentType>(*(inputData + 1) / maxAlpha);
       inputData += 2;
       OutputConvertTraits::SetNthComponent(0, *outputData++, val);
@@ -262,51 +271,52 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
   else
   {
     // Weights convert from linear RGB to CIE luminance assuming a
-    // modern monitor.  See Charles Pontyon's Colour FAQ
+    // modern monitor.  See Charles Poynton's Colour FAQ
     // http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html
     // NOTE: The scale factors are converted to whole numbers for
     // precision
-    ptrdiff_t        diff = inputNumberOfComponents - 4;
-    InputPixelType * endInput = inputData + size * (size_t)inputNumberOfComponents;
+    const InputPixelType * endInput = inputData + size * static_cast<size_t>(inputNumberOfComponents);
     while (inputData != endInput)
     {
-      double tempval = ((2125.0 * static_cast<double>(*inputData) + 7154.0 * static_cast<double>(*(inputData + 1)) +
-                         0721.0 * static_cast<double>(*(inputData + 2))) /
-                        10000.0) *
-                       static_cast<double>(*(inputData + 3)) / maxAlpha;
-      inputData += 4;
+      const double tempval =
+        ((2125.0 * static_cast<double>(*inputData) + 7154.0 * static_cast<double>(*(inputData + 1)) +
+          0721.0 * static_cast<double>(*(inputData + 2))) /
+         10000.0) *
+        static_cast<double>(*(inputData + 3)) / maxAlpha;
       auto val = static_cast<OutputComponentType>(tempval);
       OutputConvertTraits::SetNthComponent(0, *outputData++, val);
-      inputData += diff;
+      inputData += inputNumberOfComponents;
     }
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertGrayToRGB(InputPixelType *  inputData,
-                                                                                           OutputPixelType * outputData,
-                                                                                           size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertGrayToRGB(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size;
+  const InputPixelType * endInput = inputData + size;
 
   while (inputData != endInput)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*inputData));
-    inputData++;
-    outputData++;
+    ++inputData;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToRGB(InputPixelType *  inputData,
-                                                                                          OutputPixelType * outputData,
-                                                                                          size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToRGB(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size * 3;
+  const InputPixelType * endInput = inputData + size * 3;
 
   while (inputData != endInput)
   {
@@ -314,17 +324,18 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
     OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*(inputData + 2)));
     inputData += 3;
-    outputData++;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBAToRGB(InputPixelType *  inputData,
-                                                                                           OutputPixelType * outputData,
-                                                                                           size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBAToRGB(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size * 4;
+  const InputPixelType * endInput = inputData + size * 4;
 
   while (inputData != endInput)
   {
@@ -332,47 +343,45 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
     OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*(inputData + 2)));
     inputData += 3;
-    inputData++; // skip alpha
-    outputData++;
+    ++inputData; // skip alpha
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertMultiComponentToRGB(
-  InputPixelType *  inputData,
-  int               inputNumberOfComponents,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   // assume intensity alpha
   if (inputNumberOfComponents == 2)
   {
-    InputPixelType * endInput = inputData + size * 2;
+    const InputPixelType * endInput = inputData + size * 2;
     while (inputData != endInput)
     {
-      OutputComponentType val =
+      const OutputComponentType val =
         static_cast<OutputComponentType>(*inputData) * static_cast<OutputComponentType>(*(inputData + 1));
       inputData += 2;
       OutputConvertTraits::SetNthComponent(0, *outputData, val);
       OutputConvertTraits::SetNthComponent(1, *outputData, val);
       OutputConvertTraits::SetNthComponent(2, *outputData, val);
-      outputData++;
+      ++outputData;
     }
   }
   // just skip the rest of the data
   else
   {
-    ptrdiff_t        diff = inputNumberOfComponents - 3;
-    InputPixelType * endInput = inputData + size * (size_t)inputNumberOfComponents;
+    const InputPixelType * endInput = inputData + size * static_cast<size_t>(inputNumberOfComponents);
     while (inputData != endInput)
     {
       OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
       OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
       OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*(inputData + 2)));
-      inputData += 3;
-      inputData += diff;
-      outputData++;
+      inputData += inputNumberOfComponents;
+      ++outputData;
     }
   }
 }
@@ -380,12 +389,12 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertGrayToRGBA(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 
 {
-  InputPixelType * endInput = inputData + size;
+  const InputPixelType * endInput = inputData + size;
 
   while (inputData != endInput)
   {
@@ -394,20 +403,21 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
     OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(
       3, *outputData, static_cast<OutputComponentType>(DefaultAlphaValue<InputPixelType>()));
-    inputData++;
-    outputData++;
+    ++inputData;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToRGBA(InputPixelType *  inputData,
-                                                                                           OutputPixelType * outputData,
-                                                                                           size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBToRGBA(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   using InputConvertTraits = itk::DefaultConvertPixelTraits<InputPixelType>;
   using InputComponentType = typename InputConvertTraits::ComponentType;
-  InputPixelType * endInput = inputData + size * 3;
+  const InputPixelType * endInput = inputData + size * 3;
 
   while (inputData != endInput)
   {
@@ -418,18 +428,18 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
       3, *outputData, static_cast<OutputComponentType>(DefaultAlphaValue<InputComponentType>()));
 
     inputData += 3;
-    outputData++;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertRGBAToRGBA(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size * 4;
+  const InputPixelType * endInput = inputData + size * 4;
 
   while (inputData != endInput)
   {
@@ -438,22 +448,22 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
     OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*(inputData + 2)));
     OutputConvertTraits::SetNthComponent(3, *outputData, static_cast<OutputComponentType>(*(inputData + 3)));
     inputData += 4;
-    outputData++;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertMultiComponentToRGBA(
-  InputPixelType *  inputData,
-  int               inputNumberOfComponents,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
   // equal weights for 2 components??
   if (inputNumberOfComponents == 2)
   {
-    InputPixelType * endInput = inputData + size * 2;
+    const InputPixelType * endInput = inputData + size * 2;
     while (inputData != endInput)
     {
       auto val = static_cast<OutputComponentType>(*inputData);
@@ -467,29 +477,54 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
   }
   else
   {
-    ptrdiff_t        diff = inputNumberOfComponents - 4;
-    InputPixelType * endInput = inputData + size * (size_t)inputNumberOfComponents;
+    const InputPixelType * endInput = inputData + size * static_cast<size_t>(inputNumberOfComponents);
     while (inputData != endInput)
     {
       OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
       OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
       OutputConvertTraits::SetNthComponent(2, *outputData, static_cast<OutputComponentType>(*(inputData + 2)));
       OutputConvertTraits::SetNthComponent(3, *outputData, static_cast<OutputComponentType>(*(inputData + 3)));
-      inputData += 4;
-      inputData += diff;
-      outputData++;
+      inputData += inputNumberOfComponents;
+      ++outputData;
     }
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
-ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertTensor6ToTensor6(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertVectorToVector(
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  for (size_t i = 0; i < size; i++)
+  const int outputNumberOfComponents = OutputConvertTraits::GetNumberOfComponents();
+  const int componentCount = std::min(inputNumberOfComponents, outputNumberOfComponents);
+
+  for (size_t i = 0; i < size; ++i)
+  {
+    for (int c = 0; c < componentCount; ++c)
+    {
+      OutputConvertTraits::SetNthComponent(c, *outputData, static_cast<OutputComponentType>(*(inputData + c)));
+    }
+    for (int c = componentCount; c < outputNumberOfComponents; ++c)
+    {
+      OutputConvertTraits::SetNthComponent(c, *outputData, 0); // set the rest of components to zero
+    }
+
+    ++outputData;
+    inputData += inputNumberOfComponents;
+  }
+}
+
+template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
+void
+ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertTensor6ToTensor6(
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
+{
+  for (size_t i = 0; i < size; ++i)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
@@ -507,47 +542,47 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertGrayToComplex(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size;
+  const InputPixelType * endInput = inputData + size;
 
   while (inputData != endInput)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*inputData));
-    inputData++;
-    outputData++;
+    ++inputData;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertComplexToComplex(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  InputPixelType * endInput = inputData + size * 2;
+  const InputPixelType * endInput = inputData + size * 2;
 
   while (inputData != endInput)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
     inputData += 2;
-    outputData++;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertTensor9ToTensor6(
-  InputPixelType *  inputData,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; ++i)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
@@ -563,35 +598,33 @@ ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::Conver
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertMultiComponentToComplex(
-  InputPixelType *  inputData,
-  int               inputNumberOfComponents,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  ptrdiff_t        diff = inputNumberOfComponents - 2;
-  InputPixelType * endInput = inputData + size * (size_t)inputNumberOfComponents;
+  const InputPixelType * endInput = inputData + size * static_cast<size_t>(inputNumberOfComponents);
 
   while (inputData != endInput)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     OutputConvertTraits::SetNthComponent(1, *outputData, static_cast<OutputComponentType>(*(inputData + 1)));
-    inputData += 2;
-    inputData += diff;
-    outputData++;
+    inputData += inputNumberOfComponents;
+    ++outputData;
   }
 }
 
 template <typename InputPixelType, typename OutputPixelType, typename OutputConvertTraits>
 void
 ConvertPixelBuffer<InputPixelType, OutputPixelType, OutputConvertTraits>::ConvertVectorImage(
-  InputPixelType *  inputData,
-  int               inputNumberOfComponents,
-  OutputPixelType * outputData,
-  size_t            size)
+  const InputPixelType * inputData,
+  int                    inputNumberOfComponents,
+  OutputPixelType *      outputData,
+  size_t                 size)
 {
-  size_t length = size * (size_t)inputNumberOfComponents;
+  const size_t length = size * static_cast<size_t>(inputNumberOfComponents);
 
-  for (size_t i = 0; i < length; i++)
+  for (size_t i = 0; i < length; ++i)
   {
     OutputConvertTraits::SetNthComponent(0, *outputData, static_cast<OutputComponentType>(*inputData));
     ++outputData;

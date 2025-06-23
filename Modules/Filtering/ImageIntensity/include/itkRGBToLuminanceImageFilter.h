@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class RGBToLuminanceImageFilter
+ * \class RGBToLuminanceImageFilter
  * \brief Converts an RGB image into a grayscale image.
  *
  * This filters converts an RGB image into a Luminance on by computing
@@ -43,19 +43,13 @@ public:
   using ComponentType = typename TInput::ComponentType;
   using RealType = typename itk::NumericTraits<ComponentType>::RealType;
 
-  RGBToLuminance() = default;
-  ~RGBToLuminance() = default;
   bool
-  operator!=(const RGBToLuminance &) const
+  operator==(const RGBToLuminance &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const RGBToLuminance & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(RGBToLuminance);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -66,7 +60,7 @@ public:
 } // namespace Functor
 
 template <typename TInputImage, typename TOutputImage>
-class RGBToLuminanceImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT RGBToLuminanceImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(RGBToLuminanceImageFilter);
@@ -81,15 +75,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(RGBToLuminanceImageFilter, UnaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RGBToLuminanceImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TInputImage::PixelType::ComponentType>));
-  // End concept checking
-#endif
 
 protected:
   RGBToLuminanceImageFilter()

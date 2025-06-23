@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,16 +25,9 @@ namespace itk
  * ====================================================================================
  * ====================================================================================
  */
-OctreeNode::OctreeNode()
-{
-  m_Parent = nullptr;
-  m_Branch = nullptr;
-}
+OctreeNode::OctreeNode() = default;
 
-OctreeNode::~OctreeNode()
-{
-  this->RemoveChildren();
-}
+OctreeNode::~OctreeNode() { this->RemoveChildren(); }
 
 OctreeNode &
 OctreeNode::GetChild(const LeafIdentifierEnum ChildID) const
@@ -48,12 +41,12 @@ OctreeNode::GetChild(const LeafIdentifierEnum ChildID)
   return *m_Branch->GetLeaf(ChildID);
 }
 
-long int
+long
 OctreeNode::GetColor() const
 {
   if (m_Parent != nullptr)
   {
-    const long int x = m_Branch - m_Parent->GetColorTable();
+    const long x = m_Branch - m_Parent->GetColorTable();
 
     //
     // you'll want to indicate that the branch
@@ -85,7 +78,6 @@ OctreeNode::SetBranch(OctreeNodeBranch * NewBranch)
 
 /**
  * \brief Determines if the current node is colored
- * \param void
  * \return  bool true if this node is colored
  */
 bool
@@ -99,10 +91,8 @@ OctreeNode::IsNodeColored() const
 
     return this->m_Branch >= first && this->m_Branch <= last;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 void

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class ImageFilterToVideoFilterWrapper
+ * \class ImageFilterToVideoFilterWrapper
  * \brief Wrap an ImageToImageFilter as a VideoToVideoFilter that operates on
  * a single frame at a time
  *
@@ -59,17 +59,19 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(ImageFilterToVideoFilterWrapper, VideoToVideoFilter);
+  itkOverrideGetNameOfClassMacro(ImageFilterToVideoFilterWrapper);
 
   /** Set the filter to use in the internal pipeline */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(ImageFilter, ImageFilterType);
   itkGetModifiableObjectMacro(ImageFilter, ImageFilterType);
-
+  /** @ITKEndGrouping */
 protected:
   /** Constructor and Destructor */
+  /** @ITKStartGrouping */
   ImageFilterToVideoFilterWrapper();
   ~ImageFilterToVideoFilterWrapper() override = default;
-
+  /** @ITKEndGrouping */
   /** PrintSelf */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -80,7 +82,7 @@ protected:
   TemporalStreamingGenerateData() override;
 
   /** Pointer to filter to use for internal filter */
-  typename ImageFilterType::Pointer m_ImageFilter;
+  typename ImageFilterType::Pointer m_ImageFilter{};
 
 private:
 }; // end class ImageFilterToVideoFilterWrapper

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkShrinkImageFilter.h"
 #include "itkStreamingImageFilter.h"
 #include "itkPipelineMonitorImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkStreamingImageFilterTest(int, char *[])
@@ -30,31 +31,26 @@ itkStreamingImageFilterTest(int, char *[])
   using ShortImage = itk::Image<short, 2>;
 
   // Test the creation of an image with native type
-  ShortImage::Pointer if2 = ShortImage::New();
+  auto if2 = ShortImage::New();
 
   // fill in an image
-  ShortImage::IndexType  index = { { 0, 0 } };
-  ShortImage::SizeType   size = { { 80, 122 } };
-  ShortImage::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  constexpr ShortImage::IndexType index = { { 0, 0 } };
+  constexpr ShortImage::SizeType  size = { { 80, 122 } };
+  const ShortImage::RegionType    region{ index, size };
   if2->SetLargestPossibleRegion(region);
   if2->SetBufferedRegion(region);
   if2->Allocate();
 
-  itk::ImageRegionIterator<ShortImage> iterator(if2, region);
-
   short i = 0;
-  short scalar;
-  for (; !iterator.IsAtEnd(); ++iterator, ++i)
+  for (itk::ImageRegionIterator<ShortImage> iterator(if2, region); !iterator.IsAtEnd(); ++iterator, ++i)
   {
-    scalar = i;
+    const short scalar = i;
     iterator.Set(scalar);
   }
 
   // Create a filter
-  itk::ShrinkImageFilter<ShortImage, ShortImage>::Pointer shrink;
-  shrink = itk::ShrinkImageFilter<ShortImage, ShortImage>::New();
+  const itk::ShrinkImageFilter<ShortImage, ShortImage>::Pointer shrink =
+    itk::ShrinkImageFilter<ShortImage, ShortImage>::New();
   shrink->SetInput(if2);
 
   unsigned int factors[2] = { 3, 5 };
@@ -62,12 +58,15 @@ itkStreamingImageFilterTest(int, char *[])
   // shrink->DebugOn();
 
   // monitor what's going on
-  itk::PipelineMonitorImageFilter<ShortImage>::Pointer monitor;
-  monitor = itk::PipelineMonitorImageFilter<ShortImage>::New();
+  const itk::PipelineMonitorImageFilter<ShortImage>::Pointer monitor =
+    itk::PipelineMonitorImageFilter<ShortImage>::New();
   monitor->SetInput(shrink->GetOutput());
 
-  itk::StreamingImageFilter<ShortImage, ShortImage>::Pointer streamer;
-  streamer = itk::StreamingImageFilter<ShortImage, ShortImage>::New();
+  const itk::StreamingImageFilter<ShortImage, ShortImage>::Pointer streamer =
+    itk::StreamingImageFilter<ShortImage, ShortImage>::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(streamer, StreamingImageFilter, ImageToImageFilter);
+
 
   // test MakeOutput by name
   streamer->MakeOutput(streamer->GetOutputNames()[0]);
@@ -100,8 +99,7 @@ itkStreamingImageFilterTest(int, char *[])
   // The rest of this code determines whether the shrink code produced
   // the image we expected.
   //
-  ShortImage::RegionType requestedRegion;
-  requestedRegion = streamer->GetOutput()->GetRequestedRegion();
+  const ShortImage::RegionType requestedRegion = streamer->GetOutput()->GetRequestedRegion();
 
   itk::ImageRegionIterator<ShortImage> iterator2(streamer->GetOutput(), requestedRegion);
   std::cout << "requestedRegion: " << requestedRegion;
@@ -129,7 +127,7 @@ itkStreamingImageFilterTest(int, char *[])
 
     short row = (shrink->GetShrinkFactors()[1] * iterator2.GetIndex()[1] + (shrink->GetShrinkFactors()[1] - 1) / 2);
     row += rowOffset;
-    short trueValue = col + region.GetSize()[0] * row;
+    const short trueValue = col + region.GetSize()[0] * row;
 
     if (iterator2.Get() != trueValue)
     {
@@ -144,9 +142,7 @@ itkStreamingImageFilterTest(int, char *[])
     std::cout << "ImageStreamingFilter test passed." << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "ImageStreaming Filter test failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "ImageStreaming Filter test failed." << std::endl;
+  return EXIT_FAILURE;
 }

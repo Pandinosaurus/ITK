@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 #include "itkProgressReporter.h"
 #include <queue>
 
-//#define BASIC
+// #define BASIC
 #define COPY
 
 #ifdef COPY
@@ -39,14 +39,12 @@ namespace itk
  *
  * This filter uses Luc Vincent's algorithm, which employs raster and
  * antiraster propagation steps followed by a FIFO based propagation
- * step. "Morphological grayscale reconstruction in image analysis -
- * applications and efficient algorithms" -- IEEE Transactions on
- * Image processing, Vol 2, No 2, pp 176-201, April 1993
+ * step \cite vincent1993.
  *
  * \author Richard Beare. Department of Medicine, Monash University,
  * Melbourne, Australia.
  *
- * \sa MorphologicalReonstructionErosionImageFilter MorphologicalReonstructionDilationImageFilter
+ * \sa MorphologicalReconstructionErosionImageFilter MorphologicalReconstructionDilationImageFilter
  * \ingroup MathematicalMorphologyImageFilters
  * \ingroup ITKMathematicalMorphology
  */
@@ -87,6 +85,7 @@ public:
   using OutputImageIndexType = typename OutputImageType::IndexType;
 
   /** ImageDimension constants */
+
   /** ImageDimension constants */
   static constexpr unsigned int MarkerImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int MaskImageDimension = TInputImage::ImageDimension;
@@ -95,42 +94,46 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ReconstructionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ReconstructionImageFilter);
 
   /** Set/Get the marker image. Traditionally, the marker image must
    * be pixelwise less than or equal to the mask image (for dilation),
    * however this filter implicitly applies a mask to force the
    * constraint to hold. The marker image the
    * image that is dilated by this filter. */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MarkerImage, MarkerImageType);
   itkGetInputMacro(MarkerImage, MarkerImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mask image. The mask image is used to "mask" the
    * dilated marker image. The mask operation is a pixelwise
    * minimum. */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, MaskImageType);
   itkGetInputMacro(MaskImage, MaskImageType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get whether the connected components are defined strictly by
    * face connectivity or by face+edge+vertex connectivity.  Default is
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   /**
    * Perform a padding of the image internally to increase the performance
    * of the filter. UseInternalCopy can be set to false to reduce the memory
    * usage.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(UseInternalCopy, bool);
   itkGetConstReferenceMacro(UseInternalCopy, bool);
   itkBooleanMacro(UseInternalCopy);
-
+  /** @ITKEndGrouping */
 protected:
   ReconstructionImageFilter();
   ~ReconstructionImageFilter() override = default;
@@ -153,11 +156,11 @@ protected:
   /**
    * the value of the border - used in boundary condition.
    */
-  typename TInputImage::PixelType m_MarkerValue;
+  typename TInputImage::PixelType m_MarkerValue{};
 
 private:
-  bool m_FullyConnected;
-  bool m_UseInternalCopy;
+  bool m_FullyConnected{};
+  bool m_UseInternalCopy{};
 
   using FaceCalculatorType = typename itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<OutputImageType>;
 

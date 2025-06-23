@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,11 @@
 #ifndef itkImageScanlineIterator_hxx
 #define itkImageScanlineIterator_hxx
 
-#include "itkImageScanlineIterator.h"
 
 namespace itk
 {
 template <typename TImage>
-ImageScanlineIterator<TImage>::ImageScanlineIterator(ImageType * ptr, const RegionType & region)
+ImageScanlineIterator<TImage>::ImageScanlineIterator(TImage * ptr, const RegionType & region)
   : ImageScanlineConstIterator<TImage>(ptr, region)
 {}
 

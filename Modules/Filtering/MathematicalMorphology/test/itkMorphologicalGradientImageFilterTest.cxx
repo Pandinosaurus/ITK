@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ itkMorphologicalGradientImageFilterTest(int argc, char * argv[])
   using IType = itk::Image<PType, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using StructuringElementType = itk::BinaryBallStructuringElement<PType, dim>;
@@ -48,14 +48,14 @@ itkMorphologicalGradientImageFilterTest(int argc, char * argv[])
   structuringElement.CreateStructuringElement();
 
   using GradientType = itk::MorphologicalGradientImageFilter<IType, IType, StructuringElementType>;
-  GradientType::Pointer gradient = GradientType::New();
+  auto gradient = GradientType::New();
   gradient->SetInput(reader->GetOutput());
   gradient->SetKernel(structuringElement);
 
-  itk::SimpleFilterWatcher watcher(gradient);
+  const itk::SimpleFilterWatcher watcher(gradient);
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(gradient->GetOutput());
   writer->SetFileName(argv[2]);
 

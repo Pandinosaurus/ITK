@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
  * is propagated outwards (or inwards) until it ''sticks'' to the shape boundaries.
  * This is done by using a level set speed function based on a user supplied
  * edge potential map. This approach for segmentation follows that of
- * Malladi et al (1995).
+ * Malladi et al (1995) \cite malladi1995.
  *
  * \par INPUTS
  * This filter requires two inputs.  The first input is a initial level set.
@@ -72,7 +72,7 @@ namespace itk
  * parameter, the smoother the resulting contour. The CurvatureScaling parameter should
  * be non-negative for proper operation of this algorithm.
  * To follow the implementation in Malladi et al paper,
- * set the PropagtionScaling to \f$\pm 1.0\f$ and CurvatureScaling to \f$ \epsilon \f$.
+ * set the PropagationScaling to \f$\pm 1.0\f$ and CurvatureScaling to \f$ \epsilon \f$.
  *
  * Note that there is no advection term for this filter. Setting the
  * advection scaling will have no effect.
@@ -88,12 +88,7 @@ namespace itk
  * See SparseFieldLevelSetImageFilter and
  * SegmentationLevelSetImageFilter for more information.
  *
- * \par REFERENCES
- * \par
- *    "Shape Modeling with Front Propagation: A Level Set Approach",
- *    R. Malladi, J. A. Sethian and B. C. Vermuri.
- *    IEEE Trans. on Pattern Analysis and Machine Intelligence,
- *    Vol 17, No. 2, pp 158-174, February 1995
+ * For algorithmic details see \cite malladi1995.
  *
  * \sa SegmentationLevelSetImageFilter
  * \sa ShapeDetectionLevelSetFunction
@@ -116,16 +111,16 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FeatureImageType = typename Superclass::FeatureImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FeatureImageType;
 
   /** Type of the segmentation function */
   using ShapeDetectionFunctionType = ShapeDetectionLevelSetFunction<OutputImageType, FeatureImageType>;
   using ShapeDetectionFunctionPointer = typename ShapeDetectionFunctionType::Pointer;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapeDetectionLevelSetImageFilter, SegmentationLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeDetectionLevelSetImageFilter);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
@@ -143,7 +138,7 @@ protected:
   GenerateData() override;
 
 private:
-  ShapeDetectionFunctionPointer m_ShapeDetectionFunction;
+  ShapeDetectionFunctionPointer m_ShapeDetectionFunction{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +59,10 @@
 
 #include "itkImageFileReader.h"
 
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 3)
@@ -89,23 +91,9 @@ main(int argc, char * argv[])
   using RGBImageType = itk::Image<RGBPixelType, Dimension>;
   // Software Guide : EndCodeSnippet
 
+  RGBImageType::Pointer input;
 
-  using ReaderType = itk::ImageFileReader<RGBImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName(argv[1]);
-
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem reading image file : " << argv[1] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  input = itk::ReadImage<RGBImageType>(argv[1]);
 
 
   // Software Guide : BeginLatex
@@ -122,7 +110,7 @@ main(int argc, char * argv[])
   using HistogramFilterType =
     itk::Statistics::ImageToHistogramFilter<RGBImageType>;
 
-  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+  auto histogramFilter = HistogramFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -156,7 +144,7 @@ main(int argc, char * argv[])
   // using the \code{SetHistogramBinMinimum()} and
   // \code{SetHistogramBinMaximum()} methods.
   //
-  // Software Guide : EndLatexex
+  // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
   using HistogramMeasurementVectorType =
@@ -187,7 +175,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  histogramFilter->SetInput(reader->GetOutput());
+  histogramFilter->SetInput(input);
   // Software Guide : EndCodeSnippet
 
 
@@ -257,8 +245,8 @@ main(int argc, char * argv[])
   std::ofstream histogramFile;
   histogramFile.open(argv[2]);
 
-  HistogramType::ConstIterator itr = histogram->Begin();
-  HistogramType::ConstIterator end = histogram->End();
+  HistogramType::ConstIterator       itr = histogram->Begin();
+  const HistogramType::ConstIterator end = histogram->End();
 
   using AbsoluteFrequencyType = HistogramType::AbsoluteFrequencyType;
 
@@ -292,4 +280,27 @@ main(int argc, char * argv[])
 
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

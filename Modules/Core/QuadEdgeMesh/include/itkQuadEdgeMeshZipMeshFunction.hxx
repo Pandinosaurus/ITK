@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,12 @@
 #ifndef itkQuadEdgeMeshZipMeshFunction_hxx
 #define itkQuadEdgeMeshZipMeshFunction_hxx
 
-#include "itkQuadEdgeMeshZipMeshFunction.h"
 
 namespace itk
 {
 template <typename TMesh, typename TQEType>
-typename QuadEdgeMeshZipMeshFunction<TMesh, TQEType>::OutputType
-QuadEdgeMeshZipMeshFunction<TMesh, TQEType>::Evaluate(QEType * e)
+auto
+QuadEdgeMeshZipMeshFunction<TMesh, TQEType>::Evaluate(QEType * e) -> OutputType
 {
   if (!this->m_Mesh)
   {
@@ -76,13 +75,13 @@ QuadEdgeMeshZipMeshFunction<TMesh, TQEType>::Evaluate(QEType * e)
   //                  /  |  \                                      //
   //
   // Store for latter usage (since e and e->GetRight() will be deleted):
-  QEType *   a = e->GetLnext();
-  QEType *   b = e->GetOnext()->GetSym();
-  OutputType VLeft = e->GetDestination();
-  OutputType VRite = b->GetOrigin();
-  bool       wasFacePresent = e->IsRightSet();
-  const auto rightFaceID = e->GetRight();
-  OutputType resultingPointId = QEType::m_NoPoint;
+  QEType *         a = e->GetLnext();
+  QEType *         b = e->GetOnext()->GetSym();
+  const OutputType VLeft = e->GetDestination();
+  const OutputType VRite = b->GetOrigin();
+  const bool       wasFacePresent = e->IsRightSet();
+  const auto       rightFaceID = e->GetRight();
+  OutputType       resultingPointId = QEType::m_NoPoint;
 
   // We should be cautious and consider the case when the very
   // initial situation was the following:
@@ -112,7 +111,7 @@ QuadEdgeMeshZipMeshFunction<TMesh, TQEType>::Evaluate(QEType * e)
     }
   }
 
-  // Delete the Edge e and it's right face:
+  // Delete the Edge e and its right face:
   if (wasFacePresent)
   {
     this->m_Mesh->DeleteFace(e->GetRight());

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,17 +25,15 @@ itkAnisotropicFourthOrderLevelSetImageFilterTest(int, char *[])
   using ImageType = itk::Image<float, 2>;
   using IndexType = ImageType::IndexType;
 
-  ImageType::Pointer im_init = ImageType::New();
+  auto im_init = ImageType::New();
 
-  ImageType::RegionType r;
-  ImageType::SizeType   sz = { { 128, 128 } };
-  ImageType::IndexType  idx = { { 0, 0 } };
+  ImageType::RegionType          r;
+  constexpr ImageType::SizeType  sz = { { 128, 128 } };
+  constexpr ImageType::IndexType idx = { { 0, 0 } };
   r.SetSize(sz);
   r.SetIndex(idx);
 
-  im_init->SetLargestPossibleRegion(r);
-  im_init->SetBufferedRegion(r);
-  im_init->SetRequestedRegion(r);
+  im_init->SetRegions(r);
   im_init->Allocate();
 
   IndexType index;
@@ -54,14 +52,14 @@ itkAnisotropicFourthOrderLevelSetImageFilterTest(int, char *[])
     }
 
   using FilterType = itk::AnisotropicFourthOrderLevelSetImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetMaxFilterIteration(2);
   filter->SetMaxNormalIteration(5);
   filter->SetNormalProcessConductance(0.5);
 
   filter->SetInput(im_init);
   filter->SetRMSChangeNormalProcessTrigger(0.1);
-  std::cout << "max iteration = " << (filter->GetMaxFilterIteration()) << "\n";
+  std::cout << "max iteration = " << (filter->GetMaxFilterIteration()) << '\n';
   std::cout << "Starting processing.\n";
   filter->Update();
   filter->Print(std::cout);

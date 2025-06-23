@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,26 @@ from itkConfig import ITK_GLOBAL_VERSION_STRING as __version__
 
 from itk.support.extras import *
 from itk.support.init_helpers import *
-from itk.support.types import itkCType, F, D, UC, US, UI, UL, SL, LD, ULL, SC, SS, SI, SLL, B
+from itk.support.types import (
+    itkCType,
+    F,
+    D,
+    UC,
+    US,
+    UI,
+    UL,
+    SL,
+    LD,
+    ULL,
+    SC,
+    SS,
+    SI,
+    SLL,
+    B,
+    ST,
+    IT,
+    OT,
+)
 
 
 def _initialize_module():
@@ -37,7 +56,7 @@ def _initialize_module():
     from .support.base import ITKModuleInfo, ITKTemplateFeatures
 
     # Needed to avoid problem with aliasing of itk.set (itkTemplate)
-    # inside the itk namespace.  We need to explictly specify the
+    # inside the itk namespace.  We need to explicitly specify the
     # use of the builtin set
     from builtins import set as _builtin_set
 
@@ -60,6 +79,7 @@ def _initialize_module():
         for function in l_data._snake_case_functions:
             # snake case always appended to end
             local_lazy_attributes.setdefault(function, []).append(l_module)
+
         # Remove duplicates in attributes, preserving only the first
         def _dedup(seq):
             seen = _builtin_set()
@@ -73,6 +93,8 @@ def _initialize_module():
     from .support import lazy as _lazy
     from itkConfig import LazyLoading as _LazyLoading
     import sys
+    import os
+    import importlib
 
     if _LazyLoading:
         # If we are loading lazily (on-demand), make a dict mapping the available
@@ -116,6 +138,24 @@ def _initialize_module():
         _get_lazy_attributes(attributes, module, data)
         itk_module = _lazy.LazyITKModule(module, attributes)
         setattr(sys.modules[__name__], module, itk_module)
+
+        # Check if the module installed its own init file and load it.
+        # ITK Modules __init__.py must be renamed to __init_{module_name}__.py before packaging
+        # the wheel to avoid overriding this file on installation.
+        module_init_file = os.path.join(
+            os.path.dirname(__file__), "__init_" + module.lower() + "__.py"
+        )
+        if not os.path.isfile(module_init_file):
+            continue
+
+        # Load the module definition from file path
+        spec = importlib.util.spec_from_file_location(
+            f"{module}.__init__", module_init_file
+        )
+
+        # Import and execute the __init__ file (this call will add the module binaries to sys path)
+        loaded_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(loaded_module)
 
 
 # After 'lifting' external symbols into this itk namespace,

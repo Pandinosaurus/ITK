@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUDenseFiniteDifferenceImageFilter_hxx
 #define itkGPUDenseFiniteDifferenceImageFilter_hxx
 
-#include "itkGPUDenseFiniteDifferenceImageFilter.h"
 
 #include <list>
 #include "itkImageRegionIterator.h"
@@ -48,7 +47,7 @@ GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilte
     itkExceptionMacro("GPUDenseFiniteDifferenceImageFilter supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << TInputImage::ImageDimension << "\n";
+  defines << "#define DIM_" << TInputImage::ImageDimension << '\n';
 
   // PixelType is a Vector
   defines << "#define BUFPIXELTYPE ";
@@ -58,7 +57,7 @@ GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilte
   GetTypenameInString(typeid(typename TOutputImage::PixelType), defines);
 
   // assumes input and output pixel type is same
-  defines << "#define PIXELDIM " << GetPixelDimension(typeid(typename TOutputImage::PixelType)) << "\n";
+  defines << "#define PIXELDIM " << GetPixelDimension(typeid(typename TOutputImage::PixelType)) << '\n';
 
   const char * GPUSource = GPUDenseFiniteDifferenceImageFilter::GetOpenCLSource();
 
@@ -115,22 +114,20 @@ GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilte
 
   float timeStep = dt;
 
-  int ImageDim = (int)TInputImage::ImageDimension;
+  int ImageDim = static_cast<int>(TInputImage::ImageDimension);
 
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     imgSize[i] = outSize[i];
   }
 
   size_t localSize[3], globalSize[3];
   localSize[0] = localSize[1] = localSize[2] = OpenCLGetLocalBlockSize(ImageDim);
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
-    globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); //
-                                                                                                // total
-                                                                                                // #
-                                                                                                // of
-                                                                                                // threads
+    // total # of threads
+    globalSize[i] =
+      localSize[i] * static_cast<unsigned int>(ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i])));
   }
 
   // arguments set up
@@ -138,22 +135,22 @@ GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilte
   this->m_GPUKernelManager->SetKernelArgWithImage(m_ApplyUpdateGPUKernelHandle, argidx++, bfPtr->GetGPUDataManager());
   this->m_GPUKernelManager->SetKernelArgWithImage(m_ApplyUpdateGPUKernelHandle, argidx++, otPtr->GetGPUDataManager());
   this->m_GPUKernelManager->SetKernelArg(m_ApplyUpdateGPUKernelHandle, argidx++, sizeof(float), &(timeStep));
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     this->m_GPUKernelManager->SetKernelArg(m_ApplyUpdateGPUKernelHandle, argidx++, sizeof(int), &(imgSize[i]));
   }
 
   // launch kernel
   this->m_GPUKernelManager->LaunchKernel(
-    m_ApplyUpdateGPUKernelHandle, (int)TInputImage::ImageDimension, globalSize, localSize);
+    m_ApplyUpdateGPUKernelHandle, static_cast<int>(TInputImage::ImageDimension), globalSize, localSize);
 
-  // Explicitely call Modified on GetOutput here. Do we need this?
+  // Explicitly call Modified on GetOutput here. Do we need this?
   // this->GetOutput()->Modified();
 }
 
 template <typename TInputImage, typename TOutputImage, typename TParentImageFilter>
-typename GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::TimeStepType
-GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::GPUCalculateChange()
+auto
+GPUDenseFiniteDifferenceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::GPUCalculateChange() -> TimeStepType
 {
   typename OutputImageType::Pointer output = this->GetOutput();
 

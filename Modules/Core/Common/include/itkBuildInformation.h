@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
  * that describe this version of ITK.
  *
  * Values in in the map provide information about
- * the ITK (i.e. it's version, the build options,
+ * the ITK (i.e. its version, the build options,
  * configuration options, the home URL for the project,
  * and other static information) that can be gathered
  * at configuration time.
@@ -77,25 +77,26 @@ public:
   using MapStorageType = InformationValueType;
   using MapType = std::map<MapKeyType, MapStorageType>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BuildInformation, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BuildInformation);
 
   /** Returns the global instance */
   static Pointer
   New();
 
   /** Returns the global singleton instance of the BuildInformation */
+  /** @ITKStartGrouping */
   static Pointer
   GetInstance();
   static const MapType &
   GetMap();
   static const MapValueType
-  GetValue(const MapKeyType &&);
+  GetValue(const MapKeyType &);
   static const MapValueDescriptionType
-  GetDescription(const MapKeyType &&);
+  GetDescription(const MapKeyType &);
   static const std::vector<MapKeyType>
   GetAllKeys();
-
+  /** @ITKEndGrouping */
 private:
   BuildInformation();
 

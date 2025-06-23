@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +41,11 @@ namespace itk
  * \ingroup ImageFunctions
  * \ingroup ITKImageFunction
  */
-template <typename TInputImage, typename TCoordRep = float>
+template <typename TInputImage, typename TCoordinate = float>
 class ITK_TEMPLATE_EXPORT ScatterMatrixImageFunction
   : public ImageFunction<TInputImage,
                          vnl_matrix<typename NumericTraits<typename TInputImage::PixelType::ValueType>::RealType>,
-                         TCoordRep>
+                         TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ScatterMatrixImageFunction);
@@ -55,13 +55,13 @@ public:
   using Superclass =
     ImageFunction<TInputImage,
                   vnl_matrix<typename NumericTraits<typename TInputImage::PixelType::ValueType>::RealType>,
-                  TCoordRep>;
+                  TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScatterMatrixImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScatterMatrixImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -69,17 +69,17 @@ public:
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
 
-  /** OutputType typdef support. */
-  using OutputType = typename Superclass::OutputType;
+  /** OutputType typedef support. */
+  using typename Superclass::OutputType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Dimension of the underlying image. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
@@ -87,7 +87,7 @@ public:
   /** Datatype used for the covariance matrix */
   using RealType = vnl_matrix<typename NumericTraits<typename InputImageType::PixelType::ValueType>::RealType>;
 
-  /** Evalulate the function at specified index */
+  /** Evaluate the function at specified index */
   RealType
   EvaluateAtIndex(const IndexType & index) const override;
 
@@ -112,9 +112,10 @@ public:
 
   /** Get/Set the radius of the neighborhood over which the
       statistics are evaluated */
+  /** @ITKStartGrouping */
   itkSetMacro(NeighborhoodRadius, unsigned int);
   itkGetConstReferenceMacro(NeighborhoodRadius, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   ScatterMatrixImageFunction();
   ~ScatterMatrixImageFunction() override = default;
@@ -122,7 +123,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int m_NeighborhoodRadius;
+  unsigned int m_NeighborhoodRadius{};
 };
 } // end namespace itk
 

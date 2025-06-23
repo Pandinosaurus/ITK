@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageConstIteratorWithOnlyIndex_hxx
 #define itkImageConstIteratorWithOnlyIndex_hxx
 
-#include "itkImageConstIteratorWithOnlyIndex.h"
 
 namespace itk
 {
@@ -26,48 +25,18 @@ namespace itk
 //  Constructor
 //----------------------------------------------------------------------
 template <typename TImage>
-ImageConstIteratorWithOnlyIndex<TImage>::ImageConstIteratorWithOnlyIndex()
-{
-  m_Remaining = false;
-}
-
-//----------------------------------------------------------------------
-//  Constructor
-//----------------------------------------------------------------------
-template <typename TImage>
-ImageConstIteratorWithOnlyIndex<TImage>::ImageConstIteratorWithOnlyIndex(const Self & it)
-{
-  m_Image = it.m_Image; // copy the smart pointer
-
-  m_PositionIndex = it.m_PositionIndex;
-  m_BeginIndex = it.m_BeginIndex;
-  m_EndIndex = it.m_EndIndex;
-  m_Region = it.m_Region;
-
-  std::copy_n(it.m_OffsetTable, ImageDimension + 1, m_OffsetTable);
-
-  m_Remaining = it.m_Remaining;
-}
-
-//----------------------------------------------------------------------
-//  Constructor
-//----------------------------------------------------------------------
-template <typename TImage>
 ImageConstIteratorWithOnlyIndex<TImage>::ImageConstIteratorWithOnlyIndex(const TImage * ptr, const RegionType & region)
+  : m_Image(ptr)
+  , m_BeginIndex(region.GetIndex())
+  , m_Region(region)
 {
-  m_Image = ptr;
-
-  m_BeginIndex = region.GetIndex();
   m_PositionIndex = m_BeginIndex;
-  m_Region = region;
-
   std::copy_n(m_Image->GetOffsetTable(), ImageDimension + 1, m_OffsetTable);
 
   // Compute the end offset
-  m_Remaining = false;
   for (unsigned int i = 0; i < ImageDimension; ++i)
   {
-    SizeValueType size = region.GetSize()[i];
+    const SizeValueType size = region.GetSize()[i];
     if (size > 0)
     {
       m_Remaining = true;
@@ -76,29 +45,6 @@ ImageConstIteratorWithOnlyIndex<TImage>::ImageConstIteratorWithOnlyIndex(const T
   }
 
   GoToBegin();
-}
-
-//----------------------------------------------------------------------
-//    Assignment Operator
-//----------------------------------------------------------------------
-template <typename TImage>
-ImageConstIteratorWithOnlyIndex<TImage> &
-ImageConstIteratorWithOnlyIndex<TImage>::operator=(const Self & it)
-{
-  if (this != *it)
-  {
-    m_Image = it.m_Image; // copy the smart pointer
-
-    m_BeginIndex = it.m_BeginIndex;
-    m_EndIndex = it.m_EndIndex;
-    m_PositionIndex = it.m_PositionIndex;
-    m_Region = it.m_Region;
-
-    std::copy_n(it.m_OffsetTable, ImageDimension + 1, m_OffsetTable);
-
-    m_Remaining = it.m_Remaining;
-  }
-  return *this;
 }
 
 //----------------------------------------------------------------------------

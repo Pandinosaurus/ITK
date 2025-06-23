@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,34 +29,34 @@ itkDivideOrZeroOutImageFilterTest(int, char *[])
   using ImageType = itk::Image<PixelType, Dimension>;
   using DivideFilterType = itk::DivideOrZeroOutImageFilter<ImageType>;
 
-  ImageType::SizeType size = { { 10, 12, 14 } };
+  constexpr ImageType::SizeType size = { { 10, 12, 14 } };
 
-  ImageType::Pointer numeratorImage = ImageType::New();
+  auto numeratorImage = ImageType::New();
   numeratorImage->SetRegions(size);
   numeratorImage->Allocate();
   numeratorImage->FillBuffer(1.0f);
 
-  ImageType::Pointer denominatorImage = ImageType::New();
+  auto denominatorImage = ImageType::New();
   denominatorImage->SetRegions(size);
   denominatorImage->Allocate();
 
   // Set input test values
   denominatorImage->FillBuffer(1.0f);
-  ImageType::IndexType zeroIndex = { { 4, 5, 6 } };
+  constexpr ImageType::IndexType zeroIndex = { { 4, 5, 6 } };
   denominatorImage->SetPixel(zeroIndex, 0.0f);
 
   // Instantiate and run the filter
-  DivideFilterType::Pointer divider = DivideFilterType::New();
+  auto divider = DivideFilterType::New();
   divider->SetInput1(numeratorImage);
   divider->SetInput2(denominatorImage);
   divider->InPlaceOn();
   divider->UpdateLargestPossibleRegion();
 
-  ImageType::RegionType                             region = divider->GetOutput()->GetLargestPossibleRegion();
+  const ImageType::RegionType                       region = divider->GetOutput()->GetLargestPossibleRegion();
   itk::ImageRegionConstIteratorWithIndex<ImageType> iter(divider->GetOutput(), region);
   for (; !iter.IsAtEnd(); ++iter)
   {
-    ImageType::IndexType index = iter.GetIndex();
+    const ImageType::IndexType index = iter.GetIndex();
     if (index != zeroIndex)
     {
       if (iter.Get() != 1.0f)

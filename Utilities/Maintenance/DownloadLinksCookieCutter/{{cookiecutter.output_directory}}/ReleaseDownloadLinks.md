@@ -1,15 +1,9 @@
 **Python Packages**
 
-Install [ITK Python packages](https://itkpythonpackage.readthedocs.io/en/latest/Quick_start_guide.html) with:
+Install [ITK Python packages](https://docs.itk.org/en/latest/learn/python_quick_start.html) with:
 
-```
+```bash
 pip install --upgrade itk
-```
-
-or:
-
-```
-conda install -c conda-forge itk
 ```
 
 **Guide and Textbook**
@@ -29,7 +23,13 @@ Unpack optional testing data in the same directory where the Library Source is u
 - [InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz)
 - [InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip)
 
-**Checksums**
+**Checksums and Signatures**
+
+- [InsightToolkit-{{ cookiecutter.major_version }}.{{ cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz.asc](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightToolkit-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz.asc)
+- [InsightToolkit-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip.asc](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightToolkit-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip.asc)
+
+- [InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz.asc](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.tar.gz.asc)
+- [InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip.asc](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/InsightData-{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}.zip.asc)
 
 - [MD5SUMS](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/MD5SUMS)
 - [SHA512SUMS](https://github.com/InsightSoftwareConsortium/ITK/releases/download/v{{ cookiecutter.major_version }}.{{cookiecutter.minor_version }}{{ cookiecutter.patch_identifier }}{{ cookiecutter.patch_version }}/SHA512SUMS)

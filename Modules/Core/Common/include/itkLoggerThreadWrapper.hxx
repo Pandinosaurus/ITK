@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkLoggerThreadWrapper_hxx
 
 #include <iostream>
-#include "itkLoggerThreadWrapper.h"
 #include "itksys/SystemTools.hxx"
 
 namespace itk
@@ -31,10 +30,9 @@ template <typename SimpleLoggerType>
 void
 LoggerThreadWrapper<SimpleLoggerType>::SetPriorityLevel(PriorityLevelEnum level)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(OperationEnum::SET_PRIORITY_LEVEL);
   this->m_LevelQ.push(level);
-  this->m_Mutex.unlock();
 }
 
 /** Get the priority level for the current logger. Only messages that have
@@ -44,9 +42,8 @@ template <typename SimpleLoggerType>
 typename SimpleLoggerType::PriorityLevelEnum
 LoggerThreadWrapper<SimpleLoggerType>::GetPriorityLevel() const
 {
-  this->m_Mutex.lock();
-  PriorityLevelEnum level = this->m_PriorityLevel;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const PriorityLevelEnum           level = this->m_PriorityLevel;
   return level;
 }
 
@@ -54,20 +51,18 @@ template <typename SimpleLoggerType>
 void
 LoggerThreadWrapper<SimpleLoggerType>::SetLevelForFlushing(PriorityLevelEnum level)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_LevelForFlushing = level;
   this->m_OperationQ.push(OperationEnum::SET_LEVEL_FOR_FLUSHING);
   this->m_LevelQ.push(level);
-  this->m_Mutex.unlock();
 }
 
 template <typename SimpleLoggerType>
 typename SimpleLoggerType::PriorityLevelEnum
 LoggerThreadWrapper<SimpleLoggerType>::GetLevelForFlushing() const
 {
-  this->m_Mutex.lock();
-  PriorityLevelEnum level = this->m_LevelForFlushing;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const PriorityLevelEnum           level = this->m_LevelForFlushing;
   return level;
 }
 
@@ -75,18 +70,16 @@ template <typename SimpleLoggerType>
 void
 LoggerThreadWrapper<SimpleLoggerType>::SetDelay(DelayType delay)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_Delay = delay;
-  this->m_Mutex.unlock();
 }
 
 template <typename SimpleLoggerType>
-typename LoggerThreadWrapper<SimpleLoggerType>::DelayType
-LoggerThreadWrapper<SimpleLoggerType>::GetDelay() const
+auto
+LoggerThreadWrapper<SimpleLoggerType>::GetDelay() const -> DelayType
 {
-  this->m_Mutex.lock();
-  DelayType delay = this->m_Delay;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const DelayType                   delay = this->m_Delay;
   return delay;
 }
 
@@ -95,35 +88,33 @@ template <typename SimpleLoggerType>
 void
 LoggerThreadWrapper<SimpleLoggerType>::AddLogOutput(OutputType * output)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(OperationEnum::ADD_LOG_OUTPUT);
   this->m_OutputQ.push(output);
-  this->m_Mutex.unlock();
 }
 
 template <typename SimpleLoggerType>
 void
-LoggerThreadWrapper<SimpleLoggerType>::Write(PriorityLevelEnum level, std::string const & content)
+LoggerThreadWrapper<SimpleLoggerType>::Write(PriorityLevelEnum level, const std::string & content)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   if (this->m_PriorityLevel >= level)
   {
     this->m_OperationQ.push(OperationEnum::WRITE);
     this->m_MessageQ.push(content);
     this->m_LevelQ.push(level);
   }
-  this->m_Mutex.unlock();
   if (this->m_LevelForFlushing >= level)
   {
-    this->Flush();
+    this->PrivateFlush();
   }
 }
 
 template <typename SimpleLoggerType>
 void
-LoggerThreadWrapper<SimpleLoggerType>::Flush()
+LoggerThreadWrapper<SimpleLoggerType>::PrivateFlush()
 {
-  this->m_Mutex.lock();
+  // m_Mutex must already be held here!
 
   while (!this->m_OperationQ.empty())
   {
@@ -149,21 +140,26 @@ LoggerThreadWrapper<SimpleLoggerType>::Flush()
     }
     this->m_OperationQ.pop();
   }
-  this->SimpleLoggerType::Flush();
+  this->SimpleLoggerType::PrivateFlush();
   this->m_Output->Flush();
-  this->m_Mutex.unlock();
 }
 
-/** Constructor */
+template <typename SimpleLoggerType>
+void
+LoggerThreadWrapper<SimpleLoggerType>::Flush()
+{
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  this->PrivateFlush();
+}
+
 template <typename SimpleLoggerType>
 LoggerThreadWrapper<SimpleLoggerType>::LoggerThreadWrapper()
+  : m_TerminationRequested(false) // ms
+  , m_Delay(300)
 {
-  m_Delay = 300; // ms
-  m_TerminationRequested = false;
   m_Thread = std::thread(&Self::ThreadFunction, this);
 }
 
-/** Destructor */
 template <typename SimpleLoggerType>
 LoggerThreadWrapper<SimpleLoggerType>::~LoggerThreadWrapper()
 {
@@ -181,53 +177,58 @@ LoggerThreadWrapper<SimpleLoggerType>::ThreadFunction()
 {
   while (!m_TerminationRequested)
   {
-    m_Mutex.lock();
-    while (!m_OperationQ.empty())
     {
-      switch (m_OperationQ.front())
+      const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+      while (!m_OperationQ.empty())
       {
-        case OperationEnum::SET_PRIORITY_LEVEL:
-          this->m_PriorityLevel = m_LevelQ.front();
-          m_LevelQ.pop();
-          break;
+        switch (m_OperationQ.front())
+        {
+          case OperationEnum::SET_PRIORITY_LEVEL:
+            this->m_PriorityLevel = m_LevelQ.front();
+            m_LevelQ.pop();
+            break;
 
-        case OperationEnum::SET_LEVEL_FOR_FLUSHING:
-          this->m_LevelForFlushing = m_LevelQ.front();
-          m_LevelQ.pop();
-          break;
+          case OperationEnum::SET_LEVEL_FOR_FLUSHING:
+            this->m_LevelForFlushing = m_LevelQ.front();
+            m_LevelQ.pop();
+            break;
 
-        case OperationEnum::ADD_LOG_OUTPUT:
-          this->m_Output->AddLogOutput(m_OutputQ.front());
-          m_OutputQ.pop();
-          break;
+          case OperationEnum::ADD_LOG_OUTPUT:
+            this->m_Output->AddLogOutput(m_OutputQ.front());
+            m_OutputQ.pop();
+            break;
 
-        case OperationEnum::WRITE:
-          SimpleLoggerType::Write(m_LevelQ.front(), m_MessageQ.front());
-          m_LevelQ.pop();
-          m_MessageQ.pop();
-          break;
+          case OperationEnum::WRITE:
+            SimpleLoggerType::Write(m_LevelQ.front(), m_MessageQ.front());
+            m_LevelQ.pop();
+            m_MessageQ.pop();
+            break;
+        }
+        m_OperationQ.pop();
       }
-      m_OperationQ.pop();
-    }
-    m_Mutex.unlock();
-    SimpleLoggerType::Flush();
+      SimpleLoggerType::PrivateFlush();
+
+    } // end of scope of lockGuard (unlocking m_Mutex automatically)
+
     itksys::SystemTools::Delay(this->GetDelay());
   }
 }
 
-/** Print contents of a LoggerThreadWrapper */
 template <typename SimpleLoggerType>
 void
 LoggerThreadWrapper<SimpleLoggerType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Thread ID: " << this->m_Thread.get_id() << std::endl;
-  os << indent << "Low-priority Message Delay: " << this->m_Delay << std::endl;
-  os << indent << "Operation Queue Size: " << this->m_OperationQ.size() << std::endl;
-  os << indent << "Message Queue Size: " << this->m_MessageQ.size() << std::endl;
-  os << indent << "Level Queue Size: " << this->m_LevelQ.size() << std::endl;
-  os << indent << "Output Queue Size: " << this->m_OutputQ.size() << std::endl;
+  os << indent << "Thread ID: " << m_Thread.get_id() << std::endl;
+  os << indent << "TerminationRequested: " << m_TerminationRequested << std::endl;
+
+  os << indent << "OperationQ size: " << m_OperationQ.size() << std::endl;
+  os << indent << "MessageQ size: " << m_MessageQ.size() << std::endl;
+  os << indent << "LevelQ size: " << m_LevelQ.size() << std::endl;
+  os << indent << "OutputQ size: " << m_OutputQ.size() << std::endl;
+
+  os << indent << "Delay: " << m_Delay << std::endl;
 }
 
 } // namespace itk

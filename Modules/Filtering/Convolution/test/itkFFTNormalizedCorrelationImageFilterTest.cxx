@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,18 @@
 #include "itkShiftScaleImageFilter.h"
 #include "itkSimpleFilterWatcher.h"
 #include "itkTestingMacros.h"
+
+#include "itkObjectFactoryBase.h"
+#include "itkVnlForwardFFTImageFilter.h"
+#include "itkVnlInverseFFTImageFilter.h"
+#include "itkVnlRealToHalfHermitianForwardFFTImageFilter.h"
+#include "itkVnlHalfHermitianToRealInverseFFTImageFilter.h"
+#if defined(ITK_USE_FFTWD) || defined(ITK_USE_FFTWF)
+#  include "itkFFTWForwardFFTImageFilter.h"
+#  include "itkFFTWInverseFFTImageFilter.h"
+#  include "itkFFTWRealToHalfHermitianForwardFFTImageFilter.h"
+#  include "itkFFTWHalfHermitianToRealInverseFFTImageFilter.h"
+#endif
 
 int
 itkFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
@@ -41,24 +53,24 @@ itkFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   using RealImageType = itk::Image<double, 2>;
   using FilterType = itk::FFTNormalizedCorrelationImageFilter<InputImageType, RealImageType>;
 
-  char *                    fixedImageFileName = argv[1];
-  char *                    movingImageFileName = argv[2];
-  const char *              outputImageFileName = argv[3];
-  FilterType::SizeValueType requiredNumberOfOverlappingPixels = 0;
-  FilterType::RealPixelType requiredFractionOfOverlappingPixels = 0;
+  char *                              fixedImageFileName = argv[1];
+  char *                              movingImageFileName = argv[2];
+  const char *                        outputImageFileName = argv[3];
+  constexpr FilterType::SizeValueType requiredNumberOfOverlappingPixels = 0;
+  FilterType::RealPixelType           requiredFractionOfOverlappingPixels = 0;
   if (argc > 4)
   {
     requiredFractionOfOverlappingPixels = std::stod(argv[4]);
   }
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer fixedImageReader = ReaderType::New();
+  auto fixedImageReader = ReaderType::New();
   fixedImageReader->SetFileName(fixedImageFileName);
 
-  ReaderType::Pointer movingImageReader = ReaderType::New();
+  auto movingImageReader = ReaderType::New();
   movingImageReader->SetFileName(movingImageFileName);
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetFixedImage(fixedImageReader->GetOutput());
   filter->SetMovingImage(movingImageReader->GetOutput());
   // Larger values zero-out pixels on a larger border around the correlation image.
@@ -66,7 +78,7 @@ itkFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   filter->SetRequiredNumberOfOverlappingPixels(requiredNumberOfOverlappingPixels);
   filter->SetRequiredFractionOfOverlappingPixels(requiredFractionOfOverlappingPixels);
 
-  itk::SimpleFilterWatcher watcher(filter, "FFTNormalizedCorrelation");
+  const itk::SimpleFilterWatcher watcher(filter, "FFTNormalizedCorrelation");
 
   // Shift the correlation values so they can be written out as a png.
   // The original range is [-1,1], and the new range is [0,255].
@@ -79,13 +91,13 @@ itkFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   // mapped to 127 or 128, depending on whether they are slightly negative or positive.
   // Therefore, we truncate instead so that all values near 0 get mapped to 127.
   using RescaleType = itk::ShiftScaleImageFilter<RealImageType, OutputImageType>;
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto rescaler = RescaleType::New();
   rescaler->SetInput(filter->GetOutput());
   rescaler->SetShift(1);
   rescaler->SetScale(255.0 / 2.0);
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputImageFileName);
   writer->SetInput(rescaler->GetOutput());
   try
@@ -94,7 +106,7 @@ itkFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
 

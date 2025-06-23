@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 #define itkFastMarchingImageToNodePairContainerAdaptor_hxx
 
 #include "itkMath.h"
-#include "itkFastMarchingImageToNodePairContainerAdaptor.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
@@ -34,9 +33,8 @@ FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::FastMarchi
   , m_AlivePoints(nullptr)
   , m_TrialPoints(nullptr)
   , m_ForbiddenPoints(nullptr)
-  , m_AliveValue(NumericTraits<OutputPixelType>::ZeroValue())
-  , m_TrialValue(NumericTraits<OutputPixelType>::ZeroValue())
-
+  , m_AliveValue(OutputPixelType{})
+  , m_TrialValue(OutputPixelType{})
 {}
 
 template <typename TInput, typename TOutput, typename TImage>
@@ -61,22 +59,22 @@ FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::SetForbidd
 }
 
 template <typename TInput, typename TOutput, typename TImage>
-typename FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::NodePairContainerType *
-FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetAlivePoints()
+auto
+FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetAlivePoints() -> NodePairContainerType *
 {
   return m_AlivePoints.GetPointer();
 }
 
 template <typename TInput, typename TOutput, typename TImage>
-typename FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::NodePairContainerType *
-FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetTrialPoints()
+auto
+FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetTrialPoints() -> NodePairContainerType *
 {
   return m_TrialPoints.GetPointer();
 }
 
 template <typename TInput, typename TOutput, typename TImage>
-typename FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::NodePairContainerType *
-FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetForbiddenPoints()
+auto
+FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GetForbiddenPoints() -> NodePairContainerType *
 {
   return m_ForbiddenPoints.GetPointer();
 }
@@ -108,13 +106,13 @@ FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::GenerateDa
 
   if (m_ForbiddenImage.IsNotNull())
   {
-    SetPointsFromImage(m_ForbiddenImage, Traits::Forbidden, NumericTraits<OutputPixelType>::ZeroValue());
+    SetPointsFromImage(m_ForbiddenImage, Traits::Forbidden, OutputPixelType{});
     is_ok = true;
   }
 
   if (!is_ok)
   {
-    itkWarningMacro(<< "no input image provided");
+    itkWarningMacro("no input image provided");
   }
 }
 
@@ -126,8 +124,7 @@ FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::SetPointsF
 {
   if (iLabel == Traits::Alive || iLabel == Traits::InitialTrial || iLabel == Traits::Forbidden)
   {
-    NodePairContainerPointer nodes = NodePairContainerType::New();
-    nodes->Initialize();
+    const NodePairContainerPointer nodes = NodePairContainerType::New();
 
     using IteratorType = ImageRegionConstIteratorWithIndex<ImageType>;
     IteratorType it(image, image->GetBufferedRegion());
@@ -139,22 +136,22 @@ FastMarchingImageToNodePairContainerAdaptor<TInput, TOutput, TImage>::SetPointsF
       for (it.GoToBegin(); !it.IsAtEnd(); ++it)
       {
         // Test if index value is greater than zero, if so add the node
-        if (Math::NotAlmostEquals(it.Get(), NumericTraits<ImagePixelType>::ZeroValue()))
+        if (Math::NotAlmostEquals(it.Get(), ImagePixelType{}))
         {
           nodes->push_back(NodePairType(it.GetIndex(), iValue));
         } // end if image iterator > zero
-      }   // end for each pixel
+      } // end for each pixel
     }
     else
     {
       for (it.GoToBegin(); !it.IsAtEnd(); ++it)
       {
         // Test if index value is greater than zero, if so add the node
-        if (Math::AlmostEquals(it.Get(), NumericTraits<ImagePixelType>::ZeroValue()))
+        if (Math::AlmostEquals(it.Get(), ImagePixelType{}))
         {
           nodes->push_back(NodePairType(it.GetIndex(), iValue));
         } // end if image iterator > zero
-      }   // end for each pixel
+      } // end for each pixel
     }
 
     switch (iLabel)

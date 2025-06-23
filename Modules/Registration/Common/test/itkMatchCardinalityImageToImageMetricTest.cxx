@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,10 @@ itkMatchCardinalityImageToImageMetricTest(int argc, char * argv[])
 
   if (argc < 2)
   {
-    std::cout << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputFile" << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cout << " InputFile" << std::endl;
+    return EXIT_FAILURE;
   }
 
   using ImageType = itk::Image<unsigned char, 2>;
@@ -40,10 +42,14 @@ itkMatchCardinalityImageToImageMetricTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, double>;
 
-  ReaderType::Pointer       reader = ReaderType::New();
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto reader = ReaderType::New();
+  auto metric = MetricType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, MatchCardinalityImageToImageMetric, ImageToImageMetric);
+
+
+  auto transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
 
   MetricType::ParametersType offset(2);
 
@@ -78,7 +84,8 @@ itkMatchCardinalityImageToImageMetricTest(int argc, char * argv[])
   }
 
   std::cout << "Now measure mismatches..." << std::endl;
-  metric->MeasureMatchesOff();
+  constexpr bool measureMatches = false;
+  ITK_TEST_SET_GET_BOOLEAN(metric, MeasureMatches, measureMatches);
 
   for (float x = -200.0; x <= 200.0; x += 50.0)
   {
@@ -98,6 +105,14 @@ itkMatchCardinalityImageToImageMetricTest(int argc, char * argv[])
       }
     }
   }
+
+
+  const MetricType::ParametersType parameters = transform->GetParameters();
+  MetricType::DerivativeType       derivative;
+  metric->GetDerivative(parameters, derivative);
+
+  const MetricType::DerivativeType derivative1{};
+  ITK_TEST_EXPECT_EQUAL(derivative, derivative1);
 
   return EXIT_SUCCESS;
 }

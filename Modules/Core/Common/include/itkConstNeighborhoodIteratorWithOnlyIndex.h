@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,6 +60,8 @@ template <typename TImage>
 class ITK_TEMPLATE_EXPORT ConstNeighborhoodIteratorWithOnlyIndex : public Neighborhood<char, TImage::ImageDimension>
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(ConstNeighborhoodIteratorWithOnlyIndex);
+
   /** Type used to refer to space dimensions */
   using DimensionValueType = unsigned int;
 
@@ -73,11 +75,11 @@ public:
   using Superclass = Neighborhood<DummyNeighborhoodPixelType, Self::Dimension>;
 
   /** Inherit type alias from superclass */
-  using OffsetType = typename Superclass::OffsetType;
-  using RadiusType = typename Superclass::RadiusType;
-  using SizeType = typename Superclass::SizeType;
-  using Iterator = typename Superclass::Iterator;
-  using ConstIterator = typename Superclass::ConstIterator;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::SizeType;
+  using typename Superclass::Iterator;
+  using typename Superclass::ConstIterator;
 
   /** Typedef support for common objects */
   using ImageType = TImage;
@@ -89,21 +91,14 @@ public:
   using NeighborIndexType = typename NeighborhoodType::NeighborIndexType;
 
   /** Default constructor */
-  ConstNeighborhoodIteratorWithOnlyIndex();
+  ConstNeighborhoodIteratorWithOnlyIndex() = default;
 
   /** Virtual destructor */
   ~ConstNeighborhoodIteratorWithOnlyIndex() override = default;
 
-  /** Copy constructor */
-  ConstNeighborhoodIteratorWithOnlyIndex(const ConstNeighborhoodIteratorWithOnlyIndex &);
-
   /** Constructor which establishes the region size, neighborhood, and image
    * over which to walk. */
   ConstNeighborhoodIteratorWithOnlyIndex(const SizeType & radius, const ImageType * ptr, const RegionType & region);
-
-  /** Assignment operator */
-  Self &
-  operator=(const Self & orig);
 
   /** Standard itk print method */
   void
@@ -138,24 +133,24 @@ public:
 
   /** Returns the N-dimensional index of the iterator's position in
    * the image. */
-  ITK_ITERATOR_VIRTUAL IndexType
-                       GetIndex() const ITK_ITERATOR_FINAL
+  IndexType
+  GetIndex() const
   {
     return m_Loop;
   }
 
   /** Returns the image index for neighbor pixel at offset o from the center of
       the neighborhood. */
-  ITK_ITERATOR_VIRTUAL IndexType
-                       GetIndex(const OffsetType & o) const ITK_ITERATOR_FINAL
+  IndexType
+  GetIndex(const OffsetType & o) const
   {
     return (this->GetIndex() + o);
   }
 
   /** Returns the image index for neighbor pixel at index i in the
       neighborhood. */
-  ITK_ITERATOR_VIRTUAL IndexType
-                       GetIndex(NeighborIndexType i) const ITK_ITERATOR_FINAL
+  IndexType
+  GetIndex(NeighborIndexType i) const
   {
     return (this->GetIndex() + this->GetOffset(i));
   }
@@ -181,31 +176,31 @@ public:
   GetBoundingBoxAsImageRegion() const;
 
   /** Method for rewinding the iterator to its beginning image index. */
-  ITK_ITERATOR_VIRTUAL void
-  GoToBegin() ITK_ITERATOR_FINAL;
+  void
+  GoToBegin();
 
   /** Method for sending the iterator to one past the last index in its
    * region. */
-  ITK_ITERATOR_VIRTUAL void
-  GoToEnd() ITK_ITERATOR_FINAL;
+  void
+  GoToEnd();
 
   /** Initializes the iterator to walk a particular image and a particular
    * region of that image. */
-  ITK_ITERATOR_VIRTUAL void
-  Initialize(const SizeType & radius, const ImageType * ptr, const RegionType & region) ITK_ITERATOR_FINAL;
+  void
+  Initialize(const SizeType & radius, const ImageType * ptr, const RegionType & region);
 
   /** Virtual method for determining whether the iterator is at the
    * beginning of its iteration region. */
-  ITK_ITERATOR_VIRTUAL bool
-  IsAtBegin() const ITK_ITERATOR_FINAL
+  bool
+  IsAtBegin() const
   {
     return (this->GetIndex() == m_BeginIndex);
   }
 
   /** Virtual method for determining whether the iterator has reached the
    * end of its iteration region. */
-  ITK_ITERATOR_VIRTUAL bool
-  IsAtEnd() const ITK_ITERATOR_FINAL;
+  bool
+  IsAtEnd() const;
 
   /** Increments the pointers in the ConstNeighborhoodIteratorWithOnlyIndex,
    * wraps across boundaries automatically, accounting for
@@ -230,14 +225,7 @@ public:
     return it.GetIndex() == this->GetIndex();
   }
 
-  /** Returns a boolean != comparison of the current location/index
-   * of two ConstNeighborhoodIteratorWithOnlyIndexs of like
-   * dimensionality.  The radii of the iterators are ignored. */
-  bool
-  operator!=(const Self & it) const
-  {
-    return it.GetIndex() != this->GetIndex();
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   /** Returns a boolean < comparison of the  current location/index of
    * two ConstNeighborhoodIteratorWithOnlyIndexs
@@ -295,7 +283,7 @@ public:
 
   /** Distance between two iterators */
   OffsetType
-  operator-(const Self & b)
+  operator-(const Self & b) const
   {
     return m_Loop - b.m_Loop;
   }
@@ -348,8 +336,8 @@ public:
 protected:
   /** Default method for setting the coordinate location of the iterator.
    * Loop indices correspond to the actual Image region index. */
-  ITK_ITERATOR_VIRTUAL void
-  SetLoop(const IndexType & p) ITK_ITERATOR_FINAL
+  void
+  SetLoop(const IndexType & p)
   {
     m_Loop = p;
     m_IsInBoundsValid = false;
@@ -358,62 +346,62 @@ protected:
   /** Virtual method for setting internal loop boundaries.  This
    * method must be defined in each subclass because
    * each subclass may handle loop boundaries differently. */
-  ITK_ITERATOR_VIRTUAL void
-  SetBound(const SizeType &) ITK_ITERATOR_FINAL;
+  void
+  SetBound(const SizeType &);
 
   /** Default method for setting the first index of the
    * iteration region. */
-  ITK_ITERATOR_VIRTUAL void
-  SetBeginIndex(const IndexType & start) ITK_ITERATOR_FINAL
+  void
+  SetBeginIndex(const IndexType & start)
   {
     m_BeginIndex = start;
   }
 
   /** Default method for setting the last index of the
    * iteration region. */
-  ITK_ITERATOR_VIRTUAL void
-  SetEndIndex() ITK_ITERATOR_FINAL;
+  void
+  SetEndIndex();
 
   /** The starting index for iteration within the itk::Image region
    * on which this ConstNeighborhoodIteratorWithOnlyIndex is defined. */
-  IndexType m_BeginIndex;
+  IndexType m_BeginIndex{ { 0 } };
 
   /** An array of upper looping boundaries used during iteration. */
-  IndexType m_Bound;
+  IndexType m_Bound{ { 0 } };
 
   /** The image on which iteration is defined. */
-  typename ImageType::ConstPointer m_ConstImage;
+  typename ImageType::ConstPointer m_ConstImage{};
 
   /** The end index for iteration within the itk::Image region
    * on which this ConstNeighborhoodIteratorWithOnlyIndex is defined. */
-  IndexType m_EndIndex;
+  IndexType m_EndIndex{ { 0 } };
 
   /** Array of loop counters used during iteration. */
-  IndexType m_Loop;
+  IndexType m_Loop{ { 0 } };
 
   /** The region over which iteration is defined. */
-  RegionType m_Region;
+  RegionType m_Region{};
 
   /** Denotes which of the iterators dimensional sides spill outside
-   * region of interest boundaries. */
-  mutable bool m_InBounds[Dimension];
+   * region of interest boundaries. By default `false` for each dimension. */
+  mutable bool m_InBounds[Dimension]{ false };
 
   /** Denotes if iterator is entirely within bounds */
-  mutable bool m_IsInBounds;
+  mutable bool m_IsInBounds{ false };
 
   /** Is the m_InBounds and m_IsInBounds variables up to date? Set to
    * false whenever the iterator is repositioned.  Set to true within
    * InBounds(). */
-  mutable bool m_IsInBoundsValid;
+  mutable bool m_IsInBoundsValid{ false };
 
   /** Lower threshold of in-bounds loop counter values. */
-  IndexType m_InnerBoundsLow;
+  IndexType m_InnerBoundsLow{};
 
   /** Upper threshold of in-bounds loop counter values. */
-  IndexType m_InnerBoundsHigh;
+  IndexType m_InnerBoundsHigh{};
 
   /** Does the specified region need to worry about boundary conditions? */
-  bool m_NeedToUseBoundaryCondition;
+  bool m_NeedToUseBoundaryCondition{ false };
 };
 
 template <typename TImage>
@@ -421,8 +409,7 @@ inline ConstNeighborhoodIteratorWithOnlyIndex<TImage>
 operator+(const ConstNeighborhoodIteratorWithOnlyIndex<TImage> &                      it,
           const typename ConstNeighborhoodIteratorWithOnlyIndex<TImage>::OffsetType & ind)
 {
-  ConstNeighborhoodIteratorWithOnlyIndex<TImage> ret;
-  ret = it;
+  ConstNeighborhoodIteratorWithOnlyIndex<TImage> ret = it;
   ret += ind;
   return ret;
 }
@@ -440,8 +427,7 @@ inline ConstNeighborhoodIteratorWithOnlyIndex<TImage>
 operator-(const ConstNeighborhoodIteratorWithOnlyIndex<TImage> &                      it,
           const typename ConstNeighborhoodIteratorWithOnlyIndex<TImage>::OffsetType & ind)
 {
-  ConstNeighborhoodIteratorWithOnlyIndex<TImage> ret;
-  ret = it;
+  ConstNeighborhoodIteratorWithOnlyIndex<TImage> ret = it;
   ret -= ind;
   return ret;
 }

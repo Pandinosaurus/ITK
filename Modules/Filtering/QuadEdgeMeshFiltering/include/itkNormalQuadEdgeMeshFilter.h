@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,14 +24,14 @@
 #include "ITKQuadEdgeMeshFilteringExport.h"
 namespace itk
 {
-/**\class NormalQuadEdgeMeshFilterEnums
+/** \class NormalQuadEdgeMeshFilterEnums
  * \brief Contains enum classes used by NormalQuadEdgeMeshFilter class
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 class NormalQuadEdgeMeshFilterEnums
 {
 public:
-  /**\class WeightEnum
+  /** \class WeightEnum
    * \ingroup ITKQuadEdgeMeshFiltering
    */
   enum class Weight : uint8_t
@@ -43,7 +43,7 @@ public:
 };
 // Define how to print enumeration
 extern ITKQuadEdgeMeshFiltering_EXPORT std::ostream &
-                                       operator<<(std::ostream & out, const NormalQuadEdgeMeshFilterEnums::Weight value);
+operator<<(std::ostream & out, const NormalQuadEdgeMeshFilterEnums::Weight value);
 
 /** \class NormalQuadEdgeMeshFilter
  *
@@ -64,19 +64,10 @@ extern ITKQuadEdgeMeshFiltering_EXPORT std::ostream &
  *    <li> AREA \f$ \omega_i = Area(t_i)\f$ [3] </li>
  * </ul>
  *
- * These weights are defined in the literature:
- * <ul>
- *    <li> [1] Henri Gouraud. Continuous shading of curved surfaces.
- *    IEEE Transaction on Computers, 20(6):623-629, 1971 </li>
- *    <li> [2] Shuangshuang Jin, Robert R. Lewis, and David West.
- *    A comparison of algorithms for vertex normal computation.
- *    The Visual Computer, 21(1-2):71-82, 2005. </li>
- *    <li> [3] Grit Thurmer and Charles A. Wuthrich.
- *    Computing vertex normals from polygonal facets.
- *    Journal of Graphic Tools, 3(1):43-46, 1998. </li>
- * </ul>
+ * These weights are defined in the literature \cite gouraud1971,
+ * \cite jin2005 and \cite thurmer1998.
  *
- * \note By default the weight is set to the TURMER weight.
+ * \note By default the weight is set to the THURMER weight.
  *
  * \todo Fix run-time issues regarding the difference between the Traits of
  * TInputMesh and the one of TOutputMesh. Right now, it only works if
@@ -102,7 +93,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(NormalQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  itkOverrideGetNameOfClassMacro(NormalQuadEdgeMeshFilter);
 
   using InputMeshType = TInputMesh;
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -159,7 +150,7 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  WeightEnum m_Weight;
+  WeightEnum m_Weight{};
 
   /** \brief Compute the normal to a face iPoly. It assumes that iPoly != 0
    * and

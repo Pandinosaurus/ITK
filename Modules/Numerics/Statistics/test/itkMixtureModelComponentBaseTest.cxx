@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,7 @@
 #include "itkListSample.h"
 #include "itkTestingMacros.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 template <typename TSample>
@@ -34,7 +32,7 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(MixtureModelComponentBaseTestHelper, MixtureModelComponentBase);
+  itkOverrideGetNameOfClassMacro(MixtureModelComponentBaseTestHelper);
 
   itkNewMacro(Self);
 
@@ -59,8 +57,8 @@ protected:
   }
 };
 
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics
+
 
 int
 itkMixtureModelComponentBaseTest(int, char *[])
@@ -70,7 +68,7 @@ itkMixtureModelComponentBaseTest(int, char *[])
 
   using ComponentType = itk::Statistics::MixtureModelComponentBaseTestHelper<SampleType>;
 
-  ComponentType::Pointer component = ComponentType::New();
+  auto component = ComponentType::New();
   std::cout << "component->GetWeights(): " << component->GetWeights() << std::endl;
   component->RunTests();
 

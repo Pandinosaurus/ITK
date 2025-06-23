@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,9 @@ itkPadLabelMapFilterTest1(int argc, char * argv[])
 
   if (argc != 5)
   {
-    std::cerr << "usage: " << argv[0] << " input output size0 size1" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output size0 size1" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -54,25 +56,25 @@ itkPadLabelMapFilterTest1(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
   using I2LType = itk::LabelImageToLabelMapFilter<ImageType, LabelMapType>;
-  I2LType::Pointer i2l = I2LType::New();
+  auto i2l = I2LType::New();
   i2l->SetInput(reader->GetOutput());
 
   using PadLabelMapFilterType = itk::PadLabelMapFilter<LabelMapType>;
-  PadLabelMapFilterType::Pointer padLabelMapFilter = PadLabelMapFilterType::New();
+  auto padLabelMapFilter = PadLabelMapFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(padLabelMapFilter, PadLabelMapFilter, ChangeRegionLabelMapFilter);
 
-  PadLabelMapFilterType::SizeType upperBoundaryPadSize = { { 0 } };
+  constexpr PadLabelMapFilterType::SizeType upperBoundaryPadSize = { { 0 } };
   padLabelMapFilter->SetPadSize(upperBoundaryPadSize);
   ITK_TEST_SET_GET_VALUE(upperBoundaryPadSize, padLabelMapFilter->GetUpperBoundaryPadSize());
 
-  PadLabelMapFilterType::SizeType lowerBoundaryPadSize = { { 0 } };
+  constexpr PadLabelMapFilterType::SizeType lowerBoundaryPadSize = { { 0 } };
   padLabelMapFilter->SetPadSize(lowerBoundaryPadSize);
   ITK_TEST_SET_GET_VALUE(upperBoundaryPadSize, padLabelMapFilter->GetLowerBoundaryPadSize());
 
@@ -85,17 +87,17 @@ itkPadLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(size, padLabelMapFilter->GetLowerBoundaryPadSize());
   ITK_TEST_SET_GET_VALUE(size, padLabelMapFilter->GetUpperBoundaryPadSize());
 
-  itk::SimpleFilterWatcher watcher(padLabelMapFilter, "filter");
+  const itk::SimpleFilterWatcher watcher(padLabelMapFilter, "filter");
 
   ITK_TRY_EXPECT_NO_EXCEPTION(padLabelMapFilter->Update());
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  L2IType::Pointer l2i = L2IType::New();
+  auto l2i = L2IType::New();
 
   l2i->SetInput(padLabelMapFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

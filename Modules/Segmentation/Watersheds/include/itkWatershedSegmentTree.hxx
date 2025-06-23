@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,7 @@
 #ifndef itkWatershedSegmentTree_hxx
 #define itkWatershedSegmentTree_hxx
 
-#include "itkWatershedSegmentTree.h"
-
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 
 
@@ -48,7 +44,6 @@ SegmentTree<TScalar>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #endif

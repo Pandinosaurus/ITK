@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  *=========================================================================*/
 #ifndef itkSpatialOrientationAdapter_h
 #define itkSpatialOrientationAdapter_h
-#include "itkOrientationAdapterBase.h"
+#include "itkImageBase.h"
 #include "itkSpatialOrientation.h"
 #include "itkConceptChecking.h"
 
@@ -43,15 +43,15 @@ Max3(double x, double y, double z)
 {
   constexpr double obliquityThresholdCosineValue = 0.001;
 
-  double absX = itk::Math::abs(x);
-  double absY = itk::Math::abs(y);
-  double absZ = itk::Math::abs(z);
+  const double absX = itk::Math::abs(x);
+  const double absY = itk::Math::abs(y);
+  const double absZ = itk::Math::abs(z);
 
   if ((absX > obliquityThresholdCosineValue) && (absX > absY) && (absX > absZ))
   {
     return 0;
   }
-  else if ((absY > obliquityThresholdCosineValue) && (absY > absX) && (absY > absZ))
+  if ((absY > obliquityThresholdCosineValue) && (absY > absX) && (absY > absZ))
   {
     return 1;
   }
@@ -75,33 +75,31 @@ Sign(double x)
 } // namespace Function
 
 /** \class SpatialOrientationAdapter
- *  \brief Converts SpatialOrientation flags to/from direction cosines.
+ *  \brief Converts SpatialOrientationEnums to/from direction cosines.
  * \ingroup ITKCommon
  */
 class ITKCommon_EXPORT SpatialOrientationAdapter
-  : public OrientationAdapterBase<SpatialOrientation::ValidCoordinateOrientationFlags, 3>
 {
 public:
-  /** type alias for superclass */
   using Self = SpatialOrientationAdapter;
 
-  using Superclass = OrientationAdapterBase<SpatialOrientation::ValidCoordinateOrientationFlags, 3>;
+  using OrientationType = SpatialOrientationEnums::ValidCoordinateOrientations;
 
-  using OrientationType = SpatialOrientation::ValidCoordinateOrientationFlags;
+  using ImageType = ImageBase<3>;
 
-  /** type alias for direction cosines */
-  using DirectionType = Superclass::DirectionType;
+  /** Direction Cosines type alias. */
+  using DirectionType = typename ImageType::DirectionType;
 
   /** Constructor */
   SpatialOrientationAdapter() = default;
 
   /** convert from direction cosines. */
   OrientationType
-  FromDirectionCosines(const DirectionType & Dir) override;
+  FromDirectionCosines(const DirectionType & Dir);
 
   /** convert to direction cosines. */
   DirectionType
-  ToDirectionCosines(const OrientationType & Or) override;
+  ToDirectionCosines(const OrientationType & Or);
 };
 } // namespace itk
 

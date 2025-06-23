@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,23 +19,13 @@
 #ifndef itkConnectedImageNeighborhoodShape_h
 #define itkConnectedImageNeighborhoodShape_h
 
+#include "itkIntTypes.h" // For uintmax_t
 #include "itkMath.h"
 #include "itkOffset.h"
 
 #include <array>
 #include <cassert>
-#include <cstdint> // For uintmax_t
 #include <limits>
-
-// C++11 does not guarantee that assert can be used in constexpr
-// functions. This is a work-around for GCC 4.8, 4.9. Originating
-// from Andrzej's C++ blog:
-//  https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
-#if defined NDEBUG
-#  define ITK_X_ASSERT(CHECK) void(0)
-#else
-#  define ITK_X_ASSERT(CHECK) ((CHECK) ? void(0) : [] { assert(!#CHECK); }())
-#endif
 
 namespace itk
 {
@@ -57,7 +47,7 @@ namespace itk
  * neighborhood shape, including the center pixel, and asserts that the result
  * is as expected:
    \code
-   std::size_t maximumCityblockDistance = 2;
+   size_t maximumCityblockDistance = 2;
    bool includeCenterPixel = true;
    ConnectedImageNeighborhoodShape<3> shape{ maximumCityblockDistance, includeCenterPixel };
    std::vector<Offset<3>> offsets = GenerateImageNeighborhoodOffsets(shape);
@@ -110,17 +100,16 @@ public:
    * The parameter 'includeCenterPixel' specifies whether or not the center
    * pixel (offset zero) should be included with the offsets for this shape.
    */
-  constexpr explicit ConnectedImageNeighborhoodShape(const std::size_t maximumCityblockDistance,
-                                                     const bool        includeCenterPixel) ITK_NOEXCEPT
+  constexpr explicit ConnectedImageNeighborhoodShape(const size_t maximumCityblockDistance,
+                                                     const bool   includeCenterPixel) noexcept
     : m_MaximumCityblockDistance{ maximumCityblockDistance }
     , m_IncludeCenterPixel{ includeCenterPixel }
     , m_NumberOfOffsets{ CalculateNumberOfOffsets(maximumCityblockDistance, includeCenterPixel) }
   {}
 
-
   /** Returns the number of offsets needed for this shape. */
-  constexpr std::size_t
-  GetNumberOfOffsets() const ITK_NOEXCEPT
+  [[nodiscard]] constexpr size_t
+  GetNumberOfOffsets() const noexcept
   {
     return m_NumberOfOffsets;
   }
@@ -128,7 +117,7 @@ public:
 
   /** Fills the specified buffer with the offsets for a neighborhood of this shape. */
   void
-  FillOffsets(Offset<ImageDimension> * const offsets) const ITK_NOEXCEPT
+  FillOffsets(Offset<ImageDimension> * const offsets) const noexcept
   {
     if (m_NumberOfOffsets > 0)
     {
@@ -136,12 +125,12 @@ public:
       Offset<ImageDimension> offset;
       std::fill_n(offset.begin(), ImageDimension, -1);
 
-      std::size_t i = 0;
+      size_t i = 0;
 
       while (i < m_NumberOfOffsets)
       {
-        const std::size_t numberOfNonZeroOffsetValues =
-          ImageDimension - static_cast<std::size_t>(std::count(offset.begin(), offset.end(), 0));
+        const size_t numberOfNonZeroOffsetValues =
+          ImageDimension - static_cast<size_t>(std::count(offset.begin(), offset.end(), 0));
 
         if ((m_IncludeCenterPixel || (numberOfNonZeroOffsetValues > 0)) &&
             (numberOfNonZeroOffsetValues <= m_MaximumCityblockDistance))
@@ -170,32 +159,32 @@ public:
 private:
   // The maximum city-block distance (Manhattan distance) between the center
   // pixel and each connected neighbor pixel.
-  std::size_t m_MaximumCityblockDistance;
+  size_t m_MaximumCityblockDistance;
 
   // Specifies whether or not the center pixel (offset zero) should be included
   // with the offsets for this shape.
   bool m_IncludeCenterPixel;
 
   // The number of offsets needed to represent this shape.
-  std::size_t m_NumberOfOffsets;
+  size_t m_NumberOfOffsets;
 
 
   // Calculates a + b. Numeric overflow triggers a compilation error in
   // "constexpr context" and a debug assert failure at run-time.
-  static constexpr std::uintmax_t
-  CalculateSum(const std::uintmax_t a, const std::uintmax_t b) ITK_NOEXCEPT
+  static constexpr uintmax_t
+  CalculateSum(const uintmax_t a, const uintmax_t b) noexcept
   {
-    return ((a + b) >= a) && ((a + b) >= b) ? (a + b) : (ITK_X_ASSERT(!"CalculateSum overflow!"), 0);
+    return ((a + b) >= a) && ((a + b) >= b) ? (a + b) : (assert(!"CalculateSum overflow!"), 0);
   }
 
 
   // Calculates 2 ^ n. Numeric overflow triggers a compilation error in
   // "constexpr context" and a debug assert failure at run-time.
-  static constexpr std::uintmax_t
-  CalculatePowerOfTwo(const std::size_t n) ITK_NOEXCEPT
+  static constexpr uintmax_t
+  CalculatePowerOfTwo(const size_t n) noexcept
   {
-    return (n < std::numeric_limits<std::uintmax_t>::digits) ? (std::uintmax_t{ 1 } << n)
-                                                             : (ITK_X_ASSERT(!"CalculatePowerOfTwo overflow!"), 0);
+    return (n < std::numeric_limits<uintmax_t>::digits) ? (uintmax_t{ 1 } << n)
+                                                        : (assert(!"CalculatePowerOfTwo overflow!"), 0);
   }
 
 
@@ -203,19 +192,20 @@ private:
   // Inspired by the 'binom' function from Walter, June 23, 2017:
   // https://stackoverflow.com/questions/44718971/calculate-binomial-coffeficient-very-reliable/44719165#44719165
   // Optimized for small values of 'k' (k <= n/2).
-  static constexpr std::uintmax_t
-  CalculateBinomialCoefficient(const std::uintmax_t n, const std::uintmax_t k) ITK_NOEXCEPT
+  static constexpr uintmax_t
+  CalculateBinomialCoefficient(const uintmax_t n, const uintmax_t k) noexcept
   {
-    return (k > n) ? (ITK_X_ASSERT(!"Out of range!"), 0)
-                   : (k == 0) ? 1 : Math::UnsignedProduct(n, CalculateBinomialCoefficient(n - 1, k - 1)) / k;
+    return (k > n)    ? (assert(!"Out of range!"), 0)
+           : (k == 0) ? 1
+                      : Math::UnsignedProduct(n, CalculateBinomialCoefficient(n - 1, k - 1)) / k;
   }
 
 
   // Calculates the number of m-dimensional hypercubes on the boundary of an
   // n-cube, as described at https://en.wikipedia.org/wiki/Hypercube#Elements
   // (Which refers to H.S.M. Coxeter, Regular polytopes, 3rd ed., 1973, p.120.)
-  static constexpr std::size_t
-  CalculateNumberOfHypercubesOnBoundaryOfCube(const std::size_t m, const std::size_t n) ITK_NOEXCEPT
+  static constexpr size_t
+  CalculateNumberOfHypercubesOnBoundaryOfCube(const size_t m, const size_t n) noexcept
   {
     // Calculate 2^(n-m) * BinomialCoefficient(n, m)
     return Math::UnsignedProduct(CalculatePowerOfTwo(n - m),
@@ -229,18 +219,17 @@ private:
 
 
   // Iterates recursively from i = ImageDimension-1 down to m (inclusive).
-  static constexpr std::size_t
-  CalculateSumOfNumberOfHypercubesOnBoundaryOfCube(const std::size_t i, const std::size_t m) ITK_NOEXCEPT
+  static constexpr size_t
+  CalculateSumOfNumberOfHypercubesOnBoundaryOfCube(const size_t i, const size_t m) noexcept
   {
-    return ITK_X_ASSERT(i >= m),
-           CalculateSum(CalculateNumberOfHypercubesOnBoundaryOfCube(i, ImageDimension),
-                        ((i <= m) ? 0 : CalculateSumOfNumberOfHypercubesOnBoundaryOfCube(i - 1, m)));
+    return assert(i >= m), CalculateSum(CalculateNumberOfHypercubesOnBoundaryOfCube(i, ImageDimension),
+                                        ((i <= m) ? 0 : CalculateSumOfNumberOfHypercubesOnBoundaryOfCube(i - 1, m)));
   }
 
 
   /** Calculates the number of neighbors connected to the center pixel. */
-  static constexpr std::size_t
-  CalculateNumberOfConnectedNeighbors(const std::size_t maximumCityblockDistance) ITK_NOEXCEPT
+  static constexpr size_t
+  CalculateNumberOfConnectedNeighbors(const size_t maximumCityblockDistance) noexcept
   {
     return (((maximumCityblockDistance == 0) || (ImageDimension == 0))
               ? 0
@@ -252,28 +241,17 @@ private:
 
 
   /** Calculates the number of offsets needed for this shape. */
-  static constexpr std::size_t
-  CalculateNumberOfOffsets(const std::size_t maximumCityblockDistance, const bool includeCenterPixel) ITK_NOEXCEPT
+  static constexpr size_t
+  CalculateNumberOfOffsets(const size_t maximumCityblockDistance, const bool includeCenterPixel) noexcept
   {
     return (includeCenterPixel ? 1 : 0) + CalculateNumberOfConnectedNeighbors(maximumCityblockDistance);
   }
-
-
-  template <unsigned int VImageDimensionOfFriend, std::size_t VMaximumCityblockDistance, bool VIncludeCenterPixel>
-  friend std::array<
-    Offset<VImageDimensionOfFriend>,
-    ConnectedImageNeighborhoodShape<VImageDimensionOfFriend>::CalculateNumberOfOffsets(VMaximumCityblockDistance,
-                                                                                       VIncludeCenterPixel)>
-  GenerateConnectedImageNeighborhoodShapeOffsets() ITK_NOEXCEPT;
 };
 
-
 /** Generates the offsets for a connected image neighborhood shape. */
-template <unsigned int VImageDimension, std::size_t VMaximumCityblockDistance, bool VIncludeCenterPixel>
-std::array<Offset<VImageDimension>,
-           ConnectedImageNeighborhoodShape<VImageDimension>::CalculateNumberOfOffsets(VMaximumCityblockDistance,
-                                                                                      VIncludeCenterPixel)>
-GenerateConnectedImageNeighborhoodShapeOffsets() ITK_NOEXCEPT
+template <unsigned int VImageDimension, size_t VMaximumCityblockDistance, bool VIncludeCenterPixel>
+auto
+GenerateConnectedImageNeighborhoodShapeOffsets() noexcept
 {
   constexpr ConnectedImageNeighborhoodShape<VImageDimension> shape{ VMaximumCityblockDistance, VIncludeCenterPixel };
   std::array<Offset<VImageDimension>, shape.GetNumberOfOffsets()> offsets;
@@ -282,7 +260,5 @@ GenerateConnectedImageNeighborhoodShapeOffsets() ITK_NOEXCEPT
 }
 
 } // namespace itk
-
-#undef ITK_X_ASSERT
 
 #endif

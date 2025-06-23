@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -111,7 +111,7 @@ namespace itk
  * Example filter usage:
    \code
    using FilterType = itk::MaskedFFTNormalizedCorrelationImageFilter< ShortImageType, DoubleImageType >;
-   FilterType::Pointer filter = FilterType::New();
+   auto filter = FilterType::New();
    filter->SetFixedImage( fixedImage );
    filter->SetMovingImage( movingImage );
    filter->SetFixedImageMask( fixedMask );
@@ -125,11 +125,7 @@ namespace itk
  * type. You will get a compilation error if the pixel type of the
  * output image is not float or double.
  *
- * References:
- * 1) D. Padfield. "Masked object registration in the Fourier domain."
- * Transactions on Image Processing.
- * 2) D. Padfield. "Masked FFT registration". In Proc. Computer
- * Vision and Pattern Recognition, 2010.
+ * For algorithmic details see \cite padfield2012 and \cite padfield2010.
  *
  * \author: Dirk Padfield, GE Global Research, padfield\@research.ge.com
  * \ingroup ITKConvolution
@@ -139,7 +135,6 @@ namespace itk
  With Mask Images For Input Images}
  * \endsphinx
  */
-
 template <typename TInputImage, typename TOutputImage, typename TMaskImage = TInputImage>
 class ITK_TEMPLATE_EXPORT MaskedFFTNormalizedCorrelationImageFilter
   : public ImageToImageFilter<TInputImage, TOutputImage>
@@ -156,8 +151,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MaskedFFTNormalizedCorrelationImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskedFFTNormalizedCorrelationImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -190,40 +185,44 @@ public:
   using FFTImagePointer = typename FFTImageType::Pointer;
 
   /** Set and get the fixed image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(FixedImage, InputImageType);
   itkGetInputMacro(FixedImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the moving image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MovingImage, InputImageType);
   itkGetInputMacro(MovingImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the fixed mask */
+  /** @ITKStartGrouping */
   itkSetInputMacro(FixedImageMask, MaskImageType);
   itkGetInputMacro(FixedImageMask, MaskImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the moving mask */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MovingImageMask, MaskImageType);
   itkGetInputMacro(MovingImageMask, MaskImageType);
-
+  /** @ITKEndGrouping */
   /** Set and get the required number of overlapping pixels */
+  /** @ITKStartGrouping */
   itkSetMacro(RequiredNumberOfOverlappingPixels, SizeValueType);
   itkGetMacro(RequiredNumberOfOverlappingPixels, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set and get the required fraction of overlapping pixels */
+  /** @ITKStartGrouping */
   itkGetMacro(RequiredFractionOfOverlappingPixels, RealPixelType);
   itkSetClampMacro(RequiredFractionOfOverlappingPixels, RealPixelType, 0.0f, 1.0f);
-
+  /** @ITKEndGrouping */
   /** Get the maximum number of overlapping pixels. */
   itkGetMacro(MaximumNumberOfOverlappingPixels, SizeValueType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputPixelTypeIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   MaskedFFTNormalizedCorrelationImageFilter()
+    : m_RequiredFractionOfOverlappingPixels(0)
+
   {
     // #0 "FixedImage" required
     Self::SetPrimaryInputName("FixedImage");
@@ -236,11 +235,6 @@ protected:
 
     // #3 "MaskImageMask" optional
     Self::AddOptionalInputName("MovingImageMask", 3);
-
-    m_RequiredNumberOfOverlappingPixels = 0;
-    m_RequiredFractionOfOverlappingPixels = 0;
-    m_MaximumNumberOfOverlappingPixels = 0;
-    m_AccumulatedProgress = 0.0;
   }
   ~MaskedFFTNormalizedCorrelationImageFilter() override = default;
   void
@@ -248,7 +242,7 @@ protected:
 
   /** Overlap the VerifyInputInformation method */
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
   /** Standard pipeline method.*/
   void
@@ -330,17 +324,20 @@ private:
   /** Larger values zero-out pixels on a larger border around the correlation image.
    * Thus, larger values remove less stable computations but also limit the capture range.
    * The default is set to 0. */
-  SizeValueType m_RequiredNumberOfOverlappingPixels;
+  SizeValueType m_RequiredNumberOfOverlappingPixels{};
+
   /** Similar to m_RequiredNumberOfOverlappingPixels except that the m_RequiredFractionOfOverlappingPixels is multiplied
    * by the m_MaximumNumberOfOverlappingPixels to determine the requiredNumberOfOverlappingPixels. The default is 0. */
-  RealPixelType m_RequiredFractionOfOverlappingPixels;
+  RealPixelType m_RequiredFractionOfOverlappingPixels{};
+
   /** This is computed internally */
-  SizeValueType m_MaximumNumberOfOverlappingPixels;
+  SizeValueType m_MaximumNumberOfOverlappingPixels{};
 
   /** This is used for the progress reporter */
   const unsigned int m_TotalForwardAndInverseFFTs{ 12 };
+
   /** The total accumulated progress */
-  float m_AccumulatedProgress;
+  float m_AccumulatedProgress{};
 };
 } // end namespace itk
 

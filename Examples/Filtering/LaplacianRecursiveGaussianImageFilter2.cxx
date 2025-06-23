@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -110,7 +110,7 @@ main(int argc, char * argv[])
                                                OutputImageType>;
   // Software Guide : EndCodeSnippet
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   //  Software Guide : BeginLatex
@@ -125,7 +125,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  FilterType::Pointer laplacian = FilterType::New();
+  auto laplacian = FilterType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -199,7 +199,7 @@ main(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<WriteImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(laplacian->GetOutput());
   writer->SetFileName(argv[2]);
   writer->Update();
@@ -213,12 +213,12 @@ main(int argc, char * argv[])
 
     using RescaleFilterType =
       itk::RescaleIntensityImageFilter<OutputImageType, CharImageType>;
-    RescaleFilterType::Pointer rescale = RescaleFilterType::New();
+    auto rescale = RescaleFilterType::New();
     rescale->SetInput(laplacian->GetOutput());
     rescale->SetOutputMinimum(0);
     rescale->SetOutputMaximum(255);
     using CharWriterType = itk::ImageFileWriter<CharImageType>;
-    CharWriterType::Pointer charWriter = CharWriterType::New();
+    auto charWriter = CharWriterType::New();
     charWriter->SetFileName(argv[4]);
     charWriter->SetInput(rescale->GetOutput());
     charWriter->Update();

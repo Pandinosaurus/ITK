@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,9 @@
 #include "itkMetaDataObject.h"
 #include "itkTestingHashImageFilter.h"
 
+
+static_assert(sizeof(itk::MRCHeaderObject::Header) == 1024, " Ill defined MRC Header struct");
+
 namespace
 {
 
@@ -34,11 +37,11 @@ Test(const std::string & inFileName, const std::string & outFileName, const std:
   using ImageType = TImageType;
   using ImageFileReaderType = itk::ImageFileReader<ImageType>;
 
-  typename ImageFileReaderType::Pointer reader = ImageFileReaderType::New();
+  auto reader = ImageFileReaderType::New();
   reader->SetFileName(inFileName);
   reader->UpdateLargestPossibleRegion();
 
-  typename ImageType::Pointer image = reader->GetOutput();
+  const typename ImageType::Pointer image = reader->GetOutput();
 
   using DictionaryType = itk::MetaDataDictionary;
   using MetaDataStringType = itk::MetaDataObject<std::string>;
@@ -46,12 +49,12 @@ Test(const std::string & inFileName, const std::string & outFileName, const std:
   // prepare to iterate over the dictionary
   DictionaryType & dic = image->GetMetaDataDictionary();
 
-  DictionaryType::ConstIterator itr = dic.Begin();
-  DictionaryType::ConstIterator end = dic.End();
+  auto       itr = dic.Begin();
+  const auto end = dic.End();
 
   while (itr != end)
   {
-    std::string key = itr->first;
+    const std::string key = itr->first;
 
     // check to see if we have a MRC Header
     if (itr->first == itk::MRCImageIO::m_MetaDataHeaderName)
@@ -63,22 +66,22 @@ Test(const std::string & inFileName, const std::string & outFileName, const std:
         std::cout << header;
 
         // Use DeepCopy method to improve coverage
-        itk::MRCHeaderObject::Pointer copyHeader = itk::MRCHeaderObject::New();
+        const itk::MRCHeaderObject::Pointer copyHeader = itk::MRCHeaderObject::New();
         copyHeader->DeepCopy(header);
       }
     }
     else
     {
       // just print the strings now
-      itk::MetaDataObjectBase::Pointer entry = itr->second;
+      const itk::MetaDataObjectBase::Pointer entry = itr->second;
 
-      MetaDataStringType::Pointer entryvalue = dynamic_cast<MetaDataStringType *>(entry.GetPointer());
+      const MetaDataStringType::Pointer entryvalue = dynamic_cast<MetaDataStringType *>(entry.GetPointer());
       if (entryvalue)
       {
 
-        std::string tagvalue = entryvalue->GetMetaDataObjectValue();
+        const std::string tagvalue = entryvalue->GetMetaDataObjectValue();
 
-        std::cout << "(" << key << ") ";
+        std::cout << '(' << key << ") ";
         std::cout << " = " << tagvalue << std::endl;
       }
     }
@@ -86,14 +89,14 @@ Test(const std::string & inFileName, const std::string & outFileName, const std:
   }
 
   using HashFilter = itk::Testing::HashImageFilter<ImageType>;
-  typename HashFilter::Pointer hasher = HashFilter::New();
+  auto hasher = HashFilter::New();
   hasher->SetInput(image);
   hasher->Update();
 
   ITK_TEST_EXPECT_EQUAL(md5, hasher->GetHash());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(image);
   writer->SetFileName(outFileName);
   writer->Update();
@@ -109,7 +112,9 @@ itkMRCImageIOTest2(int argc, char * argv[])
 
   if (argc < 4)
   {
-    std::cerr << "Usage: " << argv[0] << " inputFileName outputFilename md5hash" << std::endl;
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName outputFilename md5hash"
+              << std::endl;
     return EXIT_FAILURE;
   }
 

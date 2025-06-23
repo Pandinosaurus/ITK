@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,15 +20,9 @@
 
 namespace itk
 {
-MultipleLogOutput::MultipleLogOutput()
-{
-  this->m_Output.clear();
-}
+MultipleLogOutput::MultipleLogOutput() = default;
 
-MultipleLogOutput::~MultipleLogOutput()
-{
-  //  this->Flush();
-}
+MultipleLogOutput::~MultipleLogOutput() = default;
 
 /** Adds an output stream to the MultipleLogOutput for writing. */
 void
@@ -41,13 +35,9 @@ MultipleLogOutput::AddLogOutput(OutputType * output)
 void
 MultipleLogOutput::Flush()
 {
-  auto itr = m_Output.begin();
-  auto end = m_Output.end();
-
-  while (itr != end)
+  for (const auto & output : m_Output)
   {
-    (*itr)->Flush();
-    ++itr;
+    output->Flush();
   }
 }
 
@@ -55,13 +45,9 @@ MultipleLogOutput::Flush()
 void
 MultipleLogOutput::Write(double timestamp)
 {
-  auto itr = m_Output.begin();
-  auto end = m_Output.end();
-
-  while (itr != end)
+  for (const auto & output : m_Output)
   {
-    (*itr)->Write(timestamp);
-    ++itr;
+    output->Write(timestamp);
   }
 }
 
@@ -69,13 +55,9 @@ MultipleLogOutput::Write(double timestamp)
 void
 MultipleLogOutput::Write(const std::string & content)
 {
-  auto itr = m_Output.begin();
-  auto end = m_Output.end();
-
-  while (itr != end)
+  for (const auto & output : m_Output)
   {
-    (*itr)->Write(content);
-    ++itr;
+    output->Write(content);
   }
 }
 
@@ -83,13 +65,9 @@ MultipleLogOutput::Write(const std::string & content)
 void
 MultipleLogOutput::Write(const std::string & content, double timestamp)
 {
-  auto itr = m_Output.begin();
-  auto end = m_Output.end();
-
-  while (itr != end)
+  for (const auto & output : m_Output)
   {
-    (*itr)->Write(content, timestamp);
-    ++itr;
+    output->Write(content, timestamp);
   }
 }
 } // namespace itk

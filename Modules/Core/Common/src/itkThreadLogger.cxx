@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,9 @@ namespace itk
 {
 
 ThreadLogger::ThreadLogger()
+  : m_TerminationRequested(false) // ms
+  , m_Delay(300)
 {
-  m_Delay = 300; // ms
-  m_TerminationRequested = false;
   m_Thread = std::thread(&ThreadLogger::ThreadFunction, this);
 }
 
@@ -41,74 +41,66 @@ ThreadLogger::~ThreadLogger()
 void
 ThreadLogger::SetPriorityLevel(PriorityLevelEnum level)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(SET_PRIORITY_LEVEL);
   this->m_LevelQ.push(level);
-  this->m_Mutex.unlock();
 }
 
 Logger::PriorityLevelEnum
 ThreadLogger::GetPriorityLevel() const
 {
-  this->m_Mutex.lock();
-  PriorityLevelEnum level = this->m_PriorityLevel;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const PriorityLevelEnum           level = this->m_PriorityLevel;
   return level;
 }
 
 void
 ThreadLogger::SetLevelForFlushing(PriorityLevelEnum level)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_LevelForFlushing = level;
   this->m_OperationQ.push(SET_LEVEL_FOR_FLUSHING);
   this->m_LevelQ.push(level);
-  this->m_Mutex.unlock();
 }
 
 Logger::PriorityLevelEnum
 ThreadLogger::GetLevelForFlushing() const
 {
-  this->m_Mutex.lock();
-  PriorityLevelEnum level = this->m_LevelForFlushing;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const PriorityLevelEnum           level = this->m_LevelForFlushing;
   return level;
 }
 
 void
 ThreadLogger::SetDelay(DelayType delay)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_Delay = delay;
-  this->m_Mutex.unlock();
 }
 
 ThreadLogger::DelayType
 ThreadLogger::GetDelay() const
 {
-  this->m_Mutex.lock();
-  DelayType delay = this->m_Delay;
-  this->m_Mutex.unlock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+  const DelayType                   delay = this->m_Delay;
   return delay;
 }
 
 void
 ThreadLogger::AddLogOutput(OutputType * output)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(ADD_LOG_OUTPUT);
-  this->m_OutputQ.push(output);
-  this->m_Mutex.unlock();
+  this->m_OutputQ.emplace(output);
 }
 
 void
-ThreadLogger::Write(PriorityLevelEnum level, std::string const & content)
+ThreadLogger::Write(PriorityLevelEnum level, const std::string & content)
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(WRITE);
   this->m_MessageQ.push(content);
   this->m_LevelQ.push(level);
-  this->m_Mutex.unlock();
   if (this->m_LevelForFlushing >= level)
   {
     this->InternalFlush();
@@ -118,16 +110,15 @@ ThreadLogger::Write(PriorityLevelEnum level, std::string const & content)
 void
 ThreadLogger::Flush()
 {
-  this->m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   this->m_OperationQ.push(FLUSH);
-  this->m_Mutex.unlock();
   this->InternalFlush();
 }
 
 void
 ThreadLogger::InternalFlush()
 {
-  this->m_Mutex.lock();
+  // m_Mutex must already be held here!
 
   while (!this->m_OperationQ.empty())
   {
@@ -160,7 +151,6 @@ ThreadLogger::InternalFlush()
     this->m_OperationQ.pop();
   }
   this->m_Output->Flush();
-  this->m_Mutex.unlock();
 }
 
 void
@@ -168,38 +158,40 @@ ThreadLogger::ThreadFunction()
 {
   while (!m_TerminationRequested)
   {
-    m_Mutex.lock();
-    while (!m_OperationQ.empty())
     {
-      switch (m_OperationQ.front())
+      const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+      while (!m_OperationQ.empty())
       {
-        case ThreadLogger::SET_PRIORITY_LEVEL:
-          m_PriorityLevel = m_LevelQ.front();
-          m_LevelQ.pop();
-          break;
+        switch (m_OperationQ.front())
+        {
+          case ThreadLogger::SET_PRIORITY_LEVEL:
+            m_PriorityLevel = m_LevelQ.front();
+            m_LevelQ.pop();
+            break;
 
-        case ThreadLogger::SET_LEVEL_FOR_FLUSHING:
-          m_LevelForFlushing = m_LevelQ.front();
-          m_LevelQ.pop();
-          break;
+          case ThreadLogger::SET_LEVEL_FOR_FLUSHING:
+            m_LevelForFlushing = m_LevelQ.front();
+            m_LevelQ.pop();
+            break;
 
-        case ThreadLogger::ADD_LOG_OUTPUT:
-          m_Output->AddLogOutput(m_OutputQ.front());
-          m_OutputQ.pop();
-          break;
+          case ThreadLogger::ADD_LOG_OUTPUT:
+            m_Output->AddLogOutput(m_OutputQ.front());
+            m_OutputQ.pop();
+            break;
 
-        case ThreadLogger::WRITE:
-          Logger::Write(m_LevelQ.front(), m_MessageQ.front());
-          m_LevelQ.pop();
-          m_MessageQ.pop();
-          break;
-        case ThreadLogger::FLUSH:
-          Logger::Flush();
-          break;
+          case ThreadLogger::WRITE:
+            Logger::Write(m_LevelQ.front(), m_MessageQ.front());
+            m_LevelQ.pop();
+            m_MessageQ.pop();
+            break;
+          case ThreadLogger::FLUSH:
+            Logger::Flush();
+            break;
+        }
+        m_OperationQ.pop();
       }
-      m_OperationQ.pop();
-    }
-    m_Mutex.unlock();
+    } // end of scope of lockGuard (unlocking m_Mutex automatically)
+
     itksys::SystemTools::Delay(this->GetDelay());
   }
 }
@@ -209,12 +201,15 @@ ThreadLogger::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Thread ID: " << this->m_Thread.get_id() << std::endl;
-  os << indent << "Low-priority Message Delay: " << this->m_Delay << std::endl;
-  os << indent << "Operation Queue Size: " << this->m_OperationQ.size() << std::endl;
-  os << indent << "Message Queue Size: " << this->m_MessageQ.size() << std::endl;
-  os << indent << "Level Queue Size: " << this->m_LevelQ.size() << std::endl;
-  os << indent << "Output Queue Size: " << this->m_OutputQ.size() << std::endl;
+  os << indent << "Thread ID: " << m_Thread.get_id() << std::endl;
+  os << indent << "TerminationRequested: " << m_TerminationRequested << std::endl;
+
+  os << indent << "OperationQ size: " << m_OperationQ.size() << std::endl;
+  os << indent << "MessageQ size: " << m_MessageQ.size() << std::endl;
+  os << indent << "LevelQ size: " << m_LevelQ.size() << std::endl;
+  os << indent << "OutputQ size: " << m_OutputQ.size() << std::endl;
+
+  os << indent << "Delay: " << m_Delay << std::endl;
 }
 
 } // namespace itk

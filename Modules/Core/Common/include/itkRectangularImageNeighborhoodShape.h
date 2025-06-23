@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,15 +56,15 @@ public:
   static constexpr unsigned int ImageDimension = VImageDimension;
 
   /** Constructs a hyperrectangular shape whose size is specified by the radius */
-  constexpr explicit RectangularImageNeighborhoodShape(const Size<ImageDimension> & radius) ITK_NOEXCEPT
+  constexpr explicit RectangularImageNeighborhoodShape(const Size<ImageDimension> & radius) noexcept
     : m_Radius(radius)
     , m_NumberOfOffsets(CalculateNumberOfOffsets(ImageDimension))
   {}
 
 
   /** Returns the number of offsets needed to represent this shape. */
-  constexpr std::size_t
-  GetNumberOfOffsets() const ITK_NOEXCEPT
+  [[nodiscard]] constexpr size_t
+  GetNumberOfOffsets() const noexcept
   {
     return m_NumberOfOffsets;
   }
@@ -72,7 +72,7 @@ public:
 
   /** Fills the specified buffer with the offsets for a neighborhood of this shape. */
   void
-  FillOffsets(Offset<ImageDimension> * const offsets) const ITK_NOEXCEPT
+  FillOffsets(Offset<ImageDimension> * const offsets) const noexcept
   {
     if (m_NumberOfOffsets > 0)
     {
@@ -83,11 +83,11 @@ public:
         return -static_cast<OffsetValueType>(radiusValue);
       });
 
-      for (std::size_t i = 0; i < m_NumberOfOffsets; ++i)
+      for (size_t i = 0; i < m_NumberOfOffsets; ++i)
       {
         offsets[i] = offset;
 
-        for (unsigned dimensionIndex = 0; dimensionIndex < ImageDimension; ++dimensionIndex)
+        for (unsigned int dimensionIndex = 0; dimensionIndex < ImageDimension; ++dimensionIndex)
         {
           OffsetValueType & offsetValue = offset[dimensionIndex];
 
@@ -108,13 +108,13 @@ private:
   Size<ImageDimension> m_Radius;
 
   // The number of offsets needed to represent this shape.
-  std::size_t m_NumberOfOffsets;
+  size_t m_NumberOfOffsets;
 
 
   // Private helper function to calculate the number of Offsets by a recursive
   // function call. Recursion is necessary for C++11 constexpr.
-  constexpr std::size_t
-  CalculateNumberOfOffsets(const unsigned dimension) const ITK_NOEXCEPT
+  [[nodiscard]] constexpr size_t
+  CalculateNumberOfOffsets(const unsigned int dimension) const noexcept
   {
     return (dimension == 0)
              ? 1

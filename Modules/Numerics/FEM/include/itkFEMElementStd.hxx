@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,17 +19,13 @@
 #ifndef itkFEMElementStd_hxx
 #define itkFEMElementStd_hxx
 
-#include "itkFEMElementStd.h"
-
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 template <unsigned int VNumberOfNodes, unsigned int VNumberOfSpatialDimensions, typename TBaseClass>
 ElementStd<VNumberOfNodes, VNumberOfSpatialDimensions, TBaseClass>::ElementStd()
 {
   // Set all node ids to 0 (undefined)
-  for (int i = 0; i < NumberOfNodes; i++)
+  for (int i = 0; i < NumberOfNodes; ++i)
   {
     this->m_node[i] = nullptr;
   }
@@ -41,13 +37,12 @@ ElementStd<VNumberOfNodes, VNumberOfSpatialDimensions, TBaseClass>::PrintSelf(st
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "#Nodes: " << NumberOfNodes << std::endl;
-  for (unsigned int i = 0; i < NumberOfNodes; i++)
+  for (unsigned int i = 0; i < NumberOfNodes; ++i)
   {
     os << indent << "Node (" << i << "): " << this->m_node[i] << std::endl;
   }
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

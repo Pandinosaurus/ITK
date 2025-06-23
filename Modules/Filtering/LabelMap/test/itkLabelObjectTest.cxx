@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ itkLabelObjectTest(int argc, char * argv[])
 
   // testing AddLine(), GetNumberOfLines(), GetLineContainer() const and Optimize()
 
-  LabelObjectType::Pointer lo = LabelObjectType::New();
+  auto lo = LabelObjectType::New();
 
   IndexType idx;
   idx[0] = 1;
@@ -77,7 +77,7 @@ itkLabelObjectTest(int argc, char * argv[])
   lo->Optimize();
 
   // the expected result after Optimize()
-  LabelObjectType::Pointer ref = LabelObjectType::New();
+  auto ref = LabelObjectType::New();
 
   idx[0] = 5;
   idx[1] = 0;
@@ -113,16 +113,15 @@ itkLabelObjectTest(int argc, char * argv[])
 
   using IteratorType = LabelObjectType::ConstLineIterator;
 
-  IteratorType it1;
-  it1 = IteratorType(ref);
+  auto         it1 = IteratorType(ref);
   IteratorType it2(lo);
 
   lo->Print(std::cerr);
 
   while (!it1.IsAtEnd())
   {
-    std::cout << it1.GetLine().GetIndex() << "-" << it1.GetLine().GetLength() << "    ";
-    std::cout << it2.GetLine().GetIndex() << "-" << it2.GetLine().GetLength();
+    std::cout << it1.GetLine().GetIndex() << '-' << it1.GetLine().GetLength() << "    ";
+    std::cout << it2.GetLine().GetIndex() << '-' << it2.GetLine().GetLength();
     std::cout << std::endl;
     if (it1.GetLine().GetIndex() != it2.GetLine().GetIndex() || it1.GetLine().GetLength() != it2.GetLine().GetLength())
     {
@@ -179,7 +178,7 @@ itkLabelObjectTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  for (unsigned int i = 0; i < lo->Size(); i++)
+  for (unsigned int i = 0; i < lo->Size(); ++i)
   {
     if (lo->GetIndex(i) != idxs[i])
     {
@@ -189,7 +188,7 @@ itkLabelObjectTest(int argc, char * argv[])
     }
     if (!lo->HasIndex(idxs[i]))
     {
-      std::cerr << "label object should have the index " << idxs[i] << "!" << std::endl;
+      std::cerr << "label object should have the index " << idxs[i] << '!' << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -200,7 +199,7 @@ itkLabelObjectTest(int argc, char * argv[])
   idx[2] = 10;
   if (lo->HasIndex(idx))
   {
-    std::cerr << "label object shouldn't have the index " << idx << "!" << std::endl;
+    std::cerr << "label object shouldn't have the index " << idx << '!' << std::endl;
     return EXIT_FAILURE;
   }
 

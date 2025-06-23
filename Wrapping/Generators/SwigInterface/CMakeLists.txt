@@ -1,42 +1,129 @@
 ###############################################################################
 # Swig and PCRE do not support blank spaces in install directory namespaces
 # This means that ITK cannot be built in a path that contains spaces
-# See http://www.swig.org/Doc1.3/Windows.html
+# See https://www.swig.org/Doc1.3/Windows.html
 if("${CMAKE_BINARY_DIR}" MATCHES "^.* .*$")
-  message(FATAL_ERROR "Swig and PCRE do not support paths with space characters. Please change build directory name.")
+  message(
+    FATAL_ERROR
+    "Swig and PCRE do not support paths with space characters. Please change build directory name."
+  )
 endif()
 
 ###############################################################################
 # Build swig
 
-option(ITK_USE_SYSTEM_SWIG "Use system swig. If OFF, swig is built as an external project." OFF)
+option(
+  ITK_USE_SYSTEM_SWIG
+  "Use system swig. If OFF, swig is built as an external project."
+  OFF
+)
 mark_as_advanced(ITK_USE_SYSTEM_SWIG)
 
 # Minimal swig version
-if(WIN32)
-  set(swig_version_min 4.0.2)
-  set(ITK_SWIG_VERSION 4.0.2)
-  set(swigwin_hash  "b8f105f9b9db6acc1f6e3741990915b533cd1bc206eb9645fd6836457fd30789b7229d2e3219d8e35f2390605ade0fbca493ae162ec3b4bc4e428b57155db03d")
-else()
-  set(ITK_SWIG_VERSION 4.0.2)
-  set(swig_version_min 4.0.2)
-  set(swig_hash     "05e7da70ce6d9a733b96c0bcfa3c1b82765bd859f48c74759bbf4bb1467acb1809caa310cba5e2b3280cd704fca249eaa0624821dffae1d2a75097c7f55d14ed")
-endif()
+set(swig_version_min 4.2.0)
+# Version used in vendored binary or source build configured in this file.
+set(ITK_SWIG_VERSION 2024-03-26-master)
 
 if(WIN32)
-  set(swig_ep "${CMAKE_CURRENT_BINARY_DIR}/swigwin-${ITK_SWIG_VERSION}/swig.exe")
-else()
+  set(swig_cmake_version 4.3.0)
+  set(
+    swigwin_hash
+    "cec9eeebfec7f2a8ccf7b166a11cf8dbbc5e1eacca35563e4f0882b2b261658f394f6607243813d7083e7e2a2bbec23c5cf8b4dd92ad85838c6eb971f3833715"
+  )
+  set(swigwin_cid "bafybeibljxzip2irc3q3w5qlh2ae5ns27xpi7mo6iskxni45dcmwtk2x6a")
 
-    # follow the standard EP_PREFIX locations
-    set ( swig_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/swig-prefix/src/swig-build )
-    set ( swig_source_dir ${CMAKE_CURRENT_BINARY_DIR}/swig-prefix/src/swig )
-    set ( swig_install_dir ${CMAKE_CURRENT_BINARY_DIR}/swig )
+  set(
+    swig_ep
+    "${CMAKE_CURRENT_BINARY_DIR}/swigwin-amd64-${ITK_SWIG_VERSION}/bin/swig.exe"
+  )
+elseif(
+  CMAKE_HOST_SYSTEM_NAME
+    MATCHES
+    "Linux"
+  AND
+    (
+      CMAKE_HOST_SYSTEM_PROCESSOR
+        STREQUAL
+        "x86_64"
+      OR
+        CMAKE_HOST_SYSTEM_PROCESSOR
+          STREQUAL
+          "aarch64"
+    )
+)
+  set(swig_cmake_version 4.3.0)
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(
+      swiglinux_hash
+      "9a3cfa330235ac78799c7401299506db5ea7459314b781bf27f2db8ddb582508ec5b15c2fa96fc241d5b832c4f702cd9ef043a61e37a574cac7ca78e4aba8f78"
+    )
+    set(
+      swiglinux_cid
+      "bafybeiaa2xv7oxnvaz6qupdaykgwakldrmahk54n2pp2z2ianuvq57uvmy"
+    )
+    set(swiglinux_arch "arm64")
+  else()
+    set(
+      swiglinux_hash
+      "bdf82ad5281dfdba4b24c83b0d15c76e83cd58c6c78ecfc7a449f869f524d12fad9ad7f517995f864c2c00e61e7cd04132a442038197b92821b4011673a7d4fe"
+    )
+    set(
+      swiglinux_cid
+      "bafybeihp7hk4ljxuf7duqzei2h7y7xshzyhahxaot5mapv2xevkvwuci5m"
+    )
+    set(swiglinux_arch "amd64")
+  endif()
+
+  set(
+    swig_ep
+    "${CMAKE_CURRENT_BINARY_DIR}/swiglinux-${swiglinux_arch}-${ITK_SWIG_VERSION}/bin/swig"
+  )
+elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+  set(swig_cmake_version 4.3.0)
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(
+      swigmacos_hash
+      "96eec93fd9e1df35813f8cc194a8811c8c84f265284c1515ec81aa7e696aee2c952f426e5155c011c163376e76245f5d7f479525f0d1ea8396524629ed6b8aec"
+    )
+    set(
+      swigmacos_cid
+      "bafybeialov6ur5q2yli4mtclrvqoirk2nsteum3vgnswjypquwejwomxnm"
+    )
+    set(swigmacos_arch "arm64")
+  else()
+    set(
+      swigmacos_hash
+      "169760d2a34c2a95a907e80d93c1dc7ebc33a7dd34eb7ed7a9841866db3e25f7d7e93bf49ea28db01843aca5c2c6712756c1f01f6531d6ee027dc6eb293d95d7"
+    )
+    set(
+      swigmacos_cid
+      "bafybeifkl5wfscum7pnsjdmwhshrv5v6srilinkrftunq5g4gqzgqmyqf4"
+    )
+    set(swigmacos_arch "amd64")
+  endif()
+
+  set(
+    swig_ep
+    "${CMAKE_CURRENT_BINARY_DIR}/swigmacos-${swigmacos_arch}-${ITK_SWIG_VERSION}/bin/swig"
+  )
+else()
+  # Build from source
+
+  set(
+    swig_hash
+    "9292f6786abed379278b8024f91b91f293f1be9764fe3c1a19023f7891c4e40587f965680ac6a595a5610cfb6650a73fd2f3932a83d5effad83f351fa70810a9"
+  )
+  set(swig_cid "bafybeib56uexrqtccgzxjgmlammjii5ntwush4732kbkr6okbtjhzcmvia")
+
+  # follow the standard EP_PREFIX locations
+  set(swig_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/swig-prefix/src/swig-build)
+  set(swig_source_dir ${CMAKE_CURRENT_BINARY_DIR}/swig-prefix/src/swig)
+  set(swig_install_dir ${CMAKE_CURRENT_BINARY_DIR}/swig)
 
   set(swig_ep "${swig_install_dir}/bin/swig")
 endif()
 
 if(ITK_USE_SYSTEM_SWIG)
-
   # the path set for the EP build prevents find_package to do its job
   if("${SWIG_EXECUTABLE}" STREQUAL "${swig_ep}")
     unset(SWIG_DIR CACHE)
@@ -49,464 +136,257 @@ if(ITK_USE_SYSTEM_SWIG)
 
   # Check for the swig version
   if(${SWIG_VERSION} VERSION_LESS ${swig_version_min})
-    message(WARNING "Swig version less than ${swig_version_min}: \"${SWIG_VERSION}\".")
+    message(
+      WARNING
+      "Swig version less than ${swig_version_min}: \"${SWIG_VERSION}\"."
+    )
   endif()
-
 else()
   if(NOT TARGET swig)
     # Install swig ourselves
     set(SWIG_VERSION ${ITK_SWIG_VERSION})
 
     include(ExternalProject)
+
+    # Set the timestamps of the extracted files to their archived
+    # timestamps. Necessary to build configure/autoconf-based
+    # projects such as SWIG and PCRE robustly.
+    if(${CMAKE_VERSION} VERSION_LESS 3.24)
+      set(download_extract_timestamp_flag)
+    else()
+      set(
+        download_extract_timestamp_flag
+        DOWNLOAD_EXTRACT_TIMESTAMP
+        TRUE
+      )
+    endif()
+
     if(WIN32)
       # If we are building ITK
       if(ITK_BINARY_DIR)
         itk_download_attempt_check(SWIG)
       endif()
-      ExternalProject_Add(swig
-        URL "https://data.kitware.com/api/v1/file/hashsum/sha512/${swigwin_hash}/download"
+      ExternalProject_Add(
+        swig
+        URL
+          "https://data.kitware.com/api/v1/file/hashsum/sha512/${swigwin_hash}/download"
+          "https://dweb.link/ipfs/${swigwin_cid}/swigwin-amd64-${SWIG_VERSION}.zip"
+          "https://itk.mypinata.cloud/ipfs/${swigwin_cid}/swigwin-amd64-${SWIG_VERSION}.zip"
+          "https://w3s.link/ipfs/${swigwin_cid}/swigwin-amd64-${SWIG_VERSION}.zip"
         URL_HASH SHA512=${swigwin_hash}
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/swigwin-${SWIG_VERSION}
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/swigwin-amd64-${SWIG_VERSION}
+        CONFIGURE_COMMAND
+          ""
+        BUILD_COMMAND
+          ""
+        INSTALL_COMMAND
+          "" ${download_extract_timestamp_flag}
+      )
+      set(
+        SWIG_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/swigwin-amd64-${SWIG_VERSION}/bin
+      )
+    elseif(
+      CMAKE_HOST_SYSTEM_NAME
+        MATCHES
+        "Linux"
+      AND
+        (
+          CMAKE_HOST_SYSTEM_PROCESSOR
+            STREQUAL
+            "x86_64"
+          OR
+            CMAKE_HOST_SYSTEM_PROCESSOR
+              STREQUAL
+              "aarch64"
         )
-      set(SWIG_DIR ${CMAKE_CURRENT_BINARY_DIR}/swigwin-${SWIG_VERSION})
+    )
+      # If we are building ITK
+      if(ITK_BINARY_DIR)
+        itk_download_attempt_check(SWIG)
+      endif()
+      ExternalProject_Add(
+        swig
+        URL
+          "https://data.kitware.com/api/v1/file/hashsum/sha512/${swiglinux_hash}/download"
+          "https://dweb.link/ipfs/${swiglinux_cid}/swiglinux-${swiglinux_arch}-${SWIG_VERSION}.zip"
+          "https://itk.mypinata.cloud/ipfs/${swiglinux_cid}/swiglinux-${swiglinux_arch}-${SWIG_VERSION}.zip"
+          "https://w3s.link/ipfs/${swiglinux_cid}/swiglinux-${swiglinux_arch}-${SWIG_VERSION}.zip"
+        URL_HASH SHA512=${swiglinux_hash}
+        SOURCE_DIR
+          ${CMAKE_CURRENT_BINARY_DIR}/swiglinux-${swiglinux_arch}-${SWIG_VERSION}
+        CONFIGURE_COMMAND
+          ""
+        BUILD_COMMAND
+          ""
+        INSTALL_COMMAND
+          "" ${download_extract_timestamp_flag}
+      )
+      set(
+        SWIG_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/swiglinux-${swiglinux_arch}-${SWIG_VERSION}/share/swig/${swig_cmake_version}
+        CACHE FILEPATH
+        "swig directory."
+      )
+    elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+      # If we are building ITK
+      if(ITK_BINARY_DIR)
+        itk_download_attempt_check(SWIG)
+      endif()
+      ExternalProject_Add(
+        swig
+        URL
+          "https://data.kitware.com/api/v1/file/hashsum/sha512/${swigmacos_hash}/download"
+          "https://dweb.link/ipfs/${swigmacos_cid}/swigmacos-${swigmacos_arch}-${SWIG_VERSION}.zip"
+          "https://itk.mypinata.cloud/ipfs/${swigmacos_cid}/swigmacos-${swigmacos_arch}-${SWIG_VERSION}.zip"
+          "https://w3s.link/ipfs/${swigmacos_cid}/swigmacos-${swigmacos_arch}-${SWIG_VERSION}.zip"
+        URL_HASH SHA512=${swigmacos_hash}
+        SOURCE_DIR
+          ${CMAKE_CURRENT_BINARY_DIR}/swigmacos-${swigmacos_arch}-${SWIG_VERSION}
+        CONFIGURE_COMMAND
+          ""
+        BUILD_COMMAND
+          ""
+        INSTALL_COMMAND
+          "" ${download_extract_timestamp_flag}
+      )
+      set(
+        SWIG_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/swigmacos-${swigmacos_arch}-${SWIG_VERSION}/share/swig/${swig_cmake_version}
+        CACHE FILEPATH
+        "swig directory."
+      )
     else()
-      # From PCRE configure
-      # Some influential environment variables:
-      #  CC          C compiler command
-      #  CFLAGS      C compiler flags
-      #  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
-      #              nonstandard directory <lib dir>
-      #  LIBS        libraries to pass to the linker, e.g. -l<library>
-      #  CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
-      #              you have headers in a nonstandard directory <include dir>
-      #  CXX         C++ compiler command
-      #  CXXFLAGS    C++ compiler flags
-      #  CPP         C preprocessor
-      #  CXXCPP      C++ preprocessor
-
       # build swig as an external project
 
       # If we are building ITK
       if(ITK_BINARY_DIR)
         itk_download_attempt_check(PCRE)
       endif()
-      set(pcre_env)
+      set(compiler_information)
       if(NOT CMAKE_CROSSCOMPILING)
-        set(pcre_env
-          env
-            "AR=${CMAKE_AR}"
-            "CC=${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER}"
-            "CFLAGS=${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE} -w"
-            "LDFLAGS=$ENV{LDFLAGS}"
-            "LIBS=$ENV{LIBS}"
-            "CPPFLAGS=$ENV{CPPFLAGS}"
-            "CXX=${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER}"
-            "CXXFLAGS=${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -w"
-            "CPP=$ENV{CPP}"
-            "CXXPP=$ENV{CXXPP}"
-          )
-        if(APPLE)
-          # If building on OS X, the compiler must know what version of the OS X SDK to use
-          # without SDKROOT set, configuring PCRE fails.  The deployment target is set to
-          # ensure the built library is compatible with the correct OS X version.  This may
-          # not be strictly necessary for configure, but the compiler determines which
-          # header files to use based on both of these settings.  Adding it for safety.
-          set(pcre_env ${pcre_env}
-            "SDKROOT=${CMAKE_OSX_SYSROOT}"
-            "MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
-          )
-        endif()
-      endif()
-      set(extra_external_project_commands)
-      if(APPLE)
-        # If building on OS X, we have to set the SDKROOT and DEPOLYMENT_TARGET environment variables
-        # so that XCode's compilers know which version of the OS X SDK to use.
-        list(APPEND extra_external_project_commands
-          BUILD_COMMAND
-            env
-              "SDKROOT=${CMAKE_OSX_SYSROOT}"
-               "MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
-            make
-          INSTALL_COMMAND
-            env
-              "SDKROOT=${CMAKE_OSX_SYSROOT}"
-              "MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
-            make
-              install
+        set(
+          CMAKE_CXX_COMPILER_LAUNCHER_FLAG
+          -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH=${CMAKE_CXX_COMPILER_LAUNCHER}
+        )
+        set(
+          CMAKE_C_COMPILER_LAUNCHER_FLAG
+          -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH=${CMAKE_C_COMPILER_LAUNCHER}
+        )
+        set(
+          compiler_information
+          -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+          ${CMAKE_CXX_COMPILER_LAUNCHER_FLAG}
+          "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -w"
+          -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+          ${CMAKE_C_COMPILER_LAUNCHER_FLAG}
+          "-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS} -w"
         )
       endif()
-      set(pcre_hash "abac4c4f9df9e61d7d7761a9c50843882611752e1df0842a54318f358c28f5953025eba2d78997d21ee690756b56cc9f1c04a5ed591dd60654cc78ba16d9ecfb")
-      ExternalProject_Add(PCRE
-        URL "https://data.kitware.com/api/v1/file/hashsum/sha512/${pcre_hash}/download"
+      set(
+        pcre_hash
+        "e1183226ea3e56a1c7ec97e2c7d7ad5a163b9b576930c997e6ac4c26f1c92fc7e9491b5b297b1dd68d43432f7fbbddcc6207a189beb37ef158ad68bad5598988"
+      )
+      set(
+        pcre_cid
+        "bafybeicnpyjts3vq4lpdfhktr5qioq4qdifmtjkbemyyqpkayxjsqtwz74"
+      )
+      ExternalProject_Add(
+        PCRE
+        URL
+          "https://data.kitware.com/api/v1/file/hashsum/sha512/${pcre_hash}/download"
+          "https://dweb.link/ipfs/${pcre_cid}/pcre-10.43.tar.gz"
+          "https://itk.pinata.cloud/ipfs/${pcre_cid}/pcre-10.43.tar.gz"
+          "https://w3s.link/ipfs/${pcre_cid}/pcre-10.43.tar.gz"
         URL_HASH SHA512=${pcre_hash}
-        CONFIGURE_COMMAND
-          ${pcre_env}
-          ../PCRE/configure
-          --prefix=${CMAKE_CURRENT_BINARY_DIR}/PCRE
-          --enable-shared=no
-        ${extra_external_project_commands}
-        )
+        CMAKE_GENERATOR "${CMAKE_GENERATOR}"
+        CMAKE_CACHE_ARGS
+          ${compiler_information} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+          -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/PCRE2
+        ${download_extract_timestamp_flag}
+      )
 
       # swig uses bison find it by cmake and pass it down
-      find_package ( BISON )
-      set ( BISON_FLAGS "" CACHE STRING "Flags used by bison" )
-      mark_as_advanced ( BISON_FLAGS )
-
-
-      # From SWIG configure
-      # Some influential environment variables:
-      #  CC          C compiler command
-      #  CFLAGS      C compiler flags
-      #  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
-      #              nonstandard directory <lib dir>
-      #  LIBS        libraries to pass to the linker, e.g. -l<library>
-      #  CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
-      #              you have headers in a nonstandard directory <include dir>
-      #  CXX         C++ compiler command
-      #  CXXFLAGS    C++ compiler flags
-      #  CPP         C preprocessor
-      #  PCRE_CONFIG config script used for pcre
-      #  PCRE_CFLAGS CFLAGS used for pcre
-      #  PCRE_LIBS   LIBS used for pcre
-      #  YACC        The `Yet Another C Compiler' implementation to use. Defaults to
-      #              the first program found out of: `bison -y', `byacc', `yacc'.
-      #  YFLAGS      The list of arguments that will be passed by default to $YACC.
-      #              This script will default YFLAGS to the empty string to avoid a
-      #              default value of `-d' given by some make applications.
+      find_package(BISON)
+      set(BISON_FLAGS "" CACHE STRING "Flags used by bison")
+      mark_as_advanced(BISON_FLAGS)
 
       # If we are building ITK
       if(ITK_BINARY_DIR)
         itk_download_attempt_check(SWIG)
       endif()
-      # Swig configure step
-      # Run in a CMake script because it will be flagged as a false-positive
-      # warning when executed with CTEST_USE_LAUNCHERS
-      set(swig_env)
-      if(NOT CMAKE_CROSSCOMPILING)
-        set(swig_env
-"
-set(ENV{CC} \"${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER}\")
-set(ENV{CFLAGS} \"${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE} -w\")
-set(ENV{LDFLAGS} \"$ENV{LDFLAGS}\")
-set(ENV{LIBS} \"$ENV{LIBS}\")
-set(ENV{CPPFLAGS} \"$ENV{CPPFLAGS}\")
-set(ENV{CXX} \"${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER}\")
-set(ENV{CXXFLAGS} \"${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -w\")
-set(ENV{CPP} \"$ENV{CPP}\")
-set(ENV{YACC} \"${BISON_EXECUTABLE}\")
-set(ENV{YFLAGS} \"${BISON_FLAGS}\")
-"
-          )
-      endif()
-      set(_swig_configure_script ${CMAKE_CURRENT_BINARY_DIR}/swig_configure_step.cmake)
-      file(WRITE ${_swig_configure_script} "
-      ${swig_env}
-execute_process(COMMAND ../swig/configure
-        \"--prefix=${CMAKE_CURRENT_BINARY_DIR}/swig\"
-        \"--with-pcre-prefix=${CMAKE_CURRENT_BINARY_DIR}/PCRE\"
-  WORKING_DIRECTORY \"${CMAKE_CURRENT_BINARY_DIR}/swig-prefix/src/swig-build\"
-  RESULT_VARIABLE result
-  OUTPUT_VARIABLE output
-  ERROR_VARIABLE error
-  )
 
-set(output_file \"${CMAKE_CURRENT_BINARY_DIR}/swig_configure_output.txt\")
-file(WRITE \${output_file} \${output})
-
-set(error_file \"${CMAKE_CURRENT_BINARY_DIR}/swig_configure_error.txt\")
-file(WRITE \${error_file} \${error})
-
-if(NOT \${result} EQUAL 0)
-  message(STATUS \"Swig configure errors detected - See below.\n\${output}\n\${error}\")
-  message(FATAL_ERROR \"Swig configure error. See \${output_file} and \${error_file}\")
-endif()
-
-message(STATUS \"Swig configure successfully completed.\")
-")
-      set(extra_swig_configure_env)
-      if(APPLE)
-        # If building on OS X, the compiler must know what version of the OS X SDK to use
-        # without SDKROOT set, configuring swig fails.  The deployment target is set to
-        # ensure the built library is compatible with the correct OS X version.  This may
-        # not be strictly necessary for configure, but the compiler determines which
-        # header files to use based on both of these settings.  Adding it for safety.
-        list(APPEND extra_swig_configure_env
-          env
-            "SDKROOT=${CMAKE_OSX_SYSROOT}"
-            "MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
-        )
-      endif()
-
-      ExternalProject_Add(swig
-        URL "https://data.kitware.com/api/v1/file/hashsum/sha512/${swig_hash}/download"
+      ExternalProject_Add(
+        swig
+        URL
+          "https://data.kitware.com/api/v1/file/hashsum/sha512/${swig_hash}/download"
+          "https://dweb.link/ipfs/${swig_cid}/swig-4.0.2.tar.gz"
+          "https://itk.pinata.cloud/ipfs/${swig_cid}/swig-4.0.2.tar.gz"
+          "https://w3s.link/ipfs/${swig_cid}/swig-4.0.2.tar.gz"
         URL_HASH SHA512=${swig_hash}
-        CONFIGURE_COMMAND
-          ${extra_swig_configure_env} ${CMAKE_COMMAND} -P "${_swig_configure_script}"
-        ${extra_external_project_commands}
-        DEPENDS PCRE
-        )
+        CMAKE_GENERATOR "${CMAKE_GENERATOR}"
+        CMAKE_CACHE_ARGS
+          ${compiler_information} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+          -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+          -DPCRE2_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/PCRE2
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/swig
+        DEPENDS
+          PCRE
+          ${download_extract_timestamp_flag}
+      )
     endif()
 
-    set(SWIG_DIR ${CMAKE_CURRENT_BINARY_DIR}/swig/share/swig/${SWIG_VERSION} CACHE FILEPATH "swig directory." FORCE)
+    set(
+      SWIG_DIR
+      ${CMAKE_CURRENT_BINARY_DIR}/swig/share/swig/${SWIG_VERSION}
+      CACHE FILEPATH
+      "swig directory."
+    )
     mark_as_advanced(SWIG_DIR)
     set(SWIG_EXECUTABLE ${swig_ep} CACHE FILEPATH "swig executable." FORCE)
-
   endif()
   mark_as_advanced(SWIG_EXECUTABLE)
 endif()
 
-
-set(PYGCCXML_DIR ${ITK_CMAKE_DIR}/../Modules/ThirdParty/pygccxml/src CACHE INTERNAL "pygccxml path")
-
+set(
+  PYGCCXML_DIR
+  ${ITK_CMAKE_DIR}/../Modules/ThirdParty/pygccxml/src
+  CACHE INTERNAL
+  "pygccxml path"
+)
 
 ###############################################################################
 # store the current dir, so it can be reused later
-set(ITK_WRAP_SWIGINTERFACE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "swig interface source dir")
-set(ITK_WRAP_SWIGINTERFACE_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" CACHE INTERNAL "swig interface binary dir")
+set(
+  ITK_WRAP_SWIGINTERFACE_SOURCE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  CACHE INTERNAL
+  "swig interface source dir"
+)
+set(
+  ITK_WRAP_SWIGINTERFACE_BINARY_DIR
+  "${CMAKE_CURRENT_BINARY_DIR}"
+  CACHE INTERNAL
+  "swig interface binary dir"
+)
 
-set(WRAPPER_MASTER_INDEX_OUTPUT_DIR "${ITK_DIR}/Wrapping/Typedefs" CACHE INTERNAL "typedefs dir")
-set(IGENERATOR  "${CMAKE_CURRENT_SOURCE_DIR}/igenerator.py" CACHE INTERNAL "igenerator.py path" FORCE)
-
-macro(itk_wrap_module_swig_interface library_name)
-  # store the content of the mdx file
-  set(SWIG_INTERFACE_MDX_CONTENT )
-  # store the content of the .i file for the module - a set of import of all the .i files generated for the module
-  set(SWIG_INTERFACE_MODULE_CONTENT )
-  # build a list of modules to create the igenerator custom command in
-  # itk_end_wrap_module_swig_interface
-  set(SWIG_INTERFACE_MODULES )
-endmacro()
-
-
-macro(itk_end_wrap_module_swig_interface)
-  # Loop over the extra swig input files and copy them to the Typedefs directory
-  foreach(source ${WRAPPER_LIBRARY_SWIG_INPUTS})
-    file(COPY "${source}"
-         DESTINATION "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}")
-    get_filename_component(basename ${source} NAME)
-    set(dest "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${basename}")
-  endforeach()
-
-  # prepare dependencies
-  set(DEPS )
-  foreach(dep ${WRAPPER_LIBRARY_DEPENDS})
-    set(SWIG_INTERFACE_MDX_CONTENT "${dep}.mdx\n${SWIG_INTERFACE_MDX_CONTENT}")
-  endforeach()
-
-  # add some libs required by this module
-  set(swig_libs )
-  foreach(swig_lib ${WRAPPER_SWIG_LIBRARY_FILES})
-    get_filename_component(basename ${swig_lib} NAME)
-    list(APPEND swig_libs --swig-include ${basename})
-    file(COPY "${swig_lib}"
-      DESTINATION "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}")
-    set(dest "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${basename}")
-  endforeach()
-
-  # the list of files generated for the module
-  set(i_files )
-  set(xml_files )
-  set(idx_files )
-  set(typedef_in_files )
-  set(typedef_files )
-  set(mdx_file "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${WRAPPER_LIBRARY_NAME}.mdx")
-  set(module_interface_file "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${WRAPPER_LIBRARY_NAME}.i")
-  set(module_interface_ext_file "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${WRAPPER_LIBRARY_NAME}_ext.i")
-
-  foreach(module ${SWIG_INTERFACE_MODULES})
-    # create the swig interface
-    list(APPEND i_files "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${module}.i")
-    list(APPEND xml_files "${WRAPPER_LIBRARY_OUTPUT_DIR}/${module}.xml")
-    list(APPEND idx_files "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${module}.idx")
-    list(APPEND typedef_in_files "${WRAPPER_LIBRARY_OUTPUT_DIR}/${module}SwigInterface.h.in")
-    list(APPEND typedef_files "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${module}SwigInterface.h")
-
-    if(${module_prefix}_WRAP_EXPLICIT)
-      list(APPEND opts --include "${WRAPPER_LIBRARY_NAME}Explicit.h")
-    endif()
-  endforeach()
-
-  # the master idx file (mdx file)
-  set(mdx_opts )
-  set(deps_imports )
-
-  list(APPEND mdx_opts --mdx "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}/${WRAPPER_LIBRARY_NAME}.mdx")
-
-  foreach(dep ${WRAPPER_LIBRARY_DEPENDS})
-    list(APPEND mdx_opts --mdx "${WRAP_ITK_TYPEDEFS_DIRECTORY}/${dep}.mdx")
-    list(APPEND deps_imports "%import ${dep}.i\n")
-  endforeach()
-  set(CONFIG_INDEX_FILE_CONTENT "${SWIG_INTERFACE_MDX_CONTENT}")
-  configure_file("${ITK_WRAP_SWIGINTERFACE_SOURCE_DIR}/Master.mdx.in" "${mdx_file}"
-     @ONLY)
-
-  set(CONFIG_MODULE_INTERFACE_CONTENT ) #"${deps_imports}${SWIG_INTERFACE_MODULE_CONTENT}")
-  configure_file("${ITK_WRAP_SWIGINTERFACE_SOURCE_DIR}/module.i.in" "${module_interface_file}"
-    @ONLY)
-
-  list(LENGTH i_files number_interface_files)
-  if(number_interface_files GREATER 0)
-      if(${module_prefix}_WRAP_PYTHON)
-        # NOTE:  snake_case_config_file is both an input and an output to this command.
-        #        the ${IGENERATOR} script appends to this file.
-        # NOTE: The Configuration files should be placed in the itk package directory.
-        set(ITK_WRAP_PYTHON_SNAKE_CONFIG_DIR
-          "${WRAPPER_LIBRARY_OUTPUT_DIR}/Generators/Python/itk/Configuration"
-        )
-        set(snake_case_config_file
-            "${ITK_WRAP_PYTHON_SNAKE_CONFIG_DIR}/${WRAPPER_LIBRARY_NAME}_snake_case.py")
-      else()
-        unset(snake_case_config_file)
-      endif()
-    add_custom_command(
-      OUTPUT ${i_files} ${typedef_files} ${idx_files} ${snake_case_config_file}
-      COMMAND ${Python3_EXECUTABLE} ${IGENERATOR}
-        ${mdx_opts}
-        ${swig_libs}
-        -w1 -w3 -w51 -w52 -w53 -w54
-        -A protected -A private
-        -p ${PYGCCXML_DIR}
-        -g ${CASTXML_EXECUTABLE}
-        --snake-case-file "${snake_case_config_file}"
-        --interface-output-dir "${WRAPPER_MASTER_INDEX_OUTPUT_DIR}"
-        --library-output-dir "${WRAPPER_LIBRARY_OUTPUT_DIR}"
-        --submodule-order "${WRAPPER_SUBMODULE_ORDER}"
-        DEPENDS ${ITK_WRAP_DOC_DOCSTRING_FILES} ${xml_files} ${IGENERATOR} ${typedef_in_files}
-        WORKING_DIRECTORY / # Arguments to WORKING_DIRECTORY may use generator expressions
-      VERBATIM
-    )
-  endif()
-
-  # the ${WRAPPER_LIBRARY_NAME}Swig target
-  if(NOT TARGET ${WRAPPER_LIBRARY_NAME}Swig)
-    add_custom_target(${WRAPPER_LIBRARY_NAME}Swig DEPENDS ${mdx_file} ${i_files} ${typedef_files} ${idx_files})
-    add_dependencies(${WRAPPER_LIBRARY_NAME}Swig ${WRAPPER_LIBRARY_NAME}CastXML)
-  endif()
-
-  if(NOT EXTERNAL_WRAP_ITK_PROJECT)
-    # don't depend on the targets from wrapitk in external projects
-    foreach(dep ${WRAPPER_LIBRARY_DEPENDS})
-      add_dependencies(${WRAPPER_LIBRARY_NAME}Swig ${dep}Swig)
-    endforeach()
-  endif()
-
-  set(${WRAPPER_LIBRARY_NAME}IdxFiles ${idx_files} CACHE INTERNAL "Internal ${WRAPPER_LIBRARY_NAME}Idx file list.")
-  set(${WRAPPER_LIBRARY_NAME}SwigFiles ${i_files} CACHE INTERNAL "Internal ${WRAPPER_LIBRARY_NAME}Swig file list.")
-
-endmacro()
-
-
-macro(itk_wrap_include_swig_interface include_file)
-  list(APPEND SWIG_INTERFACE_INCLUDES ${include_file})
-endmacro()
-
-
-macro(itk_wrap_submodule_swig_interface module)
-  # store the content of the SwigInterface.h files - a set of #includes for that module
-  set(SWIG_INTERFACE_INCLUDES )
-  # typedefs for swig
-  set(SWIG_INTERFACE_TYPEDEFS )
-endmacro()
-
-macro(itk_end_wrap_submodule_swig_interface module)
-  # variables used:
-  # WRAPPER_LIBRARY_NAME
-  # WRAPPER_LIBRARY_OUTPUT_DIR
-  # WRAPPER_LIBRARY_DEPENDS
-  # WRAPPER_MASTER_INDEX_OUTPUT_DIR
-  # MODULE_INCLUDES
-
-  set(SWIG_INTERFACE_INCLUDES_CONTENT )
-  if(SWIG_INTERFACE_INCLUDES)
-    list(REMOVE_DUPLICATES SWIG_INTERFACE_INCLUDES)
-    foreach(include_file ${SWIG_INTERFACE_INCLUDES})
-      if("${include_file}" MATCHES "<.*>")
-        set(SWIG_INTERFACE_INCLUDES_CONTENT "${SWIG_INTERFACE_INCLUDES_CONTENT}#include ${include_file}\n")
-      else()
-        set(SWIG_INTERFACE_INCLUDES_CONTENT "${SWIG_INTERFACE_INCLUDES_CONTENT}#include \"${include_file}\"\n")
-      endif()
-    endforeach()
-  endif()
-  # create the file which store all the includes
-  set(includes_file "${WRAPPER_LIBRARY_OUTPUT_DIR}/${module}SwigInterface.h.in")
-  configure_file("${ITK_WRAP_SWIGINTERFACE_SOURCE_DIR}/module.includes.in"
-     ${includes_file}
-     @ONLY)
-
-  # store the path of the idx file to store it in the mdx file
-  set(SWIG_INTERFACE_MDX_CONTENT "${SWIG_INTERFACE_MDX_CONTENT}${module}.idx\n")
-
-  set(SWIG_INTERFACE_MODULE_CONTENT "${SWIG_INTERFACE_MODULE_CONTENT}%import ${module}.i\n")
-
-  list(APPEND SWIG_INTERFACE_MODULES ${module})
-endmacro()
-
-
-macro(itk_wrap_one_type_swig_interface wrap_method wrap_class swig_name)
-  # Add one  typedef to WRAPPER_TYPEDEFS
-  # 'wrap_method' is the one of the valid WRAPPER_WRAP_METHODS from itk_wrap_class,
-  # 'wrap_class' is the fully-qualified C++ name of the class
-  # 'swig_name' is what the swigged class should be called
-  # The optional last argument is the template parameters that should go between
-  # the < > brackets in the C++ template definition.
-  # Only pass 3 parameters to wrap a non-templated class
-  #
-  # Global vars used: none
-  # Global vars modified: WRAPPER_TYPEDEFS
-
-  # get the base C++ class name (no namespaces) from wrap_class:
-  string(REGEX REPLACE "(.*::)" "" base_name "${wrap_class}")
-
-  set(wrap_pointer 0)
-  set(template_parameters "${ARGV3}")
-  if(template_parameters)
-    set(full_class_name "${wrap_class}< ${template_parameters} >")
-  else()
-    set(full_class_name "${wrap_class}")
-  endif()
-
-  # itk_wrap_one_type_all_generators("${wrap_method}" "${wrap_class}" "${swig_name}" "${ARGV3}")
-
-  # Add a typedef for the class. We have this funny looking full_name::base_name
-  # thing (it expands to, for example "typedef itk::Foo<baz, 2>::Foo") used
-  # for gccxml typedefs
-
-  if("${wrap_method}" MATCHES "2_SUPERCLASSES")
-    itk_wrap_simple_type_swig_interface("${full_class_name}::Superclass::Superclass" "${swig_name}_Superclass_Superclass")
-    itk_wrap_simple_type_swig_interface("${full_class_name}::Superclass::Superclass::Pointer" "${swig_name}_Superclass_Superclass_Pointer")
-  endif()
-
-  if("${wrap_method}" MATCHES "SUPERCLASS")
-    itk_wrap_simple_type_swig_interface("${full_class_name}::Superclass" "${swig_name}_Superclass")
-    itk_wrap_simple_type_swig_interface("${full_class_name}::Superclass::Pointer" "${swig_name}_Superclass_Pointer")
-  endif()
-
-  if("${wrap_method}" MATCHES "CONST_POINTER")
-    # add a const pointer typedef if we are so asked
-    itk_wrap_simple_type_swig_interface("${full_class_name}::ConstPointer" "${swig_name}_ConstPointer")
-  endif()
-
-  # the same output with or without FORCE_INSTANTIATE
-  itk_wrap_simple_type_swig_interface("${full_class_name}" "${swig_name}")
-
-  if("${wrap_method}" MATCHES "POINTER")
-    if("${wrap_method}" STREQUAL "AUTOPOINTER")
-      # add a pointer typedef if we are so asked
-      itk_wrap_simple_type_swig_interface("${full_class_name}::SelfAutoPointer" "${swig_name}_AutoPointer")
-    else()
-      # add a pointer typedef if we are so asked
-      itk_wrap_simple_type_swig_interface("${full_class_name}::Pointer" "${swig_name}_Pointer")
-    endif()
-  endif()
-
-endmacro()
-
+set(
+  WRAPPER_MASTER_INDEX_OUTPUT_DIR
+  "${ITK_DIR}/Wrapping/Typedefs"
+  CACHE INTERNAL
+  "typedefs dir"
+)
+set(
+  IGENERATOR
+  "${CMAKE_CURRENT_SOURCE_DIR}/igenerator.py"
+  CACHE INTERNAL
+  "igenerator.py path"
+  FORCE
+)
 
 macro(itk_wrap_simple_type_swig_interface wrap_class swig_name)
-  set(SWIG_INTERFACE_TYPEDEFS "${SWIG_INTERFACE_TYPEDEFS}typedef ${wrap_class} ${swig_name};\n")
+  string(APPEND SWIG_INTERFACE_TYPEDEFS "using ${swig_name} = ${wrap_class};\n")
 endmacro()
 
 include_directories("${WRAPPER_MASTER_INDEX_OUTPUT_DIR}")

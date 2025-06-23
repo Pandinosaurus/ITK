@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ struct TrueType
   using Type = TrueType;
 
   static constexpr ValueType Value = true;
-                             operator ValueType() { return Value; }
+  operator ValueType() { return Value; }
 };
 
 /** borrowed from `<type_traits>`.
@@ -56,7 +56,7 @@ struct FalseType
   using ValueType = bool;
   using Type = FalseType;
   static constexpr ValueType Value = false;
-                             operator ValueType() { return Value; }
+  operator ValueType() { return Value; }
 };
 
 /** MPL \c if control-statement.
@@ -99,7 +99,7 @@ struct OrC<false, false, false> : FalseType
 /** MPL \c OR operator on types.
  * \tparam TF1 First boolean type
  * \tparam TF2 Second boolean type
- * \tparam VF3 Third (optional) boolean type
+ * \tparam TF3 Third (optional) boolean type
  *
  * This \em overload automatically fetches \c TF1, \c TF2 and \c TF3 values.
  * However, beware, it won't work with standard C++ traits or boost traits.
@@ -234,9 +234,9 @@ struct IsSmartPointer<const SmartPointer<T>> : TrueType
  * Identifies if "static_cast<TToType>(TFromType)" can be done.
  */
 template <typename TFromType, typename TToType>
-using is_static_castable = std::integral_constant<bool,
-                                                  std::is_constructible<TToType, TFromType>::value ||
-                                                    std::is_convertible<TFromType, TToType>::value>;
+using is_static_castable =
+  std::integral_constant<bool,
+                         std::is_constructible_v<TToType, TFromType> || std::is_convertible_v<TFromType, TToType>>;
 } // namespace mpl
 
 

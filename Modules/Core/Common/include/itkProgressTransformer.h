@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ private:
   using CommandType = SimpleMemberCommand<ProgressTransformer>;
   CommandType::Pointer m_ProgressCommand;
 
-  unsigned long m_ProgressTag;
+  unsigned long m_ProgressTag{ 0 };
 };
 } // end namespace itk
 #endif // itkProgressTransformer_h

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,16 @@
 #ifndef itkImageToListSampleAdaptor_hxx
 #define itkImageToListSampleAdaptor_hxx
 
-#include "itkImageToListSampleAdaptor.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TImage>
 ImageToListSampleAdaptor<TImage>::ImageToListSampleAdaptor()
-{
-  m_Image = nullptr;
-}
+  : m_Image(nullptr)
+{}
 
 template <typename TImage>
-const typename ImageToListSampleAdaptor<TImage>::MeasurementVectorType &
-ImageToListSampleAdaptor<TImage>::GetMeasurementVector(InstanceIdentifier id) const
+auto
+ImageToListSampleAdaptor<TImage>::GetMeasurementVector(InstanceIdentifier id) const -> const MeasurementVectorType &
 {
   if (m_Image.IsNull())
   {
@@ -45,8 +40,8 @@ ImageToListSampleAdaptor<TImage>::GetMeasurementVector(InstanceIdentifier id) co
 
 /** returns the number of measurement vectors in this container*/
 template <typename TImage>
-typename ImageToListSampleAdaptor<TImage>::InstanceIdentifier
-ImageToListSampleAdaptor<TImage>::Size() const
+auto
+ImageToListSampleAdaptor<TImage>::Size() const -> InstanceIdentifier
 {
   if (m_Image.IsNull())
   {
@@ -57,8 +52,8 @@ ImageToListSampleAdaptor<TImage>::Size() const
 }
 
 template <typename TImage>
-inline typename ImageToListSampleAdaptor<TImage>::AbsoluteFrequencyType ImageToListSampleAdaptor<TImage>::GetFrequency(
-  InstanceIdentifier) const
+inline auto
+ImageToListSampleAdaptor<TImage>::GetFrequency(InstanceIdentifier) const -> AbsoluteFrequencyType
 {
   if (m_Image.IsNull())
   {
@@ -115,8 +110,8 @@ ImageToListSampleAdaptor<TImage>::GetImage() const
 }
 
 template <typename TImage>
-typename ImageToListSampleAdaptor<TImage>::TotalAbsoluteFrequencyType
-ImageToListSampleAdaptor<TImage>::GetTotalFrequency() const
+auto
+ImageToListSampleAdaptor<TImage>::GetTotalFrequency() const -> TotalAbsoluteFrequencyType
 {
   if (m_Image.IsNull())
   {
@@ -125,7 +120,6 @@ ImageToListSampleAdaptor<TImage>::GetTotalFrequency() const
 
   return this->Size();
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

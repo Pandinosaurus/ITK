@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 
 
 // This tests the supervised image classifier methods. The test,
-// however, only exercises a pathalogical case, where the covariances
+// however, only exercises a pathological case, where the covariances
 // of all the classes are singular.  In this case, the methods degrade
 // to classifying based on euclidean distance to the mean.
 
@@ -67,13 +67,12 @@ itkSupervisedImageClassifierTest(int, char *[])
   //------------------------------------------------------
   using VecImageType = itk::Image<itk::Vector<double, NUMBANDS>, NDIMENSION>;
 
-  VecImageType::Pointer vecImage = VecImageType::New();
+  auto vecImage = VecImageType::New();
 
-  VecImageType::SizeType vecImgSize = { { IMGWIDTH, IMGHEIGHT, NFRAMES } };
+  constexpr VecImageType::SizeType vecImgSize = { { IMGWIDTH, IMGHEIGHT, NFRAMES } };
 
-  VecImageType::IndexType index;
-  index.Fill(0);
-  VecImageType::RegionType region;
+  constexpr VecImageType::IndexType index{};
+  VecImageType::RegionType          region;
 
   region.SetSize(vecImgSize);
   region.SetIndex(index);
@@ -99,8 +98,7 @@ itkSupervisedImageClassifierTest(int, char *[])
 
   // Slice 1
   // Vector no. 1
-  VecImagePixelType vec;
-  vec.Fill(21);
+  auto vec = itk::MakeFilled<VecImagePixelType>(21);
   outIt.Set(vec);
   ++outIt;
   // Vector no. 2
@@ -173,12 +171,11 @@ itkSupervisedImageClassifierTest(int, char *[])
   // Generate the training data
   //---------------------------------------------------------------
   using ClassImageType = itk::Image<unsigned short, NDIMENSION>;
-  ClassImageType::Pointer classImage = ClassImageType::New();
+  auto classImage = ClassImageType::New();
 
-  ClassImageType::SizeType classImgSize = { { IMGWIDTH, IMGHEIGHT, NFRAMES } };
+  constexpr ClassImageType::SizeType classImgSize = { { IMGWIDTH, IMGHEIGHT, NFRAMES } };
 
-  ClassImageType::IndexType classindex;
-  classindex.Fill(0);
+  constexpr ClassImageType::IndexType classindex{};
 
   ClassImageType::RegionType classregion;
 
@@ -196,13 +193,12 @@ itkSupervisedImageClassifierTest(int, char *[])
 
   ClassImageIterator classoutIt(classImage, classImage->GetBufferedRegion());
 
-  ClassImagePixelType outputPixel;
   //--------------------------------------------------------------------------
   // Manually create and store each vector
   //--------------------------------------------------------------------------
   // Slice 1
   // Pixel no. 1
-  outputPixel = 2;
+  ClassImagePixelType outputPixel = 2;
   classoutIt.Set(outputPixel);
   ++classoutIt;
 
@@ -299,7 +295,7 @@ itkSupervisedImageClassifierTest(int, char *[])
   using ImageGaussianModelEstimatorType =
     itk::ImageGaussianModelEstimator<VecImageType, MembershipFunctionType, ClassImageType>;
 
-  ImageGaussianModelEstimatorType::Pointer applyEstimateModel = ImageGaussianModelEstimatorType::New();
+  auto applyEstimateModel = ImageGaussianModelEstimatorType::New();
 
   applyEstimateModel->SetNumberOfModels(NUM_CLASSES);
   applyEstimateModel->SetInputImage(vecImage);
@@ -317,7 +313,7 @@ itkSupervisedImageClassifierTest(int, char *[])
   using DecisionRuleBasePointer = itk::Statistics::DecisionRule::Pointer;
 
   using DecisionRuleType = itk::Statistics::MinimumDecisionRule;
-  DecisionRuleType::Pointer myDecisionRule = DecisionRuleType::New();
+  auto myDecisionRule = DecisionRuleType::New();
 
   //----------------------------------------------------------------------
   // Test code for the supervised classifier algorithm
@@ -329,13 +325,12 @@ itkSupervisedImageClassifierTest(int, char *[])
 
   using SupervisedClassifierType = itk::ImageClassifierBase<VecImageType, ClassImageType>;
 
-  SupervisedClassifierType::Pointer applyClassifier = SupervisedClassifierType::New();
+  auto applyClassifier = SupervisedClassifierType::New();
 
   using ProgressType = SupervisedImageClassifierTest::ShowProgressObject;
 
-  ProgressType                                    progressWatch(applyClassifier);
-  itk::SimpleMemberCommand<ProgressType>::Pointer command;
-  command = itk::SimpleMemberCommand<ProgressType>::New();
+  ProgressType                                          progressWatch(applyClassifier);
+  const itk::SimpleMemberCommand<ProgressType>::Pointer command = itk::SimpleMemberCommand<ProgressType>::New();
   command->SetCallbackFunction(&progressWatch, &ProgressType::ShowProgress);
   applyClassifier->AddObserver(itk::ProgressEvent(), command);
 
@@ -344,10 +339,10 @@ itkSupervisedImageClassifierTest(int, char *[])
   applyClassifier->SetInputImage(vecImage);
 
   // Set the decision rule
-  applyClassifier->SetDecisionRule((DecisionRuleBasePointer)myDecisionRule);
+  applyClassifier->SetDecisionRule(DecisionRuleBasePointer(myDecisionRule));
 
   // Add the membership functions
-  for (unsigned int i = 0; i < NUM_CLASSES; i++)
+  for (unsigned int i = 0; i < NUM_CLASSES; ++i)
   {
     applyClassifier->AddMembershipFunction(membershipFunctions[i]);
   }
@@ -356,7 +351,7 @@ itkSupervisedImageClassifierTest(int, char *[])
   applyClassifier->Update();
 
   // Get the classified image
-  ClassImageType::Pointer outClassImage = applyClassifier->GetClassifiedImage();
+  const ClassImageType::Pointer outClassImage = applyClassifier->GetClassifiedImage();
 
   applyClassifier->Print(std::cout);
 
@@ -367,7 +362,7 @@ itkSupervisedImageClassifierTest(int, char *[])
   while (!labeloutIt.IsAtEnd())
   {
     // Print the classified index
-    auto classIndex = (int)labeloutIt.Get();
+    const int classIndex{ labeloutIt.Get() };
     std::cout << " Pixel No " << i << " Value " << classIndex << std::endl;
     ++i;
     ++labeloutIt;
@@ -380,7 +375,7 @@ itkSupervisedImageClassifierTest(int, char *[])
   // Loop through the data set
   while (!labeloutIt.IsAtEnd())
   {
-    auto classIndex = (int)labeloutIt.Get();
+    int classIndex{ labeloutIt.Get() };
     if (classIndex != 2)
     {
       passTest = false;
@@ -388,7 +383,7 @@ itkSupervisedImageClassifierTest(int, char *[])
     }
     ++labeloutIt;
 
-    classIndex = (int)labeloutIt.Get();
+    classIndex = static_cast<int>(labeloutIt.Get());
     if (classIndex != 2)
     {
       passTest = false;
@@ -396,7 +391,7 @@ itkSupervisedImageClassifierTest(int, char *[])
     }
     ++labeloutIt;
 
-    classIndex = (int)labeloutIt.Get();
+    classIndex = static_cast<int>(labeloutIt.Get());
     if (classIndex != 1)
     {
       passTest = false;
@@ -404,7 +399,7 @@ itkSupervisedImageClassifierTest(int, char *[])
     }
     ++labeloutIt;
 
-    classIndex = (int)labeloutIt.Get();
+    classIndex = static_cast<int>(labeloutIt.Get());
     if (classIndex != 1)
     {
       passTest = false;
@@ -414,7 +409,7 @@ itkSupervisedImageClassifierTest(int, char *[])
 
   } // end while
 
-  if (passTest == true)
+  if (passTest)
   {
     std::cout << "Supervised Classifier Test Passed" << std::endl;
   }

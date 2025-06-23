@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,10 @@
 #include "itkImageToImageFilter.h"
 #include "itkSimpleDataObjectDecorator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ImageClassifierFilter
+ * \class ImageClassifierFilter
  *
  *  \brief Image classification class
  *
@@ -57,10 +55,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(ImageClassifierFilter, ImageToImagefilter);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(ImageClassifierFilter);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Image pixel value type alias. */
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
@@ -96,7 +95,7 @@ public:
   using MembershipFunctionVectorObjectType = SimpleDataObjectDecorator<MembershipFunctionVectorType>;
   using MembershipFunctionVectorObjectPointer = typename MembershipFunctionVectorObjectType::Pointer;
 
-  /** type alias for membership functions weight proprtion */
+  /** type alias for membership functions weight proportion */
   using MembershipFunctionsWeightsArrayType = Array<double>;
 
   using MembershipFunctionsWeightsArrayObjectType = SimpleDataObjectDecorator<MembershipFunctionsWeightsArrayType>;
@@ -122,13 +121,15 @@ public:
   /** Number of classes. This must match the number of labels and membership
    * functions provided by the user, otherwise an exception will be thrown at
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfClasses, unsigned int);
   itkGetConstMacro(NumberOfClasses, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the decision rule. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(DecisionRule, DecisionRuleType);
   itkGetConstObjectMacro(DecisionRule, DecisionRuleType);
-
+  /** @ITKEndGrouping */
   /** Sets input vector of class labels. The length of this vector must match
    * the number of classes, otherwise an exception will be thrown at run time.
    * */
@@ -156,13 +157,12 @@ protected:
   GenerateData() override;
 
 private:
-  unsigned int m_NumberOfClasses;
+  unsigned int m_NumberOfClasses{};
 
   /** Decision Rule */
-  DecisionRulePointer m_DecisionRule;
+  DecisionRulePointer m_DecisionRule{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageClassifierFilter.hxx"

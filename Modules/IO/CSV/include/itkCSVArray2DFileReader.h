@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class CSVArray2DFileReader
+ * \class CSVArray2DFileReader
  * \brief Parses csv files and stores the data in a itkCSVArray2DDataObject.
  *
  * CSVArray2DFileReader is used for reading csv files. This reader should
@@ -61,7 +61,7 @@ namespace itk
  * from an input file:
  *
  * using ReaderType = itk::CSVArray2DFileReader<double>;
- * ReaderType::Pointer reader = ReaderType::New();
+ * auto reader = ReaderType::New();
  *
  * std::string filename = "NameOfFile.csv";
  * reader->SetFileName( filename );
@@ -90,8 +90,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CSVArray2DFileReader, CSVFileReaderBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CSVArray2DFileReader);
 
   /** DataFrame Object types */
   using Array2DDataObjectType = typename itk::CSVArray2DDataObject<TData>;
@@ -130,7 +130,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  Array2DDataObjectPointer m_Array2DDataObject;
+  Array2DDataObjectPointer m_Array2DDataObject{};
 };
 
 } // end namespace itk

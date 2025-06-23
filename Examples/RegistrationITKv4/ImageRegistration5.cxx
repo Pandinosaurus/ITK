@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -156,9 +156,9 @@ main(int argc, char * argv[])
   using RegistrationType = itk::
     ImageRegistrationMethodv4<FixedImageType, MovingImageType, TransformType>;
 
-  MetricType::Pointer       metric = MetricType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto optimizer = OptimizerType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetMetric(metric);
   registration->SetOptimizer(optimizer);
@@ -172,7 +172,7 @@ main(int argc, char * argv[])
   //  run a multistage registration process, from which the output of each
   //  stage can be used to initialize the next registration stage.
   //
-  //  To get a better underestanding of the registration process in
+  //  To get a better understanding of the registration process in
   //  such situations, consider an example of 3 stages registration process
   //  that is started using an initial moving transform ($\Gamma_{mi}$).
   //  Multiple stages are handled by linking multiple instantiations of
@@ -193,7 +193,7 @@ main(int argc, char * argv[])
   //
   //  Consider that, as explained in section
   //  \ref{sec:FeaturesOfTheRegistrationFramework}, the above transform is a
-  //  mapping from the vitual domain (i.e. fixed image space, when no fixed
+  //  mapping from the virtual domain (i.e. fixed image space, when no fixed
   //  initial transform) to the moving image space.
   //
   //  Then, the result transform of the first stage will be used as the
@@ -245,17 +245,15 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer initialTransform = TransformType::New();
+  auto initialTransform = TransformType::New();
   // Software Guide : EndCodeSnippet
 
 
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -295,7 +293,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   const SpacingType fixedSpacing = fixedImage->GetSpacing();
   const OriginType  fixedOrigin = fixedImage->GetOrigin();
@@ -316,7 +314,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
 
   const SpacingType movingSpacing = movingImage->GetSpacing();
   const OriginType  movingOrigin = movingImage->GetOrigin();
@@ -398,7 +396,7 @@ main(int argc, char * argv[])
   using OptimizerScalesType = OptimizerType::ScalesType;
   OptimizerScalesType optimizerScales(
     initialTransform->GetNumberOfParameters());
-  const double translationScale = 1.0 / 1000.0;
+  constexpr double translationScale = 1.0 / 1000.0;
 
   optimizerScales[0] = 1.0;
   optimizerScales[1] = translationScale;
@@ -443,7 +441,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   // One level registration process without shrinking and smoothing.
@@ -597,7 +595,7 @@ main(int argc, char * argv[])
   // TransformType::ConstPointer finalTransform =
   // registration->GetTransform();
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(registration->GetTransform());
   resample->SetInput(movingImageReader->GetOutput());
@@ -614,8 +612,8 @@ main(int argc, char * argv[])
     itk::CastImageFilter<FixedImageType, OutputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
   writer->SetFileName(argv[3]);
 
@@ -639,12 +637,12 @@ main(int argc, char * argv[])
   using DifferenceFilterType = itk::
     SubtractImageFilter<FixedImageType, FixedImageType, DifferenceImageType>;
 
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
+  auto difference = DifferenceFilterType::New();
 
   using RescalerType =
     itk::RescaleIntensityImageFilter<DifferenceImageType, OutputImageType>;
 
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
+  auto intensityRescaler = RescalerType::New();
 
   intensityRescaler->SetOutputMinimum(0);
   intensityRescaler->SetOutputMaximum(255);
@@ -656,7 +654,7 @@ main(int argc, char * argv[])
 
   intensityRescaler->SetInput(difference->GetOutput());
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
 
   writer2->SetInput(intensityRescaler->GetOutput());
 
@@ -673,7 +671,7 @@ main(int argc, char * argv[])
 
     // Compute the difference image between the
     // fixed and resampled moving image after registration.
-    TransformType::Pointer identityTransform = TransformType::New();
+    auto identityTransform = TransformType::New();
     identityTransform->SetIdentity();
     resample->SetTransform(identityTransform);
     if (argc > 5)

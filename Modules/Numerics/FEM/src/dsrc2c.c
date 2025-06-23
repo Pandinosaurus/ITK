@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -5955,7 +5955,7 @@ perror_(integer *    n,
   /*          W      WORKSPACE VECTOR */
   /*          DIGIT1 OUTPUT: MEASURE OF ACCURACY OF STOPPING TEST (= DIGTT1 */
   /*          DIGIT2 OUTPUT: MEASURE OF ACCURACY OF SOLUTION (= DIGTT2) */
-  /*          IDGTS   PARAMETER CONTROLING LEVEL OF OUTPUT (= IDGTTS) */
+  /*          IDGTS   PARAMETER CONTROLLING LEVEL OF OUTPUT (= IDGTTS) */
   /*                    IF IDGTS < 1 OR IDGTS > 4, THEN NO OUTPUT. */
   /*                            = 1, THEN NUMBER OF DIGITS IS PRINTED, PRO- */
   /*                                 VIDED LEVEL .GE. 1 */

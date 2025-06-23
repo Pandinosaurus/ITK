@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkImageMomentsCalculator.h"
 
 #include "itkImageMaskSpatialObject.h"
+#include "itkTestingMacros.h"
 
 using PixelType = unsigned short;
 using VectorType = itk::Vector<double, 3>;
@@ -33,7 +34,9 @@ itkImageMomentsTest(int argc, char * argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Usage: " << argv[0] << " <mask|nomask>" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " <mask|nomask>" << std::endl;
     return EXIT_FAILURE;
   }
   const std::string maskCondition{ argv[1] };
@@ -50,20 +53,20 @@ itkImageMomentsTest(int argc, char * argv[])
   constexpr double maxerr = 5.0e-15;
 
   /* Define the image size and physical coordinates */
-  itk::Size<3> size = { { 20, 40, 80 } };
-  double       origin[3] = { 0.5, 0.5, 0.5 };
-  double       spacing[3] = { 0.1, 0.05, 0.025 };
+  constexpr itk::Size<3> size = { { 20, 40, 80 } };
+  constexpr double       origin[3] = { 0.5, 0.5, 0.5 };
+  constexpr double       spacing[3] = { 0.1, 0.05, 0.025 };
 
   /* Define positions of the test masses in index coordinates */
-  unsigned short                mass = 1; // Test mass
+  constexpr unsigned short      mass = 1; // Test mass
   itk::Index<3>::IndexValueType point[8][3] = {
     { 10 + 8, 20 + 12, 40 + 0 }, { 10 - 8, 20 - 12, 40 - 0 }, { 10 + 3, 20 - 8, 40 + 0 },
     { 10 - 3, 20 + 8, 40 - 0 },  { 10 + 0, 20 + 0, 40 + 10 }, { 10 - 0, 20 - 0, 40 - 10 },
   };
 
   /* Define the expected (true) results for comparison */
-  double ttm = 6.0; // Total mass
-  double pad[3][3] = {
+  constexpr double ttm = 6.0; // Total mass
+  double           pad[3][3] = {
     // Principal axes
     { 0.0, 0.0, 1.0 },
     { 0.6, -0.8, 0.0 },
@@ -81,43 +84,41 @@ itkImageMomentsTest(int argc, char * argv[])
   tpm[2] = 2.0; // Principal moments
 
   MatrixType tpa;
-  tpa.GetVnlMatrix().set((double *)pad);
+  tpa.GetVnlMatrix().set(reinterpret_cast<double *>(pad));
 
   /* Allocate a simple test image */
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::RegionType region;
   region.SetSize(size);
-  image->SetLargestPossibleRegion(region);
-  image->SetBufferedRegion(region);
-  image->SetRequestedRegion(region);
+  image->SetRegions(region);
 
   /* Set origin and spacing of physical coordinates */
   image->SetOrigin(origin);
   image->SetSpacing(spacing);
   image->Allocate();
 
-  image->FillBuffer(itk::NumericTraits<PixelType>::ZeroValue());
+  image->FillBuffer(PixelType{});
 
   /* Set a few mass points within the image */
   /* FIXME: The method used here to set the points is klutzy,
      but appears to be the only method currently supported. */
   itk::Index<3> index; /* Index over pixels */
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 6; ++i)
   {
     index.SetIndex(point[i]);
     image->SetPixel(index, mass);
   }
 
   /* Compute the moments */
-  CalculatorType::Pointer moments = CalculatorType::New();
+  auto moments = CalculatorType::New();
   moments->SetImage(image);
   if (maskCondition == std::string("mask"))
   {
     // Test the mask spatial object for masked ImageMomentsTest
     // Make a mask that covers the entire image space
     using MaskImageType = itk::Image<unsigned char, 3>;
-    MaskImageType::Pointer maskimg = MaskImageType::New();
+    auto maskimg = MaskImageType::New();
     maskimg->CopyInformation(image);
     maskimg->SetRegions(image->GetLargestPossibleRegion());
     maskimg->Allocate();
@@ -126,15 +127,15 @@ itkImageMomentsTest(int argc, char * argv[])
 
     // convert mask image to mask
     using LFFImageMaskSpatialObjectType = typename itk::ImageMaskSpatialObject<MaskImageType::ImageDimension>;
-    typename LFFImageMaskSpatialObjectType::Pointer mask = LFFImageMaskSpatialObjectType::New();
+    auto mask = LFFImageMaskSpatialObjectType::New();
     mask->SetImage(maskimg.GetPointer());
     mask->Update();
     // Purposefully use the base class type
-    typename itk::SpatialObject<MaskImageType::ImageDimension>::Pointer test =
+    const typename itk::SpatialObject<MaskImageType::ImageDimension>::Pointer test =
       dynamic_cast<itk::SpatialObject<MaskImageType::ImageDimension> *>(mask.GetPointer());
     if (test.IsNull())
     {
-      itkGenericExceptionMacro(<< "Failed conversion to SpatialObject base class.");
+      itkGenericExceptionMacro("Failed conversion to SpatialObject base class.");
     }
     moments->SetSpatialObjectMask(test.GetPointer());
   }
@@ -143,10 +144,10 @@ itkImageMomentsTest(int argc, char * argv[])
   /* Printout info */
   moments->Print(std::cout);
 
-  double     ctm = moments->GetTotalMass();
-  VectorType ccg = moments->GetCenterOfGravity();
-  VectorType cpm = moments->GetPrincipalMoments();
-  MatrixType cpa = moments->GetPrincipalAxes();
+  const double ctm = moments->GetTotalMass();
+  VectorType   ccg = moments->GetCenterOfGravity();
+  VectorType   cpm = moments->GetPrincipalMoments();
+  MatrixType   cpa = moments->GetPrincipalAxes();
 
   /* Flip the principal axes if necessary.
 
@@ -179,47 +180,47 @@ itkImageMomentsTest(int argc, char * argv[])
 
   /* Report the center of gravity and central moments */
   std::cout << "\nCenter of gravity =\n";
-  std::cout << "   " << ccg << "\n";
+  std::cout << "   " << ccg << '\n';
   std::cout << "True center of gravity =\n";
-  std::cout << "   " << tcg << "\n";
+  std::cout << "   " << tcg << '\n';
   std::cout << "\nSecond central moments =\n";
-  std::cout << "   " << moments->GetCentralMoments() << "\n";
+  std::cout << "   " << moments->GetCentralMoments() << '\n';
 
   /* Report principal moments and axes */
   std::cout << "\nPrincipal moments = \n";
-  std::cout << "   " << cpm << "\n";
+  std::cout << "   " << cpm << '\n';
   std::cout << "True principal moments = \n";
-  std::cout << "   " << tpm << "\n";
+  std::cout << "   " << tpm << '\n';
   std::cout << "\nPrincipal axes = \n";
-  std::cout << "   " << cpa << "\n";
+  std::cout << "   " << cpa << '\n';
   std::cout << "True principal axes = \n";
-  std::cout << "   " << tpa << "\n";
+  std::cout << "   " << tpa << '\n';
 
   /* Compute transforms between principal and physical axes */
   /* FIXME: Automatically check correctness of these results? */
-  AffineTransformType::Pointer pa2p = moments->GetPrincipalAxesToPhysicalAxesTransform();
+  const AffineTransformType::Pointer pa2p = moments->GetPrincipalAxesToPhysicalAxesTransform();
   std::cout << "\nPrincipal axes to physical axes transform:\n";
   std::cout << pa2p->GetMatrix() << std::endl;
-  AffineTransformType::Pointer p2pa = moments->GetPhysicalAxesToPrincipalAxesTransform();
+  const AffineTransformType::Pointer p2pa = moments->GetPhysicalAxesToPrincipalAxesTransform();
   std::cout << "\nPhysical axes to principal axes transform:\n";
   std::cout << p2pa->GetMatrix() << std::endl;
 
   /* Do some error checking on the transforms */
-  double dist = pa2p->Metric(pa2p);
+  const double dist = pa2p->Metric(pa2p);
   std::cout << "Distance from self to self = " << dist << std::endl;
-  AffineTransformType::Pointer p2pa2p = AffineTransformType::New();
+  auto p2pa2p = AffineTransformType::New();
   p2pa2p->Compose(p2pa);
   p2pa2p->Compose(pa2p);
-  double trerr = p2pa2p->Metric();
+  const double trerr = p2pa2p->Metric();
   std::cout << "Distance from composition to identity = ";
   std::cout << trerr << std::endl;
 
 
   /* Compute and report max abs error in computed */
-  double tmerr = itk::Math::abs(ttm - ctm); // Error in total mass
-  double cgerr = 0.0;                       // Error in center of gravity
-  double pmerr = 0.0;                       // Error in moments
-  double paerr = 0.0;                       // Error in axes
+  const double tmerr = itk::Math::abs(ttm - ctm); // Error in total mass
+  double       cgerr = 0.0;                       // Error in center of gravity
+  double       pmerr = 0.0;                       // Error in moments
+  double       paerr = 0.0;                       // Error in axes
 
   for (int i = 0; i < 3; ++i)
   {
@@ -248,27 +249,15 @@ itkImageMomentsTest(int argc, char * argv[])
   std::cout << "   Transformations   = " << trerr << std::endl;
 
   /* Return error if differences are too large */
-  int stat = tmerr > maxerr || cgerr > maxerr || pmerr > maxerr || paerr > maxerr || trerr > maxerr;
-
+  const int stat = tmerr > maxerr || cgerr > maxerr || pmerr > maxerr || paerr > maxerr || trerr > maxerr;
   std::cout << std::endl;
-  bool pass;
   if (stat)
   {
     std::cout << "Errors are larger than defined maximum value." << std::endl;
     std::cout << "Test FAILED !" << std::endl;
-    pass = false;
-  }
-  else
-  {
-    std::cout << "Errors are acceptable" << std::endl;
-    std::cout << "Test PASSED !" << std::endl;
-    pass = true;
-  }
-
-  if (!pass)
-  {
     return EXIT_FAILURE;
   }
-
+  std::cout << "Errors are acceptable" << std::endl;
+  std::cout << "Test PASSED !" << std::endl;
   return EXIT_SUCCESS;
 }

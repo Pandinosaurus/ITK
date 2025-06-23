@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,7 +48,7 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   using PointType = SphereFunctionType::PointType;
   using ParametersType = SphereFunctionType::ParametersType;
 
-  SphereFunctionType::Pointer sphere = SphereFunctionType::New();
+  auto sphere = SphereFunctionType::New();
 
   // We must initialize the sphere before use
   sphere->Initialize();
@@ -62,7 +62,7 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   std::cout << "SphereParameters: " << sphere->GetParameters() << std::endl;
 
   // Create a binary threshold function
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(function, BinaryThresholdSpatialFunction, SpatialFunction);
 
@@ -71,8 +71,8 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   function->SetFunction(sphere);
 
   // Set the thresholds
-  double lowerThreshold = -3.0;
-  double upperThreshold = 4.0;
+  constexpr double lowerThreshold = -3.0;
+  constexpr double upperThreshold = 4.0;
   function->SetLowerThreshold(lowerThreshold);
   ITK_TEST_SET_GET_VALUE(lowerThreshold, function->GetLowerThreshold());
   function->SetUpperThreshold(upperThreshold);
@@ -83,14 +83,14 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   for (double p = 0.0; p < 10.0; p += 1.0)
   {
     point.Fill(p);
-    FunctionType::OutputType output = function->Evaluate(point);
+    const FunctionType::OutputType output = function->Evaluate(point);
     std::cout << "f(" << point << ") = " << output;
     std::cerr << " [" << function->GetFunction()->Evaluate(point);
     std::cout << "] " << std::endl;
 
     // Check results
-    CoordRep val = p * std::sqrt(2.0) - parameters[0];
-    bool     expected = (lowerThreshold <= val && upperThreshold >= val);
+    const CoordRep val = p * std::sqrt(2.0) - parameters[0];
+    const bool     expected = (lowerThreshold <= val && upperThreshold >= val);
     if (output != expected)
     {
       std::cerr << "Test failed!" << std::endl;
@@ -109,9 +109,8 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
 
   // Set up a dummy image
   using ImageType = itk::Image<unsigned char, Dimension>;
-  ImageType::Pointer  image = ImageType::New();
-  ImageType::SizeType size;
-  size.Fill(10);
+  auto image = ImageType::New();
+  auto size = ImageType::SizeType::Filled(10);
   image->SetRegions(size);
   image->Allocate();
   image->FillBuffer(255);
@@ -132,7 +131,7 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   std::cout << "Iterator seeds";
   for (auto seed : iterator.GetSeeds())
   {
-    std::cout << " " << seed;
+    std::cout << ' ' << seed;
   }
   std::cout << std::endl;
 
@@ -142,7 +141,7 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
   {
     index = iterator.GetIndex();
     image->TransformIndexToPhysicalPoint(index, point);
-    double value = sphere->Evaluate(point);
+    const double value = sphere->Evaluate(point);
 
     // Check if value is within range
     if (value < lowerThreshold || value > upperThreshold)
@@ -150,7 +149,7 @@ itkBinaryThresholdSpatialFunctionTest(int, char *[])
       std::cerr << "Test failed!" << std::endl;
       std::cerr << "Error at index: " << index << std::endl;
       std::cout << "Point value: " << value << " is not within thresholds [" << lowerThreshold << ", " << upperThreshold
-                << "]" << std::endl;
+                << ']' << std::endl;
       return EXIT_FAILURE;
     }
 

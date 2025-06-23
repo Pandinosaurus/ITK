@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,8 @@
 //  Software Guide : BeginLatex
 //
 //  In order to initialize deformable registration algorithm it is often
-//  convenient to generate a displacemnt field from a set of feature
-//  correspondances provided by the user. The following example illustrates
+//  convenient to generate a displacement field from a set of feature
+//  correspondences provided by the user. The following example illustrates
 //  how to use the \doxygen{itkLandmarkDisplacementFieldSource} class in order
 //  to generate a displacement field from the specification of two sets of
 //  landmarks. Landmarks from one set are associated one-to-one to the
@@ -72,7 +72,7 @@ main(int argc, char * argv[])
   using FixedReaderType = itk::ImageFileReader<FixedImageType>;
 
 
-  FixedReaderType::Pointer fixedReader = FixedReaderType::New();
+  auto fixedReader = FixedReaderType::New();
 
   fixedReader->SetFileName(argv[2]);
 
@@ -88,12 +88,12 @@ main(int argc, char * argv[])
   }
 
 
-  FixedImageType::ConstPointer fixedImage = fixedReader->GetOutput();
+  const FixedImageType::ConstPointer fixedImage = fixedReader->GetOutput();
 
   using FilterType =
     itk::LandmarkDisplacementFieldSource<DisplacementFieldType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetOutputSpacing(fixedImage->GetSpacing());
   filter->SetOutputOrigin(fixedImage->GetOrigin());
@@ -105,10 +105,8 @@ main(int argc, char * argv[])
   using LandmarkContainerType = FilterType::LandmarkContainer;
   using LandmarkPointType = FilterType::LandmarkPointType;
 
-  LandmarkContainerType::Pointer sourceLandmarks =
-    LandmarkContainerType::New();
-  LandmarkContainerType::Pointer targetLandmarks =
-    LandmarkContainerType::New();
+  auto          sourceLandmarks = LandmarkContainerType::New();
+  auto          targetLandmarks = LandmarkContainerType::New();
   std::ifstream pointsFile;
   pointsFile.open(argv[1]);
 
@@ -145,7 +143,7 @@ main(int argc, char * argv[])
   // Write an image for regression testing
   using WriterType = itk::ImageFileWriter<DisplacementFieldType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[3]);
   filter->Print(std::cout);

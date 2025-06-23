@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUPDEDeformableRegistrationFilter_hxx
 #define itkGPUPDEDeformableRegistrationFilter_hxx
 
-#include "itkGPUPDEDeformableRegistrationFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageLinearIteratorWithIndex.h"
@@ -33,9 +32,7 @@
 
 namespace itk
 {
-/**
- * Default constructor
- */
+
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
   GPUPDEDeformableRegistrationFilter()
@@ -47,7 +44,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 
   m_TempField = DisplacementFieldType::New();
 
-  /** Build GPU Program */
+  // Build GPU program
 
   std::ostringstream defines;
 
@@ -56,7 +53,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
     itkExceptionMacro("GPUDenseFiniteDifferenceImageFilter supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << TDisplacementField::ImageDimension << "\n";
+  defines << "#define DIM_" << TDisplacementField::ImageDimension << '\n';
 
   // PixelType is a Vector
   defines << "#define OUTPIXELTYPE ";
@@ -76,9 +73,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 #endif
 }
 
-/*
- * Standard PrintSelf method.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::PrintSelf(
@@ -86,11 +80,60 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   Indent         indent) const
 {
   GPUSuperclass::PrintSelf(os, indent);
+
+  itkPrintSelfObjectMacro(TempField);
+
+  os << indent << "SmoothingKernelSizes: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_SmoothingKernelSizes[d] << std::endl;
+  }
+
+  os << indent << "SmoothingKernels: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_SmoothingKernels[d] << std::endl;
+  }
+
+  os << indent << "GPUSmoothingKernels: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_GPUSmoothingKernels[d] << std::endl;
+  }
+
+  os << indent << "UpdateFieldSmoothingKernelSizes: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_UpdateFieldSmoothingKernelSizes[d] << std::endl;
+  }
+
+  os << indent << "UpdateFieldSmoothingKernels: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_UpdateFieldSmoothingKernels[d] << std::endl;
+  }
+
+  os << indent << "UpdateFieldGPUSmoothingKernels: ";
+  for (unsigned d = 0; d < ImageDimension; ++d)
+  {
+    os << indent.GetNextIndent() << m_UpdateFieldGPUSmoothingKernels[d] << std::endl;
+  }
+
+  os << indent << "ImageSizes: ";
+  if (m_ImageSizes != nullptr)
+  {
+    os << *m_ImageSizes << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  itkPrintSelfObjectMacro(GPUImageSizes);
+
+  os << indent << "SmoothDisplacementFieldGPUKernelHandle: " << m_SmoothDisplacementFieldGPUKernelHandle << std::endl;
 }
 
-/*
- * Set the function state values before each iteration
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -101,7 +144,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 
   if (!movingPtr || !fixedPtr)
   {
-    itkExceptionMacro(<< "Fixed and/or moving image not set");
+    itkExceptionMacro("Fixed and/or moving image not set");
   }
 
   // update variables in the equation object
@@ -109,7 +152,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 
   if (!f)
   {
-    itkExceptionMacro(<< "FiniteDifferenceFunction not of type PDEDeformableRegistrationFilterFunction");
+    itkExceptionMacro("FiniteDifferenceFunction not of type PDEDeformableRegistrationFilterFunction");
   }
 
   f->SetFixedImage(fixedPtr);
@@ -118,12 +161,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->GPUSuperclass::InitializeIteration();
 }
 
-/*
- * Override the default implementation for the case when the
- * initial deformation is not set.
- * If the initial deformation is not set, the output is
- * fill with zero vectors.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -138,7 +175,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   else
   {
     typename GPUSuperclass::PixelType zeros;
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       zeros[j] = 0;
     }
@@ -175,7 +212,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   }
   else if (this->GetFixedImage())
   {
-    // Initial deforamtion field is not set.
+    // Initial deformation field is not set.
     // Copy information from the fixed image.
     for (unsigned int idx = 0; idx < this->GetNumberOfOutputs(); ++idx)
     {
@@ -220,9 +257,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   }
 }
 
-/*
- * Release memory of internal buffers
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -237,7 +271,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   // Release memory for smoothing buffer
   m_TempField->Initialize();
   // Release memory for smoothing kernels
-  for (unsigned int dir = 0; dir < ImageDimension; dir++)
+  for (unsigned int dir = 0; dir < ImageDimension; ++dir)
   {
     m_GPUSmoothingKernels[dir]->Initialize();
     delete m_SmoothingKernels[dir];
@@ -259,9 +293,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->GetOutput()->GetBufferPointer();
 }
 
-/*
- * Initialize flags
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::Initialize()
@@ -271,15 +302,12 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->AllocateSmoothingBuffer();
 
   FixedImageConstPointer fixedImage = this->GetFixedImage();
-  auto                   numPixels = (unsigned int)(fixedImage->GetLargestPossibleRegion().GetNumberOfPixels());
+  auto numPixels = static_cast<unsigned int>(fixedImage->GetLargestPossibleRegion().GetNumberOfPixels());
 
   auto * f = dynamic_cast<GPUPDEDeformableRegistrationFunctionType *>(this->GetDifferenceFunction().GetPointer());
   f->GPUAllocateMetricData(numPixels);
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -298,13 +326,12 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   int imgSize[3];
   imgSize[0] = imgSize[1] = imgSize[2] = 1;
 
-  int ImageDim = (int)TDisplacementField::ImageDimension;
+  int ImageDim = static_cast<int>(TDisplacementField::ImageDimension);
   if (ImageDim > 3)
   {
     itkExceptionMacro("GPUSmoothDisplacementField supports 1/2/3D images.");
-    return;
   }
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     imgSize[i] = outSize[i];
   }
@@ -322,7 +349,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->m_GPUKernelManager->GetDeviceInfo(
     CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(deviceWorkItemSizes), deviceWorkItemSizes);
 
-  for (indir = 0; indir < ImageDim; indir++)
+  for (indir = 0; indir < ImageDim; ++indir)
   {
     // If blockSize is too big, there will be lot of wasted threads at image
     // boundary, and each work group requires a lot of resources.
@@ -339,17 +366,11 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
     }
     localSize[indir] = blockSize;
 
-    for (int i = 0; i < ImageDim; i++)
+    for (int i = 0; i < ImageDim; ++i)
     {
-      globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); //
-                                                                                                  //
-                                                                                                  // total
-                                                                                                  //
-                                                                                                  // #
-                                                                                                  //
-                                                                                                  // of
-                                                                                                  //
-                                                                                                  // threads
+      // total # of threads
+      globalSize[i] = localSize[i] * static_cast<unsigned int>(
+                                       ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i])));
     }
 
     outdir = (indir + 1) % ImageDim;
@@ -399,8 +420,10 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
                                            nullptr);
 
     // launch kernel
-    this->m_GPUKernelManager->LaunchKernel(
-      m_SmoothDisplacementFieldGPUKernelHandle, (int)TDisplacementField::ImageDimension, globalSize, localSize);
+    this->m_GPUKernelManager->LaunchKernel(m_SmoothDisplacementFieldGPUKernelHandle,
+                                           static_cast<int>(TDisplacementField::ImageDimension),
+                                           globalSize,
+                                           localSize);
   } // for smoothing direction indir
 
   if (ImageDim % 2 != 0) // swap the final result if ImageDim is odd
@@ -412,9 +435,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   }
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -425,9 +445,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->m_SmoothFieldTime.Stop();
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -439,9 +456,6 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   this->m_SmoothFieldTime.Stop();
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TParentImageFilter>
 void
 GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TParentImageFilter>::
@@ -465,7 +479,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   // call to the smoothing function.
   //
   // Allocate smoothing kernel for displacement field
-  for (unsigned int dir = 0; dir < ImageDimension; dir++)
+  for (unsigned int dir = 0; dir < ImageDimension; ++dir)
   {
     // for each smoothing direction
     oper.SetDirection(dir);
@@ -478,7 +492,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 
     m_SmoothingKernelSizes[dir] = ksize;
     m_SmoothingKernels[dir] = new DeformationScalarType[ksize];
-    for (int i = 0; i < ksize; i++)
+    for (int i = 0; i < ksize; ++i)
     {
       m_SmoothingKernels[dir][i] = (DeformationScalarType)(oper[i]);
     }
@@ -493,7 +507,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
     m_GPUSmoothingKernels[dir]->SetGPUDirtyFlag(true);
   }
   // Allocate smoothing kernel for update field
-  for (unsigned int dir = 0; dir < ImageDimension; dir++)
+  for (unsigned int dir = 0; dir < ImageDimension; ++dir)
   {
     // for each smoothing direction
     oper.SetDirection(dir);
@@ -506,7 +520,7 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
 
     m_UpdateFieldSmoothingKernelSizes[dir] = ksize;
     m_UpdateFieldSmoothingKernels[dir] = new DeformationScalarType[ksize];
-    for (int i = 0; i < ksize; i++)
+    for (int i = 0; i < ksize; ++i)
     {
       m_UpdateFieldSmoothingKernels[dir][i] = (DeformationScalarType)(oper[i]);
     }
@@ -526,13 +540,12 @@ GPUPDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField
   m_ImageSizes = new int[3];
   m_ImageSizes[0] = m_ImageSizes[1] = m_ImageSizes[2] = 1;
 
-  int ImageDim = (int)TDisplacementField::ImageDimension;
+  int ImageDim = static_cast<int>(TDisplacementField::ImageDimension);
   if (ImageDim > 3)
   {
     itkExceptionMacro("GPUSmoothDisplacementField supports 1/2/3D images.");
-    return;
   }
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     m_ImageSizes[i] = outSize[i];
   }

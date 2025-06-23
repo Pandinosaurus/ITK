@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,7 +79,7 @@ SetAndVerify(int number)
   bool result = true;
   result &= SetAndVerifyGlobalMaximumNumberOfThreads(number);
   result &= SetAndVerifyGlobalDefaultNumberOfThreads(number);
-  itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+  const itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
   // PoolMultiThreader can only increase number of threads
   // so make sure to increase this before testing thread count
   itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(itk::ITK_MAX_THREADS);
@@ -88,21 +88,27 @@ SetAndVerify(int number)
   return result;
 }
 
-#define TEST_SINGLE_CLASS(ClassName)                                                                                   \
-  {                                                                                                                    \
-    itk::ClassName::Pointer threader = itk::ClassName::New();                                                          \
-    if (threader.IsNull())                                                                                             \
-    {                                                                                                                  \
-      result = false;                                                                                                  \
-    }                                                                                                                  \
-                                                                                                                       \
-    ITK_EXERCISE_BASIC_OBJECT_METHODS(threader, ClassName, MultiThreaderBase);                                         \
-  }                                                                                                                    \
+#define TEST_SINGLE_CLASS(ClassName)                                           \
+  {                                                                            \
+    itk::ClassName::Pointer threader = itk::ClassName::New();                  \
+    if (threader.IsNull())                                                     \
+    {                                                                          \
+      result = false;                                                          \
+    }                                                                          \
+                                                                               \
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(threader, ClassName, MultiThreaderBase); \
+  }                                                                            \
   ITK_MACROEND_NOOP_STATEMENT
 
 int
 itkMultiThreaderBaseTest(int argc, char * argv[])
 {
+  bool result = true;
+
+  itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(1);
+  result &= itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() == 1;
+  result &= itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads() == 1;
+
   // Choose a number of threads.
   int numberOfThreads = 10;
   if (argc > 1)
@@ -114,12 +120,20 @@ itkMultiThreaderBaseTest(int argc, char * argv[])
     }
   }
 
-  bool result = true;
   TEST_SINGLE_CLASS(PlatformMultiThreader);
   TEST_SINGLE_CLASS(PoolMultiThreader);
 #ifdef ITK_USE_TBB
   TEST_SINGLE_CLASS(TBBMultiThreader);
 #endif
+
+
+  itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(2);
+  result &= VerifyRange(
+    itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads(), 1, 2, "Range error in MaximumNumberOfThreads");
+  itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(4);
+  result &= VerifyRange(
+    itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), 1, 2, "Range error in DefaultNumberOfThreads");
+
 
   itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(numberOfThreads);
 
@@ -133,7 +147,6 @@ itkMultiThreaderBaseTest(int argc, char * argv[])
   result &= SetAndVerify(itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads());
   result &= SetAndVerify(itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() - 1);
   result &= SetAndVerify(itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() + 1);
-
 
   // Test streaming enumeration for MultiThreaderBaseEnums::Threader elements
   const std::set<itk::MultiThreaderBaseEnums::Threader> allThreader{

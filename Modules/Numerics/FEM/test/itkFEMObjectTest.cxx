@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,20 @@
 
 
 #include "itkFEMElement2DC0LinearLineStress.h"
-#include "itkFEMSpatialObjectWriter.h"
+#include "itkFEMElementBase.h"
+#include "itkFEMFactoryBase.h"
+#include "itkFEMMaterialLinearElasticity.h"
+#include "itkFEMLoadBCMFC.h"
+#include "itkFEMLoadBC.h"
+#include "itkFEMLoadNode.h"
+#include "itkFEMObject.h"
 
 
 int
 itkFEMObjectTest(int, char *[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -84,7 +90,7 @@ itkFEMObjectTest(int, char *[])
   m->SetYoungsModulus(200000000000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(2000.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);       /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);       /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   m = itk::fem::MaterialLinearElasticity::New();
@@ -92,7 +98,7 @@ itkFEMObjectTest(int, char *[])
   m->SetYoungsModulus(200000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(1200.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);       /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);       /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   m = itk::fem::MaterialLinearElasticity::New();
@@ -100,7 +106,7 @@ itkFEMObjectTest(int, char *[])
   m->SetYoungsModulus(70000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(900.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);      /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);      /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   itk::fem::Element2DC0LinearLineStress::Pointer e1;

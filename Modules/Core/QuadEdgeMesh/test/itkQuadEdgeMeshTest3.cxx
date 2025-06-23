@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ itkQuadEdgeMeshTest3(int, char *[])
   using LineType = itk::QuadEdgeMeshLineCell<CellType>;
   using QEPolygonCellType = itk::QuadEdgeMeshPolygonCell<CellType>;
 
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   MeshType::PointType point0;
   MeshType::PointType point1;
@@ -53,10 +53,8 @@ itkQuadEdgeMeshTest3(int, char *[])
   mesh->SetPoint(3, point3);
 
   CellType::CellAutoPointer cellpointer;
-  QEPolygonCellType *       poly;
-  LineType *                edge;
 
-  poly = new QEPolygonCellType(3);
+  auto * poly = new QEPolygonCellType(3);
   cellpointer.TakeOwnership(poly);
   cellpointer->SetPointId(0, 0);
   cellpointer->SetPointId(1, 1);
@@ -79,12 +77,12 @@ itkQuadEdgeMeshTest3(int, char *[])
 
   poly = new QEPolygonCellType(3);
   // FIXME ALEX: write REAL test code here for coverage.
-  poly->GetNameOfClass();
-  poly->GetEdgeRingEntry()->GetRight();
-  poly->GetEdgeRingEntry()->GetLeft();
+  [[maybe_unused]] auto return_value00 = poly->GetNameOfClass();
+  [[maybe_unused]] auto return_value01 = poly->GetEdgeRingEntry()->GetRight();
+  [[maybe_unused]] auto return_value02 = poly->GetEdgeRingEntry()->GetLeft();
   poly->GetEdgeRingEntry()->GetIdent();
-  poly->GetType();
-  poly->GetDimension();
+  [[maybe_unused]] auto return_value03 = poly->GetType();
+  [[maybe_unused]] auto return_value04 = poly->GetDimension();
   // up to here.
   cellpointer.TakeOwnership(poly);
   cellpointer->SetPointId(0, 3);
@@ -92,7 +90,7 @@ itkQuadEdgeMeshTest3(int, char *[])
   cellpointer->SetPointId(2, 1);
   mesh->SetCell(3, cellpointer);
 
-  edge = new LineType;
+  auto * edge = new LineType;
   cellpointer.TakeOwnership(edge);
   cellpointer->SetPointId(0, 0);
   cellpointer->SetPointId(1, 1);
@@ -123,9 +121,9 @@ itkQuadEdgeMeshTest3(int, char *[])
   mesh->SetCell(8, cellpointer);
 
   edge = new LineType;
-  edge->GetNameOfClass();
-  edge->GetType();
-  edge->GetDimension();
+  [[maybe_unused]] auto returnval10 = edge->GetNameOfClass();
+  [[maybe_unused]] auto returnval11 = edge->GetType();
+  [[maybe_unused]] auto returnval12 = edge->GetDimension();
   cellpointer.TakeOwnership(edge);
   cellpointer->SetPointId(0, 3);
   cellpointer->SetPointId(1, 0);
@@ -135,8 +133,8 @@ itkQuadEdgeMeshTest3(int, char *[])
   std::cout << "numCells  = " << mesh->GetNumberOfCells() << std::endl;
 
   using PointIterator = MeshType::PointsContainer::ConstIterator;
-  PointIterator pointIterator = mesh->GetPoints()->Begin();
-  PointIterator pointEnd = mesh->GetPoints()->End();
+  PointIterator       pointIterator = mesh->GetPoints()->Begin();
+  const PointIterator pointEnd = mesh->GetPoints()->End();
 
   while (pointIterator != pointEnd)
   {

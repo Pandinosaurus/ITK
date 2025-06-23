@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ itkCovarianceImageFunctionTest(int, char *[])
   using FunctionType = itk::CovarianceImageFunction<ImageType>;
 
   // Create and allocate the image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::SizeType   size;
   ImageType::IndexType  start;
   ImageType::RegionType region;
@@ -43,7 +43,7 @@ itkCovarianceImageFunctionTest(int, char *[])
   size[1] = 20;
   size[2] = 20;
 
-  ImageType::IndexValueType imageValue = 0;
+  constexpr ImageType::IndexValueType imageValue = 0;
   start.Fill(imageValue);
 
   region.SetIndex(start);
@@ -61,24 +61,21 @@ itkCovarianceImageFunctionTest(int, char *[])
 
   image->FillBuffer(initialValue);
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(function, CovarianceImageFunction, ImageFunction);
 
   function->SetInputImage(image);
 
-  unsigned int neighborhoodRadius = 5;
+  constexpr unsigned int neighborhoodRadius = 5;
   function->SetNeighborhoodRadius(neighborhoodRadius);
   ITK_TEST_SET_GET_VALUE(neighborhoodRadius, function->GetNeighborhoodRadius());
 
   ImageType::IndexType index;
-
   index[0] = 10;
   index[1] = 10;
   index[2] = 10;
 
-  FunctionType::OutputType covariance;
-
-  covariance = function->EvaluateAtIndex(index);
+  FunctionType::OutputType covariance = function->EvaluateAtIndex(index);
   std::cout << "function->EvaluateAtIndex( index ): " << covariance << std::endl;
 
   // Test Evaluate
@@ -86,8 +83,7 @@ itkCovarianceImageFunctionTest(int, char *[])
   point[0] = 25;
   point[1] = 25;
   point[2] = 25;
-  FunctionType::OutputType covariance2;
-  covariance2 = function->Evaluate(point);
+  const FunctionType::OutputType covariance2 = function->Evaluate(point);
   std::cout << "function->Evaluate(point): " << covariance2 << std::endl;
 
   // Test EvaluateAtContinuousIndex
@@ -95,8 +91,7 @@ itkCovarianceImageFunctionTest(int, char *[])
   cindex[0] = 25;
   cindex[1] = 25;
   cindex[2] = 25;
-  FunctionType::OutputType covariance3;
-  covariance3 = function->EvaluateAtContinuousIndex(cindex);
+  const FunctionType::OutputType covariance3 = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "function->EvaluateAtContinuousIndex(cindex): " << covariance3 << std::endl;
 
 

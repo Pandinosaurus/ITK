@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ itkPasteImageFilterTest(int argc, char * argv[])
   if (argc < 4)
   {
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " DestinationImage SourceImage OutputImage\n";
-    return -1;
+    return EXIT_FAILURE;
   }
 
   constexpr unsigned int Dimension = 2;
@@ -38,11 +38,11 @@ itkPasteImageFilterTest(int argc, char * argv[])
 
   using ImageType = itk::Image<PixelType, Dimension>;
 
-  itk::ImageFileReader<ImageType>::Pointer dest = itk::ImageFileReader<ImageType>::New();
+  const itk::ImageFileReader<ImageType>::Pointer dest = itk::ImageFileReader<ImageType>::New();
 
   dest->SetFileName(argv[1]);
 
-  itk::ImageFileReader<ImageType>::Pointer src = itk::ImageFileReader<ImageType>::New();
+  const itk::ImageFileReader<ImageType>::Pointer src = itk::ImageFileReader<ImageType>::New();
 
   src->SetFileName(argv[2]);
 
@@ -51,7 +51,7 @@ itkPasteImageFilterTest(int argc, char * argv[])
   // Create the filter
   using FilterType = itk::PasteImageFilter<ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, PasteImageFilter, InPlaceImageFilter);
 
@@ -84,32 +84,19 @@ itkPasteImageFilterTest(int argc, char * argv[])
 
   // We'll tie this to a streamer to really exercise the paste code
   using SplitterType = itk::ImageRegionSplitterMultidimensional;
-  SplitterType::Pointer splitter = SplitterType::New();
+  auto splitter = SplitterType::New();
 
   using StreamerType = itk::StreamingImageFilter<ImageType, ImageType>;
-  StreamerType::Pointer streamer = StreamerType::New();
+  auto streamer = StreamerType::New();
   streamer->SetInput(filter->GetOutput());
   streamer->SetNumberOfStreamDivisions(25);
   streamer->SetRegionSplitter(splitter);
 
-  try
-  {
-    streamer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return -1;
-  }
-  catch (...)
-  {
-    std::cerr << "Some other exception occurred" << std::endl;
-    return -2;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(streamer->Update());
+
 
   // Generate test image
-  itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
+  const itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(streamer->GetOutput());
   writer->SetFileName(argv[3]);
 

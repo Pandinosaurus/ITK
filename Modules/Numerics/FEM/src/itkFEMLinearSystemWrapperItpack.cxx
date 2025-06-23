@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,13 @@
 #include "itpack.h"
 #include "itkFEMLinearSystemWrapperItpack.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * constructor
  */
 LinearSystemWrapperItpack::LinearSystemWrapperItpack()
+
 {
   /* fill m_Methods with pointers to solver functions */
   m_Methods[0] = jcg_;
@@ -36,7 +35,7 @@ LinearSystemWrapperItpack::LinearSystemWrapperItpack()
   m_Methods[4] = ssorsi_;
   m_Methods[5] = rscg_;
   m_Methods[6] = rssi_;
-  m_Method = 0; /* set default method to jcg_ */
+  /* set default method to jcg_ */
 
   /* Set solving parameters */
   dfault_(&(m_IPARM[0]), &(m_RPARM[0]));
@@ -52,11 +51,6 @@ LinearSystemWrapperItpack::LinearSystemWrapperItpack()
   /* itpack recommended (but not default) value */
 #undef min
   m_RPARM[7] = 500.0 * NumericTraits<double>::min();
-
-  m_MaximumNonZeroValues = 0;
-  m_Matrices = nullptr;
-  m_Vectors = nullptr;
-  m_Solutions = nullptr;
 }
 
 void
@@ -79,7 +73,7 @@ LinearSystemWrapperItpack::InitializeMatrix(unsigned int matrixIndex)
       __FILE__, __LINE__, "LinearSystemWrapperItpack::InitializeMatrix", "Maximum number of non zeros not set");
   }
 
-  // allocate if necessay
+  // allocate if necessary
   if (m_Matrices == nullptr)
   {
     m_Matrices = new MatrixHolder(m_NumberOfMatrices);
@@ -125,19 +119,19 @@ LinearSystemWrapperItpack::InitializeVector(unsigned int vectorIndex)
       __FILE__, __LINE__, "LinearSystemWrapperItpack::InitializeVector", "m_Vectors", vectorIndex);
   }
 
-  /* allocate if necessay */
+  /* allocate if necessary */
   if (m_Vectors == nullptr)
   {
     m_Vectors = new VectorHolder(m_NumberOfVectors);
   }
 
   /* delete old vector */
-  delete[](*m_Vectors)[vectorIndex];
+  delete[] (*m_Vectors)[vectorIndex];
 
   /* insert new vector */
   (*m_Vectors)[vectorIndex] = new doublereal[m_Order];
   /* fill with zeros */
-  for (unsigned int i = 0; i < m_Order; i++)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
     (*m_Vectors)[vectorIndex][i] = 0.0;
   }
@@ -173,19 +167,19 @@ LinearSystemWrapperItpack::InitializeSolution(unsigned int solutionIndex)
       __FILE__, __LINE__, "LinearSystemWrapperItpack::InitializeSolution", "m_Solutions", solutionIndex);
   }
 
-  // allocate if necessay
+  // allocate if necessary
   if (m_Solutions == nullptr)
   {
     m_Solutions = new VectorHolder(m_NumberOfSolutions);
   }
 
   /* delete old vector */
-  delete[](*m_Solutions)[solutionIndex];
+  delete[] (*m_Solutions)[solutionIndex];
 
   /* insert new vector */
   (*m_Solutions)[solutionIndex] = new doublereal[m_Order];
   /* fill with zeros */
-  for (unsigned int i = 0; i < m_Order; i++)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
     (*m_Solutions)[solutionIndex][i] = 0.0;
   }
@@ -235,7 +229,7 @@ LinearSystemWrapperItpack::DestroyVector(unsigned int vectorIndex)
     }
 
     /* delete vector */
-    delete[](*m_Vectors)[vectorIndex];
+    delete[] (*m_Vectors)[vectorIndex];
     (*m_Vectors)[vectorIndex] = nullptr;
   }
 }
@@ -253,7 +247,7 @@ LinearSystemWrapperItpack::DestroySolution(unsigned int solutionIndex)
     }
 
     /* delete vector */
-    delete[](*m_Solutions)[solutionIndex];
+    delete[] (*m_Solutions)[solutionIndex];
     (*m_Solutions)[solutionIndex] = nullptr;
   }
 }
@@ -366,7 +360,7 @@ LinearSystemWrapperItpack::GetColumnsOfNonZeroMatrixElementsInRow(unsigned int  
     /* get search bounds in appropriate row */
     unsigned int lower = mat->m_IA[row] - 1;
     unsigned int upper = mat->m_IA[row + 1] - 1;
-    for (unsigned int j = lower; j < upper; j++)
+    for (unsigned int j = lower; j < upper; ++j)
     {
       cols.push_back(mat->m_JA[j] - 1);
     }
@@ -397,9 +391,8 @@ LinearSystemWrapperItpack::ScaleMatrix(Float scale, unsigned int matrixIndex)
       __FILE__, __LINE__, "LinearSystemWrapperItpack::ScaleMatrix", "m_Matrices", matrixIndex);
   }
 
-  int          i;
   doublereal * values = (*m_Matrices)[matrixIndex].GetA();
-  for (i = 0; i < (*m_Matrices)[matrixIndex].GetIA()[this->m_Order] - 1; i++)
+  for (int i = 0; i < (*m_Matrices)[matrixIndex].GetIA()[this->m_Order] - 1; ++i)
   {
     values[i] = values[i] * scale;
   }
@@ -592,7 +585,7 @@ LinearSystemWrapperItpack::Solve()
    * doublereal fakeZero = 1.0e-16;
 
    * //insert "fake" zeros
-   * for (i=0; i<static_cast<int>(m_Order); i++)
+   * for (i=0; i<static_cast<int>(m_Order); ++i)
    *   {
    *   if( (*m_Matrices)[0].Get(i,i) == 0.0)
    *     {
@@ -668,13 +661,11 @@ LinearSystemWrapperItpack::Solve()
   m_IPARM[7] = NW;
   IWKSP = new integer[3 * N];
   WKSP = new doublereal[NW + 2];
-
-  integer i;
-  for (i = 0; i < NW; i++)
+  for (integer i = 0; i < NW; ++i)
   {
     WKSP[i] = 0.0;
   }
-  for (i = 0; i < (3 * N); i++)
+  for (integer i = 0; i < (3 * N); ++i)
   {
     IWKSP[i] = 0;
   }
@@ -808,7 +799,7 @@ LinearSystemWrapperItpack::SwapSolutions(unsigned int solutionIndex1, unsigned i
 }
 
 void
-LinearSystemWrapperItpack::CopySolution2Vector(unsigned solutionIndex, unsigned int vectorIndex)
+LinearSystemWrapperItpack::CopySolution2Vector(unsigned int solutionIndex, unsigned int vectorIndex)
 {
   /* error checking */
   if (!m_Vectors)
@@ -834,14 +825,14 @@ LinearSystemWrapperItpack::CopySolution2Vector(unsigned solutionIndex, unsigned 
 
   this->InitializeVector(vectorIndex);
   /* copy values */
-  for (unsigned int i = 0; i < m_Order; i++)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
     (*m_Vectors)[vectorIndex][i] = (*m_Solutions)[solutionIndex][i];
   }
 }
 
 void
-LinearSystemWrapperItpack::CopyVector2Solution(unsigned vectorIndex, unsigned int solutionIndex)
+LinearSystemWrapperItpack::CopyVector2Solution(unsigned int vectorIndex, unsigned int solutionIndex)
 {
   /* error checking */
   if (!m_Vectors)
@@ -867,7 +858,7 @@ LinearSystemWrapperItpack::CopyVector2Solution(unsigned vectorIndex, unsigned in
 
   this->InitializeSolution(solutionIndex);
   /* copy values */
-  for (unsigned int i = 0; i < m_Order; i++)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
     (*m_Solutions)[solutionIndex][i] = (*m_Vectors)[vectorIndex][i];
   }
@@ -991,31 +982,30 @@ LinearSystemWrapperItpack::~LinearSystemWrapperItpack()
 {
   delete m_Matrices;
 
-  unsigned int i;
   if (m_Vectors)
   {
-    for (i = 0; i < m_NumberOfVectors; i++)
+    for (unsigned int i = 0; i < m_NumberOfVectors; ++i)
     {
-      delete[](*m_Vectors)[i];
+      delete[] (*m_Vectors)[i];
     }
     delete m_Vectors;
   }
 
   if (m_Solutions)
   {
-    for (i = 0; i < m_NumberOfSolutions; i++)
+    for (unsigned int i = 0; i < m_NumberOfSolutions; ++i)
     {
-      delete[](*m_Solutions)[i];
+      delete[] (*m_Solutions)[i];
     }
     delete m_Solutions;
   }
 }
 
-FEMExceptionItpackSolver::FEMExceptionItpackSolver(const char * file,
+FEMExceptionItpackSolver::FEMExceptionItpackSolver(std::string  file,
                                                    unsigned int lineNumber,
                                                    std::string  location,
                                                    integer      errorCode)
-  : FEMException(file, lineNumber)
+  : FEMException(std::move(file), lineNumber, std::move(location))
 {
   std::string solverError;
 
@@ -1079,9 +1069,6 @@ FEMExceptionItpackSolver::FEMExceptionItpackSolver(const char * file,
   buf << "Error: " << solverError;
 
   SetDescription(buf.str().c_str());
-
-  SetLocation(location);
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

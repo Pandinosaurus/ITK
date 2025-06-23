@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVTKPolyDataWriter_hxx
 #define itkVTKPolyDataWriter_hxx
 
-#include "itkVTKPolyDataWriter.h"
 #include "itkCellInterface.h"
 
 #include <fstream>
@@ -30,10 +29,9 @@ namespace itk
 //
 template <typename TInputMesh>
 VTKPolyDataWriter<TInputMesh>::VTKPolyDataWriter()
-{
-  this->m_Input = nullptr;
-  this->m_FileName = "";
-}
+  : m_FileName("")
+  , m_Input(nullptr)
+{}
 
 //
 // Set the input mesh
@@ -72,7 +70,6 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
   if (this->m_FileName.empty())
   {
     itkExceptionMacro("No FileName");
-    return;
   }
 
   //
@@ -85,18 +82,17 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
     itkExceptionMacro("Unable to open file\n"
                       "outputFilename= "
                       << this->m_FileName);
-    return;
   }
 
   outputFile.imbue(std::locale::classic());
-  outputFile << "# vtk DataFile Version 2.0" << std::endl;
-  outputFile << "File written by itkVTKPolyDataWriter" << std::endl;
-  outputFile << "ASCII" << std::endl;
-  outputFile << "DATASET POLYDATA" << std::endl;
+  outputFile << "# vtk DataFile Version 2.0" << std::endl
+             << "File written by itkVTKPolyDataWriter" << std::endl
+             << "ASCII" << std::endl
+             << "DATASET POLYDATA" << std::endl;
 
   // POINTS go first
 
-  unsigned int numberOfPoints = this->m_Input->GetNumberOfPoints();
+  const unsigned int numberOfPoints = this->m_Input->GetNumberOfPoints();
   outputFile << "POINTS " << numberOfPoints << " float" << std::endl;
 
   const PointsContainer * points = this->m_Input->GetPoints();
@@ -106,23 +102,22 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
 
   if (points)
   {
-    PointIterator pointIterator = points->Begin();
-    PointIterator pointEnd = points->End();
+    PointIterator       pointIterator = points->Begin();
+    const PointIterator pointEnd = points->End();
 
     while (pointIterator != pointEnd)
     {
       PointType point = pointIterator.Value();
 
-      outputFile << point[0] << " " << point[1];
+      outputFile << point[0] << ' ' << point[1];
 
       if (TInputMesh::PointDimension > 2)
       {
-        outputFile << " " << point[2];
+        outputFile << ' ' << point[2];
       }
       else
       {
-        outputFile << " "
-                   << "0.0";
+        outputFile << ' ' << "0.0";
       }
 
       outputFile << std::endl;
@@ -140,25 +135,25 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
 
   if (cells)
   {
-    CellIterator cellIterator = cells->Begin();
-    CellIterator cellEnd = cells->End();
+    CellIterator       cellIterator = cells->Begin();
+    const CellIterator cellEnd = cells->End();
 
     while (cellIterator != cellEnd)
     {
       switch (static_cast<int>(cellIterator.Value()->GetType()))
       {
         case 0: // VERTEX_CELL:
-          numberOfVertices++;
+          ++numberOfVertices;
           break;
         case 1: // LINE_CELL:
         case 7: // QUADRATIC_EDGE_CELL:
-          numberOfEdges++;
+          ++numberOfEdges;
           break;
         case 2: // TRIANGLE_CELL:
         case 3: // QUADRILATERAL_CELL:
         case 4: // POLYGON_CELL:
         case 8: // QUADRATIC_TRIANGLE_CELL:
-          numberOfPolygons++;
+          ++numberOfPolygons;
           break;
         default:
           std::cerr << "Unhandled cell (volumic?)." << std::endl;
@@ -174,8 +169,7 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
     // LINES
     if (numberOfEdges)
     {
-      outputFile << "LINES " << numberOfEdges << " " << 3 * numberOfEdges;
-      outputFile << std::endl;
+      outputFile << "LINES " << numberOfEdges << ' ' << 3 * numberOfEdges << std::endl;
 
       cellIterator = cells->Begin();
       while (cellIterator != cellEnd)
@@ -191,8 +185,8 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
             outputFile << cellPointer->GetNumberOfPoints();
             while (pointIdIterator != pointIdEnd)
             {
-              outputFile << " " << IdMap[*pointIdIterator];
-              pointIdIterator++;
+              outputFile << ' ' << IdMap[*pointIdIterator];
+              ++pointIdIterator;
             }
             outputFile << std::endl;
             break;
@@ -211,7 +205,7 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
       // mesh can be saved.
       cellIterator = cells->Begin();
 
-      PointIdentifier totalNumberOfPointsInPolygons = NumericTraits<PointIdentifier>::ZeroValue();
+      PointIdentifier totalNumberOfPointsInPolygons{};
       while (cellIterator != cells->End())
       {
         CellType * cellPointer = cellIterator.Value();
@@ -222,8 +216,8 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
         }
         ++cellIterator;
       }
-      outputFile << "POLYGONS " << numberOfPolygons << " ";
-      outputFile << totalNumberOfPointsInPolygons + numberOfPolygons; // FIXME: Is this right ?
+      outputFile << "POLYGONS " << numberOfPolygons << ' '
+                 << totalNumberOfPointsInPolygons + numberOfPolygons; // FIXME: Is this right ?
       outputFile << std::endl;
 
       cellIterator = cells->Begin();
@@ -242,8 +236,8 @@ VTKPolyDataWriter<TInputMesh>::GenerateData()
             outputFile << cellPointer->GetNumberOfPoints();
             while (pointIdIterator != pointIdEnd)
             {
-              outputFile << " " << IdMap[*pointIdIterator];
-              pointIdIterator++;
+              outputFile << ' ' << IdMap[*pointIdIterator];
+              ++pointIdIterator;
             }
             outputFile << std::endl;
             break;

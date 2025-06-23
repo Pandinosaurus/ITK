@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class SpatialObjectDuplicator
+ * \class SpatialObjectDuplicator
  *  This helper class create an SpatialObject which is perfect
  *  copy of the input SpatialObject
  * \ingroup ITKSpatialObjects
@@ -43,8 +43,8 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SpatialObjectDuplicator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpatialObjectDuplicator);
 
   /** Type definitions for the input SpatialObject. */
   using SpatialObjectType = TInputSpatialObject;
@@ -65,6 +65,7 @@ public:
    * by returning a non-const pointer
    * for the generated Object.
    */
+  /** @ITKStartGrouping */
   // NOTE:  The m_GeneratedImageSource is only
   //       exposed via the Source generation interface
   //       by the GetOutput() method that mimics
@@ -79,7 +80,7 @@ public:
   {
     return this->m_DuplicateSpatialObject.GetPointer();
   }
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   // This interface was exposed in ITKv4 when the itkGetModifiableObjectMacro was used
   virtual SpatialObjectType *
@@ -105,9 +106,9 @@ protected:
   CopyObject(const InternalSpatialObjectType * source, InternalSpatialObjectType * destination);
 
 private:
-  SpatialObjectConstPointer m_Input;
-  SpatialObjectPointer      m_DuplicateSpatialObject;
-  ModifiedTimeType          m_InternalSpatialObjectTime;
+  SpatialObjectConstPointer m_Input{};
+  SpatialObjectPointer      m_DuplicateSpatialObject{};
+  ModifiedTimeType          m_InternalSpatialObjectTime{};
 };
 } // end namespace itk
 

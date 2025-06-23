@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,9 @@ itkBioRadImageIOTest(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " BioRad.pic OutputImage.pic\n";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " BioRad.pic OutputImage.pic" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -42,43 +44,31 @@ itkBioRadImageIOTest(int argc, char * argv[])
   const char * filename = argv[1];
   const char * outfilename = argv[2];
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(filename);
 
-  ImageIOType::Pointer bioradImageIO = ImageIOType::New();
+  auto bioradImageIO = ImageIOType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(bioradImageIO, BioRadImageIO, ImageIOBase);
+
+
+  // Not used; empty method body; called for coverage purposes
+  bioradImageIO->WriteImageInformation();
+
   reader->SetImageIO(bioradImageIO);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e.GetDescription() << std::endl;
-    std::cerr << e.GetLocation() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   using WriterType = itk::ImageFileWriter<InputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outfilename);
   writer->SetInput(reader->GetOutput());
   writer->SetImageIO(bioradImageIO);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file writer " << std::endl;
-    std::cerr << e.GetDescription() << std::endl;
-    std::cerr << e.GetLocation() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-  bioradImageIO->Print(std::cout);
 
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

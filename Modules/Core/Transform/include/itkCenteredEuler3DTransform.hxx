@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCenteredEuler3DTransform_hxx
 #define itkCenteredEuler3DTransform_hxx
 
-#include "itkCenteredEuler3DTransform.h"
 
 namespace itk
 {
@@ -54,7 +53,7 @@ template <typename TParametersValueType>
 void
 CenteredEuler3DTransform<TParametersValueType>::SetParameters(const ParametersType & parameters)
 {
-  itkDebugMacro(<< "Setting parameters " << parameters);
+  itkDebugMacro("Setting parameters " << parameters);
 
   // Save parameters
   if (&parameters != &(this->m_Parameters))
@@ -85,7 +84,7 @@ CenteredEuler3DTransform<TParametersValueType>::SetParameters(const ParametersTy
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 
-  itkDebugMacro(<< "After setting parameters ");
+  itkDebugMacro("After setting parameters ");
 }
 
 //
@@ -99,10 +98,10 @@ CenteredEuler3DTransform<TParametersValueType>::SetParameters(const ParametersTy
 //
 
 template <typename TParametersValueType>
-const typename CenteredEuler3DTransform<TParametersValueType>::ParametersType &
-CenteredEuler3DTransform<TParametersValueType>::GetParameters() const
+auto
+CenteredEuler3DTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
-  ParametersType parameters;
+  const ParametersType parameters;
 
   this->m_Parameters[0] = this->GetAngleX();
   this->m_Parameters[1] = this->GetAngleY();
@@ -170,13 +169,13 @@ CenteredEuler3DTransform<TParametersValueType>::ComputeJacobianWithRespectToPara
 
   // compute derivatives for the center of rotation part
   unsigned int blockOffset = 3;
-  for (unsigned int dim = 0; dim < SpaceDimension; dim++)
+  for (unsigned int dim = 0; dim < SpaceDimension; ++dim)
   {
     jacobian[dim][blockOffset + dim] = 1.0;
   }
   blockOffset += SpaceDimension;
   // compute derivatives for the translation part
-  for (unsigned int dim = 0; dim < SpaceDimension; dim++)
+  for (unsigned int dim = 0; dim < SpaceDimension; ++dim)
   {
     jacobian[dim][blockOffset + dim] = 1.0;
   }
@@ -192,12 +191,10 @@ CenteredEuler3DTransform<TParametersValueType>::GetInverse(Self * inverse) const
 
 // Return an inverse of this transform
 template <typename TParametersValueType>
-typename CenteredEuler3DTransform<TParametersValueType>::InverseTransformBasePointer
-CenteredEuler3DTransform<TParametersValueType>::GetInverseTransform() const
+auto
+CenteredEuler3DTransform<TParametersValueType>::GetInverseTransform() const -> InverseTransformBasePointer
 {
-  Pointer inv = New();
-
-  return this->GetInverse(inv) ? inv.GetPointer() : nullptr;
+  return Superclass::InvertTransform(*this);
 }
 
 // Print self

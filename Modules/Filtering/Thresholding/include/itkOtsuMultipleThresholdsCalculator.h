@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class OtsuMultipleThresholdsCalculator
+ * \class OtsuMultipleThresholdsCalculator
  * \brief Computes Otsu's multiple thresholds for a histogram.
  *
  * You plug in the target histogram using SetInputHistogram method and
@@ -35,8 +35,8 @@ namespace itk
  * maximized.
  *
  * This calculator also includes an option to use the valley emphasis algorithm from
- * H.F. Ng, "Automatic thresholding for defect detection", Pattern Recognition Letters, (27): 1644-1649, 2006.
- * The valley emphasis algorithm is particularly effective when the object to be thresholded is small.
+ * \cite ng2006. The valley emphasis algorithm is particularly
+ * effective when the object to be thresholded is small.
  * See the following tests for examples:
  * itkOtsuMultipleThresholdsImageFilterTest3 and itkOtsuMultipleThresholdsImageFilterTest4
  * To use this algorithm, simple call the setter: SetValleyEmphasis(true)
@@ -70,10 +70,11 @@ public:
   using InstanceIdentifierType = typename TInputHistogram::InstanceIdentifier;
   using InstanceIdentifierVectorType = std::vector<InstanceIdentifierType>;
 
-  /**Standard Macros */
-  itkTypeMacro(OtsuMultipleThresholdsCalculator, HistogramAlgorithmsBase);
+  /** Standard Macros */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(OtsuMultipleThresholdsCalculator);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Typedef for the thresholds output */
   using OutputType = std::vector<MeasurementType>;
 
@@ -82,24 +83,27 @@ public:
   GetOutput();
 
   /** Set/Get the number of thresholds. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NumberOfThresholds, SizeValueType, 1, NumericTraits<SizeValueType>::max());
   itkGetConstMacro(NumberOfThresholds, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Calculates Otsu's thresholds and saves them. */
   void
   Compute() override;
 
   /** Set/Get the use of valley emphasis. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(ValleyEmphasis, bool);
   itkGetConstReferenceMacro(ValleyEmphasis, bool);
   itkBooleanMacro(ValleyEmphasis);
-
+  /** @ITKEndGrouping */
   /** Should the threshold value be mid-point of the bin or the maximum?
    * Default is to return bin maximum. */
+  /** @ITKStartGrouping */
   itkSetMacro(ReturnBinMidpoint, bool);
   itkGetConstReferenceMacro(ReturnBinMidpoint, bool);
   itkBooleanMacro(ReturnBinMidpoint);
-
+  /** @ITKEndGrouping */
 
 protected:
   OtsuMultipleThresholdsCalculator();
@@ -116,13 +120,9 @@ protected:
 
 private:
   SizeValueType m_NumberOfThresholds{ 1 };
-  OutputType    m_Output;
+  OutputType    m_Output{};
   bool          m_ValleyEmphasis{ false };
-#if defined(ITKV4_COMPATIBILITY)
-  bool m_ReturnBinMidpoint{ true };
-#else
-  bool m_ReturnBinMidpoint{ false };
-#endif
+  bool          m_ReturnBinMidpoint{ false };
 };
 } // end of namespace itk
 

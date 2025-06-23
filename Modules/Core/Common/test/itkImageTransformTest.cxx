@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,8 @@ TestTransform()
 {
   using ImageType = itk::Image<float, TDimension>;
 
-  typename ImageType::Pointer image = ImageType::New();
-  typename ImageType::Pointer orientedImage = ImageType::New();
+  auto image = ImageType::New();
+  auto orientedImage = ImageType::New();
 
   typename ImageType::PointType origin;
 
@@ -46,12 +46,10 @@ TestTransform()
   typename ImageType::PointType point;
   RegionType                    region;
 
-  SizeType size;
-  size.Fill(10);
+  auto size = SizeType::Filled(10);
   region.SetSize(size);
 
-  IndexType index;
-  index.Fill(5);
+  auto index = IndexType::Filled(5);
 
   std::cout << "TransformIndexToPhysicalPoint..." << std::endl;
   orientedImage->TransformIndexToPhysicalPoint(index, point);
@@ -61,11 +59,13 @@ TestTransform()
   std::cout << "    Image:         " << index << " -> " << point << std::endl;
 
   std::cout << "TransformPhysicalPointToIndex..." << std::endl;
-  orientedImage->TransformPhysicalPointToIndex(point, index);
-  std::cout << "    Image: " << point << " -> " << index << std::endl;
+  const bool isInsideOrientedImage = orientedImage->TransformPhysicalPointToIndex(point, index);
+  std::cout << "    Image: " << point << " -> " << index << (isInsideOrientedImage ? " inside" : " outside")
+            << std::endl;
 
-  image->TransformPhysicalPointToIndex(point, index);
-  std::cout << "    Image:         " << point << " -> " << index << std::endl;
+  const bool isInsideImage = image->TransformPhysicalPointToIndex(point, index);
+  std::cout << "    Image:         " << point << " -> " << index << (isInsideImage ? " inside" : " outside")
+            << std::endl;
 }
 
 int

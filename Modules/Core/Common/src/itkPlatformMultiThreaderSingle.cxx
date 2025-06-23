@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,6 +29,7 @@
 #include "itkObjectFactory.h"
 #include "itksys/SystemTools.hxx"
 #include <cstdlib>
+#include <algorithm> // For min.
 
 namespace itk
 {
@@ -39,17 +40,13 @@ PlatformMultiThreader::MultipleMethodExecute()
   ThreadIdType thread_loop;
 
   // obey the global maximum number of threads limit
-  if (m_NumberOfWorkUnits > m_GlobalMaximumNumberOfThreads)
-  {
-    m_NumberOfWorkUnits = m_GlobalMaximumNumberOfThreads;
-  }
+  m_NumberOfWorkUnits = std::min(m_NumberOfWorkUnits, MultiThreaderBase::GetGlobalMaximumNumberOfThreads());
 
   for (thread_loop = 0; thread_loop < m_NumberOfWorkUnits; ++thread_loop)
   {
     if (m_MultipleMethod[thread_loop] == (ThreadFunctionType)0)
     {
-      itkExceptionMacro(<< "No multiple method set for: " << thread_loop);
-      return;
+      itkExceptionMacro("No multiple method set for: " << thread_loop);
     }
   }
 
@@ -64,7 +61,7 @@ PlatformMultiThreader::SpawnThread(ThreadFunctionType itkNotUsed(f), void * User
 {
   // There is no multi threading, so there is only one thread.
   // This won't work - so give an error message.
-  itkExceptionMacro(<< "Cannot spawn thread in a single threaded environment!");
+  itkExceptionMacro("Cannot spawn thread in a single threaded environment!");
   return -1;
 }
 
@@ -73,7 +70,7 @@ PlatformMultiThreader::TerminateThread(ThreadIdType WorkUnitID)
 {
   // There is no multi threading, so there is only one thread.
   // This won't work - so give an error message.
-  itkExceptionMacro(<< "Cannot terminate thread in single threaded environment!");
+  itkExceptionMacro("Cannot terminate thread in single threaded environment!");
 }
 #endif
 

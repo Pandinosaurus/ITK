@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,21 +81,21 @@ public:
   using Superclass = PathConstIterator<TImage, TPath>;
 
   /** Inherit types from the superclass */
-  using IndexType = typename Superclass::IndexType;
-  using OffsetType = typename Superclass::OffsetType;
-  using SizeType = typename Superclass::SizeType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
-  using PathType = typename Superclass::PathType;
-  using PathInputType = typename Superclass::PathInputType;
-  using PathOutputType = typename Superclass::PathOutputType;
+  using typename Superclass::IndexType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::SizeType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
+  using typename Superclass::PathType;
+  using typename Superclass::PathInputType;
+  using typename Superclass::PathOutputType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PathIterator, PathConstIterator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PathIterator);
 
   /** Set the pixel value */
   void

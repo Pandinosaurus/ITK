@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,27 +19,20 @@
 
 namespace itk
 {
-SingleValuedNonLinearVnlOptimizerv4 ::SingleValuedNonLinearVnlOptimizerv4()
+SingleValuedNonLinearVnlOptimizerv4::SingleValuedNonLinearVnlOptimizerv4()
+  : m_CostFunctionAdaptor(nullptr)
 {
-  this->m_CostFunctionAdaptor = nullptr;
   this->m_Command = CommandType::New();
   this->m_Command->SetCallbackFunction(this, &SingleValuedNonLinearVnlOptimizerv4::IterationReport);
 
-  this->m_CachedCurrentPosition.Fill(NumericTraits<DerivativeType::ValueType>::ZeroValue());
-  this->m_CachedDerivative.Fill(NumericTraits<DerivativeType::ValueType>::ZeroValue());
+  this->m_CachedCurrentPosition.Fill(ParametersType::ValueType{});
+  this->m_CachedDerivative.Fill(DerivativeType::ValueType{});
 }
 
-SingleValuedNonLinearVnlOptimizerv4::~SingleValuedNonLinearVnlOptimizerv4()
-{
-  if (this->m_CostFunctionAdaptor)
-  {
-    delete this->m_CostFunctionAdaptor;
-    this->m_CostFunctionAdaptor = nullptr;
-  }
-}
+SingleValuedNonLinearVnlOptimizerv4::~SingleValuedNonLinearVnlOptimizerv4() = default;
 
 void
-SingleValuedNonLinearVnlOptimizerv4 ::StartOptimization(bool doOnlyInitialization)
+SingleValuedNonLinearVnlOptimizerv4::StartOptimization(bool doOnlyInitialization)
 {
   // Perform some verification, check scales.
   Superclass::StartOptimization(doOnlyInitialization);
@@ -59,49 +52,44 @@ SingleValuedNonLinearVnlOptimizerv4 ::StartOptimization(bool doOnlyInitializatio
   // where the per-iteration results of the vnl optimizer are accessible.
   if (!this->GetScalesAreIdentity())
   {
-    ScalesType scales = this->GetScales();
+    const ScalesType scales = this->GetScales();
     this->GetNonConstCostFunctionAdaptor()->SetScales(scales);
   }
 }
 
 void
-SingleValuedNonLinearVnlOptimizerv4 ::SetCostFunctionAdaptor(CostFunctionAdaptorType * adaptor)
+SingleValuedNonLinearVnlOptimizerv4::SetCostFunctionAdaptor(CostFunctionAdaptorType * adaptor)
 {
-  if (this->m_CostFunctionAdaptor == adaptor)
+  if (this->m_CostFunctionAdaptor.get() == adaptor)
   {
     return;
   }
 
-  if (this->m_CostFunctionAdaptor)
-  {
-    delete this->m_CostFunctionAdaptor;
-  }
-
-  this->m_CostFunctionAdaptor = adaptor;
+  this->m_CostFunctionAdaptor.reset(adaptor);
 
   this->m_CostFunctionAdaptor->AddObserver(IterationEvent(), this->m_Command);
 }
 
 const SingleValuedNonLinearVnlOptimizerv4::CostFunctionAdaptorType *
-SingleValuedNonLinearVnlOptimizerv4 ::GetCostFunctionAdaptor() const
+SingleValuedNonLinearVnlOptimizerv4::GetCostFunctionAdaptor() const
 {
-  return this->m_CostFunctionAdaptor;
+  return this->m_CostFunctionAdaptor.get();
 }
 
 SingleValuedNonLinearVnlOptimizerv4::CostFunctionAdaptorType *
-SingleValuedNonLinearVnlOptimizerv4 ::GetCostFunctionAdaptor()
+SingleValuedNonLinearVnlOptimizerv4::GetCostFunctionAdaptor()
 {
-  return this->m_CostFunctionAdaptor;
+  return this->m_CostFunctionAdaptor.get();
 }
 
 SingleValuedNonLinearVnlOptimizerv4::CostFunctionAdaptorType *
-SingleValuedNonLinearVnlOptimizerv4 ::GetNonConstCostFunctionAdaptor() const
+SingleValuedNonLinearVnlOptimizerv4::GetNonConstCostFunctionAdaptor() const
 {
-  return this->m_CostFunctionAdaptor;
+  return this->m_CostFunctionAdaptor.get();
 }
 
 void
-SingleValuedNonLinearVnlOptimizerv4 ::IterationReport(const EventObject & event)
+SingleValuedNonLinearVnlOptimizerv4::IterationReport(const EventObject & event)
 {
   const CostFunctionAdaptorType * adaptor = this->GetCostFunctionAdaptor();
 
@@ -112,12 +100,12 @@ SingleValuedNonLinearVnlOptimizerv4 ::IterationReport(const EventObject & event)
 }
 
 void
-SingleValuedNonLinearVnlOptimizerv4 ::PrintSelf(std::ostream & os, Indent indent) const
+SingleValuedNonLinearVnlOptimizerv4::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Cached Derivative: " << this->m_CachedDerivative << std::endl;
   os << indent << "Cached current positiion: " << this->m_CachedCurrentPosition << std::endl;
-  os << "Command observer " << this->m_Command.GetPointer() << std::endl;
-  os << "Cost Function adaptor" << this->m_CostFunctionAdaptor << std::endl;
+  os << indent << "Command observer " << this->m_Command.GetPointer() << std::endl;
+  os << indent << "Cost Function adaptor" << this->m_CostFunctionAdaptor.get() << std::endl;
 }
 } // end namespace itk

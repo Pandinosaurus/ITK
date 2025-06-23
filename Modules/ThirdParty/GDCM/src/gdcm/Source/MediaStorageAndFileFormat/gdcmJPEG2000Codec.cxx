@@ -31,7 +31,7 @@ namespace gdcm
 {
 
 /* Part 1  Table A.2 List of markers and marker segments */
-typedef enum {
+using MarkerType = enum {
   FF30 = 0xFF30,
   FF31 = 0xFF31,
   FF32 = 0xFF32,
@@ -69,9 +69,9 @@ typedef enum {
   EPH = 0XFF92,
   SOD = 0xFF93,
   EOC = 0XFFD9  /* EOI in old jpeg */
-} MarkerType;
+};
 
-typedef enum {
+using OtherType = enum {
   JP   = 0x6a502020,
   FTYP = 0x66747970,
   JP2H = 0x6a703268,
@@ -84,7 +84,7 @@ typedef enum {
   CMAP = 0x636D6170,
   PCLR = 0x70636c72,
   RES  = 0x72657320
-} OtherType;
+};
 
 static inline bool hasnolength( uint_fast16_t marker )
 {
@@ -187,8 +187,8 @@ static bool parsej2k_imp( const char * const stream, const size_t file_size, boo
         }
       cur += lenmarker; cur_size -= lenmarker;
       }
-      else if( marker == SOD )
-        return true;
+    else if( marker == SOD )
+      return true;
     }
   return false;
 }
@@ -394,14 +394,14 @@ class JPEG2000Internals
 {
 public:
   JPEG2000Internals()
-  : nNumberOfThreadsForDecompression( -1 )
+   
     {
     memset(&coder_param, 0, sizeof(coder_param));
     opj_set_default_encoder_parameters(&coder_param);
     }
 
   opj_cparameters coder_param;
-  int nNumberOfThreadsForDecompression;
+  int nNumberOfThreadsForDecompression{ -1 };
 };
 
 void JPEG2000Codec::SetRate(unsigned int idx, double rate)
@@ -470,6 +470,13 @@ void JPEG2000Codec::SetReversible(bool res)
   Internals->coder_param.irreversible = !res;
 }
 
+void JPEG2000Codec::SetMCT(unsigned int mct)
+{
+    // Set the Multiple Component Transformation value (COD -> SGcod)
+    // 0 for none, 1 to apply to components 0, 1, 2
+    Internals->coder_param.tcp_mct = mct;
+}
+
 JPEG2000Codec::JPEG2000Codec()
 {
   Internals = new JPEG2000Internals;
@@ -486,7 +493,10 @@ bool JPEG2000Codec::CanDecode(TransferSyntax const &ts) const
   return ts == TransferSyntax::JPEG2000Lossless
       || ts == TransferSyntax::JPEG2000
       || ts == TransferSyntax::JPEG2000Part2Lossless
-      || ts == TransferSyntax::JPEG2000Part2;
+      || ts == TransferSyntax::JPEG2000Part2
+      || ts == TransferSyntax::HTJ2KLossless
+      || ts == TransferSyntax::HTJ2KRPCLLossless
+      || ts == TransferSyntax::HTJ2K;
 }
 
 bool JPEG2000Codec::CanCode(TransferSyntax const &ts) const
@@ -546,7 +556,7 @@ bool JPEG2000Codec::Decode(DataElement const &in, DataElement &out)
     if(!r) return false;
     out = in;
     std::string str = os.str();
-    out.SetByteValue( &str[0], (uint32_t)str.size() );
+    out.SetByteValue( str.data(), (uint32_t)str.size() );
     //memcpy(buffer, os.str().c_str(), len);
     return r;
     }
@@ -584,8 +594,8 @@ bool JPEG2000Codec::Decode(DataElement const &in, DataElement &out)
       assert( r == true );
       }
     std::string str = os.str();
-    assert( str.size() );
-    out.SetByteValue( &str[0], (uint32_t)str.size() );
+    assert( !str.empty() );
+    out.SetByteValue( str.data(), (uint32_t)str.size() );
 
     return true;
     }
@@ -676,7 +686,7 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
     break;
   default:
     gdcmErrorMacro( "Impossible happen" );
-    return std::make_pair<char*,size_t>(0,0);
+    return std::pair<char*,size_t>(nullptr,0);
     }
 #if ((OPJ_VERSION_MAJOR == 2 && OPJ_VERSION_MINOR >= 3) || (OPJ_VERSION_MAJOR > 2))
   opj_codec_set_threads(dinfo, Internals->nNumberOfThreadsForDecompression);
@@ -707,7 +717,7 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
     gdcmErrorMacro( "opj_setup_decoder failure" );
-    return std::make_pair<char*,size_t>(0,0);
+    return std::pair<char*,size_t>(nullptr,0);
     }
 #if 0
   OPJ_INT32 l_tile_x0,l_tile_y0;
@@ -722,7 +732,7 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
     gdcmErrorMacro( "opj_setup_decoder failure" );
-    return std::make_pair<char*,size_t>(0,0);
+    return std::pair<char*,size_t>(nullptr,0);
     }
 #if 0
   /* Optional if you want decode the entire image */
@@ -736,7 +746,7 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
     gdcmErrorMacro( "opj_decode failed" );
-    return std::make_pair<char*,size_t>(0,0);
+    return std::pair<char*,size_t>(nullptr,0);
     }
   bResult = bResult && (image != nullptr);
   bResult = bResult && opj_end_decompress(dinfo,cio);
@@ -745,7 +755,7 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
     gdcmErrorMacro( "opj_decode failed" );
-    return std::make_pair<char*,size_t>(0,0);
+    return std::pair<char*,size_t>(nullptr,0);
     }
 
 #if 0
@@ -769,8 +779,8 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
 #endif
 
   bool b = false;
-  bool lossless;
-  bool mct;
+  bool lossless = false;
+  bool mct = false;
   if( parameters.decod_format == JP2_CFMT )
     b = parsejp2_imp( dummy_buffer, buf_size, &lossless, &mct);
   else if( parameters.decod_format == J2K_CFMT )
@@ -787,16 +797,16 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
   if( this->GetPhotometricInterpretation() == PhotometricInterpretation::RGB
    || this->GetPhotometricInterpretation() == PhotometricInterpretation::YBR_FULL )
   {
-    if( mct ) gdcmWarningMacro("Invalid PhotometricInterpretation, should be YBR_RCT");
+    if( mct ) { gdcmWarningMacro("Invalid PhotometricInterpretation, should be YBR_RCT"); }
   }
   else if( this->GetPhotometricInterpretation() == PhotometricInterpretation::YBR_RCT
         || this->GetPhotometricInterpretation() == PhotometricInterpretation::YBR_ICT )
   {
-    if( !mct ) gdcmWarningMacro("Invalid PhotometricInterpretation, should be RGB");
+    if( !mct ) { gdcmWarningMacro("Invalid PhotometricInterpretation, should be RGB"); }
   }
   else
   {
-    if( mct ) gdcmWarningMacro("MCT flag was set in SamplesPerPixel = 1 image. corrupt j2k ?");
+    if( mct ) { gdcmWarningMacro("MCT flag was set in SamplesPerPixel = 1 image. corrupt j2k ?"); }
   }
 
   /* close the byte stream */
@@ -819,8 +829,13 @@ std::pair<char *, size_t> JPEG2000Codec::DecodeByStreamsCommon(char *dummy_buffe
 
     // ELSCINT1_JP2vsJ2K.dcm
     // -> prec = 12, bpp = 0, sgnd = 0
-    //assert( wr == Dimensions[0] );
-    //assert( hr == Dimensions[1] );
+    if( wr != Dimensions[0] || hr != Dimensions[1] ) {
+	    gdcmErrorMacro("Invalid dimension");
+	    delete[] raw;
+    opj_destroy_codec(dinfo);
+  opj_image_destroy(image);
+    return std::pair<char*,size_t>(nullptr,0);
+    }
     if( comp->sgnd != PF.GetPixelRepresentation() )
       {
       PF.SetPixelRepresentation( (uint16_t)comp->sgnd );
@@ -924,7 +939,7 @@ void rawtoimage_fill2(const T *inputbuffer, int w, int h, int numcomps, opj_imag
     // nmask : to propagate sign bit on negative values
     int16_t nmask = (int16_t)0x8000;
     nmask = (int16_t)(nmask >> ( bitsallocated - bitsstored - 1 ));
-     if( pc )
+    if( pc )
       {
       for(int compno = 0; compno < numcomps; compno++)
         {
@@ -1253,6 +1268,7 @@ bool JPEG2000Codec::CodeFrameIntoBuffer(char * outdata, size_t outlen, size_t & 
     image_width, image_height,
     sample_pixel, bitsallocated, bitsstored, highbit, sign, quality, this->GetPlanarConfiguration() );
   if (!image) {
+    free(parameters.cp_comment);
     return false;
   }
 
@@ -1281,6 +1297,7 @@ bool JPEG2000Codec::CodeFrameIntoBuffer(char * outdata, size_t outlen, size_t & 
   cio = opj_stream_create_memory_stream(fsrc,OPJ_J2K_STREAM_CHUNK_SIZE,false);
   if (! cio)
     {
+    free(parameters.cp_comment);
     return false;
     }
   /* encode the image */
@@ -1294,6 +1311,7 @@ bool JPEG2000Codec::CodeFrameIntoBuffer(char * outdata, size_t outlen, size_t & 
   if (!bSuccess)
     {
     opj_stream_destroy(cio);
+    free(parameters.cp_comment);
     return false;
     }
   codestream_length = mysrc.len;
@@ -1302,6 +1320,7 @@ bool JPEG2000Codec::CodeFrameIntoBuffer(char * outdata, size_t outlen, size_t & 
   //f = fopen(parameters.outfile, "wb");
   //if (!f) {
   //  fprintf(stderr, "failed to open %s for writing\n", parameters.outfile);
+  //  free(parameters.cp_comment);
   //  return 1;
   //}
   //fwrite(cio->buffer, 1, codestream_length, f);
@@ -1369,12 +1388,12 @@ bool JPEG2000Codec::Code(DataElement const &in, DataElement &out)
     rgbyteCompressed.resize(image_width * image_height * 4);
 
     size_t cbyteCompressed;
-    const bool b = this->CodeFrameIntoBuffer((char*)&rgbyteCompressed[0], rgbyteCompressed.size(), cbyteCompressed, inputdata, inputlength );
+    const bool b = this->CodeFrameIntoBuffer((char*)rgbyteCompressed.data(), rgbyteCompressed.size(), cbyteCompressed, inputdata, inputlength );
     if( !b ) return false;
 
     Fragment frag;
     assert( cbyteCompressed <= rgbyteCompressed.size() ); // default alloc would be bogus
-    frag.SetByteValue( &rgbyteCompressed[0], (uint32_t)cbyteCompressed );
+    frag.SetByteValue( rgbyteCompressed.data(), (uint32_t)cbyteCompressed );
     sq->AddFragment( frag );
     }
 
@@ -1468,7 +1487,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
     &image) ? true : false;
   if(!bResult)
   {
-  opj_stream_destroy(cio);
+    opj_destroy_codec(dinfo);
+    opj_stream_destroy(cio);
     return false;
   }
   //image = opj_decode(dinfo, cio);
@@ -1491,8 +1511,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
   assert( mct == 0 || mct == 1 );
 #else
   bool b = false;
-  bool lossless;
-  bool mctb;
+  bool lossless = false;
+  bool mctb = false;
   if( parameters.decod_format == JP2_CFMT )
     b = parsejp2_imp( dummy_buffer, buf_size, &lossless, &mctb);
   else if( parameters.decod_format == J2K_CFMT )
@@ -1511,6 +1531,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
 
   if( !check_comp_valid( image ) )
     {
+    opj_destroy_codec(dinfo);
+    opj_stream_destroy(cio);
     gdcmErrorMacro( "Invalid test failed" );
     return false;
     }
@@ -1532,6 +1554,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
     }
   else
     {
+    opj_destroy_codec(dinfo);
+    opj_stream_destroy(cio);
     gdcmErrorMacro( "do not handle precision: " << comp->prec );
     return false;
     }
@@ -1584,6 +1608,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
     }
   else if( image->numcomps == 4 )
     {
+    opj_destroy_codec(dinfo);
+    opj_stream_destroy(cio);
     /* Yes this is legal */
     // http://www.crc.ricoh.com/~gormish/jpeg2000conformance/
     // jpeg2000testimages/Part4TestStreams/codestreams_profile0/p0_06.j2k
@@ -1593,6 +1619,8 @@ bool JPEG2000Codec::GetHeaderInfo(const char * dummy_buffer, size_t buf_size, Tr
     }
   else
     {
+    opj_destroy_codec(dinfo);
+    opj_stream_destroy(cio);
     // jpeg2000testimages/Part4TestStreams/codestreams_profile0/p0_13.j2k
     gdcmErrorMacro( "Image is " << image->numcomps << " components which is not supported in DICOM" );
     return false;
@@ -1695,7 +1723,7 @@ bool JPEG2000Codec::DecodeExtent(
       // update
       buf_size = fraglen + oldlen;
       vdummybuffer.resize( buf_size );
-      dummy_buffer = &vdummybuffer[0];
+      dummy_buffer = vdummybuffer.data();
       // read J2K
       is.read( &vdummybuffer[oldlen], fraglen );
       }
@@ -1711,7 +1739,7 @@ bool JPEG2000Codec::DecodeExtent(
     if( pf.GetSamplesPerPixel() != pf2.GetSamplesPerPixel()
      || pf.GetBitsAllocated() != pf2.GetBitsAllocated()
 /*
-     || pf.GetPixelRepresentation() != pf2.GetPixelRepresentation() // TODO, we are a bit too agressive here
+     || pf.GetPixelRepresentation() != pf2.GetPixelRepresentation() // TODO, we are a bit too aggressive here
 */
     )
       {
@@ -1840,10 +1868,10 @@ bool JPEG2000Codec::AppendFrameEncode( std::ostream & out, const char * data, si
   rgbyteCompressed.resize(dimensions[0] * dimensions[1] * 4);
 
   size_t cbyteCompressed;
-  const bool b = this->CodeFrameIntoBuffer((char*)&rgbyteCompressed[0], rgbyteCompressed.size(), cbyteCompressed, data, datalen );
+  const bool b = this->CodeFrameIntoBuffer((char*)rgbyteCompressed.data(), rgbyteCompressed.size(), cbyteCompressed, data, datalen );
   if( !b ) return false;
 
-  out.write( (char*)&rgbyteCompressed[0], cbyteCompressed );
+  out.write( (char*)rgbyteCompressed.data(), cbyteCompressed );
 
   return true;
 }

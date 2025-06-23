@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,11 +32,11 @@ InPlaceTest(char * inputFilename, bool normalizeAcrossScale, typename TFilter::S
 {
   // Read the input image
   using ReaderType = itk::ImageFileReader<typename TFilter::InputImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputFilename);
 
   // Create the filter
-  typename TFilter::Pointer filter = TFilter::New();
+  auto filter = TFilter::New();
 
   filter->SetNormalizeAcrossScale(normalizeAcrossScale);
   filter->SetSigma(sigmaValue);
@@ -55,7 +55,7 @@ InPlaceTest(char * inputFilename, bool normalizeAcrossScale, typename TFilter::S
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  typename TFilter::OutputImageType::Pointer outputImage1 = filter->GetOutput();
+  const typename TFilter::OutputImageType::Pointer outputImage1 = filter->GetOutput();
   outputImage1->DisconnectPipeline();
 
 
@@ -63,7 +63,7 @@ InPlaceTest(char * inputFilename, bool normalizeAcrossScale, typename TFilter::S
   filter->InPlaceOn();
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  typename TFilter::OutputImageType::Pointer outputImage2 = filter->GetOutput();
+  const typename TFilter::OutputImageType::Pointer outputImage2 = filter->GetOutput();
   outputImage2->DisconnectPipeline();
 
   using IteratorType = itk::ImageRegionConstIterator<typename TFilter::OutputImageType>;
@@ -73,7 +73,7 @@ InPlaceTest(char * inputFilename, bool normalizeAcrossScale, typename TFilter::S
   // Check whether the values of the in-place and not in-place executions are the same
   it1.GoToBegin();
   it2.GoToBegin();
-  double epsilon = itk::NumericTraits<double>::epsilon();
+  constexpr double epsilon = itk::NumericTraits<double>::epsilon();
   while (!it1.IsAtEnd())
   {
     if (!itk::Math::FloatAlmostEqual(static_cast<double>(it1.Get()), static_cast<double>(it2.Get()), 10, epsilon))
@@ -81,7 +81,7 @@ InPlaceTest(char * inputFilename, bool normalizeAcrossScale, typename TFilter::S
       std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
       std::cerr << "Test failed!" << std::endl;
       std::cerr << "Error in pixel value at index [" << std::endl;
-      std::cerr << "Error in pixel value at index [" << it1.GetIndex() << "]" << std::endl;
+      std::cerr << "Error in pixel value at index [" << it1.GetIndex() << ']' << std::endl;
       std::cerr << "Expected value " << it1.Get() << std::endl;
       std::cerr << " differs from " << it2.Get();
       std::cerr << " by more than " << epsilon << std::endl;
@@ -120,28 +120,27 @@ itkSmoothingRecursiveGaussianImageFilterTest(int argc, char * argv[])
 
   // Read the input image
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Declare the type for the itk::SmoothingRecursiveGaussianImageFilter
   using SmoothingRecursiveGaussianImageFilterType = itk::SmoothingRecursiveGaussianImageFilter<ImageType>;
 
   // Create the filter
-  SmoothingRecursiveGaussianImageFilterType::Pointer filter = SmoothingRecursiveGaussianImageFilterType::New();
+  auto filter = SmoothingRecursiveGaussianImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, SmoothingRecursiveGaussianImageFilter, InPlaceImageFilter);
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
 
   // Set the scale normalization flag
-  bool normalizeAcrossScale = std::stoi(argv[3]);
+  const bool normalizeAcrossScale = std::stoi(argv[3]);
   ITK_TEST_SET_GET_BOOLEAN(filter, NormalizeAcrossScale, normalizeAcrossScale);
 
-  // Set the value ofthe standard deviation of the Gaussian used for smoothing
-  SmoothingRecursiveGaussianImageFilterType::SigmaArrayType::ValueType sigmaValue = std::stod(argv[4]);
-  SmoothingRecursiveGaussianImageFilterType::SigmaArrayType            sigma;
-  sigma.Fill(sigmaValue);
+  // Set the value of the standard deviation of the Gaussian used for smoothing
+  const SmoothingRecursiveGaussianImageFilterType::SigmaArrayType::ValueType sigmaValue = std::stod(argv[4]);
+  auto sigma = itk::MakeFilled<SmoothingRecursiveGaussianImageFilterType::SigmaArrayType>(sigmaValue);
 
   filter->SetSigma(sigmaValue);
   ITK_TEST_SET_GET_VALUE(sigmaValue, filter->GetSigma());
@@ -159,7 +158,7 @@ itkSmoothingRecursiveGaussianImageFilterTest(int argc, char * argv[])
 
   // Write the output
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(filter->GetOutput());
 

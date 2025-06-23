@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkGradientRecursiveGaussianImageFilter.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -24,12 +25,12 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "usage: size reps" << std::endl;
+    std::cerr << "usage: " << itkNameOfTestExecutableMacro(argv) << " size reps" << std::endl;
     return EXIT_FAILURE;
   }
 
-  int imageSize = std::stoi(argv[1]);
-  int reps = std::stoi(argv[2]);
+  const int imageSize = std::stoi(argv[1]);
+  const int reps = std::stoi(argv[2]);
 
   std::cout << "imageSize: " << imageSize << " reps: " << reps << std::endl;
 
@@ -49,7 +50,7 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create the image
-  myImageType::Pointer inputImage = myImageType::New();
+  auto inputImage = myImageType::New();
 
 
   // Define their size, and start index
@@ -58,17 +59,12 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
   size[1] = imageSize;
   size[2] = imageSize;
 
-  myIndexType start;
-  start.Fill(0);
+  myIndexType start{};
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   // Declare Iterator type for the input image
@@ -91,10 +87,8 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
   start[2] = 2;
 
   // Create one iterator for an internal region
-  myRegionType innerRegion;
-  innerRegion.SetSize(size);
-  innerRegion.SetIndex(start);
-  myIteratorType itb(inputImage, innerRegion);
+  const myRegionType innerRegion{ start, size };
+  myIteratorType     itb(inputImage, innerRegion);
 
   // Initialize the content the internal region
   while (!itb.IsAtEnd())
@@ -110,7 +104,7 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
 
 
   // Create a  Filter
-  myFilterType::Pointer filter = myFilterType::New();
+  auto filter = myFilterType::New();
 
 
   // Connect the input images
@@ -118,7 +112,7 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
 
 
   // loop
-  for (int i = 0; i < reps; i++)
+  for (int i = 0; i < reps; ++i)
   {
     // Select the value of Sigma
     filter->SetSigma(2.5 + reps / 100.0);
@@ -133,7 +127,7 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
     // It is important to do it AFTER the filter is Updated
     // Because the object connected to the output may be changed
     // by another during GenerateData() call
-    myGradientImageType::Pointer outputImage = filter->GetOutput();
+    const myGradientImageType::Pointer outputImage = filter->GetOutput();
 
     // Declare Iterator type for the output image
     using myOutputIteratorType = itk::ImageRegionIteratorWithIndex<myGradientImageType>;
@@ -141,7 +135,7 @@ itkGradientRecursiveGaussianFilterSpeedTest(int argc, char * argv[])
     // Create an iterator for going through the output image
     myOutputIteratorType itg(outputImage, outputImage->GetRequestedRegion());
 
-    //  Print the content of the result image
+    // Print the content of the result image
     std::cout << " Result " << std::endl;
     itg.GoToBegin();
     std::cout << itg.Get();

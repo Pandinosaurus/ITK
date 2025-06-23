@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,8 +62,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NeighborhoodOperatorImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NeighborhoodOperatorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -93,7 +93,7 @@ public:
   using DefaultBoundaryCondition = ZeroFluxNeumannBoundaryCondition<InputImageType>;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Neighborhood types */
   using OutputNeighborhoodType = Neighborhood<OperatorValueType, Self::ImageDimension>;
@@ -143,15 +143,11 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
   itkConceptMacro(OperatorConvertibleToOutputCheck, (Concept::Convertible<OperatorValueType, OutputPixelType>));
   itkConceptMacro(InputConvertibleToOperatorCheck, (Concept::Convertible<InputPixelValueType, OperatorValueType>));
   itkConceptMacro(OperatorMultiplyOperatorCheck, (Concept::MultiplyOperator<OperatorValueType>));
   itkConceptMacro(OperatorAdditiveOperatorsCheck, (Concept::AdditiveOperators<OperatorValueType>));
-  // End concept checking
-#endif
 
 protected:
   NeighborhoodOperatorImageFilter()
@@ -185,14 +181,14 @@ protected:
 
 private:
   /** Internal operator used to filter the image. */
-  OutputNeighborhoodType m_Operator;
+  OutputNeighborhoodType m_Operator{};
 
   /** Pointer to a persistent boundary condition object used
    * for the image iterator. */
-  ImageBoundaryConditionPointerType m_BoundsCondition;
+  ImageBoundaryConditionPointerType m_BoundsCondition{};
 
   /** Default boundary condition */
-  DefaultBoundaryCondition m_DefaultBoundaryCondition;
+  DefaultBoundaryCondition m_DefaultBoundaryCondition{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,10 +24,10 @@ itkImageToImageToleranceTest(int, char *[])
 {
   using ImageType = itk::Image<unsigned char, 3>;
 
-  ImageType::Pointer image1 = ImageType::New();
-  ImageType::Pointer image2 = ImageType::New();
+  auto image1 = ImageType::New();
+  auto image2 = ImageType::New();
 
-  ImageType::SizeType size = { { 3, 3, 3 } };
+  constexpr ImageType::SizeType size = { { 3, 3, 3 } };
   image1->SetRegions(size);
   image1->Allocate();
   image1->FillBuffer(1);
@@ -47,7 +47,7 @@ itkImageToImageToleranceTest(int, char *[])
 
   using AddImageFilterType = itk::AddImageFilter<ImageType, ImageType, ImageType>;
 
-  AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+  auto addImageFilter = AddImageFilterType::New();
   addImageFilter->SetInput1(image1);
   addImageFilter->SetInput2(image2);
   bool exceptCaught = false;

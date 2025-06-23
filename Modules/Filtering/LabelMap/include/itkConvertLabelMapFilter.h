@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,8 @@
 namespace itk
 {
 /**
- *\class ConvertLabelMapFilter
- * \brief Converts the LabelObjects of a LabelMap to a different type of LabelObejct
+ * \class ConvertLabelMapFilter
+ * \brief Converts the LabelObjects of a LabelMap to a different type of LabelObject
  *
  * The LabelObjects are copied and not simply dynamically casted so the filter ensures
  * that the type of the label objects are of the type specified with TOutputImage.
@@ -32,7 +32,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa LabelMapToBinaryImageFilter, LabelMapMaskImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
@@ -74,8 +74,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ConvertLabelMapFilter, LabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConvertLabelMapFilter);
 
 protected:
   ConvertLabelMapFilter() = default;

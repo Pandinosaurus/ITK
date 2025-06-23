@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include "ITKMathematicalMorphologyExport.h"
+#include "itkIntTypes.h"
 
 
 namespace itk
@@ -34,7 +35,7 @@ namespace itk
 class MathematicalMorphologyEnums
 {
 public:
-  /**\class AlgorithmType
+  /** \class Algorithm
    * \brief Algorithm or implementation used in the dilation/erosion operations.
    * \ingroup ITKMathematicalMorphology
    */
@@ -49,7 +50,7 @@ public:
 
 /** Define how to print enumeration values. */
 extern ITKMathematicalMorphology_EXPORT std::ostream &
-                                        operator<<(std::ostream & out, const MathematicalMorphologyEnums::Algorithm value);
+operator<<(std::ostream & out, const MathematicalMorphologyEnums::Algorithm value);
 
 } // end namespace itk
 

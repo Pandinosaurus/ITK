@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ itkSigmoidImageFilterTest(int, char *[])
   using RegionType = itk::ImageRegion<ImageDimension>;
 
   // Create the input images
-  InputImageType::Pointer inputImage = InputImageType::New();
+  auto inputImage = InputImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -67,9 +67,7 @@ itkSigmoidImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize the input image
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   // Create one iterator for the input image (this is a light object)
@@ -88,7 +86,7 @@ itkSigmoidImageFilterTest(int, char *[])
   using FilterType = itk::SigmoidImageFilter<InputImageType, OutputImageType>;
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, SigmoidImageFilter, UnaryFunctorImageFilter);
 
@@ -106,7 +104,7 @@ itkSigmoidImageFilterTest(int, char *[])
   ITK_TEST_SET_GET_VALUE(beta, filter->GetBeta());
 
   constexpr OutputPixelType maximum = 1.0;
-  const OutputPixelType     minimum = -1.0;
+  constexpr OutputPixelType minimum = -1.0;
 
   filter->SetOutputMinimum(minimum);
   ITK_TEST_SET_GET_VALUE(minimum, filter->GetOutputMinimum());
@@ -120,13 +118,13 @@ itkSigmoidImageFilterTest(int, char *[])
   filter->Update();
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the image output
   OutputIteratorType ot(outputImage, outputImage->GetRequestedRegion());
 
   // Check the content of the result image
-  const OutputImageType::PixelType epsilon = 1e-6;
+  constexpr OutputImageType::PixelType epsilon = 1e-6;
   ot.GoToBegin();
   it.GoToBegin();
   while (!ot.IsAtEnd())

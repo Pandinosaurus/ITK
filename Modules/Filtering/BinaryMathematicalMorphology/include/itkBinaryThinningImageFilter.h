@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class BinaryThinningImageFilter
+ * \class BinaryThinningImageFilter
  *
  * \brief This filter computes one-pixel-wide edges of the input image.
  *
@@ -41,11 +41,7 @@ namespace itk
  *
  * This filter is a sequential thinning algorithm and known to be computational time
  * dependable on the image size.  The algorithm corresponds with the 2D
- * implementation described in:
- *
- * Rafael C. Gonzales and Richard E. Woods.
- * Digital Image Processing.
- * Addison Wesley, 491-494, (1993).
+ * implementation described in \cite gonzales1993.
  *
  * To do: Make this filter ND.
  *
@@ -73,13 +69,13 @@ public:
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryThinningImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryThinningImageFilter);
 
   /** Type for input image. */
   using InputImageType = TInputImage;
 
-  /** Type for output image: Skelenton of the object.  */
+  /** Type for output image: Skeleton of the object.  */
   using OutputImageType = TOutputImage;
 
   /** Type for the region of the input image. */
@@ -101,12 +97,12 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Superclass type alias. */
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Neighborhood iterator type */
   using NeighborhoodIteratorType = NeighborhoodIterator<TInputImage>;
 
-  /** Get Skelenton by thinning image. */
+  /** Get Skeleton by thinning image. */
   OutputImageType *
   GetThinning();
 
@@ -114,15 +110,11 @@ public:
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputAdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(InputConvertibleToIntCheck, (Concept::Convertible<PixelType, int>));
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, PixelType>));
   itkConceptMacro(SameTypeCheck, (Concept::SameType<PixelType, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   BinaryThinningImageFilter();

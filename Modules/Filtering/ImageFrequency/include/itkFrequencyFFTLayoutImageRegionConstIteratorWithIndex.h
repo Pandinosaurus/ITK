@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class FrequencyFFTLayoutImageRegionConstIteratorWithIndex
+ * \class FrequencyFFTLayoutImageRegionConstIteratorWithIndex
  * \brief A multi-dimensional iterator templated over image type that walks
  * pixels within a region and is specialized to keep track of its image index
  * location.
@@ -112,7 +112,8 @@ namespace itk
  *
  */
 template <typename TImage>
-class FrequencyFFTLayoutImageRegionConstIteratorWithIndex : public ImageRegionConstIteratorWithIndex<TImage>
+class ITK_TEMPLATE_EXPORT FrequencyFFTLayoutImageRegionConstIteratorWithIndex
+  : public ImageRegionConstIteratorWithIndex<TImage>
 {
 public:
   /** Standard class type alias. */
@@ -120,16 +121,16 @@ public:
   using Superclass = ImageRegionConstIteratorWithIndex<TImage>;
 
   /** Types inherited from the Superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
 
   using FrequencyType = typename ImageType::SpacingType;
   using FrequencyValueType = typename ImageType::SpacingValueType;
@@ -140,8 +141,8 @@ public:
     this->Init();
   }
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   FrequencyFFTLayoutImageRegionConstIteratorWithIndex(const TImage * ptr, const RegionType & region)
     : ImageRegionConstIteratorWithIndex<TImage>(ptr, region)
   {
@@ -165,13 +166,11 @@ public:
    * bin -N/2 + 1. If first index of the image is not zero, it stills returns values in the same range. f = [0, 1, ...,
    * N/2-1,     -N/2, ..., -1]  if N is even f = [0, 1, ..., (N-1)/2, -(N-1)/2, ..., -1]  if N is odd
    */
-  IndexType
+  [[nodiscard]] IndexType
   GetFrequencyBin() const
   {
-    IndexType freqInd;
-
-    freqInd.Fill(0);
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    IndexType freqInd{};
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       if (this->m_PositionIndex[dim] <= m_LargestPositiveFrequencyIndex[dim])
       {
@@ -204,26 +203,26 @@ public:
    * Where FrequencySpacing = samplingFrequency / N;
    *   and samplingFrequency = 1.0 / inputImageSpatialDomainSpacing;
    */
-  FrequencyType
+  [[nodiscard]] FrequencyType
   GetFrequency() const
   {
     FrequencyType freq;
     IndexType     freqInd = this->GetFrequencyBin();
 
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       freq[dim] = this->m_FrequencyOrigin[dim] + this->m_FrequencySpacing[dim] * freqInd[dim];
     }
     return freq;
   }
 
-  FrequencyValueType
+  [[nodiscard]] FrequencyValueType
   GetFrequencyModuloSquare() const
   {
     FrequencyValueType w2(0);
     FrequencyType      w(this->GetFrequency());
 
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       w2 += w[dim] * w[dim];
     }
@@ -240,8 +239,10 @@ public:
    * (Odd Size) LargestPositiveFrequencyIndex = originIndex + (N + 1) / 2
    */
   itkGetConstReferenceMacro(LargestPositiveFrequencyIndex, IndexType);
+
   /** Default to first index of the largest possible Region. */
   itkGetConstReferenceMacro(MinIndex, IndexType);
+
   /** Default to UpperIndex of the largest possible Region. */
   itkGetConstReferenceMacro(MaxIndex, IndexType);
 
@@ -258,14 +259,15 @@ public:
 
   /** Does nothing. This member only affects HalfHermitianFrequencyIterator.
    * Provided for homogeneous interface between iterators. */
+  /** @ITKStartGrouping */
   void
   SetActualXDimensionIsOdd(bool value)
   {
     this->m_ActualXDimensionIsOdd = value;
-  };
+  }
   itkGetMacro(ActualXDimensionIsOdd, bool);
   itkBooleanMacro(ActualXDimensionIsOdd);
-
+  /** @ITKEndGrouping */
 private:
   /** Calculate Nyquist frequency index (m_LargestPositiveFrequencyIndex), Min/Max indices from LargestPossibleRegion.
    * Also sets FrequencySpacing and FrequencyOrigin.
@@ -276,7 +278,7 @@ private:
     SizeType sizeImage = this->m_Image->GetLargestPossibleRegion().GetSize();
     this->m_MinIndex = this->m_Image->GetLargestPossibleRegion().GetIndex();
     this->m_MaxIndex = this->m_Image->GetLargestPossibleRegion().GetUpperIndex();
-    for (unsigned int dim = 0; dim < ImageType::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < ImageType::ImageDimension; ++dim)
     {
       this->m_LargestPositiveFrequencyIndex[dim] =
         static_cast<FrequencyValueType>(this->m_MinIndex[dim] + std::floor(sizeImage[dim] / 2.0));

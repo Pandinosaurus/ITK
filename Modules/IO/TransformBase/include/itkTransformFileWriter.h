@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,8 +58,8 @@ public:
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TransformFileWriterTemplate, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TransformFileWriterTemplate);
 
   /** Set the filename  */
   itkSetStringMacro(FileName);
@@ -67,24 +67,31 @@ public:
   /** Get the filename */
   itkGetStringMacro(FileName);
 
-  /** Set/Get the write mode (append/overwrite) for the Filter */
+#if !defined(ITK_FUTURE_LEGACY_REMOVE)
+  /** Set/Get the write mode (append/overwrite) for the Filter.
+   * Deprecated. */
   void
   SetAppendOff();
 
   void
   SetAppendOn();
 
-  void
-  SetAppendMode(bool mode);
-
   bool
   GetAppendMode();
+#endif
 
+  /** Set/Get the write mode (append/overwrite) for the filter. */
+  /** @ITKStartGrouping */
+  itkSetMacro(AppendMode, bool);
+  itkGetConstMacro(AppendMode, bool);
+  itkBooleanMacro(AppendMode);
+  /** @ITKEndGrouping */
   /** Set/Get a boolean to use the compression or not. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseCompression, bool);
   itkGetConstMacro(UseCompression, bool);
   itkBooleanMacro(UseCompression);
-
+  /** @ITKEndGrouping */
   /** Set/Get the input transform to write */
   void
   SetInput(const Object * transform);
@@ -101,9 +108,10 @@ public:
   Update();
 
   /** Set/Get the TransformIO class used internally to read to transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(TransformIO, TransformIOType);
   itkGetConstObjectMacro(TransformIO, TransformIOType);
-
+  /** @ITKEndGrouping */
 protected:
   TransformFileWriterTemplate();
   ~TransformFileWriterTemplate() override;
@@ -115,12 +123,12 @@ private:
   void
   PushBackTransformList(const Object * transObj);
 
-  std::string            m_FileName;
-  ConstTransformListType m_TransformList;
+  std::string            m_FileName{};
+  ConstTransformListType m_TransformList{};
   bool                   m_AppendMode{ false };
   /** Should we compress the data? */
   bool                              m_UseCompression{ false };
-  typename TransformIOType::Pointer m_TransformIO;
+  typename TransformIOType::Pointer m_TransformIO{};
 };
 
 /** This helps to meet backward compatibility */
@@ -130,18 +138,19 @@ ITK_GCC_PRAGMA_DIAG_PUSH()
 ITK_GCC_PRAGMA_DIAG(ignored "-Wattributes")
 
 /** Declare specializations */
+/** @ITKStartGrouping */
 template <>
 void ITKIOTransformBase_TEMPLATE_EXPORT
-     TransformFileWriterTemplate<double>::PushBackTransformList(const Object * transObj);
+TransformFileWriterTemplate<double>::PushBackTransformList(const Object * transObj);
 template <>
 void ITKIOTransformBase_TEMPLATE_EXPORT
-     TransformFileWriterTemplate<float>::PushBackTransformList(const Object * transObj);
-
+TransformFileWriterTemplate<float>::PushBackTransformList(const Object * transObj);
+/** @ITKEndGrouping */
 ITK_GCC_PRAGMA_DIAG_POP()
 
 } // namespace itk
 
-#ifdef ITK_IO_FACTORY_REGISTER_MANAGER
+#if defined ITK_TRANSFORMIO_FACTORY_REGISTER_MANAGER || defined ITK_IO_FACTORY_REGISTER_MANAGER
 #  include "itkTransformIOFactoryRegisterManager.h"
 #endif
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 int
 itkVTKImageToImageFilterTest(int, char *[])
 {
-  const int dim = 2;
+  constexpr int dim = 2;
   using ImageType = itk::Image<double, dim>;
   using VTKNoiseType = vtkSmartPointer<vtkImageNoiseSource>;
   using ConnectorType = itk::VTKImageToImageFilter<ImageType>;
@@ -44,7 +44,7 @@ itkVTKImageToImageFilterTest(int, char *[])
 #endif
   input->Print(std::cout);
 
-  ConnectorType::Pointer connector = ConnectorType::New();
+  auto connector = ConnectorType::New();
   connector->SetInput(input);
   connector->Update();
 
@@ -74,7 +74,7 @@ itkVTKImageToImageFilterTest(int, char *[])
     {
       if (output->GetDirection()[i][j] != input->GetDirectionMatrix()->GetData()[i * 3 + j])
       {
-        std::cerr << "Error: directions do not match for component (" << i << "," << j << ")." << std::endl;
+        std::cerr << "Error: directions do not match for component (" << i << ',' << j << ")." << std::endl;
         return EXIT_FAILURE;
       }
     }

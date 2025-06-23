@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,12 @@
 
 // First include the header file to be tested:
 #include "itkSumOfSquaresImageFunction.h"
+#include "itkRectangularImageNeighborhoodShape.h"
 
 #include "itkImage.h"
 #include "itkImageBufferRange.h"
 #include "itkIndexRange.h"
+#include "itkTestingMacros.h"
 
 #include <gtest/gtest.h>
 #include <numeric>     // For std::accumulate.
@@ -44,7 +46,7 @@ CreateImageFilledWithSequenceOfNaturalNumbers(const typename TImage::SizeType & 
   const auto image = TImage::New();
   image->SetRegions(imageSize);
   image->Allocate();
-  const auto imageBufferRange = itk::ImageBufferRange<TImage>{ *image };
+  const itk::ImageBufferRange imageBufferRange{ *image };
   std::iota(imageBufferRange.begin(), imageBufferRange.end(), PixelType{ 1 });
   return image;
 }
@@ -56,7 +58,7 @@ Expect_EvaluateAtIndex_returns_zero_when_all_pixels_are_zero(const typename TIma
 {
   const auto image = TImage::New();
   image->SetRegions(imageSize);
-  image->Allocate(true);
+  image->AllocateInitialized();
 
   const auto imageFunction = itk::SumOfSquaresImageFunction<TImage>::New();
 
@@ -92,7 +94,36 @@ Expect_EvaluateAtIndex_returns_number_of_neigbors_when_all_pixels_are_one(const 
   }
 }
 
+template <typename TImage>
+int
+TestBasicObjectProperties()
+{
+  const auto imageFunction = itk::SumOfSquaresImageFunction<TImage>::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(imageFunction, SumOfSquaresImageFunction, ImageFunction);
+
+  constexpr unsigned int radius = 1;
+  imageFunction->SetNeighborhoodRadius(radius);
+  EXPECT_EQ(radius, imageFunction->GetNeighborhoodRadius());
+
+  auto                                                                 size = TImage::SizeType::Filled(radius);
+  const itk::RectangularImageNeighborhoodShape<TImage::ImageDimension> shape(size);
+  const unsigned int                                                   neighborhoodSize = shape.GetNumberOfOffsets();
+  EXPECT_EQ(neighborhoodSize, imageFunction->GetNeighborhoodSize());
+
+  return EXIT_SUCCESS;
+}
 } // namespace
+
+
+TEST(SumOfSquaresImageFunction, BasicObjectProperties)
+{
+  int testStatus = TestBasicObjectProperties<itk::Image<double, 2>>();
+  EXPECT_EQ(testStatus, EXIT_SUCCESS);
+
+  testStatus = TestBasicObjectProperties<itk::Image<unsigned char, 3>>();
+  EXPECT_EQ(testStatus, EXIT_SUCCESS);
+}
 
 
 // Tests that EvaluateAtIndex returns zero when all pixels are zero.
@@ -107,7 +138,7 @@ TEST(SumOfSquaresImageFunction, EvaluateAtIndexReturnsZeroWhenAllPixelsAreZero)
 // Tests that EvaluateAtIndex returns the number of neighborhood pixels when all pixels are one.
 TEST(SumOfSquaresImageFunction, EvaluateAtIndexReturnsNumberOfNeighborsWhenAllPixelsAreOne)
 {
-  for (unsigned radius{}; radius <= 2; ++radius)
+  for (unsigned int radius{}; radius <= 2; ++radius)
   {
     Expect_EvaluateAtIndex_returns_number_of_neigbors_when_all_pixels_are_one<itk::Image<double, 2>>(
       itk::Size<2>{ { 2, 3 } }, radius);
@@ -127,7 +158,7 @@ TEST(SumOfSquaresImageFunction, EvaluateAtCenterPixelOfImageOfSize3x3)
 
   imageFunction->SetInputImage(image);
 
-  const auto imageBufferRange = itk::ImageBufferRange<const ImageType>{ *image };
+  const itk::ImageBufferRange imageBufferRange{ *image };
 
   // Sum of squares of all pixels of the image:
   const auto expectedResult = std::accumulate(

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 
 #if !defined(WIN32) && !defined(_WIN32)
 #  include <sys/resource.h> // getrusage()
-#  if defined(ITK_HAS_MALLINFO)
+#  if defined(ITK_HAS_MALLINFO) || defined(ITK_HAS_MALLINFO2)
 #    include <malloc.h> // mallinfo()
 #  endif                // ITK_HAS_MALLINFO
 #endif                  // !defined(WIN32) && !defined(_WIN32)
@@ -91,20 +91,20 @@ WindowsMemoryUsageObserver::~WindowsMemoryUsageObserver()
 using KPRIORITY = LONG;
 #    define SystemProcessesAndThreadsInformation 5
 
-using CLIENT_ID = struct _CLIENT_ID
+struct CLIENT_ID
 {
   DWORD UniqueProcess;
   DWORD UniqueThread;
 };
 
-using UNICODE_STRING = struct _UNICODE_STRING
+struct UNICODE_STRING
 {
   USHORT Length;
   USHORT MaximumLength;
   PWSTR  Buffer;
 };
 
-using VM_COUNTERS = struct
+struct VM_COUNTERS
 {
 #    ifdef _WIN64
   // the following was inferred by painful reverse engineering
@@ -134,7 +134,7 @@ using VM_COUNTERS = struct
 #    endif
 };
 
-using SYSTEM_THREADS = struct
+struct SYSTEM_THREADS
 {
   LARGE_INTEGER KernelTime;
   LARGE_INTEGER UserTime;
@@ -150,7 +150,7 @@ using SYSTEM_THREADS = struct
 };
 using PSYSTEM_THREADS = SYSTEM_THREADS *;
 
-using SYSTEM_PROCESSES = struct
+struct SYSTEM_PROCESSES
 { // Information Class 5
   ULONG          NextEntryDelta;
   ULONG          MaximumNumberOfThreads;
@@ -169,8 +169,8 @@ using SYSTEM_PROCESSES = struct
   ULONG pad4;
   ULONG pad5;
 #    else
-  ULONG  ProcessId;
-  ULONG  InheritedFromProcessId;
+  ULONG ProcessId;
+  ULONG InheritedFromProcessId;
 #    endif
   ULONG       HandleCount;
   ULONG       Reserved2[2];
@@ -211,13 +211,12 @@ WindowsMemoryUsageObserver::GetMemoryUsage()
 
   if (!m_hNTLib)
   {
-    itkGenericExceptionMacro(<< "Can't find ntdll.dll. "
-                             << "You should probably disable SUPPORT_TOOLHELP32");
+    itkGenericExceptionMacro("Can't find ntdll.dll. You should probably disable SUPPORT_TOOLHELP32");
   }
   // the ntdll.dll library could not have been opened (file not found?)
   if (!ZwQuerySystemInformation)
   {
-    itkGenericExceptionMacro(<< "The file ntdll.dll is not supported. "
+    itkGenericExceptionMacro("The file ntdll.dll is not supported. "
                              << "You should probably disable SUPPORT_TOOLHELP32");
   }
 
@@ -273,7 +272,7 @@ LinuxMemoryUsageObserver::~LinuxMemoryUsageObserver() = default;
 
 /** Get Memory Usage - Linux version.
  *  Reference for method used:
- *  http://stackoverflow.com/questions/669438/how-to-get-memory-usage-at-run-time-in-c
+ *  https://stackoverflow.com/questions/669438/how-to-get-memory-usage-at-run-time-in-c
  */
 MemoryUsageObserverBase::MemoryLoadType
 LinuxMemoryUsageObserver::GetMemoryUsage()
@@ -288,8 +287,8 @@ LinuxMemoryUsageObserver::GetMemoryUsage()
 
   // the two fields we want
   //
-  unsigned long vsize;
-  long          rss;
+  unsigned long vsize = 0;
+  long          rss = 0;
 
   procstats >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr >> tpgid >> flags >> minflt >> cminflt >>
     majflt >> cmajflt >> utime >> stime >> cutime >> cstime >> priority >> nice >> O >> itrealvalue >> starttime >>
@@ -315,11 +314,11 @@ MacOSXMemoryUsageObserver::GetMemoryUsage()
 {
   //
   // this method comes from
-  // http://stackoverflow.com/questions/5839626/how-is-top-able-to-see-memory-usage
-  task_t                 targetTask = mach_task_self();
+  // https://stackoverflow.com/questions/5839626/how-is-top-able-to-see-memory-usage
+  const task_t           targetTask = mach_task_self();
   struct task_basic_info ti;
   mach_msg_type_number_t count = TASK_BASIC_INFO_64_COUNT;
-  kern_return_t          kr = task_info(targetTask, TASK_BASIC_INFO_64, (task_info_t)&ti, &count);
+  const kern_return_t    kr = task_info(targetTask, TASK_BASIC_INFO_64, (task_info_t)&ti, &count);
   if (kr != KERN_SUCCESS)
   {
     return 0;
@@ -365,7 +364,7 @@ SunSolarisMemoryUsageObserver::GetMemoryUsage()
 
   if ((fp = popen(command.str().c_str(), "r")) == nullptr)
   {
-    itkGenericExceptionMacro(<< "Error using pmap. Can execute pmap command");
+    itkGenericExceptionMacro("Error using pmap. Can execute pmap command");
   }
   char remaining[256];
   int  pmappid = -1;
@@ -373,7 +372,7 @@ SunSolarisMemoryUsageObserver::GetMemoryUsage()
   // the first word shall be the process ID
   if (pmappid != pid)
   {
-    itkGenericExceptionMacro(<< "Error using pmap. 1st line output shall be PID: name");
+    itkGenericExceptionMacro("Error using pmap. 1st line output shall be PID: name");
   }
   bool        heapNotFound = true;
   char        address[64], perms[32];
@@ -404,13 +403,13 @@ SunSolarisMemoryUsageObserver::GetMemoryUsage()
     {
       if (ferror(fp))
       {
-        itkGenericExceptionMacro(<< "Error using pmap. Corrupted pmap output");
+        itkGenericExceptionMacro("Error using pmap. Corrupted pmap output");
       }
     }
   }
   if (pclose(fp) == -1)
   {
-    itkGenericExceptionMacro(<< "Error using pmap. Can't close pmap output file.");
+    itkGenericExceptionMacro("Error using pmap. Can't close pmap output file.");
   }
   return mem;
 }
@@ -429,7 +428,7 @@ SysResourceMemoryUsageObserver::GetMemoryUsage()
   // Maybe use getrusage() ??
   rusage resourceInfo;
 
-  const int who = RUSAGE_SELF;
+  constexpr int who = RUSAGE_SELF;
   if (getrusage(who, &resourceInfo) == 0)
   {
     return static_cast<MemoryUsageObserverBase::MemoryLoadType>(resourceInfo.ru_ixrss);
@@ -438,7 +437,24 @@ SysResourceMemoryUsageObserver::GetMemoryUsage()
   return 0;
 }
 
-#  if defined(ITK_HAS_MALLINFO)
+#  if defined(ITK_HAS_MALLINFO2)
+
+/**         ----         Mallinfo Memory Usage Observer       ----       */
+
+MallinfoMemoryUsageObserver::~MallinfoMemoryUsageObserver() = default;
+
+MemoryUsageObserverBase::MemoryLoadType
+MallinfoMemoryUsageObserver::GetMemoryUsage()
+{
+  struct mallinfo2 minfo = mallinfo2();
+
+  auto mem = static_cast<MemoryLoadType>(static_cast<double>(minfo.uordblks) / 1024.0);
+
+  return mem;
+}
+
+// No mallinfo2, fallback to mallinfo
+#  elif defined(ITK_HAS_MALLINFO)
 
 /**         ----         Mallinfo Memory Usage Observer       ----       */
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,18 +66,18 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TransformParametersAdaptor, TransformParametersAdaptorBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TransformParametersAdaptor);
 
   /** Typedefs associated with the transform */
 
-  using TransformBaseType = typename Superclass::TransformBaseType;
+  using typename Superclass::TransformBaseType;
   using TransformType = TTransform;
   using TransformPointer = typename TransformType::Pointer;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::FixedParametersType;
 
   /** Set the transform to be adapted */
   itkSetObjectMacro(Transform, TransformType);
@@ -105,16 +105,10 @@ public:
     }
   }
 
-  /** Get the fixed parameters */
-  const FixedParametersType &
-  GetRequiredFixedParameters() const override
-  {
-    return this->m_RequiredFixedParameters;
-  }
-
   /** Initialize the transform using the specified fixed parameters */
   void
-  AdaptTransformParameters() override{};
+  AdaptTransformParameters() override
+  {}
 
 protected:
   TransformParametersAdaptor() = default;
@@ -127,7 +121,7 @@ protected:
     itkPrintSelfObjectMacro(Transform);
   }
 
-  TransformPointer m_Transform;
+  TransformPointer m_Transform{};
 }; // class TransformParametersAdaptor
 } // namespace itk
 

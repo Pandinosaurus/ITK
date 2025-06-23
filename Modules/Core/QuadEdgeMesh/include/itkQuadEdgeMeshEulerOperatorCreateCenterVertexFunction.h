@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,18 +43,22 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   itkNewMacro(Self);
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(QuadEdgeMeshEulerOperatorCreateCenterVertexFunction, QuadEdgeMeshFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshEulerOperatorCreateCenterVertexFunction);
 
   /** Type of QuadEdge with which to apply slicing. */
   using QEType = TQEType;
 
-  using MeshType = typename Superclass::MeshType;
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::MeshType;
+  using typename Superclass::OutputType;
 
   using PointIdentifier = typename MeshType::PointIdentifier;
   using PointType = typename MeshType::PointType;
-  using CoordRepType = typename MeshType::CoordRepType;
+  using CoordinateType = typename MeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using VectorType = typename MeshType::VectorType;
 
   /** Evaluate at the specified input position */
@@ -68,12 +72,14 @@ public:
   }
 
 protected:
-  QuadEdgeMeshEulerOperatorCreateCenterVertexFunction() { this->m_NewPointID = (PointIdentifier)0; }
+  QuadEdgeMeshEulerOperatorCreateCenterVertexFunction()
+    : m_NewPointID((PointIdentifier)0)
+  {}
 
   ~QuadEdgeMeshEulerOperatorCreateCenterVertexFunction() override = default;
 
 private:
-  PointIdentifier m_NewPointID;
+  PointIdentifier m_NewPointID{};
 };
 } // namespace itk
 

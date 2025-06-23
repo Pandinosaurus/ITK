@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkImageToParametricSpaceFilter.h"
 #include "itkMesh.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkImageToParametricSpaceFilterTest(int, char *[])
@@ -43,10 +44,10 @@ itkImageToParametricSpaceFilterTest(int, char *[])
   using PointType = MeshType::PointType;
 
   // Create an input Mesh
-  MeshType::Pointer inputMesh = MeshType::New();
+  auto inputMesh = MeshType::New();
 
   // Insert data on the Mesh
-  PointsContainerPointer points = inputMesh->GetPoints();
+  const PointsContainerPointer points = inputMesh->GetPoints();
 
 
   // Declare the type for the images
@@ -58,32 +59,20 @@ itkImageToParametricSpaceFilterTest(int, char *[])
   using FilterPointer = FilterType::Pointer;
 
 
-  ImagePointer imageX = ImageType::New();
-  ImagePointer imageY = ImageType::New();
-  ImagePointer imageZ = ImageType::New();
+  const ImagePointer imageX = ImageType::New();
+  const ImagePointer imageY = ImageType::New();
+  const ImagePointer imageZ = ImageType::New();
 
-  ImageType::SizeType  size;
-  ImageType::IndexType start;
-
-  start.Fill(0);
+  ImageType::SizeType            size;
+  constexpr ImageType::IndexType start{};
   size[0] = 10;
   size[1] = 10;
 
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const ImageType::RegionType region{ start, size };
 
-  imageX->SetLargestPossibleRegion(region);
-  imageY->SetLargestPossibleRegion(region);
-  imageZ->SetLargestPossibleRegion(region);
-
-  imageX->SetBufferedRegion(region);
-  imageY->SetBufferedRegion(region);
-  imageZ->SetBufferedRegion(region);
-
-  imageX->SetRequestedRegion(region);
-  imageY->SetRequestedRegion(region);
-  imageZ->SetRequestedRegion(region);
+  imageX->SetRegions(region);
+  imageY->SetRegions(region);
+  imageZ->SetRegions(region);
 
   imageX->Allocate();
   imageY->Allocate();
@@ -117,7 +106,13 @@ itkImageToParametricSpaceFilterTest(int, char *[])
   }
 
 
-  FilterPointer filter = FilterType::New();
+  const FilterPointer filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ImageToParametricSpaceFilter, ImageToMeshFilter);
+
+
+  constexpr bool computeIndices = true;
+  ITK_TEST_SET_GET_BOOLEAN(filter, ComputeIndices, computeIndices);
 
   // Connect the inputs
   filter->SetInput(0, imageX);
@@ -128,12 +123,12 @@ itkImageToParametricSpaceFilterTest(int, char *[])
   filter->Update();
 
   // Get the Smart Pointer to the Filter Output
-  MeshType::Pointer outputMesh = filter->GetOutput();
+  const MeshType::Pointer outputMesh = filter->GetOutput();
 
-  // Get the the point container
-  MeshType::PointsContainer::Iterator beginPoint = outputMesh->GetPoints()->Begin();
+  // Get the point container
+  const MeshType::PointsContainer::Iterator beginPoint = outputMesh->GetPoints()->Begin();
 
-  MeshType::PointsContainer::Iterator endPoint = outputMesh->GetPoints()->End();
+  const MeshType::PointsContainer::Iterator endPoint = outputMesh->GetPoints()->End();
 
   MeshType::PointsContainer::Iterator pointIt = beginPoint;
 

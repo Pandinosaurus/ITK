@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,23 +17,22 @@
  *=========================================================================*/
 #ifndef itkConstShapedNeighborhoodIterator_hxx
 #define itkConstShapedNeighborhoodIterator_hxx
-#include "itkConstShapedNeighborhoodIterator.h"
 namespace itk
 {
 template <typename TImage, typename TBoundaryCondition>
 void
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  os << indent << "ConstShapedNeighborhoodIterator {this = " << this;
-  os << " m_ActiveIndexList = [";
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "ActiveIndexList: [";
   for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
   {
-    os << *it << " ";
+    os << indent.GetNextIndent() << *it << ' ';
   }
   os << "] ";
-  os << " m_CenterIsActive = " << m_CenterIsActive;
-  os << "}" << std::endl;
-  Superclass::PrintSelf(os, indent.GetNextIndent());
+
+  itkPrintSelfBooleanMacro(CenterIsActive);
 }
 
 template <typename TImage, typename TBoundaryCondition>
@@ -53,7 +52,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::ActivateIndex(Neigh
   {
     while (n > *it)
     {
-      it++;
+      ++it;
       if (it == m_ActiveIndexList.end())
       {
         break;
@@ -77,7 +76,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::ActivateIndex(Neigh
 
   // Set the pointer in the neighborhood location just activated.
   this->GetElement(n) = this->GetCenterPointer();
-  for (unsigned i = 0; i < Dimension; ++i)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     this->GetElement(n) += OffsetTable[i] * this->GetOffset(n)[i];
   }
@@ -93,18 +92,17 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::DeactivateIndex(Nei
   {
     return;
   }
-  else
+
+  while (n != *it)
   {
-    while (n != *it)
+    ++it;
+    if (it == m_ActiveIndexList.end())
     {
-      it++;
-      if (it == m_ActiveIndexList.end())
-      {
-        return;
-      }
+      return;
     }
-    m_ActiveIndexList.erase(it);
   }
+  m_ActiveIndexList.erase(it);
+
 
   // Did we just deactivate the index at the center of the neighborhood?
   if (n == this->GetCenterNeighborhoodIndex())
@@ -114,18 +112,20 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::DeactivateIndex(Nei
 }
 
 template <typename TImage, typename TBoundaryCondition>
+template <typename TNeighborPixel>
 void
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::CreateActiveListFromNeighborhood(
-  const NeighborhoodType & neighborhood)
+  const Neighborhood<TNeighborPixel, Self::Dimension> & neighborhood)
 {
   if (this->GetRadius() != neighborhood.GetRadius())
   {
-    itkGenericExceptionMacro(<< "Radius of shaped iterator(" << this->GetRadius()
-                             << ") does not equal radius of neighborhood(" << neighborhood.GetRadius() << ")");
+    itkGenericExceptionMacro("Radius of shaped iterator(" << this->GetRadius()
+                                                          << ") does not equal radius of neighborhood("
+                                                          << neighborhood.GetRadius() << ')');
   }
-  typename NeighborhoodType::ConstIterator nit;
-  NeighborIndexType                        idx = 0;
-  for (nit = neighborhood.Begin(); nit != neighborhood.End(); ++nit, ++idx)
+
+  NeighborIndexType idx = 0;
+  for (auto nit = neighborhood.Begin(); nit != neighborhood.End(); ++nit, ++idx)
   {
     if (*nit)
     {
@@ -156,8 +156,6 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator++()
   }
   else
   {
-    IndexListConstIterator it;
-
     // Center pointer must be updated whether or not it is active.
     if (!m_CenterIsActive)
     {
@@ -165,7 +163,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator++()
     }
 
     // Increment pointers for only the active pixels.
-    for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+    for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
     {
       (this->GetElement(*it))++;
     }
@@ -181,7 +179,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator++()
         {
           this->GetElement(this->GetCenterNeighborhoodIndex()) += this->m_WrapOffset[ii];
         }
-        for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+        for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
         {
           (this->GetElement(*it)) += this->m_WrapOffset[ii];
         }
@@ -199,9 +197,6 @@ template <typename TImage, typename TBoundaryCondition>
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition> &
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator--()
 {
-  unsigned int           i;
-  IndexListConstIterator it;
-
   // Repositioning neighborhood, previous bounds check on neighborhood
   // location is invalid.
   this->m_IsInBoundsValid = false;
@@ -223,13 +218,13 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator--()
     }
 
     // Decrement pointers for only the active pixels.
-    for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+    for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
     {
       (this->GetElement(*it))--;
     }
 
     // Check loop bounds, wrap & add pointer offsets if needed.
-    for (i = 0; i < Dimension; ++i)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
       if (this->m_Loop[i] == this->m_BeginIndex[i])
       {
@@ -238,7 +233,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator--()
         {
           this->GetElement(this->GetCenterNeighborhoodIndex()) -= this->m_WrapOffset[i];
         }
-        for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+        for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
         {
           (this->GetElement(*it)) -= this->m_WrapOffset[i];
         }
@@ -257,8 +252,6 @@ template <typename TImage, typename TBoundaryCondition>
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition> &
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator+=(const OffsetType & idx)
 {
-  unsigned int            i;
-  IndexListConstIterator  it;
   OffsetValueType         accumulator = 0;
   const OffsetValueType * stride = this->GetImagePointer()->GetOffsetTable();
 
@@ -284,7 +277,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator+=(const Of
     // Because the image offset table is based on its buffer size and
     // not its requested region size, we don't have to worry about
     // adding in the wrapping offsets.
-    for (i = 1; i < Dimension; ++i)
+    for (unsigned int i = 1; i < Dimension; ++i)
     {
       accumulator += idx[i] * stride[i];
     }
@@ -296,7 +289,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator+=(const Of
     }
 
     // Increment pointers only for those active pixels
-    for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+    for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
     {
       (this->GetElement(*it)) += accumulator;
     }
@@ -311,8 +304,6 @@ template <typename TImage, typename TBoundaryCondition>
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition> &
 ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator-=(const OffsetType & idx)
 {
-  unsigned int            i;
-  IndexListConstIterator  it;
   OffsetValueType         accumulator = 0;
   const OffsetValueType * stride = this->GetImagePointer()->GetOffsetTable();
 
@@ -338,7 +329,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator-=(const Of
     // Because the image offset table is based on its buffer size and
     // not its requested region size, we don't have to worry about
     // adding in the wrapping offsets.
-    for (i = 1; i < Dimension; ++i)
+    for (unsigned int i = 1; i < Dimension; ++i)
     {
       accumulator += idx[i] * stride[i];
     }
@@ -350,7 +341,7 @@ ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>::operator-=(const Of
     }
 
     // Increment pointers only for those active pixels
-    for (it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
+    for (auto it = m_ActiveIndexList.begin(); it != m_ActiveIndexList.end(); ++it)
     {
       (this->GetElement(*it)) -= accumulator;
     }

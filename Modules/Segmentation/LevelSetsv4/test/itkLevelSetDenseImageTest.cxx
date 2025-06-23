@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 
 #include "itkLevelSetTestFunction.h"
+#include "itkTestingMacros.h"
 
 /**
  * \class ToleranceChecker
@@ -34,7 +35,7 @@ public:
     : m_Tolerance(1e-8)
   {}
 
-  bool
+  [[nodiscard]] bool
   IsOutsideTolerance(const RealType & value, const RealType & theoreticalValue) const
   {
     // ignore if they are both effectively zero
@@ -49,7 +50,7 @@ public:
     return false;
   }
 
-  RealType
+  [[nodiscard]] RealType
   GetFractionalError(const RealType & value, const RealType & theoreticalValue) const
   {
     RealType fractionalError =
@@ -86,11 +87,9 @@ itkLevelSetDenseImageTest(int, char *[])
   size[0] = 10;
   size[1] = 20;
 
-  ImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const ImageType::RegionType region{ index, size };
 
-  PixelType zeroValue = 0.;
+  constexpr PixelType zeroValue = 0.;
 
   ImageType::SpacingType spacing;
   spacing[0] = 0.02 / size[0];
@@ -100,7 +99,7 @@ itkLevelSetDenseImageTest(int, char *[])
   origin[0] = 3.99;
   origin[1] = 3.99;
 
-  ImageType::Pointer input = ImageType::New();
+  auto input = ImageType::New();
   input->SetRegions(region);
   input->SetSpacing(spacing);
   input->SetOrigin(origin);
@@ -115,28 +114,33 @@ itkLevelSetDenseImageTest(int, char *[])
   ImageType::PointType pt;
 
   using TestFunctionType = itk::LevelSetTestFunction<PixelType>;
-  TestFunctionType::Pointer testFunction = TestFunctionType::New();
+  auto testFunction = TestFunctionType::New();
 
   while (!it.IsAtEnd())
   {
     idx = it.GetIndex();
     input->TransformIndexToPhysicalPoint(idx, pt);
 
-    PixelType tempValue = testFunction->Evaluate(pt);
+    const PixelType tempValue = testFunction->Evaluate(pt);
     it.Set(tempValue);
 
 
     ++it;
   }
 
-  LevelSetType::Pointer level_set = LevelSetType::New();
-  level_set->SetImage(input);
+  auto levelSet = LevelSetType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(levelSet, LevelSetDenseImage, DiscreteLevelSetImage);
+
+
+  levelSet->SetImage(input);
+  ITK_TEST_SET_GET_VALUE(input, levelSet->GetImage());
 
   idx[0] = 9;
   idx[1] = 18;
   input->TransformIndexToPhysicalPoint(idx, pt);
   LevelSetType::OutputType theoreticalValue = testFunction->Evaluate(pt);
-  LevelSetType::OutputType value = level_set->Evaluate(idx);
+  LevelSetType::OutputType value = levelSet->Evaluate(idx);
 
   ToleranceChecker<double> toleranceChecker;
 
@@ -148,14 +152,14 @@ itkLevelSetDenseImageTest(int, char *[])
     input->TransformIndexToPhysicalPoint(idx, pt);
 
     theoreticalValue = testFunction->Evaluate(pt);
-    value = level_set->Evaluate(idx);
+    value = levelSet->Evaluate(idx);
     if (toleranceChecker.IsOutsideTolerance(value, theoreticalValue))
     {
       std::cout << "Index:" << idx << " *EvaluateTestFail* " << value << " != " << theoreticalValue << std::endl;
       return EXIT_FAILURE;
     }
 
-    if (level_set->IsInside(idx) != (theoreticalValue <= 0.))
+    if (levelSet->IsInside(idx) != (theoreticalValue <= 0.))
     {
       std::cerr << "if( testFunction->IsInside( pt ) != ( theoreticalValue <= 0. ) )" << std::endl;
       std::cerr << "pt : " << pt << std::endl;
@@ -166,9 +170,6 @@ itkLevelSetDenseImageTest(int, char *[])
     ++it;
   }
 
-  LevelSetType::GradientType gradient;
-  LevelSetType::GradientType theoreticalGradient;
-
   toleranceChecker.SetTolerance(0.1);
   it.GoToBegin();
   while (!it.IsAtEnd())
@@ -176,8 +177,8 @@ itkLevelSetDenseImageTest(int, char *[])
     idx = it.GetIndex();
     input->TransformIndexToPhysicalPoint(idx, pt);
 
-    theoreticalGradient = testFunction->EvaluateGradient(pt);
-    gradient = level_set->EvaluateGradient(idx);
+    LevelSetType::GradientType theoreticalGradient = testFunction->EvaluateGradient(pt);
+    LevelSetType::GradientType gradient = levelSet->EvaluateGradient(idx);
     if (toleranceChecker.IsOutsideTolerance(gradient[0], theoreticalGradient[0]) ||
         toleranceChecker.IsOutsideTolerance(gradient[1], theoreticalGradient[1]))
     {
@@ -196,7 +197,7 @@ itkLevelSetDenseImageTest(int, char *[])
   idx[0] = 9;
   idx[1] = 18;
   input->TransformIndexToPhysicalPoint(idx, pt);
-  LevelSetType::HessianType hessian = level_set->EvaluateHessian(idx);
+  LevelSetType::HessianType hessian = levelSet->EvaluateHessian(idx);
   std::cout << "hessian = " << std::endl << hessian << std::endl;
 
   if (itk::Math::abs(itk::Math::abs(hessian[0][0]) - 499.998) / 499.998 > 5e-2)
@@ -206,10 +207,10 @@ itkLevelSetDenseImageTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  LevelSetType::OutputRealType laplacian = level_set->EvaluateLaplacian(idx);
+  const LevelSetType::OutputRealType laplacian = levelSet->EvaluateLaplacian(idx);
   std::cout << "laplacian = " << laplacian << std::endl;
 
-  LevelSetType::OutputRealType gradientnorm = level_set->EvaluateGradientNorm(idx);
+  const LevelSetType::OutputRealType gradientnorm = levelSet->EvaluateGradientNorm(idx);
   std::cout << "gradient norm = " << gradientnorm << std::endl;
 
   if (itk::Math::abs(1 - gradientnorm) > 5e-2)
@@ -218,7 +219,7 @@ itkLevelSetDenseImageTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  LevelSetType::OutputRealType meancurvature = level_set->EvaluateMeanCurvature(idx);
+  const LevelSetType::OutputRealType meancurvature = levelSet->EvaluateMeanCurvature(idx);
   std::cout << "mean curvature = " << meancurvature << std::endl;
 
   return EXIT_SUCCESS;

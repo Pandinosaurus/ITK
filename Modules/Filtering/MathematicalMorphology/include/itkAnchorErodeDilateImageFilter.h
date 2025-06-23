@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,6 +48,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Some convenient type alias. */
+
   /** Kernel type alias. */
   using KernelType = TKernel;
 
@@ -66,13 +67,14 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(AnchorErodeDilateImageFilter, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AnchorErodeDilateImageFilter);
 
   /** Set/Get the boundary value. */
+  /** @ITKStartGrouping */
   itkSetMacro(Boundary, InputImagePixelType);
   itkGetConstMacro(Boundary, InputImagePixelType);
-
+  /** @ITKEndGrouping */
 protected:
   AnchorErodeDilateImageFilter();
   ~AnchorErodeDilateImageFilter() override = default;
@@ -85,7 +87,7 @@ protected:
 
 
   // should be set by the meta filter
-  InputImagePixelType m_Boundary;
+  InputImagePixelType m_Boundary{};
 
 private:
   using BresType = BresenhamLine<Self::InputImageDimension>;

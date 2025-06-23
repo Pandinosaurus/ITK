@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,22 +24,17 @@ namespace itk
  * Constructor
  */
 LevenbergMarquardtOptimizer::LevenbergMarquardtOptimizer()
-{
-  m_OptimizerInitialized = false;
-  m_VnlOptimizer = nullptr;
-  m_NumberOfIterations = 2000;
-  m_ValueTolerance = 1e-8;
-  m_GradientTolerance = 1e-5;
-  m_EpsilonFunction = 1e-11;
-}
+  : m_VnlOptimizer(nullptr)
+  , m_NumberOfIterations(2000)
+  , m_ValueTolerance(1e-8)
+  , m_GradientTolerance(1e-5)
+  , m_EpsilonFunction(1e-11)
+{}
 
 /**
  * Destructor
  */
-LevenbergMarquardtOptimizer::~LevenbergMarquardtOptimizer()
-{
-  delete m_VnlOptimizer;
-}
+LevenbergMarquardtOptimizer::~LevenbergMarquardtOptimizer() = default;
 
 /**
  * Connect a Cost Function
@@ -54,14 +49,9 @@ LevenbergMarquardtOptimizer::SetCostFunction(MultipleValuedCostFunction * costFu
 
   adaptor->SetCostFunction(costFunction);
 
-  if (m_OptimizerInitialized)
-  {
-    delete m_VnlOptimizer;
-  }
-
   this->SetCostFunctionAdaptor(adaptor);
 
-  m_VnlOptimizer = new vnl_levenberg_marquardt(*adaptor);
+  m_VnlOptimizer = std::make_unique<vnl_levenberg_marquardt>(*adaptor);
 
   this->SetNumberOfIterations(m_NumberOfIterations);
   this->SetValueTolerance(m_ValueTolerance);
@@ -90,7 +80,7 @@ LevenbergMarquardtOptimizer::GetValue() const
       if (m_ScalesInitialized)
       {
         const ScalesType & scales = this->GetScales();
-        for (unsigned int i = 0; i < parameters.size(); i++)
+        for (unsigned int i = 0; i < parameters.size(); ++i)
         {
           parameters[i] *= scales[i];
         }
@@ -109,8 +99,8 @@ LevenbergMarquardtOptimizer::StartOptimization()
 {
   this->InvokeEvent(StartEvent());
 
-  ParametersType initialPosition = GetInitialPosition();
-  ParametersType parameters(initialPosition);
+  const ParametersType initialPosition = GetInitialPosition();
+  ParametersType       parameters(initialPosition);
 
   // If the user provides the scales then we set otherwise we don't
   // for computation speed.
@@ -121,7 +111,7 @@ LevenbergMarquardtOptimizer::StartOptimization()
   {
     const ScalesType & scales = this->GetScales();
     this->GetNonConstCostFunctionAdaptor()->SetScales(scales);
-    for (unsigned int i = 0; i < parameters.size(); i++)
+    for (unsigned int i = 0; i < parameters.size(); ++i)
     {
       parameters[i] *= scales[i];
     }
@@ -203,19 +193,19 @@ LevenbergMarquardtOptimizer::SetEpsilonFunction(double epsilon)
 vnl_levenberg_marquardt *
 LevenbergMarquardtOptimizer::GetOptimizer() const
 {
-  return m_VnlOptimizer;
+  return m_VnlOptimizer.get();
 }
 
-const std::string
+std::string
 LevenbergMarquardtOptimizer::GetStopConditionDescription() const
 {
-  std::ostringstream reason, outcome;
-
+  std::ostringstream outcome;
   outcome.str("");
   if (GetOptimizer())
   {
     GetOptimizer()->diagnose_outcome(outcome);
   }
+  std::ostringstream reason;
   reason << this->GetNameOfClass() << ": " << ((!outcome.str().empty()) ? outcome.str().c_str() : "");
   return reason.str();
 }

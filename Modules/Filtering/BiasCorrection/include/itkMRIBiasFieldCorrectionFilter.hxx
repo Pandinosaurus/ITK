@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMRIBiasFieldCorrectionFilter_hxx
 #define itkMRIBiasFieldCorrectionFilter_hxx
 
-#include "itkMRIBiasFieldCorrectionFilter.h"
 
 namespace itk
 {
@@ -29,9 +28,9 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::MRIBiasEnergyFunction()
   , m_Image(nullptr)
   , m_Mask(nullptr)
 {
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int & factor : m_SamplingFactor)
   {
-    m_SamplingFactor[i] = 1;
+    factor = 1;
   }
 }
 
@@ -40,14 +39,7 @@ void
 MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::InitializeDistributions(Array<double> classMeans,
                                                                                Array<double> classSigmas)
 {
-  m_InternalEnergyFunction = new InternalEnergyFunction(classMeans, classSigmas);
-}
-
-template <typename TImage, typename TImageMask, typename TBiasField>
-MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::~MRIBiasEnergyFunction()
-{
-  delete m_InternalEnergyFunction;
-  m_InternalEnergyFunction = nullptr;
+  m_InternalEnergyFunction = std::make_unique<InternalEnergyFunction>(classMeans, classSigmas);
 }
 
 template <typename TImage, typename TImageMask, typename TBiasField>
@@ -62,22 +54,22 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetNumberOfParameters() c
 }
 
 template <typename TImage, typename TImageMask, typename TBiasField>
-typename MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::MeasureType
-MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const ParametersType & parameters) const
+auto
+MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const ParametersType & parameters) const -> MeasureType
 {
   if (m_Image.IsNull())
   {
-    itkExceptionMacro(<< "Image is null");
+    itkExceptionMacro("Image is null");
   }
 
   if (!m_InternalEnergyFunction)
   {
-    itkExceptionMacro(<< "EnergyFunction is null");
+    itkExceptionMacro("EnergyFunction is null");
   }
 
   if (m_BiasField == nullptr)
   {
-    itkExceptionMacro(<< "BiasField is null");
+    itkExceptionMacro("BiasField is null");
   }
 
   MeasureType total = 0.0;
@@ -101,7 +93,7 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const Parameters
     {
       while (!bIter.IsAtEnd())
       {
-        double diff = iIter.Get() - bIter.Get();
+        const double diff = iIter.Get() - bIter.Get();
         total = total + (*m_InternalEnergyFunction)(diff);
         ++bIter;
         ++iIter;
@@ -115,7 +107,7 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const Parameters
       {
         if (mIter.Get() > 0.0)
         {
-          double diff = iIter.Get() - bIter.Get();
+          const double diff = iIter.Get() - bIter.Get();
           total = total + (*m_InternalEnergyFunction)(diff);
         }
         ++bIter;
@@ -127,7 +119,6 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const Parameters
   else
   {
     typename ImageType::IndexType  origIndex = m_Region.GetIndex();
-    typename ImageType::IndexType  curIndex;
     typename TBiasField::IndexType indexBias(SpaceDimension);
     typename ImageType::SizeType   size = m_Region.GetSize();
     // Use indexing for incomplete sampling
@@ -135,14 +126,15 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const Parameters
     if (!m_Mask)
     {
       indexBias[2] = 0;
+      typename ImageType::IndexType curIndex;
       for (curIndex[2] = origIndex[2]; curIndex[2] < origIndex[2] + (IndexValueType)size[2];
            curIndex[2] = curIndex[2] + (IndexValueType)m_SamplingFactor[2])
       {
-        indexBias[1] = (int)((curIndex[2] % 2) * 0.5 * m_SamplingFactor[1]);
+        indexBias[1] = static_cast<int>((curIndex[2] % 2) * 0.5 * m_SamplingFactor[1]);
         for (curIndex[1] = origIndex[1]; curIndex[1] < origIndex[1] + (IndexValueType)size[1];
              curIndex[1] = curIndex[1] + (IndexValueType)m_SamplingFactor[1])
         {
-          indexBias[0] = (int)((curIndex[2] % 2) * 0.5 * m_SamplingFactor[0]);
+          indexBias[0] = static_cast<int>((curIndex[2] % 2) * 0.5 * m_SamplingFactor[0]);
           for (curIndex[0] = origIndex[0]; curIndex[0] < origIndex[0] + (IndexValueType)size[0];
                curIndex[0] = curIndex[0] + (IndexValueType)m_SamplingFactor[0])
           {
@@ -159,14 +151,15 @@ MRIBiasEnergyFunction<TImage, TImageMask, TBiasField>::GetValue(const Parameters
     else
     {
       indexBias[2] = 0;
+      typename ImageType::IndexType curIndex;
       for (curIndex[2] = origIndex[2]; curIndex[2] < origIndex[2] + (IndexValueType)size[2];
            curIndex[2] = curIndex[2] + (IndexValueType)m_SamplingFactor[2])
       {
-        indexBias[1] = (int)((curIndex[2] % 2) * 0.5 * m_SamplingFactor[1]);
+        indexBias[1] = static_cast<int>((curIndex[2] % 2) * 0.5 * m_SamplingFactor[1]);
         for (curIndex[1] = origIndex[1]; curIndex[1] < origIndex[1] + (IndexValueType)size[1];
              curIndex[1] = curIndex[1] + (IndexValueType)m_SamplingFactor[1])
         {
-          indexBias[0] = (int)((curIndex[2] % 2) * 0.5 * m_SamplingFactor[0]);
+          indexBias[0] = static_cast<int>((curIndex[2] % 2) * 0.5 * m_SamplingFactor[0]);
           for (curIndex[0] = origIndex[0]; curIndex[0] < origIndex[0] + (IndexValueType)size[0];
                curIndex[0] = curIndex[0] + (IndexValueType)m_SamplingFactor[0])
           {
@@ -200,7 +193,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::MRIBiasFiel
 {
   m_NormalVariateGenerator->Initialize(time(nullptr));
 
-  if (ImageDimension == 3)
+  if constexpr (ImageDimension == 3)
   {
     m_UsingInterSliceIntensityCorrection = true;
     m_SlicingDirection = 2;
@@ -232,9 +225,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::SetNumberOf
   }
 
   // Resize the schedules
-  ScheduleType temp(m_NumberOfLevels, ImageDimension);
-  temp.Fill(0);
-  m_Schedule = temp;
+  m_Schedule = ScheduleType(m_NumberOfLevels, ImageDimension, 0);
 
   // Determine initial shrink factor
   unsigned int startfactor = 1;
@@ -294,7 +285,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::SetSchedule
 {
   if (schedule.rows() != m_NumberOfLevels || schedule.columns() != ImageDimension)
   {
-    itkDebugMacro(<< "Schedule has wrong dimensions");
+    itkDebugMacro("Schedule has wrong dimensions");
     return;
   }
 
@@ -304,10 +295,9 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::SetSchedule
   }
 
   this->Modified();
-  unsigned int level, dim;
-  for (level = 0; level < m_NumberOfLevels; level++)
+  for (unsigned int level = 0; level < m_NumberOfLevels; ++level)
   {
-    for (dim = 0; dim < ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
       m_Schedule[level][dim] = schedule[level][dim];
 
@@ -331,11 +321,9 @@ bool
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::IsScheduleDownwardDivisible(
   const ScheduleType & schedule)
 {
-  unsigned int ilevel, idim;
-
-  for (ilevel = 0; ilevel < schedule.rows() - 1; ilevel++)
+  for (unsigned int ilevel = 0; ilevel < schedule.rows() - 1; ++ilevel)
   {
-    for (idim = 0; idim < schedule.columns(); idim++)
+    for (unsigned int idim = 0; idim < schedule.columns(); ++idim)
     {
       if (schedule[ilevel][idim] == 0)
       {
@@ -404,7 +392,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::Initialize(
   if (this->GetBiasFieldMultiplicative())
   {
     const unsigned int size = m_TissueClassMeans.Size();
-    for (unsigned int i = 0; i < size; i++)
+    for (unsigned int i = 0; i < size; ++i)
     {
       m_TissueClassSigmas[i] = std::log(1.0 + m_TissueClassSigmas[i] / (m_TissueClassMeans[i] + 1.0));
       m_TissueClassMeans[i] = std::log(m_TissueClassMeans[i] + 1.0);
@@ -418,7 +406,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::Initialize(
   // Initialize the energy function
   if (m_TissueClassMeans.Size() < 1)
   {
-    itkExceptionMacro(<< "Tissue Class Means is empty");
+    itkExceptionMacro("Tissue Class Means is empty");
   }
 
   if (!m_EnergyFunction)
@@ -436,12 +424,13 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::Initialize(
 }
 
 template <typename TInputImage, typename TOutputImage, typename TMaskImage>
-typename MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::BiasFieldType
+auto
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::EstimateBiasField(InputImageRegionType region,
                                                                                        unsigned int         degree,
                                                                                        int maximumIteration)
+  -> BiasFieldType
 {
-  itkDebugMacro(<< "Estimating bias field ");
+  itkDebugMacro("Estimating bias field ");
 
   bool                          cleanCoeffs = false;
   BiasFieldType::DomainSizeType biasSize;
@@ -468,7 +457,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::EstimateBia
   m_EnergyFunction->SetRegion(region);
 
   // Initialize the 1+1 optimizer
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetDebug(this->GetDebug());
   optimizer->SetNormalVariateGenerator(m_NormalVariateGenerator);
   optimizer->SetCostFunction(m_EnergyFunction);
@@ -500,9 +489,9 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::EstimateBia
   scales.Fill(100);
   optimizer->SetScales(scales);
 
-  int                                         noOfBiasFieldCoefficients = bias.GetNumberOfCoefficients();
+  const int                                   noOfBiasFieldCoefficients = bias.GetNumberOfCoefficients();
   typename EnergyFunctionType::ParametersType initialPosition(noOfBiasFieldCoefficients);
-  for (int i = 0; i < noOfBiasFieldCoefficients; i++)
+  for (int i = 0; i < noOfBiasFieldCoefficients; ++i)
   {
     initialPosition[i] = bias.GetCoefficients()[i];
   }
@@ -510,12 +499,10 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::EstimateBia
 
   try
   {
-    unsigned int level;
-    unsigned int dim;
-    for (level = 0; level < m_NumberOfLevels; level++)
+    for (unsigned int level = 0; level < m_NumberOfLevels; ++level)
     {
       typename EnergyFunctionType::SamplingFactorType energySampling;
-      for (dim = 0; dim < ImageDimension; dim++)
+      for (unsigned int dim = 0; dim < ImageDimension; ++dim)
       {
         energySampling[dim] = m_Schedule[level][dim];
       }
@@ -524,11 +511,11 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::EstimateBia
       optimizer->StartOptimization();
     }
   }
-  catch (ExceptionObject & ie)
+  catch (const ExceptionObject & ie)
   {
     std::cerr << ie << std::endl;
   }
-  catch (std::exception & e)
+  catch (const std::exception & e)
   {
     std::cerr << e.what() << std::endl;
   }
@@ -547,7 +534,7 @@ void
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CorrectImage(BiasFieldType &      bias,
                                                                                   InputImageRegionType region)
 {
-  itkDebugMacro(<< "Correcting the image ");
+  itkDebugMacro("Correcting the image ");
   using Pixel = InternalImagePixelType;
   ImageRegionIterator<InternalImageType> iIter(m_InternalInput, region);
   BiasFieldType::SimpleForwardIterator   bIter(&bias);
@@ -556,16 +543,15 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CorrectImag
   this->GetBiasFieldSize(region, biasSize);
 
   bIter.Begin();
-  iIter.GoToBegin();
   if (m_OutputMask.IsNotNull())
   {
-    itkDebugMacro(<< "Output mask is being used");
+    itkDebugMacro("Output mask is being used");
     ImageRegionIterator<ImageMaskType> mIter(m_OutputMask, region);
     mIter.GoToBegin();
     while (!bIter.IsAtEnd())
     {
-      double inputPixel = iIter.Get();
-      double diff = inputPixel - bIter.Get();
+      const double inputPixel = iIter.Get();
+      const double diff = inputPixel - bIter.Get();
       if (mIter.Get() > 0.0)
       {
         iIter.Set((Pixel)diff);
@@ -581,10 +567,10 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CorrectImag
   }
   else
   {
-    itkDebugMacro(<< "Output mask is not being used");
+    itkDebugMacro("Output mask is not being used");
     while (!bIter.IsAtEnd())
     {
-      double diff = iIter.Get() - bIter.Get();
+      const double diff = iIter.Get() - bIter.Get();
       iIter.Set((Pixel)diff);
       ++bIter;
       ++iIter;
@@ -597,7 +583,7 @@ void
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CorrectInterSliceIntensityInhomogeneity(
   InputImageRegionType region)
 {
-  IndexValueType lastSlice =
+  const IndexValueType lastSlice =
     region.GetIndex()[m_SlicingDirection] + static_cast<IndexValueType>(region.GetSize()[m_SlicingDirection]);
   InputImageRegionType sliceRegion;
   InputImageIndexType  index = region.GetIndex();
@@ -605,7 +591,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CorrectInte
 
   sliceRegion.SetSize(size);
   BiasFieldType bias = this->EstimateBiasField(sliceRegion, 0, m_InterSliceCorrectionMaximumIteration);
-  double        globalBiasCoef = bias.GetCoefficients()[0];
+  const double  globalBiasCoef = bias.GetCoefficients()[0];
 
   size[m_SlicingDirection] = 1;
   sliceRegion.SetSize(size);
@@ -627,15 +613,15 @@ template <typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateData()
 {
-  itkDebugMacro(<< "Initializing filter...");
+  itkDebugMacro("Initializing filter...");
   this->Initialize();
-  itkDebugMacro(<< "Filter initialized.");
+  itkDebugMacro("Filter initialized.");
 
   if (m_UsingSlabIdentification)
   {
-    itkDebugMacro(<< "Searching slabs...");
+    itkDebugMacro("Searching slabs...");
 
-    typename MRASlabIdentifier<InputImageType>::Pointer identifier = MRASlabIdentifier<InputImageType>::New();
+    auto identifier = MRASlabIdentifier<InputImageType>::New();
     // Find slabs
     identifier->SetImage(this->GetInput());
     identifier->SetNumberOfSamples(m_SlabNumberOfSamples);
@@ -655,7 +641,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
   }
 
   this->AdjustSlabRegions(m_Slabs, this->GetOutput()->GetRequestedRegion());
-  itkDebugMacro(<< "After adjustment, there are " << static_cast<SizeValueType>(m_Slabs.size()) << " slabs.");
+  itkDebugMacro("After adjustment, there are " << static_cast<SizeValueType>(m_Slabs.size()) << " slabs.");
 
   auto iter = m_Slabs.begin();
 
@@ -663,33 +649,33 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
   this->GetBiasFieldSize(*iter, biasSize);
   BiasFieldType bias(static_cast<unsigned int>(biasSize.size()), m_BiasFieldDegree, biasSize);
 
-  int                 nCoef = bias.GetNumberOfCoefficients();
+  const int           nCoef = bias.GetNumberOfCoefficients();
   std::vector<double> lastBiasCoef;
   lastBiasCoef.resize(nCoef);
-  for (int i = 0; i < nCoef; i++)
+  for (int i = 0; i < nCoef; ++i)
   {
     lastBiasCoef[i] = 0;
   }
 
   while (iter != m_Slabs.end())
   {
-    // Correct inter-slice intensity inhomogeniety
+    // Correct inter-slice intensity inhomogeneity
     // using 0th degree Legendre polynomial
 
     if (m_UsingInterSliceIntensityCorrection)
     {
-      itkDebugMacro(<< "  Correcting inter-slice intensity...");
+      itkDebugMacro("  Correcting inter-slice intensity...");
       this->CorrectInterSliceIntensityInhomogeneity(*iter);
-      itkDebugMacro(<< "  Inter-slice intensity corrected.");
+      itkDebugMacro("  Inter-slice intensity corrected.");
     }
 
     // Correct 3D bias
     if (m_UsingBiasFieldCorrection)
     {
-      itkDebugMacro(<< "  Correcting bias...");
+      itkDebugMacro("  Correcting bias...");
 
       m_BiasFieldCoefficients.clear();
-      for (int i = 0; i < nCoef; i++)
+      for (int i = 0; i < nCoef; ++i)
       {
         m_BiasFieldCoefficients.push_back(lastBiasCoef[i]);
       }
@@ -697,22 +683,22 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
       bias = this->EstimateBiasField(*iter, m_BiasFieldDegree, m_VolumeCorrectionMaximumIteration);
 
       m_EstimatedBiasFieldCoefficients.resize(bias.GetCoefficients().size());
-      for (unsigned int k = 0; k < bias.GetCoefficients().size(); k++)
+      for (unsigned int k = 0; k < bias.GetCoefficients().size(); ++k)
       {
         m_EstimatedBiasFieldCoefficients[k] = bias.GetCoefficients()[k];
       }
 
       m_BiasFieldCoefficients.clear();
-      for (int i = 0; i < nCoef; i++)
+      for (int i = 0; i < nCoef; ++i)
       {
         lastBiasCoef[i] = (bias.GetCoefficients()[i] + lastBiasCoef[i]) / 2;
         m_BiasFieldCoefficients.push_back(lastBiasCoef[i]);
       }
 
       this->CorrectImage(bias, *iter);
-      itkDebugMacro(<< "  Bias corrected.");
+      itkDebugMacro("  Bias corrected.");
     }
-    iter++;
+    ++iter;
   }
 
   if (this->GetBiasFieldMultiplicative())
@@ -721,7 +707,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
     // and the Initial Radius (i.e. everything that has been
     // log-transformed in the initialization)
     const unsigned int size = m_TissueClassMeans.Size();
-    for (unsigned int i = 0; i < size; i++)
+    for (unsigned int i = 0; i < size; ++i)
     {
       m_TissueClassMeans[i] = std::exp(m_TissueClassMeans[i]) - 1.0;
       m_TissueClassSigmas[i] = std::exp(m_TissueClassSigmas[i]) * (1.0 + m_TissueClassMeans[i]) - m_TissueClassMeans[i];
@@ -731,7 +717,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
 
   if (m_GeneratingOutput)
   {
-    itkDebugMacro(<< "Generating the output image...");
+    itkDebugMacro("Generating the output image...");
 
     if (this->GetBiasFieldMultiplicative())
     {
@@ -743,7 +729,7 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDat
     output->Allocate();
     CopyAndConvertImage(m_InternalInput.GetPointer(), output, output->GetRequestedRegion());
 
-    itkDebugMacro(<< "The output image generated.");
+    itkDebugMacro("The output image generated.");
   }
 }
 
@@ -758,17 +744,17 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::SetTissueCl
 
   if (meanSize == 0)
   {
-    itkExceptionMacro(<< "arrays of Means is empty");
+    itkExceptionMacro("arrays of Means is empty");
   }
 
   if (sigmaSize == 0)
   {
-    itkExceptionMacro(<< "arrays of Sigmas is empty");
+    itkExceptionMacro("arrays of Sigmas is empty");
   }
 
   if (meanSize != sigmaSize)
   {
-    itkExceptionMacro(<< "arrays of Means and Sigmas have different lengths");
+    itkExceptionMacro("arrays of Means and Sigmas have different lengths");
   }
 
   m_TissueClassMeans = means;
@@ -779,11 +765,11 @@ template <typename TInputImage, typename TOutputImage, typename TMaskImage>
 bool
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::CheckMaskImage(ImageMaskType * mask)
 {
-  InputImageRegionType region = this->GetInput()->GetBufferedRegion();
+  const InputImageRegionType region = this->GetInput()->GetBufferedRegion();
 
-  ImageMaskRegionType m_region = mask->GetBufferedRegion();
+  const ImageMaskRegionType maskRegion = mask->GetBufferedRegion();
 
-  if (region.GetSize() != m_region.GetSize())
+  if (region.GetSize() != maskRegion.GetSize())
   {
     return false;
   }
@@ -795,16 +781,12 @@ void
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::Log1PImage(InternalImageType * source,
                                                                                 InternalImageType * target)
 {
-  InternalImageRegionType region;
-
-  region = source->GetRequestedRegion();
+  const InternalImageRegionType region = source->GetRequestedRegion();
 
   ImageRegionIterator<InternalImageType> s_iter(source, region);
   ImageRegionIterator<InternalImageType> t_iter(target, region);
 
   InternalImagePixelType pixel;
-  s_iter.GoToBegin();
-  t_iter.GoToBegin();
   while (!s_iter.IsAtEnd())
   {
     pixel = s_iter.Get();
@@ -828,20 +810,14 @@ void
 MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::ExpImage(InternalImageType * source,
                                                                               InternalImageType * target)
 {
-  InternalImageRegionType region;
-
-  region = source->GetLargestPossibleRegion();
+  const InternalImageRegionType region = source->GetLargestPossibleRegion();
 
   ImageRegionIterator<InternalImageType> s_iter(source, region);
   ImageRegionIterator<InternalImageType> t_iter(target, region);
 
-  s_iter.GoToBegin();
-  t_iter.GoToBegin();
-
-  double temp;
   while (!s_iter.IsAtEnd())
   {
-    temp = s_iter.Get();
+    double temp = s_iter.Get();
     // t_iter.Set( m_EnergyFunction->GetEnergy0(temp));
     temp = std::exp(temp) - 1;
     t_iter.Set((InternalImagePixelType)temp);
@@ -858,26 +834,24 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::GetBiasFiel
   BiasFieldType::DomainSizeType & biasSize)
 {
   InputImageSizeType size = region.GetSize();
-  unsigned int       dim;
   int                biasDim = 0;
-
-  for (dim = 0; dim < ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
   {
     if (size[dim] > 1)
     {
-      biasDim++;
+      ++biasDim;
     }
   }
 
   biasSize.resize(biasDim);
 
   biasDim = 0;
-  for (dim = 0; dim < ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
   {
     if (size[dim] > 1)
     {
       biasSize[biasDim] = size[dim];
-      biasDim++;
+      ++biasDim;
     }
   }
 }
@@ -892,58 +866,52 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::AdjustSlabR
   OutputImageSizeType  size = requestedRegion.GetSize();
   OutputImageIndexType indexLast = indexFirst;
 
-  for (SizeValueType i = 0; i < ImageDimension; i++)
+  for (SizeValueType i = 0; i < ImageDimension; ++i)
   {
     indexLast[i] = indexFirst[i] + static_cast<IndexValueType>(size[i]) - 1;
   }
 
-  IndexValueType coordFirst = indexFirst[m_SlicingDirection];
-  IndexValueType coordLast = indexLast[m_SlicingDirection];
-  IndexValueType coordFirst2;
-  IndexValueType coordLast2;
-  IndexValueType tempCoordFirst;
-  IndexValueType tempCoordLast;
+  const IndexValueType coordFirst = indexFirst[m_SlicingDirection];
+  const IndexValueType coordLast = indexLast[m_SlicingDirection];
 
-  OutputImageRegionType tempRegion;
-  OutputImageSizeType   tempSize = size;
-  OutputImageIndexType  tempIndex = indexFirst;
+
+  OutputImageSizeType  tempSize = size;
+  OutputImageIndexType tempIndex = indexFirst;
 
   auto iter = slabs.begin();
   while (iter != slabs.end())
   {
-    coordFirst2 = (*iter).GetIndex()[m_SlicingDirection];
-    coordLast2 = coordFirst2 + static_cast<IndexValueType>((*iter).GetSize()[m_SlicingDirection]) - 1;
+    const IndexValueType coordFirst2 = iter->GetIndex()[m_SlicingDirection];
+    const IndexValueType coordLast2 =
+      coordFirst2 + static_cast<IndexValueType>(iter->GetSize()[m_SlicingDirection]) - 1;
 
+    IndexValueType tempCoordFirst = coordFirst2;
     if (coordFirst > coordFirst2)
     {
       tempCoordFirst = coordFirst;
     }
-    else
-    {
-      tempCoordFirst = coordFirst2;
-    }
+
+    IndexValueType tempCoordLast = coordLast2;
     if (coordLast < coordLast2)
     {
       tempCoordLast = coordLast;
     }
-    else
-    {
-      tempCoordLast = coordLast2;
-    }
+
     if (tempCoordFirst <= tempCoordLast)
     {
       tempIndex[m_SlicingDirection] = tempCoordFirst;
       tempSize[m_SlicingDirection] = tempCoordLast - tempCoordFirst + 1;
+      OutputImageRegionType tempRegion;
       tempRegion.SetIndex(tempIndex);
       tempRegion.SetSize(tempSize);
       *iter = tempRegion;
     }
     else
     {
-      // No ovelapping, so remove the slab from the vector
+      // No overlapping, so remove the slab from the vector
       slabs.erase(iter);
     }
-    iter++;
+    ++iter;
   }
 }
 
@@ -953,90 +921,40 @@ MRIBiasFieldCorrectionFilter<TInputImage, TOutputImage, TMaskImage>::PrintSelf(s
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Use interslice intensity correction: ";
-  if (m_UsingInterSliceIntensityCorrection)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
+  itkPrintSelfObjectMacro(EnergyFunction);
+  itkPrintSelfObjectMacro(NormalVariateGenerator);
 
-  os << indent << "Use slab identification: ";
-  if (m_UsingSlabIdentification)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
+  itkPrintSelfObjectMacro(InputMask);
+  itkPrintSelfObjectMacro(OutputMask);
+  itkPrintSelfObjectMacro(InternalInput);
 
-  os << indent << "Use biasfield correction: ";
-  if (m_UsingBiasFieldCorrection)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
+  os << indent << "SlicingDirection: " << m_SlicingDirection << std::endl;
 
-  os << indent << "Generate output image: ";
-  if (m_GeneratingOutput)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
+  itkPrintSelfBooleanMacro(BiasFieldMultiplicative);
+  itkPrintSelfBooleanMacro(UsingInterSliceIntensityCorrection);
+  itkPrintSelfBooleanMacro(UsingSlabIdentification);
+  itkPrintSelfBooleanMacro(UsingBiasFieldCorrection);
+  itkPrintSelfBooleanMacro(GeneratingOutput);
 
-  os << indent << "Is bias field multiplicative: ";
-  if (m_BiasFieldMultiplicative)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
-
-  os << indent << "Biasfield degree = " << m_BiasFieldDegree << std::endl;
-  os << indent << "Optimizer initial radius: " << m_OptimizerInitialRadius << std::endl;
-  os << indent << "Optimizer growth factor: " << m_OptimizerGrowthFactor << std::endl;
-  os << indent << "Optimizer shrink factor: " << m_OptimizerShrinkFactor << std::endl;
-  os << indent << "Volume optimizer max iteration: " << m_VolumeCorrectionMaximumIteration << std::endl;
-  os << indent << "Interslice correction optimizer max iteration: " << m_InterSliceCorrectionMaximumIteration
+  os << indent << "SlabNumberOfSamples: " << m_SlabNumberOfSamples << std::endl;
+  os << indent << "SlabBackgroundMinimumThreshold: "
+     << static_cast<typename NumericTraits<InputImagePixelType>::PrintType>(m_SlabBackgroundMinimumThreshold)
      << std::endl;
-  os << indent << "Slicing direction: " << m_SlicingDirection << std::endl;
+  os << indent << "SlabTolerance" << m_SlabTolerance << std::endl;
 
-  os << indent << "InputMask: ";
-  if (m_InputMask.IsNotNull())
-  {
-    os << m_InputMask << std::endl;
-  }
-  else
-  {
-    os << "not set." << std::endl;
-  }
+  os << indent << "BiasFieldDegree: " << m_BiasFieldDegree << std::endl;
+  os << indent << "NumberOfLevels: " << m_NumberOfLevels << std::endl;
+  os << indent << "Schedule: " << static_cast<typename NumericTraits<ScheduleType>::PrintType>(m_Schedule) << std::endl;
 
-  os << indent << "OutputMask: ";
-  if (m_OutputMask.IsNotNull())
-  {
-    os << m_OutputMask << std::endl;
-  }
-  else
-  {
-    os << "not set." << std::endl;
-  }
+  os << indent << "VolumeCorrectionMaximumIteration: " << m_VolumeCorrectionMaximumIteration << std::endl;
+  os << indent << "InterSliceCorrectionMaximumIteration: " << m_InterSliceCorrectionMaximumIteration << std::endl;
 
-  os << indent << "Energy function: " << m_EnergyFunction << std::endl;
-  os << indent << "Normal random variate generator: " << m_NormalVariateGenerator << std::endl;
-  os << indent << "Multires: No. levels: " << m_NumberOfLevels << std::endl;
-  os << indent << "Multires: Schedule: " << std::endl;
-  os << m_Schedule << std::endl;
+  os << indent << "OptimizerInitialRadius: " << m_OptimizerInitialRadius << std::endl;
+  os << indent << "OptimizerGrowthFactor: " << m_OptimizerGrowthFactor << std::endl;
+  os << indent << "OptimizerShrinkFactor: " << m_OptimizerShrinkFactor << std::endl;
+
+  os << indent << "TissueClassMeans: " << m_TissueClassMeans << std::endl;
+  os << indent << "TissueClassSigmas: " << m_TissueClassSigmas << std::endl;
 }
 } // end namespace itk
 

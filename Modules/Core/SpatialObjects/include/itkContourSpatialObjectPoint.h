@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ContourSpatialObjectPoint
+ * \class ContourSpatialObjectPoint
  * \brief Point used for a Contour definition
  *
  * This class contains all the functions necessary to define a point
@@ -38,6 +38,8 @@ template <unsigned int TPointDimension = 3>
 class ITK_TEMPLATE_EXPORT ContourSpatialObjectPoint : public SpatialObjectPoint<TPointDimension>
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(ContourSpatialObjectPoint);
+
   using Self = ContourSpatialObjectPoint;
   using Superclass = SpatialObjectPoint<TPointDimension>;
   using PointType = Point<double, TPointDimension>;
@@ -47,14 +49,11 @@ public:
    *  in the ContourSpatialObjectPoint */
   ContourSpatialObjectPoint();
 
-  /** Copy Constructor */
-  ContourSpatialObjectPoint(const ContourSpatialObjectPoint & other);
-
   /** Default destructor. */
   ~ContourSpatialObjectPoint() override = default;
 
   /** Get the picked point. */
-  const PointType &
+  [[nodiscard]] const PointType &
   GetPickedPointInObjectSpace() const;
 
   /** Set the picked point : N-D case. */
@@ -62,24 +61,20 @@ public:
   SetPickedPointInObjectSpace(const PointType & point);
 
   /** Get the normal. */
-  const CovariantVectorType &
+  [[nodiscard]] const CovariantVectorType &
   GetNormalInObjectSpace() const;
 
   /** Set the normal : N-D case. */
   void
   SetNormalInObjectSpace(const CovariantVectorType & normal);
 
-  /** Copy a surface point to another. */
-  Self &
-  operator=(const ContourSpatialObjectPoint & rhs);
-
 protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  CovariantVectorType m_NormalInObjectSpace;
-  PointType           m_PickedPointInObjectSpace;
+  CovariantVectorType m_NormalInObjectSpace{};
+  PointType           m_PickedPointInObjectSpace{};
 };
 } // end of namespace itk
 

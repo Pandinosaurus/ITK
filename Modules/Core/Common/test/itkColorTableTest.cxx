@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,12 @@
 #include "itkTestingMacros.h"
 
 
-template <typename TPixel>
+template <typename TComponent>
 int
-ColorTableTestExpectedConditionChecker(typename itk::ColorTable<TPixel>::Pointer colors,
-                                       unsigned int                              colorId,
-                                       itk::RGBPixel<TPixel>                     rgbPixel,
-                                       const char *                              name)
+ColorTableTestExpectedConditionChecker(typename itk::ColorTable<TComponent>::Pointer colors,
+                                       unsigned int                                  colorId,
+                                       itk::RGBPixel<TComponent>                     rgbPixel,
+                                       const char *                                  name)
 {
   if (colors->GetColor(colorId) != rgbPixel)
   {
@@ -47,7 +47,7 @@ ColorTableTestExpectedConditionChecker(typename itk::ColorTable<TPixel>::Pointer
   std::string rgb = "rgb";
   for (unsigned int i = 0; i < rgb.length(); ++i)
   {
-    TPixel resultPixelComponentValue = colors->GetColorComponent(colorId, rgb.at(i));
+    TComponent resultPixelComponentValue = colors->GetColorComponent(colorId, rgb.at(i));
     if (resultPixelComponentValue != rgbPixel[i])
     {
       std::cerr << "Test failed!" << std::endl;
@@ -61,11 +61,11 @@ ColorTableTestExpectedConditionChecker(typename itk::ColorTable<TPixel>::Pointer
   return EXIT_SUCCESS;
 }
 
-template <typename TPixel>
+template <typename TComponent>
 int
-ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TPixel>::Pointer colors, unsigned int numberOfColors)
+ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TComponent>::Pointer colors, unsigned int numberOfColors)
 {
-  using RGBPixelType = itk::RGBPixel<TPixel>;
+  using RGBPixelType = itk::RGBPixel<TComponent>;
 
   RGBPixelType zeroPixel;
   zeroPixel.Set(0, 0, 0);
@@ -78,7 +78,7 @@ ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TPixel>::Pointer 
     return EXIT_FAILURE;
   }
 
-  RGBPixelType pixel = colors->GetColor(numberOfColors);
+  const RGBPixelType pixel = colors->GetColor(numberOfColors);
   if (pixel != zeroPixel)
   {
     std::cerr << "Test failed!" << std::endl;
@@ -87,7 +87,7 @@ ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TPixel>::Pointer 
     return EXIT_FAILURE;
   }
 
-  bool tf = colors->SetColor(numberOfColors, 0, 0, 0, "NoMatterTheName");
+  const bool tf = colors->SetColor(numberOfColors, 0, 0, 0, "NoMatterTheName");
   if (tf != false)
   {
     std::cerr << "Test failed!" << std::endl;
@@ -96,7 +96,7 @@ ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TPixel>::Pointer 
     return EXIT_FAILURE;
   }
 
-  std::string name = colors->GetColorName(numberOfColors);
+  const std::string name = colors->GetColorName(numberOfColors);
   if (!name.empty())
   {
     std::cerr << "Test failed!" << std::endl;
@@ -106,39 +106,39 @@ ColorTableTestSpecialConditionChecker(typename itk::ColorTable<TPixel>::Pointer 
     return EXIT_FAILURE;
   }
 
-  char   rgb = 'r';
-  TPixel zeroComponent(0);
-  pixel = colors->GetColorComponent(numberOfColors, rgb);
-  if (pixel != zeroComponent)
+  char       rgb = 'r';
+  TComponent zeroComponent(0);
+  TComponent colorComponent = colors->GetColorComponent(numberOfColors, rgb);
+  if (colorComponent != zeroComponent)
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in itk::ColorTable::GetColorComponent" << std::endl;
     std::cerr << "Expected: 0 "
-              << ", but got: " << pixel << std::endl;
+              << ", but got: " << colorComponent << std::endl;
     return EXIT_FAILURE;
   }
   rgb = 'a';
-  pixel = colors->GetColorComponent(numberOfColors - 1, rgb);
-  if (pixel != zeroComponent)
+  colorComponent = colors->GetColorComponent(numberOfColors - 1, rgb);
+  if (colorComponent != zeroComponent)
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in itk::ColorTable::GetColorComponent" << std::endl;
     std::cerr << "Expected: 0 "
-              << ", but got: " << pixel << std::endl;
+              << ", but got: " << colorComponent << std::endl;
     return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
 }
 
-template <typename TPixel>
+template <typename TComponent>
 int
 ColorTableTestHelper(const char * name, unsigned int numberOfColors)
 {
   int testStatus = EXIT_SUCCESS;
 
-  using ColorTableType = itk::ColorTable<TPixel>;
-  typename ColorTableType::Pointer colors = ColorTableType::New();
+  using ColorTableType = itk::ColorTable<TComponent>;
+  auto colors = ColorTableType::New();
 
   std::cout << "Testing for type: " << name << std::endl;
 
@@ -146,25 +146,25 @@ ColorTableTestHelper(const char * name, unsigned int numberOfColors)
   colors->UseRandomColors(numberOfColors);
   colors->Print(std::cout);
   std::cout << std::endl;
-  testStatus |= ColorTableTestSpecialConditionChecker<TPixel>(colors, numberOfColors);
+  testStatus |= ColorTableTestSpecialConditionChecker<TComponent>(colors, numberOfColors);
 
   std::cout << "Heat Colors" << std::endl;
   colors->UseHeatColors(numberOfColors);
   colors->Print(std::cout);
   std::cout << std::endl;
-  testStatus |= ColorTableTestSpecialConditionChecker<TPixel>(colors, numberOfColors);
+  testStatus |= ColorTableTestSpecialConditionChecker<TComponent>(colors, numberOfColors);
 
   std::cout << "Gray Colors" << std::endl;
   colors->UseGrayColors(numberOfColors);
   colors->Print(std::cout);
   std::cout << std::endl;
-  testStatus |= ColorTableTestSpecialConditionChecker<TPixel>(colors, numberOfColors);
+  testStatus |= ColorTableTestSpecialConditionChecker<TComponent>(colors, numberOfColors);
 
   colors->UseDiscreteColors();
   std::cout << "Discrete Colors" << std::endl;
   colors->Print(std::cout);
   std::cout << std::endl;
-  testStatus |= ColorTableTestSpecialConditionChecker<TPixel>(colors, 8);
+  testStatus |= ColorTableTestSpecialConditionChecker<TComponent>(colors, 8);
 
   return testStatus;
 }
@@ -174,6 +174,7 @@ itkColorTableTest(int argc, char * argv[])
 {
   if (argc != 2)
   {
+    std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " numberOfColors" << std::endl;
     return EXIT_FAILURE;
   }
@@ -184,7 +185,7 @@ itkColorTableTest(int argc, char * argv[])
   // Done outside the helper function in the test because GCC is limited
   // when calling overloaded base class functions.
   using ColorTableType = itk::ColorTable<unsigned char>;
-  ColorTableType::Pointer colors = ColorTableType::New();
+  auto colors = ColorTableType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(colors, ColorTable, Object);
 
@@ -204,12 +205,11 @@ itkColorTableTest(int argc, char * argv[])
   testStatus |= ColorTableTestHelper<double>("double", numberOfColors);
 
   // Find the closest color for a few colors
-  unsigned int id;
   using RGBPixelType = itk::RGBPixel<unsigned char>;
   RGBPixelType pixel;
   colors->UseRandomColors(10000);
   pixel.Set(255, 0, 0);
-  id = colors->GetClosestColorTableId(pixel[0], pixel[1], pixel[2]);
+  unsigned int id = colors->GetClosestColorTableId(pixel[0], pixel[1], pixel[2]);
   std::cout << "Pixel : " << pixel << " is closest to id: " << id << " which has the color: " << colors->GetColor(id)
             << " and name " << colors->GetColorName(id) << std::endl;
 

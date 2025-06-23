@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,9 +57,7 @@ namespace itk
  *
  * Else the output information is copied from the input speed image.
  *
- * Implementation of this class is based on Chapter 8 of
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Second edition, 1999.
+ * Implementation of this class is based on \cite sethian1999a.
  *
  * For an alternative implementation, see itk::FastMarchingImageFilter.
  *
@@ -81,22 +79,22 @@ public:
   using Superclass = FastMarchingBase<TInput, TOutput>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using Traits = typename Superclass::Traits;
+  using typename Superclass::Traits;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingImageFilterBase, FastMarchingBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingImageFilterBase);
 
 
   using InputImageType = typename Superclass::InputDomainType;
   using InputImagePointer = typename Superclass::InputDomainPointer;
-  using InputPixelType = typename Superclass::InputPixelType;
+  using typename Superclass::InputPixelType;
 
   using OutputImageType = typename Superclass::OutputDomainType;
   using OutputImagePointer = typename Superclass::OutputDomainPointer;
-  using OutputPixelType = typename Superclass::OutputPixelType;
+  using typename Superclass::OutputPixelType;
   using OutputSpacingType = typename OutputImageType::SpacingType;
   using OutputSizeType = typename OutputImageType::SizeType;
   using OutputRegionType = typename OutputImageType::RegionType;
@@ -109,7 +107,7 @@ public:
   using NodePairContainerPointer = typename Traits::NodePairContainerPointer;
   using NodePairContainerConstIterator = typename Traits::NodePairContainerConstIterator;
 
-  using LabelType = typename Superclass::LabelType;
+  using typename Superclass::LabelType;
 
   static constexpr unsigned int ImageDimension = Traits::ImageDimension;
 
@@ -137,6 +135,7 @@ public:
    * SetOutputSpacing(), SetOutputDirection(), and SetOutputOrigin().
    * Else if the speed image is not nullptr, the output information
    * is copied from the input speed image. */
+  /** @ITKStartGrouping */
   virtual void
   SetOutputSize(const OutputSizeType & size)
   {
@@ -158,7 +157,7 @@ public:
   itkSetMacro(OverrideOutputInformation, bool);
   itkGetConstReferenceMacro(OverrideOutputInformation, bool);
   itkBooleanMacro(OverrideOutputInformation);
-
+  /** @ITKEndGrouping */
 protected:
   FastMarchingImageFilterBase();
 
@@ -167,14 +166,14 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  OutputRegionType m_BufferedRegion;
-  NodeType         m_StartIndex;
-  NodeType         m_LastIndex;
+  OutputRegionType m_BufferedRegion{};
+  NodeType         m_StartIndex{};
+  NodeType         m_LastIndex{};
 
-  OutputRegionType    m_OutputRegion;
-  OutputPointType     m_OutputOrigin;
-  OutputSpacingType   m_OutputSpacing;
-  OutputDirectionType m_OutputDirection;
+  OutputRegionType    m_OutputRegion{};
+  OutputPointType     m_OutputOrigin{};
+  OutputSpacingType   m_OutputSpacing{};
+  OutputDirectionType m_OutputDirection{};
   bool                m_OverrideOutputInformation{ false };
 
   /** Generate the output image meta information. */
@@ -184,10 +183,10 @@ protected:
   void
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
-  LabelImagePointer              m_LabelImage;
-  ConnectedComponentImagePointer m_ConnectedComponentImage;
+  LabelImagePointer              m_LabelImage{};
+  ConnectedComponentImagePointer m_ConnectedComponentImage{};
 
-  IdentifierType
+  [[nodiscard]] IdentifierType
   GetTotalNumberOfNodes() const override;
 
   void
@@ -214,11 +213,12 @@ protected:
   UpdateValue(OutputImageType * oImage, const NodeType & iNode) override;
 
   /** Make sure the given node does not violate any topological constraint*/
+  /** @ITKStartGrouping */
   bool
   CheckTopology(OutputImageType * oImage, const NodeType & iNode) override;
   void
   InitializeOutput(OutputImageType * oImage) override;
-
+  /** @ITKEndGrouping */
   /** Find the nodes were the front will propagate given a node */
   void
   GetInternalNodesUsed(OutputImageType * oImage, const NodeType & iNode, InternalNodeStructureArray & ioNodesUsed);
@@ -236,30 +236,30 @@ protected:
   InitializeIndices2D();
   bool
   IsChangeWellComposed2D(const NodeType &) const;
-  bool
+  [[nodiscard]] bool
   IsCriticalC1Configuration2D(const std::bitset<9> &) const;
-  bool
+  [[nodiscard]] bool
   IsCriticalC2Configuration2D(const std::bitset<9> &) const;
-  bool
+  [[nodiscard]] bool
   IsCriticalC3Configuration2D(const std::bitset<9> &) const;
-  bool
+  [[nodiscard]] bool
   IsCriticalC4Configuration2D(const std::bitset<9> &) const;
 
-  Array<unsigned char> m_RotationIndices[4];
-  Array<unsigned char> m_ReflectionIndices[2];
+  Array<unsigned char> m_RotationIndices[4]{};
+  Array<unsigned char> m_ReflectionIndices[2]{};
 
   // Functions/data for the 3-D case
   void
   InitializeIndices3D();
-  bool
+  [[nodiscard]] bool
   IsCriticalC1Configuration3D(const std::bitset<8> &) const;
-  unsigned int
+  [[nodiscard]] unsigned int
   IsCriticalC2Configuration3D(const std::bitset<8> &) const;
   bool
   IsChangeWellComposed3D(const NodeType &) const;
 
-  Array<unsigned char> m_C1Indices[12];
-  Array<unsigned char> m_C2Indices[8];
+  Array<unsigned char> m_C1Indices[12]{};
+  Array<unsigned char> m_C2Indices[8]{};
 
   // Functions for both 2D/3D cases
   bool
@@ -267,7 +267,7 @@ protected:
   bool
   DoesVoxelChangeViolateStrictTopology(const NodeType &) const;
 
-  const InputImageType * m_InputCache;
+  const InputImageType * m_InputCache{};
 
 private:
 };

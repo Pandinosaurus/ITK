@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <ctime>
-#include <cstring>
+#include "itkTestingMacros.h"
 
 void
 itkCMakeInformationPrintFile(const char * name, std::ostream & os)
@@ -49,18 +49,17 @@ itkCMakeInformationPrintFile(const char * name, std::ostream & os)
     os << " does not exist.\n";
     return;
   }
-  else
-  {
-    os << " has " << fs.st_size << " bytes";
-  }
 
-  std::ifstream fin(name);
+  os << " has " << fs.st_size << " bytes";
+
+
+  const std::ifstream fin(name);
   if (fin)
   {
     const char * div = "=======================================================================";
     os << ":\n[" << div << "[\n";
     os << fin.rdbuf();
-    os << "]" << div << "]\n";
+    os << ']' << div << "]\n";
     os.flush();
   }
   else
@@ -74,7 +73,7 @@ main(int argc, char * argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Usage: itkCMakeInformationTest <top-of-build-tree>\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <top-of-build-tree>\n";
     return EXIT_FAILURE;
   }
   std::string build_dir = argv[1];
@@ -86,7 +85,7 @@ main(int argc, char * argv[])
 
   for (const char ** f = files; *f; ++f)
   {
-    std::string fname = build_dir + *f;
+    const std::string fname = build_dir + *f;
     itkCMakeInformationPrintFile(fname.c_str(), std::cout);
   }
   return EXIT_SUCCESS;

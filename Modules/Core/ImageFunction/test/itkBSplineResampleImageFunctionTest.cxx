@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@
 #include "makeRandomImageBsplineInterpolator.h"
 
 /** Note:  This is the same test used for the itkBSplineDecompositionFilter
- *        It is duplicated here because it excercises the itkBSplineResampleImageFunctionTest
+ *        It is duplicated here because it exercises the itkBSplineResampleImageFunctionTest
  *        and demonstrates its use.
  */
 
@@ -42,14 +42,14 @@ itkBSplineResampleImageFunctionTest(int, char *[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
   using BSplineInterpolatorFunctionType = itk::BSplineInterpolateImageFunction<ImageType, double, double>;
 
-  constexpr unsigned int                   SplineOrder = 3;
-  BSplineInterpolatorFunctionType::Pointer interpolator =
+  constexpr unsigned int                         SplineOrder = 3;
+  const BSplineInterpolatorFunctionType::Pointer interpolator =
     makeRandomImageInterpolator<BSplineInterpolatorFunctionType>(SplineOrder);
-  ImageType::ConstPointer randImage = interpolator->GetInputImage();
+  const ImageType::ConstPointer randImage = interpolator->GetInputImage();
 
   using FilterType = itk::BSplineDecompositionImageFilter<ImageType, ImageType>;
-  FilterType::Pointer      filter = FilterType::New();
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  auto                           filter = FilterType::New();
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   filter->SetSplineOrder(interpolator->GetSplineOrder());
   filter->SetInput(randImage);
@@ -59,15 +59,14 @@ itkBSplineResampleImageFunctionTest(int, char *[])
 
   /** Set up a BSplineResampleImageFunction. */
   using ResampleFunctionType = itk::BSplineResampleImageFunction<ImageType, double>;
-  ResampleFunctionType::Pointer resample = ResampleFunctionType::New();
+  auto resample = ResampleFunctionType::New();
 
   resample->SetSplineOrder(interpolator->GetSplineOrder());
   resample->SetInputImage(filter->GetOutput());
 
   /** Compare 10 values at random points. */
 
-  ImageType::IndexType Last;
-  Last.Fill(0);
+  ImageType::IndexType Last{};
   Last[0] = randImage->GetLargestPossibleRegion().GetSize()[0] - 1;
   ImageType::PointType LastPhysicalLocation;
   randImage->TransformIndexToPhysicalPoint(Last, LastPhysicalLocation);
@@ -75,10 +74,10 @@ itkBSplineResampleImageFunctionTest(int, char *[])
   const double minValue = randImage->GetOrigin()[0];
   const double maxValue = LastPhysicalLocation[0];
 
-  for (unsigned int k = 0; k < 10; k++)
+  for (unsigned int k = 0; k < 10; ++k)
   {
     ResampleFunctionType::PointType point;
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       point[j] = vnl_sample_uniform(minValue, maxValue);
     }

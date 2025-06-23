@@ -71,9 +71,10 @@ void FileMetaInformation::AppendImplementationClassUID(const char * imp)
 {
   if( imp )
     {
-    ImplementationClassUID = GetGDCMImplementationClassUID();
-    ImplementationClassUID += ".";
-    ImplementationClassUID += imp;
+    std::string tmp = GetGDCMImplementationClassUID();
+    tmp += ".";
+    tmp += imp;
+    if( tmp.size() <= 64 ) { ImplementationClassUID = tmp; }
     }
 }
 
@@ -287,7 +288,7 @@ void FileMetaInformation::FillFromDataSet(DataSet const &ds)
     {
     // Very bad !!
     //throw Exception( "No (0002,0010) element found" );
-    // Constuct it from DataSetTS
+    // Construct it from DataSetTS
     if( DataSetTS == TransferSyntax::TS_END )
       {
       throw gdcm::Exception( "No TransferSyntax specified." );
@@ -358,7 +359,7 @@ void FileMetaInformation::FillFromDataSet(DataSet const &ds)
 }
 
 // FIXME
-// This code should clearly be rewritten with some template meta programing to
+// This code should clearly be rewritten with some template meta-programming to
 // enable reuse of code...
 //
 // \postcondition after the file meta information (well before the dataset...)
@@ -517,7 +518,7 @@ bool ReadImplicitDataElement(std::istream &is, ImplicitDataElement &de)
  * Note: PS 3.5 specifies that Elements with Tags (0001,xxxx), (0003,xxxx),
  * (0005,xxxx), and (0007,xxxx) shall not be used.
  */
-/// \TODO FIXME
+/// \todo FIXME
 /// For now I do a Seek back of 6 bytes. It would be better to finish reading
 /// the first element of the FMI so that I can read the group length and
 /// therefore compare it against the actual value we found...
@@ -704,7 +705,7 @@ std::istream &FileMetaInformation::ReadCompat(std::istream &is)
 #define ADDVRIMPLICIT( element ) \
     case element: \
       de.SetVR( (VR::VRType)TagToType<0x0002,element>::VRType ); \
-      break;
+      break
 
 bool AddVRToDataElement(DataElement &de)
 {

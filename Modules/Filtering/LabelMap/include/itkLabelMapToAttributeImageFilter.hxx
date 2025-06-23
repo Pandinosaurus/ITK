@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLabelMapToAttributeImageFilter_hxx
 #define itkLabelMapToAttributeImageFilter_hxx
 
-#include "itkLabelMapToAttributeImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -28,9 +27,8 @@ namespace itk
 
 template <typename TInputImage, typename TOutputImage, typename TAttributeAccessor>
 LabelMapToAttributeImageFilter<TInputImage, TOutputImage, TAttributeAccessor>::LabelMapToAttributeImageFilter()
-{
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-}
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+{}
 
 template <typename TInputImage, typename TOutputImage, typename TAttributeAccessor>
 void
@@ -40,7 +38,7 @@ LabelMapToAttributeImageFilter<TInputImage, TOutputImage, TAttributeAccessor>::G
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (!input)
   {
     return;
@@ -68,7 +66,7 @@ LabelMapToAttributeImageFilter<TInputImage, TOutputImage, TAttributeAccessor>::G
   const InputImageType * input = this->GetInput();
   ProgressReporter       progress(this, 0, output->GetRequestedRegion().GetNumberOfPixels());
 
-  AttributeAccessorType accessor;
+  const AttributeAccessorType accessor;
 
   output->FillBuffer(m_BackgroundValue);
 

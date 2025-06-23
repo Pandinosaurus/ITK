@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-// This example demostrates usage of the itk::BayesianClassifierImageFilter
+// This example demonstrates usage of the itk::BayesianClassifierImageFilter
 // The input to this example is an itk::VectorImage that represents pixel
 // memberships to 'n' classes.
 //
@@ -54,8 +54,10 @@
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 3)
@@ -67,23 +69,15 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  // input parameters
-  const char * membershipImageFileName = argv[1];
-  const char * labelMapImageFileName = argv[2];
-
-  // setup reader
   constexpr unsigned int Dimension = 2;
   using InputPixelType = float;
   using InputImageType = itk::VectorImage<InputPixelType, Dimension>;
-  using ReaderType = itk::ImageFileReader<InputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(membershipImageFileName);
+  auto input = itk::ReadImage<InputImageType>(argv[1]);
 
   using LabelType = unsigned char;
   using PriorType = float;
   using PosteriorType = float;
-
 
   using ClassifierFilterType =
     itk::BayesianClassifierImageFilter<InputImageType,
@@ -91,12 +85,11 @@ main(int argc, char * argv[])
                                        PosteriorType,
                                        PriorType>;
 
-  ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
+  auto filter = ClassifierFilterType::New();
 
+  filter->SetInput(input);
 
-  filter->SetInput(reader->GetOutput());
-
-  if (argv[3])
+  if (argc > 3)
   {
     filter->SetNumberOfSmoothingIterations(std::stoi(argv[3]));
     using ExtractedComponentImageType =
@@ -104,56 +97,57 @@ main(int argc, char * argv[])
     using SmoothingFilterType = itk::GradientAnisotropicDiffusionImageFilter<
       ExtractedComponentImageType,
       ExtractedComponentImageType>;
-    SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
+    auto smoother = SmoothingFilterType::New();
     smoother->SetNumberOfIterations(1);
     smoother->SetTimeStep(0.125);
     smoother->SetConductanceParameter(3);
     filter->SetSmoothingFilter(smoother);
   }
 
-
   // SET FILTER'S PRIOR PARAMETERS
   // do nothing here to default to uniform priors
   // otherwise set the priors to some user provided values
 
-  //
-  // Setup writer.. Rescale the label map to the dynamic range of the
-  // datatype and write it
-  //
+  // Rescale the label map to the dynamic range of the datatype and write it
   using ClassifierOutputImageType = ClassifierFilterType::OutputImageType;
   using OutputImageType = itk::Image<unsigned char, Dimension>;
   using RescalerType =
     itk::RescaleIntensityImageFilter<ClassifierOutputImageType,
                                      OutputImageType>;
-  RescalerType::Pointer rescaler = RescalerType::New();
+  auto rescaler = RescalerType::New();
   rescaler->SetInput(filter->GetOutput());
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
 
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(labelMapImageFileName);
-
-  //
   // Write labelmap to file
-  //
-  writer->SetInput(rescaler->GetOutput());
-
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught: " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  itk::WriteImage(rescaler->GetOutput(), argv[2]);
 
   // Testing print
   filter->Print(std::cout);
   std::cout << "Test passed." << std::endl;
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

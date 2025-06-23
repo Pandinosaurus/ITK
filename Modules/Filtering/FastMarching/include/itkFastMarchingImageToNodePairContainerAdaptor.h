@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingImageToNodePairContainerAdaptor);
 
   using Self = FastMarchingImageToNodePairContainerAdaptor;
-  using Superclass = LightObject;
+  using Superclass = Object;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
@@ -61,8 +61,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingImageToNodePairContainerAdaptor, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingImageToNodePairContainerAdaptor);
 
   using Traits = FastMarchingTraits<TInput, TOutput>;
   using NodePairType = typename Traits::NodePairType;
@@ -83,12 +83,14 @@ public:
     FastMarchingTraitsBase::Alive points.*/
   void
   SetAliveImage(const ImageType * iImage);
+  itkGetConstObjectMacro(AliveImage, ImageType);
 
   /** \brief Set one Trial Image.
     \note Only pixels with non null values are considered as
-    FastMarchingTraitsBase::Trialpoints.*/
+    FastMarchingTraitsBase::TrialPoints.*/
   void
   SetTrialImage(const ImageType * iImage);
+  itkGetConstObjectMacro(TrialImage, ImageType);
 
   /** \brief Set one Forbidden Image.
     There are two possible behaviors here depending on
@@ -98,12 +100,14 @@ public:
     is a binary mask; thus null values are considered as
     FastMarchingTraitsBase::Forbidden points
 
-    \li else (m_IsForbiddenImageBinaryMask is \c fasle) non null values
+    \li else (m_IsForbiddenImageBinaryMask is \c false) non null values
     represents FastMarchingTraitsBase::Forbidden points*/
   void
   SetForbiddenImage(const ImageType * iImage);
+  itkGetConstObjectMacro(ForbiddenImage, ImageType);
 
   itkSetMacro(IsForbiddenImageBinaryMask, bool);
+  itkGetConstMacro(IsForbiddenImageBinaryMask, bool);
   itkBooleanMacro(IsForbiddenImageBinaryMask);
 
   /** \brief Get resulting Alive Points container*/
@@ -119,7 +123,10 @@ public:
   GetForbiddenPoints();
 
   itkSetMacro(AliveValue, OutputPixelType);
+  itkGetConstMacro(AliveValue, OutputPixelType);
+
   itkSetMacro(TrialValue, OutputPixelType);
+  itkGetConstMacro(TrialValue, OutputPixelType);
 
   /** \brief Perform the conversion. */
   void
@@ -132,16 +139,16 @@ protected:
   /** \brief Destructor */
   ~FastMarchingImageToNodePairContainerAdaptor() override = default;
 
-  ImageConstPointer m_AliveImage;
-  ImageConstPointer m_TrialImage;
-  ImageConstPointer m_ForbiddenImage;
+  ImageConstPointer m_AliveImage{};
+  ImageConstPointer m_TrialImage{};
+  ImageConstPointer m_ForbiddenImage{};
 
-  NodePairContainerPointer m_AlivePoints;
-  NodePairContainerPointer m_TrialPoints;
-  NodePairContainerPointer m_ForbiddenPoints;
+  NodePairContainerPointer m_AlivePoints{};
+  NodePairContainerPointer m_TrialPoints{};
+  NodePairContainerPointer m_ForbiddenPoints{};
 
-  OutputPixelType m_AliveValue;
-  OutputPixelType m_TrialValue;
+  OutputPixelType m_AliveValue{};
+  OutputPixelType m_TrialValue{};
 
   bool m_IsForbiddenImageBinaryMask{ false };
 

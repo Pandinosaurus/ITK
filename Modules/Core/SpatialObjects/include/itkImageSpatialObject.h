@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class ImageSpatialObject
+ * \class ImageSpatialObject
  * \brief Implementation of an image as spatial object.
  *
  * This class combines functionalities from a spatial object,
@@ -53,7 +53,7 @@ public:
   using ImageType = Image<PixelType, TDimension>;
   using ImagePointer = typename ImageType::ConstPointer;
   using IndexType = typename ImageType::IndexType;
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
   using InterpolatorType = InterpolateImageFunction<ImageType>;
 
   using NNInterpolatorType = NearestNeighborInterpolateImageFunction<ImageType>;
@@ -63,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSpatialObject, SpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -87,7 +87,11 @@ public:
   using Superclass::IsInsideInObjectSpace;
 
   /** Returns the value of the image at the requested point.
-   *  Returns true if that value is valid */
+   *
+   * Returns true if that value is valid.
+   *
+   * The value returned is always of type double; for RGB Images the value returned is the value of the first channel.
+   */
   bool
   ValueAtInObjectSpace(const PointType &   point,
                        double &            value,
@@ -95,30 +99,40 @@ public:
                        const std::string & name = "") const override;
 
   /** Returns the latest modified time of the object and its component. */
-  ModifiedTimeType
+  [[nodiscard]] ModifiedTimeType
   GetMTime() const override;
 
   /** Set the slice position */
+  /** @ITKStartGrouping */
   itkSetMacro(SliceNumber, IndexType);
   void
   SetSliceNumber(unsigned int dimension, int position);
-
+  /** @ITKEndGrouping */
   /** Get the slice position */
+  /** @ITKStartGrouping */
   itkGetConstMacro(SliceNumber, IndexType);
   int
   GetSliceNumber(unsigned int dimension)
   {
     return m_SliceNumber[dimension];
   }
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
-  itkLegacyMacro(const char * GetPixelTypeName()) { return m_PixelType.c_str(); }
+  itkLegacyMacro(const char * GetPixelTypeName())
+  {
+    return m_PixelType.c_str();
+  }
 #endif
 
-  /** Set/Get the interpolator */
+  /** Set/Get the interpolator. */
+  /** @ITKStartGrouping */
   void
   SetInterpolator(InterpolatorType * interpolator);
   itkGetConstMacro(Interpolator, InterpolatorType *);
+  /** @ITKEndGrouping */
+  /** Updates the regions of this spatial object in accordance with its current image, and calls its Superclass. */
+  void
+  Update() override;
 
 protected:
   /** Compute the boundaries of the image spatial object. */
@@ -131,19 +145,23 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
-  ImagePointer m_Image;
+  ImagePointer m_Image{};
 
-  IndexType m_SliceNumber;
+  IndexType m_SliceNumber{};
 
 #if !defined(ITK_LEGACY_REMOVE)
-  std::string m_PixelType;
+  std::string m_PixelType{};
 #endif
 
-  typename InterpolatorType::Pointer m_Interpolator;
+  typename InterpolatorType::Pointer m_Interpolator{};
+
+  /** Updates the regions of this spatial object in accordance with its current image. */
+  void
+  UpdateImageRegions();
 
 #if !defined(ITK_LEGACY_REMOVE)
   template <typename T>

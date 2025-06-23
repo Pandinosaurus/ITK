@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkWatershedSegmentTree.h"
 #include "itkWatershedSegmenter.h"
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /**
- *\class Relabeler
+ * \class Relabeler
  *
  * This filter implements the final step in the watershed segmentation
  * algorithm.  It is responsible for relabeling a segmented image according to
@@ -72,9 +70,10 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
+  /** @ITKStartGrouping */
   itkNewMacro(Self);
-  itkTypeMacro(WatershedRelabeler, ProcessObject);
-
+  itkOverrideGetNameOfClassMacro(Relabeler);
+  /** @ITKEndGrouping */
   /** Expose the ImageDimension template parameter at run time */
   static constexpr unsigned int ImageDimension = TImageDimension;
 
@@ -136,9 +135,10 @@ public:
 
   /** Set/Get the percentage of the maximum saliency level
    * to merge to. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(FloodLevel, double, 0.0, 1.0);
   itkGetConstMacro(FloodLevel, double);
-
+  /** @ITKEndGrouping */
   /** Standard ProcessObject method used in implementing mini-pipelines */
   void
   GraftOutput(ImageType * graft);
@@ -163,8 +163,7 @@ protected:
   void
   GenerateInputRequestedRegion() override;
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedRelabeler.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
  * \par OVERVIEW
  * This class extends the functionality of SegmentationLevelSetImageFilter
  * with an additional statistical shape influence term in the level set evolution as
- * developed in [1].
+ * developed in \cite leventon2000.
  *
  * \par TEMPLATE PARAMETERS
  * There are two required and one optional template parameter for these
@@ -63,10 +63,6 @@ namespace itk
  * \sa ShapeSignedDistanceFunction
  * \sa ShapePriorSegmentationLevelSetFunction
  *
- * \par REFERENCES
- * \par
- * [1] Leventon, M.E. et al. "Statistical Shape Influence in Geodesic Active Contours", CVPR 2000.
- *
  * \ingroup ITKLevelSets
  */
 template <typename TInputImage, typename TFeatureImage, typename TOutputPixelType = float>
@@ -85,13 +81,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapePriorSegmentationLevelSetImageFilter, SegmentationLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapePriorSegmentationLevelSetImageFilter);
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FeatureImageType = typename Superclass::FeatureImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FeatureImageType;
 
   /** Type of the output pixel. */
   using OutputPixelType = TOutputPixelType;
@@ -119,26 +115,35 @@ public:
   using OptimizerPointer = typename OptimizerType::Pointer;
 
   /** Set/Get the shape signed distance function. */
+  /** @ITKStartGrouping */
   virtual void
   SetShapeFunction(ShapeFunctionType * s);
   itkGetModifiableObjectMacro(ShapeFunction, ShapeFunctionType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the shape prior MAP cost function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(CostFunction, CostFunctionType);
   itkGetModifiableObjectMacro(CostFunction, CostFunctionType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the initial parameters. These are the initial parameters applied
    * to the ShapeFunction. The user should refer to the documentation of
    * the particular type of ShapeSignedDistanceFunction used to determine
    * the meaning of the parameters. */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialParameters, ParametersType);
   itkGetConstMacro(InitialParameters, ParametersType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the scaling of the shape prior term. */
+  /** @ITKStartGrouping */
   void
   SetShapePriorScaling(ValueType v)
   {
@@ -154,6 +159,7 @@ public:
   {
     return m_ShapePriorSegmentationFunction->GetShapePriorWeight();
   }
+  /** @ITKEndGrouping */
 
   /** Set the shape prior segmentation function. In general, this should only be called
    * by a subclass of this object. It is made public to allow itk::Command objects access. */
@@ -191,13 +197,13 @@ protected:
   ExtractActiveRegion(NodeContainerType * ptr);
 
 private:
-  ShapeFunctionPointer m_ShapeFunction;
-  CostFunctionPointer  m_CostFunction;
-  OptimizerPointer     m_Optimizer;
-  ParametersType       m_InitialParameters;
-  ParametersType       m_CurrentParameters;
+  ShapeFunctionPointer m_ShapeFunction{};
+  CostFunctionPointer  m_CostFunction{};
+  OptimizerPointer     m_Optimizer{};
+  ParametersType       m_InitialParameters{};
+  ParametersType       m_CurrentParameters{};
 
-  ShapePriorSegmentationFunctionType * m_ShapePriorSegmentationFunction;
+  ShapePriorSegmentationFunctionType * m_ShapePriorSegmentationFunction{};
 };
 } // end namespace itk
 

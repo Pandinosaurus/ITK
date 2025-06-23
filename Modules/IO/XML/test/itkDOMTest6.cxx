@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,7 +81,7 @@ testStringToolsWithBasicType()
     std::string s;
 
     // write out
-    DataType dataIn = '*';
+    constexpr DataType dataIn = '*';
     itk::StringTools::FromData(s, dataIn);
 
     // read back
@@ -104,7 +104,7 @@ testStringToolsWithBasicType()
     std::string s;
 
     // write out
-    DataType dataIn = -1024;
+    constexpr DataType dataIn = -1024;
     itk::StringTools::FromData(s, dataIn);
 
     // read back
@@ -127,7 +127,7 @@ testStringToolsWithBasicType()
     std::string s;
 
     // write out
-    DataType dataIn = -0.1;
+    constexpr DataType dataIn = -0.1;
     itk::StringTools::FromData(s, dataIn);
 
     // read back
@@ -151,7 +151,6 @@ void
 testStringToolsWithStdVector()
 {
   std::string svalue;
-  std::string s;
 
   std::vector<float> dataIn(10, -0.1f);
   itk::StringTools::FromData(svalue, dataIn);
@@ -160,14 +159,14 @@ testStringToolsWithStdVector()
 
   // read all data elements in the string
   std::vector<float> dataOut1;
-  s = svalue;
+  std::string        s = svalue;
   itk::StringTools::ToData(s, dataOut1);
   // check successful or not
   if (dataOut1.size() != (dataIn.size() + 1) && dataOut1.back() != 10.0f)
   {
     throw "testStringToolsWithStdVector: failed reading all elements in the string (1)";
   }
-  for (size_t i = 0; i < dataIn.size(); i++)
+  for (size_t i = 0; i < dataIn.size(); ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut1[i]))
     {
@@ -185,7 +184,7 @@ testStringToolsWithStdVector()
   {
     throw "testStringToolsWithStdVector: failed reading all elements for the output vector (1)";
   }
-  for (size_t i = 0; i < dataOut2.size(); i++)
+  for (size_t i = 0; i < dataOut2.size(); ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut2[i]))
     {
@@ -203,7 +202,7 @@ testStringToolsWithStdVector()
   {
     throw "testStringToolsWithStdVector: failed reading user-specified number of elements (1.1)";
   }
-  for (size_t i = 0; i < 5; i++)
+  for (size_t i = 0; i < 5; ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut3[i]))
     {
@@ -221,7 +220,7 @@ testStringToolsWithStdVector()
   {
     throw "testStringToolsWithStdVector: failed reading user-specified number of elements (2.1)";
   }
-  for (size_t i = 0; i < 5; i++)
+  for (size_t i = 0; i < 5; ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut4[i]))
     {
@@ -239,25 +238,22 @@ testStringToolsWithItkArray()
 {
   using DataType = itk::Array<double>;
 
+  DataType    dataIn(10, -0.1);
   std::string svalue;
-  std::string s;
-
-  DataType dataIn(10);
-  dataIn.Fill(-0.1);
   itk::StringTools::FromData(svalue, dataIn);
   // add one more data element to the end of the string
   svalue.append(" 10 ");
 
   // read all data elements in the string
-  DataType dataOut1;
-  s = svalue;
+  std::string s = svalue;
+  DataType    dataOut1;
   itk::StringTools::ToData(s, dataOut1);
   // check successful or not
   if (dataOut1.GetSize() != (dataIn.GetSize() + 1) && dataOut1[10] != 10.0)
   {
     throw "testStringToolsWithItkArray: failed reading all elements in the string (1)";
   }
-  for (unsigned int i = 0; i < dataIn.GetSize(); i++)
+  for (unsigned int i = 0; i < dataIn.GetSize(); ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut1[i]))
     {
@@ -267,8 +263,7 @@ testStringToolsWithItkArray()
   std::cout << "testStringToolsWithItkArray: dataOut1 OK!" << std::endl;
 
   // read all data elements for the output vector
-  DataType dataOut2(5);
-  dataOut2.Fill(0.0);
+  DataType dataOut2(5, 0.0);
   s = svalue;
   itk::StringTools::ToData(s, dataOut2, 0);
   // check successful or not
@@ -276,7 +271,7 @@ testStringToolsWithItkArray()
   {
     throw "testStringToolsWithItkArray: failed reading all elements for the output vector (1)";
   }
-  for (unsigned int i = 0; i < dataOut2.GetSize(); i++)
+  for (unsigned int i = 0; i < dataOut2.GetSize(); ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut2[i]))
     {
@@ -286,8 +281,7 @@ testStringToolsWithItkArray()
   std::cout << "testStringToolsWithItkArray: dataOut2 OK!" << std::endl;
 
   // read user-specified number of data elements (output data exist)
-  DataType dataOut3(10);
-  dataOut3.Fill(0.0);
+  DataType dataOut3(10, 0.0);
   s = svalue;
   itk::StringTools::ToData(s, dataOut3, 5);
   // check successful or not
@@ -295,7 +289,7 @@ testStringToolsWithItkArray()
   {
     throw "testStringToolsWithItkArray: failed reading user-specified number of elements (1.1)";
   }
-  for (unsigned int i = 0; i < 5; i++)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut3[i]))
     {
@@ -313,7 +307,7 @@ testStringToolsWithItkArray()
   {
     throw "testStringToolsWithItkArray: failed reading user-specified number of elements (2.1)";
   }
-  for (unsigned int i = 0; i < 5; i++)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     if (itk::Math::NotAlmostEquals(dataIn[i], dataOut4[i]))
     {
@@ -328,9 +322,7 @@ testStringToolsWithItkArray()
 void
 testStringToolsForStringOperations()
 {
-  std::string s;
-
-  s = " Hello World! ";
+  std::string s = " Hello World! ";
   if (itk::StringTools::TrimLeft(s) != "Hello World! ")
   {
     throw "testStringToolsForStringOperations: failed trimming left";

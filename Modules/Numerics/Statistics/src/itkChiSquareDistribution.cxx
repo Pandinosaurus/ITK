@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@ dgami_(double * a, double * x);
 extern "C" double
 dgamma_(double * x);
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 ChiSquareDistribution::ChiSquareDistribution()
 {
@@ -73,7 +71,7 @@ ChiSquareDistribution::GetDegreesOfFreedom() const
 }
 
 double
-ChiSquareDistribution ::PDF(double x, SizeValueType degreesOfFreedom)
+ChiSquareDistribution::PDF(double x, SizeValueType degreesOfFreedom)
 {
   auto   dof = static_cast<double>(degreesOfFreedom);
   double dofon2 = 0.5 * dof;
@@ -88,7 +86,7 @@ ChiSquareDistribution ::PDF(double x, SizeValueType degreesOfFreedom)
 }
 
 double
-ChiSquareDistribution ::PDF(double x, const ParametersType & p)
+ChiSquareDistribution::PDF(double x, const ParametersType & p)
 {
   if (p.GetSize() != 1)
   {
@@ -99,7 +97,7 @@ ChiSquareDistribution ::PDF(double x, const ParametersType & p)
 }
 
 double
-ChiSquareDistribution ::CDF(double x, SizeValueType degreesOfFreedom)
+ChiSquareDistribution::CDF(double x, SizeValueType degreesOfFreedom)
 {
   // Based on Abramowitz and Stegun 26.4.19 which relates the
   // cumulative of the chi-square to incomplete (and complete) gamma
@@ -116,14 +114,14 @@ ChiSquareDistribution ::CDF(double x, SizeValueType degreesOfFreedom)
 }
 
 double
-ChiSquareDistribution ::CDF(double x, const ParametersType & p)
+ChiSquareDistribution::CDF(double x, const ParametersType & p)
 {
   if (p.GetSize() != 1)
   {
     itkGenericExceptionMacro("Invalid number of parameters to describe distribution. Expected 1 parameter, but got "
                              << p.size() << " parameters.");
   }
-  return ChiSquareDistribution::CDF(x, (SizeValueType)p[0]);
+  return ChiSquareDistribution::CDF(x, static_cast<SizeValueType>(p[0]));
 }
 
 double
@@ -131,41 +129,37 @@ ChiSquareDistribution::InverseCDF(double p, SizeValueType degreesOfFreedom)
 {
   if (p <= 0.0)
   {
-    return itk::NumericTraits<double>::ZeroValue();
+    return 0.0;
   }
-  else if (p >= 1.0)
+  if (p >= 1.0)
   {
     return itk::NumericTraits<double>::max();
   }
 
-  double x;
-  double dof;
-  double nx;
-
   // Based on Abramowitz and Stegun 26.4.17
-  dof = static_cast<double>(degreesOfFreedom);
-  nx = GaussianDistribution::InverseCDF(p);
+  auto         dof = static_cast<double>(degreesOfFreedom);
+  const double nx = GaussianDistribution::InverseCDF(p);
 
-  double f = 2.0 / (9.0 * dof);
-  x = dof * std::pow(1.0 - f + nx * std::sqrt(f), 3.0);
+  const double f = 2.0 / (9.0 * dof);
+  double       x = dof * std::pow(1.0 - f + nx * std::sqrt(f), 3.0);
 
   // The approximation above is only accurate for large degrees of
   // freedom. We'll improve the approximation by a few Newton iterations.
   //
   //   0 iterations, error = 10^-1  at 1 degree of freedom
   //   3 iterations, error = 10^-11 at 1 degree of freedom
-  //  10 iterations, erorr = 10^-13 at 1 degree of freedom
-  //  20 iterations, erorr = 10^-13 at 1 degree of freedom
+  //  10 iterations, error = 10^-13 at 1 degree of freedom
+  //  20 iterations, error = 10^-13 at 1 degree of freedom
   //
   //   0 iterations, error = 10^-1  at 11 degrees of freedom
   //   3 iterations, error = 10^-8  at 11 degrees of freedom
-  //  10 iterations, erorr = 10^-13 at 11 degrees of freedom
-  //  20 iterations, erorr = 10^-13 at 11 degrees of freedom
+  //  10 iterations, error = 10^-13 at 11 degrees of freedom
+  //  20 iterations, error = 10^-13 at 11 degrees of freedom
   //
   //   0 iterations, error = 10^-1  at 100 degrees of freedom
   //   3 iterations, error = 10^-9  at 100 degrees of freedom
-  //  10 iterations, erorr = 10^-10 at 100 degrees of freedom
-  //  20 iterations, erorr = 10^-9  at 100 degrees of freedom
+  //  10 iterations, error = 10^-10 at 100 degrees of freedom
+  //  20 iterations, error = 10^-9  at 100 degrees of freedom
 
   // We are trying to find the zero of
   //
@@ -178,10 +172,10 @@ ChiSquareDistribution::InverseCDF(double p, SizeValueType degreesOfFreedom)
   //
   // Note that f'(x) = - chisquarepdf(x)
   //
-  double delta;
   for (unsigned int newt = 0; newt < 10; ++newt)
   {
-    delta = (p - ChiSquareDistribution::CDF(x, degreesOfFreedom)) / ChiSquareDistribution::PDF(x, degreesOfFreedom);
+    const double delta =
+      (p - ChiSquareDistribution::CDF(x, degreesOfFreedom)) / ChiSquareDistribution::PDF(x, degreesOfFreedom);
     x += delta;
   }
 
@@ -319,5 +313,4 @@ ChiSquareDistribution::PrintSelf(std::ostream & os, Indent indent) const
     os << indent << "Degrees of freedom: (unknown)" << std::endl;
   }
 }
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics

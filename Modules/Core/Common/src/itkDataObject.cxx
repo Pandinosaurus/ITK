@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,19 +39,11 @@ DataObjectError::DataObjectError() noexcept
   : ExceptionObject()
 {}
 
-DataObjectError::DataObjectError(const char * file, unsigned int lineNumber)
-  : ExceptionObject(file, lineNumber)
+DataObjectError::DataObjectError(std::string file, unsigned int lineNumber)
+  : ExceptionObject(std::move(file), lineNumber)
 {}
 
-DataObjectError::DataObjectError(const std::string & file, unsigned int lineNumber)
-  : ExceptionObject(file, lineNumber)
-{}
-
-DataObjectError::DataObjectError(const DataObjectError & orig) noexcept
-  : ExceptionObject(orig)
-{
-  m_DataObject = orig.m_DataObject;
-}
+DataObjectError::DataObjectError(const DataObjectError & orig) noexcept = default;
 
 DataObjectError &
 DataObjectError::operator=(const DataObjectError &) noexcept = default;
@@ -98,12 +90,8 @@ InvalidRequestedRegionError::InvalidRequestedRegionError() noexcept
   : DataObjectError()
 {}
 
-InvalidRequestedRegionError::InvalidRequestedRegionError(const char * file, unsigned int lineNumber)
-  : DataObjectError(file, lineNumber)
-{}
-
-InvalidRequestedRegionError::InvalidRequestedRegionError(const std::string & file, unsigned int lineNumber)
-  : DataObjectError(file, lineNumber)
+InvalidRequestedRegionError::InvalidRequestedRegionError(std::string file, unsigned int lineNumber)
+  : DataObjectError(std::move(file), lineNumber)
 {}
 
 InvalidRequestedRegionError::InvalidRequestedRegionError(const InvalidRequestedRegionError &) noexcept = default;
@@ -119,17 +107,12 @@ InvalidRequestedRegionError::PrintSelf(std::ostream & os, Indent indent) const
 
 //----------------------------------------------------------------------------
 DataObject::DataObject()
-  : m_UpdateMTime()
+  : m_SourceOutputName("")
+  , m_UpdateMTime()
+// We have to assume that if a user is creating the data on their own,
+// then they will fill it with valid data.
 {
   m_Source = nullptr;
-  m_SourceOutputName = "";
-  m_ReleaseDataFlag = false;
-
-  // We have to assume that if a user is creating the data on their own,
-  // then they will fill it with valid data.
-  m_DataReleased = false;
-
-  m_PipelineMTime = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -215,11 +198,9 @@ DataObject::DisconnectSource(ProcessObject * arg, const DataObjectIdentifierType
     this->Modified();
     return true;
   }
-  else
-  {
-    itkDebugMacro("could not disconnect source  " << arg << ", source output name " << name);
-    return false;
-  }
+
+  itkDebugMacro("could not disconnect source  " << arg << ", source output name " << name);
+  return false;
 }
 
 bool
@@ -234,12 +215,10 @@ DataObject::ConnectSource(ProcessObject * arg, const DataObjectIdentifierType & 
     this->Modified();
     return true;
   }
-  else
-  {
-    itkDebugMacro("could not connect source  " << arg << ", source output name " << name);
 
-    return false;
-  }
+  itkDebugMacro("could not connect source  " << arg << ", source output name " << name);
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -268,6 +247,17 @@ DataObject::GetSourceOutputIndex() const
   return m_Source->MakeIndexFromOutputName(m_SourceOutputName);
 }
 
+void
+DataObject::UpdateSource() const
+{
+  const auto source = this->GetSource();
+
+  if (source)
+  {
+    source->Update();
+  }
+}
+
 //----------------------------------------------------------------------------
 void
 DataObject::PrintSelf(std::ostream & os, Indent indent) const
@@ -277,7 +267,7 @@ DataObject::PrintSelf(std::ostream & os, Indent indent) const
   if (m_Source)
   {
     os << indent << "Source: (" << m_Source.GetPointer() << ") \n";
-    os << indent << "Source output name: " << m_SourceOutputName << "\n";
+    os << indent << "Source output name: " << m_SourceOutputName << '\n';
   }
   else
   {
@@ -311,10 +301,11 @@ DataObject::Update()
 void
 DataObject::UpdateOutputInformation()
 {
+  const auto source = this->GetSource();
 
-  if (this->GetSource())
+  if (source)
   {
-    this->GetSource()->UpdateOutputInformation();
+    source->UpdateOutputInformation();
   }
 }
 

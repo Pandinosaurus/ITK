@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,15 +19,16 @@
 #include <fstream>
 #include "itkImageFileReader.h"
 #include "itkNrrdImageIO.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
 int
-itkNrrdVectorImageReadTest(int ac, char * av[])
+itkNrrdVectorImageReadTest(int argc, char * argv[])
 {
-  if (ac < 1)
+  if (argc < 1)
   {
-    std::cerr << "Usage: " << av[0] << " Input\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Input\n";
     return EXIT_FAILURE;
   }
 
@@ -36,11 +37,11 @@ itkNrrdVectorImageReadTest(int ac, char * av[])
 
   using ReaderType = itk::ImageFileReader<myImage>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetImageIO(itk::NrrdImageIO::New());
 
-  reader->SetFileName(av[1]);
+  reader->SetFileName(argv[1]);
 
   try
   {
@@ -53,28 +54,28 @@ itkNrrdVectorImageReadTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  myImage::Pointer   image = reader->GetOutput();
-  myImage::IndexType coord;
-  PixelType          sample;
+  const myImage::Pointer image = reader->GetOutput();
+
 
   // The test image has been constructed so that the vector coefficients
   // coincide with sample coordinates
   double       err = 0;
   unsigned int idx = 0;
-  for (unsigned int zi = 0; zi < 5; zi++)
+  for (unsigned int zi = 0; zi < 5; ++zi)
   {
+    myImage::IndexType coord;
     coord[2] = zi;
-    for (unsigned int yi = 0; yi < 5; yi++)
+    for (unsigned int yi = 0; yi < 5; ++yi)
     {
       coord[1] = yi;
-      for (unsigned int xi = 0; xi < 5; xi++)
+      for (unsigned int xi = 0; xi < 5; ++xi)
       {
         coord[0] = xi;
-        sample = image->GetPixel(coord);
-        err += std::fabs(sample[0] - coord[0]);
-        err += std::fabs(sample[1] - coord[1]);
-        err += std::fabs(sample[2] - coord[2]);
-        err += std::fabs(sample[3] - idx);
+        PixelType sample = image->GetPixel(coord);
+        err += itk::Math::abs(sample[0] - coord[0]);
+        err += itk::Math::abs(sample[1] - coord[1]);
+        err += itk::Math::abs(sample[2] - coord[2]);
+        err += itk::Math::abs(sample[3] - idx);
         idx++;
       }
     }
@@ -85,8 +86,6 @@ itkNrrdVectorImageReadTest(int ac, char * av[])
     std::cout << "test FAILED because values not as expected\n";
     return EXIT_FAILURE;
   }
-  else
-  {
-    return EXIT_SUCCESS;
-  }
+
+  return EXIT_SUCCESS;
 }

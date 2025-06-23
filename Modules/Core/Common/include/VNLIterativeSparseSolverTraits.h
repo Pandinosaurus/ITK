@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef __VNLIterativeSparseSolverTraits_h
-#define __VNLIterativeSparseSolverTraits_h
+#ifndef VNLIterativeSparseSolverTraits_h
+#define VNLIterativeSparseSolverTraits_h
 
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_sparse_matrix.h"
@@ -123,8 +123,8 @@ public:
   static bool
   Solve(const MatrixType & iA, const VectorType & iBx, const VectorType & iBy, VectorType & oX, VectorType & oY)
   {
-    bool result1 = Solve(iA, iBx, oX);
-    bool result2 = Solve(iA, iBy, oY);
+    const bool result1 = Solve(iA, iBx, oX);
+    const bool result2 = Solve(iA, iBy, oY);
 
     return (result1 && result2);
   }

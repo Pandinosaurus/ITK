@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class BinaryThresholdImageFunction
+ * \class BinaryThresholdImageFunction
  * \brief Returns true is the value of an image lies within a range
  *        of thresholds
  * This ImageFunction returns true (or false) if the pixel value lies
@@ -40,26 +40,26 @@ namespace itk
  *
  * \ingroup ITKImageFunction
  */
-template <typename TInputImage, typename TCoordRep = float>
-class ITK_TEMPLATE_EXPORT BinaryThresholdImageFunction : public ImageFunction<TInputImage, bool, TCoordRep>
+template <typename TInputImage, typename TCoordinate = float>
+class ITK_TEMPLATE_EXPORT BinaryThresholdImageFunction : public ImageFunction<TInputImage, bool, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BinaryThresholdImageFunction);
 
   /** Standard class type aliases. */
   using Self = BinaryThresholdImageFunction;
-  using Superclass = ImageFunction<TInputImage, bool, TCoordRep>;
+  using Superclass = ImageFunction<TInputImage, bool, TCoordinate>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryThresholdImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryThresholdImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Typedef to describe the type of pixel. */
   using PixelType = typename TInputImage::PixelType;
@@ -68,13 +68,13 @@ public:
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** BinaryThreshold the image at a point position
    *
@@ -122,7 +122,7 @@ public:
   bool
   EvaluateAtIndex(const IndexType & index) const override
   {
-    PixelType value = this->GetInputImage()->GetPixel(index);
+    const PixelType value = this->GetInputImage()->GetPixel(index);
 
     return (m_Lower <= value && value <= m_Upper);
   }
@@ -152,8 +152,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  PixelType m_Lower;
-  PixelType m_Upper;
+  PixelType m_Lower{};
+  PixelType m_Upper{};
 };
 } // end namespace itk
 

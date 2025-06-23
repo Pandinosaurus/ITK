@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,37 +21,46 @@
 #include "itkTestingMacros.h"
 
 int
-itkNiftiImageIOTest12(int ac, char * av[])
+itkNiftiImageIOTest12(int argc, char * argv[])
 {
   //
   // first argument is passing in the writable directory to do all testing
-  if (ac > 1)
+  if (argc != 3)
   {
-    char * testdir = *++av;
-    --ac;
-    itksys::SystemTools::ChangeDirectory(testdir);
-  }
-  if (ac != 2)
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " <TempOutputDirectory> <filename>" << std::endl;
     return EXIT_FAILURE;
-
-
-  char * arg1 = av[1];
-
-  // make large RGB Image
+  }
+  constexpr unsigned int CmdLineTestDirPos = 1;
+  const std::string      testdir{ argv[CmdLineTestDirPos] };
+  itksys::SystemTools::ChangeDirectory(testdir);
+  constexpr unsigned int CmdLineFilenamePos = 2;
+  const std::string      imgfilename{ argv[CmdLineFilenamePos] };
 
   using ImageType = itk::VectorImage<unsigned char, 3>;
 
   ImageType::RegionType region;
-  ImageType::SizeType   size = { { 2024, 1024, 1024 } };
-  region.SetSize(size);
 
-  ImageType::Pointer image = ImageType::New();
+  // make a large RGB Image
+  // test is too slow with large image ImageType::SizeType   size = { { 2024, 1024, 1024 } };
+
+  // make small RGB Image
+  constexpr ImageType::SizeType size = { { 24, 10, 11 } };
+  region.SetSize(size);
+#if 0 // using non-zero start index exposes bug in ITK IO physical space preservation
+  constexpr ImageType::IndexType startIndex = { { 200, 300, 400 } };
+#else
+  constexpr ImageType::IndexType startIndex = { { 0, 0, 0 } };
+#endif
+  region.SetIndex(startIndex);
+
+  auto image = ImageType::New();
   image->SetRegions(region);
   image->SetNumberOfComponentsPerPixel(3);
+  image->SetOrigin(itk::MakePoint(-7.0, -13.0, -19.0));
   image->Allocate();
 
   { // Fill in entire image
-
     ImageType::PixelType value(3);
 
     itk::ImageRegionIterator<ImageType> ri(image, region);
@@ -69,30 +78,53 @@ itkNiftiImageIOTest12(int ac, char * av[])
   }
 
   using Hasher = itk::Testing::HashImageFilter<ImageType>;
-  Hasher::Pointer hasher = Hasher::New();
-  hasher->SetInput(image);
-  hasher->InPlaceOff();
-  hasher->Update();
 
-  std::string originalHash = hasher->GetHash();
+  auto myHasher = [&](ImageType::Pointer imptr) -> std::string {
+    auto originalHasher = Hasher::New();
+    originalHasher->InPlaceOff();
+    originalHasher->SetInput(imptr);
+    originalHasher->Update();
+    return originalHasher->GetHash();
+  };
 
+  const std::string originalHash = myHasher(image);
   std::cout << "Original image hash: " << originalHash << std::endl;
 
   try
   {
-    itk::IOTestHelper::WriteImage<ImageType, itk::NiftiImageIO>(image, arg1);
+    itk::IOTestHelper::WriteImage<ImageType, itk::NiftiImageIO>(image, imgfilename);
 
-    image = itk::IOTestHelper::ReadImage<ImageType>(arg1);
-    hasher->SetInput(image);
-    hasher->Update();
+    const ImageType::Pointer readImage = itk::IOTestHelper::ReadImage<ImageType>(imgfilename);
 
-    std::string readHash = hasher->GetHash();
+    const std::string readHash = myHasher(readImage);
     std::cout << "Read hash: " << readHash << std::endl;
 
     ITK_TEST_EXPECT_EQUAL(originalHash, readHash);
+
+    constexpr ImageType::IndexType threeIndex = { { 3, 3, 3 } };
+    ImageType::PointType           origPhysLocationIndexThree;
+    image->TransformIndexToPhysicalPoint<itk::SpacePrecisionType>(threeIndex, origPhysLocationIndexThree);
+    ImageType::PointType readPhysLocationIndexThree;
+    readImage->TransformIndexToPhysicalPoint<itk::SpacePrecisionType>(threeIndex, readPhysLocationIndexThree);
+
+    // If the origins, and the spacings, and the direction cosines are the same,
+    // then index locations should all represent the same physical locations as well.
+    if (origPhysLocationIndexThree.EuclideanDistanceTo(readPhysLocationIndexThree) > 1e-5)
+    {
+      std::cerr << "ERROR: Physical space not preserved in nifti writer" << std::endl;
+      std::cerr << origPhysLocationIndexThree << " != " << readPhysLocationIndexThree << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    std::cout << "Index location [3,3,3] represents same physical space:" << std::endl;
+    std::cerr << origPhysLocationIndexThree << " != " << readPhysLocationIndexThree << std::endl;
   }
-  catch (itk::ExceptionObject &)
-  {}
+  catch (const itk::ExceptionObject & e)
+  {
+    std::cerr << "Exception occurred: " << std::endl;
+    std::cerr << e.GetDescription() << std::endl;
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

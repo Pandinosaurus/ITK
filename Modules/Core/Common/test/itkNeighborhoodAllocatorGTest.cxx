@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,10 +29,10 @@ template <typename T>
 void
 Expect_data_returns_pointer_to_first_element(T & container)
 {
-  static_assert(std::is_pointer<decltype(container.data())>::value, "data() must return a pointer");
+  static_assert(std::is_pointer_v<decltype(container.data())>, "data() must return a pointer");
 
-  static_assert(std::is_const<typename std::remove_reference<decltype(*(container.data()))>::type>::value ==
-                  std::is_const<typename std::remove_reference<decltype(container[0])>::type>::value,
+  static_assert(std::is_const_v<std::remove_reference_t<decltype(*(container.data()))>> ==
+                  std::is_const_v<std::remove_reference_t<decltype(container[0])>>,
                 "*container.data() and container[0] must have the same const-ness");
 
   EXPECT_EQ(container.data(), &container[0]);
@@ -43,23 +43,23 @@ Expect_data_returns_pointer_to_first_element(T & container)
 class ObjectCounter
 {
 private:
-  static std::size_t m_Count;
+  static size_t m_Count;
 
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ObjectCounter);
 
-  ObjectCounter() ITK_NOEXCEPT { ++m_Count; }
+  ObjectCounter() noexcept { ++m_Count; }
 
   ~ObjectCounter() { --m_Count; }
 
-  static std::size_t
+  static size_t
   GetCount()
   {
     return m_Count;
   }
 };
 
-std::size_t ObjectCounter::m_Count{};
+size_t ObjectCounter::m_Count{};
 
 
 } // namespace

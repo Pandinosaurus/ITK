@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class VotingBinaryIterativeHoleFillingImageFilter
+ * \class VotingBinaryIterativeHoleFillingImageFilter
  * \brief Fills in holes and cavities by iteratively applying a voting operation.
  *
  * This filter uses internally the VotingBinaryHoleFillingImageFilter, and runs
@@ -71,8 +71,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VotingBinaryIterativeHoleFillingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VotingBinaryIterativeHoleFillingImageFilter);
 
   /** Type of the internal Voting filter that is going to be executed
     iteratively */
@@ -90,15 +90,17 @@ public:
   /** Maximum number of iterations. This filter is executed iteratively as
    * long as at least one pixel has changed in a previous iteration, or until
    * the maximum number of iterations has been reached. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(MaximumNumberOfIterations, unsigned int);
   itkSetMacro(MaximumNumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Number of iterations executed at any given time. This is useful at the
    * end of the execution in order to verify how many iterations were
    * performed.  */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CurrentNumberOfIterations, unsigned int);
   itkSetMacro(CurrentNumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set the radius of the neighborhood used to compute the median. */
   itkSetMacro(Radius, InputSizeType);
 
@@ -107,32 +109,31 @@ public:
 
   /** Set the value associated with the Foreground (or the object) on
       the binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, InputPixelType);
   itkSetMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Get the value associated with the Foreground (or the object) on the
       binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(BackgroundValue, InputPixelType);
   itkGetConstReferenceMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Majority threshold. It is the number of pixels over 50% that will decide
    * whether an OFF pixel will become ON or not. For example, if the
    * neighborhood of a pixel has 124 pixels (excluding itself), the 50% will be
-   * 62, and if you set upd a Majority threshold of 5, that means that the
+   * 62, and if you set up a Majority threshold of 5, that means that the
    * filter will require 67 or more neighbor pixels to be ON in order to switch
    * the current OFF pixel to ON. The default value is 1. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(MajorityThreshold, unsigned int);
   itkSetMacro(MajorityThreshold, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Returns the number of pixels that changed when the filter was executed. */
   itkGetConstReferenceMacro(NumberOfPixelsChanged, unsigned int);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(InputOStreamWritableeCheck, (Concept::OStreamWritable<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   VotingBinaryIterativeHoleFillingImageFilter();
@@ -147,15 +148,15 @@ protected:
   GenerateData() override;
 
 private:
-  InputSizeType m_Radius;
+  InputSizeType m_Radius{};
 
-  InputPixelType m_ForegroundValue;
-  InputPixelType m_BackgroundValue;
+  InputPixelType m_ForegroundValue{};
+  InputPixelType m_BackgroundValue{};
 
-  unsigned int m_MaximumNumberOfIterations;
-  unsigned int m_CurrentNumberOfIterations;
-  unsigned int m_MajorityThreshold;
-  unsigned int m_NumberOfPixelsChanged;
+  unsigned int m_MaximumNumberOfIterations{};
+  unsigned int m_CurrentNumberOfIterations{};
+  unsigned int m_MajorityThreshold{};
+  unsigned int m_NumberOfPixelsChanged{};
 };
 } // end namespace itk
 

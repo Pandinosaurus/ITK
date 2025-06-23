@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,7 +64,7 @@ public:
   /**
    * Types from the Superclass
    */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /**
    * Extract some information from the image types.  Dimensionality
@@ -102,7 +102,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(ConnectedComponentFunctorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(ConnectedComponentFunctorImageFilter);
 
   /**
    * Method for creation through the object factory.
@@ -113,6 +113,7 @@ public:
    * (Functors do not have to derive from itk::LightObject, so they do
    * not necessarily have a reference count. So we cannot return a
    * SmartPointer.) */
+  /** @ITKStartGrouping */
   FunctorType &
   GetFunctor()
   {
@@ -123,6 +124,7 @@ public:
   {
     return m_Functor;
   }
+  /** @ITKEndGrouping */
 
   /** Set the functor object.  This replaces the current Functor with a
    * copy of the specified Functor. This allows the user to specify a
@@ -137,8 +139,6 @@ public:
     this->Modified();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputPixelType>));
@@ -147,15 +147,13 @@ public:
   itkConceptMacro(OutputConvertibleToLongCheck, (Concept::Convertible<OutputPixelType, long>));
   itkConceptMacro(UnsignedLongConvertibleToOutputCheck, (Concept::Convertible<unsigned long, OutputPixelType>));
   itkConceptMacro(OutputIncrementDecrementOperatorsCheck, (Concept::IncrementDecrementOperators<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ConnectedComponentFunctorImageFilter() = default;
   ~ConnectedComponentFunctorImageFilter() override = default;
   ConnectedComponentFunctorImageFilter(const Self &) {}
 
-  FunctorType m_Functor;
+  FunctorType m_Functor{};
 
   /**
    * Standard pipeline method.

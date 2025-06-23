@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ public:
     return n;
   }
 
-  /** Return the class name as a string. */
-  itkTypeMacro(Directory, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Directory);
 
   /** Load the specified directory and load the names of the files
    * in that directory. 0 is returned if the directory can not be
@@ -80,7 +80,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ::itksys::Directory * m_Internal;
+  ::itksys::Directory m_Internal;
 }; // End Class: Directory
 } // end namespace itk
 

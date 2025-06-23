@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,14 +46,14 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimpleLogger, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimpleLogger);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   std::string
-  BuildFormattedEntry(PriorityLevelEnum level, std::string const & content) override
+  BuildFormattedEntry(PriorityLevelEnum level, const std::string & content) override
   {
     std::string HeaderLevelStart("");
     std::string HeaderLevelStop("");
@@ -101,21 +101,21 @@ protected:
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 ThreadedGenerateLogMessages2(void * arg)
 {
-  const auto * threadInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(arg);
-  if (threadInfo)
+  const auto * workUnitInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(arg);
+  if (workUnitInfo)
   {
-    const unsigned int threadId = threadInfo->WorkUnitID;
+    const unsigned int workUnitID = workUnitInfo->WorkUnitID;
     std::string        threadPrefix;
     {
       std::ostringstream msg;
-      msg << "<Thread " << threadId << "> ";
+      msg << "<Thread " << workUnitID << "> ";
       threadPrefix = msg.str();
     }
 
-    const ThreadDataVec * dataVec = static_cast<ThreadDataVec *>(threadInfo->UserData);
+    const ThreadDataVec * dataVec = static_cast<ThreadDataVec *>(workUnitInfo->UserData);
     if (dataVec)
     {
-      const ThreadDataStruct threadData = (*dataVec)[threadId];
+      const ThreadDataStruct threadData = (*dataVec)[workUnitID];
       {
         std::ostringstream msg;
         msg << threadPrefix << "unpacked arg\n";
@@ -148,7 +148,7 @@ create_threaded_data2(int num_threads, itk::LoggerBase * logger)
   ThreadDataVec threadData;
   for (int ii = 0; ii < num_threads; ++ii)
   {
-    threadData.push_back(ThreadDataStruct());
+    threadData.emplace_back();
     threadData[ii].logger = logger;
   }
   return threadData;
@@ -173,14 +173,14 @@ itkLoggerThreadWrapperTest(int argc, char * argv[])
     }
 
     // Create an ITK StdStreamLogOutputs
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
     coutput->SetStream(std::cout);
     std::ofstream fout(argv[1]);
     foutput->SetStream(fout);
 
     // Create an ITK ThreadLogger
-    itk::LoggerThreadWrapper<SimpleLogger>::Pointer logger = itk::LoggerThreadWrapper<SimpleLogger>::New();
+    const itk::LoggerThreadWrapper<SimpleLogger>::Pointer logger = itk::LoggerThreadWrapper<SimpleLogger>::New();
 
     std::cout << "Testing itk::LoggerThreadWrapper" << std::endl;
 
@@ -228,8 +228,8 @@ itkLoggerThreadWrapperTest(int argc, char * argv[])
     std::cout << "  Flushing by the ThreadLogger is synchronized." << std::endl;
 
     std::cout << "Beginning multi-threaded portion of test." << std::endl;
-    ThreadDataVec                   threadData = create_threaded_data2(numthreads, logger);
-    itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+    ThreadDataVec                         threadData = create_threaded_data2(numthreads, logger);
+    const itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
     itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(numthreads + 10);
     threader->SetNumberOfWorkUnits(numthreads);
     threader->SetSingleMethod(ThreadedGenerateLogMessages2, &threadData);
@@ -246,10 +246,10 @@ itkLoggerThreadWrapperTest(int argc, char * argv[])
     //
     //  Testing the internal thread
     //
-    itk::StdStreamLogOutput::Pointer coutput2 = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput2 = itk::StdStreamLogOutput::New();
     coutput2->SetStream(std::cout);
 
-    itk::LoggerThreadWrapper<SimpleLogger>::Pointer logger2 = itk::LoggerThreadWrapper<SimpleLogger>::New();
+    const itk::LoggerThreadWrapper<SimpleLogger>::Pointer logger2 = itk::LoggerThreadWrapper<SimpleLogger>::New();
 
     std::cout << "Testing itk::LoggerThreadWrapper" << std::endl;
 
@@ -280,7 +280,7 @@ itkLoggerThreadWrapperTest(int argc, char * argv[])
   }
   catch (...)
   {
-    std::cerr << "Exception catched !!" << std::endl;
+    std::cerr << "Exception caught !!" << std::endl;
     return EXIT_FAILURE;
   }
 

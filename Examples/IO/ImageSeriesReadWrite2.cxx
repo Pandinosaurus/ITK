@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -119,17 +119,17 @@ main(int argc, char ** argv)
   using ReaderType = itk::ImageSeriesReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
   // Software Guide : EndCodeSnippet
 
 
-  std::string directory = argv[1];
-  std::string regularExpression = argv[2];
+  const std::string directory = argv[1];
+  const std::string regularExpression = argv[2];
 
   const unsigned int subMatch = std::stoi(argv[3]);
 
-  std::string outputFilename = argv[4];
+  const std::string outputFilename = argv[4];
 
 
   // Software Guide : BeginLatex
@@ -142,7 +142,7 @@ main(int argc, char ** argv)
   // Software Guide : BeginCodeSnippet
   using NameGeneratorType = itk::RegularExpressionSeriesFileNames;
 
-  NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+  auto nameGenerator = NameGeneratorType::New();
   // Software Guide : EndCodeSnippet
 
 

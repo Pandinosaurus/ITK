@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -91,7 +91,7 @@ public:
   {
     Self b(a.Size());
 
-    b.Fill(NumericTraits<T>::ZeroValue());
+    b.Fill(T{});
     return b;
   }
 
@@ -112,8 +112,8 @@ public:
     return b;
   }
 
-  static constexpr bool IsSigned = NumericTraits<ValueType>::IsSigned;
-  static constexpr bool IsInteger = NumericTraits<ValueType>::IsInteger;
+  static constexpr bool IsSigned = std::is_signed_v<ValueType>;
+  static constexpr bool IsInteger = std::is_integral_v<ValueType>;
   static constexpr bool IsComplex = NumericTraits<ValueType>::IsComplex;
 
   /** Set the length of the input array and fill it with zeros. */
@@ -121,11 +121,11 @@ public:
   SetLength(Array<T> & m, const unsigned int s)
   {
     m.SetSize(s);
-    m.Fill(NumericTraits<T>::ZeroValue());
+    m.Fill(T{});
   }
 
   /** Get the length of the input array. */
-  static std::size_t
+  static size_t
   GetLength(const Array<T> & m)
   {
     return m.GetSize();

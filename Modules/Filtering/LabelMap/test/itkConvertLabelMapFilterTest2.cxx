@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,8 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputLabelImage outputLabelImage";
     std::cerr << std::endl;
     return EXIT_FAILURE;
@@ -45,7 +46,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, dim>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   //////////////////////////////////////////////////////////////////////////////////
@@ -53,14 +54,14 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   //////////////////////////////////////////////////////////////////////////////////
   // convert label image to ShapeLabelMap
   using L2SType = itk::LabelImageToShapeLabelMapFilter<InputImageType>;
-  L2SType::Pointer l2s = L2SType::New();
+  auto l2s = L2SType::New();
   l2s->SetInput(reader->GetOutput());
   l2s->Update();
   // convert ShapeLabelMap from unsigned char type to unsigned short type
   using InputShapeLabelMapType = L2SType::OutputImageType;
   using OutputShapeLabelMapType = itk::LabelMap<itk::ShapeLabelObject<unsigned short, dim>>;
   using CastShapeType = itk::ConvertLabelMapFilter<InputShapeLabelMapType, OutputShapeLabelMapType>;
-  CastShapeType::Pointer castShape = CastShapeType::New();
+  auto castShape = CastShapeType::New();
   castShape->SetInput(l2s->GetOutput());
   castShape->Update();
   // verify ShapeLabelMap contains equivalent information after conversion
@@ -73,7 +74,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   for (InputShapeLabelMapType::ConstIterator it(l2s->GetOutput()); !it.IsAtEnd(); ++it)
   {
     const InputShapeLabelMapType::LabelObjectType * labelObject = it.GetLabelObject();
-    InputShapeLabelMapType::LabelType               label = labelObject->GetLabel();
+    const InputShapeLabelMapType::LabelType         label = labelObject->GetLabel();
 
     if (!castShape->GetOutput()->HasLabel(label)) // verify label first
     {
@@ -135,7 +136,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   //////////////////////////////////////////////////////////////////////////////////
   // convert label image to StatisticsLabelMap
   using L2StatType = itk::LabelImageToStatisticsLabelMapFilter<InputImageType, InputImageType>;
-  L2StatType::Pointer l2stat = L2StatType::New();
+  auto l2stat = L2StatType::New();
   l2stat->SetInput(reader->GetOutput());
   l2stat->SetFeatureImage(reader->GetOutput()); // use input label image itself as the feature image
   l2stat->Update();
@@ -143,7 +144,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   using InputStatisticsLabelMapType = L2StatType::OutputImageType;
   using OutputStatisticsLabelMapType = itk::LabelMap<itk::StatisticsLabelObject<unsigned short, dim>>;
   using CastStatType = itk::ConvertLabelMapFilter<InputStatisticsLabelMapType, OutputStatisticsLabelMapType>;
-  CastStatType::Pointer castStatistics = CastStatType::New();
+  auto castStatistics = CastStatType::New();
   castStatistics->SetInput(l2stat->GetOutput());
   castStatistics->Update();
   // verify StatisticsLabelMap contains equivalent information after conversion
@@ -157,7 +158,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   for (InputStatisticsLabelMapType::ConstIterator it(l2stat->GetOutput()); !it.IsAtEnd(); ++it)
   {
     const InputStatisticsLabelMapType::LabelObjectType * labelObject = it.GetLabelObject();
-    InputStatisticsLabelMapType::LabelType               label = labelObject->GetLabel();
+    const InputStatisticsLabelMapType::LabelType         label = labelObject->GetLabel();
 
     if (!castStatistics->GetOutput()->HasLabel(label)) // verify label first
     {
@@ -240,7 +241,7 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
   //////////////////////////////////////////////////////////////////////////////////
   // convert label image to label map
   using L2MType = itk::LabelImageToLabelMapFilter<InputImageType>;
-  L2MType::Pointer l2m = L2MType::New();
+  auto l2m = L2MType::New();
   l2m->SetInput(reader->GetOutput());
 
   using LabelObjectType = itk::LabelObject<OutputPixelType, dim>;
@@ -248,16 +249,16 @@ itkConvertLabelMapFilterTest2(int argc, char * argv[])
 
   // convert label map from unsigned char to unsigned short type
   using CastType = itk::ConvertLabelMapFilter<L2MType::OutputImageType, LabelMapType>;
-  CastType::Pointer cast = CastType::New();
+  auto cast = CastType::New();
   cast->SetInput(l2m->GetOutput());
-  itk::SimpleFilterWatcher watcher(cast, "cast");
+  const itk::SimpleFilterWatcher watcher(cast, "cast");
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, OutputImageType>;
-  L2IType::Pointer l2i = L2IType::New();
+  auto l2i = L2IType::New();
   l2i->SetInput(cast->GetOutput());
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

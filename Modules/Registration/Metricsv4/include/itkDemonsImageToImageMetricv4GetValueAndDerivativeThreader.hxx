@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDemonsImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 #define itkDemonsImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 
-#include "itkDemonsImageToImageMetricv4GetValueAndDerivativeThreader.h"
 
 namespace itk
 {
@@ -64,21 +63,16 @@ DemonsImageToImageMetricv4GetValueAndDerivativeThreader<TDomainPartitioner, TIma
 
   /* Derivative */
   InternalComputationValueType   gradientSquaredMagnitude = 0;
-  const FixedImageGradientType * gradient;
-  SizeValueType                  numberOfDimensions;
+  const FixedImageGradientType * gradient = &movingImageGradient;
+  SizeValueType                  numberOfDimensions = ImageToImageMetricv4Type::MovingImageDimension;
 
   if (this->m_DemonsAssociate->GetGradientSourceIncludesFixed())
   {
     gradient = &fixedImageGradient;
     numberOfDimensions = ImageToImageMetricv4Type::FixedImageDimension;
   }
-  else
-  {
-    gradient = &movingImageGradient;
-    numberOfDimensions = ImageToImageMetricv4Type::MovingImageDimension;
-  }
 
-  for (ImageDimensionType j = 0; j < numberOfDimensions; j++)
+  for (ImageDimensionType j = 0; j < numberOfDimensions; ++j)
   {
     gradientSquaredMagnitude += itk::Math::sqr((*gradient)[j]);
   }
@@ -99,11 +93,11 @@ DemonsImageToImageMetricv4GetValueAndDerivativeThreader<TDomainPartitioner, TIma
   if (itk::Math::abs(speedValue) < this->m_DemonsAssociate->GetIntensityDifferenceThreshold() ||
       denominator < this->m_DemonsAssociate->GetDenominatorThreshold())
   {
-    localDerivativeReturn.Fill(NumericTraits<DerivativeValueType>::ZeroValue());
+    localDerivativeReturn.Fill(DerivativeValueType{});
     return true;
   }
 
-  for (SizeValueType p = 0; p < this->GetCachedNumberOfLocalParameters(); p++)
+  for (SizeValueType p = 0; p < this->GetCachedNumberOfLocalParameters(); ++p)
   {
     localDerivativeReturn[p] = speedValue * (*gradient)[p] / denominator;
   }

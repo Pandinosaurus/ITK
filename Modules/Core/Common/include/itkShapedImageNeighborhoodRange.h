@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -116,8 +116,8 @@ private:
   public:
     // This constant tells whether the policy has a PixelAccessParameterType:
     static constexpr bool HasPixelAccessParameterType =
-      !std::is_same<decltype(Test<TImageNeighborhoodPixelAccessPolicy>(nullptr)),
-                    decltype(Test<TImageNeighborhoodPixelAccessPolicy>())>::value;
+      !std::is_same_v<decltype(Test<TImageNeighborhoodPixelAccessPolicy>(nullptr)),
+                      decltype(Test<TImageNeighborhoodPixelAccessPolicy>())>;
   };
 
 
@@ -181,24 +181,24 @@ private:
     operator=(const PixelProxy &) = delete;
 
     // Explicitly-defaulted member functions:
-    PixelProxy(const PixelProxy &) ITK_NOEXCEPT = default;
+    PixelProxy(const PixelProxy &) noexcept = default;
     ~PixelProxy() = default;
 
     // Constructor, called directly by operator*() of the iterator class.
     PixelProxy(const InternalPixelType * const             imageBufferPointer,
-               const TImageNeighborhoodPixelAccessPolicy & pixelAccessPolicy) ITK_NOEXCEPT
+               const TImageNeighborhoodPixelAccessPolicy & pixelAccessPolicy) noexcept
       : m_ImageBufferPointer{ imageBufferPointer }
       , m_PixelAccessPolicy{ pixelAccessPolicy }
     {}
 
     // Allows implicit conversion from non-const to const proxy.
-    PixelProxy(const PixelProxy<false> & pixelProxy) ITK_NOEXCEPT
+    PixelProxy(const PixelProxy<false> & pixelProxy) noexcept
       : m_ImageBufferPointer{ pixelProxy.m_ImageBufferPointer }
       , m_PixelAccessPolicy{ pixelProxy.m_PixelAccessPolicy }
     {}
 
     // Conversion operator.
-    operator PixelType() const ITK_NOEXCEPT { return m_PixelAccessPolicy.GetPixelValue(m_ImageBufferPointer); }
+    operator PixelType() const noexcept { return m_PixelAccessPolicy.GetPixelValue(m_ImageBufferPointer); }
   };
 
 
@@ -224,21 +224,21 @@ private:
 
     // Explicitly-defaulted member functions:
     ~PixelProxy() = default;
-    PixelProxy(const PixelProxy &) ITK_NOEXCEPT = default;
+    PixelProxy(const PixelProxy &) noexcept = default;
 
     // Constructor, called directly by operator*() of the iterator class.
     PixelProxy(InternalPixelType * const                   imageBufferPointer,
-               const TImageNeighborhoodPixelAccessPolicy & pixelAccessPolicy) ITK_NOEXCEPT
+               const TImageNeighborhoodPixelAccessPolicy & pixelAccessPolicy) noexcept
       : m_ImageBufferPointer{ imageBufferPointer }
       , m_PixelAccessPolicy{ pixelAccessPolicy }
     {}
 
     // Conversion operator.
-    operator PixelType() const ITK_NOEXCEPT { return m_PixelAccessPolicy.GetPixelValue(m_ImageBufferPointer); }
+    operator PixelType() const noexcept { return m_PixelAccessPolicy.GetPixelValue(m_ImageBufferPointer); }
 
     // Operator to assign a pixel value to the proxy.
     PixelProxy &
-    operator=(const PixelType & pixelValue) ITK_NOEXCEPT
+    operator=(const PixelType & pixelValue) noexcept
     {
       m_PixelAccessPolicy.SetPixelValue(m_ImageBufferPointer, pixelValue);
       return *this;
@@ -246,7 +246,7 @@ private:
 
     // Copy-assignment operator.
     PixelProxy &
-    operator=(const PixelProxy & pixelProxy) ITK_NOEXCEPT
+    operator=(const PixelProxy & pixelProxy) noexcept
     {
       // Note that this assignment operator only copies the pixel value.
       // That is the normal behavior when a reference is assigned to another.
@@ -257,7 +257,7 @@ private:
 
 
     friend void
-    swap(PixelProxy lhs, PixelProxy rhs) ITK_NOEXCEPT
+    swap(PixelProxy lhs, PixelProxy rhs) noexcept
     {
       const auto lhsPixelValue = lhs.m_PixelAccessPolicy.GetPixelValue(lhs.m_ImageBufferPointer);
       const auto rhsPixelValue = rhs.m_PixelAccessPolicy.GetPixelValue(rhs.m_ImageBufferPointer);
@@ -294,15 +294,14 @@ private:
     friend class ShapedImageNeighborhoodRange;
 
     // Image type class that is either 'const' or non-const qualified, depending on QualifiedIterator and TImage.
-    using QualifiedImageType = typename std::conditional<VIsConst, const ImageType, ImageType>::type;
+    using QualifiedImageType = std::conditional_t<VIsConst, const ImageType, ImageType>;
 
-    static constexpr bool IsImageTypeConst = std::is_const<QualifiedImageType>::value;
+    static constexpr bool IsImageTypeConst = std::is_const_v<QualifiedImageType>;
 
-    using QualifiedInternalPixelType =
-      typename std::conditional<IsImageTypeConst, const InternalPixelType, InternalPixelType>::type;
+    using QualifiedInternalPixelType = std::conditional_t<IsImageTypeConst, const InternalPixelType, InternalPixelType>;
 
     // Pixel type class that is either 'const' or non-const qualified, depending on QualifiedImageType.
-    using QualifiedPixelType = typename std::conditional<IsImageTypeConst, const PixelType, PixelType>::type;
+    using QualifiedPixelType = std::conditional_t<IsImageTypeConst, const PixelType, PixelType>;
 
     // Pointer to the buffer of the image. Only null when the iterator is default-constructed.
     QualifiedInternalPixelType * m_ImageBufferPointer = nullptr;
@@ -334,12 +333,12 @@ private:
                       const NeighborhoodAccessorFunctorType & neighborhoodAccessor,
                       const OptionalPixelAccessParameterType  optionalPixelAccessParameter,
                       const IndexType &                       relativeLocation,
-                      const OffsetType * const                offset) ITK_NOEXCEPT
+                      const OffsetType * const                offset) noexcept
       : m_ImageBufferPointer{ imageBufferPointer }
       ,
-        // Note: Use parentheses instead of curly braces to initialize data members,
-        // to avoid AppleClang 6.0.0.6000056 compilation error, "no viable conversion..."
-        m_ImageSize(imageSize)
+      // Note: Use parentheses instead of curly braces to initialize data members,
+      // to avoid AppleClang 6.0.0.6000056 compilation error, "no viable conversion..."
+      m_ImageSize(imageSize)
       , m_OffsetTable(offsetTable)
       , m_NeighborhoodAccessor(neighborhoodAccessor)
       , m_OptionalPixelAccessParameter(optionalPixelAccessParameter)
@@ -348,7 +347,8 @@ private:
     {}
 
 
-    TImageNeighborhoodPixelAccessPolicy CreatePixelAccessPolicy(EmptyPixelAccessParameter) const
+    [[nodiscard]] TImageNeighborhoodPixelAccessPolicy
+    CreatePixelAccessPolicy(EmptyPixelAccessParameter) const
     {
       return TImageNeighborhoodPixelAccessPolicy{
         m_ImageSize, m_OffsetTable, m_NeighborhoodAccessor, m_RelativeLocation + *m_CurrentOffset
@@ -356,12 +356,12 @@ private:
     }
 
     template <typename TPixelAccessParameter>
-    TImageNeighborhoodPixelAccessPolicy
+    [[nodiscard]] TImageNeighborhoodPixelAccessPolicy
     CreatePixelAccessPolicy(const TPixelAccessParameter pixelAccessParameter) const
     {
-      static_assert(std::is_same<TPixelAccessParameter, OptionalPixelAccessParameterType>::value,
+      static_assert(std::is_same_v<TPixelAccessParameter, OptionalPixelAccessParameterType>,
                     "This helper function should only be used for OptionalPixelAccessParameterType!");
-      static_assert(!std::is_same<TPixelAccessParameter, EmptyPixelAccessParameter>::value,
+      static_assert(!std::is_same_v<TPixelAccessParameter, EmptyPixelAccessParameter>,
                     "EmptyPixelAccessParameter indicates that there is no pixel access parameter specified!");
       return TImageNeighborhoodPixelAccessPolicy{
         m_ImageSize, m_OffsetTable, m_NeighborhoodAccessor, m_RelativeLocation + *m_CurrentOffset, pixelAccessParameter
@@ -370,7 +370,7 @@ private:
 
   public:
     // Types conforming the iterator requirements of the C++ standard library:
-    using difference_type = std::ptrdiff_t;
+    using difference_type = ptrdiff_t;
     using value_type = PixelType;
     using reference = PixelProxy<IsImageTypeConst>;
     using pointer = QualifiedPixelType *;
@@ -381,22 +381,20 @@ private:
      * the guarantee added to the C++14 Standard: "value-initialized iterators
      * may be compared and shall compare equal to other value-initialized
      * iterators of the same type."
-     * \note `QualifiedIterator<VIsConst>` follows the C++ "Rule of Zero" when
-     * VIsConst is true: The other five "special member functions" of the class
-     * are then implicitly defaulted. When VIsConst is false, its
-     * copy-constructor is provided explicitly, but it still behaves the same as
-     * a default implementation.
+     *
+     * \note The other five "special member functions" are defaulted implicitly,
+     * following the C++ "Rule of Zero".
      */
     QualifiedIterator() = default;
 
-    /** Constructor that allows implicit conversion from non-const to const
-     * iterator. Also serves as copy-constructor of a non-const iterator.  */
-    QualifiedIterator(const QualifiedIterator<false> & arg) ITK_NOEXCEPT
+    /** Constructor for implicit conversion from non-const to const iterator.  */
+    template <bool VIsArgumentConst, typename = std::enable_if_t<VIsConst && !VIsArgumentConst>>
+    QualifiedIterator(const QualifiedIterator<VIsArgumentConst> & arg) noexcept
       : m_ImageBufferPointer{ arg.m_ImageBufferPointer }
       ,
-        // Note: Use parentheses instead of curly braces to initialize data members,
-        // to avoid AppleClang 6.0.0.6000056 compilation error, "no viable conversion..."
-        m_ImageSize(arg.m_ImageSize)
+      // Note: Use parentheses instead of curly braces to initialize data members,
+      // to avoid AppleClang 6.0.0.6000056 compilation error, "no viable conversion..."
+      m_ImageSize(arg.m_ImageSize)
       , m_OffsetTable(arg.m_OffsetTable)
       , m_NeighborhoodAccessor(arg.m_NeighborhoodAccessor)
       , m_OptionalPixelAccessParameter(arg.m_OptionalPixelAccessParameter)
@@ -406,7 +404,8 @@ private:
 
 
     /**  Returns a reference to the current pixel. */
-    reference operator*() const ITK_NOEXCEPT
+    reference
+    operator*() const noexcept
     {
       return reference{ m_ImageBufferPointer, CreatePixelAccessPolicy(m_OptionalPixelAccessParameter) };
     }
@@ -414,7 +413,7 @@ private:
 
     /** Prefix increment ('++it'). */
     QualifiedIterator &
-    operator++() ITK_NOEXCEPT
+    operator++() noexcept
     {
       assert(m_CurrentOffset != nullptr);
       ++m_CurrentOffset;
@@ -425,7 +424,7 @@ private:
     /** Postfix increment ('it++').
      * \note Usually prefix increment ('++it') is preferable. */
     QualifiedIterator
-    operator++(int) ITK_NOEXCEPT
+    operator++(int) noexcept
     {
       auto result = *this;
       ++(*this);
@@ -435,7 +434,7 @@ private:
 
     /** Prefix decrement ('--it'). */
     QualifiedIterator &
-    operator--() ITK_NOEXCEPT
+    operator--() noexcept
     {
       assert(m_CurrentOffset != nullptr);
       --m_CurrentOffset;
@@ -446,7 +445,7 @@ private:
     /** Postfix increment ('it--').
      * \note  Usually prefix increment ('--it') is preferable. */
     QualifiedIterator
-    operator--(int) ITK_NOEXCEPT
+    operator--(int) noexcept
     {
       auto result = *this;
       --(*this);
@@ -458,7 +457,7 @@ private:
      * should be from the same range. This operator does not support comparing iterators
      * from different ranges. */
     friend bool
-    operator==(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator==(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       assert(lhs.m_ImageBufferPointer == rhs.m_ImageBufferPointer);
       assert(lhs.m_ImageSize == rhs.m_ImageSize);
@@ -470,7 +469,7 @@ private:
 
     /** Returns (it1 != it2) for iterators it1 and it2. */
     friend bool
-    operator!=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator!=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       // Implemented just like the corresponding std::rel_ops operator.
       return !(lhs == rhs);
@@ -479,7 +478,7 @@ private:
 
     /** Returns (it1 < it2) for iterators it1 and it2. */
     friend bool
-    operator<(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator<(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       assert(lhs.m_ImageBufferPointer == rhs.m_ImageBufferPointer);
       assert(lhs.m_ImageSize == rhs.m_ImageSize);
@@ -491,7 +490,7 @@ private:
 
     /** Returns (it1 > it2) for iterators it1 and it2. */
     friend bool
-    operator>(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator>(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       // Implemented just like the corresponding std::rel_ops operator.
       return rhs < lhs;
@@ -500,7 +499,7 @@ private:
 
     /** Returns (it1 <= it2) for iterators it1 and it2. */
     friend bool
-    operator<=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator<=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       // Implemented just like the corresponding std::rel_ops operator.
       return !(rhs < lhs);
@@ -509,7 +508,7 @@ private:
 
     /** Returns (it1 >= it2) for iterators it1 and it2. */
     friend bool
-    operator>=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator>=(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       // Implemented just like the corresponding std::rel_ops operator.
       return !(lhs < rhs);
@@ -518,7 +517,7 @@ private:
 
     /** Does (it += d) for iterator 'it' and integer value 'n'. */
     friend QualifiedIterator &
-    operator+=(QualifiedIterator & it, const difference_type n) ITK_NOEXCEPT
+    operator+=(QualifiedIterator & it, const difference_type n) noexcept
     {
       it.m_CurrentOffset += n;
       return it;
@@ -526,7 +525,7 @@ private:
 
     /** Does (it -= d) for iterator 'it' and integer value 'n'. */
     friend QualifiedIterator &
-    operator-=(QualifiedIterator & it, const difference_type n) ITK_NOEXCEPT
+    operator-=(QualifiedIterator & it, const difference_type n) noexcept
     {
       it += (-n);
       return it;
@@ -534,7 +533,7 @@ private:
 
     /** Returns (it1 - it2) for iterators it1 and it2. */
     friend difference_type
-    operator-(const QualifiedIterator & lhs, const QualifiedIterator & rhs) ITK_NOEXCEPT
+    operator-(const QualifiedIterator & lhs, const QualifiedIterator & rhs) noexcept
     {
       assert(lhs.m_ImageBufferPointer == rhs.m_ImageBufferPointer);
       assert(lhs.m_ImageSize == rhs.m_ImageSize);
@@ -546,7 +545,7 @@ private:
 
     /** Returns (it + n) for iterator 'it' and integer value 'n'. */
     friend QualifiedIterator
-    operator+(QualifiedIterator it, const difference_type n) ITK_NOEXCEPT
+    operator+(QualifiedIterator it, const difference_type n) noexcept
     {
       return it += n;
     }
@@ -554,7 +553,7 @@ private:
 
     /** Returns (n + it) for iterator 'it' and integer value 'n'. */
     friend QualifiedIterator
-    operator+(const difference_type n, QualifiedIterator it) ITK_NOEXCEPT
+    operator+(const difference_type n, QualifiedIterator it) noexcept
     {
       return it += n;
     }
@@ -562,25 +561,23 @@ private:
 
     /** Returns (it - n) for iterator 'it' and integer value 'n'. */
     friend QualifiedIterator
-    operator-(QualifiedIterator it, const difference_type n) ITK_NOEXCEPT
+    operator-(QualifiedIterator it, const difference_type n) noexcept
     {
       return it += (-n);
     }
 
 
     /** Returns it[n] for iterator 'it' and integer value 'n'. */
-    reference operator[](const difference_type n) const ITK_NOEXCEPT { return *(*this + n); }
-
-
-    /** Explicitly-defaulted assignment operator. */
-    QualifiedIterator &
-    operator=(const QualifiedIterator &) ITK_NOEXCEPT = default;
+    reference
+    operator[](const difference_type n) const noexcept
+    {
+      return *(*this + n);
+    }
   };
 
-  static constexpr bool IsImageTypeConst = std::is_const<TImage>::value;
+  static constexpr bool IsImageTypeConst = std::is_const_v<TImage>;
 
-  using QualifiedInternalPixelType =
-    typename std::conditional<IsImageTypeConst, const InternalPixelType, InternalPixelType>::type;
+  using QualifiedInternalPixelType = std::conditional_t<IsImageTypeConst, const InternalPixelType, InternalPixelType>;
 
 
   // Just the data from itk::ImageRegion (not the virtual table)
@@ -589,7 +586,7 @@ private:
     IndexType     m_Index{ {} };
     ImageSizeType m_Size{ {} };
 
-    RegionData() ITK_NOEXCEPT = default;
+    RegionData() noexcept = default;
 
     explicit RegionData(const ImageRegionType & imageRegion)
       : m_Index(imageRegion.GetIndex())
@@ -601,7 +598,7 @@ private:
   void
   SubtractIndex(IndexType & index1, const IndexType & index2)
   {
-    for (unsigned i = 0; i < ImageDimension; ++i)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       index1[i] -= index2[i];
     }
@@ -629,7 +626,7 @@ private:
   const OffsetType * m_ShapeOffsets{ nullptr };
 
   // The number of neighborhood pixels.
-  std::size_t m_NumberOfNeighborhoodPixels{ 0 };
+  size_t m_NumberOfNeighborhoodPixels{ 0 };
 
   OptionalPixelAccessParameterType m_OptionalPixelAccessParameter{};
 
@@ -656,7 +653,7 @@ public:
   ShapedImageNeighborhoodRange(ImageType &                            image,
                                const IndexType &                      location,
                                const OffsetType * const               shapeOffsets,
-                               const std::size_t                      numberOfNeigborhoodPixels,
+                               const size_t                           numberOfNeigborhoodPixels,
                                const OptionalPixelAccessParameterType optionalPixelAccessParameter = {})
     : m_ImageBufferPointer{ image.ImageType::GetBufferPointer() }
     ,
@@ -695,22 +692,22 @@ public:
                                const OptionalPixelAccessParameterType optionalPixelAccessParameter = {})
     : ShapedImageNeighborhoodRange{ image,
                                     location,
-                                    shapeOffsets.data(),
-                                    shapeOffsets.size(),
+                                    std::data(shapeOffsets),
+                                    std::size(shapeOffsets),
                                     optionalPixelAccessParameter }
   {}
 
   /** Returns an iterator to the first neighborhood pixel. */
-  iterator
-  begin() const ITK_NOEXCEPT
+  [[nodiscard]] iterator
+  begin() const noexcept
   {
     return iterator{ m_ImageBufferPointer,           m_BufferedRegionData.m_Size, m_OffsetTable, m_NeighborhoodAccessor,
                      m_OptionalPixelAccessParameter, m_RelativeLocation,          m_ShapeOffsets };
   }
 
   /** Returns an 'end iterator' for this range. */
-  iterator
-  end() const ITK_NOEXCEPT
+  [[nodiscard]] iterator
+  end() const noexcept
   {
     return iterator{ m_ImageBufferPointer,
                      m_BufferedRegionData.m_Size,
@@ -723,59 +720,59 @@ public:
 
   /** Returns a const iterator to the first neighborhood pixel.
    * Provides only read-only access to the pixel data. */
-  const_iterator
-  cbegin() const ITK_NOEXCEPT
+  [[nodiscard]] const_iterator
+  cbegin() const noexcept
   {
     return this->begin();
   }
 
   /** Returns a const 'end iterator' for this range. */
-  const_iterator
-  cend() const ITK_NOEXCEPT
+  [[nodiscard]] const_iterator
+  cend() const noexcept
   {
     return this->end();
   }
 
   /** Returns a reverse 'begin iterator' for this range. */
-  reverse_iterator
-  rbegin() const ITK_NOEXCEPT
+  [[nodiscard]] reverse_iterator
+  rbegin() const noexcept
   {
     return reverse_iterator(this->end());
   }
 
   /** Returns a reverse 'end iterator' for this range. */
-  reverse_iterator
-  rend() const ITK_NOEXCEPT
+  [[nodiscard]] reverse_iterator
+  rend() const noexcept
   {
     return reverse_iterator(this->begin());
   }
 
   /** Returns a const reverse 'begin iterator' for this range. */
-  const_reverse_iterator
-  crbegin() const ITK_NOEXCEPT
+  [[nodiscard]] const_reverse_iterator
+  crbegin() const noexcept
   {
     return this->rbegin();
   }
 
   /** Returns a const reverse 'end iterator' for this range. */
-  const_reverse_iterator
-  crend() const ITK_NOEXCEPT
+  [[nodiscard]] const_reverse_iterator
+  crend() const noexcept
   {
     return this->rend();
   }
 
 
   /** Returns the size of the range, that is the number of neighborhood pixels. */
-  std::size_t
-  size() const ITK_NOEXCEPT
+  [[nodiscard]] size_t
+  size() const noexcept
   {
     return m_NumberOfNeighborhoodPixels;
   }
 
 
   /** Tells whether the range is empty. */
-  bool
-  empty() const ITK_NOEXCEPT
+  [[nodiscard]] bool
+  empty() const noexcept
   {
     return m_NumberOfNeighborhoodPixels == 0;
   }
@@ -786,12 +783,13 @@ public:
    * iterator::reference. The return value is a proxy object that behaves like a
    * reference to the pixel.
    */
-  typename QualifiedIterator<false>::reference operator[](const std::size_t n) const ITK_NOEXCEPT
+  typename QualifiedIterator<false>::reference
+  operator[](const size_t n) const noexcept
   {
     assert(n < this->size());
-    assert(n <= static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()));
+    assert(n <= static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max()));
 
-    return this->begin()[static_cast<std::ptrdiff_t>(n)];
+    return this->begin()[static_cast<ptrdiff_t>(n)];
   }
 
 
@@ -799,7 +797,7 @@ public:
    * Typically, this is the index of the center pixel of the neighborhood.
    */
   void
-  SetLocation(const IndexType & location) ITK_NOEXCEPT
+  SetLocation(const IndexType & location) noexcept
   {
     m_RelativeLocation = location;
     SubtractIndex(m_RelativeLocation, m_BufferedRegionData.m_Index);

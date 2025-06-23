@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkReflectiveImageRegionConstIterator_hxx
 #define itkReflectiveImageRegionConstIterator_hxx
 
-#include "itkReflectiveImageRegionConstIterator.h"
 
 namespace itk
 {
@@ -26,7 +25,7 @@ template <typename TImage>
 ReflectiveImageRegionConstIterator<TImage>::ReflectiveImageRegionConstIterator()
   : ImageConstIteratorWithIndex<TImage>()
 {
-  for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
   {
     m_BeginOffset[dim] = 0;
     m_EndOffset[dim] = 0;
@@ -38,7 +37,7 @@ template <typename TImage>
 ReflectiveImageRegionConstIterator<TImage>::ReflectiveImageRegionConstIterator(TImage * ptr, const RegionType & region)
   : ImageConstIteratorWithIndex<TImage>(ptr, region)
 {
-  for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
   {
     m_BeginOffset[dim] = 0;
     m_EndOffset[dim] = 0;
@@ -60,7 +59,7 @@ ReflectiveImageRegionConstIterator<TImage>::ReflectiveImageRegionConstIterator(
 {
   this->ImageConstIteratorWithIndex<TImage>::operator=(it);
 
-  for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
   {
     m_BeginOffset[dim] = 0;
     m_EndOffset[dim] = 0;
@@ -75,7 +74,7 @@ ReflectiveImageRegionConstIterator<TImage>::operator=(const Self & it)
   {
     this->ImageConstIteratorWithIndex<TImage>::operator=(it);
 
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       m_BeginOffset[dim] = it.m_BeginOffset[dim];
       m_EndOffset[dim] = it.m_EndOffset[dim];
@@ -97,7 +96,7 @@ ReflectiveImageRegionConstIterator<TImage>::GoToBegin()
   {
     m_IsFirstPass[i] = true;
 
-    SizeValueType tempSize = size[i];
+    const SizeValueType tempSize = size[i];
     if (tempSize > 0)
     {
       this->m_Remaining = true;
@@ -116,7 +115,7 @@ template <typename TImage>
 void
 ReflectiveImageRegionConstIterator<TImage>::FillOffsets(const OffsetValueType & value)
 {
-  for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
   {
     m_BeginOffset[dim] = value;
     m_EndOffset[dim] = value;
@@ -131,7 +130,7 @@ ReflectiveImageRegionConstIterator<TImage> &
 ReflectiveImageRegionConstIterator<TImage>::operator++()
 {
   this->m_Remaining = false;
-  for (unsigned int in = 0; in < TImage::ImageDimension; in++)
+  for (unsigned int in = 0; in < TImage::ImageDimension; ++in)
   {
     if (m_IsFirstPass[in])
     {
@@ -142,14 +141,12 @@ ReflectiveImageRegionConstIterator<TImage>::operator++()
         this->m_Remaining = true;
         break;
       }
-      else
-      {
-        this->m_PositionIndex[in] = this->m_EndIndex[in] - m_EndOffset[in] - 1;
-        this->m_Position -= (this->m_EndOffset[in]) * (this->m_OffsetTable[in]);
-        m_IsFirstPass[in] = false;
-        this->m_Remaining = true;
-        break;
-      }
+
+      this->m_PositionIndex[in] = this->m_EndIndex[in] - m_EndOffset[in] - 1;
+      this->m_Position -= (this->m_EndOffset[in]) * (this->m_OffsetTable[in]);
+      m_IsFirstPass[in] = false;
+      this->m_Remaining = true;
+      break;
     }
     else
     {
@@ -160,12 +157,10 @@ ReflectiveImageRegionConstIterator<TImage>::operator++()
         this->m_Remaining = true;
         break;
       }
-      else
-      {
-        this->m_PositionIndex[in] = this->m_BeginIndex[in] + m_BeginOffset[in];
-        this->m_Position += (this->m_BeginOffset[in]) * (this->m_OffsetTable[in]);
-        m_IsFirstPass[in] = true;
-      }
+
+      this->m_PositionIndex[in] = this->m_BeginIndex[in] + m_BeginOffset[in];
+      this->m_Position += (this->m_BeginOffset[in]) * (this->m_OffsetTable[in]);
+      m_IsFirstPass[in] = true;
     }
   }
 

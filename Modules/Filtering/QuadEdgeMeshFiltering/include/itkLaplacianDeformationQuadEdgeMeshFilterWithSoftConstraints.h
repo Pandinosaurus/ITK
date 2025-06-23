@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
  * m_Lambda (for all constraints), or for one particular constraint by using
  * SetLocalLambda
  *
- * For details, see https://www.insight-journal.org/browse/publication/890
+ * For details, see https://doi.org/10.54294/s91axg
  *
  *  \ingroup ITKQuadEdgeMeshFiltering
  */
@@ -59,25 +59,25 @@ public:
 
   /** Output types. */
   using OutputMeshType = TOutputMesh;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using OutputCoordRepType = typename Superclass::OutputCoordRepType;
-  using OutputPointIdentifier = typename Superclass::OutputPointIdentifier;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::OutputCoordinateType;
+  using typename Superclass::OutputPointIdentifier;
 
   static constexpr unsigned int OutputPointDimension = OutputMeshType::PointDimension;
 
   using SolverTraits = TSolverTraits;
-  using ValueType = typename Superclass::ValueType;
-  using MatrixType = typename Superclass::MatrixType;
-  using VectorType = typename Superclass::VectorType;
+  using typename Superclass::ValueType;
+  using typename Superclass::MatrixType;
+  using typename Superclass::VectorType;
 
   itkNewMacro(Self);
-  itkTypeMacro(LaplacianDeformationQuadEdgeMeshFilterWithSoftConstraints, LaplacianDeformationQuadEdgeMeshFilter);
+  itkOverrideGetNameOfClassMacro(LaplacianDeformationQuadEdgeMeshFilterWithSoftConstraints);
 
-  itkSetMacro(Lambda, OutputCoordRepType);
-  itkGetMacro(Lambda, OutputCoordRepType);
+  itkSetMacro(Lambda, OutputCoordinateType);
+  itkGetMacro(Lambda, OutputCoordinateType);
 
   void
-  SetLocalLambda(OutputPointIdentifier vId, OutputCoordRepType iL);
+  SetLocalLambda(OutputPointIdentifier vId, OutputCoordinateType iL);
 
 protected:
   LaplacianDeformationQuadEdgeMeshFilterWithSoftConstraints();
@@ -95,25 +95,25 @@ protected:
   void
   GenerateData() override;
 
-  using ConstraintMapType = typename Superclass::ConstraintMapType;
-  using ConstraintMapConstIterator = typename Superclass::ConstraintMapConstIterator;
+  using typename Superclass::ConstraintMapType;
+  using typename Superclass::ConstraintMapConstIterator;
 
-  using OutputMapPointIdentifier = typename Superclass::OutputMapPointIdentifier;
-  using OutputMapPointIdentifierIterator = typename Superclass::OutputMapPointIdentifierIterator;
-  using OutputMapPointIdentifierConstIterator = typename Superclass::OutputMapPointIdentifierConstIterator;
+  using typename Superclass::OutputMapPointIdentifier;
+  using typename Superclass::OutputMapPointIdentifierIterator;
+  using typename Superclass::OutputMapPointIdentifierConstIterator;
 
 
-  using RowType = typename Superclass::RowType;
-  using RowConstIterator = typename Superclass::RowConstIterator;
-  using RowIterator = typename Superclass::RowIterator;
+  using typename Superclass::RowType;
+  using typename Superclass::RowConstIterator;
+  using typename Superclass::RowIterator;
 
   void
   ComputeVertexIdMapping() override;
 
-  OutputCoordRepType m_Lambda;
-  OutputCoordRepType m_LambdaSquare;
+  OutputCoordinateType m_Lambda{};
+  OutputCoordinateType m_LambdaSquare{};
 
-  std::unordered_map<OutputPointIdentifier, OutputCoordRepType> m_LocalLambdaSquare;
+  std::unordered_map<OutputPointIdentifier, OutputCoordinateType> m_LocalLambdaSquare{};
 };
 } // end namespace itk
 

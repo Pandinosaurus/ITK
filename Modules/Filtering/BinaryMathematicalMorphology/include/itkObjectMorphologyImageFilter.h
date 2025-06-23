@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,15 +27,15 @@
 namespace itk
 {
 /**
- *\class ObjectMorphologyImageFilter
+ * \class ObjectMorphologyImageFilter
  * \brief Base class for the morphological operations
  * being applied to isolated objects in an image.
  *
  * This class provides the infrastructure to support of
  * morphological operations being applied to images in which
  * the foreground and background intensities are fixed. This filter
- * operates significantly faster than itkBinaryMorhologicalImageFilters;
- * however itkBinaryMorhologicalImageFilters preserve
+ * operates significantly faster than itkBinaryMorphologicalImageFilters;
+ * however itkBinaryMorphologicalImageFilters preserve
  * background pixels based on values of neighboring background
  * pixels - potentially important during erosion.
  *
@@ -82,8 +82,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Runtime information support. */
-  itkTypeMacro(ObjectMorphologyImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectMorphologyImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -93,7 +93,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
 
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   using ImageBoundaryConditionPointerType = ImageBoundaryCondition<InputImageType> *;
   using ImageBoundaryConditionConstPointerType = const ImageBoundaryCondition<InputImageType> *;
@@ -171,8 +171,6 @@ public:
    * an object's boundary. */
   itkGetConstMacro(UseBoundaryCondition, bool);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<ImageDimension, KernelDimension>));
   itkConceptMacro(OutputInputEqualityComparableCheck,
@@ -181,8 +179,6 @@ public:
   itkConceptMacro(IntConvertibleToOutputCheck, (Concept::Convertible<int, typename TOutputImage::PixelType>));
   itkConceptMacro(InputEqualityComparable, (Concept::EqualityComparable<PixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ObjectMorphologyImageFilter();
@@ -207,19 +203,19 @@ protected:
 
   /** Pointer to a persistent boundary condition object used
    * for the image iterator. */
-  ImageBoundaryConditionPointerType m_BoundaryCondition;
+  ImageBoundaryConditionPointerType m_BoundaryCondition{};
 
   /** Default boundary condition */
-  DefaultBoundaryConditionType m_DefaultBoundaryCondition;
+  DefaultBoundaryConditionType m_DefaultBoundaryCondition{};
 
   /** Defaults to false */
-  bool m_UseBoundaryCondition;
+  bool m_UseBoundaryCondition{};
 
   /** kernel or structuring element to use. */
-  KernelType m_Kernel;
+  KernelType m_Kernel{};
 
   /** Pixel value that indicates the object be operated upon */
-  PixelType m_ObjectValue;
+  PixelType m_ObjectValue{};
 
   void
   BeforeThreadedGenerateData() override;

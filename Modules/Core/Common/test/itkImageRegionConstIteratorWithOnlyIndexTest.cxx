@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,18 +31,13 @@ public:
   using ConstIteratorType = itk::ImageRegionConstIteratorWithOnlyIndex<ImageType>;
 
   itkImageRegionConstIteratorWithOnlyIndexTestIteratorTester()
+    : m_Image(ImageType::New())
   {
-    m_Image = ImageType::New();
+    auto size = ImageType::SizeType::Filled(100);
 
-    typename ImageType::SizeType size;
-    size.Fill(100);
+    typename ImageType::IndexType start{};
 
-    typename ImageType::IndexType start;
-    start.Fill(0);
-
-    typename ImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
+    typename ImageType::RegionType region{ start, size };
 
     m_Image->SetRegions(region);
 
@@ -85,9 +80,9 @@ public:
 
     while (!it.IsAtEnd())
     {
-      IndexType index = it.GetIndex();
+      const IndexType index = it.GetIndex();
       // Check to see if the index is within allowed bounds
-      bool isInside = region.IsInside(index);
+      const bool isInside = region.IsInside(index);
       if (!isInside)
       {
         std::cout << "Index is not inside region! - " << index << std::endl;

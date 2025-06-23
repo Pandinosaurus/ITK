@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,24 +18,21 @@
 #ifndef itkDelaunayConformingQuadEdgeMeshFilter_hxx
 #define itkDelaunayConformingQuadEdgeMeshFilter_hxx
 
-#include "itkDelaunayConformingQuadEdgeMeshFilter.h"
 
 namespace itk
 {
 // ---------------------------------------------------------------------
 template <typename TInputMesh, typename TOutputMesh>
 DelaunayConformingQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::DelaunayConformingQuadEdgeMeshFilter()
-{
-  this->m_NumberOfEdgeFlips = 0;
-  this->m_FlipEdge = FlipEdgeFunctionType::New();
-  this->m_PriorityQueue = PriorityQueueType::New();
-}
+  : m_PriorityQueue(PriorityQueueType::New())
+  , m_FlipEdge(FlipEdgeFunctionType::New())
+{}
 
 // ---------------------------------------------------------------------
 template <typename TInputMesh, typename TOutputMesh>
 DelaunayConformingQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::~DelaunayConformingQuadEdgeMeshFilter()
 {
-  OutputEdgeCellType * edge;
+  OutputEdgeCellType * edge = nullptr;
 
   while (!m_PriorityQueue->Empty())
   {
@@ -130,12 +127,6 @@ DelaunayConformingQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::Process()
   typename std::vector<OutputQEType *>           list_qe(5);
   typename std::vector<OutputQEType *>::iterator it;
 
-  OutputEdgeCellType * edge;
-  OutputQEType *       qe;
-  OutputQEType *       e_it;
-
-  CriterionValueType value;
-
   while (!m_PriorityQueue->Empty())
   {
     if (!m_PriorityQueue->Peek()->m_Priority.first)
@@ -143,8 +134,8 @@ DelaunayConformingQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::Process()
       break;
     }
 
-    edge = m_PriorityQueue->Peek()->m_Element;
-    qe = edge->GetQEGeom();
+    OutputEdgeCellType * edge = m_PriorityQueue->Peek()->m_Element;
+    OutputQEType *       qe = edge->GetQEGeom();
 
     list_qe[0] = qe->GetLnext();
     list_qe[1] = qe->GetLprev();
@@ -172,10 +163,10 @@ DelaunayConformingQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::Process()
 
       for (it = list_qe.begin(); it != list_qe.end(); ++it)
       {
-        e_it = *it;
+        OutputQEType * e_it = *it;
         if (e_it)
         {
-          value = Dyer07Criterion(output, e_it);
+          CriterionValueType value = Dyer07Criterion(output, e_it);
           if (value > 0.0)
           {
             edge = output->FindEdgeCell(e_it->GetOrigin(), e_it->GetDestination());

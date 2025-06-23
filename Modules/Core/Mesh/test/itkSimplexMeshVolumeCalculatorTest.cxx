@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultDynamicMeshTraits.h"
 #include "itkTriangleMeshToSimplexMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkSimplexMeshVolumeCalculatorTest(int, char *[])
@@ -41,25 +42,27 @@ itkSimplexMeshVolumeCalculatorTest(int, char *[])
   // Declare the type of the gradient image
   using SimplexFilterType = itk::TriangleMeshToSimplexMeshFilter<TriangleMeshType, SimplexMeshType>;
 
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(0);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  constexpr PointType  center{};
   PointType::ValueType scaleInit[3] = { 10, 10, 10 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetScale(scale);
 
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
 
   using VolumeCalculatorType = itk::SimplexMeshVolumeCalculator<SimplexMeshType>;
 
 
-  VolumeCalculatorType::Pointer calculator = VolumeCalculatorType::New();
+  auto calculator = VolumeCalculatorType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(calculator, SimplexMeshVolumeCalculator, Object);
+
 
   calculator->SetSimplexMesh(simplexFilter->GetOutput());
-  for (int i = 1; i <= 5; i++)
+  for (int i = 1; i <= 5; ++i)
   {
     mySphereMeshSource->SetResolution(i);
     simplexFilter->Update();
@@ -71,7 +74,7 @@ itkSimplexMeshVolumeCalculatorTest(int, char *[])
 
   calculator->Print(std::cout);
 
-  double volume = calculator->GetVolume();
+  const double volume = calculator->GetVolume();
 
   const double pi = std::atan(1.0) * 4.0;
   const double knownVolume = 4.0 / 3.0 * pi * (1000.0); // scale was 10 = radius

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,12 +30,12 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
-  itkTypeMacro(ObjectToObjectOptimizerBaseTestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(ObjectToObjectOptimizerBaseTestMetric);
 
   itkNewMacro(Self);
 
@@ -122,8 +122,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectToObjectOptimizerBaseTestOptimizer, ObjectToObjectOptimizerBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectToObjectOptimizerBaseTestOptimizer);
 
   /* Provide initialization for this class */
   void
@@ -135,10 +135,10 @@ public:
   }
 
   /** Stop condition return string type */
-  const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override
   {
-    return std::string("Placeholder test return string");
+    return { "Placeholder test return string" };
   }
 };
 
@@ -152,8 +152,8 @@ itkObjectToObjectOptimizerBaseTest(int, char *[])
 
   using MetricType = ObjectToObjectOptimizerBaseTestMetric<ImageType, ImageType>;
 
-  MetricType::Pointer                               metric = MetricType::New();
-  ObjectToObjectOptimizerBaseTestOptimizer::Pointer optimizer = ObjectToObjectOptimizerBaseTestOptimizer::New();
+  auto metric = MetricType::New();
+  auto optimizer = ObjectToObjectOptimizerBaseTestOptimizer::New();
 
   if (optimizer->GetStopConditionDescription() != std::string("Placeholder test return string"))
   {
@@ -171,7 +171,8 @@ itkObjectToObjectOptimizerBaseTest(int, char *[])
   std::cout << "value: " << optimizer->GetCurrentMetricValue() << std::endl;
 
   /* Test set/get of scales */
-  ObjectToObjectOptimizerBaseTestOptimizer::NumberOfParametersType scalesSize = metric->GetNumberOfLocalParameters();
+  const ObjectToObjectOptimizerBaseTestOptimizer::NumberOfParametersType scalesSize =
+    metric->GetNumberOfLocalParameters();
   using ScalesType = ObjectToObjectOptimizerBaseTestOptimizer::ScalesType;
   ScalesType scales(scalesSize);
   scales.Fill(3.19);
@@ -206,12 +207,13 @@ itkObjectToObjectOptimizerBaseTest(int, char *[])
   }
 
   /* Test that weights are init'ed by default to identity */
-  ObjectToObjectOptimizerBaseTestOptimizer::NumberOfParametersType weightsSize = metric->GetNumberOfLocalParameters();
+  const ObjectToObjectOptimizerBaseTestOptimizer::NumberOfParametersType weightsSize =
+    metric->GetNumberOfLocalParameters();
   ITK_TRY_EXPECT_NO_EXCEPTION(optimizer->StartOptimization());
   ScalesType weightsReturn = optimizer->GetWeights();
   if (weightsReturn.Size() != 0 || !optimizer->GetWeightsAreIdentity())
   {
-    std::cerr << "Expected returned weights to be empty, and flag set to idenity. But got: " << weightsReturn
+    std::cerr << "Expected returned weights to be empty, and flag set to identity. But got: " << weightsReturn
               << ", GetWeightsAreIdentity: " << optimizer->GetWeightsAreIdentity() << std::endl;
     return EXIT_FAILURE;
   }

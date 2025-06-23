@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 #include "itkTestingMacros.h"
 
 /**
- * This program looks for straight lines whithin an image
+ * This program looks for straight lines within an image
  * It uses the ITK HoughTransform2DLinesImageFilter.
  * - Read the image.
  * - Apply a gradient and thresholding functions.
@@ -47,12 +47,12 @@ Test_GetLines_should_return_empty_list_when_input_image_is_entirely_black()
   using FilterType = itk::HoughTransform2DLinesImageFilter<PixelType, double>;
 
   // Create a black input image for the filter.
-  const ImageType::Pointer  image = ImageType::New();
-  const ImageType::SizeType size = { { 32, 32 } };
+  const auto                    image = ImageType::New();
+  constexpr ImageType::SizeType size = { { 32, 32 } };
   image->SetRegions(size);
-  image->Allocate(true);
+  image->AllocateInitialized();
 
-  const FilterType::Pointer filter = FilterType::New();
+  const auto filter = FilterType::New();
   filter->SetInput(image);
   filter->Update();
 
@@ -73,15 +73,15 @@ Test_GetLines_should_return_empty_list_when_NumberOfLines_is_set_to_zero()
   using ImageType = itk::Image<PixelType>;
 
   // Create an image.
-  const ImageType::Pointer image = ImageType::New();
+  const auto image = ImageType::New();
   enum
   {
     sizeX = 32,
     sizeY = 32
   };
-  const ImageType::SizeType size = { { sizeX, sizeY } };
+  constexpr ImageType::SizeType size = { { sizeX, sizeY } };
   image->SetRegions(size);
-  image->Allocate(true);
+  image->AllocateInitialized();
 
   // Place some line segment in the image.
   for (itk::IndexValueType x = 1; x < (sizeX - 1); ++x)
@@ -92,7 +92,7 @@ Test_GetLines_should_return_empty_list_when_NumberOfLines_is_set_to_zero()
 
   using FilterType = itk::HoughTransform2DLinesImageFilter<PixelType, double>;
 
-  const FilterType::Pointer filter = FilterType::New();
+  const auto filter = FilterType::New();
 
   filter->SetInput(image);
   filter->SetNumberOfLines(0);
@@ -124,7 +124,7 @@ itkHoughTransform2DLinesImageTest(int, char *[])
   bool success = true;
 
   // Define the dimension of the images
-  constexpr unsigned Dimension = 2;
+  constexpr unsigned int Dimension = 2;
 
   // Declare the pixel types of the images
   using PixelType = unsigned char;
@@ -136,73 +136,72 @@ itkHoughTransform2DLinesImageTest(int, char *[])
 
 
   // Create a line image with one line
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::RegionType region;
 
-  ImageType::SizeType size;
-  size.Fill(100);
+  auto size = ImageType::SizeType::Filled(100);
 
-  ImageType::IndexType index;
-  index.Fill(0);
+  ImageType::IndexType index{};
 
   region.SetSize(size);
   region.SetIndex(index);
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer to zero
+  image->AllocateInitialized();
 
   // Create a line
   constexpr unsigned int lines = 1;
-  double                 theta = 0.20; // radians
-  double                 radius = 50;
+  constexpr double       theta = 0.20; // radians
+  constexpr double       radius = 50;
 
-  double Vx = radius * std::cos(theta);
-  double Vy = radius * std::sin(theta);
+  const double Vx = radius * std::cos(theta);
+  const double Vy = radius * std::sin(theta);
 
-  double norm = std::sqrt(Vx * Vx + Vy * Vy);
-  double VxNorm = Vx / norm;
-  double VyNorm = Vy / norm;
+  const double norm = std::sqrt(Vx * Vx + Vy * Vy);
+  const double VxNorm = Vx / norm;
+  const double VyNorm = Vy / norm;
 
-  unsigned int numberOfPixels = size[0] * size[1];
+  const unsigned int numberOfPixels = size[0] * size[1];
 
   for (unsigned int i = 0; i < numberOfPixels; i += 1)
   {
-    index[0] = (long int)(Vx - VyNorm * i);
-    index[1] = (long int)(Vy + VxNorm * i);
+    index[0] = static_cast<long>(Vx - VyNorm * i);
+    index[1] = static_cast<long>(Vy + VxNorm * i);
 
-    if (index[0] < (long)size[0] && index[0] >= 0 && index[1] < (long)size[1] && index[1] >= 0)
+    if (index[0] < static_cast<long>(size[0]) && index[0] >= 0 && index[1] < static_cast<long>(size[1]) &&
+        index[1] >= 0)
     {
       image->SetPixel(index, 255);
     }
   }
 
   // Allocate Hough Space image (accumulator)
-  HoughImageType::Pointer m_HoughSpaceImage = HoughImageType::New();
+  auto m_HoughSpaceImage = HoughImageType::New();
   m_HoughSpaceImage->SetRegions(region);
   m_HoughSpaceImage->Allocate();
 
   // Apply gradient filter to the input image
   using CastingFilterType = itk::CastImageFilter<ImageType, HoughImageType>;
 
-  CastingFilterType::Pointer caster = CastingFilterType::New();
+  auto caster = CastingFilterType::New();
   caster->SetInput(image);
 
 
   using GradientFilterType = itk::GradientMagnitudeImageFilter<HoughImageType, HoughImageType>;
 
-  GradientFilterType::Pointer gradFilter = GradientFilterType::New();
+  auto gradFilter = GradientFilterType::New();
   gradFilter->SetInput(caster->GetOutput());
   gradFilter->Update();
 
   /// Apply a threshold to the Grad(InputImage)
   using ThresholdFilterType = itk::ThresholdImageFilter<HoughImageType>;
 
-  ThresholdFilterType::Pointer threshFilter = ThresholdFilterType::New();
+  auto threshFilter = ThresholdFilterType::New();
   threshFilter->SetInput(gradFilter->GetOutput());
   threshFilter->SetOutsideValue(0);
-  unsigned char lowerThreshold = 10;
-  unsigned char upperThreshold = 200;
+  constexpr unsigned char lowerThreshold = 10;
+  constexpr unsigned char upperThreshold = 200;
   threshFilter->ThresholdOutside(lowerThreshold, upperThreshold);
 
   threshFilter->Update();
@@ -210,16 +209,16 @@ itkHoughTransform2DLinesImageTest(int, char *[])
   // Define the HoughTransform filter
   using HoughTransformFilterType = itk::HoughTransform2DLinesImageFilter<HoughSpacePixelType, HoughSpacePixelType>;
 
-  HoughTransformFilterType::Pointer houghFilter = HoughTransformFilterType::New();
+  auto houghFilter = HoughTransformFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(houghFilter, HoughTransform2DLinesImageFilter, ImageToImageFilter);
 
 
-  float threshold = 2.3;
+  constexpr float threshold = 2.3;
   houghFilter->SetThreshold(threshold);
   ITK_TEST_SET_GET_VALUE(threshold, houghFilter->GetThreshold());
 
-  float angleResolution = 200.0;
+  constexpr float angleResolution = 200.0;
   houghFilter->SetAngleResolution(angleResolution);
   ITK_TEST_SET_GET_VALUE(angleResolution, houghFilter->GetAngleResolution());
 
@@ -227,11 +226,11 @@ itkHoughTransform2DLinesImageTest(int, char *[])
   houghFilter->SetNumberOfLines(numberOfLines);
   ITK_TEST_SET_GET_VALUE(numberOfLines, houghFilter->GetNumberOfLines());
 
-  float discRadius = 25.0;
+  constexpr float discRadius = 25.0;
   houghFilter->SetDiscRadius(discRadius);
   ITK_TEST_SET_GET_VALUE(discRadius, houghFilter->GetDiscRadius());
 
-  float variance = 10;
+  constexpr float variance = 10;
   houghFilter->SetVariance(variance);
   ITK_TEST_SET_GET_VALUE(variance, houghFilter->GetVariance());
 
@@ -242,15 +241,15 @@ itkHoughTransform2DLinesImageTest(int, char *[])
 
   houghFilter->Simplify();
 
-  HoughImageType::Pointer accumulator = houghFilter->GetOutput();
+  const HoughImageType::Pointer accumulator = houghFilter->GetOutput();
 
-  HoughImageType::ConstPointer simplifyAccumulator = houghFilter->GetSimplifyAccumulator();
+  const HoughImageType::ConstPointer simplifyAccumulator = houghFilter->GetSimplifyAccumulator();
 
 
   // Blur the accumulator in order to find the maximum
   using GaussianFilterType = itk::DiscreteGaussianImageFilter<HoughImageType, HoughImageType>;
 
-  GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+  auto gaussianFilter = GaussianFilterType::New();
   gaussianFilter->SetInput(accumulator);
   double gaussianFilterVariance[Dimension];
   gaussianFilterVariance[0] = variance;
@@ -260,12 +259,13 @@ itkHoughTransform2DLinesImageTest(int, char *[])
 
   gaussianFilter->Update();
 
-  HoughImageType::Pointer postProcessImage = gaussianFilter->GetOutput();
+  const HoughImageType::Pointer postProcessImage = gaussianFilter->GetOutput();
 
   using MinMaxCalculatorType = itk::MinimumMaximumImageCalculator<HoughImageType>;
-  MinMaxCalculatorType::Pointer minMaxCalculator = MinMaxCalculatorType::New();
+  auto minMaxCalculator = MinMaxCalculatorType::New();
 
-  itk::ImageRegionIterator<HoughImageType> it_output(m_HoughSpaceImage, m_HoughSpaceImage->GetLargestPossibleRegion());
+  const itk::ImageRegionIterator<HoughImageType> it_output(m_HoughSpaceImage,
+                                                           m_HoughSpaceImage->GetLargestPossibleRegion());
 
   itk::ImageRegionIterator<HoughImageType> it_input(postProcessImage, postProcessImage->GetLargestPossibleRegion());
 
@@ -299,9 +299,9 @@ itkHoughTransform2DLinesImageTest(int, char *[])
         {
           for (double length = 0; length < discRadius; length += 1)
           {
-            index[0] = (long int)(it_input.GetIndex()[0] + length * std::cos(angle));
-            index[1] = (long int)(it_input.GetIndex()[1] + length * std::sin(angle));
-            if (index[0] <= std::sqrt((double)400 * 400 + 400 * 400) && index[0] >= 0 && index[1] <= angleResolution &&
+            index[0] = static_cast<long>(it_input.GetIndex()[0] + length * std::cos(angle));
+            index[1] = static_cast<long>(it_input.GetIndex()[1] + length * std::sin(angle));
+            if (index[0] <= std::sqrt(400.0 * 400 + 400 * 400) && index[0] >= 0 && index[1] <= angleResolution &&
                 index[1] >= 0)
             {
               accumulator->SetPixel(index, 0);
@@ -324,8 +324,8 @@ itkHoughTransform2DLinesImageTest(int, char *[])
   // Check the line detection
   auto it_list = linesList.begin();
 
-  double angleTolerance = 0.1;
-  double radiusTolerance = 1.0;
+  constexpr double angleTolerance = 0.1;
+  constexpr double radiusTolerance = 1.0;
   while (it_list != linesList.end())
   {
     if (!itk::Math::FloatAlmostEqual(it_list->angle, theta, 10, angleTolerance))
@@ -357,9 +357,7 @@ itkHoughTransform2DLinesImageTest(int, char *[])
     std::cout << "Test succeeded!" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Test FAILED!" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Test FAILED!" << std::endl;
+  return EXIT_FAILURE;
 }

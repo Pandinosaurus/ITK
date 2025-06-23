@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkMeshFileWriter.h"
 
 #include "itkBorderQuadEdgeMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
@@ -26,16 +27,11 @@ itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
   // ** ERROR MESSAGE AND HELP ** //
   if (argc < 5)
   {
-    std::cout << "Requires 4 arguments: " << std::endl;
-    std::cout << "1-Input file name " << std::endl;
-    std::cout << "2-Border Type" << std::endl;
-    std::cout << "   * 0: SQUARE" << std::endl;
-    std::cout << "   * 1: DISK" << std::endl;
-    std::cout << "3-Border Pick" << std::endl;
-    std::cout << "   * 0: LONGEST" << std::endl;
-    std::cout << "   * 1: LARGEST" << std::endl;
-    std::cout << "4-Output file name " << std::endl;
-
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputFilename borderType (0: SQUARE; 1: DISK)" << std::endl;
+    std::cerr << " borderPick (0: LONGEST; 1: LARGEST)" << std::endl;
+    std::cerr << " outputFilename" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -50,7 +46,7 @@ itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
 
 
   // ** READ THE FILE IN **
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   try
@@ -64,16 +60,16 @@ itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  MeshType::Pointer mesh = reader->GetOutput();
+  const MeshType::Pointer mesh = reader->GetOutput();
 
   // ** CHOSE< COMPUTE AND SET BORDER TRANSFORM **
-  BorderTransformType::Pointer border_transform = BorderTransformType::New();
+  auto border_transform = BorderTransformType::New();
   border_transform->SetInput(mesh);
   // two following line for coverage
   border_transform->SetRadius(border_transform->GetRadius());
   border_transform->GetNameOfClass();
 
-  int border = std::stoi(argv[2]);
+  const int border = std::stoi(argv[2]);
   switch (border) // choose border type
   {
     case 0: // square shaped domain
@@ -90,7 +86,7 @@ itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
   std::cout << "Transform type is: " << border_transform->GetTransformType();
   std::cout << std::endl;
 
-  int pick = std::stoi(argv[3]);
+  const int pick = std::stoi(argv[3]);
   switch (pick)
   {
     case 0:
@@ -107,10 +103,10 @@ itkBorderQuadEdgeMeshFilterTest(int argc, char * argv[])
   std::cout << "Border picked is: " << border_transform->GetBorderPick();
   std::cout << std::endl;
 
-  MeshType::Pointer output = border_transform->GetOutput();
+  const MeshType::Pointer output = border_transform->GetOutput();
 
   // ** WRITE OUTPUT **
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(border_transform->GetOutput());
   writer->SetFileName(argv[4]);
   writer->Update();

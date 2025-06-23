@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 
 #include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkImageToImageMetricv4GetValueAndDerivativeThreader.h"
 
 namespace itk
 {
@@ -30,7 +29,7 @@ ImageToImageMetricv4GetValueAndDerivativeThreader<
   ThreadedImageRegionPartitioner<TImageToImageMetricv4::VirtualImageDimension>,
   TImageToImageMetricv4>::ThreadedExecution(const DomainType & imageSubRegion, const ThreadIdType threadId)
 {
-  typename VirtualImageType::ConstPointer virtualImage = this->m_Associate->GetVirtualImage();
+  const typename VirtualImageType::ConstPointer virtualImage = this->m_Associate->GetVirtualImage();
   using IteratorType = ImageRegionConstIteratorWithIndex<VirtualImageType>;
   VirtualPointType virtualPoint;
   for (IteratorType it(virtualImage, imageSubRegion); !it.IsAtEnd(); ++it)
@@ -48,12 +47,12 @@ void
 ImageToImageMetricv4GetValueAndDerivativeThreader<ThreadedIndexedContainerPartitioner, TImageToImageMetricv4>::
   ThreadedExecution(const DomainType & indexSubRange, const ThreadIdType threadId)
 {
-  typename TImageToImageMetricv4::VirtualPointSetType::ConstPointer virtualSampledPointSet =
+  const typename TImageToImageMetricv4::VirtualPointSetType::ConstPointer virtualSampledPointSet =
     this->m_Associate->GetVirtualSampledPointSet();
   using ElementIdentifierType = typename TImageToImageMetricv4::VirtualPointSetType::MeshTraits::PointIdentifier;
-  const ElementIdentifierType             begin = indexSubRange[0];
-  const ElementIdentifierType             end = indexSubRange[1];
-  typename VirtualImageType::ConstPointer virtualImage = this->m_Associate->GetVirtualImage();
+  const ElementIdentifierType                   begin = indexSubRange[0];
+  const ElementIdentifierType                   end = indexSubRange[1];
+  const typename VirtualImageType::ConstPointer virtualImage = this->m_Associate->GetVirtualImage();
   for (ElementIdentifierType i = begin; i <= end; ++i)
   {
     const VirtualPointType & virtualPoint = virtualSampledPointSet->GetPoint(i);

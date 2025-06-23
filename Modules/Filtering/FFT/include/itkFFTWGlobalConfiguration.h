@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -97,7 +97,7 @@ public:
   GenerateWisdomFilename(const std::string & baseCacheDirectory) const override;
 
 private:
-  std::string m_WisdomFilename;
+  std::string m_WisdomFilename{};
 };
 
 class ITKFFT_EXPORT SimpleWisdomFilenameGenerator : public WisdomFilenameGeneratorBase
@@ -192,8 +192,8 @@ private:
  * before calling FFTW unsafe functions. It also handle
  * cleanly the initialization and cleanup of FFTW.
  *
- * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/717
+ * This implementation was taken from the Insight Journal paper
+ * \cite Lehmann_2010_b.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  * \author Hans Johnson, The University of Iowa
@@ -212,8 +212,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using MutexType = std::mutex;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FFTWGlobalConfiguration, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FFTWGlobalConfiguration);
 
   /** Get the mutex that protects calls to FFTW functions. */
   static std::mutex &
@@ -224,7 +224,7 @@ public:
    * may be written to the cache file
    */
   static void
-  SetNewWisdomAvailable(const bool & v);
+  SetNewWisdomAvailable(const bool v);
   static bool
   GetNewWisdomAvailable();
 
@@ -237,7 +237,7 @@ public:
    * FFTW_MEASURE, FFTW_PATIENT, FFTW_EXHAUSTIVE
    */
   static void
-  SetPlanRigor(const int & v);
+  SetPlanRigor(const int v);
 
   static int
   GetPlanRigor();
@@ -250,7 +250,7 @@ public:
 
   /** Translate plan rigor value to name. An exception is sent if the value is not valid. */
   static std::string
-  GetPlanRigorName(const int & value);
+  GetPlanRigorName(const int value);
 
   /**
    * \brief Set/Get the behavior of wisdom file caching
@@ -260,7 +260,7 @@ public:
    * If true, will create a wisdom file in the location
    */
   static void
-  SetReadWisdomCache(const bool & v);
+  SetReadWisdomCache(const bool v);
   static bool
   GetReadWisdomCache();
 
@@ -272,7 +272,7 @@ public:
    * If true, will create a wisdom file in the location
    */
   static void
-  SetWriteWisdomCache(const bool & v);
+  SetWriteWisdomCache(const bool v);
   static bool
   GetWriteWisdomCache();
 
@@ -367,7 +367,7 @@ private:
 
   static FFTWGlobalConfigurationGlobals * m_PimplGlobals;
 
-  std::mutex  m_Lock;
+  std::mutex  m_Mutex;
   bool        m_NewWisdomAvailable{ false };
   int         m_PlanRigor{ 0 };
   bool        m_WriteWisdomCache{ false };

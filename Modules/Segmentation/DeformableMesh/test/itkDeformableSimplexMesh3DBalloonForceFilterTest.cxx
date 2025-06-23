@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,10 +25,18 @@
 
 #include "itkSobelEdgeDetectionImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
-itkDeformableSimplexMesh3DBalloonForceFilterTest(int, char *[])
+itkDeformableSimplexMesh3DBalloonForceFilterTest(int argc, char * argv[])
 {
+  if (argc != 2)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " kappa" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Declare the type of the input and output mesh
   using TriangleMeshTraits = itk::DefaultDynamicMeshTraits<double, 3, 3, double, double>;
@@ -44,11 +52,10 @@ itkDeformableSimplexMesh3DBalloonForceFilterTest(int, char *[])
   // declare the triangle to simplex mesh filter
   using SimplexFilterType = itk::TriangleMeshToSimplexMeshFilter<TriangleMeshType, SimplexMeshType>;
 
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(10);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  auto                 center = itk::MakeFilled<PointType>(10);
   PointType::ValueType scaleInit[3] = { 3, 3, 3 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(2);
@@ -56,7 +63,7 @@ itkDeformableSimplexMesh3DBalloonForceFilterTest(int, char *[])
 
   std::cout << "Triangle mesh created. " << std::endl;
 
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
 
   using DeformFilterType = itk::DeformableSimplexMesh3DBalloonForceFilter<SimplexMeshType, SimplexMeshType>;
@@ -67,20 +74,19 @@ itkDeformableSimplexMesh3DBalloonForceFilterTest(int, char *[])
   using IndexType = OriginalImageType::IndexType;
   using ImageSizeType = OriginalImageType::SizeType;
 
-  OriginalImageType::Pointer originalImage = OriginalImageType::New();
+  auto originalImage = OriginalImageType::New();
 
-  ImageSizeType imageSize;
-  imageSize.Fill(20);
+  auto imageSize = ImageSizeType::Filled(20);
   originalImage->SetRegions(imageSize);
   originalImage->Allocate();
 
 
   IndexType index;
-  for (int x = 0; x < 20; x++)
+  for (int x = 0; x < 20; ++x)
   {
-    for (int y = 0; y < 20; y++)
+    for (int y = 0; y < 20; ++y)
     {
-      for (int z = 0; z < 20; z++)
+      for (int z = 0; z < 20; ++z)
       {
         index[0] = x;
         index[1] = y;
@@ -101,31 +107,40 @@ itkDeformableSimplexMesh3DBalloonForceFilterTest(int, char *[])
 
   using EdgeFilterType = itk::SobelEdgeDetectionImageFilter<OriginalImageType, OriginalImageType>;
 
-  EdgeFilterType::Pointer edgeFilter = EdgeFilterType::New();
+  auto edgeFilter = EdgeFilterType::New();
   edgeFilter->SetInput(originalImage);
   edgeFilter->Update();
 
   using GradientImageType = DeformFilterType::GradientImageType;
   using GradientFilterType = itk::GradientRecursiveGaussianImageFilter<OriginalImageType, GradientImageType>;
 
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  auto gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(edgeFilter->GetOutput());
   gradientFilter->SetSigma(1.0);
   gradientFilter->Update();
 
   std::cout << "done." << std::endl;
 
-  DeformFilterType::Pointer deformFilter = DeformFilterType::New();
+  auto deformFilter = DeformFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    deformFilter, DeformableSimplexMesh3DBalloonForceFilter, DeformableSimplexMesh3DFilter);
+
+
   deformFilter->SetInput(simplexFilter->GetOutput());
   deformFilter->SetGradient(gradientFilter->GetOutput());
   deformFilter->SetAlpha(0.2);
   deformFilter->SetBeta(0.1);
-  deformFilter->SetKappa(0.01);
+
+  auto kappa = std::stod(argv[1]);
+  deformFilter->SetKappa(kappa);
+  ITK_TEST_SET_GET_VALUE(kappa, deformFilter->GetKappa());
+
   deformFilter->SetIterations(100);
   deformFilter->SetRigidity(0);
   deformFilter->Update();
 
-  SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
+  const SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
 
   std::cout << "Deformation Result: " << deformResult << std::endl;
 

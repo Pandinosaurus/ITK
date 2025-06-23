@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -172,7 +172,7 @@ __kernel void ComputeUpdate(__global const INPIXELTYPE *in, __global BUFPIXELTYP
 
   // centralized derivatives, half directonal derivatives
   float dx[3], dx_f, dx_b, delta, Cx, Cxd;
-  unsigned int tidx, tx, ty, tz;;
+  unsigned int tidx, tx, ty, tz;
 
   // shared memory
   __local float sm[BLOCK_SIZE+2][BLOCK_SIZE+2][BLOCK_SIZE+2];

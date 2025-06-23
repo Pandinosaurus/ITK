@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,22 +18,16 @@
 #ifndef itkDistanceMetric_hxx
 #define itkDistanceMetric_hxx
 
-#include "itkDistanceMetric.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TVector>
 DistanceMetric<TVector>::DistanceMetric()
 {
   // If the measurement vector type is non-resizable type,
   // initialize the vector size to it.
-  MeasurementVectorType vector;
-
-  if (!MeasurementVectorTraits::IsResizable(vector))
+  if (!MeasurementVectorTraits::IsResizable<MeasurementVectorType>({}))
   {
-    MeasurementVectorSizeType defaultLength = NumericTraits<MeasurementVectorType>::GetLength(vector);
+    const MeasurementVectorSizeType defaultLength = NumericTraits<MeasurementVectorType>::GetLength({});
 
     this->m_MeasurementVectorSize = defaultLength;
     this->m_Origin.SetSize(this->m_MeasurementVectorSize);
@@ -54,8 +48,7 @@ DistanceMetric<TVector>::SetOrigin(const OriginType & x)
   {
     if (x.Size() != this->m_MeasurementVectorSize)
     {
-      itkExceptionMacro(<< "Size of the origin must be same as the length of"
-                        << " each measurement vector.");
+      itkExceptionMacro("Size of the origin must be same as the length of each measurement vector.");
     }
   }
 
@@ -73,7 +66,6 @@ DistanceMetric<TVector>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Origin: " << this->GetOrigin() << std::endl;
   os << indent << "MeasurementVectorSize: " << this->GetMeasurementVectorSize() << std::endl;
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

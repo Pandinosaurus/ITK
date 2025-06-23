@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,12 +35,12 @@ QuaternionRigidTransformGradientDescentOptimizer::AdvanceOneStep()
   // Make sure the scales have been set
   if (scales.size() != spaceDimension)
   {
-    itkExceptionMacro(<< "The size of Scales is " << scales.size() << ", but the NumberOfParameters is "
-                      << spaceDimension << ".");
+    itkExceptionMacro("The size of Scales is " << scales.size() << ", but the NumberOfParameters is " << spaceDimension
+                                               << '.');
   }
 
   DerivativeType transformedGradient(spaceDimension);
-  for (unsigned int i = 0; i < spaceDimension; i++)
+  for (unsigned int i = 0; i < spaceDimension; ++i)
   {
     transformedGradient[i] = m_Gradient[i] / scales[i];
   }
@@ -49,7 +49,7 @@ QuaternionRigidTransformGradientDescentOptimizer::AdvanceOneStep()
 
   // compute new quaternion value
   vnl_quaternion<double> newQuaternion;
-  for (unsigned int j = 0; j < 4; j++)
+  for (unsigned int j = 0; j < 4; ++j)
   {
     newQuaternion[j] = currentPosition[j] + direction * m_LearningRate * transformedGradient[j];
   }
@@ -58,13 +58,13 @@ QuaternionRigidTransformGradientDescentOptimizer::AdvanceOneStep()
 
   ParametersType newPosition(spaceDimension);
   // update quaternion component of currentPosition
-  for (unsigned int j = 0; j < 4; j++)
+  for (unsigned int j = 0; j < 4; ++j)
   {
     newPosition[j] = newQuaternion[j];
   }
 
   // update the translation component
-  for (unsigned int j = 4; j < spaceDimension; j++)
+  for (unsigned int j = 4; j < spaceDimension; ++j)
   {
     newPosition[j] = currentPosition[j] + direction * m_LearningRate * transformedGradient[j];
   }

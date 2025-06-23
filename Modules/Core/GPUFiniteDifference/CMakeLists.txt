@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16.3 FATAL_ERROR)
 project(ITKGPUFiniteDifference)
 
 if(NOT ITK_SOURCE_DIR)
@@ -8,7 +8,7 @@ if(NOT ITK_SOURCE_DIR)
   include(itkOpenCL)
 endif()
 
-if (ITK_USE_GPU)
+if(ITK_USE_GPU)
   set(ITKGPUFiniteDifference_SYSTEM_INCLUDE_DIRS ${OPENCL_INCLUDE_DIRS})
   set(ITKGPUFiniteDifference_SYSTEM_LIBRARY_DIRS ${OPENCL_LIBRARIES})
   set(ITKGPUFiniteDifference_LIBRARIES ITKGPUFiniteDifference)

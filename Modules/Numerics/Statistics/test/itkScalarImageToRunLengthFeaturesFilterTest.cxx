@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,13 +39,12 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
 
 
-  InputImageType::Pointer image = InputImageType::New();
+  auto image = InputImageType::New();
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
-  InputImageType::IndexType index;
-  index.Fill(0);
-  InputImageType::RegionType region;
+  constexpr InputImageType::IndexType index{};
+  InputImageType::RegionType          region;
 
   region.SetSize(inputImageSize);
   region.SetIndex(index);
@@ -65,7 +64,7 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
   // setup the iterator
   InputImageIterator imageIt(image, image->GetBufferedRegion());
 
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 5; ++i)
     for (int j = 0; j < 5; j++, ++imageIt)
     {
       imageIt.Set(j % 2 + 1);
@@ -80,14 +79,14 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
   //  1 1 1 1 1
   //--------------------------------------------------------------------------
 
-  InputImageType::Pointer mask = InputImageType::New();
+  auto mask = InputImageType::New();
   mask->SetRegions(region);
   mask->Allocate();
 
   // setup the iterator
   InputImageIterator maskIt(mask, mask->GetBufferedRegion());
   maskIt.GoToBegin();
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 5; ++i)
     for (int j = 0; j < 5; j++, ++maskIt)
     {
       maskIt.Set(1);
@@ -96,18 +95,16 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
   //--------------------------------------------------------------------------
   // Test the texFilter
   //--------------------------------------------------------------------------
-  bool passed = true;
-
   try
   {
-
     using RunLengthFilterType = itk::Statistics::ScalarImageToRunLengthFeaturesFilter<InputImageType>;
 
     // First test: just use the defaults.
-    RunLengthFilterType::Pointer texFilter = RunLengthFilterType::New();
+    auto texFilter = RunLengthFilterType::New();
 
     // Invoke update before adding an input. An exception should be
     // thrown.
+    bool passed = true;
     try
     {
       texFilter->Update();
@@ -197,66 +194,70 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
       passed = false;
     }
 
-    RunLengthFilterType::FeatureValueVectorPointer means, stds;
-    means = texFilter->GetFeatureMeans();
-    stds = texFilter->GetFeatureStandardDeviations();
+    RunLengthFilterType::FeatureValueVectorPointer means = texFilter->GetFeatureMeans();
+    RunLengthFilterType::FeatureValueVectorPointer stds = texFilter->GetFeatureStandardDeviations();
 
-    double expectedMeans[10] = { 0.76, 7, 10.4, 20, 0.0826667, 15.4, 0.0628267, 11.704, 0.578667, 107.8 };
-    double expectedDeviations[10] = { 0.415692, 10.3923,   4.50333, 8.66025,  0,
-                                      0,        0.0343639, 6.40166, 0.859097, 160.041494 };
-    RunLengthFilterType::FeatureValueVector::ConstIterator mIt;
-    RunLengthFilterType::FeatureValueVector::ConstIterator sIt;
+    constexpr double expectedMeans[10] = { 0.76, 7, 10.4, 20, 0.0826667, 15.4, 0.0628267, 11.704, 0.578667, 107.8 };
 
-    int counter;
-    for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
     {
-      if (itk::Math::abs(expectedMeans[counter] - mIt.Value()) > 0.0001)
+      RunLengthFilterType::FeatureValueVector::ConstIterator mIt = means->Begin();
+      for (int counter = 0; mIt != means->End(); ++mIt, counter++)
       {
-        std::cerr << "Error. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
-                  << expectedMeans[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedMeans[counter] - mIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
+                    << expectedMeans[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
-
-    for (counter = 0, sIt = stds->Begin(); sIt != stds->End(); ++sIt, counter++)
     {
-      if (itk::Math::abs(expectedDeviations[counter] - sIt.Value()) > 0.0001)
+      constexpr double expectedDeviations[10] = { 0.415692, 10.3923,   4.50333, 8.66025,  0,
+                                                  0,        0.0343639, 6.40166, 0.859097, 160.041494 };
+      RunLengthFilterType::FeatureValueVector::ConstIterator sIt = stds->Begin();
+      for (int counter = 0; sIt != stds->End(); ++sIt, counter++)
       {
-        std::cerr << "Error. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
-                  << expectedDeviations[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedDeviations[counter] - sIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
+                    << expectedDeviations[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
-
     // Rerun the feature generation with fast calculations on
     texFilter->FastCalculationsOn();
     texFilter->Update();
     means = texFilter->GetFeatureMeans();
     stds = texFilter->GetFeatureStandardDeviations();
 
-    double expectedMeans2[10] = { 1, 1, 13, 25, 0.0826667, 15.4, 0.0826667, 15.4, 0.0826667, 15.4 };
-    double expectedDeviations2[10] = { 0 };
+    constexpr double expectedMeans2[10] = { 1, 1, 13, 25, 0.0826667, 15.4, 0.0826667, 15.4, 0.0826667, 15.4 };
+    constexpr double expectedDeviations2[10] = { 0 };
 
-    for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
     {
-      if (itk::Math::abs(expectedMeans2[counter] - mIt.Value()) > 0.0001)
+      RunLengthFilterType::FeatureValueVector::ConstIterator mIt = means->Begin();
+      for (int counter = 0; mIt != means->End(); ++mIt, counter++)
       {
-        std::cerr << "Error2. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
-                  << expectedMeans2[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedMeans2[counter] - mIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error2. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
+                    << expectedMeans2[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
-
-    for (counter = 0, sIt = stds->Begin(); sIt != stds->End(); ++sIt, counter++)
     {
-      if (itk::Math::abs(expectedDeviations2[counter] - sIt.Value()) > 0.0001)
+      RunLengthFilterType::FeatureValueVector::ConstIterator sIt = stds->Begin();
+      for (int counter = 0; sIt != stds->End(); ++sIt, counter++)
       {
-        std::cerr << "Error2. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
-                  << expectedDeviations2[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedDeviations2[counter] - sIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error2. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
+                    << expectedDeviations2[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
-
     //    //Rerun the feature generation setting an offset
     RunLengthFilterType::OffsetType offset;
     offset[0] = -1;
@@ -271,10 +272,9 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
 
     const RunLengthFilterType::OffsetVector * offsets2 = texFilter->GetOffsets();
 
-    RunLengthFilterType::OffsetVector::ConstIterator vIt;
-    RunLengthFilterType::OffsetVector::ConstIterator vIt2;
-
-    for (vIt = offsets->Begin(), vIt2 = offsets2->Begin(); vIt != offsets->End(); ++vIt, ++vIt2)
+    for (RunLengthFilterType::OffsetVector::ConstIterator vIt = offsets->Begin(), vIt2 = offsets2->Begin();
+         vIt != offsets->End();
+         ++vIt, ++vIt2)
     {
       if (vIt.Value() != vIt2.Value())
       {
@@ -295,31 +295,37 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
     means = texFilter->GetFeatureMeans();
     stds = texFilter->GetFeatureStandardDeviations();
 
-    double expectedMeans3[10] = { 1, 1, 13, 25, 0.0826667, 15.4, 0.0826667, 15.4, 0.0826667, 15.4 };
-    double expectedDeviations3[10] = { 0 };
-
-    for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
+    constexpr double expectedMeans3[10] = { 1, 1, 13, 25, 0.0826667, 15.4, 0.0826667, 15.4, 0.0826667, 15.4 };
+    constexpr double expectedDeviations3[10] = { 0 };
     {
-      if (itk::Math::abs(expectedMeans3[counter] - mIt.Value()) > 0.0001)
+      RunLengthFilterType::FeatureValueVector::ConstIterator mIt = means->Begin();
+      for (int counter = 0; mIt != means->End(); ++mIt, counter++)
       {
-        std::cerr << "Error3. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
-                  << expectedMeans3[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedMeans3[counter] - mIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error3. Mean for feature " << counter << " is " << mIt.Value() << ", expected "
+                    << expectedMeans3[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
 
-    for (counter = 0, sIt = stds->Begin(); sIt != stds->End(); ++sIt, counter++)
     {
-      if (itk::Math::abs(expectedDeviations3[counter] - sIt.Value()) > 0.0001)
+      RunLengthFilterType::FeatureValueVector::ConstIterator sIt = stds->Begin();
+      for (int counter = 0; sIt != stds->End(); ++sIt, counter++)
       {
-        std::cerr << "Error3. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
-                  << expectedDeviations3[counter] << "." << std::endl;
-        passed = false;
+        if (itk::Math::abs(expectedDeviations3[counter] - sIt.Value()) > 0.0001)
+        {
+          std::cerr << "Error3. Deviation for feature " << counter << " is " << sIt.Value() << ", expected "
+                    << expectedDeviations3[counter] << '.' << std::endl;
+          passed = false;
+        }
       }
     }
 
     // Test Set/Get Requested features
-    RunLengthFilterType::FeatureNameVectorPointer requestedFeatures = RunLengthFilterType::FeatureNameVector::New();
+    const RunLengthFilterType::FeatureNameVectorPointer requestedFeatures =
+      RunLengthFilterType::FeatureNameVector::New();
 
     requestedFeatures->push_back(static_cast<uint8_t>(itk::Statistics::RunLengthFeatureEnum::ShortRunEmphasis));
     requestedFeatures->push_back(static_cast<uint8_t>(itk::Statistics::RunLengthFeatureEnum::GreyLevelNonuniformity));
@@ -329,15 +335,13 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
 
     const RunLengthFilterType::FeatureNameVector * requestedFeatures2 = texFilter->GetRequestedFeatures();
 
-    RunLengthFilterType::FeatureNameVector::ConstIterator fIt;
-
-    fIt = requestedFeatures2->Begin();
+    RunLengthFilterType::FeatureNameVector::ConstIterator fIt = requestedFeatures2->Begin();
     if (fIt.Value() != static_cast<uint8_t>(itk::Statistics::RunLengthFeatureEnum::ShortRunEmphasis))
     {
       std::cerr << "Requested feature name not correctly set" << std::endl;
       passed = false;
     }
-    fIt++;
+    ++fIt;
 
     if (fIt.Value() != static_cast<uint8_t>(itk::Statistics::RunLengthFeatureEnum::GreyLevelNonuniformity))
     {
@@ -350,11 +354,9 @@ itkScalarImageToRunLengthFeaturesFilterTest(int, char *[])
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cerr << "Test succeeded" << std::endl;
-      return EXIT_SUCCESS;
-    }
+
+    std::cerr << "Test succeeded" << std::endl;
+    return EXIT_SUCCESS;
   }
   catch (const itk::ExceptionObject & err)
   {

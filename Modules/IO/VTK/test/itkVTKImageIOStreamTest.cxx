@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@
 namespace itk
 {
 /**
- *\class ConstantImageSource
+ * \class ConstantImageSource
  * Image Source that generates an image with constant pixel value.
  */
 template <class TOutputImage>
@@ -47,14 +47,16 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ConstantImageSource, GenerateImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConstantImageSource);
 
   /** Set the value to fill the image. */
   itkSetMacro(Value, typename TOutputImage::PixelType);
 
 protected:
-  ConstantImageSource() { m_Value = NumericTraits<typename TOutputImage::PixelType>::ZeroValue(); }
+  ConstantImageSource()
+    : m_Value(typename TOutputImage::PixelType{})
+  {}
   ~ConstantImageSource() override = default;
 
   /** Does the real work. */
@@ -87,9 +89,13 @@ bool
 ImagesEqual(const TImage * img1, const TImage * img2, const typename TImage::RegionType & region)
 {
   if (!img1->GetBufferedRegion().IsInside(region))
+  {
     return false;
+  }
   if (!img2->GetBufferedRegion().IsInside(region))
+  {
     return false;
+  }
 
   itk::ImageRegionConstIterator<TImage> it1(img1, region);
   itk::ImageRegionConstIterator<TImage> it2(img2, region);
@@ -124,7 +130,7 @@ TestStreamWrite(char * file1, unsigned int numberOfStreams = 0)
 
   // Create a source object (in this case a constant image).
   typename ImageType::SizeValueType size[TDimension];
-  for (unsigned int i = 0; i < TDimension; i++)
+  for (unsigned int i = 0; i < TDimension; ++i)
   {
     size[i] = 2 << (i + 1);
   }
@@ -133,8 +139,8 @@ TestStreamWrite(char * file1, unsigned int numberOfStreams = 0)
   constValueImageSource->SetValue(static_cast<TScalar>(23));
   constValueImageSource->SetSize(size);
 
-  typename ImageType::SpacingValueType spacing[3] = { 5.0f, 10.0f, 15.0f };
-  typename ImageType::PointValueType   origin[3] = { -5.0f, -10.0f, -15.0f };
+  typename ImageType::SpacingValueType     spacing[3] = { 5.0f, 10.0f, 15.0f };
+  const typename ImageType::PointValueType origin[3] = { -5.0f, -10.0f, -15.0f };
 
   constValueImageSource->SetSpacing(spacing);
   constValueImageSource->SetOrigin(origin);
@@ -143,13 +149,11 @@ TestStreamWrite(char * file1, unsigned int numberOfStreams = 0)
 
   // Create a mapper (in this case a writer). A mapper
   // is templated on the input type.
-  itk::VTKImageIO::Pointer vtkIO;
-  vtkIO = itk::VTKImageIO::New();
+  const itk::VTKImageIO::Pointer vtkIO = itk::VTKImageIO::New();
   vtkIO->SetFileTypeToBinary();
 
   // Write out the image
-  typename itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
+  const typename itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(consValueImage);
   writer->SetFileName(file1);
   if (numberOfStreams > 0)
@@ -167,19 +171,19 @@ TestStreamWrite(char * file1, unsigned int numberOfStreams = 0)
   consValueImage->SetRequestedRegion(consValueImage->GetLargestPossibleRegion());
   consValueImage->Update();
   reader->Update();
-  bool imagesEqual = ImagesEqual(consValueImage, reader->GetOutput());
+  const bool imagesEqual = ImagesEqual(consValueImage, reader->GetOutput());
 
-  std::string componentType = itk::ImageIOBase::GetComponentTypeAsString(vtkIO->GetComponentType());
+  const std::string componentType = itk::ImageIOBase::GetComponentTypeAsString(vtkIO->GetComponentType());
 
   if (!imagesEqual)
   {
     std::cout << "[FAILED] writing (" << componentType << ", dim = " << TDimension
-              << ", numberOfStreams = " << numberOfStreams << ")" << std::endl;
+              << ", numberOfStreams = " << numberOfStreams << ')' << std::endl;
     return EXIT_FAILURE;
   }
 
   std::cout << "[PASSED] writing (" << componentType << ", dim = " << TDimension
-            << ", numberOfStreams = " << numberOfStreams << ")" << std::endl;
+            << ", numberOfStreams = " << numberOfStreams << ')' << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -196,7 +200,7 @@ TestStreamRead(char * file1, unsigned int numberOfStreams = 0)
 
   // Create a source object (in this case a constant image).
   typename ImageType::SizeValueType size[TDimension];
-  for (unsigned int i = 0; i < TDimension; i++)
+  for (unsigned int i = 0; i < TDimension; ++i)
   {
     size[i] = 2 << (i + 1);
   }
@@ -205,8 +209,8 @@ TestStreamRead(char * file1, unsigned int numberOfStreams = 0)
   constValueImageSource->SetValue(static_cast<TScalar>(23));
   constValueImageSource->SetSize(size);
 
-  typename ImageType::SpacingValueType spacing[3] = { 5.0f, 10.0f, 15.0f };
-  typename ImageType::PointValueType   origin[3] = { -5.0f, -10.0f, -15.0f };
+  typename ImageType::SpacingValueType     spacing[3] = { 5.0f, 10.0f, 15.0f };
+  const typename ImageType::PointValueType origin[3] = { -5.0f, -10.0f, -15.0f };
 
   constValueImageSource->SetSpacing(spacing);
   constValueImageSource->SetOrigin(origin);
@@ -215,13 +219,11 @@ TestStreamRead(char * file1, unsigned int numberOfStreams = 0)
 
   // Create a mapper (in this case a writer). A mapper
   // is templated on the input type.
-  itk::VTKImageIO::Pointer vtkIO;
-  vtkIO = itk::VTKImageIO::New();
+  const itk::VTKImageIO::Pointer vtkIO = itk::VTKImageIO::New();
   vtkIO->SetFileTypeToBinary();
 
   // Write out the image non-streamed
-  typename itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
+  const typename itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(consValueImage);
   writer->SetFileName(file1);
   writer->SetNumberOfStreamDivisions(1);
@@ -238,9 +240,9 @@ TestStreamRead(char * file1, unsigned int numberOfStreams = 0)
   }
 
   // Simulate streaming and compares regions
-  numberOfStreams = std::max(1u, std::min(static_cast<unsigned int>(size[TDimension - 1]), numberOfStreams));
-  typename ImageType::SizeValueType width = (size[TDimension - 1] + numberOfStreams - 1) / numberOfStreams;
-  typename ImageType::RegionType    totalRegion = consValueImage->GetLargestPossibleRegion();
+  numberOfStreams = std::clamp(numberOfStreams, 1u, static_cast<unsigned int>(size[TDimension - 1]));
+  const typename ImageType::SizeValueType width = (size[TDimension - 1] + numberOfStreams - 1) / numberOfStreams;
+  const typename ImageType::RegionType    totalRegion = consValueImage->GetLargestPossibleRegion();
 
   ImageType * readImage = reader->GetOutput();
   consValueImage->SetRequestedRegion(totalRegion);
@@ -264,17 +266,17 @@ TestStreamRead(char * file1, unsigned int numberOfStreams = 0)
     }
   }
 
-  std::string componentType = itk::ImageIOBase::GetComponentTypeAsString(vtkIO->GetComponentType());
+  const std::string componentType = itk::ImageIOBase::GetComponentTypeAsString(vtkIO->GetComponentType());
 
   if (!imagesEqual)
   {
     std::cout << "[FAILED] reading (" << componentType << ", dim = " << TDimension
-              << ", numberOfStreams = " << numberOfStreams << ")" << std::endl;
+              << ", numberOfStreams = " << numberOfStreams << ')' << std::endl;
     return EXIT_FAILURE;
   }
 
   std::cout << "[PASSED] reading (" << componentType << ", dim = " << TDimension
-            << ", numberOfStreams = " << numberOfStreams << ")" << std::endl;
+            << ", numberOfStreams = " << numberOfStreams << ')' << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -289,17 +291,17 @@ itkVTKImageIOStreamTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  unsigned int numberOfStreams = 2;
-  int          status = 0;
+  constexpr unsigned int numberOfStreams = 2;
+  int                    status = 0;
 
-#define ReadWriteTestMACRO(scalarType)                                                                                 \
-  status += TestStreamWrite<scalarType, 2>(argv[1], 0);                                                                \
-  status += TestStreamWrite<scalarType, 2>(argv[1], numberOfStreams);                                                  \
-  status += TestStreamWrite<scalarType, 3>(argv[1], 0);                                                                \
-  status += TestStreamWrite<scalarType, 3>(argv[1], numberOfStreams);                                                  \
-  status += TestStreamRead<scalarType, 2>(argv[1], 0);                                                                 \
-  status += TestStreamRead<scalarType, 2>(argv[1], numberOfStreams);                                                   \
-  status += TestStreamRead<scalarType, 3>(argv[1], 0);                                                                 \
+#define ReadWriteTestMACRO(scalarType)                                \
+  status += TestStreamWrite<scalarType, 2>(argv[1], 0);               \
+  status += TestStreamWrite<scalarType, 2>(argv[1], numberOfStreams); \
+  status += TestStreamWrite<scalarType, 3>(argv[1], 0);               \
+  status += TestStreamWrite<scalarType, 3>(argv[1], numberOfStreams); \
+  status += TestStreamRead<scalarType, 2>(argv[1], 0);                \
+  status += TestStreamRead<scalarType, 2>(argv[1], numberOfStreams);  \
+  status += TestStreamRead<scalarType, 3>(argv[1], 0);                \
   status += TestStreamRead<scalarType, 3>(argv[1], numberOfStreams);
 
   ReadWriteTestMACRO(float) ReadWriteTestMACRO(double) ReadWriteTestMACRO(unsigned char) ReadWriteTestMACRO(char)

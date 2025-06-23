@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFloodFilledFunctionConditionalConstIterator_hxx
 #define itkFloodFilledFunctionConditionalConstIterator_hxx
 
-#include "itkFloodFilledFunctionConditionalConstIterator.h"
 #include "itkImageRegionConstIterator.h"
 
 namespace itk
@@ -28,9 +27,9 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FloodFilledFunct
   const ImageType * imagePtr,
   FunctionType *    fnPtr,
   IndexType         startIndex)
+  : m_Function(fnPtr)
 {
   this->m_Image = imagePtr;
-  m_Function = fnPtr;
   m_Seeds.push_back(startIndex);
 
   // Set up the temporary image
@@ -42,11 +41,10 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FloodFilledFunct
   const ImageType *        imagePtr,
   FunctionType *           fnPtr,
   std::vector<IndexType> & startIndex)
+  : m_Function(fnPtr)
 {
   this->m_Image = imagePtr;
-  m_Function = fnPtr;
-  unsigned int i;
-  for (i = 0; i < startIndex.size(); ++i)
+  for (unsigned int i = 0; i < startIndex.size(); ++i)
   {
     m_Seeds.push_back(startIndex[i]);
   }
@@ -59,9 +57,9 @@ template <typename TImage, typename TFunction>
 FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FloodFilledFunctionConditionalConstIterator(
   const ImageType * imagePtr,
   FunctionType *    fnPtr)
+  : m_Function(fnPtr)
 {
   this->m_Image = imagePtr;
-  m_Function = fnPtr;
 
   // Set up the temporary image
   this->InitializeIterator();
@@ -81,12 +79,10 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::InitializeIterat
 
   // Build a temporary image of chars for use in the flood algorithm
   m_TemporaryPointer = TTempImage::New();
-  typename TTempImage::RegionType tempRegion = this->m_Image->GetBufferedRegion();
+  const typename TTempImage::RegionType tempRegion = this->m_Image->GetBufferedRegion();
 
-  m_TemporaryPointer->SetLargestPossibleRegion(tempRegion);
-  m_TemporaryPointer->SetBufferedRegion(tempRegion);
-  m_TemporaryPointer->SetRequestedRegion(tempRegion);
-  m_TemporaryPointer->Allocate(true); // initialize buffer to zero
+  m_TemporaryPointer->SetRegions(tempRegion);
+  m_TemporaryPointer->AllocateInitialized();
 
   // Initialize the queue by adding the start index assuming one of
   // the m_Seeds is "inside" This might not be true, in which
@@ -110,12 +106,11 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FindSeedPixel()
 {
   // Create an iterator that will walk the input image
   using IRIType = typename itk::ImageRegionConstIterator<TImage>;
-  IRIType it = IRIType(this->m_Image, this->m_Image->GetBufferedRegion());
 
   // Now we search the input image for the first pixel which is inside
   // the function of interest
   m_Seeds.clear();
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  for (IRIType it(this->m_Image, this->m_Image->GetBufferedRegion()); !it.IsAtEnd(); ++it)
   {
     if (this->IsPixelIncluded(it.GetIndex()))
     {
@@ -135,13 +130,12 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::FindSeedPixels()
 {
   // Create an iterator that will walk the input image
   using IRIType = typename itk::ImageRegionConstIterator<TImage>;
-  IRIType it = IRIType(this->m_Image, this->m_Image->GetBufferedRegion());
 
   // Now we search the input image for the first pixel which is inside
   // the function of interest
   m_Seeds.clear();
   bool found = false;
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  for (IRIType it(this->m_Image, this->m_Image->GetBufferedRegion()); !it.IsAtEnd(); ++it)
   {
     if (this->IsPixelIncluded(it.GetIndex()))
     {
@@ -210,7 +204,7 @@ FloodFilledFunctionConditionalConstIterator<TImage, TFunction>::DoFloodStep()
         }
       }
     } // end left/right neighbor loop
-  }   // end check all neighbors
+  } // end check all neighbors
 
   // Now that all the potential neighbors have been
   // inserted we can get rid of the pixel in the front

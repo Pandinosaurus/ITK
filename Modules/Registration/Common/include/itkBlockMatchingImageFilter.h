@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@
 #include "itkVector.h"
 #include "itkDefaultDynamicMeshTraits.h"
 
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -52,9 +53,7 @@ namespace itk
  *
  * This filter is intended to be used in the process of Physics-Based
  * Non-Rigid Registration. It computes displacement for selected points based
- * on similarity [M. Bierling, Displacement estimation by hierarchical block
- * matching, Proc. SPIE Vis. Comm. and Image Proc., vol. 1001, pp. 942-951,
- * 1988.].
+ * on similarity as described in \cite bierling1988.
  *
  * \author Andriy Kot, Center for Real-Time Computing, Old Dominion University,
  * Norfolk, VA
@@ -81,7 +80,7 @@ class ITK_TEMPLATE_EXPORT BlockMatchingImageFilter : public MeshToMeshFilter<TFe
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BlockMatchingImageFilter);
 
-  static constexpr unsigned ImageDimension = TFixedImage::ImageDimension;
+  static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
   /** Not input specific type alias */
   using ImageRegionType = ImageRegion<ImageDimension>;
@@ -124,29 +123,34 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BlockMatchingImageFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BlockMatchingImageFilter);
 
   /** set/get half size */
+  /** @ITKStartGrouping */
   itkSetMacro(BlockRadius, ImageSizeType);
   itkGetConstMacro(BlockRadius, ImageSizeType);
-
+  /** @ITKEndGrouping */
   /** set/get half window */
+  /** @ITKStartGrouping */
   itkSetMacro(SearchRadius, ImageSizeType);
   itkGetConstMacro(SearchRadius, ImageSizeType);
-
+  /** @ITKEndGrouping */
   /** set/get fixed image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(FixedImage, FixedImageType);
   itkGetInputMacro(FixedImage, FixedImageType);
-
+  /** @ITKEndGrouping */
   /** set/get floating image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MovingImage, MovingImageType);
   itkGetInputMacro(MovingImage, MovingImageType);
-
+  /** @ITKEndGrouping */
   /** set/get point list */
+  /** @ITKStartGrouping */
   itkSetInputMacro(FeaturePoints, FeaturePointsType);
   itkGetInputMacro(FeaturePoints, FeaturePointsType);
-
+  /** @ITKEndGrouping */
   inline DisplacementsType *
   GetDisplacements()
   {
@@ -159,13 +163,13 @@ public:
     return dynamic_cast<SimilaritiesType *>(this->ProcessObject::GetOutput(1));
   }
 
-protected:
   /** MakeOutput is provided for handling multiple outputs */
   using Superclass::MakeOutput;
   DataObject::Pointer
   MakeOutput(ProcessObject::DataObjectPointerArraySizeType idx) override;
 
-  /** We need to create our own GenerateOutputInformation because the the
+protected:
+  /** We need to create our own GenerateOutputInformation because the
    * default version from ProcessObject result in a dynamic_cast of the input
    * pointer to the output pointer type in PointSet::CopyInformation.  This does
    * not work since they are different types. */
@@ -197,9 +201,11 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** Static function used as a "callback" by the MultiThreaderBase.  The threading
-   * library will call this routine for each thread, which will delegate the
-   * control to DynamicThreadedGenerateData(). */
+  /** Static function used as a "callback" by the MultiThreaderBase.
+   *
+   * The threading library will call this routine for each thread, which will delegate the control to
+   * DynamicThreadedGenerateData() after setting the correct region for the thread.
+   */
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   ThreaderCallback(void * arg);
 
@@ -212,13 +218,13 @@ protected:
 
 private:
   // algorithm parameters
-  ImageSizeType m_BlockRadius;
-  ImageSizeType m_SearchRadius;
+  ImageSizeType m_BlockRadius{};
+  ImageSizeType m_SearchRadius{};
 
   // temporary dynamic arrays for storing threads outputs
-  SizeValueType         m_PointsCount;
-  DisplacementsVector * m_DisplacementsVectorsArray;
-  SimilaritiesValue *   m_SimilaritiesValuesArray;
+  SizeValueType                          m_PointsCount{};
+  std::unique_ptr<DisplacementsVector[]> m_DisplacementsVectorsArray;
+  std::unique_ptr<SimilaritiesValue[]>   m_SimilaritiesValuesArray;
 };
 } // end namespace itk
 

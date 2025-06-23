@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class TikhonovDeconvolutionImageFilter
+ * \class TikhonovDeconvolutionImageFilter
  * \brief An inverse deconvolution filter regularized in the Tikhonov sense.
  *
  * The Tikhonov deconvolution filter is the inverse deconvolution
@@ -65,8 +65,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(TikhonovDeconvolutionImageFilter, InverseDeconvolutionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TikhonovDeconvolutionImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -74,34 +74,35 @@ public:
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
   using KernelImageType = TKernelImage;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using KernelPixelType = typename Superclass::KernelPixelType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using OutputIndexType = typename Superclass::OutputIndexType;
-  using KernelIndexType = typename Superclass::KernelIndexType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using OutputSizeType = typename Superclass::OutputSizeType;
-  using KernelSizeType = typename Superclass::KernelSizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using OutputRegionType = typename Superclass::OutputRegionType;
-  using KernelRegionType = typename Superclass::KernelRegionType;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::KernelPixelType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::OutputIndexType;
+  using typename Superclass::KernelIndexType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::OutputSizeType;
+  using typename Superclass::KernelSizeType;
+  using typename Superclass::SizeValueType;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::OutputRegionType;
+  using typename Superclass::KernelRegionType;
 
   /** Internal image types. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
   /** The regularization factor. Larger values reduce the dominance of
    * noise in the solution, but results in higher approximation error
    * in the deblurred image. Default value is 0.0, yielding the same
    * results as the InverseDeconvolutionImageFilter. */
+  /** @ITKStartGrouping */
   itkSetMacro(RegularizationConstant, double);
   itkGetConstMacro(RegularizationConstant, double);
-
+  /** @ITKEndGrouping */
 protected:
   TikhonovDeconvolutionImageFilter();
   ~TikhonovDeconvolutionImageFilter() override = default;
@@ -114,7 +115,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_RegularizationConstant;
+  double m_RegularizationConstant{};
 };
 
 namespace Functor
@@ -125,28 +126,22 @@ class ITK_TEMPLATE_EXPORT TikhonovDeconvolutionFunctor
 public:
   TikhonovDeconvolutionFunctor() = default;
   ~TikhonovDeconvolutionFunctor() = default;
-  TikhonovDeconvolutionFunctor(const TikhonovDeconvolutionFunctor & f)
-    : m_RegularizationConstant(f.m_RegularizationConstant)
-    , m_KernelZeroMagnitudeThreshold(f.m_KernelZeroMagnitudeThreshold)
-  {}
-
+  TikhonovDeconvolutionFunctor(const TikhonovDeconvolutionFunctor & f) = default;
 
   bool
-  operator!=(const TikhonovDeconvolutionFunctor &) const
+  operator==(const TikhonovDeconvolutionFunctor &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const TikhonovDeconvolutionFunctor & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(TikhonovDeconvolutionFunctor);
+
   inline TOutput
   operator()(const TInput1 & I, const TInput2 & H) const
   {
-    typename TOutput::value_type normH = std::norm(H);
-    typename TOutput::value_type denominator = normH + m_RegularizationConstant;
-    TOutput                      value = NumericTraits<TOutput>::ZeroValue();
+    const typename TOutput::value_type normH = std::norm(H);
+    const typename TOutput::value_type denominator = normH + m_RegularizationConstant;
+    TOutput                            value{};
     if (denominator >= m_KernelZeroMagnitudeThreshold)
     {
       value = static_cast<TOutput>(I * (std::conj(H) / denominator));
@@ -157,30 +152,32 @@ public:
 
   /** Set/get the regular constant. This needs to be a non-negative
    * real value. */
+  /** @ITKStartGrouping */
   void
   SetRegularizationConstant(double constant)
   {
     m_RegularizationConstant = constant;
   }
-  double
+  [[nodiscard]] double
   GetRegularizationConstant() const
   {
     return m_RegularizationConstant;
   }
-
+  /** @ITKEndGrouping */
   /** Set/get the threshold value below which complex magnitudes are considered
    * to be zero. */
+  /** @ITKStartGrouping */
   void
   SetKernelZeroMagnitudeThreshold(double mu)
   {
     m_KernelZeroMagnitudeThreshold = mu;
   }
-  double
+  [[nodiscard]] double
   GetKernelZeroMagnitudeThreshold() const
   {
     return m_KernelZeroMagnitudeThreshold;
   }
-
+  /** @ITKEndGrouping */
 private:
   double m_RegularizationConstant = 0.0;
   double m_KernelZeroMagnitudeThreshold = 0.0;

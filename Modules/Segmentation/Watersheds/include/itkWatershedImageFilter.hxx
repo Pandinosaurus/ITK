@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkWatershedImageFilter_hxx
 #define itkWatershedImageFilter_hxx
-#include "itkWatershedImageFilter.h"
 
 namespace itk
 {
@@ -34,8 +33,9 @@ WatershedImageFilter<TInputImage>::SetThreshold(double val)
     val = 1.0;
   }
 
-  CLANG_PRAGMA_PUSH
-  CLANG_SUPPRESS_Wfloat_equal if (val != m_Threshold) CLANG_PRAGMA_POP
+  ITK_GCC_PRAGMA_PUSH
+  ITK_GCC_SUPPRESS_Wfloat_equal
+  if (val != m_Threshold)
   {
     m_Threshold = val;
     m_Segmenter->SetThreshold(m_Threshold);
@@ -43,6 +43,7 @@ WatershedImageFilter<TInputImage>::SetThreshold(double val)
     m_ThresholdChanged = true;
     this->Modified();
   }
+  ITK_GCC_PRAGMA_POP
 }
 
 template <typename TInputImage>
@@ -58,8 +59,9 @@ WatershedImageFilter<TInputImage>::SetLevel(double val)
     val = 1.0;
   }
 
-  CLANG_PRAGMA_PUSH
-  CLANG_SUPPRESS_Wfloat_equal if (val != m_Level) CLANG_PRAGMA_POP
+  ITK_GCC_PRAGMA_PUSH
+  ITK_GCC_SUPPRESS_Wfloat_equal
+  if (val != m_Level)
   {
     m_Level = val;
     m_TreeGenerator->SetFloodLevel(m_Level);
@@ -68,16 +70,19 @@ WatershedImageFilter<TInputImage>::SetLevel(double val)
     m_LevelChanged = true;
     this->Modified();
   }
+  ITK_GCC_PRAGMA_POP
 }
 
 template <typename TInputImage>
 WatershedImageFilter<TInputImage>::WatershedImageFilter()
+  : m_Segmenter(watershed::Segmenter<InputImageType>::New())
+  , m_TreeGenerator(watershed::SegmentTreeGenerator<ScalarType>::New())
+  , m_Relabeler(watershed::Relabeler<ScalarType, ImageDimension>::New())
+  , m_LevelChanged(true)
+  , m_ThresholdChanged(true)
+  , m_InputChanged(true)
 {
   // Set up the mini-pipeline for the first execution.
-  m_Segmenter = watershed::Segmenter<InputImageType>::New();
-  m_TreeGenerator = watershed::SegmentTreeGenerator<ScalarType>::New();
-  m_Relabeler = watershed::Relabeler<ScalarType, ImageDimension>::New();
-
   m_Segmenter->SetDoBoundaryAnalysis(false);
   m_Segmenter->SetSortEdgeLists(true);
   m_Segmenter->SetThreshold(this->GetThreshold());
@@ -89,18 +94,13 @@ WatershedImageFilter<TInputImage>::WatershedImageFilter()
   m_Relabeler->SetInputSegmentTree(m_TreeGenerator->GetOutputSegmentTree());
   m_Relabeler->SetInputImage(m_Segmenter->GetOutputImage());
   m_Relabeler->SetFloodLevel(this->GetLevel());
-
-  WatershedMiniPipelineProgressCommand::Pointer c = WatershedMiniPipelineProgressCommand::New();
+  auto c = WatershedMiniPipelineProgressCommand::New();
   c->SetFilter(this);
   c->SetNumberOfFilters(3);
 
   m_Segmenter->AddObserver(ProgressEvent(), c);
   m_ObserverTag = m_TreeGenerator->AddObserver(ProgressEvent(), c);
   m_Relabeler->AddObserver(ProgressEvent(), c);
-
-  m_InputChanged = true;
-  m_LevelChanged = true;
-  m_ThresholdChanged = true;
 }
 
 template <typename TInputImage>
@@ -170,7 +170,7 @@ WatershedImageFilter<TInputImage>::GenerateData()
   m_Segmenter->GetOutputImage()->SetRequestedRegion(this->GetInput()->GetLargestPossibleRegion());
 
   // Setup the progress command
-  WatershedMiniPipelineProgressCommand::Pointer c =
+  const WatershedMiniPipelineProgressCommand::Pointer c =
     dynamic_cast<WatershedMiniPipelineProgressCommand *>(m_TreeGenerator->GetCommand(m_ObserverTag));
   c->SetCount(0.0);
   c->SetNumberOfFilters(3);

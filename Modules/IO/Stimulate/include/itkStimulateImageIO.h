@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ namespace itk
  *
  *  This is based on the notes from:
  *
- *      http://www.cmrr.umn.edu/stimulate/stimUsersGuide/node57.html
+ *      https://www.cmrr.umn.edu/stimulate/stimUsersGuide/node57.html
  *
  *  It has been tested on:
  *
@@ -53,7 +53,7 @@ namespace itk
  *
  * \author Mathieu Malaterre
  *  CREATIS team at INSA - Lyon 2002
- *    http://www.creatis.insa-lyon.fr
+ *    https://www.creatis.insa-lyon.fr
  *
  * \ingroup IOFilters
  *
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(StimulateImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StimulateImageIO);
 
   /*-------- This part of the interface deals with reading data. ------ */
 
@@ -109,11 +109,12 @@ public:
   Write(const void * buffer) override;
 
   /** Two values used for applying intensity windowing to the data set. The pair
-   *  of numbers represent a low value and a hight value. Pixel values below the
+   *  of numbers represent a low value and a high value. Pixel values below the
    *  low_value will be displayed as black and voxels with values above the
    *  high_value will be displayed as white. Pixels with values within the display
    *  range are displayed with a grey value that is scaled linearly between the
    *  low_value and high_value. */
+  /** @ITKStartGrouping */
   itkGetVectorMacro(DisplayRange, const float, 2);
   const float &
   GetHighDisplayValue()
@@ -125,7 +126,7 @@ public:
   {
     return m_DisplayRange[1];
   }
-
+  /** @ITKEndGrouping */
 protected:
   StimulateImageIO();
   ~StimulateImageIO() override;
@@ -136,10 +137,10 @@ protected:
   InternalReadImageInformation(std::ifstream & file);
 
 private:
-  std::string m_DataFileName;
-  char        m_SdtOrient[256];
-  float       m_DisplayRange[2];
-  char        m_FidName[256];
+  std::string m_DataFileName{};
+  char        m_SdtOrient[256]{};
+  float       m_DisplayRange[2]{};
+  char        m_FidName[256]{};
 };
 } // end namespace itk
 

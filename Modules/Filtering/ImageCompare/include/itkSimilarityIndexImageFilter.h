@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class SimilarityIndexImageFilter
+ * \class SimilarityIndexImageFilter
  * \brief Measures the similarity between the set of non-zero pixels of
  * two images.
  *
@@ -39,11 +39,7 @@ namespace itk
  * The measure is derived from a reliability measure known as the kappa
  * statistic. \f$S\f$ is sensitive to both differences in size and in
  * location and have been in the literature for comparing two segmentation masks.
- * For more information see:
- * "Morphometric Analysis of White Matter Lesions in MR Images: Method and
- * Validation", A. P. Zijdenbos, B. M. Dawant, R. A. Margolin and
- * A. C. Palmer, IEEE Trans. on Medical Imaging, 13(4) pp 716-724,1994
- *
+ * For more information see \cite zijdenbos1994.
  *
  * This filter requires the largest possible region of the first image
  * and the same corresponding region in the second image.
@@ -72,8 +68,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(SimilarityIndexImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimilarityIndexImageFilter);
 
   /** Image related type alias. */
   using InputImage1Type = TInputImage1;
@@ -114,19 +110,15 @@ public:
     return this->GetInput();
   }
 
-  /** Get the secong input. */
+  /** Get the second input. */
   const InputImage2Type *
   GetInput2();
 
   /** Return the computed similarity index. */
   itkGetConstMacro(SimilarityIndex, RealType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1HasNumericTraitsCheck, (Concept::HasNumericTraits<InputImage1PixelType>));
   itkConceptMacro(Input2HasNumericTraitsCheck, (Concept::HasNumericTraits<InputImage2PixelType>));
-  // End concept checking
-#endif
 
 protected:
   SimilarityIndexImageFilter();
@@ -167,11 +159,11 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * data) override;
 
 private:
-  RealType m_SimilarityIndex;
+  RealType m_SimilarityIndex{};
 
-  Array<SizeValueType> m_CountOfImage1;
-  Array<SizeValueType> m_CountOfImage2;
-  Array<SizeValueType> m_CountOfIntersection;
+  Array<SizeValueType> m_CountOfImage1{};
+  Array<SizeValueType> m_CountOfImage2{};
+  Array<SizeValueType> m_CountOfIntersection{};
 }; // end of class
 } // end namespace itk
 

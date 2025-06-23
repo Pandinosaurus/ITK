@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,37 +18,36 @@
 
 #include "itkQuadEdgeMeshEulerOperatorJoinVertexFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkTestingMacros.h"
+#include <sstream>
 
 int
 itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
 {
+  std::stringstream inputArgumentMessage;
+  inputArgumentMessage << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputType [0..5]:" << std::endl;
+  inputArgumentMessage << " 0-Test with a square mesh with only triangles." << std::endl;
+  inputArgumentMessage << " 1-Test with a square mesh with only quads." << std::endl;
+  inputArgumentMessage << " 2-Test with a tetraedron mesh with triangles." << std::endl;
+  inputArgumentMessage << " 3-Test with a samosa." << std::endl;
+  inputArgumentMessage << " 4-Test with an isolated edge." << std::endl;
+  inputArgumentMessage << " 5-Test with a square mesh with one centered hole" << std::endl;
+
   if (argc < 2)
   {
-    std::cout << "*** ERROR ***" << std::endl;
-    std::cout << "Requires one argument: " << std::endl;
-    std::cout << " 0-Test with a square mesh with only triangles." << std::endl;
-    std::cout << " 1-Test with a square mesh with only quads." << std::endl;
-    std::cout << " 2-Test with a tetraedron mesh with triangles." << std::endl;
-    std::cout << " 3-Test with a samosa." << std::endl;
-    std::cout << " 4-Test with an isolated edge." << std::endl;
-    std::cout << " 5-Test with a square mesh with one centered hole" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << inputArgumentMessage.str();
     return EXIT_FAILURE;
   }
 
-  int               InputType;
+  int               InputType = 0;
   std::stringstream ssout(argv[1]);
   ssout >> InputType;
 
   if ((InputType > 5) || (InputType < 0))
   {
-    std::cout << "*** ERROR ***" << std::endl;
-    std::cout << "Requires one argument: " << std::endl;
-    std::cout << " 0-Test with a square mesh with only triangles." << std::endl;
-    std::cout << " 1-Test with a square mesh with only quads." << std::endl;
-    std::cout << " 2-Test with a tetraedron mesh with triangles." << std::endl;
-    std::cout << " 3-Test with a samosa." << std::endl;
-    std::cout << " 4-Test with an isolated edge." << std::endl;
-    std::cout << " 5-Test with a square mesh with one centered hole" << std::endl;
+    std::cerr << "Wrong parameter value." << std::endl;
+    std::cerr << inputArgumentMessage.str();
     return EXIT_FAILURE;
   }
 
@@ -61,8 +60,8 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
 
   using JoinVertexType = itk::QuadEdgeMeshEulerOperatorJoinVertexFunction<MeshType, QEType>;
 
-  MeshPointer     mesh = MeshType::New();
-  PointIdentifier start_id(12);
+  const MeshPointer mesh = MeshType::New();
+  PointIdentifier   start_id(12);
 
   switch (InputType)
   {
@@ -194,7 +193,7 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
       break;
   }
 
-  JoinVertexType::Pointer joinVertex = JoinVertexType::New();
+  auto joinVertex = JoinVertexType::New();
 
   std::cout << joinVertex->GetNameOfClass() << std::endl;
   std::cout << joinVertex << std::endl;
@@ -211,7 +210,8 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
   std::cout << "OK" << std::endl;
 #endif
 
-  (void)joinVertex->GetNameOfClass();
+  ITK_TEST_EXPECT_EQUAL(std::string_view("QuadEdgeMeshEulerOperatorJoinVertexFunction"),
+                        std::string_view(joinVertex->GetNameOfClass()));
 
   joinVertex->SetInput(mesh);
 
@@ -242,20 +242,19 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
   int      kk(0);
 
   using CheckerType = itk::QuadEdgeMeshTopologyChecker<MeshType>;
-  CheckerType::Pointer check = CheckerType::New();
+  auto check = CheckerType::New();
 
   while (qe != nullptr)
   {
     joinVertex->SetInput(mesh);
-    PointIdentifier id_org = qe->GetOrigin();
-    PointIdentifier id_dest = qe->GetDestination();
+    const PointIdentifier id_org = qe->GetOrigin();
+    const PointIdentifier id_dest = qe->GetDestination();
 
-    QEType *                       qe_output = joinVertex->Evaluate(qe);
-    JoinVertexType::EdgeStatusType status = joinVertex->GetEdgeStatus();
+    QEType *                             qe_output = joinVertex->Evaluate(qe);
+    const JoinVertexType::EdgeStatusType status = joinVertex->GetEdgeStatus();
 
     std::cout << "*** " << kk << " ***" << std::endl;
-    std::cout << "org: " << id_org << " "
-              << "dest: " << id_dest << " " << status << std::endl;
+    std::cout << "org: " << id_org << ' ' << "dest: " << id_dest << ' ' << status << std::endl;
 
     if ((status == JoinVertexType::EDGE_JOINING_DIFFERENT_BORDERS) || (status == JoinVertexType::SAMOSA_CONFIG) ||
         (status == JoinVertexType::TETRAHEDRON_CONFIG))
@@ -265,13 +264,13 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
 
     if (!qe_output)
     {
-      std::cout << "Number of Edges: " << mesh->GetNumberOfEdges() << " " << std::endl;
+      std::cout << "Number of Edges: " << mesh->GetNumberOfEdges() << ' ' << std::endl;
       std::cout << "Number of Faces: " << mesh->GetNumberOfFaces() << std::endl;
       std::cout << "FAILED." << std::endl;
       return EXIT_FAILURE;
     }
 
-    PointIdentifier old_id = joinVertex->GetOldPointID();
+    const PointIdentifier old_id = joinVertex->GetOldPointID();
 
     mesh->DeletePoint(old_id);
 
@@ -293,7 +292,7 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
   }
 
   /*
-  std::cout << "     " << "Test Topological Changes";
+  std::cout << "     Test Topological Changes";
   MeshType::Pointer topoTest = MeshType::New( );
   MeshType::PointType pts2[4];
   pts2[ 0][0] = 0.0;  pts2[ 0][1] = 0.0;  pts2[ 0][2] = 0.0;
@@ -442,7 +441,7 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
     }
   std::cout << "OK" << std::endl;
   // We now consider a boundary edge (here we consider [0, 5] but still
-  // with a an adjacent face.
+  // with an adjacent face.
   //
   //   20 --------- 21 --------- 22 --------- 23 --------- 24
   //    |        __/ |        __/ |        __/ |        __/ |
@@ -485,8 +484,8 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
     }
    std::cout << "OK" << std::endl;
   // Just to make sure, we now consider a boundary edge with the surface
-  // on it's left (as opposed to the previous one which had the surface
-  // on it's right) i.e. we consider [2, 3]:
+  // on its left (as opposed to the previous one which had the surface
+  // on its right) i.e. we consider [2, 3]:
   //
   //   20 --------- 21 --------- 22 --------- 23 --------- 24
   //    |        __/ |        __/ |        __/ |        __/ |
@@ -538,7 +537,7 @@ itkQuadEdgeMeshEulerOperatorJoinVertexTest(int argc, char * argv[])
     }
    std::cout << "OK" << std::endl;
   // Now try with a wire edge (a pathological edge which has no face
-  // neither on it's left nor on it's right).
+  // neither on its left nor on its right).
   // Create this situation by manually deleting two faces sharing the
   // same edge which will thus become a wire edge.
   //

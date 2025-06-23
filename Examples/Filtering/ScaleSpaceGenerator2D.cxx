@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,10 +58,10 @@ main(int argc, char * argv[])
                                                OutputImageType>;
 
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  FilterType::Pointer laplacian = FilterType::New();
+  auto laplacian = FilterType::New();
 
   laplacian->SetNormalizeAcrossScale(true);
 
@@ -70,7 +70,7 @@ main(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(laplacian->GetOutput());
 
@@ -85,8 +85,8 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  int numberOfSlices = std::stoi(argv[3]);
-  for (int slice = 0; slice < numberOfSlices; slice++)
+  const int numberOfSlices = std::stoi(argv[3]);
+  for (int slice = 0; slice < numberOfSlices; ++slice)
   {
     std::ostringstream filename;
     filename << argv[2] << std::setfill('0') << std::setw(3) << slice

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,8 +58,8 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimplexMeshToTriangleMeshFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimplexMeshToTriangleMeshFilter);
 
   using InputMeshType = TInputMesh;
   using InputMeshConstPointer = typename InputMeshType::ConstPointer;
@@ -97,7 +97,9 @@ public:
     /**
      * default constructor
      */
-    SimplexCellVisitor() { m_CenterMap = PointMapType::New(); }
+    SimplexCellVisitor()
+      : m_CenterMap(PointMapType::New())
+    {}
 
     /**
      * default destructor
@@ -112,17 +114,15 @@ public:
     {
       using PointIdIterator = typename SimplexPolygonType::PointIdIterator;
       PointIdIterator it = poly->PointIdsBegin();
-      InputPointType  center;
-      center.Fill(0);
+      InputPointType  center{};
 
-      InputPointType p;
-      p.Fill(0);
+      InputPointType p{};
 
       while (it != poly->PointIdsEnd())
       {
         this->m_Mesh->GetPoint(*it, &p);
         center += p.GetVectorFromOrigin();
-        it++;
+        ++it;
       }
 
       center[0] /= poly->GetNumberOfPoints();
@@ -178,7 +178,7 @@ protected:
   FindCellId(CellIdentifier id1, CellIdentifier id2, CellIdentifier id3);
 
   /** attribute stores the result of the simplex cell visitor */
-  PointMapPointer m_Centers;
+  PointMapPointer m_Centers{};
 };
 } // namespace itk
 

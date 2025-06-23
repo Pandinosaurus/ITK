@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,17 +60,14 @@ namespace itk
  * type and that the input and output image type have the same number of
  * dimension and have scalar pixel types.
  *
- * \par REFERENCE
- * Laszlo G. Nyul, Jayaram K. Udupa, and Xuan Zhang, "New Variants of a Method
- * of MRI Scale Standardization", IEEE Transactions on Medical Imaging,
- * 19(2):143-150, 2000.
+ * For algorithmic details see \cite nyul2000.
  *
  * \ingroup IntensityImageFilters MultiThreaded
  *
  * \ingroup ITKImageIntensity
  */
 /* THistogramMeasurement -- The precision level for which to do
-  HistogramMeasurmenets */
+  HistogramMeasurements */
 template <typename TInputImage, typename TOutputImage, typename THistogramMeasurement = typename TInputImage::PixelType>
 class ITK_TEMPLATE_EXPORT HistogramMatchingImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -86,8 +83,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HistogramMatchingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramMatchingImageFilter);
 
   /** ImageDimension enumeration. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -97,11 +94,11 @@ public:
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
   /** Inherited type alias. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
 
   /** Pixel related type alias. */
   using InputPixelType = typename InputImageType::PixelType;
@@ -112,13 +109,15 @@ public:
   using HistogramPointer = typename HistogramType::Pointer;
 
   /** Set and Get the source image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(SourceImage, InputImageType);
   itkGetInputMacro(SourceImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the reference image. */
+  /** @ITKStartGrouping */
   itkSetInputMacro(ReferenceImage, InputImageType);
   itkGetInputMacro(ReferenceImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set the reference histogram.  The reference histogram must
    * have the first bin minimum be the smallest intensity value for the
    * reference image space and the last bin maximum must contain the largest
@@ -127,26 +126,30 @@ public:
    * that are used to populate the histogram to a smaller intensity range
    * than is represented by the smallest and largest intensity values.)
    */
+  /** @ITKStartGrouping */
   itkSetInputMacro(ReferenceHistogram, HistogramType);
   itkGetInputMacro(ReferenceHistogram, HistogramType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of histogram levels used. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfHistogramLevels, SizeValueType);
   itkGetConstMacro(NumberOfHistogramLevels, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of match points used. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfMatchPoints, SizeValueType);
   itkGetConstMacro(NumberOfMatchPoints, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the threshold at mean intensity flag.
    * If true, only source (reference) pixels which are greater
    * than the mean source (reference) intensity is used in
    * the histogram matching. If false, all pixels are
    * used. */
+  /** @ITKStartGrouping */
   itkSetMacro(ThresholdAtMeanIntensity, bool);
   itkGetConstMacro(ThresholdAtMeanIntensity, bool);
   itkBooleanMacro(ThresholdAtMeanIntensity);
-
+  /** @ITKEndGrouping */
   /** Set/Get if the reference histogram is regenerated from
    * the supplied ReferenceImage (true) or supplied directly
    * as in input argument (false).  If SetReferenceHistogram(myhistogram)
@@ -156,10 +159,11 @@ public:
    * indicated by GenerateReferenceHistogramFromImage choice will be used
    * and the other object will be ignored.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(GenerateReferenceHistogramFromImage, bool);
   itkGetConstMacro(GenerateReferenceHistogramFromImage, bool);
   itkBooleanMacro(GenerateReferenceHistogramFromImage);
-
+  /** @ITKEndGrouping */
   /** This filter requires all of the input to be in the buffer. */
   void
   GenerateInputRequestedRegion() override;
@@ -167,11 +171,10 @@ public:
   /** Methods to get the histograms of the source, reference, and
    * output. Objects are only valid after Update() has been called
    * on this filter. */
+  /** @ITKStartGrouping */
   itkGetModifiableObjectMacro(SourceHistogram, HistogramType);
   itkGetModifiableObjectMacro(OutputHistogram, HistogramType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputPixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(DoubleConvertibleToInputCheck, (Concept::Convertible<double, InputPixelType>));
@@ -179,8 +182,6 @@ public:
   itkConceptMacro(InputConvertibleToDoubleCheck, (Concept::Convertible<InputPixelType, double>));
   itkConceptMacro(OutputConvertibleToDoubleCheck, (Concept::Convertible<OutputPixelType, double>));
   itkConceptMacro(SameTypeCheck, (Concept::SameType<InputPixelType, OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   HistogramMatchingImageFilter();
@@ -204,11 +205,11 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override
+  VerifyInputInformation() const override
   {}
 
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
 
   /** Compute min, max and mean of an image. */
   void
@@ -234,20 +235,20 @@ private:
   SizeValueType m_NumberOfMatchPoints{ 1 };
   bool          m_ThresholdAtMeanIntensity{ true };
 
-  THistogramMeasurement m_SourceMinValue;
-  THistogramMeasurement m_SourceMaxValue;
+  THistogramMeasurement m_SourceMinValue{};
+  THistogramMeasurement m_SourceMaxValue{};
 
-  THistogramMeasurement m_ReferenceMinValue;
-  THistogramMeasurement m_ReferenceMaxValue;
+  THistogramMeasurement m_ReferenceMinValue{};
+  THistogramMeasurement m_ReferenceMaxValue{};
 
-  HistogramPointer m_SourceHistogram;
-  HistogramPointer m_OutputHistogram;
+  HistogramPointer m_SourceHistogram{};
+  HistogramPointer m_OutputHistogram{};
 
   using TableType = vnl_matrix<double>;
-  TableType m_QuantileTable;
+  TableType m_QuantileTable{};
 
   using GradientArrayType = vnl_vector<double>;
-  GradientArrayType m_Gradients;
+  GradientArrayType m_Gradients{};
   double            m_LowerGradient{ 0.0 };
   double            m_UpperGradient{ 0.0 };
   bool              m_GenerateReferenceHistogramFromImage{ true };

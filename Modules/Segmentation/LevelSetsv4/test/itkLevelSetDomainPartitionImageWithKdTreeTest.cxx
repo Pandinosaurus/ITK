@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,39 +53,34 @@ itkLevelSetDomainPartitionImageWithKdTreeTest(int, char *[])
   spacing[0] = 1.0;
   spacing[1] = 1.0;
 
-  InputImageType::IndexType index;
-  index.Fill(0);
+  InputImageType::IndexType index{};
 
-  InputImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const InputImageType::RegionType region{ index, size };
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(region);
   binary->SetSpacing(spacing);
   binary->SetOrigin(origin);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
-  IdentifierType numberOfLevelSetFunctions = 10;
+  constexpr IdentifierType numberOfLevelSetFunctions = 10;
 
   LevelSetDomainRegionVectorType regionVector;
   regionVector.resize(numberOfLevelSetFunctions);
 
-  CentroidVectorType  mv;
-  SampleType::Pointer sample = SampleType::New();
+  CentroidVectorType mv;
+  auto               sample = SampleType::New();
   sample->SetMeasurementVectorSize(Dimension);
 
-  for (unsigned int i = 0; i < numberOfLevelSetFunctions; i++)
+  for (unsigned int i = 0; i < numberOfLevelSetFunctions; ++i)
   {
     index[0] = 10 * i;
     index[1] = 0;
     size.Fill(10);
 
-    InputImageType::RegionType region1;
-    region1.SetIndex(index);
-    region1.SetSize(size);
+    const InputImageType::RegionType region1{ index, size };
 
     regionVector[i] = region1;
 
@@ -94,31 +89,39 @@ itkLevelSetDomainPartitionImageWithKdTreeTest(int, char *[])
     sample->PushBack(mv);
   }
 
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
   treeGenerator->SetSample(sample);
   treeGenerator->SetBucketSize(2);
   treeGenerator->Update();
-  TreeType::Pointer kdtree = treeGenerator->GetOutput();
+  const TreeType::Pointer kdtree = treeGenerator->GetOutput();
 
-  DomainPartitionSourceType::Pointer partitionSource = DomainPartitionSourceType::New();
+  auto partitionSource = DomainPartitionSourceType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    partitionSource, LevelSetDomainPartitionImageWithKdTree, LevelSetDomainPartitionImage);
+
+
   partitionSource->SetNumberOfLevelSetFunctions(numberOfLevelSetFunctions);
   partitionSource->SetImage(binary);
   partitionSource->SetLevelSetDomainRegionVector(regionVector);
-  partitionSource->SetNumberOfNeighbors(3);
+
+  constexpr typename DomainPartitionSourceType::NeighborsIdType numberOfNeighbors = 3;
+  partitionSource->SetNumberOfNeighbors(numberOfNeighbors);
+  ITK_TEST_SET_GET_VALUE(numberOfNeighbors, partitionSource->GetNumberOfNeighbors());
+
   partitionSource->SetKdTree(kdtree);
   partitionSource->PopulateListDomain();
 
 
   bool flag = true;
 
-  ListType                    ll;
-  ListImageType::ConstPointer listImage = partitionSource->GetListDomain();
-  ListImageIteratorType       It(listImage, listImage->GetLargestPossibleRegion());
+  const ListImageType::ConstPointer listImage = partitionSource->GetListDomain();
+  ListImageIteratorType             It(listImage, listImage->GetLargestPossibleRegion());
   It.GoToBegin();
   while (!It.IsAtEnd())
   {
     index = It.GetIndex();
-    ll = It.Get();
+    ListType ll = It.Get();
 
     if (ll.size() != 1)
     {
@@ -130,7 +133,7 @@ itkLevelSetDomainPartitionImageWithKdTreeTest(int, char *[])
 
     while (it != ll.end())
     {
-      IdentifierType id = index[0] / 10;
+      const IdentifierType id = index[0] / 10;
       if (*it != id)
       {
         flag = false;

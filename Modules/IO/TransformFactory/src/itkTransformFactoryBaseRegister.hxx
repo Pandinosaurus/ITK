@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -139,7 +139,7 @@ TransformFactoryBase::RegisterTransformFactory()
 #if !defined ITK_LEGACY_REMOVE
   // We cannot register Rigid3DTransform because in ITKv4 the NewMacro was removed.
   // Rigid3DTransforms are only intended to be used as a baseclass.
-  // Consider VersorRigid3D as a much more stable (under optimizatoin) registration type.
+  // Consider VersorRigid3D as a much more stable (under optimization) registration type.
   // itk::v3::Rigid3DTransform is used as a wrapper to simply add the NewMacro.
   TransformFactory<v3::Rigid3DTransform<TParameterType>>::RegisterTransform();
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkNormalVariateGenerator.h"
 #include "itkCommand.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -60,19 +61,19 @@ public:
   using MeasureType = Superclass::MeasureType;
 
 
-  OnePlusOneMetric() { m_HasLocalSupport = false; }
+  OnePlusOneMetric() = default;
 
   MeasureType
   GetValue() const override
   {
-    double x = m_Parameters[0];
-    double y = m_Parameters[1];
+    const double x = m_Parameters[0];
+    const double y = m_Parameters[1];
 
     std::cout << "GetValue( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = ";
 
-    MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
 
     std::cout << measure << std::endl;
 
@@ -140,7 +141,7 @@ public:
 
 private:
   ParametersType m_Parameters;
-  bool           m_HasLocalSupport;
+  bool           m_HasLocalSupport{ false };
 };
 
 
@@ -153,7 +154,7 @@ public:
   itkNewMacro(Self);
 
 protected:
-  OnePlusOneCommandIterationUpdate() { m_LastMetricValue = 0.0; };
+  OnePlusOneCommandIterationUpdate() {}
 
 public:
   using OptimizerType = itk::OnePlusOneEvolutionaryOptimizerv4<double>;
@@ -173,9 +174,9 @@ public:
     {
       return;
     }
-    double currentValue = optimizer->GetValue();
+    const double currentValue = optimizer->GetValue();
     // Only print out when the Metric value changes
-    if (std::fabs(m_LastMetricValue - currentValue) > 1e-7)
+    if (itk::Math::abs(m_LastMetricValue - currentValue) > 1e-7)
     {
       std::cout << optimizer->GetCurrentIteration() << "   ";
       std::cout << currentValue << "   ";
@@ -185,26 +186,27 @@ public:
   }
 
 private:
-  double m_LastMetricValue;
+  double m_LastMetricValue{ 0.0 };
 };
 } // namespace itk
 
 int
 itkOnePlusOneEvolutionaryOptimizerv4Test(int, char *[])
 {
-  std::cout << "OnePlusOne Evolutionary Optimizer Test ";
-  std::cout << std::endl << std::endl;
-
   using OptimizerType = itk::OnePlusOneEvolutionaryOptimizerv4<double>;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
 
-  itk::OnePlusOneCommandIterationUpdate::Pointer observer = itk::OnePlusOneCommandIterationUpdate::New();
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    itkOptimizer, OnePlusOneEvolutionaryOptimizerv4, ObjectToObjectOptimizerBaseTemplate);
+
+
+  const itk::OnePlusOneCommandIterationUpdate::Pointer observer = itk::OnePlusOneCommandIterationUpdate::New();
   itkOptimizer->AddObserver(itk::IterationEvent(), observer);
 
   // Declaration of the CostFunction
-  itk::OnePlusOneMetric::Pointer metric = itk::OnePlusOneMetric::New();
+  const itk::OnePlusOneMetric::Pointer metric = itk::OnePlusOneMetric::New();
   itkOptimizer->SetMetric(metric);
 
   using ParametersType = itk::OnePlusOneMetric::ParametersType;
@@ -218,42 +220,57 @@ itkOnePlusOneEvolutionaryOptimizerv4Test(int, char *[])
   initialPosition[1] = -100;
 
   itkOptimizer->Initialize(10);
-  itkOptimizer->SetEpsilon(0.1);
-  itkOptimizer->SetMaximumIteration(8000);
+
+  constexpr double growthFactor = 1.05;
+  itkOptimizer->SetGrowthFactor(growthFactor);
+  ITK_TEST_SET_GET_VALUE(growthFactor, itkOptimizer->GetGrowthFactor());
+
+  const double shrinkFactor = std::pow(growthFactor, -0.25);
+  itkOptimizer->SetShrinkFactor(shrinkFactor);
+  ITK_TEST_SET_GET_VALUE(shrinkFactor, itkOptimizer->GetShrinkFactor());
+
+  constexpr double initialRadius = 1.01;
+  itkOptimizer->SetInitialRadius(initialRadius);
+  ITK_TEST_SET_GET_VALUE(initialRadius, itkOptimizer->GetInitialRadius());
+
+  constexpr double epsilon = 0.1;
+  itkOptimizer->SetEpsilon(epsilon);
+  ITK_TEST_SET_GET_VALUE(epsilon, itkOptimizer->GetEpsilon());
+
+  constexpr unsigned int maximumIteration = 8000;
+  itkOptimizer->SetMaximumIteration(maximumIteration);
+  ITK_TEST_SET_GET_VALUE(maximumIteration, itkOptimizer->GetMaximumIteration());
+
+  constexpr double metricWorstPossibleValue = 0;
+  itkOptimizer->SetMetricWorstPossibleValue(metricWorstPossibleValue);
+  ITK_TEST_SET_GET_VALUE(metricWorstPossibleValue, itkOptimizer->GetMetricWorstPossibleValue());
 
   using GeneratorType = itk::Statistics::NormalVariateGenerator;
-  GeneratorType::Pointer generator = GeneratorType::New();
+  auto generator = GeneratorType::New();
   itkOptimizer->SetNormalVariateGenerator(generator);
+
+  constexpr bool catchGetValueException = false;
+  ITK_TEST_SET_GET_BOOLEAN(itkOptimizer, CatchGetValueException, catchGetValueException);
 
   // Set the initial position by setting the metric
   // parameters.
   std::cout << "Set metric parameters." << std::endl;
   metric->SetParameters(initialPosition);
 
-  try
-  {
-    itkOptimizer->StartOptimization();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cout << "Exception thrown ! " << std::endl;
-    std::cout << "An error occurred during Optimization" << std::endl;
-    std::cout << "Location    = " << e.GetLocation() << std::endl;
-    std::cout << "Description = " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(itkOptimizer->StartOptimization());
+
 
   ParametersType finalPosition = itkOptimizer->GetCurrentPosition();
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ')' << std::endl;
 
   //
   // check results to see if it is within range
   //
-  bool   pass = true;
-  double trueParameters[2] = { 2, -2 };
-  for (unsigned int j = 0; j < 2; j++)
+  bool             pass = true;
+  constexpr double trueParameters[2] = { 2, -2 };
+  for (unsigned int j = 0; j < 2; ++j)
   {
     if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
     {

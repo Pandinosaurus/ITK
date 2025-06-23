@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ bool
 CheckTraits(bool issigned, T * = nullptr)
 {
   // make sure that we have a specialized NumericTraits
-  T t0 = itk::NumericTraits<T>::ZeroValue();
+  T t0{};
   T t1 = itk::NumericTraits<T>::OneValue();
 
   // just here so that we use the variable
@@ -53,10 +53,14 @@ CheckTraits(bool issigned, T * = nullptr)
 
   // make sure the numeric_limits is specialized
   if (!itk::NumericTraits<T>::is_specialized)
+  {
     return false;
+  }
 
   if (itk::NumericTraits<T>::is_signed != issigned)
+  {
     return false;
+  }
 
   return true;
 }
@@ -69,14 +73,20 @@ CheckType(size_t size, bool exactSize, bool issigned, const char * name, T * = n
   bool ret = true;
 
   if (exactSize)
+  {
     ret &= CheckSize<T>(size);
+  }
   else
+  {
     ret &= CheckAtleastSize<T>(size);
+  }
 
   ret &= CheckTraits<T>(issigned);
 
   if (ret)
+  {
     return ret;
+  }
 
   std::cout << "error with type \"" << name << "\" sizeof: " << sizeof(T)
             << " specialized: " << itk::NumericTraits<T>::is_specialized << " digits: " << itk::NumericTraits<T>::digits
@@ -140,7 +150,9 @@ itkIntTypesTest(int, char *[])
 
 
   if (pass)
+  {
     return EXIT_SUCCESS;
+  }
 
   return EXIT_FAILURE;
 }

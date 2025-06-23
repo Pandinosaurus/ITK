@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class SegmentationRegion
+ * \class SegmentationRegion
  * \brief Base class for SegmentationRegion object
  *
  * itkSegmentationRegion is the base class for the SegmentationRegion
@@ -59,8 +59,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SegmentationRegion, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SegmentationRegion);
 
   /** Type definition for a segmentation region label. */
   using RegionLabelType = unsigned int;
@@ -74,13 +74,15 @@ public:
 
   /** Set/Get the region with parameter values
    * defining the region. */
+  /** @ITKStartGrouping */
   itkSetMacro(RegionLabel, RegionLabelType);
   itkGetConstReferenceMacro(RegionLabel, RegionLabelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the area of the region. */
+  /** @ITKStartGrouping */
   itkSetMacro(RegionArea, double);
   itkGetConstReferenceMacro(RegionArea, double);
-
+  /** @ITKEndGrouping */
 protected:
   SegmentationRegion();
   ~SegmentationRegion() override;

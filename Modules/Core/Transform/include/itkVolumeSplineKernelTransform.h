@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,60 +25,59 @@ namespace itk
 /** \class VolumeSplineKernelTransform
  * This class defines the thin plate spline (TPS) transformation.
  * It is implemented in as straightforward a manner as possible from
- * the IEEE TMI paper by Davis, Khotanzad, Flamig, and Harms,
- * Vol. 16 No. 3 June 1997
+ * \cite davis1997.
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType, unsigned int NDimensions = 3>
+template <typename TParametersValueType, unsigned int VDimension = 3>
 // Number of dimensions
-class ITK_TEMPLATE_EXPORT VolumeSplineKernelTransform : public KernelTransform<TParametersValueType, NDimensions>
+class ITK_TEMPLATE_EXPORT VolumeSplineKernelTransform : public KernelTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VolumeSplineKernelTransform);
 
   /** Standard class type aliases. */
   using Self = VolumeSplineKernelTransform;
-  using Superclass = KernelTransform<TParametersValueType, NDimensions>;
+  using Superclass = KernelTransform<TParametersValueType, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VolumeSplineKernelTransform, KernelTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VolumeSplineKernelTransform);
 
   /** Scalar type. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Parameters type. */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
 
   /** Jacobian Type */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Dimension of the domain space. */
   static constexpr unsigned int SpaceDimension = Superclass::SpaceDimension;
 
   /** These (rather redundant) type alias are needed because type alias are not inherited */
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
-  using PointsIterator = typename Superclass::PointsIterator;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::PointsIterator;
 
 protected:
   VolumeSplineKernelTransform() = default;
   ~VolumeSplineKernelTransform() override = default;
 
   /** These (rather redundant) type alias are needed because on type alias are not inherited. */
-  using GMatrixType = typename Superclass::GMatrixType;
+  using typename Superclass::GMatrixType;
 
   /** Compute G(x)
    * For the volume plate spline, this is:

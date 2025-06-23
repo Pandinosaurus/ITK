@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkXMLFileOutputWindow.h"
+#include "itkMakeUniqueForOverwrite.h"
 #include <fstream>
 #include <cstring>
 
@@ -25,7 +26,7 @@ namespace itk
 /**
  * Prompting off by default
  */
-XMLFileOutputWindow ::XMLFileOutputWindow() = default;
+XMLFileOutputWindow::XMLFileOutputWindow() = default;
 
 XMLFileOutputWindow::~XMLFileOutputWindow() = default;
 
@@ -64,18 +65,16 @@ XMLFileOutputWindow::DisplayTag(const char * text)
 void
 XMLFileOutputWindow::DisplayXML(const char * tag, const char * text)
 {
-  char * xmlText;
-
   if (!text)
   {
     return;
   }
 
   // allocate enough room for the worst case
-  xmlText = new char[strlen(text) * 6 + 1];
+  const auto xmlText = make_unique_for_overwrite<char[]>(strlen(text) * 6 + 1);
 
   const char * s = text;
-  char *       x = xmlText;
+  char *       x = xmlText.get();
   *x = '\0';
 
   // replace all special characters
@@ -116,24 +115,23 @@ XMLFileOutputWindow::DisplayXML(const char * tag, const char * text)
       default:
       {
         *x = *s;
-        x++;
+        ++x;
         *x = '\0'; // explicitly terminate the new string
       }
     }
-    s++;
+    ++s;
   }
 
   if (!m_Stream)
   {
     this->Initialize();
   }
-  *m_Stream << "<" << tag << ">" << xmlText << "</" << tag << ">" << std::endl;
+  *m_Stream << '<' << tag << '>' << xmlText.get() << "</" << tag << '>' << std::endl;
 
   if (m_Flush)
   {
     m_Stream->flush();
   }
-  delete[] xmlText;
 }
 
 void

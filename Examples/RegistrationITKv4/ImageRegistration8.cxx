@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -173,9 +173,9 @@ main(int argc, char * argv[])
   using RegistrationType = itk::
     ImageRegistrationMethodv4<FixedImageType, MovingImageType, TransformType>;
 
-  MetricType::Pointer       metric = MetricType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto optimizer = OptimizerType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetMetric(metric);
   registration->SetOptimizer(optimizer);
@@ -191,15 +191,13 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer initialTransform = TransformType::New();
+  auto initialTransform = TransformType::New();
   // Software Guide : EndCodeSnippet
 
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -231,8 +229,7 @@ main(int argc, char * argv[])
     itk::CenteredTransformInitializer<TransformType,
                                       FixedImageType,
                                       MovingImageType>;
-  TransformInitializerType::Pointer initializer =
-    TransformInitializerType::New();
+  auto initializer = TransformInitializerType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -318,7 +315,7 @@ main(int argc, char * argv[])
   using OptimizerScalesType = OptimizerType::ScalesType;
   OptimizerScalesType optimizerScales(
     initialTransform->GetNumberOfParameters());
-  const double translationScale = 1.0 / 1000.0;
+  constexpr double translationScale = 1.0 / 1000.0;
   optimizerScales[0] = 1.0;
   optimizerScales[1] = 1.0;
   optimizerScales[2] = 1.0;
@@ -333,7 +330,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   // One level registration process without shrinking and smoothing.
@@ -396,7 +393,7 @@ main(int argc, char * argv[])
   //  Let's execute this example over some of the images available in the
   //  following website
   //
-  //  \url{http://public.kitware.com/pub/itk/Data/BrainWeb}.
+  //  \url{https://data.Kitware.com/#collection/57b5c9e58d777f126827f5a1/folder/57b769c08d777f10f269af3a}.
   //
   //  Note that the images in this website are compressed in \code{.tgz}
   //  files. You should download these files and decompress them in your local
@@ -447,15 +444,15 @@ main(int argc, char * argv[])
   //
   //  Software Guide : EndLatex
 
-  TransformType::Pointer finalTransform = TransformType::New();
+  auto finalTransform = TransformType::New();
 
   finalTransform->SetFixedParameters(
     registration->GetOutput()->Get()->GetFixedParameters());
   finalTransform->SetParameters(finalParameters);
 
   // Software Guide : BeginCodeSnippet
-  TransformType::MatrixType matrix = finalTransform->GetMatrix();
-  TransformType::OffsetType offset = finalTransform->GetOffset();
+  const TransformType::MatrixType matrix = finalTransform->GetMatrix();
+  const TransformType::OffsetType offset = finalTransform->GetOffset();
   std::cout << "Matrix = " << std::endl << matrix << std::endl;
   std::cout << "Offset = " << std::endl << offset << std::endl;
   // Software Guide : EndCodeSnippet
@@ -560,12 +557,12 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
 
   resampler->SetTransform(finalTransform);
   resampler->SetInput(movingImageReader->GetOutput());
 
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   resampler->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
   resampler->SetOutputOrigin(fixedImage->GetOrigin());
@@ -579,8 +576,8 @@ main(int argc, char * argv[])
     itk::CastImageFilter<FixedImageType, OutputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
   writer->SetFileName(argv[3]);
 
@@ -590,11 +587,11 @@ main(int argc, char * argv[])
 
   using DifferenceFilterType =
     itk::SubtractImageFilter<FixedImageType, FixedImageType, FixedImageType>;
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
+  auto difference = DifferenceFilterType::New();
 
   using RescalerType =
     itk::RescaleIntensityImageFilter<FixedImageType, OutputImageType>;
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
+  auto intensityRescaler = RescalerType::New();
 
   intensityRescaler->SetInput(difference->GetOutput());
   intensityRescaler->SetOutputMinimum(0);
@@ -605,7 +602,7 @@ main(int argc, char * argv[])
 
   resampler->SetDefaultPixelValue(1);
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetInput(intensityRescaler->GetOutput());
 
   // Compute the difference image between the
@@ -617,7 +614,7 @@ main(int argc, char * argv[])
   }
 
   using IdentityTransformType = itk::IdentityTransform<double, Dimension>;
-  IdentityTransformType::Pointer identity = IdentityTransformType::New();
+  auto identity = IdentityTransformType::New();
   // Compute the difference image between the
   // fixed and moving image before registration.
   if (argc > 4)
@@ -635,11 +632,11 @@ main(int argc, char * argv[])
   using OutputSliceType = itk::Image<OutputPixelType, 2>;
   using ExtractFilterType =
     itk::ExtractImageFilter<OutputImageType, OutputSliceType>;
-  ExtractFilterType::Pointer extractor = ExtractFilterType::New();
+  auto extractor = ExtractFilterType::New();
   extractor->SetDirectionCollapseToSubmatrix();
   extractor->InPlaceOn();
 
-  FixedImageType::RegionType inputRegion =
+  const FixedImageType::RegionType inputRegion =
     fixedImage->GetLargestPossibleRegion();
   FixedImageType::SizeType  size = inputRegion.GetSize();
   FixedImageType::IndexType start = inputRegion.GetIndex();
@@ -652,7 +649,7 @@ main(int argc, char * argv[])
   desiredRegion.SetIndex(start);
   extractor->SetExtractionRegion(desiredRegion);
   using SliceWriterType = itk::ImageFileWriter<OutputSliceType>;
-  SliceWriterType::Pointer sliceWriter = SliceWriterType::New();
+  auto sliceWriter = SliceWriterType::New();
   sliceWriter->SetInput(extractor->GetOutput());
   if (argc > 6)
   {

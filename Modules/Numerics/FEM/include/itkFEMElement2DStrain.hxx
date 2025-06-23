@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,7 @@
 #ifndef itkFEMElement2DStrain_hxx
 #define itkFEMElement2DStrain_hxx
 
-#include "itkFEMElement2DStrain.h"
-
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 template <typename TBaseClass>
 Element2DStrain<TBaseClass>::Element2DStrain()
@@ -44,7 +40,7 @@ Element2DStrain<TBaseClass>::GetStrainDisplacementMatrix(MatrixType & B, const M
 
   B.set_size(3, 2 * Nn);
   // Copy the shape function derivatives to the B matrix.
-  for (unsigned int i = 0; i < Nn; i++)
+  for (unsigned int i = 0; i < Nn; ++i)
   {
     // Compute B index
     p = i << 1;
@@ -103,7 +99,6 @@ Element2DStrain<TBaseClass>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Materials: " << this->m_mat << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

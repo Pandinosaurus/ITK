@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
  *
  *=========================================================================*/
 
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 
 
 /* Select the environment variable holding the shared library runtime
@@ -84,10 +84,8 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #  define ITK_TEST_DRIVER_PATH_SEP ';'
-#  define ITK_TEST_DRIVER_PATH_SLASH '\\'
 #else
 #  define ITK_TEST_DRIVER_PATH_SEP ':'
-#  define ITK_TEST_DRIVER_PATH_SLASH '/'
 #endif
 
 
@@ -107,7 +105,7 @@ AddEntriesBeforeLibraryPath(const ArgumentsList & args)
       libpath += ITK_TEST_DRIVER_PATH_SEP;
       libpath += oldenv;
     }
-    itksys::SystemTools::PutEnv(libpath.c_str());
+    itksys::SystemTools::PutEnv(libpath);
     // on some 64 bit systems, LD_LIBRARY_PATH_64 is used before
     // LD_LIBRARY_PATH if it is set. It can lead the test to load
     // the system library instead of the expected one, so this
@@ -123,10 +121,10 @@ AddEntriesBeforeLibraryPath(const ArgumentsList & args)
         libpath64 += ITK_TEST_DRIVER_PATH_SEP;
         libpath64 += oldenv64;
       }
-      itksys::SystemTools::PutEnv(libpath64.c_str());
+      itksys::SystemTools::PutEnv(libpath64);
     }
 
-    i++;
+    ++i;
   }
 }
 
@@ -147,7 +145,7 @@ AddEntriesBeforeEnvironment(const ArgumentsList & args)
       env += ITK_TEST_DRIVER_PATH_SEP;
       env += oldenv;
     }
-    itksys::SystemTools::PutEnv(env.c_str());
+    itksys::SystemTools::PutEnv(env);
 
     i += 2;
   }
@@ -170,7 +168,7 @@ AddEntriesBeforeEnvironmentWithSeparator(const ArgumentsList & args)
       env += args[i + 2];
       env += oldenv;
     }
-    itksys::SystemTools::PutEnv(env.c_str());
+    itksys::SystemTools::PutEnv(env);
 
     i += 3;
   }
@@ -182,7 +180,7 @@ TestDriverInvokeProcess(const ArgumentsList & args)
 {
   // a nullptr is required at the end of the table
   auto ** argv = new char *[args.size() + 1];
-  for (unsigned int i = 0; i < args.size(); i++)
+  for (unsigned int i = 0; i < args.size(); ++i)
   {
     argv[i] = args[i];
   }
@@ -197,7 +195,7 @@ TestDriverInvokeProcess(const ArgumentsList & args)
 
   delete[] argv;
 
-  int state = itksysProcess_GetState(process);
+  const int state = itksysProcess_GetState(process);
   switch (state)
   {
     case itksysProcess_State_Error:
@@ -252,7 +250,7 @@ TestDriverInvokeProcess(const ArgumentsList & args)
     }
   }
 
-  int retCode = itksysProcess_GetExitValue(process);
+  const int retCode = itksysProcess_GetExitValue(process);
   if (retCode != 0)
   {
     std::cerr << "itkTestDriver: Process exited with return value: " << retCode << std::endl;
@@ -263,7 +261,7 @@ TestDriverInvokeProcess(const ArgumentsList & args)
 
 
 int
-main(int ac, char * av[])
+main(int argc, char * argv[])
 {
   try
   {
@@ -278,7 +276,7 @@ main(int ac, char * av[])
 
   ProcessedOutputType po;
 
-  int result = ProcessArguments(&ac, &av, &po);
+  int result = ProcessArguments(&argc, &argv, &po);
 
   if (result)
   {

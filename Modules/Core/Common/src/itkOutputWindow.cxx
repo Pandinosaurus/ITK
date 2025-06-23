@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@
 #include "itkOutputWindow.h"
 #include "itkObjectFactory.h"
 #include "itkSingleton.h"
+#include <mutex>
 
 namespace itk
 {
@@ -35,15 +36,15 @@ namespace itk
 struct OutputWindowGlobals
 {
   OutputWindow::Pointer m_Instance{ nullptr };
+  std::recursive_mutex  m_StaticInstanceLock;
 };
 
 /**
  * Prompting off by default
  */
 OutputWindow::OutputWindow()
-{
-  m_PromptUser = false;
-}
+  : m_PromptUser(false)
+{}
 
 OutputWindow::~OutputWindow() = default;
 
@@ -94,6 +95,7 @@ OutputWindow::PrintSelf(std::ostream & os, Indent indent) const
 void
 OutputWindow::DisplayText(const char * txt)
 {
+  const std::lock_guard<std::mutex> lockGuard(m_cerrMutex);
   std::cerr << txt;
   if (m_PromptUser)
   {
@@ -114,6 +116,7 @@ OutputWindow::Pointer
 OutputWindow::GetInstance()
 {
   itkInitGlobalsMacro(PimplGlobals);
+  const std::lock_guard<std::recursive_mutex> lockGuard(m_PimplGlobals->m_StaticInstanceLock);
   if (!m_PimplGlobals->m_Instance)
   {
     // Try the factory first
@@ -140,6 +143,8 @@ void
 OutputWindow::SetInstance(OutputWindow * instance)
 {
   itkInitGlobalsMacro(PimplGlobals);
+
+  const std::lock_guard<std::recursive_mutex> lockGuard(m_PimplGlobals->m_StaticInstanceLock);
   if (m_PimplGlobals->m_Instance == instance)
   {
     return;

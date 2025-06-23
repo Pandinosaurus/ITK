@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,17 +29,12 @@ itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage(int d1, int d2, int d3
   sizeND[2] = d3;
   sizeND[3] = d4;
 
-  itk::Index<4> origND;
-  origND.Fill(0);
+  constexpr itk::Index<4> origND{};
 
-  itk::ImageRegion<4> RegionND;
-  RegionND.SetSize(sizeND);
-  RegionND.SetIndex(origND);
+  const itk::ImageRegion<4> RegionND{ origND, sizeND };
 
-  typename TImage::Pointer imageND = TImage::New();
-  imageND->SetLargestPossibleRegion(RegionND);
-  imageND->SetBufferedRegion(RegionND);
-  imageND->SetRequestedRegion(RegionND);
+  auto imageND = TImage::New();
+  imageND->SetRegions(RegionND);
 
   return imageND;
 }
@@ -48,7 +43,7 @@ template <typename TImage>
 int
 itkConstNeighborhoodIteratorWithOnlyIndexTestRun()
 {
-  typename TImage::Pointer img = itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage<TImage>(10, 10, 5, 3);
+  const typename TImage::Pointer img = itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage<TImage>(10, 10, 5, 3);
 
   using ImageType = TImage;
   using ConstNeighborhoodIteratorType = itk::ConstNeighborhoodIteratorWithOnlyIndex<ImageType>;
@@ -217,7 +212,8 @@ itkConstNeighborhoodIteratorWithOnlyIndexTestRun()
 
   std::cout << "Testing random access iteration" << std::endl;
 
-  typename ImageType::Pointer ra_img = itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage<TImage>(10, 10, 5, 3);
+  const typename ImageType::Pointer ra_img =
+    itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage<TImage>(10, 10, 5, 3);
   loc[0] = 4;
   loc[1] = 4;
   loc[2] = 2;
@@ -246,8 +242,7 @@ itkConstNeighborhoodIteratorWithOnlyIndexTestRun()
   ra_it.SetLocation(loc);
 
   std::cout << "Adding [1, 1, 1, 1]" << std::endl;
-  OffsetType a_off;
-  a_off.Fill(1);
+  auto a_off = itk::MakeFilled<OffsetType>(1);
   ra_it += a_off;
   for (unsigned int i = 0; i < 4; ++i)
   {
@@ -361,8 +356,8 @@ itkConstNeighborhoodIteratorWithOnlyIndexTestRun()
   // Test IndexInBounds
   //
   std::cout << "Testing IndexInBounds" << std::endl;
-  int                         dims[4] = { 13, 11, 9, 7 };
-  typename ImageType::Pointer iib_img =
+  constexpr int                     dims[4] = { 13, 11, 9, 7 };
+  const typename ImageType::Pointer iib_img =
     itkConstNeighborhoodIteratorWithOnlyIndexTestGetTestImage<TImage>(dims[0], dims[1], dims[2], dims[3]);
   radius[0] = 4;
   radius[1] = 3;

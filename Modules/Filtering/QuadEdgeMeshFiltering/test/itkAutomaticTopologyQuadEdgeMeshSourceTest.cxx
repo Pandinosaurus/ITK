@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,9 +35,7 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
   using IdentifierType = MeshSourceType::IdentifierType;
   using IdentifierArrayType = MeshSourceType::IdentifierArrayType;
 
-  MeshSourceType::Pointer meshSource;
-
-  meshSource = MeshSourceType::New();
+  MeshSourceType::Pointer meshSource = MeshSourceType::New();
 
   // Begin using various AddPoint functions to add the vertices of a
   // cube.
@@ -75,7 +73,7 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
 
   IdentifierArrayType idArray(8);
   {
-    for (unsigned int i = 0; i < 8; i++)
+    for (unsigned int i = 0; i < 8; ++i)
     {
       idArray[i] = i;
     }
@@ -209,21 +207,19 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
 
   // ... In more detail.
 
-  unsigned long i;
-
   std::cout << mesh->GetNumberOfPoints() << " points:" << std::endl;
-  for (i = 0; i < mesh->GetNumberOfPoints(); i++)
+  for (MeshType::PointIdentifier i = 0; i < mesh->GetNumberOfPoints(); ++i)
   {
-    PointType point;
-    bool      dummy = mesh->GetPoint(i, &point);
+    PointType  point;
+    const bool dummy = mesh->GetPoint(i, &point);
     if (dummy)
     {
       std::cout << i << ": " << point << std::endl;
     }
   }
 
-  std::cout << "\n" << mesh->GetNumberOfCells() << " cells:" << std::endl;
-  for (i = 0; i < mesh->GetNumberOfCells(); i++)
+  std::cout << '\n' << mesh->GetNumberOfCells() << " cells:" << std::endl;
+  for (MeshType::CellIdentifier i = 0; i < mesh->GetNumberOfCells(); ++i)
   {
     using CellAutoPointer = MeshType::CellAutoPointer;
     CellAutoPointer cell;
@@ -235,15 +231,15 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
       PointIdIterator pointsEnd = cell->PointIdsEnd();
       while (pointIter != pointsEnd)
       {
-        std::cout << *pointIter << " ";
+        std::cout << *pointIter << ' ';
         ++pointIter;
       }
       std::cout << std::endl;
     }
   }
-  std::cout << "\n";
+  std::cout << '\n';
 
-  for (i = 0; i < mesh->GetNumberOfCells(); i++)
+  for (MeshType::CellIdentifier i = 0; i < mesh->GetNumberOfCells(); ++i)
   {
     using CellAutoPointer = MeshType::CellAutoPointer;
     CellAutoPointer cell;
@@ -260,32 +256,32 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
         std::cout << "Neighbors across vertex 0: ";
         for (const auto & neighborIter : cellSet)
         {
-          std::cout << neighborIter << " ";
+          std::cout << neighborIter << ' ';
         }
-        std::cout << "\n";
+        std::cout << '\n';
 
         mesh->GetCellBoundaryFeatureNeighbors(0, i, 1, &cellSet);
         std::cout << "Neighbors across vertex 1: ";
         for (const auto & neighborIter : cellSet)
         {
-          std::cout << neighborIter << " ";
+          std::cout << neighborIter << ' ';
         }
-        std::cout << "\n";
+        std::cout << '\n';
 
         mesh->GetCellNeighbors(i, &cellSet);
         std::cout << "Neighbors having edge as boundary: ";
         for (const auto & neighborIter : cellSet)
         {
-          std::cout << neighborIter << " ";
+          std::cout << neighborIter << ' ';
         }
-        std::cout << "\n" << std::endl;
+        std::cout << '\n' << std::endl;
       }
     }
   }
 
   // Check that the right number of points has been added.
 
-  unsigned long numPoints = mesh->GetNumberOfPoints();
+  auto numPoints = mesh->GetNumberOfPoints();
   if (numPoints != 17)
   {
     std::cerr << "Mesh shows " << numPoints << " points, but 17 were added." << std::endl;
@@ -294,7 +290,7 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
 
   // Check that the right number of cells has been added.
 
-  unsigned long numCells = mesh->GetNumberOfCells();
+  auto numCells = mesh->GetNumberOfCells();
   numCells += mesh->GetNumberOfEdges();
   if (numCells != 53)
   {
@@ -313,7 +309,6 @@ itkAutomaticTopologyQuadEdgeMeshSourceTest(int, char *[])
     std::cerr << "Mesh is being changed when invoking Update()" << std::endl;
     return EXIT_FAILURE;
   }
-
 
   return EXIT_SUCCESS;
 }

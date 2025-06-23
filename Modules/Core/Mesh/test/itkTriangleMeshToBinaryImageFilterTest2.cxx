@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,25 +43,24 @@ itkTriangleMeshToBinaryImageFilterTest2(int argc, char * argv[])
 
   using TriangleFilterType = itk::SimplexMeshToTriangleMeshFilter<SimplexMeshType, TriangleMeshType>;
   using TriangleMeshPointer = TriangleMeshType::Pointer;
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(50);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  auto                 center = itk::MakeFilled<PointType>(-5);
   PointType::ValueType scaleInit[3] = { 10, 10, 10 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(3);
   mySphereMeshSource->SetScale(scale);
 
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
 
-  TriangleFilterType::Pointer backFilter = TriangleFilterType::New();
+  auto backFilter = TriangleFilterType::New();
   backFilter->SetInput(simplexFilter->GetOutput());
   backFilter->Update();
 
-  SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
-  TriangleMeshPointer      originalTriangleMesh = mySphereMeshSource->GetOutput();
+  const SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
+  const TriangleMeshPointer      originalTriangleMesh = mySphereMeshSource->GetOutput();
 
   std::cout << " Number of Points and Cells in Original Triangle Mesh" << std::endl;
   std::cout << originalTriangleMesh->GetNumberOfPoints() << std::endl;
@@ -71,7 +70,7 @@ itkTriangleMeshToBinaryImageFilterTest2(int argc, char * argv[])
 
 
   std::cout << "Simplex Mesh: " << simplexMesh << std::endl;
-  TriangleMeshType::Pointer triangleMesh = backFilter->GetOutput();
+  const TriangleMeshType::Pointer triangleMesh = backFilter->GetOutput();
 
   std::cout << " Number of Points and Cells in Back Filtered Triangle Mesh" << std::endl;
   std::cout << triangleMesh->GetNumberOfPoints() << std::endl;
@@ -84,7 +83,7 @@ itkTriangleMeshToBinaryImageFilterTest2(int argc, char * argv[])
 
   using TriangleImageType = itk::TriangleMeshToBinaryImageFilter<TriangleMeshType, ImageType>;
 
-  TriangleImageType::Pointer imageFilter = TriangleImageType::New();
+  auto imageFilter = TriangleImageType::New();
 
   imageFilter->SetInput(triangleMesh);
 
@@ -95,7 +94,8 @@ itkTriangleMeshToBinaryImageFilterTest2(int argc, char * argv[])
   size[2] = 100;
   imageFilter->SetSize(size);
 
-  std::cout << "[PASSED]" << std::endl;
+  auto index = ImageType::IndexType::Filled(-50);
+  imageFilter->SetIndex(index);
 
   // Testing PrintSelf
   std::cout << imageFilter << std::endl;
@@ -105,7 +105,7 @@ itkTriangleMeshToBinaryImageFilterTest2(int argc, char * argv[])
 
   if (argc > 1)
   {
-    itk::WriteImage(imageFilter->GetOutput(), argv[1]);
+    itk::WriteImage(imageFilter->GetOutput(), argv[1], true);
   }
 
   std::cout << "[TEST DONE]" << std::endl;

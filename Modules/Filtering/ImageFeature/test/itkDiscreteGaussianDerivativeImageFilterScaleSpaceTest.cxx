@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,25 +34,23 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
 
   const double tolerance1 = std::pow(.001, 1.0 / order); // still larger than it should be!
 
-  double frequency = frequencyPerImage * 2.0 * itk::Math::pi / (imageSize * pixelSpacing);
+  const double frequency = frequencyPerImage * 2.0 * itk::Math::pi / (imageSize * pixelSpacing);
 
   // The theoretical maximal value should occur at this sigma
-  double sigmaMax = std::sqrt(double(order)) / frequency;
+  const double sigmaMax = std::sqrt(static_cast<double>(order)) / frequency;
 
   // The theoreical maximal value of the derivative, obtained at sigmaMax
-  double expectedMax = std::pow(double(order), order * 0.5) * std::exp(-0.5 * order);
+  const double expectedMax = std::pow(static_cast<double>(order), order * 0.5) * std::exp(-0.5 * order);
 
   using ImageType = itk::Image<double, ImageDimension>;
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
-  ImageType::SizeType size;
-  size.Fill(imageSize);
+  auto size = ImageType::SizeType::Filled(imageSize);
 
   image->SetRegions(ImageType::RegionType(size));
   image->Allocate();
 
-  ImageType::SpacingType spacing;
-  spacing.Fill(pixelSpacing);
+  auto spacing = itk::MakeFilled<ImageType::SpacingType>(pixelSpacing);
 
   image->SetSpacing(spacing);
 
@@ -64,14 +62,14 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
     ImageType::PointType p;
     image->TransformIndexToPhysicalPoint(iter.GetIndex(), p);
     const double x = p[0];
-    double       value = std::sin(x * frequency);
+    const double value = std::sin(x * frequency);
 
     iter.Set(value);
     ++iter;
   }
 
   using GaussianFilterType = itk::DiscreteGaussianDerivativeImageFilter<ImageType, ImageType>;
-  GaussianFilterType::Pointer filter = GaussianFilterType::New();
+  auto filter = GaussianFilterType::New();
 
   filter->SetInput(image);
   filter->SetVariance(itk::Math::sqr(sigmaMax));
@@ -81,7 +79,7 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
   filter->SetMaximumKernelWidth(500);
   filter->SetNormalizeAcrossScale(true);
 
-  ImageType::Pointer outputImage = filter->GetOutput();
+  const ImageType::Pointer outputImage = filter->GetOutput();
   outputImage->Update();
 
   // Maximal value of the first derivative

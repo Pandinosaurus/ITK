@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,21 @@
 
 
 #include "itkFEMSpatialObjectReader.h"
+#include "itkTestingMacros.h"
 
 
 int
 itkFEMSpatialObjectTest(int argc, char * argv[])
 {
-  if (argc < 2)
+  if (argc != 2)
   {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName" << std::endl;
     return EXIT_FAILURE;
   }
+
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -37,17 +41,17 @@ itkFEMSpatialObjectTest(int argc, char * argv[])
   std::cout << "Read Spatial Object" << std::endl;
   using FEMSpatialObjectReaderType = itk::FEMSpatialObjectReader<2>;
   using FEMSpatialObjectReaderPointer = FEMSpatialObjectReaderType::Pointer;
-  FEMSpatialObjectReaderPointer SpatialReader = FEMSpatialObjectReaderType::New();
-  SpatialReader->SetFileName(argv[1]);
-  SpatialReader->Update();
+  FEMSpatialObjectReaderPointer spatialReader = FEMSpatialObjectReaderType::New();
+  spatialReader->SetFileName(argv[1]);
+  spatialReader->Update();
 
 
   /*
-    FEMSpatialObjectReaderType::ScenePointer myScene = SpatialReader->GetScene();
+    FEMSpatialObjectReaderType::ScenePointer myScene = spatialReader->GetScene();
 
     using FEMObjectSpatialObjectType = itk::FEMObjectSpatialObject<2>;
     using FEMObjectSpatialObjectPointer = FEMObjectSpatialObjectType::Pointer;
-    FEMObjectSpatialObjectType::ChildrenListType* children = SpatialReader->GetGroup()->GetChildren();
+    FEMObjectSpatialObjectType::ChildrenListType* children = spatialReader->GetGroup()->GetChildren();
 
     FEMObjectSpatialObjectType::Pointer femSO =
       dynamic_cast<FEMObjectSpatialObjectType *>( (*(children->begin() ) ).GetPointer() );

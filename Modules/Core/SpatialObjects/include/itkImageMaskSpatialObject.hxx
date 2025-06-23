@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,24 +18,19 @@
 #ifndef itkImageMaskSpatialObject_hxx
 #define itkImageMaskSpatialObject_hxx
 
+#include "itkIntTypes.h" // For uintmax_t.
 #include "itkMath.h"
-#include "itkImageMaskSpatialObject.h"
 #include "itkImageRegionRange.h"
-
-#include <cstdint> // For uintmax_t.
 
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TDimension, typename TPixel>
 ImageMaskSpatialObject<TDimension, TPixel>::ImageMaskSpatialObject()
 {
   this->SetTypeName("ImageMaskSpatialObject");
 }
 
-/** Test whether a point is inside or outside the object
- *  For computational speed purposes, it is faster if the method does not
- *  check the name of the class and the current depth */
 template <unsigned int TDimension, typename TPixel>
 bool
 ImageMaskSpatialObject<TDimension, TPixel>::IsInsideInObjectSpace(const PointType & point) const
@@ -44,8 +39,12 @@ ImageMaskSpatialObject<TDimension, TPixel>::IsInsideInObjectSpace(const PointTyp
 
   const IndexType index = image->TransformPhysicalPointToIndex(point);
 
-  return image->GetBufferedRegion().IsInside(index) &&
-         Math::NotExactlyEquals(image->GetPixel(index), NumericTraits<PixelType>::ZeroValue());
+  const bool is_inside = Superclass::GetBufferedRegion().IsInside(index);
+
+  const PixelType background_zero{};
+
+  return is_inside && ((m_UseMaskValue == true && Math::ExactlyEquals(image->GetPixel(index), this->m_MaskValue)) ||
+                       (m_UseMaskValue == false && Math::NotExactlyEquals(image->GetPixel(index), background_zero)));
 }
 
 
@@ -76,7 +75,7 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBox()
     typename Superclass::ContinuousIndexType maxContinuousIndex{ minIndex + boundingBoxInIndexSpace.GetSize() };
 
     // Allow a margin of half a pixel in each direction.
-    const typename SpatialObject<TDimension>::VectorType half_pixel_size{ 0.5 };
+    const auto half_pixel_size = MakeFilled<typename SpatialObject<TDimension>::VectorType>(0.5);
     minContinuousIndex -= half_pixel_size;
     maxContinuousIndex -= half_pixel_size;
 
@@ -89,17 +88,17 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBox()
     boundingBoxInObjectSpace->SetMaximum(firstPoint);
 
     // The total number of corner points of the bounding box.
-    constexpr auto numberOfCorners = std::uintmax_t{ 1 } << TDimension;
+    constexpr auto numberOfCorners = uintmax_t{ 1 } << TDimension;
 
-    for (std::uintmax_t cornerNumber{ 1 }; cornerNumber < numberOfCorners; ++cornerNumber)
+    for (uintmax_t cornerNumber{ 1 }; cornerNumber < numberOfCorners; ++cornerNumber)
     {
       // For each corner, estimate the n-dimensional index.
 
       auto continuousIndex = minContinuousIndex;
 
-      for (unsigned dim{}; dim < TDimension; ++dim)
+      for (unsigned int dim{}; dim < TDimension; ++dim)
       {
-        const std::uintmax_t bitMask{ std::uintmax_t{ 1 } << dim };
+        const uintmax_t bitMask{ uintmax_t{ 1 } << dim };
 
         if ((cornerNumber & bitMask) != 0)
         {
@@ -115,8 +114,6 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBox()
   }
 }
 
-
-/** InternalClone */
 template <unsigned int TDimension, typename TPixel>
 typename LightObject::Pointer
 ImageMaskSpatialObject<TDimension, TPixel>::InternalClone() const
@@ -125,29 +122,25 @@ ImageMaskSpatialObject<TDimension, TPixel>::InternalClone() const
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
+
+  rval->SetMaskValue(this->GetMaskValue());
+  rval->SetUseMaskValue(this->GetUseMaskValue());
 
   return loPtr;
 }
 
-/** Print the object */
 template <unsigned int TDimension, typename TPixel>
-void
-ImageMaskSpatialObject<TDimension, TPixel>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  Superclass::PrintSelf(os, indent);
-}
-
-
-template <unsigned int TDimension, typename TPixel>
-typename ImageMaskSpatialObject<TDimension, TPixel>::RegionType
-ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBoxInIndexSpace() const
+auto
+ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBoxInIndexSpace() const -> RegionType
 {
   const ImagePointer imagePointer = this->GetImage();
+  const bool         useMaskValue = this->GetUseMaskValue();
+  const PixelType    maskValue = this->GetMaskValue();
 
   if (imagePointer == nullptr)
   {
@@ -156,12 +149,12 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBoxInIndexSpace() c
 
   const ImageType & image = *imagePointer;
 
-  const auto HasForegroundPixels = [&image](const RegionType & region) {
-    for (const PixelType pixelValue : ImageRegionRange<const ImageType>{ image, region })
+  const auto HasForegroundPixels = [&image, useMaskValue, maskValue](const RegionType & region) {
+    for (const PixelType pixelValue : ImageRegionRange{ image, region })
     {
-      constexpr auto zeroValue = NumericTraits<PixelType>::ZeroValue();
+      constexpr PixelType zeroValue{};
 
-      if (pixelValue != zeroValue)
+      if (pixelValue != zeroValue && (useMaskValue == false || pixelValue == maskValue))
       {
         return true;
       }
@@ -172,14 +165,14 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBoxInIndexSpace() c
   const auto CreateRegion = [](const IndexType & minIndex, const IndexType & maxIndex) {
     SizeType regionSize;
 
-    for (unsigned dim = 0; dim < SizeType::Dimension; ++dim)
+    for (unsigned int dim = 0; dim < SizeType::Dimension; ++dim)
     {
       regionSize[dim] = static_cast<SizeValueType>(maxIndex[dim] + 1 - minIndex[dim]);
     }
     return RegionType{ minIndex, regionSize };
   };
 
-  const RegionType requestedRegion = image.GetRequestedRegion();
+  const RegionType requestedRegion = Superclass::GetRequestedRegion();
 
   if (requestedRegion.GetNumberOfPixels() == 0)
   {
@@ -231,8 +224,8 @@ ImageMaskSpatialObject<TDimension, TPixel>::ComputeMyBoundingBoxInIndexSpace() c
 
 #if !defined(ITK_LEGACY_REMOVE)
 template <unsigned int TDimension, typename TPixel>
-typename ImageMaskSpatialObject<TDimension, TPixel>::RegionType
-ImageMaskSpatialObject<TDimension, TPixel>::GetAxisAlignedBoundingBoxRegion() const
+auto
+ImageMaskSpatialObject<TDimension, TPixel>::GetAxisAlignedBoundingBoxRegion() const -> RegionType
 {
   return ComputeMyBoundingBoxInIndexSpace();
 }

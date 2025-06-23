@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkQuadEdgeMeshTest1(int, char *[])
   using QEPolygonCellType = itk::QuadEdgeMeshPolygonCell<CellType>;
   using QELineCellType = itk::QuadEdgeMeshLineCell<CellType>;
 
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   mesh->GetCellBoundaryFeatureNeighbors(0, 0, 0, nullptr);
   mesh->GetCellNeighbors(0, nullptr);
@@ -76,13 +76,13 @@ itkQuadEdgeMeshTest1(int, char *[])
   }
 
   using PointsIterator = MeshType::PointsContainer::Iterator;
-  PointsIterator pointIterator = mesh->GetPoints()->Begin();
-  PointsIterator end = mesh->GetPoints()->End();
+  PointsIterator       pointIterator = mesh->GetPoints()->Begin();
+  const PointsIterator end = mesh->GetPoints()->End();
 
   int nPoints = 0;
   while (pointIterator != end)
   {
-    MeshType::PointType p = pointIterator.Value();
+    const MeshType::PointType p = pointIterator.Value();
 
     if (p != pts[nPoints])
     {
@@ -116,13 +116,12 @@ itkQuadEdgeMeshTest1(int, char *[])
     }
 
     // create a tetahedra and one isolated point: id = 4
-    int specialCells[12] = { 0, 1, 2, 0, 2, 3, 3, 1, 0, 1, 3, 2 };
+    const int specialCells[12] = { 0, 1, 2, 0, 2, 3, 3, 1, 0, 1, 3, 2 };
 
     CellType::CellAutoPointer cellpointer;
-    QEPolygonCellType *       poly;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
-      poly = new QEPolygonCellType(3);
+      auto * poly = new QEPolygonCellType(3);
       cellpointer.TakeOwnership(poly);
       cellpointer->SetPointId(0, specialCells[3 * i]);
       cellpointer->SetPointId(1, specialCells[3 * i + 1]);

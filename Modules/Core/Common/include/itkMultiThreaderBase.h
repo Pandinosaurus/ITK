@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,7 @@
 #include "itkImageRegion.h"
 #include "itkImageIORegion.h"
 #include "itkSingletonMacro.h"
+#include <atomic>
 #include <functional>
 #include <thread>
 #include "itkProgressReporter.h"
@@ -52,7 +53,7 @@ namespace itk
 class MultiThreaderBaseEnums
 {
 public:
-  /** \class Threader
+  /**
    * \ingroup ITKCommon
    * Currently supported types of multi-threader implementations.
    * Last will change with additional implementations.
@@ -67,7 +68,7 @@ public:
     Unknown = -1
   };
 
-  /** \class ThreadExitCode
+  /**
    * \ingroup ITKCommon
    */
   enum class ThreadExitCode : uint8_t
@@ -117,23 +118,25 @@ public:
   static Pointer
   New();
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiThreaderBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiThreaderBase);
 
   /** Get/Set the number of threads to use. It will be clamped to the range
    * [ 1, m_GlobalMaximumNumberOfThreads ], so the caller of this method should
    * check that the requested number of threads was accepted. */
+  /** @ITKStartGrouping */
   virtual void
   SetMaximumNumberOfThreads(ThreadIdType numberOfThreads);
   itkGetConstMacro(MaximumNumberOfThreads, ThreadIdType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the number of work units to create. It might be clamped to the range
    * [ 1, SomeMaximumNumber ], so the caller of this method should
    * check that the requested number of work units was accepted. */
+  /** @ITKStartGrouping */
   virtual void
   SetNumberOfWorkUnits(ThreadIdType numberOfWorkUnits);
   itkGetConstMacro(NumberOfWorkUnits, ThreadIdType);
-
+  /** @ITKEndGrouping */
   virtual void
   SetUpdateProgress(bool updates);
   itkGetConstMacro(UpdateProgress, bool);
@@ -143,19 +146,21 @@ public:
    * are already statically allocated using the ITK_MAX_THREADS number.
    * Therefore the caller of this method should check that the requested number
    * of threads was accepted. */
+  /** @ITKStartGrouping */
   static void
   SetGlobalMaximumNumberOfThreads(ThreadIdType val);
   static ThreadIdType
   GetGlobalMaximumNumberOfThreads();
-
+  /** @ITKEndGrouping */
   /** Set/Get whether to use the to use the thread pool
    * implementation or the spawning implementation of
    * starting threads.
    *
    * Deprecated: use Get/Set GlobalDefaultThreader. */
-  itkLegacyMacro(static void SetGlobalDefaultUseThreadPool(const bool GlobalDefaultUseThreadPool));
-  itkLegacyMacro(static bool GetGlobalDefaultUseThreadPool());
-
+  /** @ITKStartGrouping */
+  itkLegacyMacro(static void SetGlobalDefaultUseThreadPool(const bool GlobalDefaultUseThreadPool);)
+  itkLegacyMacro(static bool GetGlobalDefaultUseThreadPool();)
+  /** @ITKEndGrouping */
   using ThreaderEnum = MultiThreaderBaseEnums::Threader;
 #if !defined(ITK_LEGACY_REMOVE)
   using ThreaderType = ThreaderEnum;
@@ -179,17 +184,13 @@ public:
     {
       case ThreaderEnum::Platform:
         return "Platform";
-        break;
       case ThreaderEnum::Pool:
         return "Pool";
-        break;
       case ThreaderEnum::TBB:
         return "TBB";
-        break;
       case ThreaderEnum::Unknown:
       default:
         return "Unknown";
-        break;
     }
   }
 
@@ -204,30 +205,36 @@ public:
    *
    * If the SetGlobalDefaultThreaderType API is ever used by the developer,
    * the developer's choice is respected over the environment variables. */
+  /** @ITKStartGrouping */
   static void
   SetGlobalDefaultThreader(ThreaderEnum threaderType);
   static ThreaderEnum
   GetGlobalDefaultThreader();
-
+  /** @ITKEndGrouping */
   /** Set/Get the value which is used to initialize the NumberOfThreads in the
    * constructor.  It will be clamped to the range [1, m_GlobalMaximumNumberOfThreads ].
    * Therefore the caller of this method should check that the requested number
    * of threads was accepted. */
+  /** @ITKStartGrouping */
   static void
   SetGlobalDefaultNumberOfThreads(ThreadIdType val);
   static ThreadIdType
   GetGlobalDefaultNumberOfThreads();
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   /** Get/Set the number of threads to use.
    * DEPRECATED! Use WorkUnits and MaximumNumberOfThreads instead. */
+  /** @ITKStartGrouping */
   itkLegacyMacro(virtual void SetNumberOfThreads(ThreadIdType numberOfThreads))
   {
     this->SetMaximumNumberOfThreads(numberOfThreads);
     this->SetNumberOfWorkUnits(this->GetMaximumNumberOfThreads()); // Might be clamped
   }
-  itkLegacyMacro(virtual ThreadIdType GetNumberOfThreads()) { return this->GetNumberOfWorkUnits(); }
-
+  itkLegacyMacro(virtual ThreadIdType GetNumberOfThreads())
+  {
+    return this->GetNumberOfWorkUnits();
+  }
+  /** @ITKEndGrouping */
   /** This is the structure that is passed to the thread that is
    * created from the SingleMethodExecute. It is passed in as a void *,
    * and it is up to the method to cast correctly and extract the information.
@@ -236,21 +243,19 @@ public:
    * (void *)arg passed into the SetSingleMethod.
    *
    * DEPRECATED! Use WorkUnitInfo instead. */
+  /** @ITKStartGrouping */
   // clang-format off
 ITK_GCC_PRAGMA_DIAG_PUSH()
 ITK_GCC_PRAGMA_DIAG(ignored "-Wattributes")
 INTEL_PRAGMA_WARN_PUSH
 INTEL_SUPPRESS_warning_1292
-CLANG_PRAGMA_PUSH
-CLANG_SUPPRESS_Wc__14_extensions
   // clang-format on
 #  ifdef ITK_LEGACY_SILENT
-    struct ThreadInfoStruct
+  struct ThreadInfoStruct
 #  else
-    struct [[deprecated("Use WorkUnitInfo, ThreadInfoStruct is deprecated since ITK 5.0")]] ThreadInfoStruct
+  struct [[deprecated("Use WorkUnitInfo, ThreadInfoStruct is deprecated since ITK 5.0")]] ThreadInfoStruct
 #  endif
-      // clang-format off
-CLANG_PRAGMA_POP
+    // clang-format off
 INTEL_PRAGMA_WARN_POP
   // clang-format on
   {
@@ -270,6 +275,7 @@ INTEL_PRAGMA_WARN_POP
   // clang-format off
 ITK_GCC_PRAGMA_DIAG_POP()
   // clang-format on
+  /** @ITKEndGrouping */
 #endif // ITK_LEGACY_REMOVE
 
   /** This is the structure that is passed to the thread that is
@@ -311,8 +317,17 @@ ITK_GCC_PRAGMA_DIAG_POP()
   virtual void
   SetSingleMethod(ThreadFunctionType, void * data) = 0;
 
+  /** Set the method and the user data, by SetSingleMethod, and executes the method, by SingleMethodExecute. */
+  void
+  SetSingleMethodAndExecute(ThreadFunctionType func, void * data);
+
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  // `TemplatedThreadingFunctorType` was previously used to declare the `funcP` parameter of `ParallelizeImageRegion`
+  // and `ParallelizeImageRegionRestrictDirection` template member functions.
   template <unsigned int VDimension>
-  using TemplatedThreadingFunctorType = std::function<void(const ImageRegion<VDimension> &)>;
+  using TemplatedThreadingFunctorType [[deprecated]] = std::function<void(const ImageRegion<VDimension> &)>;
+#endif
+
   using ThreadingFunctorType = std::function<void(const IndexValueType index[], const SizeValueType size[])>;
   using ArrayThreadingFunctorType = std::function<void(SizeValueType)>;
 
@@ -327,20 +342,20 @@ ITK_GCC_PRAGMA_DIAG_POP()
                    ArrayThreadingFunctorType aFunc,
                    ProcessObject *           filter);
 
-  /** Break up region into smaller chunks, and call the function with chunks as parameters.
+  /** Break up region into smaller chunks, and call the user-specified function or function object `funcP` for each
+   * chunk, having the region of the chunk as argument. The type of such a chuck region is `ImageRegion<VDimension>`.
+   * Each such `funcP(region)` call must be thread-safe.
    * If filter argument is not nullptr, this function will update its progress
    * as each work unit is completed. Delegates work to non-templated version. */
-  template <unsigned int VDimension>
+  template <unsigned int VDimension, typename TFunction>
   ITK_TEMPLATE_EXPORT void
-  ParallelizeImageRegion(const ImageRegion<VDimension> &           requestedRegion,
-                         TemplatedThreadingFunctorType<VDimension> funcP,
-                         ProcessObject *                           filter)
+  ParallelizeImageRegion(const ImageRegion<VDimension> & requestedRegion, TFunction funcP, ProcessObject * filter)
   {
     this->ParallelizeImageRegion(
       VDimension,
       requestedRegion.GetIndex().m_InternalArray,
       requestedRegion.GetSize().m_InternalArray,
-      [funcP](const IndexValueType index[], const SizeValueType size[]) {
+      [&funcP](const IndexValueType index[], const SizeValueType size[]) {
         ImageRegion<VDimension> region;
         for (unsigned int d = 0; d < VDimension; ++d)
         {
@@ -355,53 +370,51 @@ ITK_GCC_PRAGMA_DIAG_POP()
   /** Similar to ParallelizeImageRegion, but do not split the region along one
    * of the directions. If VDimension is 1, restrictedDirection is ignored
    * and no parallelization occurs. */
-  template <unsigned int VDimension>
+  template <unsigned int VDimension, typename TFunction>
   ITK_TEMPLATE_EXPORT void
-  ParallelizeImageRegionRestrictDirection(unsigned int                              restrictedDirection,
-                                          const ImageRegion<VDimension> &           requestedRegion,
-                                          TemplatedThreadingFunctorType<VDimension> funcP,
-                                          ProcessObject *                           filter)
+  ParallelizeImageRegionRestrictDirection(unsigned int                    restrictedDirection,
+                                          const ImageRegion<VDimension> & requestedRegion,
+                                          TFunction                       funcP,
+                                          ProcessObject *                 filter)
   {
-    if (VDimension <= 1) // Cannot split, no parallelization
+    if constexpr (VDimension <= 1) // Cannot split, no parallelization
     {
 
-      ProgressReporter progress(filter, 0, requestedRegion.GetNumberOfPixels());
+      const ProgressReporter progress(filter, 0, requestedRegion.GetNumberOfPixels());
       funcP(requestedRegion);
     }
     else // Can split, parallelize!
     {
-      constexpr unsigned int SplitDimension = (VDimension - 1) ? VDimension - 1 : VDimension;
-      using SplitRegionType = ImageRegion<SplitDimension>;
+      constexpr unsigned int SplitDimension = VDimension - 1;
 
-      SplitRegionType splitRegion;
+      Index<SplitDimension> splitIndex{};
+      Size<SplitDimension>  splitSize{};
       for (unsigned int splitDimension = 0, dimension = 0; dimension < VDimension; ++dimension)
       {
-        if (dimension == restrictedDirection)
+        if (dimension != restrictedDirection)
         {
-          continue;
+          splitIndex[splitDimension] = requestedRegion.GetIndex(dimension);
+          splitSize[splitDimension] = requestedRegion.GetSize(dimension);
+          ++splitDimension;
         }
-        splitRegion.SetIndex(splitDimension, requestedRegion.GetIndex(dimension));
-        splitRegion.SetSize(splitDimension, requestedRegion.GetSize(dimension));
-        ++splitDimension;
       }
 
       this->ParallelizeImageRegion(
         SplitDimension,
-        splitRegion.GetIndex().m_InternalArray,
-        splitRegion.GetSize().m_InternalArray,
-        [&](const IndexValueType index[], const SizeValueType size[]) {
+        splitIndex.m_InternalArray,
+        splitSize.m_InternalArray,
+        [restrictedDirection, &requestedRegion, &funcP](const IndexValueType index[], const SizeValueType size[]) {
           ImageRegion<VDimension> restrictedRequestedRegion;
           restrictedRequestedRegion.SetIndex(restrictedDirection, requestedRegion.GetIndex(restrictedDirection));
           restrictedRequestedRegion.SetSize(restrictedDirection, requestedRegion.GetSize(restrictedDirection));
           for (unsigned int splitDimension = 0, dimension = 0; dimension < VDimension; ++dimension)
           {
-            if (dimension == restrictedDirection)
+            if (dimension != restrictedDirection)
             {
-              continue;
+              restrictedRequestedRegion.SetIndex(dimension, index[splitDimension]);
+              restrictedRequestedRegion.SetSize(dimension, size[splitDimension]);
+              ++splitDimension;
             }
-            restrictedRequestedRegion.SetIndex(dimension, index[splitDimension]);
-            restrictedRequestedRegion.SetSize(dimension, size[splitDimension]);
-            ++splitDimension;
           }
           funcP(restrictedRequestedRegion);
         },
@@ -441,7 +454,6 @@ protected:
     unsigned int           dimension;
     const IndexValueType * index;
     const SizeValueType *  size;
-    SizeValueType          pixelCount;
     ProcessObject *        filter;
   };
 
@@ -449,7 +461,7 @@ protected:
   ParallelizeImageRegionHelper(void * arg);
 
   /** The number of work units to create. */
-  ThreadIdType m_NumberOfWorkUnits;
+  ThreadIdType m_NumberOfWorkUnits{};
 
   /** The number of threads to use.
    *  The m_MaximumNumberOfThreads must always be less than or equal to
@@ -459,7 +471,7 @@ protected:
    *  to the current m_GlobalMaximumNumberOfThreads in the
    *  SingleMethodExecute() method.
    */
-  ThreadIdType m_MaximumNumberOfThreads;
+  ThreadIdType m_MaximumNumberOfThreads{};
 
   /** Static function used as a "proxy callback" by multi-threaders.  The
    * threading library will call this routine for each thread, which
@@ -477,10 +489,15 @@ protected:
   void * m_SingleData{ nullptr };
 
 private:
+  static void
+  SetGlobalDefaultThreaderPrivate(ThreaderEnum threaderType);
+  static ThreaderEnum
+  GetGlobalDefaultThreaderPrivate();
+
   /** Only used to synchronize the global variable across static libraries.*/
   itkGetGlobalDeclarationMacro(MultiThreaderBaseGlobals, PimplGlobals);
 
-  bool m_UpdateProgress{ true };
+  std::atomic<bool> m_UpdateProgress{ true };
 
   static MultiThreaderBaseGlobals * m_PimplGlobals;
   /** Friends of Multithreader.

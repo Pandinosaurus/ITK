@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 
 #include "itkCommand.h"
 
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 #include "itkTestingHashImageFilter.h"
 
 namespace
@@ -49,7 +49,7 @@ protected:
   {
 
     using HashFilter = itk::Testing::HashImageFilter<TImageType>;
-    typename HashFilter::Pointer hasher = HashFilter::New();
+    auto hasher = HashFilter::New();
     hasher->SetInput(image);
     hasher->Update();
     return hasher->GetHash();
@@ -71,10 +71,9 @@ protected:
     static typename InputImageType::Pointer
     CreateImage(unsigned int size = 100)
     {
-      typename InputImageType::Pointer image = InputImageType::New();
+      auto image = InputImageType::New();
 
-      typename InputImageType::SizeType imageSize;
-      imageSize.Fill(size);
+      auto imageSize = InputImageType::SizeType::Filled(size);
       image->SetRegions(typename InputImageType::RegionType(imageSize));
       image->Allocate();
       image->FillBuffer(0);
@@ -86,20 +85,16 @@ protected:
 } // namespace
 
 
-TEST_F(SLICFixture, SetGetPrint)
+TEST_F(SLICFixture, SetGet)
 {
   using namespace itk::GTest::TypedefsAndConstructors::Dimension3;
   using Utils = FixtureUtilities<3>;
 
   auto filter = Utils::FilterType::New();
-  filter->Print(std::cout);
 
-  typename Utils::FilterType::ConstPointer constfilter = (const Utils::FilterType *)(filter.GetPointer());
+  const typename Utils::FilterType::ConstPointer constfilter = (const Utils::FilterType *)(filter.GetPointer());
 
-  EXPECT_STREQ("SLICImageFilter", filter->GetNameOfClass());
-  EXPECT_STREQ("ImageToImageFilter", filter->Superclass::GetNameOfClass());
-
-  Utils::FilterType::SuperGridSizeType gridSize3(3);
+  const Utils::FilterType::SuperGridSizeType gridSize3(3);
   EXPECT_NO_THROW(filter->SetSuperGridSize(gridSize3));
   ITK_EXPECT_VECTOR_NEAR(gridSize3, filter->GetSuperGridSize(), 0);
 
@@ -153,4 +148,32 @@ TEST_F(SLICFixture, Blank2DImage)
   filter->SetSuperGridSize(200);
   filter->Update();
   EXPECT_EQ("4e0a293a5b638f0aba2c4fe2c3418d0e", MD5Hash(filter->GetOutput()));
+}
+
+
+TEST_F(SLICFixture, ClusterInitializationOverflow)
+{
+  // Tests a case failure caused by numeric overflow during initialization of clusters.
+  using namespace itk::GTest::TypedefsAndConstructors::Dimension2;
+  using Utils = FixtureUtilities<2, unsigned char>;
+
+  auto filter = Utils::FilterType::New();
+
+  auto image = Utils::CreateImage(100);
+
+  image->FillBuffer(255);
+  for (unsigned int x = 2; x < 5; ++x)
+  {
+    for (unsigned int y = 2; y < 5; ++y)
+    {
+      image->SetPixel(itk::MakeIndex(x, y), 254);
+    }
+  }
+  filter->SetInput(image);
+  filter->SetMaximumNumberOfIterations(1);
+
+  filter->SetSuperGridSize(10);
+  filter->Update();
+  EXPECT_EQ("be2250b1d36e8a418f6487189db1ea64", MD5Hash(filter->GetOutput()));
+  EXPECT_FLOAT_EQ(0.023752308, filter->GetAverageResidual());
 }

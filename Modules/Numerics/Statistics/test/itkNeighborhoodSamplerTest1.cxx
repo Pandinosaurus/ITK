@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,9 +36,9 @@ itkNeighborhoodSamplerTest1(int, char *[])
   using RadiusType = FilterType::RadiusType;
   using InputRadiusObjectType = FilterType::InputRadiusObjectType;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // Test GetInput() before setting the input
   if (filter->GetInput() != nullptr)
@@ -100,7 +100,7 @@ itkNeighborhoodSamplerTest1(int, char *[])
   }
 
 
-  InputRadiusObjectType::Pointer radiusObject1 = InputRadiusObjectType::New();
+  auto radiusObject1 = InputRadiusObjectType::New();
 
   radiusObject1->Set(radius1);
 
@@ -120,7 +120,7 @@ itkNeighborhoodSamplerTest1(int, char *[])
     return EXIT_FAILURE;
   }
 
-  InputRadiusObjectType::Pointer radiusObject2 = InputRadiusObjectType::New();
+  auto radiusObject2 = InputRadiusObjectType::New();
 
   radiusObject2->Set(radius2);
 
@@ -154,7 +154,7 @@ itkNeighborhoodSamplerTest1(int, char *[])
     std::cerr << " due to nullptr SetRadiusInput()";
     return EXIT_FAILURE;
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Expected exception received" << std::endl;
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class RegistrationParameterScalesFromJacobian
+ * \class RegistrationParameterScalesFromJacobian
  *  \brief Implements a registration helper class for estimating scales of
  * transform parameters from Jacobian norms.
  *
@@ -53,24 +53,28 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationParameterScalesFromJacobian, RegistrationParameterScalesEstimator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegistrationParameterScalesFromJacobian);
 
   /** Type of scales */
-  using ScalesType = typename Superclass::ScalesType;
+  using typename Superclass::ScalesType;
   /** Type of parameters of the optimizer */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
   /** Type of float */
-  using FloatType = typename Superclass::FloatType;
+  using typename Superclass::FloatType;
 
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using MovingTransformType = typename Superclass::MovingTransformType;
-  using FixedTransformType = typename Superclass::FixedTransformType;
-  using JacobianType = typename Superclass::JacobianType;
-  using VirtualImageConstPointer = typename Superclass::VirtualImageConstPointer;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::MovingTransformType;
+  using typename Superclass::FixedTransformType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::VirtualImageConstPointer;
 
-  /** Estimate parameter scales. */
+  /** Estimate parameter scales from average Jacobian norms.
+   *  For each parameter, compute the squared norm of its transform Jacobian,
+   *  then average the squared norm over the sample points. This average is
+   *  used as the scale of this parameter.
+   */
   void
   EstimateScales(ScalesType & parameterScales) override;
 
@@ -94,7 +98,10 @@ public:
   FloatType
   EstimateStepScale(const ParametersType & step) override;
 
-  /** Estimate the scales of local steps. */
+  /** Estimate the scales of local steps. For each voxel, computes the impact
+   * of a step on its location as in EstimateStepScale(). Then this impact is
+   * attributed to the corresponding local parameters.
+   */
   void
   EstimateLocalStepScales(const ParametersType & step, ScalesType & localStepScales) override;
 

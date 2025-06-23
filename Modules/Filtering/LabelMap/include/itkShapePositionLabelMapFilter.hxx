@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkShapePositionLabelMapFilter_hxx
 #define itkShapePositionLabelMapFilter_hxx
 
-#include "itkShapePositionLabelMapFilter.h"
 #include "itkLabelMapUtilities.h"
 #include "itkShapeLabelObjectAccessors.h"
 
@@ -27,9 +26,8 @@ namespace itk
 
 template <typename TImage>
 ShapePositionLabelMapFilter<TImage>::ShapePositionLabelMapFilter()
-{
-  m_Attribute = LabelObjectType::CENTROID;
-}
+  : m_Attribute(LabelObjectType::CENTROID)
+{}
 
 
 template <typename TImage>
@@ -41,12 +39,12 @@ ShapePositionLabelMapFilter<TImage>::ThreadedProcessLabelObject(LabelObjectType 
     case LabelObjectType::CENTROID:
     {
       using AccessorType = typename Functor::CentroidLabelObjectAccessor<LabelObjectType>;
-      AccessorType accessor;
+      const AccessorType accessor;
       this->TemplatedThreadedProcessLabelObject(accessor, true, labelObject);
       break;
     }
     default:
-      itkExceptionMacro(<< "Unknown attribute type");
+      itkExceptionMacro("Unknown attribute type");
       break;
   }
 }
@@ -57,7 +55,7 @@ ShapePositionLabelMapFilter<TImage>::PrintSelf(std::ostream & os, Indent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")"
+  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ')'
      << std::endl;
 }
 

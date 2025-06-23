@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,10 @@
 #include "itkImageFileWriter.h"
 
 #include "itkDirectFourierReconstructionImageToImageFilter.h"
+#include "itkTestingMacros.h"
 
 using InternalPixelType = double;
-using TestOutputPixelType = short int;
+using TestOutputPixelType = short;
 
 using OutputImageType = itk::Image<TestOutputPixelType, 3>;
 using InternalImageType = itk::Image<InternalPixelType, 3>;
@@ -71,7 +72,7 @@ protected:
       return;
     }
 
-    std::cout << (int)(100 * reconstructor->GetProgress()) << "%" << std::endl;
+    std::cout << static_cast<int>(100 * reconstructor->GetProgress()) << '%' << std::endl;
   }
 };
 
@@ -82,24 +83,27 @@ itkDirectFourierReconstructionImageToImageFilterTest(int argc, char * argv[])
 
   if (argc != 18)
   {
-    std::cerr << "Wrong number of input arguments" << std::endl;
-    std::cerr << "Usage : " << std::endl << "\t";
-    std::cerr << argv[0] << " input output r_dir z_dir alpha_dir nz ng fc nb alpha_range x y z sx sy sz sigma"
-              << std::endl;
-    return 1;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output r_dir z_dir alpha_dir nz ng fc nb alpha_range x y z sx sy sz sigma" << std::endl;
+    return EXIT_FAILURE;
   }
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
 
-  SmootherType::Pointer smoother = SmootherType::New();
+  auto smoother = SmootherType::New();
   smoother->SetInput(reader->GetOutput());
   smoother->SetSigma(std::stod(argv[17]));
   smoother->SetDirection(std::stoi(argv[3]));
 
 
-  ReconstructionFilterType::Pointer reconstruct = ReconstructionFilterType::New();
+  auto reconstruct = ReconstructionFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(reconstruct, DirectFourierReconstructionImageToImageFilter, ImageToImageFilter);
+
+
   if (std::stod(argv[17]) == 0)
   {
     reconstruct->SetInput(reader->GetOutput());
@@ -108,25 +112,49 @@ itkDirectFourierReconstructionImageToImageFilterTest(int argc, char * argv[])
   {
     reconstruct->SetInput(smoother->GetOutput());
   }
-  reconstruct->SetRDirection(std::stoi(argv[3]));
-  reconstruct->SetZDirection(std::stoi(argv[4]));
-  reconstruct->SetAlphaDirection(std::stoi(argv[5]));
-  reconstruct->SetZeroPadding(std::stoi(argv[6]));
-  reconstruct->SetOverSampling(std::stoi(argv[7]));
-  reconstruct->SetCutoff(std::stod(argv[8]));
-  reconstruct->SetRadialSplineOrder(std::stoi(argv[9]));
-  reconstruct->SetAlphaRange(std::stoi(argv[10]));
 
-  CommandProgressUpdate::Pointer observer = CommandProgressUpdate::New();
+  unsigned short rDirection = std::stoi(argv[3]);
+  reconstruct->SetRDirection(rDirection);
+  ITK_TEST_SET_GET_VALUE(rDirection, reconstruct->GetRDirection());
+
+  unsigned short zDirection = std::stoi(argv[4]);
+  reconstruct->SetZDirection(zDirection);
+  ITK_TEST_SET_GET_VALUE(zDirection, reconstruct->GetZDirection());
+
+  unsigned short alphaDirection = std::stoi(argv[5]);
+  reconstruct->SetAlphaDirection(alphaDirection);
+  ITK_TEST_SET_GET_VALUE(alphaDirection, reconstruct->GetAlphaDirection());
+
+  unsigned short zeroPadding = std::stoi(argv[6]);
+  reconstruct->SetZeroPadding(zeroPadding);
+  ITK_TEST_SET_GET_VALUE(zeroPadding, reconstruct->GetZeroPadding());
+
+  unsigned short overSampling = std::stoi(argv[7]);
+  reconstruct->SetOverSampling(overSampling);
+  ITK_TEST_SET_GET_VALUE(overSampling, reconstruct->GetOverSampling());
+
+  auto cutoff = std::stod(argv[8]);
+  reconstruct->SetCutoff(cutoff);
+  ITK_TEST_SET_GET_VALUE(cutoff, reconstruct->GetCutoff());
+
+  unsigned short radialSplineOrder = std::stoi(argv[9]);
+  reconstruct->SetRadialSplineOrder(radialSplineOrder);
+  ITK_TEST_SET_GET_VALUE(radialSplineOrder, reconstruct->GetRadialSplineOrder());
+
+  auto alphaRange = std::stod(argv[10]);
+  reconstruct->SetAlphaRange(alphaRange);
+  ITK_TEST_SET_GET_VALUE(alphaRange, reconstruct->GetAlphaRange());
+
+  auto observer = CommandProgressUpdate::New();
   reconstruct->AddObserver(itk::ProgressEvent(), observer);
 
-  RescalerType::Pointer rescaler = RescalerType::New();
+  auto rescaler = RescalerType::New();
   rescaler->SetInput(reconstruct->GetOutput());
   rescaler->SetOutputMinimum(itk::NumericTraits<TestOutputPixelType>::min());
   rescaler->SetOutputMaximum(itk::NumericTraits<TestOutputPixelType>::max());
 
 
-  ROIFilterType::Pointer ROIFilter = ROIFilterType::New();
+  auto ROIFilter = ROIFilterType::New();
   ROIFilter->SetInput(rescaler->GetOutput());
 
   ROIFilterType::IndexType start;
@@ -140,34 +168,19 @@ itkDirectFourierReconstructionImageToImageFilterTest(int argc, char * argv[])
   size[1] = std::stoi(argv[15]);
   size[2] = std::stoi(argv[16]);
 
-  ROIFilterType::RegionType requestedRegion;
-  requestedRegion.SetIndex(start);
-  requestedRegion.SetSize(size);
+  ROIFilterType::RegionType requestedRegion{ start, size };
 
   ROIFilter->SetRegionOfInterest(requestedRegion);
 
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();
   writer->SetInput(ROIFilter->GetOutput());
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cerr << "An error occurred somewhere:" << std::endl;
-    std::cerr << err << std::endl;
-    return 2;
-  }
 
-  std::cout << "Done" << std::endl;
-
-  std::cout << reconstruct << std::endl;
-
-  return 0;
-
-} // main
+  std::cout << "Test finished." << std::endl;
+  return EXIT_SUCCESS;
+}

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkTextOutput.h"
 #include "itkSimpleFilterWatcher.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 // namespace{
 //// The following class is used to support callbacks
@@ -45,17 +46,21 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
 
   // create a fastmarching object
   using PixelType = float;
-  constexpr unsigned Dimension = 2;
+  constexpr unsigned int Dimension = 2;
 
   using FloatImageType = itk::Image<PixelType, Dimension>;
 
   using CriterionType = itk::FastMarchingReachedTargetNodesStoppingCriterion<FloatImageType, FloatImageType>;
 
-  CriterionType::Pointer criterion = CriterionType::New();
+  auto criterion = CriterionType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    criterion, FastMarchingReachedTargetNodesStoppingCriterion, FastMarchingStoppingCriterionBase);
+
 
   using FloatFMType = itk::FastMarchingUpwindGradientImageFilterBase<FloatImageType, FloatImageType>;
 
-  FloatFMType::Pointer marcher = FloatFMType::New();
+  auto marcher = FloatFMType::New();
 
   //   ShowProgressObject progressWatch(marcher);
   //   itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
@@ -64,7 +69,7 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   //                                &ShowProgressObject::ShowProgress);
   //   marcher->AddObserver( itk::ProgressEvent(), command);
 
-  itk::SimpleFilterWatcher MarcherWatcher(marcher);
+  const itk::SimpleFilterWatcher MarcherWatcher(marcher);
 
   using NodeType = FloatFMType::NodeType;
   using NodePairType = FloatFMType::NodePairType;
@@ -72,12 +77,11 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   using NodePairContainerType = FloatFMType::NodePairContainerType;
 
   // setup alive points
-  NodePairContainerType::Pointer AlivePoints = NodePairContainerType::New();
+  auto AlivePoints = NodePairContainerType::New();
 
-  FloatImageType::OffsetType offset0 = { { 28, 35 } };
+  constexpr FloatImageType::OffsetType offset0 = { { 28, 35 } };
 
-  itk::Index<2> index;
-  index.Fill(0);
+  itk::Index<2> index{};
 
   AlivePoints->push_back(NodePairType(index + offset0, 0.));
   AlivePoints->push_back(NodePairType(index + offset0, 42.));
@@ -85,7 +89,7 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   marcher->SetAlivePoints(AlivePoints);
 
   // setup trial points
-  NodePairContainerType::Pointer TrialPoints = NodePairContainerType::New();
+  auto TrialPoints = NodePairContainerType::New();
 
   index.Fill(0);
   index += offset0;
@@ -111,11 +115,11 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   marcher->SetTrialPoints(TrialPoints);
 
   // specify the size of the output image
-  FloatImageType::SizeType size = { { 64, 64 } };
+  constexpr FloatImageType::SizeType size = { { 64, 64 } };
   marcher->SetOutputSize(size);
 
   // setup a speed image of ones
-  FloatImageType::Pointer    speedImage = FloatImageType::New();
+  auto                       speedImage = FloatImageType::New();
   FloatImageType::RegionType region;
   region.SetSize(size);
   speedImage->SetLargestPossibleRegion(region);
@@ -136,29 +140,25 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   // check the results
   using FloatGradientImage = FloatFMType::GradientImageType;
   using GradientPixelType = FloatGradientImage::PixelType;
-  FloatGradientImage::Pointer                  gradientOutput = marcher->GetGradientImage();
+  const FloatGradientImage::Pointer            gradientOutput = marcher->GetGradientImage();
   itk::ImageRegionIterator<FloatGradientImage> iterator(gradientOutput, gradientOutput->GetBufferedRegion());
 
   bool passed = true;
 
   while (!iterator.IsAtEnd())
   {
-    FloatGradientImage::IndexType tempIndex;
-    double                        distance;
-    GradientPixelType             outputPixel;
-
-    tempIndex = iterator.GetIndex();
+    FloatGradientImage::IndexType tempIndex = iterator.GetIndex();
     tempIndex -= offset0;
-    distance = 0.0;
-    for (int j = 0; j < 2; j++)
+    double distance = 0.0;
+    for (int j = 0; j < 2; ++j)
     {
       distance += tempIndex[j] * tempIndex[j];
     }
     distance = std::sqrt(distance);
 
-    outputPixel = iterator.Get();
+    GradientPixelType outputPixel = iterator.Get();
 
-    auto outputPixelNorm = (double)outputPixel.GetNorm();
+    const double outputPixelNorm{ outputPixel.GetNorm() };
 
     if (itk::Math::AlmostEquals(distance, 0.0))
     {
@@ -170,15 +170,15 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
     // and must be oriented radially from the seed point
 
     double dot = 0.0;
-    for (int j = 0; j < 2; j++)
+    for (int j = 0; j < 2; ++j)
     {
       dot += tempIndex[j] / distance * outputPixel[j];
     }
 
     if ((outputPixelNorm < 0.9999) || (outputPixelNorm > 1.0001) || (dot < 0.99) || (dot > 1.01))
     {
-      std::cout << iterator.GetIndex() << " ";
-      std::cout << outputPixelNorm << " ";
+      std::cout << iterator.GetIndex() << ' ';
+      std::cout << outputPixelNorm << ' ';
       std::cout << dot << std::endl;
       passed = false;
     }
@@ -202,8 +202,17 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
   }
   criterion->SetTargetNodes(TargetNodes);
 
+  constexpr typename CriterionType::OutputPixelType targetOffset{};
+  criterion->SetTargetOffset(targetOffset);
+  ITK_TEST_SET_GET_VALUE(targetOffset, criterion->GetTargetOffset());
+
   // Stop the algorithm when ONE of the targets has been reached.
-  criterion->SetTargetCondition(CriterionType::TargetConditionEnum::OneTarget);
+  auto targetCondition = CriterionType::TargetConditionEnum::OneTarget;
+  criterion->SetTargetCondition(targetCondition);
+  ITK_TEST_SET_GET_VALUE(targetCondition, criterion->GetTargetCondition());
+
+
+  std::cout << "Criterion description: " << criterion->GetDescription() << std::endl;
 
   marcher->SetStoppingCriterion(criterion);
 
@@ -226,9 +235,7 @@ itkFastMarchingUpwindGradientBaseTest(int, char *[])
     std::cout << "Fast Marching Upwind Gradient test passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Fast Marching Upwind Gradient test failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Fast Marching Upwind Gradient test failed" << std::endl;
+  return EXIT_FAILURE;
 }

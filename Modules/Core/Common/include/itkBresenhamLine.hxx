@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,56 +18,36 @@
 #ifndef itkBresenhamLine_hxx
 #define itkBresenhamLine_hxx
 
-#include "itkBresenhamLine.h"
 #include "itkPoint.h"
-#include "itkMath.h"
 #include "itkMath.h"
 
 namespace itk
 {
 template <unsigned int VDimension>
-typename BresenhamLine<VDimension>::OffsetArray
-BresenhamLine<VDimension>::BuildLine(LType Direction, unsigned int length)
+auto
+BresenhamLine<VDimension>::BuildLine(LType Direction, IdentifierType length) -> OffsetArray
 {
   // copied from the line iterator
   /** Variables that drive the Bresenham-Algorithm */
-  // The dimension with the largest difference between start and end
-  unsigned int m_MainDirection;
-
-  // Accumulated error for the other dimensions
-  IndexType m_AccumulateError;
-
-  // Increment for the error for each step. Two times the difference between
-  // start and end
-  IndexType m_IncrementError;
-
-  // If enough is accumulated for a dimension, the index has to be
-  // incremented. Will be the number of pixels in the line
-  IndexType m_MaximalError;
-
-  // Direction of increment. -1 or 1
-  IndexType m_OverflowIncrement;
-
-  // After an overflow, the accumulated error is reduced again. Will be
-  // two times the number of pixels in the line
-  IndexType m_ReduceErrorAfterIncrement;
-
-  OffsetArray result(length);
-
-  IndexType m_CurrentImageIndex, StartIndex, LastIndex;
 
   Direction.Normalize();
   // we are going to start at 0
-  m_CurrentImageIndex.Fill(0);
-  StartIndex.Fill(0);
-  for (unsigned i = 0; i < VDimension; ++i)
+  constexpr IndexType StartIndex = { { 0 } };
+  IndexType           LastIndex;
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     LastIndex[i] = (IndexValueType)(length * Direction[i]);
   }
   // Find the dominant direction
   IndexValueType maxDistance = 0;
   unsigned int   maxDistanceDimension = 0;
-  for (unsigned i = 0; i < VDimension; ++i)
+  // Increment for the error for each step. Two times the difference between
+  // start and end
+  IndexType incrementError;
+
+  // Direction of increment. -1 or 1
+  IndexType overflowIncrement;
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     auto distance = static_cast<long>(itk::Math::abs(LastIndex[i]));
     if (distance > maxDistance)
@@ -75,37 +55,47 @@ BresenhamLine<VDimension>::BuildLine(LType Direction, unsigned int length)
       maxDistance = distance;
       maxDistanceDimension = i;
     }
-    m_IncrementError[i] = 2 * distance;
-    m_OverflowIncrement[i] = (LastIndex[i] < 0 ? -1 : 1);
+    incrementError[i] = 2 * distance;
+    overflowIncrement[i] = (LastIndex[i] < 0 ? -1 : 1);
   }
-  m_MainDirection = maxDistanceDimension;
-  m_MaximalError.Fill(maxDistance);
-  m_ReduceErrorAfterIncrement.Fill(2 * maxDistance);
-  m_AccumulateError.Fill(0);
+
+  // The dimension with the largest difference between start and end
+  const unsigned int mainDirection = maxDistanceDimension;
+  // If enough is accumulated for a dimension, the index has to be
+  // incremented. Will be the number of pixels in the line
+  auto maximalError = MakeFilled<IndexType>(maxDistance);
+  // After an overflow, the accumulated error is reduced again. Will be
+  // two times the number of pixels in the line
+  auto reduceErrorAfterIncrement = MakeFilled<IndexType>(2 * maxDistance);
+  // Accumulated error for the other dimensions
+  auto accumulateError = MakeFilled<IndexType>(0);
+
+  OffsetArray result(length);
+  auto        currentImageIndex = MakeFilled<IndexType>(0);
+  result[0] = currentImageIndex - StartIndex;
   unsigned int steps = 1;
-  result[0] = m_CurrentImageIndex - StartIndex;
   while (steps < length)
   {
     // This part is from ++ in LineConstIterator
-    // We need to modify m_AccumulateError, m_CurrentImageIndex, m_IsAtEnd
+    // We need to modify accumulateError, currentImageIndex, isAtEnd
     for (unsigned int i = 0; i < VDimension; ++i)
     {
-      if (i == m_MainDirection)
+      if (i == mainDirection)
       {
-        m_CurrentImageIndex[i] += m_OverflowIncrement[i];
+        currentImageIndex[i] += overflowIncrement[i];
       }
       else
       {
-        m_AccumulateError[i] += m_IncrementError[i];
-        if (m_AccumulateError[i] >= m_MaximalError[i])
+        accumulateError[i] += incrementError[i];
+        if (accumulateError[i] >= maximalError[i])
         {
-          m_CurrentImageIndex[i] += m_OverflowIncrement[i];
-          m_AccumulateError[i] -= m_ReduceErrorAfterIncrement[i];
+          currentImageIndex[i] += overflowIncrement[i];
+          accumulateError[i] -= reduceErrorAfterIncrement[i];
         }
       }
     }
 
-    result[steps] = m_CurrentImageIndex - StartIndex; // produce an offset
+    result[steps] = currentImageIndex - StartIndex; // produce an offset
 
     ++steps;
   }
@@ -113,24 +103,34 @@ BresenhamLine<VDimension>::BuildLine(LType Direction, unsigned int length)
 }
 
 template <unsigned int VDimension>
-typename BresenhamLine<VDimension>::IndexArray
-BresenhamLine<VDimension>::BuildLine(IndexType p0, IndexType p1)
+auto
+BresenhamLine<VDimension>::BuildLine(IndexType p0, IndexType p1) -> IndexArray
 {
   itk::Point<float, VDimension> point0;
   itk::Point<float, VDimension> point1;
+  IdentifierType                maxDistance = 0;
   for (unsigned int i = 0; i < VDimension; ++i)
   {
     point0[i] = p0[i];
     point1[i] = p1[i];
+    const IdentifierType distance = itk::Math::abs(p0[i] - p1[i]) + 1;
+    if (distance > maxDistance)
+    {
+      maxDistance = distance;
+    }
   }
 
-  const auto  distance = itk::Math::RoundHalfIntegerToEven<unsigned int, double>(point0.EuclideanDistanceTo(point1));
-  OffsetArray offsets = this->BuildLine(point1 - point0, distance);
+  OffsetArray offsets = this->BuildLine(point1 - point0, maxDistance + 1);
 
-  IndexArray indices(offsets.size());
+  IndexArray indices;
+  indices.reserve(offsets.size()); // we might not have to use the last one
   for (unsigned int i = 0; i < offsets.size(); ++i)
   {
-    indices[i] = p0 + offsets[i];
+    indices.push_back(p0 + offsets[i]);
+    if (indices.back() == p1)
+    {
+      break;
+    }
   }
   return indices;
 }

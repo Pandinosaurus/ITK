@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkGradientDescentOptimizerv4.h"
+#include "itkIntTypes.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkRegistrationParameterScalesFromJacobian.h"
@@ -34,9 +35,9 @@
 
 template <typename TMovingTransform>
 int
-itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         numberOfIterations,
-                                                              double      shiftOfStep,
-                                                              std::string scalesOption)
+itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int                 numberOfIterations,
+                                                              double              shiftOfStep,
+                                                              const std::string & scalesOption)
 {
   const unsigned int Dimension = TMovingTransform::SpaceDimension;
 
@@ -74,12 +75,12 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
 
   // Transform for the moving image
   using MovingTransformType = TMovingTransform;
-  typename MovingTransformType::Pointer movingTransform = MovingTransformType::New();
+  auto movingTransform = MovingTransformType::New();
   movingTransform->SetIdentity();
 
   // Transform for the fixed image
   using FixedTransformType = itk::IdentityTransform<double, Dimension>;
-  typename FixedTransformType::Pointer fixedTransform = FixedTransformType::New();
+  auto fixedTransform = FixedTransformType::New();
   fixedTransform->SetIdentity();
 
   // ParametersType for the moving transform
@@ -90,7 +91,7 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
     VectorImageToImageMetricTraitsv4<FixedImageType, MovingImageType, FixedImageType, PixelType::Dimension, double>;
   using MetricType =
     itk::MeanSquaresImageToImageMetricv4<FixedImageType, MovingImageType, FixedImageType, double, MetricTraitsType>;
-  typename MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   // Assign images and transforms to the metric.
   metric->SetFixedImage(fixedImage);
@@ -104,14 +105,14 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
 
   // Optimizer
   using OptimizerType = itk::GradientDescentOptimizerv4;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfIterations);
 
   // Instantiate an Observer to report the progress of the Optimization
   using CommandIterationType = itk::CommandIterationUpdate<OptimizerType>;
-  CommandIterationType::Pointer iterationCommand = CommandIterationType::New();
+  auto iterationCommand = CommandIterationType::New();
   iterationCommand->SetOptimizer(optimizer);
 
   // Optimizer parameter scales estimator
@@ -123,15 +124,36 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
   if (scalesOption.compare("shift") == 0)
   {
     std::cout << "Testing RegistrationParameterScalesFromPhysicalShift" << std::endl;
-    typename ShiftScalesEstimatorType::Pointer shiftScalesEstimator = ShiftScalesEstimatorType::New();
+    auto shiftScalesEstimator = ShiftScalesEstimatorType::New();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(
+      shiftScalesEstimator, RegistrationParameterScalesFromPhysicalShift, RegistrationParameterScalesFromShiftBase);
+
+
     shiftScalesEstimator->SetMetric(metric);
-    shiftScalesEstimator->SetTransformForward(true); // default
+    ITK_TEST_SET_GET_VALUE(metric, shiftScalesEstimator->GetMetric());
+
+    auto transformForward = true;
+    ITK_TEST_SET_GET_BOOLEAN(shiftScalesEstimator, TransformForward, transformForward);
+
+    constexpr itk::IndexValueType centralRegionRadius = 5;
+    shiftScalesEstimator->SetCentralRegionRadius(centralRegionRadius);
+    ITK_TEST_SET_GET_VALUE(centralRegionRadius, shiftScalesEstimator->GetCentralRegionRadius());
+
+    const typename ShiftScalesEstimatorType::VirtualPointSetType::ConstPointer virtualDomainPointSet{};
+    shiftScalesEstimator->SetVirtualDomainPointSet(virtualDomainPointSet);
+    ITK_TEST_SET_GET_VALUE(virtualDomainPointSet, shiftScalesEstimator->GetVirtualDomainPointSet());
+
+    const typename ShiftScalesEstimatorType::ParametersValueType smallParameterVariation = 0.01;
+    shiftScalesEstimator->SetSmallParameterVariation(smallParameterVariation);
+    ITK_TEST_SET_GET_VALUE(smallParameterVariation, shiftScalesEstimator->GetSmallParameterVariation());
+
     scalesEstimator = shiftScalesEstimator;
   }
   else
   {
     std::cout << "Testing RegistrationParameterScalesFromJacobian" << std::endl;
-    typename JacobianScalesEstimatorType::Pointer jacobianScalesEstimator = JacobianScalesEstimatorType::New();
+    auto jacobianScalesEstimator = JacobianScalesEstimatorType::New();
     jacobianScalesEstimator->SetMetric(metric);
     jacobianScalesEstimator->SetTransformForward(true); // default
     scalesEstimator = jacobianScalesEstimator;
@@ -150,7 +172,7 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
   catch (const itk::ExceptionObject & e)
   {
     std::cout << "Exception thrown ! " << std::endl;
-    std::cout << "An error ocurred during Optimization:" << std::endl;
+    std::cout << "An error occurred during Optimization:" << std::endl;
     std::cout << e.GetLocation() << std::endl;
     std::cout << e.GetDescription() << std::endl;
     std::cout << e.what() << std::endl;
@@ -164,8 +186,8 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
   //
   // results
   //
-  ParametersType finalParameters = movingTransform->GetParameters();
-  ParametersType fixedParameters = movingTransform->GetFixedParameters();
+  ParametersType       finalParameters = movingTransform->GetParameters();
+  const ParametersType fixedParameters = movingTransform->GetFixedParameters();
   std::cout << "Estimated scales = " << optimizer->GetScales() << std::endl;
   std::cout << "finalParameters = " << finalParameters << std::endl;
   std::cout << "fixedParameters = " << fixedParameters << std::endl;
@@ -181,7 +203,7 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
 
   constexpr double tolerance = 1.0; // equivalent to 1 pixel.
 
-  for (unsigned int i = 0; i < numbeOfParameters; i++)
+  for (unsigned int i = 0; i < numbeOfParameters; ++i)
   {
     // the parameters are negated in order to get the inverse transformation.
     // this only works for comparing translation parameters....
@@ -198,11 +220,9 @@ itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated(int         number
     std::cout << "Test FAILED." << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "Test PASSED." << std::endl;
-    return EXIT_SUCCESS;
-  }
+
+  std::cout << "Test PASSED." << std::endl;
+  return EXIT_SUCCESS;
 }
 
 int
@@ -232,20 +252,18 @@ itkAutoScaledGradientDescentRegistrationOnVectorTest(int argc, char ** const arg
 
   std::cout << std::endl << "Optimizing translation transform with shift scales" << std::endl;
   using TranslationTransformType = itk::TranslationTransform<double, Dimension>;
-  int ret1 = itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated<TranslationTransformType>(
+  const int ret1 = itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated<TranslationTransformType>(
     numberOfIterations, shiftOfStep, "shift");
 
   std::cout << std::endl << "Optimizing translation transform with Jacobian scales" << std::endl;
   using TranslationTransformType = itk::TranslationTransform<double, Dimension>;
-  int ret2 = itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated<TranslationTransformType>(
+  const int ret2 = itkAutoScaledGradientDescentRegistrationOnVectorTestTemplated<TranslationTransformType>(
     numberOfIterations, 0.0, "jacobian");
 
   if (ret1 == EXIT_SUCCESS && ret2 == EXIT_SUCCESS)
   {
     return EXIT_SUCCESS;
   }
-  else
-  {
-    return EXIT_FAILURE;
-  }
+
+  return EXIT_FAILURE;
 }

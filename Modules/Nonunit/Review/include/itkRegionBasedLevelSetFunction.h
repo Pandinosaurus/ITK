@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,31 +31,13 @@ namespace itk
  * This class implements a level set function that computes the speed image by
  * integrating values on the image domain.
  *
- * Based on the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * Based on the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * NOTE: The convention followed is
  * inside of the level-set function is negative and outside is positive.
@@ -79,18 +61,18 @@ public:
 
   // itkNewMacro() is not provided since this is an abstract class.
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(RegionBasedLevelSetFunction, FiniteDifferenceFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionBasedLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
   using TimeStepType = double;
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
   using ScalarValueType = PixelType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::FloatOffsetType;
   using VectorType = FixedArray<ScalarValueType, Self::ImageDimension>;
 
   /* This structure is derived from LevelSetFunction and stores intermediate
@@ -99,7 +81,7 @@ public:
   {
     GlobalDataStruct()
     {
-      ScalarValueType null_value = NumericTraits<ScalarValueType>::ZeroValue();
+      ScalarValueType null_value{};
 
       m_MaxCurvatureChange = null_value;
       m_MaxAdvectionChange = null_value;
@@ -166,7 +148,7 @@ public:
     m_Center = it.Size() / 2;
 
     // Get the stride length for each axis.
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       m_xStride[i] = it.GetStride(i);
     }
@@ -183,7 +165,7 @@ public:
   void
   UpdateSharedData(bool forceUpdate);
 
-  void *
+  [[nodiscard]] void *
   GetGlobalDataPointer() const override
   {
     return new GlobalDataStruct;
@@ -215,7 +197,7 @@ public:
     m_FeatureImage = f;
 
     FeatureSpacingType spacing = m_FeatureImage->GetSpacing();
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       this->m_InvSpacing[i] = 1 / spacing[i];
     }
@@ -337,7 +319,7 @@ public:
 
   /** Set function id.  */
   void
-  SetFunctionId(const unsigned int & iFid)
+  SetFunctionId(const unsigned int iFid)
   {
     this->m_FunctionId = iFid;
   }
@@ -380,47 +362,47 @@ protected:
   ~RegionBasedLevelSetFunction() override = default;
 
   /** The initial level set image */
-  InputImageConstPointer m_InitialImage;
+  InputImageConstPointer m_InitialImage{};
 
   /** The feature image */
-  FeatureImageConstPointer m_FeatureImage;
+  FeatureImageConstPointer m_FeatureImage{};
 
-  SharedDataPointer m_SharedData;
+  SharedDataPointer m_SharedData{};
 
-  HeavisideFunctionConstPointer m_DomainFunction;
+  HeavisideFunctionConstPointer m_DomainFunction{};
 
   /** Area regularization weight */
-  ScalarValueType m_AreaWeight;
+  ScalarValueType m_AreaWeight{};
 
   /** Internal functional of the level set weight */
-  ScalarValueType m_Lambda1;
+  ScalarValueType m_Lambda1{};
 
   /** External functional of the level set weight */
-  ScalarValueType m_Lambda2;
+  ScalarValueType m_Lambda2{};
 
   /** Overlap Penalty Weight */
-  ScalarValueType m_OverlapPenaltyWeight;
+  ScalarValueType m_OverlapPenaltyWeight{};
 
   /** Volume Regularization Weight */
-  ScalarValueType m_VolumeMatchingWeight;
+  ScalarValueType m_VolumeMatchingWeight{};
 
   /** Volume Constraint in pixels */
-  ScalarValueType m_Volume;
+  ScalarValueType m_Volume{};
 
   /** Curvature Regularization Weight */
-  ScalarValueType m_CurvatureWeight;
+  ScalarValueType m_CurvatureWeight{};
 
-  ScalarValueType m_AdvectionWeight;
+  ScalarValueType m_AdvectionWeight{};
 
   /** Laplacian Regularization Weight */
-  ScalarValueType m_ReinitializationSmoothingWeight;
+  ScalarValueType m_ReinitializationSmoothingWeight{};
 
-  unsigned int m_FunctionId;
+  unsigned int m_FunctionId{};
 
   std::slice      x_slice[Self::ImageDimension];
-  OffsetValueType m_Center;
-  OffsetValueType m_xStride[Self::ImageDimension];
-  double          m_InvSpacing[Self::ImageDimension];
+  OffsetValueType m_Center{};
+  OffsetValueType m_xStride[Self::ImageDimension]{};
+  double          m_InvSpacing[Self::ImageDimension]{};
 
   static double m_WaveDT;
   static double m_DT;
@@ -462,12 +444,7 @@ protected:
 
   /** \brief Compute the laplacian term
       \return \f$ \Delta \phi - \div(\frac{\nabla \phi}{|\nabla \phi|}) \f$
-      For details see
-
-      \par REFERENCE
-      Li, C.M. and Xu, C.Y. and Gui, C. and Fox, M.D.
-      "Level Set Evolution without Re-Initialization: A New Variational Formulation",
-      CVPR05. 2005. pp. 430-436.
+      For details see \cite li2005.
   */
 
   /** \brief Compute the laplacian
@@ -488,7 +465,7 @@ protected:
   virtual void
   UpdateSharedDataParameters() = 0;
 
-  bool m_UpdateC;
+  bool m_UpdateC{};
 
   /** This method's only purpose is to initialize the zero vector
    * constant. */

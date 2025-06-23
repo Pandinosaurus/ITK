@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkConnectedThresholdImageFilter_hxx
 #define itkConnectedThresholdImageFilter_hxx
 
-#include "itkConnectedThresholdImageFilter.h"
 #include "itkBinaryThresholdImageFunction.h"
 #include "itkFloodFilledImageFunctionConditionalIterator.h"
 #include "itkProgressReporter.h"
@@ -33,11 +32,11 @@ template <typename TInputImage, typename TOutputImage>
 ConnectedThresholdImageFilter<TInputImage, TOutputImage>::ConnectedThresholdImageFilter()
   : m_ReplaceValue(NumericTraits<OutputImagePixelType>::OneValue())
 {
-  typename InputPixelObjectType::Pointer lower = InputPixelObjectType::New();
+  auto lower = InputPixelObjectType::New();
   lower->Set(NumericTraits<InputImagePixelType>::NonpositiveMin());
   this->ProcessObject::SetNthInput(1, lower);
 
-  typename InputPixelObjectType::Pointer upper = InputPixelObjectType::New();
+  auto upper = InputPixelObjectType::New();
   upper->Set(NumericTraits<InputImagePixelType>::max());
   this->ProcessObject::SetNthInput(2, upper);
 }
@@ -70,8 +69,8 @@ ConnectedThresholdImageFilter<TInputImage, TOutputImage>::ClearSeeds()
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename ConnectedThresholdImageFilter<TInputImage, TOutputImage>::SeedContainerType &
-ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetSeeds() const
+auto
+ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetSeeds() const -> const SeedContainerType &
 {
   return this->m_Seeds;
 }
@@ -165,8 +164,8 @@ ConnectedThresholdImageFilter<TInputImage, TOutputImage>::SetLower(const InputIm
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename ConnectedThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetLowerInput()
+auto
+ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetLowerInput() -> InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer lower = static_cast<InputPixelObjectType *>(this->ProcessObject::GetInput(1));
   if (!lower)
@@ -182,8 +181,8 @@ ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetLowerInput()
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename ConnectedThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetUpperInput()
+auto
+ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetUpperInput() -> InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer upper = static_cast<InputPixelObjectType *>(this->ProcessObject::GetInput(2));
   if (!upper)
@@ -199,19 +198,19 @@ ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetUpperInput()
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename ConnectedThresholdImageFilter<TInputImage, TOutputImage>::InputImagePixelType
-ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetLower() const
+auto
+ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetLower() const -> InputImagePixelType
 {
-  typename InputPixelObjectType::Pointer lower = const_cast<Self *>(this)->GetLowerInput();
+  const typename InputPixelObjectType::Pointer lower = const_cast<Self *>(this)->GetLowerInput();
 
   return lower->Get();
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename ConnectedThresholdImageFilter<TInputImage, TOutputImage>::InputImagePixelType
-ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetUpper() const
+auto
+ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GetUpper() const -> InputImagePixelType
 {
-  typename InputPixelObjectType::Pointer upper = const_cast<Self *>(this)->GetUpperInput();
+  const typename InputPixelObjectType::Pointer upper = const_cast<Self *>(this)->GetUpperInput();
 
   return upper->Get();
 }
@@ -230,14 +229,13 @@ ConnectedThresholdImageFilter<TInputImage, TOutputImage>::GenerateData()
   const InputImagePixelType upper = upperThreshold->Get();
 
   // Zero the output
-  OutputImageRegionType region = outputImage->GetRequestedRegion();
+  const OutputImageRegionType region = outputImage->GetRequestedRegion();
   outputImage->SetBufferedRegion(region);
-  outputImage->Allocate();
-  outputImage->FillBuffer(NumericTraits<OutputImagePixelType>::ZeroValue());
+  outputImage->AllocateInitialized();
 
   using FunctionType = BinaryThresholdImageFunction<InputImageType, double>;
 
-  typename FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
   function->SetInputImage(inputImage);
   function->ThresholdBetween(lower, upper);
 

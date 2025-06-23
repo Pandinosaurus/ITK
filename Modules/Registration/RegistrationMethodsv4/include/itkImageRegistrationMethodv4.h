@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@
 
 namespace itk
 {
-/**\class ImageRegistrationMethodv4Enums
+/** \class ImageRegistrationMethodv4Enums
  *\brief Contains all enum classes for ImageRegistrationMethodv4 class.
  * \ingroup ITKRegistrationMethodsv4
  */
@@ -57,7 +57,7 @@ public:
 };
 // Define how to print enumeration
 extern ITKRegistrationMethodsv4_EXPORT std::ostream &
-                                       operator<<(std::ostream & out, const ImageRegistrationMethodv4Enums::MetricSamplingStrategy value);
+operator<<(std::ostream & out, const ImageRegistrationMethodv4Enums::MetricSamplingStrategy value);
 
 /** \class ImageRegistrationMethodv4
  * \brief Interface method for the current registration framework.
@@ -131,8 +131,8 @@ public:
   /** ImageDimension constants */
   static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageRegistrationMethodv4, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageRegistrationMethodv4);
 
   /** Input type alias for the images and transforms. */
   using FixedImageType = TFixedImage;
@@ -224,6 +224,7 @@ public:
   using MetricSamplePointSetType = typename ImageMetricType::FixedSampledPointSetType;
 
   /** Set/get the fixed images. */
+  /** @ITKStartGrouping */
   virtual void
   SetFixedImage(const FixedImageType * image)
   {
@@ -237,8 +238,10 @@ public:
   virtual void
                                  SetFixedImage(SizeValueType, const FixedImageType *);
   virtual const FixedImageType * GetFixedImage(SizeValueType) const;
+  /** @ITKEndGrouping */
 
   /** Set the moving images. */
+  /** @ITKStartGrouping */
   virtual void
   SetMovingImage(const MovingImageType * image)
   {
@@ -252,8 +255,10 @@ public:
   virtual void
                                   SetMovingImage(SizeValueType, const MovingImageType *);
   virtual const MovingImageType * GetMovingImage(SizeValueType) const;
+  /** @ITKEndGrouping */
 
   /** Set/get the fixed point sets. */
+  /** @ITKStartGrouping */
   virtual void
   SetFixedPointSet(const PointSetType * pointSet)
   {
@@ -267,8 +272,10 @@ public:
   virtual void
                                SetFixedPointSet(SizeValueType, const PointSetType *);
   virtual const PointSetType * GetFixedPointSet(SizeValueType) const;
+  /** @ITKEndGrouping */
 
   /** Set the moving point sets. */
+  /** @ITKStartGrouping */
   virtual void
   SetMovingPointSet(const PointSetType * pointSet)
   {
@@ -282,10 +289,13 @@ public:
   virtual void
                                SetMovingPointSet(SizeValueType, const PointSetType *);
   virtual const PointSetType * GetMovingPointSet(SizeValueType) const;
+  /** @ITKEndGrouping */
 
   /** Set/Get the optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
+  /** @ITKEndGrouping */
 
   /**
    * Set/Get the optimizer weights.  Allows setting of a per-local-parameter
@@ -295,17 +305,23 @@ public:
    * The size of the weights must be equal to the number of the local transformation
    * parameters.
    */
+  /** @ITKStartGrouping */
   void
   SetOptimizerWeights(OptimizerWeightsType &);
   itkGetConstMacro(OptimizerWeights, OptimizerWeightsType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the metric. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
   itkGetModifiableObjectMacro(Metric, MetricType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the metric sampling strategy. */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(MetricSamplingStrategy, MetricSamplingStrategyEnum);
   itkGetEnumMacro(MetricSamplingStrategy, MetricSamplingStrategyEnum);
+  /** @ITKEndGrouping */
 
   /** Reinitialize the seed for the random number generators that
    * select the samples for some metric sampling strategies.
@@ -313,24 +329,28 @@ public:
    * By initializing the random number generator seed to a value the
    * same deterministic sampling will be used each Update
    * execution. On the other hand, calling the method
-   * ReinitializeSeed() without arguments will use the wall clock in
-   * order to have psuedo-random initialization of the seeds. This
+   * MetricSamplingReinitializeSeed() without arguments will use the wall clock in
+   * order to have pseudo-random initialization of the seeds. This
    * will indeed increase the non-deterministic behavior of the
    * metric.
    */
+  /** @ITKStartGrouping */
   void
   MetricSamplingReinitializeSeed();
   void
   MetricSamplingReinitializeSeed(int seed);
+  /** @ITKEndGrouping */
 
   /** Set the metric sampling percentage. Valid values are in (0.0, 1.0] */
   void
   SetMetricSamplingPercentage(const RealType);
 
   /** Set the metric sampling percentage. Valid values are in (0.0,1.0]. */
+  /** @ITKStartGrouping */
   virtual void
   SetMetricSamplingPercentagePerLevel(const MetricSamplingPercentageArrayType & samplingPercentages);
   itkGetConstMacro(MetricSamplingPercentagePerLevel, MetricSamplingPercentageArrayType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the initial fixed transform. */
   itkSetGetDecoratedObjectInputMacro(FixedInitialTransform, InitialTransformType);
@@ -356,10 +376,12 @@ public:
   itkSetGetDecoratedObjectInputMacro(InitialTransform, InitialTransformType);
 
   /** Set/Get the transform adaptors. */
+  /** @ITKStartGrouping */
   void
   SetTransformParametersAdaptorsPerLevel(TransformParametersAdaptorsContainerType &);
   const TransformParametersAdaptorsContainerType &
   GetTransformParametersAdaptorsPerLevel() const;
+  /** @ITKEndGrouping */
 
   /**
    * Set/Get the number of multi-resolution levels.  In setting the number of
@@ -368,9 +390,11 @@ public:
    *   \li sigma smoothing parameter
    *   \li transform adaptor with specific parameters for the specified level
    */
+  /** @ITKStartGrouping */
   void
   SetNumberOfLevels(const SizeValueType);
   itkGetConstMacro(NumberOfLevels, SizeValueType);
+  /** @ITKEndGrouping */
 
   /**
    * Set the shrink factors for each level where each level has a constant
@@ -384,8 +408,7 @@ public:
   {
     for (unsigned int level = 0; level < factors.Size(); ++level)
     {
-      ShrinkFactorsPerDimensionContainerType shrinkFactors;
-      shrinkFactors.Fill(factors[level]);
+      auto shrinkFactors = MakeFilled<ShrinkFactorsPerDimensionContainerType>(factors[level]);
       this->SetShrinkFactorsPerDimension(level, shrinkFactors);
     }
   }
@@ -422,27 +445,33 @@ public:
    * filter (specifically, the \c itkDiscreteGaussianImageFilter) is applied.  Sigma values are
    * specified according to the option \c m_SmoothingSigmasAreSpecifiedInPhysicalUnits.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(SmoothingSigmasPerLevel, SmoothingSigmasArrayType);
   itkGetConstMacro(SmoothingSigmasPerLevel, SmoothingSigmasArrayType);
+  /** @ITKEndGrouping */
 
   /**
    * Set/Get whether to specify the smoothing sigmas for each level in physical units
    * (default) or in terms of voxels.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(SmoothingSigmasAreSpecifiedInPhysicalUnits, bool);
   itkGetConstMacro(SmoothingSigmasAreSpecifiedInPhysicalUnits, bool);
   itkBooleanMacro(SmoothingSigmasAreSpecifiedInPhysicalUnits);
+  /** @ITKEndGrouping */
 
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
 
-  /** Returns the transform resulting from the registration process  */
+  /** Return the transform resulting from the registration process. */
+  /** @ITKStartGrouping */
   virtual DecoratedOutputTransformType *
   GetOutput();
   virtual const DecoratedOutputTransformType *
   GetOutput() const;
+  /** @ITKEndGrouping */
 
   virtual DecoratedOutputTransformType *
   GetTransformOutput()
@@ -478,18 +507,22 @@ public:
   /** Request that the InitialTransform be grafted onto the output,
    * there by not creating a copy.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InPlace, bool);
   itkGetConstMacro(InPlace, bool);
   itkBooleanMacro(InPlace);
+  /** @ITKEndGrouping */
 
   /**
    * Initialize the current linear transform to be optimized with the center of the
    * previous transform in the queue.  This provides a much better initialization than
    * the default origin.
    */
+  /** @ITKStartGrouping */
   itkBooleanMacro(InitializeCenterOfLinearOutputTransform);
   itkSetMacro(InitializeCenterOfLinearOutputTransform, bool);
   itkGetConstMacro(InitializeCenterOfLinearOutputTransform, bool);
+  /** @ITKEndGrouping */
 
   /**
    * We try to initialize the center of a linear transform (specifically those
@@ -527,58 +560,58 @@ protected:
   virtual VirtualImageBaseConstPointer
   GetCurrentLevelVirtualDomainImage();
 
-  /** Get metric samples. */
+  /** Set the metric sample points. */
   virtual void
   SetMetricSamplePoints();
 
-  SizeValueType m_CurrentLevel;
-  SizeValueType m_NumberOfLevels;
-  SizeValueType m_CurrentIteration;
-  RealType      m_CurrentMetricValue;
-  RealType      m_CurrentConvergenceValue;
-  bool          m_IsConverged;
+  SizeValueType m_CurrentLevel{};
+  SizeValueType m_NumberOfLevels{ 0 };
+  SizeValueType m_CurrentIteration{};
+  RealType      m_CurrentMetricValue{};
+  RealType      m_CurrentConvergenceValue{};
+  bool          m_IsConverged{};
 
-  FixedImagesContainerType      m_FixedSmoothImages;
-  MovingImagesContainerType     m_MovingSmoothImages;
-  FixedImageMasksContainerType  m_FixedImageMasks;
-  MovingImageMasksContainerType m_MovingImageMasks;
-  VirtualImagePointer           m_VirtualDomainImage;
-  PointSetsContainerType        m_FixedPointSets;
-  PointSetsContainerType        m_MovingPointSets;
-  SizeValueType                 m_NumberOfFixedObjects;
-  SizeValueType                 m_NumberOfMovingObjects;
+  FixedImagesContainerType      m_FixedSmoothImages{};
+  MovingImagesContainerType     m_MovingSmoothImages{};
+  FixedImageMasksContainerType  m_FixedImageMasks{};
+  MovingImageMasksContainerType m_MovingImageMasks{};
+  VirtualImagePointer           m_VirtualDomainImage{};
+  PointSetsContainerType        m_FixedPointSets{};
+  PointSetsContainerType        m_MovingPointSets{};
+  SizeValueType                 m_NumberOfFixedObjects{};
+  SizeValueType                 m_NumberOfMovingObjects{};
 
-  OptimizerPointer     m_Optimizer;
-  OptimizerWeightsType m_OptimizerWeights;
-  bool                 m_OptimizerWeightsAreIdentity;
+  OptimizerPointer     m_Optimizer{};
+  OptimizerWeightsType m_OptimizerWeights{};
+  bool                 m_OptimizerWeightsAreIdentity{};
 
-  MetricPointer                                       m_Metric;
-  MetricSamplingStrategyEnum                          m_MetricSamplingStrategy;
-  MetricSamplingPercentageArrayType                   m_MetricSamplingPercentagePerLevel;
-  SizeValueType                                       m_NumberOfMetrics;
-  int                                                 m_FirstImageMetricIndex;
-  std::vector<ShrinkFactorsPerDimensionContainerType> m_ShrinkFactorsPerLevel;
-  SmoothingSigmasArrayType                            m_SmoothingSigmasPerLevel;
-  bool                                                m_SmoothingSigmasAreSpecifiedInPhysicalUnits;
+  MetricPointer                                       m_Metric{};
+  MetricSamplingStrategyEnum                          m_MetricSamplingStrategy{};
+  MetricSamplingPercentageArrayType                   m_MetricSamplingPercentagePerLevel{};
+  SizeValueType                                       m_NumberOfMetrics{};
+  int                                                 m_FirstImageMetricIndex{};
+  std::vector<ShrinkFactorsPerDimensionContainerType> m_ShrinkFactorsPerLevel{};
+  SmoothingSigmasArrayType                            m_SmoothingSigmasPerLevel{};
+  bool                                                m_SmoothingSigmasAreSpecifiedInPhysicalUnits{};
 
-  bool m_ReseedIterator;
-  int  m_RandomSeed;
-  int  m_CurrentRandomSeed;
+  bool m_ReseedIterator{};
+  int  m_RandomSeed{};
+  int  m_CurrentRandomSeed{};
 
 
-  TransformParametersAdaptorsContainerType m_TransformParametersAdaptorsPerLevel;
+  TransformParametersAdaptorsContainerType m_TransformParametersAdaptorsPerLevel{};
 
-  CompositeTransformPointer m_CompositeTransform;
+  CompositeTransformPointer m_CompositeTransform{};
 
   // TODO: m_OutputTransform should be removed and replaced with a named input parameter for
   //      the pipeline
-  OutputTransformPointer m_OutputTransform;
+  OutputTransformPointer m_OutputTransform{};
 
 
 private:
-  bool m_InPlace;
+  bool m_InPlace{};
 
-  bool m_InitializeCenterOfLinearOutputTransform;
+  bool m_InitializeCenterOfLinearOutputTransform{};
 
   // helper function to create the right kind of concrete transform
   template <typename TTransform>

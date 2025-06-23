@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ namespace itk
  * for each pyramid externally prior to calling Update().
  *
  * \warning If there is discrepancy between the number of level requested
- * and a pyramid schedule. The pyramid schedule will be overriden
+ * and a pyramid schedule. The pyramid schedule will be overridden
  * with a default one.
  *
  * Before each resolution level an IterationEvent is invoked providing an
@@ -83,8 +83,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiResolutionImageRegistrationMethod, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiResolutionImageRegistrationMethod);
 
   /**  Type of the Fixed image. */
   using FixedImageType = TFixedImage;
@@ -134,47 +134,56 @@ public:
   /** Smart Pointer type to a DataObject. */
   using DataObjectPointer = typename DataObject::Pointer;
 
-  /** Method to stop the registration. */
+  /** Stop the registration. */
   void
   StopRegistration();
 
   /** Set/Get the Fixed image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedImage, FixedImageType);
   itkGetConstObjectMacro(FixedImage, FixedImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Moving image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingImage, MovingImageType);
   itkGetConstObjectMacro(MovingImage, MovingImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Metric. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
   itkGetModifiableObjectMacro(Metric, MetricType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Metric. */
+  /** @ITKStartGrouping */
   itkSetMacro(FixedImageRegion, FixedImageRegionType);
   itkGetConstReferenceMacro(FixedImageRegion, FixedImageRegionType);
-
-  /** Set/Get the Transfrom. */
+  /** @ITKEndGrouping */
+  /** Set/Get the Transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Transform, TransformType);
   itkGetModifiableObjectMacro(Transform, TransformType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Interpolator. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Fixed image pyramid. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(FixedImagePyramid, FixedImagePyramidType);
   itkGetModifiableObjectMacro(FixedImagePyramid, FixedImagePyramidType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Moving image pyramid. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(MovingImagePyramid, MovingImagePyramidType);
   itkGetModifiableObjectMacro(MovingImagePyramid, MovingImagePyramidType);
-
-  /** Set/Get the schedules . */
+  /** @ITKEndGrouping */
+  /** Set/Get the schedules for the fixed and moving image pyramid. */
   void
   SetSchedules(const ScheduleType & fixedImagePyramidSchedule, const ScheduleType & movingImagePyramidSchedule);
 
@@ -191,15 +200,17 @@ public:
   itkGetConstMacro(CurrentLevel, SizeValueType);
 
   /** Set/Get the initial transformation parameters. */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialTransformParameters, ParametersType);
   itkGetConstReferenceMacro(InitialTransformParameters, ParametersType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the initial transformation parameters of the next resolution
    level to be processed. The default is the last set of parameters of
    the last resolution level. */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialTransformParametersOfNextLevel, ParametersType);
   itkGetConstReferenceMacro(InitialTransformParametersOfNextLevel, ParametersType);
-
+  /** @ITKEndGrouping */
   /** Get the last transformation parameters visited by
    * the optimizer. */
   itkGetConstReferenceMacro(LastTransformParameters, ParametersType);
@@ -246,35 +257,35 @@ protected:
   itkSetMacro(CurrentLevel, SizeValueType);
 
 private:
-  MetricPointer          m_Metric;
-  OptimizerType::Pointer m_Optimizer;
+  MetricPointer          m_Metric{};
+  OptimizerType::Pointer m_Optimizer{};
 
-  MovingImageConstPointer m_MovingImage;
-  FixedImageConstPointer  m_FixedImage;
+  MovingImageConstPointer m_MovingImage{};
+  FixedImageConstPointer  m_FixedImage{};
 
-  TransformPointer    m_Transform;
-  InterpolatorPointer m_Interpolator;
+  TransformPointer    m_Transform{};
+  InterpolatorPointer m_Interpolator{};
 
-  MovingImagePyramidPointer m_MovingImagePyramid;
-  FixedImagePyramidPointer  m_FixedImagePyramid;
+  MovingImagePyramidPointer m_MovingImagePyramid{};
+  FixedImagePyramidPointer  m_FixedImagePyramid{};
 
-  ParametersType m_InitialTransformParameters;
-  ParametersType m_InitialTransformParametersOfNextLevel;
-  ParametersType m_LastTransformParameters;
+  ParametersType m_InitialTransformParameters{};
+  ParametersType m_InitialTransformParametersOfNextLevel{};
+  ParametersType m_LastTransformParameters{};
 
-  FixedImageRegionType              m_FixedImageRegion;
-  std::vector<FixedImageRegionType> m_FixedImageRegionPyramid;
+  FixedImageRegionType              m_FixedImageRegion{};
+  std::vector<FixedImageRegionType> m_FixedImageRegionPyramid{};
 
-  SizeValueType m_NumberOfLevels;
-  SizeValueType m_CurrentLevel;
+  SizeValueType m_NumberOfLevels{};
+  SizeValueType m_CurrentLevel{};
 
-  bool m_Stop;
+  bool m_Stop{};
 
-  ScheduleType m_FixedImagePyramidSchedule;
-  ScheduleType m_MovingImagePyramidSchedule;
+  ScheduleType m_FixedImagePyramidSchedule{};
+  ScheduleType m_MovingImagePyramidSchedule{};
 
-  bool m_ScheduleSpecified;
-  bool m_NumberOfLevelsSpecified;
+  bool m_ScheduleSpecified{};
+  bool m_NumberOfLevelsSpecified{};
 };
 } // end namespace itk
 

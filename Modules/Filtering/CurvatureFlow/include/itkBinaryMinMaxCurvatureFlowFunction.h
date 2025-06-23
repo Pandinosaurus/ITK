@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class BinaryMinMaxCurvatureFlowFunction
+ * \class BinaryMinMaxCurvatureFlowFunction
  *
  * This class encapsulate the finite difference equation which drives a
  * min/max curvature flow algorithm for denoising binary images.
@@ -54,33 +54,33 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(BinaryMinMaxCurvatureFlowFunction, MinMaxCurvatureFlowFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMinMaxCurvatureFlowFunction);
 
   /** Inherit some parameters from the superclass type. */
-  using PixelType = typename Superclass::PixelType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using ImageType = typename Superclass::ImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::ImageType;
 
   /** Extract superclass dimension. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Set/Get the threshold value. */
+  /** @ITKStartGrouping */
   void
   SetThreshold(const double thresh)
   {
     m_Threshold = thresh;
   }
-  const double &
+  [[nodiscard]] const double &
   GetThreshold() const
   {
     return m_Threshold;
   }
-
-  /** This method computes the solution update for each pixel that does not
-   * lie on a the data set boundary. */
+  /** @ITKEndGrouping */
+  /** Compute the solution update for each pixel that does not lie on a the data set boundary. */
   PixelType
   ComputeUpdate(const NeighborhoodType & it,
                 void *                   globalData,
@@ -91,7 +91,7 @@ protected:
   ~BinaryMinMaxCurvatureFlowFunction() override = default;
 
 private:
-  double m_Threshold;
+  double m_Threshold{};
 };
 } // end namespace itk
 

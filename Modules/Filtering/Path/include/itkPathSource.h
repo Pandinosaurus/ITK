@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class PathSource
+ * \class PathSource
  *  \brief Base class for all process objects that output path data.
  *
  * PathSource is the base class for all process objects that output
@@ -56,8 +56,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PathSource, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PathSource);
 
   /** Some convenient type alias. */
   using OutputPathType = TOutputPath;
@@ -107,11 +107,13 @@ public:
    * Region, which can be set using ImageBase::SetRequestedRegion().
    * By default, the largest possible region is requested.
    */
+  /** @ITKStartGrouping */
   OutputPathType *
   GetOutput();
 
   OutputPathType *
   GetOutput(unsigned int idx);
+  /** @ITKEndGrouping */
 
   /** Graft the specified DataObject onto this ProcessObject's output.
    * This method grabs a handle to the specified DataObject's path
@@ -141,7 +143,7 @@ public:
      \endcode
    *
    * For proper pipeline execution, a filter using a mini-pipeline
-   * must implement the GeneratseInputRequestedRegion(),
+   * must implement the GenerateInputRequestedRegion(),
    * GenerateOutputRequestedRegion(), GenerateOutputInformation() and
    * EnlargeOutputRequestedRegion() methods as necessary to reflect
    * how the mini-pipeline will execute (in other words, the outer
@@ -173,10 +175,12 @@ public:
    * SmartPointer to a DataObject. If a subclass of ImageSource has
    * multiple outputs of different types, then that class must provide
    * an implementation of MakeOutput(). */
+  /** @ITKStartGrouping */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   DataObjectPointer
   MakeOutput(DataObjectPointerArraySizeType idx) override;
+  /** @ITKEndGrouping */
 
 protected:
   PathSource();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,7 @@ IterationReporter::IterationReporter(ProcessObject * filter, ThreadIdType thread
   : m_Filter(filter)
   , m_ThreadId(threadId)
   , m_StepsPerUpdate(stepsPerUpdate)
-{
   // Only thread 0 should update progress.
-  m_StepsBeforeUpdate = m_StepsPerUpdate;
-}
+  , m_StepsBeforeUpdate(m_StepsPerUpdate)
+{}
 } // end namespace itk

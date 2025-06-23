@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkMath.h"
 #include "itkNearestNeighborExtrapolateImageFunction.h"
 #include "itkImageRegionIterator.h"
+#include "itkTestingMacros.h"
 
 /**
  * This module tests the functionality of the
@@ -39,13 +40,13 @@ itkNearestNeighborExtrapolateImageFunctionTest(int, char *[])
   ImageType::SizeType imageSize;
   imageSize[0] = 5;
   imageSize[1] = 7;
-  ImageType::RegionType imageRegion(imageSize);
+  const ImageType::RegionType imageRegion(imageSize);
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
   image->SetRegions(imageRegion);
   image->Allocate();
 
-  VectorImageType::Pointer vectorimage = VectorImageType::New();
+  auto vectorimage = VectorImageType::New();
   vectorimage->SetRegions(imageRegion);
   vectorimage->Allocate();
 
@@ -74,32 +75,29 @@ itkNearestNeighborExtrapolateImageFunctionTest(int, char *[])
 
   // set up the extrapolator
   using FunctionType = itk::NearestNeighborExtrapolateImageFunction<ImageType, CoordRep>;
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(function, NearestNeighborExtrapolateImageFunction, ExtrapolateImageFunction);
+
 
   using VectorFunctionType = itk::NearestNeighborExtrapolateImageFunction<VectorImageType, CoordRep>;
-  VectorFunctionType::Pointer vectorfunction = VectorFunctionType::New();
+  auto vectorfunction = VectorFunctionType::New();
 
   function->SetInputImage(image);
 
   vectorfunction->SetInputImage(vectorimage);
 
-  FunctionType::IndexType  index;
-  FunctionType::PointType  point;
-  FunctionType::OutputType value;
-  FunctionType::OutputType trueValue;
-
-  VectorFunctionType::OutputType vectorvalue;
-  VectorFunctionType::OutputType trueVectorValue;
-
   // evaluate at point inside the image
+  FunctionType::PointType point;
   point[0] = 2.25;
   point[1] = 3.25;
-  value = function->Evaluate(point);
+  FunctionType::OutputType value = function->Evaluate(point);
 
-  vectorvalue = vectorfunction->Evaluate(point);
+  const VectorFunctionType::OutputType vectorvalue = vectorfunction->Evaluate(point);
 
-  trueValue = itk::Math::Round<int>(point[0]) + (itk::Math::Round<int>(point[1])) * static_cast<double>(imageSize[0]);
-  trueVectorValue.Fill(trueValue);
+  FunctionType::OutputType trueValue =
+    itk::Math::Round<int>(point[0]) + (itk::Math::Round<int>(point[1])) * static_cast<double>(imageSize[0]);
+  auto trueVectorValue = itk::MakeFilled<VectorFunctionType::OutputType>(trueValue);
 
   std::cout << "Point: " << point << " Value: " << value << " Vector Value: " << vectorvalue << std::endl;
   if (itk::Math::NotAlmostEquals(value, trueValue))
@@ -132,6 +130,7 @@ itkNearestNeighborExtrapolateImageFunctionTest(int, char *[])
   }
 
   // evaluate at index inside the image
+  FunctionType::IndexType index;
   index[0] = 4;
   index[1] = 5;
   value = function->EvaluateAtIndex(index);

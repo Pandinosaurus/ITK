@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +32,8 @@ itkImageRandomConstIteratorWithOnlyIndexTest(int, char *[])
 
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  ImageType::Pointer      myImage = ImageType::New();
-  ImageType::ConstPointer myConstImage = myImage;
+  auto                          myImage = ImageType::New();
+  const ImageType::ConstPointer myConstImage = myImage;
 
   ImageType::SizeType size0;
 
@@ -41,18 +41,13 @@ itkImageRandomConstIteratorWithOnlyIndexTest(int, char *[])
   size0[1] = 100;
   size0[2] = 100;
 
-  unsigned long numberOfSamples = 10;
+  constexpr unsigned long numberOfSamples = 10;
 
-  ImageType::IndexType start0;
-  start0.Fill(0);
+  constexpr ImageType::IndexType start0{};
 
-  ImageType::RegionType region0;
-  region0.SetIndex(start0);
-  region0.SetSize(size0);
+  const ImageType::RegionType region0{ start0, size0 };
 
-  myImage->SetLargestPossibleRegion(region0);
-  myImage->SetBufferedRegion(region0);
-  myImage->SetRequestedRegion(region0);
+  myImage->SetRegions(region0);
   myImage->Allocate();
 
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -127,7 +122,7 @@ itkImageRandomConstIteratorWithOnlyIndexTest(int, char *[])
   using ImageBaseType = itk::ImageBase<ImageDimension>;
   using ImageBaseRandomConstIteratorType = itk::ImageRandomConstIteratorWithOnlyIndex<ImageBaseType>;
 
-  ImageBaseType::Pointer myImageBase = ImageBaseType::New();
+  auto myImageBase = ImageBaseType::New();
   myImageBase->CopyInformation(myImage);
   ImageBaseRandomConstIteratorType dor(myImageBase, region0);
   dor.SetNumberOfSamples(numberOfSamples); // 0=x, 1=y, 2=z
@@ -172,9 +167,7 @@ itkImageRandomConstIteratorWithOnlyIndexTest(int, char *[])
     size[1] = 12;
     size[2] = 13;
 
-    ImageType::RegionType region;
-    region.SetIndex(start);
-    region.SetSize(size);
+    const ImageType::RegionType region{ start, size };
 
     RandomConstIteratorType cbot(myImage, region);
 
@@ -183,9 +176,9 @@ itkImageRandomConstIteratorWithOnlyIndexTest(int, char *[])
 
     while (!cbot.IsAtEnd())
     {
-      ImageType::IndexType index = cbot.GetIndex();
+      const ImageType::IndexType index = cbot.GetIndex();
       it.SetIndex(index);
-      ImageType::PixelType pixel = it.Get();
+      const ImageType::PixelType pixel = it.Get();
 
       if (index != pixel)
       {

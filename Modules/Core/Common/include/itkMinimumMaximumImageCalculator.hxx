@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,23 +18,10 @@
 #ifndef itkMinimumMaximumImageCalculator_hxx
 #define itkMinimumMaximumImageCalculator_hxx
 
-#include "itkMinimumMaximumImageCalculator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkNumericTraits.h"
 
 namespace itk
 {
-
-template <typename TInputImage>
-MinimumMaximumImageCalculator<TInputImage>::MinimumMaximumImageCalculator()
-{
-  m_Image = TInputImage::New();
-  m_Maximum = NumericTraits<PixelType>::NonpositiveMin();
-  m_Minimum = NumericTraits<PixelType>::max();
-  m_IndexOfMinimum.Fill(0);
-  m_IndexOfMaximum.Fill(0);
-  m_RegionSetByUser = false;
-}
 
 template <typename TInputImage>
 void

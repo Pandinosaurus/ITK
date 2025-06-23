@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 namespace itk
 {
 /**
- *\class GradientVectorFlowImageFilter
+ * \class GradientVectorFlowImageFilter
  * \brief
  * This class computes a diffusion of the gradient vectors for graylevel or binary
  * edge map derive from the image. It enlarges the capture range of the gradient
@@ -65,8 +65,8 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GradientVectorFlowImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientVectorFlowImageFilter);
 
   /** Some type alias. */
   using InputImageType = TInputImage;
@@ -110,14 +110,10 @@ public:
   itkSetMacro(IterationNum, int);
   itkGetConstMacro(IterationNum, int);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename PixelType::ValueType>));
   itkConceptMacro(OutputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TOutputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   GradientVectorFlowImageFilter();
@@ -145,22 +141,22 @@ protected:
 
 private:
   // parameters;
-  double m_TimeStep;                               // the timestep of each
-                                                   // iteration
-  double m_Steps[Superclass::InputImageDimension]; // set to be 1 in all
-                                                   // directions in most cases
-  double m_NoiseLevel;                             // the noise level of the
-                                                   // image
-  int m_IterationNum;                              // the iteration number
+  double m_TimeStep{};                               // the timestep of each
+                                                     // iteration
+  double m_Steps[Superclass::InputImageDimension]{}; // set to be 1 in all
+                                                     // directions in most cases
+  double m_NoiseLevel{};                             // the noise level of the
+                                                     // image
+  int m_IterationNum{};                              // the iteration number
 
-  LaplacianFilterPointer                 m_LaplacianFilter;
-  typename Superclass::InputImagePointer m_IntermediateImage;
+  LaplacianFilterPointer                 m_LaplacianFilter{};
+  typename Superclass::InputImagePointer m_IntermediateImage{};
 
-  InternalImagePointer m_InternalImages[Superclass::InputImageDimension];
-  InternalImagePointer m_BImage; // store the "b" value for every pixel
+  InternalImagePointer m_InternalImages[Superclass::InputImageDimension]{};
+  InternalImagePointer m_BImage{}; // store the "b" value for every pixel
 
-  typename Superclass::InputImagePointer m_CImage; // store the $c_i$ value for
-                                                   // every pixel
+  typename Superclass::InputImagePointer m_CImage{}; // store the $c_i$ value for
+                                                     // every pixel
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,8 +77,8 @@ main(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer fixedReader = ReaderType::New();
-  ReaderType::Pointer movingReader = ReaderType::New();
+  auto fixedReader = ReaderType::New();
+  auto movingReader = ReaderType::New();
 
   fixedReader->SetFileName(argv[1]);
   movingReader->SetFileName(argv[2]);
@@ -90,7 +90,7 @@ main(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
 
@@ -106,7 +106,7 @@ main(int argc, char * argv[])
   using MetricType =
     itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -120,20 +120,20 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using TransformType = itk::TranslationTransform<double, Dimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
 
   using InterpolatorType =
     itk::NearestNeighborInterpolateImageFunction<ImageType, double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   // Software Guide : EndCodeSnippet
 
 
   transform->SetIdentity();
 
-  ImageType::ConstPointer fixedImage = fixedReader->GetOutput();
-  ImageType::ConstPointer movingImage = movingReader->GetOutput();
+  const ImageType::ConstPointer fixedImage = fixedReader->GetOutput();
+  const ImageType::ConstPointer movingImage = movingReader->GetOutput();
 
 
   // Software Guide : BeginLatex
@@ -171,7 +171,7 @@ main(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
     return EXIT_FAILURE;
   }
@@ -193,9 +193,9 @@ main(int argc, char * argv[])
   constexpr int rangex = 50;
   constexpr int rangey = 50;
 
-  for (int dx = -rangex; dx <= rangex; dx++)
+  for (int dx = -rangex; dx <= rangex; ++dx)
   {
-    for (int dy = -rangey; dy <= rangey; dy++)
+    for (int dy = -rangey; dy <= rangey; ++dy)
     {
       displacement[0] = dx;
       displacement[1] = dy;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,66 +25,53 @@ namespace itk
 ITK_GCC_PRAGMA_DIAG_PUSH()
 ITK_GCC_PRAGMA_DIAG(ignored "-Wattributes")
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::ObjectToObjectOptimizerBaseTemplate()
+  : m_Metric(nullptr)
+  , m_NumberOfWorkUnits(MultiThreaderBase::GetGlobalDefaultNumberOfThreads())
+  , m_NumberOfIterations(100)
+  , m_CurrentMetricValue(0)
+  , m_WeightsAreIdentity(true)
+  , m_DoEstimateScales(true)
 {
-  this->m_Metric = nullptr;
-  this->m_CurrentIteration = 0;
-  this->m_NumberOfIterations = 100;
-  this->m_CurrentMetricValue = 0;
   // Initialize, but w/out calling SetNumberOfWorkUnits, to avoid
   // valgrind warning.
-  this->m_NumberOfWorkUnits = MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
-  this->m_ScalesAreIdentity = false;
-  this->m_WeightsAreIdentity = true;
-  this->m_DoEstimateScales = true;
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::~ObjectToObjectOptimizerBaseTemplate() = default;
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Number of work units: " << this->m_NumberOfWorkUnits << std::endl;
-  os << indent << "Number of scales:  " << this->m_Scales.Size() << std::endl;
-  if (this->GetScalesInitialized())
-  {
-    os << indent << "m_Scales: " << this->m_Scales << std::endl;
-  }
-  else
-  {
-    os << indent << "m_Scales: uninitialized." << std::endl;
-  }
-  os << indent << "m_ScalesAreIdentity: " << this->GetScalesAreIdentity() << std::endl;
-  if (this->m_Weights.Size() > 0)
-  {
-    os << indent << "m_Weights: " << this->m_Weights << std::endl;
-  }
-  else
-  {
-    os << indent << "m_Weights is unset. Treated as identity." << std::endl;
-  }
-  os << indent << "m_WeightsAreIdentity: " << this->GetWeightsAreIdentity() << std::endl;
   itkPrintSelfObjectMacro(Metric);
+
+  os << indent
+     << "NumberOfWorkUnits: " << static_cast<typename NumericTraits<ThreadIdType>::PrintType>(m_NumberOfWorkUnits)
+     << std::endl;
+  os << indent
+     << "CurrentIteration: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_CurrentIteration)
+     << std::endl;
+  os << indent
+     << "NumberOfIterations: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfIterations)
+     << std::endl;
+  os << indent
+     << "CurrentMetricValue: " << static_cast<typename NumericTraits<MeasureType>::PrintType>(m_CurrentMetricValue)
+     << std::endl;
+  os << indent << "Scales: " << static_cast<typename NumericTraits<ScalesType>::PrintType>(m_Scales) << std::endl;
+  os << indent << "Weights: " << static_cast<typename NumericTraits<ScalesType>::PrintType>(m_Weights) << std::endl;
+
+  itkPrintSelfBooleanMacro(ScalesAreIdentity);
+
   itkPrintSelfObjectMacro(ScalesEstimator);
-  if (this->m_CurrentIteration > 0)
-  {
-    os << indent << "CurrentIteration: " << this->m_CurrentIteration << std::endl;
-  }
-  os << indent << "Number of iterations: " << this->m_NumberOfIterations << std::endl;
-  os << indent << "CurrentMetricValue: "
-     << static_cast<typename NumericTraits<MeasureType>::PrintType>(this->m_CurrentMetricValue) << std::endl;
-  os << indent << "DoEstimateScales: " << this->m_DoEstimateScales << std::endl;
+
+  itkPrintSelfBooleanMacro(WeightsAreIdentity);
+  itkPrintSelfBooleanMacro(DoEstimateScales);
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::SetNumberOfWorkUnits(ThreadIdType number)
@@ -100,7 +87,6 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::SetNumberOfW
   }
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimization(
@@ -110,7 +96,6 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimiz
   if (this->m_Metric.IsNull())
   {
     itkExceptionMacro("m_Metric must be set.");
-    return;
   }
 
   /* Estimate the parameter scales if requested. */
@@ -136,7 +121,7 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimiz
      * Also check if scales are identity. */
     using SizeType = typename ScalesType::size_type;
     this->m_ScalesAreIdentity = true;
-    for (SizeType i = 0; i < this->m_Scales.Size(); i++)
+    for (SizeType i = 0; i < this->m_Scales.Size(); ++i)
     {
       if (this->m_Scales[i] <= NumericTraits<SValueType>::epsilon())
       {
@@ -145,8 +130,8 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimiz
       /* Check if the scales are identity. Consider to be identity if
        * within a tolerance, to allow for automatically estimated scales
        * that may not be exactly 1.0 when in priciniple they should be. */
-      SValueType difference = std::fabs(NumericTraits<SValueType>::OneValue() - this->m_Scales[i]);
-      auto       tolerance = static_cast<SValueType>(0.01);
+      const SValueType difference = itk::Math::abs(NumericTraits<SValueType>::OneValue() - this->m_Scales[i]);
+      auto             tolerance = static_cast<SValueType>(0.01);
       if (difference > tolerance)
       {
         this->m_ScalesAreIdentity = false;
@@ -174,10 +159,10 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimiz
     /* Check if they are identity within tolerance. */
     using SizeType = typename ScalesType::size_type;
     this->m_WeightsAreIdentity = true;
-    for (SizeType i = 0; i < this->m_Weights.Size(); i++)
+    for (SizeType i = 0; i < this->m_Weights.Size(); ++i)
     {
-      SValueType difference = std::fabs(NumericTraits<SValueType>::OneValue() - this->m_Weights[i]);
-      auto       tolerance = static_cast<SValueType>(1e-4);
+      const SValueType difference = itk::Math::abs(NumericTraits<SValueType>::OneValue() - this->m_Weights[i]);
+      auto             tolerance = static_cast<SValueType>(1e-4);
       if (difference > tolerance)
       {
         this->m_WeightsAreIdentity = false;
@@ -192,7 +177,6 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::StartOptimiz
   }
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 const typename ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::ParametersType &
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::GetCurrentPosition() const
@@ -204,7 +188,6 @@ ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::GetCurrentPo
   return this->m_Metric->GetParameters();
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 const typename ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::MeasureType &
 ObjectToObjectOptimizerBaseTemplate<TInternalComputationValueType>::GetValue() const

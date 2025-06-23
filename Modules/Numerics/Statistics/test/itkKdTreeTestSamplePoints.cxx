@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ itkKdTreeTestSamplePoints(int, char *[])
 
   constexpr SampleType::MeasurementVectorSizeType measurementVectorSize = 2;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(measurementVectorSize);
 
   constexpr unsigned int numberOfDataPoints = 5;
@@ -58,7 +58,7 @@ itkKdTreeTestSamplePoints(int, char *[])
   sample->PushBack(mv5);
 
   using TreeGeneratorType = itk::Statistics::KdTreeGenerator<SampleType>;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
 
   constexpr unsigned int bucketSize = 1;
 
@@ -68,11 +68,11 @@ itkKdTreeTestSamplePoints(int, char *[])
 
   using TreeType = TreeGeneratorType::KdTreeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput();
+  const TreeType::Pointer tree = treeGenerator->GetOutput();
 
   MeasurementVectorType queryPoint(measurementVectorSize);
 
-  unsigned int                           numberOfNeighbors = 1;
+  constexpr unsigned int                 numberOfNeighbors = 1;
   TreeType::InstanceIdentifierVectorType neighbors;
 
   MeasurementVectorType result(measurementVectorSize);
@@ -85,10 +85,10 @@ itkKdTreeTestSamplePoints(int, char *[])
   using DistanceMetricType = itk::Statistics::EuclideanDistanceMetric<MeasurementVectorType>;
   using OriginType = DistanceMetricType::OriginType;
 
-  DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
+  auto distanceMetric = DistanceMetricType::New();
 
   OriginType origin(measurementVectorSize);
-  for (unsigned int k = 0; k < sample->Size(); k++)
+  for (unsigned int k = 0; k < sample->Size(); ++k)
   {
 
     queryPoint = sample->GetMeasurementVector(k);
@@ -109,10 +109,10 @@ itkKdTreeTestSamplePoints(int, char *[])
       if (distance > itk::Math::eps)
       {
         std::cerr << "kd-tree knn search result:" << std::endl
-                  << "query point = [" << queryPoint << "]" << std::endl
+                  << "query point = [" << queryPoint << ']' << std::endl
                   << "k = " << numberOfNeighbors << std::endl;
         std::cerr << "measurement vector : distance" << std::endl;
-        std::cerr << "[" << tree->GetMeasurementVector(neighbors[i]) << "] : " << distance << std::endl;
+        std::cerr << '[' << tree->GetMeasurementVector(neighbors[i]) << "] : " << distance << std::endl;
       }
     }
   }
@@ -143,8 +143,8 @@ itkKdTreeTestSamplePoints(int, char *[])
   //
   // Compute the distance to the "presumed" nearest neighbor
   //
-  double result_dist = std::sqrt((result[0] - queryPoint[0]) * (result[0] - queryPoint[0]) +
-                                 (result[1] - queryPoint[1]) * (result[1] - queryPoint[1]));
+  const double result_dist = std::sqrt((result[0] - queryPoint[0]) * (result[0] - queryPoint[0]) +
+                                       (result[1] - queryPoint[1]) * (result[1] - queryPoint[1]));
 
   //
   // Compute the distance to all other points, to verify
@@ -159,7 +159,7 @@ itkKdTreeTestSamplePoints(int, char *[])
     const double dist = std::sqrt((test_point[0] - queryPoint[0]) * (test_point[0] - queryPoint[0]) +
                                   (test_point[1] - queryPoint[1]) * (test_point[1] - queryPoint[1]));
 
-    std::cout << "\t" << dist << std::endl;
+    std::cout << '\t' << dist << std::endl;
 
     if (dist < min_dist)
     {

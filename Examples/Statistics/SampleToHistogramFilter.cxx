@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 // measurement vectors (e.g. \subdoxygen{Statistics}{ListSample},
 // \subdoxygen{Statistics}{ImageToListSampleAdaptor}, or
 // \subdoxygen{Statistics}{PointSetToListSample}) to use less memory or to
-// perform a particular type od analysis. In such cases, we can import data
+// perform a particular type of analysis. In such cases, we can import data
 // from a sample type to a \subdoxygen{Statistics}{Histogram} object
 // using the \subdoxygen{Statistics}{SampleToHistogramFiler}.
 //
@@ -72,7 +72,7 @@ main()
     itk::Vector<MeasurementType, MeasurementVectorLength>;
 
   using ListSampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  ListSampleType::Pointer listSample = ListSampleType::New();
+  auto listSample = ListSampleType::New();
   listSample->SetMeasurementVectorSize(MeasurementVectorLength);
 
   MeasurementVectorType mv;
@@ -129,7 +129,7 @@ main()
   // Software Guide : BeginCodeSnippet
   using FilterType =
     itk::Statistics::SampleToHistogramFilter<ListSampleType, HistogramType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(listSample);
   filter->SetHistogramSize(size);

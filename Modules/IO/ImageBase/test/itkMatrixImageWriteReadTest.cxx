@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,31 +19,28 @@
 #include <fstream>
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 
 int
-itkMatrixImageWriteReadTest(int ac, char * av[])
+itkMatrixImageWriteReadTest(int argc, char * argv[])
 {
-  if (ac < 1)
+  if (argc < 1)
   {
-    std::cerr << "Usage: " << av[0] << " Input\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Input\n";
     return EXIT_FAILURE;
   }
 
   using MatrixPixelType = itk::Matrix<float, 3, 3>;
   using MatrixImageType = itk::Image<MatrixPixelType, 3>;
 
-  MatrixImageType::Pointer matrixImage1 = MatrixImageType::New();
+  auto matrixImage1 = MatrixImageType::New();
 
-  MatrixImageType::SizeType size;
-  size.Fill(10);
+  constexpr auto size = MatrixImageType::SizeType::Filled(10);
 
-  MatrixImageType::IndexType start;
-  start.Fill(0);
+  constexpr MatrixImageType::IndexType start{};
 
-  MatrixImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const MatrixImageType::RegionType region{ start, size };
 
   matrixImage1->SetRegions(region);
   matrixImage1->Allocate();
@@ -69,9 +66,9 @@ itkMatrixImageWriteReadTest(int ac, char * av[])
   while (!itr.IsAtEnd())
   {
     itr.Set(matrixPixel);
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      for (unsigned int j = 0; j < 3; j++)
+      for (unsigned int j = 0; j < 3; ++j)
       {
         matrixPixel[i][j]++;
       }
@@ -81,10 +78,10 @@ itkMatrixImageWriteReadTest(int ac, char * av[])
 
   using MatrixWriterType = itk::ImageFileWriter<MatrixImageType>;
 
-  MatrixWriterType::Pointer matrixWriter = MatrixWriterType::New();
+  auto matrixWriter = MatrixWriterType::New();
 
   matrixWriter->SetInput(matrixImage1);
-  matrixWriter->SetFileName(av[1]);
+  matrixWriter->SetFileName(argv[1]);
 
   try
   {
@@ -99,9 +96,9 @@ itkMatrixImageWriteReadTest(int ac, char * av[])
 
   using MatrixReaderType = itk::ImageFileReader<MatrixImageType>;
 
-  MatrixReaderType::Pointer matrixReader = MatrixReaderType::New();
+  auto matrixReader = MatrixReaderType::New();
 
-  matrixReader->SetFileName(av[1]);
+  matrixReader->SetFileName(argv[1]);
 
   try
   {
@@ -113,10 +110,10 @@ itkMatrixImageWriteReadTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  MatrixImageType::ConstPointer matrixImage2 = matrixReader->GetOutput();
+  const MatrixImageType::ConstPointer matrixImage2 = matrixReader->GetOutput();
 
   // Compare the read values to the original values
-  const float tolerance = 1e-5;
+  constexpr float tolerance = 1e-5;
 
   itk::ImageRegionConstIterator<MatrixImageType> tItr(matrixImage2, region);
   itk::ImageRegionConstIterator<MatrixImageType> mItr(matrixImage1, region);
@@ -129,11 +126,11 @@ itkMatrixImageWriteReadTest(int ac, char * av[])
     const MatrixPixelType matrixPixel1 = mItr.Get();
     const MatrixPixelType matrixPixel2 = tItr.Get();
 
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      for (unsigned int j = 0; j < 3; j++)
+      for (unsigned int j = 0; j < 3; ++j)
       {
-        if (std::abs(matrixPixel1[i][j] - matrixPixel2[i][j]) > tolerance)
+        if (itk::Math::abs(matrixPixel1[i][j] - matrixPixel2[i][j]) > tolerance)
         {
           std::cerr << "Matrix read does not match expected values " << std::endl;
           std::cerr << "Index " << tItr.GetIndex() << std::endl;

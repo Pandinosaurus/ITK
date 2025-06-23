@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkMalcolmSparseLevelSetImage_hxx
 #define itkMalcolmSparseLevelSetImage_hxx
 
-#include "itkMalcolmSparseLevelSetImage.h"
 
 namespace itk
 {
@@ -33,11 +32,11 @@ MalcolmSparseLevelSetImage<VDimension>::MalcolmSparseLevelSetImage()
 
 // ----------------------------------------------------------------------------
 template <unsigned int VDimension>
-typename MalcolmSparseLevelSetImage<VDimension>::OutputType
-MalcolmSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputPixel) const
+auto
+MalcolmSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputPixel) const -> OutputType
 {
-  InputType mapIndex = inputPixel - this->m_DomainOffset;
-  auto      layerIt = this->m_Layers.begin();
+  const InputType mapIndex = inputPixel - this->m_DomainOffset;
+  auto            layerIt = this->m_Layers.begin();
 
   while (layerIt != this->m_Layers.end())
   {
@@ -54,27 +53,25 @@ MalcolmSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputPixel) c
   {
     return MinusOneLayer();
   }
+
+  const char status = this->m_LabelMap->GetPixel(mapIndex);
+  if (status == PlusOneLayer())
+  {
+    return PlusOneLayer();
+  }
   else
   {
-    char status = this->m_LabelMap->GetPixel(mapIndex);
-    if (status == PlusOneLayer())
-    {
-      return PlusOneLayer();
-    }
-    else
-    {
-      itkGenericExceptionMacro(<< "status " << static_cast<int>(status) << " should be 1 or -1");
-    }
+    itkGenericExceptionMacro("status " << static_cast<int>(status) << " should be 1 or -1");
   }
 }
 
 // ----------------------------------------------------------------------------
 template <unsigned int VDimension>
-typename MalcolmSparseLevelSetImage<VDimension>::HessianType
-MalcolmSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & inputPixel) const
+auto
+MalcolmSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & inputPixel) const -> HessianType
 {
   (void)inputPixel;
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Malcolm's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Malcolm's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"
@@ -84,11 +81,11 @@ MalcolmSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & inputP
 
 // ----------------------------------------------------------------------------
 template <unsigned int VDimension>
-typename MalcolmSparseLevelSetImage<VDimension>::OutputRealType
-MalcolmSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & inputPixel) const
+auto
+MalcolmSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & inputPixel) const -> OutputRealType
 {
   (void)inputPixel;
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Malcolm's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Malcolm's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"
@@ -98,11 +95,11 @@ MalcolmSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & inpu
 
 // ----------------------------------------------------------------------------
 template <unsigned int VDimension>
-typename MalcolmSparseLevelSetImage<VDimension>::OutputRealType
-MalcolmSparseLevelSetImage<VDimension>::EvaluateMeanCurvature(const InputType & inputPixel) const
+auto
+MalcolmSparseLevelSetImage<VDimension>::EvaluateMeanCurvature(const InputType & inputPixel) const -> OutputRealType
 {
   (void)inputPixel;
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Malcolm's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Malcolm's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"

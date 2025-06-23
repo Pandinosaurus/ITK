@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,7 @@
 #include "itkSubtractImageFilter.h"
 
 #include "itkPhilipsRECImageIO.h"
+#include "itkTestingMacros.h"
 
 int
 itkPhilipsRECImageIOOrientationTest(int argc, char * argv[])
@@ -32,8 +33,9 @@ itkPhilipsRECImageIOOrientationTest(int argc, char * argv[])
 
   if (argc < 4)
   {
-    std::cerr << "Usage: " << argv[0] << " ReferenceImage TargetImage ";
-    std::cerr << "OutputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " ReferenceImage TargetImage OutputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -50,42 +52,36 @@ itkPhilipsRECImageIOOrientationTest(int argc, char * argv[])
   using SubtractImageFilterType = itk::SubtractImageFilter<ImageType, ImageType, ImageType>;
   using NearestInterpType = itk::NearestNeighborInterpolateImageFunction<ImageType, ScalarType>;
 
-  ReaderType::Pointer referenceReader = ReaderType::New();
+  auto referenceReader = ReaderType::New();
   referenceReader->SetImageIO(PhilipsRECImageIOType::New());
   referenceReader->SetFileName(argv[1]);
 
-  ReaderType::Pointer targetReader = ReaderType::New();
+  auto targetReader = ReaderType::New();
   targetReader->SetImageIO(PhilipsRECImageIOType::New());
   targetReader->SetFileName(argv[2]);
 
-  AffineTransformType::Pointer transform = AffineTransformType::New();
+  auto transform = AffineTransformType::New();
   transform->SetIdentity();
 
-  ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
+  auto resample = ResampleImageFilterType::New();
   resample->SetInput(referenceReader->GetOutput());
   resample->SetTransform(transform);
   resample->SetInterpolator(NearestInterpType::New());
   resample->UseReferenceImageOn();
   resample->SetReferenceImage(targetReader->GetOutput());
 
-  SubtractImageFilterType::Pointer subtract = SubtractImageFilterType::New();
+  auto subtract = SubtractImageFilterType::New();
   subtract->SetInput1(targetReader->GetOutput());
   subtract->SetInput2(resample->GetOutput());
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(subtract->GetOutput());
   writer->UseCompressionOn();
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

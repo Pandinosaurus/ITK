@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,7 @@
  *=========================================================================*/
 #include "itkCommand.h"
 #include <algorithm>
+#include <memory> // For unique_ptr.
 
 #include "itkSingleton.h"
 
@@ -39,6 +40,8 @@ itkGetGlobalValueMacro(Object, bool, GlobalWarningDisplay, true);
 
 bool * Object::m_GlobalWarningDisplay;
 
+namespace
+{
 class ITKCommon_HIDDEN Observer
 {
 public:
@@ -47,28 +50,20 @@ public:
     , m_Event(event)
     , m_Tag(tag)
   {}
-  virtual ~Observer();
-  Command::Pointer    m_Command;
-  const EventObject * m_Event;
-  unsigned long       m_Tag;
+  Command::Pointer                   m_Command;
+  std::unique_ptr<const EventObject> m_Event;
+  unsigned long                      m_Tag;
 };
-/* Create Out-of-line Definition */
-Observer::~Observer()
-{
-  delete m_Event;
-}
+} // namespace
 
-class ITKCommon_HIDDEN SubjectImplementation
+class ITKCommon_HIDDEN Object::SubjectImplementation
 {
 public:
-  SubjectImplementation() { m_Count = 0; }
-  ~SubjectImplementation();
+  SubjectImplementation() = default;
+  ~SubjectImplementation() = default;
 
   unsigned long
   AddObserver(const EventObject & event, Command * cmd);
-
-  unsigned long
-  AddObserver(const EventObject & event, Command * cmd) const;
 
   void
   RemoveObserver(unsigned long tag);
@@ -85,7 +80,7 @@ public:
   Command *
   GetCommand(unsigned long tag);
 
-  bool
+  [[nodiscard]] bool
   HasObserver(const EventObject & event) const;
 
   bool
@@ -93,7 +88,7 @@ public:
 
   bool m_ListModified{ false };
 
-protected:
+private:
   // RAII of ListModified state to ensure exception safety
   struct SaveRestoreListModified
   {
@@ -114,50 +109,28 @@ protected:
 
   template <typename TObject>
   void
-  InvokeEventRecursion(const EventObject & event, TObject * self, std::list<Observer *>::reverse_iterator & i);
+  InvokeEventRecursion(const EventObject & event, TObject * self, std::list<Observer>::const_reverse_iterator & i);
 
-private:
-  std::list<Observer *> m_Observers;
-  unsigned long         m_Count;
+  std::list<Observer> m_Observers;
+  unsigned long       m_Count{ 0 };
 };
 
-SubjectImplementation::~SubjectImplementation()
-{
-  for (auto & observer : m_Observers)
-  {
-    delete observer;
-  }
-}
-
 unsigned long
-SubjectImplementation::AddObserver(const EventObject & event, Command * cmd)
+Object::SubjectImplementation::AddObserver(const EventObject & event, Command * cmd)
 {
-  auto * ptr = new Observer(cmd, event.MakeObject(), m_Count);
-
-  m_Observers.push_back(ptr);
-  m_Count++;
-  return ptr->m_Tag;
-}
-
-unsigned long
-SubjectImplementation::AddObserver(const EventObject & event, Command * cmd) const
-{
-  auto * ptr = new Observer(cmd, event.MakeObject(), m_Count);
-  auto * me = const_cast<SubjectImplementation *>(this);
-
-  me->m_Observers.push_back(ptr);
-  me->m_Count++;
-  return ptr->m_Tag;
+  const unsigned long tag{ m_Count };
+  m_Observers.emplace_back(cmd, event.MakeObject(), tag);
+  ++m_Count;
+  return tag;
 }
 
 void
-SubjectImplementation::RemoveObserver(unsigned long tag)
+Object::SubjectImplementation::RemoveObserver(unsigned long tag)
 {
   for (auto i = m_Observers.begin(); i != m_Observers.end(); ++i)
   {
-    if ((*i)->m_Tag == tag)
+    if (i->m_Tag == tag)
     {
-      delete (*i);
       m_Observers.erase(i);
       m_ListModified = true;
       return;
@@ -166,18 +139,14 @@ SubjectImplementation::RemoveObserver(unsigned long tag)
 }
 
 void
-SubjectImplementation::RemoveAllObservers()
+Object::SubjectImplementation::RemoveAllObservers()
 {
-  for (auto & observer : m_Observers)
-  {
-    delete observer;
-  }
   m_Observers.clear();
   m_ListModified = true;
 }
 
 void
-SubjectImplementation::InvokeEvent(const EventObject & event, Object * self)
+Object::SubjectImplementation::InvokeEvent(const EventObject & event, Object * self)
 {
   // While an event is being invoked, it's possible to remove
   // observers, or another event to be invoked. All methods which
@@ -185,26 +154,26 @@ SubjectImplementation::InvokeEvent(const EventObject & event, Object * self)
   // m_ListModified flag. The modified flag is save to the stack and
   // marked false before recursively saving the current list.
 
-  SaveRestoreListModified save(this);
+  const SaveRestoreListModified save(this);
 
-  auto i = m_Observers.rbegin();
+  auto i = m_Observers.crbegin();
   InvokeEventRecursion(event, self, i);
 }
 
 void
-SubjectImplementation::InvokeEvent(const EventObject & event, const Object * self)
+Object::SubjectImplementation::InvokeEvent(const EventObject & event, const Object * self)
 {
-  SaveRestoreListModified save(this);
+  const SaveRestoreListModified save(this);
 
-  auto i = m_Observers.rbegin();
+  auto i = m_Observers.crbegin();
   InvokeEventRecursion(event, self, i);
 }
 
 template <typename TObject>
 void
-SubjectImplementation::InvokeEventRecursion(const EventObject &                       event,
-                                            TObject *                                 self,
-                                            std::list<Observer *>::reverse_iterator & i)
+Object::SubjectImplementation::InvokeEventRecursion(const EventObject &                           event,
+                                                    TObject *                                     self,
+                                                    std::list<Observer>::const_reverse_iterator & i)
 {
   // This method recursively visits the list of observers in reverse
   // order so that on the last recursion the first observer can be
@@ -219,15 +188,20 @@ SubjectImplementation::InvokeEventRecursion(const EventObject &                 
   {
 
     // save observer
-    const Observer * o = *i;
+    const Observer & o = *i;
 
-    if (o->m_Event->CheckEvent(&event))
+    // Save its tag, before the observer could /possibly/ be removed.
+    const unsigned long tag{ o.m_Tag };
+
+    if (o.m_Event->CheckEvent(&event))
     {
       InvokeEventRecursion(event, self, ++i);
 
-      if (!m_ListModified || std::find(m_Observers.begin(), m_Observers.end(), o) != m_Observers.end())
+      const auto hasSameTag = [tag](const Observer & observer) { return observer.m_Tag == tag; };
+
+      if (!m_ListModified || std::any_of(m_Observers.begin(), m_Observers.end(), hasSameTag))
       {
-        o->m_Command->Execute(self, event);
+        o.m_Command->Execute(self, event);
       }
 
       return;
@@ -240,24 +214,24 @@ SubjectImplementation::InvokeEventRecursion(const EventObject &                 
 }
 
 Command *
-SubjectImplementation::GetCommand(unsigned long tag)
+Object::SubjectImplementation::GetCommand(unsigned long tag)
 {
-  for (auto & observer : m_Observers)
+  for (const auto & observer : m_Observers)
   {
-    if (observer->m_Tag == tag)
+    if (observer.m_Tag == tag)
     {
-      return observer->m_Command;
+      return observer.m_Command;
     }
   }
   return nullptr;
 }
 
 bool
-SubjectImplementation::HasObserver(const EventObject & event) const
+Object::SubjectImplementation::HasObserver(const EventObject & event) const
 {
-  for (auto observer : m_Observers)
+  for (const auto & observer : m_Observers)
   {
-    const EventObject * e = observer->m_Event;
+    const EventObject * e = observer.m_Event.get();
     if (e->CheckEvent(&event))
     {
       return true;
@@ -267,21 +241,21 @@ SubjectImplementation::HasObserver(const EventObject & event) const
 }
 
 bool
-SubjectImplementation::PrintObservers(std::ostream & os, Indent indent) const
+Object::SubjectImplementation::PrintObservers(std::ostream & os, Indent indent) const
 {
   if (m_Observers.empty())
   {
     return false;
   }
 
-  for (auto observer : m_Observers)
+  for (const auto & observer : m_Observers)
   {
-    const EventObject * e = observer->m_Event;
-    const Command *     c = observer->m_Command;
-    os << indent << e->GetEventName() << "(" << c->GetNameOfClass();
+    const EventObject * e = observer.m_Event.get();
+    const Command *     c = observer.m_Command;
+    os << indent << e->GetEventName() << '(' << c->GetNameOfClass();
     if (!c->GetObjectName().empty())
     {
-      os << " \"" << c->GetObjectName() << "\"";
+      os << " \"" << c->GetObjectName() << '"';
     }
     os << ")\n";
   }
@@ -291,14 +265,13 @@ SubjectImplementation::PrintObservers(std::ostream & os, Indent indent) const
 Object::Pointer
 Object::New()
 {
-  Pointer  smartPtr;
-  Object * rawPtr = ::itk::ObjectFactory<Object>::Create();
+  Object * rawPtr = itk::ObjectFactory<Object>::Create();
 
   if (rawPtr == nullptr)
   {
     rawPtr = new Object;
   }
-  smartPtr = rawPtr;
+  Pointer smartPtr = rawPtr;
   rawPtr->UnRegister();
   return smartPtr;
 }
@@ -387,8 +360,7 @@ Object::Modified() const
 void
 Object::Register() const
 {
-  itkDebugMacro(<< "Registered, "
-                << "ReferenceCount = " << (m_ReferenceCount + 1));
+  itkDebugMacro("Registered, ReferenceCount = " << (m_ReferenceCount + 1));
 
   // call the parent
   Superclass::Register();
@@ -401,8 +373,7 @@ void
 Object::UnRegister() const noexcept
 {
   // call the parent
-  itkDebugMacro(<< "UnRegistered, "
-                << "ReferenceCount = " << (m_ReferenceCount - 1));
+  itkDebugMacro("UnRegistered, ReferenceCount = " << (m_ReferenceCount - 1));
 
   if ((m_ReferenceCount - 1) <= 0)
   {
@@ -422,7 +393,7 @@ Object::UnRegister() const noexcept
       {
         if (GetGlobalWarningDisplay())
         {
-          ::itk::OutputWindowDisplayWarningText("WARNING: Exception occurred in DeleteEvent Observer!");
+          itk::OutputWindowDisplayWarningText("WARNING: Exception occurred in DeleteEvent Observer!");
         }
       }
       catch (...)
@@ -441,7 +412,7 @@ Object::UnRegister() const noexcept
 void
 Object::SetReferenceCount(int ref)
 {
-  itkDebugMacro(<< "Reference Count set to " << ref);
+  itkDebugMacro("Reference Count set to " << ref);
 
   // ReferenceCount in now unlocked.  We may have a race condition to
   // to delete the object.
@@ -483,22 +454,11 @@ Object::GetGlobalWarningDisplay()
 }
 
 unsigned long
-Object::AddObserver(const EventObject & event, Command * cmd)
-{
-  if (!this->m_SubjectImplementation)
-  {
-    this->m_SubjectImplementation = new SubjectImplementation;
-  }
-  return this->m_SubjectImplementation->AddObserver(event, cmd);
-}
-
-unsigned long
 Object::AddObserver(const EventObject & event, Command * cmd) const
 {
   if (!this->m_SubjectImplementation)
   {
-    auto * me = const_cast<Self *>(this);
-    me->m_SubjectImplementation = new SubjectImplementation;
+    this->m_SubjectImplementation = std::make_unique<SubjectImplementation>();
   }
   return this->m_SubjectImplementation->AddObserver(event, cmd);
 }
@@ -523,7 +483,7 @@ Object::GetCommand(unsigned long tag)
 }
 
 void
-Object::RemoveObserver(unsigned long tag)
+Object::RemoveObserver(unsigned long tag) const
 {
   if (this->m_SubjectImplementation)
   {
@@ -589,12 +549,7 @@ Object::Object()
   this->Modified();
 }
 
-Object::~Object()
-{
-  itkDebugMacro(<< "Destructing!");
-  delete m_SubjectImplementation;
-  delete m_MetaDataDictionary;
-}
+Object::~Object() { itkDebugMacro("Destructing!"); }
 
 /**
  * Chaining method to print an object's instance variables, as well as
@@ -620,7 +575,7 @@ Object::GetMetaDataDictionary()
 {
   if (m_MetaDataDictionary == nullptr)
   {
-    m_MetaDataDictionary = new MetaDataDictionary;
+    m_MetaDataDictionary = std::make_unique<MetaDataDictionary>();
   }
   return *m_MetaDataDictionary;
 }
@@ -630,7 +585,7 @@ Object::GetMetaDataDictionary() const
 {
   if (m_MetaDataDictionary == nullptr)
   {
-    m_MetaDataDictionary = new MetaDataDictionary;
+    m_MetaDataDictionary = std::make_unique<MetaDataDictionary>();
   }
   return *m_MetaDataDictionary;
 }
@@ -640,7 +595,7 @@ Object::SetMetaDataDictionary(const MetaDataDictionary & rhs)
 {
   if (m_MetaDataDictionary == nullptr)
   {
-    m_MetaDataDictionary = new MetaDataDictionary(rhs);
+    m_MetaDataDictionary = std::make_unique<MetaDataDictionary>(rhs);
     return;
   }
   *m_MetaDataDictionary = rhs;
@@ -651,7 +606,7 @@ Object::SetMetaDataDictionary(MetaDataDictionary && rrhs)
 {
   if (m_MetaDataDictionary == nullptr)
   {
-    m_MetaDataDictionary = new MetaDataDictionary(std::move(rrhs));
+    m_MetaDataDictionary = std::make_unique<MetaDataDictionary>(std::move(rrhs));
     return;
   }
   *m_MetaDataDictionary = std::move(rrhs);

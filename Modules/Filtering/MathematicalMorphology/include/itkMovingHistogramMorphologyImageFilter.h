@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MovingHistogramMorphologyImageFilter, MovingHistogramImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MovingHistogramMorphologyImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -67,7 +67,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
   using OutputPixelType = typename TOutputImage::PixelType;
 
   /** Image related type alias. */
@@ -88,9 +88,10 @@ public:
 
   /** Set/Get the boundary value.
    *  Subclasses should set their own values. */
+  /** @ITKStartGrouping */
   itkSetMacro(Boundary, PixelType);
   itkGetConstMacro(Boundary, PixelType);
-
+  /** @ITKEndGrouping */
   /** Return true if the vector based algorithm is used, and
    * false if the map based algorithm is used */
   static bool
@@ -115,7 +116,7 @@ protected:
   void
   ConfigureHistogram(THistogram & histogram) override;
 
-  PixelType m_Boundary;
+  PixelType m_Boundary{};
 }; // end of class
 } // end namespace itk
 

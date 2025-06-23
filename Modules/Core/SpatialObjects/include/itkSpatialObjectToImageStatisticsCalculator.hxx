@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,59 +18,55 @@
 #ifndef itkSpatialObjectToImageStatisticsCalculator_hxx
 #define itkSpatialObjectToImageStatisticsCalculator_hxx
 
-#include "itkSpatialObjectToImageStatisticsCalculator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 #include "itkMeanSampleFilter.h"
 #include "itkCovarianceSampleFilter.h"
 #include "itkImageMaskSpatialObject.h"
+#include <algorithm> // For max.
 
 namespace itk
 {
-/** Constructor */
+
 template <typename TInputImage, typename TInputSpatialObject, unsigned int TSampleDimension>
 SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSampleDimension>::
   SpatialObjectToImageStatisticsCalculator()
+  : m_Image(nullptr)
+  , m_SpatialObject(nullptr)
+  , m_Sum(0)
+  , m_SampleDirection(TSampleDimension - 1)
+  , m_Sample(SampleType::New())
 {
-  m_Image = nullptr;
-  m_SpatialObject = nullptr;
   m_Mean.Fill(0);
   m_CovarianceMatrix.SetIdentity();
-  m_SampleDirection = TSampleDimension - 1;
-  m_InternalImageTime = 0;
-  m_InternalSpatialObjectTime = 0;
-  m_Sum = 0;
-  m_NumberOfPixels = 0;
-  m_Sample = SampleType::New();
 }
 
-/** Compute Statistics from the Sample vector */
 template <typename TInputImage, typename TInputSpatialObject, unsigned int TSampleDimension>
 bool
 SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSampleDimension>::ComputeStatistics()
 {
   using MeanAlgorithmType = itk::Statistics::MeanSampleFilter<SampleType>;
-  typename MeanAlgorithmType::Pointer meanAlgorithm = MeanAlgorithmType::New();
+  auto meanAlgorithm = MeanAlgorithmType::New();
   meanAlgorithm->SetInput(m_Sample);
   meanAlgorithm->Update();
 
   typename MeanAlgorithmType::MeasurementVectorType mean = meanAlgorithm->GetMean();
 
-  for (unsigned int i = 0; i < SampleDimension; i++)
+  for (unsigned int i = 0; i < SampleDimension; ++i)
   {
     m_Mean[i] = mean[i];
   }
 
   using CovarianceAlgorithmType = itk::Statistics::CovarianceSampleFilter<SampleType>;
-  typename CovarianceAlgorithmType::Pointer covarianceAlgorithm = CovarianceAlgorithmType::New();
+  auto covarianceAlgorithm = CovarianceAlgorithmType::New();
 
   covarianceAlgorithm->SetInput(m_Sample);
   covarianceAlgorithm->Update();
 
   typename CovarianceAlgorithmType::MatrixType covarianceMatrix = covarianceAlgorithm->GetCovarianceMatrix();
-  for (unsigned int i = 0; i < covarianceMatrix.Rows(); i++)
+  for (unsigned int i = 0; i < covarianceMatrix.Rows(); ++i)
   {
-    for (unsigned int j = 0; j < covarianceMatrix.Rows(); j++)
+    for (unsigned int j = 0; j < covarianceMatrix.Rows(); ++j)
     {
       m_CovarianceMatrix(i, j) = covarianceMatrix(i, j);
     }
@@ -79,7 +75,6 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
   return true;
 }
 
-/** */
 template <typename TInputImage, typename TInputSpatialObject, unsigned int TSampleDimension>
 void
 SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSampleDimension>::Update()
@@ -111,21 +106,20 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
     using MaskImageType = Image<unsigned char, Self::ObjectDimension>;
     using MaskSOType = ImageMaskSpatialObject<Self::ObjectDimension>;
 
-    typename MaskSOType::Pointer maskSpatialObject = dynamic_cast<MaskSOType *>(m_SpatialObject.GetPointer());
+    const typename MaskSOType::Pointer maskSpatialObject = dynamic_cast<MaskSOType *>(m_SpatialObject.GetPointer());
     if (maskSpatialObject.IsNull())
     {
       itkExceptionMacro("Invalid dynamic cast.");
     }
 
-    typename MaskImageType::ConstPointer maskImage = maskSpatialObject->GetImage();
+    const typename MaskImageType::ConstPointer maskImage = maskSpatialObject->GetImage();
 
     using MaskIteratorType = ImageRegionConstIteratorWithIndex<MaskImageType>;
     MaskIteratorType it(maskImage, maskImage->GetLargestPossibleRegion());
-    it.GoToBegin();
-    IndexType  ind;
-    PointType  pnt;
-    PointType  tPnt;
-    VectorType mv;
+    IndexType        ind;
+    PointType        pnt;
+    PointType        tPnt;
+    VectorType       mv;
     while (!it.IsAtEnd())
     {
       if (it.Get() > 0) // if inside the mask
@@ -136,14 +130,14 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
         ind = m_Image->TransformPhysicalPointToIndex(tPnt);
         mv[0] = m_Image->GetPixel(ind);
         m_Sum += static_cast<AccumulateType>(mv[0]);
-        for (unsigned int i = 1; i < Self::SampleDimension; i++)
+        for (unsigned int i = 1; i < Self::SampleDimension; ++i)
         {
           ind[m_SampleDirection] += 1;
           mv[i] = m_Image->GetPixel(ind);
           m_Sum += static_cast<AccumulateType>(mv[i]);
         }
         m_Sample->PushBack(mv);
-        m_NumberOfPixels++;
+        ++m_NumberOfPixels;
       }
       ++it;
     }
@@ -159,7 +153,7 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
     Point<double, Self::ObjectDimension> ptMin;
     Point<double, Self::ObjectDimension> ptMax;
     SizeType                             size;
-    for (unsigned int i = 0; i < Self::ObjectDimension; i++)
+    for (unsigned int i = 0; i < Self::ObjectDimension; ++i)
     {
       ptMin[i] = bounds[i * 2];
       ptMax[i] = bounds[i * 2 + 1];
@@ -168,18 +162,15 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
     auto      indMax = m_Image->TransformPhysicalPointToIndex(ptMax);
     IndexType imageIndex = m_Image->GetLargestPossibleRegion().GetIndex();
     SizeType  imageSize = m_Image->GetLargestPossibleRegion().GetSize();
-    for (unsigned int i = 0; i < Self::ObjectDimension; i++)
+    for (unsigned int i = 0; i < Self::ObjectDimension; ++i)
     {
       if (indMin[i] > indMax[i])
       {
-        int tmpI = indMin[i];
+        const int tmpI = indMin[i];
         indMin[i] = indMax[i];
         indMax[i] = tmpI;
       }
-      if (indMin[i] < imageIndex[i])
-      {
-        indMin[i] = imageIndex[i];
-      }
+      indMin[i] = std::max(indMin[i], imageIndex[i]);
       size[i] = indMax[i] - indMin[i] + 1;
       if (indMin[i] + size[i] < imageIndex[i] + imageSize[i])
       {
@@ -187,16 +178,13 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
       }
     }
 
-    RegionType region;
-    region.SetIndex(indMin);
-    region.SetSize(size);
+    const RegionType region(indMin, size);
 
     using IteratorType = ImageRegionConstIteratorWithIndex<ImageType>;
-    IteratorType it = IteratorType(m_Image, region);
-    it.GoToBegin();
-    IndexType  ind;
-    PointType  pnt;
-    VectorType mv;
+    IteratorType it(m_Image, region);
+    IndexType    ind;
+    PointType    pnt;
+    VectorType   mv;
     while (!it.IsAtEnd())
     {
       ind = it.GetIndex();
@@ -205,14 +193,14 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
       {
         mv[0] = it.Get();
         m_Sum += static_cast<AccumulateType>(mv[0]);
-        for (unsigned int i = 1; i < Self::SampleDimension; i++)
+        for (unsigned int i = 1; i < Self::SampleDimension; ++i)
         {
           ind[m_SampleDirection] += 1;
           mv[i] = m_Image->GetPixel(ind);
           m_Sum += static_cast<AccumulateType>(mv[i]);
         }
         m_Sample->PushBack(mv);
-        m_NumberOfPixels++;
+        ++m_NumberOfPixels;
       }
       ++it;
     }
@@ -228,16 +216,25 @@ SpatialObjectToImageStatisticsCalculator<TInputImage, TInputSpatialObject, TSamp
   Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Image: " << m_Image << std::endl;
-  os << indent << "SpatialObject: " << m_SpatialObject << std::endl;
+
+  itkPrintSelfObjectMacro(Image);
+  itkPrintSelfObjectMacro(SpatialObject);
+
   os << indent << "Mean: " << m_Mean << std::endl;
-  os << indent << "Covariance Matrix: " << m_CovarianceMatrix << std::endl;
-  os << indent << "Sum: " << m_Sum << std::endl;
-  os << indent << "m_NumberOfPixels: " << m_NumberOfPixels << std::endl;
-  os << indent << "Internal Image Time: " << m_InternalImageTime << std::endl;
-  os << indent << "Internal Spatial Object Time: " << m_InternalSpatialObjectTime << std::endl;
+  os << indent << "Sum: " << static_cast<typename NumericTraits<AccumulateType>::PrintType>(m_Sum) << std::endl;
+  os << indent << "NumberOfPixels: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfPixels)
+     << std::endl;
+  os << indent << "CovarianceMatrix: " << m_CovarianceMatrix << std::endl;
   os << indent << "SampleDirection: " << m_SampleDirection << std::endl;
-  os << indent << "Sample: " << m_Sample << std::endl;
+  os << indent
+     << "InternalImageTime: " << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(m_InternalImageTime)
+     << std::endl;
+  os << indent << "InternalSpatialObjectTime: "
+     << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(m_InternalSpatialObjectTime) << std::endl;
+  os << indent << "ModifiedTime: " << static_cast<typename NumericTraits<TimeStamp>::PrintType>(m_ModifiedTime)
+     << std::endl;
+
+  itkPrintSelfObjectMacro(Sample);
 }
 
 } // end namespace itk

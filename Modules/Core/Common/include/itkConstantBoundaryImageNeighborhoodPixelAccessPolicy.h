@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ private:
 
   // Private helper function. Tells whether the pixel at 'pixelIndex' is inside the image.
   static bool
-  IsInside(const IndexType & pixelIndex, const ImageSizeType & imageSize) ITK_NOEXCEPT
+  IsInside(const IndexType & pixelIndex, const ImageSizeType & imageSize) noexcept
   {
     bool result = true;
 
@@ -86,7 +86,7 @@ private:
   // Private helper function. Calculates and returns the index value of the
   // current pixel within the image buffer.
   static IndexValueType
-  CalculatePixelIndexValue(const OffsetType & offsetTable, const IndexType & pixelIndex) ITK_NOEXCEPT
+  CalculatePixelIndexValue(const OffsetType & offsetTable, const IndexType & pixelIndex) noexcept
   {
     IndexValueType result = 0;
 
@@ -118,18 +118,17 @@ public:
                                                      const OffsetType &                      offsetTable,
                                                      const NeighborhoodAccessorFunctorType & neighborhoodAccessor,
                                                      const IndexType &                       pixelIndex,
-                                                     const PixelType                         constant = {}) ITK_NOEXCEPT
+                                                     const PixelType                         constant = {}) noexcept
     : m_PixelIndexValue{ IsInside(pixelIndex, imageSize) ? CalculatePixelIndexValue(offsetTable, pixelIndex) : -1 }
     , m_NeighborhoodAccessor(neighborhoodAccessor)
     , m_Constant{ constant }
   {}
 
-
   /** Retrieves the pixel value from the image buffer, at the current
    * index. When the index is out of bounds, it returns the constant
    * value specified during construction. */
   PixelType
-  GetPixelValue(const InternalPixelType * const imageBufferPointer) const ITK_NOEXCEPT
+  GetPixelValue(const InternalPixelType * const imageBufferPointer) const noexcept
   {
     return (m_PixelIndexValue < 0) ? m_Constant : m_NeighborhoodAccessor.Get(imageBufferPointer + m_PixelIndexValue);
   }
@@ -137,7 +136,7 @@ public:
   /** Sets the value of the image buffer at the current index value to the
    * specified value.  */
   void
-  SetPixelValue(InternalPixelType * const imageBufferPointer, const PixelType & pixelValue) const ITK_NOEXCEPT
+  SetPixelValue(InternalPixelType * const imageBufferPointer, const PixelType & pixelValue) const noexcept
   {
     if (m_PixelIndexValue >= 0)
     {
@@ -145,7 +144,6 @@ public:
     }
   }
 };
-
 
 } // namespace itk
 

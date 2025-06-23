@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,25 +39,13 @@
 namespace itk
 {
 /**
- *\class BSplineResampleImageFilterBase
+ * \class BSplineResampleImageFilterBase
  *  \brief Uses the "l2" spline pyramid implementation of B-Spline Filters to
  *        up/down sample an image by a factor of 2.
  *
  * This class defines N-Dimension B-Spline transformation.
- * It is based on:
- *    [1] M. Unser,
- *       "Splines: A Perfect Fit for Signal and Image Processing,"
- *        IEEE Signal Processing Magazine, vol. 16, no. 6, pp. 22-38,
- *        November 1999.
- *    [2] M. Unser, A. Aldroubi and M. Eden,
- *        "B-Spline Signal Processing: Part I--Theory,"
- *        IEEE Transactions on Signal Processing, vol. 41, no. 2, pp. 821-832,
- *        February 1993.
- *    [3] M. Unser, A. Aldroubi and M. Eden,
- *        "B-Spline Signal Processing: Part II--Efficient Design and Applications,"
- *        IEEE Transactions on Signal Processing, vol. 41, no. 2, pp. 834-848,
- *        February 1993.
- * And code obtained from bigwww.epfl.ch by Philippe Thevenaz
+ * It is based on \cite unser1999, \cite unser1993 and \cite unser1993a.
+ * Code obtained from bigwww.epfl.ch by Philippe Thevenaz
  *
  * Limitations:  Spline order for the l2 pyramid must be between 0 and 3.
  *               This code cannot be multi-threaded since the entire image must be
@@ -91,14 +79,14 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineResampleImageFilterBase, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineResampleImageFilterBase);
 
   /** New macro for creation of through a Smart Pointer */
   //  Must be instantiated through another class. itkNewMacro( Self );
 
   /** InputInputImage type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Dimension underlying input image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -113,7 +101,7 @@ public:
   using RegionType = typename TInputImage::RegionType;
 
   /** OutputImagePixelType type alias support */
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Iterator type alias support */
   using ConstInputImageIterator = itk::ImageLinearConstIteratorWithIndex<TInputImage>;
@@ -146,14 +134,22 @@ protected:
   virtual void
   InitializePyramidSplineFilter(int SplineOrder);
 
-  /** The basic operator for reducing a line of data by a factor of 2 */
+  /** Reduce the input data vector by a factor of 2 and writes the results to the location specified by the output
+   * Iterator.
+   *
+   * \p inTraverseSize is the size of the input vector.
+   */
   virtual void
   Reduce1DImage(const std::vector<double> & in,
                 OutputImageIterator &       out,
                 unsigned int                inTraverseSize,
                 ProgressReporter &          progress);
 
-  /** The basic operator for expanding a line of data by a factor of 2 */
+  /** Expand the input data vector by a factor of 2 and writes the results to the location specified by the output
+   * Iterator
+   *
+   * \p inTraverseSize is the size of the in vector.
+   */
   virtual void
   Expand1DImage(const std::vector<double> & in,
                 OutputImageIterator &       out,
@@ -165,20 +161,19 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  int m_SplineOrder; // User specified spline order
-  int m_GSize;       // downsampling filter size
-  int m_HSize;       // upsampling filter size
+  int m_SplineOrder{}; // User specified spline order
+  int m_GSize{};       // downsampling filter size
+  int m_HSize{};       // upsampling filter size
 
-  std::vector<double> m_G; // downsampling filter coefficients
-  std::vector<double> m_H; // upsampling filter coefficients
+  std::vector<double> m_G{}; // downsampling filter coefficients
+  std::vector<double> m_H{}; // upsampling filter coefficients
 
 private:
-  // Resizes m_Scratch Variable based on image sizes
+  /** Allocate scratch space based on image sizes. */
   void
   InitializeScratch(SizeType DataLength);
 
-  // Copies a line of data from the input to the m_Scratch for subsequent
-  // processing
+  /** Copy a line of data from the input to the m_Scratch for subsequent processing. */
   void
   CopyInputLineToScratch(ConstInputImageIterator & Iter);
 
@@ -188,8 +183,8 @@ private:
   void
   CopyLineToScratch(ConstInputImageIterator & Iter);
 
-  std::vector<double> m_Scratch; // temp storage for processing
-                                 // of Coefficients
+  std::vector<double> m_Scratch{}; // temp storage for processing
+                                   // of Coefficients
 };
 } // namespace itk
 

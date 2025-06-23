@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,26 +18,21 @@
 #ifndef itkPathConstIterator_hxx
 #define itkPathConstIterator_hxx
 
-#include "itkPathConstIterator.h"
 #include "itkOffset.h" // for operator++
 
 namespace itk
 {
 template <typename TImage, typename TPath>
 PathConstIterator<TImage, TPath>::PathConstIterator(const ImageType * imagePtr, const PathType * pathPtr)
+  : m_Image(imagePtr)
+  , m_Path(pathPtr)
+  , m_Region(m_Image->GetLargestPossibleRegion())
+  , m_ImageOrigin(m_Image->GetOrigin())
+  , m_ImageSpacing(m_Image->GetSpacing())
+  , m_ImageSize(m_Region.GetSize().m_InternalArray)
+  , m_VisitStartIndexAsLastIndexIfClosed(true)
 {
   m_ZeroOffset.Fill(0);
-
-  m_Image = imagePtr;
-  m_Path = pathPtr;
-
-  m_ImageOrigin = m_Image->GetOrigin();
-  m_ImageSpacing = m_Image->GetSpacing();
-  m_Region = m_Image->GetLargestPossibleRegion();
-  m_ImageSize = m_Region.GetSize().m_InternalArray;
-
-  m_VisitStartIndexAsLastIndexIfClosed = true;
-
   GoToBegin();
 }
 
@@ -64,7 +59,7 @@ template <typename TImage, typename TPath>
 void
 PathConstIterator<TImage, TPath>::GoToBegin()
 {
-  // Go the the beginning
+  // Go the beginning
   m_CurrentPathPosition = m_Path->StartOfInput();
 
   // But don't visit the first index twice for closed paths (unless told to)
@@ -98,7 +93,7 @@ PathConstIterator<TImage, TPath>::operator++()
     // The new index is outside the acceptable region.  We can iterate no
     // farther, call this the end.  NOTE THAT INPUT IS STILL INCREMENTED.
     m_IsAtEnd = true;
-    itkWarningMacro(<< "Path left region; unable to finish tracing it");
+    itkWarningMacro("Path left region; unable to finish tracing it");
   }
   else
   {

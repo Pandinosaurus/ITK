@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,38 +20,39 @@
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
+
+/** Execute the filter on user-provided input */
 
 template <typename TIMAGE>
 int
-itkDiscreteGaussianImageFilterTestA(int argc, char * argv[])
+itkDiscreteGaussianImageFilterTestA(const char *       inputFilename,
+                                    const char *       outputFilename,
+                                    const float        sigma,
+                                    const float        kernelError,
+                                    const unsigned int kernelWidth,
+                                    const unsigned int filterDimensionality)
 {
-  if (argc < 6)
-  {
-    std::cerr << "Missing Arguments" << std::endl;
-    return EXIT_FAILURE;
-  }
-
   using ImageType = TIMAGE;
 
-  const char * input_file_name = argv[3];
-  float        sigma = std::stod(argv[4]);
-  const char * output_file_name = argv[5];
-
   using ReaderType = itk::ImageFileReader<ImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(input_file_name);
+  auto reader = ReaderType::New();
+  reader->SetFileName(inputFilename);
 
   using FilterType = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
 
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(reader->GetOutput());
-  filter->SetVariance(sigma);
+  filter->SetSigma(sigma);
+  filter->SetMaximumError(kernelError);
+  filter->SetMaximumKernelWidth(kernelWidth);
+  filter->SetFilterDimensionality(filterDimensionality);
   filter->Update();
 
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(output_file_name);
+  auto writer = WriterType::New();
+  writer->SetFileName(outputFilename);
   writer->SetInput(filter->GetOutput());
   writer->UseCompressionOn();
   writer->Update();
@@ -62,49 +63,56 @@ itkDiscreteGaussianImageFilterTestA(int argc, char * argv[])
 int
 itkDiscreteGaussianImageFilterTest2(int argc, char * argv[])
 {
-
-  if (argc < 3)
+  if (argc < 5)
   {
-    std::cerr << "Test DiscreteGaussianImageFilter working on both vector type and scalar type images on one 2D RGB "
-                 "image and 2D scalar image."
-              << std::endl
-              << "DiscreteGaussianImageFilterTest #image_dim #vector_dim #image_file_name #sigma #output_file_name"
-              << std::endl
-              << "e.g. test on a vector image: " << std::endl
-              << "DiscreteGaussianImageFilterTest 2 3 ShapesRGB.mha 4.5 ShapesRGB_Smoothed.mha" << std::endl
-              << "test on a scalar image: " << std::endl
-              << "DiscreteGaussianImageFilterTest 2 3 Shapes.mha 4.5 Shapes_Smoothed.mha" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage:" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " imageDimension vectorDimension inputFilename outputFilename"
+              << " [sigma] [kernelError] [kernelWidth] [filterDimensionality]" << std::endl;
     return EXIT_FAILURE;
   }
 
-  unsigned int img_dim = std::stoi(argv[1]);
-  unsigned int vec_dim = std::stoi(argv[2]);
-
-  if (img_dim != 2)
+  const unsigned int img_dim = std::stoi(argv[1]);
+  if (img_dim < 2 || img_dim > 3)
   {
-    std::cerr << "This test only supports 2D image for demo! exiting ..." << std::endl;
+    std::cerr << "This test only supports 2D or 3D images for demo! exiting ..." << std::endl;
     return EXIT_FAILURE;
   }
 
+  const unsigned int vec_dim = std::stoi(argv[2]);
   if (vec_dim != 1 && vec_dim != 3)
   {
     std::cerr << "This test only supports 3-channel image or 1-channel image for demo! Exiting ... " << std::endl;
     return EXIT_FAILURE;
   }
 
-  using ScalarPixelType = float;
-  using ScalarImageType = itk::Image<ScalarPixelType, 2>;
-  using VectorPixelType = itk::Vector<ScalarPixelType, 3>;
-  using VectorImageType = itk::Image<VectorPixelType, 2>;
+  const float        sigma = (argc > 5) ? std::stof(argv[5]) : 0.0;
+  const float        kernelError = (argc > 6) ? std::stof(argv[6]) : 0.01;
+  const unsigned int kernelWidth = (argc > 7) ? static_cast<unsigned int>(std::stoi(argv[7])) : 32;
+  const unsigned int filterDimensionality = (argc > 8) ? static_cast<unsigned int>(std::stoi(argv[8])) : img_dim;
 
-  switch (vec_dim)
+  using ScalarPixelType = float;
+  using VectorPixelType = itk::Vector<ScalarPixelType, 3>;
+
+  if (img_dim == 2 && vec_dim == 1)
   {
-    case 1:
-      itkDiscreteGaussianImageFilterTestA<ScalarImageType>(argc, argv);
-      break;
-    case 3:
-      itkDiscreteGaussianImageFilterTestA<VectorImageType>(argc, argv);
-      break;
+    itkDiscreteGaussianImageFilterTestA<itk::Image<ScalarPixelType, 2>>(
+      argv[3], argv[4], sigma, kernelError, kernelWidth, filterDimensionality);
+  }
+  else if (img_dim == 2 && vec_dim == 3)
+  {
+    itkDiscreteGaussianImageFilterTestA<itk::Image<VectorPixelType, 2>>(
+      argv[3], argv[4], sigma, kernelError, kernelWidth, filterDimensionality);
+  }
+  else if (img_dim == 3 && vec_dim == 1)
+  {
+    itkDiscreteGaussianImageFilterTestA<itk::Image<ScalarPixelType, 3>>(
+      argv[3], argv[4], sigma, kernelError, kernelWidth, filterDimensionality);
+  }
+  else if (img_dim == 3 && vec_dim == 3)
+  {
+    itkDiscreteGaussianImageFilterTestA<itk::Image<VectorPixelType, 3>>(
+      argv[3], argv[4], sigma, kernelError, kernelWidth, filterDimensionality);
   }
 
   return EXIT_SUCCESS;

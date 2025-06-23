@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
  *
  * This class is templated over the type of the two point-sets.  It
  * expects a Transform to be plugged in for each of fixed and moving
- * point sets. The transforms default to IdenityTransform types. This particular
+ * point sets. The transforms default to IdentityTransform types. This particular
  * class is the base class for a hierarchy of point-set to point-set metrics.
  *
  * This class computes a value that measures the similarity between the fixed
@@ -78,41 +78,41 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToPointSetMetricv4, PointSetToPointSetMetricWithIndexv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToPointSetMetricv4);
 
   /**  Type of the measure. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::NumberOfParametersType;
 
   /**  Type of the derivative. */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Transform types from Superclass*/
-  using FixedTransformType = typename Superclass::FixedTransformType;
-  using FixedTransformPointer = typename Superclass::FixedTransformPointer;
-  using FixedInputPointType = typename Superclass::FixedInputPointType;
-  using FixedOutputPointType = typename Superclass::FixedOutputPointType;
-  using FixedTransformParametersType = typename Superclass::FixedTransformParametersType;
+  using typename Superclass::FixedTransformType;
+  using typename Superclass::FixedTransformPointer;
+  using typename Superclass::FixedInputPointType;
+  using typename Superclass::FixedOutputPointType;
+  using typename Superclass::FixedTransformParametersType;
 
-  using MovingTransformType = typename Superclass::MovingTransformType;
-  using MovingTransformPointer = typename Superclass::MovingTransformPointer;
-  using MovingInputPointType = typename Superclass::MovingInputPointType;
-  using MovingOutputPointType = typename Superclass::MovingOutputPointType;
-  using MovingTransformParametersType = typename Superclass::MovingTransformParametersType;
+  using typename Superclass::MovingTransformType;
+  using typename Superclass::MovingTransformPointer;
+  using typename Superclass::MovingInputPointType;
+  using typename Superclass::MovingOutputPointType;
+  using typename Superclass::MovingTransformParametersType;
 
-  using JacobianType = typename Superclass::JacobianType;
-  using FixedTransformJacobianType = typename Superclass::FixedTransformJacobianType;
-  using MovingTransformJacobianType = typename Superclass::MovingTransformJacobianType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::FixedTransformJacobianType;
+  using typename Superclass::MovingTransformJacobianType;
 
   using DisplacementFieldTransformType = typename Superclass::MovingDisplacementFieldTransformType;
 
   /** Dimension type */
-  using DimensionType = typename Superclass::DimensionType;
+  using typename Superclass::DimensionType;
 
   /**  Type of the fixed point set. */
   using FixedPointSetType = TFixedPointSet;
@@ -138,37 +138,41 @@ public:
    */
   static constexpr DimensionType PointDimension = Superclass::PointDimension;
 
-  using PointType = typename Superclass::PointType;
-  using PixelType = typename Superclass::PixelType;
-  using CoordRepType = typename PointType::CoordRepType;
+  using typename Superclass::PointType;
+  using typename Superclass::PixelType;
+  using CoordinateType = typename PointType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using PointsContainer = FixedPointsContainer;
   using PointsConstIterator = typename PointsContainer::ConstIterator;
-  using PointIdentifier = typename Superclass::PointIdentifier;
+  using typename Superclass::PointIdentifier;
 
   /** Typedef for points locator class to speed up finding neighboring points */
-  using PointsLocatorType = typename Superclass::PointsLocatorType;
+  using typename Superclass::PointsLocatorType;
   using NeighborsIdentifierType = typename PointsLocatorType::NeighborsIdentifierType;
 
-  using FixedTransformedPointSetType = typename Superclass::FixedTransformedPointSetType;
-  using MovingTransformedPointSetType = typename Superclass::MovingTransformedPointSetType;
+  using typename Superclass::FixedTransformedPointSetType;
+  using typename Superclass::MovingTransformedPointSetType;
 
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
-  using LocalDerivativeType = typename Superclass::LocalDerivativeType;
+  using typename Superclass::DerivativeValueType;
+  using typename Superclass::LocalDerivativeType;
 
   /** Types for the virtual domain */
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualImagePointer = typename Superclass::VirtualImagePointer;
-  using VirtualPixelType = typename Superclass::VirtualPixelType;
-  using VirtualRegionType = typename Superclass::VirtualRegionType;
-  using VirtualSizeType = typename Superclass::VirtualSizeType;
-  using VirtualSpacingType = typename Superclass::VirtualSpacingType;
+  using typename Superclass::VirtualImagePointer;
+  using typename Superclass::VirtualPixelType;
+  using typename Superclass::VirtualRegionType;
+  using typename Superclass::VirtualSizeType;
+  using typename Superclass::VirtualSpacingType;
   using VirtualOriginType = typename Superclass::VirtualPointType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualDirectionType = typename Superclass::VirtualDirectionType;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualDirectionType;
   using VirtualRadiusType = typename Superclass::VirtualSizeType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using VirtualPointSetType = typename Superclass::VirtualPointSetType;
-  using VirtualPointSetPointer = typename Superclass::VirtualPointSetPointer;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::VirtualPointSetType;
+  using typename Superclass::VirtualPointSetPointer;
 
   /**
    * Function to be defined in the appropriate derived classes.  Calculates
@@ -210,7 +214,7 @@ private:
                                      const PixelType & pixel) const override
   {
     return this->GetLocalNeighborhoodValue(point, pixel);
-  };
+  }
 
   LocalDerivativeType
   GetLocalNeighborhoodDerivativeWithIndex(const PointIdentifier &,
@@ -218,7 +222,7 @@ private:
                                           const PixelType & pixel) const override
   {
     return this->GetLocalNeighborhoodDerivative(point, pixel);
-  };
+  }
 
   void
   GetLocalNeighborhoodValueAndDerivativeWithIndex(const PointIdentifier &,
@@ -228,7 +232,7 @@ private:
                                                   const PixelType &     pixel) const override
   {
     this->GetLocalNeighborhoodValueAndDerivative(point, measure, derivative, pixel);
-  };
+  }
 };
 } // end namespace itk
 

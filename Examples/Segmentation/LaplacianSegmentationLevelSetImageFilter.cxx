@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -117,7 +117,7 @@ main(int argc, char * argv[])
   using ThresholdingFilterType =
     itk::BinaryThresholdImageFilter<InternalImageType, OutputImageType>;
 
-  ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
+  auto thresholder = ThresholdingFilterType::New();
 
   thresholder->SetUpperThreshold(10.0);
   thresholder->SetLowerThreshold(0.0);
@@ -125,16 +125,8 @@ main(int argc, char * argv[])
   thresholder->SetOutsideValue(0);
   thresholder->SetInsideValue(255);
 
-  using ReaderType = itk::ImageFileReader<InternalImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader1->SetFileName(argv[1]);
-  reader2->SetFileName(argv[2]);
-  writer->SetFileName(argv[3]);
+  const auto input1 = itk::ReadImage<InternalImageType>(argv[1]);
+  const auto input2 = itk::ReadImage<InternalImageType>(argv[2]);
 
   //  Software Guide : BeginLatex
   //
@@ -149,7 +141,7 @@ main(int argc, char * argv[])
   using DiffusionFilterType =
     itk::GradientAnisotropicDiffusionImageFilter<InternalImageType,
                                                  InternalImageType>;
-  DiffusionFilterType::Pointer diffusion = DiffusionFilterType::New();
+  auto diffusion = DiffusionFilterType::New();
   diffusion->SetNumberOfIterations(std::stoi(argv[4]));
   diffusion->SetTimeStep(0.125);
   diffusion->SetConductanceParameter(std::stod(argv[5]));
@@ -166,7 +158,7 @@ main(int argc, char * argv[])
   using LaplacianSegmentationLevelSetImageFilterType =
     itk::LaplacianSegmentationLevelSetImageFilter<InternalImageType,
                                                   InternalImageType>;
-  LaplacianSegmentationLevelSetImageFilterType::Pointer
+  const LaplacianSegmentationLevelSetImageFilterType::Pointer
     laplacianSegmentation =
       LaplacianSegmentationLevelSetImageFilterType::New();
   // Software Guide : EndCodeSnippet
@@ -187,7 +179,7 @@ main(int argc, char * argv[])
 
   //  Software Guide : BeginCodeSnippet
   laplacianSegmentation->SetCurvatureScaling(1.0);
-  laplacianSegmentation->SetPropagationScaling(::std::stod(argv[6]));
+  laplacianSegmentation->SetPropagationScaling(std::stod(argv[6]));
   //  Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -200,7 +192,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   laplacianSegmentation->SetMaximumRMSError(0.002);
-  laplacianSegmentation->SetNumberOfIterations(::std::stoi(argv[8]));
+  laplacianSegmentation->SetNumberOfIterations(std::stoi(argv[8]));
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -212,7 +204,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  laplacianSegmentation->SetIsoSurfaceValue(::std::stod(argv[7]));
+  laplacianSegmentation->SetIsoSurfaceValue(std::stod(argv[7]));
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -223,11 +215,10 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  diffusion->SetInput(reader1->GetOutput());
-  laplacianSegmentation->SetInput(reader2->GetOutput());
+  diffusion->SetInput(input1);
+  laplacianSegmentation->SetInput(input2);
   laplacianSegmentation->SetFeatureImage(diffusion->GetOutput());
   thresholder->SetInput(laplacianSegmentation->GetOutput());
-  writer->SetInput(thresholder->GetOutput());
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -241,7 +232,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   try
   {
-    writer->Update();
+    itk::WriteImage(thresholder->GetOutput(), argv[3]);
   }
   catch (const itk::ExceptionObject & excep)
   {
@@ -264,8 +255,7 @@ main(int argc, char * argv[])
             << std::endl;
 
   // Write out the speed (propagation) image for parameter tuning purposes.
-  itk::ImageFileWriter<InternalImageType>::Pointer speedWriter =
-    itk::ImageFileWriter<InternalImageType>::New();
+  auto speedWriter = itk::ImageFileWriter<InternalImageType>::New();
   speedWriter->SetInput(laplacianSegmentation->GetSpeedImage());
   speedWriter->SetFileName("speedImage.mha");
   speedWriter->Update();

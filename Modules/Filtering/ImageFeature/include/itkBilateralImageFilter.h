@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,8 +49,7 @@ namespace itk
  * by an order of magnitude while maintaining edges.
  *
  * The bilateral operator used here was described by Tomasi and
- * Manduchi (Bilateral Filtering for Gray and ColorImages. IEEE
- * ICCV. 1998.)
+ * Manduchi in \cite tomasi1998.
  *
  * \sa GaussianOperator
  * \sa RecursiveGaussianImageFilter
@@ -86,15 +85,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BilateralImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BilateralImageFilter);
 
   /** Image type information. */
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -129,6 +128,7 @@ public:
   /** Standard get/set macros for filter parameters.
    * DomainSigma is specified in the same units as the Image spacing.
    * RangeSigma is specified in the units of intensity. */
+  /** @ITKStartGrouping */
   itkSetMacro(DomainSigma, ArrayType);
   itkGetConstMacro(DomainSigma, const ArrayType);
   itkSetMacro(DomainMu, double);
@@ -137,7 +137,7 @@ public:
   itkGetConstMacro(RangeSigma, double);
   itkGetConstMacro(FilterDimensionality, unsigned int);
   itkSetMacro(FilterDimensionality, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Convenience get/set methods for setting all domain parameters to the
    * same values.  */
   void
@@ -151,10 +151,11 @@ public:
    * sigma. When automatic is "off", the kernel size is whatever is
    * specified by the user.
    * \sa SetRadius() */
+  /** @ITKStartGrouping */
   itkBooleanMacro(AutomaticKernelSize);
   itkGetConstMacro(AutomaticKernelSize, bool);
   itkSetMacro(AutomaticKernelSize, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get the kernel radius, specified in pixels.  This parameter
    * is used only when AutomaticNeighborhoodSize is "off". */
   void
@@ -166,14 +167,11 @@ public:
   /** Set/Get the number of samples in the approximation to the Gaussian
    * used for the range smoothing. Samples are only generated in the
    * range of [0, 4*m_RangeSigma]. Default is 100. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfRangeGaussianSamples, unsigned long);
   itkGetConstMacro(NumberOfRangeGaussianSamples, unsigned long);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   /** Constructor. */
@@ -207,30 +205,30 @@ protected:
 private:
   /** The standard deviation of the gaussian blurring kernel in the image
       range. Units are intensity. */
-  double m_RangeSigma;
+  double m_RangeSigma{};
 
   /** The standard deviation of the gaussian blurring kernel in each
       dimensional direction. Units match image spacing units. */
-  ArrayType m_DomainSigma;
+  ArrayType m_DomainSigma{};
 
   /** Multiplier used to define statistical thresholds.  Gaussians are
    * only evaluated to m_DomainMu*m_DomainSigma or m_RangeMu*m_RangeSigma. */
-  double m_DomainMu;
-  double m_RangeMu;
+  double m_DomainMu{};
+  double m_RangeMu{};
 
   /** Number of dimensions to process. Default is all dimensions */
-  unsigned int m_FilterDimensionality;
+  unsigned int m_FilterDimensionality{};
 
   /** Gaussian kernel used for smoothing in the spatial domain */
-  KernelType m_GaussianKernel;
-  SizeType   m_Radius;
-  bool       m_AutomaticKernelSize;
+  KernelType m_GaussianKernel{};
+  SizeType   m_Radius{};
+  bool       m_AutomaticKernelSize{};
 
   /** Variables for the lookup table of range gaussian values */
-  unsigned long       m_NumberOfRangeGaussianSamples;
-  double              m_DynamicRange;
-  double              m_DynamicRangeUsed;
-  std::vector<double> m_RangeGaussianTable;
+  unsigned long       m_NumberOfRangeGaussianSamples{};
+  double              m_DynamicRange{};
+  double              m_DynamicRangeUsed{};
+  std::vector<double> m_RangeGaussianTable{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,7 @@
 
 #include "ITKFEMExport.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class Solution
@@ -63,7 +61,7 @@ public:
    * \note If the solution vector doesn't exist (problem was not yet solved),
    *       or the index i is out of range, the function returns 0.0.
    */
-  virtual Float
+  [[nodiscard]] virtual Float
   GetSolutionValue(unsigned int i, unsigned int solutionIndex = 0) const = 0;
 
   /**
@@ -72,7 +70,6 @@ public:
    */
   virtual ~Solution();
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMSolution_h

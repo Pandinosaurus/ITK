@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,36 +19,41 @@
 #include "itkQuadEdgeMesh.h"
 
 #include "itkMeshFileTestHelper.h"
+#include "itkTestingMacros.h"
+
 
 int
 itkMeshFileReadWriteTest(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Invalid commands, You need input and output mesh file name " << std::endl;
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName outputFileName" << std::endl;
     return EXIT_FAILURE;
   }
 
-  bool IsBinary = (argc > 3);
+  const bool isBinary = (argc > 3);
 
-  constexpr unsigned int dimension = 3;
+  constexpr unsigned int Dimension = 3;
   using PixelType = float;
 
-  using MeshType = itk::Mesh<PixelType, dimension>;
-  using QEMeshType = itk::QuadEdgeMesh<PixelType, dimension>;
+  using MeshType = itk::Mesh<PixelType, Dimension>;
+  using QEMeshType = itk::QuadEdgeMesh<PixelType, Dimension>;
 
   int result = EXIT_SUCCESS;
 
-  if (test<MeshType>(argv[1], argv[2], IsBinary))
+  if (test<MeshType>(argv[1], argv[2], isBinary))
   {
     std::cerr << "Failure for itk::Mesh" << std::endl;
     result = EXIT_FAILURE;
   }
-  if (test<QEMeshType>(argv[1], argv[2], IsBinary))
+  if (test<QEMeshType>(argv[1], argv[2], isBinary))
   {
     std::cerr << "Failure for itk::QuadEdgeMesh" << std::endl;
     result = EXIT_FAILURE;
   }
 
+
+  std::cout << "Test finished." << std::endl;
   return result;
 }

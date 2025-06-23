@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkUnaryFunctorImageFilter_hxx
 #define itkUnaryFunctorImageFilter_hxx
 
-#include "itkUnaryFunctorImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
 
@@ -63,7 +62,8 @@ UnaryFunctorImageFilter<TInputImage, TOutputImage, TFunction>::GenerateOutputInf
   this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion, inputPtr->GetLargestPossibleRegion());
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 
-  ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension, Superclass::InputImageDimension>
+  const ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension,
+                                                         Superclass::InputImageDimension>
     informationCopier;
   informationCopier(outputPtr, inputPtr);
 }
@@ -86,11 +86,9 @@ UnaryFunctorImageFilter<TInputImage, TOutputImage, TFunction>::DynamicThreadedGe
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
-  ImageScanlineConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
-  ImageScanlineIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
+  ImageScanlineConstIterator inputIt(inputPtr, inputRegionForThread);
+  ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
   while (!inputIt.IsAtEnd())
   {
     while (!inputIt.IsAtEndOfLine())

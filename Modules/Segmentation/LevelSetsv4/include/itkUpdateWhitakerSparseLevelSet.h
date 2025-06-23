@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(UpdateWhitakerSparseLevelSet, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(UpdateWhitakerSparseLevelSet);
 
   static constexpr unsigned int ImageDimension = VDimension;
 
@@ -101,25 +101,29 @@ public:
   void
   Update();
 
-  /** Set/Get the sparse levet set image */
+  /** Set/Get the sparse level set image */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(InputLevelSet, LevelSetType);
   itkGetModifiableObjectMacro(InputLevelSet, LevelSetType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the TimeStep for the update */
+  /** @ITKStartGrouping */
   itkSetMacro(TimeStep, LevelSetOutputType);
   itkGetMacro(TimeStep, LevelSetOutputType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the RMS change for the update */
   itkGetMacro(RMSChangeAccumulator, LevelSetOutputType);
 
   /** Set/Get the Equation container for computing the update */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(EquationContainer, EquationContainerType);
   itkGetModifiableObjectMacro(EquationContainer, EquationContainerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the current level set id */
+  /** @ITKStartGrouping */
   itkSetMacro(CurrentLevelSetId, IdentifierType);
   itkGetMacro(CurrentLevelSetId, IdentifierType);
-
+  /** @ITKEndGrouping */
   /** Set the update map for all points in the zero layer */
   void
   SetUpdate(const LevelSetLayerType & update);
@@ -169,25 +173,25 @@ protected:
   MovePointFromPlus2();
 
 private:
-  LevelSetOutputType m_TimeStep;
-  LevelSetOutputType m_RMSChangeAccumulator;
-  IdentifierType     m_CurrentLevelSetId;
+  LevelSetOutputType m_TimeStep{};
+  LevelSetOutputType m_RMSChangeAccumulator{};
+  IdentifierType     m_CurrentLevelSetId{};
 
-  EquationContainerPointer m_EquationContainer;
+  EquationContainerPointer m_EquationContainer{};
 
-  LevelSetLayerType m_Update;
-  LevelSetPointer   m_InputLevelSet;
-  LevelSetPointer   m_OutputLevelSet;
+  LevelSetLayerType m_Update{};
+  LevelSetPointer   m_InputLevelSet{};
+  LevelSetPointer   m_OutputLevelSet{};
 
-  LevelSetPointer   m_TempLevelSet;
-  LevelSetLayerType m_TempPhi;
+  LevelSetPointer   m_TempLevelSet{};
+  LevelSetLayerType m_TempPhi{};
 
-  LevelSetLayerIdType m_MinStatus;
-  LevelSetLayerIdType m_MaxStatus;
+  LevelSetLayerIdType m_MinStatus{};
+  LevelSetLayerIdType m_MaxStatus{};
 
-  LabelImagePointer m_InternalImage;
+  LabelImagePointer m_InternalImage{};
 
-  LevelSetOffsetType m_Offset;
+  LevelSetOffsetType m_Offset{};
 
   using NeighborhoodIteratorType = ShapedNeighborhoodIterator<LabelImageType>;
 

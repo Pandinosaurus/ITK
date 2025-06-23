@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkSimilarityIndexImageFilter_hxx
 #define itkSimilarityIndexImageFilter_hxx
-#include "itkSimilarityIndexImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkProgressReporter.h"
@@ -27,14 +26,13 @@ namespace itk
 {
 template <typename TInputImage1, typename TInputImage2>
 SimilarityIndexImageFilter<TInputImage1, TInputImage2>::SimilarityIndexImageFilter()
-  : m_CountOfImage1(1)
+  : m_SimilarityIndex(RealType{})
+  , m_CountOfImage1(1)
   , m_CountOfImage2(1)
   , m_CountOfIntersection(1)
 {
   // this filter requires two input images
   this->SetNumberOfRequiredInputs(2);
-
-  m_SimilarityIndex = NumericTraits<RealType>::ZeroValue();
   this->DynamicMultiThreadingOff();
 }
 
@@ -46,8 +44,8 @@ SimilarityIndexImageFilter<TInputImage1, TInputImage2>::SetInput2(const TInputIm
 }
 
 template <typename TInputImage1, typename TInputImage2>
-const typename SimilarityIndexImageFilter<TInputImage1, TInputImage2>::InputImage2Type *
-SimilarityIndexImageFilter<TInputImage1, TInputImage2>::GetInput2()
+auto
+SimilarityIndexImageFilter<TInputImage1, TInputImage2>::GetInput2() -> const InputImage2Type *
 {
   return itkDynamicCastInDebugMode<const TInputImage2 *>(this->ProcessObject::GetInput(1));
 }
@@ -63,12 +61,12 @@ SimilarityIndexImageFilter<TInputImage1, TInputImage2>::GenerateInputRequestedRe
   // - the corresponding region of the second image
   if (this->GetInput1())
   {
-    InputImage1Pointer image1 = const_cast<InputImage1Type *>(this->GetInput1());
+    const InputImage1Pointer image1 = const_cast<InputImage1Type *>(this->GetInput1());
     image1->SetRequestedRegionToLargestPossibleRegion();
 
     if (this->GetInput2())
     {
-      InputImage2Pointer image2 = const_cast<InputImage2Type *>(this->GetInput2());
+      const InputImage2Pointer image2 = const_cast<InputImage2Type *>(this->GetInput2());
       image2->SetRequestedRegion(this->GetInput1()->GetRequestedRegion());
     }
   }
@@ -87,7 +85,7 @@ void
 SimilarityIndexImageFilter<TInputImage1, TInputImage2>::AllocateOutputs()
 {
   // Pass the first input through as the output
-  InputImage1Pointer image = const_cast<TInputImage1 *>(this->GetInput1());
+  const InputImage1Pointer image = const_cast<TInputImage1 *>(this->GetInput1());
 
   this->GraftOutput(image);
 }
@@ -96,34 +94,31 @@ template <typename TInputImage1, typename TInputImage2>
 void
 SimilarityIndexImageFilter<TInputImage1, TInputImage2>::BeforeThreadedGenerateData()
 {
-  ThreadIdType numberOfThreads = this->GetNumberOfWorkUnits();
+  const ThreadIdType numberOfWorkUnits = this->GetNumberOfWorkUnits();
 
   // Resize the thread temporaries
-  m_CountOfImage1.SetSize(numberOfThreads);
-  m_CountOfImage2.SetSize(numberOfThreads);
-  m_CountOfIntersection.SetSize(numberOfThreads);
+  m_CountOfImage1.SetSize(numberOfWorkUnits);
+  m_CountOfImage2.SetSize(numberOfWorkUnits);
+  m_CountOfIntersection.SetSize(numberOfWorkUnits);
 
   // Initialize the temporaries
-  m_CountOfImage1.Fill(NumericTraits<SizeValueType>::ZeroValue());
-  m_CountOfImage2.Fill(NumericTraits<SizeValueType>::ZeroValue());
-  m_CountOfIntersection.Fill(NumericTraits<SizeValueType>::ZeroValue());
+  m_CountOfImage1.Fill(SizeValueType{});
+  m_CountOfImage2.Fill(SizeValueType{});
+  m_CountOfIntersection.Fill(SizeValueType{});
 }
 
 template <typename TInputImage1, typename TInputImage2>
 void
 SimilarityIndexImageFilter<TInputImage1, TInputImage2>::AfterThreadedGenerateData()
 {
-  ThreadIdType  i;
-  SizeValueType countImage1, countImage2, countIntersect;
+  const ThreadIdType numberOfWorkUnits = this->GetNumberOfWorkUnits();
 
-  ThreadIdType numberOfThreads = this->GetNumberOfWorkUnits();
-
-  countImage1 = 0;
-  countImage2 = 0;
-  countIntersect = 0;
+  SizeValueType countImage1 = 0;
+  SizeValueType countImage2 = 0;
+  SizeValueType countIntersect = 0;
 
   // Accumulate counts over all threads
-  for (i = 0; i < numberOfThreads; i++)
+  for (ThreadIdType i = 0; i < numberOfWorkUnits; ++i)
   {
     countImage1 += m_CountOfImage1[i];
     countImage2 += m_CountOfImage2[i];
@@ -133,7 +128,7 @@ SimilarityIndexImageFilter<TInputImage1, TInputImage2>::AfterThreadedGenerateDat
   // compute overlap
   if (!countImage1 && !countImage2)
   {
-    m_SimilarityIndex = NumericTraits<RealType>::ZeroValue();
+    m_SimilarityIndex = RealType{};
     return;
   }
 
@@ -156,12 +151,12 @@ SimilarityIndexImageFilter<TInputImage1, TInputImage2>::ThreadedGenerateData(con
   while (!it1.IsAtEnd())
   {
     bool nonzero = false;
-    if (it1.Get() != NumericTraits<InputImage1PixelType>::ZeroValue())
+    if (it1.Get() != InputImage1PixelType{})
     {
       m_CountOfImage1[threadId]++;
       nonzero = true;
     }
-    if (Math::NotExactlyEquals(it2.Get(), NumericTraits<InputImage2PixelType>::ZeroValue()))
+    if (Math::NotExactlyEquals(it2.Get(), InputImage2PixelType{}))
     {
       m_CountOfImage2[threadId]++;
       if (nonzero)

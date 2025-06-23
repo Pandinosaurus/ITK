@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,30 +29,29 @@
 #ifndef itkLabelImageGaussianInterpolateImageFunction_hxx
 #define itkLabelImageGaussianInterpolateImageFunction_hxx
 
-#include "itkLabelImageGaussianInterpolateImageFunction.h"
 
 namespace itk
 {
 
-template <typename TInputImage, typename TCoordRep, typename TPixelCompare>
-typename LabelImageGaussianInterpolateImageFunction<TInputImage, TCoordRep, TPixelCompare>::OutputType
-LabelImageGaussianInterpolateImageFunction<TInputImage, TCoordRep, TPixelCompare>::EvaluateAtContinuousIndex(
+template <typename TInputImage, typename TCoordinate, typename TPixelCompare>
+auto
+LabelImageGaussianInterpolateImageFunction<TInputImage, TCoordinate, TPixelCompare>::EvaluateAtContinuousIndex(
   const ContinuousIndexType & cindex,
-  OutputType *                itkNotUsed(grad)) const
+  OutputType *                itkNotUsed(grad)) const -> OutputType
 {
   vnl_vector<RealType> erfArray[ImageDimension];
   vnl_vector<RealType> gerfArray[ImageDimension];
 
-  typename Superclass::RegionType region = this->ComputeInterpolationRegion(cindex);
+  const typename Superclass::RegionType region = this->ComputeInterpolationRegion(cindex);
 
   // Compute the ERF difference arrays
-  for (unsigned int d = 0; d < ImageDimension; d++)
+  for (unsigned int d = 0; d < ImageDimension; ++d)
   {
     this->ComputeErrorFunctionArray(region, d, cindex[d], erfArray[d], gerfArray[d], false);
   }
 
   RealType   wmax = 0.0;
-  OutputType Vmax = NumericTraits<OutputType>::ZeroValue();
+  OutputType Vmax{};
 
   // Create a map object to store weights for each label encountered
   // inside the search region. This is not as efficient as having a
@@ -61,31 +60,23 @@ LabelImageGaussianInterpolateImageFunction<TInputImage, TCoordRep, TPixelCompare
   using WeightMapType = std::map<OutputType, RealType, TPixelCompare>;
   WeightMapType weightMap;
 
-  ImageRegionConstIteratorWithIndex<InputImageType> It(this->GetInputImage(), region);
-  for (It.GoToBegin(); !It.IsAtEnd(); ++It)
+  for (ImageRegionConstIteratorWithIndex<InputImageType> It(this->GetInputImage(), region); !It.IsAtEnd(); ++It)
   {
     unsigned int j = It.GetIndex()[0] - region.GetIndex()[0];
     RealType     w = erfArray[0][j];
-    for (unsigned int d = 1; d < ImageDimension; d++)
+    for (unsigned int d = 1; d < ImageDimension; ++d)
     {
       j = It.GetIndex()[d] - region.GetIndex()[d];
       w *= erfArray[d][j];
     }
 
     const OutputType V = It.Get();
-    auto             it = weightMap.find(V);
-    RealType         wtest = 0.0;
-
-    if (it != weightMap.end())
+    auto [it, inserted] = weightMap.try_emplace(V, w);
+    if (!inserted)
     {
       it->second += w;
-      wtest = it->second;
     }
-    else
-    {
-      weightMap.insert(std::make_pair(V, w));
-      wtest = w;
-    }
+    RealType wtest = it->second;
 
     // Keep track of the max value
     if (wtest > wmax)

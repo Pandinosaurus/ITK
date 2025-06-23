@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,12 @@
 #ifndef itkFrustumSpatialFunction_hxx
 #define itkFrustumSpatialFunction_hxx
 
-#include "itkFrustumSpatialFunction.h"
 
 namespace itk
 {
 template <unsigned int VDimension, typename TInput>
-FrustumSpatialFunction<VDimension, TInput>::FrustumSpatialFunction()
-{
-  m_Apex.Fill(0.0f);
-}
-
-template <unsigned int VDimension, typename TInput>
-typename FrustumSpatialFunction<VDimension, TInput>::OutputType
-FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position) const
+auto
+FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position) const -> OutputType
 {
   using PointType = InputType;
   using VectorType = typename PointType::VectorType;
@@ -69,7 +62,7 @@ FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position)
 
     // Check planes along Y
     const double angleY = std::atan2(dy, distanceXZ);
-    if (std::fabs(angleY) > m_ApertureAngleY * deg2rad)
+    if (itk::Math::abs(angleY) > m_ApertureAngleY * deg2rad)
     {
       return 0;
     }
@@ -84,7 +77,7 @@ FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position)
 
     return 1;
   }
-  else if (m_RotationPlane == RotationPlaneEnum::RotateInYZPlane)
+  if (m_RotationPlane == RotationPlaneEnum::RotateInYZPlane)
   {
     const double dx = relativePosition[0];
     const double dy = relativePosition[1];
@@ -96,7 +89,7 @@ FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position)
 
     // Check planes along X
     const double angleX = std::atan2(dx, distanceYZ);
-    if (std::fabs(angleX) > m_ApertureAngleX * deg2rad)
+    if (itk::Math::abs(angleX) > m_ApertureAngleX * deg2rad)
     {
       return 0;
     }
@@ -113,7 +106,7 @@ FrustumSpatialFunction<VDimension, TInput>::Evaluate(const InputType & position)
   }
   else
   {
-    itkExceptionMacro(<< "Rotation plane not set or set to an unsupported value!");
+    itkExceptionMacro("Rotation plane not set or set to an unsupported value!");
   }
 }
 

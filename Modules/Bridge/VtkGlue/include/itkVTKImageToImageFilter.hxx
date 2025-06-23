@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,16 +19,12 @@
 #ifndef itkVTKImageToImageFilter_hxx
 #define itkVTKImageToImageFilter_hxx
 
-#include "itkVTKImageToImageFilter.h"
 
 #include "vtkVersion.h"
 
 namespace itk
 {
 
-/**
- * Constructor
- */
 template <typename TOutputImage>
 VTKImageToImageFilter<TOutputImage>::VTKImageToImageFilter()
 {
@@ -52,9 +48,6 @@ VTKImageToImageFilter<TOutputImage>::VTKImageToImageFilter()
   this->SetCallbackUserData(m_Exporter->GetCallbackUserData());
 }
 
-/**
- * Destructor
- */
 template <typename TOutputImage>
 VTKImageToImageFilter<TOutputImage>::~VTKImageToImageFilter()
 {
@@ -65,9 +58,6 @@ VTKImageToImageFilter<TOutputImage>::~VTKImageToImageFilter()
   }
 }
 
-/**
- * Set a vtkImageData as input
- */
 template <typename TOutputImage>
 void
 VTKImageToImageFilter<TOutputImage>::SetInput(vtkImageData * inputImage)
@@ -79,9 +69,6 @@ VTKImageToImageFilter<TOutputImage>::SetInput(vtkImageData * inputImage)
 #endif
 }
 
-/**
- * Get the exporter filter
- */
 template <typename TOutputImage>
 vtkImageExport *
 VTKImageToImageFilter<TOutputImage>::GetExporter() const
@@ -89,12 +76,9 @@ VTKImageToImageFilter<TOutputImage>::GetExporter() const
   return m_Exporter;
 }
 
-/**
- * Get the importer filter
- */
 template <typename TOutputImage>
-const typename VTKImageToImageFilter<TOutputImage>::Superclass *
-VTKImageToImageFilter<TOutputImage>::GetImporter() const
+auto
+VTKImageToImageFilter<TOutputImage>::GetImporter() const -> const Superclass *
 {
   return this;
 }

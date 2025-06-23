@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkQuadEdgeMeshBoundaryEdgesMeshFunction.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -24,7 +25,14 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
 {
   if (argc != 2)
   {
-    std::cout << "Requires 1 argument" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " testType [0..5]:" << std::endl;
+    std::cerr << " 0-Test regular cases (i)." << std::endl;
+    std::cerr << " 1-Test regular cases (ii)." << std::endl;
+    std::cerr << " 2-Test merging two triangulations with opposite orientations." << std::endl;
+    std::cerr << " 3-Test adding a quadrangle." << std::endl;
+    std::cerr << " 4-Test adding a face with five edges." << std::endl;
+    std::cerr << " 5-Test adding with a Moebius strip." << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -35,10 +43,10 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
 
   using BEFunctionType = itk::QuadEdgeMeshBoundaryEdgesMeshFunction<MeshType>;
 
-  BEFunctionType::Pointer BoundaryEdges = BEFunctionType::New();
+  auto BoundaryEdges = BEFunctionType::New();
   std::cout << BoundaryEdges->GetNameOfClass() << std::endl;
 
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   //                                                  //
   //                    p3--------------p2            //
@@ -62,7 +70,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
   constexpr int   NumPoints = 7;
   PointIdentifier pid[NumPoints];
 
-  PointType::CoordRepType a = std::sqrt(3.0) / 2.0;
+  PointType::CoordinateType a = std::sqrt(3.0) / 2.0;
 
   using ValueArrayType = PointType::ValueArrayType;
 
@@ -71,18 +79,18 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
                                                  { 0.5, -a, 0.0 } };
 
   PointType points[NumPoints];
-  for (int j = 0; j < NumPoints; j++)
+  for (int j = 0; j < NumPoints; ++j)
   {
     points[j] = pointCoordinates[j];
   }
 
-  for (int i = 0; i < NumPoints; i++)
+  for (int i = 0; i < NumPoints; ++i)
   {
     pid[i] = mesh->AddPoint(points[i]);
   }
 
-  int test_type = std::stoi(argv[1]);
-  if (test_type == 0)
+  const int testType = std::stoi(argv[1]);
+  if (testType == 0)
   {
 
 #ifndef NDEBUG
@@ -229,7 +237,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
   }
-  if (test_type == 1)
+  if (testType == 1)
   {
     ///////////////////////////////////////////////////////////////////////
     // typical cases
@@ -340,7 +348,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
   }
-  if (test_type == 2)
+  if (testType == 2)
   {
 
     /////////////////////////////////////////////////////////////////////
@@ -397,7 +405,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
                  "should return false"
               << std::endl;
 
-    //   MeshType::Pointer inconsistentMesh = MeshType::New();
+    //   auto inconsistentMesh = MeshType::New();
 
     //   for(int i=0; i < NumPoints; i++)
     //     {
@@ -429,7 +437,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
   }
-  if (test_type == 3)
+  if (testType == 3)
   {
 
     //////////////////////////////////////////////////////////////////////
@@ -473,7 +481,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
 
 
     std::cout << "Adding a quadrangle where pid4 != pid3 + 1" << std::endl;
-    for (int i = 0; i < NumPoints; i++)
+    for (int i = 0; i < NumPoints; ++i)
     {
       pid[i] = mesh->AddPoint(points[i]);
     }
@@ -497,13 +505,13 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
 
-    std::cout << "Indices of the quadrangle: [" << quadFace2->GetOrigin() << " " << quadFace2->GetLnext()->GetOrigin()
-              << " " << quadFace2->GetLnext()->GetLnext()->GetOrigin() << " "
-              << quadFace2->GetLnext()->GetLnext()->GetLnext()->GetOrigin() << " "
-              << quadFace2->GetLnext()->GetLnext()->GetLnext()->GetLnext()->GetOrigin() << "]" << std::endl;
+    std::cout << "Indices of the quadrangle: [" << quadFace2->GetOrigin() << ' ' << quadFace2->GetLnext()->GetOrigin()
+              << ' ' << quadFace2->GetLnext()->GetLnext()->GetOrigin() << ' '
+              << quadFace2->GetLnext()->GetLnext()->GetLnext()->GetOrigin() << ' '
+              << quadFace2->GetLnext()->GetLnext()->GetLnext()->GetLnext()->GetOrigin() << ']' << std::endl;
 
-    std::cout << "Correct indices should be: [" << pid[0] << " " << pid[2] << " " << pid[4] << " " << pid[3] << " "
-              << pid[0] << "]" << std::endl;
+    std::cout << "Correct indices should be: [" << pid[0] << ' ' << pid[2] << ' ' << pid[4] << ' ' << pid[3] << ' '
+              << pid[0] << ']' << std::endl;
 
     std::cout << "Testing value for pid4" << std::endl;
     if (quadFace2->GetLnext()->GetLnext()->GetLnext()->GetOrigin() == pid[3])
@@ -516,7 +524,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
   }
-  if (test_type == 4)
+  if (testType == 4)
   {
     // Adding a face with five edges.                         //
     //                                                        //
@@ -551,7 +559,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
       return EXIT_FAILURE;
     }
   }
-  if (test_type == 5)
+  if (testType == 5)
   {
     /////////////////////////////////////////////////////////////////////
     // The Moebius strip should be rejected by itk::QuadEdgeMesh::AddFace() of a
@@ -575,7 +583,7 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
     //
     //
 
-    MeshType::Pointer moebiusMesh = MeshType::New();
+    auto moebiusMesh = MeshType::New();
 
     constexpr int   moebNumPoints = 6;
     PointIdentifier moebPid[moebNumPoints];
@@ -585,12 +593,12 @@ itkQuadEdgeMeshAddFaceTest1(int argc, char * argv[])
 
 
     PointType moebPoints[moebNumPoints];
-    for (int j = 0; j < moebNumPoints; j++)
+    for (int j = 0; j < moebNumPoints; ++j)
     {
       moebPoints[j] = moebPointCoordinates[j];
     }
 
-    for (int i = 0; i < moebNumPoints; i++)
+    for (int i = 0; i < moebNumPoints; ++i)
     {
       moebPid[i] = moebiusMesh->AddPoint(moebPoints[i]);
     }

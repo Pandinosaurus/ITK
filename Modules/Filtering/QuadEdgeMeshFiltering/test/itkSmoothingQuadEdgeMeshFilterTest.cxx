@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,14 +26,12 @@ int
 itkSmoothingQuadEdgeMeshFilterTest(int argc, char * argv[])
 {
   // ** ERROR MESSAGE AND HELP ** //
-  if (argc < 4)
+  if (argc != 6)
   {
-    std::cout << "Requires 3 argument: " << std::endl;
-    std::cout << "1-Input file name " << std::endl;
-    std::cout << "2-Number Of Iterations " << std::endl;
-    std::cout << "3-Relaxation Factor" << std::endl;
-    std::cout << "4-Use Delaunay Conforming filter" << std::endl;
-    std::cout << "5-Output file name " << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputFilename numberOfIterations relaxationFactor useDelaunayConformingFilter outputFilename"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -46,19 +44,19 @@ itkSmoothingQuadEdgeMeshFilterTest(int argc, char * argv[])
   using WriterType = itk::MeshFileWriter<MeshType>;
 
   // ** READ THE FILE IN **
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  unsigned int      nb_iter;
+  unsigned int      nb_iter = 0;
   std::stringstream ssout(argv[2]);
   ssout >> nb_iter;
 
-  double            relaxation_factor;
+  double            relaxation_factor = NAN;
   std::stringstream ssout2(argv[3]);
   ssout2 >> relaxation_factor;
 
-  bool              del_conf;
+  bool              del_conf = false;
   std::stringstream ssout3(argv[4]);
   ssout3 >> del_conf;
 

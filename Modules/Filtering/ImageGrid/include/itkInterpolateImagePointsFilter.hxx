@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,26 +28,24 @@
 #ifndef itkInterpolateImagePointsFilter_hxx
 #define itkInterpolateImagePointsFilter_hxx
 
-#include "itkInterpolateImagePointsFilter.h"
 #include "itkTotalProgressReporter.h"
 
 namespace itk
 {
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::InterpolateImagePointsFilter()
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::InterpolateImagePointsFilter()
+  : m_Interpolator(InterpolatorType::New())
+  , m_DefaultPixelValue(0)
 {
-  m_Interpolator = InterpolatorType::New();
-  m_DefaultPixelValue = 0;
-
   this->SetNumberOfRequiredInputs(ImageDimension + 1);
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::SetInputImage(
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::SetInputImage(
   const TInputImage * inputImage)
 {
   this->SetInput(0, inputImage); // This is a data filter input
@@ -56,9 +54,9 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
   m_Interpolator->SetInputImage(inputImage);
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::SetInterpolationCoordinate(
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::SetInterpolationCoordinate(
   const CoordImageType * coordinate,
   unsigned int           setDimension)
 {
@@ -66,17 +64,17 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
   this->SetInput(setDimension + 1, coordinate); // This is a data filter input
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::DynamicThreadedGenerateData(
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  OutputImagePointer outputPtr = this->GetOutput();
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   // There is a direct mapping between the desired outputRegion and the
   // CoordRegion. coordRegion is set to outputRegionForThread.
-  RegionCopierType     regionCopier;
-  CoordImageRegionType coordRegion;
+  const RegionCopierType regionCopier;
+  CoordImageRegionType   coordRegion;
   regionCopier(coordRegion, outputRegionForThread);
 
   // Setup iterator for the output
@@ -84,9 +82,9 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
 
   // Setup an iterator for each of the coordinate inputs.
   CoordImageIterator coordIter[ImageDimension];
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
-    CoordImageIterator temp(this->GetInput(j + 1), coordRegion);
+    const CoordImageIterator temp(this->GetInput(j + 1), coordRegion);
     coordIter[j] = temp;
   }
 
@@ -96,7 +94,7 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
   ContinuousIndexType index;
   while (!outIter.IsAtEnd())
   {
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       index[j] = (coordIter[j]).Value();
       ++(coordIter[j]);
@@ -121,9 +119,9 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
   }
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::GenerateInputRequestedRegion()
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::GenerateInputRequestedRegion()
 {
   // Call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
@@ -136,25 +134,25 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
   // The coordinates may have arbitrary ordering so the entire image must be
   // available for the filter. The coordinates on the other hand have the default
   // requested region size.
-  InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput(0));
+  const InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput(0));
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::GenerateOutputInformation()
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::GenerateOutputInformation()
 {
   // Call the superclass' implementation of this method
   Superclass::GenerateOutputInformation();
 
   // This sets the largestPossibleRegion to ensure it is the same as
-  // the coordinates. While this should be the default behavor, given the
+  // the coordinates. While this should be the default behavior, given the
   // multiple inputs it may incorrectly default to the image
   // largestPossibleRegion.
   // Thus this method was explicitly written.
   //
-  CoordImageTypePointer xCoordPtr = const_cast<TInputImage *>(this->GetInput(1));
-  OutputImagePointer    outputPtr = this->GetOutput();
+  const CoordImageTypePointer xCoordPtr = const_cast<TInputImage *>(this->GetInput(1));
+  const OutputImagePointer    outputPtr = this->GetOutput();
 
   // We need to compute the output spacing, the output image size, and the
   // output image start index. This is all determined by the coordinate data
@@ -165,17 +163,15 @@ InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, Interpolator
 
   outputPtr->SetSpacing(outputSpacing);
 
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }
 
-template <typename TInputImage, typename TOutputImage, typename TCoordType, typename InterpolatorType>
+template <typename TInputImage, typename TOutputImage, typename TCoordinate, typename InterpolatorType>
 void
-InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordType, InterpolatorType>::PrintSelf(std::ostream & os,
-                                                                                                 Indent indent) const
+InterpolateImagePointsFilter<TInputImage, TOutputImage, TCoordinate, InterpolatorType>::PrintSelf(std::ostream & os,
+                                                                                                  Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 

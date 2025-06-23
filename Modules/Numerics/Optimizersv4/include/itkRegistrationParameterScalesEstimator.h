@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@
 
 namespace itk
 {
-/**\class RegistrationParameterScalesEstimatorEnums
+/** \class RegistrationParameterScalesEstimatorEnums
  * \brief This class contains all the enum classes used by RegistrationParameterScalesEstimator class.
  * \ingroup ITKOptimizersv4
  */
@@ -39,7 +39,7 @@ class RegistrationParameterScalesEstimatorEnums
 {
 public:
   /**
-   *\class SamplingStrategy
+   * \class SamplingStrategy
    * \ingroup ITKOptimizersv4
    * The strategies to sample physical points in the virtual domain. */
   enum class SamplingStrategy : uint8_t
@@ -54,10 +54,10 @@ public:
 using SamplingStrategyEnum = RegistrationParameterScalesEstimatorEnums::SamplingStrategy;
 // Define how to print enumeration
 extern ITKOptimizersv4_EXPORT std::ostream &
-                              operator<<(std::ostream & out, const RegistrationParameterScalesEstimatorEnums::SamplingStrategy value);
+operator<<(std::ostream & out, const RegistrationParameterScalesEstimatorEnums::SamplingStrategy value);
 
 /**
- *\class RegistrationParameterScalesEstimator
+ * \class RegistrationParameterScalesEstimator
  *  \brief Implements a registration helper class for estimating scales of
  * transform parameters and step sizes.
  *
@@ -89,15 +89,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationParameterScalesEstimator, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegistrationParameterScalesEstimator);
 
   /** Type of scales */
-  using ScalesType = typename Superclass::ScalesType;
+  using typename Superclass::ScalesType;
+
   /** Type of parameters of the optimizer */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
+
   /** Type of float */
-  using FloatType = typename Superclass::FloatType;
+  using typename Superclass::FloatType;
 
   using MetricType = TMetric;
   using MetricPointer = typename MetricType::Pointer;
@@ -149,23 +151,38 @@ public:
    *  The transforms from the metric will be used for estimation, along
    *  with the images when appropriate.
    */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
-
+  itkGetConstObjectMacro(Metric, MetricType);
+  /** @ITKEndGrouping */
   /** m_TransformForward specifies which transform scales to be estimated.
    * m_TransformForward = true (default) for the moving transform parameters.
    * m_TransformForward = false for the fixed transform parameters.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(TransformForward, bool);
   itkGetConstMacro(TransformForward, bool);
-
+  itkBooleanMacro(TransformForward);
+  /** @ITKEndGrouping */
   /** Get/Set a point set for virtual domain sampling. */
-  itkSetObjectMacro(VirtualDomainPointSet, VirtualPointSetType);
+  /** @ITKStartGrouping */
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  virtual void
+  SetVirtualDomainPointSet(VirtualPointSetType * const arg)
+  {
+    const auto * const constArg = arg;
+    // Call the overload defined by itkSetConstObjectMacro, or an override.
+    this->SetVirtualDomainPointSet(constArg);
+  }
+#endif
   itkSetConstObjectMacro(VirtualDomainPointSet, VirtualPointSetType);
   itkGetConstObjectMacro(VirtualDomainPointSet, VirtualPointSetType);
-
+  /** @ITKEndGrouping */
   /** the radius of the central region for sampling. */
+  /** @ITKStartGrouping */
   itkSetMacro(CentralRegionRadius, IndexValueType);
-
+  itkGetConstMacro(CentralRegionRadius, IndexValueType);
+  /** @ITKEndGrouping */
   /** Estimate parameter scales */
   void
   EstimateScales(ScalesType & scales) override = 0;
@@ -197,7 +214,7 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** Check the metric and the transforms. */
+  /** Validate the metric and the transforms and set them. */
   bool
   CheckAndSetInputs();
 
@@ -219,12 +236,19 @@ protected:
    * The templated version of CheckGeneralAffineTransform to check if the
    * transform is a general affine transform that maps a line segment to
    * a line segment.
+   *
+   * Examples are subclasses of MatrixOffsetTransformBaseType, TranslationTransform, Rigid3DPerspectiveTransform,
+   * IdentityTransform, etc.
    */
   template <typename TTransform>
   bool
   CheckGeneralAffineTransformTemplated();
 
-  /** Transform a physical point to a new physical point. */
+  /** Transform a physical point to a new physical point.
+   *
+   * We want to compute shift in physical space so that the scales is not sensitive to spacings and directions of
+   * voxel sampling.
+   */
   template <typename TTargetPointType>
   void
   TransformPoint(const VirtualPointType & point, TTargetPointType & mappedPoint);
@@ -234,7 +258,7 @@ protected:
   void
   TransformPointToContinuousIndex(const VirtualPointType & point, TContinuousIndexType & mappedIndex);
 
-  /** Compute the transform Jacobian at a physical point. */
+  /** Compute the squared norms of the transform Jacobians w.r.t parameters at a physical point. */
   void
   ComputeSquaredJacobianNorms(const VirtualPointType & point, ParametersType & squareNorms);
 
@@ -258,7 +282,7 @@ protected:
   void
   UpdateTransformParameters(const ParametersType & deltaParameters);
 
-  /** Sample the virtual domain and store the physical points in m_SamplePoints. */
+  /** Sample the virtual domain with physical points and store the results in m_SamplePoints. */
   virtual void
   SampleVirtualDomain();
 
@@ -266,7 +290,10 @@ protected:
   void
   SampleVirtualDomainFully();
 
-  /** Sample the virtual domain with corners. */
+  /** Sample the virtual domain with corners.
+   *
+   * Sample the virtual domain with the points at image corners, and store the results in m_SamplePoints.
+   */
   void
   SampleVirtualDomainWithCorners();
 
@@ -274,7 +301,10 @@ protected:
   void
   SampleVirtualDomainRandomly();
 
-  /** Sample the virtual domain with voxel in the central region. */
+  /** Sample the virtual domain with the voxel in the central region.
+   *
+   * Samples the virtual domain with the voxels around the center.
+   */
   void
   SampleVirtualDomainWithCentralRegion();
 
@@ -286,7 +316,10 @@ protected:
   void
   SampleVirtualDomainWithPointSet();
 
-  /** Get the central index of the virtual domain. */
+  /** Get the central index of the virtual domain.
+   *
+   * Gets the region around the virtual image center.
+   */
   VirtualIndexType
   GetVirtualDomainCentralIndex();
 
@@ -307,21 +340,21 @@ protected:
   itkGetMacro(SamplingStrategy, SamplingStrategyType);
 
   /** the metric object */
-  MetricPointer m_Metric;
+  MetricPointer m_Metric{};
 
   /** the samples in the virtual domain */
-  SamplePointContainerType m_SamplePoints;
+  SamplePointContainerType m_SamplePoints{};
 
   /** Keep track of the last sampling time. */
-  mutable TimeStamp m_SamplingTime;
+  mutable TimeStamp m_SamplingTime{};
 
   /**  the number of samples in the virtual domain */
-  SizeValueType m_NumberOfRandomSamples;
+  SizeValueType m_NumberOfRandomSamples{};
 
   /** the radius of the central region for sampling */
-  IndexValueType m_CentralRegionRadius;
+  IndexValueType m_CentralRegionRadius{};
 
-  typename VirtualPointSetType::ConstPointer m_VirtualDomainPointSet;
+  typename VirtualPointSetType::ConstPointer m_VirtualDomainPointSet{};
 
   // the threshold to decide if the number of random samples uses logarithm
   static constexpr SizeValueType SizeOfSmallDomain = 1000;
@@ -331,10 +364,10 @@ private:
    * m_TransformForward = true (default) for the moving transform parameters.
    * m_TransformForward = false for the fixed transform parameters.
    */
-  bool m_TransformForward;
+  bool m_TransformForward{};
 
   // sampling strategy
-  SamplingStrategyType m_SamplingStrategy;
+  SamplingStrategyType m_SamplingStrategy{};
 
 }; // class RegistrationParameterScalesEstimator
 } // namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,21 +17,16 @@
  *=========================================================================*/
 #ifndef itkSubsamplerBase_hxx
 #define itkSubsamplerBase_hxx
-#include "itkSubsamplerBase.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 template <typename TSample>
 SubsamplerBase<TSample>::SubsamplerBase()
-{
-  m_Sample = nullptr;
-  m_RequestMaximumNumberOfResults = true;
-  m_CanSelectQuery = true;
-  m_Seed = 0;
-}
+  : m_Sample(nullptr)
+  , m_RequestMaximumNumberOfResults(true)
+  , m_CanSelectQuery(true)
+{}
 
 template <typename TSample>
 typename LightObject::Pointer
@@ -39,10 +34,10 @@ SubsamplerBase<TSample>::InternalClone() const
 {
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
   rval->SetSample(this->GetSample());
   rval->m_RequestMaximumNumberOfResults = this->m_RequestMaximumNumberOfResults;
@@ -73,7 +68,6 @@ SubsamplerBase<TSample>::PrintSelf(std::ostream & os, Indent indent) const
   os << std::endl;
 }
 
-} // end namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #endif

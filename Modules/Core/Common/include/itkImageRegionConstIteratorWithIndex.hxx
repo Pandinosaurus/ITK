@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageRegionConstIteratorWithIndex_hxx
 #define itkImageRegionConstIteratorWithIndex_hxx
 
-#include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
 {
@@ -39,11 +38,9 @@ ImageRegionConstIteratorWithIndex<TImage>::operator++()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position -= this->m_OffsetTable[in] * (static_cast<OffsetValueType>(this->m_Region.GetSize()[in]) - 1);
-      this->m_PositionIndex[in] = this->m_BeginIndex[in];
-    }
+
+    this->m_Position -= this->m_OffsetTable[in] * (static_cast<OffsetValueType>(this->m_Region.GetSize()[in]) - 1);
+    this->m_PositionIndex[in] = this->m_BeginIndex[in];
   }
 
   if (!this->m_Remaining) // It will not advance here otherwise
@@ -71,11 +68,9 @@ ImageRegionConstIteratorWithIndex<TImage>::operator--()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position += this->m_OffsetTable[in] * (static_cast<OffsetValueType>(this->m_Region.GetSize()[in]) - 1);
-      this->m_PositionIndex[in] = this->m_EndIndex[in] - 1;
-    }
+
+    this->m_Position += this->m_OffsetTable[in] * (static_cast<OffsetValueType>(this->m_Region.GetSize()[in]) - 1);
+    this->m_PositionIndex[in] = this->m_EndIndex[in] - 1;
   }
 
   if (!this->m_Remaining) // It will not advance here otherwise

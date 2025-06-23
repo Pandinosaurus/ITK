@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 //
 // \index{itk::EllipseSpatialObject}
 //
-// \doxygen{EllipseSpatialObject} defines an n-Dimensional ellipse. Like
+// \doxygen{EllipseSpatialObject} defines an n-dimensional ellipse. Like
 // other spatial objects this class derives from
 // \doxygen{SpatialObject}. Let's start by including the appropriate header
 // file.
@@ -44,7 +44,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using EllipseType = itk::EllipseSpatialObject<3>;
-  EllipseType::Pointer myEllipse = EllipseType::New();
+  auto myEllipse = EllipseType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -83,7 +83,7 @@ main(int, char *[])
   //
   // Software Guide : EndLatex
   // Software Guide : BeginCodeSnippet
-  EllipseType::ArrayType myCurrentRadius =
+  const EllipseType::ArrayType myCurrentRadius =
     myEllipse->GetRadiusInObjectSpace();
   std::cout << "Current radius is " << myCurrentRadius << std::endl;
   // Software Guide : EndCodeSnippet
@@ -97,16 +97,14 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  itk::Point<double, 3> insidePoint;
-  insidePoint.Fill(1.0);
+  auto insidePoint = itk::MakeFilled<itk::Point<double, 3>>(1.0);
   if (myEllipse->IsInsideInWorldSpace(insidePoint))
   {
     std::cout << "The point " << insidePoint;
     std::cout << " is really inside the ellipse" << std::endl;
   }
 
-  itk::Point<double, 3> outsidePoint;
-  outsidePoint.Fill(3.0);
+  auto outsidePoint = itk::MakeFilled<itk::Point<double, 3>>(3.0);
   if (!myEllipse->IsInsideInWorldSpace(outsidePoint))
   {
     std::cout << "The point " << outsidePoint;

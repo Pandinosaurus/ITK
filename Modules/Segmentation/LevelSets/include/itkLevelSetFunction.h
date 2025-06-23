@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
  * finite difference image filter.  (See FiniteDifferenceImageFilter.)
  *
  * LevelSetFunction implements a generic level set function.  This function is
- * an expanded form of the basic equation developed in [1].
+ * an expanded form of the basic equation developed in \cite sethian1996.
  *
  * \f$\phi_{t} + \alpha
  * \stackrel{\rightharpoonup}{A}(\mathbf{x})\cdot\nabla\phi + \beta
@@ -54,10 +54,6 @@ namespace itk
  * the calculations.  If your subclass does not do any additional neighborhood
  * processing, then the default radius should be 1 in each direction.
  *
- * \par REFERENCES
- * \par
- * [1] Sethian, J.A. Level Set Methods. Cambridge University Press. 1996.
- *
  * \ingroup FiniteDifferenceFunctions
  * \ingroup Functions
  * \ingroup ITKLevelSets
@@ -77,22 +73,22 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(LevelSetFunction, FiniteDifferenceFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetFunction);
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Convenient type alias. */
   using TimeStepType = double;
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
   using ScalarValueType = PixelType;
-  using PixelRealType = typename Superclass::PixelRealType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using typename Superclass::PixelRealType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::FloatOffsetType;
 
   /** The vector type that will be used in the calculations. */
   //  typedef
@@ -133,7 +129,7 @@ public:
   virtual ScalarValueType
   PropagationSpeed(const NeighborhoodType &, const FloatOffsetType &, GlobalDataStruct * = 0) const
   {
-    return NumericTraits<ScalarValueType>::ZeroValue();
+    return ScalarValueType{};
   }
 
   /** Curvature speed.  Can be used to spatially modify the effects of
@@ -153,6 +149,7 @@ public:
   }
 
   /** Alpha.  Scales all advection term values. */
+  /** @ITKStartGrouping */
   virtual void
   SetAdvectionWeight(const ScalarValueType a)
   {
@@ -163,8 +160,9 @@ public:
   {
     return m_AdvectionWeight;
   }
-
+  /** @ITKEndGrouping */
   /** Beta.  Scales all propagation term values. */
+  /** @ITKStartGrouping */
   virtual void
   SetPropagationWeight(const ScalarValueType p)
   {
@@ -175,8 +173,9 @@ public:
   {
     return m_PropagationWeight;
   }
-
+  /** @ITKEndGrouping */
   /** Gamma. Scales all curvature weight values */
+  /** @ITKStartGrouping */
   virtual void
   SetCurvatureWeight(const ScalarValueType c)
   {
@@ -187,8 +186,9 @@ public:
   {
     return m_CurvatureWeight;
   }
-
+  /** @ITKEndGrouping */
   /** Weight of the laplacian smoothing term */
+  /** @ITKStartGrouping */
   void
   SetLaplacianSmoothingWeight(const ScalarValueType c)
   {
@@ -199,8 +199,9 @@ public:
   {
     return m_LaplacianSmoothingWeight;
   }
-
+  /** @ITKEndGrouping */
   /** Epsilon. */
+  /** @ITKStartGrouping */
   void
   SetEpsilonMagnitude(const ScalarValueType e)
   {
@@ -211,7 +212,7 @@ public:
   {
     return m_EpsilonMagnitude;
   }
-
+  /** @ITKEndGrouping */
   /** Compute the equation value. */
   PixelType
   ComputeUpdate(const NeighborhoodType & it,
@@ -234,14 +235,14 @@ public:
    * data should also be initialized in this method.  Global data can be used
    * for caching any values used or reused by the FunctionObject.  Each thread
    * should receive its own global data struct. */
-  void *
+  [[nodiscard]] void *
   GetGlobalDataPointer() const override
   {
     auto * ans = new GlobalDataStruct();
 
-    ans->m_MaxAdvectionChange = NumericTraits<ScalarValueType>::ZeroValue();
-    ans->m_MaxPropagationChange = NumericTraits<ScalarValueType>::ZeroValue();
-    ans->m_MaxCurvatureChange = NumericTraits<ScalarValueType>::ZeroValue();
+    ans->m_MaxAdvectionChange = ScalarValueType{};
+    ans->m_MaxPropagationChange = ScalarValueType{};
+    ans->m_MaxCurvatureChange = ScalarValueType{};
     return ans;
   }
 
@@ -281,7 +282,7 @@ public:
     m_UseMinimalCurvature = b;
   }
 
-  bool
+  [[nodiscard]] bool
   GetUseMinimalCurvature() const
   {
     return m_UseMinimalCurvature;
@@ -334,10 +335,10 @@ public:
 protected:
   LevelSetFunction()
     : m_EpsilonMagnitude(static_cast<ScalarValueType>(1.0e-5))
-    , m_AdvectionWeight(NumericTraits<ScalarValueType>::ZeroValue())
-    , m_PropagationWeight(NumericTraits<ScalarValueType>::ZeroValue())
-    , m_CurvatureWeight(NumericTraits<ScalarValueType>::ZeroValue())
-    , m_LaplacianSmoothingWeight(NumericTraits<ScalarValueType>::ZeroValue())
+    , m_AdvectionWeight(ScalarValueType{})
+    , m_PropagationWeight(ScalarValueType{})
+    , m_CurvatureWeight(ScalarValueType{})
+    , m_LaplacianSmoothingWeight(ScalarValueType{})
   {}
 
   ~LevelSetFunction() override = default;
@@ -355,7 +356,7 @@ protected:
   OffsetValueType m_Center{ 0 };
 
   /** Stride length along the y-dimension. */
-  OffsetValueType m_xStride[Self::ImageDimension];
+  OffsetValueType m_xStride[Self::ImageDimension]{};
 
   bool m_UseMinimalCurvature{ false };
 
@@ -368,19 +369,19 @@ protected:
   static VectorType m_ZeroVectorConstant;
 
   /** Epsilon magnitude controls the lower limit for gradient magnitude. */
-  ScalarValueType m_EpsilonMagnitude;
+  ScalarValueType m_EpsilonMagnitude{};
 
   /** Alpha. */
-  ScalarValueType m_AdvectionWeight;
+  ScalarValueType m_AdvectionWeight{};
 
   /** Beta. */
-  ScalarValueType m_PropagationWeight;
+  ScalarValueType m_PropagationWeight{};
 
   /** Gamma. */
-  ScalarValueType m_CurvatureWeight;
+  ScalarValueType m_CurvatureWeight{};
 
-  /** Laplacean smoothing term */
-  ScalarValueType m_LaplacianSmoothingWeight;
+  /** Laplacian smoothing term */
+  ScalarValueType m_LaplacianSmoothingWeight{};
 };
 } // namespace itk
 

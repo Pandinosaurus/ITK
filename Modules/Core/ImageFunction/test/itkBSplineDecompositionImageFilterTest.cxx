@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,11 +39,10 @@ ParseSplinePoles(char * splinePolesIn)
   typename TFilter::SplinePolesVectorType splinePolesOut;
 
   // Get the individual components
-  char *                                              endPtr;
-  typename TFilter::SplinePolesVectorType::value_type value;
   while (*splinePolesIn)
   {
-    value = strtod(splinePolesIn, &endPtr);
+    char *                                              endPtr = nullptr;
+    typename TFilter::SplinePolesVectorType::value_type value = strtod(splinePolesIn, &endPtr);
     if (splinePolesIn == endPtr)
     {
       (*splinePolesIn)++;
@@ -65,7 +64,7 @@ ParseSplinePoles(char * splinePolesIn)
 
 
 /** Note:  This is the same test used for the itkBSplineResampleImageFunctionTest
- *        It is duplicated here because it excercises the itkBSplineDecompositionFilter
+ *        It is duplicated here because it exercises the itkBSplineDecompositionFilter
  *        and demonstrates its use.
  */
 
@@ -76,11 +75,8 @@ itkBSplineDecompositionImageFilterTest(int argc, char * argv[])
   {
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " splineOrder";
-    std::cerr << " splinePoles(e.g. 0.12753,-0.48673,0.76439,\
-                 [0.12753,-0.48673,0.76439],\
-                 \"[0.12753 -0.48673 0.76439]\",\
-                 \"(0.12753 -0.48673 0.76439)\", or\
-                 \"0.12753 -0.48673 0.76439\")";
+    std::cerr << " splinePoles(e.g. 0.12753,-0.48673,0.76439, [0.12753,-0.48673,0.76439], \"[0.12753 -0.48673 "
+                 "0.76439]\", \"(0.12753 -0.48673 0.76439)\", or \"0.12753 -0.48673 0.76439\")";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
@@ -90,53 +86,45 @@ itkBSplineDecompositionImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
   using BSplineInterpolatorFunctionType = itk::BSplineInterpolateImageFunction<ImageType, double, double>;
 
-  unsigned int                             splineOrder = std::stoi(argv[1]);
-  BSplineInterpolatorFunctionType::Pointer interpolator =
+  const unsigned int                             splineOrder = std::stoi(argv[1]);
+  const BSplineInterpolatorFunctionType::Pointer interpolator =
     makeRandomImageInterpolator<BSplineInterpolatorFunctionType>(splineOrder);
-  ImageType::ConstPointer randImage = interpolator->GetInputImage();
+  const ImageType::ConstPointer randImage = interpolator->GetInputImage();
 
   using FilterType = itk::BSplineDecompositionImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineDecompositionImageFilter, ImageToImageFilter);
 
-  itk::SimpleFilterWatcher watcher(filter, "BSplineDecompositionImageFilter");
+  const itk::SimpleFilterWatcher watcher(filter, "BSplineDecompositionImageFilter");
 
   filter->SetInput(randImage);
 
-  int unsupportedSplineOrder = 6;
+  constexpr int unsupportedSplineOrder = 6;
 
   ITK_TRY_EXPECT_EXCEPTION(filter->SetSplineOrder(unsupportedSplineOrder));
 
   filter->SetSplineOrder(interpolator->GetSplineOrder());
+  ITK_TEST_SET_GET_VALUE(interpolator->GetSplineOrder(), filter->GetSplineOrder());
 
   FilterType::SplinePolesVectorType expectedSplinePoles = ParseSplinePoles<FilterType>(argv[2]);
 
-  int expectedNumberOfPoles = expectedSplinePoles.size();
-  int resultNumberOfPoles = filter->GetNumberOfPoles();
-  if (!itk::Math::ExactlyEquals(expectedNumberOfPoles, resultNumberOfPoles))
-  {
-    std::cout << "Test failed!" << std::endl;
-    std::cout << "Error in GetNumberOfPoles()" << std::endl;
-    std::cout << "Expected: " << expectedNumberOfPoles << std::endl;
-    std::cout << " , but got: " << resultNumberOfPoles << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TEST_EXPECT_EQUAL(filter->GetNumberOfPoles(), expectedSplinePoles.size());
 
   FilterType::SplinePolesVectorType resultSplinePoles = filter->GetSplinePoles();
-  double                            tolerance1 = 1e-10;
+  constexpr double                  tolerance1 = 1e-10;
   for (unsigned int i = 0; i < resultSplinePoles.size(); ++i)
   {
-    FilterType::SplinePolesVectorType::value_type expectedSplinePole = expectedSplinePoles[i];
-    FilterType::SplinePolesVectorType::value_type resultSplinePole = resultSplinePoles[i];
+    const FilterType::SplinePolesVectorType::value_type expectedSplinePole = expectedSplinePoles[i];
+    const FilterType::SplinePolesVectorType::value_type resultSplinePole = resultSplinePoles[i];
     if (!itk::Math::FloatAlmostEqual(expectedSplinePole, resultSplinePole, 10, tolerance1))
     {
-      std::cout.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance1))));
-      std::cout << "Test failed!" << std::endl;
-      std::cout << "Error in GetSplinePoles() at index: [" << i << "]" << std::endl;
-      std::cout << "Expected: " << expectedSplinePole << std::endl;
-      std::cout << " , but got: " << resultSplinePole << std::endl;
-      std::cout << " Values differ by more than: " << tolerance1 << std::endl;
+      std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance1))));
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in GetSplinePoles() at index [" << i << ']' << std::endl;
+      std::cerr << "Expected value " << expectedSplinePole << std::endl;
+      std::cerr << " differs from " << resultSplinePole;
+      std::cerr << " by more than " << tolerance1 << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -146,15 +134,14 @@ itkBSplineDecompositionImageFilterTest(int argc, char * argv[])
 
   // Set up a BSplineResampleImageFunction.
   using ResampleFunctionType = itk::BSplineResampleImageFunction<ImageType, double>;
-  ResampleFunctionType::Pointer resample = ResampleFunctionType::New();
+  auto resample = ResampleFunctionType::New();
 
   resample->SetSplineOrder(interpolator->GetSplineOrder());
   resample->SetInputImage(filter->GetOutput());
 
   // Compare 10 values at random points.
 
-  ImageType::IndexType last;
-  last.Fill(0);
+  ImageType::IndexType last{};
   last[0] = randImage->GetLargestPossibleRegion().GetSize()[0] - 1;
   ImageType::PointType lastPhysicalLocation;
   randImage->TransformIndexToPhysicalPoint(last, lastPhysicalLocation);
@@ -162,7 +149,7 @@ itkBSplineDecompositionImageFilterTest(int argc, char * argv[])
   const double minValue = randImage->GetOrigin()[0];
   const double maxValue = lastPhysicalLocation[0];
 
-  double tolerance2 = 1e-5;
+  constexpr double tolerance2 = 1e-5;
   for (unsigned int k = 0; k < 10; ++k)
   {
     ResampleFunctionType::PointType point;
@@ -191,7 +178,7 @@ itkBSplineDecompositionImageFilterTest(int argc, char * argv[])
   using ComplexPixelType = std::complex<PixelType>;
   using ComplexImageType = itk::Image<ComplexPixelType, ImageDimension>;
   using ComplexFilterType = itk::BSplineDecompositionImageFilter<ComplexImageType, ComplexImageType>;
-  ComplexFilterType::Pointer complexFilter = ComplexFilterType::New();
+  auto complexFilter = ComplexFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineDecompositionImageFilter, ImageToImageFilter);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,8 +85,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUDemonsRegistrationFilter, GPUPDEDeformableRegistrationFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUDemonsRegistrationFilter);
 
   /** Inherit types from GPUSuperclass. */
   using TimeStepType = typename GPUSuperclass::TimeStepType;
@@ -112,7 +112,7 @@ public:
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
-   * computed over the the overlapping region between the two images.
+   * computed over the overlapping region between the two images.
    * This is value is only available for the previous iteration and
    * NOT the current iteration. */
   double
@@ -144,7 +144,7 @@ protected:
   ApplyUpdate(const TimeStepType & dt) override;
 
 private:
-  bool m_UseMovingImageGradient;
+  bool m_UseMovingImageGradient{};
 };
 
 /** \class GPUDemonsRegistrationFilterFactory
@@ -163,6 +163,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Class methods used to interface with the registered factories. */
+  /** @ITKStartGrouping */
   const char *
   GetITKSourceVersion() const override
   {
@@ -173,37 +174,37 @@ public:
   {
     return "A Factory for GPUDemonsRegistrationFilter";
   }
-
+  /** @ITKEndGrouping */
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUDemonsRegistrationFilterFactory, itk::ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUDemonsRegistrationFilterFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    GPUDemonsRegistrationFilterFactory::Pointer factory = GPUDemonsRegistrationFilterFactory::New();
+    auto factory = GPUDemonsRegistrationFilterFactory::New();
 
     ObjectFactoryBase::RegisterFactory(factory);
   }
 
 private:
-#define OverrideDemonsRegistrationFilterTypeMacro(ipt, opt, dm)                                                        \
-  {                                                                                                                    \
-    using InputImageType = GPUImage<ipt, dm>;                                                                          \
-    using OutputImageType = GPUImage<opt, dm>;                                                                         \
-    using VectorPixelType = Vector<float, dm>;                                                                         \
-    using DisplacementFieldType = GPUImage<VectorPixelType, dm>;                                                       \
-    this->RegisterOverride(                                                                                            \
-      typeid(DemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>).name(),                 \
-      typeid(GPUDemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>).name(),              \
-      "GPU Demons Registration Filter Override",                                                                       \
-      true,                                                                                                            \
-      CreateObjectFunction<                                                                                            \
-        GPUDemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>>::New());                  \
-  }                                                                                                                    \
+#define OverrideDemonsRegistrationFilterTypeMacro(ipt, opt, dm)                                           \
+  {                                                                                                       \
+    using InputImageType = GPUImage<ipt, dm>;                                                             \
+    using OutputImageType = GPUImage<opt, dm>;                                                            \
+    using VectorPixelType = Vector<float, dm>;                                                            \
+    using DisplacementFieldType = GPUImage<VectorPixelType, dm>;                                          \
+    this->RegisterOverride(                                                                               \
+      typeid(DemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>).name(),    \
+      typeid(GPUDemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>).name(), \
+      "GPU Demons Registration Filter Override",                                                          \
+      true,                                                                                               \
+      CreateObjectFunction<                                                                               \
+        GPUDemonsRegistrationFilter<InputImageType, OutputImageType, DisplacementFieldType>>::New());     \
+  }                                                                                                       \
   ITK_MACROEND_NOOP_STATEMENT
 
   GPUDemonsRegistrationFilterFactory()

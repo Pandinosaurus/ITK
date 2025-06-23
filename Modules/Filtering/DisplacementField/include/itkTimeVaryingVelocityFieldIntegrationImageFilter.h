@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
  * \f]
  *
  * In this class, the input is the time-varying velocity field and an initial
- * diffeomorophism.  The output diffeomorphism is produced using fourth order
+ * diffeomorphism.  The output diffeomorphism is produced using fourth order
  * Runge-Kutta.
  *
  * \warning The output deformation field needs to have dimensionality of 1
@@ -66,8 +66,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(TimeVaryingVelocityFieldIntegrationImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TimeVaryingVelocityFieldIntegrationImageFilter);
 
   /**
    * Dimensionality of input data is assumed to be one more than the output
@@ -92,22 +92,25 @@ public:
   using DisplacementFieldInterpolatorPointer = typename DisplacementFieldInterpolatorType::Pointer;
 
   /** Get/Set the time-varying velocity field interpolator.  Default = linear. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(VelocityFieldInterpolator, VelocityFieldInterpolatorType);
   itkGetModifiableObjectMacro(VelocityFieldInterpolator, VelocityFieldInterpolatorType);
-
+  /** @ITKEndGrouping */
   /**
    * Get/Set the deformation field interpolator for the initial diffeomorphism
    * (if set).  Default = linear.
    */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(DisplacementFieldInterpolator, DisplacementFieldInterpolatorType);
   itkGetModifiableObjectMacro(DisplacementFieldInterpolator, DisplacementFieldInterpolatorType);
-
+  /** @ITKEndGrouping */
   /**
    * Get/Set the initial diffeomorphism
    */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(InitialDiffeomorphism, DisplacementFieldType);
   itkGetModifiableObjectMacro(InitialDiffeomorphism, DisplacementFieldType);
-
+  /** @ITKEndGrouping */
   /**
    * Set the lower time bound defining the integration domain of the transform.
    * We assume that the total possible time domain is [0,1].
@@ -144,6 +147,19 @@ public:
    */
   itkGetConstMacro(NumberOfIntegrationSteps, unsigned int);
 
+  /**
+   * Get/Set a flag to interpret LowerTimeBound and UpperTimeBound as rates
+   * in the velocity field time span. This is equivalent to consider that the velocity
+   * field is defined in the normalized time interval [0, 1], ignoring the input origin
+   * and spacing in the temporal dimension.
+   *
+   * The default is true for backwards compatibility.
+   */
+  /** @ITKStartGrouping */
+  itkSetMacro(TimeBoundsAsRates, bool);
+  itkGetConstMacro(TimeBoundsAsRates, bool);
+  itkBooleanMacro(TimeBoundsAsRates);
+  /** @ITKEndGrouping */
 protected:
   TimeVaryingVelocityFieldIntegrationImageFilter();
   ~TimeVaryingVelocityFieldIntegrationImageFilter() override = default;
@@ -164,19 +180,21 @@ protected:
   VectorType
   IntegrateVelocityAtPoint(const PointType & initialSpatialPoint, const TimeVaryingVelocityFieldType * inputField);
 
-  RealType m_LowerTimeBound;
-  RealType m_UpperTimeBound;
+  RealType m_LowerTimeBound{};
+  RealType m_UpperTimeBound{};
 
-  DisplacementFieldPointer m_InitialDiffeomorphism;
+  DisplacementFieldPointer m_InitialDiffeomorphism{};
 
-  unsigned int m_NumberOfIntegrationSteps;
+  unsigned int m_NumberOfIntegrationSteps{};
 
-  unsigned int m_NumberOfTimePoints;
+  unsigned int m_NumberOfTimePoints{};
 
-  DisplacementFieldInterpolatorPointer m_DisplacementFieldInterpolator;
+  DisplacementFieldInterpolatorPointer m_DisplacementFieldInterpolator{};
+
+  bool m_TimeBoundsAsRates{ true };
 
 private:
-  VelocityFieldInterpolatorPointer m_VelocityFieldInterpolator;
+  VelocityFieldInterpolatorPointer m_VelocityFieldInterpolator{};
 };
 } // namespace itk
 

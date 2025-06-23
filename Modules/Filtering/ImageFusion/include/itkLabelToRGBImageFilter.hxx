@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,13 @@
 #ifndef itkLabelToRGBImageFilter_hxx
 #define itkLabelToRGBImageFilter_hxx
 
-#include "itkLabelToRGBImageFilter.h"
 
 /*
  *
  * This code was contributed in the Insight Journal paper:
  * "The watershed transform in ITK - discussion and new developments"
  * by Beare R., Lehmann G.
- * https://www.insight-journal.org/browse/publication/92
+ * https://doi.org/10.54294/lf8u75
  *
  */
 
@@ -36,10 +35,10 @@ namespace itk
  */
 template <typename TLabelImage, typename TOutputImage>
 LabelToRGBImageFilter<TLabelImage, TOutputImage>::LabelToRGBImageFilter()
+  : m_BackgroundValue(LabelPixelType{})
 {
-  m_BackgroundValue = NumericTraits<LabelPixelType>::ZeroValue();
   NumericTraits<OutputPixelType>::SetLength(m_BackgroundColor, 3);
-  m_BackgroundColor.Fill(NumericTraits<OutputPixelValueType>::ZeroValue());
+  m_BackgroundColor.Fill(OutputPixelValueType{});
 }
 
 template <typename TLabelImage, typename TOutputImage>

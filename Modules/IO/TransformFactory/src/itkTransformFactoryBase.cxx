@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,10 +70,10 @@ void
 TransformFactoryBase::RegisterDefaultTransforms()
 {
   //
-  // make sure that the the factory instance has
+  // make sure that the factory instance has
   // been created. All normal paths to this method
   // already do this but this makes certain sure it's done
-  (void)TransformFactoryBase::GetFactory();
+  [[maybe_unused]] auto currentFactory = TransformFactoryBase::GetFactory();
 
   if (!TransformFactoryBasePrivate::DefaultTransformsRegistered)
   {
@@ -98,7 +98,7 @@ TransformFactoryBase::GetFactory()
   if (m_Factory == nullptr)
   {
     // Make and register the factory
-    Pointer p = New();
+    const Pointer p = New();
     m_Factory = p.GetPointer();
     ObjectFactoryBase::RegisterFactory(p);
     p->RegisterDefaultTransforms();

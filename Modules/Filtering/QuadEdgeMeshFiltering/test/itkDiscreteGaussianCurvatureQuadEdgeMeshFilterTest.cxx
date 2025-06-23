@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,15 +21,15 @@
 
 #include "itkQuadEdgeMeshExtendedTraits.h"
 #include "itkDiscreteGaussianCurvatureQuadEdgeMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkDiscreteGaussianCurvatureQuadEdgeMeshFilterTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cout << "*** GaussianCurvature ***" << std::endl;
-    std::cout << "This example requires at least one argument:" << std::endl;
-    std::cout << " 1- FileName" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -43,34 +43,31 @@ itkDiscreteGaussianCurvatureQuadEdgeMeshFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::MeshFileReader<MeshType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown while reading the input file " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  MeshType::Pointer mesh = reader->GetOutput();
 
-  CurvatureFilterType::Pointer gaussian_curvature = CurvatureFilterType::New();
-  gaussian_curvature->SetInput(mesh);
-  gaussian_curvature->Update();
+  const MeshType::Pointer mesh = reader->GetOutput();
 
-  MeshType::Pointer output = gaussian_curvature->GetOutput();
+  auto gaussianCurvatureFilter = CurvatureFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    gaussianCurvatureFilter, DiscreteGaussianCurvatureQuadEdgeMeshFilter, DiscreteCurvatureQuadEdgeMeshFilter);
+
+
+  gaussianCurvatureFilter->SetInput(mesh);
+  gaussianCurvatureFilter->Update();
+
+  const MeshType::Pointer output = gaussianCurvatureFilter->GetOutput();
 
   using WriterType = itk::MeshFileWriter<MeshType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(output);
   writer->SetFileName("gaussian_curvature.vtk");
   writer->Update();
 
-  // ** PRINT **
-  std::cout << gaussian_curvature;
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

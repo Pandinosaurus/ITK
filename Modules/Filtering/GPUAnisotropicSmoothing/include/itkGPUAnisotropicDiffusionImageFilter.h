@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,8 +47,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information. */
-  itkTypeMacro(GPUAnisotropicDiffusionImageFilter, GPUDenseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUAnisotropicDiffusionImageFilter);
 
   /** Capture information from the superclass. */
   using InputImageType = typename GPUSuperclass::InputImageType;
@@ -67,8 +67,6 @@ public:
 protected:
   GPUAnisotropicDiffusionImageFilter() = default;
   ~GPUAnisotropicDiffusionImageFilter() override = default;
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Prepare for the iteration process. */
   void

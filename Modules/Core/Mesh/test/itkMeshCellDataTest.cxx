@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +16,21 @@
  *
  *=========================================================================*/
 
-#include <itkDefaultDynamicMeshTraits.h>
-#include <itkMesh.h>
-#include <itkTriangleCell.h>
-
-const unsigned int Dimension = 2;
-using TPixel = float;
-using TMeshTraits = itk::DefaultDynamicMeshTraits<TPixel>;
-using TMesh = itk::Mesh<TPixel, Dimension, TMeshTraits>;
-using TPoint = TMesh::PointType;
-using TCell = TMesh::CellType;
-using TTriangle = itk::TriangleCell<TCell>;
+#include "itkDefaultDynamicMeshTraits.h"
+#include "itkMesh.h"
+#include "itkTriangleCell.h"
+#include "itkTestingMacros.h"
 
 int
 itkMeshCellDataTest(int, char *[])
 {
+  constexpr unsigned int Dimension = 2;
+  using TPixel = float;
+  using TMeshTraits = itk::DefaultDynamicMeshTraits<TPixel>;
+  using TMesh = itk::Mesh<TPixel, Dimension, TMeshTraits>;
+  using TPoint = TMesh::PointType;
+  using TCell = TMesh::CellType;
+  using TTriangle = itk::TriangleCell<TCell>;
 
   // 1------3------5
   //   \    | \    |
@@ -44,6 +44,8 @@ itkMeshCellDataTest(int, char *[])
   mesh->SetPoint(3, TPoint{ { { 1.0, 1.0 } } });
   mesh->SetPoint(4, TPoint{ { { 4.0, 0.0 } } });
   mesh->SetPoint(5, TPoint{ { { 5.0, 1.0 } } });
+
+  ITK_TEST_EXPECT_TRUE(mesh->GetCellData() != nullptr);
 
   {
     TCell::CellAutoPointer cellpointer;

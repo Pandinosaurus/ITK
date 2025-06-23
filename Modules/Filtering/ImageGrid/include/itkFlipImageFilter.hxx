@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFlipImageFilter_hxx
 #define itkFlipImageFilter_hxx
 
-#include "itkFlipImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
 
@@ -42,8 +41,8 @@ FlipImageFilter<TImage>::GenerateOutputInformation()
   Superclass::GenerateOutputInformation();
 
   // Get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<TImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -62,7 +61,7 @@ FlipImageFilter<TImage>::GenerateOutputInformation()
 
   // Need the coordinate of the pixel that will become the first pixel
   // and need a matrix to model the flip
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (m_FlipAxes[j])
     {
@@ -95,7 +94,7 @@ FlipImageFilter<TImage>::GenerateOutputInformation()
   // Finally, flip about the origin if needed
   if (m_FlipAboutOrigin)
   {
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       if (m_FlipAxes[j])
       {
@@ -116,8 +115,8 @@ FlipImageFilter<TImage>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
 
   // Get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<TImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -132,7 +131,7 @@ FlipImageFilter<TImage>::GenerateInputRequestedRegion()
 
   IndexType inputRequestedIndex(outputRequestedIndex);
 
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (m_FlipAxes[j])
     {
@@ -142,7 +141,7 @@ FlipImageFilter<TImage>::GenerateInputRequestedRegion()
     }
   }
 
-  typename TImage::RegionType inputRequestedRegion(inputRequestedIndex, outputRequestedSize);
+  const typename TImage::RegionType inputRequestedRegion(inputRequestedIndex, outputRequestedSize);
 
   inputPtr->SetRequestedRegion(inputRequestedRegion);
 }
@@ -151,15 +150,15 @@ template <typename TImage>
 void
 FlipImageFilter<TImage>::DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread)
 {
-  InputImageConstPointer inputPtr = this->GetInput();
-  OutputImagePointer     outputPtr = this->GetOutput();
+  const InputImageConstPointer inputPtr = this->GetInput();
+  const OutputImagePointer     outputPtr = this->GetOutput();
 
   const typename TImage::SizeType &  outputLargestPossibleSize = outputPtr->GetLargestPossibleRegion().GetSize();
   const typename TImage::IndexType & outputLargestPossibleIndex = outputPtr->GetLargestPossibleRegion().GetIndex();
 
   // Compute the input region the output region maps to
   typename TImage::RegionType inputReginForThread(outputRegionForThread);
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (m_FlipAxes[j])
     {
@@ -170,12 +169,11 @@ FlipImageFilter<TImage>::DynamicThreadedGenerateData(const OutputImageRegionType
     }
   }
 
-  // Setup output region iterator
-  ImageScanlineIterator<TImage>      outputIt(outputPtr, outputRegionForThread);
-  ImageScanlineConstIterator<TImage> inputIter(inputPtr, inputReginForThread);
+  // Setup region iterator
+  ImageScanlineConstIterator inputIter(inputPtr, inputReginForThread);
 
   IndexValueType offset[ImageDimension];
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (m_FlipAxes[j])
     {
@@ -189,8 +187,7 @@ FlipImageFilter<TImage>::DynamicThreadedGenerateData(const OutputImageRegionType
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
-  outputIt.GoToBegin();
-  while (!outputIt.IsAtEnd())
+  for (ImageScanlineIterator outputIt(outputPtr, outputRegionForThread); !outputIt.IsAtEnd(); outputIt.NextLine())
   {
     // Determine the index of the output line
     const typename TImage::IndexType outputIndex = outputIt.GetIndex();
@@ -233,7 +230,6 @@ FlipImageFilter<TImage>::DynamicThreadedGenerateData(const OutputImageRegionType
       }
     }
 
-    outputIt.NextLine();
     progress.Completed(outputRegionForThread.GetSize()[0]);
   }
 }

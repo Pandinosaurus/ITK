@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -147,10 +147,7 @@ public:
       {
         return static_cast<OutputPixelType>(255);
       }
-      else
-      {
-        return itk::Math::Round<OutputPixelType>(-(30.0 * std::log(A)));
-      }
+      return itk::Math::Round<OutputPixelType>(-(30.0 * std::log(A)));
     }
     else
     {
@@ -240,7 +237,7 @@ public:
     this->m_Metric = metric;
   }
 
-  MetricPointer
+  [[nodiscard]] MetricPointer
   GetMetric() const
   {
     return this->m_Metric;
@@ -249,7 +246,7 @@ public:
   void
   WriteHistogramFile(unsigned int iterationNumber)
   {
-    std::string        outputFileBase = "JointHistogram";
+    const std::string  outputFileBase = "JointHistogram";
     std::ostringstream outputFilename;
     outputFilename << outputFileBase << "." << std::setfill('0')
                    << std::setw(3) << iterationNumber << "."
@@ -330,14 +327,13 @@ public:
                                    RescaledOutputImageType,
                                    RescaleDynamicRangeFunctorType>;
 
-    RescaleDynamicRangeFilterType::Pointer rescaler =
-      RescaleDynamicRangeFilterType::New();
+    auto rescaler = RescaleDynamicRangeFilterType::New();
 
     rescaler->SetInput(m_Filter->GetOutput());
 
     using RescaledWriterType = itk::ImageFileWriter<RescaledOutputImageType>;
 
-    RescaledWriterType::Pointer rescaledWriter = RescaledWriterType::New();
+    auto rescaledWriter = RescaledWriterType::New();
 
     rescaledWriter->SetInput(rescaler->GetOutput());
 
@@ -381,7 +377,6 @@ private:
   HistogramToImageFilterPointer m_Filter;
   HistogramFileWriterPointer    m_HistogramFileWriter;
   // Software Guide : EndCodeSnippet
-  std::string m_OutputFile;
 };
 
 // Command - observer invoked after every iteration of the optimizer
@@ -394,7 +389,7 @@ public:
   itkSimpleNewMacro(Self);
 
 protected:
-  CommandIterationUpdate() { m_WriteHistogramsAfterEveryIteration = false; }
+  CommandIterationUpdate() = default;
 
 public:
   using OptimizerType = itk::RegularStepGradientDescentOptimizer;
@@ -458,7 +453,7 @@ public:
   HistogramWriter m_JointHistogramWriter;
 
 private:
-  bool        m_WriteHistogramsAfterEveryIteration;
+  bool        m_WriteHistogramsAfterEveryIteration{ false };
   std::string m_InitialHistogramFile;
 };
 
@@ -509,11 +504,11 @@ main(int argc, char * argv[])
   //
   // Software Guide : EndLatex
 
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
-  MetricType::Pointer       metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
+  auto metric = MetricType::New();
 
 
   registration->SetOptimizer(optimizer);
@@ -536,7 +531,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  unsigned int numberOfHistogramBins = std::stoi(argv[7]);
+  const unsigned int numberOfHistogramBins = std::stoi(argv[7]);
   MetricType::HistogramType::SizeType histogramSize;
   histogramSize.SetSize(2);
   histogramSize[0] = numberOfHistogramBins;
@@ -550,7 +545,7 @@ main(int argc, char * argv[])
   scales.Fill(1.0);
   metric->SetDerivativeStepLengthScales(scales);
 
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
 
   // Set the metric for the joint histogram writer
   observer->m_JointHistogramWriter.SetMetric(metric);
@@ -560,10 +555,8 @@ main(int argc, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -575,16 +568,14 @@ main(int argc, char * argv[])
   using MovingNormalizeFilterType =
     itk::NormalizeImageFilter<MovingImageType, InternalImageType>;
 
-  FixedNormalizeFilterType::Pointer fixedNormalizer =
-    FixedNormalizeFilterType::New();
+  auto fixedNormalizer = FixedNormalizeFilterType::New();
 
-  MovingNormalizeFilterType::Pointer movingNormalizer =
-    MovingNormalizeFilterType::New();
+  auto movingNormalizer = MovingNormalizeFilterType::New();
   using GaussianFilterType =
     itk::DiscreteGaussianImageFilter<InternalImageType, InternalImageType>;
 
-  GaussianFilterType::Pointer fixedSmoother = GaussianFilterType::New();
-  GaussianFilterType::Pointer movingSmoother = GaussianFilterType::New();
+  auto fixedSmoother = GaussianFilterType::New();
+  auto movingSmoother = GaussianFilterType::New();
 
   fixedSmoother->SetVariance(2.0);
   movingSmoother->SetVariance(2.0);
@@ -654,12 +645,12 @@ main(int argc, char * argv[])
 
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
-  double TranslationAlongX = finalParameters[0];
-  double TranslationAlongY = finalParameters[1];
+  const double TranslationAlongX = finalParameters[0];
+  const double TranslationAlongY = finalParameters[1];
 
-  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
 
-  double bestValue = optimizer->GetValue();
+  const double bestValue = optimizer->GetValue();
 
 
   std::cout << "Result = " << std::endl;
@@ -684,17 +675,17 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  TransformType::Pointer finalTransform = TransformType::New();
+  auto finalTransform = TransformType::New();
 
   finalTransform->SetParameters(finalParameters);
   finalTransform->SetFixedParameters(transform->GetFixedParameters());
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(finalTransform);
   resample->SetInput(movingImageReader->GetOutput());
 
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   resample->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
   resample->SetOutputOrigin(fixedImage->GetOrigin());
@@ -713,8 +704,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
 
   writer->SetFileName(argv[3]);

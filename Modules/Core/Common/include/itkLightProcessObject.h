@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,8 +83,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LightProcessObject, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LightProcessObject);
 
   /** Set the AbortGenerateData flag for the process object. Process objects
    *  may handle premature termination of execution in different ways.  */
@@ -100,13 +100,15 @@ public:
   /** Set the execution progress of a process object. The progress is
    * a floating number between (0,1), 0 meaning no progress; 1 meaning
    * the filter has completed execution. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(Progress, float, 0.0f, 1.0f);
-
+  /** @ITKEndGrouping */
   /** Get the execution progress of a process object. The progress is
    * a floating number between (0,1), 0 meaning no progress; 1 meaning
    * the filter has completed execution. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Progress, float);
-
+  /** @ITKEndGrouping */
   /** Update the progress of the process object. If a ProgressMethod exists,
    * executes it.  Then set the Progress ivar to amount. The parameter amount
    * should range between (0,1).  */
@@ -132,8 +134,8 @@ private:
   /**
    * These support the progress method and aborting filter execution.
    */
-  bool  m_AbortGenerateData;
-  float m_Progress;
+  bool  m_AbortGenerateData{};
+  float m_Progress{};
 };
 } // end namespace itk
 

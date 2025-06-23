@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ itkImageFromBuffer(itk::VXLVideoIO::Pointer vxlIO, void * buffer, size_t bufferS
   space.Fill(1.0); // May need fixing
 
   // Use itkImportImageFilter to create an ITK image
-  ImportFilterType::Pointer importFilter = ImportFilterType::New();
+  auto importFilter = ImportFilterType::New();
   importFilter->SetRegion(region);
   importFilter->SetOrigin(origin);
   importFilter->SetSpacing(space);
@@ -85,7 +85,7 @@ readCorrectly(itk::VXLVideoIO::Pointer vxlIO, vidl_ffmpeg_istream * stream, Size
   // Make sure buffers are same sized
   if (vxlFrame->size() != bufferSize)
   {
-    std::cerr << "Frame buffer sizes don't match (" << vxlFrame->size() << " != " << bufferSize << ")" << std::endl;
+    std::cerr << "Frame buffer sizes don't match (" << vxlFrame->size() << " != " << bufferSize << ')' << std::endl;
     ret = false;
   }
 
@@ -227,14 +227,14 @@ test_VXLVideoIO(char *        input,
   std::string nonExistantFile = "Bad/Path/To/Nothing";
   if (vxlIO->CanReadFile(nonExistantFile.c_str()))
   {
-    std::cerr << "Should have failed to open \"" << nonExistantFile << "\"" << std::endl;
+    std::cerr << "Should have failed to open \"" << nonExistantFile << '"' << std::endl;
     ret = EXIT_FAILURE;
   }
 
   // Test CanReadFile on non-video file
   if (vxlIO->CanReadFile(nonVideoInput))
   {
-    std::cerr << "Should have failed to open \"" << nonVideoInput << "\"" << std::endl;
+    std::cerr << "Should have failed to open \"" << nonVideoInput << '"' << std::endl;
     ret = EXIT_FAILURE;
   }
 
@@ -417,12 +417,12 @@ test_VXLVideoIO(char *        input,
     ImageType::Pointer cameraFrame = itkImageFromBuffer(vxlIO, camBuffer, camBufferSize);
 
     // Write out the ITK image -- DEBUG
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetFileName(cameraOutput);
     writer->SetInput(cameraFrame);
     writer->Update();
 
-    // Overwirte the file right away so we're not saving pictures of the tester!
+    // Overwrite the file right away so we're not saving pictures of the tester!
     std::ofstream fs;
     fs.open(cameraOutput);
     fs << "EMPTY... deleted picture from webcam\n";
@@ -455,7 +455,7 @@ test_VXLVideoIO(char *        input,
   if (vxlIO_write->GetFramesPerSecond() != fps || vxlIO_write->GetDimensions(0) != width ||
       vxlIO_write->GetDimensions(1) != height || vxlIO_write->GetNumberOfComponents() != nChannels)
   {
-    std::cerr << "Didn't set writer parmeters correctly" << std::endl;
+    std::cerr << "Didn't set writer parameters correctly" << std::endl;
     ret = EXIT_FAILURE;
   }
 

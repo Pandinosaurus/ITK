@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,25 +78,25 @@ public:
   using RadiusType = typename NeighborhoodType::RadiusType;
   static constexpr unsigned int Dimension = NeighborhoodType::Dimension;
 
-  const RadiusType &
+  [[nodiscard]] const RadiusType &
   GetRadius() const
   {
     return m_Radius;
   }
 
-  const unsigned int &
+  [[nodiscard]] const unsigned int &
   GetArrayIndex(unsigned int i) const
   {
     return m_ArrayIndex[i];
   }
 
-  const OffsetType &
+  [[nodiscard]] const OffsetType &
   GetNeighborhoodOffset(unsigned int i) const
   {
     return m_NeighborhoodOffset[i];
   }
 
-  const unsigned int &
+  [[nodiscard]] const unsigned int &
   GetSize() const
   {
     return m_Size;
@@ -112,7 +112,7 @@ public:
   ~SparseFieldCityBlockNeighborList() = default;
 
   void
-  Print(std::ostream & os) const;
+  Print(std::ostream & os, Indent indent) const;
 
 private:
   unsigned int              m_Size;
@@ -122,7 +122,7 @@ private:
 
   /** An internal table for keeping track of stride lengths in a neighborhood,
       i.e. the memory offsets between pixels along each dimensional axis. */
-  unsigned m_StrideTable[Dimension];
+  unsigned int m_StrideTable[Dimension];
 };
 
 /**
@@ -231,12 +231,7 @@ private:
  *  FiniteDifferenceFunction to use for calculations.  This is set using the
  *  method SetDifferenceFunction in the parent class.
  *
- * \par REFERENCES
- * Whitaker, Ross. A Level-Set Approach to 3D Reconstruction from Range Data.
- * International Journal of Computer Vision.  V. 29 No. 3, 203-231. 1998.
- *
- * \par
- * Sethian, J.A. Level Set Methods. Cambridge University Press. 1996.
+ * For algorithmic details see \cite whitaker1998 and \cite sethian1996.
  *
  * \ingroup ITKLevelSets
  */
@@ -253,15 +248,15 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /**Typedefs from the superclass */
-  using TimeStepType = typename Superclass::TimeStepType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodScalesType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SparseFieldLevelSetImageFilter, FiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SparseFieldLevelSetImageFilter);
 
   /** Information derived from the image types. */
   using InputImageType = TInputImage;
@@ -300,13 +295,15 @@ public:
   /** Set/Get the number of layers to use in the sparse field.  Argument is the
    *  number of layers on ONE side of the active layer, so the total layers in
    *   the sparse field is 2 * NumberOfLayers +1 */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfLayers, unsigned int);
   itkGetConstMacro(NumberOfLayers, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value of the isosurface to use in the input image. */
+  /** @ITKStartGrouping */
   itkSetMacro(IsoSurfaceValue, ValueType);
   itkGetConstMacro(IsoSurfaceValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** Get the RMS change calculated in the PREVIOUS iteration.  This value is
    *  the square root of the average square of the change value of all pixels
    *  updated during the previous iteration. */
@@ -317,10 +314,12 @@ public:
       when calculating change at a voxel location.  Turned on by default.  Some
       applications may not use this value and can safely turn the flag
       off. */
+  /** @ITKStartGrouping */
   itkSetMacro(InterpolateSurfaceLocation, bool);
   itkGetConstMacro(InterpolateSurfaceLocation, bool);
-
+  /** @ITKEndGrouping */
   /** See Get/SetInterpolateSurfaceLocation */
+  /** @ITKStartGrouping */
   void
   InterpolateSurfaceLocationOn()
   {
@@ -331,14 +330,10 @@ public:
   {
     this->SetInterpolateSurfaceLocation(false);
   }
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   SparseFieldLevelSetImageFilter();
@@ -452,7 +447,7 @@ protected:
   itkGetConstMacro(ValueOne, ValueType);
 
   /** Connectivity information for examining neighbor pixels.   */
-  SparseFieldCityBlockNeighborList<NeighborhoodIterator<OutputImageType>> m_NeighborList;
+  SparseFieldCityBlockNeighborList<NeighborhoodIterator<OutputImageType>> m_NeighborList{};
 
   /** The constant gradient to maintain between isosurfaces in the
       sparse-field of the level-set image.  This value defaults to 1.0 */
@@ -487,13 +482,13 @@ protected:
   /** This image is a copy of the input with m_IsoSurfaceValue subtracted from
    * each pixel.  This way we only need to consider the zero level set in our
    * calculations.  Makes the implementation easier and more efficient. */
-  typename OutputImageType::Pointer m_ShiftedImage;
+  typename OutputImageType::Pointer m_ShiftedImage{};
 
   /** An array which contains all of the layers needed in the sparse
    * field. Layers are organized as follows: m_Layer[0] = active layer,
    * m_Layer[i:odd] = inside layer (i+1)/2, m_Layer[i:even] = outside layer i/2
    */
-  LayerListType m_Layers;
+  LayerListType m_Layers{};
 
   /** The number of layers to use in the sparse field.  Sparse field will
    * consist of m_NumberOfLayers layers on both sides of a single active layer.
@@ -502,17 +497,17 @@ protected:
   unsigned int m_NumberOfLayers{ 2 };
 
   /** An image of status values used internally by the algorithm. */
-  typename StatusImageType::Pointer m_StatusImage;
+  typename StatusImageType::Pointer m_StatusImage{};
 
   /** Storage for layer node objects. */
-  typename LayerNodeStorageType::Pointer m_LayerNodeStore;
+  typename LayerNodeStorageType::Pointer m_LayerNodeStore{};
 
   /** The value in the input which represents the isosurface of interest. */
-  ValueType m_IsoSurfaceValue;
+  ValueType m_IsoSurfaceValue{};
 
   /** The update buffer used to store change values computed in
    *  CalculateChange. */
-  UpdateBufferType m_UpdateBuffer;
+  UpdateBufferType m_UpdateBuffer{};
 
   /** The RMS change calculated from each update.  Can be used by a subclass to
    *  determine halting criteria.  Valid only for the previous iteration, not
@@ -525,8 +520,8 @@ protected:
       (speed), advection, or curvature terms should turn this flag off. */
   bool m_InterpolateSurfaceLocation{ true };
 
-  const InputImageType * m_InputImage;
-  OutputImageType *      m_OutputImage;
+  const InputImageType * m_InputImage{};
+  OutputImageType *      m_OutputImage{};
 
 private:
   /** This flag is true when methods need to check boundary conditions and

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -106,46 +106,46 @@ public:
   /** ImageDimension constants */
   static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TimeVaryingBSplineVelocityFieldImageRegistrationMethod, SimpleImageRegistrationMethod);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TimeVaryingBSplineVelocityFieldImageRegistrationMethod);
 
   /** Input type alias for the images and transforms. */
   using FixedImageType = TFixedImage;
   using FixedImagePointer = typename FixedImageType::Pointer;
-  using FixedImagesContainerType = typename Superclass::FixedImagesContainerType;
+  using typename Superclass::FixedImagesContainerType;
   using MovingImageType = TMovingImage;
   using MovingImagePointer = typename MovingImageType::Pointer;
-  using MovingImagesContainerType = typename Superclass::MovingImagesContainerType;
+  using typename Superclass::MovingImagesContainerType;
 
   using InputPointSetType = TPointSet;
   using InputPointSetPointer = typename InputPointSetType::Pointer;
-  using PointSetsContainerType = typename Superclass::PointSetsContainerType;
+  using typename Superclass::PointSetsContainerType;
 
   /** Metric and transform type alias */
-  using ImageMetricType = typename Superclass::ImageMetricType;
+  using typename Superclass::ImageMetricType;
   using ImageMetricPointer = typename ImageMetricType::Pointer;
   using MeasureType = typename ImageMetricType::MeasureType;
   using MetricDerivativeType = typename ImageMetricType::DerivativeType;
 
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualImageBaseType = typename Superclass::VirtualImageBaseType;
-  using VirtualImageBaseConstPointer = typename Superclass::VirtualImageBaseConstPointer;
+  using typename Superclass::VirtualImageBaseType;
+  using typename Superclass::VirtualImageBaseConstPointer;
 
-  using MetricType = typename Superclass::MetricType;
-  using MultiMetricType = typename Superclass::MultiMetricType;
+  using typename Superclass::MetricType;
+  using typename Superclass::MultiMetricType;
   using MetricPointer = typename MetricType::Pointer;
-  using PointSetMetricType = typename Superclass::PointSetMetricType;
+  using typename Superclass::PointSetMetricType;
 
   using ImageMaskSpatialObjectType = ImageMaskSpatialObject<ImageDimension>;
   using MaskImageType = typename ImageMaskSpatialObjectType::ImageType;
-  using FixedImageMaskType = typename Superclass::FixedImageMaskType;
+  using typename Superclass::FixedImageMaskType;
   using FixedMaskImageType = typename ImageMaskSpatialObjectType::ImageType;
-  using FixedImageMasksContainerType = typename Superclass::FixedImageMasksContainerType;
-  using MovingImageMaskType = typename Superclass::MovingImageMaskType;
+  using typename Superclass::FixedImageMasksContainerType;
+  using typename Superclass::MovingImageMaskType;
   using MovingMaskImageType = typename ImageMaskSpatialObjectType::ImageType;
-  using MovingImageMasksContainerType = typename Superclass::MovingImageMasksContainerType;
+  using typename Superclass::MovingImageMasksContainerType;
 
-  using InitialTransformType = typename Superclass::InitialTransformType;
+  using typename Superclass::InitialTransformType;
   using OutputTransformType = TOutputTransform;
   using OutputTransformPointer = typename OutputTransformType::Pointer;
   using RealType = typename OutputTransformType::ScalarType;
@@ -154,7 +154,7 @@ public:
   using DisplacementFieldType = typename OutputTransformType::DisplacementFieldType;
   using DisplacementFieldPointType = typename DisplacementFieldType::PointType;
 
-  using ContinuousIndexType = ContinuousIndex<typename DisplacementFieldPointType::CoordRepType, ImageDimension>;
+  using ContinuousIndexType = ContinuousIndex<typename DisplacementFieldPointType::CoordinateType, ImageDimension>;
 
   using TimeVaryingVelocityFieldControlPointLatticeType =
     typename OutputTransformType::TimeVaryingVelocityFieldControlPointLatticeType;
@@ -165,10 +165,10 @@ public:
     typename OutputTransformType::TimeVaryingVelocityFieldControlPointLatticePointer;
   using DisplacementVectorType = typename TimeVaryingVelocityFieldControlPointLatticeType::PixelType;
 
-  using CompositeTransformType = typename Superclass::CompositeTransformType;
+  using typename Superclass::CompositeTransformType;
   using TransformBaseType = typename CompositeTransformType::TransformType;
 
-  using DecoratedOutputTransformType = typename Superclass::DecoratedOutputTransformType;
+  using typename Superclass::DecoratedOutputTransformType;
   using DecoratedOutputTransformPointer = typename DecoratedOutputTransformType::Pointer;
 
   using NumberOfIterationsArrayType = Array<SizeValueType>;
@@ -186,25 +186,30 @@ public:
   using TimeVaryingWeightedMaskImageType = Image<WeightsElementType, ImageDimension + 1>;
 
   /** Set/Get the learning rate. */
+  /** @ITKStartGrouping */
   itkSetMacro(LearningRate, RealType);
   itkGetConstMacro(LearningRate, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of iterations per level. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterationsPerLevel, NumberOfIterationsArrayType);
   itkGetConstMacro(NumberOfIterationsPerLevel, NumberOfIterationsArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the convergence threshold */
+  /** @ITKStartGrouping */
   itkSetMacro(ConvergenceThreshold, RealType);
   itkGetConstMacro(ConvergenceThreshold, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the convergence window size */
+  /** @ITKStartGrouping */
   itkSetMacro(ConvergenceWindowSize, unsigned int);
   itkGetConstMacro(ConvergenceWindowSize, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of time point samples. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfTimePointSamples, SizeValueType);
   itkGetConstMacro(NumberOfTimePointSamples, SizeValueType);
-
+  /** @ITKEndGrouping */
 protected:
   TimeVaryingBSplineVelocityFieldImageRegistrationMethod();
   ~TimeVaryingBSplineVelocityFieldImageRegistrationMethod() override = default;
@@ -215,7 +220,10 @@ protected:
   void
   GenerateData() override;
 
-  /** Handle optimization internally */
+  /** Start the optimization at each level.
+   *
+   * Performs a basic gradient descent operation.
+   */
   virtual void
   StartOptimization();
 
@@ -236,18 +244,18 @@ protected:
                                                   const FixedImageMasksContainerType);
 
 private:
-  DisplacementFieldTransformPointer m_IdentityDisplacementFieldTransform;
+  DisplacementFieldTransformPointer m_IdentityDisplacementFieldTransform{};
 
-  RealType m_LearningRate;
+  RealType m_LearningRate{};
 
-  RealType     m_ConvergenceThreshold;
+  RealType     m_ConvergenceThreshold{};
   unsigned int m_ConvergenceWindowSize{ 10 };
 
-  NumberOfIterationsArrayType m_NumberOfIterationsPerLevel;
+  NumberOfIterationsArrayType m_NumberOfIterationsPerLevel{};
 
   SizeValueType m_NumberOfTimePointSamples{ 4 };
 
-  WeightsElementType m_BoundaryWeight;
+  WeightsElementType m_BoundaryWeight{};
 };
 } // end namespace itk
 

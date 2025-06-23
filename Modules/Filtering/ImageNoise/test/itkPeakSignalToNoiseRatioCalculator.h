@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class PeakSignalToNoiseRatioCalculator
+ * \class PeakSignalToNoiseRatioCalculator
  * \brief Compute the PSNR of a noisy image
  *
  * \todo This class needs to be refactored and made into a proper
@@ -48,8 +48,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PeakSignalToNoiseRatioCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PeakSignalToNoiseRatioCalculator);
 
   /** Extract the dimension of the image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -99,12 +99,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  bool m_Valid; // Have moments been computed
-                // yet?
-  double m_Output;
+  bool m_Valid{}; // Have moments been computed
+                  // yet?
+  double m_Output{};
 
-  InputImageConstPointer m_Image;
-  InputImageConstPointer m_NoisyImage;
+  InputImageConstPointer m_Image{};
+  InputImageConstPointer m_NoisyImage{};
 
 }; // class PeakSignalToNoiseRatioCalculator
 

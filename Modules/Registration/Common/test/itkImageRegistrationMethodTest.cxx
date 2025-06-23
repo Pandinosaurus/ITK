@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +36,6 @@ itkImageRegistrationMethodTest(int, char *[])
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New().GetPointer());
 
-  bool pass;
-
   constexpr unsigned int dimension = 3;
 
   // Fixed Image Type
@@ -62,18 +60,17 @@ itkImageRegistrationMethodTest(int, char *[])
   using RegistrationType = itk::ImageRegistrationMethod<FixedImageType, MovingImageType>;
 
 
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  FixedImageType::Pointer   fixedImage = FixedImageType::New();
-  MovingImageType::Pointer  movingImage = MovingImageType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto fixedImage = FixedImageType::New();
+  auto movingImage = MovingImageType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
-  FixedImageType::SizeType size;
-  size.Fill(4); // the size of image have to be at least 4 in each dimension to
-                // compute gradient image inside the metric.
-  FixedImageType::RegionType region(size);
+  auto size = FixedImageType::SizeType::Filled(4); // the size of image have to be at least 4 in each dimension to
+                                                   // compute gradient image inside the metric.
+  const FixedImageType::RegionType region(size);
   fixedImage->SetRegions(region);
   fixedImage->Allocate();
   fixedImage->FillBuffer(3.0);
@@ -113,27 +110,27 @@ itkImageRegistrationMethodTest(int, char *[])
   /****************************************************
    * Test out initialization errors
    ****************************************************/
-
-#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent)                                          \
-  registration->Set##ComponentName(badComponent);                                                                      \
-  try                                                                                                                  \
-  {                                                                                                                    \
-    pass = false;                                                                                                      \
-    registration->Update();                                                                                            \
-  }                                                                                                                    \
-  catch (const itk::ExceptionObject & err)                                                                             \
-  {                                                                                                                    \
-    std::cout << "Caught expected ExceptionObject" << std::endl;                                                       \
-    std::cout << err << std::endl;                                                                                     \
-    pass = true;                                                                                                       \
-  }                                                                                                                    \
-  registration->Set##ComponentName(goodComponent);                                                                     \
-                                                                                                                       \
-  if (!pass)                                                                                                           \
-  {                                                                                                                    \
-    std::cout << "Test failed." << std::endl;                                                                          \
-    return EXIT_FAILURE;                                                                                               \
-  }                                                                                                                    \
+  bool pass = false;
+#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent) \
+  registration->Set##ComponentName(badComponent);                             \
+  try                                                                         \
+  {                                                                           \
+    pass = false;                                                             \
+    registration->Update();                                                   \
+  }                                                                           \
+  catch (const itk::ExceptionObject & err)                                    \
+  {                                                                           \
+    std::cout << "Caught expected ExceptionObject" << std::endl;              \
+    std::cout << err << std::endl;                                            \
+    pass = true;                                                              \
+  }                                                                           \
+  registration->Set##ComponentName(goodComponent);                            \
+                                                                              \
+  if (!pass)                                                                  \
+  {                                                                           \
+    std::cout << "Test failed." << std::endl;                                 \
+    return EXIT_FAILURE;                                                      \
+  }                                                                           \
   ITK_MACROEND_NOOP_STATEMENT
 
   TEST_INITIALIZATION_ERROR(InitialTransformParameters, badParameters, initialParameters);

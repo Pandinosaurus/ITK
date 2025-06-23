@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,12 +36,12 @@
 namespace itk
 {
 /**
- *\class VTKImageIO
+ * \class VTKImageIO
  *
  *  \brief ImageIO class for reading VTK images
  *
- * This implementation was taken fron the Insight Joural:
- * https://www.insight-journal.org/browse/publication/729
+ * This implementation was taken from the Insight Journal:
+ * https://doi.org/10.54294/ufs19w
  *
  * \ingroup IOFilters
  *
@@ -61,8 +61,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VTKImageIO, StreamingImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VTKImageIO);
 
   // see super class for documentation
   //
@@ -157,8 +157,9 @@ protected:
 
 private:
   void
-              SetPixelTypeFromString(const std::string & pixelType);
-  std::string GetComponentTypeAsString(IOComponentEnum);
+  SetPixelTypeFromString(const std::string & pixelType);
+
+  static std::string GetComponentTypeAsString(IOComponentEnum);
 
   /** Return the number of pixels in the IOregion. */
   SizeType
@@ -173,7 +174,7 @@ private:
   SizeType
   GetIORegionSizeInComponents() const;
 
-  SizeType m_HeaderSize;
+  SizeType m_HeaderSize{};
 };
 } // end namespace itk
 

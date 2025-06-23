@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,38 +50,38 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetQuadEdgeMesh, LevelSetBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetQuadEdgeMesh);
 
-  using InputType = typename Superclass::InputType;
-  using OutputType = typename Superclass::OutputType;
-  using OutputRealType = typename Superclass::OutputRealType;
-  using GradientType = typename Superclass::GradientType;
-  using HessianType = typename Superclass::HessianType;
-  using LevelSetDataType = typename Superclass::LevelSetDataType;
+  using typename Superclass::InputType;
+  using typename Superclass::OutputType;
+  using typename Superclass::OutputRealType;
+  using typename Superclass::GradientType;
+  using typename Superclass::HessianType;
+  using typename Superclass::LevelSetDataType;
 
   itkSetObjectMacro(Mesh, MeshType);
   itkGetModifiableObjectMacro(Mesh, MeshType);
 
   /** Returns the value of the level set function at a given location iP */
   virtual OutputType
-  Evaluate(const InputType & iP) const;
+  Evaluate(const InputType & iP) const override;
 
   /** Returns the image gradient of the level set function at a given location iP
    * \todo to be implemented */
   virtual GradientType
-  EvaluateGradient(const InputType & iP) const;
+  EvaluateGradient(const InputType & iP) const override;
 
   /** Returns the image hessian of the level set function at a given location iP
    * \todo to be implemented */
   virtual HessianType
-  EvaluateHessian(const InputType & iP) const;
+  EvaluateHessian(const InputType & iP) const override;
 
 
   /** Returns the value of the level set function at a given location iP
    * as part of the LevelSetDataType*/
   virtual void
-  Evaluate(const InputType & iP, LevelSetDataType & ioData) const;
+  Evaluate(const InputType & iP, LevelSetDataType & ioData) const override;
 
   /** Returns the gradient of the level set function at a given location iP
    * as part of the LevelSetDataType
@@ -93,7 +93,7 @@ public:
    * as part of the LevelSetDataType
    * \todo to be implemented */
   virtual void
-  EvaluateHessian(const InputType & iP, LevelSetDataType & ioData) const;
+  EvaluateHessian(const InputType & iP, LevelSetDataType & ioData) const override;
 
   /** Initial the level set pointer */
   virtual void
@@ -101,7 +101,7 @@ public:
 
   /** Copy level set information from data object */
   virtual void
-  CopyInformation(const DataObject * data);
+  CopyInformation(const DataObject * data) override;
 
   /** Graft data object as level set object */
   virtual void
@@ -109,10 +109,10 @@ public:
 
 protected:
   LevelSetQuadEdgeMesh() = default;
-  virtual ~LevelSetQuadEdgeMesh() = default;
+  virtual ~LevelSetQuadEdgeMesh() override = default;
 
 private:
-  MeshPointer m_Mesh;
+  MeshPointer m_Mesh{};
 };
 } // namespace itk
 

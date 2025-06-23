@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace Statistics
 {
 
 /**
- *\class ImageToNeighborhoodSampleAdaptor
+ * \class ImageToNeighborhoodSampleAdaptor
  *  \brief This class provides ListSample interface to ITK Image
  *
  * After calling SetImage( const Image * ) method to plug in the image object,
@@ -66,8 +66,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToNeighborhoodSampleAdaptor, ListSample);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToNeighborhoodSampleAdaptor);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -85,6 +85,7 @@ public:
   using OffsetTableType = typename RegionType::OffsetTableType;
   using SizeType = typename ImageType::SizeType;
   using ImageIteratorType = ImageRegionIteratorWithIndex<TImage>;
+
   /** Neighborhood Iterator type alias support */
   using NeighborhoodIteratorType = ConstNeighborhoodIterator<TImage, TBoundaryCondition>;
   using NonConstNeighborhoodIteratorType = NeighborhoodIterator<TImage, TBoundaryCondition>;
@@ -99,10 +100,10 @@ public:
   using ValueType = typename MeasurementVectorType::value_type;
   using MeasurementType = ValueType;
 
-  using AbsoluteFrequencyType = typename Superclass::AbsoluteFrequencyType;
-  using TotalAbsoluteFrequencyType = typename Superclass::TotalAbsoluteFrequencyType;
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::AbsoluteFrequencyType;
+  using typename Superclass::TotalAbsoluteFrequencyType;
+  using typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::InstanceIdentifier;
 
   /** Method to set the image */
   void
@@ -129,7 +130,7 @@ public:
   GetRegion() const;
 
   void
-  SetUseImageRegion(const bool & flag);
+  SetUseImageRegion(const bool flag);
 
   /** Method to get UseImageRegion flag */
   itkGetConstMacro(UseImageRegion, bool);
@@ -155,7 +156,7 @@ public:
   GetTotalFrequency() const override;
 
   /**
-   *\class ConstIterator
+   * \class ConstIterator
    *  \brief Const Iterator
    *  \ingroup ITKStatistics
    */
@@ -169,18 +170,12 @@ public:
     ConstIterator(const ImageToNeighborhoodSampleAdaptor * adaptor) { *this = adaptor->Begin(); }
 
     ConstIterator(const ConstIterator & iter)
-    {
-      m_MeasurementVectorCache = iter.m_MeasurementVectorCache;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-    }
+      : m_MeasurementVectorCache(iter.m_MeasurementVectorCache)
+      , m_InstanceIdentifier(iter.m_InstanceIdentifier)
+    {}
 
     ConstIterator &
-    operator=(const ConstIterator & iter)
-    {
-      m_MeasurementVectorCache = iter.m_MeasurementVectorCache;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      return *this;
-    }
+    operator=(const ConstIterator & iter) = default;
 
     AbsoluteFrequencyType
     GetFrequency() const
@@ -209,24 +204,20 @@ public:
     }
 
     bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_MeasurementVectorCache[0] != it.m_MeasurementVectorCache[0]);
-    }
-
-    bool
     operator==(const ConstIterator & it) const
     {
       return (m_MeasurementVectorCache[0] == it.m_MeasurementVectorCache[0]);
     }
 
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
   protected:
     // This method should only be available to the ListSample class
     ConstIterator(NeighborhoodIteratorType iter, InstanceIdentifier iid)
+      : m_InstanceIdentifier(iid)
     {
       this->m_MeasurementVectorCache.clear();
       this->m_MeasurementVectorCache.push_back(iter);
-      m_InstanceIdentifier = iid;
     }
 
   private:
@@ -235,7 +226,7 @@ public:
   };
 
   /**
-   *\class Iterator
+   * \class Iterator
    *  \brief Iterator
    *  \ingroup ITKStatistics
    */
@@ -279,7 +270,7 @@ public:
   {
     NeighborhoodIteratorType nIterator(m_Radius, m_Image, m_Region);
     nIterator.GoToBegin();
-    Iterator iter(nIterator, 0);
+    const Iterator iter(nIterator, 0);
     return iter;
   }
 
@@ -289,10 +280,9 @@ public:
   {
     NeighborhoodIteratorType nIterator(m_Radius, m_Image, m_Region);
     nIterator.GoToEnd();
-    Iterator iter(nIterator, m_Region.GetNumberOfPixels());
+    const Iterator iter(nIterator, m_Region.GetNumberOfPixels());
     return iter;
   }
-
 
   /** returns an iterator that points to the beginning of the container */
   ConstIterator
@@ -321,14 +311,14 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ImageConstPointer             m_Image;
-  mutable MeasurementVectorType m_MeasurementVectorInternal;
-  mutable InstanceIdentifier    m_InstanceIdentifierInternal;
-  mutable IndexType             m_NeighborIndexInternal;
-  NeighborhoodRadiusType        m_Radius;
-  RegionType                    m_Region;
+  ImageConstPointer             m_Image{};
+  mutable MeasurementVectorType m_MeasurementVectorInternal{};
+  mutable InstanceIdentifier    m_InstanceIdentifierInternal{};
+  mutable IndexType             m_NeighborIndexInternal{};
+  NeighborhoodRadiusType        m_Radius{};
+  RegionType                    m_Region{};
   bool                          m_UseImageRegion{ true };
-  OffsetTableType               m_OffsetTable;
+  OffsetTableType               m_OffsetTable{};
 
 }; // end of class ImageToNeighborhoodSampleAdaptor
 

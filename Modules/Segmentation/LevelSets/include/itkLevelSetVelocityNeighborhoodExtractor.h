@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,9 +42,7 @@ namespace itk
  * the level set, the type of the auxiliary/velocity variables and the
  * number of auxiliary/velocity variables.
  *
- * Implementation of this class is based on Chapter 11 of
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Second edition, 1999.
+ * Implementation of this class is based on \cite sethian1999b.
  *
  * \ingroup LevelSetSegmentation
  *
@@ -56,7 +54,7 @@ class ITK_TEMPLATE_EXPORT LevelSetVelocityNeighborhoodExtractor : public LevelSe
 public:
   ITK_DISALLOW_COPY_AND_MOVE(LevelSetVelocityNeighborhoodExtractor);
 
-  /** Standard class typdedefs. */
+  /** Standard class typedefs. */
   using Self = LevelSetVelocityNeighborhoodExtractor;
   using Superclass = LevelSetNeighborhoodExtractor<TLevelSet>;
   using Pointer = SmartPointer<Self>;
@@ -65,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LevelSetVelocityNeighborhoodExtractor, LevelSetNeighborhoodExtractor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetVelocityNeighborhoodExtractor);
 
   /** The type of the level set. */
   using LevelSetType = LevelSetTypeDefault<TLevelSet>;
@@ -75,7 +73,7 @@ public:
   static constexpr unsigned int SetDimension = LevelSetType::SetDimension;
 
   /** Index type alias support */
-  using Index = ::itk::Index<Self::SetDimension>;
+  using Index = itk::Index<Self::SetDimension>;
 
   /** AuxVarType type alias support */
   using AuxVarType = AuxVarTypeDefault<TAuxValue, VAuxDimension, Self::SetDimension>;
@@ -105,10 +103,8 @@ public:
     {
       return nullptr;
     }
-    else
-    {
-      return m_AuxImage[idx];
-    }
+
+    return m_AuxImage[idx];
   }
 
   /** Get the container of auxiliary values associated with the inside
@@ -132,9 +128,9 @@ protected:
   CalculateDistance(Index & index) override;
 
 private:
-  typename AuxValueContainer::Pointer m_AuxInsideValues;
-  typename AuxValueContainer::Pointer m_AuxOutsideValues;
-  AuxImageConstPointer                m_AuxImage[VAuxDimension];
+  typename AuxValueContainer::Pointer m_AuxInsideValues{};
+  typename AuxValueContainer::Pointer m_AuxOutsideValues{};
+  AuxImageConstPointer                m_AuxImage[VAuxDimension]{};
 };
 } // namespace itk
 

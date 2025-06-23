@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ThresholdLabelerImageFilter
+ * \class ThresholdLabelerImageFilter
  *
  * \brief Label an input image according to a set of thresholds.
  *
@@ -46,7 +46,9 @@ template <typename TInput, typename TOutput>
 class ITK_TEMPLATE_EXPORT ThresholdLabeler
 {
 public:
-  ThresholdLabeler() { m_LabelOffset = NumericTraits<TOutput>::OneValue(); }
+  ThresholdLabeler()
+    : m_LabelOffset(NumericTraits<TOutput>::OneValue())
+  {}
   ~ThresholdLabeler() = default;
 
   using RealThresholdType = typename NumericTraits<TInput>::RealType;
@@ -66,44 +68,40 @@ public:
     m_LabelOffset = labelOffset;
   }
 
-  bool
-  operator!=(const ThresholdLabeler & other) const
-  {
-    if (m_Thresholds != other.m_Thresholds || m_LabelOffset != other.m_LabelOffset)
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const ThresholdLabeler & other) const
   {
-    return !(*this != other);
+    return m_Thresholds == other.m_Thresholds && m_LabelOffset == other.m_LabelOffset;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ThresholdLabeler);
 
   inline TOutput
   operator()(const TInput & A) const
   {
-    size_t size = m_Thresholds.size();
-
-    if (size == 0)
+    // When there are N thresholds, they divide values into N+1 buckets, which we number
+    // 0, ..., N.  Each bucket represents a half-open interval of values (A, B].  The
+    // variables low, mid, and high refer to buckets.  The inclusive range [low, high]
+    // are the buckets that are not yet ruled out.  We repeatedly bisect this range
+    // using the variable `mid`.  In the case of ties, this method returns the lowest
+    // bucket index for which `A` is less than or equal to the bucket's upper limit.
+    size_t low = 0;
+    size_t high = m_Thresholds.size();
+    while (low < high)
     {
-      return m_LabelOffset;
-    }
-    if (A <= m_Thresholds[0])
-    {
-      return m_LabelOffset;
-    }
-    for (size_t i = 0; i < size - 1; i++)
-    {
-      /* Value is in this class if it equals the upper bound. */
-      if (m_Thresholds[i] < A && A <= m_Thresholds[i + 1])
+      const size_t mid = (low + high) / 2;
+      if (A <= m_Thresholds[mid])
       {
-        return static_cast<TOutput>(i + 1) + m_LabelOffset;
+        high = mid;
+      }
+      else
+      {
+        low = mid + 1;
       }
     }
-    return static_cast<TOutput>(size) + m_LabelOffset;
+    // The computed bucket index is relative to m_LabelOffset.
+    return static_cast<TOutput>(low) + m_LabelOffset;
   }
 
 private:
@@ -135,8 +133,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ThresholdLabelerImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThresholdLabelerImageFilter);
 
   /** Pixel types. */
   using InputPixelType = typename TInputImage::PixelType;
@@ -148,21 +146,18 @@ public:
   using RealThresholdVector = std::vector<RealThresholdType>;
 
   /** The input and output pixel types must support comparison operators. */
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKStartGrouping */
   itkConceptMacro(PixelTypeComparable, (Concept::Comparable<InputPixelType>));
   itkConceptMacro(OutputPixelTypeComparable, (Concept::Comparable<OutputPixelType>));
   itkConceptMacro(OutputPixelTypeOStreamWritable, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
-
+  /** @ITKEndGrouping */
   /** Set the vector of thresholds. */
   void
   SetThresholds(const ThresholdVector & thresholds)
   {
     m_Thresholds = thresholds;
     m_RealThresholds.clear();
-    typename ThresholdVector::const_iterator itr = m_Thresholds.begin();
+    auto itr = m_Thresholds.begin();
     while (itr != m_Thresholds.end())
     {
       m_RealThresholds.push_back(static_cast<RealThresholdType>(*itr));
@@ -184,7 +179,7 @@ public:
   {
     m_RealThresholds = thresholds;
     m_Thresholds.clear();
-    typename RealThresholdVector::const_iterator itr = m_RealThresholds.begin();
+    auto itr = m_RealThresholds.begin();
     while (itr != m_RealThresholds.end())
     {
       m_Thresholds.push_back(static_cast<InputPixelType>(*itr));
@@ -201,12 +196,10 @@ public:
   }
 
   /** Set the offset which labels have to start from. */
-  itkSetClampMacro(LabelOffset,
-                   OutputPixelType,
-                   NumericTraits<OutputPixelType>::ZeroValue(),
-                   NumericTraits<OutputPixelType>::max());
+  /** @ITKStartGrouping */
+  itkSetClampMacro(LabelOffset, OutputPixelType, OutputPixelType{}, NumericTraits<OutputPixelType>::max());
   itkGetConstMacro(LabelOffset, OutputPixelType);
-
+  /** @ITKEndGrouping */
 protected:
   ThresholdLabelerImageFilter();
   ~ThresholdLabelerImageFilter() override = default;
@@ -219,9 +212,9 @@ protected:
   BeforeThreadedGenerateData() override;
 
 private:
-  ThresholdVector     m_Thresholds;
-  RealThresholdVector m_RealThresholds;
-  OutputPixelType     m_LabelOffset;
+  ThresholdVector     m_Thresholds{};
+  RealThresholdVector m_RealThresholds{};
+  OutputPixelType     m_LabelOffset{};
 };
 } // end namespace itk
 

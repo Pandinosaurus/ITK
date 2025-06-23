@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPowellOptimizerv4_hxx
 #define itkPowellOptimizerv4_hxx
 
-#include "itkPowellOptimizerv4.h"
 
 namespace itk
 {
@@ -63,13 +62,13 @@ template <typename TInternalComputationValueType>
 double
 PowellOptimizerv4<TInternalComputationValueType>::GetLineValue(double x, ParametersType & tempCoord) const
 {
-  for (unsigned int i = 0; i < m_SpaceDimension; i++)
+  for (unsigned int i = 0; i < m_SpaceDimension; ++i)
   {
     tempCoord[i] = this->m_LineOrigin[i] + x * this->m_LineDirection[i];
   }
   this->m_Metric->SetParameters(tempCoord);
-  itkDebugMacro(<< "x = " << x);
-  double val;
+  itkDebugMacro("x = " << x);
+  double val = NAN;
   try
   {
     val = (this->m_Metric->GetValue());
@@ -85,7 +84,7 @@ PowellOptimizerv4<TInternalComputationValueType>::GetLineValue(double x, Paramet
       throw;
     }
   }
-  itkDebugMacro(<< "val = " << val);
+  itkDebugMacro("val = " << val);
   return val;
 }
 
@@ -93,7 +92,7 @@ template <typename TInternalComputationValueType>
 void
 PowellOptimizerv4<TInternalComputationValueType>::SetCurrentLinePoint(double x, double fx)
 {
-  for (unsigned int i = 0; i < m_SpaceDimension; i++)
+  for (unsigned int i = 0; i < m_SpaceDimension; ++i)
   {
     this->m_CurrentPosition[i] = this->m_LineOrigin[i] + x * this->m_LineDirection[i];
   }
@@ -106,9 +105,7 @@ template <typename TInternalComputationValueType>
 void
 PowellOptimizerv4<TInternalComputationValueType>::Swap(double * a, double * b) const
 {
-  double tf;
-
-  tf = *a;
+  const double tf = *a;
   *a = *b;
   *b = tf;
 }
@@ -126,7 +123,7 @@ PowellOptimizerv4<TInternalComputationValueType>::Shift(double * a, double * b, 
 // This code was implemented from the description of
 // the Golden section search available in the Wikipedia
 //
-// http://en.wikipedia.org/wiki/Golden_section_search
+// https://en.wikipedia.org/wiki/Golden_section_search
 //
 //
 // The inputs to this function are
@@ -201,7 +198,7 @@ PowellOptimizerv4<TInternalComputationValueType>::LineBracket(double *         x
     *f3 = this->GetLineValue(*x3, tempCoord);
   }
 
-  itkDebugMacro(<< "Initial: " << *x1 << ", " << *x2 << ", " << *x3);
+  itkDebugMacro("Initial: " << *x1 << ", " << *x2 << ", " << *x3);
   //
   // Report the central point as the minimum
   //
@@ -236,83 +233,66 @@ PowellOptimizerv4<TInternalComputationValueType>::BracketedLineOptimize(double  
                                                                         double *         extVal,
                                                                         ParametersType & tempCoord)
 {
-  double x;
   double v = 0.0;
-  double w; /* Abscissae, descr. see above  */
-  double a;
-  double b;
 
-  a = (ax < cx ? ax : cx);
-  b = (ax > cx ? ax : cx);
+  double a = (ax < cx ? ax : cx);
+  double b = (ax > cx ? ax : cx);
 
-  x = bx;
-  w = bx;
+  double x = bx;
+  double w = bx; /* Abscissae, descr. see above  */
 
   const double goldenSectionRatio = (3.0 - std::sqrt(5.0)) / 2; /* Gold
                                                                  section
                                                                  ratio    */
-  const double POWELL_TINY = 1.0e-20;
+  constexpr double POWELL_TINY = 1.0e-20;
 
-  double functionValueOfX; /* f(x)        */
-  double functionValueOfV; /* f(v)        */
-  double functionValueOfW; /* f(w)        */
+  double functionValueOfV = functionValueOfb; /* f(x)        */
+  double functionValueOfX = functionValueOfV; /* f(v)        */
+  double functionValueOfW = functionValueOfV; /* f(w)        */
 
-  functionValueOfV = functionValueOfb;
-  functionValueOfX = functionValueOfV;
-  functionValueOfW = functionValueOfV;
-
-  for (m_CurrentLineIteration = 0; m_CurrentLineIteration < m_MaximumLineIteration; m_CurrentLineIteration++)
+  for (m_CurrentLineIteration = 0; m_CurrentLineIteration < m_MaximumLineIteration; ++m_CurrentLineIteration)
   {
-    double middle_range = (a + b) / 2;
+    const double middle_range = (a + b) / 2;
 
-    double new_step; /* Step at this iteration       */
+    double tolerance1 = m_StepTolerance * itk::Math::abs(x) + POWELL_TINY;
+    double tolerance2 = 2.0 * tolerance1;
 
-    double tolerance1;
-    double tolerance2;
-
-    tolerance1 = m_StepTolerance * std::fabs(x) + POWELL_TINY;
-    tolerance2 = 2.0 * tolerance1;
-
-    if (std::fabs(x - middle_range) <= (tolerance2 - 0.5 * (b - a)) || 0.5 * (b - a) < m_StepTolerance)
+    if (itk::Math::abs(x - middle_range) <= (tolerance2 - 0.5 * (b - a)) || 0.5 * (b - a) < m_StepTolerance)
     {
       *extX = x;
       *extVal = functionValueOfX;
       this->SetCurrentLinePoint(x, functionValueOfX);
-      itkDebugMacro(<< "x = " << *extX);
-      itkDebugMacro(<< "val = " << *extVal);
-      itkDebugMacro(<< "return 1");
+      itkDebugMacro("x = " << *extX);
+      itkDebugMacro("val = " << *extVal);
+      itkDebugMacro("return 1");
       return; /* Acceptable approx. is found  */
     }
 
     /* Obtain the gold section step  */
-    new_step = goldenSectionRatio * (x < middle_range ? b - x : a - x);
+    double new_step = goldenSectionRatio * (x < middle_range ? b - x : a - x); /* Step at this iteration       */
 
     /* Decide if the interpolation can be tried  */
-    if (std::fabs(x - w) >= tolerance1) /* If x and w are distinct      */
+    if (itk::Math::abs(x - w) >= tolerance1) /* If x and w are distinct      */
     {
-      double t;
-      t = (x - w) * (functionValueOfX - functionValueOfV);
+      const double t = (x - w) * (functionValueOfX - functionValueOfV);
 
-      double q; /* ted as p/q; division operation*/
-      q = (x - v) * (functionValueOfX - functionValueOfW);
-
-      double p; /* Interpolation step is calcula-*/
-      p = (x - v) * q - (x - w) * t;
+      double q = (x - v) * (functionValueOfX - functionValueOfW); /* ted as p/q; division operation*/
+      double p = (x - v) * q - (x - w) * t;                       /* Interpolation step is calculated */
 
       q = 2 * (q - t);
 
-      if (q > (double)0) /* q was calculated with the op-*/
+      if (q > 0.0) /* q was calculated with the */
       {
-        p = -p; /* posite sign; make q positive  */
+        p *= -1; /* opposite sign; make q positive  */
       }
       else /* and assign possible minus to  */
       {
-        q = -q; /* p        */
+        q *= -1; /* p        */
       }
 
-      /* Chec if x+p/q falls in [a,b] and  not too close to a and b
+      /* Check if x+p/q falls in [a,b] and  not too close to a and b
            and isn't too large */
-      if (std::fabs(p) < std::fabs(new_step * q) && p > q * (a - x + 2 * tolerance1) &&
+      if (itk::Math::abs(p) < itk::Math::abs(new_step * q) && p > q * (a - x + 2 * tolerance1) &&
           p < q * (b - x - 2 * tolerance1))
       {
         new_step = p / q; /* it is accepted         */
@@ -323,7 +303,7 @@ PowellOptimizerv4<TInternalComputationValueType>::BracketedLineOptimize(double  
     }
 
     /* Adjust the step to be not less than tolerance*/
-    if (std::fabs(new_step) < tolerance1)
+    if (itk::Math::abs(new_step) < tolerance1)
     {
       if (new_step > 0.0)
       {
@@ -337,11 +317,9 @@ PowellOptimizerv4<TInternalComputationValueType>::BracketedLineOptimize(double  
 
     /* Obtain the next approximation to min  */
     /* and reduce the enveloping range  */
-    double t = x + new_step; /* Tentative point for the min  */
+    const double t = x + new_step; /* Tentative point for the min  */
 
-    double functionValueOft;
-
-    functionValueOft = this->GetLineValue(t, tempCoord);
+    const double functionValueOft = this->GetLineValue(t, tempCoord);
 
     if (functionValueOft <= functionValueOfX)
     {
@@ -354,7 +332,7 @@ PowellOptimizerv4<TInternalComputationValueType>::BracketedLineOptimize(double  
         a = x;
       }
 
-      /* assing the best approximation to x */
+      /* assign the best approximation to x */
       v = w;
       w = x;
       x = t;
@@ -391,9 +369,9 @@ PowellOptimizerv4<TInternalComputationValueType>::BracketedLineOptimize(double  
 
   *extX = x;
   *extVal = functionValueOfX;
-  itkDebugMacro(<< "x = " << *extX);
-  itkDebugMacro(<< "val = " << *extVal);
-  itkDebugMacro(<< "return 2");
+  itkDebugMacro("x = " << *extX);
+  itkDebugMacro("val = " << *extVal);
+  itkDebugMacro("return 2");
 
   this->SetCurrentLinePoint(x, functionValueOfX);
 }
@@ -430,51 +408,48 @@ PowellOptimizerv4<TInternalComputationValueType>::StartOptimization(bool /* doOn
   p = this->m_Metric->GetParameters();
   pt = p;
 
-  unsigned int ibig;
-  double       fp, del, fptt;
-  double       ax, xx, bx;
-  double       fa, fx, fb;
-
-  xx = 0;
+  double xx = 0;
   this->SetLine(p, xit);
-  fx = this->GetLineValue(0, tempCoord);
+  double fx = this->GetLineValue(0, tempCoord);
 
   for (this->m_CurrentIteration = 0; this->m_CurrentIteration <= m_MaximumIteration; this->m_CurrentIteration++)
   {
-    fp = fx;
-    ibig = 0;
-    del = 0.0;
+    const double fp = fx;
+    unsigned int ibig = 0;
+    double       del = 0.0;
 
-    for (unsigned int i = 0; i < m_SpaceDimension; i++)
+    for (unsigned int i = 0; i < m_SpaceDimension; ++i)
     {
       for (unsigned int j = 0; j < m_SpaceDimension; ++j)
       {
         xit[j] = xi[j][i];
       }
-      fptt = fx;
+      const double fptt = fx;
 
       this->SetLine(p, xit);
 
-      ax = 0.0;
-      fa = fx;
+      double ax = 0.0;
+      double fa = fx;
       xx = m_StepLength;
+      double bx = NAN;
+      double fb = NAN;
       this->LineBracket(&ax, &xx, &bx, &fa, &fx, &fb, tempCoord);
       this->BracketedLineOptimize(ax, xx, bx, fa, fx, fb, &xx, &fx, tempCoord);
       this->SetCurrentLinePoint(xx, fx);
       p = this->GetCurrentPosition();
 
-      if (std::fabs(fptt - fx) > del)
+      if (itk::Math::abs(fptt - fx) > del)
       {
-        del = std::fabs(fptt - fx);
+        del = itk::Math::abs(fptt - fx);
         ibig = i;
       }
     }
 
-    if (2.0 * std::fabs(fp - fx) <= m_ValueTolerance * (std::fabs(fp) + std::fabs(fx)))
+    if (2.0 * itk::Math::abs(fp - fx) <= m_ValueTolerance * (itk::Math::abs(fp) + itk::Math::abs(fx)))
     {
       m_StopConditionDescription << "Cost function values at the current parameter (" << fx
                                  << ") and at the local extrema (" << fp << ") are within Value Tolerance ("
-                                 << m_ValueTolerance << ")";
+                                 << m_ValueTolerance << ')';
       this->InvokeEvent(EndEvent());
       return;
     }
@@ -497,23 +472,25 @@ PowellOptimizerv4<TInternalComputationValueType>::StartOptimization(bool /* doOn
     }
 
     this->SetLine(ptt, xit);
-    fptt = this->GetLineValue(0, tempCoord);
+    const double fptt = this->GetLineValue(0, tempCoord);
     if (fptt < fp)
     {
-      double t = 2.0 * (fp - 2.0 * fx + fptt) * itk::Math::sqr(fp - fx - del) - del * itk::Math::sqr(fp - fptt);
+      const double t = 2.0 * (fp - 2.0 * fx + fptt) * itk::Math::sqr(fp - fx - del) - del * itk::Math::sqr(fp - fptt);
       if (t < 0.0)
       {
         this->SetLine(p, xit);
 
-        ax = 0.0;
-        fa = fx;
+        double ax = 0.0;
+        double fa = fx;
         xx = 1;
+        double bx = NAN;
+        double fb = NAN;
         this->LineBracket(&ax, &xx, &bx, &fa, &fx, &fb, tempCoord);
         this->BracketedLineOptimize(ax, xx, bx, fa, fx, fb, &xx, &fx, tempCoord);
         this->SetCurrentLinePoint(xx, fx);
         p = this->GetCurrentPosition();
 
-        for (unsigned int j = 0; j < m_SpaceDimension; j++)
+        for (unsigned int j = 0; j < m_SpaceDimension; ++j)
         {
           xi[j][ibig] = xx * xit[j];
         }
@@ -529,7 +506,7 @@ PowellOptimizerv4<TInternalComputationValueType>::StartOptimization(bool /* doOn
 }
 
 template <typename TInternalComputationValueType>
-const std::string
+std::string
 PowellOptimizerv4<TInternalComputationValueType>::GetStopConditionDescription() const
 {
   return m_StopConditionDescription.str();

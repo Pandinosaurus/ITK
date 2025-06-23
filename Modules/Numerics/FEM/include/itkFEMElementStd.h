@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,7 @@
 
 #include "itkFEMElementBase.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class ElementStd
@@ -62,21 +60,21 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ElementStd, TBaseClass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ElementStd);
 
-  // FIXME: Add concept cheking for TBaseClass, and TPointClass
+  // FIXME: Add concept checking for TBaseClass, and TPointClass
 
   // Repeat type alias and enums from parent class
 
-  using Float = typename Superclass::Float;
-  using MatrixType = typename Superclass::MatrixType;
-  using VectorType = typename Superclass::VectorType;
+  using typename Superclass::Float;
+  using typename Superclass::MatrixType;
+  using typename Superclass::VectorType;
   using LoadType = typename Superclass::LoadType;
-  using LoadPointer = typename Superclass::LoadPointer;
-  using NodeIDType = typename Superclass::NodeIDType;
-  using DegreeOfFreedomIDType = typename Superclass::DegreeOfFreedomIDType;
-  using Node = typename Superclass::Node;
+  using typename Superclass::LoadPointer;
+  using typename Superclass::NodeIDType;
+  using typename Superclass::DegreeOfFreedomIDType;
+  using typename Superclass::Node;
   enum
   {
     InvalidDegreeOfFreedomID = Superclass::InvalidDegreeOfFreedomID
@@ -98,7 +96,7 @@ public:
   ElementStd();
 
   /** Methods that define the geometry of an element. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfNodes() const override
   {
     return NumberOfNodes;
@@ -134,7 +132,7 @@ public:
   }
 
   /** Get the number of spatial dimensions. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfSpatialDimensions() const override
   {
     return NumberOfSpatialDimensions;
@@ -156,11 +154,10 @@ protected:
   }
 
   // Array of pointers to point objects that define the element
-  const Node * m_node[NumberOfNodes];
+  const Node * m_node[NumberOfNodes]{};
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMElementStd.hxx"

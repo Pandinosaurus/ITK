@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@
 namespace itk
 {
 /**
- *\class PatchBasedDenoisingImageFilter
+ * \class PatchBasedDenoisingImageFilter
  * \brief Derived class implementing a specific patch-based denoising algorithm, as detailed below.
  *
  * This class is derived from the base class PatchBasedDenoisingBaseImageFilter; please refer to the
@@ -51,8 +51,7 @@ namespace itk
  * parameter (namely, sigma) using leave-one-out cross validation. It implements schemes for random
  * sampling of patches non-locally (from the entire image) as well as semi-locally (from the spatial
  * proximity of the pixel being denoised at the specific point in time). It implements a specific
- * scheme for defining patch weights (mask) as described in Awate and Whitaker 2005 IEEE CVPR and
- * 2006 IEEE TPAMI.
+ * scheme for defining patch weights (mask) as described in \cite awate2005 and \cite awate2006.
  *
  * \ingroup Filtering
  * \ingroup ITKDenoising
@@ -70,17 +69,17 @@ public:
   using Superclass = PatchBasedDenoisingBaseImageFilter<TInputImage, TOutputImage>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImagePointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PatchBasedDenoisingImageFilter, PatchBasedDenoisingBaseImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PatchBasedDenoisingImageFilter);
 
   /** Type definition for the input image. */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
 
   /** Image dimension, assumed to be the same for input and output data*/
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -94,8 +93,8 @@ public:
 
   /** Type definition for the input and output pixel types.
       Output pixel type will be used in computations. */
-  using PixelType = typename Superclass::PixelType;
-  using PixelValueType = typename Superclass::PixelValueType;
+  using typename Superclass::PixelType;
+  using typename Superclass::PixelValueType;
 
   using RealType = typename NumericTraits<PixelType>::RealType;
   using RealValueType = typename NumericTraits<PixelValueType>::RealType;
@@ -104,11 +103,11 @@ public:
   using ShortArrayType = Array<unsigned short>;
 
   /** Type definition for patch weights type. */
-  using ListAdaptorType = typename Superclass::ListAdaptorType;
-  using PatchRadiusType = typename Superclass::PatchRadiusType;
-  using InputImagePatchIterator = typename Superclass::InputImagePatchIterator;
+  using typename Superclass::ListAdaptorType;
+  using typename Superclass::PatchRadiusType;
+  using typename Superclass::InputImagePatchIterator;
   using PatchSampleType = ListAdaptorType;
-  using PatchWeightsType = typename Superclass::PatchWeightsType;
+  using typename Superclass::PatchWeightsType;
 
   /** Type definitions for delegate classes. */
   using BaseSamplerType = itk::Statistics::RegionConstrainedSubsampler<PatchSampleType, InputImageRegionType>;
@@ -142,48 +141,51 @@ public:
    *  If this flag is true, the smooth-disc patch weights will override any
    *  weights provided via the SetPatchWeights method.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(UseSmoothDiscPatchWeights, bool);
   itkBooleanMacro(UseSmoothDiscPatchWeights);
   itkGetConstMacro(UseSmoothDiscPatchWeights, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get initial kernel bandwidth estimate.
    * To prevent the class from automatically modifying this estimate,
    * set KernelBandwidthEstimation to false in the base class.
    */
+  /** @ITKStartGrouping */
   void
   SetKernelBandwidthSigma(const RealArrayType & kernelSigma);
   itkGetConstMacro(KernelBandwidthSigma, RealArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the fraction of the image to use for kernel bandwidth sigma estimation.
    *  To reduce the computational burden for computing sigma,
    *  a small random fraction of the image pixels can be used.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(KernelBandwidthFractionPixelsForEstimation, double, 0.01, 1.0);
   itkGetConstReferenceMacro(KernelBandwidthFractionPixelsForEstimation, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get flag indicating whether conditional derivatives should be used
     estimating sigma. */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeConditionalDerivatives, bool);
   itkBooleanMacro(ComputeConditionalDerivatives);
   itkGetConstMacro(ComputeConditionalDerivatives, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get flag indicating whether the fast algorithm for tensor computations should be used.
    *
    *  Specifically, when this flag is true (default) or On, a faster implementation of the 3x3
-   *  symmetric positive-definite eigensystem analysis will be used. See
-   *  Hasan KM, Basser PJ, Parker DL, Alexander AL.
-   *  Analytical computation of the eigenvalues and eigenvectors in DT-MRI.
-   *  J Magn Reson 2001; 152: 41-47.
+   *  symmetric positive-definite eigensystem analysis will be
+   *  used. See \cite hasan2001.
    *  This faster algorithm may be slightly less accurate and possibly less stable in the presence
    *  of noise.  So far in practice it has been shown to work well.
    *
    *  However, you may want to turn this option off if you have concerns about numerical
    *  performance.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(UseFastTensorComputations, bool);
   itkBooleanMacro(UseFastTensorComputations);
   itkGetConstMacro(UseFastTensorComputations, bool);
-
+  /** @ITKEndGrouping */
   /** Maximum number of Newton-Raphson iterations for sigma update. */
   static constexpr unsigned int MaxSigmaUpdateIterations = 20;
 
@@ -193,9 +195,10 @@ public:
    *  isn't very far from 1.
    *  Note: This is used only when KernelBandwidthEstimation is True/On.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(KernelBandwidthMultiplicationFactor, double, 0.01, 100);
   itkGetConstReferenceMacro(KernelBandwidthMultiplicationFactor, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the noise sigma.
    * Used by the noise model where appropriate, defaults to 5% of the image intensity range
    */
@@ -205,9 +208,10 @@ public:
   itkGetConstMacro(NoiseSigma, RealType);
 
   /** Set/Get the class used for creating a subsample of patches. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Sampler, BaseSamplerType);
   itkGetModifiableObjectMacro(Sampler, BaseSamplerType);
-
+  /** @ITKEndGrouping */
   /** Get the number of independent components of the input. */
   itkGetConstMacro(NumIndependentComponents, unsigned int);
 
@@ -232,12 +236,10 @@ protected:
   GenerateInputRequestedRegion() override;
 
   template <typename T, typename U = void>
-  using DisableIfMultiComponent =
-    typename std::enable_if<std::is_same<T, typename NumericTraits<T>::ValueType>::value, U>;
+  using DisableIfMultiComponent = typename std::enable_if<std::is_same_v<T, typename NumericTraits<T>::ValueType>, U>;
 
   template <typename T, typename U = void>
-  using EnableIfMultiComponent =
-    typename std::enable_if<!std::is_same<T, typename NumericTraits<T>::ValueType>::value, U>;
+  using EnableIfMultiComponent = typename std::enable_if<!std::is_same_v<T, typename NumericTraits<T>::ValueType>, U>;
 
 
   /** \brief A method to generically get a component.
@@ -370,10 +372,8 @@ protected:
     {
       return this->AddExponentialMapUpdate(a, b);
     }
-    else
-    {
-      return this->AddEuclideanUpdate(a, b);
-    }
+
+    return this->AddEuclideanUpdate(a, b);
   }
 
   template <typename RealT>
@@ -435,7 +435,8 @@ protected:
   ThreadedApplyUpdate(const InputImageRegionType & regionToProcess, const int itkNotUsed(threadId));
 
   void
-  PostProcessOutput() override;
+  PostProcessOutput() override
+  {}
 
   virtual void
   SetThreadData(int threadId, const ThreadDataStruct & data);
@@ -532,10 +533,10 @@ private:
     InputImageType *                 Img;
   };
 
-  std::vector<ThreadDataStruct> m_ThreadData;
+  std::vector<ThreadDataStruct> m_ThreadData{};
 
   /** The buffer that holds the updates for an iteration of the algorithm. */
-  typename OutputImageType::Pointer m_UpdateBuffer;
+  typename OutputImageType::Pointer m_UpdateBuffer{};
 
   unsigned int m_NumPixelComponents{ 0 };
   unsigned int m_NumIndependentComponents{ 0 };
@@ -545,27 +546,27 @@ private:
 
   bool m_UseFastTensorComputations{ true };
 
-  RealArrayType  m_KernelBandwidthSigma;
+  RealArrayType  m_KernelBandwidthSigma{};
   bool           m_KernelBandwidthSigmaIsSet{ false };
-  RealArrayType  m_IntensityRescaleInvFactor;
-  PixelType      m_ZeroPixel;
-  PixelArrayType m_ImageMin;
-  PixelArrayType m_ImageMax;
+  RealArrayType  m_IntensityRescaleInvFactor{};
+  PixelType      m_ZeroPixel{};
+  PixelArrayType m_ImageMin{};
+  PixelArrayType m_ImageMax{};
   double         m_KernelBandwidthFractionPixelsForEstimation{ 0.20 };
   bool           m_ComputeConditionalDerivatives{ false };
-  double         m_MinSigma;
-  double         m_MinProbability;
-  unsigned int   m_SigmaUpdateDecimationFactor;
+  double         m_MinSigma{};
+  double         m_MinProbability{};
+  unsigned int   m_SigmaUpdateDecimationFactor{};
   double         m_SigmaUpdateConvergenceTolerance{ 0.01 };
-  ShortArrayType m_SigmaConverged;
+  ShortArrayType m_SigmaConverged{};
   double         m_KernelBandwidthMultiplicationFactor{ 1.0 };
 
-  RealType m_NoiseSigma;
-  RealType m_NoiseSigmaSquared;
+  RealType m_NoiseSigma{};
+  RealType m_NoiseSigmaSquared{};
   bool     m_NoiseSigmaIsSet{ false };
 
-  BaseSamplerPointer                m_Sampler;
-  typename ListAdaptorType::Pointer m_SearchSpaceList;
+  BaseSamplerPointer                m_Sampler{};
+  typename ListAdaptorType::Pointer m_SearchSpaceList{};
 };
 } // end namespace itk
 

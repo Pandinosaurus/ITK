@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,14 +36,14 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   using MaskType = itk::Image<InputImagePixelType, ImageDimension>;
   using ImageIteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
 
-  bool                  SaveImages = false;
+  const bool            SaveImages = false;
   ImageType::SizeType   imageSize;
   ImageType::IndexType  imageIndex;
   ImageType::RegionType imageRegion;
   imageSize[0] = 30;
   imageSize[1] = 30;
   imageSize[2] = 15;
-  std::cout << "Random Test image size: " << imageSize[0] << "x" << imageSize[1] << "x" << imageSize[2] << std::endl;
+  std::cout << "Random Test image size: " << imageSize[0] << 'x' << imageSize[1] << 'x' << imageSize[2] << std::endl;
 
   imageIndex.Fill(0);
   float spacing[ImageDimension] = { 1.0, 1.0, 1.0 };
@@ -53,7 +53,7 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   imageRegion.SetIndex(imageIndex);
 
   // creates an image that will stores the Gaussian pixel * bias values
-  ImageType::Pointer imageWithBias = ImageType::New();
+  auto imageWithBias = ImageType::New();
   imageWithBias->SetBufferedRegion(imageRegion);
   imageWithBias->SetLargestPossibleRegion(imageRegion);
   imageWithBias->SetSpacing(spacing);
@@ -61,7 +61,7 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   imageWithBias->Allocate();
 
   // creates the image source with a sphere.
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
   image->SetBufferedRegion(imageRegion);
   image->SetLargestPossibleRegion(imageRegion);
   image->SetSpacing(spacing);
@@ -69,7 +69,7 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   image->Allocate();
 
   // creates an image for bias
-  ImageType::Pointer biasImage = ImageType::New();
+  auto biasImage = ImageType::New();
   biasImage->SetBufferedRegion(imageRegion);
   biasImage->SetLargestPossibleRegion(imageRegion);
   biasImage->SetSpacing(spacing);
@@ -86,14 +86,14 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   classSigmas[0] = 10.0;
   classSigmas[1] = 20.0;
 
-  // creats a normal random variate generator
-  itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer randomGenerator =
+  // creates a normal random variate generator
+  const itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer randomGenerator =
     itk::Statistics::MersenneTwisterRandomVariateGenerator::New();
 
   // fills the image with a sphere filled with intensity values from a
   // normal distribution.
   using SphereType = itk::SphereSpatialFunction<ImageDimension>;
-  SphereType::Pointer sphere = SphereType::New();
+  auto sphere = SphereType::New();
 
   SphereType::InputType center;
   center[0] = imageSize[0] / 2;
@@ -122,7 +122,7 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   // creates a bias field
   using BiasFieldType = itk::MultivariateLegendrePolynomial;
   BiasFieldType::DomainSizeType biasSize(3);
-  int                           biasDegree = 3;
+  constexpr int                 biasDegree = 3;
   biasSize[0] = imageSize[0];
   biasSize[1] = imageSize[1];
   biasSize[2] = imageSize[2];
@@ -149,10 +149,9 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   BiasFieldType::SimpleForwardIterator b_iter(&bias);
   i_iter.GoToBegin();
   ib_iter.GoToBegin();
-  float temp;
   while (!i_iter.IsAtEnd())
   {
-    temp = i_iter.Get() * (2 + b_iter.Get()); // this is a multiplicative bias field
+    float temp = i_iter.Get() * (2 + b_iter.Get()); // this is a multiplicative bias field
     ib_iter.Set(temp);
     ++i_iter;
     ++ib_iter;
@@ -162,7 +161,7 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   // creates a bias correction filter and run it.
   using FilterType = itk::MRIBiasFieldCorrectionFilter<ImageType, ImageType, MaskType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, MRIBiasFieldCorrectionFilter, ImageToImageFilter);
 
@@ -181,30 +180,28 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   }
   std::cout << "Absolute Avg. error before correction = " << sumOfError / (imageSize[0] * imageSize[1] * imageSize[2])
             << std::endl;
-  double origSumError = sumOfError;
+  const double origSumError = sumOfError;
 
   std::cout << "Computing bias correction without mask, 2 classes 10,10 - 200,20" << std::endl;
 
   filter->SetInput(imageWithBias);
 
-  int                 slicingDirection = 2;
-  bool                isBiasFieldMultiplicative = true;
-  bool                usingSlabIdentification = true;
-  bool                usingBiasFieldCorrection = true;
-  bool                generatingOutput = true;
-  unsigned int        slabNumberOfSamples = 10;
-  InputImagePixelType slabBackgroundMinimumThreshold = 0;
-  double              slabTolerance = 0.0;
-  int                 volumeCorrectionMaximumIteration = 200;
-  int                 interSliceCorrectionMaximumIteration = 100;
-  double              optimizerInitialRadius = 0.02;
-  double              optimizerGrowthFactor = 1.01;
-  bool                usingInterSliceIntensityCorrection = true;
+  constexpr int                 slicingDirection = 2;
+  constexpr bool                isBiasFieldMultiplicative = true;
+  bool                          usingSlabIdentification = true;
+  constexpr bool                usingBiasFieldCorrection = true;
+  constexpr bool                generatingOutput = true;
+  constexpr unsigned int        slabNumberOfSamples = 10;
+  constexpr InputImagePixelType slabBackgroundMinimumThreshold = 0;
+  constexpr double              slabTolerance = 0.0;
+  int                           volumeCorrectionMaximumIteration = 200;
+  int                           interSliceCorrectionMaximumIteration = 100;
+  double                        optimizerInitialRadius = 0.02;
+  constexpr double              optimizerGrowthFactor = 1.01;
+  const double                  optimizerShrinkFactor = std::pow(optimizerGrowthFactor, -0.25);
+  bool                          usingInterSliceIntensityCorrection = true;
 
-  filter->SetBiasFieldMultiplicative(isBiasFieldMultiplicative);
-  filter->SetUsingSlabIdentification(usingSlabIdentification);
-  filter->SetUsingBiasFieldCorrection(usingBiasFieldCorrection);
-  filter->SetGeneratingOutput(generatingOutput);
+
   filter->SetSlabNumberOfSamples(slabNumberOfSamples);
   filter->SetSlabBackgroundMinimumThreshold(slabBackgroundMinimumThreshold);
   filter->SetSlabTolerance(slabTolerance);
@@ -213,12 +210,12 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   filter->SetInterSliceCorrectionMaximumIteration(interSliceCorrectionMaximumIteration);
   filter->SetOptimizerInitialRadius(optimizerInitialRadius);
   filter->SetOptimizerGrowthFactor(optimizerGrowthFactor);
-  filter->SetUsingInterSliceIntensityCorrection(usingInterSliceIntensityCorrection);
+  filter->SetOptimizerShrinkFactor(optimizerShrinkFactor);
 
-  ITK_TEST_SET_GET_VALUE(isBiasFieldMultiplicative, filter->GetBiasFieldMultiplicative());
-  ITK_TEST_SET_GET_VALUE(usingSlabIdentification, filter->GetUsingSlabIdentification());
-  ITK_TEST_SET_GET_VALUE(usingBiasFieldCorrection, filter->GetUsingBiasFieldCorrection());
-  ITK_TEST_SET_GET_VALUE(generatingOutput, filter->GetGeneratingOutput());
+  ITK_TEST_SET_GET_BOOLEAN(filter, BiasFieldMultiplicative, isBiasFieldMultiplicative);
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingSlabIdentification, usingSlabIdentification);
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingBiasFieldCorrection, usingBiasFieldCorrection);
+  ITK_TEST_SET_GET_BOOLEAN(filter, GeneratingOutput, generatingOutput);
   ITK_TEST_SET_GET_VALUE(slabNumberOfSamples, filter->GetSlabNumberOfSamples());
   ITK_TEST_SET_GET_VALUE(slabBackgroundMinimumThreshold, filter->GetSlabBackgroundMinimumThreshold());
   ITK_TEST_SET_GET_VALUE(slabTolerance, filter->GetSlabTolerance());
@@ -227,23 +224,23 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   ITK_TEST_SET_GET_VALUE(interSliceCorrectionMaximumIteration, filter->GetInterSliceCorrectionMaximumIteration());
   ITK_TEST_SET_GET_VALUE(optimizerInitialRadius, filter->GetOptimizerInitialRadius());
   ITK_TEST_SET_GET_VALUE(optimizerGrowthFactor, filter->GetOptimizerGrowthFactor());
-  ITK_TEST_SET_GET_VALUE(usingInterSliceIntensityCorrection, filter->GetUsingInterSliceIntensityCorrection());
+  ITK_TEST_SET_GET_VALUE(optimizerShrinkFactor, filter->GetOptimizerShrinkFactor());
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingInterSliceIntensityCorrection, usingInterSliceIntensityCorrection);
 
-  filter->SetBiasFieldMultiplicative(true); // correct with multiplicative bias
-  filter->SetBiasFieldDegree(biasDegree);   // default value = 3
+  filter->SetBiasFieldDegree(biasDegree); // default value = 3
   filter->SetTissueClassStatistics(classMeans, classSigmas);
   // ITK_TEST_SET_GET_VALUE( classMeans, classSigmas, filter->GetTissueClassStatistics() );
 
   filter->SetSlicingDirection(slicingDirection);
-  // ITK_TEST_SET_GET_VALUE( slicingDirection, filter->GetSlicingDirection() );
+  ITK_TEST_SET_GET_VALUE(slicingDirection, filter->GetSlicingDirection());
 
   filter->SetInitialBiasFieldCoefficients(initCoefficients);
   // ITK_TEST_SET_GET_VALUE( initCoefficients, filter->GetInitialBiasFieldCoefficients() );
 
   // timing
-  long int t1 = time(nullptr);
+  long t1 = time(nullptr);
   filter->Update();
-  long int t2 = time(nullptr);
+  long t2 = time(nullptr);
   std::cout << "Run time (in s)" << t2 - t1 << std::endl;
 
   sumOfError = 0.0;
@@ -259,18 +256,18 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   if (SaveImages)
   {
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     writer->SetInput(image);
     writer->SetFileName("MRISource.mhd");
     writer->Update();
 
-    WriterType::Pointer writer2 = WriterType::New();
+    auto writer2 = WriterType::New();
     writer2->SetInput(imageWithBias);
     writer2->SetFileName("MRISourceWithBias.mhd");
     writer2->Update();
 
-    WriterType::Pointer writer3 = WriterType::New();
+    auto writer3 = WriterType::New();
     writer3->SetInput(filter->GetOutput());
     writer3->SetFileName("MRICorrected.mhd");
     writer3->Update();
@@ -286,8 +283,12 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
 
   std::cout << "Computing bias correction with mask" << std::endl;
   filter->SetInput(imageWithBias);
+
   filter->SetInputMask(image);
+  ITK_TEST_SET_GET_VALUE(image, filter->GetInputMask());
+
   filter->SetOutputMask(image);
+  ITK_TEST_SET_GET_VALUE(image, filter->GetOutputMask());
 
   volumeCorrectionMaximumIteration = 200;
   interSliceCorrectionMaximumIteration = 100;
@@ -338,15 +339,13 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   interSliceCorrectionMaximumIteration = 100;
   optimizerInitialRadius = 0.02;
 
-  filter->SetUsingInterSliceIntensityCorrection(usingInterSliceIntensityCorrection);
-  filter->SetUsingSlabIdentification(usingSlabIdentification);
   filter->SetOptimizerInitialRadius(optimizerInitialRadius);
   filter->SetVolumeCorrectionMaximumIteration(volumeCorrectionMaximumIteration);
   filter->SetInterSliceCorrectionMaximumIteration(interSliceCorrectionMaximumIteration);
   filter->SetOptimizerInitialRadius(optimizerInitialRadius);
 
-  ITK_TEST_SET_GET_VALUE(usingInterSliceIntensityCorrection, filter->GetUsingInterSliceIntensityCorrection());
-  ITK_TEST_SET_GET_VALUE(usingSlabIdentification, filter->GetUsingSlabIdentification());
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingInterSliceIntensityCorrection, usingInterSliceIntensityCorrection);
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingSlabIdentification, usingSlabIdentification);
   ITK_TEST_SET_GET_VALUE(optimizerInitialRadius, filter->GetOptimizerInitialRadius());
   ITK_TEST_SET_GET_VALUE(volumeCorrectionMaximumIteration, filter->GetVolumeCorrectionMaximumIteration());
   ITK_TEST_SET_GET_VALUE(interSliceCorrectionMaximumIteration, filter->GetInterSliceCorrectionMaximumIteration());
@@ -402,8 +401,6 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   volumeCorrectionMaximumIteration = 200;
   interSliceCorrectionMaximumIteration = 100;
 
-  filter->SetUsingInterSliceIntensityCorrection(usingInterSliceIntensityCorrection);
-  filter->SetUsingSlabIdentification(usingSlabIdentification);
   filter->SetOptimizerInitialRadius(optimizerInitialRadius);
   filter->SetVolumeCorrectionMaximumIteration(volumeCorrectionMaximumIteration);
   filter->SetInterSliceCorrectionMaximumIteration(interSliceCorrectionMaximumIteration);
@@ -413,8 +410,8 @@ itkMRIBiasFieldCorrectionFilterTest(int, char *[])
   filter->SetNumberOfLevels(numberOfLevels);
   filter->SetSchedule(schedule);
 
-  ITK_TEST_SET_GET_VALUE(usingInterSliceIntensityCorrection, filter->GetUsingInterSliceIntensityCorrection());
-  ITK_TEST_SET_GET_VALUE(usingSlabIdentification, filter->GetUsingSlabIdentification());
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingInterSliceIntensityCorrection, usingInterSliceIntensityCorrection);
+  ITK_TEST_SET_GET_BOOLEAN(filter, UsingSlabIdentification, usingSlabIdentification);
   ITK_TEST_SET_GET_VALUE(numberOfLevels, filter->GetNumberOfLevels());
   ITK_TEST_SET_GET_VALUE(optimizerInitialRadius, filter->GetOptimizerInitialRadius());
   ITK_TEST_SET_GET_VALUE(schedule, filter->GetSchedule());

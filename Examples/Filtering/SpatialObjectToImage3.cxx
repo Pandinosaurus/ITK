@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -92,8 +92,7 @@ main(int argc, char * argv[])
   using SpatialObjectToImageFilterType =
     itk::SpatialObjectToImageFilter<PolygonType, ImageType>;
 
-  SpatialObjectToImageFilterType::Pointer imageFilter =
-    SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -131,7 +130,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  PolygonType::Pointer polygon = PolygonType::New();
+  auto polygon = PolygonType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -159,7 +158,7 @@ main(int argc, char * argv[])
 
   typename PolygonType::PolygonPointType polygonPoint;
 
-  for (unsigned int i = 0; i < numberOfPoints; i++)
+  for (unsigned int i = 0; i < numberOfPoints; ++i)
   {
     const double angle = 2.0 * itk::Math::pi * i / numberOfPoints;
     radial[0] = radius * std::cos(angle);
@@ -198,7 +197,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
   writer->SetInput(imageFilter->GetOutput());

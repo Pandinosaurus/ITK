@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class BayesianClassifierImageFilter
+ * \class BayesianClassifierImageFilter
  *
  * \brief Performs Bayesian Classification on an image.
  *
@@ -97,11 +97,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BayesianClassifierImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BayesianClassifierImageFilter);
 
   /** Input and Output image types. */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Dimension of the input image. */
   static constexpr unsigned int Dimension = InputImageType::ImageDimension;
@@ -149,7 +149,7 @@ public:
   using DecisionRuleType = Statistics::MaximumDecisionRule;
   using DecisionRulePointer = DecisionRuleType::Pointer;
 
-  using DataObjectPointer = typename Superclass::DataObjectPointer;
+  using typename Superclass::DataObjectPointer;
 
   /** An image from a single component of the Posterior. */
   using ExtractedComponentImageType = itk::Image<TPosteriorsPrecisionType, Self::Dimension>;
@@ -161,26 +161,26 @@ public:
 
   /** Set/Get the smoothing filter that may optionally be applied to the
    *  posterior image. */
+  /** @ITKStartGrouping */
   void
   SetSmoothingFilter(SmoothingFilterType *);
   itkGetConstMacro(SmoothingFilter, SmoothingFilterPointer);
-
+  /** @ITKEndGrouping */
   /** Set the priors image. */
   virtual void
   SetPriors(const PriorsImageType *);
 
   /** Number of iterations to apply the smoothing filter. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfSmoothingIterations, unsigned int);
   itkGetConstMacro(NumberOfSmoothingIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** This is overloaded to create the Posteriors output image. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   DataObjectPointer
   MakeOutput(DataObjectPointerArraySizeType idx) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(UnsignedIntConvertibleToLabelsCheck, (Concept::Convertible<unsigned int, TLabelsType>));
   itkConceptMacro(PosteriorsAdditiveOperatorsCheck, (Concept::AdditiveOperators<TPosteriorsPrecisionType>));
   itkConceptMacro(IntConvertibleToPosteriorsCheck, (Concept::Convertible<int, TPosteriorsPrecisionType>));
@@ -190,8 +190,6 @@ public:
   itkConceptMacro(
     InputPriorsPosteriorsMultiplyOperatorCheck,
     (Concept::MultiplyOperator<typename InputPixelType::ValueType, PriorsPixelType, PosteriorsPixelType>));
-  // End concept checking
-#endif
 
 protected:
   BayesianClassifierImageFilter();
@@ -228,7 +226,7 @@ private:
 
   bool m_UserProvidedSmoothingFilter{ false };
 
-  SmoothingFilterPointer m_SmoothingFilter;
+  SmoothingFilterPointer m_SmoothingFilter{};
 
   unsigned int m_NumberOfSmoothingIterations{ 0 };
 };

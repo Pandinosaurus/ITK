@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,6 @@ IsDefaultConstructibleCopyableNoThrowMovableAndDestructible()
          StaticAssertValueOfTypeTrait<std::is_copy_constructible<T>>() &&
          StaticAssertValueOfTypeTrait<std::is_copy_assignable<T>>() &&
          StaticAssertValueOfTypeTrait<std::is_nothrow_move_constructible<T>>() &&
-         StaticAssertValueOfTypeTrait<std::is_nothrow_move_assignable<T>>() &&
          StaticAssertValueOfTypeTrait<std::is_nothrow_move_assignable<T>>();
 }
 
@@ -147,9 +146,9 @@ SetRandomIndexAndSize(itk::ImageIORegion & region)
   std::uniform_int_distribution<itk::IndexValueType> indexDistribution(std::numeric_limits<itk::IndexValueType>::min());
   std::uniform_int_distribution<itk::SizeValueType>  sizeDistribution(std::numeric_limits<itk::SizeValueType>::min());
 
-  const unsigned imageDimension{ region.GetImageDimension() };
+  const unsigned int imageDimension{ region.GetImageDimension() };
 
-  for (unsigned i{}; i < imageDimension; ++i)
+  for (unsigned int i{}; i < imageDimension; ++i)
   {
     region.SetIndex(i, indexDistribution(randomNumberEngine));
     region.SetSize(i, sizeDistribution(randomNumberEngine));
@@ -158,7 +157,7 @@ SetRandomIndexAndSize(itk::ImageIORegion & region)
 
 
 itk::ImageIORegion
-GenerateRandomRegion(const unsigned imageDimension)
+GenerateRandomRegion(const unsigned int imageDimension)
 {
   itk::ImageIORegion region(imageDimension);
   SetRandomIndexAndSize(region);
@@ -174,7 +173,7 @@ TEST(ImageIORegion, IsTwoDimensionalByDefault)
 
   EXPECT_EQ(itk::ImageIORegion(), expectedTwoDimensionalRegion);
 
-  itk::ImageIORegion defaultInitializedRegion;
+  const itk::ImageIORegion defaultInitializedRegion;
   EXPECT_EQ(defaultInitializedRegion, expectedTwoDimensionalRegion);
 }
 
@@ -196,4 +195,23 @@ TEST(ImageIORegion, IsAssignable)
 {
   Expect_Assignable(GenerateRandomRegion(2), GenerateRandomRegion(2));
   Expect_Assignable(GenerateRandomRegion(2), GenerateRandomRegion(3));
+}
+
+
+// Tests that a zero-sized region is not considered to be inside of another region.
+TEST(ImageIORegion, ZeroSizedRegionIsNotInside)
+{
+  for (const unsigned int dimension : { 0, 2, 3 })
+  {
+    itk::ImageIORegion region(dimension);
+
+    region.SetSize(itk::ImageIORegion::SizeType(dimension, 2));
+
+    for (const auto indexValue : { -1, 0, 1 })
+    {
+      itk::ImageIORegion zeroSizedRegion(dimension);
+      zeroSizedRegion.SetIndex(itk::ImageIORegion::IndexType(dimension, indexValue));
+      EXPECT_FALSE(region.IsInside(zeroSizedRegion));
+    };
+  }
 }

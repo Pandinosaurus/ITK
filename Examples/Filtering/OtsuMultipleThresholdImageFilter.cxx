@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -103,16 +103,16 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ScalarImageToHistogramGeneratorType::Pointer
+  const ScalarImageToHistogramGeneratorType::Pointer
     scalarImageToHistogramGenerator =
       ScalarImageToHistogramGeneratorType::New();
 
-  CalculatorType::Pointer calculator = CalculatorType::New();
-  FilterType::Pointer     filter = FilterType::New();
+  auto calculator = CalculatorType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   // Software Guide : BeginLatex
   //
@@ -196,7 +196,7 @@ main(int argc, char * argv[])
   //
   // Software Guide : EndLatex
 
-  std::string outputFileBase = argv[2];
+  const std::string outputFileBase = argv[2];
 
   InputPixelType lowerThreshold = itk::NumericTraits<InputPixelType>::min();
   InputPixelType upperThreshold;
@@ -206,7 +206,8 @@ main(int argc, char * argv[])
        ++itNum)
   {
     std::cout
-      << "OtsuThreshold[" << (int)(itNum - thresholdVector.begin()) << "] = "
+      << "OtsuThreshold[" << static_cast<int>(itNum - thresholdVector.begin())
+      << "] = "
       << static_cast<
            itk::NumericTraits<CalculatorType::MeasurementType>::PrintType>(
            *itNum)

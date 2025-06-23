@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MaskNeighborhoodOperatorImageFilter, NeighborhoodOperatorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskNeighborhoodOperatorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -96,11 +96,11 @@ public:
   using ImageBoundaryConditionPointerType = ImageBoundaryCondition<OutputImageType> *;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OperatorValueType = typename Superclass::OperatorValueType;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OperatorValueType;
 
   /** Neighborhood types */
-  using OutputNeighborhoodType = typename Superclass::OutputNeighborhoodType;
+  using typename Superclass::OutputNeighborhoodType;
 
   /** Set the mask image. Using a mask is optional.  When a mask is
    * specified, the normalized correlation is only calculated for
@@ -134,20 +134,16 @@ public:
   /** Turn on and off the UseDefaultValue flag. */
   itkBooleanMacro(UseDefaultValue);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<InputImageDimension, ImageDimension>));
   itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<InputImageDimension, MaskImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(OperatorConvertibleToOutputCheck, (Concept::Convertible<OperatorValueType, OutputPixelType>));
   itkConceptMacro(OutputOStreamWritable, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   MaskNeighborhoodOperatorImageFilter()
-    : m_DefaultValue(NumericTraits<OutputPixelType>::ZeroValue())
+    : m_DefaultValue(OutputPixelType{})
   {}
   ~MaskNeighborhoodOperatorImageFilter() override = default;
   void
@@ -177,7 +173,7 @@ protected:
 
 
 private:
-  OutputPixelType m_DefaultValue;
+  OutputPixelType m_DefaultValue{};
   bool            m_UseDefaultValue{ true };
 };
 } // end namespace itk

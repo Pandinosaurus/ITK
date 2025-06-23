@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkLabelToRGBFunctor.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace Functor
+namespace itk::Functor
 {
 /**
- *\class LabelOverlayFunctor
+ * \class LabelOverlayFunctor
  *  \brief Functor for applying a colormap to a label image and combine it
  * with a grayscale image
  *
@@ -35,7 +33,7 @@ namespace Functor
  * This code was contributed in the Insight Journal paper:
  * "The watershed transform in ITK - discussion and new developments"
  * by Beare R., Lehmann G.
- * https://www.insight-journal.org/browse/publication/92
+ * https://doi.org/10.54294/lf8u75
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
  * INRA de Jouy-en-Josas, France.
@@ -49,12 +47,11 @@ class LabelOverlayFunctor
 {
 public:
   LabelOverlayFunctor()
+    : m_BackgroundValue(TLabel{})
   {
     // provide some default value for external use (outside
     // LabelOverlayFunctorImageFilter) Inside LabelOverlayFunctorImageFilter,
     // the values are always initialized
-    m_Opacity = 1.0;
-    m_BackgroundValue = NumericTraits<TLabel>::ZeroValue();
   }
 
   inline TRGBPixel
@@ -88,18 +85,13 @@ public:
   }
 
   bool
-  operator!=(const LabelOverlayFunctor & l) const
+  operator==(const LabelOverlayFunctor & other) const
   {
-    bool areDifferent = Math::NotExactlyEquals(l.m_Opacity, m_Opacity) || l.m_BackgroundValue != m_BackgroundValue ||
-                        l.m_RGBFunctor != m_RGBFunctor;
-    return areDifferent;
+    return Math::ExactlyEquals(m_Opacity, other.m_Opacity) && m_BackgroundValue == other.m_BackgroundValue &&
+           m_RGBFunctor == other.m_RGBFunctor;
   }
 
-  bool
-  operator==(const LabelOverlayFunctor & l) const
-  {
-    return !(*this != l);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(LabelOverlayFunctor);
 
   ~LabelOverlayFunctor() = default;
 
@@ -122,7 +114,7 @@ public:
     m_RGBFunctor.ResetColors();
   }
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfColors() const
   {
     return m_RGBFunctor.GetNumberOfColors();
@@ -139,12 +131,11 @@ public:
 
 protected:
 private:
-  double m_Opacity;
+  double m_Opacity{ 1.0 };
   TLabel m_BackgroundValue;
 
   typename Functor::LabelToRGBFunctor<TLabel, TRGBPixel> m_RGBFunctor;
 };
-} // end namespace Functor
-} // end namespace itk
+} // namespace itk::Functor
 
 #endif

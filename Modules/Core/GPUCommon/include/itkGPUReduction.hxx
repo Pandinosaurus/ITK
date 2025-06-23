@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,19 +19,16 @@
 #define itkGPUReduction_hxx
 
 #include "itkMacro.h"
-#include "itkGPUReduction.h"
 
-//#define CPU_VERIFY
+// #define CPU_VERIFY
 
 namespace itk
 {
-/**
- * Default constructor
- */
+
 template <typename TElement>
 GPUReduction<TElement>::GPUReduction()
 {
-  /*** Prepare GPU opencl program ***/
+  // Prepare GPU opencl program
   m_GPUKernelManager = GPUKernelManager::New();
   m_GPUDataManager = nullptr;
 
@@ -47,16 +44,23 @@ GPUReduction<TElement>::~GPUReduction()
   this->ReleaseGPUInputBuffer();
 }
 
-/**
- * Standard "PrintSelf" method.
- */
 template <typename TElement>
 void
 GPUReduction<TElement>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  // GetTypenameInString( typeid(TElement), os);
+  itkPrintSelfObjectMacro(GPUKernelManager);
+  itkPrintSelfObjectMacro(GPUDataManager);
+
+  os << indent << "ReduceGPUKernelHandle: " << m_ReduceGPUKernelHandle << std::endl;
+  os << indent << "TestGPUKernelHandle: " << m_TestGPUKernelHandle << std::endl;
+
+  os << indent << "Size: " << m_Size << std::endl;
+  itkPrintSelfBooleanMacro(SmallBlock);
+
+  os << indent << "GPUResult: " << static_cast<typename NumericTraits<TElement>::PrintType>(m_GPUResult) << std::endl;
+  os << indent << "CPUResult: " << static_cast<typename NumericTraits<TElement>::PrintType>(m_CPUResult) << std::endl;
 }
 
 template <typename TElement>
@@ -115,14 +119,12 @@ GPUReduction<TElement>::GetReductionKernel(int whichKernel, int blockSize, int i
 {
   if (whichKernel != 5 && whichKernel != 6)
   {
-    itkExceptionMacro(<< "Reduction kernel undefined!");
-    return 0;
+    itkExceptionMacro("Reduction kernel undefined!");
   }
 
   std::ostringstream defines;
 
-  defines << "#define blockSize " << blockSize << std::endl;
-  defines << "#define nIsPow2 " << isPowOf2 << std::endl;
+  defines << "#define blockSize " << blockSize << std::endl << "#define nIsPow2 " << isPowOf2 << std::endl;
 
   defines << "#define T ";
   GetTypenameInString(typeid(TElement), defines);
@@ -188,7 +190,7 @@ GPUReduction<TElement>::RandomTest()
   unsigned int bytes = size * sizeof(TElement);
   auto *       h_idata = (TElement *)malloc(bytes);
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; ++i)
   {
     // Keep the numbers small so we don't get truncation error in the sum
     h_idata[i] = (TElement)(rand() & 0xFF);
@@ -253,7 +255,9 @@ GPUReduction<TElement>::GPUGenerateData()
   this->GetNumBlocksAndThreads(whichKernel, size, maxBlocks, maxThreads, numBlocks, numThreads);
 
   if (numBlocks == 1)
+  {
     cpuFinalThreshold = 1;
+  }
 
   // allocate output data for the result
   auto * h_odata = (TElement *)malloc(numBlocks * sizeof(TElement));
@@ -340,7 +344,7 @@ GPUReduction<TElement>::GPUReduce(cl_int         n,
   std::cout << "CPU_VERIFY sum = " << CPUSum << std::endl;
 #endif
 
-  for (int i = 0; i < numBlocks; i++)
+  for (int i = 0; i < numBlocks; ++i)
   {
     gpu_result += h_odata[i];
   }
@@ -357,7 +361,7 @@ GPUReduction<TElement>::CPUGenerateData(TElement * data, int size)
 {
   TElement sum = data[0];
   //     TElement c = (TElement)0.0;
-  for (int i = 1; i < size; i++)
+  for (int i = 1; i < size; ++i)
   {
     // TODO consider using compensated sum algorithm
 

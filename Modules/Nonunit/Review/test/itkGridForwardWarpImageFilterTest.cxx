@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,8 @@ itkGridForwardWarpImageFilterTest(int argc, char * argv[])
   if (argc != 2)
   {
     std::cerr << "Missing parameters." << std::endl;
-    std::cerr << "Usage: " << argv[0] << " outputImage" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " outputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -57,7 +58,7 @@ itkGridForwardWarpImageFilterTest(int argc, char * argv[])
   using RegionType = itk::ImageRegion<ImageDimension>;
 
   // Create an input image
-  DisplacementFieldType::Pointer inputDisplacementField = DisplacementFieldType::New();
+  auto inputDisplacementField = DisplacementFieldType::New();
 
   // Define its size, and start index
   SizeType size;
@@ -75,17 +76,14 @@ itkGridForwardWarpImageFilterTest(int argc, char * argv[])
   region.SetSize(size);
 
   // Initialize the input image
-  inputDisplacementField->SetLargestPossibleRegion(region);
-  inputDisplacementField->SetBufferedRegion(region);
-  inputDisplacementField->SetRequestedRegion(region);
+  inputDisplacementField->SetRegions(region);
   inputDisplacementField->Allocate();
 
   // Create one iterator for the input image (this is a light object)
   DeformationIteratorType it(inputDisplacementField, inputDisplacementField->GetBufferedRegion());
 
   // Initialize the content of the input image
-  DeformationPixelType vectorValue;
-  vectorValue.Fill(5.0); // FIXME: replace with something more interesting...
+  auto vectorValue = itk::MakeFilled<DeformationPixelType>(5.0); // FIXME: replace with something more interesting...
 
   it.GoToBegin();
   while (!it.IsAtEnd())
@@ -99,11 +97,11 @@ itkGridForwardWarpImageFilterTest(int argc, char * argv[])
 
 
   // Create the filter instance
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GridForwardWarpImageFilter, ImageToImageFilter);
 
-  FilterType::PixelType backgroundValue = itk::NumericTraits<FilterType::PixelType>::ZeroValue();
+  FilterType::PixelType backgroundValue{};
   filter->SetBackgroundValue(backgroundValue);
   ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
 
@@ -121,7 +119,7 @@ itkGridForwardWarpImageFilterTest(int argc, char * argv[])
 
   // Write the result image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[1]);
 

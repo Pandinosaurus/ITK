@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkTimeProbe.h"
 #include "itkImageRegionIterator.h"
+#include "itkTestingMacros.h"
 
 #include "itkOpenCLUtil.h"
 #include "itkGPUImage.h"
@@ -45,8 +46,8 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  typename WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(inFile);
   writer->SetFileName(outFile);
@@ -55,8 +56,11 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
   using CPUAnisoDiffFilterType = itk::GradientAnisotropicDiffusionImageFilter<InputImageType, OutputImageType>;
   using GPUAnisoDiffFilterType = itk::GPUGradientAnisotropicDiffusionImageFilter<InputImageType, OutputImageType>;
 
-  typename CPUAnisoDiffFilterType::Pointer CPUFilter = CPUAnisoDiffFilterType::New();
-  typename GPUAnisoDiffFilterType::Pointer GPUFilter = GPUAnisoDiffFilterType::New();
+  auto CPUFilter = CPUAnisoDiffFilterType::New();
+  auto GPUFilter = GPUAnisoDiffFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    GPUFilter, GPUGradientAnisotropicDiffusionImageFilter, GPUAnisotropicDiffusionImageFilter);
 
   reader->Update();
 
@@ -70,13 +74,13 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
   nThreadVec.push_back(8);
   nThreadVec.push_back(128);
 
-  for (unsigned int idx = 0; idx < nThreadVec.size(); idx++)
+  for (unsigned int idx = 0; idx < nThreadVec.size(); ++idx)
   {
-    int            nThreads = nThreadVec[idx];
+    int            numberOfWorkUnits = nThreadVec[idx];
     itk::TimeProbe cputimer;
     cputimer.Start();
 
-    CPUFilter->SetNumberOfWorkUnits(nThreads);
+    CPUFilter->SetNumberOfWorkUnits(numberOfWorkUnits);
 
     CPUFilter->SetInput(reader->GetOutput());
     CPUFilter->SetNumberOfIterations(10);
@@ -88,7 +92,7 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
     cputimer.Stop();
 
     std::cout << "CPU Anisotropic diffusion took " << cputimer.GetMean() << " seconds with "
-              << CPUFilter->GetNumberOfWorkUnits() << " threads.\n"
+              << CPUFilter->GetNumberOfWorkUnits() << " work units.\n"
               << std::endl;
 
     // -------
@@ -140,7 +144,7 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
 
       for (cit.GoToBegin(), git.GoToBegin(); !cit.IsAtEnd(); ++cit, ++git)
       {
-        double err = (double)(cit.Get()) - (double)(git.Get());
+        double err = static_cast<double>(cit.Get()) - static_cast<double>(git.Get());
         diff += err * err;
         nPix++;
       }
@@ -151,7 +155,7 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
 
       if (nPix > 0)
       {
-        double RMSError = sqrt(diff / (double)nPix);
+        double RMSError = sqrt(diff / static_cast<double>(nPix));
         std::cout << "RMS Error : " << RMSError << std::endl;
         double RMSThreshold = 10.0;
         if (itk::Math::isnan(RMSError))
@@ -161,7 +165,7 @@ runGPUGradientAnisotropicDiffusionImageFilterTest(const std::string & inFile, co
         }
         if (RMSError > RMSThreshold)
         {
-          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ")" << std::endl;
+          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ')' << std::endl;
           return EXIT_FAILURE;
         }
       }

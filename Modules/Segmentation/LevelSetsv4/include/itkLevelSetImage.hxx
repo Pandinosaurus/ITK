@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkLevelSetImage_hxx
 #define itkLevelSetImage_hxx
 
-#include "itkLevelSetImage.h"
 
 namespace itk
 {
@@ -28,7 +27,7 @@ template <typename TInput, unsigned int VDimension, typename TOutput>
 LevelSetImage<TInput, VDimension, TOutput>::LevelSetImage()
 {
   this->m_NeighborhoodScales.Fill(NumericTraits<OutputRealType>::OneValue());
-  this->m_DomainOffset.Fill(NumericTraits<OffsetValueType>::ZeroValue());
+  this->m_DomainOffset.Fill(OffsetValueType{});
 }
 } // namespace itk
 #endif // itkLevelSetImage_hxx

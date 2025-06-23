@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,37 +18,27 @@
 #ifndef itkPointSetFunction_hxx
 #define itkPointSetFunction_hxx
 
-#include "itkPointSetFunction.h"
 
 namespace itk
 {
 
-/**
- * Constructor
- */
-template <typename TInputPointSet, typename TOutput, typename TCoordRep>
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>::PointSetFunction()
-{
-  this->m_PointSet = nullptr;
-}
+template <typename TInputPointSet, typename TOutput, typename TCoordinate>
+PointSetFunction<TInputPointSet, TOutput, TCoordinate>::PointSetFunction()
+  : m_PointSet(nullptr)
+{}
 
-/**
- * Standard "PrintSelf" method
- */
-template <typename TInputPointSet, typename TOutput, typename TCoordRep>
+template <typename TInputPointSet, typename TOutput, typename TCoordinate>
 void
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+PointSetFunction<TInputPointSet, TOutput, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "InputPointSet: " << m_PointSet.GetPointer() << std::endl;
+
+  itkPrintSelfObjectMacro(PointSet);
 }
 
-/**
- * Initialize by setting the input point set
- */
-template <typename TInputPointSet, typename TOutput, typename TCoordRep>
+template <typename TInputPointSet, typename TOutput, typename TCoordinate>
 void
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>::SetInputPointSet(const InputPointSetType * ptr)
+PointSetFunction<TInputPointSet, TOutput, TCoordinate>::SetInputPointSet(const InputPointSetType * ptr)
 {
   this->m_PointSet = ptr;
 }

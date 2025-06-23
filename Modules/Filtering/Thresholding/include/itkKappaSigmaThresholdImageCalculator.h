@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class KappaSigmaThresholdImageCalculator
+ * \class KappaSigmaThresholdImageCalculator
  * \brief Computes a Kappa-Sigma-Clipping threshold for an image.
  *
  * When an image is mostly composed of background pixels, most of the automatic
@@ -43,7 +43,7 @@ namespace itk
  *
  * \author Gaetan Lehmann
  * \note This class was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/132
+ * https://doi.org/10.54294/39qekn
  *
  * \ingroup Operators
  * \ingroup ITKThresholding
@@ -63,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KappaSigmaThresholdImageCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KappaSigmaThresholdImageCalculator);
 
   /** Extract the dimension of the image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -93,17 +93,20 @@ public:
   /** Set the mask value used to select which pixels will be considered in the
    * computation (e.g. only pixels which satisfy (m_Mask->GetPixel(Index()) == m_MaskValue)
    * are considered). */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskValue, MaskPixelType);
   itkGetConstMacro(MaskValue, MaskPixelType);
-
+  /** @ITKEndGrouping */
   /** Set the Sigma multiplier (Kappa) to adjust the pixel rejection rate. */
+  /** @ITKStartGrouping */
   itkSetMacro(SigmaFactor, double);
   itkGetConstMacro(SigmaFactor, double);
-
+  /** @ITKEndGrouping */
   /** Set the number of rejection passes. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, unsigned int);
   itkGetConstMacro(NumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Run and compute threshold. */
   void
   Compute();
@@ -120,13 +123,13 @@ protected:
 
 private:
   bool           m_Valid{ false }; // Have moments been computed yet?
-  MaskPixelType  m_MaskValue;
+  MaskPixelType  m_MaskValue{};
   double         m_SigmaFactor{ 2 };
   unsigned int   m_NumberOfIterations{ 2 };
-  InputPixelType m_Output;
+  InputPixelType m_Output{};
 
-  InputImageConstPointer m_Image;
-  MaskImageConstPointer  m_Mask;
+  InputImageConstPointer m_Image{};
+  MaskImageConstPointer  m_Mask{};
 };
 } // end namespace itk
 

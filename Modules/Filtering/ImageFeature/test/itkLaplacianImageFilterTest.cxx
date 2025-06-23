@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 inline std::ostream &
 operator<<(std::ostream & o, const itk::Vector<float, 3> & v)
 {
-  o << "[" << v[0] << " " << v[1] << " " << v[2] << "]";
+  o << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ']';
   return o;
 }
 
@@ -53,20 +53,23 @@ itkLaplacianImageFilterTest(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
+  // Assign a spacing other than [1,1] for testing
+  itk::Vector<float, 2> spacing{ { { 0.5, 5.0 } } };
+  reader->GetOutput()->SetSpacing(spacing);
 
   // Set up filter
-  itk::LaplacianImageFilter<InputImageType, InputImageType>::Pointer filter =
+  const itk::LaplacianImageFilter<InputImageType, InputImageType>::Pointer filter =
     itk::LaplacianImageFilter<InputImageType, InputImageType>::New();
 
   auto useImageSpacing = static_cast<bool>(std::stoi(argv[3]));
   ITK_TEST_SET_GET_BOOLEAN(filter, UseImageSpacing, useImageSpacing);
 
-  itk::SimpleFilterWatcher watch(filter);
+  const itk::SimpleFilterWatcher watch(filter);
 
   // Run test
   itk::Size<Dimension> sz;
@@ -90,13 +93,13 @@ itkLaplacianImageFilterTest(int argc, char * argv[])
 
 
   using RescaleType = itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto rescaler = RescaleType::New();
   rescaler->SetInput(filter->GetOutput());
   rescaler->SetOutputMinimum(itk::NumericTraits<OutputPixelType>::min());
   rescaler->SetOutputMaximum(itk::NumericTraits<OutputPixelType>::max());
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(rescaler->GetOutput());
 

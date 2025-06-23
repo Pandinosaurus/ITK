@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class ScalarImageToTextureFeaturesFilter
  *  \brief This class computes texture descriptions from an image.
@@ -79,20 +77,8 @@ namespace Statistics
  * Web reference:
  * http://www.fp.ucalgary.ca/mhallbey/tutorial.htm
  *
- * Print references:
- * Haralick, R.M., K. Shanmugam and I. Dinstein. 1973.  Textural Features for
- * Image Classification. IEEE Transactions on Systems, Man and Cybernetics.
- * SMC-3(6):610-620.
- *
- * Haralick, R.M. 1979. Statistical and Structural Approaches to Texture.
- * Proceedings of the IEEE, 67:786-804.
- *
- * R.W. Conners and C.A. Harlow. A Theoretical Comaprison of Texture Algorithms.
- * IEEE Transactions on Pattern Analysis and Machine Intelligence,  2:204-222, 1980.
- *
- * R.W. Conners, M.M. Trivedi, and C.A. Harlow. Segmentation of a High-Resolution
- * Urban Scene using Texture  Operators. Computer Vision, Graphics and Image
- * Processing, 25:273-310,  1984.
+ * For algorithmic details see \cite haralick1973, \cite haralick1979,
+ * \cite conners1980 and \cite conners1984.
  *
  * \sa ScalarImageToCooccurrenceMatrixFilter
  * \sa HistogramToTextureFeaturesFilter
@@ -105,7 +91,9 @@ namespace Statistics
  * \endsphinx
  */
 
-template <typename TImageType, typename THistogramFrequencyContainer = DenseFrequencyContainer2>
+template <typename TImageType,
+          typename THistogramFrequencyContainer = DenseFrequencyContainer2,
+          typename TMaskImageType = TImageType>
 class ITK_TEMPLATE_EXPORT ScalarImageToTextureFeaturesFilter : public ProcessObject
 {
 public:
@@ -115,8 +103,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageToTextureFeaturesFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarImageToTextureFeaturesFilter);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -124,6 +112,9 @@ public:
   using FrequencyContainerType = THistogramFrequencyContainer;
   using ImageType = TImageType;
   using ImagePointer = typename ImageType::Pointer;
+  using MaskImageType = TMaskImageType;
+  using MaskPointer = typename MaskImageType::Pointer;
+  using MaskPixelType = typename MaskImageType::PixelType;
 
   using PixelType = typename ImageType::PixelType;
   using OffsetType = typename ImageType::OffsetType;
@@ -131,7 +122,8 @@ public:
   using OffsetVectorPointer = typename OffsetVector::Pointer;
   using OffsetVectorConstPointer = typename OffsetVector::ConstPointer;
 
-  using CooccurrenceMatrixFilterType = ScalarImageToCooccurrenceMatrixFilter<ImageType, FrequencyContainerType>;
+  using CooccurrenceMatrixFilterType =
+    ScalarImageToCooccurrenceMatrixFilter<ImageType, FrequencyContainerType, MaskImageType>;
 
   using HistogramType = typename CooccurrenceMatrixFilterType::HistogramType;
   using TextureFeaturesFilterType = HistogramToTextureFeaturesFilter<HistogramType>;
@@ -168,17 +160,23 @@ public:
   GetInput() const;
 
   /** Return the feature means and deviations.  */
+  /** @ITKStartGrouping */
   itkGetConstReferenceObjectMacro(FeatureMeans, FeatureValueVector);
   itkGetConstReferenceObjectMacro(FeatureStandardDeviations, FeatureValueVector);
+  /** @ITKEndGrouping */
 
   /** Set the desired feature set. Optional, for default value see above. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(RequestedFeatures, FeatureNameVector);
   itkGetConstObjectMacro(RequestedFeatures, FeatureNameVector);
+  /** @ITKEndGrouping */
 
   /** Set the  offsets over which the co-occurrence pairs will be computed.
       Optional; for default value see above. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Offsets, OffsetVector);
   itkGetConstObjectMacro(Offsets, OffsetVector);
+  /** @ITKEndGrouping */
 
   /** Set number of histogram bins along each axis.
       Optional; for default value see above. */
@@ -193,15 +191,15 @@ public:
   /** Connects the mask image for which the histogram is going to be computed.
       Optional; for default value see above. */
   void
-  SetMaskImage(const ImageType *);
+  SetMaskImage(const MaskImageType *);
 
-  const ImageType *
+  const MaskImageType *
   GetMaskImage() const;
 
   /** Set the pixel value of the mask that should be considered "inside" the
       object. Optional; for default value see above. */
   void
-  SetInsidePixelValue(PixelType insidePixelValue);
+  SetInsidePixelValue(MaskPixelType insidePixelValue);
 
   itkGetConstMacro(FastCalculations, bool);
   itkSetMacro(FastCalculations, bool);
@@ -229,18 +227,17 @@ protected:
   DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
 
 private:
-  typename CooccurrenceMatrixFilterType::Pointer m_GLCMGenerator;
+  typename CooccurrenceMatrixFilterType::Pointer m_GLCMGenerator{};
 
-  typename TextureFeaturesFilterType::Pointer m_GLCMCalculator;
+  typename TextureFeaturesFilterType::Pointer m_GLCMCalculator{};
 
-  FeatureValueVectorPointer     m_FeatureMeans;
-  FeatureValueVectorPointer     m_FeatureStandardDeviations;
-  FeatureNameVectorConstPointer m_RequestedFeatures;
-  OffsetVectorConstPointer      m_Offsets;
-  bool                          m_FastCalculations;
+  FeatureValueVectorPointer     m_FeatureMeans{};
+  FeatureValueVectorPointer     m_FeatureStandardDeviations{};
+  FeatureNameVectorConstPointer m_RequestedFeatures{};
+  OffsetVectorConstPointer      m_Offsets{};
+  bool                          m_FastCalculations{};
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkScalarImageToTextureFeaturesFilter.hxx"

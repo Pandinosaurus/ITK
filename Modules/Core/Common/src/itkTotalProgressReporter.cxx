@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkTotalProgressReporter.h"
+#include "itkMultiThreaderBase.h"
 
 namespace itk
 {
@@ -25,7 +26,6 @@ TotalProgressReporter::TotalProgressReporter(ProcessObject * filter,
                                              SizeValueType   numberOfUpdates,
                                              float           progressWeight)
   : m_Filter(filter)
-  , m_CurrentPixel(0)
   , m_ProgressWeight(progressWeight)
 {
   // Make sure we have at least one pixel.
@@ -39,16 +39,28 @@ TotalProgressReporter::TotalProgressReporter(ProcessObject * filter,
   m_InverseNumberOfPixels = 1.0f / numPixels;
 
   m_PixelsBeforeUpdate = m_PixelsPerUpdate;
+
+  if (m_Filter)
+  {
+    // this class will report progress, avoid double reporting
+    m_Filter->GetMultiThreader()->SetUpdateProgress(false);
+  }
 }
 
 //----------------------------------------------------------------------------
 TotalProgressReporter::~TotalProgressReporter()
 {
-  SizeValueType pixelRemnants = m_PixelsPerUpdate - m_PixelsBeforeUpdate;
+  const SizeValueType pixelRemnants = m_PixelsPerUpdate - m_PixelsBeforeUpdate;
 
   if (pixelRemnants != 0 && m_Filter)
   {
     m_Filter->IncrementProgress(pixelRemnants * m_InverseNumberOfPixels * m_ProgressWeight);
+  }
+
+  if (m_Filter)
+  {
+    // reset the original state of ThreaderUpdateProgress
+    m_Filter->GetMultiThreader()->SetUpdateProgress(m_Filter->GetThreaderUpdateProgress());
   }
 }
 } // end namespace itk

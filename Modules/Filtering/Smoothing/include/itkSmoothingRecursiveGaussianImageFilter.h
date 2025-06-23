@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
 {
 
 /**
- *\class SmoothingRecursiveGaussianImageFilter
+ * \class SmoothingRecursiveGaussianImageFilter
  * \brief Computes the smoothing of an image by convolution with the Gaussian kernels implemented as IIR filters.
  *
  * This filter is implemented using the recursive gaussian
@@ -65,8 +65,8 @@ public:
   using RealType = typename NumericTraits<PixelType>::RealType;
   using ScalarRealType = typename NumericTraits<PixelType>::ScalarRealType;
 
-  /** Runtime information support. */
-  itkTypeMacro(SmoothingRecursiveGaussianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SmoothingRecursiveGaussianImageFilter);
 
   /** Image dimension. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -108,11 +108,12 @@ public:
    * Sigma is measured in the units of image spacing. You may use the method
    * SetSigma to set the same value across each axis or use the method
    * SetSigmaArray if you need different values along each axis. */
+  /** @ITKStartGrouping */
   void
   SetSigmaArray(const SigmaArrayType & sigma);
   void
   SetSigma(ScalarRealType sigma);
-
+  /** @ITKEndGrouping */
   /** Get the Sigma value. */
   SigmaArrayType
   GetSigmaArray() const;
@@ -126,24 +127,22 @@ public:
    * This method does not effect the output of this filter.
    *
    * \sa RecursiveGaussianImageFilter::SetNormalizeAcrossScale */
+  /** @ITKStartGrouping */
   void
   SetNormalizeAcrossScale(bool normalize);
   itkGetConstMacro(NormalizeAcrossScale, bool);
   itkBooleanMacro(NormalizeAcrossScale);
-
+  /** @ITKEndGrouping */
+  /** Set the number of work units to create. */
   void
   SetNumberOfWorkUnits(ThreadIdType nb) override;
 
-  bool
+  [[nodiscard]] bool
   CanRunInPlace() const override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   // This concept does not work with variable length vector images
   // itkConceptMacro( InputHasNumericTraitsCheck,
   //( Concept::HasNumericTraits< PixelType > ) );
-  // End concept checking
-#endif
 
 protected:
   SmoothingRecursiveGaussianImageFilter();
@@ -168,13 +167,13 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
 private:
-  InternalGaussianFilterPointer m_SmoothingFilters[ImageDimension - 1];
-  FirstGaussianFilterPointer    m_FirstSmoothingFilter;
-  CastingFilterPointer          m_CastingFilter;
+  InternalGaussianFilterPointer m_SmoothingFilters[ImageDimension - 1]{};
+  FirstGaussianFilterPointer    m_FirstSmoothingFilter{};
+  CastingFilterPointer          m_CastingFilter{};
 
   bool m_NormalizeAcrossScale{ false };
 
-  SigmaArrayType m_Sigma;
+  SigmaArrayType m_Sigma{};
 };
 } // end namespace itk
 

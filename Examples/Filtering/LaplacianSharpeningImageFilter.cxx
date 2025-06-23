@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,14 +50,13 @@ main(int argc, char * argv[])
 
 
   // Setting the IO
-  ReaderType::Pointer    reader = ReaderType::New();
-  WriterType::Pointer    writer = WriterType::New();
-  RescaleFilter::Pointer rescale = RescaleFilter::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto rescale = RescaleFilter::New();
 
   // Setting the ITK pipeline filter
 
-  LaplacianSharpeningFilter::Pointer lapFilter =
-    LaplacianSharpeningFilter::New();
+  auto lapFilter = LaplacianSharpeningFilter::New();
 
   reader->SetFileName(inputFilename);
   writer->SetFileName(outputFilename);

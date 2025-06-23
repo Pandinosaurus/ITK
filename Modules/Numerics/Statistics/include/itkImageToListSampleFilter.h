@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkProcessObject.h"
 #include "itkDataObjectDecorator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ImageToListSampleFilter
+ * \class ImageToListSampleFilter
  *  \brief The class takes an image as input and generates a list sample as
  *  output.
  *
@@ -64,8 +62,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToListSampleFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToListSampleFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -115,9 +113,10 @@ public:
    * specified, only pixels with this value will be added to the list sample, if
    * no mask has been specified all pixels will be added as measurement vectors
    * to the list sample. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskValue, MaskPixelType);
   itkGetConstMacro(MaskValue, MaskPixelType);
-
+  /** @ITKEndGrouping */
 protected:
   ImageToListSampleFilter();
   ~ImageToListSampleFilter() override = default;
@@ -144,10 +143,9 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  MaskPixelType m_MaskValue;
+  MaskPixelType m_MaskValue{};
 }; // end of class ImageToListSampleFilter
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageToListSampleFilter.hxx"

@@ -31,10 +31,10 @@ LandmarkPnt::LandmarkPnt(int dim)
   }
 
   // Color is red by default
-  m_Color[0] = 1.0f;
-  m_Color[1] = 0.0f;
-  m_Color[2] = 0.0f;
-  m_Color[3] = 1.0f;
+  m_Color[0] = 1.0F;
+  m_Color[1] = 0.0F;
+  m_Color[2] = 0.0F;
+  m_Color[3] = 1.0F;
 }
 
 LandmarkPnt::~LandmarkPnt()
@@ -46,7 +46,6 @@ LandmarkPnt::~LandmarkPnt()
 // MedImage Constructors
 //
 MetaLandmark::MetaLandmark()
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaLandmark()" );
   m_NPoints = 0;
@@ -55,7 +54,6 @@ MetaLandmark::MetaLandmark()
 
 //
 MetaLandmark::MetaLandmark(const char * _headerName)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaLandmark()" );
   m_NPoints = 0;
@@ -65,7 +63,6 @@ MetaLandmark::MetaLandmark(const char * _headerName)
 
 //
 MetaLandmark::MetaLandmark(const MetaLandmark * _tube)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaLandmark()" );
   m_NPoints = 0;
@@ -95,11 +92,11 @@ void
 MetaLandmark::PrintInfo() const
 {
   MetaObject::PrintInfo();
-  std::cout << "PointDim = " << m_PointDim << std::endl;
-  std::cout << "NPoints = " << m_NPoints << std::endl;
+  std::cout << "PointDim = " << m_PointDim << '\n';
+  std::cout << "NPoints = " << m_NPoints << '\n';
   char str[255];
   MET_TypeToString(m_ElementType, str);
-  std::cout << "ElementType = " << str << std::endl;
+  std::cout << "ElementType = " << str << '\n';
 }
 
 void
@@ -239,7 +236,7 @@ MetaLandmark::M_Read()
 
   if (!MetaObject::M_Read())
   {
-    std::cout << "MetaLandmark: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaLandmark: M_Read: Error parsing file" << '\n';
     return false;
   }
 
@@ -248,20 +245,20 @@ MetaLandmark::M_Read()
   MET_FieldRecordType * mF;
 
   mF = MET_GetFieldRecord("NPoints", &m_Fields);
-  if (mF->defined)
+  if (mF && mF->defined)
   {
     m_NPoints = static_cast<int>(mF->value[0]);
   }
 
   mF = MET_GetFieldRecord("ElementType", &m_Fields);
-  if (mF->defined)
+  if (mF && mF->defined)
   {
     MET_StringToType(reinterpret_cast<char *>(mF->value), &m_ElementType);
   }
 
 
   mF = MET_GetFieldRecord("PointDim", &m_Fields);
-  if (mF->defined)
+  if (mF && mF->defined)
   {
     strcpy(m_PointDim, reinterpret_cast<char *>(mF->value));
   }
@@ -315,8 +312,8 @@ MetaLandmark::M_Read()
     std::streamsize gc = m_ReadStream->gcount();
     if (gc != readSize)
     {
-      std::cout << "MetaLandmark: m_Read: data not read completely" << std::endl;
-      std::cout << "   ideal = " << readSize << " : actual = " << gc << std::endl;
+      std::cout << "MetaLandmark: m_Read: data not read completely" << '\n';
+      std::cout << "   ideal = " << readSize << " : actual = " << gc << '\n';
       delete[] _data;
       delete[] posDim;
       return false;
@@ -404,7 +401,7 @@ MetaLandmark::M_Write()
 
   if (!MetaObject::M_Write())
   {
-    std::cout << "MetaLandmark: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaLandmark: M_Read: Error parsing file" << '\n';
     return false;
   }
 
@@ -416,7 +413,8 @@ MetaLandmark::M_Write()
     int                           elementSize;
     MET_SizeOfType(m_ElementType, &elementSize);
 
-    char * data = new char[(m_NDims + 4) * m_NPoints * elementSize];
+    const size_t dataSize = (m_NDims + 4) * m_NPoints * elementSize;
+    char * data = new char[dataSize];
     int    i = 0;
     int    d;
     while (it != itEnd)
@@ -425,14 +423,14 @@ MetaLandmark::M_Write()
       {
         float x = (*it)->m_X[d];
         MET_SwapByteIfSystemMSB(&x, MET_FLOAT);
-        MET_DoubleToValue(static_cast<double>(x), m_ElementType, data, i++);
+        MET_DoubleToValueN(static_cast<double>(x), m_ElementType, data, dataSize, i++);
       }
 
       for (d = 0; d < 4; d++)
       {
         float c = (*it)->m_Color[d];
         MET_SwapByteIfSystemMSB(&c, MET_FLOAT);
-        MET_DoubleToValue(static_cast<double>(c), m_ElementType, data, i++);
+        MET_DoubleToValueN(static_cast<double>(c), m_ElementType, data, dataSize, i++);
       }
       ++it;
     }
@@ -458,7 +456,7 @@ MetaLandmark::M_Write()
         *m_WriteStream << (*it)->m_Color[d] << " ";
       }
 
-      *m_WriteStream << std::endl;
+      *m_WriteStream << '\n';
       ++it;
     }
   }

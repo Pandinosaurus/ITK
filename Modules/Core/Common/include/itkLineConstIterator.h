@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,7 +87,7 @@ public:
   using ImageType = TImage;
 
   /** PixelContainer type alias support Used to refer to the container for
-   * the pixel data. While this was already typdef'ed in the superclass,
+   * the pixel data. While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc. */
   using PixelContainer = typename TImage::PixelContainer;
   using PixelContainerPointer = typename PixelContainer::Pointer;
@@ -102,8 +102,8 @@ public:
    *  representations. */
   using AccessorType = typename TImage::AccessorType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacroNoParent(LineConstIterator);
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(LineConstIterator);
 
   /** Get the dimension (size) of the index. */
   static unsigned int
@@ -120,14 +120,14 @@ public:
   }
 
   /** Get the pixel value */
-  const PixelType
+  [[nodiscard]] const PixelType
   Get() const
   {
     return m_Image->GetPixel(m_CurrentImageIndex);
   }
 
   /** Is the iterator at the end of the line? */
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const
   {
     return m_IsAtEnd;
@@ -154,41 +154,41 @@ public:
 
 protected: // made protected so other iterators can access
   /** Smart pointer to the source image. */
-  typename ImageType::ConstWeakPointer m_Image;
+  typename ImageType::ConstWeakPointer m_Image{};
 
   /** Region type to iterate over. */
-  RegionType m_Region;
+  RegionType m_Region{};
 
   /** Is the iterator at the end of its walk? */
-  bool m_IsAtEnd;
+  bool m_IsAtEnd{};
 
   /** Start, end and current ND index position in the image of the line */
-  IndexType m_CurrentImageIndex;
-  IndexType m_StartIndex;
-  IndexType m_LastIndex;
-  IndexType m_EndIndex; // one past the end of the line in the m_MainDirection
+  IndexType m_CurrentImageIndex{};
+  IndexType m_StartIndex{};
+  IndexType m_LastIndex{};
+  IndexType m_EndIndex{}; // one past the end of the line in the m_MainDirection
 
   /** Variables that drive the Bresenham-Algorithm */
   // The dimension with the largest difference between start and end
-  unsigned int m_MainDirection;
+  unsigned int m_MainDirection{};
 
   // Accumulated error for the other dimensions
-  IndexType m_AccumulateError;
+  IndexType m_AccumulateError{};
 
   // Increment for the error for each step. Two times the difference between
   // start and end
-  IndexType m_IncrementError;
+  IndexType m_IncrementError{};
 
   // If enough is accumulated for a dimension, the index has to be
   // incremented. Will be the number of pixels in the line
-  IndexType m_MaximalError;
+  IndexType m_MaximalError{};
 
   // Direction of increment. -1 or 1
-  IndexType m_OverflowIncrement;
+  IndexType m_OverflowIncrement{};
 
   // After an overflow, the accumulated error is reduced again. Will be
   // two times the number of pixels in the line
-  IndexType m_ReduceErrorAfterIncrement;
+  IndexType m_ReduceErrorAfterIncrement{};
 };
 } // end namespace itk
 

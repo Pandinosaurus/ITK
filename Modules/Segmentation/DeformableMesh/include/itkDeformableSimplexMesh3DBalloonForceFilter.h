@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@
 namespace itk
 {
 /**
- *\class DeformableSimplexMesh3DBalloonForceFilter
+ * \class DeformableSimplexMesh3DBalloonForceFilter
  * \brief
  * Additional to its superclass this model adds an balloon force component to the
  * internal forces.
@@ -67,16 +67,16 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DeformableSimplexMesh3DBalloonForceFilter, DeformableSimplexMesh3DFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DeformableSimplexMesh3DBalloonForceFilter);
 
   /** Some type alias. */
   using InputMeshType = TInputMesh;
   using OutputMeshType = TOutputMesh;
-  using PointType = typename Superclass::PointType;
-  using GradientIndexType = typename Superclass::GradientIndexType;
-  using GradientIndexValueType = typename Superclass::GradientIndexValueType;
-  using GradientImageType = typename Superclass::GradientImageType;
+  using typename Superclass::PointType;
+  using typename Superclass::GradientIndexType;
+  using typename Superclass::GradientIndexValueType;
+  using typename Superclass::GradientImageType;
 
   /* Mesh pointer definition. */
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -87,9 +87,11 @@ public:
   using GradientIntensityImageType = Image<PixelType, 3>;
   using GradientIntensityImagePointer = typename GradientIntensityImageType::Pointer;
 
+  /** Set/Get the scalar for balloon force. */
+  /** @ITKStartGrouping */
   itkSetMacro(Kappa, double);
   itkGetConstMacro(Kappa, double);
-
+  /** @ITKEndGrouping */
 protected:
   DeformableSimplexMesh3DBalloonForceFilter();
   ~DeformableSimplexMesh3DBalloonForceFilter() override = default;
@@ -102,18 +104,14 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /**
-   * Compute the external force component
+  /** Compute the external force component.
+   *
+   * Computes the model Displacement according to image gradient forces.
    */
   void
   ComputeExternalForce(SimplexMeshGeometry * data, const GradientImageType * gradientImage) override;
 
-  /** Parameters definitions. */
-
-  /**
-   * scalar for balloon force
-   */
-  double m_Kappa;
+  double m_Kappa{};
 }; // end of class
 } // end namespace itk
 

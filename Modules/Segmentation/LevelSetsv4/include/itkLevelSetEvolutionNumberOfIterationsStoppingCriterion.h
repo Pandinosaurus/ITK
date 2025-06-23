@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class LevelSetEvolutionStoppingCriterion
+ * \class LevelSetEvolutionStoppingCriterion
 \ingroup ITKLevelSetsv4
 */
 template <typename TLevelSetContainer>
@@ -43,8 +43,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LevelSetEvolutionNumberOfIterationsStoppingCriterion, LevelSetEvolutionStoppingCriterion);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionNumberOfIterationsStoppingCriterion);
 
   using LevelSetContainerType = TLevelSetContainer;
   using LevelSetContainerPointer = typename LevelSetContainerType::Pointer;
@@ -62,10 +62,10 @@ public:
   using HeavisideType = typename LevelSetContainerType::HeavisideType;
   using HeavisidePointer = typename LevelSetContainerType::HeavisideType;
 
-  bool
+  [[nodiscard]] bool
   IsSatisfied() const override;
 
-  std::string
+  [[nodiscard]] std::string
   GetDescription() const override;
 
 protected:

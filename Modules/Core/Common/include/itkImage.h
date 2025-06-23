@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@
 #include "itkWeakPointer.h"
 #include "itkNeighborhoodAccessorFunctor.h"
 
+#include <type_traits> // For is_same
+
 namespace itk
 {
 /** \class Image
@@ -36,7 +38,7 @@ namespace itk
  * variables), and a dimension (number of independent variables).  The
  * container for the pixel data is the ImportImageContainer.
  *
- * Within the pixel container, images are modelled as arrays, defined by a
+ * Within the pixel container, images are modeled as arrays, defined by a
  * start index and a size.
  *
  * The superclass of Image, ImageBase, defines the geometry of the
@@ -98,8 +100,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Image, ImageBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Image);
 
   /** Pixel type alias support. Used to declare pixel type in filters
    * or other operations. */
@@ -126,60 +128,60 @@ public:
   using NeighborhoodAccessorFunctorType = NeighborhoodAccessorFunctor<Self>;
 
   /** Type of image dimension */
-  using ImageDimensionType = typename Superclass::ImageDimensionType;
+  using typename Superclass::ImageDimensionType;
 
   /** Index type alias support. An index is used to access pixel values. */
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
 
   /** Offset type alias support. An offset is used to access pixel values. */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
 
   /** Size type alias support. A size is used to define region bounds. */
-  using SizeType = typename Superclass::SizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
+  using typename Superclass::SizeType;
+  using typename Superclass::SizeValueType;
 
   /** Container used to store pixels in the image. */
   using PixelContainer = ImportImageContainer<SizeValueType, PixelType>;
 
   /** Direction type alias support. A matrix of direction cosines. */
-  using DirectionType = typename Superclass::DirectionType;
+  using typename Superclass::DirectionType;
 
   /** Region type alias support. A region is used to specify a subset of an image.
    */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Spacing type alias support.  Spacing holds the size of a pixel.  The
    * spacing is the geometric distance between image samples. */
-  using SpacingType = typename Superclass::SpacingType;
-  using SpacingValueType = typename Superclass::SpacingValueType;
+  using typename Superclass::SpacingType;
+  using typename Superclass::SpacingValueType;
 
   /** Origin type alias support.  The origin is the geometric coordinates
    * of the index (0,0). */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** A pointer to the pixel container. */
   using PixelContainerPointer = typename PixelContainer::Pointer;
   using PixelContainerConstPointer = typename PixelContainer::ConstPointer;
 
   /** Offset type alias (relative position between indices) */
-  using OffsetValueType = typename Superclass::OffsetValueType;
+  using typename Superclass::OffsetValueType;
 
   /**
    * example usage:
    * using OutputImageType = typename ImageType::template Rebind< float >::Type;
    *
-   * \deprecated Use RebindImageType instead
+   * Deprecated: Use RebindImageType instead
    */
-  template <typename UPixelType, unsigned int NUImageDimension = VImageDimension>
+  template <typename UPixelType, unsigned int VUImageDimension = VImageDimension>
   struct Rebind
   {
-    using Type = itk::Image<UPixelType, NUImageDimension>;
+    using Type = itk::Image<UPixelType, VUImageDimension>;
   };
 
 
-  template <typename UPixelType, unsigned int NUImageDimension = VImageDimension>
-  using RebindImageType = itk::Image<UPixelType, NUImageDimension>;
+  template <typename UPixelType, unsigned int VUImageDimension = VImageDimension>
+  using RebindImageType = itk::Image<UPixelType, VUImageDimension>;
 
 
   /** Allocate the image memory. The size of the image must
@@ -205,7 +207,7 @@ public:
   void
   SetPixel(const IndexType & index, const TPixel & value)
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     (*m_Buffer)[offset] = value;
   }
 
@@ -216,7 +218,7 @@ public:
   const TPixel &
   GetPixel(const IndexType & index) const
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     return ((*m_Buffer)[offset]);
   }
 
@@ -227,7 +229,7 @@ public:
   TPixel &
   GetPixel(const IndexType & index)
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     return ((*m_Buffer)[offset]);
   }
 
@@ -235,16 +237,25 @@ public:
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  TPixel & operator[](const IndexType & index) { return this->GetPixel(index); }
+  TPixel &
+  operator[](const IndexType & index)
+  {
+    return this->GetPixel(index);
+  }
 
   /** \brief Access a pixel. This version can only be an rvalue.
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  const TPixel & operator[](const IndexType & index) const { return this->GetPixel(index); }
+  const TPixel &
+  operator[](const IndexType & index) const
+  {
+    return this->GetPixel(index);
+  }
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
+  /** @ITKStartGrouping */
   virtual TPixel *
   GetBufferPointer()
   {
@@ -255,7 +266,7 @@ public:
   {
     return m_Buffer ? m_Buffer->GetBufferPointer() : nullptr;
   }
-
+  /** @ITKEndGrouping */
   /** Return a pointer to the container. */
   PixelContainer *
   GetPixelContainer()
@@ -315,12 +326,18 @@ public:
     return NeighborhoodAccessorFunctorType();
   }
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfComponentsPerPixel() const override;
 
-  /** Returns (image1 == image2). */
-  friend bool
-  operator==(const Image & lhs, const Image & rhs)
+  /** Returns (image1 == image2).
+   * \note `operator==` and `operator!=` are defined as function templates
+   * (rather than as non-templates), just to allow template instantiation of
+   * `itk::Image` for non-EqualityComparable pixel types.
+   */
+  template <typename TEqualityComparable>
+  friend std::enable_if_t<std::is_same_v<TEqualityComparable, TPixel>, bool>
+  operator==(const Image<TEqualityComparable, VImageDimension> & lhs,
+             const Image<TEqualityComparable, VImageDimension> & rhs)
   {
     if ((lhs.GetBufferedRegion() != rhs.GetBufferedRegion()) || (lhs.m_Spacing != rhs.m_Spacing) ||
         (lhs.m_Origin != rhs.m_Origin) || (lhs.m_Direction != rhs.m_Direction) ||
@@ -349,22 +366,24 @@ public:
       return false;
     }
 
-    const TPixel * const lhsBufferPointer = lhsBuffer.GetBufferPointer();
-    const TPixel * const rhsBufferPointer = rhsBuffer.GetBufferPointer();
+    const TEqualityComparable * const lhsBufferPointer = lhsBuffer.GetBufferPointer();
+    const TEqualityComparable * const rhsBufferPointer = rhsBuffer.GetBufferPointer();
 
     return ((lhsBufferPointer == rhsBufferPointer) ||
             std::equal(lhsBufferPointer, lhsBufferPointer + bufferSize, rhsBufferPointer));
   }
 
   /** Returns (image1 != image2). */
-  friend bool
-  operator!=(const Image & lhs, const Image & rhs)
+  template <typename TEqualityComparable>
+  friend std::enable_if_t<std::is_same_v<TEqualityComparable, TPixel>, bool>
+  operator!=(const Image<TEqualityComparable, VImageDimension> & lhs,
+             const Image<TEqualityComparable, VImageDimension> & rhs)
   {
     return !(lhs == rhs);
   }
 
 protected:
-  Image();
+  Image() = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
   void
@@ -383,7 +402,7 @@ protected:
 
 private:
   /** Memory for the current buffer. */
-  PixelContainerPointer m_Buffer;
+  PixelContainerPointer m_Buffer{ PixelContainer::New() };
 };
 } // end namespace itk
 

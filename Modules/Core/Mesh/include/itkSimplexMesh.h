@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
  * A simplex mesh can be used for deformable model segmentation of 3D image data.
  * To create a simplex mesh one needs a triangle mesh, which can be converted
  * to using the class itkTriangleMeshToSimplexMeshFilter. The back filtering
- * (from simplex to trinagle mesh)is done through a itkSimplexMeshToTriangleMeshFilter.
+ * (from simplex to triangle mesh)is done through a itkSimplexMeshToTriangleMeshFilter.
  *
  * \author Thomas Boettger. Division Medical and Biological Informatics, German Cancer Research Center, Heidelberg.
  * \ingroup ITKMesh
@@ -86,10 +86,11 @@ public:
   using CovariantVectorType = CovariantVector<typename VectorType::ValueType, 3>;
 
   /** */
-  using CellType = typename Superclass::CellType;
+  using typename Superclass::CellType;
 
   /** */
   using CellAutoPointer = typename CellType::CellAutoPointer;
+
   /** */
   using LineType = itk::LineCell<CellType>;
 
@@ -110,21 +111,21 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(SimplexMesh, Mesh);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimplexMesh);
 
   /** Hold on to the type information specified by the template parameters. */
   using MeshTraits = TMeshTraits;
   using PixelType = typename MeshTraits::PixelType;
   using PointsContainer = typename MeshTraits::PointsContainer;
-  using PointsContainerPointer = typename Superclass::PointsContainerPointer;
+  using typename Superclass::PointsContainerPointer;
   using PointsContainerIterator = typename Superclass::PointsContainer::Iterator;
-  using PointsContainerConstIterator = typename Superclass::PointsContainerConstIterator;
-  using CellsContainerPointer = typename Superclass::CellsContainerPointer;
-  using CellsContainerConstPointer = typename Superclass::CellsContainerConstPointer;
-  using CellsContainerIterator = typename Superclass::CellsContainerIterator;
-  using CellsContainerConstIterator = typename Superclass::CellsContainerConstIterator;
-  using CellIdentifier = typename Superclass::CellIdentifier;
+  using typename Superclass::PointsContainerConstIterator;
+  using typename Superclass::CellsContainerPointer;
+  using typename Superclass::CellsContainerConstPointer;
+  using typename Superclass::CellsContainerIterator;
+  using typename Superclass::CellsContainerConstIterator;
+  using typename Superclass::CellIdentifier;
 
   /** set the map of geometrydata to the new pointer */
   itkSetMacro(GeometryData, GeometryMapPointer);
@@ -186,7 +187,7 @@ public:
   /**
    * Add a neighbor to a point.
    * Note: This can destroy the simplex mesh topology!
-   * Better use te simplex mesh creation filters.
+   * Better use the simplex mesh creation filters.
    */
   void
   AddNeighbor(PointIdentifier pointIdx, PointIdentifier neighborIdx);
@@ -286,16 +287,17 @@ public:
   ComputeNormal(PointIdentifier idx) const;
 
 protected:
-  //  /** Constructor for use by New() method. */
+  /** Constructor for use by New() method. */
+  /** @ITKStartGrouping */
   SimplexMesh();
   ~SimplexMesh() override;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
-
+  /** @ITKEndGrouping */
   /**
    * The map stores a SimplexMeshGeometry object for each mesh point
    */
-  GeometryMapPointer m_GeometryData;
+  GeometryMapPointer m_GeometryData{};
 
   /**
    * The last cell id is the index which is used for insertion of new
@@ -303,7 +305,7 @@ protected:
    * one cannot rely on the size of the map or the highest index when
    * cells are removed.
    */
-  CellIdentifier m_LastCellId;
+  CellIdentifier m_LastCellId{};
 }; // End Class:  SimplexMesh
 } // end namespace itk
 

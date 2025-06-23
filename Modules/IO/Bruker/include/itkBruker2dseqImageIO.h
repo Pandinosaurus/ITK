@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class Bruker2dseqImageIO
+ * \class Bruker2dseqImageIO
  * \brief Class that defines how to read Bruker file format.
  *
  * The following is a brief description of the Bruker file format.
@@ -69,7 +69,7 @@ namespace itk
  * and added to the meta-data in case users wish to extract data from them.
  *
  * The original implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/237
+ * https://doi.org/10.54294/o8w4c0
  *
  * \ingroup ITKIOBruker
  *
@@ -90,8 +90,8 @@ public:
   /** New macro for creation of through a SmartPointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Bruker2dseqImageIO, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Bruker2dseqImageIO);
 
   /** Determine if the necessary files exist to read the specified 2dseq file.
    * Returns true if all required files exist. */
@@ -140,7 +140,7 @@ private:
   SwapBytesIfNecessary(void * buff, SizeValueType components);
 
   IOComponentEnum m_OnDiskComponentType{ IOComponentEnum::UCHAR };
-  IOByteOrderEnum m_MachineByteOrder;
+  IOByteOrderEnum m_MachineByteOrder{};
 };
 
 } // end namespace itk

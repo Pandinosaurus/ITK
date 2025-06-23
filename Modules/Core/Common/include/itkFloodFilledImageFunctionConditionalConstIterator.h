@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,31 +41,31 @@ public:
   using Superclass = FloodFilledFunctionConditionalConstIterator<TImage, TFunction>;
 
   /** Type of function */
-  using FunctionType = typename Superclass::FunctionType;
+  using typename Superclass::FunctionType;
 
   /** Type of vector used to store location info in the spatial function */
-  using FunctionInputType = typename Superclass::FunctionInputType;
+  using typename Superclass::FunctionInputType;
 
   /** Index type alias support. */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** Index ContainerType. */
-  using SeedsContainerType = typename Superclass::SeedsContainerType;
+  using typename Superclass::SeedsContainerType;
 
   /** Size type alias support. */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** Region type alias support */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Image type alias support. */
-  using ImageType = typename Superclass::ImageType;
+  using typename Superclass::ImageType;
 
   /** Internal Pixel Type */
-  using InternalPixelType = typename Superclass::InternalPixelType;
+  using typename Superclass::InternalPixelType;
 
   /** External Pixel Type */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** Dimension of the image the iterator walks.  This constant is needed so
    * functions that are templated over image iterator type (as opposed to

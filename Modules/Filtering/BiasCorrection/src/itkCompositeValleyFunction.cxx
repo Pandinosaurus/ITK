@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@ namespace itk
 CompositeValleyFunction::CompositeValleyFunction(const MeasureArrayType & classMeans,
                                                  const MeasureArrayType & classSigmas)
 {
-  const std::size_t length = classMeans.size();
+  const size_t length = classMeans.size();
 
   if (length != classSigmas.size())
   {
@@ -40,7 +40,7 @@ CompositeValleyFunction::CompositeValleyFunction(const MeasureArrayType & classM
     throw ex;
   }
 
-  for (std::size_t i = 0; i < length; i++)
+  for (size_t i = 0; i < length; ++i)
   {
     this->AddNewClass(classMeans[i], classSigmas[i]);
   }
@@ -53,18 +53,15 @@ CompositeValleyFunction::~CompositeValleyFunction() = default;
 void
 CompositeValleyFunction::Initialize()
 {
-  SizeValueType i, low, high;
-
   // build table
   // when using valley-func then the table values run from
   // lowest_my - 10 * sigma to highest_my + 10 * sigma
-
-  low = 0;
-  high = 0;
+  SizeValueType low{ 0 };
+  SizeValueType high{ 0 };
 
   auto noOfClasses = static_cast<SizeValueType>(m_Targets.size());
 
-  for (i = 0; i < noOfClasses; i++)
+  for (SizeValueType i = 0; i < noOfClasses; ++i)
   {
     if (m_Targets[i].GetMean() > m_Targets[high].GetMean())
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,23 +19,20 @@
 #ifndef itkFEMSolverHyperbolic_hxx
 #define itkFEMSolverHyperbolic_hxx
 
-#include "itkFEMSolverHyperbolic.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 template <unsigned int VDimension>
 SolverHyperbolic<VDimension>::SolverHyperbolic()
+  : m_TimeStep(1.0)
+  , m_Gamma(0.5)
+  , m_Beta(0.25)
+  , m_NumberOfIterations(1)
 {
   this->InitializeLinearSystemWrapper();
   this->InitializeMatrixForAssembly(2);
-  this->m_Beta = 0.25;
-  this->m_Gamma = 0.5;
-  this->m_TimeStep = 1.0;
-  this->m_NumberOfIterations = 1;
 }
 
 template <unsigned int VDimension>
@@ -63,10 +60,10 @@ SolverHyperbolic<VDimension>::AssembleElementMatrix(Element::Pointer e)
   int Ne = e->GetNumberOfDegreesOfFreedom();
 
   // Step over all rows in element matrix
-  for (int j = 0; j < Ne; j++)
+  for (int j = 0; j < Ne; ++j)
   {
     // Step over all columns in element matrix
-    for (int k = 0; k < Ne; k++)
+    for (int k = 0; k < Ne; ++k)
     {
       // error checking. all GFN should be =>0 and <NGFN
       if (e->GetDegreeOfFreedom(j) >= this->GetInput()->GetNumberOfDegreesOfFreedom() ||
@@ -102,7 +99,7 @@ SolverHyperbolic<VDimension>::InitializeMatrixForAssembly(unsigned int N)
   this->m_LinearSystem->InitializeMatrix(matrix_K);
   this->m_LinearSystem->InitializeMatrix(matrix_M);
   this->m_LinearSystem->InitializeMatrix(matrix_C);
-  for (unsigned int i = 0; i < N; i++)
+  for (unsigned int i = 0; i < N; ++i)
   {
     this->m_LinearSystem->SetMatrixValue(i, i, 1.0, matrix_C);
   }
@@ -161,7 +158,7 @@ SolverHyperbolic<VDimension>::Solve()
   // solutions obtained at the previous time step.
 
   // Calculate the predictors
-  for (unsigned int i = 0; i < this->m_LinearSystem->GetSystemOrder(); i++)
+  for (unsigned int i = 0; i < this->m_LinearSystem->GetSystemOrder(); ++i)
   {
     Float d0 = this->m_LinearSystem->GetSolutionValue(i, solution_d);
     Float v0 = this->m_LinearSystem->GetSolutionValue(i, solution_v);
@@ -187,7 +184,7 @@ SolverHyperbolic<VDimension>::Solve()
   this->m_LinearSystem->CopyVector2Solution(vector_tmp, solution_a);
 
   // Calculate displacements and velocities
-  for (unsigned int i = 0; i < this->m_LinearSystem->GetSystemOrder(); i++)
+  for (unsigned int i = 0; i < this->m_LinearSystem->GetSystemOrder(); ++i)
   {
     Float dhat = -this->m_LinearSystem->GetVectorValue(i, vector_dhat);
     Float vhat = -this->m_LinearSystem->GetVectorValue(i, vector_vhat);
@@ -221,7 +218,7 @@ SolverHyperbolic<VDimension>::RunSolver()
   this->AssembleK();  // Assemble the global stiffness matrix K
   this->DecomposeK(); // Invert K
 
-  for (unsigned int nit = 0; nit < m_NumberOfIterations; nit++)
+  for (unsigned int nit = 0; nit < m_NumberOfIterations; ++nit)
   {
     this->AssembleF();
     this->Solve();
@@ -239,7 +236,6 @@ SolverHyperbolic<VDimension>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Gamma: " << this->m_Gamma << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

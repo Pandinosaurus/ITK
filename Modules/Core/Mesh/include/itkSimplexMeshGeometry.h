@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
 {
 /**
  * \class SimplexMeshGeometry
- * \brief handle geometric properties for vertices of a simplx mesh
+ * \brief handle geometric properties for vertices of a simplex mesh
  *
  * It stores and recomputes geometric properties of simplex mesh
  * vertices, i.e. the normal vector, the barycentric coordinates of
@@ -111,33 +111,33 @@ public:
   /**
    * stores the index of the closest attractor to this point
    */
-  IdentifierType closestAttractorIndex;
+  IdentifierType closestAttractorIndex{ 0 };
 
   /* stores circum circle radius */
-  double circleRadius;
+  double circleRadius{ 0 };
 
   /* stores circum circle center */
   PointType circleCenter;
 
   /* stores circum sphere radius */
-  double sphereRadius;
+  double sphereRadius{ 0 };
 
   /* stores circum sphere center */
   //  PointType sphereCenter;
 
   /* stores distance to foot point */
-  double distance;
+  double distance{ 0 };
 
   /* stores angle */
-  double phi;
+  double phi{ 0 };
 
   /* stores the neighbor set */
-  NeighborSetType * neighborSet;
+  NeighborSetType * neighborSet{ nullptr };
 
   /* stores multiplier for interactive deformable model filter */
-  double multiplier;
+  double multiplier{ 0.0 };
 
-  IdentifierType forceIndex;
+  IdentifierType forceIndex{ 0 };
 
   /**
    * Computes the center and radius of the circum circle of the

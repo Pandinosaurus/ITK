@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include "itkMatrix.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkMatrixTest(int, char *[])
@@ -32,8 +33,7 @@ itkMatrixTest(int, char *[])
 
   using vnlVectorType = vnl_vector_fixed<NumericType, 3>;
 
-  MatrixType matrix;
-  matrix.Fill(0.0);
+  MatrixType matrix{};
   matrix.SetIdentity();
 
   VectorType v1;
@@ -46,8 +46,8 @@ itkMatrixTest(int, char *[])
   std::cout << resultVector[1] << ", ";
   std::cout << resultVector[2] << std::endl;
 
-  PointType::ValueType p1Init[3] = { 3, 4, 5 };
-  PointType            p1 = p1Init;
+  constexpr PointType::ValueType p1Init[3] = { 3, 4, 5 };
+  const PointType                p1 = p1Init;
 
   PointType resultPoint = matrix * p1;
   std::cout << resultPoint[0] << ", ";
@@ -55,7 +55,7 @@ itkMatrixTest(int, char *[])
   std::cout << resultPoint[2] << std::endl;
 
   CovariantVectorType::ValueType cv1Init[3] = { 3, 4, 5 };
-  CovariantVectorType            cv1 = cv1Init;
+  const CovariantVectorType      cv1 = cv1Init;
 
   CovariantVectorType resultCovariantVector = matrix * cv1;
   std::cout << resultCovariantVector[0] << ", ";
@@ -85,8 +85,7 @@ itkMatrixTest(int, char *[])
   MatrixType matrix4;
   matrix4 = matrix.GetTranspose();
 
-  MatrixType matrix5;
-  matrix5.Fill(1.7);
+  auto matrix5 = itk::MakeFilled<MatrixType>(1.7);
 
   constexpr NumericType value = 2;
   matrix5[1][1] = value;
@@ -210,8 +209,8 @@ itkMatrixTest(int, char *[])
       {
         for (unsigned int c = 0; c < nc; ++c)
         {
-          const auto fr = (double)r;
-          const auto fc = (double)c;
+          const auto fr = static_cast<double>(r);
+          const auto fc = static_cast<double>(c);
           m1[r][c] = fr + fc;
           m2[r][c] = fr - fc;
         }
@@ -232,19 +231,19 @@ itkMatrixTest(int, char *[])
 
     // Check the addition and subtraction values
     {
-      const double tolerance = 1e-7;
+      constexpr double tolerance = 1e-7;
       for (unsigned int r = 0; r < nr; ++r)
       {
         for (unsigned int c = 0; c < nc; ++c)
         {
-          if (std::fabs(m3[r][c] - 2 * r) > tolerance)
+          if (itk::Math::abs(m3[r][c] - 2 * r) > tolerance)
           {
             std::cerr << "Addition failed !" << std::endl;
             std::cerr << "M[" << r << "][" << c << "] = ";
             std::cerr << m3[r][c] << std::endl;
             return EXIT_FAILURE;
           }
-          if (std::fabs(m4[r][c] - 2 * c) > tolerance)
+          if (itk::Math::abs(m4[r][c] - 2 * c) > tolerance)
           {
             std::cerr << "Subtraction failed !" << std::endl;
             return EXIT_FAILURE;
@@ -258,18 +257,18 @@ itkMatrixTest(int, char *[])
 
     // Check the in-place addition and subtraction values
     {
-      const double tolerance = 1e-7;
+      constexpr double tolerance = 1e-7;
       for (unsigned int r = 0; r < nr; ++r)
       {
         for (unsigned int c = 0; c < nc; ++c)
         {
-          if (std::fabs(m3[r][c] - m1[r][c]) > tolerance)
+          if (itk::Math::abs(m3[r][c] - m1[r][c]) > tolerance)
           {
             std::cerr << "In-place addition failed !" << std::endl;
             std::cerr << m3 << std::endl;
             return EXIT_FAILURE;
           }
-          if (std::fabs(m4[r][c] - m1[r][c]) > tolerance)
+          if (itk::Math::abs(m4[r][c] - m1[r][c]) > tolerance)
           {
             std::cerr << "In-place subtraction failed !" << std::endl;
             std::cerr << m4 << std::endl;
@@ -293,17 +292,17 @@ itkMatrixTest(int, char *[])
       }
     }
 
-    MatrixType::InternalMatrixType vnlMatrixA = matrixA.GetVnlMatrix();
+    const MatrixType::InternalMatrixType vnlMatrixA = matrixA.GetVnlMatrix();
 
     MatrixType matrixB(vnlMatrixA); // Test constructor
 
     { // verify values
-      const double tolerance = 1e-7;
+      constexpr double tolerance = 1e-7;
       for (unsigned int row = 0; row < 3; ++row)
       {
         for (unsigned int col = 0; col < 3; ++col)
         {
-          if (std::abs(matrixB[row][col] - matrixA[row][col]) > tolerance)
+          if (itk::Math::abs(matrixB[row][col] - matrixA[row][col]) > tolerance)
           {
             std::cerr << "constructor from vnl_matrix failed ! " << std::endl;
             return EXIT_FAILURE;
@@ -316,12 +315,12 @@ itkMatrixTest(int, char *[])
     matrixC = vnlMatrixA; // Test assignment
 
     { // verify values
-      const double tolerance = 1e-7;
+      constexpr double tolerance = 1e-7;
       for (unsigned int row = 0; row < 3; ++row)
       {
         for (unsigned int col = 0; col < 3; ++col)
         {
-          if (std::abs(matrixC[row][col] - matrixA[row][col]) > tolerance)
+          if (itk::Math::abs(matrixC[row][col] - matrixA[row][col]) > tolerance)
           {
             std::cerr << "assignment from vnl_matrix failed ! " << std::endl;
             return EXIT_FAILURE;
@@ -332,36 +331,11 @@ itkMatrixTest(int, char *[])
   }
 
   using LargeMatrixType = itk::Matrix<NumericType, 7, 7>;
-  LargeMatrixType matrixBad;
-  matrixBad.Fill(2.0);
-  bool caught = false;
-  try
-  {
-    matrixBad.GetInverse();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cout << "Caught expected exception!" << std::endl;
-    std::cout << excp;
-    caught = true;
-  }
-  if (!caught)
-  {
-    std::cout << "Failed to catch expected exception!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  auto matrixBad = itk::MakeFilled<LargeMatrixType>(2.0);
+  ITK_TRY_EXPECT_EXCEPTION([[maybe_unused]] auto inverse = matrixBad.GetInverse());
 
   matrixBad.SetIdentity();
-  try
-  {
-    matrixBad.GetInverse();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cout << "Caught unexpected exception!" << std::endl;
-    std::cout << excp;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION([[maybe_unused]] auto inverse2 = matrixBad.GetInverse());
 
   {
     /*
@@ -421,7 +395,9 @@ itkMatrixTest(int, char *[])
       for (unsigned int j = 0; j < 3; ++j)
       {
         if (itk::Math::isnan(invertedMatrix[i][j]))
+        {
           ++num_nans;
+        }
       }
     }
 

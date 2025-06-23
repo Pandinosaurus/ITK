@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,11 +23,9 @@
 #include "itkProcessObject.h"
 #include "itkSimpleDataObjectDecorator.h"
 
-namespace itk
+namespace itk::Statistics
 {
-namespace Statistics
-{
-/**\class HistogramToTextureFeaturesFilterEnums
+/** \class HistogramToTextureFeaturesFilterEnums
  *\brief This class contains all enum classes used by HistogramToTextureFeaturesFilter class.
  * \ingroup ITKStatistics
  */
@@ -35,7 +33,6 @@ class HistogramToTextureFeaturesFilterEnums
 {
 public:
   /**
-   * \class TextureFeature
    * \ingroup ITKStatistics
    * Texture feature types
    */
@@ -54,10 +51,10 @@ public:
 };
 // Define how to print enumeration
 extern ITKStatistics_EXPORT std::ostream &
-                            operator<<(std::ostream & out, const HistogramToTextureFeaturesFilterEnums::TextureFeature value);
+operator<<(std::ostream & out, const HistogramToTextureFeaturesFilterEnums::TextureFeature value);
 
 /**
- *\class HistogramToTextureFeaturesFilter
+ * \class HistogramToTextureFeaturesFilter
  *  \brief This class computes texture feature coefficients from a grey level
  * co-occurrence matrix.
  *
@@ -66,7 +63,7 @@ extern ITKStatistics_EXPORT std::ostream &
  * or related class).
  *
  * The features calculated are as follows (where \f$ g(i, j) \f$ is the element in
- * cell i, j of a a normalized GLCM):
+ * cell i, j of a normalized GLCM):
  *
  * "Energy" \f$ = f_1 = \sum_{i,j}g(i, j)^2 \f$
  *
@@ -103,23 +100,10 @@ extern ITKStatistics_EXPORT std::ostream &
  * Web references:
  *
  * http://www.cssip.uq.edu.au/meastex/www/algs/algs/algs.html
- * http://www.ucalgary.ca/~mhallbey/texture/texture_tutorial.html
+ * https://www.ucalgary.ca/~mhallbey/texture/texture_tutorial.html
  *
- * Print references:
- *
- * Haralick, R.M., K. Shanmugam and I. Dinstein. 1973.  Textural Features for
- * Image Classification. IEEE Transactions on Systems, Man and Cybernetics.
- * SMC-3(6):610-620.
- *
- * Haralick, R.M. 1979. Statistical and Structural Approaches to Texture.
- * Proceedings of the IEEE, 67:786-804.
- *
- * R.W. Conners and C.A. Harlow. A Theoretical Comaprison of Texture Algorithms.
- * IEEE Transactions on Pattern Analysis and Machine Intelligence,  2:204-222, 1980.
- *
- * R.W. Conners, M.M. Trivedi, and C.A. Harlow. Segmentation of a High-Resolution
- * Urban Scene using Texture  Operators. Computer Vision, Graphics and Image
- * Processing, 25:273-310,  1984.
+ * For algorithmic details see \cite haralick1973, \cite haralick1979,
+ * \cite conners1980 and \cite conners1984.
  *
  * \sa ScalarImageToCooccurrenceMatrixFilter
  * \sa ScalarImageToTextureFeaturesFilter
@@ -127,7 +111,6 @@ extern ITKStatistics_EXPORT std::ostream &
  * Author: Zachary Pincus
  * \ingroup ITKStatistics
  */
-
 template <typename THistogram>
 class ITK_TEMPLATE_EXPORT HistogramToTextureFeaturesFilter : public ProcessObject
 {
@@ -140,8 +123,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HistogramToTextureFeaturesFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramToTextureFeaturesFilter);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -271,10 +254,9 @@ private:
                            double & marginalDevSquared,
                            double & pixelVariance);
 
-  RelativeFrequencyContainerType m_RelativeFrequencyContainer;
+  RelativeFrequencyContainerType m_RelativeFrequencyContainer{};
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkHistogramToTextureFeaturesFilter.hxx"

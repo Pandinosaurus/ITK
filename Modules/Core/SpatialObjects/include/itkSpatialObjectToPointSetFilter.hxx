@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSpatialObjectToPointSetFilter_hxx
 #define itkSpatialObjectToPointSetFilter_hxx
 
-#include "itkSpatialObjectToPointSetFilter.h"
 
 namespace itk
 {
@@ -48,15 +47,16 @@ SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::SetInp
 }
 
 template <typename TPointBasedSpatialObject, typename TOutputPointSet>
-const typename SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::SpatialObjectType *
-SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::GetInput()
+auto
+SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::GetInput() -> const SpatialObjectType *
 {
   return static_cast<const SpatialObjectType *>(this->GetPrimaryInput());
 }
 
 template <typename TPointBasedSpatialObject, typename TOutputPointSet>
-const typename SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::SpatialObjectType *
+auto
 SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::GetInput(unsigned int idx)
+  -> const SpatialObjectType *
 {
   return static_cast<const SpatialObjectType *>(this->ProcessObject::GetInput(idx));
 }
@@ -66,8 +66,8 @@ void
 SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::GenerateData()
 {
   // Get the input and output pointers
-  const SpatialObjectType *            inputObject = this->GetInput();
-  typename OutputPointSetType::Pointer outputPointSet = this->GetOutput();
+  const SpatialObjectType *                  inputObject = this->GetInput();
+  const typename OutputPointSetType::Pointer outputPointSet = this->GetOutput();
 
   using PointIdentifier = typename OutputPointSetType::PointIdentifier;
 
@@ -79,8 +79,8 @@ SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::Genera
     numberOfPoints = inputSO->GetNumberOfPoints() / m_SamplingFactor;
   }
 
-  ChildrenListType *                        children = inputObject->GetChildren(m_ChildrenDepth);
-  typename ChildrenListType::const_iterator it = children->begin();
+  ChildrenListType * children = inputObject->GetChildren(m_ChildrenDepth);
+  auto               it = children->begin();
 
   while (it != children->end())
   {
@@ -111,7 +111,7 @@ SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::Genera
       typename PointBasedSpatialObjectType::PointType transformedPoint =
         inputSO->GetPoint(i)->GetPositionInWorldSpace();
 
-      for (unsigned int j = 0; j < Self::ObjectDimension; j++)
+      for (unsigned int j = 0; j < Self::ObjectDimension; ++j)
       {
         point[j] = transformedPoint[j];
       }
@@ -132,7 +132,7 @@ SpatialObjectToPointSetFilter<TPointBasedSpatialObject, TOutputPointSet>::Genera
         typename PointBasedSpatialObjectType::PointType transformedPoint =
           pointSO->GetPoint(i)->GetPositionInWorldSpace();
 
-        for (unsigned int j = 0; j < Self::ObjectDimension; j++)
+        for (unsigned int j = 0; j < Self::ObjectDimension; ++j)
         {
           point[j] = transformedPoint[j];
         }

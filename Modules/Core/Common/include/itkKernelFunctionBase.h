@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,16 +31,13 @@ namespace itk
  * This class encapsulates the smoothing kernel used for statistical density
  * estimation and nonparametric regression. The basic idea of the kernel
  * approach is to weight observations by a smooth function (the kernel)
- * to created a smoothed approximation.
- *
- * Reference:
- * Silverman, B. W. (1986) Density Estimation. London: Chapman and Hall.
+ * to create a smoothed approximation \cite silverman1986.
  *
  * \ingroup Functions
  * \ingroup ITKCommon
  */
 template <typename TRealValueType = double>
-class KernelFunctionBase : public FunctionBase<TRealValueType, TRealValueType>
+class ITK_TEMPLATE_EXPORT KernelFunctionBase : public FunctionBase<TRealValueType, TRealValueType>
 {
 public:
   /** Standard class type aliases. */
@@ -51,27 +48,18 @@ public:
 
   using RealType = TRealValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KernelFunctionBase, FunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KernelFunctionBase);
 
   /** Evaluate the function. Subclasses must implement this. */
   TRealValueType
   Evaluate(const TRealValueType & u) const override = 0;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(TRealValueTypeIsFloatingPointCheck, (Concept::IsFloatingPoint<TRealValueType>));
-  // End concept checking
-#endif
 
 protected:
   KernelFunctionBase() = default;
   ~KernelFunctionBase() override = default;
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override
-  {
-    Superclass::PrintSelf(os, indent);
-  }
 };
 } // end namespace itk
 

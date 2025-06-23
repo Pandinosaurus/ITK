@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,17 +52,17 @@ itkIOPluginTest(int argc, char * argv[])
       std::cout << "  Factory version: " << factory->GetITKSourceVersion() << std::endl
                 << "  Factory description: " << factory->GetDescription() << std::endl;
 
-      std::list<std::string>                 overrides = factory->GetClassOverrideNames();
-      std::list<std::string>                 names = factory->GetClassOverrideWithNames();
-      std::list<std::string>                 descriptions = factory->GetClassOverrideDescriptions();
-      std::list<bool>                        enableflags = factory->GetEnableFlags();
-      std::list<std::string>::const_iterator n = names.begin();
-      std::list<std::string>::const_iterator d = descriptions.begin();
-      std::list<bool>::const_iterator        e = enableflags.begin();
-      for (std::list<std::string>::const_iterator o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, e++)
+      std::list<std::string> overrides = factory->GetClassOverrideNames();
+      std::list<std::string> names = factory->GetClassOverrideWithNames();
+      std::list<std::string> descriptions = factory->GetClassOverrideDescriptions();
+      std::list<bool>        enableflags = factory->GetEnableFlags();
+      auto                   n = names.begin();
+      auto                   d = descriptions.begin();
+      auto                   e = enableflags.begin();
+      for (auto o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, e++)
       {
         std::cout << "    Override " << *o << " with " << *n << std::endl
-                  << "      described as \"" << *d << "\"" << std::endl
+                  << "      described as \"" << *d << '"' << std::endl
                   << "      enabled " << *e << std::endl;
       }
     }
@@ -77,8 +77,8 @@ itkIOPluginTest(int argc, char * argv[])
   using ImageNDType = itk::Image<unsigned char, 2>;
   using ReaderType = itk::ImageFileReader<ImageNDType>;
   using WriterType = itk::ImageFileWriter<ImageNDType>;
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   int status = EXIT_SUCCESS;
   try

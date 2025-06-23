@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,84 +18,69 @@
 #ifndef itkGradientDescentOptimizerBasev4_hxx
 #define itkGradientDescentOptimizerBasev4_hxx
 
-#include "itkGradientDescentOptimizerBasev4.h"
 #include "itkGradientDescentOptimizerBasev4ModifyGradientByScalesThreader.h"
 #include "itkGradientDescentOptimizerBasev4ModifyGradientByLearningRateThreader.h"
 
 namespace itk
 {
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::GradientDescentOptimizerBasev4Template()
+  : m_DoEstimateLearningRateOnce(true)
+  , m_MaximumStepSizeInPhysicalUnits(TInternalComputationValueType{})
+  , m_UseConvergenceMonitoring(true)
+  , m_ConvergenceWindowSize(50)
+  , m_StopCondition(StopConditionObjectToObjectOptimizerEnum::MAXIMUM_NUMBER_OF_ITERATIONS)
 
 {
   /** Threader for apply scales to gradient */
-  typename GradientDescentOptimizerBasev4ModifyGradientByScalesThreaderTemplate<TInternalComputationValueType>::Pointer
-    modifyGradientByScalesThreader =
-      GradientDescentOptimizerBasev4ModifyGradientByScalesThreaderTemplate<TInternalComputationValueType>::New();
+  const typename GradientDescentOptimizerBasev4ModifyGradientByScalesThreaderTemplate<
+    TInternalComputationValueType>::Pointer modifyGradientByScalesThreader =
+    GradientDescentOptimizerBasev4ModifyGradientByScalesThreaderTemplate<TInternalComputationValueType>::New();
   this->m_ModifyGradientByScalesThreader = modifyGradientByScalesThreader;
 
   /** Threader for apply the learning rate to gradient */
-  typename GradientDescentOptimizerBasev4ModifyGradientByLearningRateThreaderTemplate<
+  const typename GradientDescentOptimizerBasev4ModifyGradientByLearningRateThreaderTemplate<
     TInternalComputationValueType>::Pointer modifyGradientByLearningRateThreader =
     GradientDescentOptimizerBasev4ModifyGradientByLearningRateThreaderTemplate<TInternalComputationValueType>::New();
   this->m_ModifyGradientByLearningRateThreader = modifyGradientByLearningRateThreader;
-
-  this->m_StopCondition = StopConditionObjectToObjectOptimizerEnum::MAXIMUM_NUMBER_OF_ITERATIONS;
   this->m_StopConditionDescription << this->GetNameOfClass() << ": ";
-
-  this->m_MaximumStepSizeInPhysicalUnits = NumericTraits<TInternalComputationValueType>::ZeroValue();
-
-  this->m_UseConvergenceMonitoring = true;
-  this->m_ConvergenceWindowSize = 50;
-
-  this->m_DoEstimateLearningRateAtEachIteration = false;
-  this->m_DoEstimateLearningRateOnce = true;
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent
-     << "DoEstimateLearningRateAtEachIteration: " << (this->m_DoEstimateLearningRateAtEachIteration ? "On" : "Off")
-     << std::endl;
-  os << indent << "DoEstimateLearningRateOnce: " << (this->m_DoEstimateLearningRateOnce ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(DoEstimateLearningRateAtEachIteration);
+  itkPrintSelfBooleanMacro(DoEstimateLearningRateOnce);
   os << indent << "MaximumStepSizeInPhysicalUnits: "
-     << static_cast<typename NumericTraits<TInternalComputationValueType>::PrintType>(
-          this->m_MaximumStepSizeInPhysicalUnits)
+     << static_cast<typename NumericTraits<TInternalComputationValueType>::PrintType>(m_MaximumStepSizeInPhysicalUnits)
      << std::endl;
-  os << indent << "UseConvergenceMonitoring: " << (this->m_UseConvergenceMonitoring ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(UseConvergenceMonitoring);
   os << indent << "ConvergenceWindowSize: "
-     << static_cast<typename NumericTraits<SizeValueType>::PrintType>(this->m_ConvergenceWindowSize) << std::endl;
+     << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_ConvergenceWindowSize) << std::endl;
 
   itkPrintSelfObjectMacro(ConvergenceMonitoring);
   itkPrintSelfObjectMacro(ModifyGradientByScalesThreader);
   itkPrintSelfObjectMacro(ModifyGradientByLearningRateThreader);
 
-  os << indent << "Stop: " << (this->m_Stop ? "On" : "Off") << std::endl;
-  os << indent << "StopCondition: "
-     << static_cast<typename NumericTraits<StopConditionObjectToObjectOptimizerEnum>::PrintType>(this->m_StopCondition)
-     << std::endl;
-  os << indent << "StopConditionDescription: " << this->m_StopConditionDescription.str() << std::endl;
-  os << indent << "Gradient: " << static_cast<typename NumericTraits<DerivativeType>::PrintType>(this->m_Gradient)
+  itkPrintSelfBooleanMacro(Stop);
+  os << indent << "StopCondition: " << m_StopCondition << std::endl;
+  os << indent << "StopConditionDescription: " << m_StopConditionDescription.str() << std::endl;
+  os << indent << "Gradient: " << static_cast<typename NumericTraits<DerivativeType>::PrintType>(m_Gradient)
      << std::endl;
 }
 
-
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
-const typename GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StopConditionReturnStringType
+auto
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::GetStopConditionDescription() const
+  -> StopConditionReturnStringType
 {
   return this->m_StopConditionDescription.str();
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StopOptimization()
@@ -105,7 +90,6 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StopOptim
   this->InvokeEvent(EndEvent());
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::ModifyGradientByScales()
@@ -118,8 +102,8 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::ModifyGra
   IndexRangeType fullrange;
   fullrange[0] = 0;
   fullrange[1] = this->m_Gradient.GetSize() - 1; // range is inclusive
-  /* Perform the modification either with or without threading */
 
+  // Perform the modification either with or without threading.
   if (this->m_Metric->HasLocalSupport())
   {
     // Inheriting classes should instantiate and assign m_ModifyGradientByScalesThreader
@@ -130,7 +114,7 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::ModifyGra
   }
   else
   {
-    /* Global transforms are small, so update without threading. */
+    // Global transforms are small, so update without threading.
     this->ModifyGradientByScalesOverSubRange(fullrange);
   }
 }
@@ -141,7 +125,7 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StartOpti
 {
   itkDebugMacro("StartOptimization");
 
-  /* Validate some settings */
+  // Validate some settings
   if (this->m_ScalesEstimator.IsNotNull() && this->m_DoEstimateLearningRateOnce &&
       this->m_DoEstimateLearningRateAtEachIteration)
   {
@@ -150,13 +134,13 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StartOpti
                       "are enabled. Not allowed. ");
   }
 
-  /* Estimate the parameter scales if requested. */
+  // Estimate the parameter scales if requested.
   if (this->m_ScalesEstimator.IsNotNull() && this->m_DoEstimateScales)
   {
     this->m_ScalesEstimator->EstimateScales(this->m_Scales);
     itkDebugMacro("Estimated scales = " << this->m_Scales);
 
-    /* If user hasn't set this, assign the default. */
+    // If user hasn't set this, assign the default.
     if (this->m_MaximumStepSizeInPhysicalUnits <= NumericTraits<TInternalComputationValueType>::epsilon())
     {
       this->m_MaximumStepSizeInPhysicalUnits = this->m_ScalesEstimator->EstimateMaximumStepSize();
@@ -170,11 +154,10 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::StartOpti
     this->m_ConvergenceMonitoring->SetWindowSize(this->m_ConvergenceWindowSize);
   }
 
-  /* Must call the superclass version for basic validation and setup */
+  // Must call the superclass version for basic validation and setup.
   Superclass::StartOptimization(doOnlyInitialization);
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::ModifyGradientByLearningRate()
@@ -188,21 +171,21 @@ GradientDescentOptimizerBasev4Template<TInternalComputationValueType>::ModifyGra
   fullrange[0] = 0;
   fullrange[1] = this->m_Gradient.GetSize() - 1; // range is inclusive
 
-  /* Perform the modification either with or without threading */
+  // Perform the modification either with or without threading
   if (this->m_Metric->HasLocalSupport())
   {
     // Inheriting classes should instantiate and assign m_ModifyGradientByLearningRateThreader
     // in their constructor.
     itkAssertInDebugAndIgnoreInReleaseMacro(!m_ModifyGradientByLearningRateThreader.IsNull());
-    /* Add a check for m_LearningRateIsIdentity?
-       But m_LearningRate is not assessible here.
-       Should we declare it in a base class as m_Scales ? */
+    // Add a check for m_LearningRateIsIdentity?
+    // But m_LearningRate is not accessible here.
+    // Should we declare it in a base class as m_Scales ?
 
     this->m_ModifyGradientByLearningRateThreader->Execute(this, fullrange);
   }
   else
   {
-    /* Global transforms are small, so update without threading. */
+    // Global transforms are small, so update without threading.
     this->ModifyGradientByLearningRateOverSubRange(fullrange);
   }
 }

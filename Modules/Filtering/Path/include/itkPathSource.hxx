@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPathSource_hxx
 #define itkPathSource_hxx
 
-#include "itkPathSource.h"
 
 namespace itk
 {
@@ -30,7 +29,7 @@ PathSource<TOutputPath>::PathSource()
 {
   // Create the output. We use static_cast<> here because we know the default
   // output must be of type TOutputPath
-  OutputPathPointer output = static_cast<TOutputPath *>(this->MakeOutput(0).GetPointer());
+  const OutputPathPointer output = static_cast<TOutputPath *>(this->MakeOutput(0).GetPointer());
 
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
@@ -42,8 +41,8 @@ PathSource<TOutputPath>::PathSource()
  *
  */
 template <typename TOutputPath>
-typename PathSource<TOutputPath>::OutputPathType *
-PathSource<TOutputPath>::GetOutput()
+auto
+PathSource<TOutputPath>::GetOutput() -> OutputPathType *
 {
   return itkDynamicCastInDebugMode<TOutputPath *>(this->GetPrimaryOutput());
 }
@@ -52,8 +51,8 @@ PathSource<TOutputPath>::GetOutput()
  *
  */
 template <typename TOutputPath>
-typename PathSource<TOutputPath>::OutputPathType *
-PathSource<TOutputPath>::GetOutput(unsigned int idx)
+auto
+PathSource<TOutputPath>::GetOutput(unsigned int idx) -> OutputPathType *
 {
   return itkDynamicCastInDebugMode<TOutputPath *>(this->ProcessObject::GetOutput(idx));
 }
@@ -82,7 +81,7 @@ PathSource<TOutputPath>::GraftNthOutput(unsigned int idx, TOutputPath * graft)
     if (output && graft)
     {
       // Paths do not have a generic pointer to their bulk data
-      itkWarningMacro(<< "Warning:  GraftNthOutput() is broken");
+      itkWarningMacro("Warning:  GraftNthOutput() is broken");
 
       // possible VERY WRONG KLUDGE that should enable mini-pipelining:
       // Completely copy the path to graft over the current output path,
@@ -112,7 +111,8 @@ PathSource<TOutputPath>::GraftNthOutput(unsigned int idx, TOutputPath * graft)
  *
  */
 template <typename TOutputPath>
-typename PathSource<TOutputPath>::DataObjectPointer PathSource<TOutputPath>::MakeOutput(DataObjectPointerArraySizeType)
+typename PathSource<TOutputPath>::DataObjectPointer
+PathSource<TOutputPath>::MakeOutput(DataObjectPointerArraySizeType)
 {
   return itkDynamicCastInDebugMode<DataObject *>(TOutputPath::New().GetPointer());
 }

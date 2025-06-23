@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,15 @@
 #ifndef itkLabelStatisticsOpeningImageFilter_hxx
 #define itkLabelStatisticsOpeningImageFilter_hxx
 
-#include "itkLabelStatisticsOpeningImageFilter.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TFeatureImage>
 LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::LabelStatisticsOpeningImageFilter()
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_Attribute(LabelObjectType::MEAN)
 {
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  m_Lambda = NumericTraits<double>::ZeroValue();
-  m_ReverseOrdering = false;
-  m_Attribute = LabelObjectType::MEAN;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -41,7 +38,7 @@ LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateInputRequ
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -60,20 +57,20 @@ void
 LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
   // Allocate the output
   this->AllocateOutputs();
 
-  typename LabelizerType::Pointer labelizer = LabelizerType::New();
+  auto labelizer = LabelizerType::New();
   labelizer->SetInput(this->GetInput());
   labelizer->SetBackgroundValue(m_BackgroundValue);
   labelizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(labelizer, .3f);
 
-  typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
+  auto valuator = LabelObjectValuatorType::New();
   valuator->SetInput(labelizer->GetOutput());
   valuator->SetFeatureImage(this->GetFeatureImage());
   valuator->SetLabelImage(this->GetInput());
@@ -89,7 +86,7 @@ LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
   }
   progress->RegisterInternalFilter(valuator, .3f);
 
-  typename OpeningType::Pointer opening = OpeningType::New();
+  auto opening = OpeningType::New();
   opening->SetInput(valuator->GetOutput());
   opening->SetLambda(m_Lambda);
   opening->SetReverseOrdering(m_ReverseOrdering);
@@ -97,7 +94,7 @@ LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
   opening->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(opening, .2f);
 
-  typename BinarizerType::Pointer binarizer = BinarizerType::New();
+  auto binarizer = BinarizerType::New();
   binarizer->SetInput(opening->GetOutput());
   binarizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(binarizer, .2f);
@@ -118,7 +115,7 @@ LabelStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::PrintSelf(std::os
      << std::endl;
   os << indent << "Lambda: " << m_Lambda << std::endl;
   os << indent << "ReverseOrdering: " << m_ReverseOrdering << std::endl;
-  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")"
+  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ')'
      << std::endl;
 }
 } // end namespace itk

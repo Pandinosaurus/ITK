@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,9 @@
 #ifndef itkCenteredTransformInitializer_hxx
 #define itkCenteredTransformInitializer_hxx
 
-#include "itkCenteredTransformInitializer.h"
 
 namespace itk
 {
-template <typename TTransform, typename TFixedImage, typename TMovingImage>
-CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::CenteredTransformInitializer()
-{
-  m_FixedCalculator = FixedImageCalculatorType::New();
-  m_MovingCalculator = MovingImageCalculatorType::New();
-  m_UseMoments = false;
-}
-
 template <typename TTransform, typename TFixedImage, typename TMovingImage>
 void
 CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeTransform()
@@ -38,28 +29,19 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeT
   if (!m_FixedImage)
   {
     itkExceptionMacro("Fixed Image has not been set");
-    return;
   }
   if (!m_MovingImage)
   {
     itkExceptionMacro("Moving Image has not been set");
-    return;
   }
   if (!m_Transform)
   {
     itkExceptionMacro("Transform has not been set");
-    return;
   }
 
   // If images come from filters, then update those filters.
-  if (m_FixedImage->GetSource())
-  {
-    m_FixedImage->GetSource()->Update();
-  }
-  if (m_MovingImage->GetSource())
-  {
-    m_MovingImage->GetSource()->Update();
-  }
+  m_FixedImage->UpdateSource();
+  m_MovingImage->UpdateSource();
 
   InputPointType   rotationCenter;
   OutputVectorType translationVector;
@@ -76,7 +58,7 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeT
 
     typename MovingImageCalculatorType::VectorType movingCenter = m_MovingCalculator->GetCenterOfGravity();
 
-    for (unsigned int i = 0; i < InputSpaceDimension; i++)
+    for (unsigned int i = 0; i < InputSpaceDimension; ++i)
     {
       rotationCenter[i] = fixedCenter[i];
       translationVector[i] = movingCenter[i] - fixedCenter[i];
@@ -92,15 +74,15 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeT
 
     InputPointType centerFixedPoint;
 
-    using CoordRepType = typename InputPointType::ValueType;
+    using CoordinateType = typename InputPointType::ValueType;
 
-    using ContinuousIndexType = ContinuousIndex<CoordRepType, InputSpaceDimension>;
+    using ContinuousIndexType = ContinuousIndex<CoordinateType, InputSpaceDimension>;
 
     using ContinuousIndexValueType = typename ContinuousIndexType::ValueType;
 
     ContinuousIndexType centerFixedIndex;
 
-    for (unsigned int k = 0; k < InputSpaceDimension; k++)
+    for (unsigned int k = 0; k < InputSpaceDimension; ++k)
     {
       centerFixedIndex[k] = static_cast<ContinuousIndexValueType>(fixedIndex[k]) +
                             static_cast<ContinuousIndexValueType>(fixedSize[k] - 1) / 2.0;
@@ -116,7 +98,7 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeT
 
     ContinuousIndexType centerMovingIndex;
 
-    for (unsigned int m = 0; m < InputSpaceDimension; m++)
+    for (unsigned int m = 0; m < InputSpaceDimension; ++m)
     {
       centerMovingIndex[m] = static_cast<ContinuousIndexValueType>(movingIndex[m]) +
                              static_cast<ContinuousIndexValueType>(movingSize[m] - 1) / 2.0;
@@ -124,7 +106,7 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::InitializeT
 
     m_MovingImage->TransformContinuousIndexToPhysicalPoint(centerMovingIndex, centerMovingPoint);
 
-    for (unsigned int i = 0; i < InputSpaceDimension; i++)
+    for (unsigned int i = 0; i < InputSpaceDimension; ++i)
     {
       rotationCenter[i] = centerFixedPoint[i];
       translationVector[i] = centerMovingPoint[i] - centerFixedPoint[i];
@@ -146,7 +128,8 @@ CenteredTransformInitializer<TTransform, TFixedImage, TMovingImage>::PrintSelf(s
   itkPrintSelfObjectMacro(FixedImage);
   itkPrintSelfObjectMacro(MovingImage);
 
-  os << indent << "UseMoments  = " << m_UseMoments << std::endl;
+  itkPrintSelfBooleanMacro(UseMoments);
+
   itkPrintSelfObjectMacro(MovingCalculator);
   itkPrintSelfObjectMacro(FixedCalculator);
 }

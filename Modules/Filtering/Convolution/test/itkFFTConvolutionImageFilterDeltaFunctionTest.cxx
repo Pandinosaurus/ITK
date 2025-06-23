@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,14 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTestingMacros.h"
+
+#include "itkObjectFactoryBase.h"
+#include "itkVnlRealToHalfHermitianForwardFFTImageFilter.h"
+#include "itkVnlHalfHermitianToRealInverseFFTImageFilter.h"
+#if defined(ITK_USE_FFTWD) || defined(ITK_USE_FFTWF)
+#  include "itkFFTWRealToHalfHermitianForwardFFTImageFilter.h"
+#  include "itkFFTWHalfHermitianToRealInverseFFTImageFilter.h"
+#endif
 
 int
 itkFFTConvolutionImageFilterDeltaFunctionTest(int argc, char * argv[])
@@ -39,35 +47,35 @@ itkFFTConvolutionImageFilterDeltaFunctionTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
 
   // Read kernel image
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
   // Set up delta function image
-  ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
-  ImageType::Pointer    deltaFunctionImage = ImageType::New();
+  const ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
+  auto                        deltaFunctionImage = ImageType::New();
   deltaFunctionImage->SetRegions(region);
-  deltaFunctionImage->Allocate(true); // initialize buffer to zero
+  deltaFunctionImage->AllocateInitialized();
 
   // Set the middle pixel (rounded up) to 1
   ImageType::IndexType middleIndex;
   for (unsigned int i = 0; i < ImageDimension; ++i)
   {
-    ImageType::SizeValueType sizeInDimension = region.GetSize()[i];
+    const ImageType::SizeValueType sizeInDimension = region.GetSize()[i];
     middleIndex[i] = itk::Math::Floor<ImageType::IndexValueType>(0.5 * sizeInDimension);
   }
   deltaFunctionImage->SetPixel(middleIndex, 1);
 
   using ConvolutionFilterType = itk::FFTConvolutionImageFilter<ImageType>;
-  ConvolutionFilterType::Pointer convolver = ConvolutionFilterType::New();
+  auto convolver = ConvolutionFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(convolver, FFTConvolutionImageFilter, ConvolutionImageFilterBase);
 
   convolver->SetInput(deltaFunctionImage);
   convolver->SetKernelImage(reader->GetOutput());
 
-  ConvolutionFilterType::SizeValueType sizeGreatestPrimeFactor = std::stoi(argv[3]);
+  const ConvolutionFilterType::SizeValueType sizeGreatestPrimeFactor = std::stoi(argv[3]);
   if (!itk::Math::IsPrime(sizeGreatestPrimeFactor))
   {
     std::cerr << "A prime number is expected for the greatest prime factor size!" << std::endl;
@@ -80,7 +88,7 @@ itkFFTConvolutionImageFilterDeltaFunctionTest(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(convolver->Update());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(convolver->GetOutput());
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,7 @@ itkLevelSetDomainPartitionImageTest(int, char *[])
   using ListImageIteratorType = itk::ImageRegionConstIteratorWithIndex<ListImageType>;
 
   // load binary mask
-  InputImageType::SizeType size;
-  size.Fill(50);
+  auto size = InputImageType::SizeType::Filled(50);
 
   InputImageType::PointType origin;
   origin[0] = 0.0;
@@ -48,44 +47,59 @@ itkLevelSetDomainPartitionImageTest(int, char *[])
   spacing[0] = 1.0;
   spacing[1] = 1.0;
 
-  InputImageType::IndexType index;
-  index.Fill(0);
+  constexpr InputImageType::IndexType index{};
 
-  InputImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const InputImageType::RegionType region{ index, size };
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(region);
   binary->SetSpacing(spacing);
   binary->SetOrigin(origin);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
-  IdentifierType numberOfLevelSetFunctions = 2;
+  constexpr IdentifierType numberOfLevelSetFunctions = 2;
 
   LevelSetDomainRegionVectorType regionVector;
   regionVector.resize(numberOfLevelSetFunctions);
   regionVector[0] = region;
   regionVector[1] = region;
 
-  DomainPartitionSourceType::Pointer partitionSource = DomainPartitionSourceType::New();
+  auto partitionSource = DomainPartitionSourceType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(partitionSource, LevelSetDomainPartitionImage, LevelSetDomainPartitionBase);
+
+
+  // Exercise exceptions
+  ITK_TRY_EXPECT_EXCEPTION(partitionSource->PopulateListDomain());
+
   partitionSource->SetNumberOfLevelSetFunctions(numberOfLevelSetFunctions);
-  partitionSource->SetImage(binary);
+
   partitionSource->SetLevelSetDomainRegionVector(regionVector);
+
+  LevelSetDomainRegionVectorType regionVectorObtained = partitionSource->GetLevelSetDomainRegionVector();
+
+  ITK_TEST_EXPECT_EQUAL(regionVector.size(), regionVectorObtained.size());
+  for (size_t i = 0; i < regionVector.size(); ++i)
+  {
+    ITK_TEST_EXPECT_EQUAL(regionVector[i], regionVectorObtained[i]);
+  }
+
+  partitionSource->SetImage(binary);
+  ITK_TEST_SET_GET_VALUE(binary, partitionSource->GetImage());
+
   partitionSource->PopulateListDomain();
 
 
   bool flag = true;
 
-  ListType                    ll;
-  ListImageType::ConstPointer listImage = partitionSource->GetListDomain();
-  ListImageIteratorType       It(listImage, listImage->GetLargestPossibleRegion());
+  const ListImageType::ConstPointer listImage = partitionSource->GetListDomain();
+  ListImageIteratorType             It(listImage, listImage->GetLargestPossibleRegion());
   It.GoToBegin();
   while (!It.IsAtEnd())
   {
-    ll = It.Get();
+    ListType ll = It.Get();
     if (ll.size() != 2)
     {
       flag = false;

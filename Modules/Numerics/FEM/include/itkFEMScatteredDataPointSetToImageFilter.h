@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,9 +38,7 @@
 #include "itkQuadrilateralCell.h"
 #include "itkHexahedronCell.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /** \class FEMScatteredDataPointSetToImageFilter
  * \brief Scattered data approximation to interpolation
@@ -67,8 +65,8 @@ namespace fem
  *
    \code
 
-    const unsigned int ParametricDimension = 3;
-    const unsigned int DataDimension = 3;
+    constexpr unsigned int ParametricDimension = 3;
+    constexpr unsigned int DataDimension = 3;
 
     using PixelType = int;
     using InputImageType = itk::Image<PixelType, ParametricDimension>;
@@ -92,7 +90,7 @@ namespace fem
     <PointSetType, MeshType, VectorImageType,
     ConfidencePointSetType, TensorPointSetType>;
 
-    FilterType::Pointer filter = FilterType::New();
+    auto filter = FilterType::New();
 
     filter->SetInput(displacementPointSet);
     filter->SetConfidencePointSet(confidencePointSet); //optional
@@ -106,17 +104,7 @@ namespace fem
  *
  * \author Yixun Liu
  *
- * \par REFERENCE
- * O. Clatz, H. Delingette, I.-F. Talos, A. Golby, R. Kikinis, F. Jolesz,
- * N. Ayache, and S. Warfield, "Robust non-rigid registration to capture brain
- * shift from intra-operative MRI", IEEE Trans. Med. Imag.,
- * 24(11);1417-27, 2005.
- *
- * \par REFERENCE
- * Yixun Liu, Andriy Fedorov, Ron Kikinis and Nikos Chrisochoides,
- * "Real-time Non-rigidRegistration of Medical Images on a Cooperative Parallel
- * Architecture", IEEE International Conference on Bioinformatics & Biomedicine,
- * pp. 401-404, November 2009.
+ * For algorithmic details see \cite clatz2005 and \cite liu2009.
  *
  * \sa FEMRobustSolver
  *
@@ -141,6 +129,9 @@ public:
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
+
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FEMScatteredDataPointSetToImageFilter);
 
   /** Extract dimension from the output image. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -293,25 +284,24 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  typename FEMObjectType::Pointer      m_FEMObject;
-  typename FEMSolverType::Pointer      m_FEMSolver;
-  typename FEMSolverType::ConstPointer m_FEMDeformedObject;
-  typename MeshType::Pointer           m_Mesh;
+  typename FEMObjectType::Pointer      m_FEMObject{};
+  typename FEMSolverType::Pointer      m_FEMSolver{};
+  typename FEMSolverType::ConstPointer m_FEMDeformedObject{};
+  typename MeshType::Pointer           m_Mesh{};
 
-  typename ConfidencePointSetType::ConstPointer m_ConfidencePointSet;
-  typename TensorPointSetType::ConstPointer     m_TensorPointSet;
+  typename ConfidencePointSetType::ConstPointer m_ConfidencePointSet{};
+  typename TensorPointSetType::ConstPointer     m_TensorPointSet{};
 
   /** Rectilinear mesh */
-  SizeType            m_NumberOfElements;
-  ContinuousIndexType m_PixelsPerElement;
-  SpacingType         m_SpacingPerElement;
+  SizeType            m_NumberOfElements{};
+  ContinuousIndexType m_PixelsPerElement{};
+  SpacingType         m_SpacingPerElement{};
 
   /** Material */
-  MaterialPointerType m_Material;
+  MaterialPointerType m_Material{};
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMScatteredDataPointSetToImageFilter.hxx"

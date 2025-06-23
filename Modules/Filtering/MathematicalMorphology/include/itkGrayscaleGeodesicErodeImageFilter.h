@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,9 +42,7 @@ namespace itk
  * The marker image must be greater than or equal to the mask image
  * (on a pixel by pixel basis).
  *
- * Geodesic morphology is described in Chapter 6 of Pierre Soille's
- * book "Morphological Image Analysis: Principles and Applications",
- * Second Edition, Springer, 2003.
+ * Geodesic morphology is described in \cite soille2004.
  *
  * A noniterative version of this algorithm can be found in the
  * ReconstructionByErosionImageFilter. This noniterative solution is
@@ -98,8 +96,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GrayscaleGeodesicErodeImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GrayscaleGeodesicErodeImageFilter);
 
   /** Set/Get the marker image. The marker image must be pixelwise
    * greater than or equal to the mask image. The marker image the
@@ -122,10 +120,11 @@ public:
   /** Set/Get whether the filter should run one iteration or until
    * convergence. When run to convergence, this filter is equivalent
    * to "reconstruction by erosion". Default is off. */
+  /** @ITKStartGrouping */
   itkSetMacro(RunOneIteration, bool);
   itkGetConstMacro(RunOneIteration, bool);
   itkBooleanMacro(RunOneIteration);
-
+  /** @ITKEndGrouping */
   /** Get the number of iterations used to produce the current
    * output. */
   itkGetConstMacro(NumberOfIterationsUsed, unsigned long);
@@ -136,17 +135,14 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<MarkerImageDimension, OutputImageDimension>));
   itkConceptMacro(InputComparableCheck, (Concept::Comparable<MarkerImagePixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<MarkerImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   GrayscaleGeodesicErodeImageFilter();
@@ -188,9 +184,9 @@ protected:
 
 
 private:
-  bool          m_RunOneIteration;
-  unsigned long m_NumberOfIterationsUsed;
-  bool          m_FullyConnected;
+  bool          m_RunOneIteration{};
+  unsigned long m_NumberOfIterationsUsed{};
+  bool          m_FullyConnected{};
 }; // end of class
 } // end namespace itk
 

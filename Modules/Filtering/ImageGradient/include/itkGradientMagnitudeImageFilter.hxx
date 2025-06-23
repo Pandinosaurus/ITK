@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkGradientMagnitudeImageFilter_hxx
 #define itkGradientMagnitudeImageFilter_hxx
-#include "itkGradientMagnitudeImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
@@ -25,6 +24,7 @@
 #include "itkDerivativeOperator.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkTotalProgressReporter.h"
+#include "itkMath.h"
 
 namespace itk
 {
@@ -42,7 +42,8 @@ void
 GradientMagnitudeImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "UseImageSpacing = " << m_UseImageSpacing << std::endl;
+
+  itkPrintSelfBooleanMacro(UseImageSpacing);
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -53,8 +54,8 @@ GradientMagnitudeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedR
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<InputImageType *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -63,8 +64,7 @@ GradientMagnitudeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedR
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by one, which is the value of the first
   // coordinate of the operator radius.
@@ -76,21 +76,19 @@ GradientMagnitudeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedR
     inputPtr->SetRequestedRegion(inputRequestedRegion);
     return;
   }
-  else
-  {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
 
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
+  // Couldn't crop the region (requested region is outside the largest
+  // possible region).  Throw an exception.
 
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    e.SetLocation(ITK_LOCATION);
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-  }
+  // store what we tried to request (prior to trying to crop)
+  inputPtr->SetRequestedRegion(inputRequestedRegion);
+
+  // build an exception
+  InvalidRequestedRegionError e(__FILE__, __LINE__);
+  e.SetLocation(ITK_LOCATION);
+  e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
+  e.SetDataObject(inputPtr);
+  throw e;
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -98,32 +96,30 @@ void
 GradientMagnitudeImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  unsigned int i;
-
   ZeroFluxNeumannBoundaryCondition<TInputImage> nbc;
 
   ConstNeighborhoodIterator<TInputImage> nit;
   ConstNeighborhoodIterator<TInputImage> bit;
   ImageRegionIterator<TOutputImage>      it;
 
-  NeighborhoodInnerProduct<TInputImage, RealType> SIP;
+  const NeighborhoodInnerProduct<TInputImage, RealType> SIP;
 
-  typename OutputImageType::Pointer     output = this->GetOutput();
-  typename InputImageType::ConstPointer input = this->GetInput();
+  const typename OutputImageType::Pointer     output = this->GetOutput();
+  const typename InputImageType::ConstPointer input = this->GetInput();
 
   // Set up operators
   DerivativeOperator<RealType, ImageDimension> op[ImageDimension];
 
-  for (i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     // The operator has default values for its direction (0) and its order (1).
     op[i].CreateDirectional();
 
-    if (m_UseImageSpacing == true)
+    if (m_UseImageSpacing)
     {
       if (this->GetInput()->GetSpacing()[i] == 0.0)
       {
-        itkExceptionMacro(<< "Image spacing cannot be zero.");
+        itkExceptionMacro("Image spacing cannot be zero.");
       }
       else
       {
@@ -134,41 +130,41 @@ GradientMagnitudeImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerate
 
   // Set the iterator radius to one, which is the value of the first
   // coordinate of the operator radius.
-  const auto radius = Size<ImageDimension>::Filled(1);
+  static constexpr auto radius = Size<ImageDimension>::Filled(1);
 
   // Find the data-set boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<TInputImage>::FaceListType faceList;
   NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<TInputImage>                        bC;
-  faceList = bC(input, outputRegionForThread, radius);
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<TInputImage>::FaceListType faceList =
+    bC(input, outputRegionForThread, radius);
 
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<TInputImage>::FaceListType::iterator fit;
-  fit = faceList.begin();
 
   TotalProgressReporter progress(this, output->GetRequestedRegion().GetNumberOfPixels());
 
   // Process non-boundary face
-  nit = ConstNeighborhoodIterator<TInputImage>(radius, input, *fit);
+  nit = ConstNeighborhoodIterator<TInputImage>(radius, input, faceList.front());
 
-  std::slice          x_slice[ImageDimension];
-  const SizeValueType center = nit.Size() / 2;
-  for (i = 0; i < ImageDimension; ++i)
+  std::slice x_slice[ImageDimension];
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
+    static constexpr SizeValueType neighborhoodSize = Math::UnsignedPower(3, ImageDimension);
+    static constexpr SizeValueType center = neighborhoodSize / 2;
+
     x_slice[i] = std::slice(center - nit.GetStride(i), op[i].GetSize()[0], nit.GetStride(i));
   }
 
   // Process each of the boundary faces.  These are N-d regions which border
   // the edge of the buffer.
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (const auto & face : faceList)
   {
-    bit = ConstNeighborhoodIterator<InputImageType>(radius, input, *fit);
-    it = ImageRegionIterator<OutputImageType>(output, *fit);
+    bit = ConstNeighborhoodIterator<InputImageType>(radius, input, face);
+    it = ImageRegionIterator<OutputImageType>(output, face);
     bit.OverrideBoundaryCondition(&nbc);
     bit.GoToBegin();
 
     while (!bit.IsAtEnd())
     {
-      RealType a = NumericTraits<RealType>::ZeroValue();
-      for (i = 0; i < ImageDimension; ++i)
+      RealType a{};
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
         const RealType g = SIP(x_slice[i], bit, op[i]);
         a += g * g;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkMesh.h"
 #include "itkAffineTransform.h"
 #include "itkStdStreamStateSave.h"
+#include "itkTestingMacros.h"
 
 int
 itkTransformMeshFilterTest(int, char *[])
@@ -27,7 +28,7 @@ itkTransformMeshFilterTest(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   // Declare the mesh pixel type.
   // Those are the values associated
@@ -36,8 +37,8 @@ itkTransformMeshFilterTest(int, char *[])
 
   // Declare the types of the Mesh
   // By default it is a 3D mesh using itk::Point<float,3>
-  // on the vertices, and an itk::VectorContainter
-  // as containter for points
+  // on the vertices, and an itk::VectorContainer
+  // as container for points
   using MeshType = itk::Mesh<PixelType>;
 
   // Declare the type for PointsContainer
@@ -49,20 +50,20 @@ itkTransformMeshFilterTest(int, char *[])
   using PointType = MeshType::PointType;
 
   // Create an input Mesh
-  MeshType::Pointer inputMesh = MeshType::New();
+  auto inputMesh = MeshType::New();
 
   // Insert data on the Mesh
-  PointsContainerPointer points = inputMesh->GetPoints();
+  const PointsContainerPointer points = inputMesh->GetPoints();
 
   // Fill a cube with points , just to get some data
-  int                                    n = 1;     // let's start with a few of them
+  constexpr int                          n = 1;     // let's start with a few of them
   PointsContainerType::ElementIdentifier count = 0; // count them
 
-  for (int x = -n; x <= n; x++)
+  for (int x = -n; x <= n; ++x)
   {
-    for (int y = -n; y <= n; y++)
+    for (int y = -n; y <= n; ++y)
     {
-      for (int z = -n; z <= n; z++)
+      for (int z = -n; z <= n; ++z)
       {
         PointType p;
         p[0] = x;
@@ -98,19 +99,24 @@ itkTransformMeshFilterTest(int, char *[])
 
 
   // Create a Filter
-  FilterType::Pointer                  filter = FilterType::New();
-  FilterWithBaseTransformType::Pointer filterwithbasetrfs = FilterWithBaseTransformType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, TransformMeshFilter, MeshToMeshFilter);
+
+
+  auto filterwithbasetrfs = FilterWithBaseTransformType::New();
 
   // Create a Transform
-  TransformType::Pointer affineTransform = TransformType::New();
+  auto affineTransform = TransformType::New();
   affineTransform->Scale(3.5);
   TransformType::OffsetType::ValueType tInit[3] = { 100, 200, 300 };
-  TransformType::OffsetType            translation = tInit;
+  const TransformType::OffsetType      translation = tInit;
   affineTransform->Translate(translation);
 
   // Connect the inputs
   filter->SetInput(inputMesh);
   filter->SetTransform(affineTransform);
+  ITK_TEST_SET_GET_VALUE(affineTransform, filter->GetTransform());
 
   filterwithbasetrfs->SetInput(inputMesh);
   filterwithbasetrfs->SetTransform(affineTransform);
@@ -123,18 +129,18 @@ itkTransformMeshFilterTest(int, char *[])
   std::cout << "Filter with base transform: " << filterwithbasetrfs;
 
   // Get the Smart Pointer to the Filter Output
-  MeshType::Pointer outputMesh = filter->GetOutput();
-  MeshType::Pointer outputMeshFromWithBase = filterwithbasetrfs->GetOutput();
+  const MeshType::Pointer outputMesh = filter->GetOutput();
+  const MeshType::Pointer outputMeshFromWithBase = filterwithbasetrfs->GetOutput();
 
   std::cout << "Output Mesh has " << outputMesh->GetNumberOfPoints() << "   points " << std::endl;
 
-  std::cout << "Output Mesh from WithBaseTransfrom has " << outputMeshFromWithBase->GetNumberOfPoints() << "   points "
+  std::cout << "Output Mesh from WithBaseTransform has " << outputMeshFromWithBase->GetNumberOfPoints() << "   points "
             << std::endl;
 
-  // Get the the point container
-  MeshType::PointsContainerPointer transformedPoints = outputMesh->GetPoints();
+  // Get the point container
+  const MeshType::PointsContainerPointer transformedPoints = outputMesh->GetPoints();
 
-  MeshType::PointsContainerPointer transformedPointsFromWithBase = outputMeshFromWithBase->GetPoints();
+  const MeshType::PointsContainerPointer transformedPointsFromWithBase = outputMeshFromWithBase->GetPoints();
 
 
   PointsContainerType::ConstIterator it = transformedPoints->Begin();

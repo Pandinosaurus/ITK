@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,16 +20,14 @@
 
 #include "itkCellInterface.h"
 #include "itkNumericTraits.h"
+#include "itkMakeFilled.h"
+
+#include <array>
 
 namespace itk
 {
 /** \class VertexCell
  *  \brief Represents a single vertex for a Mesh.
- *
- * \tparam TPixelType The type associated with a point, cell, or boundary
- * for use in storing its data.
- *
- * \tparam TCellTraits Type information of mesh containing cell.
  *
  * \ingroup MeshObjects
  * \ingroup ITKCommon
@@ -42,58 +40,84 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(VertexCell);
 
   /** Standard class type aliases. */
+  /** @ITKStartGrouping */
   itkCellCommonTypedefs(VertexCell);
   itkCellInheritedTypedefs(TCellInterface);
-
-  /** Standard part of every itk Object. */
-  itkTypeMacro(VertexCell, CellInterface);
+  /** @ITKEndGrouping */
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VertexCell);
 
   /** Vertex-specific topology numbers. */
   static constexpr unsigned int NumberOfPoints = 1;
   static constexpr unsigned int CellDimension = 0;
 
+  // Standard CellInterface
+
   /** Implement the standard CellInterface. */
-  CellGeometryEnum
+  /** @ITKStartGrouping */
+  [[nodiscard]] CellGeometryEnum
   GetType() const override
   {
     return CellGeometryEnum::VERTEX_CELL;
   }
   void
   MakeCopy(CellAutoPointer &) const override;
-
-  unsigned int
+  /** @ITKEndGrouping */
+  /** Get the topological dimension of this cell. */
+  [[nodiscard]] unsigned int
   GetDimension() const override;
 
-  unsigned int
+  /** Get the number of points required to define the cell. */
+  [[nodiscard]] unsigned int
   GetNumberOfPoints() const override;
 
-  CellFeatureCount
+  /** A vertex has no boundary entities of any dimension. */
+  [[nodiscard]] CellFeatureCount
   GetNumberOfBoundaryFeatures(int dimension) const override;
 
+  /** A vertex has no boundary entities.  Just return null. */
   bool
   GetBoundaryFeature(int dimension, CellFeatureIdentifier, CellAutoPointer &) override;
+
+  /** Set the point id list used by the cell.  It is assumed that the given
+   *  iterator can be incremented and safely de-referenced enough times to
+   *  get all the point ids needed by the cell. */
   void
   SetPointIds(PointIdConstIterator first) override;
 
+  /** Set the point id list used by the cell.  It is assumed that the range
+   *  of iterators [first, last) contains the correct number of points needed to
+   *  define the cell.  The position *last is NOT referenced, so it can safely
+   *  be one beyond the end of an array or other container. */
   void
   SetPointIds(PointIdConstIterator first, PointIdConstIterator last) override;
 
+  // Vertex-specific interface
+
+  /** Set an individual point identifier in the cell. */
   void
   SetPointId(int localId, PointIdentifier) override;
+
+  /** Get a begin iterator to the list of point identifiers used by the cell. */
   PointIdIterator
   PointIdsBegin() override;
 
-  PointIdConstIterator
+  /** Get a const begin iterator to the list of point identifiers used by the cell. */
+  [[nodiscard]] PointIdConstIterator
   PointIdsBegin() const override;
 
+  /** Get an end iterator to the list of point identifiers used by the cell. */
   PointIdIterator
   PointIdsEnd() override;
 
-  PointIdConstIterator
+  /** Get a const end iterator to the list of point identifiers used by the cell. */
+  [[nodiscard]] PointIdConstIterator
   PointIdsEnd() const override;
 
-  /** Vertex-specific interface. */
+  /** Set the identifier of the point defining the vertex. */
   virtual void SetPointId(PointIdentifier);
+
+  /** Get the identifier of the point defining the vertex. */
   virtual PointIdentifier
   GetPointId();
 
@@ -102,21 +126,15 @@ public:
 
   /** Evaluate the position of a given point */
   bool
-  EvaluatePosition(CoordRepType *,
+  EvaluatePosition(CoordinateType *,
                    PointsContainer *,
-                   CoordRepType *,
-                   CoordRepType[],
+                   CoordinateType *,
+                   CoordinateType[],
                    double *,
                    InterpolationWeightType *) override;
 
 public:
-  VertexCell()
-  {
-    for (PointIdentifier i = 0; i < Self::NumberOfPoints; ++i)
-    {
-      m_PointIds[i] = NumericTraits<PointIdentifier>::max();
-    }
-  }
+  VertexCell() = default;
 
   ~VertexCell() override = default;
 
@@ -124,7 +142,8 @@ protected:
   /**
    * Store the number of points needed for a vertex.
    */
-  PointIdentifier m_PointIds[NumberOfPoints];
+  std::array<PointIdentifier, NumberOfPoints> m_PointIds{ MakeFilled<std::array<PointIdentifier, NumberOfPoints>>(
+    NumericTraits<PointIdentifier>::max()) };
 };
 } // end namespace itk
 

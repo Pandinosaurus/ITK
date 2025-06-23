@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "itkFEMObject.h"
 #include "itkProcessObject.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class ImageToRectilinearFEMObjectFilter
@@ -54,8 +52,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToRectilinearFEMObjectFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToRectilinearFEMObjectFilter);
 
   static constexpr unsigned int NDimensions = TInputImage::ImageDimension;
 
@@ -82,12 +80,8 @@ public:
   using ElementBaseType = itk::fem::Element;
   using ElementBasePointerType = itk::fem::Element::ConstPointer;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-//  itkConceptMacro(SameDimensionOrMinusOne,
-//    (Concept::SameDimensionOrMinusOne<NDimensions, 3>));
-// End concept checking
-#endif
+  // itkConceptMacro(SameDimensionOrMinusOne,
+  //   (Concept::SameDimensionOrMinusOne<VDimension, 3>));
 
   /**Get/Set the number of voxels/pixels in each dimension used
    *during the mesh generation
@@ -103,15 +97,15 @@ public:
   /**Get the number of element in each dimension of the generated mesh*/
   itkGetMacro(NumberOfElements, vnl_vector<unsigned int>);
 
-  /**Get/Set the material used for the mesh */
+  /**Get/Set the material used for the mesh. */
   itkGetMacro(Material, MaterialPointerType);
   itkSetMacro(Material, MaterialPointerType);
 
-  /**Get/Set the element type used to generate the mesh */
+  /**Get/Set the element type used to generate the mesh. */
   itkGetMacro(Element, ElementBasePointerType);
   itkSetMacro(Element, ElementBasePointerType);
 
-  /** Set/Get the image input of this process object.  */
+  /** Set/Get the input image. */
   using Superclass::SetInput;
   void
   SetInput(InputImageType * image);
@@ -161,20 +155,21 @@ protected:
   void
   GenerateData() override;
 
+  /** Generate a rectangular mesh of quadrilateral elements. */
   void
   Generate2DRectilinearMesh();
 
+  /** Generate a rectangular mesh of hexahedron elements. */
   void
   Generate3DRectilinearMesh();
 
 private:
-  vnl_vector<unsigned int> m_NumberOfElements;
-  vnl_vector<unsigned int> m_PixelsPerElement;
-  MaterialPointerType      m_Material;
-  ElementBasePointerType   m_Element;
+  vnl_vector<unsigned int> m_NumberOfElements{};
+  vnl_vector<unsigned int> m_PixelsPerElement{};
+  MaterialPointerType      m_Material{};
+  ElementBasePointerType   m_Element{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageToRectilinearFEMObjectFilter.hxx"

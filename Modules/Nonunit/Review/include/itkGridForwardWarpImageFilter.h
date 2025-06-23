@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +51,7 @@ namespace itk
  * \author Tom Vercauteren, INRIA & Mauna Kea Technologies
  *
  * This implementation was taken from the Insight Journal paper:
- * https://hdl.handle.net/1926/510
+ * https://doi.org/10.54294/ux2obj
  *
  * \ingroup ITKReview
  */
@@ -70,15 +70,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(GridForwardWarpImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GridForwardWarpImageFilter);
 
   /** Typedef to describe the output image region type. */
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
   /** Inherit some types from the superclass. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
   using IndexType = typename OutputImageType::IndexType;
   using SizeType = typename OutputImageType::SizeType;
   using PixelType = typename OutputImageType::PixelType;
@@ -105,13 +105,9 @@ public:
   /** Get the foreground value */
   itkGetConstMacro(ForegroundValue, PixelType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, DisplacementFieldDimension>));
   itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   GridForwardWarpImageFilter();
@@ -124,8 +120,8 @@ protected:
   GenerateData() override;
 
 private:
-  PixelType    m_BackgroundValue;
-  PixelType    m_ForegroundValue;
+  PixelType    m_BackgroundValue{};
+  PixelType    m_ForegroundValue{};
   unsigned int m_GridPixSpacing{ 5 };
 };
 } // end namespace itk

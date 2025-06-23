@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,12 +68,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PasteImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PasteImageFilter);
 
   /** Typedefs from Superclass */
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::OutputImagePointer;
 
   /** Typedef to describe the output and input image region types. */
   using InputImageType = TInputImage;
@@ -110,9 +110,10 @@ public:
 
   /** Set/Get the destination index (where in the first input the second
    * input will be pasted. */
+  /** @ITKStartGrouping */
   itkSetMacro(DestinationIndex, InputImageIndexType);
   itkGetConstMacro(DestinationIndex, InputImageIndexType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the array describing which axes in the destination image to skip
    *
    * The axes with true values are set to 1, to fill the difference between the dimension of the input and source image.
@@ -121,32 +122,37 @@ public:
    *
    * By default this array contains SourceImageDimension false values followed by true values for the remainder.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(DestinationSkipAxes, InputSkipAxesArrayType);
   itkGetConstMacro(DestinationSkipAxes, InputSkipAxesArrayType);
-
+  /** @ITKEndGrouping */
 
   /** Set/Get the source region (what part of the second input will be
    * pasted. */
+  /** @ITKStartGrouping */
   itkSetMacro(SourceRegion, SourceImageRegionType);
   itkGetConstMacro(SourceRegion, SourceImageRegionType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the "destination" image.  This is the image that will be
    * obscured by the paste operation. */
+  /** @ITKStartGrouping */
   itkSetInputMacro(DestinationImage, InputImageType);
   itkGetInputMacro(DestinationImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the "source" image.  This is the image that will be
    * pasted over the destination image. */
+  /** @ITKStartGrouping */
   itkSetInputMacro(SourceImage, SourceImageType);
   itkGetInputMacro(SourceImage, SourceImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get a constant value to fill the destination region.
    *
    * This input is an alternative input to the SourceImage.
    */
+  /** @ITKStartGrouping */
   itkSetDecoratedInputMacro(Constant, SourceImagePixelType);
   itkGetDecoratedInputMacro(Constant, SourceImagePixelType);
-
+  /** @ITKEndGrouping */
 
   /** PasteImageFilter needs to set the input requested regions for its
    * inputs.  The first input's requested region will be set to match
@@ -167,13 +173,13 @@ public:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override
+  VerifyInputInformation() const override
   {}
 
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
 
-  bool
+  [[nodiscard]] bool
   CanRunInPlace() const override;
 
 protected:
@@ -199,10 +205,10 @@ protected:
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
 
 
-  SourceImageRegionType m_SourceRegion;
+  SourceImageRegionType m_SourceRegion{};
 
-  InputImageIndexType    m_DestinationIndex;
-  InputSkipAxesArrayType m_DestinationSkipAxes;
+  InputImageIndexType    m_DestinationIndex{};
+  InputSkipAxesArrayType m_DestinationSkipAxes{};
 
   static_assert(InputImageDimension >= SourceImageDimension,
                 "The source image dimension is greater than the input image.");

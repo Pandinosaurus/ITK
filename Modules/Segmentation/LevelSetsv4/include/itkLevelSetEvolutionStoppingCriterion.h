@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class LevelSetEvolutionStoppingCriterion
+ * \class LevelSetEvolutionStoppingCriterion
  \ingroup ITKLevelSetsv4
  */
 template <typename TLevelSetContainer>
@@ -40,8 +40,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LevelSetEvolutionStoppingCriterion, StoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionStoppingCriterion);
 
   using LevelSetContainerType = TLevelSetContainer;
   using LevelSetContainerPointer = typename LevelSetContainerType::Pointer;
@@ -81,10 +81,10 @@ protected:
   /** Destructor */
   ~LevelSetEvolutionStoppingCriterion() override = default;
 
-  LevelSetContainerPointer m_LevelSetContainer;
-  OutputRealType           m_RMSChangeAccumulator;
-  IterationIdType          m_NumberOfIterations;
-  IterationIdType          m_CurrentIteration;
+  LevelSetContainerPointer m_LevelSetContainer{};
+  OutputRealType           m_RMSChangeAccumulator{};
+  IterationIdType          m_NumberOfIterations{};
+  IterationIdType          m_CurrentIteration{};
 };
 } // namespace itk
 #ifndef ITK_MANUAL_INSTANTIATION

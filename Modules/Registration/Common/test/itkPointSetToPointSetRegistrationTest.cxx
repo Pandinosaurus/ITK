@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
 
   // Fixed Point Set
   using FixedPointSetType = itk::PointSet<PointSetPointType, PointSetDimension>;
-  FixedPointSetType::Pointer fixedPointSet = FixedPointSetType::New();
+  auto fixedPointSet = FixedPointSetType::New();
 
   constexpr unsigned int numberOfPoints = 500;
 
@@ -53,13 +53,13 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   FixedPointSetType::PointType point;
 
   unsigned int id = 0;
-  for (unsigned int i = 0; i < numberOfPoints / 2; i++)
+  for (unsigned int i = 0; i < numberOfPoints / 2; ++i)
   {
     point[0] = 0;
     point[1] = i;
     fixedPointSet->SetPoint(id++, point);
   }
-  for (unsigned int i = 0; i < numberOfPoints / 2; i++)
+  for (unsigned int i = 0; i < numberOfPoints / 2; ++i)
   {
     point[0] = i;
     point[1] = 0;
@@ -68,7 +68,7 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
 
   // Moving Point Set
   using MovingPointSetType = itk::PointSet<PointSetPointType, PointSetDimension>;
-  MovingPointSetType::Pointer movingPointSet = MovingPointSetType::New();
+  auto movingPointSet = MovingPointSetType::New();
 
   movingPointSet->SetPointData(MovingPointSetType::PointDataContainer::New());
 
@@ -76,13 +76,13 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   movingPointSet->GetPointData()->Reserve(numberOfPoints);
 
   id = 0;
-  for (unsigned int i = 0; i < numberOfPoints / 2; i++)
+  for (unsigned int i = 0; i < numberOfPoints / 2; ++i)
   {
     point[0] = 0;
     point[1] = i;
     movingPointSet->SetPoint(id++, point);
   }
-  for (unsigned int i = 0; i < numberOfPoints / 2; i++)
+  for (unsigned int i = 0; i < numberOfPoints / 2; ++i)
   {
     point[0] = i;
     point[1] = 0;
@@ -95,21 +95,21 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   using TransformBaseType = MetricType::TransformType;
   using ParametersType = TransformBaseType::ParametersType;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   // Set up the Transform
   using TransformType = itk::TranslationTransform<double, PointSetDimension>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   // Set up the Optimizer
   using OptimizerType = itk::LevenbergMarquardtOptimizer;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   optimizer->SetUseCostFunctionGradient(false);
 
   // Set up the Registration method
   using RegistrationType = itk::PointSetToPointSetRegistrationMethod<FixedPointSetType, MovingPointSetType>;
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(registration, PointSetToPointSetRegistrationMethod, ProcessObject);
 
@@ -117,10 +117,10 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   OptimizerType::ScalesType scales(transform->GetNumberOfParameters());
   scales.Fill(1.0);
 
-  unsigned long numberOfIterations = 100;
-  double        gradientTolerance = 1e-1; // convergence criterion
-  double        valueTolerance = 1e-1;    // convergence criterion
-  double        epsilonFunction = 1e-9;   // convergence criterion
+  constexpr unsigned long numberOfIterations = 100;
+  constexpr double        gradientTolerance = 1e-1; // convergence criterion
+  constexpr double        valueTolerance = 1e-1;    // convergence criterion
+  constexpr double        epsilonFunction = 1e-9;   // convergence criterion
 
   optimizer->SetScales(scales);
   optimizer->SetNumberOfIterations(numberOfIterations);
@@ -148,9 +148,9 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   ParametersType parameters(transform->GetNumberOfParameters());
 
   // Initialize the offset/vector part
-  for (unsigned int k = 0; k < parameters.size(); k++)
+  for (double & parameter : parameters)
   {
-    parameters[k] = 10.0;
+    parameter = 10.0;
   }
   transform->SetParameters(parameters);
   registration->SetInitialTransformParameters(transform->GetParameters());
@@ -189,7 +189,7 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   using ImageType = itk::Image<unsigned short, ImageDimension>;
 
   using PSToImageFilterType = itk::PointSetToImageFilter<FixedPointSetType, BinaryImageType>;
-  PSToImageFilterType::Pointer psToImageFilter = PSToImageFilterType::New();
+  auto psToImageFilter = PSToImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(psToImageFilter, PointSetToImageFilter, ImageSource);
 
@@ -202,25 +202,29 @@ itkPointSetToPointSetRegistrationTest(int, char *[])
   psToImageFilter->SetOrigin(origin);
 
   std::cout << "Spacing and origin: [" << psToImageFilter->GetSpacing() << "], ,[" << psToImageFilter->GetOrigin()
-            << "]" << std::endl;
+            << ']' << std::endl;
 
 
   ITK_TRY_EXPECT_NO_EXCEPTION(psToImageFilter->Update());
 
-  BinaryImageType::Pointer binaryImage = psToImageFilter->GetOutput();
+  const BinaryImageType::Pointer binaryImage = psToImageFilter->GetOutput();
 
   using DDFilterType = itk::DanielssonDistanceMapImageFilter<BinaryImageType, ImageType>;
-  DDFilterType::Pointer ddFilter = DDFilterType::New();
+  auto ddFilter = DDFilterType::New();
 
   ddFilter->SetInput(binaryImage);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(ddFilter->Update());
 
-  metric->SetDistanceMap(ddFilter->GetOutput());
+
+  const typename DDFilterType::OutputImageType::Pointer distanceMap = ddFilter->GetOutput();
+  metric->SetDistanceMap(distanceMap);
+  ITK_TEST_SET_GET_VALUE(distanceMap, metric->GetDistanceMap());
+
   metric->ComputeSquaredDistanceOn();
 
   // Initialize the offset/vector part
-  for (unsigned int k = 0; k < PointSetDimension; k++)
+  for (unsigned int k = 0; k < PointSetDimension; ++k)
   {
     parameters[k] = 10.0;
   }

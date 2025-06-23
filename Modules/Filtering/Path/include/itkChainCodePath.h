@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class ChainCodePath
+ * \class ChainCodePath
  * \brief  Represent a path as a sequence of connected image index offsets
  *
  * This class is intended to represent sequences of connected indices in an
@@ -62,12 +62,12 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ChainCodePath, Path);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ChainCodePath);
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::OutputType;
+  using typename Superclass::InputType;
 
   /** The output type of this function is an Index */
   using OffsetType = OutputType;
@@ -108,8 +108,10 @@ public:
   itkNewMacro(Self);
 
   /** Set/Get the index associated with the initial position of the path */
+  /** @ITKStartGrouping */
   itkSetMacro(Start, IndexType);
   itkGetConstReferenceMacro(Start, IndexType);
+  /** @ITKEndGrouping */
 
   /** Insert a new step into the chaincode at a specified position */
   virtual inline void
@@ -157,8 +159,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  IndexType     m_Start; // origin image index for the path
-  ChainCodeType m_Chain; // the chain code (vector of offsets)
+  IndexType     m_Start{}; // origin image index for the path
+  ChainCodeType m_Chain{}; // the chain code (vector of offsets)
 };
 } // end namespace itk
 

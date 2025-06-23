@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,11 @@
 #ifndef itkBlockMatchingImageFilter_hxx
 #define itkBlockMatchingImageFilter_hxx
 
-#include "itkBlockMatchingImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkConstNeighborhoodIterator.h"
 #include <limits>
 #include "itkMultiThreaderBase.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 
 namespace itk
@@ -39,16 +39,10 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
   this->m_BlockRadius.Fill(2);
   this->m_SearchRadius.Fill(3);
 
-  // make the outputs
-  this->ProcessObject::SetNumberOfRequiredOutputs(2);
-  typename DisplacementsType::Pointer displacements =
-    static_cast<DisplacementsType *>(this->MakeOutput(0).GetPointer());
-  this->SetNthOutput(0, displacements.GetPointer());
-  typename SimilaritiesType::Pointer similarities = static_cast<SimilaritiesType *>(this->MakeOutput(1).GetPointer());
-  this->SetNthOutput(1, similarities.GetPointer());
+  // Make the outputs (Displacements, Similarities).
+  ProcessObject::MakeRequiredOutputs(*this, 2);
 
   // all inputs are required
-  this->AddRequiredInputName("FeaturePoints");
   this->SetPrimaryInputName("FeaturePoints");
   this->AddRequiredInputName("FixedImage");
   this->AddRequiredInputName("MovingImage");
@@ -65,9 +59,33 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
   Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Number of threads: " << this->GetNumberOfWorkUnits() << std::endl
-     << indent << "m_BlockRadius: " << m_BlockRadius << std::endl
-     << indent << "m_SearchRadius: " << m_SearchRadius << std::endl;
+
+  os << indent << "BlockRadius: " << static_cast<typename NumericTraits<ImageSizeType>::PrintType>(m_BlockRadius)
+     << std::endl;
+  os << indent << "SearchRadius: " << static_cast<typename NumericTraits<ImageSizeType>::PrintType>(m_SearchRadius)
+     << std::endl;
+  os << indent << "PointsCount: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_PointsCount)
+     << std::endl;
+
+  os << indent << "DisplacementsVectorsArray: ";
+  if (m_DisplacementsVectorsArray != nullptr)
+  {
+    os << *m_DisplacementsVectorsArray.get() << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "SimilaritiesValuesArray: ";
+  if (m_SimilaritiesValuesArray != nullptr)
+  {
+    os << *m_SimilaritiesValuesArray.get() << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
 }
 
 template <typename TFixedImage,
@@ -112,10 +130,7 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
   str.Filter = this;
 
   this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
-
-  // multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->ThreaderCallback, &str);
 
   // Call a method that can be overridden by a subclass to perform
   // some calculations after all the threads have completed
@@ -145,7 +160,7 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
     }
     break;
   }
-  itkExceptionMacro(<< "Bad output index " << idx);
+  itkExceptionMacro("Bad output index " << idx);
 }
 
 
@@ -158,8 +173,8 @@ void
 BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, TSimilarities>::
   BeforeThreadedGenerateData()
 {
-  this->m_PointsCount = itk::NumericTraits<SizeValueType>::ZeroValue();
-  FeaturePointsConstPointer featurePoints = this->GetFeaturePoints();
+  this->m_PointsCount = SizeValueType{};
+  const FeaturePointsConstPointer featurePoints = this->GetFeaturePoints();
   if (featurePoints)
   {
     this->m_PointsCount = featurePoints->GetNumberOfPoints();
@@ -167,11 +182,11 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
 
   if (this->m_PointsCount < 1)
   {
-    itkExceptionMacro("Invalid number of feature points: " << this->m_PointsCount << ".");
+    itkExceptionMacro("Invalid number of feature points: " << this->m_PointsCount << '.');
   }
 
-  this->m_DisplacementsVectorsArray = new DisplacementsVector[this->m_PointsCount];
-  this->m_SimilaritiesValuesArray = new SimilaritiesValue[this->m_PointsCount];
+  this->m_DisplacementsVectorsArray = make_unique_for_overwrite<DisplacementsVector[]>(this->m_PointsCount);
+  this->m_SimilaritiesValuesArray = make_unique_for_overwrite<SimilaritiesValue[]>(this->m_PointsCount);
 }
 
 template <typename TFixedImage,
@@ -183,34 +198,33 @@ void
 BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, TSimilarities>::
   AfterThreadedGenerateData()
 {
-  FeaturePointsConstPointer                           featurePoints = this->GetFeaturePoints();
-  const typename FeaturePointsType::PointsContainer * points;
+  const FeaturePointsConstPointer featurePoints = this->GetFeaturePoints();
   if (featurePoints)
   {
-    points = featurePoints->GetPoints();
+    const typename FeaturePointsType::PointsContainer * points = featurePoints->GetPoints();
 
-    DisplacementsPointer displacements = this->GetDisplacements();
+    const DisplacementsPointer displacements = this->GetDisplacements();
 
     using DisplacementsPointsContainerPointerType = typename DisplacementsType::PointsContainerPointer;
     using DisplacementsPointsContainerType = typename DisplacementsType::PointsContainer;
-    DisplacementsPointsContainerPointerType displacementsPoints = DisplacementsPointsContainerType::New();
+    const DisplacementsPointsContainerPointerType displacementsPoints = DisplacementsPointsContainerType::New();
 
     using DisplacementsPointDataContainerPointerType = typename DisplacementsType::PointDataContainerPointer;
     using DisplacementsPointDataContainerType = typename DisplacementsType::PointDataContainer;
-    DisplacementsPointDataContainerPointerType displacementsData = DisplacementsPointDataContainerType::New();
+    const DisplacementsPointDataContainerPointerType displacementsData = DisplacementsPointDataContainerType::New();
 
-    SimilaritiesPointer similarities = this->GetSimilarities();
+    const SimilaritiesPointer similarities = this->GetSimilarities();
 
     using SimilaritiesPointsContainerPointerType = typename SimilaritiesType::PointsContainerPointer;
     using SimilaritiesPointsContainerType = typename SimilaritiesType::PointsContainer;
-    SimilaritiesPointsContainerPointerType similaritiesPoints = SimilaritiesPointsContainerType::New();
+    const SimilaritiesPointsContainerPointerType similaritiesPoints = SimilaritiesPointsContainerType::New();
 
     using SimilaritiesPointDataContainerPointerType = typename SimilaritiesType::PointDataContainerPointer;
     using SimilaritiesPointDataContainerType = typename SimilaritiesType::PointDataContainer;
-    SimilaritiesPointDataContainerPointerType similaritiesData = SimilaritiesPointDataContainerType::New();
+    const SimilaritiesPointDataContainerPointerType similaritiesData = SimilaritiesPointDataContainerType::New();
 
     // insert displacements and similarities
-    for (SizeValueType i = 0; i < this->m_PointsCount; i++)
+    for (SizeValueType i = 0; i < this->m_PointsCount; ++i)
     {
       displacementsPoints->InsertElement(i, points->GetElement(i));
       similaritiesPoints->InsertElement(i, points->GetElement(i));
@@ -225,13 +239,10 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
   }
 
   // clean up
-  delete[] m_DisplacementsVectorsArray;
-  delete[] m_SimilaritiesValuesArray;
+  m_DisplacementsVectorsArray.reset();
+  m_SimilaritiesValuesArray.reset();
 }
 
-// Callback routine used by the threading library. This routine just calls
-// the ThreadedGenerateData method after setting the correct region for this
-// thread.
 template <typename TFixedImage,
           typename TMovingImage,
           typename TFeatures,
@@ -241,10 +252,10 @@ ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, TSimilarities>::ThreaderCallback(
   void * arg)
 {
-  auto *       str = (ThreadStruct *)(((MultiThreaderBase::WorkUnitInfo *)(arg))->UserData);
-  ThreadIdType threadId = ((MultiThreaderBase::WorkUnitInfo *)(arg))->WorkUnitID;
+  auto *             str = (ThreadStruct *)((static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->UserData);
+  const ThreadIdType workUnitID = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->WorkUnitID;
 
-  str->Filter->ThreadedGenerateData(threadId);
+  str->Filter->ThreadedGenerateData(workUnitID);
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
@@ -258,51 +269,50 @@ void
 BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, TSimilarities>::ThreadedGenerateData(
   ThreadIdType threadId)
 {
-  FixedImageConstPointer    fixedImage = this->GetFixedImage();
-  MovingImageConstPointer   movingImage = this->GetMovingImage();
-  FeaturePointsConstPointer featurePoints = this->GetFeaturePoints();
+  const FixedImageConstPointer    fixedImage = this->GetFixedImage();
+  const MovingImageConstPointer   movingImage = this->GetMovingImage();
+  const FeaturePointsConstPointer featurePoints = this->GetFeaturePoints();
 
-  SizeValueType threadCount = this->GetNumberOfWorkUnits();
+  const SizeValueType workUnitCount = this->GetNumberOfWorkUnits();
 
   // compute first point and number of points (count) for this thread
-  SizeValueType count = m_PointsCount / threadCount;
-  SizeValueType first = threadId * count;
-  if (threadId + 1 == threadCount) // last thread
+  SizeValueType       count = m_PointsCount / workUnitCount;
+  const SizeValueType first = threadId * count;
+  if (threadId + 1 == workUnitCount) // last thread
   {
-    count += this->m_PointsCount % threadCount;
+    count += this->m_PointsCount % workUnitCount;
   }
 
   // start constructing window region and center region (single voxel)
   ImageRegionType window;
   ImageRegionType center;
-  ImageSizeType   windowSize;
-  windowSize.Fill(1);
+  auto            windowSize = ImageSizeType::Filled(1);
   center.SetSize(windowSize); // size of center region is 1
   windowSize += m_SearchRadius + m_SearchRadius;
   window.SetSize(windowSize); // size of window region is 1+2*m_BlockHalfWindow
 
   // start constructing block iterator
   SizeValueType numberOfVoxelInBlock = 1;
-  for (unsigned i = 0; i < ImageSizeType::Dimension; i++)
+  for (unsigned int i = 0; i < ImageSizeType::Dimension; ++i)
   {
     numberOfVoxelInBlock *= m_BlockRadius[i] + 1 + m_BlockRadius[i];
   }
 
   // loop thru feature points
-  for (SizeValueType idx = first, last = first + count; idx < last; idx++)
+  for (SizeValueType idx = first, last = first + count; idx < last; ++idx)
   {
-    FeaturePointsPhysicalCoordinates originalLocation = featurePoints->GetPoint(idx);
-    const auto                       fixedIndex = fixedImage->TransformPhysicalPointToIndex(originalLocation);
-    const auto                       movingIndex = movingImage->TransformPhysicalPointToIndex(originalLocation);
+    const FeaturePointsPhysicalCoordinates originalLocation = featurePoints->GetPoint(idx);
+    const auto                             fixedIndex = fixedImage->TransformPhysicalPointToIndex(originalLocation);
+    const auto                             movingIndex = movingImage->TransformPhysicalPointToIndex(originalLocation);
 
     // the block is selected for a minimum similarity metric
-    SimilaritiesValue similarity = NumericTraits<SimilaritiesValue>::ZeroValue();
+    SimilaritiesValue similarity{};
 
     // New point location
     DisplacementsVector displacement;
 
     // set centers of window and center regions to current location
-    ImageIndexType start = fixedIndex - this->m_SearchRadius;
+    const ImageIndexType start = fixedIndex - this->m_SearchRadius;
     window.SetIndex(start);
     center.SetIndex(movingIndex);
 
@@ -316,14 +326,14 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
     // iterate over neighborhoods in region window
     for (windowIterator.GoToBegin(); !windowIterator.IsAtEnd(); ++windowIterator)
     {
-      SimilaritiesValue fixedSum = NumericTraits<SimilaritiesValue>::ZeroValue();
-      SimilaritiesValue fixedSumOfSquares = NumericTraits<SimilaritiesValue>::ZeroValue();
-      SimilaritiesValue movingSum = NumericTraits<SimilaritiesValue>::ZeroValue();
-      SimilaritiesValue movingSumOfSquares = NumericTraits<SimilaritiesValue>::ZeroValue();
-      SimilaritiesValue covariance = NumericTraits<SimilaritiesValue>::ZeroValue();
+      SimilaritiesValue fixedSum{};
+      SimilaritiesValue fixedSumOfSquares{};
+      SimilaritiesValue movingSum{};
+      SimilaritiesValue movingSumOfSquares{};
+      SimilaritiesValue covariance{};
 
       // iterate over voxels in blockRadius
-      for (SizeValueType i = 0; i < numberOfVoxelInBlock; i++) // windowIterator.Size() == numberOfVoxelInBlock
+      for (SizeValueType i = 0; i < numberOfVoxelInBlock; ++i) // windowIterator.Size() == numberOfVoxelInBlock
       {
         const SimilaritiesValue fixedValue = windowIterator.GetPixel(i);
         const SimilaritiesValue movingValue = centerIterator.GetPixel(i);
@@ -339,7 +349,7 @@ BlockMatchingImageFilter<TFixedImage, TMovingImage, TFeatures, TDisplacements, T
       const SimilaritiesValue movingVariance = movingSumOfSquares - numberOfVoxelInBlock * movingMean * movingMean;
       covariance -= numberOfVoxelInBlock * fixedMean * movingMean;
 
-      SimilaritiesValue sim = NumericTraits<SimilaritiesValue>::ZeroValue();
+      SimilaritiesValue sim{};
       if ((fixedVariance * movingVariance) != 0.0)
       {
         sim = (covariance * covariance) / (fixedVariance * movingVariance);

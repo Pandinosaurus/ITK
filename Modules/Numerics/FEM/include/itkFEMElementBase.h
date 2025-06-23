@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,9 +31,7 @@
 #include <set>
 #include <vector>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class Element
@@ -79,8 +77,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Element, FEMLightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Element);
 
   /**
    * Floating point type used in all Element classes.
@@ -161,7 +159,7 @@ public:
     static Pointer
     New()
     {
-      Pointer smartPtr = ::itk::ObjectFactory<Self>::Create();
+      Pointer smartPtr = itk::ObjectFactory<Self>::Create();
 
       if (smartPtr.IsNull())
       {
@@ -172,11 +170,11 @@ public:
     }
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(Node, FEMLightObject);
+    itkOverrideGetNameOfClassMacro(Node);
 
     /** CreateAnother method will clone the existing instance of this type,
      * including its internal member variables. */
-    ::itk::LightObject::Pointer
+    itk::LightObject::Pointer
     CreateAnother() const override;
 
     /**
@@ -329,7 +327,7 @@ public:
    *     a
    *
    * where (rho c) is constant (element density), which is here assumed to be
-   * equal to one. If this is not the case, this function must be overriden in
+   * equal to one. If this is not the case, this function must be overridden in
    * a derived class. Implementation is similar to GetStiffnessMatrix.
    */
   virtual void
@@ -545,7 +543,7 @@ public:
   GetNode(unsigned int n) const = 0;
 
   /**
-   * Sets the pointe of n-th node in an element to node.
+   * Sets the pointer of n-th node in an element to node.
    */
   virtual void
   SetNode(unsigned int n, NodeIDType node) = 0;
@@ -706,7 +704,7 @@ public:
    * equal to number of unknowns that we want to solve for at each point
    * within an element.
    *
-   * \note This function must be overriden in all derived classes.
+   * \note This function must be overridden in all derived classes.
    */
   virtual unsigned int
   GetNumberOfDegreesOfFreedomPerNode() const = 0;
@@ -717,13 +715,12 @@ public:
 
 protected:
   // to store edge connectivity data
-  std::vector<std::vector<int>> m_EdgeIds;
+  std::vector<std::vector<int>> m_EdgeIds{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMElementBase_h

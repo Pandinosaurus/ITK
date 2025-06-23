@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +32,8 @@ itkRobustAutomaticThresholdImageFilterTest(int argc, char * argv[])
   if (argc != 7)
   {
     std::cerr << "Missing parameters." << std::endl;
-    std::cerr << "Usage: " << argv[0] << " inputImage outputImage pow insideValue outsideValue expectedThreshold"
-              << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputImage outputImage pow insideValue outsideValue expectedThreshold" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -46,17 +46,19 @@ itkRobustAutomaticThresholdImageFilterTest(int argc, char * argv[])
   using RealImageType = itk::Image<RealPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using GradientType = itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, RealImageType>;
-  GradientType::Pointer gradient = GradientType::New();
+  auto gradient = GradientType::New();
   gradient->SetInput(reader->GetOutput());
   gradient->SetSigma(10);
-  gradient->Update();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(gradient->Update());
+
 
   using FilterType = itk::RobustAutomaticThresholdImageFilter<ImageType, RealImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, RobustAutomaticThresholdImageFilter, ImageToImageFilter);
 
@@ -88,18 +90,18 @@ itkRobustAutomaticThresholdImageFilterTest(int argc, char * argv[])
   FilterType::InputPixelType computedThreshold = filter->GetThreshold();
   if (itk::Math::NotAlmostEquals(expectedThreshold, computedThreshold))
   {
-    std::cout << "Test failed!" << std::endl;
-    std::cout << "Error in GetThreshold()" << std::endl;
-    std::cout << "Expected: "
-              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(expectedThreshold)
-              << ", but got: "
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in ik::RobustAutomaticThresholdImageFilter::GetThreshold" << std::endl;
+    std::cerr << "Expected: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(expectedThreshold) << std::endl;
+    std::cerr << ", but got: "
               << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(computedThreshold) << std::endl;
     return EXIT_FAILURE;
   }
 
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 

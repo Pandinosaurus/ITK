@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkMultiphaseDenseFiniteDifferenceImageFilter.h"
 #include "itkScalarChanAndVeseLevelSetFunction.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -37,13 +38,16 @@ class MultiphaseDenseFiniteDifferenceImageFilterTestHelper
 public:
   /** Standard class type aliases. */
   using Self = MultiphaseDenseFiniteDifferenceImageFilterTestHelper;
-  using Superclass =
-    MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, TFiniteDifferenceFunction>;
+  using Superclass = MultiphaseDenseFiniteDifferenceImageFilter<TInputImage,
+                                                                TFeatureImage,
+                                                                TOutputImage,
+                                                                TFiniteDifferenceFunction,
+                                                                TIdCell>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MultiphaseDenseFiniteDifferenceImageFilterTestHelper, MultiphaseDenseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiphaseDenseFiniteDifferenceImageFilterTestHelper);
 
   itkNewMacro(Self);
 
@@ -51,7 +55,7 @@ public:
   AllocateUpdateBuffer() override
   {}
 
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::TimeStepType;
 
   void
   ApplyUpdate(TimeStepType itkNotUsed(dt)) override
@@ -86,7 +90,7 @@ itkMultiphaseDenseFiniteDifferenceImageFilterTest(int, char *[])
   using RegionBasedLevelSetFunctionType =
     itk::ScalarChanAndVeseLevelSetFunction<LevelSetImageType, FeatureImageType, SharedDataHelperType>;
 
-  RegionBasedLevelSetFunctionType::Pointer function = RegionBasedLevelSetFunctionType::New();
+  auto function = RegionBasedLevelSetFunctionType::New();
   if (function.IsNull())
   {
     return EXIT_FAILURE;
@@ -100,10 +104,17 @@ itkMultiphaseDenseFiniteDifferenceImageFilterTest(int, char *[])
                                                                                RegionBasedLevelSetFunctionType,
                                                                                IdCellType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  std::cout << "GetNameOfClass() = " << filter->GetNameOfClass() << std::endl;
-  filter->Print(std::cout);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    filter, MultiphaseDenseFiniteDifferenceImageFilterTestHelper, MultiphaseDenseFiniteDifferenceImageFilter);
 
+
+  unsigned int reinitializeCounter = 1;
+  filter->SetReinitializeCounter(reinitializeCounter);
+  ITK_TEST_SET_GET_VALUE(reinitializeCounter, filter->GetReinitializeCounter());
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

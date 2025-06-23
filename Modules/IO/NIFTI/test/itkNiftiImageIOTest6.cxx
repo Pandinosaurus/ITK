@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,11 @@
 #include "itkNiftiImageIOTest.h"
 
 int
-itkNiftiImageIOTest6(int ac, char * av[])
+itkNiftiImageIOTest6(int argc, char * argv[])
 {
-  if (ac > 1)
+  if (argc > 1)
   {
-    char * testdir = *++av;
+    char * testdir = *++argv;
     itksys::SystemTools::ChangeDirectory(testdir);
   }
   else
@@ -33,13 +33,13 @@ itkNiftiImageIOTest6(int ac, char * av[])
   int success(EXIT_SUCCESS);
 
   using VectorImageType = itk::VectorImage<double, 3>;
-  VectorImageType::RegionType       imageRegion;
-  VectorImageType::SizeType         size;
-  VectorImageType::IndexType        index;
-  VectorImageType::SpacingType      spacing;
-  VectorImageType::VectorLengthType vecLength(4);
+  VectorImageType::RegionType                 imageRegion;
+  VectorImageType::SizeType                   size;
+  VectorImageType::IndexType                  index;
+  VectorImageType::SpacingType                spacing;
+  constexpr VectorImageType::VectorLengthType vecLength(4);
 
-  for (unsigned i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     size[i] = 3;
     index[i] = 0;
@@ -47,7 +47,7 @@ itkNiftiImageIOTest6(int ac, char * av[])
   }
   imageRegion.SetSize(size);
   imageRegion.SetIndex(index);
-  VectorImageType::Pointer vecImage =
+  const VectorImageType::Pointer vecImage =
     itk::IOTestHelper::AllocateImageFromRegionAndSpacing<VectorImageType>(imageRegion, spacing, vecLength);
 
   itk::ImageRegionIterator<VectorImageType> it(vecImage, vecImage->GetLargestPossibleRegion());
@@ -55,7 +55,7 @@ itkNiftiImageIOTest6(int ac, char * av[])
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
     VectorImageType::PixelType p(vecLength);
-    for (unsigned i = 0; i < vecLength; i++)
+    for (unsigned int i = 0; i < vecLength; ++i)
     {
       p[i] = val;
       val++;
@@ -77,7 +77,8 @@ itkNiftiImageIOTest6(int ac, char * av[])
   itk::ImageRegionIterator<VectorImageType> readbackIt(readback, readback->GetLargestPossibleRegion());
   for (it.GoToBegin(), readbackIt.GoToBegin(); !it.IsAtEnd() && !readbackIt.IsAtEnd(); ++it, ++readbackIt)
   {
-    VectorImageType::PixelType p(vecLength), readbackP(vecLength);
+    VectorImageType::PixelType p(vecLength);
+    VectorImageType::PixelType readbackP(vecLength);
     p = it.Get();
     readbackP = readbackIt.Get();
     if (p != readbackP)

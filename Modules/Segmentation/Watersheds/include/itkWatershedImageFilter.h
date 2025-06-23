@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -178,8 +178,8 @@ public:
   /** Smart pointer type alias support  */
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(WatershedImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WatershedImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -211,7 +211,7 @@ public:
   {
     if (i != 0)
     {
-      itkExceptionMacro(<< "Filter has only one input.");
+      itkExceptionMacro("Filter has only one input.");
     }
     else
     {
@@ -252,14 +252,10 @@ public:
   void
   EnlargeOutputRequestedRegion(DataObject * data) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<ScalarType>));
   itkConceptMacro(InputAdditiveOperatorsCheck, (Concept::AdditiveOperators<ScalarType>));
   itkConceptMacro(DoubleInputMultiplyOperatorCheck, (Concept::MultiplyOperator<double, ScalarType, ScalarType>));
   itkConceptMacro(InputLessThanComparableCheck, (Concept::LessThanComparable<ScalarType>));
-  // End concept checking
-#endif
 
 protected:
   WatershedImageFilter();
@@ -288,19 +284,19 @@ private:
    * must save state between calls to GenerateData() so that the
    * computationally expensive execution of segment tree generation is
    * not unnecessarily repeated. */
-  typename watershed::Segmenter<InputImageType>::Pointer m_Segmenter;
+  typename watershed::Segmenter<InputImageType>::Pointer m_Segmenter{};
 
-  typename watershed::SegmentTreeGenerator<ScalarType>::Pointer m_TreeGenerator;
+  typename watershed::SegmentTreeGenerator<ScalarType>::Pointer m_TreeGenerator{};
 
-  typename watershed::Relabeler<ScalarType, Self::ImageDimension>::Pointer m_Relabeler;
+  typename watershed::Relabeler<ScalarType, Self::ImageDimension>::Pointer m_Relabeler{};
 
-  unsigned long m_ObserverTag;
+  unsigned long m_ObserverTag{};
 
-  bool m_LevelChanged;
-  bool m_ThresholdChanged;
-  bool m_InputChanged;
+  bool m_LevelChanged{};
+  bool m_ThresholdChanged{};
+  bool m_InputChanged{};
 
-  TimeStamp m_GenerateDataMTime;
+  TimeStamp m_GenerateDataMTime{};
 };
 } // end namespace itk
 

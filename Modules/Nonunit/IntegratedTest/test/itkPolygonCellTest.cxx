@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,14 +59,14 @@ itkPolygonCellTest(int, char *[])
   /**
    * Create the mesh through its object factory.
    */
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
   mesh->DebugOn();
 
   /**
    * Define the 3d geometric positions for 8 points in a cube.
    */
-  MeshType::CoordRepType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
-                                                   { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
+  MeshType::CoordinateType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
+                                                     { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
 
   /**
    * Add our test points to the mesh.
@@ -108,7 +108,7 @@ itkPolygonCellTest(int, char *[])
    * mesh->SetCell(cellId, cell)
    */
   mesh->SetCell(0, testCell); // Transfer ownership to the mesh
-  std::cout << "PolygonCell pointer = " << (void const *)testCell.GetPointer() << std::endl;
+  std::cout << "PolygonCell pointer = " << (const void *)testCell.GetPointer() << std::endl;
   std::cout << "PolygonCell Owner   = " << testCell.IsOwner() << std::endl;
 
   {

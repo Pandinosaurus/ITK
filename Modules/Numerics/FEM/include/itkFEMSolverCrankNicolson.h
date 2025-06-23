@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,9 +33,7 @@
 #include <vnl/vnl_sparse_matrix_linear_system.h>
 #include <cmath>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class SolverCrankNicolson
@@ -81,8 +79,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(SolverCrankNicolson, Solver<TDimension>);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SolverCrankNicolson);
 
   using Float = Element::Float;
 
@@ -139,7 +137,7 @@ public:
   itkGetMacro(Rho, Float);
 
   /** Returns the time step used for dynamic problems. */
-  Float
+  [[nodiscard]] Float
   GetTimeStep() const override
   {
     return m_TimeStep;
@@ -186,7 +184,7 @@ public:
   inline Float
   GSSign(Float a, Float b)
   {
-    return b > 0.0 ? std::fabs(a) : -1. * std::fabs(a);
+    return b > 0.0 ? itk::Math::abs(a) : -1. * itk::Math::abs(a);
   }
   inline Float
   GSMax(Float a, Float b)
@@ -257,27 +255,26 @@ protected:
   void
   AssembleFforTimeStep(int dim = 0);
 
-  Float m_TimeStep;
-  Float m_Rho;
-  Float m_Alpha;
-  Float m_CurrentMaxSolution;
+  Float m_TimeStep{};
+  Float m_Rho{};
+  Float m_Alpha{};
+  Float m_CurrentMaxSolution{};
 
-  bool         m_UseMassMatrix;
-  unsigned int m_Iterations;
+  bool         m_UseMassMatrix{};
+  unsigned int m_Iterations{};
 
-  unsigned int m_ForceTIndex;
-  unsigned int m_ForceTotalIndex;
-  unsigned int m_ForceTMinus1Index;
-  unsigned int m_SolutionTIndex;
-  unsigned int m_SolutionTMinus1Index;
-  unsigned int m_SolutionVectorTMinus1Index;
-  unsigned int m_TotalSolutionIndex;
-  unsigned int m_DifferenceMatrixIndex;
-  unsigned int m_SumMatrixIndex;
-  unsigned int m_DiffMatrixBySolutionTMinus1Index;
+  unsigned int m_ForceTIndex{};
+  unsigned int m_ForceTotalIndex{};
+  unsigned int m_ForceTMinus1Index{};
+  unsigned int m_SolutionTIndex{};
+  unsigned int m_SolutionTMinus1Index{};
+  unsigned int m_SolutionVectorTMinus1Index{};
+  unsigned int m_TotalSolutionIndex{};
+  unsigned int m_DifferenceMatrixIndex{};
+  unsigned int m_SumMatrixIndex{};
+  unsigned int m_DiffMatrixBySolutionTMinus1Index{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMSolverCrankNicolson.hxx"

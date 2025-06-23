@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /**
  * \class SegmentTreeGenerator
@@ -49,7 +47,7 @@ namespace watershed
  * \par Outputs
  * The output of this filter is a list of binary merges of segments at
  * increasing saliency.  This is the data structure
- * itk::watershed::WatershedSegmentTree referred to as a "merge tree" in the
+ * itk::watershed::SegmentTree referred to as a "merge tree" in the
  * itk::WatershedImageFilter documentation.
  *
  * \par Parameters
@@ -78,6 +76,8 @@ template <typename TScalar>
 class ITK_TEMPLATE_EXPORT SegmentTreeGenerator : public ProcessObject
 {
 public:
+  ITK_DISALLOW_COPY_AND_MOVE(SegmentTreeGenerator);
+
   /**  Standard itk smart pointer declarations    */
   using Self = SegmentTreeGenerator;
   using Superclass = ProcessObject;
@@ -85,9 +85,10 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
+  /** @ITKStartGrouping */
   itkNewMacro(Self);
-  itkTypeMacro(WatershedSegmentTreeGenerator, ProcessObject);
-
+  itkOverrideGetNameOfClassMacro(SegmentTreeGenerator);
+  /** @ITKEndGrouping */
   /** Convenient type definitions */
   using ScalarType = TScalar;
   using SegmentTableType = SegmentTable<ScalarType>;
@@ -150,9 +151,10 @@ public:
     segments marked  as equivalent in the EquivalencyTable.  This is only
     useful for streaming  applications and is turned off by default.  (TRUE ==
     merge, FALSE == do not merge).       */
+  /** @ITKStartGrouping */
   itkSetMacro(Merge, bool);
   itkGetConstMacro(Merge, bool);
-
+  /** @ITKEndGrouping */
   /** Get/Set FloodLevel.  FloodLevel is specified as a percentage (0.0 - 1.0)
    of the maximum possible saliency value in the initial image from which the
    segment table was derived. A value of 0.0 calculates no merges.  A value of
@@ -166,17 +168,19 @@ public:
   /** Get/Set HighestCalculatedFloodLevel.  HighestCalculatedFloodLevel keeps
    * track of the highest level this filter has computed.  It is
    * used to prevent unnecessary re-execution of the filter. */
+  /** @ITKStartGrouping */
   itkSetMacro(HighestCalculatedFloodLevel, double);
   itkGetConstMacro(HighestCalculatedFloodLevel, double);
-
+  /** @ITKEndGrouping */
   /** Get/Set a flag that prevents the filter from copying its input
    * segment table before executing.  This can be enabled to conserve
    * memory, especially in streaming applications where memory is a
    * concern. If enabled, the input to this filter must always be
    * re-executed on updates. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(ConsumeInput, bool);
   itkGetConstMacro(ConsumeInput, bool);
-
+  /** @ITKEndGrouping */
   /** Performs a merge of two segments in a SegmentTable according
    * to criteria specific to this algorithm.   */
   static void
@@ -200,10 +204,7 @@ public:
 protected:
   SegmentTreeGenerator();
   ~SegmentTreeGenerator() override = default;
-  SegmentTreeGenerator(const Self &) {}
-  void
-  operator=(const Self &)
-  {}
+
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -220,7 +221,8 @@ protected:
 
   /** Methods required by the itk pipeline */
   void
-  GenerateOutputRequestedRegion(DataObject * output) override;
+  GenerateOutputRequestedRegion(DataObject * itkNotUsed(output)) override
+  {}
 
   void
   GenerateInputRequestedRegion() override;
@@ -232,7 +234,7 @@ private:
 
   using HashMapType = std::unordered_map<IdentifierType, bool>;
 
-  OneWayEquivalencyTableType::Pointer m_MergedSegmentsTable;
+  OneWayEquivalencyTableType::Pointer m_MergedSegmentsTable{};
 
   /** This value keeps track of the highest level this filter has been
    *  calculated.  m_FloodLevel can be manipulated anywhere below this
@@ -240,8 +242,7 @@ private:
    *  updates. */
   double m_HighestCalculatedFloodLevel{ 0.0 };
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedSegmentTreeGenerator.hxx"

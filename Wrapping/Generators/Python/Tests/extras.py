@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,8 @@
 import sys
 import os
 import numpy as np
+import pathlib
+import pickle
 
 import itk
 
@@ -142,7 +144,7 @@ itk.imwrite(reader, sys.argv[4], imageio=itk.PNGImageIO.New())
 itk.imwrite(reader, sys.argv[4], True)
 
 # test read
-image = itk.imread(filename)
+image = itk.imread(pathlib.Path(filename))
 assert type(image) == itk.Image[itk.RGBPixel[itk.UC], 2]
 image = itk.imread(filename, itk.F)
 assert type(image) == itk.Image[itk.F, 2]
@@ -160,6 +162,56 @@ except Exception as e:
         raise e
 image = itk.imread(filename, imageio=itk.PNGImageIO.New())
 assert type(image) == itk.Image[itk.RGBPixel[itk.UC], 2]
+
+# Python functional interface that determines the filter type
+# based on the primary input (dispatch)
+image = itk.imread(filename, itk.UC)
+# positional argument
+filtered_positional = itk.median_image_filter(image)
+# required primary named input argument
+filtered_kwarg = itk.median_image_filter(primary=image)
+comparison = itk.comparison_image_filter(
+    filtered_positional, filtered_kwarg, verify_input_information=True
+)
+assert np.sum(comparison) == 0.0
+
+# imread using a dicom series
+image = itk.imread(sys.argv[8])
+image0 = itk.imread(sys.argv[8], series_uid=0)
+imageS = itk.imread(
+    sys.argv[8],
+    series_uid="1.2.840.113619.2.133.1762890640.1886.1055165015.999.31.625625620030625",
+)
+assert itk.size(image) == itk.size(image0)
+assert itk.size(image) == itk.size(imageS)
+assert image[1, 10, 10] == image0[1, 10, 10]
+assert image[1, 10, 10] == imageS[1, 10, 10]
+
+# Test serialization with pickle
+array = np.random.randint(0, 256, (8, 12)).astype(np.uint8)
+image = itk.image_from_array(array)
+image.SetSpacing([1.0, 2.0])
+image.SetOrigin([11.0, 4.0])
+theta = np.radians(30)
+cosine = np.cos(theta)
+sine = np.sin(theta)
+rotation = np.array(((cosine, -sine), (sine, cosine)))
+image.SetDirection(rotation)
+serialize_deserialize = pickle.loads(pickle.dumps(image))
+# verify_input_information checks origin, spacing, direction consistency
+comparison = itk.comparison_image_filter(
+    image, serialize_deserialize, verify_input_information=True
+)
+assert np.sum(comparison) == 0.0
+
+matrix = itk.Matrix[itk.D, 2, 2]()
+matrix.SetIdentity()
+serialize_deserialize = pickle.loads(pickle.dumps(matrix))
+assert np.array_equal(np.asarray(matrix), np.asarray(serialize_deserialize))
+
+region = itk.ImageRegion[2]([7, 8], [2, 3])
+serialize_deserialize = pickle.loads(pickle.dumps(region))
+assert region == serialize_deserialize
 
 # Make sure we can read unsigned short, unsigned int, and cast
 image = itk.imread(filename, itk.UI)
@@ -179,6 +231,46 @@ assert type(mesh) == itk.Mesh[itk.F, 3]
 
 itk.meshwrite(mesh, sys.argv[5])
 itk.meshwrite(mesh, sys.argv[5], compression=True)
+itk.meshwrite(mesh, sys.argv[5], binary=True)
+
+# smoke test wasm / Python / NumPy conversion
+
+image_dict = itk.dict_from_image(image)
+image_back = itk.image_from_dict(image_dict)
+diff = itk.comparison_image_filter(image.astype(itk.F), image_back.astype(itk.F))
+assert np.sum(diff) == 0
+
+
+largest_region = itk.ImageRegion[2]([0, 0], [1024, 1024])
+image.SetLargestPossibleRegion(largest_region)
+image_dict = itk.dict_from_image(image)
+image_back = itk.image_from_dict(image_dict)
+diff = itk.comparison_image_filter(image.astype(itk.F), image_back.astype(itk.F))
+assert np.sum(diff) == 0
+
+mesh_dict = itk.dict_from_mesh(mesh)
+mesh_back = itk.mesh_from_dict(mesh_dict)
+
+pointset = itk.PointSet[itk.F, 3].New()
+pointset.SetPoints(mesh.GetPoints())
+pointset.SetPointData(mesh.GetPointData())
+
+pointset_dict = itk.dict_from_pointset(pointset)
+pointset_back = itk.pointset_from_dict(pointset_dict)
+
+polyline = itk.PolyLineParametricPath[dim].New()
+polyline.AddVertex([0.0, 0.0])
+polyline.AddVertex([1.0, 1.0])
+polyline.AddVertex([4.0, 3.0])
+polyline_dict = itk.dict_from_polyline(polyline)
+polyline_back = itk.polyline_from_dict(polyline_dict)
+original_vertices = itk.array_from_vector_container(polyline.GetVertexList())
+back_vertices = itk.array_from_vector_container(polyline_back.GetVertexList())
+assert np.allclose(original_vertices, back_vertices)
+
+serialize_deserialize = pickle.loads(pickle.dumps(polyline))
+back_vertices = itk.array_from_vector_container(serialize_deserialize.GetVertexList())
+assert np.allclose(original_vertices, back_vertices)
 
 # test search
 res = itk.search("Index")
@@ -226,7 +318,7 @@ series_reader.Update()
 assert series_reader.GetOutput().GetImageDimension() == 3
 
 # test reading image series with itk.imread()
-image_series = itk.imread([filename, filename])
+image_series = itk.imread([pathlib.Path(filename), pathlib.Path(filename)])
 assert image_series.GetImageDimension() == 3
 
 # Numeric series filename generation without any integer index. It is
@@ -289,9 +381,21 @@ assert np.allclose(parameters, baseline_parameters)
 parameters = np.asarray(transforms[0].GetParameters())
 assert np.allclose(parameters, np.array(baseline_additional_transform_params))
 
+transform_dict = itk.dict_from_transform(transforms[0])
+transform_back = itk.transform_from_dict(transform_dict)
+transform_dict = itk.dict_from_transform(transforms)
+transform_back = itk.transform_from_dict(transform_dict)
+
+# Write single transform
+itk.transformwrite(transforms[0], sys.argv[7], compression=True)
+
 # pipeline, auto_pipeline and templated class are tested in other files
 
 # BridgeNumPy
+
+arr = np.zeros([3, 4, 5], dtype=np.dtype("uintc"))
+image = itk.image_from_array(arr)
+assert itk.template(image)[1] == (itk.UI, 3)
 
 # Images
 
@@ -311,6 +415,9 @@ assert np.any(arr != itk.array_from_image(image))
 image = itk.GetImageViewFromArray(arr)
 image.FillBuffer(2)
 assert np.all(arr == itk.array_from_image(image))
+arr_fortran = arr.copy(order="F")
+image = itk.GetImageViewFromArray(arr_fortran)
+assert np.array_equal(arr_fortran.shape, image.shape)
 image = itk.image_from_array(arr, is_vector=True)
 assert image.GetImageDimension() == 2
 image = itk.GetImageViewFromArray(arr, is_vector=True)
@@ -320,6 +427,7 @@ assert arr.shape[0] == 2
 assert arr.shape[1] == 3
 assert arr[1, 1] == 5
 image = itk.image_from_array(arr)
+assert np.array_equal(arr.shape, image.shape)
 arrKeepAxes = itk.array_from_image(image, keep_axes=True)
 assert arrKeepAxes.shape[0] == 3
 assert arrKeepAxes.shape[1] == 2
@@ -393,6 +501,20 @@ arr2[0, 0] = 2
 # Change the array value,...
 assert arr2[0, 0] == 2
 # and make sure that the matrix hasn't changed.
+assert m_itk(0, 0) == 1
+# Test __repr__
+assert (
+    repr(m_itk) == "itkMatrixD33 ([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])"
+)
+# Test __array__
+assert np.array_equal(np.asarray(m_itk), np.eye(3))
+# Test array like input
+arr3 = [[0.0, 0.0], [0.0, 0.0]]
+m_itk = itk.matrix_from_array(arr3)
+m_itk.SetIdentity()
+# Test that the array like has not changed,...
+assert arr3[0][0] == 0
+# but that the ITK matrix has the correct value.
 assert m_itk(0, 0) == 1
 
 # test .astype for itk.Image
@@ -474,118 +596,28 @@ if "(<itkCType unsigned char>, 4)" in itk.Image.GetTypesAsList():
     assert np.allclose(arr, arr_back)
 
 
-# xarray conversion
-try:
-    import xarray as xr
-
-    print("Testing xarray conversion")
-
-    image = itk.imread(filename)
-    image.SetSpacing((0.1, 0.2))
-    image.SetOrigin((30.0, 44.0))
-    theta = np.radians(30)
-    cosine = np.cos(theta)
-    sine = np.sin(theta)
-    rotation = np.array(((cosine, -sine), (sine, cosine)))
-    image.SetDirection(rotation)
-    image["MyMeta"] = 4.0
-
-    data_array = itk.xarray_from_image(image)
-    assert data_array.dims[0] == "y"
-    assert data_array.dims[1] == "x"
-    assert data_array.dims[2] == "c"
-    assert np.array_equal(data_array.values, itk.array_from_image(image))
-    assert len(data_array.coords["x"]) == 256
-    assert len(data_array.coords["y"]) == 256
-    assert len(data_array.coords["c"]) == 3
-    assert data_array.coords["x"][0] == 30.0
-    assert data_array.coords["x"][1] == 30.1
-    assert data_array.coords["y"][0] == 44.0
-    assert data_array.coords["y"][1] == 44.2
-    assert data_array.coords["c"][0] == 0
-    assert data_array.coords["c"][1] == 1
-    assert data_array.attrs["direction"][0, 0] == cosine
-    assert data_array.attrs["direction"][0, 1] == sine
-    assert data_array.attrs["direction"][1, 0] == -sine
-    assert data_array.attrs["direction"][1, 1] == cosine
-    assert data_array.attrs["MyMeta"] == 4.0
-
-    round_trip = itk.image_from_xarray(data_array)
-    assert np.array_equal(itk.array_from_image(round_trip), itk.array_from_image(image))
-    spacing = round_trip.GetSpacing()
-    assert np.isclose(spacing[0], 0.1)
-    assert np.isclose(spacing[1], 0.2)
-    origin = round_trip.GetOrigin()
-    assert np.isclose(origin[0], 30.0)
-    assert np.isclose(origin[1], 44.0)
-    direction = round_trip.GetDirection()
-    assert np.isclose(direction(0, 0), cosine)
-    assert np.isclose(direction(0, 1), -sine)
-    assert np.isclose(direction(1, 0), sine)
-    assert np.isclose(direction(1, 1), cosine)
-    assert round_trip["MyMeta"] == 4.0
-
-    wrong_order = data_array.swap_dims({"y": "z"})
-    try:
-        round_trip = itk.image_from_xarray(wrong_order)
-        assert False
-    except ValueError:
-        pass
-
-    # Check empty array
-    empty_array = np.array([], dtype=np.uint8)
-    empty_array.shape = (0, 0, 0)
-    empty_image = itk.image_from_array(empty_array)
-    empty_da = itk.xarray_from_image(empty_image)
-    empty_image_round = itk.image_from_xarray(empty_da)
-
-    # Check order
-    arr = np.random.randint(0, 255, size=(4, 5, 6), dtype=np.uint8)
-    data_array = xr.DataArray(arr, dims=["z", "y", "x"])
-    image = itk.image_from_xarray(data_array)
-    assert np.allclose(arr, itk.array_view_from_image(image))
-    assert np.allclose(arr.shape, itk.array_view_from_image(image).shape)
-
-    data_array = xr.DataArray(arr, dims=["x", "y", "z"])
-    image = itk.image_from_xarray(data_array)
-    assert np.allclose(arr.transpose(), itk.array_view_from_image(image))
-    assert np.allclose(arr.shape[::-1], itk.array_view_from_image(image).shape)
-
-    data_array = xr.DataArray(arr, dims=["y", "x", "c"])
-    image = itk.image_from_xarray(data_array)
-    assert np.allclose(arr, itk.array_view_from_image(image))
-    assert np.allclose(arr.shape, itk.array_view_from_image(image).shape)
-
-    data_array = xr.DataArray(arr, dims=["c", "x", "y"])
-    image = itk.image_from_xarray(data_array)
-    assert np.allclose(arr.transpose(), itk.array_view_from_image(image))
-    assert np.allclose(arr.shape[::-1], itk.array_view_from_image(image).shape)
-
-    data_array = xr.DataArray(arr, dims=["q", "x", "y"])
-    try:
-        image = itk.image_from_xarray(data_array)
-        assert False
-    except ValueError:
-        pass
-
-    if "(<itkCType unsigned char>, 4)" in itk.Image.GetTypesAsList():
-        arr = np.random.randint(0, 255, size=(4, 5, 6, 3), dtype=np.uint8)
-        data_array = xr.DataArray(arr, dims=["t", "z", "y", "x"])
-        image = itk.image_from_xarray(data_array)
-        assert np.allclose(arr, itk.array_view_from_image(image))
-        assert np.allclose(arr.shape, itk.array_view_from_image(image).shape)
-
-
-except ImportError:
-    print("xarray not imported. Skipping xarray conversion tests")
-    pass
-
 # vtk conversion
 try:
     import vtk
 
+    def assert_images_equal(base, test):
+        assert np.array_equal(itk.origin(base), itk.origin(test))
+        assert np.array_equal(itk.spacing(base), itk.spacing(test))
+        assert np.array_equal(itk.size(base), itk.size(test))
+        assert np.array_equal(
+            itk.array_view_from_image(base), itk.array_view_from_image(test)
+        )
+        if vtk.vtkVersion.GetVTKMajorVersion() >= 9:
+            z_rot_base = itk.array_from_matrix(base.GetDirection())
+            z_rot_test = itk.array_from_matrix(test.GetDirection())
+            assert np.array_equal(z_rot_base, z_rot_test)
+
     print("Testing vtk conversion")
     image = itk.image_from_array(np.random.rand(2, 3, 4))
+    z_rot = np.asarray([[0, 1, 0], [-1, 0, 0], [0, 0, 1]], dtype=np.float64)
+    z_rot_itk = itk.matrix_from_array(z_rot)
+    image.SetDirection(z_rot_itk)
+
     vtk_image = itk.vtk_image_from_image(image)
     image_round = itk.image_from_vtk_image(vtk_image)
     assert np.array_equal(itk.origin(image), itk.origin(image_round))
@@ -594,18 +626,32 @@ try:
     assert np.array_equal(
         itk.array_view_from_image(image), itk.array_view_from_image(image_round)
     )
+    if vtk.vtkVersion.GetVTKMajorVersion() >= 9:
+        z_rot_round = itk.array_from_matrix(image_round.GetDirection())
+        assert np.array_equal(z_rot, z_rot_round)
+    else:
+        print("VTK version <9. Direction unsupported.")
 
     image = itk.image_from_array(
         np.random.rand(5, 4, 2).astype(np.float32), is_vector=True
     )
+    z_rot = np.asarray([[0, 1], [-1, 0]], dtype=np.float64)
+    z_rot_itk = itk.matrix_from_array(z_rot)
+    image.SetDirection(z_rot_itk)
+
     vtk_image = itk.vtk_image_from_image(image)
     image_round = itk.image_from_vtk_image(vtk_image)
-    assert np.array_equal(itk.origin(image), itk.origin(image_round))
-    assert np.array_equal(itk.spacing(image), itk.spacing(image_round))
-    assert np.array_equal(itk.size(image), itk.size(image_round))
-    assert np.array_equal(
-        itk.array_view_from_image(image), itk.array_view_from_image(image_round)
-    )
+    assert_images_equal(image, image_round)
+
+    for components in [2, 3, 4, 5, 10]:
+        for size in [(12, 8, components), (4, 6, 8, components)]:  # 2D and 3D
+            numpy_image = np.random.rand(*size).astype(np.float32)
+            input_image = itk.image_from_array(numpy_image, is_vector=True)
+            # test itk -> vtk -> itk round trip
+            vtk_image = itk.vtk_image_from_image(input_image)
+            itk_image = itk.image_from_vtk_image(vtk_image)
+            assert_images_equal(input_image, itk_image)
+
 except ImportError:
     print("vtk not imported. Skipping vtk conversion tests")
     pass

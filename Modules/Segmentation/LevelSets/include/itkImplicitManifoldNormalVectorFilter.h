@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ namespace itk
  * \par IMPORTANT
  * The TSparseOutputImage template parameter must be a sparse image templated
  * over a NodeType which at least has the following members: m_Data,
- * m_InputData, m_Update and m_MAnifoldNormal.
+ * m_InputData, m_Update and m_ManifoldNormal.
  * Depending on the Function object being used it might need other
  * members. For instance, NormalVectorDiffusionFunction will also require that
  * the NodeType has the following additional members: m_Flux.
@@ -83,8 +83,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ImplicitManifoldNormalVectorFilter, FiniteDifferenceSparseImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImplicitManifoldNormalVectorFilter);
 
   /** Standard New macro. */
   itkNewMacro(Self);
@@ -93,15 +93,15 @@ public:
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Typedefs from the superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::IndexType;
   using NormalVectorType = typename Superclass::NodeDataType;
-  using NodeValueType = typename Superclass::NodeValueType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::NodeValueType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
-  using SparseOutputImageType = typename Superclass::SparseOutputImageType;
+  using typename Superclass::SparseOutputImageType;
   using NormalBandNodeType = typename Superclass::OutputNodeType;
-  using NodeListType = typename Superclass::NodeListType;
+  using typename Superclass::NodeListType;
 
   /** The iterator for the input image. */
   using InputImageIteratorType = ConstNeighborhoodIterator<InputImageType>;
@@ -164,10 +164,8 @@ protected:
     {
       return true;
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
 protected:
@@ -186,31 +184,31 @@ protected:
 
 private:
   /** The finite difference function. */
-  NormalFunctionType * m_NormalFunction;
+  NormalFunctionType * m_NormalFunction{};
 
   /** The number of iterations this filter will execute. */
-  unsigned int m_MaxIteration;
+  unsigned int m_MaxIteration{};
 
   /** The upper and lower limits of the band of the scalar image on which we
       operate. */
-  NodeValueType m_IsoLevelLow, m_IsoLevelHigh;
+  NodeValueType m_IsoLevelLow, m_IsoLevelHigh{};
 
   /** The minimum length a vector is allowed to have to avoid divide by zero. */
-  NodeValueType m_MinVectorNorm;
+  NodeValueType m_MinVectorNorm{};
 
   /** The ON/OFF switch for unsharp masking. Default is OFF. */
-  bool m_UnsharpMaskingFlag;
+  bool m_UnsharpMaskingFlag{};
 
   /** The weight determining the extent of enhancement if unsharp masking is
       turned on. */
-  NodeValueType m_UnsharpMaskingWeight;
+  NodeValueType m_UnsharpMaskingWeight{};
 
   /** Constants used in computations. */
-  unsigned long m_Indicator[Self::ImageDimension];
-  unsigned int  m_NumVertex;
-  NodeValueType m_DimConst;
-  NodeValueType m_DimConst2;
-  RadiusType    m_ManifoldRadius;
+  unsigned long m_Indicator[Self::ImageDimension]{};
+  unsigned int  m_NumVertex{};
+  NodeValueType m_DimConst{};
+  NodeValueType m_DimConst2{};
+  RadiusType    m_ManifoldRadius{};
 };
 } // end namespace itk
 

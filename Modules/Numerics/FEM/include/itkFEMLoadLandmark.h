@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,7 @@
 
 #include "vnl/vnl_vector.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class LoadLandmark
@@ -48,12 +46,12 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoadLandmark, LoadElement);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoadLandmark);
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
   /**
@@ -133,7 +131,7 @@ public:
     {
       m_Force.set_size(force.size());
     }
-    for (unsigned int i = 0; i < force.size(); i++)
+    for (unsigned int i = 0; i < force.size(); ++i)
     {
       m_Force[i] = force[i];
     }
@@ -149,7 +147,7 @@ public:
     {
       m_Source.set_size(source.size());
     }
-    for (unsigned int i = 0; i < source.size(); i++)
+    for (unsigned int i = 0; i < source.size(); ++i)
     {
       m_Source[i] = source[i];
     }
@@ -179,7 +177,7 @@ public:
     {
       m_Target.set_size(target.size());
     }
-    for (unsigned int i = 0; i < target.size(); i++)
+    for (unsigned int i = 0; i < target.size(); ++i)
     {
       m_Target[i] = target[i];
     }
@@ -188,7 +186,7 @@ public:
   void
   ScalePointAndForce(double * spacing, double fwt)
   {
-    for (unsigned int i = 0; i < m_Target.size(); i++)
+    for (unsigned int i = 0; i < m_Target.size(); ++i)
     {
       m_Target[i] /= spacing[i];
       m_Source[i] /= spacing[i];
@@ -258,16 +256,16 @@ protected:
   /**
    * Point in __local coordinates__ in the undeformed configuration
    */
-  vnl_vector<Float> m_Point;
+  vnl_vector<Float> m_Point{};
 
   /**
    * Point in __global coordinates__ in the deformed configuration
    */
-  vnl_vector<Float> m_Target;
+  vnl_vector<Float> m_Target{};
 
-  vnl_vector<Float> m_Source;
+  vnl_vector<Float> m_Source{};
 
-  vnl_vector<Float> m_Force;
+  vnl_vector<Float> m_Force{};
 
   /**
    * Pointer to the element which contains the undeformed
@@ -281,7 +279,7 @@ protected:
   Solution::ConstPointer m_Solution{ nullptr };
 };
 
-} // namespace fem
-} // namespace itk
+} // namespace itk::fem
+
 
 #endif // itkFEMLoadLandmark_h

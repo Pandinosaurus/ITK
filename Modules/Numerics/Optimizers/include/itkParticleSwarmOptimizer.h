@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +26,7 @@ namespace itk
 /** \class ParticleSwarmOptimizer
  * \brief Implementation of a Particle Swarm Optimization (PSO) algorithm.
  *
- * The PSO algorithm was originally presented in:<br>
- * J. Kennedy, R. Eberhart, "Particle Swarm Optimization",
- * Proc. IEEE Int. Neural Networks, 1995.<br>
+ * The PSO algorithm was originally presented in \cite kennedy1995.
  *
  * The algorithm uses a stochastic optimization approach. Optimization
  * is performed by maintaining a swarm (flock) of
@@ -71,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ParticleSwarmOptimizer, ParticleSwarmOptimizerBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ParticleSwarmOptimizer);
 
   /** The Particle swarm optimizer uses the following update formula:
    * v_i(t+1) = w*v_i(t) +
@@ -86,13 +84,14 @@ public:
    * p_i - parameters yielding the best function value obtained by this particle
    * p_g - parameters yielding the best function value obtained by all particles
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InertiaCoefficient, double);
   itkGetMacro(InertiaCoefficient, double);
   itkSetMacro(PersonalCoefficient, double);
   itkGetMacro(PersonalCoefficient, double);
   itkSetMacro(GlobalCoefficient, double);
   itkGetMacro(GlobalCoefficient, double);
-
+  /** @ITKEndGrouping */
 protected:
   ParticleSwarmOptimizer();
   ~ParticleSwarmOptimizer() override;
@@ -102,9 +101,9 @@ protected:
   UpdateSwarm() override;
 
 private:
-  ParametersType::ValueType m_InertiaCoefficient;
-  ParametersType::ValueType m_PersonalCoefficient;
-  ParametersType::ValueType m_GlobalCoefficient;
+  ParametersType::ValueType m_InertiaCoefficient{};
+  ParametersType::ValueType m_PersonalCoefficient{};
+  ParametersType::ValueType m_GlobalCoefficient{};
 };
 
 } // end namespace itk

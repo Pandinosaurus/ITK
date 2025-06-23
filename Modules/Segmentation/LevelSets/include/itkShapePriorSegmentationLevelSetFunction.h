@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ namespace itk
  * shape model.
  *
  * This class extends the basic LevelSetFunction with a shape prior term
- * as developed in [1].
+ * as developed in \cite leventon2000.
  *
  * \f$ \zeta( \phi^{*} - \phi) \f$
  *
@@ -43,10 +43,6 @@ namespace itk
  * \sa LevelSetFunction
  * \sa SegmentationLevelSetImageFunction
  * \sa ShapeSignedDistanceFunction
- *
- * \par REFERENCES
- * \par
- * [1] Leventon, M.E. et al. "Statistical Shape Influence in Geodesic Active Contours", CVPR 2000.
  *
  * \ingroup FiniteDifferenceFunctions
  * \ingroup ITKLevelSets
@@ -68,21 +64,21 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ShapePriorSegmentationLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapePriorSegmentationLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using VectorImageType = typename Superclass::VectorImageType;
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using IndexType = typename Superclass::IndexType;
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ImageType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::VectorImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::IndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -92,6 +88,7 @@ public:
   using ShapeFunctionPointer = typename ShapeFunctionType::ConstPointer;
 
   /** Zeta. The ShapePriorWeight scales the shape prior term values. */
+  /** @ITKStartGrouping */
   void
   SetShapePriorWeight(const ScalarValueType p)
   {
@@ -102,9 +99,10 @@ public:
   {
     return m_ShapePriorWeight;
   }
-
+  /** @ITKEndGrouping */
   /** The ShapeFunction encapsulates the signed distance to the shape used to
    * influence the evolution of the level set. */
+  /** @ITKStartGrouping */
   void
   SetShapeFunction(const ShapeFunctionType * ptr)
   {
@@ -115,7 +113,7 @@ public:
   {
     return m_ShapeFunction;
   }
-
+  /** @ITKEndGrouping */
   /** Compute the equation value with the additional shape prior term. */
   PixelType
   ComputeUpdate(const NeighborhoodType & neighborhood,
@@ -128,22 +126,21 @@ public:
 
   /** A global data type used to store values needed to compute the time step.
    */
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
-  struct ShapePriorGlobalDataStruct : public GlobalDataStruct
+  struct ShapePriorGlobalDataStruct : public Superclass::GlobalDataStruct
   {
     ScalarValueType m_MaxShapePriorChange;
   };
 
   /** Returns a pointer to a global data structure for computing time step. */
-  void *
+  [[nodiscard]] void *
   GetGlobalDataPointer() const override
   {
     auto * ans = new ShapePriorGlobalDataStruct();
 
-    ans->m_MaxAdvectionChange = NumericTraits<ScalarValueType>::ZeroValue();
-    ans->m_MaxPropagationChange = NumericTraits<ScalarValueType>::ZeroValue();
-    ans->m_MaxCurvatureChange = NumericTraits<ScalarValueType>::ZeroValue();
-    ans->m_MaxShapePriorChange = NumericTraits<ScalarValueType>::ZeroValue();
+    ans->m_MaxAdvectionChange = ScalarValueType{};
+    ans->m_MaxPropagationChange = ScalarValueType{};
+    ans->m_MaxCurvatureChange = ScalarValueType{};
+    ans->m_MaxShapePriorChange = ScalarValueType{};
     return ans;
   }
 
@@ -162,8 +159,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ShapeFunctionPointer m_ShapeFunction;
-  ScalarValueType      m_ShapePriorWeight;
+  ShapeFunctionPointer m_ShapeFunction{};
+  ScalarValueType      m_ShapePriorWeight{};
 };
 } // end namespace itk
 

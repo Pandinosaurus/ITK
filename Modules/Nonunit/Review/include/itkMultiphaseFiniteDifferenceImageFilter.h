@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -125,32 +125,13 @@ namespace itk
  * (or ThreadedHalt) method returns a true value to stop iteration.
  *
  *
- * Based on the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * Based on the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
- *
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ImageFilter
  * \ingroup LevelSetSegmentation
@@ -173,8 +154,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MultiphaseFiniteDifferenceImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiphaseFiniteDifferenceImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -183,7 +164,11 @@ public:
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
   using InputPointType = typename InputImageType::PointType;
-  using InputCoordRepType = typename InputPointType::CoordRepType;
+  using InputCoordinateType = typename InputPointType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using InputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `InputCoordRepType`. Please use `InputCoordinateType` instead!") = InputCoordinateType;
+#endif
   using InputIndexType = typename InputImageType::IndexType;
   using InputIndexValueType = typename InputIndexType::IndexValueType;
   using InputSizeType = typename InputImageType::SizeType;
@@ -352,10 +337,9 @@ public:
 
     m_DifferenceFunctions.resize(m_FunctionCount, nullptr);
 
-    RadiusType radius;
-    radius.Fill(1);
+    constexpr auto radius = MakeFilled<RadiusType>(1);
 
-    for (unsigned int i = 0; i < this->m_FunctionCount; i++)
+    for (unsigned int i = 0; i < this->m_FunctionCount; ++i)
     {
       this->m_DifferenceFunctions[i] = FiniteDifferenceFunctionType::New();
       this->m_DifferenceFunctions[i]->Initialize(radius);
@@ -383,37 +367,35 @@ public:
 
 protected:
   MultiphaseFiniteDifferenceImageFilter()
+    : m_FunctionCount(0)
+    , m_KdTree(nullptr)
+    , m_MaximumRMSError(itk::Math::eps)
+    , m_RMSChange(NumericTraits<double>::max())
+    , m_NumberOfIterations(NumericTraits<unsigned int>::max())
+    , m_UseImageSpacing(true)
+
   {
-    this->m_KdTree = nullptr;
-    this->m_ElapsedIterations = 0;
-    this->m_MaximumRMSError = itk::Math::eps;
-    this->m_RMSChange = NumericTraits<double>::max();
-    this->m_UseImageSpacing = true;
-    this->m_ManualReinitialization = false;
-    this->m_InitializedState = false;
-    this->m_NumberOfIterations = NumericTraits<unsigned int>::max();
-    this->m_FunctionCount = 0;
     this->InPlaceOff();
   }
 
   ~MultiphaseFiniteDifferenceImageFilter() override = default;
 
-  IdCellType                     m_FunctionCount;
-  std::vector<InputImagePointer> m_LevelSet;
-  VectorIdCellType               m_Lookup;
-  KdTreePointer                  m_KdTree;
+  IdCellType                     m_FunctionCount{};
+  std::vector<InputImagePointer> m_LevelSet{};
+  VectorIdCellType               m_Lookup{};
+  KdTreePointer                  m_KdTree{};
 
-  unsigned int m_ElapsedIterations;
-  double       m_MaximumRMSError;
-  double       m_RMSChange;
-  unsigned int m_NumberOfIterations;
+  unsigned int m_ElapsedIterations{};
+  double       m_MaximumRMSError{};
+  double       m_RMSChange{};
+  unsigned int m_NumberOfIterations{};
 
   /** The function that will be used in calculating updates for each pixel. */
-  std::vector<FiniteDifferenceFunctionPointer> m_DifferenceFunctions;
+  std::vector<FiniteDifferenceFunctionPointer> m_DifferenceFunctions{};
 
   /** Control whether derivatives use spacing of the input image in its
    * calculation. */
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -500,7 +482,7 @@ protected:
   virtual void
   InitializeIteration()
   {
-    for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+    for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
     {
       this->m_DifferenceFunctions[i]->InitializeIteration();
     }
@@ -515,11 +497,12 @@ protected:
    * \param timeStepList The set of time changes compiled from all the threaded
    *        calls to ThreadedGenerateData.
    *
-   * \param valid The set of flags indicating which of "list" elements are valid
+   * \param valid The set of flags indicating which of "timeStepList" elements are
+   *  valid. Although they are uint8_t, they should be treated like booleans.
    *
    * The default is to return the minimum value in the list. */
   inline TimeStepType
-  ResolveTimeStep(const TimeStepVectorType & timeStepList, const std::vector<bool> & valid);
+  ResolveTimeStep(const TimeStepVectorType & timeStepList, const std::vector<uint8_t> & valid);
 
   /** This method is called after the solution has been generated to allow
    * subclasses to apply some further processing to the output. */
@@ -530,10 +513,10 @@ protected:
 private:
   /** Indicates whether the filter automatically resets to UNINITIALIZED state
       after completing, or whether filter must be manually reset */
-  bool m_ManualReinitialization;
+  bool m_ManualReinitialization{};
 
   /** State that the filter is in, i.e. UNINITIALIZED or INITIALIZED */
-  bool m_InitializedState;
+  bool m_InitializedState{};
 };
 } // end namespace itk
 

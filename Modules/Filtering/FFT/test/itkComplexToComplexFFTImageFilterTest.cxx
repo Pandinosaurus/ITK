@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@
  * official view of NCRR or NIH.
  *
  * Contributed to the Insight Journal paper:
- * http://insight-journal.org/midas/handle.php?handle=1926/326
+ * https://doi.org/10.54294/h4j7t7
  *
  */
 
@@ -51,42 +51,39 @@ transformImage(const char * inputImageFileName, const char * outputImageFileName
   using ComplexImageType = itk::Image<ComplexPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<RealImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputImageFileName);
 
   using ForwardFilterType = itk::ForwardFFTImageFilter<RealImageType, ComplexImageType>;
-  typename ForwardFilterType::Pointer forwardFilter = ForwardFilterType::New();
+  auto forwardFilter = ForwardFilterType::New();
   forwardFilter->SetInput(reader->GetOutput());
 
   using ComplexFilterType = itk::ComplexToComplexFFTImageFilter<ComplexImageType>;
-  typename ComplexFilterType::Pointer inverseComplexFilter = ComplexFilterType::New();
+  auto inverseComplexFilter = ComplexFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(inverseComplexFilter, ComplexToComplexFFTImageFilter, ImageToImageFilter);
+
+
   inverseComplexFilter->SetInput(forwardFilter->GetOutput());
   inverseComplexFilter->SetTransformDirection(ComplexFilterType::TransformDirectionEnum::INVERSE);
 
-  typename ComplexFilterType::Pointer forwardComplexFilter = ComplexFilterType::New();
+  auto forwardComplexFilter = ComplexFilterType::New();
   forwardComplexFilter->SetInput(inverseComplexFilter->GetOutput());
   forwardComplexFilter->SetTransformDirection(ComplexFilterType::TransformDirectionEnum::FORWARD);
   // This tests the CanUseDestructiveAlgorithm state with the FFTW version.
   forwardComplexFilter->ReleaseDataFlagOn();
 
   using InverseFilterType = itk::InverseFFTImageFilter<ComplexImageType, RealImageType>;
-  typename InverseFilterType::Pointer inverseFilter = InverseFilterType::New();
+  auto inverseFilter = InverseFilterType::New();
   inverseFilter->SetInput(forwardComplexFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<RealImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputImageFileName);
   writer->SetInput(inverseFilter->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & error)
-  {
-    std::cerr << error << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }
@@ -96,7 +93,8 @@ itkComplexToComplexFFTImageFilterTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <InputImage> <OutputImage> <float|double>"
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage <float|double>"
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -104,7 +102,17 @@ itkComplexToComplexFFTImageFilterTest(int argc, char * argv[])
   const char *      outputImageFileName = argv[2];
   const std::string pixelTypeString(argv[3]);
 
-  itk::ImageIOBase::Pointer imageIO =
+  // Test streaming enumeration for ComplexToComplexFFTImageFilterEnums::TransformDirection elements
+  const std::set<itk::ComplexToComplexFFTImageFilterEnums::TransformDirection> allTransformDirection{
+    itk::ComplexToComplexFFTImageFilterEnums::TransformDirection::FORWARD,
+    itk::ComplexToComplexFFTImageFilterEnums::TransformDirection::INVERSE
+  };
+  for (const auto & ee : allTransformDirection)
+  {
+    std::cout << "STREAMED ENUM VALUE ComplexToComplexFFTImageFilterEnums::TransformDirection: " << ee << std::endl;
+  }
+
+  const itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(inputImageFileName, itk::ImageIOFactory::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(inputImageFileName);
   imageIO->ReadImageInformation();
@@ -122,7 +130,6 @@ itkComplexToComplexFFTImageFilterTest(int argc, char * argv[])
         std::cerr << "Unknown image dimension." << std::endl;
         return EXIT_FAILURE;
     }
-    return EXIT_SUCCESS;
   }
   else if (pixelTypeString.compare("double") == 0)
   {
@@ -136,23 +143,10 @@ itkComplexToComplexFFTImageFilterTest(int argc, char * argv[])
         std::cerr << "Unknown image dimension." << std::endl;
         return EXIT_FAILURE;
     }
-    return EXIT_SUCCESS;
   }
   else
   {
     std::cerr << "Unknown pixel type string." << std::endl;
     return EXIT_FAILURE;
   }
-
-  // Test streaming enumeration for ComplexToComplexFFTImageFilterEnums::TransformDirection elements
-  const std::set<itk::ComplexToComplexFFTImageFilterEnums::TransformDirection> allTransformDirection{
-    itk::ComplexToComplexFFTImageFilterEnums::TransformDirection::FORWARD,
-    itk::ComplexToComplexFFTImageFilterEnums::TransformDirection::INVERSE
-  };
-  for (const auto & ee : allTransformDirection)
-  {
-    std::cout << "STREAMED ENUM VALUE ComplexToComplexFFTImageFilterEnums::TransformDirection: " << ee << std::endl;
-  }
-
-  return EXIT_FAILURE;
 }

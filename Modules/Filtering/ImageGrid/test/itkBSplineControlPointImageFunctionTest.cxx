@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ itkBSplineControlPointImageFunctionTest(int, char *[])
   using VectorType = itk::Vector<RealType, DataDimension>;
   using VectorImageType = itk::Image<VectorType, ParametricDimension>;
 
-  VectorImageType::Pointer phiLattice = VectorImageType::New();
+  auto phiLattice = VectorImageType::New();
 
   VectorImageType::SizeType    size;
   VectorImageType::SpacingType spacing;
@@ -46,7 +46,7 @@ itkBSplineControlPointImageFunctionTest(int, char *[])
   phiLattice->SetSpacing(spacing);
   phiLattice->SetRegions(size);
   phiLattice->Allocate();
-  phiLattice->FillBuffer(VectorType(0.0));
+  phiLattice->FillBuffer(VectorType{});
 
   // To create the specified function, the first and last control points have
   // a value of 1.0;
@@ -61,7 +61,7 @@ itkBSplineControlPointImageFunctionTest(int, char *[])
   phiLattice->SetPixel(index, value);
 
   using BSplinerType = itk::BSplineControlPointImageFunction<VectorImageType>;
-  BSplinerType::Pointer bspliner = BSplinerType::New();
+  auto bspliner = BSplinerType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(bspliner, BSplineControlPointImageFunction, ImageFunction);
 
@@ -79,7 +79,7 @@ itkBSplineControlPointImageFunctionTest(int, char *[])
   bspliner->SetSize(size);
   ITK_TEST_SET_GET_VALUE(size, bspliner->GetSize());
 
-  unsigned int bSplineOrderValue = 3;
+  constexpr unsigned int bSplineOrderValue = 3;
   bspliner->SetSplineOrder(bSplineOrderValue);
   for (auto i : bspliner->GetSplineOrder())
   {
@@ -92,18 +92,16 @@ itkBSplineControlPointImageFunctionTest(int, char *[])
     }
   }
 
-  BSplinerType::ArrayType bSplineOrder;
-  bSplineOrder.Fill(bSplineOrderValue);
+  auto bSplineOrder = itk::MakeFilled<BSplinerType::ArrayType>(bSplineOrderValue);
   bspliner->SetSplineOrder(bSplineOrder);
   ITK_TEST_SET_GET_VALUE(bSplineOrder, bspliner->GetSplineOrder());
 
-  BSplinerType::ArrayType::ValueType closeDimensionValue = 0;
-  BSplinerType::ArrayType            closeDimension;
-  closeDimension.Fill(closeDimensionValue);
+  constexpr BSplinerType::ArrayType::ValueType closeDimensionValue = 0;
+  auto closeDimension = itk::MakeFilled<BSplinerType::ArrayType>(closeDimensionValue);
   bspliner->SetCloseDimension(closeDimension);
   ITK_TEST_SET_GET_VALUE(closeDimension, bspliner->GetCloseDimension());
 
-  BSplinerType::RealType bSplineEpsilon = 1e-3;
+  constexpr BSplinerType::RealType bSplineEpsilon = 1e-3;
   bspliner->SetBSplineEpsilon(bSplineEpsilon);
   ITK_TEST_SET_GET_VALUE(bSplineEpsilon, bspliner->GetBSplineEpsilon());
 

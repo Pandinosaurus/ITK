@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,15 +45,14 @@ itkVotingBinaryImageFilterTestImp(const std::string & infname,
 
   using FilterType = itk::VotingBinaryImageFilter<InputImageType, OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(infname);
 
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(reader->GetOutput());
 
-  typename FilterType::InputSizeType R;
-  R.Fill(itk::Math::CastWithRangeCheck<itk::SizeValueType>(radius));
+  auto R = FilterType::InputSizeType::Filled(itk::Math::CastWithRangeCheck<itk::SizeValueType>(radius));
   filter->SetRadius(R);
 
   filter->SetForegroundValue(itk::Math::CastWithRangeCheck<InputPixelType>(foregroundValue));
@@ -67,7 +66,7 @@ itkVotingBinaryImageFilterTestImp(const std::string & infname,
   ITK_TEST_SET_GET_VALUE(birthThreshold, filter->GetBirthThreshold());
   ITK_TEST_SET_GET_VALUE(survivalThreshold, filter->GetSurvivalThreshold());
 
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(outfname);
   writer->SetNumberOfStreamDivisions(5);
@@ -100,12 +99,12 @@ itkVotingBinaryImageFilterTest(int argc, char * argv[])
   const long         backgroundValue = atol(argv[5]);
 
 
-  itk::ImageIOBase::Pointer iobase =
+  const itk::ImageIOBase::Pointer iobase =
     itk::ImageIOFactory::CreateImageIO(infname.c_str(), itk::ImageIOFactory::IOFileModeEnum::ReadMode);
 
   if (iobase.IsNull())
   {
-    itkGenericExceptionMacro("Unable to determine ImageIO reader for \"" << infname << "\"");
+    itkGenericExceptionMacro("Unable to determine ImageIO reader for \"" << infname << '"');
   }
 
 
@@ -116,7 +115,7 @@ itkVotingBinaryImageFilterTest(int argc, char * argv[])
   using TestImageType = itk::Image<short, 3>;
   using FilterType = itk::VotingBinaryImageFilter<TestImageType, TestImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, VotingBinaryImageFilter, ImageToImageFilter);
 
   switch (componentType)
@@ -159,6 +158,6 @@ itkVotingBinaryImageFilterTest(int argc, char * argv[])
       itkGenericExceptionMacro("Input image is a real, long, long long, or an unknown component type");
   }
 
-  std::cerr << "Unexcpected program flow!" << std::endl;
+  std::cerr << "Unexpected program flow!" << std::endl;
   return EXIT_FAILURE;
 }

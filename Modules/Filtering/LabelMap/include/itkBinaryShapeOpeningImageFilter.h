@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class BinaryShapeOpeningImageFilter
+ * \class BinaryShapeOpeningImageFilter
  * \brief Remove objects based on the value of their shape attribute.
  *
  * The BinaryShapeOpeningImageFilter removes the objects in a binary image
@@ -35,7 +35,7 @@ namespace itk
  * The attributes are those of the ShapeLabelObject.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -86,8 +86,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(BinaryShapeOpeningImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryShapeOpeningImageFilter);
 
   /**
    * Set/Get whether the connected components are defined strictly by
@@ -95,52 +95,54 @@ public:
    * Default is FullyConnectedOff.
    * For objects that are 1 pixel wide, use FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputImagePixelType>));
-  // End concept checking
-#endif
 
   /**
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ForegroundValue, OutputImagePixelType);
   itkGetConstMacro(ForegroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the threshold used to keep or remove the objects.
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Lambda, double);
   itkSetMacro(Lambda, double);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the ordering of the objects. By default, the objects with
    * an attribute value smaller than Lamba are removed. Turning ReverseOrdering
    * to true make this filter remove objects with an attribute value greater
    * than Lambda instead.
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(ReverseOrdering, bool);
   itkSetMacro(ReverseOrdering, bool);
   itkBooleanMacro(ReverseOrdering);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the attribute to use to select the object to remove.
    * Default is "Size".
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Attribute, AttributeType);
   itkSetMacro(Attribute, AttributeType);
   void
@@ -148,7 +150,7 @@ public:
   {
     this->SetAttribute(LabelObjectType::GetAttributeFromName(s));
   }
-
+  /** @ITKEndGrouping */
 protected:
   BinaryShapeOpeningImageFilter();
   ~BinaryShapeOpeningImageFilter() override = default;
@@ -170,12 +172,12 @@ protected:
   GenerateData() override;
 
 private:
-  bool                 m_FullyConnected;
-  OutputImagePixelType m_BackgroundValue;
-  OutputImagePixelType m_ForegroundValue;
-  double               m_Lambda;
-  bool                 m_ReverseOrdering;
-  AttributeType        m_Attribute;
+  bool                 m_FullyConnected{};
+  OutputImagePixelType m_BackgroundValue{};
+  OutputImagePixelType m_ForegroundValue{};
+  double               m_Lambda{};
+  bool                 m_ReverseOrdering{};
+  AttributeType        m_Attribute{};
 }; // end of class
 } // end namespace itk
 

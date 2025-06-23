@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkWienerDeconvolutionImageFilter_hxx
 #define itkWienerDeconvolutionImageFilter_hxx
 
-#include "itkWienerDeconvolutionImageFilter.h"
 
 #include "itkBinaryGeneratorImageFilter.h"
 
@@ -27,10 +26,7 @@ namespace itk
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 WienerDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>::
-  WienerDeconvolutionImageFilter()
-{
-  m_NoiseVariance = 0.0;
-}
+  WienerDeconvolutionImageFilter() = default;
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 void
@@ -38,10 +34,10 @@ WienerDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInterna
 {
   // Create a process accumulator for tracking the progress of this
   // minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
-  typename InputImageType::Pointer localInput = InputImageType::New();
+  auto localInput = InputImageType::New();
   localInput->Graft(this->GetInput());
 
   const KernelImageType * kernelImage = this->GetKernelImage();
@@ -58,7 +54,7 @@ WienerDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInterna
 
   using WienerFilterType =
     BinaryGeneratorImageFilter<InternalComplexImageType, InternalComplexImageType, InternalComplexImageType>;
-  typename WienerFilterType::Pointer wienerFilter = WienerFilterType::New();
+  auto wienerFilter = WienerFilterType::New();
   wienerFilter->SetInput(0, input);
   wienerFilter->SetInput(1, kernel);
   wienerFilter->SetFunctor(wienerFunctor);

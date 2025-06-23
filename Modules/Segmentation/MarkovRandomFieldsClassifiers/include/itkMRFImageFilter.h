@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@
 
 namespace itk
 {
-/**\class MRFImageFilterEnums
+/** \class MRFImageFilterEnums
  * \brief Contains all enum classes in MRFImageFilter class;
  * \ingroup ITKMarkovRandomFieldsClassifiers
  */
@@ -55,8 +55,8 @@ public:
 extern ITKMarkovRandomFieldsClassifiers_EXPORT std::ostream &
                                                operator<<(std::ostream & out, const MRFImageFilterEnums::MRFStop value);
 /**
- *\class MRFImageFilter
- * \brief Implementation of a labeller object that uses Markov Random Fields
+ * \class MRFImageFilter
+ * \brief Implementation of a labeler object that uses Markov Random Fields
  * to classify pixels in an image data set.
  *
  * This object classifies pixels based on a Markov Random Field (MRF)
@@ -68,7 +68,7 @@ extern ITKMarkovRandomFieldsClassifiers_EXPORT std::ostream &
  * on a MRF model) and finally, classifies each pixel to the class
  * which has the minimum distance to that pixel (taking the neighborhood
  * influence under consideration). DoNeighborhoodOperation is the function
- * that can be modified to achieve different falvors of MRF filters in
+ * that can be modified to achieve different flavors of MRF filters in
  * derived classes.
  *
  * The classified initial labeled image is needed. It is important
@@ -97,23 +97,23 @@ extern ITKMarkovRandomFieldsClassifiers_EXPORT std::ostream &
  * assigned a weight 1.5.  A weight of 1.3 is assigned to the influence of
  * the north, south, east, west, and diagonal pixels in the previous and next
  * slices.
- * \f[\begin{tabular}{ccc}
- *  \begin{tabular}{|c|c|c|}
+ * \f[\begin{array}{ccc}
+ *  \begin{array}{|c|c|c|}
  *   1.3 & 1.3 & 1.3 \\
  *   1.3 & 1.5 & 1.3 \\
  *   1.3 & 1.3 & 1.3 \\
- *  \end{tabular} &
- *  \begin{tabular}{|c|c|c|}
+ *  \end{array} &
+ *  \begin{array}{|c|c|c|}
  *   1.7 & 1.7 & 1.7 \\
  *   1.7 & 0 & 1.7 \\
  *   1.7 & 1.7 & 1.7 \\
- *  \end{tabular} &
- *  \begin{tabular}{|c|c|c|}
+ *  \end{array} &
+ *  \begin{array}{|c|c|c|}
  *   1.3 & 1.3 & 1.3 \\
  *   1.5 & 1.5 & 1.3 \\
  *   1.3 & 1.3 & 1.3 \\
- *  \end{tabular} \\
- * \end{tabular}\f]
+ *  \end{array} \\
+ * \end{array}\f]
  *
  * The user needs to set the neighborhood size using the SetNeighborhoodRadius
  * function. The details on the semantics of a neighborhood can be found
@@ -123,9 +123,8 @@ extern ITKMarkovRandomFieldsClassifiers_EXPORT std::ostream &
  *
  * For minimization of the MRF labeling function the MinimizeFunctional
  * virtual method is called. For our current implementation we use
- * the iterated conditional modes (ICM) algorithm described by Besag in the
- * paper "On the Statistical Analysis of Dirty Pictures" in J. Royal Stat.
- * Soc. B, Vol. 48, 1986.
+ * the iterated conditional modes (ICM) algorithm described in
+ * \cite besag1986.
  *
  * In each iteration, the algorithm visits each pixel in turn and
  * determines whether to update its classification by computing the influence
@@ -156,13 +155,13 @@ public:
   using Superclass = ImageToImageFilter<TInputImage, TClassifiedImage>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImagePointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MRFImageFilter, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MRFImageFilter);
 
   /** Type definition for the input image. */
   using InputImageType = TInputImage;
@@ -213,7 +212,7 @@ public:
   /** Labelled Image dimension */
   static constexpr unsigned int ClassifiedImageDimension = TClassifiedImage::ImageDimension;
 
-  /** Type definitions for classifier to be used for the MRF lavbelling. */
+  /** Type definitions for classifier to be used for the MRF labeling. */
   using ClassifierType = ImageClassifierBase<TInputImage, TClassifiedImage>;
 
   /** Size and value type alias support */
@@ -233,7 +232,7 @@ public:
 
   using InputImageFaceListIterator = typename InputImageFaceListType::iterator;
 
-  /** Labelled image neighborhood interator type alias */
+  /** Labeled image neighborhood iterator type alias */
   using LabelledImageNeighborhoodIterator = NeighborhoodIterator<TClassifiedImage>;
 
   using LabelledImageNeighborhoodRadiusType = typename LabelledImageNeighborhoodIterator::RadiusType;
@@ -244,36 +243,41 @@ public:
 
   using LabelledImageFaceListIterator = typename LabelledImageFaceListType::iterator;
 
-  /** Set the pointer to the classifer being used. */
+  /** Set the pointer to the classifier being used. */
   void
   SetClassifier(typename ClassifierType::Pointer ptrToClassifier);
 
   /** Set/Get the number of classes. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfClasses, unsigned int);
   itkGetConstMacro(NumberOfClasses, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of iteration of the Iterated Conditional Mode
    * (ICM) algorithm. A default value is set at 50 iterations. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumNumberOfIterations, unsigned int);
   itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the error tolerance level which is used as a threshold
    * to quit the iterations */
+  /** @ITKStartGrouping */
   itkSetMacro(ErrorTolerance, double);
   itkGetConstMacro(ErrorTolerance, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the degree of smoothing desired
    * */
+  /** @ITKStartGrouping */
   itkSetMacro(SmoothingFactor, double);
   itkGetConstMacro(SmoothingFactor, double);
-
-  /** Set the neighborhood radius */
+  /** @ITKEndGrouping */
+  /** Set the neighborhood radius. */
   void
   SetNeighborhoodRadius(const NeighborhoodRadiusType &);
 
-  /** Sets the radius for the neighborhood, calculates size from the
-   * radius, and allocates storage. */
-
+  /** Sets the radius for the neighborhood.
+   *
+   * Calculates size from the radius, and allocates storage.
+   */
   void
   SetNeighborhoodRadius(const SizeValueType);
 
@@ -323,8 +327,6 @@ public:
   /* Get macro for number of iterations */
   itkGetConstReferenceMacro(NumberOfIterations, unsigned int);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(UnsignedIntConvertibleToClassifiedCheck,
                   (Concept::Convertible<unsigned int, LabelledImagePixelType>));
   itkConceptMacro(ClassifiedConvertibleToUnsignedIntCheck,
@@ -332,8 +334,6 @@ public:
   itkConceptMacro(ClassifiedConvertibleToIntCheck, (Concept::Convertible<LabelledImagePixelType, int>));
   itkConceptMacro(IntConvertibleToClassifiedCheck, (Concept::Convertible<int, LabelledImagePixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ClassifiedImageDimension>));
-  // End concept checking
-#endif
 
 protected:
   MRFImageFilter();
@@ -346,13 +346,11 @@ protected:
   Allocate();
 
   /** Apply MRF Classifier. In this example the images are labelled using
-   * Iterated Conditional Mode algorithm by J. Besag, "On statistical
-   * analysis of dirty pictures," J. Royal Stat. Soc. B, vol. 48,
-   * pp. 259-302, 1986. */
+   * Iterated Conditional Mode algorithm \cite besag1986.*/
   virtual void
   ApplyMRFImageFilter();
 
-  /** Minimization algorithm to be used. */
+  /** Minimize the functional to be used. */
   virtual void
   MinimizeFunctional();
 
@@ -364,8 +362,8 @@ protected:
 
   /** Labelled status image neighborhood iterator type alias */
   using LabelStatusImageNeighborhoodIterator = NeighborhoodIterator<LabelStatusImageType>;
-  // Function implementing the neighborhood operation
 
+  /** Perform the MRF operation with each neighborhood. */
   virtual void
   DoNeighborhoodOperation(const InputImageNeighborhoodIterator & imageIter,
                           LabelledImageNeighborhoodIterator &    labelledIter,
@@ -394,13 +392,13 @@ private:
 
   using LabelStatusImageFaceListIterator = typename LabelStatusImageFaceListType::iterator;
 
-  InputImageNeighborhoodRadiusType       m_InputImageNeighborhoodRadius;
-  LabelledImageNeighborhoodRadiusType    m_LabelledImageNeighborhoodRadius;
-  LabelStatusImageNeighborhoodRadiusType m_LabelStatusImageNeighborhoodRadius;
+  InputImageNeighborhoodRadiusType       m_InputImageNeighborhoodRadius{};
+  LabelledImageNeighborhoodRadiusType    m_LabelledImageNeighborhoodRadius{};
+  LabelStatusImageNeighborhoodRadiusType m_LabelStatusImageNeighborhoodRadius{};
 
   unsigned int m_NumberOfClasses{ 0 };
   unsigned int m_MaximumNumberOfIterations{ 50 };
-  unsigned int m_KernelSize;
+  unsigned int m_KernelSize{};
 
   int          m_ErrorCounter{ 0 };
   int          m_NeighborhoodSize{ 27 };
@@ -408,19 +406,19 @@ private:
   int          m_TotalNumberOfPixelsInInputImage{ 1 };
   double       m_ErrorTolerance{ 0.2 };
   double       m_SmoothingFactor{ 1 };
-  double *     m_ClassProbability{ nullptr }; // Class liklihood
+  double *     m_ClassProbability{ nullptr }; // Class likelihood
   unsigned int m_NumberOfIterations{ 0 };
   MRFStopEnum  m_StopCondition{ MRFStopEnum::MaximumNumberOfIterations };
 
-  LabelStatusImagePointer m_LabelStatusImage;
+  LabelStatusImagePointer m_LabelStatusImage{};
 
-  std::vector<double> m_MRFNeighborhoodWeight;
-  std::vector<double> m_NeighborInfluence;
-  std::vector<double> m_MahalanobisDistance;
-  std::vector<double> m_DummyVector;
+  std::vector<double> m_MRFNeighborhoodWeight{};
+  std::vector<double> m_NeighborInfluence{};
+  std::vector<double> m_MahalanobisDistance{};
+  std::vector<double> m_DummyVector{};
 
   /** Pointer to the classifier to be used for the MRF labelling. */
-  typename ClassifierType::Pointer m_ClassifierPtr;
+  typename ClassifierType::Pointer m_ClassifierPtr{};
 
   /** Set/Get the weighting parameters (Beta Matrix). A default 3 x 3 x 3
    * matrix is provided. However, the user is allowed to override it
@@ -428,7 +426,7 @@ private:
   virtual void
   SetDefaultMRFNeighborhoodWeight();
 
-  // Function implementing the ICM algorithm to label the images
+  /** Apply the ICM algorithm to label the images. */
   void
   ApplyICMLabeller();
 }; // class MRFImageFilter

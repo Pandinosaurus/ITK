@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,15 @@
 #ifndef itkSpatialObjectPoint_hxx
 #define itkSpatialObjectPoint_hxx
 
-#include "itkSpatialObjectPoint.h"
 
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TPointDimension>
 SpatialObjectPoint<TPointDimension>::SpatialObjectPoint()
+  : m_Id(-1)
+  , m_SpatialObject(nullptr)
 {
-  m_Id = -1;
-
   m_PositionInObjectSpace.Fill(0);
 
   m_Color.SetRed(1.0); // red by default
@@ -36,19 +35,6 @@ SpatialObjectPoint<TPointDimension>::SpatialObjectPoint()
   m_Color.SetAlpha(1);
 
   m_ScalarDictionary.clear();
-
-  m_SpatialObject = nullptr;
-}
-
-/** Copy Constructor */
-template <unsigned int TPointDimension>
-SpatialObjectPoint<TPointDimension>::SpatialObjectPoint(const SpatialObjectPoint & other)
-{
-  this->SetId(other.GetId());
-  this->SetPositionInObjectSpace(other.GetPositionInObjectSpace());
-  this->SetColor(other.GetColor());
-  this->SetSpatialObject(other.GetSpatialObject());
-  this->SetTagScalarDictionary(other.GetTagScalarDictionary());
 }
 
 template <unsigned int TPointDimension>
@@ -57,25 +43,24 @@ SpatialObjectPoint<TPointDimension>::SetPositionInWorldSpace(const PointType & p
 {
   if (m_SpatialObject == nullptr)
   {
-    itkExceptionMacro(<< "The SpatialObject must be set prior to calling.");
+    itkExceptionMacro("The SpatialObject must be set prior to calling.");
   }
 
   m_PositionInObjectSpace = m_SpatialObject->GetObjectToWorldTransform()->GetInverseTransform()->TransformPoint(point);
 }
 
 template <unsigned int TPointDimension>
-typename SpatialObjectPoint<TPointDimension>::PointType
-SpatialObjectPoint<TPointDimension>::GetPositionInWorldSpace() const
+auto
+SpatialObjectPoint<TPointDimension>::GetPositionInWorldSpace() const -> PointType
 {
   if (m_SpatialObject == nullptr)
   {
-    itkExceptionMacro(<< "The SpatialObject must be set prior to calling.");
+    itkExceptionMacro("The SpatialObject must be set prior to calling.");
   }
 
   return m_SpatialObject->GetObjectToWorldTransform()->TransformPoint(m_PositionInObjectSpace);
 }
 
-/** Set the color of the point */
 template <unsigned int TPointDimension>
 void
 SpatialObjectPoint<TPointDimension>::SetColor(double r, double g, double b, double a)
@@ -84,21 +69,6 @@ SpatialObjectPoint<TPointDimension>::SetColor(double r, double g, double b, doub
   m_Color.SetGreen(g);
   m_Color.SetBlue(b);
   m_Color.SetAlpha(a);
-}
-
-template <unsigned int TPointDimension>
-typename SpatialObjectPoint<TPointDimension>::Self &
-SpatialObjectPoint<TPointDimension>::operator=(const SpatialObjectPoint & rhs)
-{
-  if (this != &rhs)
-  {
-    this->SetId(rhs.GetId());
-    this->SetPositionInObjectSpace(rhs.GetPositionInObjectSpace());
-    this->SetColor(rhs.GetColor());
-    this->SetTagScalarDictionary(rhs.GetTagScalarDictionary());
-    this->SetSpatialObject(rhs.GetSpatialObject());
-  }
-  return *this;
 }
 
 template <unsigned int TPointDimension>
@@ -118,10 +88,8 @@ SpatialObjectPoint<TPointDimension>::GetTagScalarValue(const std::string & tag, 
     value = iter->second;
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 template <unsigned int TPointDimension>
@@ -157,30 +125,23 @@ SpatialObjectPoint<TPointDimension>::SetTagScalarDictionary(const std::map<std::
   m_ScalarDictionary = dict;
 }
 
-/** PrintSelfMethod */
 template <unsigned int TPointDimension>
 void
 SpatialObjectPoint<TPointDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   os << indent << "Id: " << m_Id << std::endl;
-  os << indent << "RGBA: " << m_Color.GetRed() << " ";
-  os << m_Color.GetGreen() << " ";
-  os << m_Color.GetBlue() << " ";
-  os << m_Color.GetAlpha() << std::endl;
-  os << indent << "Position: ";
-  for (unsigned int i = 1; i < TPointDimension; i++)
-  {
-    os << m_PositionInObjectSpace[i - 1] << ",";
-  }
-  os << m_PositionInObjectSpace[TPointDimension - 1] << std::endl;
-  os << indent << "ScalarDictionary: " << std::endl;
+  os << indent
+     << "PositionInObjectSpace: " << static_cast<typename NumericTraits<PointType>::PrintType>(m_PositionInObjectSpace)
+     << std::endl;
+  os << indent << "Color: " << static_cast<typename NumericTraits<ColorType>::PrintType>(m_Color) << std::endl;
 
-  auto iter = m_ScalarDictionary.begin();
-  while (iter != m_ScalarDictionary.end())
+  os << indent << "ScalarDictionary: " << std::endl;
+  for (const auto & keyval : m_ScalarDictionary)
   {
-    os << indent << indent << iter->first << " = " << iter->second << std::endl;
-    ++iter;
+    os << indent.GetNextIndent() << keyval.first << ": " << keyval.second << std::endl;
   }
+
+  os << indent << "SpatialObject: " << m_SpatialObject << std::endl;
 }
 } // end namespace itk
 

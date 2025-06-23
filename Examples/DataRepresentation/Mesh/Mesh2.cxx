@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -142,7 +142,7 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   MeshType::PointType p0;
   MeshType::PointType p1;
@@ -294,8 +294,8 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  CellIterator cellIterator = mesh->GetCells()->Begin();
-  CellIterator end = mesh->GetCells()->End();
+  CellIterator       cellIterator = mesh->GetCells()->Begin();
+  const CellIterator end = mesh->GetCells()->End();
   // Software Guide : EndCodeSnippet
 
 

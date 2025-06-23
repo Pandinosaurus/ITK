@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,15 +20,17 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkRegionOfInterestImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkJPEG2000ImageIORegionOfInterest(int argc, char * argv[])
 {
-  // Verify the number of parameters in the command line
+
   if (argc < 7)
   {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImageFile  outputImageFile " << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputImageFile  outputImageFile " << std::endl;
     std::cerr << " startX startY sizeX sizeY " << std::endl;
     return EXIT_FAILURE;
   }
@@ -51,7 +53,7 @@ itkJPEG2000ImageIORegionOfInterest(int argc, char * argv[])
   //  the input and output image types. A filter object is created with the
   //  New() method and assigned to a \doxygen{SmartPointer}.
   using FilterType = itk::RegionOfInterestImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   //  The RegionOfInterestImageFilter requires a region to be
   //  defined by the user. The region is specified by an \doxygen{Index}
@@ -75,8 +77,8 @@ itkJPEG2000ImageIORegionOfInterest(int argc, char * argv[])
 
   filter->SetRegionOfInterest(desiredRegion);
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   const std::string inputFilename = argv[1];
   const std::string outputFilename = argv[2];
@@ -87,15 +89,8 @@ itkJPEG2000ImageIORegionOfInterest(int argc, char * argv[])
   filter->SetInput(reader->GetOutput());
   writer->SetInput(filter->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
+
   return EXIT_SUCCESS;
 }

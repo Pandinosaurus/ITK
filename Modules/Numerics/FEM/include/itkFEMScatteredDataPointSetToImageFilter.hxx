@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkFEMScatteredDataPointSetToImageFilter_hxx
 #define itkFEMScatteredDataPointSetToImageFilter_hxx
 
-#include "itkFEMScatteredDataPointSetToImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkImageDuplicator.h"
@@ -31,9 +30,7 @@
 #include "vnl/vnl_vector.h"
 #include <limits>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 template <typename TInputPointSet,
@@ -46,13 +43,13 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
                                       TOutputImage,
                                       TInputConfidencePointSet,
                                       TInputTensorPointSet>::FEMScatteredDataPointSetToImageFilter()
+  : m_FEMObject(FEMObjectType::New())
+  , m_FEMSolver(FEMSolverType::New())
 {
-  this->m_FEMObject = FEMObjectType::New();
+
   this->m_Material = MaterialType::New();
   this->m_Material->SetYoungsModulus(694.0);
   this->m_Material->SetPoissonsRatio(0.45);
-  this->m_FEMSolver = FEMSolverType::New();
-
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
 }
 
@@ -83,7 +80,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   typename ImageType::Pointer image = this->GetOutput();
   const SpacingType &         imageSpacing = image->GetSpacing();
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     this->m_PixelsPerElement[i] = elementSpacing[i] / imageSpacing[i];
   }
@@ -110,7 +107,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   itkDebugMacro("Direction: " << this->m_Direction);
 
   // error checking
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     if (this->m_Size[i] == 0)
     {
@@ -138,7 +135,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
   // set the interpolation grid of the FEMSolver
   // note that let the interpolation grid be same with the deformation field
-  // in order to accelarate the generation of the deformation field.
+  // in order to accelerate the generation of the deformation field.
   this->m_FEMSolver->SetOrigin(this->m_Origin);
   this->m_FEMSolver->SetSpacing(this->m_Spacing);
   RegionType region;
@@ -172,11 +169,11 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
     return;
   }
 
-  if (ImageDimension == 2)
+  if constexpr (ImageDimension == 2)
   {
     this->Generate2DQuadrilateralMesh();
   }
-  else if (ImageDimension == 3)
+  else if constexpr (ImageDimension == 3)
   {
     this->Generate3DHexahedralMesh();
   }
@@ -215,26 +212,26 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   typename ImageType::PointType pointCoordinate;
   int                           globalNumbering = 0;
 
-  for (float j = 0; j <= m_NumberOfElements[1]; j++)
+  for (float j = 0; j <= m_NumberOfElements[1]; ++j)
   {
     pointIndex[1] = j * m_PixelsPerElement[1];
-    for (float i = 0; i <= m_NumberOfElements[0]; i++)
+    for (float i = 0; i <= m_NumberOfElements[0]; ++i)
     {
       pointIndex[0] = i * m_PixelsPerElement[0];
       image->TransformContinuousIndexToPhysicalPoint(pointIndex, pointCoordinate);
 
       this->m_Mesh->SetPoint(globalNumbering, pointCoordinate);
 
-      globalNumbering++;
+      ++globalNumbering;
     }
   }
 
   // create elements
   globalNumbering = 0;
 
-  for (unsigned int j = 0; j < this->m_NumberOfElements[1]; j++)
+  for (unsigned int j = 0; j < this->m_NumberOfElements[1]; ++j)
   {
-    for (unsigned int i = 0; i < this->m_NumberOfElements[0]; i++)
+    for (unsigned int i = 0; i < this->m_NumberOfElements[0]; ++i)
     {
       CellAutoPointer cell;
       cell.TakeOwnership(new QuadrilateralType);
@@ -245,7 +242,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
       this->m_Mesh->SetCell(globalNumbering, cell);
 
-      globalNumbering++;
+      ++globalNumbering;
     }
   }
 }
@@ -281,30 +278,30 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   typename ImageType::PointType pointCoordinate;
 
   int globalNumbering = 0;
-  for (float k = 0; k <= m_NumberOfElements[2]; k++)
+  for (float k = 0; k <= m_NumberOfElements[2]; ++k)
   {
     pointIndex[2] = k * m_PixelsPerElement[2];
-    for (float j = 0; j <= m_NumberOfElements[1]; j++)
+    for (float j = 0; j <= m_NumberOfElements[1]; ++j)
     {
       pointIndex[1] = j * m_PixelsPerElement[1];
-      for (float i = 0; i <= m_NumberOfElements[0]; i++)
+      for (float i = 0; i <= m_NumberOfElements[0]; ++i)
       {
         pointIndex[0] = i * m_PixelsPerElement[0];
         image->TransformContinuousIndexToPhysicalPoint(pointIndex, pointCoordinate);
         this->m_Mesh->SetPoint(globalNumbering, pointCoordinate);
 
-        globalNumbering++;
+        ++globalNumbering;
       }
     }
   }
 
   // create elements
   globalNumbering = 0;
-  for (unsigned int k = 0; k < m_NumberOfElements[2]; k++)
+  for (unsigned int k = 0; k < m_NumberOfElements[2]; ++k)
   {
-    for (unsigned int j = 0; j < m_NumberOfElements[1]; j++)
+    for (unsigned int j = 0; j < m_NumberOfElements[1]; ++j)
     {
-      for (unsigned int i = 0; i < m_NumberOfElements[0]; i++)
+      for (unsigned int i = 0; i < m_NumberOfElements[0]; ++i)
       {
         CellAutoPointer cell;
         cell.TakeOwnership(new HexahedronType);
@@ -345,7 +342,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
         this->m_Mesh->SetCell(globalNumbering, cell);
 
-        globalNumbering++;
+        ++globalNumbering;
       }
     }
   }
@@ -426,12 +423,12 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   // initialize nodes
   while (it != meshPoints->End())
   {
-    for (unsigned i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       point[i] = it.Value()[i];
     }
 
-    NodeType::Pointer node = NodeType::New();
+    auto node = NodeType::New();
     node->SetCoordinates(point);
     node->SetGlobalNumber(it.Index());
 
@@ -476,7 +473,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
     {
       case itk::CellGeometryEnum::TRIANGLE_CELL:
       {
-        FEM2DTriangleType::Pointer triangleEle = FEM2DTriangleType::New();
+        auto triangleEle = FEM2DTriangleType::New();
 
         auto * triangleCell = static_cast<TriangleType *>(cell);
 
@@ -500,7 +497,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
       case itk::CellGeometryEnum::TETRAHEDRON_CELL:
       {
-        FEMTetrahedronType::Pointer tetrahedronEle = FEMTetrahedronType::New();
+        auto tetrahedronEle = FEMTetrahedronType::New();
 
         auto * tetrahedron = static_cast<TetrahedronType *>(cell);
 
@@ -525,7 +522,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
       case itk::CellGeometryEnum::QUADRILATERAL_CELL:
       {
-        FEM2DQuadrilateralType::Pointer quadrilateralEle = FEM2DQuadrilateralType::New();
+        auto quadrilateralEle = FEM2DQuadrilateralType::New();
 
         // use Cell and Ele to distinguish itk element and FEM element
         auto * quadrilateralCell = static_cast<QuadrilateralType *>(cell);
@@ -551,7 +548,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
       case itk::CellGeometryEnum::HEXAHEDRON_CELL:
       {
-        FEMHexahedronType::Pointer hexahedronEle = FEMHexahedronType::New();
+        auto hexahedronEle = FEMHexahedronType::New();
 
         auto * hexahedron = static_cast<HexahedronType *>(cell);
 
@@ -648,13 +645,13 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
   while (it != featurePoints->End())
   {
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       point[i] = it.Value()[i];
       displacement[i] = displacementIt.Value()[i];
     }
 
-    LoadType::Pointer load = LoadType::New();
+    auto load = LoadType::New();
 
     load->SetSource(point);
     load->SetRealDisplacement(displacement);
@@ -667,9 +664,9 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
     if (this->m_TensorPointSet.IsNotNull())
     {
-      for (unsigned int i = 0; i < ImageDimension; i++)
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
-        for (unsigned int j = 0; j < ImageDimension; j++)
+        for (unsigned int j = 0; j < ImageDimension; ++j)
         {
           tensor[i][j] = tensorIt.Value()[i][j];
         }
@@ -715,7 +712,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
     output->TransformIndexToPhysicalPoint(iter.GetIndex(), point);
-    for (unsigned int d = 0; d < ImageDimension; d++)
+    for (unsigned int d = 0; d < ImageDimension; ++d)
     {
       globalPoint[d] = point[d];
     }
@@ -724,7 +721,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
 
     if (element.IsNull())
     {
-      for (unsigned i = 0; i < ImageDimension; i++)
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
         displacement[i] = 0.0;
       }
@@ -755,7 +752,7 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
         simulatedDisplacement += shape[m] * nodeSolution;
       }
 
-      for (unsigned i = 0; i < ImageDimension; i++)
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
         displacement[i] = simulatedDisplacement[i];
       }
@@ -784,7 +781,6 @@ FEMScatteredDataPointSetToImageFilter<TInputPointSet,
   os << indent << "  Direction: " << this->m_Direction << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBinaryImageToLabelMapFilter_hxx
 #define itkBinaryImageToLabelMapFilter_hxx
 
-#include "itkBinaryImageToLabelMapFilter.h"
 #include "itkNumericTraits.h"
 #include "itkImageScanlineIterator.h"
 #include "itkConstShapedNeighborhoodIterator.h"
@@ -32,10 +31,9 @@ template <typename TInputImage, typename TOutputImage>
 BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::BinaryImageToLabelMapFilter()
   : ScanlineFilterCommon<TInputImage, TOutputImage>(this)
   , m_OutputBackgroundValue(NumericTraits<OutputPixelType>::NonpositiveMin())
-{
-  this->m_NumberOfObjects = 0;
-  this->m_InputForegroundValue = NumericTraits<InputPixelType>::max();
-}
+  , m_InputForegroundValue(NumericTraits<InputPixelType>::max())
+
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -45,7 +43,7 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::GenerateInputRequestedRe
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (!input)
   {
     return;
@@ -65,7 +63,7 @@ template <typename TInputImage, typename TOutputImage>
 void
 BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  // Call a method that can be overriden by a subclass to allocate
+  // Call a method that can be overridden by a subclass to allocate
   // memory for the filter's outputs
   this->AllocateOutputs();
   this->SetupLineOffsets(false);
@@ -93,7 +91,7 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::GenerateData()
     progress1.GetProcessObject());
 
   // compute the total number of labels
-  SizeValueType nbOfLabels = this->m_NumberOfLabels.load();
+  const SizeValueType nbOfLabels = this->m_NumberOfLabels.load();
 
   // insert all the labels into the structure -- an extra loop but
   // saves complicating the ones that come later
@@ -114,23 +112,23 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::GenerateData()
     progress3.GetProcessObject());
 
   // AfterThreadedGenerateData
-  typename TInputImage::ConstPointer input = this->GetInput();
+  const typename TInputImage::ConstPointer input = this->GetInput();
   m_NumberOfObjects = this->CreateConsecutive(m_OutputBackgroundValue);
   ProgressReporter progress(this, 0, linecount, 25, 0.75f, 0.25f);
   // check for overflow exception here
   if (m_NumberOfObjects > static_cast<SizeValueType>(NumericTraits<OutputPixelType>::max()))
   {
-    itkExceptionMacro(<< "Number of objects (" << m_NumberOfObjects << ") greater than maximum of output pixel type ("
-                      << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(
-                           NumericTraits<OutputPixelType>::max())
-                      << ").");
+    itkExceptionMacro("Number of objects (" << m_NumberOfObjects << ") greater than maximum of output pixel type ("
+                                            << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(
+                                                 NumericTraits<OutputPixelType>::max())
+                                            << ").");
   }
 
-  for (SizeValueType thisIdx = 0; thisIdx < linecount; thisIdx++)
+  for (SizeValueType thisIdx = 0; thisIdx < linecount; ++thisIdx)
   {
     // now fill the labelled sections
-    LineEncodingConstIterator       cIt = this->m_LineMap[thisIdx].begin();
-    const LineEncodingConstIterator cEnd = this->m_LineMap[thisIdx].end();
+    auto       cIt = this->m_LineMap[thisIdx].begin();
+    const auto cEnd = this->m_LineMap[thisIdx].end();
 
     while (cIt != cEnd)
     {
@@ -154,14 +152,12 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateD
   const RegionType & outputRegionForThread)
 {
   const TInputImage * input = this->GetInput();
-  using InputLineIteratorType = ImageScanlineConstIterator<InputImageType>;
-  InputLineIteratorType inLineIt(input, outputRegionForThread);
 
-  WorkUnitData  workUnitData = this->CreateWorkUnitData(outputRegionForThread);
-  SizeValueType lineId = workUnitData.firstLine;
+  const WorkUnitData workUnitData = this->CreateWorkUnitData(outputRegionForThread);
+  SizeValueType      lineId = workUnitData.firstLine;
 
   SizeValueType nbOfLabels = 0;
-  for (inLineIt.GoToBegin(); !inLineIt.IsAtEnd(); inLineIt.NextLine())
+  for (ImageScanlineConstIterator inLineIt(input, outputRegionForThread); !inLineIt.IsAtEnd(); inLineIt.NextLine())
   {
     LineEncodingType thisLine;
     while (!inLineIt.IsAtEndOfLine())
@@ -170,9 +166,8 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateD
       if (pixelValue == this->m_InputForegroundValue)
       {
         // We've hit the start of a run
-        SizeValueType length = 0;
-        IndexType     thisIndex;
-        thisIndex = inLineIt.GetIndex();
+        SizeValueType   length = 0;
+        const IndexType thisIndex = inLineIt.GetIndex();
         ++length;
         ++inLineIt;
         while (!inLineIt.IsAtEndOfLine() && inLineIt.Get() == this->m_InputForegroundValue)
@@ -181,7 +176,7 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateD
           ++inLineIt;
         }
         // create the run length object to go in the vector
-        RunLength thisRun(length, thisIndex, 0); // will give a real label later
+        const RunLength thisRun(length, thisIndex, 0); // will give a real label later
         thisLine.push_back(thisRun);
         ++nbOfLabels;
       }
@@ -196,7 +191,7 @@ BinaryImageToLabelMapFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateD
   }
 
   this->m_NumberOfLabels.fetch_add(nbOfLabels, std::memory_order_relaxed);
-  std::lock_guard<std::mutex> mutexHolder(this->m_Mutex);
+  const std::lock_guard<std::mutex> lockGuard(this->m_Mutex);
   this->m_WorkUnitResults.push_back(workUnitData);
 }
 

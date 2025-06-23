@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkConnectedComponentImageFilter_hxx
 #define itkConnectedComponentImageFilter_hxx
 
-#include "itkConnectedComponentImageFilter.h"
 
 #include "itkImageScanlineIterator.h"
 #include "itkConstShapedNeighborhoodIterator.h"
@@ -48,14 +47,14 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateIn
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (!input)
   {
     return;
   }
   input->SetRequestedRegion(input->GetLargestPossibleRegion());
 
-  MaskImagePointer mask = const_cast<MaskImageType *>(this->GetMaskImage());
+  const MaskImagePointer mask = const_cast<MaskImageType *>(this->GetMaskImage());
   if (mask)
   {
     mask->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -75,11 +74,11 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDa
 {
   this->AllocateOutputs();
   this->SetupLineOffsets(false);
-  typename TInputImage::ConstPointer input = this->GetInput();
-  typename TMaskImage::ConstPointer  mask = this->GetMaskImage();
+  const typename TInputImage::ConstPointer input = this->GetInput();
+  const typename TMaskImage::ConstPointer  mask = this->GetMaskImage();
 
   using MaskFilterType = MaskImageFilter<TInputImage, TMaskImage, TInputImage>;
-  typename MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+  auto maskFilter = MaskFilterType::New();
   if (mask)
   {
     maskFilter->SetInput(input);
@@ -112,7 +111,7 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDa
     [this](const RegionType & lambdaRegion) { this->DynamicThreadedGenerateData(lambdaRegion); },
     progress1.GetProcessObject());
 
-  SizeValueType nbOfLabels = this->m_NumberOfLabels.load();
+  const SizeValueType nbOfLabels = this->m_NumberOfLabels.load();
 
   // insert all the labels into the structure -- an extra loop but
   // saves complicating the ones that come later
@@ -133,16 +132,16 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDa
     progress3.GetProcessObject());
 
   // AfterThreadedGenerateData
-  SizeValueType numberOfObjects = this->CreateConsecutive(m_BackgroundValue);
+  const SizeValueType numberOfObjects = this->CreateConsecutive(m_BackgroundValue);
   itkAssertOrThrowMacro(numberOfObjects <= this->m_NumberOfLabels,
                         "Number of consecutive labels cannot be greater than the initial number of labels!");
   // check for overflow exception here
   if (numberOfObjects > static_cast<SizeValueType>(NumericTraits<OutputPixelType>::max()))
   {
-    itkExceptionMacro(<< "Number of objects (" << numberOfObjects << ") greater than maximum of output pixel type ("
-                      << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(
-                           NumericTraits<OutputPixelType>::max())
-                      << ").");
+    itkExceptionMacro("Number of objects (" << numberOfObjects << ") greater than maximum of output pixel type ("
+                                            << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(
+                                                 NumericTraits<OutputPixelType>::max())
+                                            << ").");
   }
   m_ObjectCount = numberOfObjects;
 
@@ -167,14 +166,11 @@ void
 ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::DynamicThreadedGenerateData(
   const RegionType & outputRegionForThread)
 {
-  using InputLineIteratorType = ImageScanlineConstIterator<InputImageType>;
-  InputLineIteratorType inLineIt(m_Input, outputRegionForThread);
-
-  WorkUnitData  workUnitData = this->CreateWorkUnitData(outputRegionForThread);
-  SizeValueType lineId = workUnitData.firstLine;
+  const WorkUnitData workUnitData = this->CreateWorkUnitData(outputRegionForThread);
+  SizeValueType      lineId = workUnitData.firstLine;
 
   SizeValueType nbOfLabels = 0;
-  for (inLineIt.GoToBegin(); !inLineIt.IsAtEnd(); inLineIt.NextLine())
+  for (ImageScanlineConstIterator inLineIt(m_Input, outputRegionForThread); !inLineIt.IsAtEnd(); inLineIt.NextLine())
   {
     LineEncodingType thisLine;
     while (!inLineIt.IsAtEndOfLine())
@@ -194,9 +190,9 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::DynamicThr
           ++inLineIt;
         }
         // create the run length object to go in the vector
-        RunLength thisRun = { length, thisIndex, 0 };
+        const RunLength thisRun = { length, thisIndex, 0 };
         thisLine.push_back(thisRun);
-        nbOfLabels++;
+        ++nbOfLabels;
       }
       else
       {
@@ -204,11 +200,11 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::DynamicThr
       }
     }
     this->m_LineMap[lineId] = thisLine;
-    lineId++;
+    ++lineId;
   }
 
   this->m_NumberOfLabels.fetch_add(nbOfLabels, std::memory_order_relaxed);
-  std::lock_guard<std::mutex> mutexHolder(this->m_Mutex);
+  const std::lock_guard<std::mutex> lockGuard(this->m_Mutex);
   this->m_WorkUnitResults.push_back(workUnitData);
 }
 
@@ -223,7 +219,7 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::ThreadedWr
   // performance of the map by being able to iterate through it,
   // rather than do lots of look ups. Don't know whether that will
   // make much difference in practice.
-  // Note - this is unnecessary if AllocateOutputs initalizes to zero
+  // Note - this is unnecessary if AllocateOutputs initializes to zero
 
   OutputImageType *                    output = this->GetOutput();
   ImageRegionIterator<OutputImageType> oit(output, outputRegionForThread);
@@ -231,11 +227,11 @@ ConnectedComponentImageFilter<TInputImage, TOutputImage, TMaskImage>::ThreadedWr
   ImageRegionIterator<OutputImageType> fend = oit;
   fend.GoToEnd();
 
-  WorkUnitData workUnitData = this->CreateWorkUnitData(outputRegionForThread);
+  const WorkUnitData workUnitData = this->CreateWorkUnitData(outputRegionForThread);
 
-  for (SizeValueType thisIdx = workUnitData.firstLine; thisIdx <= workUnitData.lastLine; thisIdx++)
+  for (SizeValueType thisIdx = workUnitData.firstLine; thisIdx <= workUnitData.lastLine; ++thisIdx)
   {
-    for (LineEncodingConstIterator cIt = this->m_LineMap[thisIdx].begin(); cIt != this->m_LineMap[thisIdx].end(); ++cIt)
+    for (auto cIt = this->m_LineMap[thisIdx].begin(); cIt != this->m_LineMap[thisIdx].end(); ++cIt)
     {
       const SizeValueType   Ilab = this->LookupSet(cIt->label);
       const OutputPixelType lab = this->m_Consecutive[Ilab];

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,40 +28,38 @@ itkPeakSignalToNoiseRatioCalculatorTest(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "usage: " << itkNameOfTestExecutableMacro(argv) << " intput noisy [expectedValue tolerance]"
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputImage noisyImage [expectedValue] [tolerance]"
               << std::endl;
-    std::cerr << " input: the input image" << std::endl;
-    std::cerr << " noisy: noise with the input image" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
-  constexpr int dim = 2;
+  constexpr unsigned int Dimension = 2;
 
-  using PType = unsigned char;
-  using IType = itk::Image<PType, dim>;
+  using PixelType = unsigned char;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
-  using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  using ReaderType = itk::ImageFileReader<ImageType>;
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
   reader2->Update();
 
-  using CalculatorType = itk::PeakSignalToNoiseRatioCalculator<IType>;
-  CalculatorType::Pointer psnr = CalculatorType::New();
+  using CalculatorType = itk::PeakSignalToNoiseRatioCalculator<ImageType>;
+  auto psnr = CalculatorType::New();
   psnr->SetImage(reader->GetOutput());
   psnr->SetNoisyImage(reader2->GetOutput());
   psnr->Compute();
 
   if (argc >= 5)
   {
-    double expectedValue = std::stod(argv[3]);
-    double tolerance = std::stod(argv[4]);
+    const double expectedValue = std::stod(argv[3]);
+    const double tolerance = std::stod(argv[4]);
 
-    std::cout << "<DartMeasurement name=\"PSNR\" type=\"numeric/double\">";
+    std::cout << R"(<DartMeasurement name="PSNR" type="numeric/double">)";
     std::cout << psnr->GetOutput();
     std::cout << "</DartMeasurement>" << std::endl;
 
@@ -71,5 +69,7 @@ itkPeakSignalToNoiseRatioCalculatorTest(int argc, char * argv[])
     }
   }
 
-  return 0;
+
+  std::cout << "Test finished" << std::endl;
+  return EXIT_SUCCESS;
 }

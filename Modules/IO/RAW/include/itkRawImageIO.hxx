@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkRawImageIO_hxx
 #define itkRawImageIO_hxx
 
-#include "itkRawImageIO.h"
 #include "itkIntTypes.h"
 
 
@@ -84,7 +83,7 @@ RawImageIO<TPixel, VImageDimension>::GetHeaderSize()
 
   if (m_FileName.empty())
   {
-    itkExceptionMacro(<< "A FileName must be specified.");
+    itkExceptionMacro("A FileName must be specified.");
   }
 
   if (!m_ManualHeaderSize)
@@ -102,8 +101,8 @@ RawImageIO<TPixel, VImageDimension>::GetHeaderSize()
     file.seekg(0, std::ios::end);
 
     m_HeaderSize =
-      static_cast<SizeValueType>(static_cast<typename ::itk::intmax_t>(file.tellg()) -
-                                 static_cast<typename ::itk::intmax_t>(this->m_Strides[m_FileDimensionality + 1]));
+      static_cast<SizeValueType>(static_cast<typename itk::intmax_t>(file.tellg()) -
+                                 static_cast<typename itk::intmax_t>(this->m_Strides[m_FileDimensionality + 1]));
   }
 
   return m_HeaderSize;
@@ -132,24 +131,24 @@ RawImageIO<TPixel, VImageDimension>::Read(void * buffer)
   this->ComputeStrides();
 
   // Offset into file
-  SizeValueType streamStart = this->GetHeaderSize();
+  const SizeValueType streamStart = this->GetHeaderSize();
   file.seekg((OffsetValueType)streamStart, std::ios::beg);
   if (file.fail())
   {
-    itkExceptionMacro(<< "File seek failed");
+    itkExceptionMacro("File seek failed");
   }
 
   const auto numberOfBytesToBeRead = static_cast<SizeValueType>(this->GetImageSizeInBytes());
 
-  itkDebugMacro(<< "Reading " << numberOfBytesToBeRead << " bytes");
+  itkDebugMacro("Reading " << numberOfBytesToBeRead << " bytes");
 
   const auto componentType = this->GetComponentType();
   if (m_FileType == IOFileEnum::Binary)
   {
     if (!this->ReadBufferAsBinary(file, buffer, numberOfBytesToBeRead))
     {
-      itkExceptionMacro(<< "Read failed: Wanted " << numberOfBytesToBeRead << " bytes, but read " << file.gcount()
-                        << " bytes.");
+      itkExceptionMacro("Read failed: Wanted " << numberOfBytesToBeRead << " bytes, but read " << file.gcount()
+                                               << " bytes.");
     }
   }
   else
@@ -157,7 +156,7 @@ RawImageIO<TPixel, VImageDimension>::Read(void * buffer)
     this->ReadBufferAsASCII(file, buffer, this->GetComponentType(), this->GetImageSizeInComponents());
   }
 
-  itkDebugMacro(<< "Reading Done");
+  itkDebugMacro("Reading Done");
   const SizeValueType numberOfComponents = this->GetImageSizeInComponents();
   ReadRawBytesAfterSwapping(componentType, buffer, m_ByteOrder, numberOfComponents);
 }
@@ -166,7 +165,7 @@ template <typename TPixel, unsigned int VImageDimension>
 bool
 RawImageIO<TPixel, VImageDimension>::CanWriteFile(const char * fname)
 {
-  std::string filename(fname);
+  const std::string filename(fname);
 
   if (filename.empty())
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 #include "itkProcessObject.h"
 #include <unordered_map>
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /** \class Boundary
  * \par
@@ -54,6 +52,8 @@ template <typename TScalar, unsigned int TDimension>
 class ITK_TEMPLATE_EXPORT Boundary : public DataObject
 {
 public:
+  ITK_DISALLOW_COPY_AND_MOVE(Boundary);
+
   /** The dimensionality of this boundary.  For example, if the boundary
    * of a set of planes, it has dimensionality 2.  If the boundary is
    * a set of lines, it has dimensionality 1.  Dimensionality is one less
@@ -64,7 +64,7 @@ public:
    * The IndexType.first is the dimension of the face and IndexType.second is a
    * binary value 0 or 1 indicating the LOW face or the HIGH face,
    * respectively.    */
-  using IndexType = std::pair<unsigned, unsigned>;
+  using IndexType = std::pair<unsigned int, unsigned int>;
   using ImageType = Image<IdentifierType, TDimension>;
   using ImageIndexType = typename ImageType::IndexType;
   using ScalarType = TScalar;
@@ -72,6 +72,7 @@ public:
   /** Data type stored at each pixel in a face.   */
   struct face_pixel_t
   {
+
     /**Index of the direction of watershed flow through this pixel.
      * A negative value indicates that the flow does not move out
      * of the region.  A positive value is the index into the
@@ -95,6 +96,7 @@ public:
   /**    */
   struct flat_region_t
   {
+
     /** Indices into the associated Face containing boundary pixels.  These
      * give access to spatial information, label and flow associated with
      * this boundary pixel connection.     */
@@ -122,13 +124,14 @@ public:
 
   /** Itk type alias and macros defining smart pointer and type identification.
    */
+  /** @ITKStartGrouping */
   using Self = Boundary;
   using Superclass = DataObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(WatershedBoundary, DataObject);
-
+  itkOverrideGetNameOfClassMacro(Boundary);
+  /** @ITKEndGrouping */
   /** The following averts an internal compiler error on microsoft compilers */
   using FacePointer = typename face_t::Pointer;
 
@@ -143,16 +146,14 @@ public:
    * the number of the axial dimension and highlow is 0 for the LOW
    * face and 1 for the HIGH face.   */
   FacePointer
-  GetFace(unsigned dimension, unsigned highlow)
+  GetFace(unsigned int dimension, unsigned int highlow)
   {
     if (highlow == 0)
     {
       return m_Faces[dimension].first;
     }
-    else
-    {
-      return m_Faces[dimension].second;
-    }
+
+    return m_Faces[dimension].second;
   }
 
   void
@@ -162,7 +163,7 @@ public:
   }
 
   void
-  SetFace(FacePointer f, unsigned dimension, unsigned highlow)
+  SetFace(FacePointer f, unsigned int dimension, unsigned int highlow)
   {
     if (highlow == 0)
     {
@@ -176,22 +177,21 @@ public:
   }
 
   /** Get/Set the table of flat region connections specified by the index. */
+  /** @ITKStartGrouping */
   flat_hash_t *
   GetFlatHash(const IndexType & idx)
   {
     return this->GetFlatHash(idx.first, idx.second);
   }
   flat_hash_t *
-  GetFlatHash(unsigned dimension, unsigned highlow)
+  GetFlatHash(unsigned int dimension, unsigned int highlow)
   {
     if (highlow == 0)
     {
       return &(m_FlatHashes[dimension].first);
     }
-    else
-    {
-      return &(m_FlatHashes[dimension].second);
-    }
+
+    return &(m_FlatHashes[dimension].second);
   }
 
   void
@@ -200,7 +200,7 @@ public:
     this->SetFlatHash(l, idx.first, idx.second);
   }
   void
-  SetFlatHash(flat_hash_t & l, unsigned dimension, unsigned highlow)
+  SetFlatHash(flat_hash_t & l, unsigned int dimension, unsigned int highlow)
   {
     if (highlow == 0)
     {
@@ -212,18 +212,20 @@ public:
     }
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
   /** Marks a face in the boundary object as either valid (true) or
    * invalid (false).  A valid face is assumed to be initialized
    * and contain information.  No assumptions are made about an
    * invalid face.   */
+  /** @ITKStartGrouping */
   void
   SetValid(bool & l, const IndexType & idx)
   {
     this->SetValid(l, idx.first, idx.second);
   }
   void
-  SetValid(bool b, unsigned dimension, unsigned highlow)
+  SetValid(bool b, unsigned int dimension, unsigned int highlow)
   {
     if (highlow == 0)
     {
@@ -242,41 +244,36 @@ public:
     return this->GetValid(idx.first, idx.second);
   }
   bool
-  GetValid(unsigned dimension, unsigned highlow) const
+  GetValid(unsigned int dimension, unsigned int highlow) const
   {
     if (highlow == 0)
     {
       return m_Valid[dimension].first;
     }
-    else
-    {
-      return m_Valid[dimension].second;
-    }
+
+    return m_Valid[dimension].second;
   }
+  /** @ITKEndGrouping */
 
 protected:
   Boundary();
   ~Boundary() override = default;
-  Boundary(const Self &) {}
-  void
-  operator=(const Self &)
-  {}
+
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** The Nx2 matrix of faces of this boundary.   */
-  std::vector<std::pair<FacePointer, FacePointer>> m_Faces;
+  std::vector<std::pair<FacePointer, FacePointer>> m_Faces{};
 
   /** The Nx2 matrix flat region connections associated with
    * this boundary.   */
-  std::vector<std::pair<flat_hash_t, flat_hash_t>> m_FlatHashes;
+  std::vector<std::pair<flat_hash_t, flat_hash_t>> m_FlatHashes{};
 
   /** The Nx2 matrix of boolean flags indicating which faces contain
    * information.    */
-  std::vector<std::pair<bool, bool>> m_Valid;
+  std::vector<std::pair<bool, bool>> m_Valid{};
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedBoundary.hxx"

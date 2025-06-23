@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,48 +18,33 @@
 #ifndef itkArray2D_hxx
 #define itkArray2D_hxx
 
-#include "itkArray2D.h"
 
 namespace itk
 {
 
-/** Constructor with number of rows and columns as arguments */
 template <typename TValue>
 Array2D<TValue>::Array2D(unsigned int numberOfRows, unsigned int numberOfCols)
   : vnl_matrix<TValue>(numberOfRows, numberOfCols)
 {}
 
-/** Constructor from a vnl_matrix */
+template <typename TValue>
+Array2D<TValue>::Array2D(unsigned int numberOfRows, unsigned int numberOfCols, const TValue & initialValue)
+  : vnl_matrix<TValue>(numberOfRows, numberOfCols, initialValue)
+{}
+
 template <typename TValue>
 Array2D<TValue>::Array2D(const VnlMatrixType & matrix)
   : vnl_matrix<TValue>(matrix)
 {}
 
-/** Copy Constructor  */
 template <typename TValue>
-Array2D<TValue>::Array2D(const Self & array)
-  : vnl_matrix<TValue>(array)
-{}
-
-/** Assignment Operator from Array */
-template <typename TValue>
-const Array2D<TValue> &
-Array2D<TValue>::operator=(const Self & array)
-{
-  this->VnlMatrixType::operator=(array);
-  return *this;
-}
-
-/** Assignment Operator from vnl_matrix */
-template <typename TValue>
-const Array2D<TValue> &
+Array2D<TValue> &
 Array2D<TValue>::operator=(const VnlMatrixType & matrix)
 {
   this->VnlMatrixType::operator=(matrix);
   return *this;
 }
 
-/** Set the size of the array */
 template <typename TValue>
 void
 Array2D<TValue>::SetSize(unsigned int m, unsigned int n)

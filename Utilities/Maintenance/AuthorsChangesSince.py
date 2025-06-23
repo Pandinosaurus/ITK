@@ -63,7 +63,7 @@ def remote_repository(remote_spec):
         split = line.split()
         try:
             tag_index = split.index("GIT_REPOSITORY")
-            return split[tag_index + 1].replace("${git_protocol}", "https").strip()
+            return split[tag_index + 1].replace("https", "https").strip()
         except ValueError:
             continue
 
@@ -74,10 +74,16 @@ def remote_repository(remote_spec):
 
 
 def remote_tag(remote_spec):
+    use_next_line = False
     for line in remote_spec.split("\n"):
+        if use_next_line:
+            return line.split(")")[0].strip()
         split = line.split()
         try:
             tag_index = split.index("GIT_TAG")
+            if len(split) < 2:
+                use_next_line = True
+                continue
             return split[tag_index + 1].strip()
         except ValueError:
             continue
@@ -185,26 +191,21 @@ def format_shortlog(log, commit_link_prefix):
         else:
             prefix = line.split(":")[0].strip()
             commit = line.split(":")[-1]
+            description = line.partition(":")[2].rpartition(":")[0].strip()
             if prefix == "BUG":
-                description = line.split(":")[1]
                 bug_fixes.append((description, commit))
             elif prefix == "COMP":
-                description = line.split(":")[1]
                 platform_fixes.append((description, commit))
             elif prefix == "DOC":
-                description = line.split(":")[1]
                 doc_updates.append((description, commit))
             elif prefix == "ENH":
-                description = line.split(":")[1]
                 enhancements.append((description, commit))
             elif prefix == "PERF":
-                description = line.split(":")[1]
                 performance_improvements.append((description, commit))
             elif prefix == "STYLE":
-                description = line.split(":")[1]
                 style_changes.append((description, commit))
             else:
-                description = line.split(":")[1]
+                description = line.rpartition(":")[0].strip()
                 misc_changes.append((description, commit))
     output += formatted_current_author()
 
@@ -248,13 +249,16 @@ os.chdir(scratch_dir)
 examples_dir = scratch_dir / "ITKSphinxExamples"
 if not examples_dir.exists():
     subprocess.check_call(
-        "git clone https://github.com/InsightSoftwareConsortium/ITKSphinxExamples", shell=True
+        "git clone https://github.com/InsightSoftwareConsortium/ITKSphinxExamples",
+        shell=True,
     )
 os.chdir(examples_dir)
 update_previous_authors(f'--until="{revision_time}"')
 update_recent_authors(f'--since="{revision_time}"')
 update_authors_with_email(f'--since="{revision_time}"')
-commit_link_prefix = "https://github.com/InsightSoftwareConsortium/ITKSphinxExamples/commit/"
+commit_link_prefix = (
+    "https://github.com/InsightSoftwareConsortium/ITKSphinxExamples/commit/"
+)
 write_changelog("ITK Sphinx Examples", commit_link_prefix, f'--since="{revision_time}"')
 
 # ITKSoftwareGuide Repository
@@ -292,7 +296,6 @@ for remote in changed_remotes.split():
     module_name = remote.split("/")[-1].split(".")[0]
     if module_name in ["SphinxExamples", "CMakeLists", "README"]:
         continue
-    sys.stdout.write(f"*{module_name}*, ")
     os.chdir(itk_dir)
 
     # The remote file could have been added or its name changed. Use the oldest
@@ -313,11 +316,13 @@ for remote in changed_remotes.split():
 
     remote_old_tag = remote_tag(remote_spec)
 
-    remote_spec = subprocess.check_output(
-        "git show HEAD:{1}".format(revision, remote), shell=True
-    ).decode("utf-8")
+    remote_spec = subprocess.check_output(f"git show HEAD:{remote}", shell=True).decode(
+        "utf-8"
+    )
     remote_new_tag = remote_tag(remote_spec)
     remote_repo = remote_repository(remote_spec)
+
+    sys.stdout.write(f"[{module_name}]({remote_repo}), ")
 
     os.chdir(scratch_dir)
     remote_dir = scratch_dir / remote_repo.split("/")[-1]
@@ -330,7 +335,7 @@ for remote in changed_remotes.split():
 
     try:
         log = subprocess.check_output(
-            "git shortlog --format=%s:%h --topo-order --no-merges {0}..{1}".format(
+            "git shortlog --format=%s:%h --topo-order --no-merges {}..{}".format(
                 remote_old_tag, remote_new_tag
             ),
             shell=True,

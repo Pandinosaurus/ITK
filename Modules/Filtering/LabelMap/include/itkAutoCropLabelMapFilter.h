@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 namespace itk
 {
 /**
- *\class AutoCropLabelMapFilter
+ * \class AutoCropLabelMapFilter
  * \brief Crop a LabelMap image to fit exactly the objects in the LabelMap.
  *
  * The CropBorder can be used to add a border which will never be larger than
@@ -41,7 +41,7 @@ namespace itk
  * PadLabelMapFilter can be used.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -64,14 +64,14 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AutoCropLabelMapFilter, ChangeRegionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AutoCropLabelMapFilter);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -96,9 +96,10 @@ public:
   /**
    * Set/Get the border added to the mask before the crop. The default is 0 on * all the axis.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(CropBorder, SizeType);
   itkGetConstReferenceMacro(CropBorder, SizeType);
-
+  /** @ITKEndGrouping */
 protected:
   AutoCropLabelMapFilter();
   ~AutoCropLabelMapFilter() override = default;
@@ -110,7 +111,7 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  SizeType m_CropBorder;
+  SizeType m_CropBorder{};
 };
 } // end namespace itk
 

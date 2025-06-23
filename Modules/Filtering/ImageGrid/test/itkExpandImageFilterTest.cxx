@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include "itkCastImageFilter.h"
 #include "itkStreamingImageFilter.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 // class to produce a linear image pattern
 template <int VDimension>
@@ -32,9 +33,10 @@ public:
   using IndexType = itk::Index<VDimension>;
 
   ImagePattern()
+
   {
-    m_Offset = 0.0;
-    for (int j = 0; j < VDimension; j++)
+
+    for (int j = 0; j < VDimension; ++j)
     {
       m_Coeff[j] = 0.0;
     }
@@ -44,15 +46,15 @@ public:
   Evaluate(const IndexType & index)
   {
     double accum = m_Offset;
-    for (int j = 0; j < VDimension; j++)
+    for (int j = 0; j < VDimension; ++j)
     {
-      accum += m_Coeff[j] * (double)index[j];
+      accum += m_Coeff[j] * static_cast<double>(index[j]);
     }
     return accum;
   }
 
   double m_Coeff[VDimension];
-  double m_Offset;
+  double m_Offset{ 0.0 };
 };
 
 // The following three classes are used to support callbacks
@@ -73,34 +75,28 @@ public:
 int
 itkExpandImageFilterTest(int, char *[])
 {
+  constexpr unsigned int ImageDimension = 2;
+
   using PixelType = float;
-  enum
-  {
-    ImageDimension = 2
-  };
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  bool testPassed = true;
-
-
-  //=============================================================
+  int testPassed = EXIT_SUCCESS;
 
   std::cout << "Create the input image pattern." << std::endl;
-  ImageType::RegionType region;
-  ImageType::SizeType   size = { { 64, 64 } };
+  ImageType::RegionType         region;
+  constexpr ImageType::SizeType size = { { 64, 64 } };
   region.SetSize(size);
 
-  ImageType::Pointer input = ImageType::New();
+  auto input = ImageType::New();
   input->SetLargestPossibleRegion(region);
   input->SetBufferedRegion(region);
   input->Allocate();
 
-  int                          j;
   ImagePattern<ImageDimension> pattern;
   pattern.m_Offset = 64;
-  for (j = 0; j < ImageDimension; j++)
+  for (double & it : pattern.m_Coeff)
   {
-    pattern.m_Coeff[j] = 1.0;
+    it = 1.0;
   }
 
   using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -112,45 +108,40 @@ itkExpandImageFilterTest(int, char *[])
     ++inIter;
   }
 
-  //=============================================================
-
-  std::cout << "Run ExpandImageFilter in standalone mode with progress.";
-  std::cout << std::endl;
+  std::cout << "Run ExpandImageFilter in standalone mode with progress." << std::endl;
   using ExpanderType = itk::ExpandImageFilter<ImageType, ImageType>;
-  ExpanderType::Pointer expander = ExpanderType::New();
+  auto expander = ExpanderType::New();
 
   using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   expander->SetInterpolator(interpolator);
   std::cout << "Interpolator: " << expander->GetInterpolator() << std::endl;
 
   expander->SetExpandFactors(5);
 
-  unsigned int         factors[ImageDimension] = { 2, 3 };
-  ImageType::PixelType padValue = 4.0;
+  unsigned int                   factors[ImageDimension] = { 2, 3 };
+  constexpr ImageType::PixelType padValue = 4.0;
   expander->SetInput(input);
   expander->SetExpandFactors(factors);
   // TEST_RMV20100728   expander->SetEdgePaddingValue( padValue );
 
 
-  ShowProgressObject                                    progressWatch(expander);
-  itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
-  command = itk::SimpleMemberCommand<ShowProgressObject>::New();
+  ShowProgressObject                                          progressWatch(expander);
+  const itk::SimpleMemberCommand<ShowProgressObject>::Pointer command =
+    itk::SimpleMemberCommand<ShowProgressObject>::New();
   command->SetCallbackFunction(&progressWatch, &ShowProgressObject::ShowProgress);
   expander->AddObserver(itk::ProgressEvent(), command);
 
   expander->Print(std::cout);
   expander->Update();
 
-  //=============================================================
-
   std::cout << "Checking the output against expected." << std::endl;
   Iterator outIter(expander->GetOutput(), expander->GetOutput()->GetBufferedRegion());
 
   // compute non-padded output region
-  ImageType::RegionType validRegion = expander->GetOutput()->GetLargestPossibleRegion();
-  ImageType::SizeType   validSize = validRegion.GetSize();
+  ImageType::RegionType     validRegion = expander->GetOutput()->GetLargestPossibleRegion();
+  const ImageType::SizeType validSize = validRegion.GetSize();
 
   validRegion.SetSize(validSize);
 
@@ -158,51 +149,52 @@ itkExpandImageFilterTest(int, char *[])
 
   while (!outIter.IsAtEnd())
   {
-    ImageType::IndexType index = outIter.GetIndex();
-    double               value = outIter.Get();
+    const ImageType::IndexType index = outIter.GetIndex();
+    const double               value = outIter.Get();
 
     if (validRegion.IsInside(index))
     {
 
       ImageType::PointType point;
-      ImageType::IndexType inputIndex;
       expanderOutput->TransformIndexToPhysicalPoint(outIter.GetIndex(), point);
-      input->TransformPhysicalPointToIndex(point, inputIndex);
-      double trueValue = pattern.Evaluate(inputIndex);
+      const ImageType::IndexType inputIndex = input->TransformPhysicalPointToIndex(point);
+      const double               trueValue = pattern.Evaluate(inputIndex);
 
-      if (itk::Math::abs(trueValue - value) > 1e-4)
+      constexpr double epsilon = 1e-4;
+      if (itk::Math::abs(trueValue - value) > epsilon)
       {
-        testPassed = false;
-        std::cout << "Error at Index: " << index << " ";
-        std::cout << "Expected: " << trueValue << " ";
-        std::cout << "Actual: " << value << std::endl;
+        std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+        std::cerr << "Test failed!" << std::endl;
+        std::cerr << "Error in Evaluate at index [" << index << "]" << std::endl;
+        std::cerr << "Expected value " << trueValue << std::endl;
+        std::cerr << " differs from " << value << std::endl;
+        std::cerr << " by more than " << epsilon << std::endl;
+        testPassed = EXIT_FAILURE;
       }
     }
     else
     {
       if (itk::Math::NotExactlyEquals(value, padValue))
       {
-        testPassed = false;
-        std::cout << "Error at Index: " << index << " ";
-        std::cout << "Expected: " << padValue << " ";
-        std::cout << "Actual: " << value << std::endl;
+        std::cerr << "Test failed!" << std::endl;
+        std::cerr << "Error in Evaluate at index [" << index << "]" << std::endl;
+        std::cerr << "Expected value " << padValue << std::endl;
+        std::cerr << " differs from " << value << std::endl;
+        testPassed = EXIT_FAILURE;
       }
     }
     ++outIter;
   }
 
-  //=============================================================
-
-  std::cout << "Run ExpandImageFilter with streamer";
-  std::cout << std::endl;
+  std::cout << "Run ExpandImageFilter with streamer" << std::endl;
 
   using CasterType = itk::CastImageFilter<ImageType, ImageType>;
-  CasterType::Pointer caster = CasterType::New();
+  auto caster = CasterType::New();
 
   caster->SetInput(expander->GetInput());
 
 
-  ExpanderType::Pointer expander2 = ExpanderType::New();
+  auto expander2 = ExpanderType::New();
 
   expander2->SetInput(caster->GetOutput());
   expander2->SetExpandFactors(expander->GetExpandFactors());
@@ -210,12 +202,11 @@ itkExpandImageFilterTest(int, char *[])
   expander2->SetInterpolator(interpolator);
 
   using StreamerType = itk::StreamingImageFilter<ImageType, ImageType>;
-  StreamerType::Pointer streamer = StreamerType::New();
+  auto streamer = StreamerType::New();
   streamer->SetInput(expander2->GetOutput());
   streamer->SetNumberOfStreamDivisions(3);
   streamer->Update();
 
-  //=============================================================
   std::cout << "Compare standalone and streamed outputs" << std::endl;
 
   Iterator streamIter(streamer->GetOutput(), streamer->GetOutput()->GetBufferedRegion());
@@ -227,64 +218,37 @@ itkExpandImageFilterTest(int, char *[])
   {
     if (itk::Math::NotExactlyEquals(outIter.Get(), streamIter.Get()))
     {
-      testPassed = false;
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in streamed output at index [" << outIter.GetIndex() << "]" << std::endl;
+      std::cerr << "Expected value " << outIter.Get() << std::endl;
+      std::cerr << " differs from " << streamIter.Get() << std::endl;
+      testPassed = EXIT_FAILURE;
     }
     ++outIter;
     ++streamIter;
   }
 
-
-  if (!testPassed)
-  {
-    std::cout << "Test failed." << std::endl;
-    return EXIT_FAILURE;
-  }
-
   // Test error handling
 
-  try
-  {
-    testPassed = false;
-    std::cout << "Setting Input to nullptr" << std::endl;
-    expander->SetInput(nullptr);
-    expander->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << err << std::endl;
-    expander->ResetPipeline();
-    expander->SetInput(input);
-    testPassed = true;
-  }
+  std::cout << "Setting Input to nullptr" << std::endl;
+  expander->SetInput(nullptr);
 
-  if (!testPassed)
-  {
-    std::cout << "Test failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_EXCEPTION(expander->Update());
 
 
-  try
-  {
-    testPassed = false;
-    std::cout << "Setting Interpolator to nullptr" << std::endl;
-    expander->SetInterpolator(nullptr);
-    expander->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << err << std::endl;
-    expander->ResetPipeline();
-    expander->SetInterpolator(interpolator);
-    testPassed = true;
-  }
+  expander->ResetPipeline();
+  expander->SetInput(input);
 
-  if (!testPassed)
-  {
-    std::cout << "Test failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+  std::cout << "Setting Interpolator to nullptr" << std::endl;
+  expander->SetInterpolator(nullptr);
 
-  std::cout << "Test passed." << std::endl;
-  return EXIT_SUCCESS;
+  ITK_TRY_EXPECT_EXCEPTION(expander->Update());
+
+
+  expander->ResetPipeline();
+  expander->SetInterpolator(interpolator);
+
+
+  std::cout << "Test finished." << std::endl;
+  return testPassed;
 }

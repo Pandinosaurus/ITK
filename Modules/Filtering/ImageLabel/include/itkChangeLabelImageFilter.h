@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class ChangeLabelImageFilter
+ * \class ChangeLabelImageFilter
  *
  * \brief Change Sets of Labels
  *
@@ -54,26 +54,16 @@ template <typename TInput, typename TOutput>
 class ITK_TEMPLATE_EXPORT ChangeLabel
 {
 public:
-  ChangeLabel() = default;
-  ~ChangeLabel() = default;
-
   using ChangeMapType = std::map<TInput, TOutput>;
 
-  bool
-  operator!=(const ChangeLabel & other) const
-  {
-    if (m_ChangeMap != other.m_ChangeMap)
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const ChangeLabel & other) const
   {
-    return !(*this != other);
+    return m_ChangeMap == other.m_ChangeMap;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ChangeLabel);
 
   TOutput
   GetChange(const TInput & original)
@@ -102,7 +92,7 @@ public:
   inline TOutput
   operator()(const TInput & A) const
   {
-    const typename ChangeMapType::const_iterator it = m_ChangeMap.find(A);
+    const auto it = m_ChangeMap.find(A);
     if (it != m_ChangeMap.end())
     {
       return it->second;
@@ -138,8 +128,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ChangeLabelImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ChangeLabelImageFilter);
 
   /** Pixel types. */
   using InputPixelType = typename TInputImage::PixelType;
@@ -160,12 +150,8 @@ public:
   void
   ClearChangeMap();
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(PixelTypeComparable, (Concept::Comparable<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ChangeLabelImageFilter() = default;

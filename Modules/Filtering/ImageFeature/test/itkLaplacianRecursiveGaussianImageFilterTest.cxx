@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ itkLaplacianRecursiveGaussianImageFilterTest(int argc, char * argv[])
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << itkNameOfTestExecutableMacro(argv) << " inputImage outputImage " << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   const char * inputFilename = argv[1];
@@ -58,24 +58,24 @@ itkLaplacianRecursiveGaussianImageFilterTest(int argc, char * argv[])
   { // Instantiate a 6D image for testing purposes
     using HighDImageType = itk::Image<RealPixelType, 6>;
     using LaplacianFilterHighDType = itk::LaplacianRecursiveGaussianImageFilter<HighDImageType, HighDImageType>;
-    LaplacianFilterHighDType::Pointer nDTest = LaplacianFilterHighDType::New();
+    auto nDTest = LaplacianFilterHighDType::New();
   }
 
   using ZeroCrossingFilter = itk::ZeroCrossingImageFilter<RealImageType, RealImageType>;
 
   // Setting the IO
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
-  CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
-  CastToCharFilterType::Pointer toChar = CastToCharFilterType::New();
-  RescaleFilter::Pointer        rescale = RescaleFilter::New();
+  auto toReal = CastToRealFilterType::New();
+  auto toChar = CastToCharFilterType::New();
+  auto rescale = RescaleFilter::New();
 
   // Setting the ITK pipeline filter
 
-  LaplacianFilter::Pointer    lapFilter = LaplacianFilter::New();
-  itk::SimpleFilterWatcher    watcher(lapFilter);
-  ZeroCrossingFilter::Pointer zeroFilter = ZeroCrossingFilter::New();
+  auto                           lapFilter = LaplacianFilter::New();
+  const itk::SimpleFilterWatcher watcher(lapFilter);
+  auto                           zeroFilter = ZeroCrossingFilter::New();
 
   reader->SetFileName(inputFilename);
   writer->SetFileName(outputFilename);
@@ -96,19 +96,11 @@ itkLaplacianRecursiveGaussianImageFilterTest(int argc, char * argv[])
   rescale->SetInput(zeroFilter->GetOutput());
 
   // Test itkGetMacro
-  bool bNormalizeAcrossScale = lapFilter->GetNormalizeAcrossScale();
+  const bool bNormalizeAcrossScale = lapFilter->GetNormalizeAcrossScale();
   std::cout << "lapFilter->GetNormalizeAcrossScale(): " << bNormalizeAcrossScale << std::endl;
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << "ExceptionObject caught !" << std::endl;
-    std::cout << err << std::endl;
-    return -1;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

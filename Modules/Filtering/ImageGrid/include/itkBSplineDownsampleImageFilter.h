@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@
 namespace itk
 {
 /**
- *\class BSplineDownsampleImageFilter
+ * \class BSplineDownsampleImageFilter
  * \brief Down-samples an image by a factor of 2 using B-Spline filter interpolation.
  *
  * This class is the public interface for spline down-sampling as defined by the
@@ -49,7 +49,7 @@ namespace itk
  *      using DownsamplerType2D = itk::BSplineDownsampleImageFilter<ImageType2D,ImageType2D,ResamplerType>;
  *      using UpsamplerType2D = itk::BSplineUpsampleImageFilter<ImageType2D,ImageType2D,ResamplerType>;
  *
- *      DownsamplerType2D::Pointer downSampler = DownsamplerType2D::New();
+ *      auto downSampler = DownsamplerType2D::New();
  *      UpsamplerType2D::Pointer   upSampler =   UpsamplerType2D::New();
  *      int splineOrder = 3;
  *      downSampler->SetSplineOrder(splineOrder);
@@ -70,7 +70,7 @@ namespace itk
  *                        itkBSplineSplineCenteredResampleImageFilterBase,
  *                        itkBSplineCenteredL2ResampleImageFilterBase
  *               The limitations of these resampler types will apply to this filter.
- *               Downsamples only by a factor of 2.
+ *               Down-samples only by a factor of 2.
  *
  * \sa itkBSplineDownsampleImageFilter
  * \sa itkBSplineL2ResampleImageFilter
@@ -99,23 +99,23 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineDownsampleImageFilter, ResamplerType);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineDownsampleImageFilter);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** InputImagePointer type alias support */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /** OutputImagePointer type alias support */
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImagePointer;
 
   /** OutputImageIterator type alias support */
-  using OutputImageIterator = typename Superclass::OutputImageIterator;
+  using typename Superclass::OutputImageIterator;
 
   /** Creates an image half the size of the input image with spacing twice the
    * input image. */
@@ -126,11 +126,7 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   void

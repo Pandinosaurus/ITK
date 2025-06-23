@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class PipelineMonitorImageFilter
+ * \class PipelineMonitorImageFilter
  *
  * \brief Enables monitoring, recording and debugging of the pipeline
  * execution and information exchange.
@@ -87,8 +87,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PipelineMonitorImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PipelineMonitorImageFilter);
 
   /** Enable/Disable clearing all saved pipeline information when
    * GenerateOutputInformation is called.
@@ -128,10 +128,10 @@ public:
   bool
   VerifyDownStreamFilterExecutedPropagation();
 
-  /** Verifies the the GenerateData executed the expected number of
+  /** Verifies the GenerateData executed the expected number of
    * times.
    *
-   * If expecetedNumber is positive then the number of updates must
+   * If expectedNumber is positive then the number of updates must
    * match. If expectedNumber is negative then the number of updates
    * must at least be |expectedNumber|. If expectedNumber is zero,
    * then this method always returns true, and no verification is
@@ -158,7 +158,7 @@ public:
   VerifyInputFilterRequestedLargestRegion();
 
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfUpdates() const
   {
     return m_NumberOfUpdates;
@@ -218,21 +218,21 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  bool m_ClearPipelineOnGenerateOutputInformation;
+  bool m_ClearPipelineOnGenerateOutputInformation{};
 
-  unsigned int m_NumberOfUpdates;
+  unsigned int m_NumberOfUpdates{};
 
-  unsigned int m_NumberOfClearPipeline;
+  unsigned int m_NumberOfClearPipeline{};
 
-  RegionVectorType m_OutputRequestedRegions;
-  RegionVectorType m_InputRequestedRegions;
-  RegionVectorType m_UpdatedBufferedRegions;
-  RegionVectorType m_UpdatedRequestedRegions;
+  RegionVectorType m_OutputRequestedRegions{};
+  RegionVectorType m_InputRequestedRegions{};
+  RegionVectorType m_UpdatedBufferedRegions{};
+  RegionVectorType m_UpdatedRequestedRegions{};
 
-  PointType       m_UpdatedOutputOrigin;
-  DirectionType   m_UpdatedOutputDirection;
-  SpacingType     m_UpdatedOutputSpacing;
-  ImageRegionType m_UpdatedOutputLargestPossibleRegion;
+  PointType       m_UpdatedOutputOrigin{};
+  DirectionType   m_UpdatedOutputDirection{};
+  SpacingType     m_UpdatedOutputSpacing{};
+  ImageRegionType m_UpdatedOutputLargestPossibleRegion{};
 };
 } // end namespace itk
 

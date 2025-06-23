@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@
 namespace itk
 {
 /**
- *\class ScalarImageKmeansImageFilter
+ * \class ScalarImageKmeansImageFilter
  * \brief Classifies the intensity values of a scalar image using the K-Means algorithm.
  *
  * Given an input image with scalar values, it uses the K-Means statistical
@@ -83,8 +83,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageKmeansImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarImageKmeansImageFilter);
 
   /** Image type alias support */
   using InputPixelType = typename InputImageType::PixelType;
@@ -133,10 +133,11 @@ public:
    * to true, the labels are selected in order to span the dynamic range of the
    * output image. This last option is useful when the output image is intended
    * only for display. The default value is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseNonContiguousLabels, bool);
   itkGetConstReferenceMacro(UseNonContiguousLabels, bool);
   itkBooleanMacro(UseNonContiguousLabels);
-
+  /** @ITKEndGrouping */
   /** Set Region method to constrain classification to a certain region */
   void
   SetImageRegion(const ImageRegionType & region);
@@ -144,11 +145,7 @@ public:
   /** Get the region over which the statistics will be computed */
   itkGetConstReferenceMacro(ImageRegion, ImageRegionType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ScalarImageKmeansImageFilter();
@@ -167,18 +164,18 @@ protected:
   /* See superclass for doxygen. This methods additionally checks that
    * the number of means is not 0. */
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
 
 private:
   using MeansContainer = std::vector<RealPixelType>;
 
-  MeansContainer m_InitialMeans;
+  MeansContainer m_InitialMeans{};
 
-  ParametersType m_FinalMeans;
+  ParametersType m_FinalMeans{};
 
   bool m_UseNonContiguousLabels{ false };
 
-  ImageRegionType m_ImageRegion;
+  ImageRegionType m_ImageRegion{};
 
   bool m_ImageRegionDefined{ false };
 };

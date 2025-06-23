@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLabelMapToBinaryImageFilter_hxx
 #define itkLabelMapToBinaryImageFilter_hxx
 
-#include "itkLabelMapToBinaryImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
@@ -28,9 +27,9 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 LabelMapToBinaryImageFilter<TInputImage, TOutputImage>::LabelMapToBinaryImageFilter()
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_ForegroundValue(NumericTraits<OutputImagePixelType>::max())
 {
-  this->m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  this->m_ForegroundValue = NumericTraits<OutputImagePixelType>::max();
   this->DynamicMultiThreadingOn();
 }
 
@@ -42,7 +41,7 @@ LabelMapToBinaryImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRe
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
 
   if (input)
   {

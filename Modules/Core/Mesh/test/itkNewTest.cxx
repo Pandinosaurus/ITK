@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ public:
   float
   operator()(double d, double)
   {
-    return (float)d;
+    return static_cast<float>(d);
   }
   void
   Visit(int, Bogus *)
@@ -57,7 +57,7 @@ itkNewTest(int, char *[])
   // Call New and Print on as many classes as possible
 
   // CellInterfaceVisitorImplementation
-  itk::CellInterfaceVisitorImplementation<float, itk::Mesh<float>::CellTraits, Bogus, Bogus>::Pointer CIVI =
+  const itk::CellInterfaceVisitorImplementation<float, itk::Mesh<float>::CellTraits, Bogus, Bogus>::Pointer CIVI =
     itk::CellInterfaceVisitorImplementation<float, itk::Mesh<float>::CellTraits, Bogus, Bogus>::New();
   if (CIVI.IsNull())
   {
@@ -75,12 +75,12 @@ itkNewTest(int, char *[])
   // BackwardDifferenceOperator
   // Bad
   // using iDHBO = itk::BackwardDifferenceOperator<double>;
-  // iDHBO::Pointer dhbo = iDHBO::New();
+  // auto dhbo = iDHBO::New();
 
   // ForwardDifferenceOperator
   // Bad
   // using iDHFO = itk::ForwardDifferenceOperator<double>;
-  // iDHFO::Pointer dhfo = iDHFO::New();
+  // auto dhfo = iDHFO::New();
 
   return EXIT_SUCCESS;
 }

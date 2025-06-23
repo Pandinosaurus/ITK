@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -108,14 +108,14 @@ public:
 
     // Print the angle for the trace plot
     vnl_matrix<double> p(2, 2);
-    p[0][0] = (double)optimizer->GetCurrentPosition()[0];
-    p[0][1] = (double)optimizer->GetCurrentPosition()[1];
-    p[1][0] = (double)optimizer->GetCurrentPosition()[2];
-    p[1][1] = (double)optimizer->GetCurrentPosition()[3];
+    p[0][0] = static_cast<double>(optimizer->GetCurrentPosition()[0]);
+    p[0][1] = static_cast<double>(optimizer->GetCurrentPosition()[1]);
+    p[1][0] = static_cast<double>(optimizer->GetCurrentPosition()[2]);
+    p[1][1] = static_cast<double>(optimizer->GetCurrentPosition()[3]);
     vnl_svd<double>    svd(p);
     vnl_matrix<double> r(2, 2);
     r = svd.U() * vnl_transpose(svd.V());
-    double angle = std::asin(r[1][0]);
+    const double angle = std::asin(r[1][0]);
     std::cout << " AffineAngle: " << angle * 180.0 / itk::Math::pi
               << std::endl;
   }
@@ -174,9 +174,9 @@ main(int argc, char * argv[])
   using RegistrationType = itk::
     ImageRegistrationMethodv4<FixedImageType, MovingImageType, TransformType>;
 
-  MetricType::Pointer       metric = MetricType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto optimizer = OptimizerType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetMetric(metric);
   registration->SetOptimizer(optimizer);
@@ -194,16 +194,14 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   // Software Guide : EndCodeSnippet
 
 
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
 
@@ -227,8 +225,7 @@ main(int argc, char * argv[])
     itk::CenteredTransformInitializer<TransformType,
                                       FixedImageType,
                                       MovingImageType>;
-  TransformInitializerType::Pointer initializer =
-    TransformInitializerType::New();
+  auto initializer = TransformInitializerType::New();
   initializer->SetTransform(transform);
   initializer->SetFixedImage(fixedImageReader->GetOutput());
   initializer->SetMovingImage(movingImageReader->GetOutput());
@@ -322,7 +319,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
 
@@ -410,14 +407,14 @@ main(int argc, char * argv[])
   // VNL returns the eigenvalues ordered from largest to smallest.
 
   vnl_matrix<double> p(2, 2);
-  p[0][0] = (double)finalParameters[0];
-  p[0][1] = (double)finalParameters[1];
-  p[1][0] = (double)finalParameters[2];
-  p[1][1] = (double)finalParameters[3];
+  p[0][0] = static_cast<double>(finalParameters[0]);
+  p[0][1] = static_cast<double>(finalParameters[1]);
+  p[1][0] = static_cast<double>(finalParameters[2]);
+  p[1][1] = static_cast<double>(finalParameters[3]);
   vnl_svd<double>    svd(p);
   vnl_matrix<double> r(2, 2);
   r = svd.U() * vnl_transpose(svd.V());
-  double angle = std::asin(r[1][0]);
+  const double angle = std::asin(r[1][0]);
 
   const double angleInDegrees = angle * 180.0 / itk::Math::pi;
 
@@ -521,12 +518,12 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
 
   resampler->SetTransform(transform);
   resampler->SetInput(movingImageReader->GetOutput());
 
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   resampler->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
   resampler->SetOutputOrigin(fixedImage->GetOrigin());
@@ -544,8 +541,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
 
   writer->SetFileName(argv[3]);
@@ -559,17 +556,17 @@ main(int argc, char * argv[])
   using DifferenceFilterType =
     itk::SubtractImageFilter<FixedImageType, FixedImageType, FixedImageType>;
 
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
+  auto difference = DifferenceFilterType::New();
 
   difference->SetInput1(fixedImageReader->GetOutput());
   difference->SetInput2(resampler->GetOutput());
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
 
   using RescalerType =
     itk::RescaleIntensityImageFilter<FixedImageType, OutputImageType>;
 
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
+  auto intensityRescaler = RescalerType::New();
 
   intensityRescaler->SetInput(difference->GetOutput());
   intensityRescaler->SetOutputMinimum(0);
@@ -588,7 +585,7 @@ main(int argc, char * argv[])
 
 
   using IdentityTransformType = itk::IdentityTransform<double, Dimension>;
-  IdentityTransformType::Pointer identity = IdentityTransformType::New();
+  auto identity = IdentityTransformType::New();
 
   // Compute the difference image between the
   // fixed and moving image before registration.

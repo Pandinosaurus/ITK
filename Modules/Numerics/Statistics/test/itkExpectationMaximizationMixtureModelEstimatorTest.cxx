@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,14 +41,12 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-
-  unsigned int i, j;
-  char *       dataFileName = argv[1];
-  int          dataSize = 2000;
-  int          maximumIteration = 200;
+  char *        dataFileName = argv[1];
+  constexpr int dataSize = 2000;
+  constexpr int maximumIteration = 200;
   using ParametersType = itk::Array<double>;
-  double                      minStandardDeviation = 28.54746;
-  unsigned int                numberOfClasses = 2;
+  constexpr double            minStandardDeviation = 28.54746;
+  constexpr unsigned int      numberOfClasses = 2;
   std::vector<ParametersType> trueParameters(numberOfClasses);
   ParametersType              params(6);
   params[0] = 99.261;
@@ -94,14 +92,14 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
   initialProportions[1] = 0.5;
 
   /* Loading point data */
-  PointSetType::Pointer                pointSet = PointSetType::New();
-  PointSetType::PointsContainerPointer pointsContainer = PointSetType::PointsContainer::New();
+  auto                                       pointSet = PointSetType::New();
+  const PointSetType::PointsContainerPointer pointsContainer = PointSetType::PointsContainer::New();
   pointsContainer->Reserve(dataSize);
   pointSet->SetPoints(pointsContainer);
 
   PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin();
   PointSetType::PointType               point;
-  double                                temp;
+  double                                temp = NAN;
   std::ifstream                         dataStream(dataFileName);
   if (!dataStream)
   {
@@ -111,7 +109,7 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
 
   while (p_iter != pointsContainer->End())
   {
-    for (i = 0; i < PointSetType::PointDimension; i++)
+    for (unsigned int i = 0; i < PointSetType::PointDimension; ++i)
     {
       dataStream >> temp;
       point[i] = temp;
@@ -123,14 +121,14 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
   dataStream.close();
 
   /* Importing the point set to the sample */
-  DataSampleType::Pointer sample = DataSampleType::New();
+  auto sample = DataSampleType::New();
 
   sample->SetPointSet(pointSet);
 
   /* Preparing the gaussian mixture components */
   using ComponentPointer = ComponentType::Pointer;
   std::vector<ComponentPointer> components;
-  for (i = 0; i < numberOfClasses; i++)
+  for (unsigned int i = 0; i < numberOfClasses; ++i)
   {
     components.push_back(ComponentType::New());
     (components[i])->SetSample(sample);
@@ -138,12 +136,12 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
   }
 
   /* Estimating */
-  EstimatorType::Pointer estimator = EstimatorType::New();
+  auto estimator = EstimatorType::New();
   estimator->SetSample(sample);
   estimator->SetMaximumIteration(maximumIteration);
   estimator->SetInitialProportions(initialProportions);
 
-  for (i = 0; i < numberOfClasses; i++)
+  for (unsigned int i = 0; i < numberOfClasses; ++i)
   {
     estimator->AddComponent((ComponentType::Superclass *)(components[i]).GetPointer());
   }
@@ -152,18 +150,18 @@ itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char * argv[])
 
   std::cout << "DEBUG: current iteration = " << estimator->GetCurrentIteration() << std::endl;
 
-  bool               passed = true;
-  double             displacement;
+  bool passed = true;
+
   const unsigned int measurementVectorSize = sample->GetMeasurementVectorSize();
-  for (i = 0; i < numberOfClasses; i++)
+  for (unsigned int i = 0; i < numberOfClasses; ++i)
   {
-    std::cout << "Cluster[" << i << "]" << std::endl;
+    std::cout << "Cluster[" << i << ']' << std::endl;
     std::cout << "    Parameters:" << std::endl;
     std::cout << "         " << (components[i])->GetFullParameters() << std::endl;
     std::cout << "    Proportion: ";
     std::cout << "         " << (estimator->GetProportions())[i] << std::endl;
-    displacement = 0.0;
-    for (j = 0; j < measurementVectorSize; j++)
+    double displacement = 0.0;
+    for (unsigned int j = 0; j < measurementVectorSize; ++j)
     {
       temp = (components[i])->GetFullParameters()[j] - trueParameters[i][j];
       displacement += (temp * temp);

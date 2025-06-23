@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,6 @@
 #include <climits>
 
 #include "itkNumericTraits.h"
-#include "itkMorphologyImageFilter.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkTotalProgressReporter.h"
 
@@ -30,7 +29,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 MorphologyImageFilter<TInputImage, TOutputImage, TKernel>::MorphologyImageFilter()
 {
-  m_DefaultBoundaryCondition.SetConstant(NumericTraits<PixelType>::ZeroValue());
+  m_DefaultBoundaryCondition.SetConstant(PixelType{});
   m_BoundaryCondition = &m_DefaultBoundaryCondition;
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
@@ -45,11 +44,9 @@ MorphologyImageFilter<TInputImage, TOutputImage, TKernel>::DynamicThreadedGenera
   NeighborhoodIteratorType b_iter;
 
   // Find the boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
-  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                        fC;
-  faceList = fC(this->GetInput(), outputRegionForThread, this->GetKernel().GetRadius());
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                              fC;
+  const typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList =
+    fC(this->GetInput(), outputRegionForThread, this->GetKernel().GetRadius());
 
   TotalProgressReporter progress(this, this->GetOutput()->GetRequestedRegion().GetNumberOfPixels());
 
@@ -61,11 +58,11 @@ MorphologyImageFilter<TInputImage, TOutputImage, TKernel>::DynamicThreadedGenera
   const KernelIteratorType kernelBegin = this->GetKernel().Begin();
   const KernelIteratorType kernelEnd = this->GetKernel().End();
 
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (const auto & face : faceList)
   {
-    b_iter = NeighborhoodIteratorType(this->GetKernel().GetRadius(), this->GetInput(), *fit);
+    b_iter = NeighborhoodIteratorType(this->GetKernel().GetRadius(), this->GetInput(), face);
 
-    o_iter = ImageRegionIterator<OutputImageType>(this->GetOutput(), *fit);
+    o_iter = ImageRegionIterator<OutputImageType>(this->GetOutput(), face);
     b_iter.OverrideBoundaryCondition(m_BoundaryCondition);
     b_iter.GoToBegin();
 

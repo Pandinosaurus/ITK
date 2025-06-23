@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,27 +49,27 @@ RegularExpressionSeriesFileNames::GetFileNames()
   // Validate the ivars
   if (m_Directory.empty())
   {
-    itkExceptionMacro(<< "No directory defined!");
+    itkExceptionMacro("No directory defined!");
   }
 
   itksys::RegularExpression reg;
   if (!reg.compile(m_RegularExpression.c_str()))
   {
-    itkExceptionMacro(<< "Error compiling regular expression " << m_RegularExpression);
+    itkExceptionMacro("Error compiling regular expression " << m_RegularExpression);
   }
 
   // Process all files in the directory
   itksys::Directory fileDir;
-  if (!fileDir.Load(m_Directory.c_str()))
+  if (!fileDir.Load(m_Directory))
   {
-    itkExceptionMacro(<< "Directory " << m_Directory.c_str() << " cannot be read!");
+    itkExceptionMacro("Directory " << m_Directory << " cannot be read!");
   }
 
   std::vector<std::pair<std::string, std::string>> sortedBySubMatch;
 
   // Scan directory for files. Each file is checked to see if it
   // matches the m_RegularExpression.
-  for (unsigned long i = 0; i < fileDir.GetNumberOfFiles(); i++)
+  for (unsigned long i = 0; i < fileDir.GetNumberOfFiles(); ++i)
   {
     // Only read files
     if (itksys::SystemTools::FileIsDirectory((m_Directory + "/" + fileDir.GetFile(i)).c_str()))
@@ -88,7 +88,7 @@ RegularExpressionSeriesFileNames::GetFileNames()
   }
 
   // Sort the files. The files are sorted by the sub match defined by
-  // m_SubMatch. Sorting can be alpahbetic or numeric.
+  // m_SubMatch. Sorting can be alphabetic or numeric.
   if (m_NumericSort)
   {
     std::sort(sortedBySubMatch.begin(), sortedBySubMatch.end(), lt_pair_numeric_string_string());
@@ -100,10 +100,10 @@ RegularExpressionSeriesFileNames::GetFileNames()
 
   // Now, store the sorted names in a vector
   m_FileNames.clear();
-  std::vector<std::pair<std::string, std::string>>::iterator siter;
-  for (siter = sortedBySubMatch.begin(); siter != sortedBySubMatch.end(); ++siter)
+
+  for (auto & currPair : sortedBySubMatch)
   {
-    m_FileNames.push_back((*siter).first);
+    m_FileNames.push_back(currPair.first);
   }
 
   return m_FileNames;
@@ -119,7 +119,7 @@ RegularExpressionSeriesFileNames::PrintSelf(std::ostream & os, Indent indent) co
   os << indent << "NumericSort: " << m_NumericSort << std::endl;
   os << indent << "RegularExpression: " << m_RegularExpression << std::endl;
 
-  for (unsigned int i = 0; i < m_FileNames.size(); i++)
+  for (unsigned int i = 0; i < m_FileNames.size(); ++i)
   {
     os << indent << "FileNames[" << i << "]: " << m_FileNames[i] << std::endl;
   }

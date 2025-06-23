@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ class DicomImage;
 
 namespace itk
 {
-/**\class DCMTKImageIOEnums
+/** \class DCMTKImageIOEnums
  * \brief Enums used by the DCMTKImageIO class
  * \ingroup IOFilters
  * \ingroup ITKIODCMTK
@@ -37,7 +37,7 @@ class DCMTKImageIOEnums
 {
 public:
   /**
-   *\class LogLevel
+   * \class LogLevel
    * \ingroup IOFilters
    * \ingroup ITKIODCMTK
    * enum for DCMTK log level.  These are defined here without
@@ -60,7 +60,7 @@ extern ITKIODCMTK_EXPORT std::ostream &
                          operator<<(std::ostream & out, const DCMTKImageIOEnums::LogLevel value);
 
 /**
- *\class DCMTKImageIO
+ * \class DCMTKImageIO
  *
  *  \brief Read DICOM image file format.
  *
@@ -81,8 +81,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DCMTKImageIO, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DCMTKImageIO);
 
   using LogLevelEnum = DCMTKImageIOEnums::LogLevel;
 #if !defined(ITK_LEGACY_REMOVE)
@@ -175,22 +175,22 @@ private:
   }
 
   /*----- internal helpers --------------------------------------------*/
-  bool m_UseJPEGCodec;
-  bool m_UseJPLSCodec;
-  bool m_UseRLECodec;
+  bool m_UseJPEGCodec{};
+  bool m_UseJPLSCodec{};
+  bool m_UseRLECodec{};
 
-  DicomImage * m_DImage;
+  DicomImage * m_DImage{};
 
-  bool m_DicomImageSetByUser;
+  bool m_DicomImageSetByUser{};
 
-  double      m_RescaleSlope;
-  double      m_RescaleIntercept;
-  std::string m_LastFileName;
+  double      m_RescaleSlope{};
+  double      m_RescaleIntercept{};
+  std::string m_LastFileName{};
 };
 
 // Define how to print enumeration
-extern ITKCommon_EXPORT std::ostream &
-                        operator<<(std::ostream & out, DCMTKImageIO::LogLevelEnum value);
+extern ITKIODCMTK_EXPORT std::ostream &
+                         operator<<(std::ostream & out, DCMTKImageIO::LogLevelEnum value);
 
 } // end namespace itk
 

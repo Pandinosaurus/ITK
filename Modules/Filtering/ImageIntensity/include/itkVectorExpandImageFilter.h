@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -90,15 +90,15 @@ public:
   using OutputImagePointer = typename TOutputImage::Pointer;
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorExpandImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorExpandImageFilter);
 
   /** ImageDimension enumeration */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Inherit some types from superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
 
   /** Input/output vector types. */
   using OutputPixelType = typename OutputImageType::PixelType;
@@ -117,22 +117,28 @@ public:
   using ExpandFactorsArrayType = FixedArray<ExpandFactorsType, ImageDimension>;
 
   /** Typedef support for the interpolation function */
-  using CoordRepType = double;
-  using InterpolatorType = VectorInterpolateImageFunction<InputImageType, CoordRepType>;
+  using CoordinateType = double;
+#  ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#  endif
+  using InterpolatorType = VectorInterpolateImageFunction<InputImageType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
-  using DefaultInterpolatorType = VectorLinearInterpolateImageFunction<InputImageType, CoordRepType>;
+  using DefaultInterpolatorType = VectorLinearInterpolateImageFunction<InputImageType, CoordinateType>;
 
   /** Get/Set the interpolator function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** Set the expand factors. Values are clamped to
    * a minimum value of 1. Default is 1 for all dimensions. */
+  /** @ITKStartGrouping */
   itkSetMacro(ExpandFactors, ExpandFactorsArrayType);
   virtual void
   SetExpandFactors(const float factor);
   itkSetVectorMacro(ExpandFactors, const unsigned int, ImageDimension);
-
+  /** @ITKEndGrouping */
   /** Get the expand factors. */
   itkGetConstReferenceMacro(ExpandFactors, ExpandFactorsArrayType);
 
@@ -153,12 +159,8 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#  ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputValueType>));
-  // End concept checking
-#  endif
 
 protected:
   VectorExpandImageFilter();
@@ -183,14 +185,14 @@ protected:
   BeforeThreadedGenerateData() override;
 
 private:
-  ExpandFactorsArrayType m_ExpandFactors;
-  InterpolatorPointer    m_Interpolator;
+  ExpandFactorsArrayType m_ExpandFactors{};
+  InterpolatorPointer    m_Interpolator{};
 };
 } // end namespace itk
+
+#  ifndef ITK_MANUAL_INSTANTIATION
+#    include "itkVectorExpandImageFilter.hxx"
+#  endif
+
 #endif // ITK_LEGACY_REMOVE
-
-#ifndef ITK_MANUAL_INSTANTIATION
-#  include "itkVectorExpandImageFilter.hxx"
-#endif
-
 #endif

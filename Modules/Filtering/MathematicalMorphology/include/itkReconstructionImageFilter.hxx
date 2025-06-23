@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkReconstructionImageFilter_hxx
 
 #include "itkMath.h"
-#include "itkReconstructionImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
 #include "itkConnectedComponentAlgorithm.h"
 
@@ -30,10 +29,8 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TCompare>
 ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::ReconstructionImageFilter()
+  : m_UseInternalCopy(true)
 {
-  m_FullyConnected = false;
-  m_UseInternalCopy = true;
-
   this->SetPrimaryInputName("MarkerImage");
   this->AddRequiredInputName("MaskImage", 1);
 }
@@ -46,9 +43,9 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateInputReq
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the inputs
-  MarkerImagePointer markerPtr = const_cast<MarkerImageType *>(this->GetInput(0));
+  const MarkerImagePointer markerPtr = const_cast<MarkerImageType *>(this->GetInput(0));
 
-  MaskImagePointer maskPtr = const_cast<MaskImageType *>(this->GetInput(1));
+  const MaskImagePointer maskPtr = const_cast<MaskImageType *>(this->GetInput(1));
 
   if (!markerPtr || !maskPtr)
   {
@@ -80,14 +77,14 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
 
   TCompare compare;
 
-  MarkerImageConstPointer markerImage = this->GetMarkerImage();
-  MaskImageConstPointer   maskImage = this->GetMaskImage();
-  OutputImagePointer      output = this->GetOutput();
+  const MarkerImageConstPointer markerImage = this->GetMarkerImage();
+  const MaskImageConstPointer   maskImage = this->GetMaskImage();
+  const OutputImagePointer      output = this->GetOutput();
 
   // mask and marker must have the same size
   if (this->GetMarkerImage()->GetRequestedRegion().GetSize() != this->GetMaskImage()->GetRequestedRegion().GetSize())
   {
-    itkExceptionMacro(<< "Marker and mask must have the same size.");
+    itkExceptionMacro("Marker and mask must have the same size.");
   }
 
   // create padded versions of the marker image and the mask image
@@ -100,8 +97,8 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
 
   if (m_UseInternalCopy)
   {
-    typename PadType::Pointer MaskPad = PadType::New();
-    typename PadType::Pointer MarkerPad = PadType::New();
+    auto MaskPad = PadType::New();
+    auto MarkerPad = PadType::New();
     padSize.Fill(1);
 
     MaskPad->SetConstant(m_MarkerValue);
@@ -127,7 +124,7 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
     // copy marker to output - isn't there a better way?
     while (!outIt.IsAtEnd())
     {
-      MarkerImagePixelType currentValue = inIt.Get();
+      const MarkerImagePixelType currentValue = inIt.Get();
       outIt.Set(static_cast<OutputImagePixelType>(currentValue));
       ++inIt;
       ++outIt;
@@ -142,35 +139,33 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
   NOutputIterator   outNIt;
   InputIteratorType mskIt;
   CNInputIterator   mskNIt;
-  ISizeType         kernelRadius;
-  kernelRadius.Fill(1);
+  auto              kernelRadius = ISizeType::Filled(1);
   if (m_UseInternalCopy)
   {
     FaceCalculatorType faceCalculator;
 
-    FaceListType   faceList;
     FaceListTypeIt fit;
 
-    faceList = faceCalculator(maskImageP, maskImageP->GetLargestPossibleRegion(), kernelRadius);
+    FaceListType faceList = faceCalculator(maskImageP, maskImageP->GetLargestPossibleRegion(), kernelRadius);
     // we will only be processing the body region
     fit = faceList.begin();
     // must be a better way of doing this
-    NOutputIterator tt(kernelRadius, markerImageP, *fit);
+    const NOutputIterator tt(kernelRadius, markerImageP, *fit);
     outNIt = tt;
 
-    InputIteratorType ttt(maskImageP, *fit);
+    const InputIteratorType ttt(maskImageP, *fit);
     mskIt = ttt;
-    CNInputIterator tttt(kernelRadius, maskImageP, *fit);
+    const CNInputIterator tttt(kernelRadius, maskImageP, *fit);
     mskNIt = tttt;
   }
   else
   {
-    NOutputIterator tt(kernelRadius, markerImageP, output->GetRequestedRegion());
+    const NOutputIterator tt(kernelRadius, markerImageP, output->GetRequestedRegion());
     outNIt = tt;
 
-    InputIteratorType ttt(maskImageP, output->GetRequestedRegion());
+    const InputIteratorType ttt(maskImageP, output->GetRequestedRegion());
     mskIt = ttt;
-    CNInputIterator tttt(kernelRadius, maskImageP, output->GetRequestedRegion());
+    const CNInputIterator tttt(kernelRadius, maskImageP, output->GetRequestedRegion());
     mskNIt = tttt;
   }
 
@@ -192,11 +187,11 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
     {
       if (compare(0, 1))
       {
-        itkExceptionMacro(<< "Marker pixels must be <= mask pixels.");
+        itkExceptionMacro("Marker pixels must be <= mask pixels.");
       }
       else
       {
-        itkExceptionMacro(<< "Marker pixels must be >= mask pixels.");
+        itkExceptionMacro("Marker pixels must be >= mask pixels.");
       }
     }
 
@@ -204,7 +199,7 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
     typename NOutputIterator::ConstIterator sIt;
     for (sIt = outNIt.Begin(); !sIt.IsAtEnd(); ++sIt)
     {
-      InputImagePixelType VN = sIt.Get();
+      const InputImagePixelType VN = sIt.Get();
       if (compare(VN, V))
       {
         outNIt.SetCenterPixel(VN);
@@ -234,11 +229,8 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
   setConnectivityLater(&mskNIt, m_FullyConnected);
   mskNIt.OverrideBoundaryCondition(&iBC);
 
-  typename NOutputIterator::IndexListType                 oIndexList, mIndexList;
-  typename NOutputIterator::IndexListType::const_iterator oLIt, mLIt;
-
-  oIndexList = outNIt.GetActiveIndexList();
-  mIndexList = mskNIt.GetActiveIndexList();
+  typename NOutputIterator::IndexListType oIndexList = outNIt.GetActiveIndexList();
+  typename NOutputIterator::IndexListType mIndexList = mskNIt.GetActiveIndexList();
 
   mskNIt.GoToEnd();
   while (!outNIt.IsAtBegin())
@@ -249,14 +241,14 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
     typename NOutputIterator::ConstIterator sIt;
     for (sIt = outNIt.Begin(); !sIt.IsAtEnd(); ++sIt)
     {
-      InputImagePixelType VN = sIt.Get();
+      const InputImagePixelType VN = sIt.Get();
       if (compare(VN, V))
       {
         outNIt.SetCenterPixel(VN);
         V = VN;
       }
     }
-    InputImagePixelType iV = mskNIt.GetCenterPixel();
+    const InputImagePixelType iV = mskNIt.GetCenterPixel();
     if (compare(V, iV))
     {
       outNIt.SetCenterPixel(iV);
@@ -265,10 +257,11 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
 
     // now put indexes in the fifo
     // typename CNInputIterator::ConstIterator mIt;
-    for (oLIt = oIndexList.begin(), mLIt = mIndexList.begin(); oLIt != oIndexList.end(); ++oLIt, ++mLIt)
+    auto mLIt = mIndexList.begin();
+    for (auto oLIt = oIndexList.begin(); oLIt != oIndexList.end(); ++oLIt, ++mLIt)
     {
-      InputImagePixelType VN = outNIt.GetPixel(*oLIt);
-      InputImagePixelType iN = mskNIt.GetPixel(*mLIt);
+      const InputImagePixelType VN = outNIt.GetPixel(*oLIt);
+      const InputImagePixelType iN = mskNIt.GetPixel(*mLIt);
       if (compare(V, VN) && compare(iN, VN))
       {
         IndexFifo.push(outNIt.GetIndex());
@@ -288,20 +281,21 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
   // now process the fifo - this fill the parts that weren't dealt
   // with by the raster and anti-raster passes
   // typename NOutputIterator::Iterator sIt;
-  typename CNInputIterator::ConstIterator mIt;
+  const typename CNInputIterator::ConstIterator mIt;
 
   while (!IndexFifo.empty())
   {
-    InputImageIndexType I = IndexFifo.front();
+    const InputImageIndexType I = IndexFifo.front();
     IndexFifo.pop();
     // reposition the iterators
     outNIt += I - outNIt.GetIndex();
     mskNIt += I - mskNIt.GetIndex();
-    InputImagePixelType V = outNIt.GetCenterPixel();
-    for (oLIt = oIndexList.begin(), mLIt = mIndexList.begin(); oLIt != oIndexList.end(); ++oLIt, ++mLIt)
+    const InputImagePixelType V = outNIt.GetCenterPixel();
+    auto                      mLIt = mIndexList.begin();
+    for (auto oLIt = oIndexList.begin(); oLIt != oIndexList.end(); ++oLIt, ++mLIt)
     {
-      InputImagePixelType VN = outNIt.GetPixel(*oLIt);
-      InputImagePixelType iN = mskNIt.GetPixel(*mLIt);
+      const InputImagePixelType VN = outNIt.GetPixel(*oLIt);
+      const InputImagePixelType iN = mskNIt.GetPixel(*mLIt);
       // candidate for dilation via flooding
       if (compare(V, VN) && Math::NotAlmostEquals(iN, VN))
       {
@@ -324,7 +318,7 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::GenerateData()
   if (m_UseInternalCopy)
   {
     using CropType = typename itk::CropImageFilter<InputImageType, OutputImageType>;
-    typename CropType::Pointer crop = CropType::New();
+    auto crop = CropType::New();
 
     crop->SetInput(markerImageP);
     crop->SetUpperBoundaryCropSize(padSize);
@@ -344,7 +338,7 @@ ReconstructionImageFilter<TInputImage, TOutputImage, TCompare>::PrintSelf(std::o
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent << "MarkerValue: " << m_MarkerValue << std::endl;
   os << indent << "UseInternalCopy: " << m_UseInternalCopy << std::endl;
 }

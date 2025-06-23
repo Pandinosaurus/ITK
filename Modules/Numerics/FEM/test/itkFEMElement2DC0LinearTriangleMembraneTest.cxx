@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,31 +20,34 @@
 #include "itkFEMSolver.h"
 #include "itkFEMSpatialObjectReader.h"
 #include "itkFEMSpatialObjectWriter.h"
+#include "itkTestingMacros.h"
 
 int
 itkFEMElement2DC0LinearTriangleMembraneTest(int argc, char * argv[])
 {
-  if (argc < 1)
+  if (argc != 3)
   {
-    std::cerr << "Missing Spatial Object Filename" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName outputFileName" << std::endl;
     return EXIT_FAILURE;
   }
+
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
 
   using Solver2DType = itk::fem::Solver<2>;
-  Solver2DType::Pointer solver = Solver2DType::New();
+  auto solver = Solver2DType::New();
 
   using FEMSpatialObjectReaderType = itk::FEMSpatialObjectReader<2>;
   using FEMSpatialObjectReaderPointer = FEMSpatialObjectReaderType::Pointer;
-  FEMSpatialObjectReaderPointer SpatialReader = FEMSpatialObjectReaderType::New();
-  SpatialReader->SetFileName(argv[1]);
-  SpatialReader->Update();
+  FEMSpatialObjectReaderPointer spatialReader = FEMSpatialObjectReaderType::New();
+  spatialReader->SetFileName(argv[1]);
+  spatialReader->Update();
 
-  FEMSpatialObjectReaderType::GroupPointer myGroup = SpatialReader->GetGroup();
+  FEMSpatialObjectReaderType::GroupPointer myGroup = spatialReader->GetGroup();
   if (!myGroup)
   {
     std::cout << "No Group : [FAILED]" << std::endl;
@@ -55,7 +58,7 @@ itkFEMElement2DC0LinearTriangleMembraneTest(int argc, char * argv[])
   // Testing the fe mesh validity
   using FEMObjectSpatialObjectType = itk::FEMObjectSpatialObject<2>;
 
-  FEMObjectSpatialObjectType::ChildrenListType * children = SpatialReader->GetGroup()->GetChildren();
+  FEMObjectSpatialObjectType::ChildrenListType * children = spatialReader->GetGroup()->GetChildren();
 
   if (children->front()->GetTypeName() != "FEMObjectSpatialObject")
   {
@@ -78,14 +81,14 @@ itkFEMElement2DC0LinearTriangleMembraneTest(int argc, char * argv[])
   solver->Update();
 
   // to write the deformed mesh
-  FEMObjectSpatialObjectType::Pointer femSODef = FEMObjectSpatialObjectType::New();
+  auto femSODef = FEMObjectSpatialObjectType::New();
   femSODef->SetFEMObject(solver->GetOutput());
   using FEMSpatialObjectWriterType = itk::FEMSpatialObjectWriter<2>;
   using FEMSpatialObjectWriterPointer = FEMSpatialObjectWriterType::Pointer;
-  FEMSpatialObjectWriterPointer SpatialWriter = FEMSpatialObjectWriterType::New();
-  SpatialWriter->SetInput(femSODef);
-  SpatialWriter->SetFileName(argv[2]);
-  SpatialWriter->Update();
+  FEMSpatialObjectWriterPointer spatialWriter = FEMSpatialObjectWriterType::New();
+  spatialWriter->SetInput(femSODef);
+  spatialWriter->SetFileName(argv[2]);
+  spatialWriter->Update();
 
   std::cout << "Test PASSED!" << std::endl;
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 //
 //  The \doxygen{ZeroCrossingBasedEdgeDetectionImageFilter} performs
 //  edge detection by combining a sequence of Gaussian smoothing,
-//  Laplacian filter, and Zero cross detections on the Laplacian.
+//  Laplacian filter, and Zero crossing detections on the Laplacian.
 //
 //  \index{itk::ZeroCrossingBasedEdgeDetectionImageFilter}
 //
@@ -81,10 +81,10 @@ main(int argc, char * argv[])
   using RescaleFilterType =
     itk::RescaleIntensityImageFilter<OutputImageType, CharImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -92,7 +92,7 @@ main(int argc, char * argv[])
   using FilterType =
     itk::ZeroCrossingBasedEdgeDetectionImageFilter<InputImageType,
                                                    OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
 
   //  Software Guide : BeginLatex

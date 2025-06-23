@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkImageFileReader.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
 itkImageToHistogramFilterTest2(int argc, char * argv[])
@@ -26,9 +27,9 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0] << " inputRGBImageFileName outputHistogramFile.txt [autoMinumumMaximum]"
-              << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputRGBImageFileName outputHistogramFile.txt [autoMinumumMaximum]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -51,14 +52,14 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<RGBImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(argv[1]);
 
   using HistogramFilterType = itk::Statistics::ImageToHistogramFilter<RGBImageType>;
 
-  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
-  itk::SimpleFilterWatcher     watcher(histogramFilter, "filter");
+  auto                           histogramFilter = HistogramFilterType::New();
+  const itk::SimpleFilterWatcher watcher(histogramFilter, "filter");
 
   using HistogramMeasurementVectorType = HistogramFilterType::HistogramMeasurementVectorType;
 
@@ -97,15 +98,7 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   histogramFilter->SetInput(reader->GetOutput());
 
-  try
-  {
-    histogramFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(histogramFilter->Update());
 
 
   using HistogramType = HistogramFilterType::HistogramType;
@@ -122,7 +115,7 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   outputFile << "Histogram of the red component" << std::endl;
 
-  for (unsigned int bin = 0; bin < histogramSize; bin++)
+  for (unsigned int bin = 0; bin < histogramSize; ++bin)
   {
     outputFile << "bin = " << bin << " frequency = ";
     outputFile << histogram->GetFrequency(bin, channel) << std::endl;
@@ -135,22 +128,14 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   histogramFilter->SetHistogramSize(size);
 
-  try
-  {
-    histogramFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(histogramFilter->Update());
 
 
   channel = 1; // green channel
 
   outputFile << "Histogram of the green component" << std::endl;
 
-  for (unsigned int bin = 0; bin < histogramSize; bin++)
+  for (unsigned int bin = 0; bin < histogramSize; ++bin)
   {
     outputFile << "bin = " << bin << " frequency = ";
     outputFile << histogram->GetFrequency(bin, channel) << std::endl;
@@ -163,22 +148,14 @@ itkImageToHistogramFilterTest2(int argc, char * argv[])
 
   histogramFilter->SetHistogramSize(size);
 
-  try
-  {
-    histogramFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(histogramFilter->Update());
 
 
   channel = 2; // blue channel
 
   outputFile << "Histogram of the blue component" << std::endl;
 
-  for (unsigned int bin = 0; bin < histogramSize; bin++)
+  for (unsigned int bin = 0; bin < histogramSize; ++bin)
   {
     outputFile << "bin = " << bin << " frequency = ";
     outputFile << histogram->GetFrequency(bin, channel) << std::endl;

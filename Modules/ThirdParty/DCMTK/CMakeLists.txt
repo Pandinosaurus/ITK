@@ -9,7 +9,7 @@ include(CMakeParseArguments)
 
 
 if(DCMTK_USE_ICU)
-  option(ITK_USE_SYSTEM_ICU "Use an installed version of icu" OFF)
+  option(ITK_USE_SYSTEM_ICU "Use an installed version of ICU" OFF)
   if(NOT ITK_USE_SYSTEM_ICU)
     set(ITKDCMTK_PREREQS ${ITKDCMTK_BINARY_DIR}/DCMTK_Prereqs)
     set(ITKDCMTK_ICU_LIBRARIES )
@@ -72,20 +72,16 @@ if(DCMTK_USE_ICU)
     )
     set(ICU_DEPENDENCY icu)
   endif()
+else(DCMTK_USE_ICU)
+  set(CHARSET_CONVERSION_ARGS
+     -DDCMTK_WITH_ICU:BOOL=OFF
+     )
 endif()
 
-if(APPLE)
-  # Character set conversion creates linking errors on MacOS. We disable
-  # `iconv` which is likely going to be found on the system by DCMTK, and
-  # that is going to create linking errors.
-  list(APPEND
-      CHARSET_CONVERSION_ARGS
-        -DDCMTK_WITH_ICONV:BOOL=OFF
-      )
-endif()
-
-set(_ITKDCMTK_LIB_NAMES dcmdata dcmimage dcmimgle dcmjpeg dcmjpls
-    dcmnet dcmpstat dcmqrdb dcmsr dcmtls ijg12 ijg16 ijg8 oflog ofstd)
+set(_ITKDCMTK_LIB_NAMES dcmdata dcmpstat dcmsr dcmqrdb dcmimgle
+  dcmimage dcmjpeg dcmjpls dcmnet
+  dcmwlm dcmrt dcmiod dcmfg
+  dcmseg dcmpmap ijg12 ijg16 ijg8 oflog ofstd oficonv)
 if(WIN32)
   set(ITKDCMTK_LIBDEP_WIN iphlpapi ws2_32 netapi32 wsock32)
 endif()
@@ -97,7 +93,14 @@ if(ITK_USE_SYSTEM_DCMTK)
   set(ITKDCMTK_SYSTEM_INCLUDE_DIRS ${DCMTK_INCLUDE_DIRS})
 
   # Module standard library var
-  set(ITKDCMTK_LIBRARIES ${DCMTK_LIBRARIES})
+  set(ITKDCMTK_LIBRARIES)
+  foreach(lib IN LISTS DCMTK_LIBRARIES)
+    if(TARGET DCMTK::${lib})
+      list(APPEND ITKDCMTK_LIBRARIES DCMTK::${lib})
+    else()
+      list(APPEND ITKDCMTK_LIBRARIES ${lib})
+    endif()
+  endforeach()
 
   # When this module is loaded by an app, load DCMTK too.
   set(ITKDCMTK_EXPORT_CODE_INSTALL "
@@ -192,7 +195,7 @@ foreach(lib ${_ITKDCMTK_LIB_NAMES})
   if(NOT TARGET \${lib})
     add_library(\${lib} ${_ITKDCMTK_LIB_LINKAGE} IMPORTED)
     set_property(TARGET \${lib} PROPERTY IMPORTED_LOCATION
-      \"\${ITK_INSTALL_PREFIX}/lib/${lib_prefix}\${lib}${lib_suffix}\")
+            \"\${ITK_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${lib_prefix}\${lib}${lib_suffix}\")
     set_property(TARGET \${lib} PROPERTY
       IMPORTED_LINK_INTERFACE_LIBRARIES
       ${ITKDCMTK_LINK_DEPENDENCIES})
@@ -307,7 +310,8 @@ endforeach()
    CMAKE_ARGS
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
-    -DDCMTK_ENABLE_BUILTIN_DICTIONARY:BOOL=ON
+    -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=${CMAKE_MSVC_RUNTIME_LIBRARY}
+    -DDCMTK_DEFAULT_DICT:STRING=builtin
     -DDCMTK_WITH_DOXYGEN:BOOL=OFF
     -DDCMTK_WITH_SNDFILE:BOOL=OFF
     -DDCMTK_WITH_WRAP:BOOL=OFF
@@ -330,6 +334,9 @@ endforeach()
     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+    -DCMAKE_INSTALL_LIBDIR:PATH=${CMAKE_INSTALL_LIBDIR}
+    -DCMAKE_INSTALL_BINDIR:PATH=${CMAKE_INSTALL_BINDIR}
+    -DDCMTK_ENABLE_BUILTIN_OFICONV_DATA:BOOL=${DCMTK_ENABLE_BUILTIN_OFICONV_DATA}
     ${CHARSET_CONVERSION_ARGS}
     DEPENDS ${JPEG_DEPENDENCY} ${PNG_DEPENDENCY} ${TIFF_DEPENDENCY} ${ICU_DEPENDENCY}
     BUILD_BYPRODUCTS ${DCMTK_BYPRODUCTS}

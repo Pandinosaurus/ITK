@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,15 +71,7 @@ main(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, 2>;
   // Software Guide : EndCodeSnippet
 
-
-  using ReaderType = itk::ImageFileReader<InputImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
+  const auto input = itk::ReadImage<InputImageType>(argv[1]);
 
   //  Software Guide : BeginLatex
   //
@@ -96,7 +88,7 @@ main(int argc, char * argv[])
   using FilterType =
     itk::RelabelComponentImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer relabeler = FilterType::New();
+  auto relabeler = FilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -114,9 +106,8 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  relabeler->SetInput(reader->GetOutput());
-  writer->SetInput(relabeler->GetOutput());
-  writer->Update();
+  relabeler->SetInput(input);
+  itk::WriteImage(relabeler->GetOutput(), argv[2]);
   // Software Guide : EndCodeSnippet
 
 

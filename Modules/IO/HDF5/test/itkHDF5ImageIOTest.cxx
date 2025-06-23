@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ HDF5ReadWriteTest(const char * fileName)
   typename ImageType::SpacingType spacing;
   typename ImageType::PointType   origin;
 
-  for (unsigned i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     size[i] = 5;
     index[i] = 0;
@@ -45,7 +45,7 @@ HDF5ReadWriteTest(const char * fileName)
   }
   imageRegion.SetSize(size);
   imageRegion.SetIndex(index);
-  typename ImageType::Pointer im =
+  const typename ImageType::Pointer im =
     itk::IOTestHelper::AllocateImageFromRegionAndSpacing<ImageType>(imageRegion, spacing);
 
   itk::Matrix<itk::SpacePrecisionType> mat;
@@ -61,43 +61,43 @@ HDF5ReadWriteTest(const char * fileName)
   //
   // add some unique metadata
   itk::MetaDataDictionary & metaDict(im->GetMetaDataDictionary());
-  bool                      metaDataBool(false);
+  constexpr bool            metaDataBool(false);
   itk::EncapsulateMetaData<bool>(metaDict, "TestBool", metaDataBool);
 
-  char metaDataChar('c');
+  constexpr char metaDataChar('c');
   itk::EncapsulateMetaData<char>(metaDict, "TestChar", metaDataChar);
 
-  unsigned char metaDataUChar('u');
+  constexpr unsigned char metaDataUChar('u');
   itk::EncapsulateMetaData<unsigned char>(metaDict, "TestUChar", metaDataUChar);
 
-  short metaDataShort(1);
+  constexpr short metaDataShort(1);
   itk::EncapsulateMetaData<short>(metaDict, "TestShort", metaDataShort);
 
-  unsigned short metaDataUShort(3);
+  constexpr unsigned short metaDataUShort(3);
   itk::EncapsulateMetaData<unsigned short>(metaDict, "TestUShort", metaDataUShort);
 
-  int metaDataInt(5);
+  constexpr int metaDataInt(5);
   itk::EncapsulateMetaData<int>(metaDict, "TestInt", metaDataInt);
 
-  unsigned int metaDataUInt(7);
+  constexpr unsigned int metaDataUInt(7);
   itk::EncapsulateMetaData<unsigned int>(metaDict, "TestUInt", metaDataUInt);
 
-  long metaDataLong(5);
+  constexpr long metaDataLong(5);
   itk::EncapsulateMetaData<long>(metaDict, "TestLong", metaDataLong);
 
-  unsigned long metaDataULong(7);
+  constexpr unsigned long metaDataULong(7);
   itk::EncapsulateMetaData<unsigned long>(metaDict, "TestULong", metaDataULong);
 
-  long long metaDataLLong(-5);
+  constexpr long long metaDataLLong(-5);
   itk::EncapsulateMetaData<long long>(metaDict, "TestLLong", metaDataLLong);
 
-  unsigned long long metaDataULLong(7ull);
+  constexpr unsigned long long metaDataULLong(7ull);
   itk::EncapsulateMetaData<unsigned long long>(metaDict, "TestULLong", metaDataULLong);
 
-  float metaDataFloat(1.23456);
+  constexpr float metaDataFloat(1.23456);
   itk::EncapsulateMetaData<float>(metaDict, "TestFloat", metaDataFloat);
 
-  double metaDataDouble(1.23456);
+  constexpr double metaDataDouble(1.23456);
   itk::EncapsulateMetaData<double>(metaDict, "TestDouble", metaDataDouble);
 
   itk::Array<char> metaDataCharArray(5);
@@ -116,7 +116,7 @@ HDF5ReadWriteTest(const char * fileName)
   metaDataDoubleArray[4] = 2.0;
   itk::EncapsulateMetaData<itk::Array<double>>(metaDict, "TestDoubleArray", metaDataDoubleArray);
 
-  std::string metaDataStdString("Test std::string");
+  const std::string metaDataStdString("Test std::string");
   itk::EncapsulateMetaData<std::string>(metaDict, "StdString", metaDataStdString);
 
   //
@@ -160,14 +160,14 @@ HDF5ReadWriteTest(const char * fileName)
   }
   //
   // Check MetaData
-  itk::MetaDataDictionary & metaDict2(im2->GetMetaDataDictionary());
+  const itk::MetaDataDictionary & metaDict2(im2->GetMetaDataDictionary());
 
   bool metaDataBool2(false);
 
   if (!itk::ExposeMetaData<bool>(metaDict2, "TestBool", metaDataBool2) || metaDataBool != metaDataBool2)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestBool " << metaDataBool << " " << metaDataBool2 << std::endl;
+              << "TestBool " << metaDataBool << ' ' << metaDataBool2 << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -175,7 +175,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<char>(metaDict2, "TestChar", metaDataChar2) || metaDataChar2 != metaDataChar)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestChar " << metaDataChar2 << " " << metaDataChar << std::endl;
+              << "TestChar " << metaDataChar2 << ' ' << metaDataChar << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -183,7 +183,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<unsigned char>(metaDict2, "TestUChar", metaDataUChar2) || metaDataUChar2 != metaDataUChar)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestUChar " << metaDataUChar2 << " " << metaDataUChar << std::endl;
+              << "TestUChar " << metaDataUChar2 << ' ' << metaDataUChar << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -191,7 +191,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<short>(metaDict2, "TestShort", metaDataShort2) || metaDataShort2 != metaDataShort)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestShort " << metaDataShort2 << " " << metaDataShort << std::endl;
+              << "TestShort " << metaDataShort2 << ' ' << metaDataShort << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -200,7 +200,7 @@ HDF5ReadWriteTest(const char * fileName)
       metaDataUShort2 != metaDataUShort)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestUShort " << metaDataUShort2 << " " << metaDataUShort << std::endl;
+              << "TestUShort " << metaDataUShort2 << ' ' << metaDataUShort << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -208,7 +208,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<int>(metaDict2, "TestInt", metaDataInt2) || metaDataInt2 != metaDataInt)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestInt " << metaDataInt2 << " " << metaDataInt << std::endl;
+              << "TestInt " << metaDataInt2 << ' ' << metaDataInt << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -216,7 +216,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<unsigned int>(metaDict2, "TestUInt", metaDataUInt2) || metaDataUInt2 != metaDataUInt)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestUInt " << metaDataUInt2 << " " << metaDataUInt << std::endl;
+              << "TestUInt " << metaDataUInt2 << ' ' << metaDataUInt << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -224,7 +224,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<long>(metaDict2, "TestLong", metaDataLong2) || metaDataLong2 != metaDataLong)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestLong " << metaDataLong2 << " " << metaDataLong << std::endl;
+              << "TestLong " << metaDataLong2 << ' ' << metaDataLong << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -232,7 +232,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<unsigned long>(metaDict2, "TestULong", metaDataULong2) || metaDataULong2 != metaDataULong)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestULong " << metaDataULong2 << " " << metaDataULong << std::endl;
+              << "TestULong " << metaDataULong2 << ' ' << metaDataULong << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -240,7 +240,7 @@ HDF5ReadWriteTest(const char * fileName)
   if (!itk::ExposeMetaData<long long>(metaDict2, "TestLLong", metaDataLLong2) || metaDataLLong2 != metaDataLLong)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestLLong " << metaDataLLong2 << " " << metaDataLLong << std::endl;
+              << "TestLLong " << metaDataLLong2 << ' ' << metaDataLLong << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -249,7 +249,7 @@ HDF5ReadWriteTest(const char * fileName)
       metaDataULLong2 != metaDataULLong)
   {
     std::cerr << "Failure Reading metaData "
-              << "TestULLong " << metaDataULLong2 << " " << metaDataULLong << std::endl;
+              << "TestULLong " << metaDataULLong2 << ' ' << metaDataULLong << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -258,7 +258,7 @@ HDF5ReadWriteTest(const char * fileName)
       itk::Math::NotAlmostEquals(metaDataFloat2, metaDataFloat))
   {
     std::cerr << "Failure Reading metaData "
-              << "TestFloat " << metaDataFloat2 << " " << metaDataFloat << std::endl;
+              << "TestFloat " << metaDataFloat2 << ' ' << metaDataFloat << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -267,27 +267,25 @@ HDF5ReadWriteTest(const char * fileName)
       itk::Math::NotAlmostEquals(metaDataDouble2, metaDataDouble))
   {
     std::cerr << "Failure reading metaData "
-              << "TestDouble " << metaDataDouble2 << " " << metaDataDouble << std::endl;
+              << "TestDouble " << metaDataDouble2 << ' ' << metaDataDouble << std::endl;
     success = EXIT_FAILURE;
   }
 
-  itk::Array<char> metaDataCharArray2;
-  metaDataCharArray2.Fill(itk::NumericTraits<char>::ZeroValue());
+  itk::Array<char> metaDataCharArray2{};
   if (!itk::ExposeMetaData<itk::Array<char>>(metaDict2, "TestCharArray", metaDataCharArray2) ||
       metaDataCharArray2 != metaDataCharArray)
   {
     std::cerr << "Failure reading metaData "
-              << "TestCharArray" << metaDataCharArray2 << " " << metaDataCharArray2 << std::endl;
+              << "TestCharArray" << metaDataCharArray2 << ' ' << metaDataCharArray2 << std::endl;
     success = EXIT_FAILURE;
   }
 
-  itk::Array<double> metaDataDoubleArray2;
-  metaDataDoubleArray2.Fill(itk::NumericTraits<double>::ZeroValue());
+  itk::Array<double> metaDataDoubleArray2{};
   if (!itk::ExposeMetaData<itk::Array<double>>(metaDict2, "TestDoubleArray", metaDataDoubleArray2) ||
       metaDataDoubleArray2 != metaDataDoubleArray)
   {
     std::cerr << "Failure reading metaData "
-              << "TestDoubleArray " << metaDataDoubleArray2 << " " << metaDataDoubleArray << std::endl;
+              << "TestDoubleArray " << metaDataDoubleArray2 << ' ' << metaDataDoubleArray << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -296,7 +294,7 @@ HDF5ReadWriteTest(const char * fileName)
       metaDataStdString2 != metaDataStdString)
   {
     std::cerr << "Failure reading metaData "
-              << "StdString " << metaDataStdString2 << " " << metaDataStdString << std::endl;
+              << "StdString " << metaDataStdString2 << ' ' << metaDataStdString << std::endl;
     success = EXIT_FAILURE;
   }
 
@@ -317,9 +315,9 @@ HDF5ReadWriteTest(const char * fileName)
 int
 HDF5ReuseReadWriteTest(const char * fileName)
 {
-  int success(EXIT_SUCCESS);
+  constexpr int success(EXIT_SUCCESS);
 
-  itk::HDF5ImageIO::Pointer io = itk::HDF5ImageIO::New();
+  const itk::HDF5ImageIO::Pointer io = itk::HDF5ImageIO::New();
   io->SetFileName(fileName);
 
   // Is writing first an image should produce an error?
@@ -340,18 +338,18 @@ HDF5ReuseReadWriteTest(const char * fileName)
 }
 
 int
-itkHDF5ImageIOTest(int ac, char * av[])
+itkHDF5ImageIOTest(int argc, char * argv[])
 {
   std::string prefix("");
-  if (ac > 1)
+  if (argc > 1)
   {
-    prefix = *++av;
-    --ac;
-    itksys::SystemTools::ChangeDirectory(prefix.c_str());
+    prefix = *++argv;
+    --argc;
+    itksys::SystemTools::ChangeDirectory(prefix);
   }
   itk::ObjectFactoryBase::RegisterFactory(itk::HDF5ImageIOFactory::New());
 
-  itk::HDF5ImageIO::Pointer imageio = itk::HDF5ImageIO::New();
+  const itk::HDF5ImageIO::Pointer imageio = itk::HDF5ImageIO::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(imageio, HDF5ImageIO, StreamingImageIOBase);
 
   int result(0);

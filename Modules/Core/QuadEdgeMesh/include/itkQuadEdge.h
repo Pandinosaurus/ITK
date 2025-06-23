@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,21 +27,19 @@
 // FIXME: Maybe variations of these macros should be moved into
 // itkMacro.h
 //
-#define itkQEDebugMacro(x)                                                                                             \
-  {                                                                                                                    \
-    std::ostringstream itkmsg;                                                                                         \
-    itkmsg << "Debug: In " __FILE__ ", line " << __LINE__ << "\n"                                                      \
-           << " (" << this << "): " x << "\n\n";                                                                       \
-    OutputWindowDisplayDebugText(itkmsg.str().c_str());                                                                \
-  }                                                                                                                    \
+#define itkQEDebugMacro(x)                                                                              \
+  {                                                                                                     \
+    std::ostringstream itkmsg;                                                                          \
+    itkmsg << "Debug: In " __FILE__ ", line " << __LINE__ << '\n' << " (" << this << "): " x << "\n\n"; \
+    OutputWindowDisplayDebugText(itkmsg.str().c_str());                                                 \
+  }                                                                                                     \
   ITK_MACROEND_NOOP_STATEMENT
-#define itkQEWarningMacro(x)                                                                                           \
-  {                                                                                                                    \
-    std::ostringstream itkmsg;                                                                                         \
-    itkmsg << "WARNING: In " __FILE__ ", line " << __LINE__ << "\n"                                                    \
-           << " (" << this << "): " x << "\n\n";                                                                       \
-    OutputWindowDisplayWarningText(itkmsg.str().c_str());                                                              \
-  }                                                                                                                    \
+#define itkQEWarningMacro(x)                                                                              \
+  {                                                                                                       \
+    std::ostringstream itkmsg;                                                                            \
+    itkmsg << "WARNING: In " __FILE__ ", line " << __LINE__ << '\n' << " (" << this << "): " x << "\n\n"; \
+    OutputWindowDisplayWarningText(itkmsg.str().c_str());                                                 \
+  }                                                                                                       \
   ITK_MACROEND_NOOP_STATEMENT
 
 // -------------------------------------------------------------------------
@@ -54,77 +52,80 @@
  * @param dt Dual edge type.
  * \todo Should this macro be added to doxygen macros?
  */
-#define itkQEAccessorsMacro(st, pt, dt)                                                                                \
-  pt * GetOnext() { return (dynamic_cast<pt *>(this->st::GetOnext())); }                                               \
-                                                                                                                       \
-  dt * GetRot() { return (dynamic_cast<dt *>(this->st::GetRot())); }                                                   \
-                                                                                                                       \
-  pt * GetSym() { return (dynamic_cast<pt *>(this->st::GetSym())); }                                                   \
-                                                                                                                       \
-  pt * GetLnext() { return (dynamic_cast<pt *>(this->st::GetLnext())); }                                               \
-                                                                                                                       \
-  pt * GetRnext() { return (dynamic_cast<pt *>(this->st::GetRnext())); }                                               \
-                                                                                                                       \
-  pt * GetDnext() { return (dynamic_cast<pt *>(this->st::GetDnext())); }                                               \
-                                                                                                                       \
-  pt * GetOprev() { return (dynamic_cast<pt *>(this->st::GetOprev())); }                                               \
-                                                                                                                       \
-  pt * GetLprev() { return (dynamic_cast<pt *>(this->st::GetLprev())); }                                               \
-                                                                                                                       \
-  pt * GetRprev() { return (dynamic_cast<pt *>(this->st::GetRprev())); }                                               \
-                                                                                                                       \
-  pt * GetDprev() { return (dynamic_cast<pt *>(this->st::GetDprev())); }                                               \
-                                                                                                                       \
-  dt * GetInvRot() { return (dynamic_cast<dt *>(this->st::GetInvRot())); }                                             \
-                                                                                                                       \
-  pt * GetInvOnext() { return (dynamic_cast<pt *>(this->st::GetInvOnext())); }                                         \
-                                                                                                                       \
-  pt * GetInvLnext() { return (dynamic_cast<pt *>(this->st::GetInvLnext())); }                                         \
-                                                                                                                       \
-  pt * GetInvRnext() { return (dynamic_cast<pt *>(this->st::GetInvRnext())); }                                         \
-                                                                                                                       \
-  pt *       GetInvDnext() { return (dynamic_cast<pt *>(this->st::GetInvDnext())); }                                   \
-  const pt * GetOnext() const { return (dynamic_cast<const pt *>(this->st::GetOnext())); }                             \
-                                                                                                                       \
-  const dt * GetRot() const { return (dynamic_cast<const dt *>(this->st::GetRot())); }                                 \
-                                                                                                                       \
-  const pt * GetSym() const { return (dynamic_cast<const pt *>(this->st::GetSym())); }                                 \
-                                                                                                                       \
-  const pt * GetLnext() const { return (dynamic_cast<const pt *>(this->st::GetLnext())); }                             \
-                                                                                                                       \
-  const pt * GetRnext() const { return (dynamic_cast<const pt *>(this->st::GetRnext())); }                             \
-                                                                                                                       \
-  const pt * GetDnext() const { return (dynamic_cast<const pt *>(this->st::GetDnext())); }                             \
-                                                                                                                       \
-  const pt * GetOprev() const { return (dynamic_cast<const pt *>(this->st::GetOprev())); }                             \
-                                                                                                                       \
-  const pt * GetLprev() const { return (dynamic_cast<const pt *>(this->st::GetLprev())); }                             \
-                                                                                                                       \
-  const pt * GetRprev() const { return (dynamic_cast<const pt *>(this->st::GetRprev())); }                             \
-                                                                                                                       \
-  const pt * GetDprev() const { return (dynamic_cast<const pt *>(this->st::GetDprev())); }                             \
-                                                                                                                       \
-  const dt * GetInvRot() const { return (dynamic_cast<const dt *>(this->st::GetInvRot())); }                           \
-                                                                                                                       \
-  const pt * GetInvOnext() const { return (dynamic_cast<const pt *>(this->st::GetInvOnext())); }                       \
-                                                                                                                       \
-  const pt * GetInvLnext() const { return (dynamic_cast<const pt *>(this->st::GetInvLnext())); }                       \
-                                                                                                                       \
-  const pt * GetInvRnext() const { return (dynamic_cast<const pt *>(this->st::GetInvRnext())); }                       \
-                                                                                                                       \
-  const pt * GetInvDnext() const { return (dynamic_cast<const pt *>(this->st::GetInvDnext())); }
-
+/** @ITKStartGrouping */
+#define itkQEAccessorsMacro(st, pt, dt)                                                          \
+  pt * GetOnext() { return (dynamic_cast<pt *>(this->st::GetOnext())); }                         \
+                                                                                                 \
+  dt * GetRot() { return (dynamic_cast<dt *>(this->st::GetRot())); }                             \
+                                                                                                 \
+  pt * GetSym() { return (dynamic_cast<pt *>(this->st::GetSym())); }                             \
+                                                                                                 \
+  pt * GetLnext() { return (dynamic_cast<pt *>(this->st::GetLnext())); }                         \
+                                                                                                 \
+  pt * GetRnext() { return (dynamic_cast<pt *>(this->st::GetRnext())); }                         \
+                                                                                                 \
+  pt * GetDnext() { return (dynamic_cast<pt *>(this->st::GetDnext())); }                         \
+                                                                                                 \
+  pt * GetOprev() { return (dynamic_cast<pt *>(this->st::GetOprev())); }                         \
+                                                                                                 \
+  pt * GetLprev() { return (dynamic_cast<pt *>(this->st::GetLprev())); }                         \
+                                                                                                 \
+  pt * GetRprev() { return (dynamic_cast<pt *>(this->st::GetRprev())); }                         \
+                                                                                                 \
+  pt * GetDprev() { return (dynamic_cast<pt *>(this->st::GetDprev())); }                         \
+                                                                                                 \
+  dt * GetInvRot() { return (dynamic_cast<dt *>(this->st::GetInvRot())); }                       \
+                                                                                                 \
+  pt * GetInvOnext() { return (dynamic_cast<pt *>(this->st::GetInvOnext())); }                   \
+                                                                                                 \
+  pt * GetInvLnext() { return (dynamic_cast<pt *>(this->st::GetInvLnext())); }                   \
+                                                                                                 \
+  pt * GetInvRnext() { return (dynamic_cast<pt *>(this->st::GetInvRnext())); }                   \
+                                                                                                 \
+  pt *       GetInvDnext() { return (dynamic_cast<pt *>(this->st::GetInvDnext())); }             \
+  const pt * GetOnext() const { return (dynamic_cast<const pt *>(this->st::GetOnext())); }       \
+                                                                                                 \
+  const dt * GetRot() const { return (dynamic_cast<const dt *>(this->st::GetRot())); }           \
+                                                                                                 \
+  const pt * GetSym() const { return (dynamic_cast<const pt *>(this->st::GetSym())); }           \
+                                                                                                 \
+  const pt * GetLnext() const { return (dynamic_cast<const pt *>(this->st::GetLnext())); }       \
+                                                                                                 \
+  const pt * GetRnext() const { return (dynamic_cast<const pt *>(this->st::GetRnext())); }       \
+                                                                                                 \
+  const pt * GetDnext() const { return (dynamic_cast<const pt *>(this->st::GetDnext())); }       \
+                                                                                                 \
+  const pt * GetOprev() const { return (dynamic_cast<const pt *>(this->st::GetOprev())); }       \
+                                                                                                 \
+  const pt * GetLprev() const { return (dynamic_cast<const pt *>(this->st::GetLprev())); }       \
+                                                                                                 \
+  const pt * GetRprev() const { return (dynamic_cast<const pt *>(this->st::GetRprev())); }       \
+                                                                                                 \
+  const pt * GetDprev() const { return (dynamic_cast<const pt *>(this->st::GetDprev())); }       \
+                                                                                                 \
+  const dt * GetInvRot() const { return (dynamic_cast<const dt *>(this->st::GetInvRot())); }     \
+                                                                                                 \
+  const pt * GetInvOnext() const { return (dynamic_cast<const pt *>(this->st::GetInvOnext())); } \
+                                                                                                 \
+  const pt * GetInvLnext() const { return (dynamic_cast<const pt *>(this->st::GetInvLnext())); } \
+                                                                                                 \
+  const pt * GetInvRnext() const { return (dynamic_cast<const pt *>(this->st::GetInvRnext())); } \
+                                                                                                 \
+  const pt * GetInvDnext() const { return (dynamic_cast<const pt *>(this->st::GetInvDnext())); } \
+                                                                                                 \
+  ITK_MACROEND_NOOP_STATEMENT
+/** @ITKEndGrouping */
 namespace itk
 {
 /**
- *\class QuadEdge
+ * \class QuadEdge
  * \brief Base class for the implementation of a quad-edge data structure as
- * proposed in "Guibas and Stolfi 1985"
+ * proposed in \cite guibas1985.
  *
  * \author Alexandre Gouaillard, Leonardo Florez-Valencia, Eric Boix
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/122
+ * https://doi.org/10.54294/4mx7kk
  *
  * \sa "Accessing adjacent edges."
  *
@@ -143,6 +144,7 @@ public:
   using ConstIterator = QuadEdgeMeshConstIterator<Self>;
 
   /** Basic iterators methods. */
+  /** @ITKStartGrouping */
   inline itkQEDefineIteratorMethodsMacro(Onext);
   // itkQEDefineIteratorMethodsMacro( Sym );
   // itkQEDefineIteratorMethodsMacro( Lnext );
@@ -156,8 +158,10 @@ public:
   // itkQEDefineIteratorMethodsMacro( InvLnext );
   // itkQEDefineIteratorMethodsMacro( InvRnext );
   // itkQEDefineIteratorMethodsMacro( InvDnext );
+  /** @ITKEndGrouping */
 
   /** Object creation methods. */
+  /** @ITKStartGrouping */
   QuadEdge();
   QuadEdge(const QuadEdge &) = default;
   QuadEdge(QuadEdge &&) = default;
@@ -166,8 +170,10 @@ public:
   QuadEdge &
   operator=(QuadEdge &&) = default;
   virtual ~QuadEdge();
+  /** @ITKEndGrouping */
 
   /** Sub-algebra Set methods. */
+  /** @ITKStartGrouping */
   inline void
   SetOnext(Self * onext)
   {
@@ -178,10 +184,12 @@ public:
   {
     this->m_Rot = rot;
   }
+  /** @ITKEndGrouping */
 
   /** Sub-algebra Get methods.
    *  Returns edge with same Origin (see
    *  "Accessing adjacent edges"). */
+  /** @ITKStartGrouping */
   inline Self *
   GetOnext()
   {
@@ -192,16 +200,17 @@ public:
   {
     return this->m_Rot;
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetOnext() const
   {
     return this->m_Onext;
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetRot() const
   {
     return this->m_Rot;
   }
+  /** @ITKEndGrouping */
 
   /**
    * \brief Basic quad-edge topological method.
@@ -216,7 +225,7 @@ public:
    * \warning This class only handles of the connectivity and is not aware
    *    of the geometry that lies at the \ref GeometricalQuadEdge level.
    *    It is strongly discouraged to use this method. Instead you should
-   *    use itk::QuadEdgeMesh::Splice it's geometry aware version.
+   *    use itk::QuadEdgeMesh::Splice its geometry aware version.
    *
    */
   // TODO fix this ref
@@ -241,6 +250,7 @@ public:
 
   /** Returns the symmetric edge
    * (see "Accessing adjacent edges"). */
+  /** @ITKStartGrouping */
   inline Self *
   GetSym()
   {
@@ -248,25 +258,26 @@ public:
     {
       return (this->m_Rot->m_Rot);
     }
-    return (this->m_Rot);
+    return nullptr;
   }
 
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetSym() const
   {
     if (this->m_Rot)
     {
       return (this->m_Rot->m_Rot);
     }
-    return (this->m_Rot);
+    return nullptr;
   }
+  /** @ITKEndGrouping */
 
   /** Returns next edge with same Left face
    * (see "Accessing adjacent edges"). */
   Self *
   GetLnext();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetLnext() const;
 
   /** Returns next edge with same Right face. The first edge
@@ -275,7 +286,7 @@ public:
   Self *
   GetRnext();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetRnext() const;
 
   /** Returns next edge with same right face and same Destination. The
@@ -284,7 +295,7 @@ public:
   Self *
   GetDnext();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetDnext() const;
 
   /** Returns previous edge with same Origin
@@ -292,7 +303,7 @@ public:
   Self *
   GetOprev();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetOprev() const;
 
   /** Returns previous edge with same Left face. The first edge
@@ -301,7 +312,7 @@ public:
   Self *
   GetLprev();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetLprev() const;
 
   /** Returns the previous edge with same Right face. The first edge
@@ -310,7 +321,7 @@ public:
   Self *
   GetRprev();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetRprev() const;
 
   /** Returns the previous edge with same Right face and same Destination.
@@ -319,10 +330,11 @@ public:
   Self *
   GetDprev();
 
-  const Self *
+  [[nodiscard]] [[nodiscard]] const Self *
   GetDprev() const;
 
   /** Inverse operators */
+  /** @ITKStartGrouping */
   inline Self *
   GetInvRot()
   {
@@ -368,7 +380,7 @@ public:
   {
     return this->GetDprev();
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetInvRot() const
   {
 #ifdef NDEBUG
@@ -393,50 +405,52 @@ public:
 #endif
   }
 
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetInvOnext() const
   {
     return this->GetOprev();
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetInvLnext() const
   {
     return this->GetLprev();
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetInvRnext() const
   {
     return this->GetRprev();
   }
-  inline const Self *
+  [[nodiscard]] [[nodiscard]] inline const Self *
   GetInvDnext() const
   {
     return this->GetDprev();
   }
+  /** @ITKEndGrouping */
 
   /** Queries. */
-  inline bool
+  /** @ITKStartGrouping */
+  [[nodiscard]] [[nodiscard]] inline bool
   IsHalfEdge() const
   {
     return ((m_Onext == this) || (m_Rot == nullptr));
   }
-  inline bool
+  [[nodiscard]] [[nodiscard]] inline bool
   IsIsolated() const
   {
     return (this == this->GetOnext());
   }
   bool
   IsEdgeInOnextRing(Self * testEdge) const;
-
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsLnextGivenSizeCyclic(const int size) const;
+  /** @ITKEndGrouping */
 
-  unsigned int
+  [[nodiscard]] [[nodiscard]] unsigned int
   GetOrder() const;
 
 private:
-  Self * m_Onext; /**< Onext ring */
-  Self * m_Rot;   /**< Rot ring */
+  Self * m_Onext{}; /**< Onext ring */
+  Self * m_Rot{};   /**< Rot ring */
 };
 } // namespace itk
 

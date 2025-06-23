@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,8 +96,8 @@ public:
    * access to the dimension of the image that the iterator walks. */
   static constexpr unsigned int ImageIteratorDimension = TImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacroNoParent(ImageReverseConstIterator);
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(ImageReverseConstIterator);
 
   /** Index type alias support */
   using IndexType = typename TImage::IndexType;
@@ -115,7 +115,7 @@ public:
   using ImageType = TImage;
 
   /** PixelContainer type alias support Used to refer to the container for
-   * the pixel data. While this was already typdef'ed in the superclass
+   * the pixel data. While this was already typedef'ed in the superclass
    * it needs to be redone here for this subclass to compile properly with gcc. */
   using PixelContainer = typename TImage::PixelContainer;
   using PixelContainerPointer = typename PixelContainer::Pointer;
@@ -136,13 +136,10 @@ public:
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
   ImageReverseConstIterator()
-    : m_PixelAccessor()
+    : m_Buffer(0)
+    , m_PixelAccessor()
     , m_PixelAccessorFunctor()
   {
-    m_Buffer = 0;
-    m_Offset = 0;
-    m_BeginOffset = 0;
-    m_EndOffset = 0;
     m_PixelAccessorFunctor.SetBegin(m_Buffer);
   }
 
@@ -152,32 +149,32 @@ public:
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageReverseConstIterator(const Self & it)
+    : m_Image(it.m_Image)
+    , m_Region(it.m_Region)
+    , m_Offset(it.m_Offset)
+    , m_BeginOffset(it.m_BeginOffset)
+    , m_EndOffset(it.m_EndOffset)
+    , m_Buffer(it.m_Buffer)
+    , m_PixelAccessor(it.m_PixelAccessor)
+    , m_PixelAccessorFunctor(it.m_PixelAccessorFunctor)
   {
-    m_Image = it.m_Image; // copy the smart pointer
+    // copy the smart pointer
 
-    m_Region = it.m_Region;
 
-    m_Buffer = it.m_Buffer;
-    m_Offset = it.m_Offset;
-    m_BeginOffset = it.m_BeginOffset;
-    m_EndOffset = it.m_EndOffset;
-    m_PixelAccessor = it.m_PixelAccessor;
-    m_PixelAccessorFunctor = it.m_PixelAccessorFunctor;
     m_PixelAccessorFunctor.SetBegin(m_Buffer);
   }
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageReverseConstIterator(const ImageType * ptr, const RegionType & region)
+    : m_Image(ptr)
+    , m_Region(region)
+    , m_Buffer(m_Image->GetBufferPointer())
   {
-    SizeValueType offset;
 
-    m_Image = ptr;
-    m_Buffer = m_Image->GetBufferPointer();
-    m_Region = region;
 
     // Compute the end offset, one pixel before the first pixel
-    offset = m_Image->ComputeOffset(m_Region.GetIndex());
+    SizeValueType offset = m_Image->ComputeOffset(m_Region.GetIndex());
     m_EndOffset = offset - 1;
 
     // Compute the begin offset, the last pixel in the region
@@ -203,17 +200,19 @@ public:
    * ImageConstIterators and uses constructors to cast from an
    * ImageConstIterator to a ImageRegionReverseIterator. */
   ImageReverseConstIterator(const ImageConstIterator<TImage> & it)
+    : m_Image(it.GetImage())
+    , m_Region(it.GetRegion())
+    , m_EndOffset(m_Image->ComputeOffset(m_Region.GetIndex()) - 1)
+    , m_Buffer(m_Image->GetBufferPointer())
   {
-    m_Image = it.GetImage();
-    m_Region = it.GetRegion();
-    m_Buffer = m_Image->GetBufferPointer();
 
-    IndexType ind = it.GetIndex();
+
+    const IndexType ind = it.GetIndex();
 
     m_Offset = m_Image->ComputeOffset(ind);
 
     // Compute the end offset, one pixel before the first pixel
-    m_EndOffset = m_Image->ComputeOffset(m_Region.GetIndex()) - 1;
+
 
     // Compute the begin offset, the last pixel in the region
     IndexType regInd(m_Region.GetIndex());
@@ -291,20 +290,14 @@ public:
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool
-  operator!=(const Self & it) const
-  {
-    // two iterators are the same if they "point to" the same memory location
-    return (m_Buffer + m_Offset) != (it.m_Buffer + it.m_Offset);
-  }
-
-  /** Comparison operator. Two iterators are the same if they "point to" the
-   * same memory location */
-  bool
   operator==(const Self & it) const
   {
     // two iterators are the same if they "point to" the same memory location
     return (m_Buffer + m_Offset) == (it.m_Buffer + it.m_Offset);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
 
   /** Get the index. This provides a read only reference to the index.
    * This causes the index to be calculated from pointer arithmetic and is
@@ -326,14 +319,14 @@ public:
 
   /** Get the region that this iterator walks. ImageReverseConstIterators know the
    * beginning and the end of the region of the image to iterate over. */
-  const RegionType &
+  [[nodiscard]] const RegionType &
   GetRegion() const
   {
     return m_Region;
   }
 
   /** Get the pixel value */
-  const PixelType
+  [[nodiscard]] const PixelType
   Get() const
   {
     return m_PixelAccessorFunctor.Get(*(m_Buffer + m_Offset));
@@ -349,7 +342,7 @@ public:
   /** Return a const reference to the pixel
    * This method will provide the fastest access to pixel
    * data, but it will NOT support ImageAdaptors. */
-  const PixelType &
+  [[nodiscard]] const PixelType &
   Value() const
   {
     return *(m_Buffer + m_Offset);
@@ -382,7 +375,7 @@ public:
 
   /** Is the iterator at the beginning of the (reverse) region? "Begin" for
    * a reverse iterator is the last pixel in the region. */
-  bool
+  [[nodiscard]] bool
   IsAtBegin() const
   {
     return (m_Offset == m_BeginOffset);
@@ -390,25 +383,25 @@ public:
 
   /** Is the iterator at the end of the (reverse) region? "End" for a reverse
    * iterator is one pixel before the first pixel in the region. */
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const
   {
     return (m_Offset == m_EndOffset);
   }
 
 protected: // made protected so other iterators can access
-  typename ImageType::ConstWeakPointer m_Image;
+  typename ImageType::ConstWeakPointer m_Image{};
 
-  RegionType m_Region; // region to iterate over
+  RegionType m_Region{}; // region to iterate over
 
-  SizeValueType m_Offset;
-  SizeValueType m_BeginOffset; // offset to last pixel in region
-  SizeValueType m_EndOffset;   // offset to one pixel before first pixel
+  SizeValueType m_Offset{};
+  SizeValueType m_BeginOffset{}; // offset to last pixel in region
+  SizeValueType m_EndOffset{};   // offset to one pixel before first pixel
 
-  const InternalPixelType * m_Buffer;
+  const InternalPixelType * m_Buffer{};
 
-  AccessorType        m_PixelAccessor;
-  AccessorFunctorType m_PixelAccessorFunctor;
+  AccessorType        m_PixelAccessor{};
+  AccessorFunctorType m_PixelAccessorFunctor{};
 };
 } // end namespace itk
 

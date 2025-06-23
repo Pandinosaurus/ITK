@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkQuadricDecimationQuadEdgeMeshFilter_hxx
 #define itkQuadricDecimationQuadEdgeMeshFilter_hxx
 
-#include "itkQuadricDecimationQuadEdgeMeshFilter.h"
 
 namespace itk
 {
@@ -27,22 +26,19 @@ template <typename TInput, typename TOutput, typename TCriterion>
 void
 QuadricDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>::Initialize()
 {
-  OutputMeshPointer             output = this->GetOutput();
-  OutputPointsContainerPointer  points = output->GetPoints();
-  OutputPointsContainerIterator it = points->Begin();
-  OutputPointIdentifier         p_id;
-  OutputQEType *                qe;
-  OutputQEType *                qe_it;
+  const OutputMeshPointer            output = this->GetOutput();
+  const OutputPointsContainerPointer points = output->GetPoints();
+  OutputPointsContainerIterator      it = points->Begin();
 
   OutputMeshType * outputMesh = this->GetOutput();
   while (it != points->End())
   {
-    p_id = it->Index();
+    OutputPointIdentifier p_id = it->Index();
 
-    qe = output->FindEdge(p_id);
+    OutputQEType * qe = output->FindEdge(p_id);
     if (qe != nullptr)
     {
-      qe_it = qe;
+      OutputQEType * qe_it = qe;
       do
       {
         QuadricAtOrigin(qe_it, m_Quadric[p_id], outputMesh);
@@ -67,17 +63,17 @@ QuadricDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>::DeletePoint(
 }
 
 template <typename TInput, typename TOutput, typename TCriterion>
-typename QuadricDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>::OutputPointType
-QuadricDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>::Relocate(OutputQEType * iEdge)
+auto
+QuadricDecimationQuadEdgeMeshFilter<TInput, TOutput, TCriterion>::Relocate(OutputQEType * iEdge) -> OutputPointType
 {
-  OutputPointIdentifier id_org = iEdge->GetOrigin();
-  OutputPointIdentifier id_dest = iEdge->GetDestination();
-  QuadricElementType    Q = m_Quadric[id_org] + m_Quadric[id_dest];
+  const OutputPointIdentifier id_org = iEdge->GetOrigin();
+  const OutputPointIdentifier id_dest = iEdge->GetDestination();
+  QuadricElementType          Q = m_Quadric[id_org] + m_Quadric[id_dest];
 
-  OutputMeshPointer output = this->GetOutput();
+  const OutputMeshPointer output = this->GetOutput();
 
-  OutputPointType org = output->GetPoint(id_org);
-  OutputPointType dest = output->GetPoint(id_dest);
+  const OutputPointType org = output->GetPoint(id_org);
+  const OutputPointType dest = output->GetPoint(id_dest);
 
   OutputPointType mid;
 

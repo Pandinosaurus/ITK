@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class NeighborhoodConnectedImageFilter
+ * \class NeighborhoodConnectedImageFilter
  * \brief Label pixels that are connected to a seed and lie within a neighborhood
  *
  * NeighborhoodConnectedImageFilter labels pixels with ReplaceValue that
@@ -48,8 +48,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods).  */
-  itkTypeMacro(NeighborhoodConnectedImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NeighborhoodConnectedImageFilter);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -79,20 +79,23 @@ public:
   AddSeed(const IndexType & seed);
 
   /** Set/Get the lower threshold. The default is 0. */
+  /** @ITKStartGrouping */
   itkSetMacro(Lower, InputImagePixelType);
   itkGetConstMacro(Lower, InputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the upper threshold. The default is the largest possible
    *  value for the InputPixelType. */
+  /** @ITKStartGrouping */
   itkSetMacro(Upper, InputImagePixelType);
   itkGetConstMacro(Upper, InputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get value to replace thresholded pixels. Pixels that lie *
    *  within Lower and Upper (inclusive) will be replaced with this
    *  value. The default is 1. */
+  /** @ITKStartGrouping */
   itkSetMacro(ReplaceValue, OutputImagePixelType);
   itkGetConstMacro(ReplaceValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set the radius of the neighborhood used for a mask. */
   itkSetMacro(Radius, InputImageSizeType);
 
@@ -103,27 +106,23 @@ public:
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputImagePixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   NeighborhoodConnectedImageFilter();
   ~NeighborhoodConnectedImageFilter() override = default;
-  std::vector<IndexType> m_Seeds;
+  std::vector<IndexType> m_Seeds{};
 
-  InputImagePixelType m_Lower;
-  InputImagePixelType m_Upper;
+  InputImagePixelType m_Lower{};
+  InputImagePixelType m_Upper{};
 
-  OutputImagePixelType m_ReplaceValue;
+  OutputImagePixelType m_ReplaceValue{};
 
-  InputImageSizeType m_Radius;
+  InputImageSizeType m_Radius{};
 
   // Override since the filter needs all the data for the algorithm
   void

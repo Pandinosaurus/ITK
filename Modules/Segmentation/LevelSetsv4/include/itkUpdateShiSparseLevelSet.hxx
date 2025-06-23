@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkUpdateShiSparseLevelSet_hxx
 #define itkUpdateShiSparseLevelSet_hxx
 
-#include "itkUpdateShiSparseLevelSet.h"
 #include "itkConnectedImageNeighborhoodShape.h"
 
 namespace itk
@@ -27,11 +26,11 @@ namespace itk
 
 template <unsigned int VDimension, typename TEquationContainer>
 UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateShiSparseLevelSet()
-  : m_CurrentLevelSetId(NumericTraits<IdentifierType>::ZeroValue())
-  , m_RMSChangeAccumulator(NumericTraits<LevelSetOutputRealType>::ZeroValue())
+  : m_OutputLevelSet(LevelSetType::New())
+  , m_CurrentLevelSetId(IdentifierType{})
+  , m_RMSChangeAccumulator(LevelSetOutputRealType{})
 {
   this->m_Offset.Fill(0);
-  this->m_OutputLevelSet = LevelSetType::New();
 }
 
 template <unsigned int VDimension, typename TEquationContainer>
@@ -40,12 +39,12 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
 {
   if (this->m_InputLevelSet.IsNull())
   {
-    itkGenericExceptionMacro(<< "m_InputLevelSet is nullptr");
+    itkGenericExceptionMacro("m_InputLevelSet is nullptr");
   }
 
   this->m_Offset = this->m_InputLevelSet->GetDomainOffset();
 
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   this->m_OutputLevelSet->SetLayer(LevelSetType::MinusOneLayer(),
                                    this->m_InputLevelSet->GetLayer(LevelSetType::MinusOneLayer()));
@@ -56,7 +55,7 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
   this->m_OutputLevelSet->SetDomainOffset(this->m_Offset);
 
   using LabelMapToLabelImageFilterType = LabelMapToLabelImageFilter<LevelSetLabelMapType, LabelImageType>;
-  typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
+  auto labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
   labelMapToLabelImageFilter->SetInput(this->m_InputLevelSet->GetLabelMap());
   labelMapToLabelImageFilter->Update();
 
@@ -66,8 +65,7 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
   // neighborhood iterator
   ZeroFluxNeumannBoundaryCondition<LabelImageType> spNBC;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
@@ -95,8 +93,8 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
 
     for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
     {
-      LevelSetOutputType tempValue = i.Get();
-      if (tempValue > NumericTraits<LevelSetOutputType>::ZeroValue())
+      const LevelSetOutputType tempValue = i.Get();
+      if (tempValue > LevelSetOutputType{})
       {
         toBeDeleted = false;
         break;
@@ -140,8 +138,8 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
 
     for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
     {
-      LevelSetOutputType tempValue = i.Get();
-      if (tempValue < NumericTraits<LevelSetOutputType>::ZeroValue())
+      const LevelSetOutputType tempValue = i.Get();
+      if (tempValue < LevelSetOutputType{})
       {
         toBeDeleted = false;
         break;
@@ -166,12 +164,12 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Update()
   }
 
   using LabelImageToLabelMapFilterType = LabelImageToLabelMapFilter<LabelImageType, LevelSetLabelMapType>;
-  typename LabelImageToLabelMapFilterType::Pointer labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
+  auto labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
   labelImageToLabelMapFilter->SetInput(this->m_InternalImage);
   labelImageToLabelMapFilter->SetBackgroundValue(LevelSetType::PlusThreeLayer());
   labelImageToLabelMapFilter->Update();
 
-  LevelSetLabelMapPointer outputLabelMap = this->m_OutputLevelSet->GetModifiableLabelMap();
+  const LevelSetLabelMapPointer outputLabelMap = this->m_OutputLevelSet->GetModifiableLabelMap();
   outputLabelMap->Graft(labelImageToLabelMapFilter->GetOutput());
 }
 
@@ -179,15 +177,14 @@ template <unsigned int VDimension, typename TEquationContainer>
 void
 UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerPlusOne()
 {
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetLayerType & listOut = this->m_OutputLevelSet->GetLayer(LevelSetType::PlusOneLayer());
   LevelSetLayerType & listIn = this->m_OutputLevelSet->GetLayer(LevelSetType::MinusOneLayer());
 
   ZeroFluxNeumannBoundaryCondition<LabelImageType> spNBC;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
@@ -211,9 +208,9 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerPlusOne()
     inputIndex = currentIndex + this->m_Offset;
 
     // update the level set
-    LevelSetOutputRealType update = termContainer->Evaluate(inputIndex);
+    const LevelSetOutputRealType update = termContainer->Evaluate(inputIndex);
 
-    if (update < NumericTraits<LevelSetOutputRealType>::ZeroValue())
+    if (update < LevelSetOutputRealType{})
     {
       if (Con(currentIndex, currentValue, update))
       {
@@ -229,11 +226,11 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerPlusOne()
 
         for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
         {
-          LevelSetOutputType tempValue = i.Get();
+          const LevelSetOutputType tempValue = i.Get();
 
           if (tempValue == LevelSetType::PlusThreeLayer())
           {
-            LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
+            const LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
 
             insertListOut.insert(NodePairType(tempIndex, LevelSetType::PlusOneLayer()));
           }
@@ -279,15 +276,14 @@ template <unsigned int VDimension, typename TEquationContainer>
 void
 UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerMinusOne()
 {
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetLayerType & listOut = this->m_OutputLevelSet->GetLayer(LevelSetType::PlusOneLayer());
   LevelSetLayerType & listIn = this->m_OutputLevelSet->GetLayer(LevelSetType::MinusOneLayer());
 
   ZeroFluxNeumannBoundaryCondition<LabelImageType> spNBC;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
@@ -309,9 +305,9 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerMinusOne()
     const LevelSetInputType  inputIndex = currentIndex + this->m_Offset;
 
     // update for the current level set
-    LevelSetOutputRealType update = termContainer->Evaluate(inputIndex);
+    const LevelSetOutputRealType update = termContainer->Evaluate(inputIndex);
 
-    if (update > NumericTraits<LevelSetOutputRealType>::ZeroValue())
+    if (update > LevelSetOutputRealType{})
     {
       if (Con(currentIndex, currentValue, update))
       {
@@ -328,11 +324,11 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::UpdateLayerMinusOne()
 
         for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
         {
-          LevelSetOutputType tempValue = i.Get();
+          const LevelSetOutputType tempValue = i.Get();
 
           if (tempValue == LevelSetType::MinusThreeLayer())
           {
-            LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
+            const LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
 
             insertListIn.insert(NodePairType(tempIndex, LevelSetType::MinusOneLayer()));
           }
@@ -379,12 +375,11 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Con(const LevelSetInput
                                                              const LevelSetOutputType &     currentStatus,
                                                              const LevelSetOutputRealType & currentUpdate) const
 {
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   ZeroFluxNeumannBoundaryCondition<LabelImageType> spNBC;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
@@ -397,15 +392,15 @@ UpdateShiSparseLevelSet<VDimension, TEquationContainer>::Con(const LevelSetInput
 
   for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
   {
-    LevelSetOutputType tempValue = i.Get();
+    const LevelSetOutputType tempValue = i.Get();
 
     if (tempValue == oppositeStatus)
     {
-      LevelSetInputType tempIdx = neighIt.GetIndex(i.GetNeighborhoodOffset());
+      const LevelSetInputType tempIdx = neighIt.GetIndex(i.GetNeighborhoodOffset());
 
-      LevelSetOutputRealType neighborUpdate = termContainer->Evaluate(tempIdx + this->m_Offset);
+      const LevelSetOutputRealType neighborUpdate = termContainer->Evaluate(tempIdx + this->m_Offset);
 
-      if (neighborUpdate * currentUpdate > NumericTraits<LevelSetOutputType>::ZeroValue())
+      if (neighborUpdate * currentUpdate > LevelSetOutputType{})
       {
         return true;
       }

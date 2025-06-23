@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,18 @@
 #ifndef itkCompareHistogramImageToImageMetric_hxx
 #define itkCompareHistogramImageToImageMetric_hxx
 
-#include "itkCompareHistogramImageToImageMetric.h"
 #include "itkHistogram.h"
 
 namespace itk
 {
 template <typename TFixedImage, typename TMovingImage>
 CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::CompareHistogramImageToImageMetric()
-{
-  m_TrainingFixedImage = nullptr;   // has to be provided by the user.
-  m_TrainingMovingImage = nullptr;  // has to be provided by the user.
-  m_TrainingTransform = nullptr;    // has to be provided by the user.
-  m_TrainingInterpolator = nullptr; // has to be provided by the user.
-  m_TrainingHistogram = nullptr;    // either provided by the user or created
-}
+  : m_TrainingFixedImage(nullptr)
+  , m_TrainingMovingImage(nullptr)
+  , m_TrainingTransform(nullptr)
+  , m_TrainingInterpolator(nullptr)
+  , m_TrainingHistogram(nullptr) // either provided by the user or created
+{}
 
 template <typename TFixedImage, typename TMovingImage>
 void
@@ -52,45 +50,39 @@ CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::FormTrainingHisto
   // Check to make sure everything is set
   if (!m_TrainingTransform)
   {
-    itkExceptionMacro(<< "Training Transform is not present");
+    itkExceptionMacro("Training Transform is not present");
   }
 
   if (!m_TrainingInterpolator)
   {
-    itkExceptionMacro(<< "Training Interpolator is not present");
+    itkExceptionMacro("Training Interpolator is not present");
   }
 
   if (!m_TrainingMovingImage)
   {
-    itkExceptionMacro(<< "Training MovingImage is not present");
+    itkExceptionMacro("Training MovingImage is not present");
   }
 
   // If the image is provided by a source, update the source.
-  if (m_TrainingMovingImage->GetSource())
-  {
-    m_TrainingMovingImage->GetSource()->Update();
-  }
+  m_TrainingMovingImage->UpdateSource();
 
   if (!m_TrainingFixedImage)
   {
-    itkExceptionMacro(<< "Training FixedImage is not present");
+    itkExceptionMacro("Training FixedImage is not present");
   }
 
   // If the image is provided by a source, update the source.
-  if (m_TrainingFixedImage->GetSource())
-  {
-    m_TrainingFixedImage->GetSource()->Update();
-  }
+  m_TrainingFixedImage->UpdateSource();
 
   if (m_TrainingFixedImageRegion.GetNumberOfPixels() == 0)
   {
-    itkExceptionMacro(<< "TrainingFixedImageRegion is empty");
+    itkExceptionMacro("TrainingFixedImageRegion is empty");
   }
 
   // Make sure the FixedImageRegion is within the FixedImage buffered region
   if (!m_TrainingFixedImageRegion.Crop(m_TrainingFixedImage->GetBufferedRegion()))
   {
-    itkExceptionMacro(<< "TrainingFixedImageRegion does not overlap the training fixed image buffered region");
+    itkExceptionMacro("TrainingFixedImageRegion does not overlap the training fixed image buffered region");
   }
 
   this->m_TrainingInterpolator->SetInputImage(GetTrainingMovingImage());
@@ -103,9 +95,8 @@ CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::FormTrainingHisto
   this->m_TrainingHistogram->Initialize(
     this->Superclass::m_HistogramSize, this->Superclass::m_LowerBound, this->Superclass::m_UpperBound);
   using TrainingFixedIteratorType = itk::ImageRegionConstIteratorWithIndex<FixedImageType>;
-  typename FixedImageType::IndexType  index;
-  typename FixedImageType::RegionType fixedRegion;
-  typename HistogramType::IndexType   hIndex;
+  typename FixedImageType::IndexType index;
+  typename HistogramType::IndexType  hIndex;
 
   TrainingFixedIteratorType ti(this->m_TrainingFixedImage, this->m_TrainingFixedImageRegion);
 
@@ -122,13 +113,14 @@ CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::FormTrainingHisto
       typename Superclass::InputPointType inputPoint;
       this->m_TrainingFixedImage->TransformIndexToPhysicalPoint(index, inputPoint);
 
-      typename Superclass::OutputPointType transformedPoint = this->m_TrainingTransform->TransformPoint(inputPoint);
+      const typename Superclass::OutputPointType transformedPoint =
+        this->m_TrainingTransform->TransformPoint(inputPoint);
 
       if (this->m_TrainingInterpolator->IsInsideBuffer(transformedPoint))
       {
         const RealType TrainingMovingValue = this->m_TrainingInterpolator->Evaluate(transformedPoint);
         const RealType TrainingFixedValue = ti.Get();
-        NumberOfPixelsCounted++;
+        ++NumberOfPixelsCounted;
 
         typename HistogramType::MeasurementVectorType sample;
         sample.SetSize(2);
@@ -145,8 +137,7 @@ CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::FormTrainingHisto
 
   if (NumberOfPixelsCounted == 0)
   {
-    itkExceptionMacro(<< "All the points mapped to outside of the Training moving \
-age");
+    itkExceptionMacro("All the points mapped to outside of the Training moving age");
   }
 }
 
@@ -156,54 +147,16 @@ CompareHistogramImageToImageMetric<TFixedImage, TMovingImage>::PrintSelf(std::os
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "TrainingFixedImage: ";
-  if (m_TrainingFixedImage.IsNull())
-  {
-    os << 0 << std::endl;
-  }
-  else
-  {
-    os << m_TrainingFixedImage << std::endl;
-  }
+  itkPrintSelfObjectMacro(TrainingFixedImage);
+  itkPrintSelfObjectMacro(TrainingMovingImage);
+  itkPrintSelfObjectMacro(TrainingTransform);
+  itkPrintSelfObjectMacro(TrainingInterpolator);
 
-  os << indent << "TrainingMovingImage: ";
-  if (m_TrainingMovingImage.IsNull())
-  {
-    os << 0 << std::endl;
-  }
-  else
-  {
-    os << m_TrainingMovingImage << std::endl;
-  }
-  os << indent << "TrainingTransform: ";
-  if (m_TrainingTransform.IsNull())
-  {
-    os << 0 << std::endl;
-  }
-  else
-  {
-    os << m_TrainingTransform << std::endl;
-  }
-  os << indent << "TrainingInterpolator: ";
-  if (m_TrainingInterpolator.IsNull())
-  {
-    os << 0 << std::endl;
-  }
-  else
-  {
-    os << m_TrainingInterpolator << std::endl;
-  }
-  os << indent << "TrainingHistogram: ";
-  if (m_TrainingHistogram.IsNull())
-  {
-    os << 0 << std::endl;
-  }
-  else
-  {
-    os << m_TrainingHistogram << std::endl;
-  }
   os << indent << "TrainingFixedImageRegion: " << m_TrainingFixedImageRegion << std::endl;
+
+  itkPrintSelfObjectMacro(TrainingHistogram);
 }
-} // End namespace itk
+
+} // end namespace itk
 
 #endif // itkCompareHistogramImageToImageMetric_hxx

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,17 +15,19 @@
  *  limitations under the License.
  *
  *=========================================================================*/
+#ifndef itkFFTWForwardFFTImageFilter_h
+#define itkFFTWForwardFFTImageFilter_h
+
 #include "itkForwardFFTImageFilter.h"
 
-#ifndef itkFFTWForwardFFTImageFilter_h
-#  define itkFFTWForwardFFTImageFilter_h
+#include "itkFFTWCommon.h"
 
-#  include "itkFFTWCommon.h"
+#include "itkFFTImageFilterFactory.h"
 
 namespace itk
 {
 /**
- *\class FFTWForwardFFTImageFilter
+ * \class FFTWForwardFFTImageFilter
  *
  * \brief FFTW-based forward Fast Fourier Transform.
  *
@@ -38,8 +40,8 @@ namespace itk
  * configuration to support float images, and ITK_USE_FFTWD must set to ON to
  * support double images.
  *
- * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/717
+ * This implementation was taken from the Insight Journal paper
+ * \cite Lehmann_2010_b.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -80,8 +82,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FFTWForwardFFTImageFilter, ForwardFFTImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FFTWForwardFFTImageFilter);
 
   /** Define the image dimension. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
@@ -96,13 +98,14 @@ public:
    *
    * /sa FFTWGlobalConfiguration
    */
+  /** @ITKStartGrouping */
   virtual void
   SetPlanRigor(const int & value)
   {
-#  ifndef ITK_USE_CUFFTW
+#ifndef ITK_USE_CUFFTW
     // Use that method to check the value
     FFTWGlobalConfiguration::GetPlanRigorName(value);
-#  endif
+#endif
     if (m_PlanRigor != value)
     {
       m_PlanRigor = value;
@@ -110,7 +113,7 @@ public:
     }
   }
   itkGetConstReferenceMacro(PlanRigor, int);
-
+  /** @ITKEndGrouping */
   SizeValueType
   GetSizeGreatestPrimeFactor() const override;
 
@@ -128,14 +131,27 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  bool m_CanUseDestructiveAlgorithm;
+  bool m_CanUseDestructiveAlgorithm{};
 
-  int m_PlanRigor;
+  int m_PlanRigor{};
 };
+
+// Describe whether input/output are real- or complex-valued
+// for factory registration
+template <>
+struct FFTImageFilterTraits<FFTWForwardFFTImageFilter>
+{
+  template <typename TUnderlying>
+  using InputPixelType = TUnderlying;
+  template <typename TUnderlying>
+  using OutputPixelType = std::complex<TUnderlying>;
+  using FilterDimensions = std::integer_sequence<unsigned int, 4, 3, 2, 1>;
+};
+
 } // namespace itk
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "itkFFTWForwardFFTImageFilter.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkFFTWForwardFFTImageFilter.hxx"
+#endif
 
 #endif // itkFFTWForwardFFTImageFilter_h

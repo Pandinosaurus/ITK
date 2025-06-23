@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,7 @@ itkMedianImageFilterTest(int, char *[])
 
   using FloatImage2DType = itk::Image<float, 2>;
 
-  itk::RandomImageSource<FloatImage2DType>::Pointer random;
-  random = itk::RandomImageSource<FloatImage2DType>::New();
+  const itk::RandomImageSource<FloatImage2DType>::Pointer random = itk::RandomImageSource<FloatImage2DType>::New();
   random->SetMin(0.0);
   random->SetMax(1000.0);
 
@@ -46,8 +45,8 @@ itkMedianImageFilterTest(int, char *[])
   random->SetOrigin(origin);
 
   // Create a median image
-  itk::MedianImageFilter<FloatImage2DType, FloatImage2DType>::Pointer median;
-  median = itk::MedianImageFilter<FloatImage2DType, FloatImage2DType>::New();
+  const itk::MedianImageFilter<FloatImage2DType, FloatImage2DType>::Pointer median =
+    itk::MedianImageFilter<FloatImage2DType, FloatImage2DType>::New();
   median->SetInput(random->GetOutput());
 
   // define the neighborhood size used for the median filter (5x5)
@@ -56,7 +55,7 @@ itkMedianImageFilterTest(int, char *[])
   neighRadius[1] = 5;
   median->SetRadius(neighRadius);
 
-  itk::SimpleFilterWatcher watcher(median, "To watch progress updates");
+  const itk::SimpleFilterWatcher watcher(median, "To watch progress updates");
   // run the algorithm
   median->Update();
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,26 +18,22 @@
 #ifndef itkHessianRecursiveGaussianImageFilter_hxx
 #define itkHessianRecursiveGaussianImageFilter_hxx
 
-#include "itkHessianRecursiveGaussianImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::HessianRecursiveGaussianImageFilter()
+
 {
-  m_NormalizeAcrossScale = false;
-
   // note: this is not constant to suppress a warning
-  unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
+  const unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
 
-  for (unsigned int i = 0; i < numberOfSmoothingFilters; i++)
+  for (unsigned int i = 0; i < numberOfSmoothingFilters; ++i)
   {
-    GaussianFilterPointer filter = GaussianFilterType::New();
+    const GaussianFilterPointer filter = GaussianFilterType::New();
     filter->SetOrder(GaussianOrderEnum::ZeroOrder);
     filter->SetNormalizeAcrossScale(m_NormalizeAcrossScale);
     filter->InPlaceOn();
@@ -70,7 +66,7 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::HessianRecursive
     m_SmoothingFilters[0]->SetInput(m_DerivativeFilterB->GetOutput());
   }
   // connect up smoothing filter chain if necessary
-  for (unsigned int i = 1; i < numberOfSmoothingFilters; i++)
+  for (unsigned int i = 1; i < numberOfSmoothingFilters; ++i)
   {
     m_SmoothingFilters[i]->SetInput(m_SmoothingFilters[i - 1]->GetOutput());
   }
@@ -80,16 +76,13 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::HessianRecursive
   this->SetSigma(1.0);
 }
 
-/**
- * Set value of Sigma
- */
 template <typename TInputImage, typename TOutputImage>
 void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigma(RealType sigma)
 {
-  unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
+  const unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
 
-  for (unsigned int i = 0; i < numberOfSmoothingFilters; i++)
+  for (unsigned int i = 0; i < numberOfSmoothingFilters; ++i)
   {
     m_SmoothingFilters[i]->SetSigma(sigma);
   }
@@ -99,19 +92,13 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigma(RealTyp
   this->Modified();
 }
 
-/**
- * Get value of Sigma
- */
 template <typename TInputImage, typename TOutputImage>
-typename HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::RealType
-HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigma() const
+auto
+HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigma() const -> RealType
 {
   return m_DerivativeFilterA->GetSigma();
 }
 
-/**
- * Set Normalize Across Scale Space
- */
 template <typename TInputImage, typename TOutputImage>
 void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetNormalizeAcrossScale(bool normalize)
@@ -126,9 +113,6 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetNormalizeAcro
   this->Modified();
 }
 
-//
-//
-//
 template <typename TInputImage, typename TOutputImage>
 void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
@@ -138,7 +122,7 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputReq
   Superclass::GenerateInputRequestedRegion();
 
   // This filter needs all of the input
-  typename HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::InputImagePointer image =
+  const typename HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::InputImagePointer image =
     const_cast<InputImageType *>(this->GetInput());
   if (image)
   {
@@ -146,9 +130,6 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputReq
   }
 }
 
-//
-//
-//
 template <typename TInputImage, typename TOutputImage>
 void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::EnlargeOutputRequestedRegion(DataObject * output)
@@ -161,18 +142,15 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::EnlargeOutputReq
   }
 }
 
-/**
- * Compute filter for Gaussian kernel
- */
 template <typename TInputImage, typename TOutputImage>
 void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  itkDebugMacro(<< "HessianRecursiveGaussianImageFilter generating data ");
+  itkDebugMacro("HessianRecursiveGaussianImageFilter generating data ");
 
   // Create a process accumulator for tracking the progress of this
   // minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Compute the contribution of each filter to the total progress.
@@ -188,9 +166,9 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   const double weight = 1.0 / (ImageDimension * (ImageDimension * (ImageDimension + 1) / 2));
 
   // note: this is not constant to suppress a warning
-  unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
+  const unsigned int numberOfSmoothingFilters = NumberOfSmoothingFilters;
 
-  for (unsigned int i = 0; i < numberOfSmoothingFilters; i++)
+  for (unsigned int i = 0; i < numberOfSmoothingFilters; ++i)
   {
     progress->RegisterInternalFilter(m_SmoothingFilters[i], weight);
   }
@@ -214,9 +192,9 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   unsigned int element = 0;
 
-  for (unsigned int dima = 0; dima < ImageDimension; dima++)
+  for (unsigned int dima = 0; dima < ImageDimension; ++dima)
   {
-    for (unsigned int dimb = dima; dimb < ImageDimension; dimb++)
+    for (unsigned int dimb = dima; dimb < ImageDimension; ++dimb)
     {
       // Manage the diagonal in a different way in order to avoid
       // applying a double smoothing to this direction, and missing
@@ -237,10 +215,10 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
           if (j != dima)
           {
             m_DerivativeFilterB->SetDirection(j);
-            j++;
+            ++j;
             break;
           }
-          j++;
+          ++j;
         }
         // find the direction for all the other filters
         while (i < numberOfSmoothingFilters)
@@ -250,12 +228,12 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
             if (j != dima)
             {
               m_SmoothingFilters[i]->SetDirection(j);
-              j++;
+              ++j;
               break;
             }
-            j++;
+            ++j;
           }
-          i++;
+          ++i;
         }
 
         m_DerivativeFilterA->SetDirection(dima);
@@ -284,12 +262,12 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
             if (j != dima && j != dimb)
             {
               m_SmoothingFilters[i]->SetDirection(j);
-              j++;
+              ++j;
               break;
             }
-            j++;
+            ++j;
           }
-          i++;
+          ++i;
         }
 
         m_DerivativeFilterA->SetDirection(dima);
@@ -301,8 +279,8 @@ HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
       // Deal with the 2D case.
       if (numberOfSmoothingFilters > 0)
       {
-        int                   temp_dim = static_cast<int>(ImageDimension) - 3;
-        GaussianFilterPointer lastFilter = m_SmoothingFilters[temp_dim];
+        const int                   temp_dim = int{ ImageDimension } - 3;
+        const GaussianFilterPointer lastFilter = m_SmoothingFilters[temp_dim];
         lastFilter->UpdateLargestPossibleRegion();
         derivativeImage = lastFilter->GetOutput();
       }
@@ -355,7 +333,7 @@ void
 HessianRecursiveGaussianImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << "NormalizeAcrossScale: " << m_NormalizeAcrossScale << std::endl;
+  os << indent << "NormalizeAcrossScale: " << m_NormalizeAcrossScale << std::endl;
 }
 
 } // end namespace itk

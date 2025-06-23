@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class IterativeDeconvolutionImageFilter
+ * \class IterativeDeconvolutionImageFilter
  * \brief Abstract base class for filters that implement iterative
  * deconvolution algorithms.
  *
@@ -44,7 +44,7 @@ namespace itk
  *
  * "Deconvolution: infrastructure and reference algorithms"
  * by Gaetan Lehmann
- * https://www.insight-journal.org/browse/publication/753
+ * https://doi.org/10.54294/tvgfv1
  *
  * \ingroup ITKDeconvolution
  */
@@ -70,24 +70,26 @@ public:
   using OutputImageType = TOutputImage;
 
   /** Internal types used by the FFT filters. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
-  /** Runtime information support. */
-  itkTypeMacro(IterativeDeconvolutionImageFilter, ConvolutionImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IterativeDeconvolutionImageFilter);
 
   /** Set/get the number of iterations. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, unsigned int);
   itkGetMacro(NumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/get the current estimate. */
   itkGetModifiableObjectMacro(CurrentEstimate, InternalImageType);
 
   /** Stop iteration. When this method is called, the iteration will
    * halt after the current iteration has completed. */
+  /** @ITKStartGrouping */
   void
   SetStopIteration(bool stop)
   {
@@ -95,7 +97,7 @@ public:
     m_StopIteration = stop;
   }
   itkGetConstMacro(StopIteration, bool);
-
+  /** @ITKEndGrouping */
   /** Get the current iteration. */
   itkGetConstMacro(Iteration, unsigned int);
 
@@ -131,30 +133,30 @@ protected:
   GenerateData() override;
 
   /** Discrete Fourier transform of the padded kernel. */
-  InternalComplexImagePointerType m_TransferFunction;
+  InternalComplexImagePointerType m_TransferFunction{};
 
   /** Intermediate results. Protected for easy access by subclasses. */
-  InternalImagePointerType m_CurrentEstimate;
+  InternalImagePointerType m_CurrentEstimate{};
 
-  using FFTFilterType = typename Superclass::FFTFilterType;
-  using IFFTFilterType = typename Superclass::IFFTFilterType;
+  using typename Superclass::FFTFilterType;
+  using typename Superclass::IFFTFilterType;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   /** Number of iterations to run. */
-  unsigned int m_NumberOfIterations;
+  unsigned int m_NumberOfIterations{};
 
   /** The current iteration. */
-  unsigned int m_Iteration;
+  unsigned int m_Iteration{};
 
   /** Flag indicating whether iteration should be stopped. */
-  bool m_StopIteration;
+  bool m_StopIteration{};
 
   /** Modified times for the input and kernel. */
-  ModifiedTimeType m_InputMTime;
-  ModifiedTimeType m_KernelMTime;
+  ModifiedTimeType m_InputMTime{};
+  ModifiedTimeType m_KernelMTime{};
 };
 } // end namespace itk
 

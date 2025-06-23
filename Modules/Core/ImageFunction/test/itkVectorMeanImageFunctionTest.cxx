@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 
 #include "itkVectorMeanImageFunction.h"
+#include "itkTestingMacros.h"
 
 int
 itkVectorMeanImageFunctionTest(int, char *[])
@@ -33,7 +34,7 @@ itkVectorMeanImageFunctionTest(int, char *[])
   using FunctionType = itk::VectorMeanImageFunction<ImageType>;
 
   // Create and allocate the image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::SizeType   size;
   ImageType::IndexType  start;
   ImageType::RegionType region;
@@ -59,7 +60,10 @@ itkVectorMeanImageFunctionTest(int, char *[])
 
   image->FillBuffer(initialValue);
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(function, VectorMeanImageFunction, ImageFunction);
+
 
   function->SetInputImage(image);
 
@@ -71,9 +75,7 @@ itkVectorMeanImageFunctionTest(int, char *[])
   index[1] = 10;
   index[2] = 10;
 
-  FunctionType::OutputType mean;
-
-  mean = function->EvaluateAtIndex(index);
+  FunctionType::OutputType mean = function->EvaluateAtIndex(index);
   std::cout << "function->EvaluateAtIndex( index ): " << mean << std::endl;
 
   // Test Evaluate
@@ -81,8 +83,7 @@ itkVectorMeanImageFunctionTest(int, char *[])
   point[0] = 25;
   point[1] = 25;
   point[2] = 25;
-  FunctionType::OutputType mean2;
-  mean2 = function->Evaluate(point);
+  const FunctionType::OutputType mean2 = function->Evaluate(point);
   std::cout << "function->Evaluate(point): " << mean2 << std::endl;
 
   // Test EvaluateAtContinuousIndex
@@ -90,8 +91,7 @@ itkVectorMeanImageFunctionTest(int, char *[])
   cindex[0] = 25;
   cindex[1] = 25;
   cindex[2] = 25;
-  FunctionType::OutputType mean3;
-  mean3 = function->EvaluateAtContinuousIndex(cindex);
+  const FunctionType::OutputType mean3 = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "function->EvaluateAtContinuousIndex(cindex): " << mean3 << std::endl;
 
   // Test GetConstReferenceMacro
@@ -101,7 +101,7 @@ itkVectorMeanImageFunctionTest(int, char *[])
 
   // since the input image is constant
   // the should be equal to the initial value
-  for (unsigned int ii = 0; ii < VectorDimension; ii++)
+  for (unsigned int ii = 0; ii < VectorDimension; ++ii)
   {
     if (itk::Math::abs(initialValue[ii] - mean[ii]) > 10e-7)
     {

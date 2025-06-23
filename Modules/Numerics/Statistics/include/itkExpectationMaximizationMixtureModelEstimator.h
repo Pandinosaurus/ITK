@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,23 +18,21 @@
 #ifndef itkExpectationMaximizationMixtureModelEstimator_h
 #define itkExpectationMaximizationMixtureModelEstimator_h
 
-#include <ITKStatisticsExport.h>
+#include "ITKStatisticsExport.h"
 #include "itkMixtureModelComponentBase.h"
 #include "itkGaussianMembershipFunction.h"
 #include "itkSimpleDataObjectDecorator.h"
 
-namespace itk
+namespace itk::Statistics
 {
-namespace Statistics
-{
-/**\class ExpectationMaximizationMixtureModelEstimatorEnums
+/** \class ExpectationMaximizationMixtureModelEstimatorEnums
  * \brief Contains all enum classes used by ExpectationMaximizationMixtureModelEstimator class.
  * \ingroup ITKStatistics
  */
 class ExpectationMaximizationMixtureModelEstimatorEnums
 {
 public:
-  /**\class TERMINATION_CODE
+  /**
    * \ingroup ITKStatistics
    * Termination status after running optimization */
   enum class TERMINATION_CODE : uint8_t
@@ -45,10 +43,10 @@ public:
 };
 // Define how to print enumeration
 extern ITKStatistics_EXPORT std::ostream &
-                            operator<<(std::ostream & out, const ExpectationMaximizationMixtureModelEstimatorEnums::TERMINATION_CODE value);
+operator<<(std::ostream & out, const ExpectationMaximizationMixtureModelEstimatorEnums::TERMINATION_CODE value);
 
 /**
- *\class ExpectationMaximizationMixtureModelEstimator
+ * \class ExpectationMaximizationMixtureModelEstimator
  *  \brief This class generates the parameter estimates for a mixture
  *  model using expectation maximization strategy.
  *
@@ -80,7 +78,6 @@ extern ITKStatistics_EXPORT std::ostream &
  * \sphinxexample{Numerics/Statistics/DistributeSamplingUsingGMM,Distribute Sampling Using GMM EM}
  * \endsphinx
  */
-
 template <typename TSample>
 class ITK_TEMPLATE_EXPORT ExpectationMaximizationMixtureModelEstimator : public Object
 {
@@ -91,10 +88,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(ExpectationMaximizationMixtureModelEstimator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(ExpectationMaximizationMixtureModelEstimator);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** TSample template argument related type alias */
   using SampleType = TSample;
   using MeasurementType = typename TSample::MeasurementType;
@@ -226,21 +224,20 @@ protected:
 
 private:
   /** Target data sample pointer*/
-  const TSample * m_Sample;
+  const TSample * m_Sample{};
 
   int m_MaxIteration{ 100 };
   int m_CurrentIteration{ 0 };
 
   TERMINATION_CODE_ENUM m_TerminationCode{ TERMINATION_CODE_ENUM::NOT_CONVERGED };
-  ComponentVectorType   m_ComponentVector;
-  ProportionVectorType  m_InitialProportions;
-  ProportionVectorType  m_Proportions;
+  ComponentVectorType   m_ComponentVector{};
+  ProportionVectorType  m_InitialProportions{};
+  ProportionVectorType  m_Proportions{};
 
-  MembershipFunctionVectorObjectPointer  m_MembershipFunctionsObject;
-  MembershipFunctionsWeightsArrayPointer m_MembershipFunctionsWeightArrayObject;
+  MembershipFunctionVectorObjectPointer  m_MembershipFunctionsObject{};
+  MembershipFunctionsWeightsArrayPointer m_MembershipFunctionsWeightArrayObject{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkExpectationMaximizationMixtureModelEstimator.hxx"

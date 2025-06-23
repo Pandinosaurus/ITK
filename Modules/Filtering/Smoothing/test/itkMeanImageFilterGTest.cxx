@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,7 @@ CreateImageFilledWithSequenceOfNaturalNumbers(const typename TImage::RegionType 
   const auto image = TImage::New();
   image->SetRegions(imageRegion);
   image->Allocate();
-  const auto imageBufferRange = itk::ImageBufferRange<TImage>{ *image };
+  const itk::ImageBufferRange imageBufferRange{ *image };
   std::iota(imageBufferRange.begin(), imageBufferRange.end(), PixelType{ 1 });
   return image;
 }
@@ -105,8 +105,8 @@ TEST(MeanImageFilter, OutputSameAsInputForUniformImage)
   Expect_output_pixels_have_same_value_as_input_when_input_image_is_uniform<itk::Image<float, 3>>(
     itk::Size<3>{ { 3, 4, 5 } }, 0.5f);
 
-  float                            array[] = { 3.14f, 2.71f, 1.41f };
-  itk::VariableLengthVector<float> v{ array, 3 };
+  float                                  array[] = { 3.14f, 2.71f, 1.41f };
+  const itk::VariableLengthVector<float> v{ array, 3 };
   Expect_output_pixels_have_same_value_as_input_when_input_image_is_uniform<itk::VectorImage<float, 3>>(
     itk::Size<3>{ { 3, 4, 5 } }, v);
 }

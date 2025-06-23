@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,8 +61,7 @@ itkLevelSetEquationCurvatureTermTest(int argc, char * argv[])
   using InputImageIteratorType = itk::ImageRegionIteratorWithIndex<InputImageType>;
 
   // load binary mask
-  InputImageType::SizeType size;
-  size.Fill(50);
+  auto size = InputImageType::SizeType::Filled(50);
 
   InputImageType::PointType origin;
   origin[0] = 0.0;
@@ -72,20 +71,17 @@ itkLevelSetEquationCurvatureTermTest(int argc, char * argv[])
   spacing[0] = 1.0;
   spacing[1] = 1.0;
 
-  InputImageType::IndexType index;
-  index.Fill(0);
+  InputImageType::IndexType index{};
 
-  InputImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  InputImageType::RegionType region{ index, size };
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(region);
   binary->SetSpacing(spacing);
   binary->SetOrigin(origin);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
   index.Fill(10);
   size.Fill(30);
@@ -102,43 +98,47 @@ itkLevelSetEquationCurvatureTermTest(int argc, char * argv[])
   }
 
   // Convert binary mask to sparse level set
-  BinaryToSparseAdaptorType::Pointer adaptor = BinaryToSparseAdaptorType::New();
+  auto adaptor = BinaryToSparseAdaptorType::New();
   adaptor->SetInputImage(binary);
   adaptor->Initialize();
   std::cout << "Finished converting to sparse format" << std::endl;
 
-  SparseLevelSetType::Pointer level_set = adaptor->GetModifiableLevelSet();
+  const SparseLevelSetType::Pointer level_set = adaptor->GetModifiableLevelSet();
 
   IdListType list_ids;
   list_ids.push_back(1);
 
-  IdListImageType::Pointer id_image = IdListImageType::New();
+  auto id_image = IdListImageType::New();
   id_image->SetRegions(binary->GetLargestPossibleRegion());
   id_image->Allocate();
   id_image->FillBuffer(list_ids);
 
-  DomainMapImageFilterType::Pointer domainMapFilter = DomainMapImageFilterType::New();
+  auto domainMapFilter = DomainMapImageFilterType::New();
   domainMapFilter->SetInput(id_image);
   domainMapFilter->Update();
   std::cout << "Domain map computed" << std::endl;
 
   // Define the Heaviside function
-  HeavisideFunctionBaseType::Pointer heaviside = HeavisideFunctionBaseType::New();
+  auto heaviside = HeavisideFunctionBaseType::New();
   heaviside->SetEpsilon(1.0);
 
   // Insert the levelsets in a levelset container
-  LevelSetContainerType::Pointer lscontainer = LevelSetContainerType::New();
+  auto lscontainer = LevelSetContainerType::New();
   lscontainer->SetHeaviside(heaviside);
   lscontainer->SetDomainMapFilter(domainMapFilter);
 
-  bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set, false);
+  const bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set, false);
   if (!LevelSetNotYetAdded)
   {
     return EXIT_FAILURE;
   }
 
   // Create ChanAndVese External term for phi_{1}
-  CurvatureTermType::Pointer term = CurvatureTermType::New();
+  auto term = CurvatureTermType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(term, LevelSetEquationCurvatureTerm, LevelSetEquationTermBase);
+
+
   term->SetInput(binary);
   term->SetCoefficient(1.0);
   term->SetCurrentLevelSetId(0);
@@ -161,7 +161,7 @@ itkLevelSetEquationCurvatureTermTest(int argc, char * argv[])
   index[0] = 10;
   index[1] = 20;
 
-  CurvatureTermType::LevelSetOutputRealType value = term->Evaluate(index);
+  const CurvatureTermType::LevelSetOutputRealType value = term->Evaluate(index);
   if (itk::Math::abs(value) > 5e-2)
   {
     std::cerr << "( itk::Math::abs( " << value << " ) >  5e-2 )" << std::endl;
@@ -188,7 +188,8 @@ itkLevelSetEquationCurvatureTermTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  term->SetUseCurvatureImage(false);
+  constexpr bool useCurvatureImage = false;
+  ITK_TEST_SET_GET_BOOLEAN(term, UseCurvatureImage, useCurvatureImage);
 
   if (itk::Math::NotAlmostEquals(term->Evaluate(index), value))
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 #  define FM_ALL_EXCEPT FE_ALL_EXCEPT >> FE_EXCEPT_SHIFT
 
 /* GNU C Library:
-http://www.gnu.org/software/libc/manual/html_node/Control-Functions.html
+https://www.gnu.org/software/libc/manual/html_node/Control-Functions.html
 
 - Function: int fegetexcept (int excepts)
 
@@ -58,7 +58,9 @@ itk_feenableexcept(const fexcept_t excepts)
 
   static fenv_t fenv;
   if (fegetenv(&fenv))
+  {
     return static_cast<fexcept_t>(-1);
+  }
 
   // all previous masks
   const fexcept_t old_excepts = (fenv & FM_ALL_EXCEPT) << FE_EXCEPT_SHIFT;
@@ -74,7 +76,9 @@ itk_fedisableexcept(const fexcept_t excepts)
 
   static fenv_t fenv;
   if (fegetenv(&fenv))
+  {
     return static_cast<fexcept_t>(-1);
+  }
 
   // previous masks
   const fexcept_t old_excepts = (fenv & FM_ALL_EXCEPT) << FE_EXCEPT_SHIFT;
@@ -109,7 +113,9 @@ itk_feenableexcept(const fexcept_t excepts)
 
   static fenv_t fenv;
   if (fegetenv(&fenv))
+  {
     return static_cast<fexcept_t>(-1);
+  }
 
   // previous masks
   const fexcept_t old_excepts = fenv._itk_control_word & FE_ALL_EXCEPT;
@@ -128,7 +134,9 @@ itk_fedisableexcept(const fexcept_t excepts)
 
   static fenv_t fenv;
   if (fegetenv(&fenv))
+  {
     return static_cast<fexcept_t>(-1);
+  }
 
   // all previous masks
   fexcept_t old_excepts = fenv._itk_control_word & FE_ALL_EXCEPT;

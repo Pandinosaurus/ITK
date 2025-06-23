@@ -20,10 +20,10 @@
 #include "gdcmSmartPointer.h"
 #include "gdcmSwapper.h"
 
-#include <vector>
 #include <algorithm> // req C++11
-#include <stddef.h> // ptrdiff_t fix
+#include <cstddef> // ptrdiff_t fix
 #include <cstring>
+#include <vector>
 
 #include <gdcmrle/rle.h>
 
@@ -316,7 +316,7 @@ bool RLECodec::Code(DataElement const &in, DataElement &out)
   SmartPointer<SequenceOfFragments> sq = new SequenceOfFragments;
   const Tag itemStart(0xfffe, 0xe000);
   //sq->GetTable().SetTag( itemStart );
-  // FIXME  ? Is this compulsary ?
+  // FIXME  ? Is this compulsory ?
   //const char dummy[4] = {};
   //sq->GetTable().SetByteValue( dummy, sizeof(dummy) );
 
@@ -396,11 +396,18 @@ bool RLECodec::Code(DataElement const &in, DataElement &out)
         {
         DoInvertPlanarConfiguration<char>(bufferrgb, ptr_img, (uint32_t)(image_len / sizeof(char)));
         }
-      else /* ( GetPixelFormat().GetBitsAllocated() == 16 ) */
+      else if ( GetPixelFormat().GetBitsAllocated() == 16 )
         {
-        assert( GetPixelFormat().GetBitsAllocated() == 16 );
-        // should not happen right ?
         DoInvertPlanarConfiguration<short>((short*)(void*)bufferrgb, (const short*)(const void*)ptr_img, (uint32_t)(image_len / sizeof(short)));
+        }
+      else /* ( GetPixelFormat().GetBitsAllocated() == 32 ) */
+        {
+        assert( GetPixelFormat().GetBitsAllocated() == 32 );
+        DoInvertPlanarConfiguration<int32_t>(
+          (int32_t*)(void*)bufferrgb,
+          (const int32_t*)(const void*)ptr_img,
+          (uint32_t)(image_len / sizeof(int32_t))
+        );
         }
       ptr_img = bufferrgb;
       }
@@ -524,11 +531,11 @@ bool RLECodec::Code(DataElement const &in, DataElement &out)
     //header.Print( std::cout );
     os.write((char*)&header,sizeof(header));
     std::string str = os.str() + datastr;
-    assert( str.size() );
+    assert( !str.empty() );
     Fragment frag;
     //frag.SetTag( itemStart );
     VL::Type strSize = (VL::Type)str.size();
-    frag.SetByteValue( &str[0], strSize );
+    frag.SetByteValue( str.data(), strSize );
     sq->AddFragment( frag );
     }
   out.SetValue( *sq );
@@ -581,7 +588,7 @@ size_t RLECodec::DecodeFragment(Fragment const & frag, char *buffer, size_t llen
     std::streamoff check = bv.GetLength() - p;
     // check == 2 for gdcmDataExtra/gdcmSampleData/US_DataSet/GE_US/2929J686-breaker
     //assert( check == 0 || check == 1 || check == 2 );
-    if( check ) gdcmDebugMacro( "tiny offset detected in between RLE segments: " << check );
+    if( check ) { gdcmDebugMacro( "tiny offset detected in between RLE segments: " << check ); }
     }
   else
     {
@@ -617,7 +624,7 @@ bool RLECodec::Decode(DataElement const &in, DataElement &out)
     std::string::size_type check = str.size();
     assert( check == len );
     VL::Type checkCast = (VL::Type)check;
-    out.SetByteValue( &str[0], checkCast );
+    out.SetByteValue( str.data(), checkCast );
     return true;
     }
   else if ( NumberOfDimensions == 3 )
@@ -728,7 +735,7 @@ bool RLECodec::DecodeExtent(
 
   std::vector<char> buffer1;
   buffer1.resize( rowsize*bytesPerPixel );
-  char *tmpBuffer1 = &buffer1[0];
+  char *tmpBuffer1 = buffer1.data();
   unsigned int y, z;
   std::streamoff theOffset;
   for (z = zmin; z <= zmax; ++z)
@@ -764,8 +771,6 @@ bool RLECodec::DecodeByStreams(std::istream &is, std::ostream &os)
      return false;
   unsigned long numSegments = frame.Header.NumSegments;
 
-  unsigned long numberOfReadBytes = 0;
-
   unsigned long length = Length;
   assert( length );
   // Special case:
@@ -781,7 +786,7 @@ bool RLECodec::DecodeByStreams(std::istream &is, std::ostream &os)
   // A footnote:
   // RLE *by definition* with more than one component will have applied the
   // Planar Configuration because it simply does not make sense to do it
-  // otherwise. So implicitely RLE is indeed PlanarConfiguration == 1. However
+  // otherwise. So implicitly RLE is indeed PlanarConfiguration == 1. However
   // when the image says: "hey I am PlanarConfiguration = 0 AND RLE", then
   // apply the PlanarConfiguration internally so that people don't get lost
   // Because GDCM internally set PlanarConfiguration == 0 by default, even if
@@ -794,7 +799,7 @@ bool RLECodec::DecodeByStreams(std::istream &is, std::ostream &os)
   length /= numSegments;
   for(unsigned long i = 0; i<numSegments; ++i)
     {
-    numberOfReadBytes = 0;
+    unsigned long numberOfReadBytes = 0;
     std::streampos pos = is.tellg() - start;
     if ( frame.Header.Offset[i] - pos != 0 )
       {

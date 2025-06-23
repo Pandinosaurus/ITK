@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
  * \ingroup ITKRegistrationCommon
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class PDEDeformableRegistrationFunction : public FiniteDifferenceFunction<TDisplacementField>
+class ITK_TEMPLATE_EXPORT PDEDeformableRegistrationFunction : public FiniteDifferenceFunction<TDisplacementField>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(PDEDeformableRegistrationFunction);
@@ -49,8 +49,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(PDEDeformableRegistrationFunction, FiniteDifferenceFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PDEDeformableRegistrationFunction);
 
   /** MovingImage image type. */
   using MovingImageType = TMovingImage;
@@ -140,14 +140,12 @@ public:
 
 protected:
   PDEDeformableRegistrationFunction()
-  {
-    m_MovingImage = nullptr;
-    m_FixedImage = nullptr;
-    m_DisplacementField = nullptr;
-    m_Energy = 0.0;
-    m_NormalizeGradient = true;
-    m_GradientStep = 1.0;
-  }
+    : m_MovingImage(nullptr)
+    , m_FixedImage(nullptr)
+    , m_DisplacementField(nullptr)
+    , m_NormalizeGradient(true)
+    , m_GradientStep(1.0)
+  {}
 
   ~PDEDeformableRegistrationFunction() override = default;
 
@@ -162,19 +160,19 @@ protected:
   }
 
   /** The moving image. */
-  MovingImagePointer m_MovingImage;
+  MovingImagePointer m_MovingImage{};
 
   /** The fixed image. */
-  FixedImagePointer m_FixedImage;
+  FixedImagePointer m_FixedImage{};
 
   /** The deformation field. */
-  DisplacementFieldTypePointer m_DisplacementField;
+  DisplacementFieldTypePointer m_DisplacementField{};
 
-  mutable double m_Energy;
+  mutable double m_Energy{};
 
-  bool m_NormalizeGradient;
+  bool m_NormalizeGradient{};
 
-  mutable double m_GradientStep;
+  mutable double m_GradientStep{};
 };
 } // end namespace itk
 

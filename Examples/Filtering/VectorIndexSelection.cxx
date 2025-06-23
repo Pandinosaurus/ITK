@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,7 +60,7 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetIndex(std::stoi(argv[3]));
   // Software Guide : EndCodeSnippet
 
@@ -77,8 +77,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   filter->SetInput(reader->GetOutput());
   writer->SetInput(filter->GetOutput());

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,10 +20,10 @@
 #include "itkImageFileReader.h"
 
 int
-itkImageFileWriterTest2(int ac, char * av[])
+itkImageFileWriterTest2(int argc, char * argv[])
 {
 
-  if (ac < 2)
+  if (argc < 2)
   {
     std::cout << "usage: itkIOTests itkImageFileWriterTest2 outputFileName" << std::endl;
     return EXIT_FAILURE;
@@ -33,39 +33,32 @@ itkImageFileWriterTest2(int ac, char * av[])
   using WriterType = itk::ImageFileWriter<ImageNDType>;
   using ReaderType = itk::ImageFileReader<ImageNDType>;
 
-  ImageNDType::Pointer    image = ImageNDType::New();
-  ImageNDType::RegionType region;
-  ImageNDType::IndexType  index;
-  ImageNDType::SizeType   size;
+  auto image = ImageNDType::New();
 
-
-  ImageNDType::PointType originalPoint;
-  ImageNDType::PointType readPoint;
-
-  size.Fill(5);
-  index.Fill(1);
-  region.SetSize(size);
-  region.SetIndex(index);
+  auto                          size = itk::MakeFilled<ImageNDType::SizeType>(5);
+  auto                          index = itk::MakeFilled<ImageNDType::IndexType>(1);
+  const ImageNDType::RegionType region{ index, size };
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer
-                         // to zero
+  image->AllocateInitialized();
 
+  ImageNDType::PointType originalPoint;
   image->TransformIndexToPhysicalPoint(index, originalPoint);
   std::cout << "Original Starting Index: " << index << std::endl;
   std::cout << "Original Starting Point (physical cooridents) : " << originalPoint << std::endl;
   std::cout << "Original Origin: " << image->GetOrigin() << std::endl;
 
-  WriterType::Pointer writer = WriterType::New();
-  ReaderType::Pointer reader = ReaderType::New();
+  ImageNDType::PointType readPoint;
+  auto                   writer = WriterType::New();
+  auto                   reader = ReaderType::New();
   try
   {
     writer->SetInput(image);
-    writer->SetFileName(av[1]);
+    writer->SetFileName(argv[1]);
     writer->Update();
 
 
-    reader->SetFileName(av[1]);
+    reader->SetFileName(argv[1]);
     reader->Update();
     index = reader->GetOutput()->GetLargestPossibleRegion().GetIndex();
     reader->GetOutput()->TransformIndexToPhysicalPoint(index, readPoint);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMorphologicalGradientImageFilter_hxx
 #define itkMorphologicalGradientImageFilter_hxx
 
-#include "itkMorphologicalGradientImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressAccumulator.h"
 #include <string>
@@ -27,16 +26,15 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::MorphologicalGradientImageFilter()
-{
-  m_BasicDilateFilter = BasicDilateFilterType::New();
-  m_BasicErodeFilter = BasicErodeFilterType::New();
-  m_HistogramFilter = HistogramFilterType::New();
-  m_AnchorDilateFilter = AnchorDilateFilterType::New();
-  m_AnchorErodeFilter = AnchorErodeFilterType::New();
-  m_VanHerkGilWermanDilateFilter = VHGWDilateFilterType::New();
-  m_VanHerkGilWermanErodeFilter = VHGWErodeFilterType::New();
-  m_Algorithm = AlgorithmEnum::HISTO;
-}
+  : m_HistogramFilter(HistogramFilterType::New())
+  , m_BasicDilateFilter(BasicDilateFilterType::New())
+  , m_BasicErodeFilter(BasicErodeFilterType::New())
+  , m_AnchorDilateFilter(AnchorDilateFilterType::New())
+  , m_AnchorErodeFilter(AnchorErodeFilterType::New())
+  , m_VanHerkGilWermanDilateFilter(VHGWDilateFilterType::New())
+  , m_VanHerkGilWermanErodeFilter(VHGWErodeFilterType::New())
+  , m_Algorithm(AlgorithmEnum::HISTO)
+{}
 
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 void
@@ -111,7 +109,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::SetAlgorit
     }
     else
     {
-      itkExceptionMacro(<< "Invalid algorithm");
+      itkExceptionMacro("Invalid algorithm");
     }
 
     m_Algorithm = algo;
@@ -124,7 +122,7 @@ void
 MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
@@ -141,7 +139,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::GenerateDa
     m_BasicErodeFilter->SetInput(this->GetInput());
     progress->RegisterInternalFilter(m_BasicErodeFilter, 0.4f);
 
-    typename SubtractFilterType::Pointer sub = SubtractFilterType::New();
+    auto sub = SubtractFilterType::New();
     sub->SetInput1(m_BasicDilateFilter->GetOutput());
     sub->SetInput2(m_BasicErodeFilter->GetOutput());
     progress->RegisterInternalFilter(sub, 0.1f);
@@ -169,7 +167,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::GenerateDa
     m_AnchorErodeFilter->SetInput(this->GetInput());
     progress->RegisterInternalFilter(m_AnchorErodeFilter, 0.4f);
 
-    typename SubtractFilterType::Pointer sub = SubtractFilterType::New();
+    auto sub = SubtractFilterType::New();
     sub->SetInput1(m_AnchorDilateFilter->GetOutput());
     sub->SetInput2(m_AnchorErodeFilter->GetOutput());
     progress->RegisterInternalFilter(sub, 0.1f);
@@ -187,7 +185,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>::GenerateDa
     m_VanHerkGilWermanErodeFilter->SetInput(this->GetInput());
     progress->RegisterInternalFilter(m_VanHerkGilWermanErodeFilter, 0.4f);
 
-    typename SubtractFilterType::Pointer sub = SubtractFilterType::New();
+    auto sub = SubtractFilterType::New();
     sub->SetInput1(m_VanHerkGilWermanDilateFilter->GetOutput());
     sub->SetInput2(m_VanHerkGilWermanErodeFilter->GetOutput());
     progress->RegisterInternalFilter(sub, 0.1f);

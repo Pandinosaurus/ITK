@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGaussianDerivativeOperator_hxx
 #define itkGaussianDerivativeOperator_hxx
 
-#include "itkGaussianDerivativeOperator.h"
 #include "itkCompensatedSummation.h"
 #include "itkOutputWindow.h"
 #include "itkMacro.h"
@@ -28,8 +27,8 @@ namespace itk
 {
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-typename GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::CoefficientVector
-GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
+auto
+GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients() -> CoefficientVector
 {
 
   // compute gaussian kernel of 0-order
@@ -42,14 +41,10 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients
 
 
   // Calculate scale-space normalization factor for derivatives
-  double norm;
-  if (m_NormalizeAcrossScale && m_Order)
+  double norm = 1.0;
+  if (m_NormalizeAcrossScale)
   {
     norm = std::pow(m_Variance, m_Order / 2.0);
-  }
-  else
-  {
-    norm = 1.0;
   }
 
   // additional normalization for spacing
@@ -65,16 +60,16 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients
   // operator, then the output kernel needs to be padded by N-1. For
   // these values to be computed the input kernel needs to be padded
   // by 2N-1 on both sides.
-  unsigned int N = (derivOp.Size() - 1) / 2;
+  const unsigned int N = (derivOp.Size() - 1) / 2;
 
   // copy the gaussian operator adding clamped boundary condition
   CoefficientVector paddedCoeff(coeff.size() + 4 * N - 2);
 
-  // copy the whole gaussuan operator in coeff to paddedCoef
+  // copy the whole gaussian operator in coeff to paddedCoef
   // starting after the padding
   std::copy(coeff.begin(), coeff.end(), paddedCoeff.begin() + 2 * N - 1);
 
-  // padd paddedCoeff with 2*N-1 number of boundary conditions
+  // pad paddedCoeff with 2*N-1 number of boundary conditions
   std::fill(paddedCoeff.begin(), paddedCoeff.begin() + 2 * N, coeff.front());
   std::fill(paddedCoeff.rbegin(), paddedCoeff.rbegin() + 2 * N, coeff.back());
 
@@ -89,7 +84,7 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients
     // current index in derivative op
     for (unsigned int j = 0; j < derivOp.Size(); ++j)
     {
-      unsigned int k = i + j - derivOp.Size() / 2;
+      const unsigned int k = i + j - derivOp.Size() / 2;
       conv += paddedCoeff[k] * derivOp[derivOp.Size() - 1 - j];
     }
 
@@ -101,23 +96,22 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-typename GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::CoefficientVector
-GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateGaussianCoefficients() const
+auto
+GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateGaussianCoefficients() const -> CoefficientVector
 {
-
-  CoefficientVector coeff;
-
   // Use image spacing to modify variance
   const double pixelVariance = m_Variance / (m_Spacing * m_Spacing);
 
   // Now create coefficients as if they were zero order coeffs
-  const double                 et = std::exp(-pixelVariance);
-  const double                 cap = 1.0 - m_MaximumError;
-  CompensatedSummation<double> sum;
+  const double et = std::exp(-pixelVariance);
+  const double cap = 1.0 - m_MaximumError;
+
 
   // Create the kernel coefficients as a std::vector
+  CoefficientVector coeff;
   coeff.push_back(et * ModifiedBesselI0(pixelVariance));
-  sum += coeff[0];
+
+  CompensatedSummation<double> sum = coeff[0];
   coeff.push_back(et * ModifiedBesselI1(pixelVariance));
   sum += coeff[1] * 2.0;
 
@@ -128,9 +122,9 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateGaussianCoef
     if (coeff[i] < sum.GetSum() * NumericTraits<double>::epsilon())
     {
       // if the coeff is less then this value then the value of cap
-      // will not change, and it's will not contribute to the operator
+      // will not change, and it will not contribute to the operator
       itkWarningMacro("Kernel failed to accumulate to approximately one with current remainder "
-                      << cap - sum.GetSum() << " and current coefficient " << coeff[i] << ".");
+                      << cap - sum.GetSum() << " and current coefficient " << coeff[i] << '.');
 
       break;
     }
@@ -157,7 +151,7 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::GenerateGaussianCoef
   }
 
   // Make symmetric
-  size_t s = coeff.size() - 1;
+  const size_t s = coeff.size() - 1;
   coeff.insert(coeff.begin(), s, 0);
   std::copy_n(coeff.rbegin(), s, coeff.begin());
 
@@ -168,19 +162,19 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator>
 double
 GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::ModifiedBesselI0(double y)
 {
-  double d, accumulator;
-  double m;
+  double accumulator = NAN;
 
-  if ((d = std::fabs(y)) < 3.75)
+  const double d = itk::Math::abs(y);
+  if (d < 3.75)
   {
-    m = y / 3.75;
+    double m = y / 3.75;
     m *= m;
     accumulator =
       1.0 + m * (3.5156229 + m * (3.0899424 + m * (1.2067492 + m * (0.2659732 + m * (0.360768e-1 + m * 0.45813e-2)))));
   }
   else
   {
-    m = 3.75 / d;
+    const double m = 3.75 / d;
     accumulator =
       (std::exp(d) / std::sqrt(d)) *
       (0.39894228 +
@@ -197,12 +191,11 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator>
 double
 GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::ModifiedBesselI1(double y)
 {
-  double d, accumulator;
-  double m;
-
-  if ((d = std::fabs(y)) < 3.75)
+  double       accumulator = NAN;
+  const double d = itk::Math::abs(y);
+  if (d < 3.75)
   {
-    m = y / 3.75;
+    double m = y / 3.75;
     m *= m;
     accumulator =
       d * (0.5 + m * (0.87890594 +
@@ -210,7 +203,7 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::ModifiedBesselI1(dou
   }
   else
   {
-    m = 3.75 / d;
+    const double m = 3.75 / d;
     accumulator = 0.2282967e-1 + m * (-0.2895312e-1 + m * (0.1787654e-1 - m * 0.420059e-2));
     accumulator =
       0.39894228 + m * (-0.3988024e-1 + m * (-0.362018e-2 + m * (0.163801e-2 + m * (-0.1031555e-1 + m * accumulator))));
@@ -222,10 +215,8 @@ GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::ModifiedBesselI1(dou
   {
     return -accumulator;
   }
-  else
-  {
-    return accumulator;
-  }
+
+  return accumulator;
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
@@ -233,61 +224,61 @@ double
 GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::ModifiedBesselI(int n, double y)
 {
   constexpr double DIGITS = 10.0;
-  int              j;
-  double           qim, qi, qip, toy;
-  double           accumulator;
 
   if (n < 2)
   {
     throw ExceptionObject(__FILE__, __LINE__, "Order of modified bessel is > 2.", ITK_LOCATION); //
                                                                                                  // placeholder
   }
+
+  double accumulator = NAN;
   if (y == 0.0)
   {
     return 0.0;
   }
+
+  const double toy = 2.0 / itk::Math::abs(y);
+  double       qip = accumulator = 0.0;
+  double       qi = 1.0;
+  for (int j = 2 * (n + static_cast<int>(DIGITS * std::sqrt(static_cast<double>(n)))); j > 0; j--)
+  {
+    const double qim = qip + j * toy * qi;
+    qip = qi;
+    qi = qim;
+    if (itk::Math::abs(qi) > 1.0e10)
+    {
+      accumulator *= 1.0e-10;
+      qi *= 1.0e-10;
+      qip *= 1.0e-10;
+    }
+    if (j == n)
+    {
+      accumulator = qip;
+    }
+  }
+  accumulator *= ModifiedBesselI0(y) / qi;
+  if (y < 0.0 && (n & 1))
+  {
+    return -accumulator;
+  }
   else
   {
-    toy = 2.0 / std::fabs(y);
-    qip = accumulator = 0.0;
-    qi = 1.0;
-    for (j = 2 * (n + (int)(DIGITS * std::sqrt((double)n))); j > 0; j--)
-    {
-      qim = qip + j * toy * qi;
-      qip = qi;
-      qi = qim;
-      if (std::fabs(qi) > 1.0e10)
-      {
-        accumulator *= 1.0e-10;
-        qi *= 1.0e-10;
-        qip *= 1.0e-10;
-      }
-      if (j == n)
-      {
-        accumulator = qip;
-      }
-    }
-    accumulator *= ModifiedBesselI0(y) / qi;
-    if (y < 0.0 && (n & 1))
-    {
-      return -accumulator;
-    }
-    else
-    {
-      return accumulator;
-    }
+    return accumulator;
   }
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
 void
-GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::PrintSelf(std::ostream & os, Indent i) const
+GaussianDerivativeOperator<TPixel, VDimension, TAllocator>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  os << i << "GaussianDerivativeOperator { this=" << this << ", m_NormalizeAcrossScale = " << m_NormalizeAcrossScale
-     << ", m_Order = " << m_Order << ", m_Spacing = " << m_Spacing << ", m_Variance = " << m_Variance
-     << ", m_MaximumError = " << m_MaximumError << ", m_MaximumKernelWidth = " << m_MaximumKernelWidth << "} "
-     << std::endl;
-  Superclass::PrintSelf(os, i.GetNextIndent());
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "NormalizeAcrossScale: " << m_NormalizeAcrossScale << std::endl;
+  os << indent << "Variance: " << m_Variance << std::endl;
+  os << indent << "MaximumError: " << m_MaximumError << std::endl;
+  os << indent << "MaximumKernelWidth: " << m_MaximumKernelWidth << std::endl;
+  os << indent << "Order: " << m_Order << std::endl;
+  os << indent << "Spacing: " << m_Spacing << std::endl;
 }
 
 } // end namespace itk

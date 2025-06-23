@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,16 +22,18 @@
 #include "ITKOptimizersv4Export.h"
 #include <memory>
 
+#include "itk_lbfgs.h"
+
 namespace itk
 {
 /*** \class LBFGS2Optimizerv4Enums
- * \brief Scoped Enum classes for LBFGS2Optimizerv4 class
+ * \brief Scoped Enum classes for LBFGS2Optimizerv4Template class
  * \ingroup ITKOptimizersv4
  */
 class LBFGS2Optimizerv4Enums
 {
 public:
-  /***\class LineSearchMethod
+  /*** \class LineSearchMethod
    * \ingroup ITKOptimizersv4
    * Line search method enum
    */
@@ -39,8 +41,10 @@ public:
   {
     /** The default algorithm (MoreThuente method). */
     LINESEARCH_DEFAULT = 0,
-    /** MoreThuente method proposed by More and Thuente. */
+
+    /** MoreThuente method proposed by More and Thuente \cite more1994. */
     LINESEARCH_MORETHUENTE = 0,
+
     /**
      * Backtracking method with the Armijo condition.
      *  The backtracking method finds the step length such that it satisfies
@@ -51,8 +55,10 @@ public:
      *  a is the step length.
      */
     LINESEARCH_BACKTRACKING_ARMIJO = 1,
+
     /** The backtracking method with the default (regular Wolfe) condition. */
     LINESEARCH_BACKTRACKING = 2,
+
     /**
      * Backtracking method with regular Wolfe condition.
      *  The backtracking method finds the step length such that it satisfies
@@ -64,6 +70,7 @@ public:
      *  a is the step length.
      */
     LINESEARCH_BACKTRACKING_WOLFE = 2,
+
     /**
      * Backtracking method with strong Wolfe condition.
      *  The backtracking method finds the step length such that it satisfies
@@ -82,11 +89,11 @@ extern ITKOptimizersv4_EXPORT std::ostream &
                               operator<<(std::ostream & out, LBFGS2Optimizerv4Enums::LineSearchMethod value);
 
 /**
- *\class LBFGS2Optimizerv4
- * \brief Wrap of the libLBFGS[1] algorithm for use in ITKv4 registration framework.
- * LibLBFGS is a translation of LBFGS code by Nocedal [2] and adds the orthantwise
- * limited-memmory Quais-Newton method [3] for optimization with L1-norm on the
- * parameters.
+ * \class LBFGS2Optimizerv4Template
+ * \brief Wrap of the [libLBFGS](https://www.chokkan.org/software/liblbfgs/) algorithm for use in ITKv4 registration
+ * framework. LibLBFGS is a translation of LBFGS code by Nocedal [NETLIB
+ * lbfgs](http://users.iems.northwestern.edu/~nocedal/lbfgs.html) and adds the orthantwise limited-memory Quasi-Newton
+ * method \cite galen2007 for optimization with L1-norm on the parameters.
  *
  * LBFGS is a quasi-Newton method uses an approximate estimate of the inverse Hessian
  * \f$ (\nabla^2 f(x) )^-1 \f$ to scale the gradient step:
@@ -99,25 +106,25 @@ extern ITKOptimizersv4_EXPORT std::ostream &
  * thus only the gradient of the objective function is required.
  *
  * The step size \f$ s \f$ is determined through line search which defaults to
- * the approach by More and Thuente [4]. This line search approach finds a step
+ * the approach by More and Thuente  \cite more1994. This line search approach finds a step
  * size such that
  * \f[
- * \lVert \nabla f(x + s (\nabla^2 f(x_n) )^{-1} \nabla f(x) ) \rVert
+ * \| \nabla f(x + s (\nabla^2 f(x_n) )^{-1} \nabla f(x) ) \|
  *   \le
- * \nu \lVert \nabla f(x) \rVert
+ * \nu \| \nabla f(x) \|
  * \f]
  * The parameter \f$\nu\f$ is set through SetLineSearchAccuracy() (default 0.9)
  * and SetGradientLineSearchAccuracy()
  *
  * Instead of the More-Tunete method, backtracking with three different
- * conditions [7] are available and can be set through SetLineSearch():
+ * conditions \cite dennis1983 are available and can be set through SetLineSearch():
  *  - LINESEARCH_BACKTRACKING_ARMIJO
  *  - LINESEARCH_BACKTRACKING_WOLFE
  *  - LINESEARCH_BACKTRACKING_STRONG_WOLFE
  *
  * The optimization stops when either the gradient satisfies the condition
  * \f[
- * \lVert \nabla f(x) \rVert \le \epsilon \max(1, \lVert X \rVert)
+ * \| \nabla f(x) \| \le \epsilon \max(1, \| X \|)
  * \f]
  * or a maximum number of function evaluations has been reached.
  * The tolerance \f$\epsilon\f$ is set through SetSolutionAccuracy()
@@ -125,39 +132,20 @@ extern ITKOptimizersv4_EXPORT std::ostream &
  * through SetMaximumIterations() (default 0 = no maximum).
  *
  *
- * References:
- *
- * [1] [libLBFGS](http://www.chokkan.org/software/liblbfgs/)
- *
- * [2] [NETLIB lbfgs](http://users.iems.northwestern.edu/~nocedal/lbfgs.html)
- *
- * [3] Galen Andrew and Jianfeng Gao.
- * Scalable training of L1-regularized log-linear models.
- * 24th International Conference on Machine Learning, pp. 33-40, 2007.
- *
- * [4] Jorge Nocedal.
- * Updating Quasi-Newton Matrices with Limited Storage.
- * Mathematics of Computation, Vol. 35, No. 151, pp. 773-782, 1980.
- *
- * [5] Dong C. Liu and Jorge Nocedal.
- * On the limited memory BFGS method for large scale optimization.
- * Mathematical Programming B, Vol. 45, No. 3, pp. 503-528, 1989.
- *
- * [6] More, J. J. and D. J. Thuente.
- * Line Search Algorithms with Guaranteed Sufficient Decrease.
- * ACM Transactions on Mathematical Software 20, no. 3 (1994): 286-307.
- *
- * [7] John E. Dennis and Robert B. Schnabel.
- * Numerical Methods for Unconstrained Optimization and Nonlinear Equations,
- * Englewood Cliffs, 1983.
+ * For algorithmic details see
+ * [libLBFGS](https://www.chokkan.org/software/liblbfgs/), [NETLIB
+ * lbfgs](http://users.iems.northwestern.edu/~nocedal/lbfgs.html),
+ * \cite galen2007, \cite nocedal1980, \cite liu1989,
+ * \cite more1994, and \cite dennis1983.
  *
  * \ingroup ITKOptimizersv4
  */
-class ITKOptimizersv4_EXPORT LBFGS2Optimizerv4 : public GradientDescentOptimizerv4Template<double>
+template <typename TInternalComputationValueType>
+class ITK_TEMPLATE_EXPORT LBFGS2Optimizerv4Template
+  : public GradientDescentOptimizerv4Template<TInternalComputationValueType>
 {
-
 public:
-  ITK_DISALLOW_COPY_AND_MOVE(LBFGS2Optimizerv4);
+  ITK_DISALLOW_COPY_AND_MOVE(LBFGS2Optimizerv4Template);
 
   using LineSearchMethodEnum = LBFGS2Optimizerv4Enums::LineSearchMethod;
 #if !defined(ITK_LEGACY_REMOVE)
@@ -179,25 +167,27 @@ public:
    * define so lbfgs.h uses the correct version
    **/
   using PrecisionType = double;
+  static_assert(std::is_same_v<TInternalComputationValueType, double>,
+                "LBFGS2Optimizerv4Template only supports double precision");
 
   /** Standard "Self" type alias. */
-  using Self = LBFGS2Optimizerv4;
-  using Superclass = GradientDescentOptimizerv4Template<double>;
+  using Self = LBFGS2Optimizerv4Template;
+  using Superclass = GradientDescentOptimizerv4Template<TInternalComputationValueType>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using MetricType = Superclass::MetricType;
-  using ParametersType = Superclass::ParametersType;
-  using ScalesType = Superclass::ScalesType;
+  using MetricType = typename Superclass::MetricType;
+  using ParametersType = typename Superclass::ParametersType;
+  using ScalesType = typename Superclass::ScalesType;
 
   /** Stop condition return string type */
-  using StopConditionReturnStringType = typename Superclass::StopConditionReturnStringType;
+  using typename Superclass::StopConditionReturnStringType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LBFGS2Optimizerv4, GradientDescentOptimizerv4Template);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LBFGS2Optimizerv4Template);
 
   /** Start optimization with an initial value. */
   void
@@ -209,7 +199,7 @@ public:
   void
   ResumeOptimization() override;
 
-  virtual const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override;
 
   /**
@@ -220,11 +210,12 @@ public:
    * (corrections). The default value is \c 6. Values less than \c 3 are
    * not recommended. Large values will result in excessive computing time.
    */
+  /** @ITKStartGrouping */
   void
   SetHessianApproximationAccuracy(int m);
-  int
+  [[nodiscard]] int
   GetHessianApproximationAccuracy() const;
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get epsilon for convergence test.
    * This parameter determines the accuracy with which the solution is to
@@ -233,11 +224,12 @@ public:
    * where ||.|| denotes the Euclidean (L2) norm. The default value is
    * \c 1e-5.
    */
+  /** @ITKStartGrouping */
   void
   SetSolutionAccuracy(PrecisionType epsilon);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetSolutionAccuracy() const;
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get distance for delta-based convergence test.
    * This parameter determines the distance, in iterations, to compute
@@ -245,11 +237,12 @@ public:
    * parameter is zero, the library does not perform the delta-based
    * convergence test. The default value is \c 0.
    */
+  /** @ITKStartGrouping */
   void
   SetDeltaConvergenceDistance(int nPast);
-  int
+  [[nodiscard]] int
   GetDeltaConvergenceDistance() const;
-
+  /** @ITKEndGrouping */
   /**
    * Delta for convergence test.
    * This parameter determines the minimum rate of decrease of the
@@ -260,11 +253,12 @@ public:
    * the objective value of the current iteration.
    * The default value is \c 0.
    */
+  /** @ITKStartGrouping */
   void
   SetDeltaConvergenceTolerance(PrecisionType tol);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetDeltaConvergenceTolerance() const;
-
+  /** @ITKEndGrouping */
   /**
    * The maximum number of iterations.
    *  The lbfgs() function terminates an optimization process with
@@ -273,14 +267,16 @@ public:
    *  optimization process until a convergence or error. The default value
    *  is \c 0.
    */
+  /** @ITKStartGrouping */
   void
   SetMaximumIterations(int maxIterations);
-  int
+  [[nodiscard]] int
   GetMaximumIterations() const;
-
+  /** @ITKEndGrouping */
   /** Aliased to Set/Get MaximumIterations to match base class interface.
    */
-  SizeValueType
+  /** @ITKStartGrouping */
+  [[nodiscard]] SizeValueType
   GetNumberOfIterations() const override
   {
     return GetMaximumIterations();
@@ -290,28 +286,30 @@ public:
   {
     SetMaximumIterations(static_cast<int>(_arg));
   }
-
+  /** @ITKEndGrouping */
   /**
    * The line search algorithm.
    * This parameter specifies a line search algorithm to be used by the
    * L-BFGS routine. See lbfgs.h for enumeration of line search type.
    * Defaults to More-Thuente's method.
    */
+  /** @ITKStartGrouping */
   void
   SetLineSearch(const LineSearchMethodEnum & linesearch);
-  LineSearchMethodEnum
+  [[nodiscard]] LineSearchMethodEnum
   GetLineSearch() const;
-
+  /** @ITKEndGrouping */
   /**
    * The maximum number of trials for the line search.
    *  This parameter controls the number of function and gradients evaluations
    *  per iteration for the line search routine. The default value is \c 20.
    */
+  /** @ITKStartGrouping */
   void
   SetMaximumLineSearchEvaluations(int n);
-  int
+  [[nodiscard]] int
   GetMaximumLineSearchEvaluations() const;
-
+  /** @ITKEndGrouping */
   /**
    * The minimum step of the line search routine.
    *  The default value is \c 1e-20. This value need not be modified unless
@@ -319,11 +317,12 @@ public:
    *  problem is extremely badly scaled (in which case the exponents should
    *  be increased).
    */
+  /** @ITKStartGrouping */
   void
   SetMinimumLineSearchStep(PrecisionType step);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetMinimumLineSearchStep() const;
-
+  /** @ITKEndGrouping */
   /**
    * The maximum step of the line search.
    *  The default value is \c 1e+20. This value need not be modified unless
@@ -331,21 +330,23 @@ public:
    *  problem is extremely badly scaled (in which case the exponents should
    *  be increased).
    */
+  /** @ITKStartGrouping */
   void
   SetMaximumLineSearchStep(PrecisionType step);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetMaximumLineSearchStep() const;
-
+  /** @ITKEndGrouping */
   /**
    * A parameter to control the accuracy of the line search routine.
    *  The default value is \c 1e-4. This parameter should be greater
    *  than zero and smaller than \c 0.5.
    */
+  /** @ITKStartGrouping */
   void
   SetLineSearchAccuracy(PrecisionType ftol);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetLineSearchAccuracy() const;
-
+  /** @ITKEndGrouping */
   /**
    * A coefficient for the Wolfe condition.
    *  This parameter is valid only when the backtracking line-search
@@ -355,11 +356,12 @@ public:
    *  The default value is \c 0.9. This parameter should be greater
    *  than the \c ftol parameter and smaller than \c 1.0.
    */
+  /** @ITKStartGrouping */
   void
   SetWolfeCoefficient(PrecisionType wc);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetWolfeCoefficient() const;
-
+  /** @ITKEndGrouping */
   /**
    * A parameter to control the gradient accuracy of the More-Thuente
    * line search routine.
@@ -367,15 +369,16 @@ public:
    * evaluations are inexpensive with respect to the cost of the
    * iteration (which is sometimes the case when solving very large
    * problems) it may be advantageous to set this parameter to a small
-   * value. A typical small value is \c 0.1. This parameter shuold be
+   * value. A typical small value is \c 0.1. This parameter should be
    * greater than the \c ftol parameter (\c 1e-4) and smaller than
    * \c 1.0.
    */
+  /** @ITKStartGrouping */
   void
   SetLineSearchGradientAccuracy(PrecisionType gtol);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetLineSearchGradientAccuracy() const;
-
+  /** @ITKEndGrouping */
   /**
    * The machine precision for floating-point values.
    *  This parameter must be a positive value set by a client program to
@@ -383,29 +386,31 @@ public:
    *  with the status code (\c LBFGSERR_ROUNDING_ERROR) if the relative width
    *  of the interval of uncertainty is less than this parameter.
    */
+  /** @ITKStartGrouping */
   void
   SetMachinePrecisionTolerance(PrecisionType xtol);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetMachinePrecisionTolerance() const;
-
+  /** @ITKEndGrouping */
   /**
-   * Coeefficient for the L1 norm of variables.
+   * Coefficient for the L1 norm of variables.
    *  This parameter should be set to zero for standard minimization
    *  problems. Setting this parameter to a positive value activates
    *  Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) method, which
    *  minimizes the objective function F(x) combined with the L1 norm |x|
-   *  of the variables, \f$F(x) + C |x|}. \f$. This parameter is the coefficient
+   *  of the variables, \f$F(x) + C |x| \f$. This parameter is the coefficient
    *  for the |x|, i.e., C. As the L1 norm |x| is not differentiable at
    *  zero, the library modifies function and gradient evaluations from
    *  a client program suitably; a client program thus have only to return
    *  the function value F(x) and gradients G(x) as usual. The default value
    *  is zero.
    */
+  /** @ITKStartGrouping */
   void
   SetOrthantwiseCoefficient(PrecisionType orthant_c);
-  PrecisionType
+  [[nodiscard]] PrecisionType
   GetOrthantwiseCoefficient() const;
-
+  /** @ITKEndGrouping */
   /**
    * Start index for computing L1 norm of the variables.
    *  This parameter is valid only for OWL-QN method
@@ -420,11 +425,12 @@ public:
    *  variables, \f$x_1, ..., x_{b-1}\f$ (e.g., a bias term of logistic
    *  regression) from being regularized. The default value is zero.
    */
+  /** @ITKStartGrouping */
   void
   SetOrthantwiseStart(int start);
-  int
+  [[nodiscard]] int
   GetOrthantwiseStart() const;
-
+  /** @ITKEndGrouping */
   /**
    * End index for computing L1 norm of the variables.
    *  This parameter is valid only for OWL-QN method
@@ -432,17 +438,19 @@ public:
    *  specifies the index number at which the library stops computing the
    *  L1 norm of the variables x,
    */
+  /** @ITKStartGrouping */
   void
   SetOrthantwiseEnd(int end);
-  int
+  [[nodiscard]] int
   GetOrthantwiseEnd() const;
-
+  /** @ITKEndGrouping */
   /** Get parameter norm of current iteration */
   itkGetConstMacro(CurrentParameterNorm, PrecisionType);
+
   /** Get gradient norm of current iteration */
   itkGetConstMacro(CurrentGradientNorm, PrecisionType);
 
-  /** Get stepsize of current iteration */
+  /** Get step size of current iteration */
   itkGetConstMacro(CurrentStepSize, PrecisionType);
 
   /** Get number of evaluations for current iteration */
@@ -452,13 +460,14 @@ public:
    * *each* iteration. The estimation overrides the scales
    * set by SetScales(). Default is true.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(EstimateScalesAtEachIteration, bool);
   itkGetConstReferenceMacro(EstimateScalesAtEachIteration, bool);
   itkBooleanMacro(EstimateScalesAtEachIteration);
-
+  /** @ITKEndGrouping */
 protected:
-  LBFGS2Optimizerv4();
-  ~LBFGS2Optimizerv4() override;
+  LBFGS2Optimizerv4Template();
+  ~LBFGS2Optimizerv4Template() override;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -488,7 +497,7 @@ protected:
                  int                   k,
                  int                   ls);
 
-  //** Function evalation callback from libLBFGS frowrad to instance */
+  /** Function evaluation callback from libLBFGS forward to instance */
   static PrecisionType
   EvaluateCostCallback(void *                instance,
                        const PrecisionType * x,
@@ -502,40 +511,52 @@ protected:
 private:
   // Private Implementation (Pimpl), to hide liblbfgs data structures
   class PrivateImplementationHolder;
-  std::unique_ptr<PrivateImplementationHolder> m_Pimpl;
+  lbfgs_parameter_t m_Parameters{};
 
-  bool   m_EstimateScalesAtEachIteration;
-  double m_CurrentStepSize;
-  double m_CurrentParameterNorm;
-  double m_CurrentGradientNorm;
-  int    m_CurrentNumberOfEvaluations;
-  int    m_StatusCode;
+  bool   m_EstimateScalesAtEachIteration{};
+  double m_CurrentStepSize{};
+  double m_CurrentParameterNorm{};
+  double m_CurrentGradientNorm{};
+  int    m_CurrentNumberOfEvaluations{};
+  int    m_StatusCode{};
 
   /**
    * itkGradientDecentOptimizerv4Template specific non supported methods.
    */
+  /** @ITKStartGrouping */
   void
-  SetMinimumConvergenceValue(double) override
+  SetMinimumConvergenceValue(PrecisionType) override
   {
     itkWarningMacro("Not supported. Please use LBFGS specific convergence methods.");
-  };
-  void SetConvergenceWindowSize(SizeValueType) override
+  }
+  void
+  SetConvergenceWindowSize(SizeValueType) override
   {
     itkWarningMacro("Not supported. Please use LBFGS specific convergence methods.");
-  };
-  const double &
+  }
+  [[nodiscard]] const PrecisionType &
   GetConvergenceValue() const override
   {
     itkWarningMacro("Not supported. Please use LBFGS specific convergence methods.");
-    static double value = 0;
+    static const PrecisionType value{};
     return value;
-  };
-
+  }
+  /** @ITKEndGrouping */
   void
   AdvanceOneStep() override
   {
-    itkWarningMacro("LBFGS2Optimizerv4 does not implemenetd single step advance");
-  };
+    itkWarningMacro("LBFGS2Optimizerv4Template does not implement single step advance");
+  }
 };
+
+
+/** This helps to meet backward compatibility */
+using LBFGS2Optimizerv4 = LBFGS2Optimizerv4Template<double>;
+
 } // end namespace itk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkLBFGS2Optimizerv4.hxx"
+#endif
+
 #endif

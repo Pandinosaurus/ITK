@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,6 @@
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkNeighborhoodIterator.h"
-#include "itkNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
 #include "itkDerivativeOperator.h"
 #include "itkForwardDifferenceOperator.h"
@@ -37,9 +36,7 @@
 #include <itkMeanSquaresImageToImageMetric.h>
 #include <itkNormalizedCorrelationImageToImageMetric.h>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class ImageMetricLoad
@@ -78,12 +75,12 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageMetricLoad, LoadElement);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageMetricLoad);
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
   // Necessary type alias for dealing with images BEGIN
@@ -356,31 +353,30 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  GradientImageType * m_MetricGradientImage;
-  MovingPointer       m_RefImage;
-  FixedPointer        m_TarImage;
-  MovingRadiusType    m_MetricRadius; /** used by the metric to set
+  GradientImageType * m_MetricGradientImage{};
+  MovingPointer       m_RefImage{};
+  FixedPointer        m_TarImage{};
+  MovingRadiusType    m_MetricRadius{}; /** used by the metric to set
                                         region size for fixed image*/
-  typename MovingType::SizeType m_RefSize;
-  typename FixedType::SizeType  m_TarSize;
-  unsigned int                  m_NumberOfIntegrationPoints;
-  unsigned int                  m_SolutionIndex;
-  unsigned int                  m_SolutionIndex2;
-  Float                         m_Sign;
-  Float                         m_Temp;
-  Float                         m_Gamma;
+  typename MovingType::SizeType m_RefSize{};
+  typename FixedType::SizeType  m_TarSize{};
+  unsigned int                  m_NumberOfIntegrationPoints{};
+  unsigned int                  m_SolutionIndex{};
+  unsigned int                  m_SolutionIndex2{};
+  Float                         m_Sign{};
+  Float                         m_Temp{};
+  Float                         m_Gamma{};
 
-  typename Solution::ConstPointer     m_Solution;
-  MetricBaseTypePointer               m_Metric;
-  typename TransformBaseType::Pointer m_Transform;
-  typename InterpolatorType::Pointer  m_Interpolator;
+  typename Solution::ConstPointer     m_Solution{};
+  MetricBaseTypePointer               m_Metric{};
+  typename TransformBaseType::Pointer m_Transform{};
+  typename InterpolatorType::Pointer  m_Interpolator{};
 
-  mutable double m_Energy;
+  mutable double m_Energy{};
 
 private:
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMImageMetricLoad.hxx"

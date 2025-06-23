@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +51,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(BoxImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BoxImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -70,7 +70,7 @@ public:
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
   /** n-dimensional Kernel radius. */
   using RadiusType = typename TInputImage::SizeType;
-  using RadiusValueType = typename TInputImage::SizeValueType;
+  using RadiusValueType = SizeValueType;
 
   virtual void
   SetRadius(const RadiusType & radius);
@@ -91,7 +91,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  RadiusType m_Radius;
+  RadiusType m_Radius{};
 };
 } // namespace itk
 

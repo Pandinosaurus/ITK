@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,17 +64,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FlipImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FlipImageFilter);
 
   /** ImageDimension enumeration */
   static constexpr unsigned int ImageDimension = TImage::ImageDimension;
 
   /** Inherited types */
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
 
   /** Index related types */
   using IndexType = typename TImage::IndexType;
@@ -85,16 +85,18 @@ public:
 
   /** Set/Get the axis to be flipped. The image is flipped along axes
    * for which array[i] is true. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(FlipAxes, FlipAxesArrayType);
   itkGetConstMacro(FlipAxes, FlipAxesArrayType);
-
+  /** @ITKEndGrouping */
   /** Controls how the output origin is computed. If FlipAboutOrigin is
    * "On", the flip will occur about the origin of the axis, otherwise,
    * the flip will occur about the center of the axis. Default is "On". */
+  /** @ITKStartGrouping */
   itkBooleanMacro(FlipAboutOrigin);
   itkGetConstMacro(FlipAboutOrigin, bool);
   itkSetMacro(FlipAboutOrigin, bool);
-
+  /** @ITKEndGrouping */
   /** FlipImageFilter produces an image with different origin and
    * direction than the input image. As such, FlipImageFilter needs to
    * provide an implementation for GenerateOutputInformation() in
@@ -136,7 +138,7 @@ protected:
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
 
 private:
-  FlipAxesArrayType m_FlipAxes;
+  FlipAxesArrayType m_FlipAxes{};
   bool              m_FlipAboutOrigin{ true };
 };
 } // end namespace itk

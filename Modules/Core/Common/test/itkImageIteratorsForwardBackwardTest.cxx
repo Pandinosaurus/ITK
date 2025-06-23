@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ itkImageIteratorsForwardBackwardTest(int, char *[])
   std::cout << "Creating an image" << std::endl;
   using ImageType = itk::Image<unsigned short, 3>;
 
-  ImageType::Pointer myImage = ImageType::New();
+  auto myImage = ImageType::New();
 
   ImageType::SizeType size;
 
@@ -35,16 +35,11 @@ itkImageIteratorsForwardBackwardTest(int, char *[])
   size[1] = 4;
   size[2] = 4;
 
-  ImageType::IndexType start;
-  start.Fill(0);
+  constexpr ImageType::IndexType start{};
 
-  ImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const ImageType::RegionType region{ start, size };
 
-  myImage->SetLargestPossibleRegion(region);
-  myImage->SetBufferedRegion(region);
-  myImage->SetRequestedRegion(region);
+  myImage->SetRegions(region);
   myImage->Allocate();
 
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -53,9 +48,7 @@ itkImageIteratorsForwardBackwardTest(int, char *[])
 
   IteratorType it(myImage, region);
 
-  ImageType::PixelType value;
-
-  value = itk::NumericTraits<ImageType::PixelType>::ZeroValue();
+  auto value = ImageType::PixelType{};
 
   // Store information on the Image
   std::cout << "Storing data on the image ... " << std::endl;
@@ -72,7 +65,7 @@ itkImageIteratorsForwardBackwardTest(int, char *[])
   IteratorType ot(myImage, region);
   std::cout << "Verifying the data forwards... ";
 
-  value = itk::NumericTraits<ImageType::PixelType>::ZeroValue();
+  value = ImageType::PixelType{};
 
   while (!ot.IsAtEnd())
   {
@@ -122,7 +115,7 @@ itkImageIteratorsForwardBackwardTest(int, char *[])
   ConstIteratorType cot(myImage, region);
   std::cout << "Const Iterator: Verifying the data forwards... ";
 
-  value = itk::NumericTraits<ImageType::PixelType>::ZeroValue();
+  value = ImageType::PixelType{};
 
   while (!cot.IsAtEnd())
   {

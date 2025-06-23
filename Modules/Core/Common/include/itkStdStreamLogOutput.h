@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +51,7 @@ public:
 
   using StreamPointerType = std::ostream *;
 
-  itkTypeMacro(StdStreamLogOutput, LogOutput);
+  itkOverrideGetNameOfClassMacro(StdStreamLogOutput);
 
   itkNewMacro(StdStreamLogOutput);
 
@@ -71,11 +71,11 @@ public:
 
   /** Write to a buffer */
   void
-  Write(std::string const & content) override;
+  Write(const std::string & content) override;
 
   /** Write to a buffer */
   void
-  Write(std::string const & content, double timestamp) override;
+  Write(const std::string & content, double timestamp) override;
 
 protected:
   /** Constructor */
@@ -88,9 +88,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  StreamPointerType m_Stream;
+  StreamPointerType m_Stream{};
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 };
 } // namespace itk
 

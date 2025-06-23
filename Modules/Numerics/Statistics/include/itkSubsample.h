@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,10 @@
 #include "itkMacro.h"
 #include "itkObjectFactory.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class Subsample
+ * \class Subsample
  * \brief This class stores a subset of instance identifiers from another sample
  * object. You can create a subsample out of another sample object or another
  * subsample object. The class is useful when storing or extracting a portion
@@ -50,8 +48,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Subsample, TSample);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Subsample);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -75,27 +73,12 @@ public:
    * object */
   using InstanceIdentifierHolder = std::vector<InstanceIdentifier>;
 
-// Disable clang warning false positive.
-// <https://llvm.org/bugs/show_bug.cgi?id=22582>
-#if defined(__clang__) && defined(__has_warning)
-#  if __has_warning("-Winconsistent-missing-override")
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#  endif
-#endif
-
   /** Get the Id Holder */
   const InstanceIdentifierHolder &
   GetIdHolder() const
   {
     return this->m_IdHolder;
   }
-
-#if defined(__clang__) && defined(__has_warning)
-#  if __has_warning("-Winconsistent-missing-override")
-#    pragma clang diagnostic pop
-#  endif
-#endif
 
   /** Plug in the actual sample data */
   void
@@ -158,32 +141,21 @@ public:
     ConstIterator(const Self * sample) { *this = sample->Begin(); }
 
     ConstIterator(const ConstIterator & iter)
-    {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-    }
+      : m_Iter(iter.m_Iter)
+      , m_Subsample(iter.m_Subsample)
+      , m_Sample(iter.m_Sample)
+    {}
 
     ConstIterator &
-    operator=(const ConstIterator & iter)
-    {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-      return *this;
-    }
-
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iter != it.m_Iter);
-    }
+    operator=(const ConstIterator & iter) = default;
 
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iter == it.m_Iter);
     }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
     ConstIterator &
     operator++()
@@ -192,19 +164,19 @@ public:
       return *this;
     }
 
-    AbsoluteFrequencyType
+    [[nodiscard]] AbsoluteFrequencyType
     GetFrequency() const
     {
       return m_Sample->GetFrequency(*m_Iter);
     }
 
-    const MeasurementVectorType &
+    [[nodiscard]] const MeasurementVectorType &
     GetMeasurementVector() const
     {
       return m_Sample->GetMeasurementVector(*m_Iter);
     }
 
-    InstanceIdentifier
+    [[nodiscard]] InstanceIdentifier
     GetInstanceIdentifier() const
     {
       return (m_Iter - m_Subsample->GetIdHolder().begin());
@@ -253,7 +225,7 @@ public:
 
   protected:
     // To ensure const-correctness these method must not be in the public API.
-    // The are purposly not implemented, since they should never be called.
+    // The are purposely not implemented, since they should never be called.
     Iterator();
     Iterator(const Self * sample);
     Iterator(typename InstanceIdentifierHolder::const_iterator iter, const Self * classSample);
@@ -274,7 +246,7 @@ public:
   Iterator
   Begin()
   {
-    Iterator iter(m_IdHolder.begin(), this);
+    const Iterator iter(m_IdHolder.begin(), this);
 
     return iter;
   }
@@ -284,7 +256,7 @@ public:
   Iterator
   End()
   {
-    Iterator iter(m_IdHolder.end(), this);
+    const Iterator iter(m_IdHolder.end(), this);
 
     return iter;
   }
@@ -292,7 +264,7 @@ public:
   ConstIterator
   Begin() const
   {
-    ConstIterator iter(m_IdHolder.begin(), this);
+    const ConstIterator iter(m_IdHolder.begin(), this);
 
     return iter;
   }
@@ -300,7 +272,7 @@ public:
   ConstIterator
   End() const
   {
-    ConstIterator iter(m_IdHolder.end(), this);
+    const ConstIterator iter(m_IdHolder.end(), this);
 
     return iter;
   }
@@ -312,13 +284,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  const TSample *            m_Sample;
-  InstanceIdentifierHolder   m_IdHolder;
-  unsigned int               m_ActiveDimension;
-  TotalAbsoluteFrequencyType m_TotalFrequency;
+  const TSample *            m_Sample{};
+  InstanceIdentifierHolder   m_IdHolder{};
+  unsigned int               m_ActiveDimension{};
+  TotalAbsoluteFrequencyType m_TotalFrequency{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkSubsample.hxx"

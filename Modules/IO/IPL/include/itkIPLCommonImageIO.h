@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
  *         permission of the authors, Milan Sonka, Joseph Reinhardt,
  *         Ryan Long, Hans Johnson, Gary Christensen, and others.
  *         The specification for this file format is taken from the
- *         web site http://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
+ *         web site https://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
  * \author Kent Williams
  *         The University of Iowa 2003
  * \brief This file was written as a modification to the itkMetaImageIO
@@ -40,7 +40,7 @@
 namespace itk
 {
 /**
- *\class IPLCommonImageIO
+ * \class IPLCommonImageIO
  *
  * \author Hans J. Johnson
  * \brief Class that defines how to read GE4 file format.
@@ -61,9 +61,9 @@ public:
   using U8 = unsigned char;
   using S8 = signed char;
   using U16 = unsigned short;
-  using S16 = signed short;
+  using S16 = short;
   using U32 = unsigned int;
-  using S32 = signed int;
+  using S32 = int;
   using U64 = uint64_t;
   using S64 = int64_t;
   using F32 = float;
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IPLCommonImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IPLCommonImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -140,7 +140,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   int
-  AddElementToList(char const * const filename,
+  AddElementToList(const char * const filename,
                    const float        sliceLocation,
                    const int          offset,
                    const int          XDim,
@@ -164,9 +164,9 @@ protected:
 
   //
   // data members
-  GEImageHeader *   m_ImageHeader;
-  IOByteOrderEnum   m_SystemByteOrder;
-  IPLFileNameList * m_FilenameList;
+  GEImageHeader *   m_ImageHeader{};
+  IOByteOrderEnum   m_SystemByteOrder{};
+  IPLFileNameList * m_FilenameList{};
   //
   // return 0 on success, -1 on failure
   int
@@ -197,23 +197,23 @@ protected:
   hdr2Double(char * hdr);
 };
 } // end namespace itk
-#define RAISE_EXCEPTION()                                                                                              \
-  {                                                                                                                    \
-    ExceptionObject exception(__FILE__, __LINE__);                                                                     \
-    exception.SetDescription("File cannot be read");                                                                   \
-    throw exception;                                                                                                   \
-  }                                                                                                                    \
+#define RAISE_EXCEPTION()                            \
+  {                                                  \
+    ExceptionObject exception(__FILE__, __LINE__);   \
+    exception.SetDescription("File cannot be read"); \
+    throw exception;                                 \
+  }                                                  \
   ITK_MACROEND_NOOP_STATEMENT
 
-#define IOCHECK()                                                                                                      \
-  if (f.fail())                                                                                                        \
-  {                                                                                                                    \
-    if (f.is_open())                                                                                                   \
-    {                                                                                                                  \
-      f.close();                                                                                                       \
-    }                                                                                                                  \
-    RAISE_EXCEPTION();                                                                                                 \
-  }                                                                                                                    \
+#define IOCHECK()      \
+  if (f.fail())        \
+  {                    \
+    if (f.is_open())   \
+    {                  \
+      f.close();       \
+    }                  \
+    RAISE_EXCEPTION(); \
+  }                    \
   ITK_MACROEND_NOOP_STATEMENT
 
 #endif // itkIPLCommonImageIO_h

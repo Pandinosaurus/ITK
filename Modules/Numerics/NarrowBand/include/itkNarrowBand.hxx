@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,6 @@
  *=========================================================================*/
 #ifndef itkNarrowBand_hxx
 #define itkNarrowBand_hxx
-#include "itkNarrowBand.h"
 #include <cmath>
 
 namespace itk
@@ -37,8 +36,8 @@ template <typename NodeType>
 std::vector<typename NarrowBand<NodeType>::RegionType>
 NarrowBand<NodeType>::SplitBand(const SizeType & n)
 {
-  SizeType t_n = n;
-  SizeType t_size = m_NodeContainer.size();
+  SizeType       t_n = n;
+  const SizeType t_size = m_NodeContainer.size();
 
   std::vector<RegionType> regionList;
   if (t_n > t_size)

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,10 @@
 
 #include "itkFunctionBase.h"
 #include "itkContinuousIndex.h"
-#include "itkBSplineKernelFunction.h"
 #include "itkArray.h"
 #include "itkArray2D.h"
+#include "itkIndexRange.h"
+#include "itkMath.h"
 
 namespace itk
 {
@@ -43,16 +44,18 @@ namespace itk
  * \ingroup Functions ImageInterpolators
  * \ingroup ITKCommon
  */
-template <typename TCoordRep = float, unsigned int VSpaceDimension = 2, unsigned int VSplineOrder = 3>
+template <typename TCoordinate = float, unsigned int VSpaceDimension = 2, unsigned int VSplineOrder = 3>
 class ITK_TEMPLATE_EXPORT BSplineInterpolationWeightFunction
-  : public FunctionBase<ContinuousIndex<TCoordRep, VSpaceDimension>, Array<double>>
+  : public FunctionBase<ContinuousIndex<TCoordinate, VSpaceDimension>,
+                        FixedArray<double, Math::UnsignedPower(VSplineOrder + 1, VSpaceDimension)>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BSplineInterpolationWeightFunction);
 
   /** Standard class type aliases. */
   using Self = BSplineInterpolationWeightFunction;
-  using Superclass = FunctionBase<ContinuousIndex<TCoordRep, VSpaceDimension>, Array<double>>;
+  using Superclass = FunctionBase<ContinuousIndex<TCoordinate, VSpaceDimension>,
+                                  FixedArray<double, Math::UnsignedPower(VSplineOrder + 1, VSpaceDimension)>>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
@@ -60,8 +63,8 @@ public:
   /** New macro for creation of through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineInterpolationWeightFunction, FunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineInterpolationWeightFunction);
 
   /** Space dimension. */
   static constexpr unsigned int SpaceDimension = VSpaceDimension;
@@ -70,14 +73,20 @@ public:
   static constexpr unsigned int SplineOrder = VSplineOrder;
 
   /** OutputType type alias support. */
-  using WeightsType = Array<double>;
+  using WeightsType = typename Superclass::OutputType;
+
+  /** Number of weights. */
+  static constexpr unsigned int NumberOfWeights{ WeightsType::Length };
 
   /** Index and size type alias support. */
   using IndexType = Index<VSpaceDimension>;
   using SizeType = Size<VSpaceDimension>;
 
   /** ContinuousIndex type alias support. */
-  using ContinuousIndexType = ContinuousIndex<TCoordRep, VSpaceDimension>;
+  using ContinuousIndexType = ContinuousIndex<TCoordinate, VSpaceDimension>;
+
+  /** The support region size: a hypercube of length SplineOrder + 1 */
+  static constexpr SizeType SupportSize{ SizeType::Filled(VSplineOrder + 1) };
 
   /** Evaluate the weights at specified ContinuousIndex position.
    * Subclasses must provide this method. */
@@ -95,37 +104,25 @@ public:
   virtual void
   Evaluate(const ContinuousIndexType & index, WeightsType & weights, IndexType & startIndex) const;
 
+#if !defined(ITK_LEGACY_REMOVE)
   /** Get support region size. */
-  itkGetConstMacro(SupportSize, SizeType);
+  itkLegacyMacro(SizeType GetSupportSize() const)
+  {
+    return Self::SupportSize;
+  }
 
   /** Get number of weights. */
-  itkGetConstMacro(NumberOfWeights, unsigned int);
+  itkLegacyMacro(unsigned int GetNumberOfWeights() const)
+  {
+    return Self::NumberOfWeights;
+  }
+#endif
 
 protected:
-  BSplineInterpolationWeightFunction();
+  BSplineInterpolationWeightFunction() = default;
   ~BSplineInterpolationWeightFunction() override = default;
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override;
-
-private:
-  /** Number of weights. */
-  unsigned int m_NumberOfWeights;
-
-  /** Size of support region. */
-  SizeType m_SupportSize;
-
-  /** Lookup table type. */
-  using TableType = Array2D<unsigned int>;
-
-  /** Table mapping linear offset to indices. */
-  TableType m_OffsetToIndexTable;
-
-  /** Interpolation kernel type. */
-  using KernelType = BSplineKernelFunction<Self::SplineOrder>;
-
-  /** Interpolation kernel. */
-  typename KernelType::Pointer m_Kernel;
 };
+
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,14 +27,14 @@
 namespace itk
 {
 /**
- *\class ChainCodePath2D
+ * \class ChainCodePath2D
  * \brief  Represent a 2D path as a sequence of connected image index offsets
  *
  * This class is intended to represent sequences of connected indices in a 2D
  * image plane.  It does so by storing the offset of each index from its
  * immediately preceding, connected, index using a standard Freeman code
  * (1=up, 2=up to the right, and so on proceeding clockwise to 8=up
- * to the left).  The only image index stored directly is thatof the first
+ * to the left).  The only image index stored directly is that of the first
  * index.
  * ChainCodePath2D maps a 1D integer input (step number) to
  * a 2D integer output (either an offset or an image index, depending on
@@ -63,8 +63,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ChainCodePath2D, ChainCodePath);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ChainCodePath2D);
 
   /** OutputType type alias support */
   using OutputType = Superclass::OutputType;
@@ -98,7 +98,7 @@ public:
   OffsetType
   IncrementInput(InputType & input) const override;
 
-  // Functions specific to ChainCodePath and its descendents
+  // Functions specific to ChainCodePath and its descendants
 
   /** New() method for dynamic construction */
   itkNewMacro(Self);
@@ -111,6 +111,7 @@ public:
   }
 
   /** Insert a new step into the chaincode at a specified position */
+  /** @ITKStartGrouping */
   inline void
   InsertStep(InputType position, int encodedStep)
   {
@@ -124,8 +125,10 @@ public:
     m_Chain2D.insert(m_Chain2D.begin() + position, EncodeOffset(step));
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
   /** Change the direction of a step in the chaincode */
+  /** @ITKStartGrouping */
   inline void
   ChangeStep(InputType position, int encodedStep)
   {
@@ -139,6 +142,7 @@ public:
     m_Chain2D[position] = EncodeOffset(step);
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
   /** Remove all steps from the chain code */
   void
@@ -171,7 +175,7 @@ protected:
   }
 
 private:
-  ChainCode2DType m_Chain2D; // the Freeman-encoded chain code
+  ChainCode2DType m_Chain2D{}; // the Freeman-encoded chain code
 
   // FreemanCode[][] implements a lookup table for converting offsets to a
   // Freeman code.  Within each dimension, the only allowable offset values are
@@ -180,11 +184,11 @@ private:
   //
   //   encodedValue = m_FreemanCode[ x offset + 1 ][ y offset + 1 ]
   //
-  int m_FreemanCode[3][3];
+  int m_FreemanCode[3][3]{};
 
   // m_ReverseFreemanCode[ encodedValue ] implements a lookup table for the
   // inverse of m_FreemanCode[][].  It is initialized in the constructor.
-  OffsetType m_ReverseFreemanCode[9];
+  OffsetType m_ReverseFreemanCode[9]{};
 };
 } // end namespace itk
 

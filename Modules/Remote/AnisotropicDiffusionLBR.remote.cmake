@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,7 +41,8 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-itk_fetch_module(AnisotropicDiffusionLBR
+itk_fetch_module(
+  AnisotropicDiffusionLBR
   "Anisotropic Non-Linear Diffusion is a powerful image processing technique,
   which allows to simultaneously remove the noise and enhance sharp features
   in two or three dimensional images. Anisotropic Diffusion is understood here
@@ -59,9 +60,9 @@ itk_fetch_module(AnisotropicDiffusionLBR
     \"Anisotropic Diffusion in ITK\"
     Mirebeau J., Fehrenbach J., Risser L., Tobji S.
     The Insight Journal. 2014 January-December.
-    https://insight-journal.org/browse/publication/953
+    ttps://doi.org/10.54294/en3833
   "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKAnisotropicDiffusionLBR.git
-  GIT_TAG 3397d753adf1233b7bbbdd95885ebabb69d20573
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKAnisotropicDiffusionLBR.git
+  GIT_TAG 4dbdfe9dd209c0f266a821d1cc2c2135c8057bf9
   )

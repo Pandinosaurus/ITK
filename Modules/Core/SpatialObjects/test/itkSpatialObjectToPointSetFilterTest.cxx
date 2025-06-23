@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   using TubePointListType = TubeType::TubePointListType;
   using TubePointType = TubeType::TubePointType;
 
-  TubePointer       tube1 = TubeType::New();
+  const TubePointer tube1 = TubeType::New();
   TubePointListType list;
 
   for (unsigned int i = 0; i < 10; ++i)
@@ -49,7 +49,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   tube1->Update();
 
   using SpatialObjectToPointSetFilterType = itk::SpatialObjectToPointSetFilter<TubeType, PointSetType>;
-  SpatialObjectToPointSetFilterType::Pointer pointSetFilter = SpatialObjectToPointSetFilterType::New();
+  auto pointSetFilter = SpatialObjectToPointSetFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(pointSetFilter, SpatialObjectToPointSetFilter, MeshSource);
 
@@ -58,7 +58,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   pointSetFilter->SetChildrenDepth(childrenDepth);
   ITK_TEST_SET_GET_VALUE(childrenDepth, pointSetFilter->GetChildrenDepth());
 
-  unsigned int samplingFactor = 1;
+  constexpr unsigned int samplingFactor = 1;
   pointSetFilter->SetSamplingFactor(samplingFactor);
   ITK_TEST_SET_GET_VALUE(samplingFactor, pointSetFilter->GetSamplingFactor());
 
@@ -67,7 +67,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
 
   pointSetFilter->Update();
 
-  PointSetType::Pointer pointSet = pointSetFilter->GetOutput();
+  const PointSetType::Pointer pointSet = pointSetFilter->GetOutput();
 
   std::cout << "Testing pointSet exists : ";
   if (!pointSet.GetPointer())
@@ -89,8 +89,8 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   std::cout << "Testing pointSet validity : ";
 
   using PointIterator = PointSetType::PointsContainer::ConstIterator;
-  PointIterator pointItr = pointSet->GetPoints()->Begin();
-  PointIterator pointEnd = pointSet->GetPoints()->End();
+  PointIterator       pointItr = pointSet->GetPoints()->Begin();
+  const PointIterator pointEnd = pointSet->GetPoints()->End();
 
   unsigned int val = 0;
   while (pointItr != pointEnd)
@@ -112,10 +112,10 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   using Tube3DPointListType = Tube3DType::TubePointListType;
   using Tube3DPointType = Tube3DType::TubePointType;
 
-  Group3DType::Pointer group3D = Group3DType::New();
+  auto group3D = Group3DType::New();
 
 
-  Tube3DType::Pointer tube3D = Tube3DType::New();
+  auto                tube3D = Tube3DType::New();
   Tube3DPointListType tubePointList;
   for (unsigned int i = 0; i < 10; ++i)
   {
@@ -127,7 +127,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   tube3D->SetPoints(tubePointList);
   tube3D->Update();
 
-  Tube3DType::Pointer tube3D2 = Tube3DType::New();
+  auto                tube3D2 = Tube3DType::New();
   Tube3DPointListType tubePointList2;
   for (unsigned int i = 10; i < 20; ++i)
   {
@@ -145,7 +145,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   // Create the 3D filter
   using PointSet3DType = itk::PointSet<PixelType, 3>;
   using SpatialObjectToPointSet3DFilterType = itk::SpatialObjectToPointSetFilter<Tube3DType, PointSet3DType>;
-  SpatialObjectToPointSet3DFilterType::Pointer pointSetFilter3D = SpatialObjectToPointSet3DFilterType::New();
+  auto pointSetFilter3D = SpatialObjectToPointSet3DFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(pointSetFilter3D, SpatialObjectToPointSetFilter, MeshSource);
 
@@ -157,7 +157,7 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
 
   pointSetFilter3D->Update();
 
-  PointSet3DType::Pointer pointSet3D = pointSetFilter3D->GetOutput();
+  const PointSet3DType::Pointer pointSet3D = pointSetFilter3D->GetOutput();
 
   std::cout << "Testing pointSet3D exists : ";
   if (!pointSet3D.GetPointer())
@@ -178,8 +178,8 @@ itkSpatialObjectToPointSetFilterTest(int, char *[])
   std::cout << "Testing pointSet3D validity : ";
 
   using PointIterator3D = PointSet3DType::PointsContainer::ConstIterator;
-  PointIterator3D pointItr2 = pointSet3D->GetPoints()->Begin();
-  PointIterator3D pointEnd2 = pointSet3D->GetPoints()->End();
+  PointIterator3D       pointItr2 = pointSet3D->GetPoints()->Begin();
+  const PointIterator3D pointEnd2 = pointSet3D->GetPoints()->End();
 
   val = 0;
   while (pointItr2 != pointEnd2)

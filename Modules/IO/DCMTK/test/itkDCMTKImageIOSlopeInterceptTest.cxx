@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,13 +23,15 @@
 #include "itkAddImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkStatisticsImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
-itkDCMTKImageIOSlopeInterceptTest(int ac, char * av[])
+itkDCMTKImageIOSlopeInterceptTest(int argc, char * argv[])
 {
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "Usage: " << av[0] << " <original image> <slope intercept image>" << std::endl;
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " originalImage slopeInterceptImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -41,25 +43,18 @@ itkDCMTKImageIOSlopeInterceptTest(int ac, char * av[])
   const PixelType rescaleSlope(2);
   const PixelType rescaleIntercept(-99);
 
-  ImageIOType::Pointer dcmImageIO = ImageIOType::New();
+  auto dcmImageIO = ImageIOType::New();
 
   ImageType::Pointer images[2];
-  for (unsigned i = 0; i < 2; ++i)
+  for (unsigned int i = 0; i < 2; ++i)
   {
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(av[i + 1]);
+    auto reader = ReaderType::New();
+    reader->SetFileName(argv[i + 1]);
     reader->SetImageIO(dcmImageIO);
 
-    try
-    {
-      reader->Update();
-    }
-    catch (const itk::ExceptionObject & e)
-    {
-      std::cerr << "exception in file reader " << std::endl;
-      std::cerr << e << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
+
     images[i] = reader->GetOutput();
   }
 
@@ -84,5 +79,8 @@ itkDCMTKImageIOSlopeInterceptTest(int ac, char * av[])
       return EXIT_FAILURE;
     }
   }
+
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

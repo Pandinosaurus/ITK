@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkCropLabelMapFilter_hxx
 #define itkCropLabelMapFilter_hxx
 
-#include "itkCropLabelMapFilter.h"
 
 namespace itk
 {
@@ -44,20 +43,18 @@ CropLabelMapFilter<TInputImage>::GenerateOutputInformation()
   }
 
   // Compute the new region size.
-  RegionType croppedRegion;
-  SizeType   size;
-  IndexType  index;
+  SizeType  size;
+  IndexType index;
 
-  SizeType  inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
-  IndexType inputIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
+  const SizeType  inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
+  const IndexType inputIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
 
-  SizeType originalCropSize = m_UpperBoundaryCropSize + m_LowerBoundaryCropSize;
+  const SizeType originalCropSize = m_UpperBoundaryCropSize + m_LowerBoundaryCropSize;
 
   index = inputIndex + m_LowerBoundaryCropSize;
   size = inputSize - (originalCropSize);
 
-  croppedRegion.SetSize(size);
-  croppedRegion.SetIndex(index);
+  const RegionType croppedRegion(index, size);
 
   // Set extraction region in the superclass.
   this->SetRegion(croppedRegion);

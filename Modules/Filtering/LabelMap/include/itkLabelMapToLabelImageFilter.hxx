@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,12 @@
 #ifndef itkLabelMapToLabelImageFilter_hxx
 #define itkLabelMapToLabelImageFilter_hxx
 
-#include "itkLabelMapToLabelImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
 {
-
-template <typename TInputImage, typename TOutputImage>
-LabelMapToLabelImageFilter<TInputImage, TOutputImage>::LabelMapToLabelImageFilter()
-{
-  m_OutputImage = nullptr;
-}
 
 
 template <typename TInputImage, typename TOutputImage>
@@ -42,7 +35,6 @@ LabelMapToLabelImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateDat
 
   output->FillBuffer(input->GetBackgroundValue());
   Superclass::BeforeThreadedGenerateData();
-  this->m_OutputImage = this->GetOutput();
 }
 
 
@@ -50,12 +42,13 @@ template <typename TInputImage, typename TOutputImage>
 void
 LabelMapToLabelImageFilter<TInputImage, TOutputImage>::ThreadedProcessLabelObject(LabelObjectType * labelObject)
 {
+  OutputImageType *                            output = this->GetOutput();
   const typename LabelObjectType::LabelType &  label = labelObject->GetLabel();
   typename LabelObjectType::ConstIndexIterator it(labelObject);
 
   while (!it.IsAtEnd())
   {
-    this->m_OutputImage->SetPixel(it.GetIndex(), label);
+    output->SetPixel(it.GetIndex(), label);
     ++it;
   }
 }

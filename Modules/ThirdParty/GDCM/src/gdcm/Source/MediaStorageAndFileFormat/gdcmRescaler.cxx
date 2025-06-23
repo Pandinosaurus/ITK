@@ -12,11 +12,11 @@
 
 =========================================================================*/
 #include "gdcmRescaler.h"
-#include <limits>
 #include <algorithm> // std::max
-#include <stdlib.h> // abort
-#include <string.h> // memcpy
 #include <cmath> // std::lround
+#include <cstdlib> // abort
+#include <cstring> // memcpy
+#include <limits>
 
 namespace gdcm
 {
@@ -126,8 +126,8 @@ static inline PixelFormat::ScalarType ComputeBestFit(const PixelFormat &pf, doub
   assert( slope == (int)slope && intercept == (int)intercept);
 
   assert( pf.GetMin() <= pf.GetMax() );
-  const double pfmin = slope >= 0 ? pf.GetMin() : pf.GetMax();
-  const double pfmax = slope >= 0 ? pf.GetMax() : pf.GetMin();
+  const double pfmin = slope >= 0. ? (double)pf.GetMin() : (double)pf.GetMax();
+  const double pfmax = slope >= 0. ? (double)pf.GetMax() : (double)pf.GetMin();
   const double min = slope * pfmin + intercept;
   const double max = slope * pfmax + intercept;
   assert( min <= max );

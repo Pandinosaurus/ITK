@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ test_OpenCVVideoIOFactory(char * input, char * output, SizeValueType cameraNumbe
   // There's something strange going on here that makes the factories not be
   // registered by default because of the order in which the includes happen.
   // The real strangeness seems to be in ITK's system with the modularized
-  // framework since none of the factories get reigstered by default.
+  // framework since none of the factories get registered by default.
   itk::ObjectFactoryBase::RegisterFactory(itk::OpenCVVideoIOFactory::New());
 
 

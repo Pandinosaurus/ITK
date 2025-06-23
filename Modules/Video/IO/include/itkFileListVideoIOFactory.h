@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class FileListVideoIOFactory
+ * \class FileListVideoIOFactory
  * \brief Create instances of FileListVideoIO objects using an object factory.
  *
  * \ingroup ITKVideoIO
@@ -51,14 +51,14 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FileListVideoIOFactory, ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FileListVideoIOFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    FileListVideoIOFactory::Pointer FileListFactory = FileListVideoIOFactory::New();
+    auto FileListFactory = FileListVideoIOFactory::New();
 
     ObjectFactoryBase::RegisterFactoryInternal(FileListFactory);
   }

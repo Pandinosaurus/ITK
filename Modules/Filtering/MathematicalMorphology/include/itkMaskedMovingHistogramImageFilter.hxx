@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMaskedMovingHistogramImageFilter_hxx
 #define itkMaskedMovingHistogramImageFilter_hxx
 
-#include "itkMaskedMovingHistogramImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOffset.h"
 #include "itkTotalProgressReporter.h"
@@ -32,7 +31,7 @@
  * This code was contributed in the Insight Journal paper:
  * "Efficient implementation of kernel filtering"
  * by Beare R., Lehmann G
- * https://www.insight-journal.org/browse/publication/160
+ * https://doi.org/10.54294/igq8fn
  *
  */
 
@@ -42,12 +41,12 @@ namespace itk
 template <typename TInputImage, typename TMaskImage, typename TOutputImage, typename TKernel, typename THistogram>
 MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>::
   MaskedMovingHistogramImageFilter()
+  : m_GenerateOutputMask(true)
+  , m_FillValue(OutputPixelType{})
+  , m_MaskValue(NumericTraits<MaskPixelType>::max())
+  , m_BackgroundMaskValue(MaskPixelType{})
 {
   this->SetNumberOfRequiredInputs(2);
-  this->m_FillValue = NumericTraits<OutputPixelType>::ZeroValue();
-  this->m_MaskValue = NumericTraits<MaskPixelType>::max();
-  this->m_BackgroundMaskValue = NumericTraits<MaskPixelType>::ZeroValue();
-  this->m_GenerateOutputMask = true;
   this->SetGenerateOutputMask(false);
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
@@ -64,7 +63,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
     if (generateOutputMask)
     {
       this->SetNumberOfRequiredOutputs(2);
-      typename MaskImageType::Pointer maskout = TMaskImage::New();
+      const typename MaskImageType::Pointer maskout = TMaskImage::New();
       this->SetNthOutput(1, maskout.GetPointer());
     }
     else
@@ -82,11 +81,11 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   if (this->m_GenerateOutputMask)
   {
     // Allocate the output image.
-    typename TOutputImage::Pointer output = this->GetOutput();
+    const typename TOutputImage::Pointer output = this->GetOutput();
     output->SetBufferedRegion(output->GetRequestedRegion());
     output->Allocate();
     // Allocate the output mask image.
-    typename TMaskImage::Pointer mask = this->GetOutputMask();
+    const typename TMaskImage::Pointer mask = this->GetOutputMask();
     mask->SetBufferedRegion(mask->GetRequestedRegion());
     mask->Allocate();
   }
@@ -116,10 +115,11 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 }
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage, typename TKernel, typename THistogram>
-typename MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>::MaskImageType *
+auto
 MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>::GetOutputMask()
+  -> MaskImageType *
 {
-  typename MaskImageType::Pointer res = dynamic_cast<MaskImageType *>(this->ProcessObject::GetOutput(1));
+  const typename MaskImageType::Pointer res = dynamic_cast<MaskImageType *>(this->ProcessObject::GetOutput(1));
   return res;
 }
 
@@ -139,14 +139,14 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   const InputImageType * inputImage = this->GetInput();
   const MaskImageType *  maskImage = this->GetMaskImage();
 
-  RegionType inputRegion = inputImage->GetRequestedRegion();
+  const RegionType inputRegion = inputImage->GetRequestedRegion();
 
   TotalProgressReporter progress(this, inputRegion.GetNumberOfPixels());
 
   // initialize the histogram
-  for (auto listIt = this->m_KernelOffsets.begin(); listIt != this->m_KernelOffsets.end(); listIt++)
+  for (auto listIt = this->m_KernelOffsets.begin(); listIt != this->m_KernelOffsets.end(); ++listIt)
   {
-    IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
+    const IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
     if (inputRegion.IsInside(idx) && maskImage->GetPixel(idx) == m_MaskValue)
     {
       histogram.AddPixel(inputImage->GetPixel(idx));
@@ -158,24 +158,22 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   }
 
   // now move the histogram
-  FixedArray<short, ImageDimension> direction;
-  direction.Fill(1);
-  int        axis = ImageDimension - 1;
-  OffsetType offset;
-  offset.Fill(0);
+  auto       direction = MakeFilled<FixedArray<short, ImageDimension>>(1);
+  const int  axis = ImageDimension - 1;
+  OffsetType offset{};
   RegionType stRegion;
   stRegion.SetSize(this->m_Kernel.GetSize());
   stRegion.PadByRadius(1); // must pad the region by one because of the
                            // translation
 
   OffsetType centerOffset;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     centerOffset[i] = stRegion.GetSize()[i] / 2;
   }
 
-  int BestDirection = this->m_Axes[axis];
-  int LineLength = inputRegion.GetSize()[BestDirection];
+  const int BestDirection = this->m_Axes[axis];
+  const int LineLength = inputRegion.GetSize()[BestDirection];
 
   // init the offset and get the lists for the best axis
   offset[BestDirection] = direction[BestDirection];
@@ -188,7 +186,6 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   InLineIt.SetDirection(BestDirection);
   InLineIt.GoToBegin();
   IndexType LineStart;
-  InLineIt.GoToBegin();
 
   using HistVecType = typename std::vector<HistogramType>;
   HistVecType HistVec(ImageDimension);
@@ -197,9 +194,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 
   // Steps is used to keep track of the order in which the line
   // iterator passes over the various dimensions.
-  auto * Steps = new int[ImageDimension];
+  int Steps[ImageDimension];
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     HistVec[i] = histogram;
     PrevLineStartVec[i] = InLineIt.GetIndex();
@@ -209,11 +206,11 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   while (!InLineIt.IsAtEnd())
   {
     HistogramType & histRef = HistVec[BestDirection];
-    IndexType       PrevLineStart = InLineIt.GetIndex();
+    const IndexType PrevLineStart = InLineIt.GetIndex();
     for (InLineIt.GoToBeginOfLine(); !InLineIt.IsAtEndOfLine(); ++InLineIt)
     {
       // Update the histogram
-      IndexType currentIdx = InLineIt.GetIndex();
+      const IndexType currentIdx = InLineIt.GetIndex();
 
       if (maskImage->GetPixel(currentIdx) == m_MaskValue && histRef.IsValid())
       {
@@ -248,14 +245,15 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
     // histogram to update and the direction in which to push
     // it. Then we need to copy that histogram to the relevant
     // places
-    OffsetType LineOffset, Changes;
     // Figure out which stored histogram to move and in
     // which direction
     int LineDirection = 0;
     // This function deals with changing planes etc
+    OffsetType LineOffset;
+    OffsetType Changes;
     this->GetDirAndOffset(LineStart, PrevLineStart, LineOffset, Changes, LineDirection);
     ++(Steps[LineDirection]);
-    IndexType              PrevLineStartHist = LineStart - LineOffset;
+    const IndexType        PrevLineStartHist = LineStart - LineOffset;
     const OffsetListType * addedListLine = &this->m_AddedOffsets[LineOffset];
     const OffsetListType * removedListLine = &this->m_RemovedOffsets[LineOffset];
     HistogramType &        tmpHist = HistVec[LineDirection];
@@ -268,7 +266,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
     // copy the updated histogram and line start entries to the
     // relevant directions. When updating direction 2, for example,
     // new copies of directions 0 and 1 should be made.
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       if (Steps[i] > Steps[LineDirection])
       {
@@ -277,7 +275,6 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
       }
     }
   }
-  delete[] Steps;
 }
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage, typename TKernel, typename THistogram>
@@ -295,9 +292,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   if (inputRegion.IsInside(kernRegion))
   {
     // update the histogram
-    for (auto addedIt = addedList->begin(); addedIt != addedList->end(); addedIt++)
+    for (auto addedIt = addedList->begin(); addedIt != addedList->end(); ++addedIt)
     {
-      typename InputImageType::IndexType idx = currentIdx + (*addedIt);
+      const typename InputImageType::IndexType idx = currentIdx + (*addedIt);
       if (maskImage->GetPixel(idx) == m_MaskValue)
       {
         histogram.AddPixel(inputImage->GetPixel(idx));
@@ -307,9 +304,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         histogram.AddBoundary();
       }
     }
-    for (auto removedIt = removedList->begin(); removedIt != removedList->end(); removedIt++)
+    for (auto removedIt = removedList->begin(); removedIt != removedList->end(); ++removedIt)
     {
-      typename InputImageType::IndexType idx = currentIdx + (*removedIt);
+      const typename InputImageType::IndexType idx = currentIdx + (*removedIt);
       if (maskImage->GetPixel(idx) == m_MaskValue)
       {
         histogram.RemovePixel(inputImage->GetPixel(idx));
@@ -323,9 +320,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
   else
   {
     // update the histogram
-    for (auto addedIt = addedList->begin(); addedIt != addedList->end(); addedIt++)
+    for (auto addedIt = addedList->begin(); addedIt != addedList->end(); ++addedIt)
     {
-      IndexType idx = currentIdx + (*addedIt);
+      const IndexType idx = currentIdx + (*addedIt);
       if (inputRegion.IsInside(idx) && maskImage->GetPixel(idx) == m_MaskValue)
       {
         histogram.AddPixel(inputImage->GetPixel(idx));
@@ -335,9 +332,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         histogram.AddBoundary();
       }
     }
-    for (auto removedIt = removedList->begin(); removedIt != removedList->end(); removedIt++)
+    for (auto removedIt = removedList->begin(); removedIt != removedList->end(); ++removedIt)
     {
-      IndexType idx = currentIdx + (*removedIt);
+      const IndexType idx = currentIdx + (*removedIt);
       if (inputRegion.IsInside(idx) && maskImage->GetPixel(idx) == m_MaskValue)
       {
         histogram.RemovePixel(inputImage->GetPixel(idx));

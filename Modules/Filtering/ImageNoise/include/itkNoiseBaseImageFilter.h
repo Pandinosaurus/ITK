@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class NoiseBaseImageFilter
+ * \class NoiseBaseImageFilter
  *
  * \brief An Abstract Base class for Noise image filters
  *
@@ -47,15 +47,16 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImagePixelType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NoiseBaseImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NoiseBaseImageFilter);
 
   /** Set/Get the seed for random initialization  */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Seed, uint32_t);
   itkSetMacro(Seed, uint32_t);
-
+  /** @ITKEndGrouping */
   /** Set the seed to a value initialized with the current time and
    * process clock. */
   virtual void
@@ -69,7 +70,7 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  inline static uint32_t
+  static inline uint32_t
   Hash(uint32_t a, uint32_t b)
   {
     //  Knuth's Multiplicative Method for hashing
@@ -78,7 +79,7 @@ protected:
 
   // Clamp and round the input value to the output
   static OutputImagePixelType
-  ClampCast(const double & value);
+  ClampCast(const double value);
 
 private:
   uint32_t m_Seed{ 0 };

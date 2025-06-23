@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,35 +29,35 @@ namespace itk
  *
  * \ingroup ITKFEM
  */
-template <unsigned int NDimensions = 3,
+template <unsigned int VDimension = 3,
           typename PixelType = unsigned char,
-          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, NDimensions, NDimensions>>
-class FEMSpatialObjectReader : public SpatialObjectReader<NDimensions, PixelType, TMeshTraits>
+          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, VDimension, VDimension>>
+class ITK_TEMPLATE_EXPORT FEMSpatialObjectReader : public SpatialObjectReader<VDimension, PixelType, TMeshTraits>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FEMSpatialObjectReader);
 
   using Self = FEMSpatialObjectReader;
-  using Superclass = SpatialObjectReader<NDimensions, PixelType, TMeshTraits>;
+  using Superclass = SpatialObjectReader<VDimension, PixelType, TMeshTraits>;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Superclass, Self);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FEMSpatialObjectReader);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
 protected:
-  std::string m_FileName;
+  std::string m_FileName{};
 
   FEMSpatialObjectReader();
   ~FEMSpatialObjectReader() override = default;
 };
 
-template <unsigned int NDimensions, typename PixelType, typename TMeshTraits>
-FEMSpatialObjectReader<NDimensions, PixelType, TMeshTraits>::FEMSpatialObjectReader()
+template <unsigned int VDimension, typename PixelType, typename TMeshTraits>
+FEMSpatialObjectReader<VDimension, PixelType, TMeshTraits>::FEMSpatialObjectReader()
 {
-  this->RegisterMetaConverter("FEMObject", "FEMObjectSpatialObject", MetaFEMObjectConverter<NDimensions>::New());
+  this->RegisterMetaConverter("FEMObject", "FEMObjectSpatialObject", MetaFEMObjectConverter<VDimension>::New());
 }
 
 } // namespace itk

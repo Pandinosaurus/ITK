@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,10 +37,8 @@ CompareExtensions(itk::ImageIOBase::ArrayOfExtensionsType & a1, itk::ImageIOBase
   {
     return EXIT_SUCCESS;
   }
-  else
-  {
-    return EXIT_FAILURE;
-  }
+
+  return EXIT_FAILURE;
 }
 } // end anonymous namespace
 
@@ -50,7 +48,9 @@ itkPNGImageIOTest2(int argc, char * argv[])
   // Test the reading of an image as grayscale image and writing of grayscale image
   if (argc < 5)
   {
-    std::cerr << "Usage: " << argv[0] << " input"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input"
               << " output"
               << " useCompression"
               << " compressionLevel"
@@ -68,12 +68,12 @@ itkPNGImageIOTest2(int argc, char * argv[])
 
 
   // Read the input image
-  itk::PNGImageIO::Pointer io = itk::PNGImageIO::New();
+  const itk::PNGImageIO::Pointer io = itk::PNGImageIO::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(io, PNGImageIO, ImageIOBase);
 
   // Exercise exception cases
-  size_t sizeOfActualIORegion =
+  const size_t sizeOfActualIORegion =
     io->GetIORegion().GetNumberOfPixels() * (io->GetComponentSize() * io->GetNumberOfComponents());
   auto * loadBuffer = new char[sizeOfActualIORegion];
 
@@ -83,7 +83,7 @@ itkPNGImageIOTest2(int argc, char * argv[])
   auto useCompression = static_cast<bool>(argv[3]);
   ITK_TEST_SET_GET_BOOLEAN(io, UseCompression, useCompression);
 
-  int compressionLevel = std::stoi(argv[4]);
+  const int compressionLevel = std::stoi(argv[4]);
   io->SetCompressionLevel(compressionLevel);
   ITK_TEST_SET_GET_VALUE(compressionLevel, io->GetCompressionLevel());
 
@@ -110,8 +110,8 @@ itkPNGImageIOTest2(int argc, char * argv[])
   // Check supported file extensions
   // Expecting ".png" and ".PNG"
   itk::ImageIOBase::ArrayOfExtensionsType expectedExtensions;
-  expectedExtensions.push_back(".png");
-  expectedExtensions.push_back(".PNG");
+  expectedExtensions.emplace_back(".png");
+  expectedExtensions.emplace_back(".PNG");
 
   // Read extensions
   itk::ImageIOBase::ArrayOfExtensionsType readExtensions = io->GetSupportedReadExtensions();
@@ -145,7 +145,7 @@ itkPNGImageIOTest2(int argc, char * argv[])
   }
 
   // Actually reading an RGBA image
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->SetImageIO(io);
 
@@ -167,7 +167,7 @@ itkPNGImageIOTest2(int argc, char * argv[])
     std::cout << "PaletteType: " << std::endl;
     for (unsigned int i = 0; i < palette.size(); ++i)
     {
-      std::cout << "[" << i << "]:" << palette[i] << std::endl;
+      std::cout << '[' << i << "]:" << palette[i] << std::endl;
     }
   }
   else
@@ -177,14 +177,15 @@ itkPNGImageIOTest2(int argc, char * argv[])
 
 
   // Exercise other methods
-  itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
-  std::cout << "PixelStride: " << itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType(pixelStride) << std::endl;
+  const itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
+  std::cout << "PixelStride: " << static_cast<itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType>(pixelStride)
+            << std::endl;
 
 
-  ImageType::Pointer inputImage = reader->GetOutput();
+  const ImageType::Pointer inputImage = reader->GetOutput();
 
   // Write the grayscale output image
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(inputImage);
   writer->SetImageIO(io);
   writer->SetFileName(argv[2]);

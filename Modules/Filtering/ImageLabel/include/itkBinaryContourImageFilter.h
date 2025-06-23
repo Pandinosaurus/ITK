@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
  * The connectivity can be changed to minimum or maximum connectivity with
  * SetFullyConnected(). Full connectivity produces thicker contours.
  *
- * https://www.insight-journal.org/browse/publication/217
+ * https://doi.org/10.54294/c7d3gv
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -70,7 +70,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(BinaryContourImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(BinaryContourImageFilter);
 
   /**
    * Method for creation through the object factory.
@@ -105,24 +105,27 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the background value used to mark the pixels not on the border of the
    * objects.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the foreground value used to identify the objects in the input and
    * output images.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ForegroundValue, InputImagePixelType);
   itkGetConstMacro(ForegroundValue, InputImagePixelType);
-
+  /** @ITKEndGrouping */
 protected:
   BinaryContourImageFilter();
   ~BinaryContourImageFilter() override = default;
@@ -173,11 +176,11 @@ protected:
   using ConsecutiveVectorType = typename ScanlineFunctions::ConsecutiveVectorType;
 
 private:
-  LineMapType m_ForegroundLineMap;
-  LineMapType m_BackgroundLineMap;
+  LineMapType m_ForegroundLineMap{};
+  LineMapType m_BackgroundLineMap{};
 
-  InputImagePixelType  m_ForegroundValue;
-  OutputImagePixelType m_BackgroundValue;
+  InputImagePixelType  m_ForegroundValue{};
+  OutputImagePixelType m_BackgroundValue{};
 };
 } // end namespace itk
 

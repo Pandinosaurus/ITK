@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,32 +18,24 @@
 #ifndef itkJetColormapFunction_hxx
 #define itkJetColormapFunction_hxx
 
-#include "itkJetColormapFunction.h"
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TScalar, typename TRGBPixel>
-typename JetColormapFunction<TScalar, TRGBPixel>::RGBPixelType
-JetColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
+auto
+JetColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const -> RGBPixelType
 {
   // Map the input scalar between [0, 1].
-  RealType value = this->RescaleInputValue(v);
+  const RealType value = this->RescaleInputValue(v);
 
   // Apply the color mapping.
   RealType red = -itk::Math::abs(3.95 * (value - 0.7460)) + 1.5;
-
-  red = std::min(red, 1.0);
-  red = std::max(0.0, red);
+  red = std::clamp(red, 0.0, 1.0);
 
   RealType green = -itk::Math::abs(3.95 * (value - 0.492)) + 1.5;
-  green = std::min(green, 1.0);
-  green = std::max(0.0, green);
+  green = std::clamp(green, 0.0, 1.0);
 
   RealType blue = -itk::Math::abs(3.95 * (value - 0.2385)) + 1.5;
-  blue = std::min(blue, 1.0);
-  blue = std::max(0.0, blue);
+  blue = std::clamp(blue, 0.0, 1.0);
 
   // Set the rgb components after rescaling the values.
   RGBPixelType pixel;
@@ -55,7 +47,6 @@ JetColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
 
   return pixel;
 }
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

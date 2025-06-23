@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -118,6 +118,17 @@ assert itk.class_(median) == itk.class_(median_args)
 # filter type determined by the input passed as a primary method input
 median_kwarg = itk.MedianImageFilter.New(Input=reader.GetOutput())
 assert itk.class_(median) == itk.class_(median_kwarg)
+
+# filter type determined by the input passed as a primary input name input
+median_primary_kwarg = itk.MedianImageFilter.New(Primary=reader.GetOutput())
+assert itk.class_(median) == itk.class_(median_primary_kwarg)
+
+# First RequiredInputName: "FixedImage"
+fixed_image = reader.GetOutput()
+moving_image = fixed_image
+pde_registration = itk.PDEDeformableRegistrationFilter.New(
+    FixedImage=fixed_image, MovingImage=moving_image
+)
 
 # to a filter with a SetImage method
 calculator = itk.MinimumMaximumImageCalculator[ImageType].New(reader)

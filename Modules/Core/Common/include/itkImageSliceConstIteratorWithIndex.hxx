@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageSliceConstIteratorWithIndex_hxx
 #define itkImageSliceConstIteratorWithIndex_hxx
 
-#include "itkImageSliceConstIteratorWithIndex.h"
 
 namespace itk
 {
@@ -93,11 +92,9 @@ ImageSliceConstIteratorWithIndex<TImage>::NextSlice()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position -= this->m_OffsetTable[n + 1] - this->m_OffsetTable[n];
-      this->m_PositionIndex[n] = this->m_BeginIndex[n];
-    }
+
+    this->m_Position -= this->m_OffsetTable[n + 1] - this->m_OffsetTable[n];
+    this->m_PositionIndex[n] = this->m_BeginIndex[n];
   }
 }
 
@@ -128,11 +125,9 @@ ImageSliceConstIteratorWithIndex<TImage>::PreviousSlice()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position += this->m_OffsetTable[n + 1] - this->m_OffsetTable[n];
-      this->m_PositionIndex[n] = this->m_EndIndex[n] - 1;
-    }
+
+    this->m_Position += this->m_OffsetTable[n + 1] - this->m_OffsetTable[n];
+    this->m_PositionIndex[n] = this->m_EndIndex[n] - 1;
   }
 }
 
@@ -185,8 +180,8 @@ ImageSliceConstIteratorWithIndex<TImage>::SetFirstDirection(unsigned int directi
 {
   if (direction >= TImage::ImageDimension)
   {
-    itkGenericExceptionMacro(<< "In image of dimension " << TImage::ImageDimension << " Direction " << direction
-                             << " sas selected");
+    itkGenericExceptionMacro("In image of dimension " << TImage::ImageDimension << " Direction " << direction
+                                                      << " sas selected");
   }
   m_Direction_A = direction;
   m_PixelJump = this->m_OffsetTable[m_Direction_A];
@@ -201,8 +196,8 @@ ImageSliceConstIteratorWithIndex<TImage>::SetSecondDirection(unsigned int direct
 {
   if (direction >= TImage::ImageDimension)
   {
-    itkGenericExceptionMacro(<< "In image of dimension " << TImage::ImageDimension << " Direction " << direction
-                             << " sas selected");
+    itkGenericExceptionMacro("In image of dimension " << TImage::ImageDimension << " Direction " << direction
+                                                      << " sas selected");
   }
   m_Direction_B = direction;
   m_LineJump = this->m_OffsetTable[m_Direction_B];

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -91,16 +91,8 @@ main(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
 
-  // We instantiate reader and writer types
-  //
-  using ReaderType = itk::ImageFileReader<InputImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
+  const auto input = itk::ReadImage<InputImageType>(argv[1]);
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
 
   //  Software Guide : BeginLatex
   //
@@ -123,8 +115,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ConnectedFilterType::Pointer confidenceConnected =
-    ConnectedFilterType::New();
+  auto confidenceConnected = ConnectedFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -135,8 +126,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  confidenceConnected->SetInput(reader->GetOutput());
-  writer->SetInput(confidenceConnected->GetOutput());
+  confidenceConnected->SetInput(input);
   // Software Guide : EndCodeSnippet
 
 
@@ -253,7 +243,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   try
   {
-    writer->Update();
+    itk::WriteImage(confidenceConnected->GetOutput(), argv[2]);
   }
   catch (const itk::ExceptionObject & excep)
   {

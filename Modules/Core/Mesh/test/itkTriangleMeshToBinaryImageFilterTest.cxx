@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@
 #include "itkDefaultDynamicMeshTraits.h"
 #include "itkImageFileWriter.h"
 #include "itkTriangleMeshToBinaryImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkTriangleMeshToBinaryImageFilterTest(int argc, char * argv[])
@@ -41,13 +42,13 @@ itkTriangleMeshToBinaryImageFilterTest(int argc, char * argv[])
   using PointType = SphereMeshSourceType::PointType;
   using VectorType = SphereMeshSourceType::VectorType;
 
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
+  auto      mySphereMeshSource = SphereMeshSourceType::New();
+  PointType center;
   center[0] = 50;
   center[1] = 50;
   center[2] = 50;
   PointType::ValueType scaleInit[3] = { 10, 10, 10 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(3);
@@ -62,7 +63,14 @@ itkTriangleMeshToBinaryImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<unsigned char, 3>;
 
   using TriangleMeshToBinaryImageFilterType = itk::TriangleMeshToBinaryImageFilter<TriangleMeshType, ImageType>;
-  TriangleMeshToBinaryImageFilterType::Pointer imageFilter = TriangleMeshToBinaryImageFilterType::New();
+  auto imageFilter = TriangleMeshToBinaryImageFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(imageFilter, TriangleMeshToBinaryImageFilter, ImageSource);
+
+
+  ITK_TRY_EXPECT_EXCEPTION(imageFilter->Update());
+
+
   imageFilter->SetInput(mySphereMeshSource->GetOutput());
   ImageType::SizeType size;
 
@@ -71,23 +79,23 @@ itkTriangleMeshToBinaryImageFilterTest(int argc, char * argv[])
   size[2] = 100;
   imageFilter->SetSize(size);
 
-  const double dspacing[3] = { 2.0, 2.0, 2.0 };
-  const float  fspacing[3] = { 3.0, 3.0, 3.0 };
-  const double defaultSpacing[3] = { 1.0, 1.0, 1.0 };
+  constexpr double dspacing[3] = { 2.0, 2.0, 2.0 };
+  constexpr float  fspacing[3] = { 3.0, 3.0, 3.0 };
+  constexpr double defaultSpacing[3] = { 1.0, 1.0, 1.0 };
   imageFilter->SetSpacing(dspacing);
   imageFilter->SetSpacing(fspacing);
   imageFilter->SetSpacing(defaultSpacing);
 
-  const double dorigin[3] = { 2.0, 2.0, 2.0 };
-  const float  forigin[3] = { 3.0, 3.0, 3.0 };
-  const double defaultOrigin[3] = { 0.0, 0.0, 0.0 };
+  constexpr double dorigin[3] = { 2.0, 2.0, 2.0 };
+  constexpr float  forigin[3] = { 3.0, 3.0, 3.0 };
+  constexpr double defaultOrigin[3] = { 0.0, 0.0, 0.0 };
   imageFilter->SetOrigin(dorigin);
   imageFilter->SetOrigin(forigin);
   imageFilter->SetOrigin(defaultOrigin);
 
   imageFilter->Update();
 
-  ImageType::Pointer  im = ImageType::New();
+  auto                im = ImageType::New();
   ImageType::SizeType imSize;
   imSize[0] = imSize[1] = imSize[2] = 100;
   im->SetRegions(imSize);

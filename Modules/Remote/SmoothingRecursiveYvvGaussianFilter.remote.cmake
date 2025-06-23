@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,10 +42,11 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 #Contact: I. Vidal-Migallon <irina.vidal-migallon@inria.fr>
-itk_fetch_module(SmoothingRecursiveYvvGaussianFilter
-  "GPU and CPU Young & Van Vliet Recursive Gaussian Smoothing Filter: https://www.insight-journal.org/browse/publication/896"
+itk_fetch_module(
+  SmoothingRecursiveYvvGaussianFilter
+  "GPU and CPU Young & Van Vliet Recursive Gaussian Smoothing Filter: https://doi.org/10.54294/cpyaig"
   MODULE_COMPLIANCE_LEVEL 2
-  #UPSTREAM_REPO GIT_REPOSITORY ${git_protocol}://github.com/Inria-Asclepios/SmoothingRecursiveYvvGaussianFilter
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKSmoothingRecursiveYvvGaussianFilter.git
-  GIT_TAG 7938b2b216a86170ead9988f7003149a719be998
+  #UPSTREAM_REPO GIT_REPOSITORY https://github.com/Inria-Asclepios/SmoothingRecursiveYvvGaussianFilter
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKSmoothingRecursiveYvvGaussianFilter.git
+  GIT_TAG a9c08876d7d7288841d28b412f32c3521e9112e2
   )

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkWarpHarmonicEnergyCalculator_hxx
 #define itkWarpHarmonicEnergyCalculator_hxx
 
-#include "itkWarpHarmonicEnergyCalculator.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkImageRegionIterator.h"
 #include "itkZeroFluxNeumannBoundaryCondition.h"
@@ -31,9 +30,9 @@ namespace itk
 
 template <typename TInputImage>
 WarpHarmonicEnergyCalculator<TInputImage>::WarpHarmonicEnergyCalculator()
+  : m_Image(TInputImage::New())
 {
-  m_Image = TInputImage::New();
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     m_NeighborhoodRadius[i] = 1; // radius of neighborhood we will use
     m_DerivativeWeights[i] = 1.0;
@@ -51,7 +50,7 @@ WarpHarmonicEnergyCalculator<TInputImage>::SetUseImageSpacing(bool f)
 
   // Only reset the weights if they were previously set to the image spacing,
   // otherwise, the user may have provided their own weightings.
-  if (f == false && m_UseImageSpacing == true)
+  if (f == false && m_UseImageSpacing)
   {
     for (unsigned int i = 0; i < ImageDimension; ++i)
     {
@@ -74,15 +73,17 @@ WarpHarmonicEnergyCalculator<TInputImage>::Compute()
   // Set the weights on the derivatives.
   // Are we using image spacing in the calculations?  If so we must update now
   // in case our input image has changed.
-  if (m_UseImageSpacing == true)
+  if (m_UseImageSpacing)
   {
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    const auto & spacing = m_Image->GetSpacing();
+
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
-      if (m_Image->GetSpacing()[i] <= 0.0)
+      if (spacing[i] <= 0.0)
       {
-        itkExceptionMacro(<< "Image spacing in dimension " << i << " is zero.");
+        itkExceptionMacro("Image spacing in dimension " << i << " is zero.");
       }
-      m_DerivativeWeights[i] = 1.0 / static_cast<double>(m_Image->GetSpacing()[i]);
+      m_DerivativeWeights[i] = 1.0 / static_cast<double>(spacing[i]);
     }
   }
 
@@ -92,17 +93,14 @@ WarpHarmonicEnergyCalculator<TInputImage>::Compute()
   ConstNeighborhoodIteratorType               bIt;
 
   // Find the data-set boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>::FaceListType faceList;
   NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>                        bC;
-  faceList = bC(m_Image, m_Region, m_NeighborhoodRadius);
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>::FaceListType::iterator fIt;
-  fIt = faceList.begin();
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>::FaceListType faceList =
+    bC(m_Image, m_Region, m_NeighborhoodRadius);
 
   // Process each of the data set faces.  The iterator is reinitialized on each
   // face so that it can determine whether or not to check for boundary
   // conditions.
-  for (fIt = faceList.begin(); fIt != faceList.end(); ++fIt)
+  for (auto fIt = faceList.begin(); fIt != faceList.end(); ++fIt)
   {
     bIt = ConstNeighborhoodIteratorType(m_NeighborhoodRadius, m_Image, *fIt);
     bIt.OverrideBoundaryCondition(&nBc);
@@ -126,16 +124,12 @@ WarpHarmonicEnergyCalculator<TInputImage>::EvaluateAtNeighborhood(ConstNeighborh
 
   vnl_matrix_fixed<double, ImageDimension, VectorDimension> J;
 
-  PixelType next, prev;
-
-  double weight;
-
   for (unsigned int i = 0; i < ImageDimension; ++i)
   {
-    next = it.GetNext(i);
-    prev = it.GetPrevious(i);
+    PixelType next = it.GetNext(i);
+    PixelType prev = it.GetPrevious(i);
 
-    weight = 0.5 * m_DerivativeWeights[i];
+    double weight = 0.5 * m_DerivativeWeights[i];
 
     for (unsigned int j = 0; j < VectorDimension; ++j)
     {

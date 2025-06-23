@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class VotingBinaryImageFilter
+ * \class VotingBinaryImageFilter
  * \brief Applies a voting operation in a neighborhood of each pixel.
  *
  * \note Pixels which are not Foreground or Background will remain unchanged.
@@ -59,8 +59,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VotingBinaryImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VotingBinaryImageFilter);
 
   /** Image type alias support */
   using InputPixelType = typename InputImageType::PixelType;
@@ -79,24 +79,28 @@ public:
 
   /** Set the value associated with the Foreground (or the object) on
       the binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, InputPixelType);
   itkSetMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Get the value associated with the Foreground (or the object) on the
       binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(BackgroundValue, InputPixelType);
   itkGetConstReferenceMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Birth threshold. Pixels that are OFF will turn ON when the number of
    * neighbors ON is larger than the value defined in this threshold. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(BirthThreshold, unsigned int);
   itkSetMacro(BirthThreshold, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Survival threshold. Pixels that are ON will turn OFF when the number of
    * neighbors ON is smaller than the value defined in this survival threshold. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(SurvivalThreshold, unsigned int);
   itkSetMacro(SurvivalThreshold, unsigned int);
-
+  /** @ITKEndGrouping */
   /** VotingBinaryImageFilter needs a larger input requested region than
    * the output requested region.  As such, VotingBinaryImageFilter needs
    * to provide an implementation for GenerateInputRequestedRegion()
@@ -106,15 +110,11 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputPixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   VotingBinaryImageFilter();
@@ -136,13 +136,13 @@ protected:
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
 
 private:
-  InputSizeType m_Radius;
+  InputSizeType m_Radius{};
 
-  InputPixelType m_ForegroundValue;
-  InputPixelType m_BackgroundValue;
+  InputPixelType m_ForegroundValue{};
+  InputPixelType m_BackgroundValue{};
 
-  unsigned int m_BirthThreshold;
-  unsigned int m_SurvivalThreshold;
+  unsigned int m_BirthThreshold{};
+  unsigned int m_SurvivalThreshold{};
 };
 } // end namespace itk
 

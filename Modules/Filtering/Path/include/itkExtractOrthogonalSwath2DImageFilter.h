@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ExtractOrthogonalSwath2DImageFilter
+ * \class ExtractOrthogonalSwath2DImageFilter
  * \brief Extracts into rectangular form a "swath" image from the input image along the parametric path.
  *
  * Extracts a rectangular "swath" image from the 2D input image by interpolating
@@ -55,8 +55,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExtractOrthogonalSwath2DImageFilter, ImageAndPathToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExtractOrthogonalSwath2DImageFilter);
 
   /** Some convenient type alias. */
   using ImageType = TImage;
@@ -91,7 +91,7 @@ public:
   virtual void
   SetSpacing(const float * spacing);
 
-  virtual const double *
+  [[nodiscard]] virtual const double *
   GetSpacing() const;
 
   /** The origin of the output image. The origin is the geometric
@@ -104,7 +104,7 @@ public:
   virtual void
   SetOrigin(const float * origin);
 
-  virtual const double *
+  [[nodiscard]] virtual const double *
   GetOrigin() const;
 
   /** Set the size of the swath image.
@@ -130,8 +130,8 @@ public:
 
 protected:
   ExtractOrthogonalSwath2DImageFilter()
+    : m_DefaultPixelValue(ImagePixelType{})
   {
-    m_DefaultPixelValue = NumericTraits<ImagePixelType>::ZeroValue();
     m_Size[0] = 512;
     m_Size[1] = 16 * 2 + 1; // must be odd
     m_Origin[0] = m_Origin[1] = 0.0;
@@ -165,10 +165,10 @@ protected:
   //--------------------------------------------------------------------------
 
 private:
-  ImagePixelType m_DefaultPixelValue;
-  SizeType       m_Size;
-  double         m_Origin[ImageDimension];
-  double         m_Spacing[ImageDimension];
+  ImagePixelType m_DefaultPixelValue{};
+  SizeType       m_Size{};
+  double         m_Origin[ImageDimension]{};
+  double         m_Spacing[ImageDimension]{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,14 +71,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(VectorThresholdSegmentationLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorThresholdSegmentationLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::ImageType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -93,6 +93,7 @@ public:
   using CovarianceMatrixType = typename MahalanobisFunctionType::CovarianceMatrixType;
 
   /** Set/Get mean and covariance */
+  /** @ITKStartGrouping */
   void
   SetMean(const MeanVectorType & mean)
   {
@@ -103,7 +104,7 @@ public:
   {
     return m_Mahalanobis->GetMean();
   }
-
+  /** @ITKEndGrouping */
   void
   SetCovariance(const CovarianceMatrixType & cov)
   {
@@ -115,7 +116,7 @@ public:
     return m_Mahalanobis->GetCovariance();
   }
 
-  /** Set/Get the threshold value for the MahanalobisDistance */
+  /** Set/Get the threshold value for the MahalanobisDistance */
   void
   SetThreshold(ScalarValueType thr)
   {
@@ -136,21 +137,20 @@ public:
   {
     Superclass::Initialize(r);
 
-    this->SetAdvectionWeight(NumericTraits<ScalarValueType>::ZeroValue());
+    this->SetAdvectionWeight(ScalarValueType{});
     this->SetPropagationWeight(-1.0 * NumericTraits<ScalarValueType>::OneValue());
     this->SetCurvatureWeight(NumericTraits<ScalarValueType>::OneValue());
   }
 
 protected:
   VectorThresholdSegmentationLevelSetFunction()
+    : m_Mahalanobis(MahalanobisFunctionType::New())
   {
     MeanVectorType       mean(NumberOfComponents);
     CovarianceMatrixType covariance(NumberOfComponents, NumberOfComponents);
 
-    mean.Fill(NumericTraits<typename FeatureScalarType::ValueType>::ZeroValue());
-    covariance.Fill(NumericTraits<typename FeatureScalarType::ValueType>::ZeroValue());
-
-    m_Mahalanobis = MahalanobisFunctionType::New();
+    mean.Fill(typename FeatureScalarType::ValueType{});
+    covariance.Fill(typename FeatureScalarType::ValueType{});
     m_Mahalanobis->SetMean(mean);
     m_Mahalanobis->SetCovariance(covariance);
 
@@ -169,8 +169,8 @@ protected:
     os << indent << "ThresholdValue: " << m_Threshold << std::endl;
   }
 
-  MahalanobisFunctionPointer m_Mahalanobis;
-  ScalarValueType            m_Threshold;
+  MahalanobisFunctionPointer m_Mahalanobis{};
+  ScalarValueType            m_Threshold{};
 };
 } // end namespace itk
 

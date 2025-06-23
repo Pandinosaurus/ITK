@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ class GenericCUBFileAdaptor;
  * \author Burstein, Pablo D.; Yushkevich, Paul; Gee, James C.
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://hdl.handle.net/1926/303
+ * https://doi.org/10.54294/k9nj7c
  *
  * \ingroup IOFilters
  *
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VoxBoCUBImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VoxBoCUBImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -109,19 +109,19 @@ private:
   GenericCUBFileAdaptor *
   CreateWriter(const char * filename);
 
-  GenericCUBFileAdaptor *m_Reader, *m_Writer;
+  GenericCUBFileAdaptor *m_Reader{ nullptr }, *m_Writer{ nullptr };
 
   // Initialize the orientation map (from strings to ITK)
   void
   InitializeOrientationMap();
 
   // Orientation stuff
-  using OrientationFlags = SpatialOrientation::ValidCoordinateOrientationFlags;
+  using OrientationFlags = SpatialOrientationEnums::ValidCoordinateOrientations;
   using OrientationMap = std::map<std::string, OrientationFlags>;
   using InverseOrientationMap = std::map<OrientationFlags, std::string>;
 
-  OrientationMap        m_OrientationMap;
-  InverseOrientationMap m_InverseOrientationMap;
+  OrientationMap        m_OrientationMap{};
+  InverseOrientationMap m_InverseOrientationMap{};
 
   // Method to swap bytes in read buffer
   void

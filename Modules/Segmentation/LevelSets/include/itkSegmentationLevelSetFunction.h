@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,21 +55,21 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(SegmentationLevelSetFunction, LevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SegmentationLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using RadiusType = typename Superclass::RadiusType;
-  using PixelRealType = typename Superclass::PixelRealType;
+  using typename Superclass::ImageType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::PixelRealType;
   using FeatureImageType = TFeatureImageType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::NeighborhoodType;
   using FeatureScalarType = typename FeatureImageType::PixelType;
   using IndexType = typename ImageType::IndexType;
-  using VectorType = typename Superclass::VectorType;
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
+  using typename Superclass::VectorType;
+  using typename Superclass::GlobalDataStruct;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -87,6 +87,7 @@ public:
   using ContinuousIndexType = typename InterpolatorType::ContinuousIndexType;
 
   /** Set/Get the image which will be used to calculate the speed function. */
+  /** @ITKStartGrouping */
   virtual const FeatureImageType *
   GetFeatureImage() const
   {
@@ -97,8 +98,9 @@ public:
   {
     m_FeatureImage = f;
   }
-
+  /** @ITKEndGrouping */
   /** Get/Set the image used as the speed function in the level set equation */
+  /** @ITKStartGrouping */
   virtual ImageType *
   GetSpeedImage()
   {
@@ -106,8 +108,9 @@ public:
   }
   void
   SetSpeedImage(ImageType * s);
-
+  /** @ITKEndGrouping */
   /** Get/Set the image used as the advection field in the level set equation */
+  /** @ITKStartGrouping */
   virtual VectorImageType *
   GetAdvectionImage() const
   {
@@ -115,7 +118,7 @@ public:
   }
   void
   SetAdvectionImage(VectorImageType * s);
-
+  /** @ITKEndGrouping */
   /** This method creates the appropriate member variable operators for the
    * level-set calculations.  The argument to this function is a the radius
    * necessary for performing the level-set calculations. */
@@ -163,34 +166,33 @@ public:
 
 protected:
   /** The image whose features will be used to create a speed image */
-  typename FeatureImageType::ConstPointer m_FeatureImage;
+  typename FeatureImageType::ConstPointer m_FeatureImage{};
 
   /** The image holding the speed values for front propagation */
-  typename ImageType::Pointer m_SpeedImage;
+  typename ImageType::Pointer m_SpeedImage{};
 
   /** The image holding the advection field for front propagation */
-  typename VectorImageType::Pointer m_AdvectionImage;
+  typename VectorImageType::Pointer m_AdvectionImage{};
 
   /** Returns the propagation speed from the precalculated speed image.*/
   ScalarValueType
   PropagationSpeed(const NeighborhoodType &, const FloatOffsetType &, GlobalDataStruct * gd) const override;
 
-  /** Advection field.  Returns a vector from the computed advectionfield.*/
+  /** Advection field.  Returns a vector from the computed advection field.*/
   VectorType
   AdvectionField(const NeighborhoodType &, const FloatOffsetType &, GlobalDataStruct * gd) const override;
 
   ~SegmentationLevelSetFunction() override = default;
   SegmentationLevelSetFunction()
-  {
-    m_SpeedImage = ImageType::New();
-    m_AdvectionImage = VectorImageType::New();
-    m_Interpolator = InterpolatorType::New();
-    m_VectorInterpolator = VectorInterpolatorType::New();
-  }
+    : m_SpeedImage(ImageType::New())
+    , m_AdvectionImage(VectorImageType::New())
+    , m_Interpolator(InterpolatorType::New())
+    , m_VectorInterpolator(VectorInterpolatorType::New())
+  {}
 
-  typename InterpolatorType::Pointer m_Interpolator;
+  typename InterpolatorType::Pointer m_Interpolator{};
 
-  typename VectorInterpolatorType::Pointer m_VectorInterpolator;
+  typename VectorInterpolatorType::Pointer m_VectorInterpolator{};
 };
 } // namespace itk
 

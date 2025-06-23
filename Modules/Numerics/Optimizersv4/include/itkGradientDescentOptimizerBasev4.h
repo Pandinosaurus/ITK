@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class GradientDescentOptimizerBasev4
+ * \class GradientDescentOptimizerBasev4
  *  \brief Abstract base class for gradient descent-style optimizers.
  *
  * Gradient modification is threaded in \c ModifyGradient.
@@ -49,8 +49,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GradientDescentOptimizerBasev4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientDescentOptimizerBasev4Template);
 
 #if !defined(ITK_LEGACY_REMOVE)
   /**Exposes enums values for backwards compatibility*/
@@ -71,27 +71,27 @@ public:
 #endif
 
   /** Stop condition return string type */
-  using StopConditionReturnStringType = typename Superclass::StopConditionReturnStringType;
+  using typename Superclass::StopConditionReturnStringType;
 
   /** Stop condition internal string type */
-  using StopConditionDescriptionType = typename Superclass::StopConditionDescriptionType;
+  using typename Superclass::StopConditionDescriptionType;
 
   /** It should be possible to derive the internal computation type from the class object. */
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Metric type over which this class is templated */
-  using MetricType = typename Superclass::MetricType;
+  using typename Superclass::MetricType;
   using MetricTypePointer = typename MetricType::Pointer;
 
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Measure type */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
-  using ScalesType = typename Superclass::ScalesType;
+  using typename Superclass::ScalesType;
 
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Type for the convergence checker */
   using ConvergenceMonitoringType = itk::Function::WindowConvergenceMonitoringFunction<TInternalComputationValueType>;
@@ -101,32 +101,6 @@ public:
 
   /** Get stop condition enum */
   itkGetConstReferenceMacro(StopCondition, StopConditionObjectToObjectOptimizerEnum);
-
-  /** Set the number of iterations. */
-  void
-  SetNumberOfIterations(const SizeValueType numberOfIterations) override
-  {
-    itkDebugMacro("setting NumberOfIterations to " << numberOfIterations);
-    if (this->m_NumberOfIterations != numberOfIterations)
-    {
-      this->m_NumberOfIterations = numberOfIterations;
-      this->Modified();
-    }
-  }
-
-  /** Get the number of iterations. */
-  SizeValueType
-  GetNumberOfIterations() const override
-  {
-    return this->m_NumberOfIterations;
-  }
-
-  /** Get the current iteration number. */
-  SizeValueType
-  GetCurrentIteration() const override
-  {
-    return this->m_CurrentIteration;
-  }
 
   /** Start and run the optimization */
   void
@@ -144,7 +118,7 @@ public:
   StopOptimization();
 
   /** Get the reason for termination */
-  const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override;
 
   /** Modify the gradient in place, to advance the optimization.
@@ -159,11 +133,12 @@ public:
    *
    * \sa EstimateLearningRate()
    */
+  /** @ITKStartGrouping */
   virtual void
   ModifyGradientByScales();
   virtual void
   ModifyGradientByLearningRate();
-
+  /** @ITKEndGrouping */
   using IndexRangeType = ThreadedIndexedContainerPartitioner::IndexRangeType;
 
   /** Derived classes define this worker method to modify the gradient by scales.
@@ -187,18 +162,19 @@ public:
 
 protected:
   /** Default constructor */
+  /** @ITKStartGrouping */
   GradientDescentOptimizerBasev4Template();
   ~GradientDescentOptimizerBasev4Template() override = default;
-
+  /** @ITKEndGrouping */
   /** Flag to control use of the ScalesEstimator (if set) for
    * automatic learning step estimation at *each* iteration.
    */
-  bool m_DoEstimateLearningRateAtEachIteration;
+  bool m_DoEstimateLearningRateAtEachIteration{};
 
   /** Flag to control use of the ScalesEstimator (if set) for
    * automatic learning step estimation only *once*, during first iteration.
    */
-  bool m_DoEstimateLearningRateOnce;
+  bool m_DoEstimateLearningRateOnce{};
 
   /** The maximum step size in physical units, to restrict learning rates.
    * Only used with automatic learning rate estimation.
@@ -206,33 +182,33 @@ protected:
    * manually or by using m_ScalesEstimator automatically, and the former has
    * higher priority than the latter. See main documentation.
    */
-  TInternalComputationValueType m_MaximumStepSizeInPhysicalUnits;
+  TInternalComputationValueType m_MaximumStepSizeInPhysicalUnits{};
 
   /** Flag to control using the convergence monitoring for stop condition.
    *  This flag should be always set to true except for regular step gradient
    *  descent optimizer that uses minimum step length to check the convergence.
    */
-  bool m_UseConvergenceMonitoring;
+  bool m_UseConvergenceMonitoring{};
 
   /** Window size for the convergence checker.
    *  The convergence checker calculates convergence value by fitting to
    *  a window of the energy (metric value) profile.
    */
-  SizeValueType m_ConvergenceWindowSize;
+  SizeValueType m_ConvergenceWindowSize{};
 
   /** The convergence checker. */
-  typename ConvergenceMonitoringType::Pointer m_ConvergenceMonitoring;
+  typename ConvergenceMonitoringType::Pointer m_ConvergenceMonitoring{};
 
-  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_ModifyGradientByScalesThreader;
-  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_ModifyGradientByLearningRateThreader;
+  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_ModifyGradientByScalesThreader{};
+  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_ModifyGradientByLearningRateThreader{};
 
   /* Common variables for optimization control and reporting */
   bool                                     m_Stop{ false };
-  StopConditionObjectToObjectOptimizerEnum m_StopCondition;
-  StopConditionDescriptionType             m_StopConditionDescription;
+  StopConditionObjectToObjectOptimizerEnum m_StopCondition{};
+  StopConditionDescriptionType             m_StopConditionDescription{};
 
   /** Current gradient */
-  DerivativeType m_Gradient;
+  DerivativeType m_Gradient{};
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 

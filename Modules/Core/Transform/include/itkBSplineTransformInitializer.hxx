@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBSplineTransformInitializer_hxx
 #define itkBSplineTransformInitializer_hxx
 
-#include "itkBSplineTransformInitializer.h"
 
 #include "itkContinuousIndex.h"
 #include "itkPointSet.h"
@@ -26,14 +25,6 @@
 
 namespace itk
 {
-
-template <typename TTransform, typename TImage>
-BSplineTransformInitializer<TTransform, TImage>::BSplineTransformInitializer()
-  : m_Transform(nullptr)
-
-{
-  this->m_TransformDomainMeshSize.Fill(1);
-}
 
 template <typename TTransform, typename TImage>
 void
@@ -54,18 +45,15 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
 {
   if (!this->m_Transform)
   {
-    itkExceptionMacro(<< "Transform has not been set.");
-    return;
+    itkExceptionMacro("Transform has not been set.");
   }
   if (!this->m_Image)
   {
-    itkExceptionMacro(<< "Image has not been set.");
-    return;
+    itkExceptionMacro("Image has not been set.");
   }
   if (TImage::GetImageDimension() != SpaceDimension)
   {
-    itkExceptionMacro(<< "Image dimensionality does not match the transform.");
-    return;
+    itkExceptionMacro("Image dimensionality does not match the transform.");
   }
 
   OriginType             transformDomainOrigin;
@@ -94,18 +82,17 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   // origin to determine these axes. Thus bitwise operators are used
   // throughout the code so that the initializer is generalized to n-dimensions.
 
-  using CoordRepType = typename ImagePointType::CoordRepType;
+  using CoordinateType = typename ImagePointType::CoordinateType;
 
-  using PointSetType = PointSet<CoordRepType, SpaceDimension>;
-  typename PointSetType::Pointer cornerPoints = PointSetType::New();
-  cornerPoints->Initialize();
+  using PointSetType = PointSet<CoordinateType, SpaceDimension>;
+  auto cornerPoints = PointSetType::New();
 
   using PointType = typename PointSetType::PointType;
   using PointIdentifier = typename PointSetType::PointIdentifier;
   using RealType = typename PointType::RealType;
   using VectorType = typename PointType::VectorType;
 
-  using ContinuousIndexType = ContinuousIndex<CoordRepType, SpaceDimension>;
+  using ContinuousIndexType = ContinuousIndex<CoordinateType, SpaceDimension>;
 
   // We first convert the image corners into points which reside in physical
   // space and label them as indicated above.  Note that the corners reside
@@ -113,20 +100,20 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   // We also store the corners using the point set class which gives us easy
   // access to the bounding box.
 
-  const CoordRepType BSplineTransformDomainEpsilon = std::pow(2.0, -3);
+  constexpr CoordinateType BSplineTransformDomainEpsilon{ 1.0 / double{ 1U << 3 } };
 
   ContinuousIndexType startIndex;
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     startIndex[i] = this->m_Image->GetLargestPossibleRegion().GetIndex()[i] - 0.5 - BSplineTransformDomainEpsilon;
   }
 
-  for (unsigned int d = 0, N = 1 << SpaceDimension; d < N; d++)
+  for (unsigned int d = 0, N = 1 << SpaceDimension; d < N; ++d)
   {
     ContinuousIndexType whichIndex;
-    for (unsigned int i = 0; i < SpaceDimension; i++)
+    for (unsigned int i = 0; i < SpaceDimension; ++i)
     {
-      whichIndex[i] = startIndex[i] + static_cast<CoordRepType>(
+      whichIndex[i] = startIndex[i] + static_cast<CoordinateType>(
                                         ((d >> i) & 1) * (this->m_Image->GetLargestPossibleRegion().GetSize()[i] +
                                                           2.0 * BSplineTransformDomainEpsilon));
     }
@@ -142,9 +129,9 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
 
   using BoundingBoxType = BoundingBox<unsigned int,
                                       SpaceDimension,
-                                      typename PointSetType::CoordRepType,
+                                      typename PointSetType::CoordinateType,
                                       typename PointSetType::PointsContainer>;
-  typename BoundingBoxType::Pointer bbox = BoundingBoxType::New();
+  auto bbox = BoundingBoxType::New();
   bbox->SetPoints(cornerPoints->GetPoints());
   bbox->ComputeBoundingBox();
 
@@ -152,13 +139,12 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   PointIdentifier transformDomainOriginId = 0;
   RealType        minDistance = NumericTraits<RealType>::max();
 
-  for (unsigned int d = 0; d < cornerPoints->GetNumberOfPoints(); d++)
+  for (unsigned int d = 0; d < cornerPoints->GetNumberOfPoints(); ++d)
   {
-    PointType corner;
-    corner.Fill(0.0);
+    PointType corner{};
     cornerPoints->GetPoint(d, &corner);
 
-    RealType distance = corner.SquaredEuclideanDistanceTo(bbox->GetMinimum());
+    const RealType distance = corner.SquaredEuclideanDistanceTo(bbox->GetMinimum());
     if (distance < minDistance)
     {
       transformDomainOrigin.CastFrom(corner);
@@ -179,31 +165,30 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   PointIdentifier minCornerId[SpaceDimension];
   double          minAngle[SpaceDimension];
 
-  for (unsigned int d = 0; d < SpaceDimension; d++)
+  for (unsigned int d = 0; d < SpaceDimension; ++d)
   {
     minAngle[d] = NumericTraits<double>::max();
 
-    VectorType vectorAxis(0.0);
+    VectorType vectorAxis{};
     vectorAxis[d] = 1.0;
 
-    for (unsigned int i = 0; i < SpaceDimension; i++)
+    for (unsigned int i = 0; i < SpaceDimension; ++i)
     {
-      PointIdentifier oppositeCornerId =
+      const PointIdentifier oppositeCornerId =
         (static_cast<PointIdentifier>(1) << static_cast<PointIdentifier>(i)) ^ transformDomainOriginId;
 
-      PointType corner;
-      corner.Fill(0.0);
+      PointType corner{};
       cornerPoints->GetPoint(oppositeCornerId, &corner);
 
       VectorType vector = corner - transformDomainOrigin;
       vector.Normalize();
 
-      double theta = angle(vectorAxis.GetVnlVector(), vector.GetVnlVector());
+      const double theta = angle(vectorAxis.GetVnlVector(), vector.GetVnlVector());
 
       if (theta < minAngle[d])
       {
         bool alreadyFound = false;
-        for (unsigned int j = 0; j < d; j++)
+        for (unsigned int j = 0; j < d; ++j)
         {
           if (minCornerId[j] == oppositeCornerId)
           {
@@ -226,10 +211,9 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   // coordinate system. This is done by placing the rotated axis vectors as
   // columns in the rotation matrix.
 
-  for (unsigned int d = 0; d < SpaceDimension; d++)
+  for (unsigned int d = 0; d < SpaceDimension; ++d)
   {
-    PointType corner;
-    corner.Fill(0.0);
+    PointType corner{};
     cornerPoints->GetPoint(minCornerId[d], &corner);
 
     VectorType vector = corner - transformDomainOrigin;
@@ -241,7 +225,7 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
     transformDomainPhysicalDimensions[d] = vector.GetNorm();
     vector.Normalize();
 
-    for (unsigned int i = 0; i < SpaceDimension; i++)
+    for (unsigned int i = 0; i < SpaceDimension; ++i)
     {
       transformDomainDirection[i][d] = vector[i];
     }
@@ -250,7 +234,7 @@ BSplineTransformInitializer<TTransform, TImage>::InitializeTransform() const
   this->m_Transform->SetTransformDomainOrigin(transformDomainOrigin);
   this->m_Transform->SetTransformDomainPhysicalDimensions(transformDomainPhysicalDimensions);
   this->m_Transform->SetTransformDomainDirection(transformDomainDirection);
-  if (this->m_SetTransformDomainMeshSizeViaInitializer == true)
+  if (this->m_SetTransformDomainMeshSizeViaInitializer)
   {
     this->m_Transform->SetTransformDomainMeshSize(this->m_TransformDomainMeshSize);
   }
@@ -266,7 +250,7 @@ BSplineTransformInitializer<TTransform, TImage>::PrintSelf(std::ostream & os, In
 
   itkPrintSelfObjectMacro(Transform);
 
-  if (this->m_SetTransformDomainMeshSizeViaInitializer == true)
+  if (this->m_SetTransformDomainMeshSizeViaInitializer)
   {
     os << indent << "Transform domain mesh size: " << this->m_TransformDomainMeshSize << std::endl;
   }

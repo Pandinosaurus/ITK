@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,8 +80,8 @@ main(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -100,7 +100,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using FilterType = itk::ChangeInformationImageFilter<ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
   //
@@ -117,16 +117,16 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  ImageType::ConstPointer inputImage = reader->GetOutput();
+  const ImageType::ConstPointer inputImage = reader->GetOutput();
 
-  ImageType::PointType     origin = inputImage->GetOrigin();
-  ImageType::SpacingType   spacing = inputImage->GetSpacing();
-  ImageType::DirectionType direction = inputImage->GetDirection();
+  ImageType::PointType           origin = inputImage->GetOrigin();
+  ImageType::SpacingType         spacing = inputImage->GetSpacing();
+  const ImageType::DirectionType direction = inputImage->GetDirection();
 
   if (argc > 3)
   {
-    double scale = std::stod(argv[3]);
-    for (unsigned int i = 0; i < Dimension; i++)
+    const double scale = std::stod(argv[3]);
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
       spacing[i] *= scale;
     }
@@ -151,13 +151,14 @@ main(int argc, char * argv[])
 
   if (argc > 7)
   {
-    double additionalAngle = std::stod(argv[7]);
+    const double additionalAngle = std::stod(argv[7]);
 
     itk::Versor<itk::SpacePrecisionType> rotation;
-    double angleInRadians = additionalAngle * itk::Math::pi / 180.0;
+    const double angleInRadians = additionalAngle * itk::Math::pi / 180.0;
     rotation.SetRotationAroundZ(angleInRadians);
 
-    ImageType::DirectionType newDirection = direction * rotation.GetMatrix();
+    const ImageType::DirectionType newDirection =
+      direction * rotation.GetMatrix();
 
     filter->SetOutputDirection(newDirection);
     filter->ChangeDirectionOn();

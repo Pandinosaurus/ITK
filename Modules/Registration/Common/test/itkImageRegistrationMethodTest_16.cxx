@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,13 +77,13 @@ DoRegistration()
   using CommandIterationType = itk::CommandIterationUpdate<OptimizerType>;
 
 
-  typename MetricType::Pointer       metric = MetricType::New();
-  typename TransformType::Pointer    transform = TransformType::New();
-  typename OptimizerType::Pointer    optimizer = OptimizerType::New();
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  typename RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
-  typename ImageSourceType::Pointer imageSource = ImageSourceType::New();
+  auto imageSource = ImageSourceType::New();
 
   SizeType size;
   size[0] = 100;
@@ -91,8 +91,8 @@ DoRegistration()
 
   imageSource->GenerateImages(size);
 
-  typename FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
-  typename MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
+  const typename FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
+  const typename MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
 
   //
   // Connect all the components required for Registratio
@@ -110,7 +110,7 @@ DoRegistration()
   metric->SetFixedImageRegion(fixedImage->GetBufferedRegion());
 
   // Instantiate an Observer to report the progress of the Optimization
-  CommandIterationType::Pointer iterationCommand = CommandIterationType::New();
+  auto iterationCommand = CommandIterationType::New();
   iterationCommand->SetOptimizer(optimizer);
 
   // Scale the translation components of the Transform in the Optimizer
@@ -118,11 +118,11 @@ DoRegistration()
   scales.Fill(1.0);
 
 
-  unsigned long numberOfIterations = 100;
-  double        translationScale = 1e-6;
-  double        learningRate = 1e-8;
+  constexpr unsigned long numberOfIterations = 100;
+  constexpr double        translationScale = 1e-6;
+  constexpr double        learningRate = 1e-8;
 
-  for (unsigned int i = 0; i < dimension; i++)
+  for (unsigned int i = 0; i < dimension; ++i)
   {
     scales[i + dimension * dimension] = translationScale;
   }
@@ -159,7 +159,7 @@ DoRegistration()
   const unsigned int offsetOrder = finalParameters.Size() - actualParameters.Size();
   constexpr double   tolerance = 1.0; // equivalent to 1 pixel.
 
-  for (unsigned int i = 0; i < numbeOfParameters; i++)
+  for (unsigned int i = 0; i < numbeOfParameters; ++i)
   {
     // the parameters are negated in order to get the inverse transformation.
     // this only works for comparing translation parameters....
@@ -176,17 +176,16 @@ DoRegistration()
 int
 itkImageRegistrationMethodTest_16(int itkNotUsed(argc), char *[] itkNotUsed(argv))
 {
-  bool result_uc, result_c, result_us, result_s, result_ui, result_i, result_ul, result_l, result_f, result_d;
-  result_uc = DoRegistration<unsigned char>();
-  result_c = DoRegistration<char>();
-  result_us = DoRegistration<unsigned short>();
-  result_s = DoRegistration<short>();
-  result_ui = DoRegistration<unsigned int>();
-  result_i = DoRegistration<int>();
-  result_ul = DoRegistration<unsigned long>();
-  result_l = DoRegistration<long>();
-  result_f = DoRegistration<float>();
-  result_d = DoRegistration<double>();
+  const bool result_uc = DoRegistration<unsigned char>();
+  const bool result_c = DoRegistration<char>();
+  const bool result_us = DoRegistration<unsigned short>();
+  const bool result_s = DoRegistration<short>();
+  const bool result_ui = DoRegistration<unsigned int>();
+  const bool result_i = DoRegistration<int>();
+  const bool result_ul = DoRegistration<unsigned long>();
+  const bool result_l = DoRegistration<long>();
+  const bool result_f = DoRegistration<float>();
+  const bool result_d = DoRegistration<double>();
 
   std::cout << "<unsigned char>:  " << result_uc << std::endl;
   std::cout << "<char>:           " << result_c << std::endl;

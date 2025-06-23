@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,19 +22,18 @@
 void
 PrintShapedNeighborhood(const itk::ConstShapedNeighborhoodIterator<TestImageType> & n)
 {
-  itk::ConstShapedNeighborhoodIterator<TestImageType>::ConstIterator it;
   std::cout << n.GetIndex() << "->[";
-  for (it = n.Begin(); !it.IsAtEnd(); ++it)
+  for (itk::ConstShapedNeighborhoodIterator<TestImageType>::ConstIterator it = n.Begin(); !it.IsAtEnd(); ++it)
   {
     std::cout << it.Get();
   }
-  std::cout << "]" << std::endl;
+  std::cout << ']' << std::endl;
 }
 
 int
 itkConstShapedNeighborhoodIteratorTest(int, char *[])
 {
-  TestImageType::Pointer                                         img = GetTestImage(10, 10, 5, 3);
+  const TestImageType::Pointer                                   img = GetTestImage(10, 10, 5, 3);
   itk::ConstShapedNeighborhoodIterator<TestImageType>::IndexType loc;
   loc[0] = 4;
   loc[1] = 4;
@@ -300,39 +299,39 @@ itkConstShapedNeighborhoodIteratorTest(int, char *[])
   std::cout << "it.GetActiveIndexListSize()=" << it.GetActiveIndexListSize();
 
   println("Testing GetActiveIndexList()");
-  itk::ConstShapedNeighborhoodIterator<TestImageType>::IndexListType                  l = it.GetActiveIndexList();
-  itk::ConstShapedNeighborhoodIterator<TestImageType>::IndexListType ::const_iterator ali = l.begin();
+  itk::ConstShapedNeighborhoodIterator<TestImageType>::IndexListType l = it.GetActiveIndexList();
+  auto                                                               ali = l.begin();
   while (ali != l.end())
   {
-    std::cout << *ali << " ";
+    std::cout << *ali << ' ';
     ++ali;
   }
   std::cout << std::endl;
 
   println("Testing const iteration through the neighborhood.");
-  itk::ConstShapedNeighborhoodIterator<TestImageType>::ConstIterator ci = it.Begin();
-
-  println("Testing using IsAtEnd()");
-  while (!ci.IsAtEnd())
   {
-    std::cout << ci.GetNeighborhoodIndex() << " -> " << ci.GetNeighborhoodOffset() << " = " << ci.Get() << std::endl;
-    ci++;
+    println("Testing using IsAtEnd()");
+    itk::ConstShapedNeighborhoodIterator<TestImageType>::ConstIterator ci = it.Begin();
+    while (!ci.IsAtEnd())
+    {
+      std::cout << ci.GetNeighborhoodIndex() << " -> " << ci.GetNeighborhoodOffset() << " = " << ci.Get() << std::endl;
+      ++ci;
+    }
   }
 
-
   println("Testing using != it.End()");
-  for (ci = it.Begin(); ci != it.End(); ++ci)
+  for (auto ci = it.Begin(); ci != it.End(); ++ci)
   {
     std::cout << ci.GetNeighborhoodIndex() << " -> " << ci.GetNeighborhoodOffset() << " = " << ci.Get() << std::endl;
   }
 
   println("Testing reverse iteration using != it.Begin()");
-  ci = it.End();
+  auto ci = it.End();
   --ci;
   while (ci != it.Begin())
   {
     std::cout << ci.GetNeighborhoodIndex() << " -> " << ci.GetNeighborhoodOffset() << " = " << ci.Get() << std::endl;
-    ci--;
+    --ci;
   }
   std::cout << ci.GetNeighborhoodIndex() << " -> " << ci.GetNeighborhoodOffset() << " = " << ci.Get() << std::endl;
 
@@ -417,15 +416,13 @@ itkConstShapedNeighborhoodIteratorTest(int, char *[])
   {
     // Create an image
     using ChangeRegionTestImageType = itk::Image<int, 2>;
-    ChangeRegionTestImageType::IndexType imageCorner;
-    imageCorner.Fill(0);
+    constexpr ChangeRegionTestImageType::IndexType imageCorner{};
 
-    ChangeRegionTestImageType::SizeType imageSize;
-    imageSize.Fill(4);
+    auto imageSize = ChangeRegionTestImageType::SizeType::Filled(4);
 
-    ChangeRegionTestImageType::RegionType imageRegion(imageCorner, imageSize);
+    const ChangeRegionTestImageType::RegionType imageRegion(imageCorner, imageSize);
 
-    ChangeRegionTestImageType::Pointer image = ChangeRegionTestImageType::New();
+    auto image = ChangeRegionTestImageType::New();
     image->SetRegions(imageRegion);
     image->Allocate();
 
@@ -447,17 +444,14 @@ itkConstShapedNeighborhoodIteratorTest(int, char *[])
     }
 
     // Setup and iterate over the first region
-    ChangeRegionTestImageType::IndexType region1Start;
-    region1Start.Fill(1);
+    auto region1Start = ChangeRegionTestImageType::IndexType::Filled(1);
 
-    ChangeRegionTestImageType::SizeType regionSize;
-    regionSize.Fill(1);
+    auto regionSize = ChangeRegionTestImageType::SizeType::Filled(1);
 
-    ChangeRegionTestImageType::RegionType region1(region1Start, regionSize);
+    const ChangeRegionTestImageType::RegionType region1(region1Start, regionSize);
 
     // Create the radius (a 3x3 region)
-    ChangeRegionTestImageType::SizeType neighborhoodRadius;
-    neighborhoodRadius.Fill(1);
+    auto neighborhoodRadius = ChangeRegionTestImageType::SizeType::Filled(1);
 
     // Use the first two offsets
     std::vector<itk::Offset<2>>           offsets;
@@ -499,10 +493,9 @@ itkConstShapedNeighborhoodIteratorTest(int, char *[])
     //}
 
     // Change iteration region
-    ChangeRegionTestImageType::IndexType region2start;
-    region2start.Fill(2);
+    auto region2start = ChangeRegionTestImageType::IndexType::Filled(2);
 
-    ChangeRegionTestImageType::RegionType region2(region2start, regionSize);
+    const ChangeRegionTestImageType::RegionType region2(region2start, regionSize);
 
     shapedNeighborhoodIterator.SetRegion(region2);
     shapedNeighborhoodIterator.GoToBegin();
@@ -541,10 +534,10 @@ class MyDerivedCSNI : public itk::ConstShapedNeighborhoodIterator<ImageType>
 {
 public:
   using Superclass = typename itk::ConstShapedNeighborhoodIterator<ImageType>;
-  using SizeType = typename Superclass::SizeType;
-  using IndexType = typename Superclass::IndexType;
-  using RadiusType = typename Superclass::RadiusType;
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::SizeType;
+  using typename Superclass::IndexType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::RegionType;
 
   void
   TestNewExposedProtectedMembers();

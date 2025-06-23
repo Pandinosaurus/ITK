@@ -62,25 +62,22 @@ public:
   template <typename TSwap>
   std::istream &ReadPreValue(std::istream &is)
     {
-    const Tag itemStart(0xfffe, 0xe000);
-    const Tag seqDelItem(0xfffe,0xe0dd);
-
     TagField.Read<TSwap>(is);
     if( !is )
       {
       //  BogusItemStartItemEnd.dcm
       throw Exception( "Problem #1" );
-      return is;
       }
     if( !ValueLengthField.Read<TSwap>(is) )
       {
       // GENESIS_SIGNA-JPEG-CorruptFrag.dcm
-      // JPEG fragment is declared to have 61902, but infact really is only 61901
+      // JPEG fragment is declared to have 61902, but in fact really is only 61901
       // so we end up reading 0xddff,0x00e0, and VL = 0x0 (1 byte)
       throw Exception( "Problem #2" );
-      return is;
       }
 #ifdef GDCM_SUPPORT_BROKEN_IMPLEMENTATION
+    const Tag itemStart(0xfffe, 0xe000);
+    const Tag seqDelItem(0xfffe,0xe0dd);
     if( TagField != itemStart && TagField != seqDelItem )
       {
       throw Exception( "Problem #3" );
@@ -92,9 +89,6 @@ public:
   template <typename TSwap>
   std::istream &ReadValue(std::istream &is)
     {
-    // Superclass
-    const Tag itemStart(0xfffe, 0xe000);
-    const Tag seqDelItem(0xfffe,0xe0dd);
     // Self
     SmartPointer<ByteValue> bv = new ByteValue;
     bv->SetLength(ValueLengthField);
@@ -107,7 +101,6 @@ public:
       ParseException pe;
       pe.SetLastElement( *this );
       throw pe;
-      return is;
       }
     ValueField = bv;
     return is;
@@ -136,7 +129,6 @@ public:
           {
           gdcmErrorMacro( "Giving up" );
           throw "Impossible to backtrack";
-          return is;
           }
         }
       else
@@ -162,7 +154,6 @@ public:
       ParseException pe;
       pe.SetLastElement( *this );
       throw pe;
-      return is;
       }
     ValueField = bv;
     return is;

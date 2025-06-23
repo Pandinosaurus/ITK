@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
  * Test program for itkGPUImage class.
  * This program shows how to use GPU image and GPU program.
  */
-//#include "pathToOpenCLSourceCode.h"
+// #include "pathToOpenCLSourceCode.h"
 #include "itkGPUImage.h"
 #include "itkGPUReduction.h"
 
@@ -46,7 +46,7 @@ itkGPUReductionTest(int argc, char * argv[])
   unsigned int bytes = numPixels * sizeof(ElementType);
   auto *       h_idata = (ElementType *)malloc(bytes);
 
-  for (int ii = 0; ii < numPixels; ii++)
+  for (int ii = 0; ii < numPixels; ++ii)
   {
     h_idata[ii] = 1;
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class InterpolateImageFilter
+ * \class InterpolateImageFilter
  * \brief Interpolate an image from two N-D images.
  *
  * Interpolates an image from two input images of the same type
@@ -56,15 +56,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InterpolateImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InterpolateImageFilter);
 
   /** Inherit type alias from Superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
 
   /** Number of dimensions. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -76,6 +76,7 @@ public:
   using InterpolatorType = InterpolateImageFunction<IntermediateImageType>;
 
   /** Set/Get the first image */
+  /** @ITKStartGrouping */
   void
   SetInput1(const InputImageType * image)
   {
@@ -86,7 +87,7 @@ public:
   {
     return this->GetInput();
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the second image */
   void
   SetInput2(const InputImageType * image);
@@ -96,15 +97,20 @@ public:
 
   /** Set/Get the distance from the first image from which to generate
    * interpolated image. The default value is 0.5 */
+  /** @ITKStartGrouping */
   itkSetClampMacro(Distance, double, 0.0, 1.0);
   itkGetConstMacro(Distance, double);
-
+  /** @ITKEndGrouping */
   /** Get/Set the interpolator function */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
-  /** This method is used to set the state of the filter before
-   * multi-threading. */
+  /** @ITKEndGrouping */
+  /**
+   * Set up the state of the filter before multi-threading.
+   * InterpolatorType::SetInputImage is not thread-safe and hence
+   * has to be setup before ThreadedGenerateData.
+   */
   void
   BeforeThreadedGenerateData() override;
 
@@ -112,11 +118,7 @@ public:
   void
   AfterThreadedGenerateData() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   InterpolateImageFilter();
@@ -130,11 +132,11 @@ protected:
 
 
 private:
-  typename InterpolatorType::Pointer m_Interpolator;
+  typename InterpolatorType::Pointer m_Interpolator{};
 
-  typename IntermediateImageType::Pointer m_IntermediateImage;
+  typename IntermediateImageType::Pointer m_IntermediateImage{};
 
-  double m_Distance;
+  double m_Distance{};
 };
 } // end namespace itk
 

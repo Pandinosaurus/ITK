@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ class TIFFReaderInternal;
 // ETX
 
 /**
- *\class TIFFImageIO
+ * \class TIFFImageIO
  *
  * \brief ImageIO object for reading and writing TIFF images
  *
@@ -61,8 +61,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TIFFImageIO, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TIFFImageIO);
 
   /*-------- This part of the interface deals with reading data. ------ */
 
@@ -117,6 +117,7 @@ public:
     PackBits,
     JPEG,
     Deflate,
+    AdobeDeflate,
     LZW
   };
   // ETX
@@ -150,6 +151,12 @@ public:
     this->SetCompressor("Deflate");
   }
   void
+  SetCompressionToAdobeDeflate()
+  {
+    this->UseCompressionOn();
+    this->SetCompressor("AdobeDeflate");
+  }
+  void
   SetCompressionToLZW()
   {
     this->UseCompressionOn();
@@ -160,6 +167,7 @@ public:
   /** Set/Get the level of quality for the output images if
    * Compression is JPEG. Settings vary from 1 to 100.
    * 100 is the highest quality. Default is 75 */
+  /** @ITKStartGrouping */
   virtual void
   SetJPEGQuality(int _JPEGQuality)
   {
@@ -170,7 +178,7 @@ public:
   {
     return this->GetCompressionLevel();
   }
-
+  /** @ITKEndGrouping */
 
   /** Get a const ref to the palette of the image. In the case of non palette
    * image or ExpandRGBPalette set to true, a vector of size
@@ -239,14 +247,14 @@ protected:
   void
   PopulateColorPalette();
 
-  TIFFReaderInternal * m_InternalImage;
+  TIFFReaderInternal * m_InternalImage{};
 
   void
   ReadTIFFTags();
 
-  int m_Compression;
+  int m_Compression{};
 
-  PaletteType m_ColorPalette;
+  PaletteType m_ColorPalette{};
 
 private:
   void
@@ -304,9 +312,9 @@ private:
                    unsigned int toskew,
                    unsigned int fromskew);
 
-  uint16_t *   m_ColorRed;
-  uint16_t *   m_ColorGreen;
-  uint16_t *   m_ColorBlue;
+  uint16_t *   m_ColorRed{};
+  uint16_t *   m_ColorGreen{};
+  uint16_t *   m_ColorBlue{};
   uint64_t     m_TotalColors{ 0 };
   unsigned int m_ImageFormat{ TIFFImageIO::NOFORMAT };
 };

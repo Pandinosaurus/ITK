@@ -10,6 +10,7 @@
 #endif
 
 #include <stddef.h> /* size_t */
+#include <stdint.h> /* uintptr_t */
 #include <stdlib.h> /* malloc, free */
 #include <string.h> /* memcpy, strlen */
 
@@ -51,7 +52,7 @@
 
   This code implements the MD5 Algorithm defined in RFC 1321, whose
   text is available at
-        http://www.ietf.org/rfc/rfc1321.txt
+        https://www.ietf.org/rfc/rfc1321.txt
   The code is derived from the text of the RFC, including the test suite
   (section A.5) but excluding the rest of Appendix A.  It does not include
   any code or documentation that is identified in the RFC as being
@@ -202,7 +203,7 @@ static void md5_process(md5_state_t* pms, const md5_byte_t* data /*[64]*/)
        * On little-endian machines, we can process properly aligned
        * data without copying it.
        */
-      if (!((data - (const md5_byte_t*)0) & 3)) {
+      if (!((uintptr_t)data & 3)) {
         /* data are properly aligned */
         X = (const md5_word_t*)data;
       } else {

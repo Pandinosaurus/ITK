@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,11 +28,7 @@
 #include <typeinfo>
 
 #if defined(_WIN32)
-// To get LONG defined
 #  include "itkWindows.h"
-#elif defined(__APPLE__)
-// To get MAC_OS_X_VERSION_MIN_REQUIRED defined
-#  include <AvailabilityMacros.h>
 #endif
 
 namespace itk
@@ -53,7 +49,7 @@ namespace itk
  * \ingroup ITKCommon
  *
  * \sphinx
- * \sphinx{Core/Common/GetNameOfClass, Get Name Of Class}
+ * \sphinxexample{Core/Common/GetNameOfClass,Get Name Of Class}
  * \endsphinx
  */
 class ITKCommon_EXPORT LightObject
@@ -94,14 +90,15 @@ public:
   /** Return the name of this class as a string. Used by the object factory
    * (implemented in New()) to instantiate objects of a named type. Also
    * used for debugging and other output information.  */
-  virtual const char *
-  GetNameOfClass() const;
+  itkVirtualGetNameOfClassMacro(LightObject);
 
 #ifdef _WIN32
   /** Used to avoid dll boundary problems.  */
-  void * operator new(size_t);
+  void *
+  operator new(size_t);
 
-  void * operator new[](size_t);
+  void *
+  operator new[](size_t);
 
   void
   operator delete(void *);
@@ -165,7 +162,7 @@ protected:
   InternalClone() const;
 
   /** Number of uses of this object by other objects. */
-  mutable std::atomic<int> m_ReferenceCount;
+  mutable std::atomic<int> m_ReferenceCount{};
 };
 
 /**

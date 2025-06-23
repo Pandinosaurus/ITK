@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,30 +25,36 @@
 #include <memory>
 #include "itkImageIOBase.h"
 
+
 namespace itk
 {
 
-/**\class NiftiImageIOEnums
+/** \class NiftiImageIOEnums
  * \brief
  * \ingroup ITKIONIFTI
  */
 class NiftiImageIOEnums
 {
 public:
-  /** \class Analyze75Flavor
+  /**
    * \ingroup ITKIONIFTI
    * Enum used to define the way to treat legacy Analyze75 files.
    */
   enum class Analyze75Flavor : uint8_t
   {
+
     /** Behavior introduced in ITK4.0 by NIFTI reader interpreting Analyze files */
     AnalyzeITK4 = 4,
+
     /** Will ignore orientation code and negative pixel dimensions */
     AnalyzeFSL = 3,
+
     /** Will ignore orientation code and respect negative pixel dimensions */
     AnalyzeSPM = 2,
+
     /** Same as AnalyzeITK4 but will show warning about deprecated file format (Default)*/
     AnalyzeITK4Warning = 1,
+
     /** Reject Analyze files as potentially wrong  */
     AnalyzeReject = 0
   };
@@ -61,10 +67,13 @@ public:
   {
     /** 2-file Nifti (consisting of .hdr and .img file). */
     TwoFileNifti = 2,
+
     /** 1-file Nifti (consisting of .nii file). */
     OneFileNifti = 1,
+
     /** Legacy Analyze 7.5 format (consisting of .hdr and .img file). */
     Analyze75 = 0,
+
     /** Some other file format, or file system error. */
     OtherOrError = -1,
   };
@@ -76,20 +85,21 @@ using Analyze75Flavor = NiftiImageIOEnums::Analyze75Flavor;
 #endif
 
 /** Define how to print enumerations */
+/** @ITKStartGrouping */
 extern ITKIONIFTI_EXPORT std::ostream &
                          operator<<(std::ostream & out, const NiftiImageIOEnums::Analyze75Flavor value);
 extern ITKIONIFTI_EXPORT std::ostream &
                          operator<<(std::ostream & out, const NiftiImageIOEnums::NiftiFileEnum value);
-
+/** @ITKEndGrouping */
 /**
- *\class NiftiImageIO
+ * \class NiftiImageIO
  *
  * \author Hans J. Johnson, The University of Iowa 2002
  * \brief Class that defines how to read Nifti file format.
  * Nifti IMAGE FILE FORMAT - As much information as I can determine from sourceforge.net/projects/Niftilib
  *
  * The specification for this file format is taken from the
- * web site http://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
+ * web site https://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
  *
  * \ingroup IOFilters
  * \ingroup ITKIONIFTI
@@ -107,8 +117,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NiftiImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NiftiImageIO);
 
   //-------- This part of the interfaces deals with reading data. -----
 
@@ -178,16 +188,57 @@ public:
   GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion & requestedRegion) const override;
 
   /** Set the slope and intercept for voxel value rescaling. */
+  /** @ITKStartGrouping */
   itkSetMacro(RescaleSlope, double);
   itkSetMacro(RescaleIntercept, double);
-
+  /** @ITKEndGrouping */
   /** A mode to allow the Nifti filter to read and write to the LegacyAnalyze75 format as interpreted by
    * the nifti library maintainers.  This format does not properly respect the file orientation fields.
    * By default this is set by configuration option ITK_NIFTI_IO_ANALYZE_FLAVOR
    */
+  /** @ITKStartGrouping */
   itkSetMacro(LegacyAnalyze75Mode, NiftiImageIOEnums::Analyze75Flavor);
   itkGetConstMacro(LegacyAnalyze75Mode, NiftiImageIOEnums::Analyze75Flavor);
-
+  /** @ITKEndGrouping */
+  /** Enable conversion of vector coordinates between RAS coordinate system (in NIFTI file) and
+   * LPS (ITK convention) when reading or writing a generic vector image file (intent code: 1007).
+   *
+   * This flag is disabled by default because vectors may store non-spatial information.
+   *
+   * By default an ITK vector image is written to NIFTI file as a generic vector image, unless
+   * "intent_code" field is set explicitly to set to "1006" (displacement vector).
+   */
+  /** @ITKStartGrouping */
+  itkSetMacro(ConvertRASVectors, bool);
+  itkGetConstMacro(ConvertRASVectors, bool);
+  itkBooleanMacro(ConvertRASVectors);
+  /** @ITKEndGrouping */
+  /** Enable conversion of vector coordinates between RAS coordinate system (in NIFTI file) and
+   * LPS (ITK convention) when reading or writing a "displacement vector" file (intent code: 1006).
+   *
+   * This flag is enabled by default. Disabling it may be useful to avoid unnecessary conversions
+   * in applications that uses RAS coordinate system.
+   *
+   * To write a vector image as displacement vector: set "intent_code" to "1006" in the metadata
+   * dictionary of the input image.
+   *
+   \code
+       itk::MetaDataDictionary& dictionary = image->GetMetaDataDictionary();
+       itk::EncapsulateMetaData<std::string>(dictionary, "intent_code", "1006");
+   \endcode
+   *
+   */
+  /** @ITKStartGrouping */
+  itkSetMacro(ConvertRASDisplacementVectors, bool);
+  itkGetConstMacro(ConvertRASDisplacementVectors, bool);
+  itkBooleanMacro(ConvertRASDisplacementVectors);
+  /** @ITKEndGrouping */
+  /** Allow to read nifti files with non-orthogonal sform*/
+  /** @ITKStartGrouping */
+  itkSetMacro(SFORM_Permissive, bool);
+  itkGetConstMacro(SFORM_Permissive, bool);
+  itkBooleanMacro(SFORM_Permissive);
+  /** @ITKEndGrouping */
 protected:
   NiftiImageIO();
   ~NiftiImageIO() override;
@@ -201,6 +252,11 @@ protected:
   }
 
 private:
+  // This proxy class has a nifti_image as a smart pointer to encapsulate access to the header.
+  class NiftiImageProxy;
+
+  std::unique_ptr<NiftiImageProxy> m_Holder;
+
   // Try to use the Q and S form codes from MetaDataDictionary if they are specified
   // there, otherwise default to the backwards compatible values from earlier
   // versions of ITK. The qform guess would probably been better to have
@@ -217,30 +273,27 @@ private:
   DefineHeaderObjectDataType();
 
   void
-  SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsigned short int dims);
+  SetNIfTIOrientationFromImageIO(unsigned short origdims, unsigned short dims);
 
   void
-  SetImageIOOrientationFromNIfTI(unsigned short int dims);
+  SetImageIOOrientationFromNIfTI(unsigned short dims, double spacingscale, double timingscale);
 
   void
   SetImageIOMetadataFromNIfTI();
 
-  // This proxy class provides a nifti_image pointer interface to the internal implementation
-  // of itk::NiftiImageIO, while hiding the niftilib interface from the external ITK interface.
-  class NiftiImageProxy;
-
-  // Note that it is essential that m_NiftiImageHolder is defined before m_NiftiImage, to ensure that
-  // m_NiftiImage can directly get a proxy from m_NiftiImageHolder during NiftiImageIO construction.
-  const std::unique_ptr<NiftiImageProxy> m_NiftiImageHolder;
-
-  NiftiImageProxy & m_NiftiImage;
-
   double m_RescaleSlope{ 1.0 };
   double m_RescaleIntercept{ 0.0 };
 
+  bool m_ConvertRAS{ false };
+  bool m_ConvertRASVectors{ false };
+  bool m_ConvertRASDisplacementVectors{ true };
+
   IOComponentEnum m_OnDiskComponentType{ IOComponentEnum::UNKNOWNCOMPONENTTYPE };
 
-  NiftiImageIOEnums::Analyze75Flavor m_LegacyAnalyze75Mode;
+  NiftiImageIOEnums::Analyze75Flavor m_LegacyAnalyze75Mode{};
+
+  bool m_SFORM_Permissive{ false };
+  bool m_SFORM_Corrected{ false };
 };
 
 

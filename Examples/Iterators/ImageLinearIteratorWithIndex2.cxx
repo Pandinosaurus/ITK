@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ main(int argc, char * argv[])
   using Writer3DType = itk::ImageFileWriter<Image3DType>;
   // Software Guide : EndCodeSnippet
 
-  Reader4DType::Pointer reader4D = Reader4DType::New();
+  auto reader4D = Reader4DType::New();
   reader4D->SetFileName(argv[1]);
 
   try
@@ -79,7 +79,7 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  Image4DType::ConstPointer image4D = reader4D->GetOutput();
+  const Image4DType::ConstPointer image4D = reader4D->GetOutput();
 
   // Software Guide : BeginLatex
   //
@@ -88,7 +88,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  Image3DType::Pointer image3D = Image3DType::New();
+  auto image3D = Image3DType::New();
   using Index3DType = Image3DType::IndexType;
   using Size3DType = Image3DType::SizeType;
   using Region3DType = Image3DType::RegionType;
@@ -106,7 +106,7 @@ main(int argc, char * argv[])
   Spacing3DType spacing3D;
   Origin3DType  origin3D;
 
-  Image4DType::RegionType region4D = image4D->GetBufferedRegion();
+  const Image4DType::RegionType region4D = image4D->GetBufferedRegion();
 
   Index4DType   index4D = region4D.GetIndex();
   Size4DType    size4D = region4D.GetSize();
@@ -121,7 +121,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     size3D[i] = size4D[i];
     index3D[i] = index4D[i];
@@ -160,7 +160,7 @@ main(int argc, char * argv[])
   it.GoToBegin();
   while (!it.IsAtEnd())
   {
-    SumType sum = itk::NumericTraits<SumType>::ZeroValue();
+    SumType sum{};
     it.GoToBeginOfLine();
     index4D = it.GetIndex();
     while (!it.IsAtEndOfLine())
@@ -168,7 +168,7 @@ main(int argc, char * argv[])
       sum += it.Get();
       ++it;
     }
-    MeanType mean =
+    const MeanType mean =
       static_cast<MeanType>(sum) / static_cast<MeanType>(timeLength);
 
     index3D[0] = index4D[0];
@@ -199,7 +199,7 @@ main(int argc, char * argv[])
   //
   // Software Guide : EndLatex
 
-  Writer3DType::Pointer writer3D = Writer3DType::New();
+  auto writer3D = Writer3DType::New();
   writer3D->SetFileName(argv[2]);
   writer3D->SetInput(image3D);
 

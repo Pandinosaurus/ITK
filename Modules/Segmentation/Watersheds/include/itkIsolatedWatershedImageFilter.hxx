@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkIsolatedWatershedImageFilter_hxx
 #define itkIsolatedWatershedImageFilter_hxx
 
-#include "itkIsolatedWatershedImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkIterationReporter.h"
 
@@ -27,17 +26,16 @@ namespace itk
 
 template <typename TInputImage, typename TOutputImage>
 IsolatedWatershedImageFilter<TInputImage, TOutputImage>::IsolatedWatershedImageFilter()
+  : m_ReplaceValue1(NumericTraits<OutputImagePixelType>::OneValue())
+  , m_ReplaceValue2(OutputImagePixelType{})
+  , m_GradientMagnitude(GradientMagnitudeType::New())
+  , m_Watershed(WatershedType::New())
+  , m_Threshold(InputImagePixelType{})
+  , m_IsolatedValueTolerance(0.001)
+  , m_UpperValueLimit(1.0)
 {
-  m_Threshold = NumericTraits<InputImagePixelType>::ZeroValue();
   m_Seed1.Fill(0);
   m_Seed2.Fill(0);
-  m_ReplaceValue1 = NumericTraits<OutputImagePixelType>::OneValue();
-  m_ReplaceValue2 = NumericTraits<OutputImagePixelType>::ZeroValue();
-  m_IsolatedValue = 0.0;
-  m_IsolatedValueTolerance = 0.001;
-  m_UpperValueLimit = 1.0;
-  m_GradientMagnitude = GradientMagnitudeType::New();
-  m_Watershed = WatershedType::New();
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -47,7 +45,7 @@ IsolatedWatershedImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedR
   Superclass::GenerateInputRequestedRegion();
   if (this->GetInput())
   {
-    InputImagePointer image = const_cast<TInputImage *>(this->GetInput());
+    const InputImagePointer image = const_cast<TInputImage *>(this->GetInput());
     image->SetRequestedRegionToLargestPossibleRegion();
   }
 }
@@ -62,7 +60,7 @@ IsolatedWatershedImageFilter<TInputImage, TOutputImage>::EnlargeOutputRequestedR
 
 template <typename TInputImage, typename TOutputImage>
 void
-IsolatedWatershedImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CONST
+IsolatedWatershedImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
@@ -86,9 +84,9 @@ template <typename TInputImage, typename TOutputImage>
 void
 IsolatedWatershedImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  const InputImageType * inputImage = this->GetInput();
-  OutputImageType *      outputImage = this->GetOutput();
-  OutputImageRegionType  region = outputImage->GetRequestedRegion();
+  const InputImageType *      inputImage = this->GetInput();
+  OutputImageType *           outputImage = this->GetOutput();
+  const OutputImageRegionType region = outputImage->GetRequestedRegion();
 
   // Set up the pipeline
   m_GradientMagnitude->SetInput(inputImage);
@@ -118,7 +116,7 @@ IsolatedWatershedImageFilter<TInputImage, TOutputImage>::GenerateData()
   // two seeds.
   while (lower + m_IsolatedValueTolerance < guess)
   {
-    ProgressReporter progress(this, 0, region.GetNumberOfPixels(), 100, cumulatedProgress, progressWeight);
+    const ProgressReporter progress(this, 0, region.GetNumberOfPixels(), 100, cumulatedProgress, progressWeight);
     cumulatedProgress += progressWeight;
     m_Watershed->SetLevel(guess);
     m_Watershed->Update();
@@ -147,19 +145,17 @@ IsolatedWatershedImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   ProgressReporter progress(this, 0, region.GetNumberOfPixels(), 100, cumulatedProgress, progressWeight);
 
-  ImageRegionIterator<OutputImageType> ot = ImageRegionIterator<OutputImageType>(outputImage, region);
-  ImageRegionIterator<typename WatershedType::OutputImageType> it =
-    ImageRegionIterator<typename WatershedType::OutputImageType>(m_Watershed->GetOutput(), region);
+  ImageRegionIterator<OutputImageType>                         ot(outputImage, region);
+  ImageRegionIterator<typename WatershedType::OutputImageType> it(m_Watershed->GetOutput(), region);
 
-  IdentifierType seed1Label = m_Watershed->GetOutput()->GetPixel(m_Seed1);
-  IdentifierType seed2Label = m_Watershed->GetOutput()->GetPixel(m_Seed2);
-  IdentifierType value;
+  const IdentifierType seed1Label = m_Watershed->GetOutput()->GetPixel(m_Seed1);
+  const IdentifierType seed2Label = m_Watershed->GetOutput()->GetPixel(m_Seed2);
 
   it.GoToBegin();
   ot.GoToBegin();
   while (!it.IsAtEnd())
   {
-    value = it.Get();
+    IdentifierType value = it.Get();
     if (value == seed1Label)
     {
       ot.Set(m_ReplaceValue1);
@@ -170,7 +166,7 @@ IsolatedWatershedImageFilter<TInputImage, TOutputImage>::GenerateData()
     }
     else
     {
-      ot.Set(NumericTraits<OutputImagePixelType>::ZeroValue());
+      ot.Set(OutputImagePixelType{});
     }
     ++it;
     ++ot;

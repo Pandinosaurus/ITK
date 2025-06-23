@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class MultiStartOptimizerv4Template
+ * \class MultiStartOptimizerv4Template
  *  \brief Multi-start searches over input parameters and returns the best metric value
  *
  *   The multi-start algorithm performs gradient descent from N (large) number of starting points and
@@ -51,13 +51,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiStartOptimizerv4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiStartOptimizerv4Template);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
   using ParametersListType = std::vector<ParametersType>;
   using ParameterListSizeType = typename ParametersListType::size_type;
 
@@ -85,24 +85,25 @@ public:
 #endif
 
   /** Stop condition return string type */
-  using StopConditionReturnStringType = typename Superclass::StopConditionReturnStringType;
+  using typename Superclass::StopConditionReturnStringType;
 
   /** Stop condition internal string type */
-  using StopConditionDescriptionType = typename Superclass::StopConditionDescriptionType;
+  using typename Superclass::StopConditionDescriptionType;
+
   /** Stop condition return string type */
 
   /** It should be possible to derive the internal computation type from the class object. */
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Metric type over which this class is templated */
-  using MetricType = typename Superclass::MetricType;
+  using typename Superclass::MetricType;
   using MetricTypePointer = typename MetricType::Pointer;
 
   /** Derivative type */
   using DerivativeType = typename MetricType::DerivativeType;
 
   /** Measure type */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
   using MetricValuesListType = std::vector<MeasureType>;
 
   /** Get stop condition enum */
@@ -127,29 +128,30 @@ public:
   ResumeOptimization();
 
   /** Get the reason for termination */
-  const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override;
 
   /** Get the list of parameters over which to search.  */
   ParametersListType &
   GetParametersList();
 
-  /** Set the list of parameters over which to search */
+  /** Set the list of parameters over which to search. */
   void
   SetParametersList(ParametersListType & p);
 
-  /** Get the list of metric values that we produced after the multi-start search.  */
+  /** Get the list of metric values that we produced after the multi-start search. */
   const MetricValuesListType &
   GetMetricValuesList() const;
 
-  /** Return the parameters from the best visited position */
+  /** Return the parameters from the best visited position. */
   ParametersType
   GetBestParameters();
 
   /** Set/Get the optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(LocalOptimizer, OptimizerType);
   itkGetModifiableObjectMacro(LocalOptimizer, OptimizerType);
-
+  /** @ITKEndGrouping */
   inline ParameterListSizeType
   GetBestParametersIndex()
   {
@@ -158,22 +160,23 @@ public:
 
 protected:
   /** Default constructor */
+  /** @ITKStartGrouping */
   MultiStartOptimizerv4Template();
   ~MultiStartOptimizerv4Template() override = default;
-
+  /** @ITKEndGrouping */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /* Common variables for optimization control and reporting */
   bool                                     m_Stop{ false };
-  StopConditionObjectToObjectOptimizerEnum m_StopCondition;
-  StopConditionDescriptionType             m_StopConditionDescription;
-  ParametersListType                       m_ParametersList;
-  MetricValuesListType                     m_MetricValuesList;
-  MeasureType                              m_MinimumMetricValue;
-  MeasureType                              m_MaximumMetricValue;
-  ParameterListSizeType                    m_BestParametersIndex;
-  OptimizerPointer                         m_LocalOptimizer;
+  StopConditionObjectToObjectOptimizerEnum m_StopCondition{};
+  StopConditionDescriptionType             m_StopConditionDescription{};
+  ParametersListType                       m_ParametersList{};
+  MetricValuesListType                     m_MetricValuesList{};
+  MeasureType                              m_MinimumMetricValue{};
+  MeasureType                              m_MaximumMetricValue{};
+  ParameterListSizeType                    m_BestParametersIndex{};
+  OptimizerPointer                         m_LocalOptimizer{};
 };
 
 /** This helps to meet backward compatibility */

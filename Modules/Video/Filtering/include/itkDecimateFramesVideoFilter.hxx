@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDecimateFramesVideoFilter_hxx
 #define itkDecimateFramesVideoFilter_hxx
 
-#include "itkDecimateFramesVideoFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 
@@ -89,11 +88,11 @@ DecimateFramesVideoFilter<TVideoStream>::ThreadedGenerateData(const FrameSpatial
   OutputVideoStreamType *      output = this->GetOutput();
 
   // Get input and output frame numbers
-  typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
-  SizeValueType                                      outFrameNum = outReqTempRegion.GetFrameStart();
+  const typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
+  const SizeValueType                                      outFrameNum = outReqTempRegion.GetFrameStart();
 
-  typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
-  SizeValueType                                     inFrameNum = inReqTempRegion.GetFrameStart();
+  const typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
+  const SizeValueType                                     inFrameNum = inReqTempRegion.GetFrameStart();
 
   // Since we want to support only returning a requested spatial region of the
   // input frame, we do the pass-through the slow way using iterators rather

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,9 +37,9 @@ itkSampleClassifierFilterTest2(int, char *[])
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
   using FilterType = itk::Statistics::SampleClassifierFilter<SampleType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(numberOfComponents);
 
   filter->SetNumberOfClasses(numberOfClasses);
@@ -61,15 +61,15 @@ itkSampleClassifierFilterTest2(int, char *[])
 
   using MembershipFunctionPointer = MembershipFunctionType::Pointer;
 
-  ClassLabelVectorObjectType::Pointer classLabelsObject = ClassLabelVectorObjectType::New();
+  auto classLabelsObject = ClassLabelVectorObjectType::New();
   filter->SetClassLabels(classLabelsObject);
 
-  MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject = MembershipFunctionVectorObjectType::New();
+  auto membershipFunctionsObject = MembershipFunctionVectorObjectType::New();
   filter->SetMembershipFunctions(membershipFunctionsObject);
   // Add three membership functions and rerun the filter
   MembershipFunctionVectorType & membershipFunctionsVector = membershipFunctionsObject->Get();
 
-  MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New();
+  const MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New();
   membershipFunction1->SetMeasurementVectorSize(numberOfComponents);
   MeanVectorType mean1;
   itk::NumericTraits<MeanVectorType>::SetLength(mean1, numberOfComponents);
@@ -81,9 +81,9 @@ itkSampleClassifierFilterTest2(int, char *[])
   covariance1.SetIdentity();
   covariance1[0][0] = 0.5;
   membershipFunction1->SetCovariance(covariance1);
-  membershipFunctionsVector.push_back(membershipFunction1);
+  membershipFunctionsVector.emplace_back(membershipFunction1);
 
-  MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New();
+  const MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New();
   membershipFunction1->SetMeasurementVectorSize(numberOfComponents);
 
   MeanVectorType mean2;
@@ -96,23 +96,23 @@ itkSampleClassifierFilterTest2(int, char *[])
   covariance2.SetIdentity();
   covariance2[0][0] = 0.5;
   membershipFunction2->SetCovariance(covariance2);
-  membershipFunctionsVector.push_back(membershipFunction2);
+  membershipFunctionsVector.emplace_back(membershipFunction2);
 
   // Add class labels
   ClassLabelVectorType & classLabelVector = classLabelsObject->Get();
 
   using ClassLabelType = FilterType::ClassLabelType;
 
-  ClassLabelType class1 = 0;
+  constexpr ClassLabelType class1 = 0;
   classLabelVector.push_back(class1);
 
-  ClassLabelType class2 = 1;
+  constexpr ClassLabelType class2 = 1;
   classLabelVector.push_back(class2);
 
   // Set a decision rule type
   using DecisionRuleType = itk::Statistics::MaximumDecisionRule;
 
-  DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
+  auto decisionRule = DecisionRuleType::New();
   filter->SetDecisionRule(decisionRule);
 
   // Generate samples from a Gaussian distribution with mean and
@@ -121,15 +121,15 @@ itkSampleClassifierFilterTest2(int, char *[])
   // the first class
 
   using NormalGeneratorType = itk::Statistics::NormalVariateGenerator;
-  NormalGeneratorType::Pointer normalGenerator = NormalGeneratorType::New();
+  auto normalGenerator = NormalGeneratorType::New();
 
   normalGenerator->Initialize(101);
 
   MeasurementVectorType mv;
   itk::NumericTraits<MeasurementVectorType>::SetLength(mv, numberOfComponents);
-  double       mean = mean1[0];
-  double       standardDeviation = std::sqrt(covariance1[0][0]);
-  unsigned int numberOfSampleEachClass = 10;
+  double                 mean = mean1[0];
+  double                 standardDeviation = std::sqrt(covariance1[0][0]);
+  constexpr unsigned int numberOfSampleEachClass = 10;
   for (unsigned int i = 0; i < numberOfSampleEachClass; ++i)
   {
     mv[0] = (normalGenerator->GetVariate() * standardDeviation) + mean;
@@ -168,7 +168,7 @@ itkSampleClassifierFilterTest2(int, char *[])
     {
       if (iter.GetClassLabel() != class1)
       {
-        std::cerr << "Classification error: " << sampleCounter << "\t" << iter.GetClassLabel() << "\tclass1=" << class1
+        std::cerr << "Classification error: " << sampleCounter << '\t' << iter.GetClassLabel() << "\tclass1=" << class1
                   << std::endl;
         return EXIT_FAILURE;
       }
@@ -177,7 +177,7 @@ itkSampleClassifierFilterTest2(int, char *[])
     {
       if (iter.GetClassLabel() != class2)
       {
-        std::cerr << "Classification error: " << sampleCounter << "\t" << iter.GetClassLabel() << "\tclass2=" << class2
+        std::cerr << "Classification error: " << sampleCounter << '\t' << iter.GetClassLabel() << "\tclass2=" << class2
                   << std::endl;
         return EXIT_FAILURE;
       }

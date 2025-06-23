@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkGPUGradientNDAnisotropicDiffusionFunction_hxx
 
 #include "itkNumericTraits.h"
-#include "itkGPUGradientNDAnisotropicDiffusionFunction.h"
 
 #include "itkOpenCLUtil.h"
 
@@ -84,11 +83,11 @@ GPUGradientNDAnisotropicDiffusionFunction<TImage>::GPUGradientNDAnisotropicDiffu
     itkExceptionMacro("GPUGradientNDAnisotropicDiffusionFunction supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << TImage::ImageDimension << "\n";
-  defines << "#define BLOCK_SIZE " << OpenCLGetLocalBlockSize(TImage::ImageDimension) << "\n";
+  defines << "#define DIM_" << TImage::ImageDimension << '\n'
+          << "#define BLOCK_SIZE " << OpenCLGetLocalBlockSize(TImage::ImageDimension) << '\n';
 
   std::string pixeltypename = GetTypename(typeid(typename TImage::PixelType));
-  defines << "#define PIXELTYPE " << pixeltypename << "\n";
+  defines << "#define PIXELTYPE " << pixeltypename << '\n';
 #ifdef __APPLE__
   // This is to work around a bug in the OpenCL compiler on Mac OS 10.6 and 10.7 with NVidia drivers
   // where the compiler was not handling unsigned char arguments correctly.
@@ -101,10 +100,10 @@ GPUGradientNDAnisotropicDiffusionFunction<TImage>::GPUGradientNDAnisotropicDiffu
   }
   else
   {
-    defines << "#define ARGTYPE " << pixeltypename << "\n";
+    defines << "#define ARGTYPE " << pixeltypename << '\n';
   }
 #else
-  defines << "#define ARGTYPE " << pixeltypename << "\n";
+  defines << "#define ARGTYPE " << pixeltypename << '\n';
 #endif
 
   const char * GPUSource = GPUGradientNDAnisotropicDiffusionFunction::GetOpenCLSource();
@@ -135,9 +134,9 @@ GPUGradientNDAnisotropicDiffusionFunction<TImage>::GPUComputeUpdate(const typena
   float imgScale[3];
   imgScale[0] = imgScale[1] = imgScale[2] = 1.0f;
 
-  int ImageDim = (int)TImage::ImageDimension;
+  int ImageDim = static_cast<int>(TImage::ImageDimension);
 
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     imgSize[i] = outSize[i];
     imgScale[i] = this->m_ScaleCoefficients[i];
@@ -146,13 +145,11 @@ GPUGradientNDAnisotropicDiffusionFunction<TImage>::GPUComputeUpdate(const typena
   size_t localSize[3], globalSize[3];
   localSize[0] = localSize[1] = localSize[2] = OpenCLGetLocalBlockSize(ImageDim);
 
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
-    globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); //
-                                                                                                // total
-                                                                                                // #
-                                                                                                // of
-                                                                                                // threads
+    // total # of threads
+    globalSize[i] =
+      localSize[i] * static_cast<unsigned int>(ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i])));
   }
 
   // arguments set up
@@ -165,14 +162,14 @@ GPUGradientNDAnisotropicDiffusionFunction<TImage>::GPUComputeUpdate(const typena
     this->m_ComputeUpdateGPUKernelHandle, argidx++, sizeof(typename TImage::PixelType), &(m_K));
 
   // filter scale parameter
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     this->m_GPUKernelManager->SetKernelArg(
       this->m_ComputeUpdateGPUKernelHandle, argidx++, sizeof(float), &(imgScale[i]));
   }
 
   // image size
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     this->m_GPUKernelManager->SetKernelArg(this->m_ComputeUpdateGPUKernelHandle, argidx++, sizeof(int), &(imgSize[i]));
   }

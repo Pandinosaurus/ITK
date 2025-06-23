@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@
 namespace itk
 {
 /**
- *\class MaskFeaturePointSelectionFilter
+ * \class MaskFeaturePointSelectionFilter
  * \brief Generate a PointSet containing the feature points
  * selected from a masked 3D input image.
  *
@@ -42,9 +42,7 @@ namespace itk
  * This filter is intended to be used for initializing the process of
  * Physics-Based Non-Rigid Registration. It selects a fraction of non-masked
  * points with highest variance. Optionally, tensors are computed for each
- * point and stored as pixel values. [ M. Bierling, Displacement estimation
- * by hierarchical block matching, Proc. SPIE Vis. Comm. and Image Proc.,
- * vol. 1001, pp. 942-951, 1988. ].
+ * point and stored as pixel values \cite bierling1988.
  *
  * The filter is templated over input image and mask and output pointset.
  * \author Andriy Kot, Center for Real-Time Computing, Old Dominion University,
@@ -74,10 +72,10 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MaskFeaturePointSelectionFilter, ImageToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskFeaturePointSelectionFilter);
 
-  static constexpr unsigned ImageDimension = 3u;
+  static constexpr unsigned int ImageDimension = 3u;
 
   /** Not input specific type alias */
   using RegionType = ImageRegion<ImageDimension>;
@@ -113,33 +111,34 @@ public:
    * 0 <= connect < ImageDimension; 0 is vertex connectivity (e.g., 26 in 3D),
    * 1 is edge connectivity (e.g., 18 in 3D), 2 is face connectivity
    * (e.g., 6 in 3D), etc */
-  itkSetMacro(NonConnectivity, unsigned);
-  itkGetMacro(NonConnectivity, unsigned);
-
+  /** @ITKStartGrouping */
+  itkSetMacro(NonConnectivity, unsigned int);
+  itkGetMacro(NonConnectivity, unsigned int);
+  /** @ITKEndGrouping */
   /** set/get mask */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, MaskType);
   itkGetInputMacro(MaskImage, MaskType);
-
+  /** @ITKEndGrouping */
   /** set/get half size of the block for calculating variance */
+  /** @ITKStartGrouping */
   itkSetMacro(BlockRadius, SizeType);
   itkGetConstReferenceMacro(BlockRadius, SizeType);
-
+  /** @ITKEndGrouping */
   /** enable/disable tensor computations */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeStructureTensors, bool);
   itkGetMacro(ComputeStructureTensors, bool);
   itkBooleanMacro(ComputeStructureTensors);
-
+  /** @ITKEndGrouping */
   /** set fraction of eligible points to select */
+  /** @ITKStartGrouping */
   itkSetClampMacro(SelectFraction, double, 0, 1);
   itkGetMacro(SelectFraction, double);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(ImageDimensionShouldBe3, (Concept::SameDimension<TImage::ImageDimension, 3u>));
   itkConceptMacro(MaskDimensionShouldBe3, (Concept::SameDimension<TMask::ImageDimension, 3u>));
   itkConceptMacro(PointDimensionShouldBe3, (Concept::SameDimension<TFeatures::PointType::PointDimension, 3u>));
-  // End concept checking
-#endif
 
 protected:
   MaskFeaturePointSelectionFilter();
@@ -158,11 +157,11 @@ protected:
   ComputeConnectivityOffsets();
 
 private:
-  unsigned                m_NonConnectivity;
-  std::vector<OffsetType> m_NonConnectivityOffsets;
-  SizeType                m_BlockRadius;
-  double                  m_SelectFraction;
-  bool                    m_ComputeStructureTensors;
+  unsigned int            m_NonConnectivity{};
+  std::vector<OffsetType> m_NonConnectivityOffsets{};
+  SizeType                m_BlockRadius{};
+  double                  m_SelectFraction{};
+  bool                    m_ComputeStructureTensors{};
 };
 } // end namespace itk
 

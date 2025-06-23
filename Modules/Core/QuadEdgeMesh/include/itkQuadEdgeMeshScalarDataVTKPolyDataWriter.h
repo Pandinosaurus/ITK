@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- * \class QuadEdgeMeshScalarDataVTKPolyData
+ * \class QuadEdgeMeshScalarDataVTKPolyDataWriter
  *
  * \brief This class saves a QuadMesh into a VTK-legacy file format,
  *        including its scalar data associated with points.
@@ -44,8 +44,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = VTKPolyDataWriter<TMesh>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(QuadEdgeMeshScalarDataVTKPolyDataWriter, VTKPolyDataWriter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshScalarDataVTKPolyDataWriter);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
@@ -74,19 +74,21 @@ public:
   using CellDataContainerConstPointer = typename CellDataContainer::ConstPointer;
 
   /** Set/Get the name of the CellDataName where data are written. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(CellDataName);
   itkGetStringMacro(CellDataName);
-
+  /** @ITKEndGrouping */
   /** Set/Get the name of the PointDataName where data are written. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(PointDataName);
   itkGetStringMacro(PointDataName);
-
+  /** @ITKEndGrouping */
 protected:
   QuadEdgeMeshScalarDataVTKPolyDataWriter();
   ~QuadEdgeMeshScalarDataVTKPolyDataWriter() override = default;
 
-  std::string m_CellDataName;
-  std::string m_PointDataName;
+  std::string m_CellDataName{};
+  std::string m_PointDataName{};
 
   void
   GenerateData() override;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkVotingBinaryHoleFillingImageFilter_hxx
 #define itkVotingBinaryHoleFillingImageFilter_hxx
-#include "itkVotingBinaryHoleFillingImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
@@ -32,10 +31,10 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::VotingBinaryHoleFillingImageFilter()
+  : m_MajorityThreshold(1)
+  , m_NumberOfPixelsChanged(0)
 {
   this->SetSurvivalThreshold(0);
-  this->m_MajorityThreshold = 1;
-  this->m_NumberOfPixelsChanged = 0;
   this->DynamicMultiThreadingOff();
 }
 
@@ -47,7 +46,7 @@ VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::BeforeThreadedGen
 
   InputSizeType radius = this->GetRadius();
 
-  for (unsigned int i = 0; i < InputImageDimension; i++)
+  for (unsigned int i = 0; i < InputImageDimension; ++i)
   {
     threshold *= (2 * radius[i] + 1);
   }
@@ -63,9 +62,9 @@ VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::BeforeThreadedGen
 
   this->m_NumberOfPixelsChanged = 0;
 
-  unsigned int numberOfThreads = this->GetNumberOfWorkUnits();
-  this->m_Count.SetSize(numberOfThreads);
-  for (unsigned int i = 0; i < numberOfThreads; i++)
+  const unsigned int numberOfWorkUnits = this->GetNumberOfWorkUnits();
+  this->m_Count.SetSize(numberOfWorkUnits);
+  for (unsigned int i = 0; i < numberOfWorkUnits; ++i)
   {
     this->m_Count[i] = 0;
   }
@@ -83,34 +82,32 @@ VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateD
   ImageRegionIterator<OutputImageType>      it;
 
   // Allocate output
-  typename OutputImageType::Pointer     output = this->GetOutput();
-  typename InputImageType::ConstPointer input = this->GetInput();
+  const typename OutputImageType::Pointer     output = this->GetOutput();
+  const typename InputImageType::ConstPointer input = this->GetInput();
 
   // Find the data-set boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
-  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                        bC;
-  faceList = bC(input, outputRegionForThread, this->GetRadius());
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                              bC;
+  const typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList =
+    bC(input, outputRegionForThread, this->GetRadius());
 
   ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   const InputPixelType backgroundValue = this->GetBackgroundValue();
   const InputPixelType foregroundValue = this->GetForegroundValue();
-  const auto           birthThreshold = (unsigned int)(this->GetBirthThreshold());
+  const auto           birthThreshold = static_cast<unsigned int>(this->GetBirthThreshold());
 
   unsigned int numberOfPixelsChanged = 0;
 
   // Process each of the boundary faces.  These are N-d regions which border
   // the edge of the buffer.
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (const auto & face : faceList)
   {
-    bit = ConstNeighborhoodIterator<InputImageType>(this->GetRadius(), input, *fit);
-    it = ImageRegionIterator<OutputImageType>(output, *fit);
+    bit = ConstNeighborhoodIterator<InputImageType>(this->GetRadius(), input, face);
+    it = ImageRegionIterator<OutputImageType>(output, face);
     bit.OverrideBoundaryCondition(&nbc);
     bit.GoToBegin();
 
-    unsigned int neighborhoodSize = bit.Size();
+    const unsigned int neighborhoodSize = bit.Size();
 
     while (!bit.IsAtEnd())
     {
@@ -122,17 +119,17 @@ VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateD
         unsigned int count = 0;
         for (unsigned int i = 0; i < neighborhoodSize; ++i)
         {
-          InputPixelType value = bit.GetPixel(i);
+          const InputPixelType value = bit.GetPixel(i);
           if (value == foregroundValue)
           {
-            count++;
+            ++count;
           }
         }
 
         if (count >= birthThreshold)
         {
           it.Set(static_cast<OutputPixelType>(foregroundValue));
-          numberOfPixelsChanged++;
+          ++numberOfPixelsChanged;
         }
         else
         {
@@ -155,11 +152,11 @@ template <typename TInputImage, typename TOutputImage>
 void
 VotingBinaryHoleFillingImageFilter<TInputImage, TOutputImage>::AfterThreadedGenerateData()
 {
-  this->m_NumberOfPixelsChanged = NumericTraits<SizeValueType>::ZeroValue();
+  this->m_NumberOfPixelsChanged = SizeValueType{};
 
-  unsigned int numberOfThreads = this->GetNumberOfWorkUnits();
-  this->m_Count.SetSize(numberOfThreads);
-  for (unsigned int t = 0; t < numberOfThreads; t++)
+  const unsigned int numberOfWorkUnits = this->GetNumberOfWorkUnits();
+  this->m_Count.SetSize(numberOfWorkUnits);
+  for (unsigned int t = 0; t < numberOfWorkUnits; ++t)
   {
     this->m_NumberOfPixelsChanged += this->m_Count[t];
   }

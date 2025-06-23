@@ -1,4 +1,5 @@
-set(ITKIOImageBase_SRCS
+set(
+  ITKIOImageBase_SRCS
   itkImageSeriesWriter.cxx
   itkImageFileReaderException.cxx
   itkImageFileWriter.cxx
@@ -11,6 +12,6 @@ set(ITKIOImageBase_SRCS
   itkStreamingImageIOBase.cxx
   # Two non-templated utility functions that are needed by templated RAWImageIO
   itkRawImageIOUtilities.cxx
-  )
+)
 
 itk_module_add_library(ITKIOImageBase ${ITKIOImageBase_SRCS})

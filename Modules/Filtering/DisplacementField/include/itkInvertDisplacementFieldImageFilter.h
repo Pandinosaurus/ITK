@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,6 +50,9 @@ public:
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
+
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InvertDisplacementFieldImageFilter);
 
   /** Extract dimension from input image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -108,8 +111,10 @@ public:
   }
 
   /** Set/get the initial estimate for the inverse field (optional). */
+  /** @ITKStartGrouping */
   itkSetInputMacro(InverseFieldInitialEstimate, InverseDisplacementFieldType);
   itkGetInputMacro(InverseFieldInitialEstimate, InverseDisplacementFieldType);
+  /** @ITKEndGrouping */
 
   /* Set the interpolator. */
   virtual void
@@ -136,6 +141,7 @@ public:
   /* Should we force the boundary to have zero displacement? */
   itkSetMacro(EnforceBoundaryCondition, bool);
   itkGetMacro(EnforceBoundaryCondition, bool);
+  itkBooleanMacro(EnforceBoundaryCondition);
 
 protected:
   /** Constructor */
@@ -158,25 +164,25 @@ protected:
 
 private:
   /** The interpolator. */
-  typename InterpolatorType::Pointer m_Interpolator;
+  typename InterpolatorType::Pointer m_Interpolator{};
 
   unsigned int m_MaximumNumberOfIterations{ 20 };
 
-  RealType m_MaxErrorToleranceThreshold;
-  RealType m_MeanErrorToleranceThreshold;
+  RealType m_MaxErrorToleranceThreshold{};
+  RealType m_MeanErrorToleranceThreshold{};
 
   // internal ivars necessary for multithreading basic operations
 
-  typename DisplacementFieldType::Pointer m_ComposedField;
-  typename RealImageType::Pointer         m_ScaledNormImage;
+  typename DisplacementFieldType::Pointer m_ComposedField{};
+  typename RealImageType::Pointer         m_ScaledNormImage{};
 
-  RealType    m_MaxErrorNorm;
-  RealType    m_MeanErrorNorm;
-  RealType    m_Epsilon;
-  SpacingType m_DisplacementFieldSpacing;
+  RealType    m_MaxErrorNorm{};
+  RealType    m_MeanErrorNorm{};
+  RealType    m_Epsilon{};
+  SpacingType m_DisplacementFieldSpacing{};
   bool        m_DoThreadedEstimateInverse{ false };
   bool        m_EnforceBoundaryCondition{ true };
-  std::mutex  m_Mutex;
+  std::mutex  m_Mutex{};
 };
 
 } // end namespace itk

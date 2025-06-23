@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkWarpMeshFilter_hxx
 #define itkWarpMeshFilter_hxx
 
-#include "itkWarpMeshFilter.h"
 #include "itkMacro.h"
 
 namespace itk
@@ -35,8 +34,9 @@ WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::WarpMeshFilter()
 }
 
 template <typename TInputMesh, typename TOutputMesh, typename TDisplacementField>
-const typename WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::DisplacementFieldType *
+auto
 WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::GetDisplacementField() const
+  -> const DisplacementFieldType *
 {
   return itkDynamicCastInDebugMode<const DisplacementFieldType *>(this->ProcessObject::GetInput(1));
 }
@@ -73,24 +73,24 @@ WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::GenerateData()
 
   using OutputPointsContainerPointer = typename TOutputMesh::PointsContainerPointer;
 
-  const InputMeshType *    inputMesh = this->GetInput();
-  OutputMeshPointer        outputMesh = this->GetOutput();
-  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
+  const InputMeshType *          inputMesh = this->GetInput();
+  const OutputMeshPointer        outputMesh = this->GetOutput();
+  const DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
 
   if (!inputMesh)
   {
-    itkExceptionMacro(<< "Missing Input Mesh");
+    itkExceptionMacro("Missing Input Mesh");
   }
 
   if (!outputMesh)
   {
-    itkExceptionMacro(<< "Missing Output Mesh");
+    itkExceptionMacro("Missing Output Mesh");
   }
 
   outputMesh->SetBufferedRegion(outputMesh->GetRequestedRegion());
 
-  const InputPointsContainer * inPoints = inputMesh->GetPoints();
-  OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
+  const InputPointsContainer *       inPoints = inputMesh->GetPoints();
+  const OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
 
   outPoints->Reserve(inputMesh->GetNumberOfPoints());
   outPoints->Squeeze(); // in case the previous mesh had
@@ -114,7 +114,7 @@ WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::GenerateData()
     const auto             index = fieldPtr->TransformPhysicalPointToIndex(originalPoint);
     displacement = fieldPtr->GetPixel(index);
 
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
       displacedPoint[i] = originalPoint[i] + displacement[i];
     }
@@ -132,9 +132,9 @@ WarpMeshFilter<TInputMesh, TOutputMesh, TDisplacementField>::GenerateData()
   this->CopyInputMeshToOutputMeshCellLinks();
   this->CopyInputMeshToOutputMeshCellData();
 
-  unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
+  const unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
-  for (unsigned int dim = 0; dim < maxDimension; dim++)
+  for (unsigned int dim = 0; dim < maxDimension; ++dim)
   {
     outputMesh->SetBoundaryAssignments(dim, inputMesh->GetBoundaryAssignments(dim));
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace itk
  * creates a corresponding PolygonGroupSpatialObject
  * \ingroup ITKIOSpatialObjects
  */
-class PolygonGroupSpatialObjectXMLFileReader : public XMLReader<GroupSpatialObject<3>>
+class ITK_TEMPLATE_EXPORT PolygonGroupSpatialObjectXMLFileReader : public XMLReader<GroupSpatialObject<3>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(PolygonGroupSpatialObjectXMLFileReader);
@@ -48,8 +48,8 @@ public:
   using PolygonPointType = SpatialObjectPoint<3>;
   using PolygonPointListType = std::vector<PolygonPointType>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PolygonGroupSpatialObjectXMLFileReader, XMLReader);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolygonGroupSpatialObjectXMLFileReader);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -73,10 +73,10 @@ protected:
   CharacterDataHandler(const char * inData, int inLength) override;
 
 private:
-  GroupSpatialObjectType::Pointer   m_Group;
-  PolygonSpatialObjectType::Pointer m_CurPoly;
-  PolygonPointListType              m_CurPointList;
-  std::string                       m_CurCharacterData;
+  GroupSpatialObjectType::Pointer   m_Group{};
+  PolygonSpatialObjectType::Pointer m_CurPoly{};
+  PolygonPointListType              m_CurPointList{};
+  std::string                       m_CurCharacterData{};
 };
 
 /** \class PolygonGroupSpatialObjectXMLFileWriter
@@ -85,7 +85,7 @@ private:
  * based on a GroupSpatialObject.
  * \ingroup ITKIOSpatialObjects
  */
-class PolygonGroupSpatialObjectXMLFileWriter : public XMLWriterBase<GroupSpatialObject<3>>
+class ITK_TEMPLATE_EXPORT PolygonGroupSpatialObjectXMLFileWriter : public XMLWriterBase<GroupSpatialObject<3>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(PolygonGroupSpatialObjectXMLFileWriter);
@@ -98,8 +98,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PolygonGroupSpatialObjectXMLFileWriter, XMLWriterBase<GroupSpatialObjectType>);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolygonGroupSpatialObjectXMLFileWriter);
 
   using GroupType = GroupSpatialObject<3>;
 

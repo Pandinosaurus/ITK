@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class StatisticsLabelMapFilter
+ * \class StatisticsLabelMapFilter
  * \brief The valuator class for the StatisticsLabelObject
  *
  * StatisticsLabelMapFilter can be used to set the attributes values
@@ -32,7 +32,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
  * \ingroup ITKLabelMap
@@ -72,19 +72,15 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(StatisticsLabelMapFilter, ShapeLabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StatisticsLabelMapFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-/*  itkConceptMacro(InputEqualityComparableCheck,
+  /*itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck,
     (Concept::OStreamWritable<InputImagePixelType>));*/
-// End concept checking
-#endif
 
   /** Set the feature image */
   void
@@ -121,17 +117,28 @@ public:
    * compared to the other attributes, this option is useful to reduce the memory usage
    * when the histogram is not required.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeHistogram, bool);
   itkGetConstReferenceMacro(ComputeHistogram, bool);
   itkBooleanMacro(ComputeHistogram);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the number of bins in the histogram. Note that the histogram is used
    * to compute the median value, and that this option may have an effect on the
    * value of the median.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfBins, unsigned int);
   itkGetConstReferenceMacro(NumberOfBins, unsigned int);
+  /** @ITKEndGrouping */
+  // Set the default number of bins to match the number of values for 8 or 16-bit integers; otherwise 128
+  static constexpr unsigned int
+  GetDefaultNumberOfBins()
+  {
+    constexpr size_t bitsShift = std::min(8 * sizeof(FeatureImagePixelType), 8 * sizeof(m_NumberOfBins) - 1);
+
+    return std::is_integral_v<FeatureImagePixelType> && sizeof(FeatureImagePixelType) <= 2 ? 1u << bitsShift : 128u;
+  }
 
 protected:
   StatisticsLabelMapFilter();
@@ -147,10 +154,10 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  FeatureImagePixelType m_Minimum;
-  FeatureImagePixelType m_Maximum;
-  unsigned int          m_NumberOfBins;
-  bool                  m_ComputeHistogram;
+  FeatureImagePixelType m_Minimum{};
+  FeatureImagePixelType m_Maximum{};
+  unsigned int          m_NumberOfBins{ GetDefaultNumberOfBins() };
+  bool                  m_ComputeHistogram{ true };
 }; // end of class
 } // end namespace itk
 

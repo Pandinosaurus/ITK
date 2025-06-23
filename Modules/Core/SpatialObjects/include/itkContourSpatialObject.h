@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,16 +25,16 @@
 
 namespace itk
 {
-/***\class ContourSpatialObjectEnums
+/*** \class ContourSpatialObjectEnums
  *
- * \brief Enum classes for the ControuSpatialObject class.
+ * \brief Enum classes for the ContourSpatialObject class.
  *
  * \ingroup ITKSpatialObjects
  */
 class ContourSpatialObjectEnums
 {
 public:
-  /***\class InterpolationMethodEnum
+  /**
    * \ingroup ITKSpatialObjects
    * Hold interpolation method type
    */
@@ -61,7 +61,7 @@ extern ITKSpatialObjects_EXPORT std::ostream &
  * \ingroup ITKSpatialObjects
  *
  * \sphinx
- * \sphinxexample{Core/SpatialObjects/{{ContourSpatialObject,Contour Spacial Object}
+ * \sphinxexample{Core/SpatialObjects/ContourSpatialObject,Contour Spatial Object}
  * \endsphinx
  */
 
@@ -84,10 +84,10 @@ public:
   using ControlPointType = ContourSpatialObjectPoint<TDimension>;
   using ControlPointListType = std::vector<ControlPointType>;
 
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
-  using PointContainerType = VectorContainer<IdentifierType, PointType>;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::BoundingBoxType;
+  using PointContainerType = VectorContainer<PointType>;
   using PointContainerPointer = SmartPointer<PointContainerType>;
 
   using InterpolationMethodEnum = ContourSpatialObjectEnums::InterpolationMethod;
@@ -104,8 +104,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(ContourSpatialObject, PointBasedSpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ContourSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -126,11 +126,11 @@ public:
     return m_ControlPoints;
   }
 
-  /** Set the list of control points. */
+  /** Set the list of control points defining the contour. */
   void
   SetControlPoints(const ControlPointListType & points);
 
-  /** Set the list of control points. */
+  /** Add a point to the list of control points defining the contour. */
   void
   AddControlPoint(const ControlPointType & point);
 
@@ -204,15 +204,15 @@ protected:
   InternalClone() const override;
 
 private:
-  ContourPointListType m_ControlPoints;
+  ContourPointListType m_ControlPoints{};
 
-  InterpolationMethodEnum m_InterpolationMethod;
-  unsigned int            m_InterpolationFactor;
+  InterpolationMethodEnum m_InterpolationMethod{};
+  unsigned int            m_InterpolationFactor{};
 
-  mutable bool             m_IsClosed;
-  mutable int              m_OrientationInObjectSpace;
-  mutable ModifiedTimeType m_OrientationInObjectSpaceMTime;
-  int                      m_AttachedToSlice;
+  mutable bool             m_IsClosed{};
+  mutable int              m_OrientationInObjectSpace{};
+  mutable ModifiedTimeType m_OrientationInObjectSpaceMTime{};
+  int                      m_AttachedToSlice{};
 };
 } // end namespace itk
 

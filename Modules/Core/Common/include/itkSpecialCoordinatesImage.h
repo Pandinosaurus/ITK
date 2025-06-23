@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,14 +33,14 @@ namespace itk
  * dependent variables), and a dimension (number of independent variables).
  * The container for the pixel data is the ImportImageContainer.
  *
- * Within the pixel container, images are modelled as arrays, defined by a
+ * Within the pixel container, images are modeled as arrays, defined by a
  * start index and a size.
  *
  * Almost arbitrary mappings between index space & Cartesian physical space are
  * possible, and so m_Origin and m_Spacing should be ignored.  They exist only
  * to allow the possibility of running a "spatially-aware" filter in raw index
  * space, as if the SpecialCoordinatesImage data was laid out on a regular grid.
- * Note that this may or may not produce useful results, and it is up the the
+ * Note that this may or may not produce useful results, and it is up the
  * user to determine the appropriateness of running a filter designed for normal
  * images on special-coordinates images.
  *
@@ -107,8 +107,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SpecialCoordinatesImage, ImageBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpecialCoordinatesImage);
 
   /** Pixel type alias support Used to declare pixel type in filters
    * or other operations. */
@@ -141,30 +141,30 @@ public:
   static constexpr unsigned int ImageDimension = VImageDimension;
 
   /** Index type alias support An index is used to access pixel values. */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** Offset type alias support An offset is used to access pixel values. */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
 
   /** Size type alias support A size is used to define region bounds. */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** Container used to store pixels in the image. */
   using PixelContainer = ImportImageContainer<SizeValueType, PixelType>;
 
   /** Region type alias support A region is used to specify a subset of an image.
    */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Spacing type alias support  Spacing holds the "fake" size of a pixel, making
    * each pixel look like a 1 unit hyper-cube to filters that were designed for
    * normal images and that therefore use m_Spacing.  The spacing is the
    * geometric distance between image samples. */
-  using SpacingType = typename Superclass::SpacingType;
+  using typename Superclass::SpacingType;
 
   /** Origin type alias support  The origin is the "fake" geometric coordinates
    * of the index (0,0).  Also for use w/ filters designed for normal images. */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** A pointer to the pixel container. */
   using PixelContainerPointer = typename PixelContainer::Pointer;
@@ -193,7 +193,7 @@ public:
   void
   SetPixel(const IndexType & index, const TPixel & value)
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     (*m_Buffer)[offset] = value;
   }
 
@@ -204,7 +204,7 @@ public:
   const TPixel &
   GetPixel(const IndexType & index) const
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     return ((*m_Buffer)[offset]);
   }
 
@@ -215,7 +215,7 @@ public:
   TPixel &
   GetPixel(const IndexType & index)
   {
-    OffsetValueType offset = this->FastComputeOffset(index);
+    const OffsetValueType offset = this->FastComputeOffset(index);
     return ((*m_Buffer)[offset]);
   }
 
@@ -223,16 +223,25 @@ public:
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  TPixel & operator[](const IndexType & index) { return this->GetPixel(index); }
+  TPixel &
+  operator[](const IndexType & index)
+  {
+    return this->GetPixel(index);
+  }
 
   /** \brief Access a pixel. This version can only be an rvalue.
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  const TPixel & operator[](const IndexType & index) const { return this->GetPixel(index); }
+  const TPixel &
+  operator[](const IndexType & index) const
+  {
+    return this->GetPixel(index);
+  }
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
+  /** @ITKStartGrouping */
   TPixel *
   GetBufferPointer()
   {
@@ -243,7 +252,7 @@ public:
   {
     return m_Buffer ? m_Buffer->GetBufferPointer() : nullptr;
   }
-
+  /** @ITKEndGrouping */
   /** Return a pointer to the container. */
   PixelContainer *
   GetPixelContainer()
@@ -281,6 +290,7 @@ public:
    * to the output of a normal filter which is being used to output a
    * special-coordinates image.  Filters designed to produce a particular kind
    * of special-coordinates image should do this automatically. */
+  /** @ITKStartGrouping */
   void
   SetSpacing(const SpacingType &) override
   {}
@@ -299,33 +309,33 @@ public:
   void
   SetOrigin(const float[VImageDimension]) override
   {}
-
+  /** @ITKEndGrouping */
   /* It is ILLEGAL in C++ to make a templated member function virtual! */
   /* Therefore, we must just let templates take care of everything.    */
   /*
-  template<typename TCoordRep>
+  template<typename TCoordinate>
   virtual bool TransformPhysicalPointToContinuousIndex(
-              const Point<TCoordRep, VImageDimension>& point,
-              ContinuousIndex<TCoordRep, VImageDimension>& index   ) const = 0;
+              const Point<TCoordinate, VImageDimension>& point,
+              ContinuousIndex<TCoordinate, VImageDimension>& index   ) const = 0;
 
-  template<typename TCoordRep>
+  template<typename TCoordinate>
   virtual bool TransformPhysicalPointToIndex(
-            const Point<TCoordRep, VImageDimension>&,
+            const Point<TCoordinate, VImageDimension>&,
             IndexType & index                                ) const = 0;
 
-  template<typename TCoordRep>
+  template<typename TCoordinate>
   virtual void TransformContinuousIndexToPhysicalPoint(
-            const ContinuousIndex<TCoordRep, VImageDimension>& index,
-            Point<TCoordRep, VImageDimension>& point        ) const = 0;
+            const ContinuousIndex<TCoordinate, VImageDimension>& index,
+            Point<TCoordinate, VImageDimension>& point        ) const = 0;
 
-  template<typename TCoordRep>
+  template<typename TCoordinate>
   virtual void TransformIndexToPhysicalPoint(
                       const IndexType & index,
-                      Point<TCoordRep, VImageDimension>& point ) const = 0;
+                      Point<TCoordinate, VImageDimension>& point ) const = 0;
   */
 
 protected:
-  SpecialCoordinatesImage();
+  SpecialCoordinatesImage() = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -333,7 +343,7 @@ protected:
 
 private:
   /** Memory for the current buffer. */
-  PixelContainerPointer m_Buffer;
+  PixelContainerPointer m_Buffer{ PixelContainer::New() };
 };
 } // end namespace itk
 

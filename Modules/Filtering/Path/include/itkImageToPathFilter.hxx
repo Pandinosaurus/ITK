@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,12 @@
 #ifndef itkImageToPathFilter_hxx
 #define itkImageToPathFilter_hxx
 
-#include "itkImageToPathFilter.h"
 
 /*
  * This code was contributed in the Insight Journal paper:
  * "ContourExtractor2DImageFilter: A subpixel-precision image isocontour extraction filter."
  * by Pincus Z.
- * https://www.insight-journal.org/browse/publication/72
+ * https://doi.org/10.54294/olkmog
  *
  */
 
@@ -60,16 +59,16 @@ ImageToPathFilter<TInputImage, TOutputPath>::SetInput(unsigned int index, const 
 
 
 template <typename TInputImage, typename TOutputPath>
-const typename ImageToPathFilter<TInputImage, TOutputPath>::InputImageType *
-ImageToPathFilter<TInputImage, TOutputPath>::GetInput()
+auto
+ImageToPathFilter<TInputImage, TOutputPath>::GetInput() -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<const TInputImage *>(this->GetPrimaryInput());
 }
 
 
 template <typename TInputImage, typename TOutputPath>
-const typename ImageToPathFilter<TInputImage, TOutputPath>::InputImageType *
-ImageToPathFilter<TInputImage, TOutputPath>::GetInput(unsigned int idx)
+auto
+ImageToPathFilter<TInputImage, TOutputPath>::GetInput(unsigned int idx) -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<const TInputImage *>(this->ProcessObject::GetInput(idx));
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,41 +23,41 @@
 // remainder of microseconds will be kept. It also ensures that if the number
 // of microseconds is negative, then we decrement the number of seconds and
 // assign to the microseconds variable the complement that is a positive number.
-#define CARRY_UNITS_OVER_UNSIGNED(seconds, micro_seconds)                                                              \
-  if (micro_seconds > 1000000L)                                                                                        \
-  {                                                                                                                    \
-    seconds += 1;                                                                                                      \
-    micro_seconds -= 1000000L;                                                                                         \
-  }                                                                                                                    \
+#define CARRY_UNITS_OVER_UNSIGNED(seconds, micro_seconds) \
+  if (micro_seconds > 1000000L)                           \
+  {                                                       \
+    seconds += 1;                                         \
+    micro_seconds -= 1000000L;                            \
+  }                                                       \
   ITK_MACROEND_NOOP_STATEMENT
 
-#define CARRY_UNITS_OVER_SIGNED(seconds, micro_seconds)                                                                \
-  if (micro_seconds > 1000000L)                                                                                        \
-  {                                                                                                                    \
-    seconds += 1;                                                                                                      \
-    micro_seconds -= 1000000L;                                                                                         \
-  }                                                                                                                    \
-  if (micro_seconds < 0)                                                                                               \
-  {                                                                                                                    \
-    seconds -= 1;                                                                                                      \
-    micro_seconds += 1000000L;                                                                                         \
-  }                                                                                                                    \
+#define CARRY_UNITS_OVER_SIGNED(seconds, micro_seconds) \
+  if (micro_seconds > 1000000L)                         \
+  {                                                     \
+    seconds += 1;                                       \
+    micro_seconds -= 1000000L;                          \
+  }                                                     \
+  if (micro_seconds < 0)                                \
+  {                                                     \
+    seconds -= 1;                                       \
+    micro_seconds += 1000000L;                          \
+  }                                                     \
   ITK_MACROEND_NOOP_STATEMENT
 
 // This macro ensures that the sign of the seconds is the same as the sign of
 // the microseconds. In other words, both of them are measured toward the same
 // direction of time.
-#define ALIGN_THE_ARROW_OF_TIME(seconds, micro_seconds)                                                                \
-  if (seconds > 0 && micro_seconds < 0)                                                                                \
-  {                                                                                                                    \
-    seconds -= 1;                                                                                                      \
-    micro_seconds = 1000000L - micro_seconds;                                                                          \
-  }                                                                                                                    \
-  if (seconds < 0 && micro_seconds > 0)                                                                                \
-  {                                                                                                                    \
-    seconds += 1;                                                                                                      \
-    micro_seconds = 1000000L + micro_seconds;                                                                          \
-  }                                                                                                                    \
+#define ALIGN_THE_ARROW_OF_TIME(seconds, micro_seconds) \
+  if (seconds > 0 && micro_seconds < 0)                 \
+  {                                                     \
+    seconds -= 1;                                       \
+    micro_seconds = 1000000L - micro_seconds;           \
+  }                                                     \
+  if (seconds < 0 && micro_seconds > 0)                 \
+  {                                                     \
+    seconds += 1;                                       \
+    micro_seconds = 1000000L + micro_seconds;           \
+  }                                                     \
   ITK_MACROEND_NOOP_STATEMENT
 
 namespace itk
@@ -67,10 +67,9 @@ namespace itk
  * Constructor to initialize a time stamp
  */
 RealTimeStamp::RealTimeStamp()
-{
-  this->m_Seconds = itk::NumericTraits<SecondsCounterType>::ZeroValue();
-  this->m_MicroSeconds = itk::NumericTraits<MicroSecondsCounterType>::ZeroValue();
-}
+  : m_Seconds(SecondsCounterType{})
+  , m_MicroSeconds(MicroSecondsCounterType{})
+{}
 
 /**
  * Constructor with values to initialize a time stamp.
@@ -78,10 +77,9 @@ RealTimeStamp::RealTimeStamp()
  * or from a file reading class.
  */
 RealTimeStamp::RealTimeStamp(SecondsCounterType seconds, MicroSecondsCounterType micro_seconds)
-{
-  this->m_Seconds = seconds;
-  this->m_MicroSeconds = micro_seconds;
-}
+  : m_Seconds(seconds)
+  , m_MicroSeconds(micro_seconds)
+{}
 
 /**
  * Destructor.
@@ -351,15 +349,6 @@ bool
 RealTimeStamp::operator==(const Self & other) const
 {
   return ((this->m_MicroSeconds == other.m_MicroSeconds) && (this->m_Seconds == other.m_Seconds));
-}
-
-/**
- * Compare two time Stamps.
- */
-bool
-RealTimeStamp::operator!=(const Self & other) const
-{
-  return ((this->m_MicroSeconds != other.m_MicroSeconds) || (this->m_Seconds != other.m_Seconds));
 }
 
 /** Default print out of a RealTimeStamp */

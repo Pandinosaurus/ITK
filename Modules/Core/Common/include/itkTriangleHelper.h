@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,11 @@ class ITK_TEMPLATE_EXPORT TriangleHelper
 public:
   using Self = TriangleHelper;
   using PointType = TPoint;
-  using CoordRepType = typename PointType::CoordRepType;
+  using CoordinateType = typename PointType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using VectorType = typename PointType::VectorType;
   using CrossVectorType = CrossHelper<VectorType>;
 
@@ -49,20 +53,20 @@ public:
   ComputeNormal(const PointType & iA, const PointType & iB, const PointType & iC);
 
   /** \brief Compute cotangent(iA,iB,iC)*/
-  static CoordRepType
+  static CoordinateType
   Cotangent(const PointType & iA, const PointType & iB, const PointType & iC);
 
   /** \brief Compute barycenter, with given weights*/
   static PointType
-  ComputeBarycenter(const CoordRepType & iA1,
-                    const PointType &    iP1,
-                    const CoordRepType & iA2,
-                    const PointType &    iP2,
-                    const CoordRepType & iA3,
-                    const PointType &    iP3);
+  ComputeBarycenter(const CoordinateType & iA1,
+                    const PointType &      iP1,
+                    const CoordinateType & iA2,
+                    const PointType &      iP2,
+                    const CoordinateType & iA3,
+                    const PointType &      iP3);
 
   /** \brief Compute angles (iA,iB,iC)*/
-  static CoordRepType
+  static CoordinateType
   ComputeAngle(const PointType & iP1, const PointType & iP2, const PointType & iP3);
 
   /** \brief Compute center of mass*/
@@ -78,10 +82,10 @@ public:
   ComputeConstrainedCircumCenter(const PointType & iP1, const PointType & iP2, const PointType & iP3);
 
   /** \brief Compute Area.*/
-  static CoordRepType
+  static CoordinateType
   ComputeArea(const PointType & iP1, const PointType & iP2, const PointType & iP3);
 
-  static CoordRepType
+  static CoordinateType
   ComputeMixedArea(const PointType & iP1, const PointType & iP2, const PointType & iP3);
 };
 } // namespace itk

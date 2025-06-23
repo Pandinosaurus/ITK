@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class MultivariateLegendrePolynomial
+ * \class MultivariateLegendrePolynomial
  * \brief 2D and 3D multivariate Legendre Polynomial
  *
  * In 2D,
@@ -61,18 +61,9 @@ namespace itk
  * by Martin Styner, Univ. of North Carolina at Chapel Hill, and his
  * colleagues.
  *
- * \note For more details. refer to the following articles.
- * "Parametric estimate of intensity inhomogeneities applied to MRI"
- * Martin Styner, G. Gerig, Christian Brechbuehler, Gabor Szekely,
- * IEEE TRANSACTIONS ON MEDICAL IMAGING; 19(3), pp. 153-165, 2000,
- * (http://www.cs.unc.edu/~styner/docs/tmi99.pdf)
- *
- * "Evaluation of 2D/3D bias correction with 1+1ES-optimization"
- * Martin Styner, Prof. Dr. G. Gerig (IKT, BIWI, ETH Zuerich), TR-197
- * (http://www.cs.unc.edu/~styner/docs/StynerTR97.pdf)
+ * \note For more details refer to \cite styner2000 and \cite styner1997.
  * \ingroup ITKPolynomials
  */
-
 class ITKPolynomials_EXPORT MultivariateLegendrePolynomial
 {
 public:
@@ -95,18 +86,19 @@ public:
 
   /** Constructor. */
   MultivariateLegendrePolynomial(unsigned int dimension, unsigned int degree, const DomainSizeType & domainSize);
+
   /** Destructor. */
   virtual ~MultivariateLegendrePolynomial();
 
   /** Gets the dimension. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDimension() const
   {
     return m_Dimension;
   }
 
   /** Gets the degree (the degree of Legendre polynomials). */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDegree() const
   {
     return m_Degree;
@@ -118,34 +110,34 @@ public:
    *  size, an exception is thrown otherwise
    *  \sa SetCoefficients
    */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfCoefficients() const
   {
     return m_NumberOfCoefficients;
   }
 
   /** Gets each dimension's size. */
-  const DomainSizeType &
+  [[nodiscard]] const DomainSizeType &
   GetDomainSize() const
   {
     return m_DomainSize;
   }
 
   /**
-   *\class CoefficientVectorSizeMismatch
+   * \class CoefficientVectorSizeMismatch
    * \brief Exception object.
    * \ingroup ITKPolynomials
    */
   class CoefficientVectorSizeMismatch
   {
   public:
-    CoefficientVectorSizeMismatch(const std::size_t given, const std::size_t required)
+    CoefficientVectorSizeMismatch(const size_t given, const size_t required)
       : m_Required{ required }
       , m_Given{ given }
     {}
 
-    std::size_t m_Required;
-    std::size_t m_Given;
+    size_t m_Required;
+    size_t m_Given;
   };
 
   /** \brief Sets the Legendre polynomials' parameters.
@@ -159,7 +151,7 @@ public:
   SetCoefficients(const ParametersType & coefficients);
 
   /** \brief Gets Legendre polynomials' coefficients. */
-  const CoefficientArrayType &
+  [[nodiscard]] const CoefficientArrayType &
   GetCoefficients() const;
 
   /** In the case which the bias field is 2D, it returns bias value at
@@ -172,22 +164,22 @@ public:
       if (index[1] != m_PrevY)
       {
         // normalized y [-1, 1]
-        double norm_y = m_NormFactor[1] * static_cast<double>(index[1] - 1);
+        const double norm_y = m_NormFactor[1] * static_cast<double>(index[1] - 1);
         this->CalculateXCoef(norm_y, m_CoefficientArray);
         m_PrevY = index[1];
       }
 
       // normalized x [-1, 1]
-      double norm_x = m_NormFactor[0] * static_cast<double>(index[0] - 1);
+      const double norm_x = m_NormFactor[0] * static_cast<double>(index[0] - 1);
 
       return LegendreSum(norm_x, m_Degree, m_CachedXCoef);
     }
-    else if (m_Dimension == 3)
+    if (m_Dimension == 3)
     {
       if (index[2] != m_PrevZ)
       {
         // normalized z [-1, 1]
-        double norm_z = m_NormFactor[2] * static_cast<double>(index[2] - 1);
+        const double norm_z = m_NormFactor[2] * static_cast<double>(index[2] - 1);
         this->CalculateYCoef(norm_z, m_CoefficientArray);
         m_PrevZ = index[2];
       }
@@ -195,13 +187,13 @@ public:
       if (index[1] != m_PrevY)
       {
         // normalized y [-1, 1]
-        double norm_y = m_NormFactor[1] * static_cast<double>(index[1] - 1);
+        const double norm_y = m_NormFactor[1] * static_cast<double>(index[1] - 1);
         this->CalculateXCoef(norm_y, m_CachedYCoef);
         m_PrevY = index[1];
       }
 
       // normalized x [-1, 1]
-      double norm_x = m_NormFactor[0] * static_cast<double>(index[0] - 1);
+      const double norm_x = m_NormFactor[0] * static_cast<double>(index[0] - 1);
       return this->LegendreSum(norm_x, m_Degree, m_CachedXCoef);
     }
     return 0;
@@ -212,7 +204,7 @@ public:
   GetNumberOfCoefficients(unsigned int dimension, unsigned int degree);
 
   /**
-   *\class SimpleForwardIterator
+   * \class SimpleForwardIterator
    * \brief Iterator which only supports forward iteration and
    * Begin(), IsAtEnd(), and Get() method which work just like as
    * SimpleImageRegionIterator.
@@ -225,7 +217,7 @@ public:
       : m_MultivariateLegendrePolynomial(polynomial)
       , m_Dimension(m_MultivariateLegendrePolynomial->GetDimension())
       , m_DomainSize(m_MultivariateLegendrePolynomial->GetDomainSize())
-      , m_IsAtEnd(false)
+
     {
       m_Index.resize(m_Dimension);
       std::fill(m_Index.begin(), m_Index.end(), 0);
@@ -235,13 +227,13 @@ public:
     Begin()
     {
       m_IsAtEnd = false;
-      for (unsigned int dim = 0; dim < m_Dimension; dim++)
+      for (unsigned int dim = 0; dim < m_Dimension; ++dim)
       {
         m_Index[dim] = 0;
       }
     }
 
-    bool
+    [[nodiscard]] bool
     IsAtEnd() const
     {
       return m_IsAtEnd;
@@ -250,24 +242,22 @@ public:
     SimpleForwardIterator &
     operator++()
     {
-      for (unsigned int dim = 0; dim < m_Dimension; dim++)
+      for (unsigned int dim = 0; dim < m_Dimension; ++dim)
       {
         if (m_Index[dim] < static_cast<int>(m_DomainSize[dim] - 1))
         {
           m_Index[dim] += 1;
           return *this;
         }
+
+        if (dim == m_Dimension - 1)
+        {
+          m_IsAtEnd = true;
+          break;
+        }
         else
         {
-          if (dim == m_Dimension - 1)
-          {
-            m_IsAtEnd = true;
-            break;
-          }
-          else
-          {
-            m_Index[dim] = 0;
-          }
+          m_Index[dim] = 0;
         }
       }
       return *this;
@@ -284,7 +274,7 @@ public:
     unsigned int                     m_Dimension;
     DomainSizeType                   m_DomainSize;
     IndexType                        m_Index;
-    bool                             m_IsAtEnd;
+    bool                             m_IsAtEnd{ false };
   }; // end of class Iterator
 
   void
@@ -304,19 +294,19 @@ protected:
   CalculateYCoef(double norm_z, const CoefficientArrayType & coef);
 
 private:
-  DomainSizeType m_DomainSize;
-  unsigned int   m_Dimension;
-  unsigned int   m_Degree;
-  unsigned int   m_NumberOfCoefficients;
+  DomainSizeType m_DomainSize{};
+  unsigned int   m_Dimension{};
+  unsigned int   m_Degree{};
+  unsigned int   m_NumberOfCoefficients{};
 
-  CoefficientArrayType m_CoefficientArray;
-  CoefficientArrayType m_CachedXCoef;
-  CoefficientArrayType m_CachedYCoef;
-  CoefficientArrayType m_CachedZCoef;
+  CoefficientArrayType m_CoefficientArray{};
+  CoefficientArrayType m_CachedXCoef{};
+  CoefficientArrayType m_CachedYCoef{};
+  CoefficientArrayType m_CachedZCoef{};
 
-  DoubleArrayType m_NormFactor;
-  IndexValueType  m_PrevY;
-  IndexValueType  m_PrevZ;
+  DoubleArrayType m_NormFactor{};
+  IndexValueType  m_PrevY{};
+  IndexValueType  m_PrevZ{};
 }; // end of class
 
 ITKPolynomials_EXPORT std::ostream &

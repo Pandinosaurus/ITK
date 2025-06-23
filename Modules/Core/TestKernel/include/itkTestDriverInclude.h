@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,21 +52,21 @@
 #include "itkIntTypes.h"
 #include "itkWin32Header.h"
 
-#define ITK_TEST_DIMENSION_MAX 6
+constexpr int ITK_TEST_DIMENSION_MAX = 6;
 
 extern int
-RegressionTestImage(const char *         testImageFilename,
-                    const char *         baselineImageFilename,
-                    int                  reportErrors,
-                    double               intensityTolerance,
-                    ::itk::SizeValueType numberOfPixelsTolerance = 0,
-                    unsigned int         radiusTolerance = 0,
-                    bool                 verifyInputInformation = true,
-                    double               coordinateTolerance = 1.0e-6,
-                    double               directionTolerance = 1.0e-6);
+RegressionTestImage(const char *       testImageFilename,
+                    const char *       baselineImageFilename,
+                    int                reportErrors,
+                    double             intensityTolerance,
+                    itk::SizeValueType numberOfPixelsTolerance = 0,
+                    unsigned int       radiusTolerance = 0,
+                    bool               verifyInputInformation = true,
+                    double             coordinateTolerance = 1.0e-6,
+                    double             directionTolerance = 1.0e-6);
 
 extern int
-HashTestImage(const char * testImageFilename, const std::string md5hash);
+HashTestImage(const char * testImageFilename, const std::string & md5hash);
 
 
 extern std::map<std::string, int>
@@ -75,7 +75,7 @@ RegressionTestBaselines(char *);
 using ComparePairType = std::pair<char *, char *>;
 
 // A structure to hold regression test parameters
-using RegressionTestParameters = struct _RegressionTestParameters
+struct RegressionTestParameters
 {
   std::vector<ComparePairType> compareList;
   double                       intensityTolerance;
@@ -112,7 +112,7 @@ struct ProcessedOutputType
 };
 
 // A structure to hold redirect output parameters
-using RedirectOutputParameters = struct _RedirectOutputParameters
+struct RedirectOutputParameters
 {
   bool        redirect;
   std::string fileName;
@@ -125,7 +125,7 @@ extern void
 usage();
 
 extern int
-ProcessArguments(int * ac, ArgumentStringType * av, ProcessedOutputType * processedOutput = nullptr);
+ProcessArguments(int * argc, ArgumentStringType * argv, ProcessedOutputType * processedOutput = nullptr);
 
 
 /// Get the PixelType and ComponentType from fileName
@@ -133,15 +133,15 @@ extern void
 GetImageType(const char * fileName, itk::IOPixelEnum & pixelType, itk::IOComponentEnum & componentType);
 
 extern int
-RegressionTestImage(const char *         testImageFilename,
-                    const char *         baselineImageFilename,
-                    int                  reportErrors,
-                    double               intensityTolerance,
-                    ::itk::SizeValueType numberOfPixelsTolerance,
-                    unsigned int         radiusTolerance,
-                    bool                 verifyInputInformation,
-                    double               coordinateTolerance,
-                    double               directionTolerance);
+RegressionTestImage(const char *       testImageFilename,
+                    const char *       baselineImageFilename,
+                    int                reportErrors,
+                    double             intensityTolerance,
+                    itk::SizeValueType numberOfPixelsTolerance,
+                    unsigned int       radiusTolerance,
+                    bool               verifyInputInformation,
+                    double             coordinateTolerance,
+                    double             directionTolerance);
 
 
 extern int
@@ -149,7 +149,7 @@ HashTestImage(const char * testImageFilename, const std::vector<std::string> & b
 
 //
 // Generate all of the possible baselines
-// The possible baselines are generated fromn the baselineFilename using the
+// The possible baselines are generated from the baselineFilename using the
 // following algorithm:
 // 1) strip the suffix
 // 2) append a digit .x
@@ -160,6 +160,6 @@ extern std::map<std::string, int>
 RegressionTestBaselines(char * baselineFilename);
 
 // Needed for explicit instantiate
-//#include "itkTestingComparisonImageFilter.hxx"
+// #include "itkTestingComparisonImageFilter.hxx"
 
 #endif

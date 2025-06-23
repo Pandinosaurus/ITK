@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,16 +50,16 @@ itkIntermodesThresholdImageFilterTest(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using FilterType = itk::IntermodesThresholdImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, IntermodesThresholdImageFilter, HistogramThresholdImageFilter);
 
@@ -86,11 +86,11 @@ itkIntermodesThresholdImageFilterTest(int argc, char * argv[])
   filter->SetInput(reader->GetOutput());
 
   // Test no calculator set exception
-  filter->SetCalculator(0);
+  filter->SetCalculator(nullptr);
   ITK_TRY_EXPECT_EXCEPTION(filter->Update());
 
 
-  FilterType::CalculatorType::Pointer calculator = FilterType::CalculatorType::New();
+  const FilterType::CalculatorType::Pointer calculator = FilterType::CalculatorType::New();
   filter->SetCalculator(calculator);
   ITK_TEST_SET_GET_VALUE(calculator, filter->GetCalculator());
 
@@ -99,33 +99,33 @@ itkIntermodesThresholdImageFilterTest(int argc, char * argv[])
   filter->SetMaximumSmoothingIterations(10);
   ITK_TRY_EXPECT_EXCEPTION(filter->Update());
 
-  unsigned long maximumSmoothingIterations = std::stoi(argv[5]);
+  const unsigned long maximumSmoothingIterations = std::stoi(argv[5]);
   filter->SetMaximumSmoothingIterations(maximumSmoothingIterations);
   ITK_TEST_SET_GET_VALUE(maximumSmoothingIterations, filter->GetMaximumSmoothingIterations());
 
-  bool useInterMode = static_cast<bool>(std::stoi(argv[6]));
-  filter->SetUseInterMode(useInterMode);
-  ITK_TEST_SET_GET_VALUE(useInterMode, filter->GetUseInterMode());
+  const bool useInterMode = static_cast<bool>(std::stoi(argv[6]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, UseInterMode, useInterMode);
 
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
   // Regression test: compare computed threshold
-  FilterType::InputPixelType expectedThreshold = std::stod(argv[7]);
-  FilterType::InputPixelType resultThreshold = filter->GetThreshold();
+  const FilterType::InputPixelType expectedThreshold = std::stod(argv[7]);
+  const FilterType::InputPixelType resultThreshold = filter->GetThreshold();
   if (itk::Math::NotAlmostEquals(expectedThreshold, resultThreshold))
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in GetThreshold()" << std::endl;
-    std::cerr << "Expected: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(expectedThreshold)
-              << ", but got: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(resultThreshold)
-              << std::endl;
+    std::cerr << "Expected: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(expectedThreshold)
+              << ", but got: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(resultThreshold) << std::endl;
     return EXIT_FAILURE;
   }
 
   // Write output image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 

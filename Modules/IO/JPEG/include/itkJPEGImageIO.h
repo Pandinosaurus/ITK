@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class JPEGImageIO
+ * \class JPEGImageIO
  *
  * \brief ImageIO object for reading and writing JPEG images
  *
@@ -49,10 +49,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(JPEGImageIO, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JPEGImageIO);
 
   /** Set/Get the level of quality for the output images. */
+  /** @ITKStartGrouping */
   virtual void
   SetQuality(int _JPEGQuality)
   {
@@ -63,11 +64,19 @@ public:
   {
     return this->GetCompressionLevel();
   }
-
+  /** @ITKEndGrouping */
   /**  */
+  /** @ITKStartGrouping */
   itkSetMacro(Progressive, bool);
   itkGetConstMacro(Progressive, bool);
-
+  itkBooleanMacro(Progressive);
+  /** @ITKEndGrouping */
+  /** Convert to RGB if out_color_space is CMYK, default is true */
+  /** @ITKStartGrouping */
+  itkSetMacro(CMYKtoRGB, bool);
+  itkGetConstMacro(CMYKtoRGB, bool);
+  itkBooleanMacro(CMYKtoRGB);
+  /** @ITKEndGrouping */
   /*-------- This part of the interface deals with reading data. ------ */
 
   /** Determine the file type. Returns true if this ImageIO can read the
@@ -111,10 +120,13 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   void
-  WriteSlice(std::string & fileName, const void * buffer);
+  WriteSlice(const std::string & fileName, const void * const buffer);
 
-  /** Default = true*/
-  bool m_Progressive;
+  bool m_Progressive{ true };
+
+  bool m_CMYKtoRGB{ true };
+
+  bool m_IsCMYK{ false };
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ itkConstrainedValueAdditionImageFilterTest(int argc, char * argv[])
   using RegionType = itk::ImageRegion<Dimension>;
 
   // Create the input images
-  InputImageType1::Pointer inputImageA = InputImageType1::New();
-  InputImageType2::Pointer inputImageB = InputImageType2::New();
+  auto inputImageA = InputImageType1::New();
+  auto inputImageB = InputImageType2::New();
 
   // Define their size, and start index
   SizeType size;
@@ -72,15 +72,11 @@ itkConstrainedValueAdditionImageFilterTest(int argc, char * argv[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Declare Iterator types apropriated for each image
@@ -116,7 +112,7 @@ itkConstrainedValueAdditionImageFilterTest(int argc, char * argv[])
     itk::ConstrainedValueAdditionImageFilter<InputImageType1, InputImageType2, OutputImageType>;
 
   // Create the filter
-  ConstrainedValueAdditionImageFilterType::Pointer filter = ConstrainedValueAdditionImageFilterType::New();
+  auto filter = ConstrainedValueAdditionImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ConstrainedValueAdditionImageFilter, BinaryGeneratorImageFilter);
 
@@ -128,12 +124,12 @@ itkConstrainedValueAdditionImageFilterTest(int argc, char * argv[])
   filter->Update();
 
   // Get the filter Output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Write the result image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
 

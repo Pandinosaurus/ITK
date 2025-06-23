@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 
 namespace itk
 {
-/**\class SPSAOptimizerEnums
+/** \class SPSAOptimizerEnums
  * \brief Contains all enum classes used by SPSAOptimizer class.
  * \ingroup ITKOptimizers
  */
@@ -50,13 +50,8 @@ extern ITKOptimizers_EXPORT std::ostream &
  * \brief An optimizer based on simultaneous perturbation...
  *
  * This optimizer is an implementation of the Simultaneous
- * Perturbation Stochastic Approximation method, described in:
- *
- * - http://www.jhuapl.edu/SPSA/
- *
- * - Spall, J.C. (1998), "An Overview of the Simultaneous
- * Perturbation Method for Efficient Optimization," Johns
- * Hopkins APL Technical Digest, vol. 19, pp. 482-492
+ * Perturbation Stochastic Approximation method, described in
+ * \cite spall1998.
  *
  * \ingroup Optimizers
  * \ingroup ITKOptimizers
@@ -76,8 +71,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SPSAOptimizer, SingleValuedNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SPSAOptimizer);
 
   using StopConditionSPSAOptimizerEnum = SPSAOptimizerEnums::StopConditionSPSAOptimizer;
 #if !defined(ITK_LEGACY_REMOVE)
@@ -123,10 +118,7 @@ public:
    * the MaximumNumberOfIterations, the Scales, and the
    * the InitialPosition before calling this method.
    *
-   * Described in:
-   * Spall, J.C. (1998), "Implementation of the Simultaneous Perturbation
-   * Algorithm for Stochastic Optimization", IEEE Trans. Aerosp. Electron.
-   * Syst. 34(3), 817-823.
+   * Described in \cite spall1998a.
    */
   virtual void
   GuessParameters(SizeValueType numberOfGradientEstimates, double initialStepSize);
@@ -147,6 +139,7 @@ public:
   itkGetConstReferenceMacro(Gradient, DerivativeType);
 
   /** Set/Get a. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sa, double);
   itkGetConstMacro(Sa, double);
   // For backward compatibility
@@ -160,8 +153,9 @@ public:
   {
     return GetSa();
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get c. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sc, double);
   itkGetConstMacro(Sc, double);
   // For backward compatibility
@@ -175,20 +169,24 @@ public:
   {
     return GetSc();
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get A. */
+  /** @ITKStartGrouping */
   itkSetMacro(A, double);
   itkGetConstMacro(A, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get alpha. */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha, double);
   itkGetConstMacro(Alpha, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get gamma. */
+  /** @ITKStartGrouping */
   itkSetMacro(Gamma, double);
   itkGetConstMacro(Gamma, double);
-
+  /** @ITKEndGrouping */
   /** Methods to configure the cost function. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Maximize, bool);
   itkSetMacro(Maximize, bool);
   itkBooleanMacro(Maximize);
@@ -212,15 +210,16 @@ public:
   {
     this->MaximizeOn();
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of perturbation used to construct
    * a gradient estimate g_k.
    * q = NumberOfPerturbations
    * g_k = 1/q sum_{j=1..q} g^(j)_k
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfPerturbations, SizeValueType);
   itkGetConstMacro(NumberOfPerturbations, SizeValueType);
-
+  /** @ITKEndGrouping */
   /**
    * Get the state of convergence in the last iteration. When the
    * StateOfConvergence is lower than the Tolerance, and the minimum
@@ -235,23 +234,27 @@ public:
   itkGetConstMacro(StateOfConvergence, double);
 
   /** Set/Get StateOfConvergenceDecayRate (number between 0 and 1). */
+  /** @ITKStartGrouping */
   itkSetMacro(StateOfConvergenceDecayRate, double);
   itkGetConstMacro(StateOfConvergenceDecayRate, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the minimum number of iterations */
+  /** @ITKStartGrouping */
   itkSetMacro(MinimumNumberOfIterations, SizeValueType);
   itkGetConstMacro(MinimumNumberOfIterations, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the maximum number of iterations. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumNumberOfIterations, SizeValueType);
   itkGetConstMacro(MaximumNumberOfIterations, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get Tolerance */
+  /** @ITKStartGrouping */
   itkSetMacro(Tolerance, double);
   itkGetConstMacro(Tolerance, double);
-
+  /** @ITKEndGrouping */
   /** Get the reason for termination */
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
 protected:
@@ -263,22 +266,22 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Variables updated during optimization */
-  DerivativeType m_Gradient;
+  DerivativeType m_Gradient{};
 
-  double m_LearningRate;
+  double m_LearningRate{};
 
-  DerivativeType m_Delta;
+  DerivativeType m_Delta{};
 
   bool m_Stop{ false };
 
-  StopConditionSPSAOptimizerEnum m_StopCondition;
+  StopConditionSPSAOptimizerEnum m_StopCondition{};
 
-  double m_StateOfConvergence;
+  double m_StateOfConvergence{};
 
-  SizeValueType m_CurrentIteration;
+  SizeValueType m_CurrentIteration{};
 
   /** Random number generator */
-  Statistics::MersenneTwisterRandomVariateGenerator::Pointer m_Generator;
+  Statistics::MersenneTwisterRandomVariateGenerator::Pointer m_Generator{};
 
   /** Method to compute the learning rate at iteration k (a_k). */
   virtual double
@@ -291,7 +294,12 @@ protected:
   virtual double
   Compute_c(SizeValueType k) const;
 
-  /** Method to generate a perturbation vector. Takes scales into account. */
+  /** Generate a perturbation vector delta.
+   *
+   * The elements are drawn from a Bernoulli distribution (+-1).
+   *
+   * Takes scales into account.
+   */
   virtual void
   GenerateDelta(const unsigned int spaceDimension);
 
@@ -304,20 +312,20 @@ protected:
 
 private:
   /** Settings.*/
-  SizeValueType m_MinimumNumberOfIterations;
-  SizeValueType m_MaximumNumberOfIterations;
-  double        m_StateOfConvergenceDecayRate;
-  double        m_Tolerance;
-  bool          m_Maximize;
-  double        m_GradientMagnitude;
-  SizeValueType m_NumberOfPerturbations;
+  SizeValueType m_MinimumNumberOfIterations{};
+  SizeValueType m_MaximumNumberOfIterations{};
+  double        m_StateOfConvergenceDecayRate{};
+  double        m_Tolerance{};
+  bool          m_Maximize{};
+  double        m_GradientMagnitude{};
+  SizeValueType m_NumberOfPerturbations{};
 
   /** Parameters, as described by Spall.*/
-  double m_Sa;
-  double m_Sc;
-  double m_A;
-  double m_Alpha;
-  double m_Gamma;
+  double m_Sa{};
+  double m_Sc{};
+  double m_A{};
+  double m_Alpha{};
+  double m_Gamma{};
 }; // end class SPSAOptimizer
 
 // Define how to print enumeration

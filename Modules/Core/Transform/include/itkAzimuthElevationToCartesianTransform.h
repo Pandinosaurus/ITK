@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ r = std::sqrt(x^2 + y^2 + z^2)
  * TParametersValueType  The type to be used for scalar numeric
  *                       values.  Either float or double.
  *
- * NDimensions   The number of dimensions of the vector space (must be >=3).
+ * VDimension   The number of dimensions of the vector space (must be >=3).
  *
  * \todo Is there any real value in allowing the user to template
  * over the scalar type?  Perhaps it should always be double, unless
@@ -84,45 +84,45 @@ r = std::sqrt(x^2 + y^2 + z^2)
  * \sphinxexample{Core/Transform/CartesianToAzimuthElevation,Cartesian To Azimuth Elevation}
  * \endsphinx
  */
-template <typename TParametersValueType = double, unsigned int NDimensions = 3>
+template <typename TParametersValueType = double, unsigned int VDimension = 3>
 class ITK_TEMPLATE_EXPORT AzimuthElevationToCartesianTransform
-  : public AffineTransform<TParametersValueType, NDimensions>
+  : public AffineTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(AzimuthElevationToCartesianTransform);
 
   /** Standard class type aliases.   */
   using Self = AzimuthElevationToCartesianTransform;
-  using Superclass = AffineTransform<TParametersValueType, NDimensions>;
+  using Superclass = AffineTransform<TParametersValueType, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int SpaceDimension = NDimensions;
-  static constexpr unsigned int ParametersDimension = NDimensions * (NDimensions + 1);
+  static constexpr unsigned int SpaceDimension = VDimension;
+  static constexpr unsigned int ParametersDimension = VDimension * (VDimension + 1);
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(AzimuthElevationToCartesianTransform, AffineTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AzimuthElevationToCartesianTransform);
 
   /** New macro for creation of through a Smart Pointer.   */
   itkNewMacro(Self);
 
   /** Parameters type.   */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::TransformCategoryEnum;
 
   /** Jacobian type.   */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Standard scalar type for this class. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Standard coordinate point type for this class */
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
 
   /** Standard matrix type for this class.   */
   using MatrixType = Matrix<TParametersValueType, Self::SpaceDimension, Self::SpaceDimension>;
@@ -188,13 +188,11 @@ public:
   void
   SetForwardCartesianToAzimuthElevation();
 
-  /** Perform conversion from Azimuth Elevation coordinates to Cartesian
-   *  Coordinates. */
+  /** Transform a point from azimuth-elevation coordinates to Cartesian coordinates. */
   OutputPointType
   TransformAzElToCartesian(const InputPointType & point) const;
 
-  /** Perform conversion from Cartesian Coordinates to Azimuth Elevation
-   *  coordinates.  */
+  /** Transform a point from Cartesian coordinates to azimuth-elevation coordinates. */
   OutputPointType
   TransformCartesianToAzEl(const OutputPointType & point) const;
 
@@ -202,32 +200,38 @@ public:
    *  The maximum azimuth and elevation can be set so that the resulting
    *  cartesian space is symmetric about the z axis.  Therefore, the line
    *  defined by azimuth/2,elevation/2 = z-axis. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaxAzimuth, long);
   itkGetConstMacro(MaxAzimuth, long);
-
+  /** @ITKEndGrouping */
   /**  Set the maximum elevation
    *  The maximum azimuth and elevation can be set so that the resulting
    *  cartesian space is symmetric about the z axis.  Therefore, the line
    *  defined by azimuth/2,elevation/2 = z-axis. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaxElevation, long);
   itkGetConstMacro(MaxElevation, long);
-
+  /** @ITKEndGrouping */
   /**  Set the number of cartesian units between each unit along the R . */
+  /** @ITKStartGrouping */
   itkSetMacro(RadiusSampleSize, double);
   itkGetConstMacro(RadiusSampleSize, double);
-
+  /** @ITKEndGrouping */
   /**  Set the number of degrees between each azimuth unit. */
+  /** @ITKStartGrouping */
   itkSetMacro(AzimuthAngularSeparation, double);
   itkGetConstMacro(AzimuthAngularSeparation, double);
-
+  /** @ITKEndGrouping */
   /**  Set the number of degrees between each elevation unit. */
+  /** @ITKStartGrouping */
   itkSetMacro(ElevationAngularSeparation, double);
   itkGetConstMacro(ElevationAngularSeparation, double);
-
+  /** @ITKEndGrouping */
   /**  Set the distance to add to the radius. */
+  /** @ITKStartGrouping */
   itkSetMacro(FirstSampleDistance, double);
   itkGetConstMacro(FirstSampleDistance, double);
-
+  /** @ITKEndGrouping */
 protected:
   /** Create an AzimuthElevationToCartesianTransform object. */
   AzimuthElevationToCartesianTransform();
@@ -240,13 +244,13 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  long   m_MaxAzimuth;
-  long   m_MaxElevation;
-  double m_RadiusSampleSize;
-  double m_AzimuthAngularSeparation;
-  double m_ElevationAngularSeparation;
-  double m_FirstSampleDistance;
-  bool   m_ForwardAzimuthElevationToPhysical;
+  long   m_MaxAzimuth{};
+  long   m_MaxElevation{};
+  double m_RadiusSampleSize{};
+  double m_AzimuthAngularSeparation{};
+  double m_ElevationAngularSeparation{};
+  double m_FirstSampleDistance{};
+  bool   m_ForwardAzimuthElevationToPhysical{};
 }; // class AzimuthElevationToCartesianTransform
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,13 +67,13 @@ namespace itk
  * first.
  *
  * All inputs to ImageToImageFilter (if there is more than one) are
- * checked in the VerifyInputInformation method to verify that they
+ * checked in the VerifyInputInformation() method to verify that they
  * occupy the same physical space.  If the input images are in the
  * same physical space, then the location of each voxel is identical,
  * and the filter can operate voxel-by-voxel in index space.  Some
  * filters -- registration filters, for example -- will violate this
  * precondition, in which case they should redefine
- * VerifyInputInformation to relax or eliminate this requirement.
+ * VerifyInputInformation() to relax or eliminate this requirement.
  *
  * Access methods -- Set/GetCoordinateTolerance and
  * Set/GetDirectionTolerance -- are provided for cases where the
@@ -118,12 +118,12 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -186,17 +186,19 @@ public:
    *  by the input images.  ITK has a requirement that multiple input
    *  images be congruent in space by default.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(CoordinateTolerance, double);
   itkGetConstMacro(CoordinateTolerance, double);
-
+  /** @ITKEndGrouping */
   /** get/set the direction tolerance
    *  This tolerance is used to make sure that all input
    *  images are oriented the same before performing the filter's
    *  transformations.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(DirectionTolerance, double);
   itkGetConstMacro(DirectionTolerance, double);
-
+  /** @ITKEndGrouping */
   /** get/set the global default direction tolerance
    *
    * This value is used to initialize the DirectionTolerance upon
@@ -227,7 +229,7 @@ protected:
   /** \brief Verifies that the input images occupy the same physical
    * space and the each index is at the same physical location.
    *
-   * The default implementation of the PropagateRequestedRegion
+   * The default implementation of the PropagateRequestedRegion()
    * methods copies the index and size from the output to the
    * input. This makes an implicit assumption that the images occupy
    * the same physical location at each voxel. This method enforces
@@ -244,7 +246,7 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
   /** What is the input requested region that is required to produce
    * the output requested region? The base assumption for image
@@ -362,24 +364,17 @@ protected:
    * the versions from ProcessObject to avoid warnings about hiding
    * methods from the superclass.
    */
-  void
-  PushBackInput(const DataObject * input) override
-  {
-    Superclass::PushBackInput(input);
-  }
-  void
-  PushFrontInput(const DataObject * input) override
-  {
-    Superclass::PushFrontInput(input);
-  }
-
+  /** @ITKStartGrouping */
+  using Superclass::PushBackInput;
+  using Superclass::PushFrontInput;
+  /** @ITKEndGrouping */
 private:
   /**
    *  Tolerances for checking whether input images are defined to
    *  occupy the same physical space.
    */
-  double m_CoordinateTolerance;
-  double m_DirectionTolerance;
+  double m_CoordinateTolerance{};
+  double m_DirectionTolerance{};
 };
 } // end namespace itk
 

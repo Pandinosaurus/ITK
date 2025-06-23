@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +18,7 @@
 #ifndef itkImageHelper_h
 #define itkImageHelper_h
 
-#include "itkMacro.h"  // For ITK_TEMPLATE_EXPORT.
-#include <type_traits> // For true_type, false_type, and integral_constant.
+#include "itkMacro.h" // For ITK_TEMPLATE_EXPORT.
 
 namespace itk
 {
@@ -47,88 +46,70 @@ namespace itk
  */
 
 // Forward reference because of circular dependencies
-template <unsigned int NImageDimension>
+template <unsigned int VImageDimension>
 class ITK_TEMPLATE_EXPORT ImageBase;
 
-template <unsigned int NImageDimension, unsigned int NLoop>
+template <unsigned int VImageDimension, unsigned int VLoop>
 class ImageHelper
 {
 public:
-  using ImageType = ImageBase<NImageDimension>;
+  using ImageType = ImageBase<VImageDimension>;
   using IndexType = typename ImageType::IndexType;
   using OffsetType = typename ImageType::OffsetType;
   using OffsetValueType = typename ImageType::OffsetValueType;
   using IndexValueType = typename ImageType::IndexValueType;
 
   /** ComputeIndex with recursive templates */
-  inline static void
-  ComputeIndex(const IndexType &     bufferedRegionIndex,
-               OffsetValueType       offset,
-               const OffsetValueType offsetTable[],
-               IndexType &           index)
+  static inline void
+  ComputeIndex(const IndexType &                      bufferedRegionIndex,
+               OffsetValueType                        offset,
+               [[maybe_unused]] const OffsetValueType offsetTable[],
+               IndexType &                            index)
   {
-    ImageHelper<NImageDimension, NLoop - 1>::ComputeIndexInner(
-      bufferedRegionIndex, offset, offsetTable, index, std::integral_constant<bool, NLoop == 1>{});
-  }
+    static_assert(VLoop <= VImageDimension);
 
-  inline static void
-  ComputeIndexInner(const IndexType &     bufferedRegionIndex,
-                    OffsetValueType &     offset,
-                    const OffsetValueType offsetTable[],
-                    IndexType &           index,
-                    std::false_type)
-  {
-    index[NLoop] = static_cast<IndexValueType>(offset / offsetTable[NLoop]);
-    offset -= (index[NLoop] * offsetTable[NLoop]);
-    index[NLoop] += bufferedRegionIndex[NLoop];
-    ImageHelper<NImageDimension, NLoop - 1>::ComputeIndexInner(
-      bufferedRegionIndex, offset, offsetTable, index, std::integral_constant<bool, NLoop == 1>{});
-  }
+    if constexpr (VLoop > 1)
+    {
+      constexpr unsigned int loopIndex{ VLoop - 1 };
 
-  inline static void
-  ComputeIndexInner(const IndexType & bufferedRegionIndex,
-                    OffsetValueType & offset,
-                    const OffsetValueType[],
-                    IndexType & index,
-                    std::true_type)
-  {
-    // Do last
-    index[0] = bufferedRegionIndex[0] + static_cast<IndexValueType>(offset);
+      index[loopIndex] = static_cast<IndexValueType>(offset / offsetTable[loopIndex]);
+      offset -= (index[loopIndex] * offsetTable[loopIndex]);
+      index[loopIndex] += bufferedRegionIndex[loopIndex];
+      ImageHelper<VImageDimension, loopIndex>::ComputeIndex(bufferedRegionIndex, offset, offsetTable, index);
+    }
+    else
+    {
+      static_assert(VLoop == 1);
+
+      // Do last
+      index[0] = bufferedRegionIndex[0] + static_cast<IndexValueType>(offset);
+    }
   }
 
   // ComputeOffset
   //
-  inline static void
-  ComputeOffset(const IndexType &     bufferedRegionIndex,
-                const IndexType &     index,
-                const OffsetValueType offsetTable[],
-                OffsetValueType &     offset)
+  static inline void
+  ComputeOffset(const IndexType &                      bufferedRegionIndex,
+                const IndexType &                      index,
+                [[maybe_unused]] const OffsetValueType offsetTable[],
+                OffsetValueType &                      offset)
   {
-    ImageHelper<NImageDimension, NLoop - 1>::ComputeOffsetInner(
-      bufferedRegionIndex, index, offsetTable, offset, std::integral_constant<bool, NLoop == 1>{});
-  }
+    static_assert(VLoop <= VImageDimension);
 
-  inline static void
-  ComputeOffsetInner(const IndexType &     bufferedRegionIndex,
-                     const IndexType &     index,
-                     const OffsetValueType offsetTable[],
-                     OffsetValueType &     offset,
-                     std::false_type)
-  {
-    offset += (index[NLoop] - bufferedRegionIndex[NLoop]) * offsetTable[NLoop];
-    ImageHelper<NImageDimension, NLoop - 1>::ComputeOffsetInner(
-      bufferedRegionIndex, index, offsetTable, offset, std::integral_constant<bool, NLoop == 1>{});
-  }
+    if constexpr (VLoop > 1)
+    {
+      constexpr unsigned int loopIndex{ VLoop - 1 };
 
-  inline static void
-  ComputeOffsetInner(const IndexType & bufferedRegionIndex,
-                     const IndexType & index,
-                     const OffsetValueType[],
-                     OffsetValueType & offset,
-                     std::true_type)
-  {
-    // Do last
-    offset += index[0] - bufferedRegionIndex[0];
+      offset += (index[loopIndex] - bufferedRegionIndex[loopIndex]) * offsetTable[loopIndex];
+      ImageHelper<VImageDimension, loopIndex>::ComputeOffset(bufferedRegionIndex, index, offsetTable, offset);
+    }
+    else
+    {
+      static_assert(VLoop == 1);
+
+      // Do last
+      offset += index[0] - bufferedRegionIndex[0];
+    }
   }
 };
 } // end namespace itk

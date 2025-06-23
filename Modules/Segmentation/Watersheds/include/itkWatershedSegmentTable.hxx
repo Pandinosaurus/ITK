@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,7 @@
 #ifndef itkWatershedSegmentTable_hxx
 #define itkWatershedSegmentTable_hxx
 
-#include "itkWatershedSegmentTable.h"
-
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 template <typename TScalar>
 void
@@ -33,12 +29,12 @@ SegmentTable<TScalar>::PruneEdgeLists(ScalarType maximum_saliency)
   typename edge_list_t::iterator e;
   for (it = this->Begin(); it != this->End(); ++it)
   {
-    for (e = (*it).second.edge_list.begin(); e != (*it).second.edge_list.end(); e++)
+    for (e = it->second.edge_list.begin(); e != it->second.edge_list.end(); ++e)
     {
-      if ((e->height - (*it).second.min) > maximum_saliency)
+      if ((e->height - it->second.min) > maximum_saliency)
       { // dump the rest of the list, assumes list is sorted
-        e++;
-        (*it).second.edge_list.erase(e, (*it).second.edge_list.end());
+        ++e;
+        it->second.edge_list.erase(e, it->second.edge_list.end());
         break; // through with this segment
       }
     }
@@ -53,7 +49,7 @@ SegmentTable<TScalar>::SortEdgeLists()
 
   for (it = this->Begin(); it != this->End(); ++it)
   {
-    (*it).second.edge_list.sort();
+    it->second.edge_list.sort();
   }
 }
 
@@ -61,18 +57,14 @@ template <typename TScalar>
 bool
 SegmentTable<TScalar>::Add(IdentifierType a, const segment_t & t)
 {
-  std::pair<Iterator, bool> result;
-  result = m_HashMap.insert(ValueType(a, t));
+  const std::pair<Iterator, bool> result = m_HashMap.insert(ValueType(a, t));
   if (result.second == false)
   {
     return false;
   }
-  else
-  {
-    return true;
-  }
+
+  return true;
 }
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #endif

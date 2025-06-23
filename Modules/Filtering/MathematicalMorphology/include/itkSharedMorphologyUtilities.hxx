@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSharedMorphologyUtilities_hxx
 #define itkSharedMorphologyUtilities_hxx
 
-#include "itkSharedMorphologyUtilities.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNeighborhoodAlgorithm.h"
@@ -49,8 +48,8 @@ NeedToDoFace(const TRegion AllImage, const TRegion face, const TLine line)
   typename TRegion::SizeType  FSz = face.GetSize();
   typename TRegion::IndexType FSt = face.GetIndex();
 
-  unsigned smallDim = 0;
-  for (unsigned i = 0; i < AllImage.GetImageDimension(); i++)
+  unsigned int smallDim = 0;
+  for (unsigned int i = 0; i < AllImage.GetImageDimension(); ++i)
   {
     if (FSz[i] == 1)
     {
@@ -58,8 +57,8 @@ NeedToDoFace(const TRegion AllImage, const TRegion face, const TLine line)
       break;
     }
   }
-  IndexValueType startI = ISt[smallDim];
-  IndexValueType facePos = FSt[smallDim] + FSz[smallDim] - 1;
+  const IndexValueType startI = ISt[smallDim];
+  const IndexValueType facePos = FSt[smallDim] + FSz[smallDim] - 1;
   if (facePos == startI)
   {
     // at the start of dimension - vector must be positive
@@ -87,8 +86,8 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
                 const float                       tol,
                 const typename TBres::OffsetArray LineOffsets,
                 const typename TImage::RegionType AllImage,
-                unsigned &                        start,
-                unsigned &                        end)
+                unsigned int &                    start,
+                unsigned int &                    end)
 {
   // compute intersection between ray and box
   typename TImage::IndexType ImStart = AllImage.GetIndex();
@@ -96,21 +95,22 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
   float                      Tfar = NumericTraits<float>::max();
   float                      Tnear = NumericTraits<float>::NonpositiveMin();
   float                      domdir = NumericTraits<float>::NonpositiveMin();
-  int                        sPos, ePos;
-  unsigned                   perpdir = 0;
-  for (unsigned i = 0; i < TImage::RegionType::ImageDimension; i++)
+
+  unsigned int perpdir = 0;
+  for (unsigned int i = 0; i < TImage::RegionType::ImageDimension; ++i)
   {
-    if (std::fabs(line[i]) > domdir)
+    const auto abs_line_elmt_tmp = itk::Math::abs(line[i]);
+    if (abs_line_elmt_tmp > domdir)
     {
-      domdir = std::fabs(line[i]);
+      domdir = abs_line_elmt_tmp;
       perpdir = i;
     }
-    if (std::fabs(line[i]) > tol)
+    if (abs_line_elmt_tmp > tol)
     {
-      int   P1 = ImStart[i] - StartIndex[i];
-      int   P2 = ImStart[i] + ImSize[i] - 1 - StartIndex[i];
-      float T1 = ((float)(P1)) / line[i];
-      float T2 = ((float)(P2)) / line[i];
+      const float P1{ static_cast<float>(ImStart[i] - StartIndex[i]) };
+      const float P2{ P1 + static_cast<float>(ImSize[i]) - 1.0F };
+      float       T1 = P1 / line[i];
+      float       T2 = P2 / line[i];
 
       if (T1 > T2)
       {
@@ -130,7 +130,7 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
     else
     {
       // parallel to an axis - check for intersection at all
-      if ((StartIndex[i] < ImStart[i]) || (StartIndex[i] > ImStart[i] + (int)ImSize[i] - 1))
+      if ((StartIndex[i] < ImStart[i]) || (StartIndex[i] > ImStart[i] + static_cast<int>(ImSize[i]) - 1))
       {
         // no intersection
         start = end = 0;
@@ -138,10 +138,10 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
       }
     }
   }
-  sPos = (int)(Tnear * std::fabs(line[perpdir]) + 0.5);
-  ePos = (int)(Tfar * std::fabs(line[perpdir]) + 0.5);
+  int sPos = static_cast<int>(Tnear * itk::Math::abs(line[perpdir]) + 0.5);
+  int ePos = static_cast<int>(Tfar * itk::Math::abs(line[perpdir]) + 0.5);
 
-  // std::cout << Tnear << " " << Tfar << std::endl;
+  // std::cout << Tnear << ' ' << Tfar << std::endl;
   if (Tfar < Tnear) // seems to need some margin
   {
     // in theory, no intersection, but search between them
@@ -149,10 +149,10 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
     unsigned int inside = 0; // initialize to avoid warning
     if (Tnear - Tfar < 10)
     {
-      //      std::cout << "Searching " << Tnear << " " << Tfar << std::endl;
+      //      std::cout << "Searching " << Tnear << ' ' << Tfar << std::endl;
       itkAssertInDebugAndIgnoreInReleaseMacro(ePos >= 0);
-      itkAssertInDebugAndIgnoreInReleaseMacro(sPos < (int)LineOffsets.size());
-      for (int i = ePos; i <= sPos; i++)
+      itkAssertInDebugAndIgnoreInReleaseMacro(sPos < static_cast<int>(LineOffsets.size()));
+      for (int i = ePos; i <= sPos; ++i)
       {
         if (AllImage.IsInside(StartIndex + LineOffsets[i]))
         {
@@ -167,20 +167,20 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
       //      std::cout << "Found intersection after all :: " << inside << std::endl;
       sPos = ePos = inside;
       itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 >= 0);
-      itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < (int)LineOffsets.size());
+      itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < static_cast<int>(LineOffsets.size()));
       while (AllImage.IsInside(StartIndex + LineOffsets[ePos + 1]))
       {
         ++ePos;
         itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < static_cast<int>(LineOffsets.size()));
       }
       itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 >= 0);
-      itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < (int)LineOffsets.size());
+      itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < static_cast<int>(LineOffsets.size()));
       while (AllImage.IsInside(StartIndex + LineOffsets[sPos - 1]))
       {
         --sPos;
         itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < static_cast<int>(LineOffsets.size()));
       }
       start = sPos;
       end = ePos;
@@ -195,29 +195,27 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
   else
   {
     itkAssertInDebugAndIgnoreInReleaseMacro(sPos >= 0);
-    itkAssertInDebugAndIgnoreInReleaseMacro(sPos < (int)LineOffsets.size());
+    itkAssertInDebugAndIgnoreInReleaseMacro(sPos < static_cast<int>(LineOffsets.size()));
     if (AllImage.IsInside(StartIndex + LineOffsets[sPos]))
     {
       for (; sPos > 0;)
       {
         itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(sPos - 1 < static_cast<int>(LineOffsets.size()));
         if (!AllImage.IsInside(StartIndex + LineOffsets[sPos - 1]))
         {
           break;
         }
-        else
-        {
-          --sPos;
-        }
+
+        --sPos;
       }
     }
     else
     {
-      for (; sPos < (int)LineOffsets.size();)
+      for (; sPos < static_cast<int>(LineOffsets.size());)
       {
         itkAssertInDebugAndIgnoreInReleaseMacro(sPos >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(sPos < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(sPos < static_cast<int>(LineOffsets.size()));
         ++sPos;
         if (!AllImage.IsInside(StartIndex + LineOffsets[sPos]))
         {
@@ -231,18 +229,16 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
     }
     if (AllImage.IsInside(StartIndex + LineOffsets[ePos]))
     {
-      for (; ePos < (int)LineOffsets.size();)
+      for (; ePos < static_cast<int>(LineOffsets.size());)
       {
         itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(ePos + 1 < static_cast<int>(LineOffsets.size()));
         if (!AllImage.IsInside(StartIndex + LineOffsets[ePos + 1]))
         {
           break;
         }
-        else
-        {
-          ++ePos;
-        }
+
+        ++ePos;
       }
     }
     else
@@ -251,7 +247,7 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
       {
         --ePos;
         itkAssertInDebugAndIgnoreInReleaseMacro(ePos >= 0);
-        itkAssertInDebugAndIgnoreInReleaseMacro(ePos < (int)LineOffsets.size());
+        itkAssertInDebugAndIgnoreInReleaseMacro(ePos < static_cast<int>(LineOffsets.size()));
         if (!AllImage.IsInside(StartIndex + LineOffsets[ePos]))
         {
           --ePos;
@@ -274,12 +270,12 @@ CopyLineToImage(const typename TImage::Pointer            output,
                 const typename TImage::IndexType          StartIndex,
                 const typename TBres::OffsetArray         LineOffsets,
                 std::vector<typename TImage::PixelType> & outbuffer,
-                const unsigned                            start,
-                const unsigned                            end)
+                const unsigned int                        start,
+                const unsigned int                        end)
 {
-  unsigned size = end - start + 1;
+  const unsigned int size = end - start + 1;
 
-  for (unsigned i = 0; i < size; i++)
+  for (unsigned int i = 0; i < size; ++i)
   {
     // itkAssertInDebugAndIgnoreInReleaseMacro(start + i >= 0);
     itkAssertInDebugAndIgnoreInReleaseMacro(start + i < LineOffsets.size());
@@ -303,15 +299,14 @@ MakeEnlargedFace(const typename TInputImage::ConstPointer itkNotUsed(input),
   using FaceListType = std::list<RegionType>;
   FaceListType faceList;
 
-  for (unsigned i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
-    RegionType R1, R2;
-    SizeType   S1 = AllImage.GetSize();
-    IndexType  I2 = AllImage.GetIndex();
+    SizeType  S1 = AllImage.GetSize();
+    IndexType I2 = AllImage.GetIndex();
 
     S1[i] = 1;
-    R1 = AllImage;
-    R2 = AllImage;
+    RegionType R1 = AllImage;
+    RegionType R2 = AllImage;
 
     // the first face will have the same starting index and one
     // dimension removed
@@ -324,32 +319,32 @@ MakeEnlargedFace(const typename TInputImage::ConstPointer itkNotUsed(input),
     faceList.push_back(R2);
     //    std::cout << R1 << R2 << std::endl;
   }
-  typename FaceListType::iterator fit;
-  fit = faceList.begin();
+  auto fit = faceList.begin();
 
-  typename TInputImage::RegionType RelevantRegion;
-  bool                             foundFace = false;
-  float                            MaxComp = NumericTraits<float>::NonpositiveMin();
-  unsigned                         DomDir = 0;
+  bool         foundFace = false;
+  float        MaxComp = NumericTraits<float>::NonpositiveMin();
+  unsigned int DomDir = 0;
   // std::cout << "------------" << std::endl;
   // figure out the dominant direction of the line
-  for (unsigned i = 0; i < TInputImage::RegionType::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::RegionType::ImageDimension; ++i)
   {
-    if (std::fabs(line[i]) > MaxComp)
+    const auto abs_line_elmt_tmp = itk::Math::abs(line[i]);
+    if (abs_line_elmt_tmp > MaxComp)
     {
-      MaxComp = std::fabs(line[i]);
+      MaxComp = abs_line_elmt_tmp;
       DomDir = i;
     }
   }
 
+  typename TInputImage::RegionType RelevantRegion;
   for (; fit != faceList.end(); ++fit)
   {
     // check whether this face is suitable for parallel sweeping - i.e
     // whether the line is within 45 degrees of the perpendicular
     // Figure out the perpendicular using the region size
-    unsigned FaceDir = 0;
+    unsigned int FaceDir = 0;
     //    std::cout << "Face " << *fit << std::endl;
-    for (unsigned i = 0; i < TInputImage::RegionType::ImageDimension; i++)
+    for (unsigned int i = 0; i < TInputImage::RegionType::ImageDimension; ++i)
     {
       if (fit->GetSize()[i] == 1)
       {
@@ -373,9 +368,9 @@ MakeEnlargedFace(const typename TInputImage::ConstPointer itkNotUsed(input),
     // enlarge the region so that sweeping the line across it will
     // cause all pixels to be visited.
     // find the dimension not within the face
-    unsigned NonFaceDim = 0;
+    unsigned int NonFaceDim = 0;
 
-    for (unsigned i = 0; i < TInputImage::RegionType::ImageDimension; i++)
+    for (unsigned int i = 0; i < TInputImage::RegionType::ImageDimension; ++i)
     {
       if (RelevantRegion.GetSize()[i] == 1)
       {
@@ -387,16 +382,16 @@ MakeEnlargedFace(const typename TInputImage::ConstPointer itkNotUsed(input),
     // figure out how much extra each other dimension needs to be extended
     typename TInputImage::SizeType  NewSize = RelevantRegion.GetSize();
     typename TInputImage::IndexType NewStart = RelevantRegion.GetIndex();
-    unsigned                        NonFaceLen = AllImage.GetSize()[NonFaceDim];
-    for (unsigned i = 0; i < TInputImage::RegionType::ImageDimension; i++)
+    const unsigned int              NonFaceLen = AllImage.GetSize()[NonFaceDim];
+    for (unsigned int i = 0; i < TInputImage::RegionType::ImageDimension; ++i)
     {
       if (i != NonFaceDim)
       {
-        auto Pad = Math::Ceil<int>((float)(NonFaceLen)*line[i] / std::fabs(line[NonFaceDim]));
+        auto Pad = Math::Ceil<int>(static_cast<float>(NonFaceLen) * line[i] / itk::Math::abs(line[NonFaceDim]));
         if (Pad < 0)
         {
           // just increase the size - no need to change the start
-          NewSize[i] += abs(Pad) + 1;
+          NewSize[i] += itk::Math::abs(Pad) + 1;
         }
         else
         {
@@ -429,14 +424,14 @@ FillLineBuffer(typename TImage::ConstPointer             input,
                unsigned int &                            start,
                unsigned int &                            end)
 {
-  int status = ComputeStartEnd<TImage, TBres, TLine>(StartIndex, line, tol, LineOffsets, AllImage, start, end);
+  const int status = ComputeStartEnd<TImage, TBres, TLine>(StartIndex, line, tol, LineOffsets, AllImage, start, end);
   if (!status)
   {
     return (status);
   }
-  unsigned size = end - start + 1;
+  const unsigned int size = end - start + 1;
   // compat
-  for (unsigned i = 0; i < size; i++)
+  for (unsigned int i = 0; i < size; ++i)
   {
     itkAssertInDebugAndIgnoreInReleaseMacro(start + i < LineOffsets.size());
     inbuffer[i + 1] = input->GetPixel(StartIndex + LineOffsets[start + i]);
@@ -451,9 +446,9 @@ GetLinePixels(const TLine line)
   float N = line.GetNorm();
   float correction = 0.0;
 
-  for (unsigned int i = 0; i < TLine::Dimension; i++)
+  for (unsigned int i = 0; i < TLine::Dimension; ++i)
   {
-    float tt = std::fabs(line[i] / N);
+    const float tt = itk::Math::abs(line[i] / N);
     if (tt > correction)
     {
       correction = tt;
@@ -461,7 +456,7 @@ GetLinePixels(const TLine line)
   }
 
   N *= correction;
-  return (int)(N + 0.5);
+  return static_cast<int>(N + 0.5);
 }
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,8 +65,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(GPUDenseFiniteDifferenceImageFilter, GPUFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUDenseFiniteDifferenceImageFilter);
 
   /** Convenient type alias */
   using InputImageType = typename GPUSuperclass::InputImageType;
@@ -87,13 +87,9 @@ public:
   /** The container type for the update buffer. */
   using UpdateBufferType = OutputImageType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputTimesDoubleCheck, (Concept::MultiplyOperator<PixelType, double>));
   itkConceptMacro(OutputAdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<typename TInputImage::PixelType, PixelType>));
-  // End concept checking
-#endif
 
   /** Get OpenCL Kernel source as a string, creates a GetOpenCLSource method */
   itkGetOpenCLSourceFromKernelMacro(GPUDenseFiniteDifferenceImageFilterKernel);
@@ -137,7 +133,7 @@ protected:
   AllocateUpdateBuffer() override;
 
   /* GPU kernel handle for GPUApplyUpdate */
-  int m_ApplyUpdateGPUKernelHandle;
+  int m_ApplyUpdateGPUKernelHandle{};
 };
 } // end namespace itk
 

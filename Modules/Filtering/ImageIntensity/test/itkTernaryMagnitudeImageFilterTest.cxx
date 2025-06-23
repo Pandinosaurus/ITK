@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,9 +52,9 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   using RegionType = itk::ImageRegion<Dimension>;
 
   // Create the input images
-  InputImage1Type::Pointer inputImageA = InputImage1Type::New();
-  InputImage2Type::Pointer inputImageB = InputImage2Type::New();
-  InputImage3Type::Pointer inputImageC = InputImage3Type::New();
+  auto inputImageA = InputImage1Type::New();
+  auto inputImageB = InputImage2Type::New();
+  auto inputImageC = InputImage3Type::New();
 
   // Define their size and start index
   SizeType size;
@@ -72,21 +72,15 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Initialize Image C
-  inputImageC->SetLargestPossibleRegion(region);
-  inputImageC->SetBufferedRegion(region);
-  inputImageC->SetRequestedRegion(region);
+  inputImageC->SetRegions(region);
   inputImageC->Allocate();
 
   // Declare Iterator types for each image
@@ -98,7 +92,7 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   InputImage1IteratorType it1(inputImageA, inputImageA->GetBufferedRegion());
 
   // Initialize the content of Image A
-  InputImage1Type::PixelType valueA = 2.0;
+  constexpr InputImage1Type::PixelType valueA = 2.0;
   while (!it1.IsAtEnd())
   {
     it1.Set(valueA);
@@ -109,7 +103,7 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   InputImage2IteratorType it2(inputImageB, inputImageB->GetBufferedRegion());
 
   // Initialize the content of Image B
-  InputImage2Type::PixelType valueB = 3.0;
+  constexpr InputImage2Type::PixelType valueB = 3.0;
   while (!it2.IsAtEnd())
   {
     it2.Set(valueB);
@@ -120,7 +114,7 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   InputImage3IteratorType it3(inputImageC, inputImageC->GetBufferedRegion());
 
   // Initialize the content of Image C
-  InputImage3Type::PixelType valueC = 4.0;
+  constexpr InputImage3Type::PixelType valueC = 4.0;
   while (!it3.IsAtEnd())
   {
     it3.Set(valueC);
@@ -131,7 +125,7 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
     itk::TernaryMagnitudeImageFilter<InputImage1Type, InputImage2Type, InputImage3Type, OutputImageType>;
 
   // Create the filter
-  TernaryMagnitudeImageFilterType::Pointer filter = TernaryMagnitudeImageFilterType::New();
+  auto filter = TernaryMagnitudeImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, TernaryMagnitudeImageFilter, TernaryGeneratorImageFilter);
 
@@ -144,12 +138,12 @@ itkTernaryMagnitudeImageFilterTest(int argc, char * argv[])
   filter->Update();
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Write the result image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
 

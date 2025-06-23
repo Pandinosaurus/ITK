@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class PathToChainCodePathFilter
+ * \class PathToChainCodePathFilter
  * \brief Filter that produces a chain code version of a path.
  *
  * PathToChainCodePathFilter produces a chain code representation of a path.
@@ -50,8 +50,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PathToChainCodePathFilter, PathToPathFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PathToChainCodePathFilter);
 
   /** Some convenient type alias. */
   using InputPathType = TInputPath;
@@ -64,10 +64,11 @@ public:
   using OffsetType = typename InputPathType::OffsetType;
 
   /** Set/Get the direction in which to reflect the data. Default is "Off". */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximallyConnected, bool);
   itkGetConstMacro(MaximallyConnected, bool);
   itkBooleanMacro(MaximallyConnected);
-
+  /** @ITKEndGrouping */
 protected:
   PathToChainCodePathFilter();
   ~PathToChainCodePathFilter() override = default;

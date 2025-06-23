@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,6 @@
  *
  *=========================================================================*/
 
-//
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -26,6 +25,13 @@
 #include "itkPeriodicBoundaryCondition.h"
 #include "itkConstantBoundaryCondition.h"
 #include "itkTestingMacros.h"
+
+#include "itkObjectFactoryBase.h"
+#include "itkVnlForwardFFTImageFilter.h"
+#if defined(ITK_USE_FFTWD) || defined(ITK_USE_FFTWF)
+#  include "itkFFTWForwardFFTImageFilter.h"
+#endif
+
 
 int
 itkFFTPadImageFilterTest(int argc, char * argv[])
@@ -53,7 +59,7 @@ itkFFTPadImageFilterTest(int argc, char * argv[])
   using FFTPadType = itk::FFTPadImageFilter<ImageType>;
 
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   itk::ZeroFluxNeumannBoundaryCondition<ImageType> zfnCond;
@@ -61,10 +67,18 @@ itkFFTPadImageFilterTest(int argc, char * argv[])
   itk::PeriodicBoundaryCondition<ImageType>        wrapCond;
 
   // Create the filters
-  FFTPadType::Pointer fftpad = FFTPadType::New();
+  auto fftpad = FFTPadType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(fftpad, FFTPadImageFilter, PadImageFilterBase);
+
+
+  const itk::SizeValueType sizeGreatestPrimeFactor = std::stoi(argv[3]);
+  fftpad->SetSizeGreatestPrimeFactor(sizeGreatestPrimeFactor);
+  ITK_TEST_SET_GET_VALUE(sizeGreatestPrimeFactor, fftpad->GetSizeGreatestPrimeFactor());
+
   fftpad->SetInput(reader->GetOutput());
-  fftpad->SetSizeGreatestPrimeFactor(std::stoi(argv[3]));
-  std::string padMethod = argv[4];
+
+  const std::string padMethod = argv[4];
   if (padMethod == "Mirror")
   {
     //    fftpad->SetBoundaryCondition( &mirrorCond );
@@ -81,18 +95,19 @@ itkFFTPadImageFilterTest(int argc, char * argv[])
   {
     fftpad->SetBoundaryCondition(&wrapCond);
   }
-  itk::SimpleFilterWatcher watchFFTPad(fftpad, "fftpad");
+  const itk::SimpleFilterWatcher watchFFTPad(fftpad, "fftpad");
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(fftpad->GetOutput());
   writer->SetFileName(argv[2]);
-  writer->Update();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   // Ensure we can build with a different output image type.
   using OutputImageType = itk::Image<double, Dimension>;
   using FFTPadWithOutputType = itk::FFTPadImageFilter<ImageType, OutputImageType>;
-  FFTPadWithOutputType::Pointer fftPadWithOutput = FFTPadWithOutputType::New();
-  (void)fftPadWithOutput;
+  [[maybe_unused]] auto fftPadWithOutput = FFTPadWithOutputType::New();
 
   return EXIT_SUCCESS;
 }

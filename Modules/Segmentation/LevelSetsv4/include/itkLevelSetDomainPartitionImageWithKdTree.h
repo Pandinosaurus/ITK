@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class LevelSetDomainPartitionImageWithKdTree
+ * \class LevelSetDomainPartitionImageWithKdTree
  *
  * \brief Helper class used to share data in the ScalarChanAndVeseLevelSetFunction.
  * \ingroup ITKLevelSetsv4
@@ -47,14 +47,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkTypeMacro(LevelSetDomainPartitionImageWithKdTree, LevelSetDomainPartitionImage);
+  itkOverrideGetNameOfClassMacro(LevelSetDomainPartitionImageWithKdTree);
 
   using ImageType = TImage;
-  using ListIndexType = typename Superclass::ListIndexType;
-  using ListRegionType = typename Superclass::ListRegionType;
-  using ListPointType = typename Superclass::ListPointType;
-  using ListIteratorType = typename Superclass::ListIteratorType;
-  using IdentifierListType = typename Superclass::IdentifierListType;
+  using typename Superclass::ListIndexType;
+  using typename Superclass::ListRegionType;
+  using typename Superclass::ListPointType;
+  using typename Superclass::ListIteratorType;
+  using typename Superclass::IdentifierListType;
 
   using CentroidVectorType = typename ListPointType::VectorType;
   using SampleType = typename Statistics::ListSample<CentroidVectorType>;
@@ -70,9 +70,10 @@ public:
   using NeighborsIdType = unsigned int;
 
   /** Get/Set number of neighbors in the kd-tree leaf node */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfNeighbors, NeighborsIdType);
   itkGetMacro(NumberOfNeighbors, NeighborsIdType);
-
+  /** @ITKEndGrouping */
   /** Populate a list image with each pixel being a list of overlapping
    *  level set support at that pixel */
   void
@@ -88,7 +89,7 @@ protected:
   PopulateDomainWithKdTree();
 
 private:
-  KdTreePointer   m_KdTree;
+  KdTreePointer   m_KdTree{};
   NeighborsIdType m_NumberOfNeighbors{ 10 };
 };
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,27 +34,27 @@
 int
 itkImageMaskSpatialObjectTest(int, char *[])
 {
-  constexpr unsigned int NDimensions = 3;
+  constexpr unsigned int VDimension = 3;
 
-  using ImageMaskSpatialObject = itk::ImageMaskSpatialObject<NDimensions>;
+  using ImageMaskSpatialObject = itk::ImageMaskSpatialObject<VDimension>;
   using PixelType = ImageMaskSpatialObject::PixelType;
   using ImageType = ImageMaskSpatialObject::ImageType;
   using Iterator = itk::ImageRegionIterator<ImageType>;
 
-  ImageType::Pointer    image = ImageType::New();
-  ImageType::SizeType   size = { { 50, 50, 50 } };
-  ImageType::IndexType  index = { { 0, 0, 0 } };
-  ImageType::RegionType region;
+  auto                           image = ImageType::New();
+  constexpr ImageType::SizeType  size = { { 50, 50, 50 } };
+  constexpr ImageType::IndexType index = { { 0, 0, 0 } };
+  ImageType::RegionType          region;
 
   region.SetSize(size);
   region.SetIndex(index);
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer to zero
+  image->AllocateInitialized();
 
-  ImageType::RegionType insideRegion;
-  ImageType::SizeType   insideSize = { { 30, 30, 30 } };
-  ImageType::IndexType  insideIndex = { { 10, 10, 10 } };
+  ImageType::RegionType          insideRegion;
+  constexpr ImageType::SizeType  insideSize = { { 30, 30, 30 } };
+  constexpr ImageType::IndexType insideIndex = { { 10, 10, 10 } };
   insideRegion.SetSize(insideSize);
   insideRegion.SetIndex(insideIndex);
 
@@ -68,7 +68,7 @@ itkImageMaskSpatialObjectTest(int, char *[])
     ++it;
   }
 
-  ImageMaskSpatialObject::Pointer maskSO = ImageMaskSpatialObject::New();
+  auto maskSO = ImageMaskSpatialObject::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(maskSO, ImageMaskSpatialObject, ImageSpatialObject);
 

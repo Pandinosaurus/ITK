@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class PolyLineParametricPath
+ * \class PolyLineParametricPath
  * \brief  Represent a path of line segments through ND Space
  *
  * This class is intended to represent parametric paths through an image, where
@@ -65,30 +65,30 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PolyLineParametricPath, ParametricPath);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolyLineParametricPath);
 
   /** Input type */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Basic data-structure types used */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
   using IndexType = Index<VDimension>;
   using OffsetType = Offset<VDimension>;
   using PointType = Point<double, VDimension>;
   using VectorType = Vector<double, VDimension>;
   using VertexType = ContinuousIndexType;
-  using VertexListType = VectorContainer<unsigned, VertexType>;
+  using VertexListType = VectorContainer<unsigned int, VertexType>;
   using VertexListPointer = typename VertexListType::Pointer;
 
   /** Return the location of the parametric path at the specified location. */
   OutputType
   Evaluate(const InputType & input) const override;
 
-  ///** Evaluate the first derivative of the ND output with respect to the 1D
+  /** Evaluate the first derivative of the ND output with respect to the 1D
   //  * input.  This is an exact, algebraic function. */
   // virtual VectorType EvaluateDerivative(const InputType & input) const;
 
@@ -145,7 +145,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  VertexListPointer m_VertexList;
+  VertexListPointer m_VertexList{};
 };
 } // end namespace itk
 

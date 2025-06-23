@@ -8,7 +8,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,22 +77,32 @@ fi
 
 # Loop over the remote modules' CMake files
 for filename in ${remote_modules_path}/*.cmake; do
-  echo -n "."
+  echo $filename
 
   # Get the current commit hash
   curr_commit=$(grep -v "\s*#" $filename | grep -m 1 -o "GIT_TAG \(\w\|\.\|\-\|_\)*")
   curr_commit=${curr_commit/*GIT_TAG /}
 
   # Read the git repository information
-  repository=$(grep -v "\s*#" $filename | grep -m 1 -o "GIT_REPOSITORY \${git_protocol}://github.com/\(\w\|\-\|_\|/\)*")
-  repository=${repository/*GIT_REPOSITORY \${git_protocol\}:\/\/github.com\//}
+  repository=$(grep -v "\s*#" $filename | grep -m 1 -o "GIT_REPOSITORY \https://github.com/\(\w\|\-\|_\|/\)*")
+  repository=${repository/*GIT_REPOSITORY https:\/\/github.com\//}
 
   # Get the latest git commit hash of the remote module.
   # Remotes will usually not be tagged.
-  latest_commit=$(git ls-remote git://github.com/$repository refs/heads/master)
+  latest_commit=$(git ls-remote git@github.com:$repository refs/heads/master)
   latest_commit=${latest_commit/[[:space:]]refs\/heads\/master/}
 
-  if [ $curr_commit = $latest_commit ]; then
+  if [ -z "$latest_commit" ]; then
+    # check for a branch named main
+    latest_commit=$(git ls-remote git@github.com:$repository refs/heads/main)
+    latest_commit=${latest_commit/[[:space:]]refs\/heads\/main/}
+    if [ -z "$latest_commit" ]; then
+      echo "$repository has neither branch named master nor main"
+      continue
+    fi
+  fi
+
+  if [ "$curr_commit" = "$latest_commit" ]; then
     continue
   fi
 
@@ -108,6 +118,7 @@ for filename in ${remote_modules_path}/*.cmake; do
   fi
 
   # Search and replace the latest commit hash in the CMake file
+  # echo "Updating $repository from '${curr_commit}' to '${latest_commit}'" # debug
   ex -sc "%s/${curr_commit}/${latest_commit}/g|x" $filename
   updated+=($repository)
 

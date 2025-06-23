@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -166,8 +166,8 @@ private:
 //  Software Guide : EndLatex
 
 
-#ifndef __CustomTriangleVisitor
-#  define __CustomTriangleVisitor
+#ifndef CustomTriangleVisitorDefine
+#  define CustomTriangleVisitorDefine
 // Software Guide : BeginCodeSnippet
 class CustomTriangleVisitor
 {
@@ -219,7 +219,7 @@ public:
 int
 main(int, char *[])
 {
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   // Creating the points and inserting them in the mesh
   //
@@ -397,17 +397,13 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  VertexVisitorInterfaceType::Pointer vertexVisitor =
-    VertexVisitorInterfaceType::New();
+  auto vertexVisitor = VertexVisitorInterfaceType::New();
 
-  LineVisitorInterfaceType::Pointer lineVisitor =
-    LineVisitorInterfaceType::New();
+  auto lineVisitor = LineVisitorInterfaceType::New();
 
-  TriangleVisitorInterfaceType::Pointer triangleVisitor =
-    TriangleVisitorInterfaceType::New();
+  auto triangleVisitor = TriangleVisitorInterfaceType::New();
 
-  TetrahedronVisitorInterfaceType::Pointer tetrahedronVisitor =
-    TetrahedronVisitorInterfaceType::New();
+  auto tetrahedronVisitor = TetrahedronVisitorInterfaceType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -451,7 +447,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using CellMultiVisitorType = CellType::MultiVisitor;
-  CellMultiVisitorType::Pointer multiVisitor = CellMultiVisitorType::New();
+  auto multiVisitor = CellMultiVisitorType::New();
   // Software Guide : EndCodeSnippet
 
 

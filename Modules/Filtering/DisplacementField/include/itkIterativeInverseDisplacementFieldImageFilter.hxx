@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkIterativeInverseDisplacementFieldImageFilter_hxx
 #define itkIterativeInverseDisplacementFieldImageFilter_hxx
 
-#include "itkIterativeInverseDisplacementFieldImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkMath.h"
 
@@ -28,11 +27,8 @@ namespace itk
 // Constructor
 template <typename TInputImage, typename TOutputImage>
 IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::IterativeInverseDisplacementFieldImageFilter()
-{
-  m_NumberOfIterations = 5;
-  m_StopValue = 0;
-  m_Time = 0;
-}
+  : m_NumberOfIterations(5)
+{}
 
 //----------------------------------------------------------------------------
 template <typename TInputImage, typename TOutputImage>
@@ -44,8 +40,8 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
 
   time.Start(); // time measurement
 
-  InputImageConstPointer inputPtr = this->GetInput(0);
-  OutputImagePointer     outputPtr = this->GetOutput(0);
+  const InputImageConstPointer inputPtr = this->GetInput(0);
+  const OutputImagePointer     outputPtr = this->GetOutput(0);
 
   // some checks
   if (inputPtr.IsNull())
@@ -55,17 +51,16 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
 
   // calculate a first guess
   // (calculate negative displacement field and apply it to itself)
-  InputImagePointer negField = InputImageType::New();
+  const InputImagePointer negField = InputImageType::New();
   negField->SetRegions(inputPtr->GetLargestPossibleRegion());
   negField->SetOrigin(inputPtr->GetOrigin());
   negField->SetSpacing(inputPtr->GetSpacing());
   negField->SetDirection(inputPtr->GetDirection());
   negField->Allocate();
 
-  InputConstIterator InputIt = InputConstIterator(inputPtr, inputPtr->GetRequestedRegion());
-  InputIterator      negImageIt = InputIterator(negField, negField->GetRequestedRegion());
+  InputConstIterator InputIt(inputPtr, inputPtr->GetRequestedRegion());
 
-  for (negImageIt.GoToBegin(); !negImageIt.IsAtEnd(); ++negImageIt)
+  for (InputIterator negImageIt(negField, negField->GetRequestedRegion()); !negImageIt.IsAtEnd(); ++negImageIt)
   {
     negImageIt.Set(-InputIt.Get());
     ++InputIt;
@@ -77,8 +72,8 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
   outputPtr->SetDirection(inputPtr->GetDirection());
   outputPtr->Allocate();
 
-  typename VectorWarperType::Pointer      vectorWarper = VectorWarperType::New();
-  typename FieldInterpolatorType::Pointer VectorInterpolator = FieldInterpolatorType::New();
+  auto vectorWarper = VectorWarperType::New();
+  auto VectorInterpolator = FieldInterpolatorType::New();
   vectorWarper->SetInput(negField);
   vectorWarper->SetInterpolator(VectorInterpolator);
   vectorWarper->SetOutputOrigin(inputPtr->GetOrigin());
@@ -97,42 +92,41 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
   else
   {
     // calculate the inverted field
-    InputImagePointType         mappedPoint, newPoint;
-    OutputImagePointType        originalPoint;
-    OutputImageIndexType        index;
-    OutputImagePixelType        displacement, outputValue;
-    FieldInterpolatorOutputType forwardVector;
-    double                      spacing = inputPtr->GetSpacing()[0];
-    double                      smallestError = 0;
-    int                         stillSamePoint;
-    InputImageRegionType        region = inputPtr->GetLargestPossibleRegion();
-    unsigned int                numberOfPoints = 1;
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    const double spacing = inputPtr->GetSpacing()[0];
+
+
+    const InputImageRegionType region = inputPtr->GetLargestPossibleRegion();
+    unsigned int               numberOfPoints = 1;
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       numberOfPoints *= region.GetSize()[i];
     }
 
-    ProgressReporter         progress(this, 0, inputPtr->GetLargestPossibleRegion().GetNumberOfPixels());
-    OutputIterator           OutputIt = OutputIterator(outputPtr, outputPtr->GetRequestedRegion());
-    FieldInterpolatorPointer inputFieldInterpolator = FieldInterpolatorType::New();
+    ProgressReporter               progress(this, 0, inputPtr->GetLargestPossibleRegion().GetNumberOfPixels());
+    OutputIterator                 OutputIt(outputPtr, outputPtr->GetRequestedRegion());
+    const FieldInterpolatorPointer inputFieldInterpolator = FieldInterpolatorType::New();
     inputFieldInterpolator->SetInputImage(inputPtr);
 
+    double smallestError = 0;
     InputIt.GoToBegin();
     OutputIt.GoToBegin();
     while (!OutputIt.IsAtEnd())
     {
       // get the output image index
-      index = OutputIt.GetIndex();
+      const OutputImageIndexType index = OutputIt.GetIndex();
+      OutputImagePointType       originalPoint;
       outputPtr->TransformIndexToPhysicalPoint(index, originalPoint);
 
-      stillSamePoint = 0;
+      int    stillSamePoint = 0;
       double step = spacing;
 
       // get the required displacement
-      displacement = OutputIt.Get();
+      OutputImagePixelType displacement = OutputIt.Get();
 
+      InputImagePointType newPoint;
+      InputImagePointType mappedPoint;
       // compute the required input image point
-      for (unsigned int j = 0; j < ImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; ++j)
       {
         mappedPoint[j] = originalPoint[j] + displacement[j];
         newPoint[j] = mappedPoint[j];
@@ -141,42 +135,42 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
       // calculate the error of the last iteration
       if (inputFieldInterpolator->IsInsideBuffer(mappedPoint))
       {
-        forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
+        FieldInterpolatorOutputType forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
 
         smallestError = 0;
-        for (unsigned int j = 0; j < ImageDimension; j++)
+        for (unsigned int j = 0; j < ImageDimension; ++j)
         {
-          smallestError += std::pow(mappedPoint[j] + forwardVector[j] - originalPoint[j], 2);
+          smallestError += Math::sqr(mappedPoint[j] + forwardVector[j] - originalPoint[j]);
         }
         smallestError = std::sqrt(smallestError);
       }
 
       // iteration loop
-      for (unsigned int i = 0; i < m_NumberOfIterations; i++)
+      for (unsigned int i = 0; i < m_NumberOfIterations; ++i)
       {
-        double tmp;
+
 
         if (stillSamePoint)
         {
           step = step / 2;
         }
 
-        for (unsigned int k = 0; k < ImageDimension; k++)
+        for (unsigned int k = 0; k < ImageDimension; ++k)
         {
           mappedPoint[k] += step;
           if (inputFieldInterpolator->IsInsideBuffer(mappedPoint))
           {
-            forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
-            tmp = 0;
-            for (unsigned int l = 0; l < ImageDimension; l++)
+            FieldInterpolatorOutputType forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
+            double                      tmp = 0;
+            for (unsigned int l = 0; l < ImageDimension; ++l)
             {
-              tmp += std::pow(mappedPoint[l] + forwardVector[l] - originalPoint[l], 2);
+              tmp += Math::sqr(mappedPoint[l] + forwardVector[l] - originalPoint[l]);
             }
             tmp = std::sqrt(tmp);
             if (tmp < smallestError)
             {
               smallestError = tmp;
-              for (unsigned int l = 0; l < ImageDimension; l++)
+              for (unsigned int l = 0; l < ImageDimension; ++l)
               {
                 newPoint[l] = mappedPoint[l];
               }
@@ -186,17 +180,17 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
           mappedPoint[k] -= 2 * step;
           if (inputFieldInterpolator->IsInsideBuffer(mappedPoint))
           {
-            forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
-            tmp = 0;
-            for (unsigned int l = 0; l < ImageDimension; l++)
+            FieldInterpolatorOutputType forwardVector = inputFieldInterpolator->Evaluate(mappedPoint);
+            double                      tmp = 0;
+            for (unsigned int l = 0; l < ImageDimension; ++l)
             {
-              tmp += std::pow(mappedPoint[l] + forwardVector[l] - originalPoint[l], 2);
+              tmp += Math::sqr(mappedPoint[l] + forwardVector[l] - originalPoint[l]);
             }
             tmp = std::sqrt(tmp);
             if (tmp < smallestError)
             {
               smallestError = tmp;
-              for (unsigned int l = 0; l < ImageDimension; l++)
+              for (unsigned int l = 0; l < ImageDimension; ++l)
               {
                 newPoint[l] = mappedPoint[l];
               }
@@ -207,7 +201,7 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
         } // end for loop over image dimension
 
         stillSamePoint = 1;
-        for (unsigned int j = 0; j < ImageDimension; j++)
+        for (unsigned int j = 0; j < ImageDimension; ++j)
         {
           if (Math::NotExactlyEquals(newPoint[j], mappedPoint[j]))
           {
@@ -221,8 +215,8 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
           break;
         }
       } // end iteration loop
-
-      for (unsigned int k = 0; k < ImageDimension; k++)
+      OutputImagePixelType outputValue;
+      for (unsigned int k = 0; k < ImageDimension; ++k)
       {
         outputValue[k] = static_cast<OutputImageValueType>(mappedPoint[k] - originalPoint[k]);
       }
@@ -234,7 +228,7 @@ IterativeInverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::Generat
 
       progress.CompletedPixel();
     } // end while loop
-  }   // end else
+  } // end else
 
   time.Stop();
   m_Time = time.GetMean();

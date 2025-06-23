@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCyclicShiftImageFilter_hxx
 #define itkCyclicShiftImageFilter_hxx
 
-#include "itkCyclicShiftImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkTotalProgressReporter.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -29,7 +28,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 CyclicShiftImageFilter<TInputImage, TOutputImage>::CyclicShiftImageFilter()
 {
-  m_Shift.Fill(NumericTraits<OffsetValueType>::ZeroValue());
+  m_Shift.Fill(OffsetValueType{});
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
 }
@@ -42,7 +41,7 @@ CyclicShiftImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion(
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (!input)
   {
     return;
@@ -64,8 +63,8 @@ CyclicShiftImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   TotalProgressReporter progress(this, this->GetOutput()->GetRequestedRegion().GetNumberOfPixels());
 
   // Now iterate over the pixels of the output region for this thread.
-  ImageRegionIteratorWithIndex<OutputImageType> outIt(this->GetOutput(), outputRegionForThread);
-  for (outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt)
+  for (ImageRegionIteratorWithIndex<OutputImageType> outIt(this->GetOutput(), outputRegionForThread); !outIt.IsAtEnd();
+       ++outIt)
   {
     IndexType index = outIt.GetIndex();
 

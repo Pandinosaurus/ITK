@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,9 +35,9 @@ public:
   using Self = TxtTransformIOTemplate;
   using Superclass = TransformIOBaseTemplate<TParametersValueType>;
   using Pointer = SmartPointer<Self>;
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformListType = typename Superclass::TransformListType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformListType;
   using ConstTransformListType = typename TransformIOBaseTemplate<TParametersValueType>::ConstTransformListType;
 
   using ParametersType = typename TransformType::ParametersType;
@@ -45,10 +45,11 @@ public:
   using FixedParametersType = typename TransformType::FixedParametersType;
   using FixedParametersValueType = typename TransformType::FixedParametersValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TxtTransformIOTemplate, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(TxtTransformIOTemplate);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Determine the file type. Returns true if this ImageIO can read the
    * file specified. */
   bool
@@ -80,7 +81,7 @@ protected:
 private:
   /** trim spaces and newlines from start and end of a string */
   std::string
-  trim(std::string const & source, char const * delims = " \t\r\n");
+  trim(const std::string & source, const char * delims = " \t\r\n");
 };
 
 /** This helps to meet backward compatibility */

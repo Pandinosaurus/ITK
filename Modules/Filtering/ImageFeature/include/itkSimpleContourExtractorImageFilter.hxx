@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,16 +24,15 @@
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkOffset.h"
 #include "itkTotalProgressReporter.h"
-#include "itkSimpleContourExtractorImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 SimpleContourExtractorImageFilter<TInputImage, TOutputImage>::SimpleContourExtractorImageFilter()
   : m_InputForegroundValue(NumericTraits<InputPixelType>::max())
-  , m_InputBackgroundValue(NumericTraits<InputPixelType>::ZeroValue())
+  , m_InputBackgroundValue(InputPixelType{})
   , m_OutputForegroundValue(NumericTraits<OutputPixelType>::max())
-  , m_OutputBackgroundValue(NumericTraits<OutputPixelType>::ZeroValue())
+  , m_OutputBackgroundValue(OutputPixelType{})
 {
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
@@ -44,38 +43,31 @@ void
 SimpleContourExtractorImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  unsigned int i;
-
-  ZeroFluxNeumannBoundaryCondition<InputImageType> nbc;
-
-  ConstNeighborhoodIterator<InputImageType> bit;
-  ImageRegionIterator<OutputImageType>      it;
-
   // Allocate output
-  typename OutputImageType::Pointer     output = this->GetOutput();
-  typename InputImageType::ConstPointer input = this->GetInput();
+  const typename OutputImageType::Pointer     output = this->GetOutput();
+  const typename InputImageType::ConstPointer input = this->GetInput();
 
   // Find the data-set boundary "faces"
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
-  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                        bC;
-  faceList = bC(input, outputRegionForThread, this->GetRadius());
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>                              bC;
+  const typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList =
+    bC(input, outputRegionForThread, this->GetRadius());
 
   TotalProgressReporter progress(this, output->GetRequestedRegion().GetNumberOfPixels());
 
   // Process each of the boundary faces.  These are N-d regions which border
   // the edge of the buffer.
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  ZeroFluxNeumannBoundaryCondition<InputImageType> nbc;
+  for (const auto & face : faceList)
   {
-    bit = ConstNeighborhoodIterator<InputImageType>(this->GetRadius(), input, *fit);
-    unsigned int neighborhoodSize = bit.Size();
-    it = ImageRegionIterator<OutputImageType>(output, *fit);
+    ConstNeighborhoodIterator<InputImageType> bit =
+      ConstNeighborhoodIterator<InputImageType>(this->GetRadius(), input, face);
+    const unsigned int                   neighborhoodSize = bit.Size();
+    ImageRegionIterator<OutputImageType> it = ImageRegionIterator<OutputImageType>(output, face);
 
     bit.OverrideBoundaryCondition(&nbc);
     bit.GoToBegin();
 
-    bool bIsOnContour;
+    bool bIsOnContour = false;
 
     while (!bit.IsAtEnd())
     {
@@ -85,7 +77,7 @@ SimpleContourExtractorImageFilter<TInputImage, TOutputImage>::DynamicThreadedGen
       {
         bIsOnContour = false;
 
-        for (i = 0; i < neighborhoodSize; ++i)
+        for (unsigned int i = 0; i < neighborhoodSize; ++i)
         {
           // second test if at least one neighbour pixel is off
           // the center pixel belongs to contour
@@ -96,7 +88,7 @@ SimpleContourExtractorImageFilter<TInputImage, TOutputImage>::DynamicThreadedGen
           }
         }
 
-        // set pixel center pixel value weither it is or not on contour
+        // set pixel center pixel value whether it is or not on contour
         if (bIsOnContour)
         {
           it.Set(m_OutputForegroundValue);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 
 namespace itk
 {
-/**\class FastMarchingReachedTargetNodesStoppingCriterionEnums
+/** \class FastMarchingReachedTargetNodesStoppingCriterionEnums
  * \brief Contains all enum classes used by FastMarchingReachedTargetNodesStoppingCriterion class
  * \ingroup ITKFastMarching
  */
@@ -33,7 +33,7 @@ class FastMarchingReachedTargetNodesStoppingCriterionEnums
 {
 public:
   /**
-   *\class TargetCondition
+   * \class TargetCondition
    * \ingroup ITKFastMarching
    * TargetConditionEnum */
   enum class TargetCondition : uint8_t
@@ -45,7 +45,8 @@ public:
 };
 // Define how to print enumeration
 extern ITKFastMarching_EXPORT std::ostream &
-                              operator<<(std::ostream & out, const FastMarchingReachedTargetNodesStoppingCriterionEnums::TargetCondition value);
+operator<<(std::ostream & out, const FastMarchingReachedTargetNodesStoppingCriterionEnums::TargetCondition value);
+
 /**
  * \class FastMarchingReachedTargetNodesStoppingCriterion
  * \brief Stopping criterion for FastMarchingFilterBase.
@@ -56,7 +57,8 @@ extern ITKFastMarching_EXPORT std::ostream &
  * \ingroup ITKFastMarching
  */
 template <typename TInput, typename TOutput>
-class FastMarchingReachedTargetNodesStoppingCriterion : public FastMarchingStoppingCriterionBase<TInput, TOutput>
+class ITK_TEMPLATE_EXPORT FastMarchingReachedTargetNodesStoppingCriterion
+  : public FastMarchingStoppingCriterionBase<TInput, TOutput>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingReachedTargetNodesStoppingCriterion);
@@ -65,16 +67,16 @@ public:
   using Superclass = FastMarchingStoppingCriterionBase<TInput, TOutput>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using Traits = typename Superclass::Traits;
+  using typename Superclass::Traits;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingReachedTargetNodesStoppingCriterion, FastMarchingStoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingReachedTargetNodesStoppingCriterion);
 
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using NodeType = typename Superclass::NodeType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::NodeType;
 
   using TargetConditionEnum = FastMarchingReachedTargetNodesStoppingCriterionEnums::TargetCondition;
 #if !defined(ITK_LEGACY_REMOVE)
@@ -86,6 +88,7 @@ public:
 
   /** Set/Get TargetCondition to indicate if the user wants the front to
   reach one, some or all target nodes. */
+  /** @ITKStartGrouping */
   void
   SetTargetCondition(const TargetConditionEnum & iCondition)
   {
@@ -95,10 +98,13 @@ public:
   }
 
   itkGetConstReferenceMacro(TargetCondition, TargetConditionEnum);
+  /** @ITKEndGrouping */
 
   /** Set/Get TargetOffset */
+  /** @ITKStartGrouping */
   itkSetMacro(TargetOffset, OutputPixelType);
   itkGetMacro(TargetOffset, OutputPixelType);
+  /** @ITKEndGrouping */
 
   /** \brief Set the number of target nodes to be reached */
   void
@@ -133,8 +139,8 @@ public:
       // there is at least one TargetPoint.
       if (!m_TargetNodes.empty())
       {
-        typename std::vector<NodeType>::const_iterator pointsIter = m_TargetNodes.begin();
-        typename std::vector<NodeType>::const_iterator pointsEnd = m_TargetNodes.end();
+        auto       pointsIter = m_TargetNodes.begin();
+        const auto pointsEnd = m_TargetNodes.end();
 
         while (pointsIter != pointsEnd)
         {
@@ -159,14 +165,14 @@ public:
   }
 
   /** \brief returns if the stopping condition is satisfied or not. */
-  bool
+  [[nodiscard]] bool
   IsSatisfied() const override
   {
     return m_Satisfied && (this->m_CurrentValue >= m_StoppingValue);
   }
 
   /** \brief Get a short description of the stopping criterion. */
-  std::string
+  [[nodiscard]] std::string
   GetDescription() const override
   {
     return "Target Nodes Reached with possible overshoot";
@@ -176,19 +182,19 @@ protected:
   /** Constructor */
   FastMarchingReachedTargetNodesStoppingCriterion()
     : Superclass()
-    , m_TargetOffset(NumericTraits<OutputPixelType>::ZeroValue())
-    , m_StoppingValue(NumericTraits<OutputPixelType>::ZeroValue())
+    , m_TargetOffset(OutputPixelType{})
+    , m_StoppingValue(OutputPixelType{})
   {}
 
   /** Destructor */
   ~FastMarchingReachedTargetNodesStoppingCriterion() override = default;
 
   TargetConditionEnum   m_TargetCondition{ TargetConditionEnum::AllTargets };
-  std::vector<NodeType> m_TargetNodes;
-  std::vector<NodeType> m_ReachedTargetNodes;
+  std::vector<NodeType> m_TargetNodes{};
+  std::vector<NodeType> m_ReachedTargetNodes{};
   size_t                m_NumberOfTargetsToBeReached{ 0 };
-  OutputPixelType       m_TargetOffset;
-  OutputPixelType       m_StoppingValue;
+  OutputPixelType       m_TargetOffset{};
+  OutputPixelType       m_StoppingValue{};
   bool                  m_Satisfied{ false };
   bool                  m_Initialized{ false };
 
@@ -211,7 +217,7 @@ protected:
     }
     if (m_NumberOfTargetsToBeReached < 1)
     {
-      itkExceptionMacro(<< "Number of target nodes to be reached is null");
+      itkExceptionMacro("Number of target nodes to be reached is null");
     }
     if (m_NumberOfTargetsToBeReached > m_TargetNodes.size())
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
  *        to pixels.
  *
  * Contributed as a paper to the Insight Journal:
- * https://www.insight-journal.org/browse/publication/204
+ * https://doi.org/10.54294/iei8xt
  *
  * \ingroup ImageIterators
  *
@@ -161,7 +161,7 @@ public:
   }
 
   /** Is the iterator at the end of the region? */
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const override
   {
     return this->m_IsAtEnd;
@@ -194,7 +194,7 @@ public:
 
     this->m_IsAtEnd = true;
     // Initialize the temporary image
-    m_TempPtr->FillBuffer(NumericTraits<typename TTempImage::PixelType>::ZeroValue());
+    m_TempPtr->FillBuffer(typename TTempImage::PixelType{});
 
     for (unsigned int i = 0; i < m_Seeds.size(); ++i)
     {
@@ -236,7 +236,7 @@ public:
   void
   SetFullyConnected(const bool _arg);
 
-  bool
+  [[nodiscard]] bool
   GetFullyConnected() const;
 
   itkBooleanMacro(FullyConnected);
@@ -249,7 +249,7 @@ public:
 
 protected: // made protected so other iterators can access
   /** Smart pointer to the function we're evaluating */
-  SmartPointer<FunctionType> m_Function;
+  SmartPointer<FunctionType> m_Function{};
 
   /** A temporary image used for storing info about indices
    * 0 = pixel has not yet been processed
@@ -258,42 +258,42 @@ protected: // made protected so other iterators can access
    * 3 = pixel is inside the function, neighbor check complete */
   using TTempImage = Image<unsigned char, Self::NDimensions>;
 
-  typename TTempImage::Pointer m_TempPtr;
+  typename TTempImage::Pointer m_TempPtr{};
 
   /** A list of locations to start the recursive fill */
-  SeedsContainerType m_Seeds;
+  SeedsContainerType m_Seeds{};
 
   /** The origin of the source image */
-  typename ImageType::PointType m_ImageOrigin;
+  typename ImageType::PointType m_ImageOrigin{};
 
   /** The spacing of the source image */
-  typename ImageType::SpacingType m_ImageSpacing;
+  typename ImageType::SpacingType m_ImageSpacing{};
 
   /** The neighborhood iterator */
-  NeighborhoodIteratorType m_NeighborhoodIterator;
+  NeighborhoodIteratorType m_NeighborhoodIterator{};
 
   /** Region of the source image */
-  RegionType m_ImageRegion;
+  RegionType m_ImageRegion{};
 
   /** Stack used to hold the path of the iterator through the image */
-  std::queue<IndexType> m_IndexStack;
+  std::queue<IndexType> m_IndexStack{};
 
   /** Location vector used in the flood algorithm */
-  FunctionInputType m_LocationVector;
+  FunctionInputType m_LocationVector{};
 
   /** Indicates whether or not we've found a neighbor that needs to be
    * checked.  */
-  bool m_FoundUncheckedNeighbor;
+  bool m_FoundUncheckedNeighbor{};
 
   /** Indicates whether or not an index is valid (inside an image)/ */
-  bool m_IsValidIndex;
+  bool m_IsValidIndex{};
 
   /** Defines the connectivity of the neighborhood iterator.
    * In case of 2D the default connectivity is 4 (6 in 3D) and
    * when m_FullyConnected is set to true the connectivity is
    * 8 (26 in 3D).
    */
-  bool m_FullyConnected;
+  bool m_FullyConnected{};
 };
 } // end namespace itk
 

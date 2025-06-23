@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class QuadEdgeMeshPolygonCell
+ * \class QuadEdgeMeshPolygonCell
  * Class that connects the QE with itk
  *
  * \param TCellInterface Basic type for the itk*Cell. This usually comes
@@ -31,7 +31,7 @@ namespace itk
  * \author Alexandre Gouaillard, Leonardo Florez-Valencia, Eric Boix
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/122
+ * https://doi.org/10.54294/4mx7kk
  *
  * \ingroup ITKQuadEdgeMesh
  */
@@ -51,24 +51,24 @@ public:
 
   // itkCellInheritedTypedefs
   using Superclass = TCellInterface;
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
   using CellType = typename Superclass::CellType;
-  using CellAutoPointer = typename Superclass::CellAutoPointer;
-  using CellConstAutoPointer = typename Superclass::CellConstAutoPointer;
-  using CellRawPointer = typename Superclass::CellRawPointer;
-  using CellConstRawPointer = typename Superclass::CellConstRawPointer;
+  using typename Superclass::CellAutoPointer;
+  using typename Superclass::CellConstAutoPointer;
+  using typename Superclass::CellRawPointer;
+  using typename Superclass::CellConstRawPointer;
   using CellTraits = typename Superclass::CellTraits;
-  using CoordRepType = typename Superclass::CoordRepType;
-  using InterpolationWeightType = typename Superclass::InterpolationWeightType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
-  using CellIdentifier = typename Superclass::CellIdentifier;
-  using CellFeatureIdentifier = typename Superclass::CellFeatureIdentifier;
+  using typename Superclass::CoordinateType;
+  using typename Superclass::InterpolationWeightType;
+  using typename Superclass::PointIdentifier;
+  using typename Superclass::CellIdentifier;
+  using typename Superclass::CellFeatureIdentifier;
   using CellFeatureCount = typename Superclass::CellFeatureIdentifier;
-  using PointType = typename Superclass::PointType;
-  using PointsContainer = typename Superclass::PointsContainer;
-  using UsingCellsContainer = typename Superclass::UsingCellsContainer;
-  using ParametricCoordArrayType = typename Superclass::ParametricCoordArrayType;
-  using ShapeFunctionsArrayType = typename Superclass::ShapeFunctionsArrayType;
+  using typename Superclass::PointType;
+  using typename Superclass::PointsContainer;
+  using typename Superclass::UsingCellsContainer;
+  using typename Superclass::ParametricCoordArrayType;
+  using typename Superclass::ShapeFunctionsArrayType;
   static constexpr unsigned int PointDimension = Superclass::PointDimension;
   static constexpr unsigned int CellDimension = 2;
 
@@ -78,7 +78,7 @@ public:
   using EdgeCellType = QuadEdgeMeshLineCell<CellType>;
   using EdgeCellListType = std::vector<EdgeCellType *>;
 
-  //** */
+  /** */
   using PointIdIterator = typename CellTraits::PointIdIterator;
   using PointIdConstIterator = typename CellTraits::PointIdConstIterator;
   using PointIdInternalIterator = typename CellTraits::PointIdInternalIterator;
@@ -93,15 +93,17 @@ public:
   using QEDual = typename QuadEdgeType::DualType;
 
 public:
-  /** Standard part of every itk Object. */
-  itkTypeMacro(QuadEdgeMeshPolygonCell, TCellInterface);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshPolygonCell);
 
   /** Object memory management methods. */
+  /** @ITKStartGrouping */
   QuadEdgeMeshPolygonCell(PointIdentifier nPoints = 0);
   QuadEdgeMeshPolygonCell(QuadEdgeType * e);
   ~QuadEdgeMeshPolygonCell() override;
-
+  /** @ITKEndGrouping */
   /** Accessors for m_Ident. */
+  /** @ITKStartGrouping */
   void
   SetIdent(CellIdentifier cid)
   {
@@ -112,8 +114,9 @@ public:
   {
     return (m_Ident);
   }
-
+  /** @ITKEndGrouping */
   /** Lnext ring entry accessors. */
+  /** @ITKStartGrouping */
   QuadEdgeType *
   GetEdgeRingEntry() const
   {
@@ -124,7 +127,7 @@ public:
   {
     m_EdgeRingEntry = entry;
   }
-
+  /** @ITKEndGrouping */
   /** Implement the standard CellInterface. */
   SelfAutoPointer
   New();
@@ -173,8 +176,8 @@ public:
     {
       PointIdentifier i = 0;
 
-      PointIdInternalConstIterator it = this->InternalPointIdsBegin();
-      PointIdInternalConstIterator end = this->InternalPointIdsEnd();
+      PointIdInternalConstIterator       it = this->InternalPointIdsBegin();
+      const PointIdInternalConstIterator end = this->InternalPointIdsEnd();
 
       while (it != end)
       {
@@ -207,10 +210,8 @@ public:
     {
       return (static_cast<PointIdIterator>(nullptr));
     }
-    else
-    {
-      return &*(m_PointIds.begin());
-    }
+
+    return &m_PointIds.front();
   }
 
   PointIdIterator
@@ -221,10 +222,8 @@ public:
     {
       return (static_cast<PointIdIterator>(nullptr));
     }
-    else
-    {
-      return &m_PointIds.back() + 1;
-    }
+
+    return &m_PointIds.back() + 1;
   }
 
   PointIdConstIterator
@@ -236,10 +235,8 @@ public:
     {
       return (static_cast<PointIdIterator>(nullptr));
     }
-    else
-    {
-      return &*(m_PointIds.begin());
-    }
+
+    return &m_PointIds.front();
   }
 
   PointIdConstIterator
@@ -250,10 +247,8 @@ public:
     {
       return (static_cast<PointIdIterator>(nullptr));
     }
-    else
-    {
-      return &m_PointIds.back() + 1;
-    }
+
+    return &m_PointIds.back() + 1;
   }
 
   /** QuadEdge internal flavor of cell API */
@@ -280,7 +275,7 @@ public:
 
 protected:
   using PointIDListType = std::vector<PointIdentifier>;
-  mutable PointIDListType m_PointIds;
+  mutable PointIDListType m_PointIds{};
 
 private:
   void
@@ -288,8 +283,8 @@ private:
   {
     m_PointIds.clear();
 
-    PointIdInternalConstIterator it = this->InternalPointIdsBegin();
-    PointIdInternalConstIterator end = this->InternalPointIdsEnd();
+    PointIdInternalConstIterator       it = this->InternalPointIdsBegin();
+    const PointIdInternalConstIterator end = this->InternalPointIdsEnd();
 
     while (it != end)
     {
@@ -301,17 +296,17 @@ private:
   /** In order to have constant time access at the itk level instead of
    * doing a search in the Mesh::Cell container.
    */
-  CellIdentifier m_Ident;
+  CellIdentifier m_Ident{};
 
   /**
    * Entry point into the edge ring.
    */
-  QuadEdgeType * m_EdgeRingEntry;
+  QuadEdgeType * m_EdgeRingEntry{};
 
   /**
    * List of EdgeCells created by the constructor for proper deletion
    */
-  EdgeCellListType m_EdgeCellList;
+  EdgeCellListType m_EdgeCellList{};
 };
 } // end namespace itk
 

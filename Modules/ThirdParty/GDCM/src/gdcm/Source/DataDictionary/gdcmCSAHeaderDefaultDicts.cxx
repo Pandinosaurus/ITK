@@ -26,14 +26,14 @@
 
 
 namespace gdcm {
-typedef struct
+using CSA_DICT_ENTRY = struct
 {
   const char *name;
   const char *type;
   VR::VRType vr;
   VM::VMType vm;
   const char *description;
-} CSA_DICT_ENTRY;
+};
 
 static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"AcquisitionDate","3",VR::DA,VM::VM1,"A number identifying the single continuous gathering of data over a period of time which resulted in this image"},
@@ -48,10 +48,10 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"ImageInAcquisition","3",VR::IS,VM::VM1,"Number of images that resulted from this acquisition of data"},
   {">Referenced SOP Class UID","1C",VR::UI,VM::VM1,"Uniquely identifies the referenced SOP Class"},
   {">Referenced SOP Instance UID","1C",VR::UI,VM::VM1,"Uniquely identifies the referenced SOP Instance"},
-  {"> Referenced Frame Number","3",VR::IS,VM::VM1_n,"References one or more image frames of a Multi-frame Image SOP Instance, identifying which frames are siginificantly related to this image"},
+  {"> Referenced Frame Number","3",VR::IS,VM::VM1_n,"References one or more image frames of a Multi-frame Image SOP Instance, identifying which frames are significantly related to this image"},
   //{">Referenced SOP Class UID","1C",VR::UI,VM::VM1,"Uniquely identifies the referenced SOP Class"},
   //{">Referenced SOP Instance UID","1C",VR::UI,VM::VM1,"Uniquely identifies the referenced SOP Instance"},
-  //{"> Referenced Frame Number","3",VR::IS,VM::VM1_n,"References one or more image frames of a Multi-frame Image SOP Instance, identifying which frames are siginificantly related to this image"},
+  //{"> Referenced Frame Number","3",VR::IS,VM::VM1_n,"References one or more image frames of a Multi-frame Image SOP Instance, identifying which frames are significantly related to this image"},
   {"ImageType","3",VR::CS,VM::VM1_n,"Image identification characteristics"},
   {"Lossy Image Compression","3",VR::CS,VM::VM1,"Specifies whether an image has undergone lossy compression. Enumerated values: 00 = image has not been subjected to lossy compression. 01 = image has been subjected to lossy compression"},
   {"Quality Control Image","1C",VR::CS,VM::VM1,"Indicates whether or not this image is a quality control or phantom image. Enumerated values: YES, NO"},
@@ -64,9 +64,9 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"SequenceVariant","1",VR::CS,VM::VM1_n,"Variant of the Scanning Sequence"},
   {"ScanOptions","2",VR::CS,VM::VM1_n,"Parameters of scanning sequence"},
   {"MRAcquisitionType","2",VR::CS,VM::VM1,"Identification of date encoding scheme. Enumerated Values: 2D = frequency x phase 3D = frequency x phase x phase"},
-  {"SequenceName","3",VR::SH,VM::VM1,"User defined name for the Scanning Sequence and Sequence Varaint combination"},
+  {"SequenceName","3",VR::SH,VM::VM1,"User defined name for the Scanning Sequence and Sequence Variant combination"},
   {"AngioFlag","3",VR::CS,VM::VM1,"Angio image indicator. Primary image for angio processing. Enumerated values: Y = image is Angio N = image is not Angio"},
-  {"RepetitionTime","2C",VR::DS,VM::VM1,"The period of time in msec between the beginning of a pulse sequence and the beginning of a succeeding (essentially identical) pulse sequence. Required except when Scanning Sequence is EP and Sequnece Variant is not segmented k-space"},
+  {"RepetitionTime","2C",VR::DS,VM::VM1,"The period of time in msec between the beginning of a pulse sequence and the beginning of a succeeding (essentially identical) pulse sequence. Required except when Scanning Sequence is EP and Sequence Variant is not segmented k-space"},
   {"EchoTime","2",VR::DS,VM::VM1,"Time in msec between the middle of the excitation pulse and the peak of the echo produced. In the case of segmented k-space, the TE(eff) is the time between the middle of the excitation pulse to the peak of the echo that is used to cover the center of k-space)"},
   {"InversionTime","2C",VR::DS,VM::VM1,"Time in msec after the middle of inverting RF pulse to middle of excitation pulse to detect the amount of longitudinal magnetization. Required if Scanning Sequence has value of IR"},
   {"NumberOfAverages","3",VR::DS,VM::VM1,"Number of times a given pulse sequence is repeated before any parameter has changed"},
@@ -91,7 +91,7 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"Skip Beats","3",VR::IS,VM::VM1,"Number of beats skipped after a detected arrhythmia"},
   {"HeartRate","3",VR::IS,VM::VM1,"Beats per minute"},
   {"CardiacNumberOfImages","3",VR::IS,VM::VM1,"Number of imagesb per cardiac cycle"},
-  {"TriggerWindow","3",VR::IS,VM::VM1,"Percent of R-R interval, based on Heart Rate (0018,1088), prescriped as a window for a valid/usable trigger"},
+  {"TriggerWindow","3",VR::IS,VM::VM1,"Percent of R-R interval, based on Heart Rate (0018,1088), prescribed as a window for a valid/usable trigger"},
   {"ReconstructionDiameter","3",VR::DS,VM::VM1,"Diameter in mm of the region from within which data were used in creating the reconstruction of the image. Data may exist outside this region and portions of the patient may exist outside the region"},
   {"Receive Coil","3",VR::SH,VM::VM1,"Received coil used"},
   {"TransmittingCoil","3",VR::SH,VM::VM1,"Transmitted coil used"},
@@ -134,7 +134,7 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"InstitutionName","3",VR::LO,VM::VM1,"Institution where the equipment is located that produced the digital images"},
   {"InstitutionAddress","3",VR::ST,VM::VM1,"Mailing address of the institution where the equipment is located that produced the digital images"},
   {"ManufacturersModelName","3",VR::LO,VM::VM1,"Manufacturer's model number of the equipment that produced the digital images"},
-  {"DeviceSerialNumber","3",VR::LO,VM::VM1,"Manufacturer's seriel number of the equipment that produced the digital images"},
+  {"DeviceSerialNumber","3",VR::LO,VM::VM1,"Manufacturer's serial number of the equipment that produced the digital images"},
   {"SoftwareVersions","3",VR::LO,VM::VM1_n,"Manufacturer's designation of software of the equipment that produced the digital images"},
   {"OverlayRows","1",VR::US,VM::VM1,"Number of Rows in Overlay"},
   {"OverlayColumns","1",VR::US,VM::VM1,"Number of Columns in Overlay"},
@@ -162,7 +162,7 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"PixelFileName","1",VR::UN,VM::VM1,"Used raw data file name for the performed acquisition"},
   {"SliceMeasurementDuration","1",VR::DS,VM::VM1,"Time duration between two slices of the performed acquisition"},
   {"AcquisitionMatrixText","1",VR::SH,VM::VM1,"Used acquisition matrix description"},
-  {"SequenceMask","1",VR::UL,VM::VM1,"Parameters used for acquisition, e.g. door open, interpolation, raw filter, Siemens seqence ...."},
+  {"SequenceMask","1",VR::UL,VM::VM1,"Parameters used for acquisition, e.g. door open, interpolation, raw filter, Siemens sequence ...."},
   {"MeasuredFourierLines","1",VR::IS,VM::VM1,"Number of performed fourier lines"},
   {"FlowEncodingDirection","1",VR::IS,VM::VM1,"Flow encoding direction"},
   {"FlowVenc","1",VR::FD,VM::VM1,"Flow Quant attribute"},
@@ -172,7 +172,7 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"ImageGroup","1",VR::US,VM::VM1,"Group of images"},
   {"SliceNormalVector","1",VR::FD,VM::VM3,"X,y and z normal vector of the slices"},
   {"DiffusionDirection","1",VR::CS,VM::VM1,"Diffusion direction"},
-  {"TimeAfterStart","1",VR::DS,VM::VM1,"Time delay after start of measurment"},
+  {"TimeAfterStart","1",VR::DS,VM::VM1,"Time delay after start of measurement"},
   //{"FlipAngle","1",VR::DS,VM::VM1,"Flip angle for SC images"},
   //{"SequenceName","1",VR::SH,VM::VM1,"Sequence name for SC images"},
   //{"RepetitionTime","1",VR::DS,VM::VM1,"Repetition time for SC images"},
@@ -192,8 +192,8 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"ReferencedImageSequence","1",VR::UI,VM::VM1_n,"A sequence which provides reference to a set of Image SOP Class/Instance identifying other images significantly related to this image (localizer images)"},
   //{"PatientOrientation","1",VR::CS,VM::VM1,"Patient direction of the rows and columns of the image. Not required for MR images"},
   {"ScanningSequence","1",VR::CS,VM::VM1_n,"Description of the type of data taken. Enumerated values: SE = Spin Echo; IR = Inversion Recovery; GR = Gradient Recalled; EP = Echo Planar; RM = Research Mode"},
-  //{"SequenceName","1",VR::SH,VM::VM1,"User defined name for the Scanning Sequence and Sequence Varaint combination"},
-  //{"RepetitionTime","1",VR::DS,VM::VM1,"The period of time in msec between the beginning of a pulse sequence and the beginning of a succeeding (essentially identical) pulse sequence. Required except when Scanning Sequence is EP and Sequnece Variant is not segmented k-space"},
+  //{"SequenceName","1",VR::SH,VM::VM1,"User defined name for the Scanning Sequence and Sequence Variant combination"},
+  //{"RepetitionTime","1",VR::DS,VM::VM1,"The period of time in msec between the beginning of a pulse sequence and the beginning of a succeeding (essentially identical) pulse sequence. Required except when Scanning Sequence is EP and Sequence Variant is not segmented k-space"},
   //{"EchoTime","1",VR::DS,VM::VM1,"Time in msec between the middle of the excitation pulse and the peak of the echo produced. In the case of segmented k-space, the TE(eff) is the time between the middle of the excitation pulse to the peak of the echo that is used to cover the center of k-space)"},
   //{"InversionTime","1",VR::DS,VM::VM1,"Time in msec after the middle of inverting RF pulse to middle of excitation pulse to detect the amount of longitudinal magnetization. Required if Scanning Sequence has value of IR"},
   //{"NumberOfAverages","1",VR::DS,VM::VM1,"Number of averages"},
@@ -233,7 +233,7 @@ static const CSA_DICT_ENTRY CSAHeaderDataDict [] = {
   {"SourceImageSequence","1",VR::UI,VM::VM1_n,"A sequence which identifies the set of Image SOP Class/Instance pairs of the images which were use to derive this image"},
   //{"PixelBandwidth","1",VR::DS,VM::VM1,"Reciprocal of the total sampling period, in hertz per pixel"},
   //{"SliceMeasurementDuration","1",VR::DS,VM::VM1,"Time duration between two slices of the performed acquisition"},
-  //{"SequenceMask","1",VR::UL,VM::VM1,"Parameters used for acquisition, e.g. door open, interpolation, raw filter, Siemens seqence .·"},
+  //{"SequenceMask","1",VR::UL,VM::VM1,"Parameters used for acquisition, e.g. door open, interpolation, raw filter, Siemens sequence .·"},
   //{"AcquisitionMatrixText","1",VR::SH,VM::VM1,"Used acquisition matrix description"},
   //{"MeasuredFourierLines","1",VR::IS,VM::VM1,"Number of performed fourier lines"},
   {"ulVersion","3",VR::UL,VM::VM1,"Protocol version"},
@@ -336,7 +336,7 @@ docstrings, so ping me if you need clarification.
 */
   {"sSliceArray.ucMode","1",VR::US,VM::VM1,"slice ordering 0x1,0x2,0x4 resp. asc,desc,inter"},
 
-  {nullptr,nullptr,VR::INVALID,VM::VM0,nullptr } // Gard
+  {nullptr,nullptr,VR::INVALID,VM::VM0,nullptr } // Guard
 };
 
 void CSAHeaderDict::LoadDefault()

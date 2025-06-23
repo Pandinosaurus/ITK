@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ itkTernaryOperatorImageFilterTest(int, char *[])
   // Test the functor
   //
 
-  itk::Functor::TernaryOperator<bool, short, short, short> func;
+  constexpr itk::Functor::TernaryOperator<bool, short, short, short> func;
 
   if ((true ? 12 : 37) != func(true, 12, 37))
   {
@@ -67,13 +67,11 @@ itkTernaryOperatorImageFilterTest(int, char *[])
   using MaskImageType = itk::Image<MaskPixelType, ImageDimension>;
   using GrayImageType = itk::Image<GrayPixelType, ImageDimension>;
 
-  MaskImageType::IndexType origin;
-  origin.Fill(0);
-  MaskImageType::SizeType size;
-  size.Fill(20);
-  MaskImageType::RegionType region(origin, size);
+  constexpr MaskImageType::IndexType origin{};
+  auto                               size = MaskImageType::SizeType::Filled(20);
+  const MaskImageType::RegionType    region(origin, size);
 
-  MaskImageType::Pointer mask = MaskImageType::New();
+  auto mask = MaskImageType::New();
   mask->SetRegions(region);
   mask->Allocate();
   mask->FillBuffer(false);
@@ -84,23 +82,25 @@ itkTernaryOperatorImageFilterTest(int, char *[])
   for (maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt)
   {
     if (maskIt.GetIndex()[0] + maskIt.GetIndex()[1] % 2 == 0)
+    {
       maskIt.Set(true);
+    }
   }
 
-  constexpr short        val1 = 25;
-  GrayImageType::Pointer image1 = GrayImageType::New();
+  constexpr short val1 = 25;
+  auto            image1 = GrayImageType::New();
   image1->SetRegions(region);
   image1->Allocate();
   image1->FillBuffer(val1);
 
-  constexpr short        val2 = 123;
-  GrayImageType::Pointer image2 = GrayImageType::New();
+  constexpr short val2 = 123;
+  auto            image2 = GrayImageType::New();
   image2->SetRegions(region);
   image2->Allocate();
   image2->FillBuffer(val2);
 
   using TernaryType = itk::TernaryOperatorImageFilter<MaskImageType, GrayImageType>;
-  TernaryType::Pointer tern = TernaryType::New();
+  auto tern = TernaryType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(tern, TernaryOperatorImageFilter, TernaryGeneratorImageFilter);
 
@@ -109,7 +109,7 @@ itkTernaryOperatorImageFilterTest(int, char *[])
   tern->SetInput3(image2);
   tern->Update();
 
-  GrayImageType::Pointer output = GrayImageType::New();
+  auto output = GrayImageType::New();
   output->Graft(tern->GetOutput());
 
   // Even indices should be equal to val1 (the value of the second input)

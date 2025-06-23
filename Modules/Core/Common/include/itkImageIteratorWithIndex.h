@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,6 +68,8 @@ template <typename TImage>
 class ITK_TEMPLATE_EXPORT ImageIteratorWithIndex : public ImageConstIteratorWithIndex<TImage>
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(ImageIteratorWithIndex);
+
   /** Standard class type aliases. */
   using Self = ImageIteratorWithIndex;
 
@@ -81,16 +83,16 @@ public:
   using Superclass = ImageConstIteratorWithIndex<TImage>;
 
   /** Inherit types from the superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
 
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
@@ -99,18 +101,9 @@ public:
   /** Default Destructor */
   ~ImageIteratorWithIndex() override = default;
 
-  /** Copy Constructor. The copy constructor is provided to make sure the
-   * handle to the image is properly reference counted. */
-  ImageIteratorWithIndex(const Self & it);
-
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageIteratorWithIndex(TImage * ptr, const RegionType & region);
-
-  /** operator= is provided to make sure the handle to the image is properly
-   * reference counted. */
-  Self &
-  operator=(const Self & it);
 
   /** Set the pixel value */
   void
@@ -131,9 +124,11 @@ public:
 protected:
   /** This constructor is declared protected in order to enforce
     const-correctness */
+  /** @ITKStartGrouping */
   ImageIteratorWithIndex(const ImageConstIteratorWithIndex<TImage> & it);
   Self &
   operator=(const ImageConstIteratorWithIndex<TImage> & it);
+  /** @ITKEndGrouping */
 };
 } // end namespace itk
 

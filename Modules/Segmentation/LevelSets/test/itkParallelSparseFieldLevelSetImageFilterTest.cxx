@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,19 +38,19 @@
 namespace PSFLSIFT
 { // local namespace for helper functions
 
-const unsigned int HEIGHT = (64);
-const unsigned int WIDTH = (64);
-const unsigned int DEPTH = (64);
+constexpr unsigned int HEIGHT = (64);
+constexpr unsigned int WIDTH = (64);
+constexpr unsigned int DEPTH = (64);
 
-const int RADIUS = (std::min(std::min(HEIGHT, WIDTH), DEPTH) / 4);
+constexpr int RADIUS = (std::min(std::min(HEIGHT, WIDTH), DEPTH) / 4);
 
 // Distance transform function for a sphere
 float
 sphere(unsigned int x, unsigned int y, unsigned int z)
 {
-  float dis;
-  dis = (x - (float)WIDTH / 2.0) * (x - (float)WIDTH / 2.0) + (y - (float)HEIGHT / 2.0) * (y - (float)HEIGHT / 2.0) +
-        (z - (float)DEPTH / 2.0) * (z - (float)DEPTH / 2.0);
+  float dis = (x - float{ WIDTH } / 2.0) * (x - float{ WIDTH } / 2.0) +
+              (y - float{ HEIGHT } / 2.0) * (y - float{ HEIGHT } / 2.0) +
+              (z - float{ DEPTH } / 2.0) * (z - float{ DEPTH } / 2.0);
   dis = RADIUS - std::sqrt(dis);
   return (-dis);
 }
@@ -59,27 +59,22 @@ sphere(unsigned int x, unsigned int y, unsigned int z)
 float
 cube(unsigned int x, unsigned int y, unsigned int z)
 {
-  float X, Y, Z;
-  X = std::fabs(x - (float)WIDTH / 2.0);
-  Y = std::fabs(y - (float)HEIGHT / 2.0);
-  Z = std::fabs(z - (float)DEPTH / 2.0);
-  float dis;
+  const float X = itk::Math::abs(x - float{ WIDTH } / 2.0);
+  const float Y = itk::Math::abs(y - float{ HEIGHT } / 2.0);
+  const float Z = itk::Math::abs(z - float{ DEPTH } / 2.0);
+  float       dis = -sqrt((X - RADIUS) * (X - RADIUS) + (Y - RADIUS) * (Y - RADIUS) + (Z - RADIUS) * (Z - RADIUS));
   if (!((X > RADIUS) && (Y > RADIUS) && (Z > RADIUS)))
   {
     dis = RADIUS - (std::max(std::max(X, Y), Z));
-  }
-  else
-  {
-    dis = -sqrt((X - RADIUS) * (X - RADIUS) + (Y - RADIUS) * (Y - RADIUS) + (Z - RADIUS) * (Z - RADIUS));
   }
   return (-dis);
 }
 
 // Evaluates a function at each pixel in the itk volume
 void
-evaluate_function(::itk::Image<float, 3> * im, float (*f)(unsigned int, unsigned int, unsigned int))
+evaluate_function(itk::Image<float, 3> * im, float (*f)(unsigned int, unsigned int, unsigned int))
 {
-  ::itk::Image<float, 3>::IndexType idx;
+  itk::Image<float, 3>::IndexType idx;
   for (unsigned int x = 0; x < WIDTH; ++x)
   {
     idx[0] = x;
@@ -101,31 +96,31 @@ evaluate_function(::itk::Image<float, 3> * im, float (*f)(unsigned int, unsigned
  *
  * See LevelSetFunction for more information.
  */
-class MorphFunction : public ::itk::LevelSetFunction<::itk::Image<float, 3>>
+class MorphFunction : public itk::LevelSetFunction<itk::Image<float, 3>>
 {
 public:
   void
-  SetDistanceTransform(::itk::Image<float, 3> * d)
+  SetDistanceTransform(itk::Image<float, 3> * d)
   {
     m_DistanceTransform = d;
   }
 
   using Self = MorphFunction;
 
-  using Superclass = ::itk::LevelSetFunction<::itk::Image<float, 3>>;
+  using Superclass = itk::LevelSetFunction<itk::Image<float, 3>>;
   using RadiusType = Superclass::RadiusType;
   using GlobalDataStruct = Superclass::GlobalDataStruct;
 
   /**
    * Smart pointer support for this class.
    */
-  using Pointer = ::itk::SmartPointer<Self>;
-  using ConstPointer = ::itk::SmartPointer<const Self>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(MorphFunction, LevelSetFunction);
+  itkOverrideGetNameOfClassMacro(MorphFunction);
 
   /**
    * Method for creation through the object factory.
@@ -143,16 +138,16 @@ protected:
   }
 
 private:
-  ::itk::Image<float, 3>::Pointer m_DistanceTransform;
+  itk::Image<float, 3>::Pointer m_DistanceTransform;
   ScalarValueType
   PropagationSpeed(const NeighborhoodType & neighborhood, const FloatOffsetType &, GlobalDataStruct *) const override
   {
-    ::itk::Index<3> idx = neighborhood.GetIndex();
+    const itk::Index<3> idx = neighborhood.GetIndex();
     return m_DistanceTransform->GetPixel(idx);
   }
 };
 
-class MorphFilter : public ::itk::ParallelSparseFieldLevelSetImageFilter<::itk::Image<float, 3>, ::itk::Image<float, 3>>
+class MorphFilter : public itk::ParallelSparseFieldLevelSetImageFilter<itk::Image<float, 3>, itk::Image<float, 3>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MorphFilter);
@@ -162,13 +157,13 @@ public:
   /**
    * Smart pointer support for this class.
    */
-  using Pointer = ::itk::SmartPointer<Self>;
-  using ConstPointer = ::itk::SmartPointer<const Self>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
 
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(MorphFilter, ParallelSparseFieldLevelSetImageFilter);
+  itkOverrideGetNameOfClassMacro(MorphFilter);
 
   /**
    * Method for creation through the object factory.
@@ -178,7 +173,7 @@ public:
   itkSetMacro(Iterations, unsigned int);
 
   void
-  SetDistanceTransform(::itk::Image<float, 3> * im)
+  SetDistanceTransform(itk::Image<float, 3> * im)
   {
     auto * func = dynamic_cast<MorphFunction *>(this->GetDifferenceFunction().GetPointer());
     if (func == nullptr)
@@ -191,25 +186,27 @@ public:
 protected:
   ~MorphFilter() override = default;
   MorphFilter()
+
   {
-    MorphFunction::Pointer p = MorphFunction::New();
+    auto p = MorphFunction::New();
     p->SetPropagationWeight(-1.0);
     p->SetAdvectionWeight(0.0);
     p->SetCurvatureWeight(1.0);
     this->SetDifferenceFunction(p);
-    m_Iterations = 0;
   }
 
 private:
-  unsigned int m_Iterations;
+  unsigned int m_Iterations{ 0 };
 
   bool
   Halt() override
   {
     if (this->GetElapsedIterations() == m_Iterations)
+    {
       return true;
-    else
-      return false;
+    }
+
+    return false;
   }
 };
 
@@ -220,21 +217,25 @@ itkParallelSparseFieldLevelSetImageFilterTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
+    std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " OutputImage [InitImage [TargetImage]]\n";
     return EXIT_FAILURE;
   }
 
-  using ImageType = ::itk::Image<float, 3>;
+  constexpr unsigned int Dimension = 3;
 
-  constexpr int n = 100;           // Number of iterations
-  constexpr int numOfThreads = 11; // Number of threads to be used
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
-  ImageType::Pointer im_init = ImageType::New();
-  ImageType::Pointer im_target = ImageType::New();
+  constexpr int n = 100;                // Number of iterations
+  constexpr int numberOfWorkUnits = 11; // Number of work units to be used
 
-  ImageType::RegionType r;
-  ImageType::SizeType   sz = { { PSFLSIFT::HEIGHT, PSFLSIFT::WIDTH, PSFLSIFT::DEPTH } };
-  ImageType::IndexType  idx = { { 0, 0, 0 } };
+  auto im_init = ImageType::New();
+  auto im_target = ImageType::New();
+
+  ImageType::RegionType          r;
+  constexpr ImageType::SizeType  sz = { { PSFLSIFT::HEIGHT, PSFLSIFT::WIDTH, PSFLSIFT::DEPTH } };
+  constexpr ImageType::IndexType idx = { { 0, 0, 0 } };
   r.SetSize(sz);
   r.SetIndex(idx);
 
@@ -250,17 +251,13 @@ itkParallelSparseFieldLevelSetImageFilterTest(int argc, char * argv[])
   direction.SetIdentity();
   direction(1, 1) = -1.0;
 
-  im_init->SetLargestPossibleRegion(r);
-  im_init->SetBufferedRegion(r);
-  im_init->SetRequestedRegion(r);
+  im_init->SetRegions(r);
 
   im_init->SetOrigin(origin);
   im_init->SetSpacing(spacing);
   im_init->SetDirection(direction);
 
-  im_target->SetLargestPossibleRegion(r);
-  im_target->SetBufferedRegion(r);
-  im_target->SetRequestedRegion(r);
+  im_target->SetRegions(r);
 
   im_target->SetOrigin(origin);
   im_target->SetSpacing(spacing);
@@ -273,7 +270,7 @@ itkParallelSparseFieldLevelSetImageFilterTest(int argc, char * argv[])
   PSFLSIFT::evaluate_function(im_target, PSFLSIFT::cube);
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   if (argc > 2)
   {
     writer->SetInput(im_init);
@@ -294,21 +291,22 @@ itkParallelSparseFieldLevelSetImageFilterTest(int argc, char * argv[])
     itr.Value() = itr.Value() / std::sqrt((5.0f + itk::Math::sqr(itr.Value())));
   }
 
-  PSFLSIFT::MorphFilter::Pointer mf = PSFLSIFT::MorphFilter::New();
+  const PSFLSIFT::MorphFilter::Pointer mf = PSFLSIFT::MorphFilter::New();
   mf->SetDistanceTransform(im_target);
   mf->SetIterations(n);
   mf->SetInput(im_init);
-  mf->SetNumberOfWorkUnits(numOfThreads);
-  mf->SetNumberOfLayers(3);
+  mf->SetNumberOfWorkUnits(numberOfWorkUnits);
 
-  try
-  {
-    mf->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << e << std::endl;
-  }
+  constexpr typename PSFLSIFT::MorphFilter::StatusType numberOfLayers = 3;
+  mf->SetNumberOfLayers(numberOfLayers);
+  ITK_TEST_SET_GET_VALUE(numberOfLayers, mf->GetNumberOfLayers());
+
+  constexpr typename PSFLSIFT::MorphFilter::ValueType isoSurfaceValue = 0.0;
+  mf->SetIsoSurfaceValue(isoSurfaceValue);
+  ITK_TEST_SET_GET_VALUE(isoSurfaceValue, mf->GetIsoSurfaceValue());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(mf->Update());
+
 
   mf->GetOutput()->Print(std::cout);
 
@@ -318,7 +316,6 @@ itkParallelSparseFieldLevelSetImageFilterTest(int argc, char * argv[])
 
   std::cout << mf << std::endl << std::flush;
 
-  std::cout << "Passed !" << std::endl << std::flush;
-
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

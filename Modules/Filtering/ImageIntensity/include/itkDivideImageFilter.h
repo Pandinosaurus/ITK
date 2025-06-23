@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
 {
 
 /**
- *\class DivideImageFilter
+ * \class DivideImageFilter
  * \brief Pixel-wise division of two images.
  *
  * This class is templated over the types of the two
@@ -74,18 +74,14 @@ public:
    */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(DivideImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DivideImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(IntConvertibleToInput2Check, (Concept::Convertible<int, typename TInputImage2::PixelType>));
   itkConceptMacro(Input1Input2OutputDivisionOperatorsCheck,
                   (Concept::DivisionOperators<typename TInputImage1::PixelType,
                                               typename TInputImage2::PixelType,
                                               typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   DivideImageFilter()
@@ -98,16 +94,15 @@ protected:
   ~DivideImageFilter() override = default;
 
   void
-  VerifyPreconditions() ITKv5_CONST override
+  VerifyPreconditions() const override
   {
     Superclass::VerifyPreconditions();
 
     const auto * input =
       dynamic_cast<const typename Superclass::DecoratedInput2ImagePixelType *>(this->ProcessObject::GetInput(1));
-    if (input != nullptr &&
-        itk::Math::AlmostEquals(input->Get(), itk::NumericTraits<typename TInputImage2::PixelType>::ZeroValue()))
+    if (input != nullptr && itk::Math::AlmostEquals(input->Get(), typename TInputImage2::PixelType{}))
     {
-      itkGenericExceptionMacro(<< "The constant value used as denominator should not be set to zero");
+      itkGenericExceptionMacro("The constant value used as denominator should not be set to zero");
     }
   }
 };

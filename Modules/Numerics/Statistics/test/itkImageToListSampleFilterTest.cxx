@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ using MaskImageType = itk::Image<unsigned char, 2>;
 static ImageType::Pointer
 CreateImage()
 {
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::IndexType start;
   ImageType::SizeType  size;
@@ -43,7 +43,7 @@ CreateImage()
   size[0] = 10;
   size[1] = 10;
 
-  ImageType::RegionType region(start, size);
+  const ImageType::RegionType region(start, size);
   image->SetRegions(region);
   image->Allocate();
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -63,17 +63,16 @@ CreateImage()
 static MaskImageType::Pointer
 CreateMaskImage()
 {
-  MaskImageType::Pointer   image = MaskImageType::New();
+  auto                     image = MaskImageType::New();
   MaskImageType::IndexType start;
   MaskImageType::SizeType  size;
 
   start.Fill(0);
   size.Fill(10);
 
-  MaskImageType::RegionType region(start, size);
+  const MaskImageType::RegionType region(start, size);
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer
-                         // to zero
+  image->AllocateInitialized();
 
   MaskImageType::IndexType startMask;
   MaskImageType::SizeType  sizeMask;
@@ -84,13 +83,13 @@ CreateMaskImage()
   sizeMask[0] = 7;
   sizeMask[1] = 3;
 
-  MaskImageType::RegionType regionMask(startMask, sizeMask);
+  const MaskImageType::RegionType regionMask(startMask, sizeMask);
   using IteratorType = itk::ImageRegionIteratorWithIndex<MaskImageType>;
   IteratorType it(image, regionMask);
   it.GoToBegin();
   while (!it.IsAtEnd())
   {
-    it.Set((unsigned char)255);
+    it.Set(static_cast<unsigned char>(255));
     ++it;
   }
   return image;
@@ -101,7 +100,7 @@ CreateMaskImage()
 static MaskImageType::Pointer
 CreateLargerMaskImage()
 {
-  MaskImageType::Pointer image = MaskImageType::New();
+  auto image = MaskImageType::New();
 
   MaskImageType::IndexType start;
   MaskImageType::SizeType  size;
@@ -112,10 +111,9 @@ CreateLargerMaskImage()
   size[0] = 13;
   size[1] = 17;
 
-  MaskImageType::RegionType region(start, size);
+  const MaskImageType::RegionType region(start, size);
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer
-                         // to zero
+  image->AllocateInitialized();
   return image;
 }
 
@@ -123,12 +121,12 @@ CreateLargerMaskImage()
 int
 itkImageToListSampleFilterTest(int, char *[])
 {
-  ImageType::Pointer     image = CreateImage();
-  MaskImageType::Pointer maskImage = CreateMaskImage();
+  const ImageType::Pointer     image = CreateImage();
+  const MaskImageType::Pointer maskImage = CreateMaskImage();
 
   // Generate a list sample from "image" confined to the mask, "maskImage".
   using ImageToListSampleFilterType = itk::Statistics::ImageToListSampleFilter<ImageType, MaskImageType>;
-  ImageToListSampleFilterType::Pointer filter = ImageToListSampleFilterType::New();
+  auto filter = ImageToListSampleFilterType::New();
 
   bool        pass = true;
   std::string failureMeassage = "";
@@ -138,8 +136,7 @@ itkImageToListSampleFilterTest(int, char *[])
   try
   {
     filter->Update();
-    failureMeassage = "Exception should have been thrown since \
-                    Update() is invoked without setting an input ";
+    failureMeassage = "Exception should have been thrown since Update() is invoked without setting an input ";
     pass = false;
   }
   catch (const itk::ExceptionObject & excp)
@@ -152,15 +149,13 @@ itkImageToListSampleFilterTest(int, char *[])
   if (filter->GetInput() != nullptr)
   {
     pass = false;
-    failureMeassage = "GetInput() should return nullptr if the input \
-                     has not been set";
+    failureMeassage = "GetInput() should return nullptr if the input has not been set";
   }
 
   if (filter->GetMaskImage() != nullptr)
   {
     pass = false;
-    failureMeassage = "GetMaskImage() should return nullptr if mask image \
-                     has not been set";
+    failureMeassage = "GetMaskImage() should return nullptr if mask image has not been set";
   }
 
 
@@ -178,7 +173,7 @@ itkImageToListSampleFilterTest(int, char *[])
   filter->Print(std::cout);
 
 
-  ImageToListSampleFilterType::MaskPixelType pixelType = filter->GetMaskValue();
+  const ImageToListSampleFilterType::MaskPixelType pixelType = filter->GetMaskValue();
 
   if (pixelType != 255)
   {
@@ -213,9 +208,7 @@ itkImageToListSampleFilterTest(int, char *[])
   try
   {
     filter->Update();
-    std::cerr << "Exception should have been thrown since \
-      the mask has a different LargestPossibleRegion."
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the mask has a different LargestPossibleRegion." << std::endl;
     return EXIT_FAILURE;
   }
   catch (const itk::ExceptionObject & excp)

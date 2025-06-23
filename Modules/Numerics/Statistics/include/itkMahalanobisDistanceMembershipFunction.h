@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,12 @@
 #ifndef itkMahalanobisDistanceMembershipFunction_h
 #define itkMahalanobisDistanceMembershipFunction_h
 
+#include "itkNumericTraitsVectorPixel.h"
 #include "itkVariableSizeMatrix.h"
 
 #include "itkMembershipFunctionBase.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class MahalanobisDistanceMembershipFunction
  * \brief MahalanobisDistanceMembershipFunction models class
@@ -68,10 +67,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Strandard macros */
-  itkTypeMacro(MahalanobisDistanceMembershipFunction, MembershipFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(MahalanobisDistanceMembershipFunction);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** SmartPointer class for superclass */
   using MembershipFunctionPointer = typename Superclass::Pointer;
 
@@ -79,7 +79,7 @@ public:
   using MeasurementVectorType = TVector;
 
   /** Typedef to represent the length of measurement vectors */
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MeasurementVectorSizeType;
 
   /** Type of the mean vector. RealType on a vector-type is the same
    * vector-type but with a real element type.  */
@@ -119,7 +119,7 @@ public:
   /** Method to clone a membership function, i.e. create a new instance of
    * the same type of membership function and configure its ivars to
    * match. */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 protected:
@@ -129,18 +129,17 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MeanVectorType       m_Mean;       // mean
-  CovarianceMatrixType m_Covariance; // covariance matrix
+  MeanVectorType       m_Mean{};       // mean
+  CovarianceMatrixType m_Covariance{}; // covariance matrix
 
   // inverse covariance matrix. automatically calculated
-  // when covariance matirx is set.
-  CovarianceMatrixType m_InverseCovariance;
+  // when covariance matrix is set.
+  CovarianceMatrixType m_InverseCovariance{};
 
   /** Boolean to cache whether the covariance is singular or nearly singular */
-  bool m_CovarianceNonsingular;
+  bool m_CovarianceNonsingular{};
 };
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMahalanobisDistanceMembershipFunction.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,18 +24,13 @@ namespace itk
  * Constructor
  */
 ConjugateGradientOptimizer::ConjugateGradientOptimizer()
-{
-  m_OptimizerInitialized = false;
-  m_VnlOptimizer = nullptr;
-}
+  : m_VnlOptimizer(nullptr)
+{}
 
 /**
  * Destructor
  */
-ConjugateGradientOptimizer::~ConjugateGradientOptimizer()
-{
-  delete m_VnlOptimizer;
-}
+ConjugateGradientOptimizer::~ConjugateGradientOptimizer() = default;
 
 /**
  * Get the Optimizer
@@ -43,7 +38,7 @@ ConjugateGradientOptimizer::~ConjugateGradientOptimizer()
 vnl_conjugate_gradient *
 ConjugateGradientOptimizer::GetOptimizer()
 {
-  return m_VnlOptimizer;
+  return m_VnlOptimizer.get();
 }
 
 /**
@@ -58,14 +53,9 @@ ConjugateGradientOptimizer::SetCostFunction(SingleValuedCostFunction * costFunct
 
   adaptor->SetCostFunction(costFunction);
 
-  if (m_OptimizerInitialized)
-  {
-    delete m_VnlOptimizer;
-  }
-
   this->SetCostFunctionAdaptor(adaptor);
 
-  m_VnlOptimizer = new vnl_conjugate_gradient(*adaptor);
+  m_VnlOptimizer = std::make_unique<vnl_conjugate_gradient>(*adaptor);
   m_OptimizerInitialized = true;
 }
 
@@ -78,7 +68,7 @@ ConjugateGradientOptimizer::GetValue() const
   if (m_ScalesInitialized)
   {
     const ScalesType & scales = this->GetScales();
-    for (unsigned int i = 0; i < parameters.size(); i++)
+    for (unsigned int i = 0; i < parameters.size(); ++i)
     {
       parameters[i] *= scales[i];
     }
@@ -99,7 +89,7 @@ ConjugateGradientOptimizer::StartOptimization()
     this->GetNonConstCostFunctionAdaptor()->NegateCostFunctionOn();
   }
 
-  ParametersType initialPosition = this->GetInitialPosition();
+  const ParametersType initialPosition = this->GetInitialPosition();
 
   ParametersType parameters(initialPosition);
 
@@ -112,7 +102,7 @@ ConjugateGradientOptimizer::StartOptimization()
   {
     const ScalesType & scales = this->GetScales();
     this->GetNonConstCostFunctionAdaptor()->SetScales(scales);
-    for (unsigned int i = 0; i < parameters.size(); i++)
+    for (unsigned int i = 0; i < parameters.size(); ++i)
     {
       parameters[i] *= scales[i];
     }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 #ifndef itkCorrelationImageToImageMetricv4HelperThreader_hxx
 #define itkCorrelationImageToImageMetricv4HelperThreader_hxx
 
-#include "itkCorrelationImageToImageMetricv4HelperThreader.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace itk
 {
@@ -32,14 +32,6 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
 
 
 template <typename TDomainPartitioner, typename TImageToImageMetric, typename TCorrelationMetric>
-CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageMetric, TCorrelationMetric>::
-  ~CorrelationImageToImageMetricv4HelperThreader()
-{
-  delete[] m_CorrelationMetricPerThreadVariables;
-}
-
-
-template <typename TDomainPartitioner, typename TImageToImageMetric, typename TCorrelationMetric>
 void
 CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageMetric, TCorrelationMetric>::
   BeforeThreadedExecution()
@@ -49,16 +41,16 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
   /* Store the casted pointer to avoid dynamic casting in tight loops. */
   this->m_CorrelationAssociate = dynamic_cast<TCorrelationMetric *>(this->m_Associate);
 
-  const ThreadIdType numThreadsUsed = this->GetNumberOfWorkUnitsUsed();
-  delete[] this->m_CorrelationMetricPerThreadVariables;
-  this->m_CorrelationMetricPerThreadVariables = new AlignedCorrelationMetricPerThreadStruct[numThreadsUsed];
+  const ThreadIdType numWorkUnitsUsed = this->GetNumberOfWorkUnitsUsed();
+  this->m_CorrelationMetricPerThreadVariables =
+    make_unique_for_overwrite<AlignedCorrelationMetricPerThreadStruct[]>(numWorkUnitsUsed);
 
   //---------------------------------------------------------------
   // Set initial values.
-  for (ThreadIdType i = 0; i < numThreadsUsed; ++i)
+  for (ThreadIdType i = 0; i < numWorkUnitsUsed; ++i)
   {
-    this->m_CorrelationMetricPerThreadVariables[i].FixSum = NumericTraits<InternalComputationValueType>::ZeroValue();
-    this->m_CorrelationMetricPerThreadVariables[i].MovSum = NumericTraits<InternalComputationValueType>::ZeroValue();
+    this->m_CorrelationMetricPerThreadVariables[i].FixSum = InternalComputationValueType{};
+    this->m_CorrelationMetricPerThreadVariables[i].MovSum = InternalComputationValueType{};
   }
 }
 
@@ -70,11 +62,11 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
 
   /* Store the number of valid points the enclosing class \c
    * m_NumberOfValidPoints by collecting the valid points per thread. */
-  this->m_CorrelationAssociate->m_NumberOfValidPoints = NumericTraits<SizeValueType>::ZeroValue();
+  this->m_CorrelationAssociate->m_NumberOfValidPoints = SizeValueType{};
 
-  const ThreadIdType numThreadsUsed = this->GetNumberOfWorkUnitsUsed();
+  const ThreadIdType numWorkUnitsUsed = this->GetNumberOfWorkUnitsUsed();
 
-  for (ThreadIdType i = 0; i < numThreadsUsed; ++i)
+  for (ThreadIdType i = 0; i < numWorkUnitsUsed; ++i)
   {
     this->m_CorrelationAssociate->m_NumberOfValidPoints +=
       this->m_GetValueAndDerivativePerThreadVariables[i].NumberOfValidPoints;
@@ -86,10 +78,10 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
     return;
   }
 
-  InternalComputationValueType sumF = NumericTraits<InternalComputationValueType>::ZeroValue();
-  InternalComputationValueType sumM = NumericTraits<InternalComputationValueType>::ZeroValue();
+  InternalComputationValueType sumF{};
+  InternalComputationValueType sumM{};
 
-  for (ThreadIdType threadId = 0; threadId < numThreadsUsed; ++threadId)
+  for (ThreadIdType threadId = 0; threadId < numWorkUnitsUsed; ++threadId)
   {
     sumF += this->m_CorrelationMetricPerThreadVariables[threadId].FixSum;
     sumM += this->m_CorrelationMetricPerThreadVariables[threadId].MovSum;
@@ -121,7 +113,7 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
     pointIsValid = this->m_CorrelationAssociate->TransformAndEvaluateFixedPoint(
       virtualPoint, mappedFixedPoint, mappedFixedPixelValue);
   }
-  catch (ExceptionObject & exc)
+  catch (const ExceptionObject & exc)
   {
     // NOTE: there must be a cleaner way to do this:
     std::string msg("Caught exception: \n");
@@ -139,7 +131,7 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
     pointIsValid = this->m_CorrelationAssociate->TransformAndEvaluateMovingPoint(
       virtualPoint, mappedMovingPoint, mappedMovingPixelValue);
   }
-  catch (ExceptionObject & exc)
+  catch (const ExceptionObject & exc)
   {
     std::string msg("Caught exception: \n");
     msg += exc.what();
@@ -157,7 +149,7 @@ CorrelationImageToImageMetricv4HelperThreader<TDomainPartitioner, TImageToImageM
     this->m_CorrelationMetricPerThreadVariables[threadId].FixSum += mappedFixedPixelValue;
     this->m_CorrelationMetricPerThreadVariables[threadId].MovSum += mappedMovingPixelValue;
   }
-  catch (ExceptionObject & exc)
+  catch (const ExceptionObject & exc)
   {
     std::string msg("Exception in ProcessVirtualPoint:\n");
     msg += exc.what();

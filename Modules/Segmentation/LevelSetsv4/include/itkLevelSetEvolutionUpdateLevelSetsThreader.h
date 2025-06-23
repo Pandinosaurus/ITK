@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,16 +27,15 @@ namespace itk
 {
 
 /**
- *\class LevelSetEvolutionUpdateLevelSetsThreader
- * \brief Threade the UpdateLevelSets method.
+ * \class LevelSetEvolutionUpdateLevelSetsThreader
+ * \brief Thread the UpdateLevelSets method.
  *
  * Thread the \c UpdateLevelSets method of the LevelSetEvolution class.
  *
  * \ingroup ITKLevelSetsv4
  */
 template <typename TLevelSet, typename TDomainPartitioner, typename TLevelSetEvolution>
-class ITK_TEMPLATE_EXPORT LevelSetEvolutionUpdateLevelSetsThreader
-{};
+class ITK_TEMPLATE_EXPORT LevelSetEvolutionUpdateLevelSetsThreader{};
 
 // For dense image level set.
 template <typename TImage, typename TLevelSetEvolution>
@@ -55,15 +54,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run time type information. */
-  itkTypeMacro(LevelSetEvolutionUpdateLevelSetsThreader, DomainThreader);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionUpdateLevelSetsThreader);
 
   /** Standard New macro. */
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   /** Types of the associate class. */
   using LevelSetEvolutionType = TLevelSetEvolution;
@@ -87,7 +86,7 @@ protected:
   using RMSChangeAccumulatorType = CompensatedSummation<LevelSetOutputRealType>;
   using RMSChangeAccumulatorPerThreadType = std::vector<RMSChangeAccumulatorType>;
 
-  RMSChangeAccumulatorPerThreadType m_RMSChangeAccumulatorPerThread;
+  RMSChangeAccumulatorPerThreadType m_RMSChangeAccumulatorPerThread{};
 };
 
 } // end namespace itk

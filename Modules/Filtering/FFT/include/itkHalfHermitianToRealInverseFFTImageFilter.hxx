@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,64 +18,9 @@
 #ifndef itkHalfHermitianToRealInverseFFTImageFilter_hxx
 #define itkHalfHermitianToRealInverseFFTImageFilter_hxx
 
-#include "itkVnlHalfHermitianToRealInverseFFTImageFilter.h"
-
-#if defined(ITK_USE_FFTWD) || defined(ITK_USE_FFTWF)
-#  include "itkFFTWHalfHermitianToRealInverseFFTImageFilter.h"
-#endif
 
 namespace itk
 {
-
-// Partial specialization allows avoiding runtime type choice
-template <typename TSelfPointer, typename TInputImage, typename TOutputImage, typename TPixel>
-struct Dispatch_C2R_New
-{
-  static TSelfPointer
-  Apply()
-  {
-    return VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::New().GetPointer();
-  }
-};
-
-#ifdef ITK_USE_FFTWD
-template <typename TSelfPointer, typename TInputImage, typename TOutputImage>
-struct Dispatch_C2R_New<TSelfPointer, TInputImage, TOutputImage, double>
-{
-  static TSelfPointer
-  Apply()
-  {
-    return FFTWHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::New().GetPointer();
-  }
-};
-#endif
-
-#ifdef ITK_USE_FFTWF
-template <typename TSelfPointer, typename TInputImage, typename TOutputImage>
-struct Dispatch_C2R_New<TSelfPointer, TInputImage, TOutputImage, float>
-{
-  static TSelfPointer
-  Apply()
-  {
-    return FFTWHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::New().GetPointer();
-  }
-};
-#endif
-
-template <typename TInputImage, typename TOutputImage>
-typename HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::Pointer
-HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::New()
-{
-  Pointer smartPtr = ::itk::ObjectFactory<Self>::Create();
-
-  if (smartPtr.IsNull())
-  {
-    smartPtr = Dispatch_C2R_New<Pointer, TInputImage, TOutputImage, OutputPixelType>::Apply();
-  }
-
-  return smartPtr;
-}
-
 template <typename TInputImage, typename TOutputImage>
 HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::HalfHermitianToRealInverseFFTImageFilter()
 {
@@ -90,8 +35,8 @@ HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::GenerateOut
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  typename InputImageType::ConstPointer inputPtr = this->GetInput();
-  typename OutputImageType::Pointer     outputPtr = this->GetOutput();
+  const typename InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename OutputImageType::Pointer     outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -125,14 +70,12 @@ HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::GenerateOut
 
   outputStartIndex[0] = inputStartIndex[0];
 
-  for (unsigned int i = 1; i < OutputImageType::ImageDimension; i++)
+  for (unsigned int i = 1; i < OutputImageType::ImageDimension; ++i)
   {
     outputSize[i] = inputSize[i];
     outputStartIndex[i] = inputStartIndex[i];
   }
-  typename OutputImageType::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename OutputImageType::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }
@@ -144,7 +87,7 @@ HalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::GenerateInp
   Superclass::GenerateInputRequestedRegion();
 
   // Get pointers to the input and output
-  typename InputImageType::Pointer inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const typename InputImageType::Pointer inputPtr = const_cast<InputImageType *>(this->GetInput());
   if (inputPtr)
   {
     inputPtr->SetRequestedRegionToLargestPossibleRegion();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDoubleThresholdImageFilter_hxx
 #define itkDoubleThresholdImageFilter_hxx
 
-#include "itkDoubleThresholdImageFilter.h"
 #include "itkReconstructionByDilationImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkProgressAccumulator.h"
@@ -27,18 +26,13 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 DoubleThresholdImageFilter<TInputImage, TOutputImage>::DoubleThresholdImageFilter()
-
-{
-  m_Threshold1 = NumericTraits<InputPixelType>::NonpositiveMin();
-  m_Threshold2 = NumericTraits<InputPixelType>::NonpositiveMin();
-  m_Threshold3 = NumericTraits<InputPixelType>::max();
-  m_Threshold4 = NumericTraits<InputPixelType>::max();
-
-  m_OutsideValue = NumericTraits<OutputPixelType>::ZeroValue();
-  m_InsideValue = NumericTraits<OutputPixelType>::max();
-
-  m_FullyConnected = false;
-}
+  : m_Threshold1(NumericTraits<InputPixelType>::NonpositiveMin())
+  , m_Threshold2(NumericTraits<InputPixelType>::NonpositiveMin())
+  , m_Threshold3(NumericTraits<InputPixelType>::max())
+  , m_Threshold4(NumericTraits<InputPixelType>::max())
+  , m_InsideValue(NumericTraits<OutputPixelType>::max())
+  , m_OutsideValue(OutputPixelType{})
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -48,7 +42,7 @@ DoubleThresholdImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedReg
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -74,10 +68,10 @@ DoubleThresholdImageFilter<TInputImage, TOutputImage>::GenerateData()
   using ThresholdFilterType = BinaryThresholdImageFilter<TInputImage, TOutputImage>;
   using DilationFilterType = ReconstructionByDilationImageFilter<TOutputImage, TOutputImage>;
 
-  typename ThresholdFilterType::Pointer narrowThreshold = ThresholdFilterType::New();
+  auto narrowThreshold = ThresholdFilterType::New();
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   narrowThreshold->SetLowerThreshold(m_Threshold2);
@@ -86,14 +80,14 @@ DoubleThresholdImageFilter<TInputImage, TOutputImage>::GenerateData()
   narrowThreshold->SetOutsideValue(m_OutsideValue);
   narrowThreshold->SetInput(this->GetInput());
 
-  typename ThresholdFilterType::Pointer wideThreshold = ThresholdFilterType::New();
+  auto wideThreshold = ThresholdFilterType::New();
   wideThreshold->SetLowerThreshold(m_Threshold1);
   wideThreshold->SetUpperThreshold(m_Threshold4);
   wideThreshold->SetInsideValue(m_InsideValue);
   wideThreshold->SetOutsideValue(m_OutsideValue);
   wideThreshold->SetInput(this->GetInput());
 
-  typename DilationFilterType::Pointer dilate = DilationFilterType::New();
+  auto dilate = DilationFilterType::New();
   dilate->SetMarkerImage(narrowThreshold->GetOutput());
   dilate->SetMaskImage(wideThreshold->GetOutput());
   dilate->SetFullyConnected(m_FullyConnected);
@@ -134,8 +128,8 @@ DoubleThresholdImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & 
      << std::endl;
   os << indent << "OutsideValue: " << static_cast<typename NumericTraits<OutputPixelType>::PrintType>(m_OutsideValue)
      << std::endl;
-  os << indent << "Number of iterations used to produce current output: " << m_NumberOfIterationsUsed << std::endl;
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  os << indent << "NumberOfIterationsUsed: " << m_NumberOfIterationsUsed << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
 }
 } // end namespace itk
 #endif

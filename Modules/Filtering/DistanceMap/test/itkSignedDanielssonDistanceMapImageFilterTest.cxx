@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ test(int testIdx)
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   constexpr unsigned int Dimension = 2;
   using PixelType = float;
@@ -52,21 +52,15 @@ test(int testIdx)
    * give the same output as DaniessonDistanceMapImageFilter  */
 
   /* Allocate the 2D image */
-  myImageType2D1::SizeType size2D;
-  size2D.Fill(9);
+  auto size2D = myImageType2D1::SizeType::Filled(9);
 
-  myImageType2D1::IndexType index2D;
-  index2D.Fill(0);
+  myImageType2D1::IndexType index2D{};
 
-  myImageType2D1::RegionType region2D;
-  region2D.SetSize(size2D);
-  region2D.SetIndex(index2D);
+  const myImageType2D1::RegionType region2D{ index2D, size2D };
 
-  myImageType2D1::Pointer inputImage2D = myImageType2D1::New();
-  inputImage2D->SetLargestPossibleRegion(region2D);
-  inputImage2D->SetBufferedRegion(region2D);
-  inputImage2D->SetRequestedRegion(region2D);
-  inputImage2D->Allocate(true);
+  auto inputImage2D = myImageType2D1::New();
+  inputImage2D->SetRegions(region2D);
+  inputImage2D->AllocateInitialized();
 
   if (!testIdx)
   {
@@ -92,11 +86,10 @@ test(int testIdx)
   else
   {
     std::cout << "Compute with a 9x9 image, with a 5x5 square at the center set to ON." << std::endl << std::endl;
-    // Test the signed Danielsson Output for the a 5x5 square in a 9x9 image
-    int i, j;
-    for (i = 2; i <= 6; i++)
+    // Test the signed Danielsson Output for the a 5x5 square in a 9x9 images
+    for (int i = 2; i <= 6; ++i)
     {
-      for (j = 2; j <= 6; j++)
+      for (int j = 2; j <= 6; ++j)
       {
         index2D[0] = i;
         index2D[1] = j;
@@ -108,16 +101,16 @@ test(int testIdx)
   /* Create Danielsson Distance Map filter */
   using myFilterType2D = itk::SignedDanielssonDistanceMapImageFilter<myImageType2D1, myImageType2D2>;
 
-  myFilterType2D::Pointer filter2D = myFilterType2D::New();
+  auto filter2D = myFilterType2D::New();
 
   filter2D->SetInput(inputImage2D);
-  myImageType2D2::Pointer outputDistance2D = filter2D->GetOutput();
+  const myImageType2D2::Pointer outputDistance2D = filter2D->GetOutput();
 
   using VoronoiImageType = myFilterType2D::VoronoiImageType;
 
-  VoronoiImageType::Pointer outputVoronoi2D = filter2D->GetVoronoiMap();
+  const VoronoiImageType::Pointer outputVoronoi2D = filter2D->GetVoronoiMap();
 
-  myFilterType2D::VectorImageType::Pointer outputComponents = filter2D->GetVectorDistanceMap();
+  const myFilterType2D::VectorImageType::Pointer outputComponents = filter2D->GetVectorDistanceMap();
 
   filter2D->Update();
 
@@ -143,17 +136,17 @@ test(int testIdx)
     {
       while (!it2D4.IsAtEndOfLine())
       {
-        std::cout << "[";
-        for (unsigned int i = 0; i < 2; i++)
+        std::cout << '[';
+        for (unsigned int i = 0; i < 2; ++i)
         {
           std::cout << it2D4.Get()[i];
           if (i == 0)
           {
-            std::cout << ",";
+            std::cout << ',';
           }
         }
-        std::cout << "]";
-        std::cout << "\t";
+        std::cout << ']';
+        std::cout << '\t';
         ++it2D4;
       }
       std::cout << std::endl;

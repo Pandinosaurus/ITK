@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +39,8 @@ Vector<T, TVectorDimension>::operator=(const ValueType r[TVectorDimension])
 }
 
 template <typename T, unsigned int TVectorDimension>
-const typename Vector<T, TVectorDimension>::Self &
-Vector<T, TVectorDimension>::operator+=(const Self & vec)
+auto
+Vector<T, TVectorDimension>::operator+=(const Self & vec) -> const Self &
 {
   for (unsigned int i = 0; i < TVectorDimension; ++i)
   {
@@ -50,8 +50,8 @@ Vector<T, TVectorDimension>::operator+=(const Self & vec)
 }
 
 template <typename T, unsigned int TVectorDimension>
-const typename Vector<T, TVectorDimension>::Self &
-Vector<T, TVectorDimension>::operator-=(const Self & vec)
+auto
+Vector<T, TVectorDimension>::operator-=(const Self & vec) -> const Self &
 {
   for (unsigned int i = 0; i < TVectorDimension; ++i)
   {
@@ -100,10 +100,10 @@ Vector<T, TVectorDimension>::operator-(const Self & vec) const
 }
 
 template <typename T, unsigned int TVectorDimension>
-typename Vector<T, TVectorDimension>::RealValueType
-Vector<T, TVectorDimension>::GetSquaredNorm() const
+auto
+Vector<T, TVectorDimension>::GetSquaredNorm() const -> RealValueType
 {
-  typename NumericTraits<RealValueType>::AccumulateType sum = NumericTraits<T>::ZeroValue();
+  T sum{};
   for (unsigned int i = 0; i < TVectorDimension; ++i)
   {
     const RealValueType value = (*this)[i];
@@ -113,15 +113,15 @@ Vector<T, TVectorDimension>::GetSquaredNorm() const
 }
 
 template <typename T, unsigned int TVectorDimension>
-typename Vector<T, TVectorDimension>::RealValueType
-Vector<T, TVectorDimension>::GetNorm() const
+auto
+Vector<T, TVectorDimension>::GetNorm() const -> RealValueType
 {
-  return RealValueType(std::sqrt(double(this->GetSquaredNorm())));
+  return RealValueType(std::sqrt(static_cast<double>(this->GetSquaredNorm())));
 }
 
 template <typename T, unsigned int TVectorDimension>
-typename Vector<T, TVectorDimension>::RealValueType
-Vector<T, TVectorDimension>::Normalize()
+auto
+Vector<T, TVectorDimension>::Normalize() -> RealValueType
 {
   const RealValueType norm = this->GetNorm();
   if (norm < NumericTraits<RealValueType>::epsilon())
@@ -148,18 +148,15 @@ template <typename T, unsigned int TVectorDimension>
 vnl_vector<T>
 Vector<T, TVectorDimension>::GetVnlVector() const
 {
-  // Return a vector_ref<>.  This will be automatically converted to a
-  // vnl_vector<>.  We have to use a const_cast<> which would normally
-  // be prohibited in a const method, but it is safe to do here
-  // because the cast to vnl_vector<> will ultimately copy the data.
-  return vnl_vector_ref<T>(TVectorDimension, const_cast<T *>(this->GetDataPointer()));
+  return vnl_vector<T>(this->GetDataPointer(), TVectorDimension);
 }
 
 template <typename T, unsigned int TVectorDimension>
 void
 Vector<T, TVectorDimension>::SetVnlVector(const vnl_vector<T> & v)
 {
-  for (unsigned int i = 0; i < v.size(); ++i)
+  const unsigned int elements_to_copy = std::min<unsigned int>(TVectorDimension, v.size());
+  for (unsigned int i = 0; i < elements_to_copy; ++i)
   {
     (*this)[i] = v(i);
   }
@@ -169,8 +166,8 @@ template <typename T, unsigned int TVectorDimension>
 std::ostream &
 operator<<(std::ostream & os, const Vector<T, TVectorDimension> & vct)
 {
-  os << "[";
-  if (TVectorDimension == 1)
+  os << '[';
+  if constexpr (TVectorDimension == 1)
   {
     os << vct[0];
   }
@@ -182,7 +179,7 @@ operator<<(std::ostream & os, const Vector<T, TVectorDimension> & vct)
     }
     os << vct[TVectorDimension - 1];
   }
-  os << "]";
+  os << ']';
   return os;
 }
 
@@ -198,9 +195,10 @@ operator>>(std::istream & is, Vector<T, TVectorDimension> & vct)
 }
 
 template <typename T, unsigned int TVectorDimension>
-typename Vector<T, TVectorDimension>::ValueType Vector<T, TVectorDimension>::operator*(const Self & other) const
+typename Vector<T, TVectorDimension>::ValueType
+Vector<T, TVectorDimension>::operator*(const Self & other) const
 {
-  typename NumericTraits<T>::AccumulateType value = NumericTraits<T>::ZeroValue();
+  T value{};
   for (unsigned int i = 0; i < TVectorDimension; ++i)
   {
     value += (*this)[i] * other[i];

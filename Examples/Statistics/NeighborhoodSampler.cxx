@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ main()
   using MeasurementVectorType =
     itk::Vector<MeasurementType, MeasurementVectorLength>;
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(MeasurementVectorLength);
 
   MeasurementVectorType mv;
@@ -99,7 +99,7 @@ main()
 
   // Software Guide : BeginCodeSnippet
   using SamplerType = itk::Statistics::NeighborhoodSampler<SampleType>;
-  SamplerType::Pointer sampler = SamplerType::New();
+  auto sampler = SamplerType::New();
 
   sampler->SetInputSample(sample);
   SamplerType::CenterType center(MeasurementVectorLength);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkMultiStartOptimizerv4.h"
+#include "itkTestingMacros.h"
 
 /**
  *  \class MultiStartOptimizerv4TestMetric for test
@@ -42,7 +43,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(MultiStartOptimizerv4TestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(MultiStartOptimizerv4TestMetric);
 
   enum
   {
@@ -67,20 +68,22 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    derivative.Fill(itk::NumericTraits<ParametersValueType>::ZeroValue());
+    derivative.Fill(ParametersValueType{});
   }
 
   void
   GetValueAndDerivative(MeasureType & value, DerivativeType & derivative) const override
   {
     if (derivative.Size() != 2)
+    {
       derivative.SetSize(2);
+    }
 
-    double x = m_Parameters[0];
-    double y = m_Parameters[1];
+    const double x = m_Parameters[0];
+    const double y = m_Parameters[1];
 
     std::cout << "GetValueAndDerivative( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = " << std::endl;
 
     value = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
@@ -100,9 +103,9 @@ public:
   MeasureType
   GetValue() const override
   {
-    double x = m_Parameters[0];
-    double y = m_Parameters[1];
-    double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const double x = m_Parameters[0];
+    const double y = m_Parameters[1];
+    const double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
     std::cout << m_Parameters << " metric " << metric << std::endl;
     return metric;
   }
@@ -173,11 +176,11 @@ MultiStartOptimizerv4RunTest(itk::MultiStartOptimizerv4::Pointer & itkOptimizer)
   ParametersType bestPosition = itkOptimizer->GetBestParameters();
 
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ')' << std::endl;
   std::cout << "Best Solution   = (";
-  std::cout << bestPosition[0] << ",";
-  std::cout << bestPosition[1] << ")" << std::endl;
+  std::cout << bestPosition[0] << ',';
+  std::cout << bestPosition[1] << ')' << std::endl;
 
   //
   // check results to see if it is within range
@@ -185,9 +188,9 @@ MultiStartOptimizerv4RunTest(itk::MultiStartOptimizerv4::Pointer & itkOptimizer)
   ParametersType trueParameters(2);
   trueParameters[0] = 2.0;
   trueParameters[1] = -2.0;
-  for (itk::SizeValueType j = 0; j < 2; j++)
+  for (itk::SizeValueType j = 0; j < 2; ++j)
   {
-    if (fabs(bestPosition[j] - trueParameters[j]) > 0.01)
+    if (itk::Math::abs(bestPosition[j] - trueParameters[j]) > 0.01)
     {
       std::cerr << "Results do not match: " << std::endl
                 << "expected: " << trueParameters << std::endl
@@ -207,11 +210,17 @@ itkMultiStartOptimizerv4Test(int, char *[])
 
   using OptimizerType = itk::MultiStartOptimizerv4;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, MultiStartOptimizerv4Template, ObjectToObjectOptimizerBaseTemplate);
+
+
+  auto stopCondition = itk::StopConditionObjectToObjectOptimizerEnum::MAXIMUM_NUMBER_OF_ITERATIONS;
+  ITK_TEST_EXPECT_EQUAL(stopCondition, itkOptimizer->GetStopCondition());
 
   // Declaration of the Metric
-  MultiStartOptimizerv4TestMetric::Pointer metric = MultiStartOptimizerv4TestMetric::New();
+  auto metric = MultiStartOptimizerv4TestMetric::New();
 
   itkOptimizer->SetMetric(metric);
 
@@ -224,13 +233,13 @@ itkMultiStartOptimizerv4Test(int, char *[])
    */
   // We start not so far from  | 2 -2 |
   OptimizerType::ParametersListType parametersList = itkOptimizer->GetParametersList();
-  for (int i = -3; i < 3; i++)
+  for (int i = -3; i < 3; ++i)
   {
-    for (int j = -3; j < 3; j++)
+    for (int j = -3; j < 3; ++j)
     {
       ParametersType testPosition(spaceDimension);
-      testPosition[0] = (double)i;
-      testPosition[1] = (double)j;
+      testPosition[0] = static_cast<double>(i);
+      testPosition[1] = static_cast<double>(j);
       parametersList.push_back(testPosition);
     }
   }
@@ -253,11 +262,11 @@ itkMultiStartOptimizerv4Test(int, char *[])
   parametersList.clear();
   for (int i = -99; i < 103; i += 100)
   {
-    for (int j = -3; j < -2; j++)
+    for (int j = -3; j < -2; ++j)
     {
       ParametersType testPosition(spaceDimension);
-      testPosition[0] = (double)i;
-      testPosition[1] = (double)j;
+      testPosition[0] = static_cast<double>(i);
+      testPosition[1] = static_cast<double>(j);
       parametersList.push_back(testPosition);
     }
   }
@@ -274,22 +283,23 @@ itkMultiStartOptimizerv4Test(int, char *[])
    */
   std::cout << "Test optimization 3: with local optimizer passed by user" << std::endl;
   parametersList.clear();
-  for (int i = 1; i < 2; i++)
+  for (int i = 1; i < 2; ++i)
   {
     for (int j = -103; j < 99; j += 100)
     {
       ParametersType testPosition(spaceDimension);
-      testPosition[0] = (double)i;
-      testPosition[1] = (double)j;
+      testPosition[0] = static_cast<double>(i);
+      testPosition[1] = static_cast<double>(j);
       parametersList.push_back(testPosition);
     }
   }
   metric->SetParameters(parametersList[0]);
   itkOptimizer->SetParametersList(parametersList);
-  OptimizerType::LocalOptimizerPointer optimizer = OptimizerType::LocalOptimizerType::New();
+  const OptimizerType::LocalOptimizerPointer optimizer = OptimizerType::LocalOptimizerType::New();
   optimizer->SetLearningRate(1.e-1);
   optimizer->SetNumberOfIterations(25);
   itkOptimizer->SetLocalOptimizer(optimizer);
+  ITK_TEST_SET_GET_VALUE(optimizer, itkOptimizer->GetLocalOptimizer());
   if (MultiStartOptimizerv4RunTest(itkOptimizer) == EXIT_FAILURE)
   {
     return EXIT_FAILURE;

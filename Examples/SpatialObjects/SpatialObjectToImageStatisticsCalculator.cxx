@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,14 +46,13 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   using ImageType = itk::Image<unsigned char, 2>;
   using RandomImageSourceType = itk::RandomImageSource<ImageType>;
-  RandomImageSourceType::Pointer randomImageSource =
-    RandomImageSourceType::New();
+  auto                     randomImageSource = RandomImageSourceType::New();
   ImageType::SizeValueType size[2];
   size[0] = 10;
   size[1] = 10;
   randomImageSource->SetSize(size);
   randomImageSource->Update();
-  ImageType::Pointer image = randomImageSource->GetOutput();
+  const ImageType::Pointer image = randomImageSource->GetOutput();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -65,10 +64,9 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using EllipseType = itk::EllipseSpatialObject<2>;
-  EllipseType::Pointer ellipse = EllipseType::New();
+  auto ellipse = EllipseType::New();
   ellipse->SetRadiusInObjectSpace(2);
-  EllipseType::PointType offset;
-  offset.Fill(5);
+  auto offset = itk::MakeFilled<EllipseType::PointType>(5);
   ellipse->SetCenterInObjectSpace(offset);
   ellipse->Update();
   // Software Guide : EndCodeSnippet
@@ -83,7 +81,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   using CalculatorType =
     itk::SpatialObjectToImageStatisticsCalculator<ImageType, EllipseType>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex

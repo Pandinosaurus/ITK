@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,9 +28,7 @@ namespace itk
 /** \class WhiteTopHatImageFilter
  * \brief White top hat extracts local maxima that are larger than the structuring element
  *
- * Top-hats are described in Chapter 4.5 of Pierre Soille's book
- * "Morphological Image Analysis: Principles and Applications",
- * Second Edition, Springer, 2003.
+ * Top-hats are described in \cite soille2004b.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -84,19 +82,21 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(WhiteTopHatImageFilter, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WhiteTopHatImageFilter);
 
   /** A safe border is added to input image to avoid borders effects
    * and remove it once the closing is done */
+  /** @ITKStartGrouping */
   itkSetMacro(SafeBorder, bool);
   itkGetConstReferenceMacro(SafeBorder, bool);
   itkBooleanMacro(SafeBorder);
-
+  /** @ITKEndGrouping */
   /** Set/Get the backend filter class. */
+  /** @ITKStartGrouping */
   itkSetMacro(Algorithm, AlgorithmEnum);
   itkGetConstMacro(Algorithm, AlgorithmEnum);
-
+  /** @ITKEndGrouping */
   itkSetMacro(ForceAlgorithm, bool);
   itkGetConstReferenceMacro(ForceAlgorithm, bool);
   itkBooleanMacro(ForceAlgorithm);
@@ -111,11 +111,11 @@ protected:
   GenerateData() override;
 
 private:
-  bool m_SafeBorder;
+  bool m_SafeBorder{};
 
-  AlgorithmEnum m_Algorithm;
+  AlgorithmEnum m_Algorithm{};
 
-  bool m_ForceAlgorithm;
+  bool m_ForceAlgorithm{};
 }; // end of class
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,41 +44,37 @@ class SymmetricEigenAnalysisFunction
 {
 public:
   using RealValueType = typename TInput::RealValueType;
-  SymmetricEigenAnalysisFunction() = default;
-  ~SymmetricEigenAnalysisFunction() = default;
   using CalculatorType = SymmetricEigenAnalysis<TInput, TOutput>;
   bool
-  operator!=(const SymmetricEigenAnalysisFunction &) const
+  operator==(const SymmetricEigenAnalysisFunction &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const SymmetricEigenAnalysisFunction & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(SymmetricEigenAnalysisFunction);
 
   inline TOutput
   operator()(const TInput & x) const
   {
-    TOutput eigenValues;
+    TOutput eigenValues{};
 
     m_Calculator.ComputeEigenValues(x, eigenValues);
     return eigenValues;
   }
 
   /** Method to explicitly set the dimension of the matrix */
+  /** @ITKStartGrouping */
   void
   SetDimension(unsigned int n)
   {
     m_Calculator.SetDimension(n);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDimension() const
   {
     return m_Calculator.GetDimension();
   }
+  /** @ITKEndGrouping */
 
 #if !defined(ITK_LEGACY_REMOVE)
   /** Enables reverse compatibility for enumeration values */
@@ -94,6 +90,7 @@ public:
 
   /** Order eigen values. Default is to OrderByValue:  lambda_1 <
    * lambda_2 < .... */
+  /** @ITKStartGrouping */
   void
   OrderEigenValuesBy(EigenValueOrderEnum order)
   {
@@ -111,7 +108,7 @@ public:
   {
     this->OrderEigenValuesBy(order);
   }
-  EigenValueOrderEnum
+  [[nodiscard]] EigenValueOrderEnum
   GetOrderEigenValuesBy() const
   {
     if (m_Calculator.GetOrderEigenMagnitudes())
@@ -124,7 +121,7 @@ public:
     }
     return EigenValueOrderEnum::DoNotOrder;
   }
-
+  /** @ITKEndGrouping */
 
 private:
   CalculatorType m_Calculator;
@@ -135,20 +132,14 @@ class SymmetricEigenAnalysisFixedDimensionFunction
 {
 public:
   using RealValueType = typename TInput::RealValueType;
-  SymmetricEigenAnalysisFixedDimensionFunction() = default;
-  ~SymmetricEigenAnalysisFixedDimensionFunction() = default;
   using CalculatorType = SymmetricEigenAnalysisFixedDimension<TMatrixDimension, TInput, TOutput>;
   bool
-  operator!=(const SymmetricEigenAnalysisFixedDimensionFunction &) const
+  operator==(const SymmetricEigenAnalysisFixedDimensionFunction &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const SymmetricEigenAnalysisFixedDimensionFunction & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(SymmetricEigenAnalysisFixedDimensionFunction);
 
   inline TOutput
   operator()(const TInput & x) const
@@ -160,7 +151,7 @@ public:
   }
 
   /** Method to get the dimension of the matrix. Dimension is fixed, no SetDimension is provided */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDimension() const
   {
     return m_Calculator.GetDimension();
@@ -204,7 +195,7 @@ extern ITKImageIntensity_EXPORT std::ostream &
 } // end namespace Functor
 
 /**
- *\class SymmetricEigenAnalysisImageFilter
+ * \class SymmetricEigenAnalysisImageFilter
  * \brief Computes the eigen-values of every input symmetric matrix pixel.
  *
  * SymmetricEigenAnalysisImageFilter applies pixel-wise the invocation for
@@ -221,7 +212,7 @@ extern ITKImageIntensity_EXPORT std::ostream &
  *
  * \ingroup ITKImageIntensity
  */
-template <typename TInputImage, typename TOutputImage = TInputImage>
+template <typename TInputImage, typename TOutputImage>
 class SymmetricEigenAnalysisImageFilter
   : public UnaryFunctorImageFilter<
       TInputImage,
@@ -241,11 +232,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::OutputImageType;
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelType = typename TInputImage::PixelType;
   using InputValueType = typename InputPixelType::ValueType;
-  using FunctorType = typename Superclass::FunctorType;
+  using typename Superclass::FunctorType;
 
 #if !defined(ITK_LEGACY_REMOVE)
   /** Enables reverse compatibility for enumeration values */
@@ -254,6 +245,7 @@ public:
 
   /** Order eigen values. Default is to OrderByValue:  lambda_1 <
    * lambda_2 < .... */
+  /** @ITKStartGrouping */
   void
   OrderEigenValuesBy(EigenValueOrderEnum order)
   {
@@ -264,14 +256,15 @@ public:
   {
     this->OrderEigenValuesBy(order);
   }
-  EigenValueOrderEnum
+  [[nodiscard]] EigenValueOrderEnum
   GetOrderEigenValuesBy() const
   {
     return this->GetFunctor().GetOrderEigenValuesBy();
   }
+  /** @ITKEndGrouping */
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(SymmetricEigenAnalysisImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SymmetricEigenAnalysisImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -283,24 +276,22 @@ public:
     this->Superclass::PrintSelf(os, indent);
   }
 
-  /** Set the dimension of the tensor. (For example the SymmetricSecondRankTensor
+  /** Set/Get the dimension of the tensor. (For example the SymmetricSecondRankTensor
    * is a pxp matrix) */
+  /** @ITKStartGrouping */
   void
   SetDimension(unsigned int p)
   {
     this->GetFunctor().SetDimension(p);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDimension() const
   {
     return this->GetFunctor().GetDimension();
   }
+  /** @ITKEndGrouping */
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
-  // End concept checking
-#endif
 
 protected:
   SymmetricEigenAnalysisImageFilter() { this->SetDimension(TInputImage::ImageDimension); }
@@ -308,10 +299,10 @@ protected:
 };
 
 /**
- *\class SymmetricEigenAnalysisFixedDimensionImageFilter
+ * \class SymmetricEigenAnalysisFixedDimensionImageFilter
  * \brief Computes the eigen-values of every input symmetric matrix pixel.
  *
- * SymmetricEigenAnalysisImageFilter applies pixel-wise the invokation for
+ * SymmetricEigenAnalysisImageFilter applies pixel-wise the invocation for
  * computing the eigen-values and eigen-vectors of the symmetric matrix
  * corresponding to every input pixel.
  *
@@ -349,11 +340,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::OutputImageType;
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelType = typename TInputImage::PixelType;
   using InputValueType = typename InputPixelType::ValueType;
-  using FunctorType = typename Superclass::FunctorType;
+  using typename Superclass::FunctorType;
 
   /** expose public enumeration class as member  for backward compatibility */
   using EigenValueOrderEnum = itk::EigenValueOrderEnum;
@@ -366,8 +357,8 @@ public:
     this->GetFunctor().OrderEigenValuesBy(order);
   }
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(SymmetricEigenAnalysisFixedDimensionImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SymmetricEigenAnalysisFixedDimensionImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -380,17 +371,13 @@ public:
   }
 
   /** GetDimension of the matrix. Dimension is fixed by template parameter, no SetDimension. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetDimension() const
   {
     return this->GetFunctor().GetDimension();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
-  // End concept checking
-#endif
 
 protected:
   SymmetricEigenAnalysisFixedDimensionImageFilter() = default;

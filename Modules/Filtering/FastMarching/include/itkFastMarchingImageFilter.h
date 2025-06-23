@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,18 +26,17 @@
 
 #include <functional>
 #include <queue>
-#include "itkMath.h"
 
 namespace itk
 {
-/**\class FastMarchingImageFilterEnums
+/** \class FastMarchingImageFilterEnums
  * \brief Contains all enum classes used by the FastMarchingImageFilter class.
  * \ingroup ITKFastMarching
  */
 class FastMarchingImageFilterEnums
 {
 public:
-  /**\class Label
+  /** \class Label
    * \ingroup ITKFastMarching
    * \ingroup LevelSetSegmentation
    * Enum of Fast Marching algorithm point types. FarPoints represent far
@@ -58,7 +57,7 @@ extern ITKFastMarching_EXPORT std::ostream &
                               operator<<(std::ostream & out, const FastMarchingImageFilterEnums::Label value);
 
 /**
- *\class FastMarchingImageFilter
+ * \class FastMarchingImageFilter
  * \brief Solve an Eikonal equation using Fast Marching
  *
  * Fast marching solves an Eikonal equation where the speed is always
@@ -74,9 +73,7 @@ extern ITKFastMarching_EXPORT std::ostream &
  * Fast Marching sweeps through N grid points in (N log N) steps to obtain
  * the arrival time value as the front propagates through the grid.
  *
- * Implementation of this class is based on Chapter 8 of
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Second edition, 1999.
+ * Implementation of this class is based on \cite sethian1999a.
  *
  * This class is templated over the level set image type and the speed
  * image type. The initial front is specified by two containers: one
@@ -138,7 +135,7 @@ class ITK_TEMPLATE_EXPORT FastMarchingImageFilter : public ImageToImageFilter<TS
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingImageFilter);
 
-  /** Standard class typdedefs. */
+  /** Standard class typedefs. */
   using Self = FastMarchingImageFilter;
   using Superclass = ImageToImageFilter<TSpeedImage, TLevelSet>;
   using Pointer = SmartPointer<Self>;
@@ -147,8 +144,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingImageFilter);
 
   /** Typedef support of level set method types. */
   using LevelSetType = LevelSetTypeDefault<TLevelSet>;
@@ -169,7 +166,7 @@ public:
   {
   public:
     AxisNodeType() = default;
-    int
+    [[nodiscard]] int
     GetAxis() const
     {
       return m_Axis;
@@ -179,7 +176,7 @@ public:
     {
       m_Axis = axis;
     }
-    const AxisNodeType &
+    AxisNodeType &
     operator=(const NodeType & node)
     {
       this->NodeType::operator=(node);
@@ -229,7 +226,7 @@ public:
     InternalRegionIterator b_it(iImage, iImage->GetLargestPossibleRegion());
     b_it.GoToBegin();
 
-    TPixel                                    zero_value = NumericTraits<TPixel>::ZeroValue();
+    TPixel                                    zero_value{};
     typename NodeContainer::ElementIdentifier NumberOfPoints = 0;
 
     NodeType node;
@@ -316,8 +313,10 @@ public:
       The values in the Speed Image is divided by this
       factor. This allows the use of images with
       integer pixel types to represent the speed. */
+  /** @ITKStartGrouping */
   itkSetMacro(NormalizationFactor, double);
   itkGetConstMacro(NormalizationFactor, double);
+  /** @ITKEndGrouping */
 
   /** Set the Fast Marching algorithm Stopping Value. The Fast Marching
    * algorithm is terminated when the value of the smallest trial point
@@ -333,9 +332,11 @@ public:
    * narrow banding. */
   itkSetMacro(CollectPoints, bool);
 
-  /** Get thConste Collect Points flag. */
+  /** Get the Const Collect Points flag. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CollectPoints, bool);
   itkBooleanMacro(CollectPoints);
+  /** @ITKEndGrouping */
 
   /** Get the container of Processed Points. If the CollectPoints flag
    * is set, the algorithm collects a container of all processed nodes.
@@ -353,6 +354,7 @@ public:
    * parameters can be specified using methods SetOutputRegion(), SetOutputSpacing(), SetOutputDirection(),
    * and SetOutputOrigin(). Else if the speed image is not nullptr, the output information
    * is copied from the input speed image. */
+  /** @ITKStartGrouping */
   virtual void
   SetOutputSize(const OutputSizeType & size)
   {
@@ -374,15 +376,12 @@ public:
   itkSetMacro(OverrideOutputInformation, bool);
   itkGetConstReferenceMacro(OverrideOutputInformation, bool);
   itkBooleanMacro(OverrideOutputInformation);
+  /** @ITKEndGrouping */
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<SetDimension, SpeedImageDimension>));
   itkConceptMacro(SpeedConvertibleToDoubleCheck, (Concept::Convertible<typename TSpeedImage::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToLevelSetCheck, (Concept::Convertible<double, PixelType>));
   itkConceptMacro(LevelSetOStreamWritableCheck, (Concept::OStreamWritable<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   FastMarchingImageFilter();
@@ -421,36 +420,36 @@ protected:
       max() of the pixel type used to represent the time-crossing map. */
   itkGetConstReferenceMacro(LargeValue, PixelType);
 
-  OutputRegionType m_BufferedRegion;
+  OutputRegionType m_BufferedRegion{};
   using LevelSetIndexType = typename LevelSetImageType::IndexType;
-  LevelSetIndexType m_StartIndex;
-  LevelSetIndexType m_LastIndex;
+  LevelSetIndexType m_StartIndex{};
+  LevelSetIndexType m_LastIndex{};
 
   itkGetConstReferenceMacro(StartIndex, LevelSetIndexType);
   itkGetConstReferenceMacro(LastIndex, LevelSetIndexType);
 
 private:
-  NodeContainerPointer m_AlivePoints;
-  NodeContainerPointer m_TrialPoints;
-  NodeContainerPointer m_OutsidePoints;
+  NodeContainerPointer m_AlivePoints{};
+  NodeContainerPointer m_TrialPoints{};
+  NodeContainerPointer m_OutsidePoints{};
 
-  LabelImagePointer m_LabelImage;
+  LabelImagePointer m_LabelImage{};
 
-  double m_SpeedConstant;
-  double m_InverseSpeed;
-  double m_StoppingValue;
+  double m_SpeedConstant{};
+  double m_InverseSpeed{};
+  double m_StoppingValue{};
 
-  bool                 m_CollectPoints;
-  NodeContainerPointer m_ProcessedPoints;
+  bool                 m_CollectPoints{};
+  NodeContainerPointer m_ProcessedPoints{};
 
-  OutputRegionType    m_OutputRegion;
-  OutputPointType     m_OutputOrigin;
-  OutputSpacingType   m_OutputSpacing;
-  OutputDirectionType m_OutputDirection;
-  bool                m_OverrideOutputInformation;
+  OutputRegionType    m_OutputRegion{};
+  OutputPointType     m_OutputOrigin{};
+  OutputSpacingType   m_OutputSpacing{};
+  OutputDirectionType m_OutputDirection{};
+  bool                m_OverrideOutputInformation{};
 
-  typename LevelSetImageType::PixelType m_LargeValue;
-  AxisNodeType                          m_NodesUsed[SetDimension];
+  typename LevelSetImageType::PixelType m_LargeValue{};
+  AxisNodeType                          m_NodesUsed[SetDimension]{};
 
   /** Trial points are stored in a min-heap. This allow efficient access
    * to the trial point with minimum value which is the next grid point
@@ -459,9 +458,9 @@ private:
   using NodeComparer = std::greater<AxisNodeType>;
   using HeapType = std::priority_queue<AxisNodeType, HeapContainer, NodeComparer>;
 
-  HeapType m_TrialHeap;
+  HeapType m_TrialHeap{};
 
-  double m_NormalizationFactor;
+  double m_NormalizationFactor{};
 };
 } // namespace itk
 

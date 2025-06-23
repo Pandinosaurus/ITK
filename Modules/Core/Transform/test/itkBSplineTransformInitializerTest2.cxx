@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,11 +33,11 @@
 // class. Hans Johnson pointed out that the current initializer class
 // uses the image information to construct the B-spline grid in contrast
 // to how the image domain resides in physical space. So, for example, if
-// a user initilializes a control point grid from a given image and then
+// a user initializes a control point grid from a given image and then
 // constructs a second control point grid from a permuted version of the
 // given image (using the itkPermuteAxesImageFilter class) the second control
 // point grid will be oriented completely different from the first image
-// even though the image and it's permuted counterpart are situated in physical
+// even though the image and its permuted counterpart are situated in physical
 // domain precisely the same way.
 
 int
@@ -46,8 +46,9 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
 
   if (argc < 2)
   {
-    std::cerr << "Missing Parameters " << std::endl;
-    std::cerr << "Usage: " << argv[0] << " fixedImage ";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " fixedImage ";
     return EXIT_FAILURE;
   }
 
@@ -57,36 +58,28 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
   using FixedImageType = itk::Image<PixelType, ImageDimension>;
 
   using FixedReaderType = itk::ImageFileReader<FixedImageType>;
-  FixedReaderType::Pointer fixedReader = FixedReaderType::New();
+  auto fixedReader = FixedReaderType::New();
   fixedReader->SetFileName(argv[1]);
 
-  try
-  {
-    fixedReader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(fixedReader->Update());
+
 
   // We first use the passed fixed image to construct the control point
   // grid and save the control point locations.
 
-  FixedImageType::ConstPointer fixedImage = fixedReader->GetOutput();
+  const FixedImageType::ConstPointer fixedImage = fixedReader->GetOutput();
 
-  const unsigned int     SpaceDimension = ImageDimension;
+  constexpr unsigned int SpaceDimension = ImageDimension;
   constexpr unsigned int SplineOrder = 3;
   using CoordinateRepType = double;
 
   using TransformType = itk::BSplineTransform<CoordinateRepType, SpaceDimension, SplineOrder>;
 
-  TransformType::Pointer bsplineTransform = TransformType::New();
+  auto bsplineTransform = TransformType::New();
 
   using InitializerType = itk::BSplineTransformInitializer<TransformType, FixedImageType>;
 
-  InitializerType::Pointer transformInitializer = InitializerType::New();
+  auto transformInitializer = InitializerType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(transformInitializer, BSplineTransformInitializer, Object);
 
@@ -96,8 +89,6 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
   transformInitializer->SetImage(fixedImage);
   ITK_TEST_SET_GET_VALUE(fixedImage, transformInitializer->GetImage());
 
-  TransformType::CoefficientImageArray coefficientImages;
-
   transformInitializer->InitializeTransform();
 
   TransformType::MeshSizeType meshSize;
@@ -106,7 +97,7 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
 
   bsplineTransform->SetTransformDomainMeshSize(meshSize);
 
-  coefficientImages = bsplineTransform->GetCoefficientImages();
+  TransformType::CoefficientImageArray coefficientImages = bsplineTransform->GetCoefficientImages();
 
   std::vector<FixedImageType::PointType> controlPointLocations;
 
@@ -126,7 +117,7 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
   // be the same.
 
   using PermuterType = itk::PermuteAxesImageFilter<FixedImageType>;
-  PermuterType::Pointer               permuter = PermuterType::New();
+  auto                                permuter = PermuterType::New();
   PermuterType::PermuteOrderArrayType array;
 
   array[0] = 1;
@@ -136,8 +127,8 @@ itkBSplineTransformInitializerTest2(int argc, char * argv[])
   permuter->SetOrder(array);
   permuter->Update();
 
-  TransformType::Pointer   bsplineTransform2 = TransformType::New();
-  InitializerType::Pointer transformInitializer2 = InitializerType::New();
+  auto bsplineTransform2 = TransformType::New();
+  auto transformInitializer2 = InitializerType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(transformInitializer2, BSplineTransformInitializer, Object);
 

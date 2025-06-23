@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,17 +75,17 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineTransformParametersAdaptor, TransformParametersAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineTransformParametersAdaptor);
 
   /** Typedefs associated with the transform */
   using TransformType = TTransform;
   using TransformPointer = typename TransformType::Pointer;
 
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
   using OriginType = typename TransformType::OriginType;
   using SizeType = typename TransformType::SizeType;
@@ -150,10 +150,10 @@ private:
   void
   UpdateRequiredFixedParameters();
 
-  MeshSizeType           m_RequiredTransformDomainMeshSize;
-  OriginType             m_RequiredTransformDomainOrigin;
-  DirectionType          m_RequiredTransformDomainDirection;
-  PhysicalDimensionsType m_RequiredTransformDomainPhysicalDimensions;
+  MeshSizeType           m_RequiredTransformDomainMeshSize{};
+  OriginType             m_RequiredTransformDomainOrigin{};
+  DirectionType          m_RequiredTransformDomainDirection{};
+  PhysicalDimensionsType m_RequiredTransformDomainPhysicalDimensions{};
 
 }; // class BSplineTransformParametersAdaptor
 } // namespace itk

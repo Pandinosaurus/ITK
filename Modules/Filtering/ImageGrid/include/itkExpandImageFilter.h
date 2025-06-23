@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ExpandImageFilter
+ * \class ExpandImageFilter
  * \brief Expand the size of an image by an integer factor in each
  * dimension.
  *
@@ -75,8 +75,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExpandImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExpandImageFilter);
 
   /** Typedef to describe the output image region type. */
   using OutputImageRegionType = typename TOutputImage::RegionType;
@@ -85,31 +85,37 @@ public:
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Inherit some types from superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
   using OutputPixelType = typename OutputImageType::PixelType;
   using InputImagePointer = typename InputImageType::Pointer;
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Typedef support for the interpolation function. */
-  using CoordRepType = double;
-  using InterpolatorType = InterpolateImageFunction<InputImageType, CoordRepType>;
+  using CoordinateType = double;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
+  using InterpolatorType = InterpolateImageFunction<InputImageType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
-  using DefaultInterpolatorType = LinearInterpolateImageFunction<InputImageType, CoordRepType>;
+  using DefaultInterpolatorType = LinearInterpolateImageFunction<InputImageType, CoordinateType>;
 
   /** Get/Set the interpolator function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** The type of the expand factors representation */
   using ExpandFactorsType = FixedArray<unsigned int, ImageDimension>;
 
   /** Set the expand factors. Values are clamped to
    * a minimum value of 1. Default is 1 for all dimensions. */
+  /** @ITKStartGrouping */
   itkSetMacro(ExpandFactors, ExpandFactorsType);
   virtual void
   SetExpandFactors(const unsigned int factor);
-
+  /** @ITKEndGrouping */
   /** Get the expand factors. */
   itkGetConstReferenceMacro(ExpandFactors, ExpandFactorsType);
 
@@ -157,8 +163,8 @@ protected:
   BeforeThreadedGenerateData() override;
 
 private:
-  ExpandFactorsType   m_ExpandFactors;
-  InterpolatorPointer m_Interpolator;
+  ExpandFactorsType   m_ExpandFactors{};
+  InterpolatorPointer m_Interpolator{};
 };
 } // end namespace itk
 

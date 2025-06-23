@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,25 +53,17 @@ ProcessObject::ProcessObject()
   , m_Outputs()
   , m_CachedInputReleaseDataFlags()
   , m_RequiredInputNames()
+  , m_Progress(0u)
+  , m_ReleaseDataBeforeUpdateFlag(true)
 {
   /*
    * Instantiate object with no start, end, or progress methods.
    */
-
-  m_NumberOfRequiredInputs = 0;
-  m_NumberOfRequiredOutputs = 0;
-
-  m_AbortGenerateData = false;
-  m_Progress = 0u;
-  m_Updating = false;
-
   DataObjectPointerMap::value_type p("Primary", DataObjectPointer());
   m_IndexedInputs.push_back(m_Inputs.insert(p).first);
   m_IndexedOutputs.push_back(m_Outputs.insert(std::move(p)).first);
 
   this->Self::SetMultiThreader(MultiThreaderType::New());
-
-  m_ReleaseDataBeforeUpdateFlag = true;
 }
 
 
@@ -80,12 +72,12 @@ ProcessObject::MakeOutput(const DataObjectIdentifierType & name)
 {
   /*
    * This is a default implementation to make sure we have something.
-   * Once all the subclasses of ProcessObject provide an appopriate
+   * Once all the subclasses of ProcessObject provide an appropriate
    * MakeOutput(), then ProcessObject::MakeOutput() can be made pure
    * virtual.
    */
 
-  itkDebugMacro("MakeOutput(" << name << ")");
+  itkDebugMacro("MakeOutput(" << name << ')');
   if (this->IsIndexedOutputName(name))
   {
     return this->MakeOutput(this->MakeIndexFromOutputName(name));
@@ -95,7 +87,8 @@ ProcessObject::MakeOutput(const DataObjectIdentifierType & name)
 }
 
 
-DataObject::Pointer ProcessObject::MakeOutput(DataObjectPointerArraySizeType)
+DataObject::Pointer
+ProcessObject::MakeOutput(DataObjectPointerArraySizeType)
 {
   return static_cast<DataObject *>(DataObject::New().GetPointer());
 }
@@ -195,7 +188,7 @@ ProcessObject::AddInput(DataObject * input)
    * Adds an input to the first null position in the input list.
    * Expands the list memory if necessary
    */
-  for (unsigned idx = 0; idx < this->GetNumberOfIndexedInputs(); ++idx)
+  for (unsigned int idx = 0; idx < this->GetNumberOfIndexedInputs(); ++idx)
   {
     if (!this->GetInput(idx))
     {
@@ -344,7 +337,7 @@ ProcessObject::PushFrontInput(const DataObject * input)
 void
 ProcessObject::PopFrontInput()
 {
-  DataObjectPointerArraySizeType nb = this->GetNumberOfIndexedInputs();
+  const DataObjectPointerArraySizeType nb = this->GetNumberOfIndexedInputs();
   if (nb > 0)
   {
     for (DataObjectPointerArraySizeType i = 1; i < nb; ++i)
@@ -425,7 +418,7 @@ ProcessObject::SetOutput(const DataObjectIdentifierType & name, DataObject * out
 
   // copy the key, because it might be destroyed in that method, so a reference
   // is not enough.
-  DataObjectIdentifierType key = name;
+  const DataObjectIdentifierType key = name;
 
   if (key.empty())
   {
@@ -433,7 +426,7 @@ ProcessObject::SetOutput(const DataObjectIdentifierType & name, DataObject * out
   }
 
   // does this change anything?
-  DataObjectPointerMap::const_iterator it = m_Outputs.find(key);
+  const auto it = m_Outputs.find(key);
   if (it != m_Outputs.end() && it->second.GetPointer() == output)
   {
     return;
@@ -461,11 +454,11 @@ ProcessObject::SetOutput(const DataObjectIdentifierType & name, DataObject * out
   if (!m_Outputs[key])
   {
     itkDebugMacro(" creating new output object.");
-    DataObjectPointer newOutput = this->MakeOutput(key);
+    const DataObjectPointer newOutput = this->MakeOutput(key);
     this->SetOutput(key, newOutput);
 
     // If we had an output object before, copy the requested region
-    // ivars and release data flag to the the new output
+    // ivars and release data flag to the new output
     if (oldOutput)
     {
       newOutput->SetRequestedRegion(oldOutput);
@@ -673,7 +666,7 @@ ProcessObject::GetOutputs()
     // only include the primary if it's required or set
     if (output.first != m_IndexedOutputs[0]->first || output.second.IsNotNull())
     {
-      res.push_back(output.second.GetPointer());
+      res.emplace_back(output.second.GetPointer());
     }
   }
   return res;
@@ -849,7 +842,7 @@ ProcessObject::AddRequiredInputName(const DataObjectIdentifierType & name, DataO
 
   if (!m_RequiredInputNames.insert(name).second)
   {
-    itkWarningMacro(<< "Input already \"" << name << "\" already required!");
+    itkWarningMacro("Input already \"" << name << "\" already required!");
     // Input already required, but it is not added as indexed input?
     return false;
   }
@@ -966,7 +959,7 @@ ProcessObject::GetInputs()
     // only include the primary if it's required or set
     if (input.first != m_IndexedInputs[0]->first || input.second.IsNotNull() || this->IsRequiredInputName(input.first))
     {
-      res.push_back(input.second.GetPointer());
+      res.emplace_back(input.second.GetPointer());
     }
   }
   return res;
@@ -1050,12 +1043,10 @@ ProcessObject::MakeNameFromIndex(DataObjectPointerArraySizeType idx) const
 {
   if (idx < ITK_GLOBAL_INDEX_NAMES_NUMBER)
   {
-    return ProcessObject::DataObjectIdentifierType(globalIndexNames[idx]);
+    return { globalIndexNames[idx] };
   }
-  else
-  {
-    return '_' + std::to_string(idx);
-  }
+
+  return '_' + std::to_string(idx);
 }
 
 
@@ -1086,19 +1077,19 @@ ProcessObject::MakeIndexFromOutputName(const DataObjectIdentifierType & name) co
 ProcessObject::DataObjectPointerArraySizeType
 ProcessObject::MakeIndexFromName(const DataObjectIdentifierType & name) const
 {
-  DataObjectIdentifierType       baseName = "_";
-  DataObjectPointerArraySizeType baseSize = baseName.size();
+  const DataObjectIdentifierType       baseName = "_";
+  const DataObjectPointerArraySizeType baseSize = baseName.size();
   if (name.size() <= baseSize || name.substr(0, baseSize) != baseName)
   {
     itkDebugMacro("MakeIndexFromName(" << name << ") -> exception bad base name");
-    itkExceptionMacro(<< "Not an indexed data object: " << name);
+    itkExceptionMacro("Not an indexed data object: " << name);
   }
-  DataObjectIdentifierType       idxStr = name.substr(baseSize);
-  DataObjectPointerArraySizeType idx;
+  const DataObjectIdentifierType idxStr = name.substr(baseSize);
+  DataObjectPointerArraySizeType idx = 0;
   if (!(std::istringstream(idxStr) >> idx))
   {
     itkDebugMacro("MakeIndexFromName(" << name << ") -> exception not an index");
-    itkExceptionMacro(<< "Not an indexed data object: " << name);
+    itkExceptionMacro("Not an indexed data object: " << name);
   }
   itkDebugMacro("MakeIndexFromName(" << name << ") -> " << idx);
   return idx;
@@ -1155,11 +1146,11 @@ void
 ProcessObject::IncrementProgress(float increment)
 {
   // Clamp the value to be between 0 and 1.
-  uint32_t integerIncrement = progressFloatToFixed(increment);
+  const uint32_t integerIncrement = progressFloatToFixed(increment);
 
-  uint32_t oldProgress = m_Progress;
+  const uint32_t oldProgress = m_Progress.fetch_add(integerIncrement);
 
-  uint32_t updatedProgress = m_Progress.fetch_add(integerIncrement);
+  const uint32_t updatedProgress = m_Progress;
 
   // check if progress overflowed
   if (oldProgress > updatedProgress)
@@ -1177,9 +1168,9 @@ ProcessObject::IncrementProgress(float increment)
 bool
 ProcessObject::GetReleaseDataFlag() const
 {
-  if (this->GetPrimaryOutput())
+  if (const auto primaryOutput = this->GetPrimaryOutput())
   {
-    return this->GetPrimaryOutput()->GetReleaseDataFlag();
+    return primaryOutput->GetReleaseDataFlag();
   }
   return false;
 }
@@ -1203,7 +1194,7 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  Indent indent2 = indent.GetNextIndent();
+  const Indent indent2 = indent.GetNextIndent();
   if (!m_Inputs.empty())
   {
     os << indent << "Inputs: " << std::endl;
@@ -1214,7 +1205,7 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
       {
         req = " *";
       }
-      os << indent2 << input.first << ": (" << input.second.GetPointer() << ")" << req << std::endl;
+      os << indent2 << input.first << ": (" << input.second.GetPointer() << ')' << req << std::endl;
     }
   }
   else
@@ -1226,7 +1217,7 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
   unsigned int idx = 0;
   for (auto it = m_IndexedInputs.begin(); it != m_IndexedInputs.end(); ++it, ++idx)
   {
-    os << indent2 << idx << ": " << (*it)->first << " (" << (*it)->second.GetPointer() << ")" << std::endl;
+    os << indent2 << idx << ": " << (*it)->first << " (" << (*it)->second.GetPointer() << ')' << std::endl;
   }
 
   if (!m_RequiredInputNames.empty())
@@ -1253,7 +1244,7 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
     os << indent << "Outputs: " << std::endl;
     for (const auto & output : m_Outputs)
     {
-      os << indent2 << output.first << ": (" << output.second.GetPointer() << ")" << std::endl;
+      os << indent2 << output.first << ": (" << output.second.GetPointer() << ')' << std::endl;
     }
   }
   else
@@ -1264,14 +1255,13 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
   idx = 0;
   for (auto it = m_IndexedOutputs.begin(); it != m_IndexedOutputs.end(); ++it, ++idx)
   {
-    os << indent2 << idx << ": " << (*it)->first << " (" << (*it)->second.GetPointer() << ")" << std::endl;
+    os << indent2 << idx << ": " << (*it)->first << " (" << (*it)->second.GetPointer() << ')' << std::endl;
   }
 
   os << indent << "NumberOfRequiredOutputs: " << m_NumberOfRequiredOutputs << std::endl;
-  os << indent << "Number Of Work Units: " << m_NumberOfWorkUnits << std::endl;
-  os << indent << "ReleaseDataFlag: " << (this->GetReleaseDataFlag() ? "On" : "Off") << std::endl;
-  os << indent << "ReleaseDataBeforeUpdateFlag: " << (m_ReleaseDataBeforeUpdateFlag ? "On" : "Off") << std::endl;
-  os << indent << "AbortGenerateData: " << (m_AbortGenerateData ? "On" : "Off") << std::endl;
+  os << indent << "NumberOfWorkUnits: " << m_NumberOfWorkUnits << std::endl;
+  itkPrintSelfBooleanMacro(ReleaseDataBeforeUpdateFlag);
+  itkPrintSelfBooleanMacro(AbortGenerateData);
   os << indent << "Progress: " << progressFixedToFloat(m_Progress) << std::endl;
   os << indent << "Multithreader: " << std::endl;
   m_MultiThreader->PrintSelf(os, indent.GetNextIndent());
@@ -1281,9 +1271,9 @@ ProcessObject::PrintSelf(std::ostream & os, Indent indent) const
 void
 ProcessObject::Update()
 {
-  if (this->GetPrimaryOutput())
+  if (const auto primaryOutput = this->GetPrimaryOutput())
   {
-    this->GetPrimaryOutput()->Update();
+    primaryOutput->Update();
   }
 }
 
@@ -1291,9 +1281,9 @@ ProcessObject::Update()
 void
 ProcessObject::ResetPipeline()
 {
-  if (this->GetPrimaryOutput())
+  if (const auto primaryOutput = this->GetPrimaryOutput())
   {
-    this->GetPrimaryOutput()->ResetPipeline();
+    primaryOutput->ResetPipeline();
   }
   else
   {
@@ -1327,7 +1317,7 @@ ProcessObject::PropagateResetPipeline()
 
 
 void
-ProcessObject::VerifyPreconditions() ITKv5_CONST
+ProcessObject::VerifyPreconditions() const
 {
   /**
    * Make sure that all the required named inputs are there and non null
@@ -1336,22 +1326,8 @@ ProcessObject::VerifyPreconditions() ITKv5_CONST
   {
     if (this->GetInput(requiredInputName) == nullptr)
     {
-      itkExceptionMacro(<< "Input " << requiredInputName << " is required but not set.");
+      itkExceptionMacro("Input " << requiredInputName << " is required but not set.");
     }
-  }
-
-  /**
-   * Verify the require named inputs.
-   */
-  auto i = m_RequiredInputNames.begin();
-  while (i != m_RequiredInputNames.end())
-  {
-    if (this->GetInput(*i) == nullptr)
-    {
-      itkExceptionMacro(<< "Required Input " << *i << "is not specified!"
-                        << " The required inputs are expected to be the first inputs.");
-    }
-    ++i;
   }
 
   /**
@@ -1361,16 +1337,16 @@ ProcessObject::VerifyPreconditions() ITKv5_CONST
 
   if (validIndexedInputs < this->m_NumberOfRequiredInputs)
   {
-    itkExceptionMacro(<< "At least " << this->m_NumberOfRequiredInputs << " of the first "
-                      << this->m_NumberOfRequiredInputs << " indexed inputs are required but only "
-                      << validIndexedInputs << " are specified."
-                      << " The required inputs are expected to be the first inputs.");
+    itkExceptionMacro("At least " << this->m_NumberOfRequiredInputs << " of the first "
+                                  << this->m_NumberOfRequiredInputs << " indexed inputs are required but only "
+                                  << validIndexedInputs << " are specified."
+                                  << " The required inputs are expected to be the first inputs.");
   }
 }
 
 
 void
-ProcessObject::VerifyInputInformation() ITKv5_CONST
+ProcessObject::VerifyInputInformation() const
 {}
 
 
@@ -1587,9 +1563,9 @@ ProcessObject::SetMultiThreader(MultiThreaderType * threader)
     }
     else
     {
-      ThreadIdType oldDefaultNumber = m_MultiThreader->GetNumberOfWorkUnits();
+      const ThreadIdType oldDefaultNumber = m_MultiThreader->GetNumberOfWorkUnits();
       this->m_MultiThreader = threader;
-      ThreadIdType newDefaultNumber = m_MultiThreader->GetNumberOfWorkUnits();
+      const ThreadIdType newDefaultNumber = m_MultiThreader->GetNumberOfWorkUnits();
       if (m_NumberOfWorkUnits == oldDefaultNumber)
       {
         m_NumberOfWorkUnits = newDefaultNumber;
@@ -1707,7 +1683,7 @@ ProcessObject::UpdateOutputData(DataObject * itkNotUsed(output))
   {
     this->GenerateData();
   }
-  catch (ProcessAborted &)
+  catch (const ProcessAborted &)
   {
     this->InvokeEvent(AbortEvent());
     this->ResetPipeline();
@@ -1827,10 +1803,10 @@ ProcessObject::UpdateLargestPossibleRegion()
 {
   this->UpdateOutputInformation();
 
-  if (this->GetPrimaryOutput())
+  if (const auto primaryOutput = this->GetPrimaryOutput())
   {
-    this->GetPrimaryOutput()->SetRequestedRegionToLargestPossibleRegion();
-    this->GetPrimaryOutput()->Update();
+    primaryOutput->SetRequestedRegionToLargestPossibleRegion();
+    primaryOutput->Update();
   }
 }
 

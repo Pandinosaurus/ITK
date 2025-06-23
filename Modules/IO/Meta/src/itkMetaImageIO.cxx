@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,28 @@
  *=========================================================================*/
 
 #include "itkMetaImageIO.h"
-#include "itkSpatialOrientationAdapter.h"
+#include "itkAnatomicalOrientation.h"
 #include "itkIOCommon.h"
 #include "itksys/SystemTools.hxx"
 #include "itkMath.h"
 #include "itkSingleton.h"
+#include "itkMakeUniqueForOverwrite.h"
+#include "metaImageUtils.h"
+
+// Function to join strings with a delimiter similar to python's ' '.join([1, 2, 3 ])
+template <typename ContainerType, typename DelimiterType, typename StreamType>
+static auto
+_join(const ContainerType & elements, const DelimiterType & delimiter, StreamType & strs) -> void
+{
+  for (size_t i = 0; i < elements.size(); ++i)
+  {
+    strs << elements[i];
+    if (i != elements.size() - 1)
+    {
+      strs << delimiter;
+    }
+  }
+}
 
 namespace itk
 {
@@ -32,10 +49,10 @@ itkGetGlobalValueMacro(MetaImageIO, unsigned int, DefaultDoublePrecision, 17);
 unsigned int * MetaImageIO::m_DefaultDoublePrecision;
 
 MetaImageIO::MetaImageIO()
+  : m_SubSamplingFactor(1)
 {
   itkInitGlobalsMacro(DefaultDoublePrecision);
   m_FileType = IOFileEnum::Binary;
-  m_SubSamplingFactor = 1;
   if (MET_SystemByteOrderMSB())
   {
     m_ByteOrder = IOByteOrderEnum::BigEndian;
@@ -65,7 +82,7 @@ MetaImageIO::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   m_MetaImage.PrintInfo();
-  os << indent << "SubSamplingFactor: " << m_SubSamplingFactor << "\n";
+  os << indent << "SubSamplingFactor: " << m_SubSamplingFactor << '\n';
 }
 
 void
@@ -81,11 +98,11 @@ bool
 MetaImageIO::CanReadFile(const char * filename)
 {
   // First check the extension
-  std::string fname = filename;
+  const std::string fname = filename;
 
   if (fname.empty())
   {
-    itkDebugMacro(<< "No filename specified.");
+    itkDebugMacro("No filename specified.");
     return false;
   }
 
@@ -159,170 +176,170 @@ MetaImageIO::ReadImageInformation()
       break;
     case MET_INT:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(int) == MET_ValueTypeSize[MET_INT])
+      if constexpr (sizeof(int) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_INT])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
       break;
     case MET_INT_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(int) == MET_ValueTypeSize[MET_INT])
+      if constexpr (sizeof(int) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_INT])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
       break;
     case MET_UINT:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(unsigned int) == MET_ValueTypeSize[MET_UINT])
+      if constexpr (sizeof(unsigned int) == MET_ValueTypeSize[MET_UINT])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
-      else if (sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
+      else if constexpr (sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
       break;
     case MET_UINT_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(int) == MET_ValueTypeSize[MET_INT])
+      if constexpr (sizeof(int) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_INT])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_INT])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
       break;
     case MET_LONG:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(long) == MET_ValueTypeSize[MET_LONG])
+      if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
       break;
     case MET_LONG_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(long) == MET_ValueTypeSize[MET_LONG])
+      if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
       break;
     case MET_ULONG:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
+      if constexpr (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
-      else if (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
+      else if constexpr (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
       break;
     case MET_ULONG_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
+      if constexpr (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
-      else if (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
+      else if constexpr (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
       break;
     case MET_LONG_LONG:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
+      if constexpr (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONGLONG);
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
       break;
     case MET_LONG_LONG_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
+      if constexpr (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONGLONG);
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::INT);
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::LONG);
       }
       break;
     case MET_ULONG_LONG:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(unsigned long long) == MET_ValueTypeSize[MET_ULONG_LONG])
+      if constexpr (sizeof(unsigned long long) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::ULONGLONG);
       }
-      else if (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
+      else if constexpr (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
-      else if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
+      else if constexpr (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
       break;
     case MET_ULONG_LONG_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(unsigned long long) == MET_ValueTypeSize[MET_ULONG_LONG])
+      if constexpr (sizeof(unsigned long long) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::ULONGLONG);
       }
-      else if (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
+      else if constexpr (sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::UINT);
       }
-      else if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
+      else if constexpr (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         this->SetComponentType(IOComponentEnum::ULONG);
       }
       break;
     case MET_FLOAT:
       this->SetPixelType(IOPixelEnum::SCALAR);
-      if (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
+      if constexpr (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::FLOAT);
       }
-      else if (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
+      else if constexpr (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::DOUBLE);
       }
       break;
     case MET_FLOAT_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
+      if constexpr (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::FLOAT);
       }
-      else if (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
+      else if constexpr (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::DOUBLE);
       }
@@ -330,33 +347,33 @@ MetaImageIO::ReadImageInformation()
     case MET_DOUBLE:
       this->SetPixelType(IOPixelEnum::SCALAR);
       this->SetComponentType(IOComponentEnum::DOUBLE);
-      if (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
+      if constexpr (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
       {
         this->SetComponentType(IOComponentEnum::DOUBLE);
       }
-      else if (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
+      else if constexpr (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
       {
         this->SetComponentType(IOComponentEnum::FLOAT);
       }
       break;
     case MET_DOUBLE_ARRAY:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
+      if constexpr (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
       {
         this->SetComponentType(IOComponentEnum::DOUBLE);
       }
-      else if (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
+      else if constexpr (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
       {
         this->SetComponentType(IOComponentEnum::FLOAT);
       }
       break;
     case MET_FLOAT_MATRIX:
       this->SetPixelType(IOPixelEnum::VECTOR);
-      if (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
+      if constexpr (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::FLOAT);
       }
-      else if (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
+      else if constexpr (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
       {
         this->SetComponentType(IOComponentEnum::DOUBLE);
       }
@@ -379,8 +396,8 @@ MetaImageIO::ReadImageInformation()
 
   this->SetNumberOfDimensions(m_MetaImage.NDims());
 
-  unsigned int i;
-  for (i = 0; i < m_NumberOfDimensions; i++)
+
+  for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
   {
     this->SetDimensions(i, m_MetaImage.DimSize(i) / m_SubSamplingFactor);
     this->SetSpacing(i, m_MetaImage.ElementSpacing(i) * m_SubSamplingFactor);
@@ -392,25 +409,31 @@ MetaImageIO::ReadImageInformation()
   //
   const double *     transformMatrix = m_MetaImage.TransformMatrix();
   vnl_vector<double> directionAxis(this->GetNumberOfDimensions());
-  for (unsigned int ii = 0; ii < this->GetNumberOfDimensions(); ii++)
+  for (unsigned int ii = 0; ii < this->GetNumberOfDimensions(); ++ii)
   {
-    for (unsigned int jj = 0; jj < this->GetNumberOfDimensions(); jj++)
+    for (unsigned int jj = 0; jj < this->GetNumberOfDimensions(); ++jj)
     {
       directionAxis[jj] = transformMatrix[ii * this->GetNumberOfDimensions() + jj];
     }
     this->SetDirection(ii, directionAxis);
   }
 
-  std::string classname(this->GetNameOfClass());
+  const std::string classname(this->GetNameOfClass());
   EncapsulateMetaData<std::string>(thisMetaDict, ITK_InputFilterName, classname);
+
+  // metaImage has a Modality tag which is not stored as part of its
+  // metadata dictionary
+  std::string modality;
+  MET_ImageModalityToString(m_MetaImage.Modality(), modality);
+  EncapsulateMetaData<std::string>(thisMetaDict, "Modality", modality);
   //
   // save the metadatadictionary in the MetaImage header.
   // NOTE: The MetaIO library only supports typeless strings as metadata
-  int dictFields = m_MetaImage.GetNumberOfAdditionalReadFields();
-  for (int f = 0; f < dictFields; f++)
+  const int dictFields = m_MetaImage.GetNumberOfAdditionalReadFields();
+  for (int f = 0; f < dictFields; ++f)
   {
-    std::string key(m_MetaImage.GetAdditionalReadFieldName(f));
-    std::string value(m_MetaImage.GetAdditionalReadFieldValue(f));
+    const std::string key(m_MetaImage.GetAdditionalReadFieldName(f));
+    const std::string value(m_MetaImage.GetAdditionalReadFieldValue(f));
     EncapsulateMetaData<std::string>(thisMetaDict, key, value);
   }
 
@@ -442,7 +465,7 @@ MetaImageIO::Read(void * buffer)
   // path since the comparison will fail
   ImageIORegion largestRegion(nDims);
 
-  for (unsigned int i = 0; i < nDims; i++)
+  for (unsigned int i = 0; i < nDims; ++i)
   {
     largestRegion.SetIndex(i, 0);
     largestRegion.SetSize(i, this->GetDimensions(i));
@@ -450,9 +473,9 @@ MetaImageIO::Read(void * buffer)
 
   if (largestRegion != m_IORegion)
   {
-    auto * indexMin = new int[nDims];
-    auto * indexMax = new int[nDims];
-    for (unsigned int i = 0; i < nDims; i++)
+    const auto indexMin = make_unique_for_overwrite<int[]>(nDims);
+    const auto indexMax = make_unique_for_overwrite<int[]>(nDims);
+    for (unsigned int i = 0; i < nDims; ++i)
     {
       if (i < m_IORegion.GetImageDimension())
       {
@@ -467,16 +490,11 @@ MetaImageIO::Read(void * buffer)
       }
     }
 
-    if (!m_MetaImage.ReadROI(indexMin, indexMax, m_FileName.c_str(), true, buffer, m_SubSamplingFactor))
+    if (!m_MetaImage.ReadROI(indexMin.get(), indexMax.get(), m_FileName.c_str(), true, buffer, m_SubSamplingFactor))
     {
-      delete[] indexMin;
-      delete[] indexMax;
       itkExceptionMacro("File cannot be read: " << this->GetFileName() << " for reading." << std::endl
                                                 << "Reason: " << itksys::SystemTools::GetLastSystemError());
     }
-
-    delete[] indexMin;
-    delete[] indexMax;
 
     m_MetaImage.ElementByteOrderFix(m_IORegion.GetNumberOfPixels());
   }
@@ -502,30 +520,18 @@ MetaImageIO::GetMetaImagePointer()
 bool
 MetaImageIO::CanWriteFile(const char * name)
 {
-  std::string filename = name;
+  const std::string filename = name;
 
   if (filename.empty())
   {
     return false;
   }
 
-  std::string::size_type mhaPos = filename.rfind(".mha");
-  if ((mhaPos != std::string::npos) && (mhaPos == filename.length() - 4))
-  {
-    return true;
-  }
-
-  std::string::size_type mhdPos = filename.rfind(".mhd");
-  if ((mhdPos != std::string::npos) && (mhdPos == filename.length() - 4))
-  {
-    return true;
-  }
-
-  return false;
+  return this->HasSupportedWriteExtension(name, true);
 }
 
 void
-MetaImageIO ::WriteImageInformation()
+MetaImageIO::WriteImageInformation()
 {
 
   MetaDataDictionary & metaDict = this->GetMetaDataDictionary();
@@ -560,11 +566,10 @@ MetaImageIO ::WriteImageInformation()
 
   // Save out the metadatadictionary key/value pairs as part of
   // the metaio header.
-  std::vector<std::string>                 keys = metaDict.GetKeys();
-  std::vector<std::string>::const_iterator keyIt;
-  for (keyIt = keys.begin(); keyIt != keys.end(); ++keyIt)
+  const std::vector<std::string> keys = metaDict.GetKeys();
+  for (auto & key : keys)
   {
-    if (*keyIt == ITK_ExperimentDate || *keyIt == ITK_VoxelUnits)
+    if (key == ITK_ExperimentDate || key == ITK_VoxelUnits)
     {
       continue;
     }
@@ -577,7 +582,7 @@ MetaImageIO ::WriteImageInformation()
     long long           llval = 0LL;
     unsigned long long  ullval = 0uLL;
     int                 ival = 0;
-    unsigned            uval = 0;
+    unsigned int        uval = 0;
     short               shval = 0;
     unsigned short      ushval = 0;
     char                cval = 0;
@@ -585,74 +590,69 @@ MetaImageIO ::WriteImageInformation()
     bool                bval = false;
     std::vector<double> vval(0);
     std::string         value = "";
-    if (ExposeMetaData<std::string>(metaDict, *keyIt, value))
+    if (ExposeMetaData<std::string>(metaDict, key, value))
     {
       strs << value;
     }
-    else if (ExposeMetaData<double>(metaDict, *keyIt, dval))
+    else if (ExposeMetaData<double>(metaDict, key, dval))
     {
       strs << dval;
     }
-    else if (ExposeMetaData<float>(metaDict, *keyIt, fval))
+    else if (ExposeMetaData<float>(metaDict, key, fval))
     {
       strs << fval;
     }
-    else if (ExposeMetaData<long>(metaDict, *keyIt, lval))
+    else if (ExposeMetaData<long>(metaDict, key, lval))
     {
       strs << lval;
     }
-    else if (ExposeMetaData<unsigned long>(metaDict, *keyIt, ulval))
+    else if (ExposeMetaData<unsigned long>(metaDict, key, ulval))
     {
       strs << ulval;
     }
-    else if (ExposeMetaData<long long>(metaDict, *keyIt, llval))
+    else if (ExposeMetaData<long long>(metaDict, key, llval))
     {
       strs << llval;
     }
-    else if (ExposeMetaData<unsigned long long>(metaDict, *keyIt, ullval))
+    else if (ExposeMetaData<unsigned long long>(metaDict, key, ullval))
     {
       strs << ullval;
     }
-    else if (ExposeMetaData<int>(metaDict, *keyIt, ival))
+    else if (ExposeMetaData<int>(metaDict, key, ival))
     {
       strs << ival;
     }
-    else if (ExposeMetaData<unsigned int>(metaDict, *keyIt, uval))
+    else if (ExposeMetaData<unsigned int>(metaDict, key, uval))
     {
       strs << uval;
     }
-    else if (ExposeMetaData<short>(metaDict, *keyIt, shval))
+    else if (ExposeMetaData<short>(metaDict, key, shval))
     {
       strs << shval;
     }
-    else if (ExposeMetaData<unsigned short>(metaDict, *keyIt, ushval))
+    else if (ExposeMetaData<unsigned short>(metaDict, key, ushval))
     {
       strs << ushval;
     }
-    else if (ExposeMetaData<char>(metaDict, *keyIt, cval))
+    else if (ExposeMetaData<char>(metaDict, key, cval))
     {
       strs << cval;
     }
-    else if (ExposeMetaData<unsigned char>(metaDict, *keyIt, ucval))
+    else if (ExposeMetaData<unsigned char>(metaDict, key, ucval))
     {
       strs << ucval;
     }
-    else if (ExposeMetaData<bool>(metaDict, *keyIt, bval))
+    else if (ExposeMetaData<bool>(metaDict, key, bval))
     {
       strs << bval;
     }
-    else if (ExposeMetaData<std::vector<double>>(metaDict, *keyIt, vval))
+    else if (ExposeMetaData<std::vector<double>>(metaDict, key, vval))
     {
-      unsigned int i = 0;
-      while (i < vval.size() - 1)
-      {
-        strs << vval[++i] << " ";
-      }
-      strs << vval[i];
+      _join(vval, ' ', strs);
     }
-    else if (WriteMatrixInMetaData<1>(strs, metaDict, *keyIt) || WriteMatrixInMetaData<2>(strs, metaDict, *keyIt) ||
-             WriteMatrixInMetaData<3>(strs, metaDict, *keyIt) || WriteMatrixInMetaData<4>(strs, metaDict, *keyIt) ||
-             WriteMatrixInMetaData<5>(strs, metaDict, *keyIt) || WriteMatrixInMetaData<6>(strs, metaDict, *keyIt))
+    else if (WriteMatrixInMetaData<1>(strs, metaDict, key) || WriteMatrixInMetaData<2>(strs, metaDict, key) ||
+             WriteMatrixInMetaData<3>(strs, metaDict, key) || WriteMatrixInMetaData<4>(strs, metaDict, key) ||
+             WriteMatrixInMetaData<5>(strs, metaDict, key) || WriteMatrixInMetaData<6>(strs, metaDict, key))
     {
       // Nothing to do, everything is done in WriteMatrixInMetaData
     }
@@ -663,9 +663,9 @@ MetaImageIO ::WriteImageInformation()
     {
       // if the value is an empty string then the resulting entry in
       // the header will not be able to be read by the metaIO
-      // library, which results is a unreadable/corrupt file.
-      itkWarningMacro("Unsupported or empty metaData item " << *keyIt << " of type "
-                                                            << metaDict[*keyIt]->GetMetaDataObjectTypeName()
+      // library, which results is an unreadable/corrupt file.
+      itkWarningMacro("Unsupported or empty metaData item " << key << " of type "
+                                                            << metaDict[key]->GetMetaDataObjectTypeName()
                                                             << "found, won't be written to image file");
       // so this entry should be skipped.
       continue;
@@ -673,7 +673,7 @@ MetaImageIO ::WriteImageInformation()
 
     // Rolling this back out so that the tests pass.
     // The meta image AddUserField requires control of the memory space.
-    m_MetaImage.AddUserField((*keyIt).c_str(), MET_STRING, static_cast<int>(value.size()), value.c_str(), true, -1);
+    m_MetaImage.AddUserField(key.c_str(), MET_STRING, static_cast<int>(value.size()), value.c_str(), true, -1);
   }
 }
 
@@ -681,7 +681,7 @@ MetaImageIO ::WriteImageInformation()
  *
  */
 void
-MetaImageIO ::Write(const void * buffer)
+MetaImageIO::Write(const void * buffer)
 {
   const unsigned int numberOfDimensions = this->GetNumberOfDimensions();
 
@@ -692,7 +692,7 @@ MetaImageIO ::Write(const void * buffer)
     binaryData = false;
   }
 
-  int nChannels = this->GetNumberOfComponents();
+  const int nChannels = this->GetNumberOfComponents();
 
   MET_ValueEnumType eType = MET_OTHER;
   switch (m_ComponentType)
@@ -714,92 +714,91 @@ MetaImageIO ::Write(const void * buffer)
       eType = MET_USHORT;
       break;
     case IOComponentEnum::LONG:
-      if (sizeof(long) == MET_ValueTypeSize[MET_LONG])
+      if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG])
       {
         eType = MET_LONG;
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_INT])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_INT])
       {
         eType = MET_INT;
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         eType = MET_LONG_LONG;
       }
       break;
     case IOComponentEnum::ULONG:
-      if (sizeof(long) == MET_ValueTypeSize[MET_LONG])
+      if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG])
       {
         eType = MET_ULONG;
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_INT])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_INT])
       {
         eType = MET_UINT;
       }
-      else if (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
+      else if constexpr (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         eType = MET_ULONG_LONG;
       }
       break;
     case IOComponentEnum::LONGLONG:
 
-      if (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
+      if constexpr (sizeof(long long) == MET_ValueTypeSize[MET_LONG_LONG])
       {
         eType = MET_LONG_LONG;
       }
       break;
     case IOComponentEnum::ULONGLONG:
-      if (sizeof(long long) == MET_ValueTypeSize[MET_ULONG_LONG])
+      if constexpr (sizeof(long long) == MET_ValueTypeSize[MET_ULONG_LONG])
       {
         eType = MET_ULONG_LONG;
       }
       break;
     case IOComponentEnum::INT:
-      eType = MET_INT;
-      if (sizeof(int) == MET_ValueTypeSize[MET_INT])
+      if constexpr (sizeof(int) == MET_ValueTypeSize[MET_INT])
       {
         eType = MET_INT;
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG])
       {
         eType = MET_LONG;
       }
       break;
     case IOComponentEnum::UINT:
-      if (sizeof(int) == MET_ValueTypeSize[MET_INT])
+      if constexpr (sizeof(int) == MET_ValueTypeSize[MET_INT])
       {
         eType = MET_UINT;
       }
-      else if (sizeof(int) == MET_ValueTypeSize[MET_LONG])
+      else if constexpr (sizeof(int) == MET_ValueTypeSize[MET_LONG])
       {
         eType = MET_ULONG;
       }
       break;
     case IOComponentEnum::FLOAT:
-      if (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
+      if constexpr (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
       {
         eType = MET_FLOAT;
       }
-      else if (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
+      else if constexpr (sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
       {
         eType = MET_DOUBLE;
       }
       break;
     case IOComponentEnum::DOUBLE:
-      if (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
+      if constexpr (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
       {
         eType = MET_DOUBLE;
       }
-      else if (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
+      else if constexpr (sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
       {
         eType = MET_FLOAT;
       }
       break;
   }
 
-  auto * dSize = new int[numberOfDimensions];
-  auto * eSpacing = new double[numberOfDimensions];
-  auto * eOrigin = new double[numberOfDimensions];
+  const auto dSize = make_unique_for_overwrite<int[]>(numberOfDimensions);
+  const auto eSpacing = make_unique_for_overwrite<double[]>(numberOfDimensions);
+  const auto eOrigin = make_unique_for_overwrite<double[]>(numberOfDimensions);
   for (unsigned int ii = 0; ii < numberOfDimensions; ++ii)
   {
     dSize[ii] = this->GetDimensions(ii);
@@ -807,8 +806,9 @@ MetaImageIO ::Write(const void * buffer)
     eOrigin[ii] = this->GetOrigin(ii);
   }
 
-  m_MetaImage.InitializeEssential(numberOfDimensions, dSize, eSpacing, eType, nChannels, const_cast<void *>(buffer));
-  m_MetaImage.Position(eOrigin);
+  m_MetaImage.InitializeEssential(
+    numberOfDimensions, dSize.get(), eSpacing.get(), eType, nChannels, const_cast<void *>(buffer));
+  m_MetaImage.Position(eOrigin.get());
   m_MetaImage.BinaryData(binaryData);
 
   // Write the image Information
@@ -816,251 +816,34 @@ MetaImageIO ::Write(const void * buffer)
 
   if (numberOfDimensions == 3)
   {
-    SpatialOrientation::ValidCoordinateOrientationFlags coordOrient =
-      SpatialOrientation::ITK_COORDINATE_ORIENTATION_INVALID;
-    std::vector<double>                      dirx, diry, dirz;
-    SpatialOrientationAdapter::DirectionType dir;
-    dirx = this->GetDirection(0);
-    diry = this->GetDirection(1);
-    dirz = this->GetDirection(2);
-    for (unsigned ii = 0; ii < 3; ii++)
+    AnatomicalOrientation::DirectionType dir;
+    std::vector<double>                  dirx = this->GetDirection(0);
+    std::vector<double>                  diry = this->GetDirection(1);
+    std::vector<double>                  dirz = this->GetDirection(2);
+    for (unsigned int ii = 0; ii < 3; ++ii)
     {
       dir[ii][0] = dirx[ii];
       dir[ii][1] = diry[ii];
       dir[ii][2] = dirz[ii];
     }
-    coordOrient = SpatialOrientationAdapter().FromDirectionCosines(dir);
+    const AnatomicalOrientation coordOrient(dir);
 
-    switch (coordOrient)
-    {
-      default:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_RL);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSP:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_LR);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASR:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_AP);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSR:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_PA);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRP:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_IS);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRP:
-      {
-        m_MetaImage.AnatomicalOrientation(0, MET_ORIENTATION_SI);
-        break;
-      }
-    }
-    switch (coordOrient)
-    {
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRP:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_RL);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLP:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_LR);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAR:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_AP);
-        break;
-      }
-      default:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPR:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_PA);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_IS);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP:
-      {
-        m_MetaImage.AnatomicalOrientation(1, MET_ORIENTATION_SI);
-        break;
-      }
-    }
-    switch (coordOrient)
-    {
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAR:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPR:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_RL);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAL:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPL:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_LR);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLA:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRA:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_AP);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLP:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRP:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_PA);
-        break;
-      }
-      default:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_IS);
-        break;
-      }
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS:
-      case SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPS:
-      {
-        m_MetaImage.AnatomicalOrientation(2, MET_ORIENTATION_SI);
-        break;
-      }
-    }
+    // Mapping from DICOM CoordinateEnum defined as the increasing direction to
+    // the MetaIO enum which has from/to orientation defined.
+    const std::map<AnatomicalOrientation::CoordinateEnum, int> axisToMetOrientation{
+      { AnatomicalOrientation::CoordinateEnum::RightToLeft, MET_ORIENTATION_RL },
+      { AnatomicalOrientation::CoordinateEnum::LeftToRight, MET_ORIENTATION_LR },
+      { AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior, MET_ORIENTATION_AP },
+      { AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior, MET_ORIENTATION_PA },
+      { AnatomicalOrientation::CoordinateEnum::InferiorToSuperior, MET_ORIENTATION_IS },
+      { AnatomicalOrientation::CoordinateEnum::SuperiorToInferior, MET_ORIENTATION_SI }
+    };
+
+    m_MetaImage.AnatomicalOrientation(0, axisToMetOrientation.at(coordOrient.GetPrimaryTerm()));
+    m_MetaImage.AnatomicalOrientation(1, axisToMetOrientation.at(coordOrient.GetSecondaryTerm()));
+    m_MetaImage.AnatomicalOrientation(2, axisToMetOrientation.at(coordOrient.GetTertiaryTerm()));
   }
-  // Propagage direction cosine information.
+  // Propagate direction cosine information.
   auto * transformMatrix = static_cast<double *>(malloc(numberOfDimensions * numberOfDimensions * sizeof(double)));
   if (transformMatrix)
   {
@@ -1093,8 +876,8 @@ MetaImageIO ::Write(const void * buffer)
   }
   else if (largestRegion != m_IORegion)
   {
-    auto * indexMin = new int[numberOfDimensions];
-    auto * indexMax = new int[numberOfDimensions];
+    const auto indexMin = make_unique_for_overwrite<int[]>(numberOfDimensions);
+    const auto indexMax = make_unique_for_overwrite<int[]>(numberOfDimensions);
     for (unsigned int ii = 0; ii < numberOfDimensions; ++ii)
     {
       // the dimensions of m_IORegion should match out requested
@@ -1104,35 +887,20 @@ MetaImageIO ::Write(const void * buffer)
       indexMax[ii] = m_IORegion.GetIndex()[ii] + m_IORegion.GetSize()[ii] - 1;
     }
 
-    if (!m_MetaImage.WriteROI(indexMin, indexMax, m_FileName.c_str()))
+    if (!m_MetaImage.WriteROI(indexMin.get(), indexMax.get(), m_FileName.c_str()))
     {
-      delete[] dSize;
-      delete[] eSpacing;
-      delete[] eOrigin;
-      delete[] indexMin;
-      delete[] indexMax;
       itkExceptionMacro("File ROI cannot be written: " << this->GetFileName() << std::endl
                                                        << "Reason: " << itksys::SystemTools::GetLastSystemError());
     }
-
-    delete[] indexMin;
-    delete[] indexMax;
   }
   else
   {
     if (!m_MetaImage.Write(m_FileName.c_str()))
     {
-      delete[] dSize;
-      delete[] eSpacing;
-      delete[] eOrigin;
       itkExceptionMacro("File cannot be written: " << this->GetFileName() << std::endl
                                                    << "Reason: " << itksys::SystemTools::GetLastSystemError());
     }
   }
-
-  delete[] dSize;
-  delete[] eSpacing;
-  delete[] eOrigin;
 }
 
 /** Given a requested region, determine what could be the region that we can
@@ -1140,7 +908,7 @@ MetaImageIO ::Write(const void * buffer)
  * smaller than the LargestPossibleRegion and greater or equal to the
  * RequestedRegion */
 ImageIORegion
-MetaImageIO ::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion & requestedRegion) const
+MetaImageIO::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion & requestedRegion) const
 {
   //
   // The default implementations determines that the streamable region is
@@ -1150,7 +918,7 @@ MetaImageIO ::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegio
 
   if (!m_UseStreamedReading)
   {
-    for (unsigned int i = 0; i < this->m_NumberOfDimensions; i++)
+    for (unsigned int i = 0; i < this->m_NumberOfDimensions; ++i)
     {
       streamableRegion.SetSize(i, this->m_Dimensions[i]);
       streamableRegion.SetIndex(i, 0);
@@ -1193,8 +961,8 @@ MetaImageIO::GetActualNumberOfSplitsForWriting(unsigned int          numberOfReq
     // we are going to be pasting (may be streaming too)
 
     // need to check to see if the file is compatible
-    std::string errorMessage;
-    Pointer     headerImageIOReader = Self::New();
+    std::string   errorMessage;
+    const Pointer headerImageIOReader = Self::New();
 
     try
     {
@@ -1226,8 +994,8 @@ MetaImageIO::GetActualNumberOfSplitsForWriting(unsigned int          numberOfReq
     // 2)pixel type
     // this->GetPixelType() is not verified because the metaio file format
     // stores all multi-component types as arrays, so it does not
-    // distinguish between pixel types. Also as long as the compoent
-    // and number of compoents match we should be able to paste, that
+    // distinguish between pixel types. Also as long as the component
+    // and number of components match we should be able to paste, that
     // is the numbers should be the same it is just the interpretation
     // that is not matching
     else if (headerImageIOReader->GetNumberOfComponents() != this->GetNumberOfComponents() ||
@@ -1278,7 +1046,7 @@ MetaImageIO::GetActualNumberOfSplitsForWriting(unsigned int          numberOfReq
 
     // need to remove the file incase the file doesn't match our
     // current header/meta data information
-    if (!itksys::SystemTools::RemoveFile(m_FileName.c_str()))
+    if (!itksys::SystemTools::RemoveFile(m_FileName))
     {
       itkExceptionMacro("Unable to remove file for streaming: " << m_FileName);
     }

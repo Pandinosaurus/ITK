@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,17 +19,16 @@
 #ifndef itkLevelSetEquationChanAndVeseExternalTerm_hxx
 #define itkLevelSetEquationChanAndVeseExternalTerm_hxx
 
-#include "itkLevelSetEquationChanAndVeseExternalTerm.h"
 
 namespace itk
 {
 template <typename TInput, typename TLevelSetContainer>
 LevelSetEquationChanAndVeseExternalTerm<TInput, TLevelSetContainer>::LevelSetEquationChanAndVeseExternalTerm()
+  : m_DomainMapImageFilter(nullptr)
+  , m_CacheImage(nullptr)
 {
   this->m_TermName = "External Chan And Vese term";
   this->m_RequiredData.insert("Value");
-  this->m_DomainMapImageFilter = nullptr;
-  this->m_CacheImage = nullptr;
 }
 
 template <typename TInput, typename TLevelSetContainer>
@@ -38,8 +37,8 @@ LevelSetEquationChanAndVeseExternalTerm<TInput, TLevelSetContainer>::ComputeProd
                                                                                     LevelSetOutputRealType &       prod)
 {
   this->ComputeProductTerm(iP, prod);
-  LevelSetPointer        levelSet = this->m_LevelSetContainer->GetLevelSet(this->m_CurrentLevelSetId);
-  LevelSetOutputRealType value = levelSet->Evaluate(iP);
+  const LevelSetPointer        levelSet = this->m_LevelSetContainer->GetLevelSet(this->m_CurrentLevelSetId);
+  const LevelSetOutputRealType value = levelSet->Evaluate(iP);
   prod *= -(1 - this->m_Heaviside->Evaluate(-value));
 }
 
@@ -122,7 +121,7 @@ LevelSetEquationChanAndVeseExternalTerm<TInput, TLevelSetContainer>::UpdatePixel
   this->ComputeProductTerm(iP, prod);
 
   // For each affected h val: h val = new hval (this will dirty some cvals)
-  InputPixelType input = this->m_Input->GetPixel(iP);
+  const InputPixelType input = this->m_Input->GetPixel(iP);
 
   const LevelSetOutputRealType oldH = this->m_Heaviside->Evaluate(-oldValue);
   const LevelSetOutputRealType newH = this->m_Heaviside->Evaluate(-newValue);

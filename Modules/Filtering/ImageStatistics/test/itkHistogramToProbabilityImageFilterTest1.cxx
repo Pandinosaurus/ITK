@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,14 +21,17 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkHistogramToProbabilityImageFilter.h"
+#include "itkTestingMacros.h"
+
 int
 itkHistogramToProbabilityImageFilterTest1(int argc, char * argv[])
 {
 
   if (argc < 3)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0] << " inputScalarImageFileName outputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputScalarImageFileName outputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -38,21 +41,13 @@ itkHistogramToProbabilityImageFilterTest1(int argc, char * argv[])
   using ScalarImageType = itk::Image<PixelComponentType, Dimension>;
   using ReaderType = itk::ImageFileReader<ScalarImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem encoutered while reading image file : " << argv[1] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  itk::MinimumMaximumImageFilter<ScalarImageType>::Pointer minmaxFilter =
+
+  const itk::MinimumMaximumImageFilter<ScalarImageType>::Pointer minmaxFilter =
     itk::MinimumMaximumImageFilter<ScalarImageType>::New();
   minmaxFilter->SetInput(reader->GetOutput());
   minmaxFilter->Update();
@@ -61,7 +56,7 @@ itkHistogramToProbabilityImageFilterTest1(int argc, char * argv[])
 
 
   using HistogramGeneratorType = itk::Statistics::ScalarImageToHistogramGenerator<ScalarImageType>;
-  HistogramGeneratorType::Pointer histogramGenerator = HistogramGeneratorType::New();
+  auto histogramGenerator = HistogramGeneratorType::New();
   histogramGenerator->SetInput(reader->GetOutput());
 
   const int NumberOfBins = static_cast<unsigned int>(imageMax - imageMin + 1);
@@ -80,28 +75,24 @@ itkHistogramToProbabilityImageFilterTest1(int argc, char * argv[])
 
   using HistogramToImageFilterType = itk::HistogramToProbabilityImageFilter<HistogramType>;
 
-  HistogramToImageFilterType::Pointer histogramToImageFilter = HistogramToImageFilterType::New();
+  auto histogramToImageFilter = HistogramToImageFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(histogramToImageFilter, HistogramToProbabilityImageFilter, HistogramToImageFilter);
+
 
   histogramToImageFilter->SetInput(histogram);
 
   using OutputImageType = HistogramToImageFilterType::OutputImageType;
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
 
   writer->SetInput(histogramToImageFilter->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,27 +21,22 @@
 
 namespace itk
 {
-LBFGSOptimizerv4 ::LBFGSOptimizerv4() = default;
+LBFGSOptimizerv4::LBFGSOptimizerv4() = default;
 
 LBFGSOptimizerv4::~LBFGSOptimizerv4() = default;
 
 void
-LBFGSOptimizerv4 ::PrintSelf(std::ostream & os, Indent indent) const
+LBFGSOptimizerv4::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "LineSearchAccuracy: " << m_LineSearchAccuracy << std::endl;
   os << indent << "DefaultStepLength: " << m_DefaultStepLength << std::endl;
-
-  if (this->m_VnlOptimizer)
-  {
-    os << indent << "Vnl LBFGS Failure Code: " << this->m_VnlOptimizer->get_failure_code() << std::endl;
-  }
 }
 
 void
-LBFGSOptimizerv4 ::VerboseOn()
+LBFGSOptimizerv4::VerboseOn()
 {
-  if (m_Verbose == true)
+  if (m_Verbose)
   {
     return;
   }
@@ -56,7 +51,7 @@ LBFGSOptimizerv4 ::VerboseOn()
 }
 
 void
-LBFGSOptimizerv4 ::VerboseOff()
+LBFGSOptimizerv4::VerboseOff()
 {
   if (m_Verbose == false)
   {
@@ -73,7 +68,7 @@ LBFGSOptimizerv4 ::VerboseOff()
 }
 
 void
-LBFGSOptimizerv4 ::SetLineSearchAccuracy(double f)
+LBFGSOptimizerv4::SetLineSearchAccuracy(double f)
 {
   if (Math::ExactlyEquals(f, m_LineSearchAccuracy))
   {
@@ -90,7 +85,7 @@ LBFGSOptimizerv4 ::SetLineSearchAccuracy(double f)
 }
 
 void
-LBFGSOptimizerv4 ::SetDefaultStepLength(double f)
+LBFGSOptimizerv4::SetDefaultStepLength(double f)
 {
   if (Math::ExactlyEquals(f, m_DefaultStepLength))
   {
@@ -107,7 +102,7 @@ LBFGSOptimizerv4 ::SetDefaultStepLength(double f)
 }
 
 void
-LBFGSOptimizerv4 ::SetMetric(MetricType * metric)
+LBFGSOptimizerv4::SetMetric(MetricType * metric)
 {
   Superclass::SetMetric(metric);
 
@@ -127,7 +122,7 @@ LBFGSOptimizerv4 ::SetMetric(MetricType * metric)
 }
 
 void
-LBFGSOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
+LBFGSOptimizerv4::StartOptimization(bool /* doOnlyInitialization */)
 {
   // Perform some verification, check scales,
   // pass settings to cost-function adaptor.
@@ -139,7 +134,7 @@ LBFGSOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
 
   if (parameters.GetSize() == 0)
   {
-    itkExceptionMacro(<< "Optimizer parameters are not initialized.");
+    itkExceptionMacro("Optimizer parameters are not initialized.");
   }
 
   // Scale the initial parameters up if scales are defined.

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,9 @@ namespace itk
 {
 
 /**
- *\class IntermodesThresholdCalculator
- * \brief Computes the Intermodes's threshold for an image.
+ * \class IntermodesThresholdCalculator
+ * \brief Computes the Intermodes's threshold for an image \cite prewitt1966.
  *
- * J. M. S. Prewitt and M. L. Mendelsohn, "The analysis of cell images," in
- * Annals of the New York Academy of Sciences, vol. 128, pp. 1035-1053, 1966.
- *  *
  * Assumes a bimodal histogram. The histogram needs is smoothed (using a
  * running average of size 3, iteratively) until there are only two local maxima.
  * j and k
@@ -47,7 +44,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \ingroup Operators
  * \ingroup ITKThresholding
@@ -67,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IntermodesThresholdCalculator, HistogramThresholdCalculator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IntermodesThresholdCalculator);
 
   /** Type definition for the input image. */
   using HistogramType = THistogram;
@@ -81,16 +78,16 @@ public:
 
   /** Select whether midpoint (intermode = true) or minimum between
   peaks is used. Default is "On". */
+  /** @ITKStartGrouping */
   itkSetMacro(UseInterMode, bool);
   itkGetConstMacro(UseInterMode, bool);
   itkBooleanMacro(UseInterMode);
-
+  /** @ITKEndGrouping */
 protected:
   IntermodesThresholdCalculator()
-  {
-    m_MaximumSmoothingIterations = 10000;
-    m_UseInterMode = true;
-  }
+    : m_MaximumSmoothingIterations(10000)
+    , m_UseInterMode(true)
+  {}
 
   ~IntermodesThresholdCalculator() override = default;
 
@@ -106,8 +103,8 @@ private:
   bool
   BimodalTest(const std::vector<double> & h);
 
-  SizeValueType m_MaximumSmoothingIterations;
-  bool          m_UseInterMode;
+  SizeValueType m_MaximumSmoothingIterations{};
+  bool          m_UseInterMode{};
 };
 
 } // end namespace itk

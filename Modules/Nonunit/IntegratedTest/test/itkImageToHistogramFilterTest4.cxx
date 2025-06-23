@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,6 +29,7 @@
 #include "itkComposeImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 template <typename TVectorImage>
 int
@@ -37,8 +38,9 @@ itkImageToHistogramFilterTest4Templated(int argc, char * argv[])
 
   if (argc < 4)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0] << " inputImageFileName inputImageFileName outputHistogramFile" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputImageFileName inputImageFileName outputHistogramFile" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -51,19 +53,19 @@ itkImageToHistogramFilterTest4Templated(int argc, char * argv[])
   using VectorImageType = TVectorImage;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
   using ComposeType = itk::ComposeImageFilter<ImageType, VectorImageType>;
-  typename ComposeType::Pointer compose = ComposeType::New();
+  auto compose = ComposeType::New();
   compose->SetInput1(reader->GetOutput());
   compose->SetInput2(reader2->GetOutput());
 
   using HistogramFilterType = itk::Statistics::ImageToHistogramFilter<VectorImageType>;
-  typename HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+  auto histogramFilter = HistogramFilterType::New();
   histogramFilter->SetInput(compose->GetOutput());
   itk::SimpleFilterWatcher watcher(histogramFilter, "histogramFilter");
 
@@ -74,28 +76,21 @@ itkImageToHistogramFilterTest4Templated(int argc, char * argv[])
   // is of greater dimension than the histogram
   using FloatImageType = itk::Image<float, 3>;
   using ImageFilterType = itk::HistogramToLogProbabilityImageFilter<HistogramType, FloatImageType>;
-  typename ImageFilterType::Pointer imageFilter = ImageFilterType::New();
+  auto imageFilter = ImageFilterType::New();
   imageFilter->SetInput(histogramFilter->GetOutput());
   itk::SimpleFilterWatcher watcher2(imageFilter, "imageFilter");
 
   using RescaleType = itk::RescaleIntensityImageFilter<FloatImageType, ImageType>;
-  typename RescaleType::Pointer rescale = RescaleType::New();
+  auto rescale = RescaleType::New();
   rescale->SetInput(imageFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(rescale->GetOutput());
   writer->SetFileName(argv[3]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   // print the image produced by HistogramToLogProbabilityImageFilter for visual inspection
   imageFilter->GetOutput()->Print(std::cout);
@@ -145,5 +140,8 @@ itkImageToHistogramFilterTest4(int argc, char * argv[])
     using VectorImageType = itk::VectorImage<unsigned char, 3>;
     return itkImageToHistogramFilterTest4Templated<VectorImageType>(argc, argv);
   }
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_FAILURE;
 }

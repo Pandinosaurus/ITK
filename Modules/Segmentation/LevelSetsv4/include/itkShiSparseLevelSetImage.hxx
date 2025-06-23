@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkShiSparseLevelSetImage_hxx
 #define itkShiSparseLevelSetImage_hxx
 
-#include "itkShiSparseLevelSetImage.h"
 
 namespace itk
 {
@@ -32,11 +31,11 @@ ShiSparseLevelSetImage<VDimension>::ShiSparseLevelSetImage()
 }
 
 template <unsigned int VDimension>
-typename ShiSparseLevelSetImage<VDimension>::OutputType
-ShiSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputIndex) const
+auto
+ShiSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputIndex) const -> OutputType
 {
-  InputType mapIndex = inputIndex - this->m_DomainOffset;
-  auto      layerIt = this->m_Layers.begin();
+  const InputType mapIndex = inputIndex - this->m_DomainOffset;
+  auto            layerIt = this->m_Layers.begin();
 
   while (layerIt != this->m_Layers.end())
   {
@@ -53,27 +52,25 @@ ShiSparseLevelSetImage<VDimension>::Evaluate(const InputType & inputIndex) const
   {
     return static_cast<OutputType>(this->MinusThreeLayer());
   }
+
+  const LayerIdType status = this->m_LabelMap->GetPixel(mapIndex);
+
+  if (status == this->PlusThreeLayer())
+  {
+    return static_cast<OutputType>(this->PlusThreeLayer());
+  }
   else
   {
-    const LayerIdType status = this->m_LabelMap->GetPixel(mapIndex);
-
-    if (status == this->PlusThreeLayer())
-    {
-      return static_cast<OutputType>(this->PlusThreeLayer());
-    }
-    else
-    {
-      itkGenericExceptionMacro(<< "status " << static_cast<int>(status) << " should be 3 or -3");
-    }
+    itkGenericExceptionMacro("status " << static_cast<int>(status) << " should be 3 or -3");
   }
 }
 
 
 template <unsigned int VDimension>
-typename ShiSparseLevelSetImage<VDimension>::HessianType
-ShiSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & itkNotUsed(inputIndex)) const
+auto
+ShiSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & itkNotUsed(inputIndex)) const -> HessianType
 {
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Shi's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Shi's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"
@@ -82,10 +79,10 @@ ShiSparseLevelSetImage<VDimension>::EvaluateHessian(const InputType & itkNotUsed
 
 
 template <unsigned int VDimension>
-typename ShiSparseLevelSetImage<VDimension>::OutputRealType
-ShiSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & itkNotUsed(inputIndex)) const
+auto
+ShiSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & itkNotUsed(inputIndex)) const -> OutputRealType
 {
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Shi's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Shi's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"
@@ -94,10 +91,11 @@ ShiSparseLevelSetImage<VDimension>::EvaluateLaplacian(const InputType & itkNotUs
 
 
 template <unsigned int VDimension>
-typename ShiSparseLevelSetImage<VDimension>::OutputRealType
+auto
 ShiSparseLevelSetImage<VDimension>::EvaluateMeanCurvature(const InputType & itkNotUsed(inputIndex)) const
+  -> OutputRealType
 {
-  itkGenericExceptionMacro(<< "The approximation of the hessian in the Shi's"
+  itkGenericExceptionMacro("The approximation of the hessian in the Shi's"
                            << " representation is poor, and far to be representative."
                            << " If it was required for regularization purpose, "
                            << " you better check recommended regularization methods"

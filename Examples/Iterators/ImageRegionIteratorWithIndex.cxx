@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,16 +82,11 @@ main(int argc, char * argv[])
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
   // Software Guide : EndCodeSnippet
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
-  using WriterType = itk::ImageFileWriter<ImageType>;
 
   ImageType::ConstPointer inputImage;
-  ReaderType::Pointer     reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
   try
   {
-    reader->Update();
-    inputImage = reader->GetOutput();
+    inputImage = itk::ReadImage<ImageType>(argv[1]);
   }
   catch (const itk::ExceptionObject & err)
   {
@@ -110,7 +105,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ImageType::Pointer outputImage = ImageType::New();
+  auto outputImage = ImageType::New();
   outputImage->SetRegions(inputImage->GetRequestedRegion());
   outputImage->CopyInformation(inputImage);
   outputImage->Allocate();
@@ -149,12 +144,9 @@ main(int argc, char * argv[])
   }
   // Software Guide : EndCodeSnippet
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[2]);
-  writer->SetInput(outputImage);
   try
   {
-    writer->Update();
+    itk::WriteImage(outputImage, argv[2]);
   }
   catch (const itk::ExceptionObject & err)
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkMinimumMaximumImageCalculator_h
 #define itkMinimumMaximumImageCalculator_h
 
+#include "itkNumericTraits.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 
@@ -55,8 +56,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MinimumMaximumImageCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MinimumMaximumImageCalculator);
 
   /** Type definition for the input image. */
   using ImageType = TInputImage;
@@ -108,21 +109,21 @@ public:
   SetRegion(const RegionType & region);
 
 protected:
-  MinimumMaximumImageCalculator();
+  MinimumMaximumImageCalculator() = default;
   ~MinimumMaximumImageCalculator() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  PixelType         m_Minimum;
-  PixelType         m_Maximum;
-  ImageConstPointer m_Image;
+  PixelType         m_Minimum{ NumericTraits<PixelType>::max() };
+  PixelType         m_Maximum{ NumericTraits<PixelType>::NonpositiveMin() };
+  ImageConstPointer m_Image{ TInputImage::New() };
 
-  IndexType m_IndexOfMinimum;
-  IndexType m_IndexOfMaximum;
+  IndexType m_IndexOfMinimum{};
+  IndexType m_IndexOfMaximum{};
 
-  RegionType m_Region;
-  bool       m_RegionSetByUser;
+  RegionType m_Region{};
+  bool       m_RegionSetByUser{};
 };
 } // end namespace itk
 

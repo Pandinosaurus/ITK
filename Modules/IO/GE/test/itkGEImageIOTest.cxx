@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,13 +30,13 @@
 
 // Specific ImageIO test
 
-using ImageType = itk::Image<signed short, 3>;
+using ImageType = itk::Image<short, 3>;
 using ImagePointer = ImageType::Pointer;
 using ImageReaderType = itk::ImageFileReader<ImageType>;
 using ImageWriterType = itk::ImageFileWriter<ImageType>;
 
 int
-itkGEImageIOFactoryTest(int ac, char * av[])
+itkGEImageIOFactoryTest(int argc, char * argv[])
 {
   static bool firstTime = true;
   if (firstTime)
@@ -47,14 +47,14 @@ itkGEImageIOFactoryTest(int ac, char * av[])
     itk::ObjectFactoryBase::RegisterFactory(itk::SiemensVisionImageIOFactory::New());
     firstTime = false;
   }
-  if (ac < 2)
+  if (argc < 2)
   {
     return EXIT_FAILURE;
   }
-  char * filename = *++av;
+  char * filename = *++argv;
 
-  ImagePointer             input;
-  ImageReaderType::Pointer imageReader = ImageReaderType::New();
+  ImagePointer input;
+  auto         imageReader = ImageReaderType::New();
 
   try
   {
@@ -72,25 +72,25 @@ itkGEImageIOFactoryTest(int ac, char * av[])
 }
 
 int
-itkGEImageIOTest(int ac, char * av[])
+itkGEImageIOTest(int argc, char * argv[])
 {
   //
   // first argument is passing in the writable directory to do all testing
-  if (ac > 1)
+  if (argc > 1)
   {
-    char * testdir = *++av;
-    --ac;
+    char * testdir = *++argv;
+    --argc;
     itksys::SystemTools::ChangeDirectory(testdir);
   }
 
-  if ((ac != 5) && (ac != 4))
+  if ((argc != 5) && (argc != 4))
   {
     return EXIT_FAILURE;
   }
-  std::string               failmode(av[1]);
-  std::string               filetype(av[2]);
-  std::string               filename(av[3]);
-  bool                      Failmode = failmode == std::string("true");
+  const std::string         failmode(argv[1]);
+  const std::string         filetype(argv[2]);
+  const std::string         filename(argv[3]);
+  const bool                Failmode = failmode == std::string("true");
   itk::ImageIOBase::Pointer io;
   if (filetype == "GE4")
   {
@@ -113,8 +113,8 @@ itkGEImageIOTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  ImagePointer             input;
-  ImageReaderType::Pointer imageReader = ImageReaderType::New();
+  ImagePointer input;
+  auto         imageReader = ImageReaderType::New();
 
   try
   {
@@ -128,21 +128,21 @@ itkGEImageIOTest(int ac, char * av[])
     if (Failmode)
     {
       std::cout << "Caught unexpected exception. Test Failed!" << std::endl;
+      std::cout << e << std::endl;
+      return EXIT_FAILURE;
     }
     else
     {
       std::cout << "Caught expected exception. Test Passed!" << std::endl;
       return EXIT_SUCCESS;
     }
-    std::cout << e << std::endl;
-    return Failmode ? 1 : 0;
   }
 
   if (failmode == std::string("true"))
   {
-    ImageWriterType::Pointer writer = ImageWriterType::New();
+    auto writer = ImageWriterType::New();
     writer->SetInput(input);
-    writer->SetFileName(av[4]);
+    writer->SetFileName(argv[4]);
     writer->Update();
   }
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,12 +33,12 @@ itkMovingHistogramMorphologyImageFilterTest(int, char ** const)
   using HistogramType = itk::Function::MorphologyHistogram<PixelType, std::greater<PixelType>>;
 
   using FilterType = itk::MovingHistogramMorphologyImageFilter<ImageType, ImageType, KernelType, HistogramType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, MovingHistogramMorphologyImageFilter, MovingHistogramImageFilter);
 
 
-  typename FilterType::InputImagePixelType boundary = 255;
+  constexpr typename FilterType::InputImagePixelType boundary = 255;
   filter->SetBoundary(boundary);
   ITK_TEST_SET_GET_VALUE(boundary, filter->GetBoundary());
 

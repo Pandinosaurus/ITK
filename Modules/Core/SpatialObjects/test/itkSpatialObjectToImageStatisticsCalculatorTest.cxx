@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,40 +31,36 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   using EllipseType = itk::EllipseSpatialObject<2>;
 
   // Image Definition
-  ImageType::RegionType region;
-  ImageType::SizeType   size;
-  size.Fill(50);
-  ImageType::SpacingType spacing;
-  spacing.Fill(1);
+  auto size = ImageType::SizeType::Filled(50);
+  auto spacing = itk::MakeFilled<ImageType::SpacingType>(1);
 
   // Circle definition
-  EllipseType::Pointer ellipse = EllipseType::New();
+  auto ellipse = EllipseType::New();
   ellipse->SetRadiusInObjectSpace(10);
   ellipse->Update();
 
-  EllipseType::VectorType offset;
-  offset.Fill(25);
+  auto offset = itk::MakeFilled<EllipseType::VectorType>(25);
   ellipse->GetModifiableObjectToParentTransform()->SetOffset(offset);
   ellipse->Update();
 
 
   // Create a test image
   using ImageFilterType = itk::SpatialObjectToImageFilter<EllipseType, ImageType>;
-  ImageFilterType::Pointer filter = ImageFilterType::New();
+  auto filter = ImageFilterType::New();
   filter->SetInput(ellipse);
   filter->SetSize(size);
   filter->SetSpacing(spacing);
   filter->SetInsideValue(255);
   filter->Update();
 
-  ImageType::Pointer image = filter->GetOutput();
+  const ImageType::Pointer image = filter->GetOutput();
 
   offset.Fill(25);
   ellipse->GetModifiableObjectToParentTransform()->SetOffset(offset);
   ellipse->Update();
 
   using CalculatorType = itk::SpatialObjectToImageStatisticsCalculator<ImageType, EllipseType>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(calculator, SpatialObjectToImageStatisticsCalculator, Object);
 
@@ -72,7 +68,7 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   calculator->SetImage(image);
   calculator->SetSpatialObject(ellipse);
 
-  unsigned int sampleDirection = CalculatorType::SampleDimension - 1;
+  constexpr unsigned int sampleDirection = CalculatorType::SampleDimension - 1;
   calculator->SetSampleDirection(sampleDirection);
   ITK_TEST_SET_GET_VALUE(sampleDirection, calculator->GetSampleDirection());
 
@@ -82,9 +78,8 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   std::cout << "Sample mean = " << calculator->GetMean() << std::endl;
   std::cout << "Sample covariance = " << calculator->GetCovarianceMatrix();
 
-  if (calculator->GetMean() != CalculatorType::VectorType(255) ||
-      itk::Math::NotAlmostEquals(calculator->GetCovarianceMatrix()[0][0],
-                                 itk::NumericTraits<CalculatorType::MatrixType::ValueType>::ZeroValue()))
+  if (calculator->GetMean() != itk::MakeFilled<CalculatorType::VectorType>(255) ||
+      itk::Math::NotAlmostEquals(calculator->GetCovarianceMatrix()[0][0], CalculatorType::MatrixType::ValueType{}))
   {
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
@@ -101,8 +96,8 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   std::cout << "Sample mean = " << calculator->GetMean() << std::endl;
   std::cout << "Sample covariance = " << calculator->GetCovarianceMatrix();
 
-  if ((std::fabs(calculator->GetMean()[0] - 140.0) > 1.0) ||
-      (std::fabs(calculator->GetCovarianceMatrix()[0][0] - 16141.0) > 1.0))
+  if ((itk::Math::abs(calculator->GetMean()[0] - 140.0) > 1.0) ||
+      (itk::Math::abs(calculator->GetCovarianceMatrix()[0][0] - 16141.0) > 1.0))
   {
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
@@ -121,8 +116,8 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   std::cout << "Sample mean = " << calculator->GetMean() << std::endl;
   std::cout << "Sample covariance = " << calculator->GetCovarianceMatrix();
 
-  if ((std::fabs(calculator->GetMean()[0] - 140.0) > 1.0) ||
-      (std::fabs(calculator->GetCovarianceMatrix()[0][0] - 16141.0) > 1.0))
+  if ((itk::Math::abs(calculator->GetMean()[0] - 140.0) > 1.0) ||
+      (itk::Math::abs(calculator->GetCovarianceMatrix()[0][0] - 16141.0) > 1.0))
   {
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
@@ -134,7 +129,7 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
 
   // Create a new 3D image
   using Image3DType = itk::Image<PixelType, 3>;
-  Image3DType::Pointer image3D = Image3DType::New();
+  auto image3D = Image3DType::New();
 
   using RegionType = Image3DType::RegionType;
   using SizeType = Image3DType::SizeType;
@@ -144,9 +139,8 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   size3D[0] = 50;
   size3D[1] = 50;
   size3D[2] = 3;
-  IndexType start;
-  start.Fill(0);
-  RegionType region3D;
+  constexpr IndexType start{};
+  RegionType          region3D;
   region3D.SetIndex(start);
   region3D.SetSize(size3D);
   image3D->SetRegions(region3D);
@@ -179,15 +173,14 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
 
   std::cout << "Allocating spatial object." << std::endl;
   using Ellipse3DType = itk::EllipseSpatialObject<3>;
-  Ellipse3DType::Pointer ellipse3D = Ellipse3DType::New();
-  double                 radii[3];
+  auto   ellipse3D = Ellipse3DType::New();
+  double radii[3];
   radii[0] = 10;
   radii[1] = 10;
   radii[2] = 0;
   ellipse3D->SetRadiusInObjectSpace(radii);
 
-  Ellipse3DType::VectorType offset3D;
-  offset3D.Fill(25);
+  auto offset3D = itk::MakeFilled<Ellipse3DType::VectorType>(25);
   offset3D[2] = 0; // first slice
   ellipse3D->GetModifiableObjectToParentTransform()->SetOffset(offset3D);
   ellipse3D->Update();
@@ -195,7 +188,7 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   // Create a new calculator with a sample size of 3
   std::cout << "Updating calculator." << std::endl;
   using Calculator3DType = itk::SpatialObjectToImageStatisticsCalculator<Image3DType, Ellipse3DType, 3>;
-  Calculator3DType::Pointer calculator3D = Calculator3DType::New();
+  auto calculator3D = Calculator3DType::New();
   calculator3D->SetImage(image3D);
   calculator3D->SetSpatialObject(ellipse3D);
   calculator3D->Update();
@@ -203,8 +196,9 @@ itkSpatialObjectToImageStatisticsCalculatorTest(int, char *[])
   std::cout << "Sample mean = " << calculator3D->GetMean() << std::endl;
   std::cout << "Sample covariance = " << calculator3D->GetCovarianceMatrix();
 
-  if ((std::fabs(calculator3D->GetMean()[0] - 0.0) > 1.0) || (std::fabs(calculator3D->GetMean()[1] - 1.0) > 1.0) ||
-      (std::fabs(calculator3D->GetMean()[2] - 2.0) > 1.0))
+  if ((itk::Math::abs(calculator3D->GetMean()[0] - 0.0) > 1.0) ||
+      (itk::Math::abs(calculator3D->GetMean()[1] - 1.0) > 1.0) ||
+      (itk::Math::abs(calculator3D->GetMean()[2] - 2.0) > 1.0))
   {
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;

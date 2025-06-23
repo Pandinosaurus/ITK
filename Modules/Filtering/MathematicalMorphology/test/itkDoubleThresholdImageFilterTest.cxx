@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,11 +29,11 @@
 int
 itkDoubleThresholdImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 7)
+  if (argc < 8)
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << itkNameOfTestExecutableMacro(argv) << "  inputImageFile  ";
-    std::cerr << " outputImageFile threshold1 threshold2 threshold3 threshold4 " << std::endl;
+    std::cerr << " outputImageFile threshold1 threshold2 threshold3 threshold4 fullyConnected" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -63,13 +63,17 @@ itkDoubleThresholdImageFilterTest(int argc, char * argv[])
 
 
   // Creation of Reader and Writer filters
-  ReaderType::Pointer  reader = ReaderType::New();
-  WriterType::Pointer  writer = WriterType::New();
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto rescaler = RescaleType::New();
 
   // Create the filter
-  DoubleThresholdFilterType::Pointer threshold = DoubleThresholdFilterType::New();
-  itk::SimpleFilterWatcher           watcher(threshold, "threshold");
+  auto threshold = DoubleThresholdFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(threshold, DoubleThresholdImageFilter, ImageToImageFilter);
+
+
+  const itk::SimpleFilterWatcher watcher(threshold, "threshold");
 
   // Setup the input and output files
   reader->SetFileName(argv[1]);
@@ -89,7 +93,7 @@ itkDoubleThresholdImageFilterTest(int argc, char * argv[])
   }
 
   int thresholds[4];
-  for (unsigned i = 0; i < 4; ++i)
+  for (unsigned int i = 0; i < 4; ++i)
   {
     thresholds[i] = std::stoi(argv[i + 3]);
   }
@@ -97,7 +101,7 @@ itkDoubleThresholdImageFilterTest(int argc, char * argv[])
   threshold->SetThreshold2(thresholds[1]);
   threshold->SetThreshold3(thresholds[2]);
   threshold->SetThreshold4(thresholds[3]);
-  unsigned error = EXIT_SUCCESS;
+  unsigned int error = EXIT_SUCCESS;
 
   if (threshold->GetThreshold1() != thresholds[0])
   {
@@ -121,7 +125,7 @@ itkDoubleThresholdImageFilterTest(int argc, char * argv[])
   }
   if (thresholds[0] <= thresholds[1] && thresholds[1] <= thresholds[2] && thresholds[2] <= thresholds[3])
   {
-    std::cerr << "Values inputed as Threshold meet the requirement" << std::endl;
+    std::cerr << "Values inputted as Threshold meet the requirement" << std::endl;
   }
   else
   {
@@ -129,7 +133,8 @@ itkDoubleThresholdImageFilterTest(int argc, char * argv[])
     error = EXIT_FAILURE;
   }
 
-  threshold->SetFullyConnected(false);
+  auto fullyConnected = static_cast<bool>(std::stoi(argv[7]));
+  ITK_TEST_SET_GET_BOOLEAN(threshold, FullyConnected, fullyConnected);
 
   // Run the filter
   rescaler->SetInput(threshold->GetOutput());

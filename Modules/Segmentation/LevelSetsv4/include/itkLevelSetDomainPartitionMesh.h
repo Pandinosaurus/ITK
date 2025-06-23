@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class LevelSetDomainPartitionMesh
+ * \class LevelSetDomainPartitionMesh
  *
  * \brief Helper class used to partition domain and efficiently compute overlap.
  *  \ingroup ITKLevelSetsv4
@@ -42,7 +42,7 @@ public:
 
   static constexpr unsigned int PointDimension = TMesh::PointDimension;
 
-  itkTypeMacro(LevelSetDomainPartitionMesh, LevelSetDomainPartitionBase);
+  itkOverrideGetNameOfClassMacro(LevelSetDomainPartitionMesh);
 
   using MeshType = TMesh;
   using MeshPointer = typename MeshType::Pointer;
@@ -53,7 +53,7 @@ public:
   using PointsContainerConstPointer = typename MeshType::PointsContainerConstPointer;
   using PointsContainerConstIterator = typename MeshType::PointsContainerConstIterator;
 
-  using IdentifierListType = typename Superclass::IdentifierListType;
+  using typename Superclass::IdentifierListType;
 
   using ListMeshType = std::map<PointIdentifierType, IdentifierListType>;
 
@@ -71,11 +71,12 @@ protected:
   /** Allocate a list mesh with each node being a list of overlapping
    *  level set support at that pixel */
   void
-  AllocateListDomain();
+  AllocateListDomain()
+  {}
 
 private:
-  MeshPointer  m_Mesh;
-  ListMeshType m_ListDomain;
+  MeshPointer  m_Mesh{};
+  ListMeshType m_ListDomain{};
 };
 
 } // end namespace itk

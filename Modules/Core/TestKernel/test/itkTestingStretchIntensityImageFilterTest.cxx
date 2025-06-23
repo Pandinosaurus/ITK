@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,13 @@ int
 itkTestingStretchIntensityImageFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
   constexpr unsigned int Dimension = 2;
-  using PixelType = signed short;
+  using PixelType = short;
   using ImageType = itk::Image<PixelType, Dimension>;
   using StretchFilterType = itk::Testing::StretchIntensityImageFilter<ImageType>;
   using StatsFilterType = itk::StatisticsImageFilter<ImageType>;
 
-  ImageType::SizeType imageSize = { { 32, 32 } };
-  ImageType::Pointer  image = ImageType::New();
+  constexpr ImageType::SizeType imageSize = { { 32, 32 } };
+  auto                          image = ImageType::New();
   image->SetRegions(imageSize);
   image->Allocate();
   PixelType i = -511;
@@ -40,7 +40,7 @@ itkTestingStretchIntensityImageFilterTest(int itkNotUsed(argc), char * itkNotUse
     it.Set(i);
   }
 
-  StretchFilterType::Pointer stretchFilter = StretchFilterType::New();
+  auto stretchFilter = StretchFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(stretchFilter, StretchIntensityImageFilter, ImageSource);
 
@@ -74,7 +74,7 @@ itkTestingStretchIntensityImageFilterTest(int itkNotUsed(argc), char * itkNotUse
   ITK_TEST_EXPECT_EQUAL(stretchFilter->GetInputMinimum(), -511);
   ITK_TEST_EXPECT_EQUAL(stretchFilter->GetInputMaximum(), 512);
 
-  StatsFilterType::Pointer statsFilter = StatsFilterType::New();
+  auto statsFilter = StatsFilterType::New();
   statsFilter->SetInput(stretchFilter->GetOutput());
 
   ITK_TRY_EXPECT_NO_EXCEPTION(statsFilter->Update());

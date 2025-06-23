@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,14 @@
 #ifndef itkLabelObjectLine_hxx
 #define itkLabelObjectLine_hxx
 
-#include "itkLabelObjectLine.h"
 
 namespace itk
 {
 template <unsigned int VImageDimension>
 LabelObjectLine<VImageDimension>::LabelObjectLine()
-  : m_Length(NumericTraits<SizeValueType>::ZeroValue())
+  : m_Length(SizeValueType{})
 {
-  m_Index.Fill(NumericTraits<IndexValueType>::ZeroValue());
+  m_Index.Fill(IndexValueType{});
 }
 
 template <unsigned int VImageDimension>
@@ -43,8 +42,8 @@ LabelObjectLine<VImageDimension>::SetIndex(const IndexType & idx)
 }
 
 template <unsigned int VImageDimension>
-const typename LabelObjectLine<VImageDimension>::IndexType &
-LabelObjectLine<VImageDimension>::GetIndex() const
+auto
+LabelObjectLine<VImageDimension>::GetIndex() const -> const IndexType &
 {
   return m_Index;
 }
@@ -57,8 +56,8 @@ LabelObjectLine<VImageDimension>::SetLength(const LengthType length)
 }
 
 template <unsigned int VImageDimension>
-const typename LabelObjectLine<VImageDimension>::LengthType &
-LabelObjectLine<VImageDimension>::GetLength() const
+auto
+LabelObjectLine<VImageDimension>::GetLength() const -> const LengthType &
 {
   return m_Length;
 }
@@ -68,7 +67,7 @@ bool
 LabelObjectLine<VImageDimension>::HasIndex(const IndexType idx) const
 {
   // are we talking about the right line ?
-  for (unsigned int i = 1; i < ImageDimension; i++)
+  for (unsigned int i = 1; i < ImageDimension; ++i)
   {
     if (m_Index[i] != idx[i])
     {
@@ -83,7 +82,7 @@ bool
 LabelObjectLine<VImageDimension>::IsNextIndex(const IndexType & idx) const
 {
   // are we talking about the right line ?
-  for (unsigned int i = 1; i < ImageDimension; i++)
+  for (unsigned int i = 1; i < ImageDimension; ++i)
   {
     if (m_Index[i] != idx[i])
     {
@@ -95,7 +94,7 @@ LabelObjectLine<VImageDimension>::IsNextIndex(const IndexType & idx) const
 
 /**
  * This function just calls the
- * header/self/trailer print methods, which can be overriden by
+ * header/self/trailer print methods, which can be overridden by
  * subclasses.
  */
 template <unsigned int VImageDimension>
@@ -127,14 +126,6 @@ LabelObjectLine<VImageDimension>::PrintSelf(std::ostream & os, Indent indent) co
   os << indent << "Index: " << this->m_Index << std::endl;
   os << indent << "Length: " << this->m_Length << std::endl;
 }
-
-/**
- * Define a default print trailer for all objects.
- */
-template <unsigned int VImageDimension>
-void
-LabelObjectLine<VImageDimension>::PrintTrailer(std::ostream & itkNotUsed(os), Indent itkNotUsed(indent)) const
-{}
 } // namespace itk
 
 #endif

@@ -1,9 +1,11 @@
-set(DOCUMENTATION "The QuadEdgeMesh module contain a specialized set of Mesh
-classes intended to represent 2-manifolds embedded in a nD space. This family
-of classes provides a consistent representation of oriented surfaces and
-therefore they are used as a base for implementing common mesh filters and
-operations. They are commonly used for representing the output of image
-segmentation algorithms.
+set(
+  DOCUMENTATION
+  "The QuadEdgeMesh module contain a specialized set of Mesh
+classes intended to represent 2-manifolds embedded in a N-Dimensional space.
+This family of classes provides a consistent representation of oriented
+surfaces and therefore they are used as a base for implementing common mesh
+filters and operations. They are commonly used for representing the output of
+image segmentation algorithms.
 
 Some QuadEdgeMesh algorithms are based on iterating various connectivity
 operators e.g. curvature driven surface deformation. Many of those connectivity
@@ -36,21 +38,22 @@ But itk::FunctionBase could not be inherited since its
 itk::FunctionBase::Evaluate method promises to leave its argument (the mesh we
 want to modify in our case) untouched.
 
-Hence the itk::MeshFunctionBase class was created whose main difference with
-itk::FunctionBase is that its itk::MeshFunctionBase::Evaluate method allows
-to modify the considered mesh.
+Hence the itk::QuadEdgeMeshFunctionBase class was created whose main
+difference with itk::FunctionBase is that its
+itk::QuadEdgeMeshFunctionBase::Evaluate method allows to modify the considered
+mesh.
 
 When considering a new QuadEdgeMesh method there are four possible \"slots\"
 to implement it:
-  - The QuadEdgeMesh method.
+  - The itk::QuadEdgeMesh class.
   - A derived class from itk::FunctionBase when the method leaves the mesh
   constant.
-  - A derived class from itk::MeshFunctionBase when the method modifies the
+  - A derived class from itk::QuadEdgeMeshFunctionBase when the method modifies the
   mesh (typically in the case of Euler operators).
   - As a classic ITKMesh filter.
 
 The choice of the slot is a mere matter of trade-off and in order to keep
-QuadEdgeMesh tiny and humanly readable key decision factors can be the
+itk::QuadEdgeMesh tiny and humanly readable key decision factors can be the
 occurrence of the calls and the human level complexity of the code.
 
 With those criteria in mind the following choices were made:
@@ -65,18 +68,20 @@ With those criteria in mind the following choices were made:
   implemented as derived classes of itk::MeshFunctionBase. Still the mesh
   modifications are really limited and concern a couple edges.
   - More specialized methods, with a wider scope and that require a
-  copy of the mesh should follow the classical ITK Filter pattern and inherit
-  from itk::MeshToMeshFilter.")
+  copy of the mesh should follow the classical ITK filter pattern and inherit
+  from itk::MeshToMeshFilter."
+)
 
-itk_module(ITKQuadEdgeMesh
+itk_module(
+  ITKQuadEdgeMesh
   ENABLE_SHARED
   PRIVATE_DEPENDS
-    ITKMesh
+  ITKMesh
   COMPILE_DEPENDS
-    ITKCommon
+  ITKCommon
   TEST_DEPENDS
-    ITKTestKernel
-    ITKMesh
+  ITKTestKernel
+  ITKMesh
   DESCRIPTION
-    "${DOCUMENTATION}"
+  "${DOCUMENTATION}"
 )

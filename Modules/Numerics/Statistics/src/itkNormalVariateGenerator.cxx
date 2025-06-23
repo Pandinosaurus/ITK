@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,29 +19,18 @@
 
 #include "itkNormalVariateGenerator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 NormalVariateGenerator::NormalVariateGenerator()
-{
-  m_Scale = ((double)30000000.0);
-  m_Rscale = ((double)(1.0 / m_Scale));
-  m_Rcons = ((double)(1.0 / (2.0 * 1024.0 * 1024.0 * 1024.0)));
-  m_ELEN = 7; /*  LEN must be 2 ** ELEN       */
-  m_LEN = 128;
-  m_LMASK = (4 * (m_LEN - 1));
-  m_TLEN = (8 * m_LEN);
-  m_Vec1 = new int[m_TLEN];
+  : m_Scale(30000000.0)
+  , m_Rscale(1.0 / m_Scale)
+  , m_Rcons(1.0 / (2.0 * 1024.0 * 1024.0 * 1024.0))
 
-  m_Gausssave = nullptr;
+{
   this->Initialize(0);
 }
 
-NormalVariateGenerator::~NormalVariateGenerator()
-{
-  delete[] m_Vec1;
-}
+NormalVariateGenerator::~NormalVariateGenerator() = default;
 
 void
 NormalVariateGenerator::PrintSelf(std::ostream & os, Indent indent) const
@@ -74,8 +63,6 @@ NormalVariateGenerator::Initialize(int randomSeed)
 {
   // m_Random Seed was originally getpid()
 
-  double fake;
-
   m_Lseed = randomSeed;
   m_Irs = randomSeed;
   m_Gaussfaze = 1;
@@ -93,7 +80,7 @@ NormalVariateGenerator::Initialize(int randomSeed)
   //          B = C / A.
   //      We set m_Chic1 = A * std::sqrt(0.5 / TLEN),  m_Chic2 = B
 
-  fake = 1.0 + 0.125 / m_TLEN; // This is A
+  constexpr double fake = 1.0 + 0.125 / m_TLEN; // This is A
   m_Chic2 = std::sqrt(2.0 * m_TLEN - fake * fake) / fake;
   m_Chic1 = fake * std::sqrt(0.5 / m_TLEN);
 
@@ -108,10 +95,8 @@ NormalVariateGenerator::GetVariate()
   {
     return m_GScale * m_Gausssave[m_Gaussfaze];
   }
-  else
-  {
-    return FastNorm();
-  }
+
+  return FastNorm();
 }
 
 /*      -----------------------------------------------------   */
@@ -119,29 +104,29 @@ NormalVariateGenerator::GetVariate()
 double
 NormalVariateGenerator::FastNorm()
 {
-  int    i;
+  int    i = 0;
   int    inc = 0;
-  int    skew;
+  int    skew = 0;
   int    stride;
   int    mask = 0;
-  int    p;
-  int    q;
-  int    r;
-  int    s;
-  int    t;
+  int    p = 0;
+  int    q = 0;
+  int    r = 0;
+  int    s = 0;
+  int    t = 0;
   int *  pa = nullptr;
   int *  pb = nullptr;
   int *  pc = nullptr;
   int *  pd = nullptr;
-  int *  pe;
+  int *  pe = nullptr;
   int *  p0 = nullptr;
-  int    mtype;
-  int    stype;
-  double ts;
-  double tr;
-  double tx;
-  double ty;
-  double tz;
+  int    mtype = 0;
+  int    stype = 0;
+  double ts = NAN;
+  double tr = NAN;
+  double tx = NAN;
+  double ty = NAN;
+  double tz = NAN;
 
   /*    See if time to make a new set of 'original' deviates  */
   /*    or at least to correct for a drift in sum-of-squares    */
@@ -152,7 +137,7 @@ NormalVariateGenerator::FastNorm()
 
 startpass:
   /*    Count passes    */
-  m_Nslew++;
+  ++m_Nslew;
   /*    Reset index into Saved values   */
   m_Gaussfaze = m_TLEN - 1; /* We will steal the last one   */
   /*    Update pseudo-random and use to choose type of rotation  */
@@ -458,8 +443,8 @@ nextpair:
   tz = -2.0 * std::log((r + 0.5) * m_Rcons); /* Sum of squares */
   ts += tz;
   tz = std::sqrt(tz / tr);
-  m_Vec1[p++] = (int)(m_Scale * tx * tz);
-  m_Vec1[p++] = (int)(m_Scale * ty * tz);
+  m_Vec1[p++] = static_cast<int>(m_Scale * tx * tz);
+  m_Vec1[p++] = static_cast<int>(m_Scale * ty * tz);
   if (p < m_TLEN)
   {
     goto nextpair;
@@ -468,16 +453,16 @@ nextpair:
   /*    Calc correction factor to make sum of squares = TLEN    */
   ts = m_TLEN / ts; /* Should be close to 1.0  */
   tr = std::sqrt(ts);
-  for (p = 0; p < m_TLEN; p++)
+  for (p = 0; p < m_TLEN; ++p)
   {
     tx = m_Vec1[p] * tr;
-    m_Vec1[p] = (int)((tx < 0.0) ? (tx - 0.5) : (tx + 0.5));
+    m_Vec1[p] = static_cast<int>((tx < 0.0) ? (tx - 0.5) : (tx + 0.5));
   }
 
 recalcsumsq:
   /*    Calculate actual sum of squares for correction   */
   ts = 0.0;
-  for (p = 0; p < m_TLEN; p++)
+  for (p = 0; p < m_TLEN; ++p)
   {
     tx = m_Vec1[p];
     ts += (tx * tx);
@@ -487,5 +472,4 @@ recalcsumsq:
   m_ActualRSD = 1.0 / ts; /* Reciprocal of actual Standard Devtn */
   goto startpass;
 }
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics

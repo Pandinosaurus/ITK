@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class ShapeLabelObject
+ * \class ShapeLabelObject
  *  \brief A Label object to store the common attributes related to the shape of the object
  *
  * ShapeLabelObject stores  the common attributes related to the shape of the object
@@ -34,13 +34,13 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \ingroup DataRepresentation
  * \ingroup ITKLabelMap
  */
 template <typename TLabel, unsigned int VImageDimension>
-class ShapeLabelObject : public LabelObject<TLabel, VImageDimension>
+class ITK_TEMPLATE_EXPORT ShapeLabelObject : public LabelObject<TLabel, VImageDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ShapeLabelObject);
@@ -56,22 +56,22 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapeLabelObject, LabelObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeLabelObject);
 
   using LabelMapType = LabelMap<Self>;
 
   static constexpr unsigned int ImageDimension = VImageDimension;
 
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   using LabelType = TLabel;
 
-  using LineType = typename Superclass::LineType;
+  using typename Superclass::LineType;
 
-  using LengthType = typename Superclass::LengthType;
+  using typename Superclass::LengthType;
 
-  using AttributeType = typename Superclass::AttributeType;
+  using typename Superclass::AttributeType;
 
   /** The number of pixels. */
   static constexpr AttributeType NUMBER_OF_PIXELS = 100;
@@ -156,7 +156,7 @@ public:
    *
    * The combination of the OBB origin, OBB size and OBB direction (
    * principal axes ) defines a coordinate system suitable to use
-   * resample the OBB onto it's own image.
+   * resample the OBB onto its own image.
    */
   static constexpr AttributeType ORIENTED_BOUNDING_BOX_SIZE = 120;
 
@@ -167,7 +167,7 @@ public:
     {
       return NUMBER_OF_PIXELS;
     }
-    else if (s == "PhysicalSize")
+    if (s == "PhysicalSize")
     {
       return PHYSICAL_SIZE;
     }
@@ -345,19 +345,19 @@ public:
     m_BoundingBox = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetPhysicalSize() const
   {
     return m_PhysicalSize;
   }
 
   void
-  SetPhysicalSize(const double & v)
+  SetPhysicalSize(const double v)
   {
     m_PhysicalSize = v;
   }
 
-  const SizeValueType &
+  [[nodiscard]] const SizeValueType &
   GetNumberOfPixels() const
   {
     return m_NumberOfPixels;
@@ -381,7 +381,7 @@ public:
     m_Centroid = centroid;
   }
 
-  const SizeValueType &
+  [[nodiscard]] const SizeValueType &
   GetNumberOfPixelsOnBorder() const
   {
     return m_NumberOfPixelsOnBorder;
@@ -393,26 +393,26 @@ public:
     m_NumberOfPixelsOnBorder = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetPerimeterOnBorder() const
   {
     return m_PerimeterOnBorder;
   }
 
   void
-  SetPerimeterOnBorder(const double & v)
+  SetPerimeterOnBorder(const double v)
   {
     m_PerimeterOnBorder = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetFeretDiameter() const
   {
     return m_FeretDiameter;
   }
 
   void
-  SetFeretDiameter(const double & v)
+  SetFeretDiameter(const double v)
   {
     m_FeretDiameter = v;
   }
@@ -441,62 +441,62 @@ public:
     m_PrincipalAxes = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetElongation() const
   {
     return m_Elongation;
   }
 
   void
-  SetElongation(const double & v)
+  SetElongation(const double v)
   {
     m_Elongation = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetPerimeter() const
   {
     return m_Perimeter;
   }
 
   void
-  SetPerimeter(const double & v)
+  SetPerimeter(const double v)
   {
     m_Perimeter = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetRoundness() const
   {
     return m_Roundness;
   }
 
   void
-  SetRoundness(const double & v)
+  SetRoundness(const double v)
   {
     m_Roundness = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetEquivalentSphericalRadius() const
   {
     return m_EquivalentSphericalRadius;
   }
 
   void
-  SetEquivalentSphericalRadius(const double & v)
+  SetEquivalentSphericalRadius(const double v)
   {
     m_EquivalentSphericalRadius = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetEquivalentSphericalPerimeter() const
   {
     return m_EquivalentSphericalPerimeter;
   }
 
   void
-  SetEquivalentSphericalPerimeter(const double & v)
+  SetEquivalentSphericalPerimeter(const double v)
   {
     m_EquivalentSphericalPerimeter = v;
   }
@@ -513,26 +513,26 @@ public:
     m_EquivalentEllipsoidDiameter = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetFlatness() const
   {
     return m_Flatness;
   }
 
   void
-  SetFlatness(const double & v)
+  SetFlatness(const double v)
   {
     m_Flatness = v;
   }
 
-  const double &
+  [[nodiscard]] const double &
   GetPerimeterOnBorderRatio() const
   {
     return m_PerimeterOnBorderRatio;
   }
 
   void
-  SetPerimeterOnBorderRatio(const double & v)
+  SetPerimeterOnBorderRatio(const double v)
   {
     m_PerimeterOnBorderRatio = v;
   }
@@ -634,10 +634,10 @@ public:
   {
     typename AffineTransformType::MatrixType matrix;
     typename AffineTransformType::OffsetType offset;
-    for (unsigned int i = 0; i < VImageDimension; i++)
+    for (unsigned int i = 0; i < VImageDimension; ++i)
     {
       offset[i] = m_Centroid[i];
-      for (unsigned int j = 0; j < VImageDimension; j++)
+      for (unsigned int j = 0; j < VImageDimension; ++j)
       {
         matrix[j][i] = m_PrincipalAxes[i][j]; // Note the transposition
       }
@@ -660,16 +660,16 @@ public:
   {
     typename AffineTransformType::MatrixType matrix;
     typename AffineTransformType::OffsetType offset;
-    for (unsigned int i = 0; i < VImageDimension; i++)
+    for (unsigned int i = 0; i < VImageDimension; ++i)
     {
       offset[i] = m_Centroid[i];
-      for (unsigned int j = 0; j < VImageDimension; j++)
+      for (unsigned int j = 0; j < VImageDimension; ++j)
       {
         matrix[j][i] = m_PrincipalAxes[i][j]; // Note the transposition
       }
     }
 
-    AffineTransformPointer result = AffineTransformType::New();
+    const AffineTransformPointer result = AffineTransformType::New();
     result->SetMatrix(matrix);
     result->SetOffset(offset);
 
@@ -717,23 +717,12 @@ public:
 
 protected:
   ShapeLabelObject()
+
   {
-    m_NumberOfPixels = 0;
-    m_PhysicalSize = 0;
     m_Centroid.Fill(0);
-    m_NumberOfPixelsOnBorder = 0;
-    m_PerimeterOnBorder = 0;
-    m_FeretDiameter = 0;
     m_PrincipalMoments.Fill(0);
     m_PrincipalAxes.Fill(0);
-    m_Elongation = 0;
-    m_Perimeter = 0;
-    m_Roundness = 0;
-    m_EquivalentSphericalRadius = 0;
-    m_EquivalentSphericalPerimeter = 0;
     m_EquivalentEllipsoidDiameter.Fill(0);
-    m_Flatness = 0;
-    m_PerimeterOnBorderRatio = 0;
     m_OrientedBoundingBoxSize.Fill(0);
     m_OrientedBoundingBoxOrigin.Fill(0);
   }
@@ -743,49 +732,56 @@ protected:
   {
     Superclass::PrintSelf(os, indent);
 
-    os << indent << "NumberOfPixels: " << m_NumberOfPixels << std::endl;
+    os << indent << "BoundingBox: " << m_BoundingBox << std::endl;
+    os << indent
+       << "NumberOfPixels: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfPixels)
+       << std::endl;
     os << indent << "PhysicalSize: " << m_PhysicalSize << std::endl;
-    os << indent << "Perimeter: " << m_Perimeter << std::endl;
-    os << indent << "NumberOfPixelsOnBorder: " << m_NumberOfPixelsOnBorder << std::endl;
+    os << indent << "Centroid: " << static_cast<typename NumericTraits<CentroidType>::PrintType>(m_Centroid)
+       << std::endl;
+    os << indent << "NumberOfPixelsOnBorder: "
+       << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfPixelsOnBorder) << std::endl;
     os << indent << "PerimeterOnBorder: " << m_PerimeterOnBorder << std::endl;
-    os << indent << "PerimeterOnBorderRatio: " << m_PerimeterOnBorderRatio << std::endl;
+    os << indent << "FeretDiameter: " << m_FeretDiameter << std::endl;
+    os << indent << "PrincipalMoments: " << m_PrincipalMoments << std::endl;
+    os << indent << "PrincipalAxes: " << std::endl << m_PrincipalAxes;
     os << indent << "Elongation: " << m_Elongation << std::endl;
-    os << indent << "Flatness: " << m_Flatness << std::endl;
+    os << indent << "Perimeter: " << m_Perimeter << std::endl;
     os << indent << "Roundness: " << m_Roundness << std::endl;
-    os << indent << "Centroid: " << m_Centroid << std::endl;
-    os << indent << "BoundingBox: ";
-    m_BoundingBox.Print(os, indent);
     os << indent << "EquivalentSphericalRadius: " << m_EquivalentSphericalRadius << std::endl;
     os << indent << "EquivalentSphericalPerimeter: " << m_EquivalentSphericalPerimeter << std::endl;
     os << indent << "EquivalentEllipsoidDiameter: " << m_EquivalentEllipsoidDiameter << std::endl;
-    os << indent << "PrincipalMoments: " << m_PrincipalMoments << std::endl;
-    os << indent << "PrincipalAxes: " << std::endl << m_PrincipalAxes;
-    os << indent << "FeretDiameter: " << m_FeretDiameter << std::endl;
-    os << indent << "m_OrientedBoundingBoxSize: " << m_OrientedBoundingBoxSize << std::endl;
-    os << indent << "m_OrientedBoundingBoxOrigin: " << m_OrientedBoundingBoxOrigin << std::endl;
+    os << indent << "Flatness: " << m_Flatness << std::endl;
+    os << indent << "PerimeterOnBorderRatio: " << m_PerimeterOnBorderRatio << std::endl;
+    os << indent << "OrientedBoundingBoxSize: "
+       << static_cast<typename NumericTraits<OrientedBoundingBoxSizeType>::PrintType>(m_OrientedBoundingBoxSize)
+       << std::endl;
+    os << indent << "OrientedBoundingBoxOrigin: "
+       << static_cast<typename NumericTraits<OrientedBoundingBoxPointType>::PrintType>(m_OrientedBoundingBoxOrigin)
+       << std::endl;
   }
 
 private:
-  RegionType    m_BoundingBox;
-  SizeValueType m_NumberOfPixels;
-  double        m_PhysicalSize;
-  CentroidType  m_Centroid;
-  SizeValueType m_NumberOfPixelsOnBorder;
-  double        m_PerimeterOnBorder;
-  double        m_FeretDiameter;
-  VectorType    m_PrincipalMoments;
-  MatrixType    m_PrincipalAxes;
-  double        m_Elongation;
-  double        m_Perimeter;
-  double        m_Roundness;
-  double        m_EquivalentSphericalRadius;
-  double        m_EquivalentSphericalPerimeter;
-  VectorType    m_EquivalentEllipsoidDiameter;
-  double        m_Flatness;
-  double        m_PerimeterOnBorderRatio;
+  RegionType    m_BoundingBox{};
+  SizeValueType m_NumberOfPixels{};
+  double        m_PhysicalSize{};
+  CentroidType  m_Centroid{};
+  SizeValueType m_NumberOfPixelsOnBorder{};
+  double        m_PerimeterOnBorder{};
+  double        m_FeretDiameter{};
+  VectorType    m_PrincipalMoments{};
+  MatrixType    m_PrincipalAxes{};
+  double        m_Elongation{};
+  double        m_Perimeter{};
+  double        m_Roundness{};
+  double        m_EquivalentSphericalRadius{};
+  double        m_EquivalentSphericalPerimeter{};
+  VectorType    m_EquivalentEllipsoidDiameter{};
+  double        m_Flatness{};
+  double        m_PerimeterOnBorderRatio{};
 
-  OrientedBoundingBoxSizeType  m_OrientedBoundingBoxSize;
-  OrientedBoundingBoxPointType m_OrientedBoundingBoxOrigin;
+  OrientedBoundingBoxSizeType  m_OrientedBoundingBoxSize{};
+  OrientedBoundingBoxPointType m_OrientedBoundingBoxOrigin{};
 };
 } // end namespace itk
 

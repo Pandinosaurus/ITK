@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMeanSquaresImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 #define itkMeanSquaresImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 
-#include "itkMeanSquaresImageToImageMetricv4GetValueAndDerivativeThreader.h"
 #include "itkDefaultConvertPixelTraits.h"
 
 namespace itk
@@ -42,13 +41,13 @@ MeanSquaresImageToImageMetricv4GetValueAndDerivativeThreader<
                                     const ThreadIdType              threadId) const
 {
   /** Only the voxelwise contribution given the point pairs. */
-  FixedImagePixelType diff = fixedImageValue - movingImageValue;
-  const unsigned int  nComponents = NumericTraits<FixedImagePixelType>::GetLength(diff);
-  metricValueReturn = NumericTraits<MeasureType>::ZeroValue();
+  const FixedImagePixelType diff = fixedImageValue - movingImageValue;
+  const unsigned int        nComponents = NumericTraits<FixedImagePixelType>::GetLength(diff);
+  metricValueReturn = MeasureType{};
 
-  for (unsigned int nc = 0; nc < nComponents; nc++)
+  for (unsigned int nc = 0; nc < nComponents; ++nc)
   {
-    MeasureType diffC = DefaultConvertPixelTraits<FixedImagePixelType>::GetNthComponent(nc, diff);
+    const MeasureType diffC = DefaultConvertPixelTraits<FixedImagePixelType>::GetNthComponent(nc, diff);
     metricValueReturn += diffC * diffC;
   }
 
@@ -67,13 +66,13 @@ MeanSquaresImageToImageMetricv4GetValueAndDerivativeThreader<
   this->m_Associate->GetMovingTransform()->ComputeJacobianWithRespectToParametersCachedTemporaries(
     virtualPoint, jacobian, jacobianPositional);
 
-  for (unsigned int par = 0; par < this->GetCachedNumberOfLocalParameters(); par++)
+  for (unsigned int par = 0; par < this->GetCachedNumberOfLocalParameters(); ++par)
   {
-    localDerivativeReturn[par] = NumericTraits<DerivativeValueType>::ZeroValue();
-    for (unsigned int nc = 0; nc < nComponents; nc++)
+    localDerivativeReturn[par] = DerivativeValueType{};
+    for (unsigned int nc = 0; nc < nComponents; ++nc)
     {
-      MeasureType diffValue = DefaultConvertPixelTraits<FixedImagePixelType>::GetNthComponent(nc, diff);
-      for (SizeValueType dim = 0; dim < ImageToImageMetricv4Type::MovingImageDimension; dim++)
+      const MeasureType diffValue = DefaultConvertPixelTraits<FixedImagePixelType>::GetNthComponent(nc, diff);
+      for (SizeValueType dim = 0; dim < ImageToImageMetricv4Type::MovingImageDimension; ++dim)
       {
         localDerivativeReturn[par] += 2.0 * diffValue * jacobian(dim, par) *
                                       DefaultConvertPixelTraits<MovingImageGradientType>::GetNthComponent(

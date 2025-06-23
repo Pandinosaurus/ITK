@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +26,11 @@ namespace itk
 {
 
 /**
- *\class ImageToVTKImageFilter
- * \brief Converts an ITK image into a VTK image and plugs a
- *  itk data pipeline to a VTK datapipeline.
+ * \class ImageToVTKImageFilter
+ * \brief Converts an ITK Image into a VTK image and plugs a
+ *  ITK data pipeline to a VTK data pipeline.
  *
- *  This class puts together an itkVTKImageExporter and a vtkImageImporter.
+ *  This class puts together VTKImageExport and vtkImageImport objects.
  *  It takes care of the details related to the connection of ITK and VTK
  *  pipelines. The User will perceive this filter as an adaptor to which
  *  an itk::Image can be plugged as input and a vtkImage is produced as
@@ -58,8 +58,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToVTKImageFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToVTKImageFilter);
 
   /** Some type alias. */
   using InputImageType = TInputImage;
@@ -69,7 +69,9 @@ public:
   using ExporterFilterPointer = typename ExporterFilterType::Pointer;
 
   /** Get the output in the form of a vtkImage.
-      This call is delegated to the internal vtkImageImporter filter  */
+   *
+   * This call is delegated to the internal vtkImageImport filter.
+   */
   vtkImageData *
   GetOutput() const;
 
@@ -81,22 +83,24 @@ public:
   GetInput();
 
   /** Return the internal VTK image importer filter.
-      This is intended to facilitate users the access
-      to methods in the importer */
+   *
+   * Intended to facilitate users the access to methods in the importer.
+   */
   vtkImageImport *
   GetImporter() const;
 
   /** Return the internal ITK image exporter filter.
-      This is intended to facilitate users the access
-      to methods in the exporter */
+   *
+   * Intended to facilitate users the access to methods in the exporter.
+   */
   ExporterFilterType *
   GetExporter() const;
 
-  /** This call delegates the update to the importer */
+  /** This call delegates the update to the importer. */
   void
   Update() override;
 
-  /** This call delegates the update to the importer */
+  /** This call delegates the update to the importer. */
   void
   UpdateLargestPossibleRegion() override;
 
@@ -105,8 +109,8 @@ protected:
   ~ImageToVTKImageFilter() override;
 
 private:
-  ExporterFilterPointer m_Exporter;
-  vtkImageImport *      m_Importer;
+  ExporterFilterPointer m_Exporter{};
+  vtkImageImport *      m_Importer{};
 };
 
 } // end namespace itk

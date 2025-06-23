@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,8 +41,8 @@ public:
   /** Standard method for creation through object factory. */
   itkNewMacro(Self);
 
-  /** Run-time class information. */
-  itkTypeMacro(NbTestClass, NarrowBandImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NbTestClass);
 
   using FiniteFunctionType = CurvatureFlowFunction<TOutputImageType>;
 
@@ -51,8 +51,8 @@ protected:
   typename FiniteFunctionType::Pointer m_Function;
 
   NbTestClass()
+    : m_Function(FiniteFunctionType::New())
   {
-    m_Function = FiniteFunctionType::New();
     this->SetDifferenceFunction(m_Function);
   }
 
@@ -63,10 +63,8 @@ protected:
     {
       return true;
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
   void
@@ -77,9 +75,9 @@ protected:
     typename ImageType::IndexType  tl = this->GetInput()->GetRequestedRegion().GetIndex();
     typename Superclass::IndexType in;
 
-    for (in [0] = 32 + tl[0]; in[0] < tl[0] + (long int)(sz[0]); in[0]++)
+    for (in[0] = 32 + tl[0]; in[0] < tl[0] + static_cast<long>(sz[0]); in[0]++)
     {
-      for (in [1] = tl[1] + 32; in[1] < tl[1] + (long int)(sz[1]); in[1]++)
+      for (in[1] = tl[1] + 32; in[1] < tl[1] + static_cast<long>(sz[1]); in[1]++)
       {
         this->InsertNarrowBandNode(in);
       }
@@ -95,12 +93,11 @@ template <typename TPoint>
 double
 SimpleSignedDistance(const TPoint & p)
 {
-  TPoint center;
-  center.Fill(32);
-  double radius = 19.5;
+  auto             center = itk::MakeFilled<TPoint>(32);
+  constexpr double radius = 19.5;
 
   double accum = 0.0;
-  for (unsigned int j = 0; j < TPoint::PointDimension; j++)
+  for (unsigned int j = 0; j < TPoint::PointDimension; ++j)
   {
     accum += itk::Math::sqr(p[j] - center[j]);
   }
@@ -126,16 +123,12 @@ itkNarrowBandImageFilterBaseTest(int argc, char * argv[])
   using WriterImageType = itk::Image<WriterPixelType, ImageDimension>;
   using PointType = itk::Point<double, ImageDimension>;
 
-  ImageType::SizeType   size = { { 64, 64 } };
-  ImageType::IndexType  index = { { 0, 0 } };
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  constexpr ImageType::SizeType  size = { { 64, 64 } };
+  constexpr ImageType::IndexType index = { { 0, 0 } };
+  const ImageType::RegionType    region{ index, size };
 
-  ImageType::Pointer inputImage = ImageType::New();
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  auto inputImage = ImageType::New();
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -151,8 +144,8 @@ itkNarrowBandImageFilterBaseTest(int argc, char * argv[])
   }
 
   using RandomSourceType = itk::RandomImageSource<ImageType>;
-  RandomSourceType::Pointer randomSource = RandomSourceType::New();
-  ImageType::SizeValueType  tam[2];
+  auto                     randomSource = RandomSourceType::New();
+  ImageType::SizeValueType tam[2];
   tam[0] = 64;
   tam[1] = 64;
   randomSource->SetSize(tam);
@@ -164,32 +157,32 @@ itkNarrowBandImageFilterBaseTest(int argc, char * argv[])
   randomSource->SetNumberOfWorkUnits(1);
 
   using AddFilterType = itk::AddImageFilter<ImageType, ImageType, ImageType>;
-  AddFilterType::Pointer addFilter = AddFilterType::New();
+  auto addFilter = AddFilterType::New();
   addFilter->SetInput1(inputImage);
   addFilter->SetInput2(randomSource->GetOutput());
 
   using FilterType = itk::NbTestClass<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(addFilter->GetOutput());
   filter->Print(std::cout);
   try
   {
     using RescaleType = itk::RescaleIntensityImageFilter<ImageType, WriterImageType>;
-    RescaleType::Pointer rescale = RescaleType::New();
+    auto rescale = RescaleType::New();
     rescale->SetInput(filter->GetOutput());
     rescale->SetOutputMinimum(0);
     rescale->SetOutputMaximum(255);
 
     using WriterType = itk::ImageFileWriter<WriterImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetInput(rescale->GetOutput());
     writer->SetFileName(argv[1]);
     writer->Write();
   }
   catch (const itk::ExceptionObject & err)
   {
-    (&err)->Print(std::cerr);
+    err.Print(std::cerr);
     std::cout << "Test failed." << std::endl;
     return EXIT_FAILURE;
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFFTWRealToHalfHermitianForwardFFTImageFilter_hxx
 #define itkFFTWRealToHalfHermitianForwardFFTImageFilter_hxx
 
-#include "itkFFTWRealToHalfHermitianForwardFFTImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkMultiThreaderBase.h"
 
@@ -42,8 +41,8 @@ void
 FFTWRealToHalfHermitianForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Get pointers to the input and output.
-  typename InputImageType::ConstPointer inputPtr = this->GetInput();
-  typename OutputImageType::Pointer     outputPtr = this->GetOutput();
+  const typename InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename OutputImageType::Pointer     outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -52,7 +51,7 @@ FFTWRealToHalfHermitianForwardFFTImageFilter<TInputImage, TOutputImage>::Generat
 
   // We don't have a nice progress to report, but at least this simple line
   // reports the beginning and the end of the process.
-  ProgressReporter progress(this, 0, 1);
+  const ProgressReporter progress(this, 0, 1);
 
   // allocate output buffer memory
   outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
@@ -68,7 +67,7 @@ FFTWRealToHalfHermitianForwardFFTImageFilter<TInputImage, TOutputImage>::Generat
   unsigned int totalInputSize = 1;
   unsigned int totalOutputSize = 1;
 
-  for (unsigned i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     totalInputSize *= inputSize[i];
     totalOutputSize *= outputSize[i];
@@ -86,7 +85,7 @@ FFTWRealToHalfHermitianForwardFFTImageFilter<TInputImage, TOutputImage>::Generat
     flags = flags | FFTW_PRESERVE_INPUT;
   }
   int sizes[ImageDimension];
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     sizes[(ImageDimension - 1) - i] = inputSize[i];
   }
@@ -116,7 +115,7 @@ FFTWRealToHalfHermitianForwardFFTImageFilter<TInputImage, TOutputImage>::PrintSe
   Superclass::PrintSelf(os, indent);
 
 #ifndef ITK_USE_CUFFTW
-  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ")"
+  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ')'
      << std::endl;
 #endif
 }

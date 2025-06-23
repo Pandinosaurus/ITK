@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class SpatialObjectToImageStatisticsCalculator
+ * \class SpatialObjectToImageStatisticsCalculator
  * This calculator computes the mean and the covariance matrices of a certain
  *  region of an image specified by a spatial object.
  * \ingroup Operators
@@ -48,8 +48,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SpatialObjectToImageStatisticsCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpatialObjectToImageStatisticsCalculator);
 
   /** Type definitions for the input image. */
   using ImageType = TInputImage;
@@ -82,9 +82,10 @@ public:
   using SampleType = itk::Statistics::ListSample<VectorType>;
 
   /** Set/Get the direction of the sample */
+  /** @ITKStartGrouping */
   itkSetMacro(SampleDirection, unsigned int);
   itkGetConstMacro(SampleDirection, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set the input image. */
   itkSetConstObjectMacro(Image, ImageType);
 
@@ -125,22 +126,23 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Compute statistics from the sample vector. */
   bool
   ComputeStatistics();
 
 private:
-  ImageConstPointer    m_Image;
-  SpatialObjectPointer m_SpatialObject;
-  VectorType           m_Mean;
-  AccumulateType       m_Sum;
-  SizeValueType        m_NumberOfPixels;
-  MatrixType           m_CovarianceMatrix;
-  unsigned int         m_SampleDirection;
-  ModifiedTimeType     m_InternalImageTime;
-  ModifiedTimeType     m_InternalSpatialObjectTime;
-  TimeStamp            m_ModifiedTime;
+  ImageConstPointer    m_Image{};
+  SpatialObjectPointer m_SpatialObject{};
+  VectorType           m_Mean{};
+  AccumulateType       m_Sum{};
+  SizeValueType        m_NumberOfPixels{};
+  MatrixType           m_CovarianceMatrix{};
+  unsigned int         m_SampleDirection{};
+  ModifiedTimeType     m_InternalImageTime{};
+  ModifiedTimeType     m_InternalSpatialObjectTime{};
+  TimeStamp            m_ModifiedTime{};
 
-  typename SampleType::Pointer m_Sample;
+  typename SampleType::Pointer m_Sample{};
 };
 } // end namespace itk
 

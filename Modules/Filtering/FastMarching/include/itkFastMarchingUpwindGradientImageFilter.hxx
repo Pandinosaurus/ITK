@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFastMarchingUpwindGradientImageFilter_hxx
 #define itkFastMarchingUpwindGradientImageFilter_hxx
 
-#include "itkFastMarchingUpwindGradientImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
 #include "itkMath.h"
@@ -26,43 +25,59 @@
 
 namespace itk
 {
-/**
- *
- */
+
 template <typename TLevelSet, typename TSpeedImage>
 FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::FastMarchingUpwindGradientImageFilter()
-{
-  m_TargetPoints = nullptr;
-  m_ReachedTargetPoints = nullptr;
-  m_GradientImage = GradientImageType::New();
-  m_GenerateGradientImage = false;
-  m_TargetOffset = 1.0;
-  m_TargetReachedMode = NoTargets;
-  m_TargetValue = 0.0;
-  m_NumberOfTargets = 0;
-}
+  : m_TargetPoints(nullptr)
+  , m_ReachedTargetPoints(nullptr)
+  , m_GradientImage(GradientImageType::New())
+  , m_TargetOffset(1.0)
+  , m_TargetReachedMode(TargetConditionEnum::NoTargets)
+{}
 
-/**
- *
- */
 template <typename TLevelSet, typename TSpeedImage>
 void
 FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Target points: " << m_TargetPoints.GetPointer() << std::endl;
-  os << indent << "Reached points: " << m_ReachedTargetPoints.GetPointer() << std::endl;
-  os << indent << "Gradient image: " << m_GradientImage.GetPointer() << std::endl;
-  os << indent << "Generate gradient image: " << m_GenerateGradientImage << std::endl;
-  os << indent << "Number of targets: " << m_NumberOfTargets << std::endl;
-  os << indent << "Target offset: " << m_TargetOffset << std::endl;
-  os << indent << "Target reach mode: " << m_TargetReachedMode << std::endl;
-  os << indent << "Target value: " << m_TargetValue << std::endl;
+
+  itkPrintSelfObjectMacro(TargetPoints);
+  itkPrintSelfObjectMacro(ReachedTargetPoints);
+  itkPrintSelfObjectMacro(GradientImage);
+
+  itkPrintSelfBooleanMacro(GenerateGradientImage);
+  os << indent << "TargetOffset: " << m_TargetOffset << std::endl;
+  os << indent << "TargetReachedMode: " << m_TargetReachedMode << std::endl;
+  os << indent << "TargetValue: " << m_TargetValue << std::endl;
+  os << indent
+     << "NumberOfTargets: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfTargets)
+     << std::endl;
 }
 
-/**
- *
- */
+template <typename TLevelSet, typename TSpeedImage>
+void
+FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::VerifyPreconditions() const
+{
+  Superclass::VerifyPreconditions();
+
+  switch (this->m_TargetReachedMode)
+  {
+    case TargetConditionEnum::AllTargets:
+      this->VerifyTargetReachedModeConditions(this->m_NumberOfTargets);
+      break;
+    case TargetConditionEnum::OneTarget:
+      this->VerifyTargetReachedModeConditions(1);
+      break;
+    case TargetConditionEnum::SomeTargets:
+      this->VerifyTargetReachedModeConditions(this->m_NumberOfTargets);
+      break;
+    case TargetConditionEnum::NoTargets:
+      break;
+    default:
+      break;
+  }
+}
+
 template <typename TLevelSet, typename TSpeedImage>
 void
 FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * output)
@@ -86,7 +101,7 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelS
 
     GradientPixelType zeroGradient;
     using GradientPixelValueType = typename GradientPixelType::ValueType;
-    zeroGradient.Fill(NumericTraits<GradientPixelValueType>::ZeroValue());
+    zeroGradient.Fill(GradientPixelValueType{});
     for (gradientIt.GoToBegin(); !gradientIt.IsAtEnd(); ++gradientIt)
     {
       gradientIt.Set(zeroGradient);
@@ -108,14 +123,14 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::GenerateData()
   // cache the original stopping value that was set by the user
   // because this subclass may change it once a target point is
   // reached in order to control the execution of the superclass.
-  double stoppingValue = this->GetStoppingValue();
+  const double stoppingValue = this->GetStoppingValue();
 
   // run the GenerateData() method of the superclass
   try
   {
     Superclass::GenerateData();
   }
-  catch (ProcessAborted & exc)
+  catch (const ProcessAborted &)
   {
     // process was aborted, clean up the state of the filter
     // (most of the cleanup will have already been done by the
@@ -123,7 +138,7 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::GenerateData()
 
     // restore the original stopping value
     this->SetStoppingValue(stoppingValue);
-    throw exc;
+    throw;
   }
 
   // restore the original stopping value
@@ -145,16 +160,16 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(c
 
   AxisNodeType node;
 
-  // Only check for reached targets if the mode is not NoTargets and
+  // Only check for reached targets if the mode is not TargetConditionEnum::NoTargets and
   // there is at least one TargetPoint.
-  if (m_TargetReachedMode != NoTargets && m_TargetPoints)
+  if (m_TargetReachedMode != TargetConditionEnum::NoTargets && m_TargetPoints)
   {
     bool targetReached = false;
 
-    if (m_TargetReachedMode == OneTarget)
+    if (m_TargetReachedMode == TargetConditionEnum::OneTarget)
     {
-      typename NodeContainer::ConstIterator pointsIter = m_TargetPoints->Begin();
-      typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
+      typename NodeContainer::ConstIterator       pointsIter = m_TargetPoints->Begin();
+      const typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
       for (; pointsIter != pointsEnd; ++pointsIter)
       {
         node = pointsIter.Value();
@@ -166,10 +181,10 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(c
         }
       }
     }
-    else if (m_TargetReachedMode == SomeTargets)
+    else if (m_TargetReachedMode == TargetConditionEnum::SomeTargets)
     {
-      typename NodeContainer::ConstIterator pointsIter = m_TargetPoints->Begin();
-      typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
+      typename NodeContainer::ConstIterator       pointsIter = m_TargetPoints->Begin();
+      const typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
       for (; pointsIter != pointsEnd; ++pointsIter)
       {
         node = pointsIter.Value();
@@ -186,10 +201,10 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(c
         targetReached = true;
       }
     }
-    else if (m_TargetReachedMode == AllTargets)
+    else if (m_TargetReachedMode == TargetConditionEnum::AllTargets)
     {
-      typename NodeContainer::ConstIterator pointsIter = m_TargetPoints->Begin();
-      typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
+      typename NodeContainer::ConstIterator       pointsIter = m_TargetPoints->Begin();
+      const typename NodeContainer::ConstIterator pointsEnd = m_TargetPoints->End();
       for (; pointsIter != pointsEnd; ++pointsIter)
       {
         node = pointsIter.Value();
@@ -210,7 +225,7 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(c
     if (targetReached)
     {
       m_TargetValue = static_cast<double>(output->GetPixel(index));
-      double newStoppingValue = m_TargetValue + m_TargetOffset;
+      const double newStoppingValue = m_TargetValue + m_TargetOffset;
       if (newStoppingValue < this->GetStoppingValue())
       {
         // This changes the stopping value that may have been set by
@@ -227,9 +242,6 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(c
   }
 }
 
-/**
- *
- */
 template <typename TLevelSet, typename TSpeedImage>
 void
 FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::ComputeGradient(
@@ -249,13 +261,13 @@ FastMarchingUpwindGradientImageFilter<TLevelSet, TSpeedImage>::ComputeGradient(
   const LevelSetIndexType & lastIndex = this->GetLastIndex();
   const LevelSetIndexType & startIndex = this->GetStartIndex();
 
-  const LevelSetPixelType ZERO = NumericTraits<LevelSetPixelType>::ZeroValue();
+  constexpr LevelSetPixelType ZERO{};
 
   OutputSpacingType spacing = this->GetOutput()->GetSpacing();
 
   unsigned int xStride[Self::SetDimension];
 
-  for (unsigned int j = 0; j < SetDimension; j++)
+  for (unsigned int j = 0; j < SetDimension; ++j)
   {
     centerPixel = output->GetPixel(index);
 

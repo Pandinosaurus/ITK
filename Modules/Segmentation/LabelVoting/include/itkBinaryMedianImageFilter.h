@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class BinaryMedianImageFilter
+ * \class BinaryMedianImageFilter
  * \brief Applies a version of the median filter optimized for binary images.
  *
  * This filter was contributed by Bjorn Hanch Sollie after identifying that
@@ -69,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryMedianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMedianImageFilter);
 
   /** Image type alias support */
   using InputPixelType = typename InputImageType::PixelType;
@@ -89,14 +89,16 @@ public:
 
   /** Set the value associated with the Foreground (or the object) on
       the binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, InputPixelType);
   itkSetMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Get the value associated with the Foreground (or the object) on the
       binary input image and the Background . */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(BackgroundValue, InputPixelType);
   itkGetConstReferenceMacro(ForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** BinaryMedianImageFilter needs a larger input requested region than
    * the output requested region.  As such, BinaryMedianImageFilter needs
    * to provide an implementation for GenerateInputRequestedRegion()
@@ -106,15 +108,11 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<typename TInputImage::PixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   BinaryMedianImageFilter();
@@ -137,10 +135,10 @@ protected:
 
 
 private:
-  InputSizeType m_Radius;
+  InputSizeType m_Radius{};
 
-  InputPixelType m_ForegroundValue;
-  InputPixelType m_BackgroundValue;
+  InputPixelType m_ForegroundValue{};
+  InputPixelType m_BackgroundValue{};
 };
 } // end namespace itk
 

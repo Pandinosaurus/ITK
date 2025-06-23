@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,7 +61,7 @@ public:
 };
 
 /**
- *\class MatrixOffsetTransformBase
+ * \class MatrixOffsetTransformBase
  * \brief Matrix and Offset transformation of a vector space (e.g. space coordinates)
  *
  * This class serves as a base class for transforms that can be expressed
@@ -86,63 +86,63 @@ public:
  * \tparam TParametersValueType The type to be used for scalar numeric values.  Either
  *    float or double.
  *
- * \tparam NInputDimensions   The number of dimensions of the input vector space.
+ * \tparam VInputDimension   The number of dimensions of the input vector space.
  *
- * \tparam NOutputDimensions  The number of dimensions of the output vector space.
+ * \tparam VOutputDimension  The number of dimensions of the output vector space.
  *
  * This class provides several methods for setting the matrix and offset
  * defining the transform. To support the registration framework, the
  * transform parameters can also be set as an Array<TParametersValueType> of size
- * (NInputDimension + 1) * NOutputDimension using method SetParameters().
- * The first (NOutputDimension x NInputDimension) parameters defines the
+ * (VInputDimension + 1) * VOutputDimension using method SetParameters().
+ * The first (VOutputDimension x VInputDimension) parameters defines the
  * matrix in row-major order (where the column index varies the fastest).
- * The last NOutputDimension parameters defines the translation
+ * The last VOutputDimension parameters defines the translation
  * in each dimensions.
  *
  * \ingroup ITKTransform
  */
 
-template <typename TParametersValueType = double, unsigned int NInputDimensions = 3, unsigned int NOutputDimensions = 3>
+template <typename TParametersValueType = double, unsigned int VInputDimension = 3, unsigned int VOutputDimension = 3>
 class ITK_TEMPLATE_EXPORT MatrixOffsetTransformBase
-  : public Transform<TParametersValueType, NInputDimensions, NOutputDimensions>
+  : public Transform<TParametersValueType, VInputDimension, VOutputDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MatrixOffsetTransformBase);
 
   /** Standard type alias   */
   using Self = MatrixOffsetTransformBase;
-  using Superclass = Transform<TParametersValueType, NInputDimensions, NOutputDimensions>;
+  using Superclass = Transform<TParametersValueType, VInputDimension, VOutputDimension>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(MatrixOffsetTransformBase, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MatrixOffsetTransformBase);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int InputSpaceDimension = NInputDimensions;
-  static constexpr unsigned int OutputSpaceDimension = NOutputDimensions;
-  static constexpr unsigned int ParametersDimension = NOutputDimensions * (NInputDimensions + 1);
+  static constexpr unsigned int InputSpaceDimension = VInputDimension;
+  static constexpr unsigned int OutputSpaceDimension = VOutputDimension;
+  static constexpr unsigned int ParametersDimension = VOutputDimension * (VInputDimension + 1);
 
   /** Parameters Type   */
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
   /** Jacobian Types   */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Transform category type. */
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /** Standard scalar type for this class */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Standard vector type for this class   */
   using InputVectorType = Vector<TParametersValueType, Self::InputSpaceDimension>;
@@ -153,16 +153,16 @@ public:
   using InputCovariantVectorType = CovariantVector<TParametersValueType, Self::InputSpaceDimension>;
   using OutputCovariantVectorType = CovariantVector<TParametersValueType, Self::OutputSpaceDimension>;
 
-  using InputVectorPixelType = typename Superclass::InputVectorPixelType;
-  using OutputVectorPixelType = typename Superclass::OutputVectorPixelType;
+  using typename Superclass::InputVectorPixelType;
+  using typename Superclass::OutputVectorPixelType;
 
   /** Standard diffusion tensor type for this class */
-  using InputDiffusionTensor3DType = typename Superclass::InputDiffusionTensor3DType;
-  using OutputDiffusionTensor3DType = typename Superclass::OutputDiffusionTensor3DType;
+  using typename Superclass::InputDiffusionTensor3DType;
+  using typename Superclass::OutputDiffusionTensor3DType;
 
   /** Standard tensor type for this class */
-  using InputSymmetricSecondRankTensorType = typename Superclass::InputSymmetricSecondRankTensorType;
-  using OutputSymmetricSecondRankTensorType = typename Superclass::OutputSymmetricSecondRankTensorType;
+  using typename Superclass::InputSymmetricSecondRankTensorType;
+  using typename Superclass::OutputSymmetricSecondRankTensorType;
 
   using InputTensorEigenVectorType = CovariantVector<TParametersValueType, InputDiffusionTensor3DType::Dimension>;
 
@@ -196,6 +196,11 @@ public:
    * concrete inverse transform type or inheritance would be lost. */
   using InverseTransformBaseType = typename Superclass::InverseTransformBaseType;
   using InverseTransformBasePointer = typename InverseTransformBaseType::Pointer;
+
+  using InverseTransformType = MatrixOffsetTransformBase<TParametersValueType, VOutputDimension, VInputDimension>;
+  /** InverseTransformType must be a friend to allow the generation of a transformation
+   * from its inverse (function GetInverse). */
+  friend class MatrixOffsetTransformBase<TParametersValueType, VOutputDimension, VInputDimension>;
 
   /** Set the transformation to an Identity
    *
@@ -346,8 +351,8 @@ public:
   }
 
   /** Set the transformation from a container of parameters.
-   * The first (NOutputDimension x NInputDimension) parameters define the
-   * matrix and the last NOutputDimension parameters the translation.
+   * The first (VOutputDimension x VInputDimension) parameters define the
+   * matrix and the last VOutputDimension parameters the translation.
    * Offset is updated based on current center. */
   void
   SetParameters(const ParametersType & parameters) override;
@@ -457,7 +462,7 @@ public:
    * This populates the parameters an affine transform such that
    * the transform is the inverse of self. If self is not invertible,
    * an exception is thrown.
-   * Note that by default the inverese transform is centered at
+   * Note that by default the inverse transform is centered at
    * the origin. If you need to compute the inverse centered at a point, p,
    *
      \code
@@ -471,7 +476,7 @@ public:
    *
    */
   bool
-  GetInverse(Self * inverse) const;
+  GetInverse(InverseTransformType * inverse) const;
 
   /** Return an inverse of this transform. */
   InverseTransformBasePointer
@@ -489,7 +494,7 @@ public:
   }
 
 protected:
-  /** \deprecated Use GetInverse for public API instead.
+  /** Deprecated: Use GetInverse for public API instead.
    * Method will eventually be made a protected member function */
   const InverseMatrixType &
   GetInverseMatrix() const;
@@ -502,9 +507,13 @@ protected:
    * to values specified by the caller.  If the arguments are
    * omitted, then the MatrixOffsetTransformBase is initialized to an identity
    * transformation in the appropriate number of dimensions. */
-  MatrixOffsetTransformBase(const MatrixType & matrix, const OutputVectorType & offset);
-  MatrixOffsetTransformBase(unsigned int paramDims);
-  MatrixOffsetTransformBase();
+  /** @ITKStartGrouping */
+#if !defined(ITK_LEGACY_REMOVE)
+  [[deprecated("Removed unused constructor")]] MatrixOffsetTransformBase(const MatrixType &       matrix,
+                                                                         const OutputVectorType & offset);
+#endif
+  explicit MatrixOffsetTransformBase(unsigned int paramDims = ParametersDimension);
+  /** @ITKEndGrouping */
 
   /** Destroy an MatrixOffsetTransformBase object */
   ~MatrixOffsetTransformBase() override = default;
@@ -531,10 +540,8 @@ protected:
     {
       return true;
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
   virtual void
@@ -577,17 +584,17 @@ protected:
   itkGetConstMacro(Singular, bool);
 
 private:
-  MatrixType                m_Matrix;        // Matrix of the transformation
-  OutputVectorType          m_Offset;        // Offset of the transformation
-  mutable InverseMatrixType m_InverseMatrix; // Inverse of the matrix
-  mutable bool              m_Singular;      // Is m_Inverse singular?
+  MatrixType                m_Matrix{ MatrixType::GetIdentity() };               // Matrix of the transformation
+  OutputVectorType          m_Offset{};                                          // Offset of the transformation
+  mutable InverseMatrixType m_InverseMatrix{ InverseMatrixType::GetIdentity() }; // Inverse of the matrix
+  mutable bool              m_Singular{ false };                                 // Is m_Inverse singular?
 
-  InputPointType   m_Center;
-  OutputVectorType m_Translation;
+  InputPointType   m_Center{};
+  OutputVectorType m_Translation{};
 
   /** To avoid recomputation of the inverse if not needed */
-  TimeStamp         m_MatrixMTime;
-  mutable TimeStamp m_InverseMatrixMTime;
+  TimeStamp         m_MatrixMTime{};
+  mutable TimeStamp m_InverseMatrixMTime{};
 }; // class MatrixOffsetTransformBase
 } // namespace itk
 

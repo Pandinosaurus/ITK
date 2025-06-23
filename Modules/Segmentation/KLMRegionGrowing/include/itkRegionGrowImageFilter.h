@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class RegionGrowImageFilter
+ * \class RegionGrowImageFilter
  * \brief Base class for RegionGrowImageFilter object
  *
  * itkRegionGrowImageFilter is the base class for the
@@ -93,8 +93,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegionGrowImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionGrowImageFilter);
 
   /** Type definition for the input image. */
   using InputImageType = TInputImage;
@@ -115,13 +115,15 @@ public:
   using GridSizeType = typename TInputImage::SizeType;
 
   /** Set/Get the initial grid. */
+  /** @ITKStartGrouping */
   itkSetMacro(GridSize, GridSizeType);
   itkGetConstReferenceMacro(GridSize, GridSizeType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of regions desired. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumNumberOfRegions, unsigned int);
   itkGetConstReferenceMacro(MaximumNumberOfRegions, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Define a virtual RegionGrowImageFilter function. */
   virtual void
   ApplyRegionGrowImageFilter() = 0;
@@ -137,9 +139,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int m_MaximumNumberOfRegions;
+  unsigned int m_MaximumNumberOfRegions{};
 
-  GridSizeType m_GridSize;
+  GridSizeType m_GridSize{};
 }; // class RegionGrowImageFilter
 } // namespace itk
 

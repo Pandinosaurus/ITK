@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itkQuadEdgeMeshDeletePointAndReorderIDsTest(int, char *[])
   using CellType = MeshType::CellType;
   using QEPolygonCellType = itk::QuadEdgeMeshPolygonCell<CellType>;
 
-  MeshType::Pointer   mesh = MeshType::New();
+  auto                mesh = MeshType::New();
   MeshType::PointType pts[5];
   MeshType::PixelType ptData = 0.;
 
@@ -49,20 +49,19 @@ itkQuadEdgeMeshDeletePointAndReorderIDsTest(int, char *[])
   pts[4][1] = 0.0;
   pts[4][2] = 1.0;
 
-  for (unsigned int e = 0; e < 5; e++)
+  for (unsigned int e = 0; e < 5; ++e)
   {
     mesh->SetPoint(e, pts[e]);
     mesh->SetPointData(e, e);
   }
 
   // create a tetahedra and one isolated point: id = 0
-  int specialCells[12] = { 4, 1, 2, 4, 2, 3, 3, 1, 4, 1, 3, 2 };
+  const int specialCells[12] = { 4, 1, 2, 4, 2, 3, 3, 1, 4, 1, 3, 2 };
 
   CellType::CellAutoPointer cellpointer;
-  QEPolygonCellType *       poly;
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
-    poly = new QEPolygonCellType(3);
+    auto * poly = new QEPolygonCellType(3);
     cellpointer.TakeOwnership(poly);
     cellpointer->SetPointId(0, specialCells[3 * i]);
     cellpointer->SetPointId(1, specialCells[3 * i + 1]);

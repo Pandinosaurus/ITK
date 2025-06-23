@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,21 +30,15 @@
  * verifies that the root mean squares error between the two array-like
  * objects doesn't exceed the given error.
  */
-#define ITK_EXPECT_VECTOR_NEAR(val1, val2, rmsError)                                                                   \
+#define ITK_EXPECT_VECTOR_NEAR(val1, val2, rmsError) \
   EXPECT_PRED_FORMAT3(itk::GTest::Predicate::VectorDoubleRMSPredFormat, val1, val2, rmsError)
 
-
-namespace itk
-{
-
-namespace GTest
-{
 
 /** \namespace itk::GTest::Predicate
  *  \brief The Predicate namespace contains functions used to
  *  implement custom GTest Predicate-Formatters.
  */
-namespace Predicate
+namespace itk::GTest::Predicate
 {
 
 /** Implements GTest Predicate Formatter for ITK_EXPECT_VECTOR_NEAR
@@ -68,7 +62,7 @@ VectorDoubleRMSPredFormat(const char * expr1,
   {
     return ::testing::AssertionFailure() << "The size of " << expr1 << " and " << expr2 << " different, where\n"
                                          << expr1 << " evaluates to " << val1 << ",\n"
-                                         << expr2 << " evaluates to " << val2 << ".";
+                                         << expr2 << " evaluates to " << val2 << '.';
   }
   double total = 0.0;
   for (unsigned int i = 0; i < val1Size; ++i)
@@ -86,11 +80,10 @@ VectorDoubleRMSPredFormat(const char * expr1,
                                        << ",\n  which exceeds " << rmsErrorExpr << ", where\n"
                                        << expr1 << " evaluates to " << val1 << ",\n"
                                        << expr2 << " evaluates to " << val2 << ", and\n"
-                                       << rmsErrorExpr << " evaluates to " << rmsError << ".";
+                                       << rmsErrorExpr << " evaluates to " << rmsError << '.';
 }
 
-} // end namespace Predicate
-} // end namespace GTest
-} // end namespace itk
+} // namespace itk::GTest::Predicate
+// end namespace GTest
 
 #endif // itkGTestPredicate_h

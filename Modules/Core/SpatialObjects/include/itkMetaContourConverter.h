@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,36 +26,36 @@
 namespace itk
 {
 /**
- *\class MetaContourConverter
+ * \class MetaContourConverter
  *  \brief converts between MetaObject<->SpatialObject.
  *
  *  \sa MetaConverterBase
  *  \ingroup ITKSpatialObjects
  */
-template <unsigned int NDimensions = 3>
-class ITK_TEMPLATE_EXPORT MetaContourConverter : public MetaConverterBase<NDimensions>
+template <unsigned int VDimension = 3>
+class ITK_TEMPLATE_EXPORT MetaContourConverter : public MetaConverterBase<VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MetaContourConverter);
 
   /** Standard class type aliases */
   using Self = MetaContourConverter;
-  using Superclass = MetaConverterBase<NDimensions>;
+  using Superclass = MetaConverterBase<VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaContourConverter, MetaConverterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaContourConverter);
 
-  using SpatialObjectType = typename Superclass::SpatialObjectType;
+  using typename Superclass::SpatialObjectType;
   using SpatialObjectPointer = typename SpatialObjectType::Pointer;
-  using MetaObjectType = typename Superclass::MetaObjectType;
+  using typename Superclass::MetaObjectType;
 
   /** Specific class types for conversion */
-  using ContourSpatialObjectType = ContourSpatialObject<NDimensions>;
+  using ContourSpatialObjectType = ContourSpatialObject<VDimension>;
   using ContourSpatialObjectPointer = typename ContourSpatialObjectType::Pointer;
   using ContourSpatialObjectConstPointer = typename ContourSpatialObjectType::ConstPointer;
   using ContourMetaObjectType = MetaContour;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,12 +34,7 @@ public:
 
   DataObjectConstIterator() = default;
 
-  DataObjectConstIterator(const DataObjectConstIterator & iter)
-  {
-    m_Iterator = iter.m_Iterator;
-    m_Begin = iter.m_Begin;
-    m_End = iter.m_End;
-  }
+  DataObjectConstIterator(const DataObjectConstIterator & iter) = default;
 
   DataObjectConstIterator &
   operator=(const DataObjectConstIterator & iter)
@@ -53,13 +48,13 @@ public:
     return *this;
   }
 
-  const DataObject *
+  [[nodiscard]] const DataObject *
   GetDataObject() const
   {
     return m_Iterator->second;
   }
 
-  const DataObjectIdentifierType &
+  [[nodiscard]] const DataObjectIdentifierType &
   GetName() const
   {
     return m_Iterator->first;
@@ -68,7 +63,7 @@ public:
   DataObjectConstIterator
   operator++(int)
   {
-    DataObjectConstIterator tmp = *this;
+    const DataObjectConstIterator tmp = *this;
     ++(*this);
     return tmp;
   }
@@ -86,11 +81,7 @@ public:
     return m_Iterator == iter.m_Iterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
   }
 
-  bool
-  operator!=(const DataObjectConstIterator & iter) const
-  {
-    return !(*this == iter);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(DataObjectConstIterator);
 
   void
   GoToBegin()
@@ -98,7 +89,7 @@ public:
     m_Iterator = m_Begin;
   }
 
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const
   {
     return m_Iterator == m_End;

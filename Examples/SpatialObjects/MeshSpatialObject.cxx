@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,16 +61,14 @@ main(int, char *[])
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginCodeSnippet
-  MeshType::Pointer myMesh = MeshType::New();
+  auto myMesh = MeshType::New();
 
-  MeshType::CoordRepType testPointCoords[4][3] = {
+  constexpr MeshType::CoordinateType testPointCoords[4][3] = {
     { 0, 0, 0 }, { 9, 0, 0 }, { 9, 9, 0 }, { 0, 0, 9 }
   };
 
   MeshType::PointIdentifier tetraPoints[4] = { 0, 1, 2, 4 };
-
-  int i;
-  for (i = 0; i < 4; ++i)
+  for (int i = 0; i < 4; ++i)
   {
     myMesh->SetPoint(i, PointType(testPointCoords[i]));
   }
@@ -96,8 +94,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using MeshSpatialObjectType = itk::MeshSpatialObject<MeshType>;
-  MeshSpatialObjectType::Pointer myMeshSpatialObject =
-    MeshSpatialObjectType::New();
+  auto myMeshSpatialObject = MeshSpatialObjectType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -135,8 +132,7 @@ main(int, char *[])
     << "Mesh bounds : "
     << myMeshSpatialObject->GetMyBoundingBoxInWorldSpace()->GetBounds()
     << std::endl;
-  MeshSpatialObjectType::PointType myPhysicalPoint;
-  myPhysicalPoint.Fill(1);
+  auto myPhysicalPoint = itk::MakeFilled<MeshSpatialObjectType::PointType>(1);
   std::cout << "Is my physical point inside? : "
             << myMeshSpatialObject->IsInsideInWorldSpace(myPhysicalPoint)
             << std::endl;
@@ -152,7 +148,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::SpatialObjectWriter<3, float, MeshTrait>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -177,7 +173,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::SpatialObjectReader<3, float, MeshTrait>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -205,8 +201,7 @@ main(int, char *[])
   using GroupType = itk::GroupSpatialObject<3>;
   using SpatialObjectToImageFilterType =
     itk::SpatialObjectToImageFilter<GroupType, ImageType>;
-  SpatialObjectToImageFilterType::Pointer imageFilter =
-    SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -241,7 +236,7 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   //  Software Guide : BeginCodeSnippet
-  ImageType::Pointer myBinaryMeshImage = imageFilter->GetOutput();
+  const ImageType::Pointer myBinaryMeshImage = imageFilter->GetOutput();
   //  Software Guide : EndCodeSnippet
 
   return EXIT_SUCCESS;

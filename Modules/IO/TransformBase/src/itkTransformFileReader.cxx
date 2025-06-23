@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,15 +49,13 @@ struct KernelTransformHelper
       kernelTransform->ComputeWMatrix();
       return 0;
     }
-    else
-    {
-      // try one less dimension
-      return KernelTransformHelper<TParameterType, Dimension - 1>::InitializeWMatrix(transform);
-    }
+
+    // try one less dimension
+    return KernelTransformHelper<TParameterType, Dimension - 1>::InitializeWMatrix(transform);
   }
 };
 
-// Template specialized class to stop initializing Kernel Transfoms.
+// Template specialized class to stop initializing Kernel Transforms.
 template <typename TParameterType>
 struct KernelTransformHelper<TParameterType, 0>
 {
@@ -105,7 +103,8 @@ TransformFileReaderTemplate<TParametersValueType>::Update()
         msg << " File does not exists!";
       }
 
-      std::list<LightObject::Pointer> allobjects = ObjectFactoryBase::CreateAllInstance("itkTransformIOBaseTemplate");
+      const std::list<LightObject::Pointer> allobjects =
+        ObjectFactoryBase::CreateAllInstance("itkTransformIOBaseTemplate");
 
       if (!allobjects.empty())
       {
@@ -115,13 +114,15 @@ TransformFileReaderTemplate<TParametersValueType>::Update()
           const Object * obj = dynamic_cast<Object *>(allobject.GetPointer());
           msg << "    " << obj->GetNameOfClass() << std::endl;
         }
-        msg << "  You probably failed to set a file suffix, or" << std::endl;
-        msg << "    set the suffix to an unsupported type." << std::endl;
+        msg << "  You probably failed to set a file suffix, or" << std::endl
+            << "    set the suffix to an unsupported type." << std::endl;
       }
       else
       {
-        msg << "  There are no registered Transform IO factories." << std::endl;
-        msg << "  Please visit https://www.itk.org/Wiki/ITK/FAQ#NoFactoryException to diagnose the problem."
+        msg << "  There are no registered Transform IO factories." << std::endl
+            << "  Please visit "
+               "https://insightsoftwareconsortium.github.io/ITKWikiArchive/Wiki/ITK/FAQ#NoFactoryException to diagnose "
+               "the problem."
             << std::endl;
       }
 
@@ -150,17 +151,17 @@ TransformFileReaderTemplate<TParametersValueType>::Update()
   // need to be initialized using the transform parameters.
   // kernelTransform->ComputeWMatrix() has to be called after the transform is read but
   // before the transform is used.
-  std::string  transformTypeName = ioTransformList.front()->GetNameOfClass();
-  const size_t len = strlen("KernelTransform"); // Computed at compile time in most cases
+  const std::string transformTypeName = ioTransformList.front()->GetNameOfClass();
+  const size_t      len = strlen("KernelTransform"); // Computed at compile time in most cases
   if (transformTypeName.size() >= len &&
       !transformTypeName.compare(transformTypeName.size() - len, len, "KernelTransform"))
   {
     if (KernelTransformHelper<TParametersValueType, ITK_TRANSFORM_FACTORY_MAX_DIM>::InitializeWMatrix(
           ioTransformList.front().GetPointer()))
     {
-      itkDebugMacro(<< "KernelTransform with dimension " << ioTransformList.front()->GetInputSpaceDimension()
-                    << " is not automatically initialized. \"ComputeWMatrix()\""
-                       " method has to be called.");
+      itkDebugMacro("KernelTransform with dimension " << ioTransformList.front()->GetInputSpaceDimension()
+                                                      << " is not automatically initialized. \"ComputeWMatrix()\""
+                                                         " method has to be called.");
     }
   }
 
@@ -171,8 +172,8 @@ TransformFileReaderTemplate<TParametersValueType>::Update()
   const std::string firstTransformName = ioTransformList.front()->GetNameOfClass();
   if (firstTransformName.find("CompositeTransform") != std::string::npos)
   {
-    typename TransformListType::const_iterator tit = ioTransformList.begin();
-    typename TransformType::Pointer            composite = (*tit).GetPointer();
+    const auto                            tit = ioTransformList.begin();
+    const typename TransformType::Pointer composite = tit->GetPointer();
 
     // CompositeTransformIOHelperTemplate knows how to assign to the composite
     // transform's internal list
@@ -185,7 +186,7 @@ TransformFileReaderTemplate<TParametersValueType>::Update()
   {
     for (auto it = ioTransformList.begin(); it != ioTransformList.end(); ++it)
     {
-      this->m_TransformList.push_back((*it).GetPointer());
+      this->m_TransformList.push_back(it->GetPointer());
     }
   }
 }

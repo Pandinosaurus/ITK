@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ ShowDistanceMap(itk::SmartPointer<TImage> distanceMap)
     {
       while (!it2D2.IsAtEndOfLine())
       {
-        std::cout << std::setw(7) << std::setprecision(5) << it2D2.Get() << "\t";
+        std::cout << std::setw(7) << std::setprecision(5) << it2D2.Get() << '\t';
         ++it2D2;
       }
       std::cout << std::endl;

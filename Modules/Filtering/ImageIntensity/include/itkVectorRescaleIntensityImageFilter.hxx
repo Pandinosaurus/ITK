@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkVectorRescaleIntensityImageFilter_hxx
 #define itkVectorRescaleIntensityImageFilter_hxx
 
-#include "itkVectorRescaleIntensityImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 
 namespace itk
@@ -38,33 +37,30 @@ template <typename TInputImage, typename TOutputImage>
 VectorRescaleIntensityImageFilter<TInputImage, TOutputImage>::VectorRescaleIntensityImageFilter()
   : m_Scale(1.0)
   , m_Shift(1.0)
-  , m_InputMaximumMagnitude(NumericTraits<InputRealType>::ZeroValue())
-  , m_OutputMaximumMagnitude(NumericTraits<OutputRealType>::ZeroValue())
+  , m_InputMaximumMagnitude(InputRealType{})
+  , m_OutputMaximumMagnitude(OutputRealType{})
 {}
 
 template <typename TInputImage, typename TOutputImage>
 void
 VectorRescaleIntensityImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
-  if (m_OutputMaximumMagnitude < NumericTraits<OutputRealType>::ZeroValue())
+  if (m_OutputMaximumMagnitude < OutputRealType{})
   {
-    itkExceptionMacro(<< "Maximum output value cannot be negative. You are passing " << m_OutputMaximumMagnitude);
-    return;
+    itkExceptionMacro("Maximum output value cannot be negative. You are passing " << m_OutputMaximumMagnitude);
   }
 
-  InputImagePointer inputImage = this->GetInput();
+  const InputImagePointer inputImage = this->GetInput();
 
   using InputIterator = ImageRegionConstIterator<InputImageType>;
 
   InputIterator it(inputImage, inputImage->GetBufferedRegion());
 
-  it.GoToBegin();
-
-  InputRealType maximumSquaredMagnitude = NumericTraits<InputRealType>::ZeroValue();
+  InputRealType maximumSquaredMagnitude{};
 
   while (!it.IsAtEnd())
   {
-    InputRealType magnitude = it.Get().GetSquaredNorm();
+    const InputRealType magnitude = it.Get().GetSquaredNorm();
     if (magnitude > maximumSquaredMagnitude)
     {
       maximumSquaredMagnitude = magnitude;

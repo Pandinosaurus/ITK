@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,11 +34,10 @@
 #include "itkSingletonMacro.h"
 
 #include <functional>
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
-// Forward reference because of private implementation
-class SubjectImplementation;
 // Forward reference because of circular dependencies
 class ITK_FORWARD_EXPORT Command;
 
@@ -82,8 +81,8 @@ public:
   LightObject::Pointer
   CreateAnother() const override;
 
-  /** Standard part of all itk objects. */
-  itkTypeMacro(Object, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Object);
 
   /** Turn debugging output on.  */
   virtual void
@@ -152,11 +151,12 @@ public:
    * and an itk::Command to execute. It returns an unsigned long tag
    * which can be used later to remove the event or retrieve the
    * command.
+   *
+   * \note The parameter name `cmd` is part of the interface to SWIG! It is used by the %pythonprepend section in
+   * ITK/Wrapping/Generators/Python/PyBase/pyBase.i
    */
   unsigned long
-  AddObserver(const EventObject & event, Command *);
-  unsigned long
-  AddObserver(const EventObject & event, Command *) const;
+  AddObserver(const EventObject & event, Command * cmd) const;
 
   /** \brief A convenient method to add an C++ lambda function as an observer.
    *
@@ -197,7 +197,7 @@ public:
 
   /** Remove the observer with this tag value. */
   void
-  RemoveObserver(unsigned long tag);
+  RemoveObserver(unsigned long tag) const;
 
   /** Remove all observers . */
   void
@@ -223,11 +223,12 @@ public:
   /**
    * Set the MetaDataDictionary
    */
+  /** @ITKStartGrouping */
   void
   SetMetaDataDictionary(const MetaDataDictionary & rhs);
   void
   SetMetaDataDictionary(MetaDataDictionary && rrhs);
-
+  /** @ITKEndGrouping */
   /**
    * A facility to help application programmers set a
    * human identifiable name for a given object.
@@ -235,9 +236,10 @@ public:
    * convenience to allow developers to provide a
    * name for this object.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ObjectName, std::string);
   itkGetConstReferenceMacro(ObjectName, std::string);
-
+  /** @ITKEndGrouping */
 protected:
   Object();
   ~Object() override;
@@ -266,14 +268,18 @@ private:
   mutable bool m_Debug{ false };
 
   /** Keep track of modification time. */
-  mutable TimeStamp m_MTime;
+  mutable TimeStamp m_MTime{};
 
   /** Global object debug flag. */
   static bool * m_GlobalWarningDisplay;
 
+  // Forward reference because of private implementation
+  class SubjectImplementation;
+
   /** Implementation class for Subject/Observer Pattern.
    * This is only allocated if used. */
-  SubjectImplementation * m_SubjectImplementation{ nullptr };
+  mutable std::unique_ptr<SubjectImplementation> m_SubjectImplementation;
+
   /**
    * Implementation for holding Object MetaData
    * @see itk::MetaDataDictionary
@@ -281,9 +287,9 @@ private:
    * @see itk::MetaDataObject
    * This is only allocated if used.
    */
-  mutable MetaDataDictionary * m_MetaDataDictionary{ nullptr };
+  mutable std::unique_ptr<MetaDataDictionary> m_MetaDataDictionary{ nullptr };
 
-  std::string m_ObjectName;
+  std::string m_ObjectName{};
 };
 } // end namespace itk
 

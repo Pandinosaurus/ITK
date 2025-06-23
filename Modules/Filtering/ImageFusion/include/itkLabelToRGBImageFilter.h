@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class LabelToRGBImageFilter
+ * \class LabelToRGBImageFilter
  * \brief Apply a colormap to a label image
  *
  * Apply a colormap to a label image. The set of colors
@@ -35,7 +35,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "The watershed transform in ITK - discussion and new developments"
  * by Beare R., Lehmann G.
- * https://www.insight-journal.org/browse/publication/92
+ * https://doi.org/10.54294/lf8u75
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  * \author Richard Beare. Department of Medicine, Monash University, Melbourne, Australia.
@@ -73,26 +73,28 @@ public:
   using LabelPixelType = typename TLabelImage::PixelType;
   using OutputPixelValueType = typename NumericTraits<OutputPixelType>::ValueType;
 
-  /** Runtime information support. */
-  itkTypeMacro(LabelToRGBImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelToRGBImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Set/Get the background value */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, LabelPixelType);
   itkGetConstReferenceMacro(BackgroundValue, LabelPixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the background color in the output image */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundColor, OutputPixelType);
   itkGetConstReferenceMacro(BackgroundColor, OutputPixelType);
-
+  /** @ITKEndGrouping */
   /** Empty the color LUT container */
   void
   ResetColors();
 
   /** Get number of colors in the LUT container */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfColors() const;
 
   /** Type of the color component */
@@ -118,8 +120,8 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  OutputPixelType m_BackgroundColor;
-  LabelPixelType  m_BackgroundValue;
+  OutputPixelType m_BackgroundColor{};
+  LabelPixelType  m_BackgroundValue{};
 };
 } // end namespace itk
 

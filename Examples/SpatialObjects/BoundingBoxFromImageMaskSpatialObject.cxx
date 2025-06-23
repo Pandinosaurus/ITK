@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +36,10 @@
 
 #include "itkImageFileReader.h"
 
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 2)
@@ -51,25 +53,13 @@ main(int argc, char * argv[])
   using ImageMaskSpatialObject = itk::ImageMaskSpatialObject<3>;
 
   using ImageType = ImageMaskSpatialObject::ImageType;
-  using ReaderType = itk::ImageFileReader<ImageType>;
+  ImageType::Pointer input;
+  input = itk::ReadImage<ImageType>(argv[1]);
 
-  ReaderType::Pointer reader = ReaderType::New();
 
-  reader->SetFileName(argv[1]);
+  auto maskSO = ImageMaskSpatialObject::New();
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  ImageMaskSpatialObject::Pointer maskSO = ImageMaskSpatialObject::New();
-
-  maskSO->SetImage(reader->GetOutput());
+  maskSO->SetImage(input);
   maskSO->Update();
 
   std::cout << "Bounding Box Region: "
@@ -77,4 +67,27 @@ main(int argc, char * argv[])
             << std::endl;
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

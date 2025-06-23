@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include "itkVersorTransformOptimizer.h"
 #include "itkQuaternionRigidTransformGradientDescentOptimizer.h"
 #include "itkOnePlusOneEvolutionaryOptimizer.h"
+#include "itkTestingMacros.h"
 
 
 #include <iostream>
@@ -40,16 +41,15 @@
 int
 itkOptimizersHierarchyTest(int, char *[])
 {
-  bool pass = true;
 
   using OptimizerType = itk::Optimizer;
-  OptimizerType::Pointer genericOptimizer = OptimizerType::New();
+  auto genericOptimizer = OptimizerType::New();
 
-  unsigned int spaceDimension = 10;
+  constexpr unsigned int spaceDimension = 10;
 
-  OptimizerType::ParametersType initialPosition(spaceDimension);
-  OptimizerType::ParametersType currentPosition(spaceDimension);
-  OptimizerType::ScalesType     parameterScale(spaceDimension);
+  OptimizerType::ParametersType       initialPosition(spaceDimension);
+  const OptimizerType::ParametersType currentPosition(spaceDimension);
+  OptimizerType::ScalesType           parameterScale(spaceDimension);
 
   parameterScale.Fill(1.5);
   initialPosition.Fill(2.0);
@@ -59,9 +59,9 @@ itkOptimizersHierarchyTest(int, char *[])
 
   const OptimizerType::ScalesType & parameterScaleGot = genericOptimizer->GetScales();
 
-  const double tolerance = 1e-10;
+  constexpr double tolerance = 1e-10;
 
-  for (unsigned int i = 0; i < spaceDimension; i++)
+  for (unsigned int i = 0; i < spaceDimension; ++i)
   {
     if (itk::Math::abs(parameterScaleGot[i] - parameterScale[i]) > tolerance)
     {
@@ -75,7 +75,7 @@ itkOptimizersHierarchyTest(int, char *[])
 
   OptimizerType::ParametersType initialPositionGot = genericOptimizer->GetInitialPosition();
 
-  for (unsigned int i = 0; i < spaceDimension; i++)
+  for (unsigned int i = 0; i < spaceDimension; ++i)
   {
     if (itk::Math::abs(initialPositionGot[i] - initialPosition[i]) > tolerance)
     {
@@ -88,82 +88,71 @@ itkOptimizersHierarchyTest(int, char *[])
   }
 
   using NonLinearOptimizerType = itk::NonLinearOptimizer;
-  NonLinearOptimizerType::Pointer nonLinearOptimizer = NonLinearOptimizerType::New();
-  if (nonLinearOptimizer.IsNull())
-  {
-    pass = false;
-  }
+  auto nonLinearOptimizer = NonLinearOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(nonLinearOptimizer, NonLinearOptimizer, Optimizer);
+
 
   using SingleValuedNonLinearOptimizerType = itk::SingleValuedNonLinearOptimizer;
-  SingleValuedNonLinearOptimizerType::Pointer singleValuedOptimizer = SingleValuedNonLinearOptimizerType::New();
-  if (singleValuedOptimizer.IsNull())
-  {
-    pass = false;
-  }
+  auto singleValuedOptimizer = SingleValuedNonLinearOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(singleValuedOptimizer, SingleValuedNonLinearOptimizer, NonLinearOptimizer);
+
 
   using AmoebaOptimizerType = itk::AmoebaOptimizer;
-  AmoebaOptimizerType::Pointer amoeba = AmoebaOptimizerType::New();
-  if (amoeba.IsNull())
-  {
-    pass = false;
-  }
+  auto amoeba = AmoebaOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(amoeba, AmoebaOptimizer, SingleValuedNonLinearVnlOptimizer);
+
 
   using ConjugateGradientOptimizerType = itk::ConjugateGradientOptimizer;
-  ConjugateGradientOptimizerType::Pointer conjugate = ConjugateGradientOptimizerType::New();
-  if (conjugate.IsNull())
-  {
-    pass = false;
-  }
+  auto conjugate = ConjugateGradientOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(conjugate, ConjugateGradientOptimizer, SingleValuedNonLinearVnlOptimizer);
+
 
   using LBFGSOptimizerType = itk::LBFGSOptimizer;
-  LBFGSOptimizerType::Pointer lbfgs = LBFGSOptimizerType::New();
-  if (lbfgs.IsNull())
-  {
-    pass = false;
-  }
+  auto lbfgs = LBFGSOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(lbfgs, LBFGSOptimizer, SingleValuedNonLinearVnlOptimizer);
+
 
   // Note that a "Versor" is a Unit Quaternion
   using VersorOptimizerType = itk::VersorTransformOptimizer;
-  VersorOptimizerType::Pointer versoropt = VersorOptimizerType::New();
-  if (versoropt.IsNull())
-  {
-    pass = false;
-  }
+  auto versorOpt = VersorOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(versorOpt, VersorTransformOptimizer, RegularStepGradientDescentBaseOptimizer);
+
 
   using QuaternionOptimizerType = itk::QuaternionRigidTransformGradientDescentOptimizer;
-  QuaternionOptimizerType::Pointer quaternionopt = QuaternionOptimizerType::New();
-  if (quaternionopt.IsNull())
-  {
-    pass = false;
-  }
+  auto quaternionOpt = QuaternionOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    quaternionOpt, QuaternionRigidTransformGradientDescentOptimizer, GradientDescentOptimizer);
 
   using OnePlusOneEvolutionaryOptimizerType = itk::OnePlusOneEvolutionaryOptimizer;
-  OnePlusOneEvolutionaryOptimizerType::Pointer onePlusOne = OnePlusOneEvolutionaryOptimizerType::New();
-  if (onePlusOne.IsNull())
-  {
-    pass = false;
-  }
+  auto onePlusOne = OnePlusOneEvolutionaryOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(onePlusOne, OnePlusOneEvolutionaryOptimizer, SingleValuedNonLinearOptimizer);
 
   using CumulativeGaussianOptimizerType = itk::CumulativeGaussianOptimizer;
-  CumulativeGaussianOptimizerType::Pointer cumgaussopt = CumulativeGaussianOptimizerType::New();
-  if (cumgaussopt.IsNull())
-  {
-    pass = false;
-  }
+  auto cumGaussOpt = CumulativeGaussianOptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(cumGaussOpt, CumulativeGaussianOptimizer, MultipleValuedNonLinearOptimizer);
+
 
   using CumulativeGaussianCostFunctionType = itk::CumulativeGaussianCostFunction;
-  CumulativeGaussianCostFunctionType::Pointer cumgausstype = CumulativeGaussianCostFunctionType::New();
-  if (cumgausstype.IsNull())
-  {
-    pass = false;
-  }
+  auto cumGaussCostFunc = CumulativeGaussianCostFunctionType::New();
 
-  if (!pass)
-  {
-    std::cout << "Test failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(cumGaussCostFunc, CumulativeGaussianCostFunction, MultipleValuedCostFunction);
 
-  std::cout << "Test passed." << std::endl;
+
+  // Not used; empty method body; called for coverage purposes
+  const CumulativeGaussianCostFunctionType::ParametersType parameters{};
+  CumulativeGaussianCostFunctionType::DerivativeType       derivative;
+  cumGaussCostFunc->GetDerivative(parameters, derivative);
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

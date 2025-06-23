@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,9 +40,7 @@ namespace itk
  * The original implementation has been replaced with an algorithm
  * based on the discrete form of the divergence theorem.  The general
  * assumption here is that the model is of  closed surface.  For more
- * details see the following reference  (Alyassin A.M. et al,
- * "Evaluation of new algorithms for the interactive measurement of
- * surface area and volume", Med Phys 21(6) 1994.).
+ * details see \cite alyassin1994.
  * \ingroup ITKMesh
  *
  * \sphinx
@@ -69,8 +67,8 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimplexMeshVolumeCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimplexMeshVolumeCalculator);
 
   using InputMeshType = TInputMesh;
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -110,7 +108,9 @@ public:
     /**
      * default constructor
      */
-    SimplexCellVisitor() { m_CenterMap = PointMapType::New(); }
+    SimplexCellVisitor()
+      : m_CenterMap(PointMapType::New())
+    {}
     virtual ~SimplexCellVisitor() = default;
 
     /**
@@ -121,15 +121,14 @@ public:
     {
       using PointIdIterator = typename SimplexPolygonType::PointIdIterator;
       PointIdIterator it = poly->PointIdsBegin();
-      InputPointType  center, p;
-      center.Fill(0);
-      p.Fill(0.0);
+      InputPointType  center{};
+      InputPointType  p{};
 
       while (it != poly->PointIdsEnd())
       {
         m_Mesh->GetPoint(*it, &p);
         center += p.GetVectorFromOrigin();
-        it++;
+        ++it;
       }
 
       center[0] /= poly->GetNumberOfPoints();
@@ -193,7 +192,7 @@ private:
   void
   CreateTriangles();
 
-  /** intermediate volume computation */
+  /** Calculate volume of triangle. */
   void
   CalculateTriangleVolume(InputPointType p1, InputPointType p2, InputPointType p3);
 
@@ -202,9 +201,9 @@ private:
   FindCellId(IdentifierType id1, IdentifierType id2, IdentifierType id3);
 
   /** attribute stores the result of the simplex cell visitor */
-  PointMapPointer m_Centers;
+  PointMapPointer m_Centers{};
 
-  InputMeshPointer m_SimplexMesh;
+  InputMeshPointer m_SimplexMesh{};
 
   double m_Volume{ 0.0 };
   double m_VolumeX{ 0.0 };

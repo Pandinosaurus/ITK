@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,12 +48,10 @@ itkVectorConnectedComponentImageFilterTest(int argc, char * argv[])
   using LabelImageType = itk::Image<LabelPixelType, Dimension>;
 
   // create an image of vectors
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::RegionType region;
-  ImageType::SizeType   size;
-  size.Fill(100);
-  ImageType::IndexType index;
-  index.Fill(0);
+  auto                  size = ImageType::SizeType::Filled(100);
+  ImageType::IndexType  index{};
 
   region.SetSize(size);
   region.SetIndex(index);
@@ -62,7 +60,7 @@ itkVectorConnectedComponentImageFilterTest(int argc, char * argv[])
 
   size = region.GetSize();
   index = region.GetIndex();
-  unsigned int width = size[0];
+  const unsigned int width = size[0];
   size[0] = width / 2;
   size[1] = width / 2;
 
@@ -166,15 +164,23 @@ itkVectorConnectedComponentImageFilterTest(int argc, char * argv[])
 
   using VectorFilterType = itk::VectorConnectedComponentImageFilter<ImageType, OutputImageType>;
 
-  VectorFilterType::Pointer filter = VectorFilterType::New();
+  auto filter = VectorFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, VectorConnectedComponentImageFilter, ConnectedComponentFunctorImageFilter);
+
+
+  constexpr typename VectorFilterType::InputValueType distanceThreshold = 0.01;
+  filter->SetDistanceThreshold(distanceThreshold);
+  ITK_TEST_SET_GET_VALUE(distanceThreshold, filter->GetDistanceThreshold());
+
   filter->SetInput(image);
-  filter->SetDistanceThreshold(.01);
+
   using RelabelComponentType = itk::RelabelComponentImageFilter<OutputImageType, LabelImageType>;
-  RelabelComponentType::Pointer relabel = RelabelComponentType::New();
+  auto relabel = RelabelComponentType::New();
   relabel->SetInput(filter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<LabelImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   try
   {
@@ -190,12 +196,12 @@ itkVectorConnectedComponentImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  // The following just ensures that this filter can be intantiated
+  // The following just ensures that this filter can be instantiated
   // with VectorImages
   using VectorImageType = itk::VectorImage<float, 2>;
   using VectorImageFilterType =
     itk::VectorConnectedComponentImageFilter<VectorImageType, OutputImageType, LabelImageType>;
-  VectorImageFilterType::Pointer vfilter = VectorImageFilterType::New();
+  auto vfilter = VectorImageFilterType::New();
 
   return EXIT_SUCCESS;
 }

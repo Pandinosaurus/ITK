@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,10 +20,10 @@
 #include "itksys/SystemTools.hxx"
 
 int
-itkFEMElementTest(int ac, char * av[])
+itkFEMElementTest(int argc, char * argv[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -51,7 +51,6 @@ itkFEMElementTest(int ac, char * av[])
   // Solvers being tested
   int numsolvers = 3;
   int currsolver;
-  int s;
 
   // Output comments
   char comment;
@@ -76,7 +75,7 @@ itkFEMElementTest(int ac, char * av[])
   //    1. by specifying an input file as a run-time argument
   //    2. by using the built-in menu of input files
 
-  if (ac < 2)
+  if (argc < 2)
   // Display the menu
   {
     std::cout << "Loading menu..." << std::endl;
@@ -91,7 +90,7 @@ itkFEMElementTest(int ac, char * av[])
 
     f >> numfiles;
     filelist = new char *[numfiles];
-    for (int k = 0; k < numfiles; k++)
+    for (int k = 0; k < numfiles; ++k)
     {
       f >> buffer;
       filelist[k] = new char[strlen(buffer) + 1];
@@ -103,7 +102,7 @@ itkFEMElementTest(int ac, char * av[])
     int ch = -1;
     while (ch < 0 || ch >= numfiles)
     {
-      for (int j = 0; j < numfiles; j++)
+      for (int j = 0; j < numfiles; ++j)
       {
         std::cout << j << ": " << filelist[j] << std::endl;
       }
@@ -128,16 +127,16 @@ itkFEMElementTest(int ac, char * av[])
   {
     std::cout << "User-specified file..." << std::endl;
 
-    fname = new char[strlen(av[1]) + 5];
-    strcpy(fname, av[1]);
+    fname = new char[strlen(argv[1]) + 5];
+    strcpy(fname, argv[1]);
 
     // Print the name of the user-specified problem
     std::cout << std::endl << comment << "FEM Input: " << fname << std::endl;
 
     // Check if a solver is specified as well
-    if (ac == 3)
+    if (argc == 3)
     {
-      currsolver = *av[2];
+      currsolver = *argv[2];
       std::cout << "currsolver = " << currsolver << std::endl;
     }
   }
@@ -175,7 +174,7 @@ itkFEMElementTest(int ac, char * av[])
     itk::fem::LinearSystemWrapperDenseVNL lsw_dvnl;
     itk::fem::LinearSystemWrapperItpack   lsw_itpack;
     itk::fem::LinearSystemWrapperVNL      lsw_vnl;
-    for (s = 0; s < numsolvers; s++)
+    for (int s = 0; s < numsolvers; ++s)
     {
       if (s == 2)
       {
@@ -370,7 +369,7 @@ itkFEMElementTest(int ac, char * av[])
       std::cout << comment << "Test PASSED" << std::endl;
     }
   }
-  catch (::itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "ITK exception detected: " << err;
     std::cout << "Test FAILED" << std::endl;
@@ -391,14 +390,14 @@ PrintK(itk::fem::Solver & S, int s, char)
 {
   itk::fem::LinearSystemWrapper::Pointer lsw = S.GetLinearSystemWrapper();
 
-  std::cout << std::endl << "k" << s << "=[";
-  for (unsigned int j = 0; j < lsw->GetSystemOrder(); j++)
+  std::cout << std::endl << 'k' << s << "=[";
+  for (unsigned int j = 0; j < lsw->GetSystemOrder(); ++j)
   {
     if (IDL_OUTPUT)
     {
       std::cout << " [";
     }
-    for (unsigned int k = 0; k < lsw->GetSystemOrder(); k++)
+    for (unsigned int k = 0; k < lsw->GetSystemOrder(); ++k)
     {
       if (k > 0)
       {
@@ -414,7 +413,7 @@ PrintK(itk::fem::Solver & S, int s, char)
       }
       else
       {
-        std::cout << "]";
+        std::cout << ']';
       }
     }
     else if (MATLAB_OUTPUT)
@@ -426,9 +425,9 @@ PrintK(itk::fem::Solver & S, int s, char)
 
   vnl_matrix<Float> debugMatrix;
   debugMatrix.set_size(lsw->GetSystemOrder(), lsw->GetSystemOrder());
-  for (unsigned int j = 0; j < lsw->GetSystemOrder(); j++)
+  for (unsigned int j = 0; j < lsw->GetSystemOrder(); ++j)
   {
-    for (unsigned int k = 0; k < lsw->GetSystemOrder(); k++)
+    for (unsigned int k = 0; k < lsw->GetSystemOrder(); ++k)
     {
       debugMatrix(j, k) = lsw->GetMatrixValue(j, k);
     }
@@ -443,8 +442,8 @@ PrintF(itk::fem::Solver & S, int s, char)
 {
   itk::fem::LinearSystemWrapper::Pointer lsw = S.GetLinearSystemWrapper();
 
-  std::cout << std::endl << "f" << s << "=[";
-  for (unsigned int j = 0; j < lsw->GetSystemOrder(); j++)
+  std::cout << std::endl << 'f' << s << "=[";
+  for (unsigned int j = 0; j < lsw->GetSystemOrder(); ++j)
   {
     if (j > 0)
     {
@@ -485,7 +484,7 @@ PrintNodalCoordinates(itk::fem::Solver & S, int w, char comment)
       // changes made - kiran
       else
       {
-        std::cout << "]";
+        std::cout << ']';
       }
     }
     else if (MATLAB_OUTPUT)
@@ -501,11 +500,11 @@ PrintU(itk::fem::Solver & S, int s, char comment)
 // Prints the components of the problem for debugging/reporting purposes
 {
   std::cout << std::endl << comment << "Displacements: " << std::endl;
-  std::cout << "u" << s << "=[";
+  std::cout << 'u' << s << "=[";
   // changes made - kiran
-  // for( ::itk::fem::Solver::NodeArray::iterator n = S.node.begin();
+  // for( itk::fem::Solver::NodeArray::iterator n = S.node.begin();
   // n!=S.node.end(); n++) {
-  for (::itk::fem::Solver::NodeArray::iterator n = S.GetNodeArray().begin(); n != S.GetNodeArray().end(); ++n)
+  for (itk::fem::Solver::NodeArray::iterator n = S.GetNodeArray().begin(); n != S.GetNodeArray().end(); ++n)
   {
     // changes made - kiran
     if (IDL_OUTPUT)
@@ -513,10 +512,10 @@ PrintU(itk::fem::Solver & S, int s, char comment)
       std::cout << " [";
     }
     /** For each DOF in the node... */
-    for (unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d)) != ::itk::fem::Element::InvalidDegreeOfFreedomID;
+    for (unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d)) != itk::fem::Element::InvalidDegreeOfFreedomID;
          d++)
     {
-      if (d > 0 && d != ::itk::fem::Element::InvalidDegreeOfFreedomID)
+      if (d > 0 && d != itk::fem::Element::InvalidDegreeOfFreedomID)
       {
         std::cout << ", ";
       }
@@ -533,7 +532,7 @@ PrintU(itk::fem::Solver & S, int s, char comment)
       // changes made - kiran
       else
       {
-        std::cout << "]";
+        std::cout << ']';
       }
     }
     else if (MATLAB_OUTPUT)
@@ -553,16 +552,16 @@ CheckDisplacements(itk::fem::Solver & S, int s, char comment, double * expectedR
   bool foundError = false;
 
   std::cout << std::endl << comment << "NodeArray: " << std::endl;
-  for (::itk::fem::Solver::NodeArray::iterator n = S.GetNodeArray().begin(); n != S.GetNodeArray().end(); ++n)
+  for (itk::fem::Solver::NodeArray::iterator n = S.GetNodeArray().begin(); n != S.GetNodeArray().end(); ++n)
   {
-    for (unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d)) != ::itk::fem::Element::InvalidDegreeOfFreedomID;
+    for (unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d)) != itk::fem::Element::InvalidDegreeOfFreedomID;
          d++)
     {
       double result = S.GetSolution(dof);
-      if (std::fabs(result - expectedResults[index]) > tolerance)
+      if (itk::Math::abs(result - expectedResults[index]) > tolerance)
       {
         std::cout << "Error: Result (" << result << ") expected (" << expectedResults[index] << ") with tolerance ("
-                  << tolerance << ")" << std::endl;
+                  << tolerance << ')' << std::endl;
         foundError = true;
       }
       index++;

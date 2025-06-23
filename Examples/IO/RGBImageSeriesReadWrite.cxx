@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -86,8 +86,8 @@ main(int argc, char ** argv)
   using SeriesReaderType = itk::ImageSeriesReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  SeriesReaderType::Pointer seriesReader = SeriesReaderType::New();
-  WriterType::Pointer       writer = WriterType::New();
+  auto seriesReader = SeriesReaderType::New();
+  auto writer = WriterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -107,7 +107,7 @@ main(int argc, char ** argv)
   // Software Guide : BeginCodeSnippet
   using NameGeneratorType = itk::NumericSeriesFileNames;
 
-  NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+  auto nameGenerator = NameGeneratorType::New();
 
   nameGenerator->SetStartIndex(first);
   nameGenerator->SetEndIndex(last);
@@ -188,7 +188,7 @@ main(int argc, char ** argv)
 
   using SeriesWriterType = itk::ImageSeriesWriter<ImageType, Image2DType>;
 
-  SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New();
+  auto seriesWriter = SeriesWriterType::New();
 
   seriesWriter->SetInput(seriesReader->GetOutput());
   // Software Guide : EndCodeSnippet

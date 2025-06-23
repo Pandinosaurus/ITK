@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,9 @@
 #ifndef itkThresholdSegmentationLevelSetFunction_hxx
 #define itkThresholdSegmentationLevelSetFunction_hxx
 
-#include "itkThresholdSegmentationLevelSetFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkLaplacianImageFilter.h"
-#include "itkImageFileWriter.h"
 
 namespace itk
 {
@@ -30,10 +28,8 @@ template <typename TImageType, typename TFeatureImageType>
 void
 ThresholdSegmentationLevelSetFunction<TImageType, TFeatureImageType>::CalculateSpeedImage()
 {
-  typename GradientAnisotropicDiffusionImageFilter<TFeatureImageType, TFeatureImageType>::Pointer diffusion =
-    GradientAnisotropicDiffusionImageFilter<TFeatureImageType, TFeatureImageType>::New();
-  typename LaplacianImageFilter<TFeatureImageType, TFeatureImageType>::Pointer laplacian =
-    LaplacianImageFilter<TFeatureImageType, TFeatureImageType>::New();
+  auto diffusion = GradientAnisotropicDiffusionImageFilter<TFeatureImageType, TFeatureImageType>::New();
+  auto laplacian = LaplacianImageFilter<TFeatureImageType, TFeatureImageType>::New();
 
   ImageRegionIterator<FeatureImageType>      lit;
   ImageRegionConstIterator<FeatureImageType> fit(this->GetFeatureImage(),
@@ -58,10 +54,10 @@ ThresholdSegmentationLevelSetFunction<TImageType, TFeatureImageType>::CalculateS
   this->GetSpeedImage()->CopyInformation(this->GetFeatureImage());
 
   // Calculate the speed image
-  auto            upper_threshold = static_cast<ScalarValueType>(m_UpperThreshold);
-  auto            lower_threshold = static_cast<ScalarValueType>(m_LowerThreshold);
-  ScalarValueType mid = ((upper_threshold - lower_threshold) / 2.0) + lower_threshold;
-  ScalarValueType threshold;
+  auto                  upper_threshold = static_cast<ScalarValueType>(m_UpperThreshold);
+  auto                  lower_threshold = static_cast<ScalarValueType>(m_LowerThreshold);
+  const ScalarValueType mid = ((upper_threshold - lower_threshold) / 2.0) + lower_threshold;
+  ScalarValueType       threshold;
   for (fit.GoToBegin(), sit.GoToBegin(); !fit.IsAtEnd(); ++sit, ++fit)
   {
     if (static_cast<ScalarValueType>(fit.Get()) < mid)

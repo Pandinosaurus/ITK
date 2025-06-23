@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,8 @@ itkAutoCropLabelMapFilterTest2(int argc, char * argv[])
 
   if (argc != 6)
   {
-    std::cerr << "usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputLabelImage outputLabelImage1 outputLabelImage2 label1 label2" << std::endl;
     return EXIT_FAILURE;
   }
@@ -56,33 +57,33 @@ itkAutoCropLabelMapFilterTest2(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using ImageToLabelMapFilterType = itk::LabelImageToLabelMapFilter<ImageType, LabelMapType>;
-  ImageToLabelMapFilterType::Pointer imageToLabelMapFilter = ImageToLabelMapFilterType::New();
+  auto imageToLabelMapFilter = ImageToLabelMapFilterType::New();
   imageToLabelMapFilter->SetInput(reader->GetOutput());
-  itk::SimpleFilterWatcher watcher(imageToLabelMapFilter, "LabelImageToLabelMapFilter");
+  const itk::SimpleFilterWatcher watcher(imageToLabelMapFilter, "LabelImageToLabelMapFilter");
 
   using SelectionType = itk::LabelSelectionLabelMapFilter<LabelMapType>;
-  SelectionType::Pointer select = SelectionType::New();
+  auto select = SelectionType::New();
   select->SetInput(imageToLabelMapFilter->GetOutput());
-  itk::SimpleFilterWatcher watcher2(select, "LabelSelectionLabelMapFilter");
+  const itk::SimpleFilterWatcher watcher2(select, "LabelSelectionLabelMapFilter");
 
   using AutoCropLabelMapFilterType = itk::AutoCropLabelMapFilter<LabelMapType>;
-  AutoCropLabelMapFilterType::Pointer autoCropFilter = AutoCropLabelMapFilterType::New();
+  auto autoCropFilter = AutoCropLabelMapFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(autoCropFilter, AutoCropLabelMapFilter, ChangeRegionLabelMapFilter);
 
   autoCropFilter->SetInput(select->GetOutput());
-  itk::SimpleFilterWatcher watcher3(autoCropFilter, "AutoCropLabelMapFilter");
+  const itk::SimpleFilterWatcher watcher3(autoCropFilter, "AutoCropLabelMapFilter");
 
   using LabelMapToLabelImageFilterType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
+  auto labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
   labelMapToLabelImageFilter->SetInput(autoCropFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(labelMapToLabelImageFilter->GetOutput());
 
   // First label

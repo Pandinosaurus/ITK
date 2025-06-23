@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 
 import os, sys
 import re
@@ -40,6 +39,7 @@ NOTE: IO modules, other than ITKIOImageBase, are not discovered
     )
     exit(0)
 
+
 # Build a dict that maps include files to paths
 def IncludesToPaths(path):
     includeToPath = dict()
@@ -58,19 +58,19 @@ def IncludesToPaths(path):
 def FindModules(path):
     pathToModule = dict()
     fileProg = re.compile(r"itk-module.cmake")
-    moduleProg = re.compile(".*itk_module[^(]*\(([^ \n]*)", re.S)
+    moduleProg = re.compile(".*itk_module[^(]*\\(([^ \n]*)", re.S)
     for root, dirs, files in os.walk(path):
         for f in files:
             if fileProg.match(f):
-                fid = open(root + os.sep + f, "r")
+                fid = open(root + os.sep + f)
                 contents = fid.read()
                 m = moduleProg.match(contents)
                 if m:
                     moduleName = m.group(1)
                     parts = root.split(os.sep)
-                    pathToModule[
-                        parts[len(parts) - 2] + parts[len(parts) - 1]
-                    ] = moduleName
+                    pathToModule[parts[len(parts) - 2] + parts[len(parts) - 1]] = (
+                        moduleName
+                    )
                 fid.close()
     return pathToModule
 
@@ -79,7 +79,7 @@ def FindModules(path):
 def FindIncludes(path):
     includes = set()
     includeProg = re.compile(r"(itk.*\.h)")
-    fid = open(path, "r")
+    fid = open(path)
     contents = fid.read()
     incs = includeProg.findall(contents)
     includes.update(incs)

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itkPromoteDimensionImageTest(int argc, char * argv[])
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << itkNameOfTestExecutableMacro(argv) << " inputImage outputImage " << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   const char * inputFilename = argv[1];
@@ -54,12 +54,12 @@ itkPromoteDimensionImageTest(int argc, char * argv[])
   using RescaleFilter = itk::RescaleIntensityImageFilter<RealImageType, RealImageType>;
 
   // Setting the IO
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
-  CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
-  CastToCharFilterType::Pointer toChar = CastToCharFilterType::New();
-  RescaleFilter::Pointer        rescale = RescaleFilter::New();
+  auto toReal = CastToRealFilterType::New();
+  auto toChar = CastToCharFilterType::New();
+  auto rescale = RescaleFilter::New();
 
   // Setting the ITK pipeline filter
 
@@ -75,17 +75,8 @@ itkPromoteDimensionImageTest(int argc, char * argv[])
   toChar->SetInput(rescale->GetOutput());
   writer->SetInput(toChar->GetOutput());
 
-  try
-  {
-    writer->Update();
-    // toChar->GetOutput()->Print(std::cout);
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << "ExceptionObject caught !" << std::endl;
-    std::cout << err << std::endl;
-    return -1;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

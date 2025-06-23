@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -126,7 +126,7 @@ main(int argc, char * argv[])
   using ThresholdingFilterType =
     itk::BinaryThresholdImageFilter<InternalImageType, OutputImageType>;
 
-  ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
+  auto thresholder = ThresholdingFilterType::New();
 
   thresholder->SetUpperThreshold(10.0);
   thresholder->SetLowerThreshold(0.0);
@@ -134,16 +134,8 @@ main(int argc, char * argv[])
   thresholder->SetOutsideValue(0);
   thresholder->SetInsideValue(255);
 
-  using ReaderType = itk::ImageFileReader<InternalImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader1->SetFileName(argv[1]);
-  reader2->SetFileName(argv[2]);
-  writer->SetFileName(argv[3]);
+  const auto input1 = itk::ReadImage<InternalImageType>(argv[1]);
+  const auto input2 = itk::ReadImage<InternalImageType>(argv[2]);
 
   //  Software Guide : BeginLatex
   //
@@ -157,7 +149,7 @@ main(int argc, char * argv[])
   using DiffusionFilterType =
     itk::GradientAnisotropicDiffusionImageFilter<InternalImageType,
                                                  InternalImageType>;
-  DiffusionFilterType::Pointer diffusion = DiffusionFilterType::New();
+  auto diffusion = DiffusionFilterType::New();
   diffusion->SetNumberOfIterations(5);
   diffusion->SetTimeStep(0.125);
   diffusion->SetConductanceParameter(1.0);
@@ -174,8 +166,7 @@ main(int argc, char * argv[])
   using CannySegmentationLevelSetImageFilterType =
     itk::CannySegmentationLevelSetImageFilter<InternalImageType,
                                               InternalImageType>;
-  CannySegmentationLevelSetImageFilterType::Pointer cannySegmentation =
-    CannySegmentationLevelSetImageFilterType::New();
+  auto cannySegmentation = CannySegmentationLevelSetImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -193,7 +184,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   //  Software Guide : BeginCodeSnippet
-  cannySegmentation->SetAdvectionScaling(::std::stod(argv[6]));
+  cannySegmentation->SetAdvectionScaling(std::stod(argv[6]));
   cannySegmentation->SetCurvatureScaling(1.0);
   cannySegmentation->SetPropagationScaling(0.0);
   //  Software Guide : EndCodeSnippet
@@ -209,7 +200,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   cannySegmentation->SetMaximumRMSError(0.01);
-  cannySegmentation->SetNumberOfIterations(::std::stoi(argv[8]));
+  cannySegmentation->SetNumberOfIterations(std::stoi(argv[8]));
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -225,8 +216,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  cannySegmentation->SetThreshold(::std::stod(argv[4]));
-  cannySegmentation->SetVariance(::std::stod(argv[5]));
+  cannySegmentation->SetThreshold(std::stod(argv[4]));
+  cannySegmentation->SetVariance(std::stod(argv[5]));
   // Software Guide : EndCodeSnippet
 
 
@@ -239,7 +230,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  cannySegmentation->SetIsoSurfaceValue(::std::stod(argv[7]));
+  cannySegmentation->SetIsoSurfaceValue(std::stod(argv[7]));
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -250,18 +241,16 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  diffusion->SetInput(reader1->GetOutput());
-  cannySegmentation->SetInput(reader2->GetOutput());
+  diffusion->SetInput(input1);
+  cannySegmentation->SetInput(input2);
   cannySegmentation->SetFeatureImage(diffusion->GetOutput());
   thresholder->SetInput(cannySegmentation->GetOutput());
-  writer->SetInput(thresholder->GetOutput());
   // Software Guide : EndCodeSnippet
 
 
   //  Software Guide : BeginLatex
   //
-  //  Invoking the \code{Update()} method on the writer triggers the
-  //  execution of the pipeline.  As usual, the call is placed in a
+  //  As usual, the write image call is placed in a
   //  \code{try/catch} block to handle any exceptions that may be thrown.
   //
   //  Software Guide : EndLatex
@@ -269,7 +258,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   try
   {
-    writer->Update();
+    itk::WriteImage(thresholder->GetOutput(), argv[3]);
   }
   catch (const itk::ExceptionObject & excep)
   {
@@ -359,7 +348,7 @@ main(int argc, char * argv[])
     using SpeedImageType =
       CannySegmentationLevelSetImageFilterType::SpeedImageType;
     using SpeedWriterType = itk::ImageFileWriter<SpeedImageType>;
-    SpeedWriterType::Pointer speedWriter = SpeedWriterType::New();
+    auto speedWriter = SpeedWriterType::New();
 
     speedWriter->SetInput(cannySegmentation->GetSpeedImage());
     //  Software Guide : EndCodeSnippet

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkRegularSphereMeshSource.h"
 #include "itkFastMarchingThresholdStoppingCriterion.h"
 #include "itkMeshFileWriter.h"
+#include "itkTestingMacros.h"
 
 int
 itkFastMarchingQuadEdgeMeshFilterBaseTest(int, char *[])
@@ -44,21 +45,20 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest(int, char *[])
 
   using FastMarchingType = itk::FastMarchingQuadEdgeMeshFilterBase<MeshType, MeshType>;
 
-  MeshType::PointType center;
-  center.Fill(0.);
+  const MeshType::PointType center{};
 
   using SphereSourceType = itk::RegularSphereMeshSource<MeshType>;
-  SphereSourceType::Pointer sphere_filter = SphereSourceType::New();
+  auto sphere_filter = SphereSourceType::New();
   sphere_filter->SetCenter(center);
   sphere_filter->SetResolution(5);
   sphere_filter->Update();
 
-  MeshType::Pointer sphere_output = sphere_filter->GetOutput();
+  const MeshType::Pointer sphere_output = sphere_filter->GetOutput();
 
-  MeshType::PointsContainerConstPointer points = sphere_output->GetPoints();
+  const MeshType::PointsContainerConstPointer points = sphere_output->GetPoints();
 
-  MeshType::PointsContainerConstIterator p_it = points->Begin();
-  MeshType::PointsContainerConstIterator p_end = points->End();
+  MeshType::PointsContainerConstIterator       p_it = points->Begin();
+  const MeshType::PointsContainerConstIterator p_end = points->End();
 
   while (p_it != p_end)
   {
@@ -70,33 +70,25 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest(int, char *[])
   //  using NodeContainerType = FastMarchingType::NodeContainerType;
   using NodePairContainerType = FastMarchingType::NodePairContainerType;
 
-  NodePairContainerType::Pointer trial = NodePairContainerType::New();
+  auto trial = NodePairContainerType::New();
 
-  NodePairType node_pair(0, 0.);
+  const NodePairType node_pair(0, 0.);
   trial->push_back(node_pair);
 
   using CriterionType = itk::FastMarchingThresholdStoppingCriterion<MeshType, MeshType>;
-  CriterionType::Pointer criterion = CriterionType::New();
+  auto criterion = CriterionType::New();
   criterion->SetThreshold(100.);
 
-  FastMarchingType::Pointer fmm_filter = FastMarchingType::New();
+  auto fmm_filter = FastMarchingType::New();
   fmm_filter->SetInput(sphere_output);
   fmm_filter->SetTrialPoints(trial);
   fmm_filter->SetStoppingCriterion(criterion);
 
-  try
-  {
-    fmm_filter->Update();
-  }
-  catch (const itk::ExceptionObject & excep)
-  {
-    std::cerr << "Exception caught !" << std::endl;
-    std::cerr << excep << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(fmm_filter->Update());
+
 
   using WriterType = itk::MeshFileWriter<MeshType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(fmm_filter->GetOutput());
   writer->SetFileName("itkFastMarchingQuadEdgeMeshFilterBase.vtk");
   writer->Update();

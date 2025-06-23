@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,14 +55,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianSpatialFunction, SpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianSpatialFunction);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Type used to store gaussian parameters. */
   using ArrayType = FixedArray<double, VImageDimension>;
@@ -72,32 +72,36 @@ public:
   Evaluate(const TInput & position) const override;
 
   /** Set/Get the scale factor to multiply the true value of the Gaussian. */
+  /** @ITKStartGrouping */
   itkSetMacro(Scale, double);
   itkGetConstMacro(Scale, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get whether or not to normalize the Gaussian. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(Normalized, bool);
   itkGetConstMacro(Normalized, bool);
   itkBooleanMacro(Normalized);
-
+  /** @ITKEndGrouping */
   /** Set/Get the standard deviation in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sigma, ArrayType);
   itkGetConstMacro(Sigma, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mean in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Mean, ArrayType);
   itkGetConstMacro(Mean, ArrayType);
-
+  /** @ITKEndGrouping */
 protected:
-  GaussianSpatialFunction();
+  GaussianSpatialFunction() = default;
   ~GaussianSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ArrayType m_Sigma;
+  ArrayType m_Sigma{ ArrayType::Filled(5.0) };
 
-  ArrayType m_Mean;
+  ArrayType m_Mean{ ArrayType::Filled(10.0) };
 
   double m_Scale{ 1.0 };
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,11 +21,12 @@
 #include "itkSingleValuedNonLinearVnlOptimizerv4.h"
 #include "vnl/algo/vnl_amoeba.h"
 #include "ITKOptimizersv4Export.h"
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
 /**
- *\class AmoebaOptimizerv4
+ * \class AmoebaOptimizerv4
  * \brief Wrap of the vnl_amoeba algorithm
  *
  * AmoebaOptimizerv4 is a wrapper around the vnl_amoeba algorithm which
@@ -44,7 +45,7 @@ namespace itk
  * automatically (by constructing a very small simplex around the
  * initial position) or uses a user supplied simplex size.
  *
- * The method SetOptimizeWithRestarts() indicates that the amoeabe algorithm
+ * The method SetOptimizeWithRestarts() indicates that the amoeba algorithm
  * should be rerun after if converges. This heuristic increases the chances
  * of escaping from a local optimum. Each time the simplex is initialized with
  * the best solution obtained by the previous runs. The edge length is half of
@@ -72,8 +73,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AmoebaOptimizerv4, SingleValuedNonLinearVnlOptimizerv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AmoebaOptimizerv4);
 
   /**  Parameters type.
    *  It defines a position in the optimization search space. */
@@ -98,42 +99,47 @@ public:
    * used to define the initial simplex, setting the ith corner of the
    * simplex as [x0[0], x0[1], ..., x0[i]+InitialSimplexDelta[i], ...,
    * x0[d-1]]. */
+  /** @ITKStartGrouping */
   itkSetMacro(AutomaticInitialSimplex, bool);
   itkBooleanMacro(AutomaticInitialSimplex);
   itkGetConstMacro(AutomaticInitialSimplex, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mode that determines if we want to use multiple runs of the
    * Amoeba optimizer. If true, then the optimizer is rerun after it converges.
    * The additional runs are performed using a simplex initialized with the
    * best solution obtained by the previous runs. The edge length is half of
    * that from the previous iteration.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(OptimizeWithRestarts, bool);
   itkBooleanMacro(OptimizeWithRestarts);
   itkGetConstMacro(OptimizeWithRestarts, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get the deltas that are used to define the initial simplex
    * when AutomaticInitialSimplex is off. */
+  /** @ITKStartGrouping */
   void
   SetInitialSimplexDelta(ParametersType initialSimplexDelta, bool automaticInitialSimplex = false);
   itkGetConstMacro(InitialSimplexDelta, ParametersType);
-
+  /** @ITKEndGrouping */
   /** The optimization algorithm will terminate when the simplex
    * diameter and the difference in cost function values at the corners of
    * the simplex falls below user specified thresholds. The simplex
    * diameter threshold is set via SetParametersConvergenceTolerance().*/
+  /** @ITKStartGrouping */
   itkSetMacro(ParametersConvergenceTolerance, double);
   itkGetConstMacro(ParametersConvergenceTolerance, double);
-
+  /** @ITKEndGrouping */
   /** The optimization algorithm will terminate when the simplex
    * diameter and the difference in cost function values at the corners of
    * the simplex falls below user specified thresholds. The cost function
    * convergence threshold is set via SetFunctionConvergenceTolerance().*/
+  /** @ITKStartGrouping */
   itkSetMacro(FunctionConvergenceTolerance, double);
   itkGetConstMacro(FunctionConvergenceTolerance, double);
-
+  /** @ITKEndGrouping */
   /** Report the reason for stopping. */
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
   /** Method for getting access to the internal optimizer. */
@@ -153,14 +159,14 @@ private:
   void
   ValidateSettings();
 
-  ParametersType::ValueType m_ParametersConvergenceTolerance;
-  MeasureType               m_FunctionConvergenceTolerance;
-  bool                      m_AutomaticInitialSimplex;
-  ParametersType            m_InitialSimplexDelta;
-  bool                      m_OptimizeWithRestarts;
-  vnl_amoeba *              m_VnlOptimizer;
+  ParametersType::ValueType   m_ParametersConvergenceTolerance{};
+  MeasureType                 m_FunctionConvergenceTolerance{};
+  bool                        m_AutomaticInitialSimplex{};
+  ParametersType              m_InitialSimplexDelta{};
+  bool                        m_OptimizeWithRestarts{};
+  std::unique_ptr<vnl_amoeba> m_VnlOptimizer;
 
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{};
 };
 } // end namespace itk
 

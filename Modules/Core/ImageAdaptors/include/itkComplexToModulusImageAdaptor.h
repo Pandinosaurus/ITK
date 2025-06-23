@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 namespace Accessor
 {
 /**
- *\class ComplexToModulusPixelAccessor
+ * \class ComplexToModulusPixelAccessor
  * \brief Give access to the Modulus of a std::complex<> value.
  *
  * ComplexToModulusPixelAccessor is templated over an internal type and an
@@ -65,8 +65,8 @@ public:
 } // end namespace Accessor
 
 /**
- *\class ComplexToModulusImageAdaptor
- * \brief Presents a complex image as being composed of std::abs() part
+ * \class ComplexToModulusImageAdaptor
+ * \brief Presents a complex image as being composed of itk::Math::abs() part
  * of its pixels.
  *
  * Additional casting is performed according to the input and output image
@@ -93,8 +93,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ComplexToModulusImageAdaptor, ImageAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ComplexToModulusImageAdaptor);
 
 protected:
   ComplexToModulusImageAdaptor() = default;

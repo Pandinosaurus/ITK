@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -126,8 +126,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(DisplacementFieldJacobianDeterminantFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DisplacementFieldJacobianDeterminantFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -157,7 +157,7 @@ public:
   using RadiusType = typename ConstNeighborhoodIteratorType::RadiusType;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** DisplacementFieldJacobianDeterminantFilter needs a larger input requested
    * region than the output requested region (larger by the kernel
@@ -176,11 +176,12 @@ public:
    * acquired; use Off to reset the derivative weights, ignore the image
    * spacing, and to compute the Jacobian determinant in the image space.
    * Default is On. */
+  /** @ITKStartGrouping */
   void
   SetUseImageSpacing(bool);
   itkGetConstMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_FUTURE_LEGACY_REMOVE)
   /** Set the derivative weights according to the spacing of the input image
       (1/spacing). Use this option if you want to calculate the Jacobian
@@ -208,10 +209,11 @@ public:
 
   /** Directly Set/Get the array of weights used in the gradient calculations.
       Note that calling UseImageSpacingOn will clobber these values. */
+  /** @ITKStartGrouping */
   void
   SetDerivativeWeights(const WeightsType &);
   itkGetConstReferenceMacro(DerivativeWeights, WeightsType);
-
+  /** @ITKEndGrouping */
 protected:
   DisplacementFieldJacobianDeterminantFilter();
   ~DisplacementFieldJacobianDeterminantFilter() override = default;
@@ -247,26 +249,28 @@ protected:
   itkGetConstObjectMacro(RealValuedInputImage, ImageBaseType);
 
   /** Get/Set the neighborhood radius used for gradient computation */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(NeighborhoodRadius, RadiusType);
   itkSetMacro(NeighborhoodRadius, RadiusType);
-
+  /** @ITKEndGrouping */
   virtual TRealType
   EvaluateAtNeighborhood(const ConstNeighborhoodIteratorType & it) const;
 
   /** The weights used to scale partial derivatives during processing */
-  WeightsType m_DerivativeWeights;
+  WeightsType m_DerivativeWeights{};
+
   /** Pre-compute 0.5*m_DerivativeWeights since that is the only thing used in
     the computations. */
-  WeightsType m_HalfDerivativeWeights;
+  WeightsType m_HalfDerivativeWeights{};
 
 private:
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{ true };
 
-  ThreadIdType m_RequestedNumberOfThreads;
+  ThreadIdType m_RequestedNumberOfWorkUnits{};
 
-  typename ImageBaseType::ConstPointer m_RealValuedInputImage;
+  typename ImageBaseType::ConstPointer m_RealValuedInputImage{};
 
-  RadiusType m_NeighborhoodRadius;
+  RadiusType m_NeighborhoodRadius{};
 };
 } // end namespace itk
 

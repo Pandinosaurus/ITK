@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,8 +82,8 @@ public:
   /** Smart pointer type alias support  */
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(TobogganImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TobogganImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -101,12 +101,8 @@ public:
   /** Neighborhood iterator type */
   using NeighborhoodIteratorType = ConstNeighborhoodIterator<Image<float, 2>>;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(LessThanComparableCheck, (Concept::LessThanComparable<InputImagePixelType>));
   itkConceptMacro(OStreamWritableCheck, (Concept::OStreamWritable<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   TobogganImageFilter() = default;

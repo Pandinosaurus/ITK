@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
 
   using MembershipVectorType = MaximumRatioDecisionRuleType::MembershipVectorType;
 
-  MaximumRatioDecisionRuleType::Pointer decisionRule = MaximumRatioDecisionRuleType::New();
+  auto decisionRule = MaximumRatioDecisionRuleType::New();
 
   std::cout << decisionRule->GetNameOfClass() << std::endl;
   std::cout << decisionRule->MaximumRatioDecisionRuleType::Superclass::GetNameOfClass() << std::endl;
@@ -35,21 +35,17 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
 
   MembershipVectorType membershipScoreVector;
 
-  double membershipScore1;
-  membershipScore1 = 0.1;
+  double membershipScore1 = 0.1;
   membershipScoreVector.push_back(membershipScore1);
 
-  double membershipScore2;
-  membershipScore2 = 0.5;
+  double membershipScore2 = 0.5;
   membershipScoreVector.push_back(membershipScore2);
 
-  double membershipScore3;
-  membershipScore3 = 1.9;
+  double membershipScore3 = 1.9;
   membershipScoreVector.push_back(membershipScore3);
 
   // add discriminantscore with a value of zero
-  double membershipScore4;
-  membershipScore4 = 0.0;
+  double membershipScore4 = 0.0;
   membershipScoreVector.push_back(membershipScore4);
 
 
@@ -66,7 +62,7 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
     std::cerr << "Exception= " << excp << std::endl;
   }
 
-  // Set aprior probablity
+  // Set aprior probability
   using APrioriVectorType = MaximumRatioDecisionRuleType::APrioriVectorType;
   using APrioriValueType = MaximumRatioDecisionRuleType::APrioriValueType;
 

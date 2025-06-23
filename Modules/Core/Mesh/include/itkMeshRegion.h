@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ public:
   using Self = MeshRegion;
   using Superclass = Region;
 
-  /** Standard part of all itk objects. */
-  itkTypeMacro(MeshRegion, Region);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshRegion);
 
   /** Constructor.  MeshRegion is a lightweight object and is not reference
    * counted. */
@@ -68,14 +68,14 @@ public:
   ~MeshRegion() override;
 
   /** Return the region type. Meshes are described with unstructured regions. */
-  RegionEnum
+  [[nodiscard]] RegionEnum
   GetRegionType() const override
   {
     return Superclass::RegionEnum::ITK_UNSTRUCTURED_REGION;
   }
 
   /** Get the number of regions. */
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetNumberOfRegions() const
   {
     return m_NumberOfRegions;
@@ -92,13 +92,13 @@ public:
   }
 
   /** Get the current region. */
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetRegion() const
   {
     return m_Region;
   }
 
-  /** Set the number of regions. */
+  /** Set the current region. */
   void
   SetRegion(SizeValueType region)
   {
@@ -110,10 +110,10 @@ public:
 
 private:
   // The maximum number of regions possible.
-  SizeValueType m_NumberOfRegions;
+  SizeValueType m_NumberOfRegions{};
 
   // The specified region.
-  SizeValueType m_Region;
+  SizeValueType m_Region{};
 };
 } // end namespace itk
 

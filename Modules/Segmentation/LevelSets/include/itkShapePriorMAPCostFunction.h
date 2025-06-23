@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,10 +38,7 @@ namespace itk
  *
  * \sa ShapePriorSegmentationLevelSetImageFilter
  *
- * \par REFERENCES
- * \par
- * [1] Leventon, M.E. et al. "Statistical Shape Influence in Geodesic Active Contours", CVPR 2000.
- *
+ * For algorithmic details see \cite leventon2000.
  *
  * \ingroup Numerics Optimizers
  * \ingroup ITKLevelSets
@@ -61,34 +58,34 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapePriorMAPCostFunction, ShapePriorMAPCostFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapePriorMAPCostFunction);
 
   /**  ParametersType type alias.
    *  It defines a position in the optimization search space. */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Type of the feature image representing the edge potential map. */
-  using FeatureImageType = typename Superclass::FeatureImageType;
-  using FeatureImagePointer = typename Superclass::FeatureImagePointer;
+  using typename Superclass::FeatureImageType;
+  using typename Superclass::FeatureImagePointer;
 
   /** Type of the return measure value. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /** Dimension constant. */
   static constexpr unsigned int ImageDimension = TFeatureImage::ImageDimension;
 
   /** Type of pixel used to represent the level set. */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** Type of node used to represent the active region around the zero set. */
-  using NodeType = typename Superclass::NodeType;
+  using typename Superclass::NodeType;
 
   /** Type of container used to store the level set nodes. */
-  using NodeContainerType = typename Superclass::NodeContainerType;
+  using typename Superclass::NodeContainerType;
 
   /** Type of the shape signed distance function. */
-  using ShapeFunctionType = typename Superclass::ShapeFunctionType;
+  using typename Superclass::ShapeFunctionType;
 
   /** Type of the array for storing shape parameter mean and standard deviation.
    * FIXME: should be templated.
@@ -96,21 +93,24 @@ public:
   using ArrayType = Array<double>;
 
   /** Set/Get the array of shape parameters mean. */
+  /** @ITKStartGrouping */
   itkSetMacro(ShapeParameterMeans, ArrayType);
   itkGetConstMacro(ShapeParameterMeans, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the array of shape parameters standard deviation. */
+  /** @ITKStartGrouping */
   itkSetMacro(ShapeParameterStandardDeviations, ArrayType);
   itkGetConstMacro(ShapeParameterStandardDeviations, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the weights for each term. Default is a vector of all ones.
    * The weights are applied to terms in the following order:
    * LogInsideTerm, LogGradientTerm, LogShapePriorTerm and
    * LogPosePriorTerm. */
+  /** @ITKStartGrouping */
   using WeightsType = FixedArray<double, 4>;
   itkSetMacro(Weights, WeightsType);
   itkGetConstReferenceMacro(Weights, WeightsType);
-
+  /** @ITKEndGrouping */
   /** Compute the inside term component of the MAP cost function.
    * In particular, the method sums the number of pixels inside
    * the current contour (defined by nodes of the active region
@@ -121,7 +121,7 @@ public:
 
   /** Compute the gradient term component of the MAP cost function.
    * In particular, this method assume that ( 1 - FeatureImage ) approximates
-   * a Gaussian (zero mean, unit variance) algon the normal of the evolving contour.
+   * a Gaussian (zero mean, unit variance) along the normal of the evolving contour.
    * The gradient term is then given by a Laplacian of the goodness of fit of
    * the Gaussian. */
   MeasureType
@@ -153,11 +153,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ArrayType   m_ShapeParameterMeans;
-  ArrayType   m_ShapeParameterStandardDeviations;
-  WeightsType m_Weights;
+  ArrayType   m_ShapeParameterMeans{};
+  ArrayType   m_ShapeParameterStandardDeviations{};
+  WeightsType m_Weights{};
 
-  typename GaussianKernelFunction<double>::Pointer m_GaussianFunction;
+  typename GaussianKernelFunction<double>::Pointer m_GaussianFunction{};
 };
 } // end namespace itk
 

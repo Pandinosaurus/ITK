@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -125,11 +125,11 @@ public:
   static std::string &
   TrimRight(std::string & str, const std::string & dislike = " \t\n\r");
 
-  /** Method to covert lower-case characters to upper cases in a string. */
+  /** Method to convert lower-case characters to upper cases in a string. */
   static std::string &
   ToUpperCase(std::string & str);
 
-  /** Method to covert upper-case characters to lower cases in a string. */
+  /** Method to convert upper-case characters to lower cases in a string. */
   static std::string &
   ToLowerCase(std::string & str);
 

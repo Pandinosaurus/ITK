@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkByteSwapper.h"
 #include "Ge4xHdr.h"
 #include "itksys/SystemTools.hxx"
+#include "itkBitCast.h"
 #include <iostream>
 #include <fstream>
 // From uiig library "The University of Iowa Imaging Group-UIIG"
@@ -27,11 +28,7 @@ namespace itk
 {
 // Default constructor
 GE4ImageIO::GE4ImageIO() = default;
-
-GE4ImageIO::~GE4ImageIO()
-{
-  // Purposefully left blank
-}
+GE4ImageIO::~GE4ImageIO() = default;
 
 bool
 GE4ImageIO::CanReadFile(const char * FileNameToRead)
@@ -43,7 +40,7 @@ GE4ImageIO::CanReadFile(const char * FileNameToRead)
   {
     this->OpenFileForReading(f, FileNameToRead);
   }
-  catch (ExceptionObject &)
+  catch (const ExceptionObject &)
   {
     return false;
   }
@@ -74,12 +71,6 @@ GE4ImageIO::CanReadFile(const char * FileNameToRead)
 GEImageHeader *
 GE4ImageIO::ReadHeader(const char * FileNameToRead)
 {
-  // #define VERBOSE_DEBUGGING
-#if defined(VERBOSE_DEBUGGING)
-#  define RGEDEBUG(x) x
-#else
-#  define RGEDEBUG(x)
-#endif
   if (FileNameToRead == nullptr || strlen(FileNameToRead) == 0)
   {
     return nullptr;
@@ -91,18 +82,10 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
     RAISE_EXCEPTION();
   }
   auto * hdr = new GEImageHeader;
-  if (hdr == nullptr)
-  {
-    RAISE_EXCEPTION();
-  }
   // Set modality to UNKNOWN
   strcpy(hdr->modality, "UNK");
 
-  //  RGEDEBUG(char debugbuf[16384];)
-  char      tmpStr[IOCommon::ITK_MAXPATHLEN + 1];
-  int       intTmp;
-  short int tmpShort;
-  float     tmpFloat;
+  char tmpStr[IOCommon::ITK_MAXPATHLEN + 1];
 
   //
   // save off the name of the current file...
@@ -117,7 +100,6 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
 
   this->GetStringAt(f, SIGNA_STHDR_START * 2 + SIGNA_STHDR_DATE_ASCII * 2, tmpStr, 10);
   tmpStr[10] = '\0';
-  RGEDEBUG(std::sprintf(debugbuf, "Date = %s\n", tmpStr); cerr << debugbuf;)
   strncpy(hdr->date, tmpStr, sizeof(hdr->date) - 1);
   hdr->date[sizeof(hdr->date) - 1] = '\0';
 
@@ -130,27 +112,25 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
   /* Get Patient-Number from the STUDY Header */
   this->GetStringAt(f, SIGNA_STHDR_START * 2 + SIGNA_STHDR_PATIENT_ID * 2, tmpStr, 12);
   tmpStr[12] = '\0';
-  RGEDEBUG(std::sprintf(debugbuf, "Patient-Number = %s\n", tmpStr); cerr << debugbuf;)
   strncpy(hdr->patientId, tmpStr, sizeof(hdr->patientId) - 1);
   hdr->patientId[sizeof(hdr->patientId) - 1] = '\0';
 
   /* Get the Exam-Number from the STUDY Header */
   this->GetStringAt(f, SIGNA_STHDR_START * 2 + SIGNA_STHDR_STUDY_NUM * 2, tmpStr, 6);
   tmpStr[6] = '\0';
-  RGEDEBUG(std::sprintf(debugbuf, "Exam-Number = %s\n", tmpStr); cerr << debugbuf;)
   strncpy(hdr->scanId, tmpStr, sizeof(hdr->scanId) - 1);
   hdr->scanId[sizeof(hdr->scanId) - 1] = '\0';
 
   /* Get the FOV from the SERIES Header */
   f.seekg(SIGNA_SEHDR_START * 2 + SIGNA_SEHDR_FOV * 2, std::ios::beg);
   IOCHECK();
-  f.read((char *)&intTmp, sizeof(intTmp));
+  int intTmp = 0;
+  f.read(reinterpret_cast<char *>(&intTmp), sizeof(intTmp));
   IOCHECK();
-  tmpFloat = MvtSunf(intTmp);
+  const float tmpFloat = MvtSunf(intTmp);
 
   hdr->xFOV = tmpFloat;
   hdr->yFOV = hdr->xFOV;
-  RGEDEBUG(std::sprintf(debugbuf, "FOV = %fx%f\n", hdr->xFOV, hdr->yFOV); cerr << debugbuf;)
 
   /* Get the Plane from the IMAGE Header */
   this->GetStringAt(f, SIGNA_SEHDR_START * 2 + SIGNA_SEHDR_PLANENAME * 2, tmpStr, 16);
@@ -158,55 +138,42 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
 
   if (strstr(tmpStr, "CORONAL") != nullptr)
   {
-    // hdr->imagePlane =
-    // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-    // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SRP; // was SLA in the
-    // brains2 filter.
-    hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+    hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                       AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                                       AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
   }
   else if (strstr(tmpStr, "SAGITTAL") != nullptr)
   {
-    // hdr->imagePlane =
-    // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
-    // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SRA;  //was SLP in the
-    // brains2 filter.
-    hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR;
+    hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                                       AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                                       AnatomicalOrientation::CoordinateEnum::RightToLeft);
   }
   else if (strstr(tmpStr, "AXIAL") != nullptr)
   {
-    // hdr->imagePlane =
-    // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
-    // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SRA;  //was SLP in the
-    // brains2 filter.
-    hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+    hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                       AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                                       AnatomicalOrientation::CoordinateEnum::InferiorToSuperior);
   }
   else
   {
-    // hdr->imagePlane =
-    // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-    // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SRP; // was SLA
-    hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+    hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                       AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                                       AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
   }
-  // RGEDEBUG(std::sprintf (debugbuf, "Plane = %d\n", hdr->imagePlane); cerr <<
-  // debugbuf;)
 
   /* Get the Scan Matrix from the IMAGE Header */
   this->GetShortAt(f, SIGNA_SEHDR_START * 2 + SIGNA_SEHDR_SCANMATRIXX * 2, &(hdr->acqXsize));
   this->GetShortAt(f, (SIGNA_SEHDR_START * 2 + SIGNA_SEHDR_SCANMATRIXY * 2) + sizeof(short), &(hdr->acqYsize));
 
-  RGEDEBUG(std::sprintf(debugbuf, "Scan Matrix = %dx%d\n", hdr->acqXsize, hdr->acqYsize); cerr << debugbuf;)
-
   /* Get Series-Number from SERIES Header */
   this->GetStringAt(f, SIGNA_SEHDR_START * 2 + SIGNA_SEHDR_SERIES_NUM * 2, tmpStr, 3);
   tmpStr[3] = '\0';
   hdr->seriesNumber = std::stoi(tmpStr);
-  RGEDEBUG(std::sprintf(debugbuf, "Series Number = %d\n", hdr->seriesNumber); cerr << debugbuf;)
 
   /* Get Image-Number from IMAGE Header */
   this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_IMAGE_NUM * 2, tmpStr, 3);
   tmpStr[3] = '\0';
   hdr->imageNumber = std::stoi(tmpStr);
-  RGEDEBUG(std::sprintf(debugbuf, "Image Number = %d\n", hdr->imageNumber); cerr << debugbuf;)
 
   /* Get Images-Per-Slice from IMAGE Header */
   const int per_slice_status = this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_PHASENUM * 2, tmpStr, 3);
@@ -219,97 +186,82 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
   {
     hdr->imagesPerSlice = 0; // Use default of 0 to mimic previous atoi failure result.
   }
-  RGEDEBUG(std::sprintf(debugbuf, "Images Per Slice = %d\n", hdr->imagesPerSlice); cerr << debugbuf;)
 
   /* Get the Slice Location from the IMAGE Header */
   // hack alert -- and this goes back to a hack in the original code
   // you read in an integer, but you DON'T byte swap it, and then pass
   // it into the MvtSunf function to get the floating point value.
   // to circumvent byte swapping in GetIntAt, use GetStringAt
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICELOC * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICELOC * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->sliceLocation = MvtSunf(intTmp);
 
-  RGEDEBUG(std::sprintf(debugbuf, "Location = %f\n", hdr->sliceLocation); cerr << debugbuf;)
-
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICE_THICK * 2, (char *)&intTmp, sizeof(intTmp));
+  this->GetStringAt(
+    f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICE_THICK * 2, reinterpret_cast<char *>(&intTmp), sizeof(intTmp));
 
   hdr->sliceThickness = MvtSunf(intTmp);
 
-  RGEDEBUG(std::sprintf(debugbuf, "Thickness = %f\n", hdr->sliceThickness); cerr << debugbuf;)
-
   /* Get the Slice Spacing from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICE_SPACING * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(
+    f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_SLICE_SPACING * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->sliceGap = MvtSunf(intTmp);
 
-  RGEDEBUG(std::sprintf(debugbuf, "Slice Gap = %f\n", hdr->sliceGap); cerr << debugbuf;)
-
   /* Get TR from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TR * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TR * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->TR = MvtSunf(intTmp);
 
-  RGEDEBUG(std::sprintf(debugbuf, "TR = %f\n", hdr->TR); cerr << debugbuf;)
-
   /* Get TE from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TE * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TE * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->TE = MvtSunf(intTmp);
-  //  RGEDEBUG(std::sprintf (debugbuf, "TE = %f\n", hdr->TE); cerr << debugbuf;)
 
   /* Get TI from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TI * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_TI * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->TI = MvtSunf(intTmp);
-  RGEDEBUG(std::sprintf(debugbuf, "TI = %f\n", hdr->TI); cerr << debugbuf;)
 
   /* Get Number of Echos from the IMAGE Header */
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_NUMECHOS * 2, &(hdr->numberOfEchoes));
-  RGEDEBUG(std::sprintf(debugbuf, "Number of Echos = %d\n", hdr->numberOfEchoes); cerr << debugbuf;)
 
   /* Get Echo Number from the IMAGE Header */
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_ECHONUM * 2, &(hdr->echoNumber));
-  RGEDEBUG(std::sprintf(debugbuf, "Echo Number = %d\n", hdr->echoNumber); cerr << debugbuf;)
 
   /* Get PSD-Name from the IMAGE Header */
   this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_PSD_NAME * 2, tmpStr, 12);
   tmpStr[12] = '\0';
-  RGEDEBUG(std::sprintf(debugbuf, "PSD Name = %s\n", tmpStr); cerr << debugbuf;)
 
   /* Get X Pixel Dimension from the IMAGE Header */
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_X_DIM * 2, &(hdr->imageXsize));
-  RGEDEBUG(std::sprintf(debugbuf, "X Pixel Dimension = %d\n", hdr->imageXsize); cerr << debugbuf;)
 
   /* Get Y Pixel Dimension from the IMAGE Header */
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_Y_DIM * 2, &(hdr->imageYsize));
-  RGEDEBUG(std::sprintf(debugbuf, "Y Pixel Dimension = %d\n", hdr->imageYsize); cerr << debugbuf;)
 
   /* Get Pixel Size from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_PIXELSIZE * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(
+    f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_PIXELSIZE * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
   hdr->imageXres = MvtSunf(intTmp);
   hdr->imageYres = hdr->imageXres;
-  RGEDEBUG(std::sprintf(debugbuf, "Pixel Size = %fx%f\n", hdr->imageXres, hdr->imageYres); cerr << debugbuf;)
 
   /* Get NEX from the IMAGE Header */
-  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_NEX * 2, (char *)&intTmp, sizeof(int));
+  this->GetStringAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_NEX * 2, reinterpret_cast<char *>(&intTmp), sizeof(int));
 
-  hdr->NEX = (short)MvtSunf(intTmp);
-  RGEDEBUG(std::sprintf(debugbuf, "NEX = %d\n", hdr->NEX); cerr << debugbuf;)
+  hdr->NEX = static_cast<short>(MvtSunf(intTmp));
 
   /* Get Flip Angle from the IMAGE Header */
+  short tmpShort = 0;
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_FLIP * 2, &tmpShort);
 
   if (tmpShort > 0)
   {
-    hdr->flipAngle = (int)tmpShort;
+    hdr->flipAngle = static_cast<int>(tmpShort);
   }
   else
   {
     hdr->flipAngle = 90;
   }
-  RGEDEBUG(std::sprintf(debugbuf, "Flip Angle = %d\n", hdr->flipAngle); cerr << debugbuf;)
 
   // DEBUG: HACK -- what should pulse sequence be?  Is it valid for 4x filters
   // Just setting it to dummy value -- Hans
@@ -320,8 +272,6 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
 
   /* Get the Number of Images from the IMAGE Header */
   this->GetShortAt(f, SIGNA_IHDR_START * 2 + SIGNA_IMHDR_NUMSLICES * 2, &(hdr->numberOfSlices));
-  //  RGEDEBUG(std::sprintf (debugbuf, "Number of SLices = %d\n",
-  // hdr->numberOfSlices); cerr << debugbuf;)
 
   //    status = stat (imageFile, &statBuf);
   //    if (status == -1)
@@ -332,28 +282,28 @@ GE4ImageIO::ReadHeader(const char * FileNameToRead)
   //    hdr->offset = statBuf.st_size - (hdr->imageXsize * hdr->imageYsize * 2);
   //
   // find file length in line ...
-  SizeValueType file_length = itksys::SystemTools::FileLength(FileNameToRead);
+  const SizeValueType file_length = itksys::SystemTools::FileLength(FileNameToRead);
 
   hdr->offset = file_length - (hdr->imageXsize * hdr->imageYsize * 2);
   return hdr;
 }
 
 float
-GE4ImageIO ::MvtSunf(int numb)
+GE4ImageIO::MvtSunf(int numb)
 {
-#define signbit 020000000000U
-#define dmantissa 077777777U
-#define dexponent 0177U
-#define smantissa 037777777U
-#define smantlen 23U
+  constexpr auto signbit = 020000000000U;
+  constexpr auto dmantissa = 077777777U;
+  constexpr auto dexponent = 0177U;
+  constexpr auto smantissa = 037777777U;
+  constexpr auto smantlen = 23U;
   ByteSwapper<int>::SwapFromSystemToBigEndian(&numb);
-  unsigned int dg_exp = (numb >> 24) & dexponent;
-  unsigned int dg_sign = numb & signbit;
-  unsigned int dg_mantissa = (numb & dmantissa) << 8;
-  int          sun_exp = 4 * (dg_exp - 64);
+  const unsigned int dg_exp = (numb >> 24) & dexponent;
+  const unsigned int dg_sign = numb & signbit;
+  unsigned int       dg_mantissa = (numb & dmantissa) << 8;
+  int                sun_exp = 4 * (dg_exp - 64);
   while ((dg_mantissa & signbit) == 0 && dg_mantissa != 0)
   {
-    sun_exp--;
+    --sun_exp;
     dg_mantissa = dg_mantissa << 1;
   }
   sun_exp += 126;
@@ -366,9 +316,7 @@ GE4ImageIO ::MvtSunf(int numb)
     sun_exp = 255;
   }
   dg_mantissa = dg_mantissa << 1;
-  int   sun_num = dg_sign | (sun_exp << smantlen) | ((dg_mantissa >> 9) & smantissa);
-  float x;
-  memcpy(&x, &sun_num, sizeof(x));
-  return x;
+  const unsigned int sun_num{ dg_sign | (sun_exp << smantlen) | ((dg_mantissa >> 9) & smantissa) };
+  return bit_cast<float>(sun_num);
 }
 } // end namespace itk

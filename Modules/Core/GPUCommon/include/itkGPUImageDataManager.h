@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,10 +19,10 @@
 #ifndef itkGPUImageDataManager_h
 #define itkGPUImageDataManager_h
 
-#include <itkObject.h>
-#include <itkTimeStamp.h>
-#include <itkLightObject.h>
-#include <itkObjectFactory.h>
+#include "itkObject.h"
+#include "itkTimeStamp.h"
+#include "itkLightObject.h"
+#include "itkObjectFactory.h"
 #include "itkOpenCLUtil.h"
 #include "itkGPUDataManager.h"
 #include "itkGPUContextManager.h"
@@ -30,7 +30,7 @@
 
 namespace itk
 {
-template <typename TPixel, unsigned int NDimension>
+template <typename TPixel, unsigned int VDimension>
 class GPUImage;
 
 /**
@@ -57,7 +57,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   itkNewMacro(Self);
-  itkTypeMacro(GPUImageDataManager, GPUDataManager);
+  itkOverrideGetNameOfClassMacro(GPUImageDataManager);
 
   static constexpr unsigned int ImageDimension = ImageType::ImageDimension;
 
@@ -86,12 +86,12 @@ protected:
   ~GPUImageDataManager() override = default;
 
 private:
-  WeakPointer<ImageType> m_Image; // WeakPointer has to be used here
-                                  // to avoid SmartPointer loop
-  int                              m_BufferedRegionIndex[ImageType::ImageDimension];
-  int                              m_BufferedRegionSize[ImageType::ImageDimension];
-  typename GPUDataManager::Pointer m_GPUBufferedRegionIndex;
-  typename GPUDataManager::Pointer m_GPUBufferedRegionSize;
+  WeakPointer<ImageType> m_Image{}; // WeakPointer has to be used here
+                                    // to avoid SmartPointer loop
+  int                              m_BufferedRegionIndex[ImageType::ImageDimension]{};
+  int                              m_BufferedRegionSize[ImageType::ImageDimension]{};
+  typename GPUDataManager::Pointer m_GPUBufferedRegionIndex{};
+  typename GPUDataManager::Pointer m_GPUBufferedRegionSize{};
 };
 
 } // namespace itk

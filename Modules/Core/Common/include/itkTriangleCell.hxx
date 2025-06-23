@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +17,14 @@
  *=========================================================================*/
 #ifndef itkTriangleCell_hxx
 #define itkTriangleCell_hxx
-#include "itkTriangleCell.h"
 #include "vnl/algo/vnl_determinant.h"
+
+#include <algorithm> // For copy_n.
+#include <cmath>     // For abs.
 
 namespace itk
 {
-/**
- * Standard CellInterface:
- */
+
 template <typename TCellInterface>
 void
 TriangleCell<TCellInterface>::MakeCopy(CellAutoPointer & cellPointer) const
@@ -33,10 +33,6 @@ TriangleCell<TCellInterface>::MakeCopy(CellAutoPointer & cellPointer) const
   cellPointer->SetPointIds(this->GetPointIds());
 }
 
-/**
- * Standard CellInterface:
- * Get the topological dimension of this cell.
- */
 template <typename TCellInterface>
 unsigned int
 TriangleCell<TCellInterface>::GetDimension() const
@@ -44,10 +40,6 @@ TriangleCell<TCellInterface>::GetDimension() const
   return Self::CellDimension;
 }
 
-/**
- * Standard CellInterface:
- * Get the number of points required to define the cell.
- */
 template <typename TCellInterface>
 unsigned int
 TriangleCell<TCellInterface>::GetNumberOfPoints() const
@@ -55,13 +47,9 @@ TriangleCell<TCellInterface>::GetNumberOfPoints() const
   return Self::NumberOfPoints;
 }
 
-/**
- * Standard CellInterface:
- * Get the number of boundary features of the given dimension.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::CellFeatureCount
-TriangleCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const
+auto
+TriangleCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const -> CellFeatureCount
 {
   switch (dimension)
   {
@@ -74,12 +62,6 @@ TriangleCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const
   }
 }
 
-/**
- * Standard CellInterface:
- * Get the boundary feature of the given dimension specified by the given
- * cell feature Id.
- * The Id can range from 0 to GetNumberOfBoundaryFeatures(dimension)-1.
- */
 template <typename TCellInterface>
 bool
 TriangleCell<TCellInterface>::GetBoundaryFeature(int                   dimension,
@@ -115,31 +97,13 @@ TriangleCell<TCellInterface>::GetBoundaryFeature(int                   dimension
   return false;
 }
 
-/**
- * Standard CellInterface:
- * Set the point id list used by the cell.  It is assumed that the given
- * iterator can be incremented and safely de-referenced enough times to
- * get all the point ids needed by the cell.
- */
 template <typename TCellInterface>
 void
 TriangleCell<TCellInterface>::SetPointIds(PointIdConstIterator first)
 {
-  PointIdConstIterator ii(first);
-
-  for (unsigned int i = 0; i < NumberOfPoints; ++i, ++ii)
-  {
-    m_PointIds[i] = *ii;
-  }
+  std::copy_n(first, Self::NumberOfPoints, m_PointIds.begin());
 }
 
-/**
- * Standard CellInterface:
- * Set the point id list used by the cell.  It is assumed that the range
- * of iterators [first, last) contains the correct number of points needed to
- * define the cell.  The position *last is NOT referenced, so it can safely
- * be one beyond the end of an array or other container.
- */
 template <typename TCellInterface>
 void
 TriangleCell<TCellInterface>::SetPointIds(PointIdConstIterator first, PointIdConstIterator last)
@@ -153,10 +117,6 @@ TriangleCell<TCellInterface>::SetPointIds(PointIdConstIterator first, PointIdCon
   }
 }
 
-/**
- * Standard CellInterface:
- * Set an individual point identifier in the cell.
- */
 template <typename TCellInterface>
 void
 TriangleCell<TCellInterface>::SetPointId(int localId, PointIdentifier ptId)
@@ -164,79 +124,48 @@ TriangleCell<TCellInterface>::SetPointId(int localId, PointIdentifier ptId)
   m_PointIds[localId] = ptId;
 }
 
-/**
- * Standard CellInterface:
- * Get a begin iterator to the list of point identifiers used by the cell.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointIdIterator
-TriangleCell<TCellInterface>::PointIdsBegin()
+auto
+TriangleCell<TCellInterface>::PointIdsBegin() -> PointIdIterator
 {
   return &m_PointIds[0];
 }
 
-/**
- * Standard CellInterface:
- * Get a const begin iterator to the list of point identifiers used
- * by the cell.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointIdConstIterator
-TriangleCell<TCellInterface>::PointIdsBegin() const
+auto
+TriangleCell<TCellInterface>::PointIdsBegin() const -> PointIdConstIterator
 {
   return &m_PointIds[0];
 }
 
-/**
- * Standard CellInterface:
- * Get an end iterator to the list of point identifiers used by the cell.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointIdIterator
-TriangleCell<TCellInterface>::PointIdsEnd()
+auto
+TriangleCell<TCellInterface>::PointIdsEnd() -> PointIdIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
 
-/**
- * Standard CellInterface:
- * Get a const end iterator to the list of point identifiers used
- * by the cell.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointIdConstIterator
-TriangleCell<TCellInterface>::PointIdsEnd() const
+auto
+TriangleCell<TCellInterface>::PointIdsEnd() const -> PointIdConstIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
 
-/**
- * Triangle-specific:
- * Get the number of vertices defining the triangle.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::CellFeatureCount
-TriangleCell<TCellInterface>::GetNumberOfVertices() const
+auto
+TriangleCell<TCellInterface>::GetNumberOfVertices() const -> CellFeatureCount
 {
   return Self::NumberOfVertices;
 }
 
-/**
- * Triangle-specific:
- * Get the number of edges defined for the triangle.
- */
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::CellFeatureCount
-TriangleCell<TCellInterface>::GetNumberOfEdges() const
+auto
+TriangleCell<TCellInterface>::GetNumberOfEdges() const -> CellFeatureCount
 {
   return Self::NumberOfEdges;
 }
 
-/**
- * Triangle-specific:
- * Get the vertex specified by the given cell feature Id.
- * The Id can range from 0 to GetNumberOfVertices()-1.
- */
 template <typename TCellInterface>
 bool
 TriangleCell<TCellInterface>::GetVertex(CellFeatureIdentifier vertexId, VertexAutoPointer & vertexPointer)
@@ -248,11 +177,6 @@ TriangleCell<TCellInterface>::GetVertex(CellFeatureIdentifier vertexId, VertexAu
   return true;
 }
 
-/**
- * Triangle-specific:
- * Get the edge specified by the given cell feature Id.
- * The Id can range from 0 to GetNumberOfEdges()-1.
- */
 template <typename TCellInterface>
 bool
 TriangleCell<TCellInterface>::GetEdge(CellFeatureIdentifier edgeId, EdgeAutoPointer & edgePointer)
@@ -267,17 +191,15 @@ TriangleCell<TCellInterface>::GetEdge(CellFeatureIdentifier edgeId, EdgeAutoPoin
   return true;
 }
 
-/** Compute distance to finite line. Returns parametric coordinate t
- *  and point location on line. */
 template <typename TCellInterface>
 double
-TriangleCell<TCellInterface>::DistanceToLine(PointType      x,
-                                             PointType      p1,
-                                             PointType      p2,
-                                             double &       t,
-                                             CoordRepType * closestPoint)
+TriangleCell<TCellInterface>::DistanceToLine(PointType        x,
+                                             PointType        p1,
+                                             PointType        p2,
+                                             double &         t,
+                                             CoordinateType * closestPoint)
 {
-  // convert from CoordRepType * to PointType:
+  // convert from CoordinateType * to PointType:
   PointType temp(closestPoint);
   //   for (unsigned int i = 0; i < PointDimension; ++i)
   //     {
@@ -287,7 +209,7 @@ TriangleCell<TCellInterface>::DistanceToLine(PointType      x,
   // Compute the squared distance to the line:
   const double distance2 = this->DistanceToLine(x, p1, p2, t, temp);
 
-  // convert from PointType to CoordRepType * :
+  // convert from PointType to CoordinateType * :
   for (unsigned int j = 0; j < PointDimension; ++j)
   {
     closestPoint[j] = temp[j];
@@ -305,9 +227,8 @@ TriangleCell<TCellInterface>::DistanceToLine(PointType   x,
                                              PointType & closestPoint)
 {
   VectorType v21 = p2 - p1;
-  //
-  //   Get parametric location
-  //
+
+  // Get parametric location
   double num(0);
   double denom(0);
 
@@ -317,20 +238,14 @@ TriangleCell<TCellInterface>::DistanceToLine(PointType   x,
     denom += static_cast<double>(v21[i] * v21[i]);
   }
 
-  // trying to avoid an expensive fabs
-  double tolerance = 1.e-05 * num;
-  if (tolerance < 0.0)
-  {
-    tolerance = -tolerance;
-  }
+  const double tolerance = std::abs(1.e-05 * num);
   if ((-tolerance < denom) && (denom < tolerance)) // numerically bad!
   {
     closestPoint = p1; // arbitrary, point is (numerically) far away
   }
-  //
+
   // If parametric coordinate is within 0<=p<=1, then the point is closest to
   // the line.  Otherwise, it's closest to a point at the end of the line.
-  //
   else if ((t = num / denom) < 0.0)
   {
     closestPoint = p1;
@@ -348,8 +263,8 @@ TriangleCell<TCellInterface>::DistanceToLine(PointType   x,
 }
 
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::CoordRepType
-TriangleCell<TCellInterface>::ComputeArea(PointsContainer * iPoints)
+auto
+TriangleCell<TCellInterface>::ComputeArea(PointsContainer * iPoints) -> CoordinateType
 {
   PointType p[3];
 
@@ -358,34 +273,31 @@ TriangleCell<TCellInterface>::ComputeArea(PointsContainer * iPoints)
     p[i] = iPoints->GetElement(m_PointIds[i]);
   }
 
-  CoordRepType a = p[1].EuclideanDistanceTo(p[2]);
-  CoordRepType b = p[0].EuclideanDistanceTo(p[2]);
-  CoordRepType c = p[1].EuclideanDistanceTo(p[0]);
+  CoordinateType a = p[1].EuclideanDistanceTo(p[2]);
+  CoordinateType b = p[0].EuclideanDistanceTo(p[2]);
+  CoordinateType c = p[1].EuclideanDistanceTo(p[0]);
 
-  CoordRepType s = 0.5 * (a + b + c);
+  CoordinateType s = 0.5 * (a + b + c);
   return std::sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointType
-TriangleCell<TCellInterface>::ComputeBarycenter(CoordRepType * iWeights, PointsContainer * iPoints)
+auto
+TriangleCell<TCellInterface>::ComputeBarycenter(CoordinateType * iWeights, PointsContainer * iPoints) -> PointType
 {
-  PointType    p[3];
-  CoordRepType sum_weights(0.);
-  unsigned int i(0);
+  PointType      p[3];
+  CoordinateType sum_weights(0.);
 
-  for (; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     sum_weights += iWeights[i];
     p[i] = iPoints->GetElement(m_PointIds[i]);
   }
 
-  PointType oP;
-
+  PointType oP{};
   if (sum_weights != 0.)
   {
-    oP.Fill(0.);
-    for (i = 0; i < 3; ++i)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       oP += p[i].GetVectorFromOrigin() * iWeights[i] / sum_weights;
     }
@@ -398,156 +310,129 @@ TriangleCell<TCellInterface>::ComputeBarycenter(CoordRepType * iWeights, PointsC
 }
 
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointType
-TriangleCell<TCellInterface>::ComputeCenterOfGravity(PointsContainer * iPoints)
+auto
+TriangleCell<TCellInterface>::ComputeCenterOfGravity(PointsContainer * iPoints) -> PointType
 {
-  std::vector<CoordRepType> weights(3, 1. / 3.);
+  std::vector<CoordinateType> weights(3, 1. / 3.);
   return ComputeBarycenter(&weights[0], iPoints);
 }
 
 template <typename TCellInterface>
-typename TriangleCell<TCellInterface>::PointType
-TriangleCell<TCellInterface>::ComputeCircumCenter(PointsContainer * iPoints)
+auto
+TriangleCell<TCellInterface>::ComputeCircumCenter(PointsContainer * iPoints) -> PointType
 {
-  std::vector<CoordRepType> weights(3, 0.);
+  std::vector<CoordinateType> weights(3, 0.);
 
-  PointType    p[3];
-  unsigned int i;
+  PointType p[3];
 
-  for (i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     p[i] = iPoints->GetElement(m_PointIds[i]);
   }
 
-  CoordRepType a = p[1].SquaredEuclideanDistanceTo(p[2]);
-  CoordRepType b = p[0].SquaredEuclideanDistanceTo(p[2]);
-  CoordRepType c = p[1].SquaredEuclideanDistanceTo(p[0]);
+  CoordinateType a = p[1].SquaredEuclideanDistanceTo(p[2]);
+  CoordinateType b = p[0].SquaredEuclideanDistanceTo(p[2]);
+  CoordinateType c = p[1].SquaredEuclideanDistanceTo(p[0]);
 
   weights[0] = a * (b + c - a);
   weights[1] = b * (c + a - b);
   weights[2] = c * (a + b - c);
 
-  CoordRepType sum_weights = weights[0] + weights[1] + weights[2];
+  CoordinateType sum_weights = weights[0] + weights[1] + weights[2];
 
   if (sum_weights != 0.)
   {
-    PointType oP;
-    oP.Fill(0.);
+    PointType oP{};
 
-    for (i = 0; i < 3; ++i)
+    for (unsigned i = 0; i < 3; ++i)
     {
       oP += p[i].GetVectorFromOrigin() * weights[i] / sum_weights;
     }
 
     return oP;
   }
-  else
-  {
-    return p[0];
-  }
+
+  return p[0];
 }
 
-/** Evaluate the position of a given point inside the cell */
 template <typename TCellInterface>
 bool
-TriangleCell<TCellInterface>::EvaluatePosition(CoordRepType *            x,
+TriangleCell<TCellInterface>::EvaluatePosition(CoordinateType *          x,
                                                PointsContainer *         points,
-                                               CoordRepType *            closestPoint,
-                                               CoordRepType              pcoord[3],
+                                               CoordinateType *          closestPoint,
+                                               CoordinateType            pcoord[],
                                                double *                  minDist2,
                                                InterpolationWeightType * weights)
 {
-  unsigned int i;
-  double       dist2Point;
-  double       dist2Line1;
-  double       dist2Line2;
-  PointType    closest;
-  PointType    closestPoint1;
-  PointType    closestPoint2;
-  PointType    X(x);
+  PointType       closest;
+  PointType       closestPoint1;
+  PointType       closestPoint2;
+  const PointType X(x);
 
   if (!points)
   {
     return false;
   }
 
-  //
   // Get the vertexes of this triangle
-  //
   PointType pt1 = points->GetElement(m_PointIds[0]);
   PointType pt2 = points->GetElement(m_PointIds[1]);
   PointType pt3 = points->GetElement(m_PointIds[2]);
 
-  //
   // Compute Vectors along the edges.
   // These two vectors form a vector base for the 2D space of the triangle cell.
-  //
-  VectorType v12 = pt1 - pt2;
-  VectorType v32 = pt3 - pt2;
+  const VectorType v12 = pt1 - pt2;
+  const VectorType v32 = pt3 - pt2;
 
-  //
   // Compute Vectors in the dual vector base inside the 2D space of the triangle
   // cell.
   // u12 is orthogonal to v32
   // u32 is orthogonal to v12
-  //
   const double dotproduct = v12 * v32;
   VectorType   u12 = v12 - v32 * (dotproduct / v32.GetSquaredNorm());
   VectorType   u32 = v32 - v12 * (dotproduct / v12.GetSquaredNorm());
 
-  //
   // Add normalizations for making {u12,u32} a vector basis orthonormal to {v12,
   // v32}.
-  //
   u12 /= (u12 * v12);
   u32 /= (u32 * v32);
 
-  //
   // Project point to plane, by using the dual vector base
-  //
+
   // Compute components of the input point in the 2D
   // space defined by v12 and v32
-  //
-  VectorType xo = X - pt2;
+  const VectorType xo = X - pt2;
 
   const double u12p = xo * u12;
   const double u32p = xo * u32;
 
-  VectorType x12 = v12 * u12p;
-  VectorType x32 = v32 * u32p;
+  const VectorType x12 = v12 * u12p;
+  const VectorType x32 = v32 * u32p;
 
-  //
   // The projection of point X in the plane is cp
-  //
   PointType cp = pt2 + x12 + x32;
 
-  //
   // Compute barycentric coordinates in the Triangle
-  //
   const double b1 = u12p;
   const double b2 = 1.0 - u12p - u32p;
   const double b3 = u32p;
 
-  //
   // Test if the projected point is inside the cell.
-  //
-  // Zero with epsilon
-  const double zwe = -NumericTraits<double>::min();
 
-  //
+  // Zero with epsilon
+  constexpr double zwe = -NumericTraits<double>::min();
+
   // Since the three barycentric coordinates are interdependent
   // only three tests should be necessary. That is, we only need
   // to test against the equations of three lines (half-spaces).
-  //
   if ((b1 >= zwe) && (b2 >= zwe) && (b3 >= zwe))
   {
-    //
     // This is the case when the point is inside the triangle
     // projection distance
     if (closestPoint)
     { // Compute the Distance 2 Between Points
       *minDist2 = 0;
-      for (i = 0; i < PointDimension; ++i)
+      for (unsigned int i = 0; i < PointDimension; ++i)
       {
         const double val = cp[i] - x[i];
         *minDist2 += val * val;
@@ -571,131 +456,133 @@ TriangleCell<TCellInterface>::EvaluatePosition(CoordRepType *            x,
 
     return true;
   }
-  else
+
+  if (closestPoint)
   {
-    if (closestPoint)
+    double lt = NAN; // parameter along the line (not used)
+    if (b1 < 0.0 && b2 < 0.0)
     {
-      double lt; // parameter along the line (not used)
-      if (b1 < 0.0 && b2 < 0.0)
+      double dist2Point = 0;
+      for (unsigned int i = 0; i < PointDimension; ++i)
       {
-        dist2Point = 0;
-        for (i = 0; i < PointDimension; ++i)
-        {
-          dist2Point += (x[i] - pt3[i]) * (x[i] - pt3[i]);
-        }
-        dist2Line1 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint1);
-        dist2Line2 = this->DistanceToLine(x, pt3, pt2, lt, closestPoint2);
-        if (dist2Point < dist2Line1)
-        {
-          *minDist2 = dist2Point;
-          closest = pt3;
-        }
-        else
-        {
-          *minDist2 = dist2Line1;
-          closest = closestPoint1;
-        }
-        if (dist2Line2 < *minDist2)
-        {
-          *minDist2 = dist2Line2;
-          closest = closestPoint2;
-        }
-        for (i = 0; i < PointDimension; ++i)
-        {
-          closestPoint[i] = closest[i];
-        }
-        for (; i < 3; ++i)
-        {
-          closestPoint[i] = 0.;
-        }
+        dist2Point += (x[i] - pt3[i]) * (x[i] - pt3[i]);
       }
-      else if (b2 < 0.0 && b3 < 0.0)
+      double dist2Line1 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint1);
+      double dist2Line2 = this->DistanceToLine(x, pt3, pt2, lt, closestPoint2);
+      if (dist2Point < dist2Line1)
       {
-        dist2Point = 0;
-        for (i = 0; i < PointDimension; ++i)
-        {
-          dist2Point += (x[i] - pt1[i]) * (x[i] - pt1[i]);
-        }
-        dist2Line1 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint1);
-        dist2Line2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint2);
-        if (dist2Point < dist2Line1)
-        {
-          *minDist2 = dist2Point;
-          closest = pt1;
-        }
-        else
-        {
-          *minDist2 = dist2Line1;
-          closest = closestPoint1;
-        }
-        if (dist2Line2 < *minDist2)
-        {
-          *minDist2 = dist2Line2;
-          closest = closestPoint2;
-        }
-        for (i = 0; i < PointDimension; ++i)
-        {
-          closestPoint[i] = closest[i];
-        }
-        for (; i < 3; ++i)
-        {
-          closestPoint[i] = 0.;
-        }
+        *minDist2 = dist2Point;
+        closest = pt3;
       }
-      else if (b1 < 0.0 && b3 < 0.0)
+      else
       {
-        dist2Point = 0;
-        for (i = 0; i < PointDimension; ++i)
-        {
-          dist2Point += (x[i] - pt2[i]) * (x[i] - pt2[i]);
-        }
-        dist2Line1 = this->DistanceToLine(x, pt2, pt3, lt, closestPoint1);
-        dist2Line2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint2);
-        if (dist2Point < dist2Line1)
-        {
-          *minDist2 = dist2Point;
-          closest = pt2;
-        }
-        else
-        {
-          *minDist2 = dist2Line1;
-          closest = closestPoint1;
-        }
-        if (dist2Line2 < *minDist2)
-        {
-          *minDist2 = dist2Line2;
-          closest = closestPoint2;
-        }
-        for (i = 0; i < PointDimension; ++i)
-        {
-          closestPoint[i] = closest[i];
-        }
-        for (; i < 3; ++i)
-        {
-          closestPoint[i] = 0.;
-        }
+        *minDist2 = dist2Line1;
+        closest = closestPoint1;
       }
-      else if (b1 < 0.0)
+      if (dist2Line2 < *minDist2)
       {
-        *minDist2 = this->DistanceToLine(x, pt2, pt3, lt, closestPoint);
+        *minDist2 = dist2Line2;
+        closest = closestPoint2;
       }
-      else if (b2 < 0.0)
+      unsigned int i = 0;
+      for (; i < PointDimension; ++i)
       {
-        *minDist2 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint);
+        closestPoint[i] = closest[i];
       }
-      else if (b3 < 0.0)
+      for (; i < 3; ++i)
       {
-        *minDist2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint);
+        closestPoint[i] = 0.;
       }
     }
-    if (pcoord)
+    else if (b2 < 0.0 && b3 < 0.0)
     {
-      pcoord[0] = b1;
-      pcoord[1] = b2;
-      pcoord[2] = b3;
+      double dist2Point = 0;
+      for (unsigned int i = 0; i < PointDimension; ++i)
+      {
+        dist2Point += (x[i] - pt1[i]) * (x[i] - pt1[i]);
+      }
+      double dist2Line1 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint1);
+      double dist2Line2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint2);
+      if (dist2Point < dist2Line1)
+      {
+        *minDist2 = dist2Point;
+        closest = pt1;
+      }
+      else
+      {
+        *minDist2 = dist2Line1;
+        closest = closestPoint1;
+      }
+      if (dist2Line2 < *minDist2)
+      {
+        *minDist2 = dist2Line2;
+        closest = closestPoint2;
+      }
+      unsigned int i = 0;
+      for (; i < PointDimension; ++i)
+      {
+        closestPoint[i] = closest[i];
+      }
+      for (; i < 3; ++i)
+      {
+        closestPoint[i] = 0.;
+      }
     }
-    // Just fall through to default return false;
+    else if (b1 < 0.0 && b3 < 0.0)
+    {
+      double dist2Point = 0;
+      for (unsigned int i = 0; i < PointDimension; ++i)
+      {
+        dist2Point += (x[i] - pt2[i]) * (x[i] - pt2[i]);
+      }
+      double dist2Line1 = this->DistanceToLine(x, pt2, pt3, lt, closestPoint1);
+      double dist2Line2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint2);
+      if (dist2Point < dist2Line1)
+      {
+        *minDist2 = dist2Point;
+        closest = pt2;
+      }
+      else
+      {
+        *minDist2 = dist2Line1;
+        closest = closestPoint1;
+      }
+      if (dist2Line2 < *minDist2)
+      {
+        *minDist2 = dist2Line2;
+        closest = closestPoint2;
+      }
+      unsigned int i = 0;
+      for (; i < PointDimension; ++i)
+      {
+        closestPoint[i] = closest[i];
+      }
+      for (; i < 3; ++i)
+      {
+        closestPoint[i] = 0.;
+      }
+    }
+    else if (b1 < 0.0)
+    {
+      *minDist2 = this->DistanceToLine(x, pt2, pt3, lt, closestPoint);
+    }
+    else if (b2 < 0.0)
+    {
+      *minDist2 = this->DistanceToLine(x, pt1, pt3, lt, closestPoint);
+    }
+    else if (b3 < 0.0)
+    {
+      *minDist2 = this->DistanceToLine(x, pt1, pt2, lt, closestPoint);
+    }
   }
+  if (pcoord)
+  {
+    pcoord[0] = b1;
+    pcoord[1] = b2;
+    pcoord[2] = b3;
+  }
+  // Just fall through to default return false;
+
   return false; // Default case that should never be reached.
 }
 } // end namespace itk

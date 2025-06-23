@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,8 +44,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToMeshFilter, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToMeshFilter);
 
   /** Create a valid output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
@@ -65,6 +65,7 @@ public:
   using OutputMeshPointer = typename OutputMeshType::Pointer;
 
   /** Set the input image of this process object.  */
+  /** @ITKStartGrouping */
   using Superclass::SetInput;
   void
   SetInput(unsigned int idx, const InputImageType * input);
@@ -73,8 +74,9 @@ public:
   {
     this->SetInput(0, input);
   }
-
+  /** @ITKEndGrouping */
   /** Get the input image of this process object.  */
+  /** @ITKStartGrouping */
   const InputImageType *
   GetInput(unsigned int idx);
   const InputImageType *
@@ -82,14 +84,15 @@ public:
   {
     return this->GetInput(0);
   }
-
+  /** @ITKEndGrouping */
   /** Get the output Mesh of this process object.  */
   OutputMeshType *
   GetOutput();
 
-  /** Prepare the output */
+  /** Prepare the output. This is a void implementation to prevent the ProcessObject version to be called. */
   void
-  GenerateOutputInformation() override;
+  GenerateOutputInformation() override
+  {}
 
 protected:
   ImageToMeshFilter();

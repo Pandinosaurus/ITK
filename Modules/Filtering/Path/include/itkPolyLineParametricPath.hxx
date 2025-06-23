@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPolyLineParametricPath_hxx
 #define itkPolyLineParametricPath_hxx
 
-#include "itkPolyLineParametricPath.h"
 #include "itkMacro.h"
 #include <cmath>
 #include "itkMath.h"
@@ -26,8 +25,8 @@
 namespace itk
 {
 template <unsigned int VDimension>
-typename PolyLineParametricPath<VDimension>::OutputType
-PolyLineParametricPath<VDimension>::Evaluate(const InputType & input) const
+auto
+PolyLineParametricPath<VDimension>::Evaluate(const InputType & input) const -> OutputType
 {
   // Handle the endpoint carefully, since there is no following vertex
   const auto endPoint = static_cast<InputType>(m_VertexList->Size() - 1);
@@ -37,17 +36,19 @@ PolyLineParametricPath<VDimension>::Evaluate(const InputType & input) const
       ->ElementAt(m_VertexList->Size() - 1); // the last vertex
   }
 
-  const VertexType vertex0 = static_cast<const VertexListType *>(this->m_VertexList)->ElementAt(int(input));
-  const VertexType vertex1 = static_cast<const VertexListType *>(this->m_VertexList)->ElementAt(int(input) + 1);
+  const VertexType vertex0 =
+    static_cast<const VertexListType *>(this->m_VertexList)->ElementAt(static_cast<int>(input));
+  const VertexType vertex1 =
+    static_cast<const VertexListType *>(this->m_VertexList)->ElementAt(static_cast<int>(input) + 1);
 
-  const double fractionOfLineSegment = input - int(input);
+  const double fractionOfLineSegment = input - static_cast<int>(input);
 
   const PointType outputPoint = vertex0 + (vertex1 - vertex0) * fractionOfLineSegment;
 
   // For some stupid reason, there is no easy way to cast from a point to a
   // continuous index.
   OutputType output;
-  for (unsigned int i = 0; i < VDimension; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     output[i] = outputPoint[i];
   }
@@ -56,8 +57,8 @@ PolyLineParametricPath<VDimension>::Evaluate(const InputType & input) const
 }
 
 template <unsigned int VDimension>
-typename PolyLineParametricPath<VDimension>::VectorType
-PolyLineParametricPath<VDimension>::EvaluateDerivative(const InputType & input) const
+auto
+PolyLineParametricPath<VDimension>::EvaluateDerivative(const InputType & input) const -> VectorType
 {
   // Get next integral time-point
   const InputType nextTimepoint = std::min(std::floor(input + 1.0), this->EndOfInput());
@@ -80,13 +81,13 @@ PolyLineParametricPath<VDimension>::EvaluateDerivative(const InputType & input) 
 }
 
 template <unsigned int VDimension>
-typename PolyLineParametricPath<VDimension>::OffsetType
-PolyLineParametricPath<VDimension>::IncrementInput(InputType & input) const
+auto
+PolyLineParametricPath<VDimension>::IncrementInput(InputType & input) const -> OffsetType
 {
   // Save this input index since we will use it to calculate the offset
   const IndexType originalIndex = this->EvaluateToIndex(input);
 
-  InputType potentialTimestep = itk::NumericTraits<InputType>::ZeroValue();
+  InputType potentialTimestep{};
   bool      timeStepSmallEnough = false;
   while (!timeStepSmallEnough)
   {
@@ -121,14 +122,14 @@ PolyLineParametricPath<VDimension>::IncrementInput(InputType & input) const
     unsigned int maxPartialDerivativeIndex = 0;
     for (unsigned int i = 1; i < VDimension; ++i)
     {
-      if (std::abs(partialDerivatives[i]) > std::abs(partialDerivatives[maxPartialDerivativeIndex]))
+      if (itk::Math::abs(partialDerivatives[i]) > itk::Math::abs(partialDerivatives[maxPartialDerivativeIndex]))
       {
         maxPartialDerivativeIndex = i;
       }
     }
 
     // Calculate the timestep required to effect a 1 pixel change
-    potentialTimestep = 1.0 / std::abs(partialDerivatives[maxPartialDerivativeIndex]);
+    potentialTimestep = 1.0 / itk::Math::abs(partialDerivatives[maxPartialDerivativeIndex]);
 
     // Check to make sure the timestep doesn't put the input past the next integral timestep
     //(since the derivatives can change)
@@ -164,9 +165,9 @@ PolyLineParametricPath<VDimension>::IncrementInput(InputType & input) const
 
 template <unsigned int VDimension>
 PolyLineParametricPath<VDimension>::PolyLineParametricPath()
+  : m_VertexList(VertexListType::New())
 {
   this->SetDefaultInputStepSize(0.3);
-  this->m_VertexList = VertexListType::New();
 }
 
 template <unsigned int VDimension>

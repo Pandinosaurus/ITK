@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,37 +18,27 @@
 #ifndef itkScatterMatrixImageFunction_hxx
 #define itkScatterMatrixImageFunction_hxx
 
-#include "itkScatterMatrixImageFunction.h"
 #include "itkConstNeighborhoodIterator.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TInputImage, typename TCoordRep>
-ScatterMatrixImageFunction<TInputImage, TCoordRep>::ScatterMatrixImageFunction()
-{
-  m_NeighborhoodRadius = 1;
-}
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
+ScatterMatrixImageFunction<TInputImage, TCoordinate>::ScatterMatrixImageFunction()
+  : m_NeighborhoodRadius(1)
+{}
+
+template <typename TInputImage, typename TCoordinate>
 void
-ScatterMatrixImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+ScatterMatrixImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "NeighborhoodRadius: " << m_NeighborhoodRadius << std::endl;
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
-typename ScatterMatrixImageFunction<TInputImage, TCoordRep>::RealType
-ScatterMatrixImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+ScatterMatrixImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> RealType
 {
   RealType covariance;
 
@@ -60,7 +50,7 @@ ScatterMatrixImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexT
   const unsigned int VectorDimension = PixelType::Dimension;
 
   covariance = vnl_matrix<PixelComponentRealType>(VectorDimension, VectorDimension);
-  covariance.fill(NumericTraits<PixelComponentRealType>::ZeroValue());
+  covariance.fill(PixelComponentRealType{});
 
   if (!this->GetInputImage())
   {
@@ -75,8 +65,7 @@ ScatterMatrixImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexT
   }
 
   // Create an N-d neighborhood kernel, using a zeroflux boundary condition
-  typename InputImageType::SizeType kernelSize;
-  kernelSize.Fill(m_NeighborhoodRadius);
+  auto kernelSize = InputImageType::SizeType::Filled(m_NeighborhoodRadius);
 
   ConstNeighborhoodIterator<InputImageType> it(
     kernelSize, this->GetInputImage(), this->GetInputImage()->GetBufferedRegion());
@@ -88,20 +77,20 @@ ScatterMatrixImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexT
   const unsigned int size = it.Size();
   for (unsigned int i = 0; i < size; ++i)
   {
-    for (unsigned int dimx = 0; dimx < VectorDimension; dimx++)
+    for (unsigned int dimx = 0; dimx < VectorDimension; ++dimx)
     {
-      for (unsigned int dimy = 0; dimy < VectorDimension; dimy++)
+      for (unsigned int dimy = 0; dimy < VectorDimension; ++dimy)
       {
         covariance[dimx][dimy] += static_cast<PixelComponentRealType>(it.GetPixel(i)[dimx]) *
                                   static_cast<PixelComponentRealType>(it.GetPixel(i)[dimy]);
       }
     }
   }
-  for (unsigned int dimx = 0; dimx < VectorDimension; dimx++)
+  for (unsigned int dimx = 0; dimx < VectorDimension; ++dimx)
   {
-    for (unsigned int dimy = 0; dimy < VectorDimension; dimy++)
+    for (unsigned int dimy = 0; dimy < VectorDimension; ++dimy)
     {
-      covariance[dimx][dimy] /= double(size);
+      covariance[dimx][dimy] /= static_cast<double>(size);
     }
   }
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,51 +17,39 @@
  *=========================================================================*/
 #ifndef itkBinaryMinMaxCurvatureFlowFunction_hxx
 #define itkBinaryMinMaxCurvatureFlowFunction_hxx
-#include "itkBinaryMinMaxCurvatureFlowFunction.h"
 
 #include "itkMath.h"
 #include "itkNeighborhoodInnerProduct.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TImage>
-BinaryMinMaxCurvatureFlowFunction<TImage>::BinaryMinMaxCurvatureFlowFunction()
-{
-  m_Threshold = 0.0;
-}
 
-/**
- * Update the solution at pixels which does not lie on the
- * data boundary.
- */
 template <typename TImage>
-typename BinaryMinMaxCurvatureFlowFunction<TImage>::PixelType
+BinaryMinMaxCurvatureFlowFunction<TImage>::BinaryMinMaxCurvatureFlowFunction() = default;
+
+template <typename TImage>
+auto
 BinaryMinMaxCurvatureFlowFunction<TImage>::ComputeUpdate(const NeighborhoodType & it,
                                                          void *                   globalData,
-                                                         const FloatOffsetType &  offset)
+                                                         const FloatOffsetType &  offset) -> PixelType
 {
   using CurvatureFlowFunctionType = CurvatureFlowFunction<TImage>;
-  PixelType update = this->CurvatureFlowFunctionType::ComputeUpdate(it, globalData, offset);
+  const PixelType update = this->CurvatureFlowFunctionType::ComputeUpdate(it, globalData, offset);
 
   if (update == 0.0)
   {
     return update;
   }
 
-  NeighborhoodInnerProduct<ImageType> innerProduct;
-  PixelType                           avgValue = innerProduct(it, this->m_StencilOperator);
+  const NeighborhoodInnerProduct<ImageType> innerProduct;
+  const PixelType                           avgValue = innerProduct(it, this->m_StencilOperator);
 
   if (avgValue < m_Threshold)
   {
-    return (std::min(update, NumericTraits<PixelType>::ZeroValue()));
+    return (std::min(update, PixelType{}));
   }
-  else
-  {
-    return (std::max(update, NumericTraits<PixelType>::ZeroValue()));
-  }
+
+  return (std::max(update, PixelType{}));
 }
 } // end namespace itk
 

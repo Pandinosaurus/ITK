@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -117,7 +117,7 @@ __kernel void SmoothingFilterReorder(__global OUTPIXELTYPE *imgIn, __global OUTP
     // get_global_id() is beyond the image region. This is due to that
     // thread with threadId loads elements at
     // (threadId - radius + blockSize * k)
-    // where k is an interger.
+    // where k is an integer.
     //
     // Otherwise, some boundary voxel may be not loaded. For example,
     // let us assume,
@@ -218,7 +218,7 @@ __kernel void SmoothingFilter(__global OUTPIXELTYPE *imgIn, __global OUTPIXELTYP
     // get_global_id() is beyond the image region. This is due to that
     // thread with threadId loads elements at
     // (threadId - radius + blockSize * k)
-    // where k is an interger.
+    // where k is an integer.
     //
     // Otherwise, some boundary voxel may be not loaded. For example,
     // let us assume,

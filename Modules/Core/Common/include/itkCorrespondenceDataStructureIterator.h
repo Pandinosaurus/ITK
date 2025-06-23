@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ public:
   }
 
   /** Is the iterator at the end of the region? */
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const;
 
   /** Walk forward one index. (prefix) */
@@ -95,19 +95,19 @@ public:
     return m_CorrespondingListPointer;
   }
 
-  CorrespondingListIterator m_CorrespondingListIterator;
-  SecondaryNodeListIterator m_SecondaryListIterator;
+  CorrespondingListIterator m_CorrespondingListIterator{};
+  SecondaryNodeListIterator m_SecondaryListIterator{};
 
-  typename TStructureType::NodeListType::iterator m_NodeListIterator;
+  typename TStructureType::NodeListType::iterator m_NodeListIterator{};
 
 protected:
   /** Is the iterator at the end of its walk? */
-  bool                    m_IsAtEnd;
-  TStructureType *        m_Structure;
-  ItemType *              m_CorrespondingNodePointer;
-  CorrespondingListType * m_CorrespondingListPointer;
-  SecondaryNodeListType * m_SecondaryListPointer;
-  NodeListType *          m_NodeListPointer;
+  bool                    m_IsAtEnd{};
+  TStructureType *        m_Structure{};
+  ItemType *              m_CorrespondingNodePointer{};
+  CorrespondingListType * m_CorrespondingListPointer{};
+  SecondaryNodeListType * m_SecondaryListPointer{};
+  NodeListType *          m_NodeListPointer{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ namespace itk
  * (1) The floating-point variance of the desired Gaussian function.
  *
  * (2) The "maximum error" allowed in the discrete Gaussian
- * function.  "Maximum errror" is defined as the difference between the area
+ * function.  "Maximum error" is defined as the difference between the area
  * under the discrete Gaussian curve and the area under the continuous
  * Gaussian. Maximum error affects the Gaussian operator size. Care should
  * be taken not to make this value too small relative to the variance
@@ -47,9 +47,7 @@ namespace itk
  *
  * References:
  * The Gaussian kernel contained in this operator was described
- * by Tony Lindeberg (Discrete Scale-Space Theory and the Scale-Space
- * Primal Sketch.  Dissertation. Royal Institute of Technology, Stockholm,
- * Sweden. May 1991.).
+ * in \cite lindeberg1991.
  *
  * \note GaussianOperator does not have any user-declared "special member function",
  * following the C++ Rule of Zero: the compiler will generate them if necessary.
@@ -73,11 +71,12 @@ public:
   using Self = GaussianOperator;
   using Superclass = NeighborhoodOperator<TPixel, VDimension, TAllocator>;
 
-  itkTypeMacro(GaussianOperator, NeighborhoodOperator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianOperator);
 
   /** Sets the desired variance of the Gaussian kernel. */
   void
-  SetVariance(const double & variance)
+  SetVariance(const double variance)
   {
     m_Variance = variance;
   }
@@ -87,7 +86,7 @@ public:
    * and the area under the continuous Gaussian. Maximum error affects the
    * Gaussian operator size. The value must be between 0.0 and 1.0. */
   void
-  SetMaximumError(const double & max_error)
+  SetMaximumError(const double max_error)
   {
     if (max_error >= 1 || max_error <= 0)
     {
@@ -131,17 +130,42 @@ public:
     return m_MaximumKernelWidth;
   }
 
-  /** Prints some debugging information. */
   void
-  PrintSelf(std::ostream & os, Indent i) const override
+  PrintSelf(std::ostream & os, Indent indent) const override
   {
-    os << i << "GaussianOperator { this=" << this << ", m_Variance = " << m_Variance
-       << ", m_MaximumError = " << m_MaximumError << "} " << std::endl;
-    Superclass::PrintSelf(os, i.GetNextIndent());
+    Superclass::PrintSelf(os, indent);
+
+    os << indent << "Variance: " << m_Variance << std::endl;
+    os << indent << "MaximumError: " << m_MaximumError << std::endl;
+    os << indent << "MaximumKernelWidth: " << m_MaximumKernelWidth << std::endl;
   }
 
-protected:
-  using CoefficientVector = typename Superclass::CoefficientVector;
+  /** Get the value of the debug flag.
+   *  Mimics the itk::Object interface so that itkDebugMacro
+   *  can be used in selective printouts from Gaussian kernel generation.*/
+  bool
+  GetDebug() const
+  {
+    return m_Debug;
+  }
+  /** Turn debugging output on.  */
+  void
+  DebugOn() const
+  {
+    m_Debug = true;
+  }
+  /** Turn debugging output off.  */
+  void
+  DebugOff() const
+  {
+    m_Debug = false;
+  }
+  /** Set the value of the debug flag. A non-zero value turns debugging on. */
+  void
+  SetDebug(bool debugFlag) const
+  {
+    m_Debug = debugFlag;
+  }
 
 public:
   /** Returns the value of the modified Bessel function I0(x) at a point x >= 0.
@@ -160,6 +184,9 @@ public:
   ModifiedBesselI(int, double);
 
 protected:
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
+
   /** Calculates operator coefficients. */
   CoefficientVector
   GenerateCoefficients() override;
@@ -183,6 +210,9 @@ private:
    *  that has grown too large.  A warning is given when the specified maximum
    *  error causes the kernel to exceed this size. */
   unsigned int m_MaximumKernelWidth{ 30 };
+
+  /** Enable/disable kernel generation debug warnings */
+  mutable bool m_Debug{ false };
 };
 } // namespace itk
 

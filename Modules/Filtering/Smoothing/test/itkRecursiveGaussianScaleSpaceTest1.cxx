@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,8 +17,8 @@
  *=========================================================================*/
 // Disable warning for long symbol names in this file only
 
-#include <itkRecursiveGaussianImageFilter.h>
-#include <itkImageRegionIterator.h>
+#include "itkRecursiveGaussianImageFilter.h"
+#include "itkImageRegionIterator.h"
 
 namespace
 {
@@ -34,25 +34,23 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
   constexpr unsigned int imageSize = 1024;
   const double           tol = std::pow(.000001, 1.0 / order);
 
-  double frequency = frequencyPerImage * 2.0 * itk::Math::pi / (imageSize * pixelSpacing);
+  const double frequency = frequencyPerImage * 2.0 * itk::Math::pi / (imageSize * pixelSpacing);
 
   // The theoretical maximal value should occur at this sigma
-  double sigma_max = std::sqrt(double(order)) / frequency;
+  const double sigma_max = std::sqrt(static_cast<double>(order)) / frequency;
 
   // the theoreical maximal value of the derivative, obtained at sigma_max
-  double expected_max = std::pow(double(order), order * 0.5) * std::exp(-0.5 * order);
+  const double expected_max = std::pow(static_cast<double>(order), order * 0.5) * std::exp(-0.5 * order);
 
   using ImageType = itk::Image<double, ImageDimension>;
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
-  ImageType::SizeType size;
-  size.Fill(imageSize);
+  auto size = ImageType::SizeType::Filled(imageSize);
 
   image->SetRegions(ImageType::RegionType(size));
   image->Allocate();
 
-  ImageType::SpacingType spacing;
-  spacing.Fill(pixelSpacing);
+  auto spacing = itk::MakeFilled<ImageType::SpacingType>(pixelSpacing);
 
   image->SetSpacing(spacing);
 
@@ -64,7 +62,7 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
     ImageType::PointType p;
     image->TransformIndexToPhysicalPoint(iter.GetIndex(), p);
     const double x = p[0];
-    double       value = std::sin(x * frequency);
+    const double value = std::sin(x * frequency);
 
     iter.Set(value);
     ++iter;
@@ -72,7 +70,7 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
 
 
   using GaussianFilterType = itk::RecursiveGaussianImageFilter<ImageType, ImageType>;
-  GaussianFilterType::Pointer filter = GaussianFilterType::New();
+  auto filter = GaussianFilterType::New();
   filter->SetInput(image);
   filter->SetDirection(0);
   filter->SetSigma(sigma_max);
@@ -93,9 +91,9 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
   // The derivative need to be scaled
   //
   // All .Get() methods should be multiplied by this
-  const double scaleFactor = std::pow(1.0 / pixelSpacing, double(order));
+  const double scaleFactor = std::pow(1.0 / pixelSpacing, static_cast<double>(order));
 
-  ImageType::Pointer outputImage = filter->GetOutput();
+  const ImageType::Pointer outputImage = filter->GetOutput();
   outputImage->Update();
 
   // maximal value of the first derivative
@@ -116,10 +114,10 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
 
   while (!oiter.IsAtEnd())
   {
-    if (maxLx < oiter.Get() * scaleFactor && std::abs(maxLx - oiter.Get() * scaleFactor) > tol)
+    if (maxLx < oiter.Get() * scaleFactor && itk::Math::abs(maxLx - oiter.Get() * scaleFactor) > tol)
     {
       std::cout << "FAIL: For period: " << 1.0 / frequency << " maxLx: " << maxLx
-                << " tolerance exceeded by: " << std::abs(maxLx - oiter.Get() * scaleFactor) << std::endl;
+                << " tolerance exceeded by: " << itk::Math::abs(maxLx - oiter.Get() * scaleFactor) << std::endl;
       return false;
     }
     ++oiter;
@@ -132,10 +130,10 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
 
   while (!oiter.IsAtEnd())
   {
-    if (maxLx < oiter.Get() * scaleFactor && std::abs(maxLx - oiter.Get() * scaleFactor) > tol)
+    if (maxLx < oiter.Get() * scaleFactor && itk::Math::abs(maxLx - oiter.Get() * scaleFactor) > tol)
     {
       std::cout << "FAIL:  For period: " << 1.0 / frequency << " maxLx: " << maxLx
-                << " tolerance exceeded by: " << std::abs(maxLx - oiter.Get() * scaleFactor) << std::endl;
+                << " tolerance exceeded by: " << itk::Math::abs(maxLx - oiter.Get() * scaleFactor) << std::endl;
       return false;
     }
     ++oiter;
@@ -144,7 +142,7 @@ NormalizeSineWave(double frequencyPerImage, unsigned int order, double pixelSpac
 
   std::cout << "f: " << frequencyPerImage << " max: " << maxLx << " expected max: " << expected_max << std::endl;
 
-  if (std::abs(maxLx - expected_max) > .01)
+  if (itk::Math::abs(maxLx - expected_max) > .01)
   {
     std::cout << "FAIL: tolerance of expected max exceeded!" << std::endl;
   }

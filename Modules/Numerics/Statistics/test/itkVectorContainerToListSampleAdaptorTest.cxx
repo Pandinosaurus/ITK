@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,18 +25,18 @@ itkVectorContainerToListSampleAdaptorTest(int, char *[])
 
   using VectorType = itk::Vector<double, 5>;
 
-  using ContainerType = itk::VectorContainer<unsigned int, VectorType>;
+  using ContainerType = itk::VectorContainer<VectorType>;
 
   using AdaptorType = itk::Statistics::VectorContainerToListSampleAdaptor<ContainerType>;
 
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(adaptor, VectorContainerToListSampleAdaptor, ListSample);
 
   // Test the exceptions
   ITK_TRY_EXPECT_EXCEPTION(adaptor->Size());
 
-  typename AdaptorType::InstanceIdentifier instance = 0;
+  constexpr typename AdaptorType::InstanceIdentifier instance = 0;
   ITK_TRY_EXPECT_EXCEPTION(adaptor->GetMeasurementVector(instance));
 
   ITK_TRY_EXPECT_EXCEPTION(adaptor->GetFrequency(instance));
@@ -44,29 +44,28 @@ itkVectorContainerToListSampleAdaptorTest(int, char *[])
   ITK_TRY_EXPECT_EXCEPTION(adaptor->GetTotalFrequency());
 
   // Set the vector container
-  unsigned int           containerSize = 3;
-  ContainerType::Pointer container = ContainerType::New();
+  constexpr unsigned int containerSize = 3;
+  auto                   container = ContainerType::New();
   container->Reserve(containerSize);
   for (unsigned int i = 0; i < container->Size(); ++i)
   {
-    VectorType vector;
-    vector.Fill(std::pow(i, 2));
+    auto vector = itk::MakeFilled<VectorType>(std::pow(i, 2));
     container->InsertElement(i, vector);
   }
 
   adaptor->SetVectorContainer(container);
   ITK_TEST_SET_GET_VALUE(container, adaptor->GetVectorContainer());
 
-  typename AdaptorType::InstanceIdentifier expectedSize = 3;
-  typename AdaptorType::InstanceIdentifier size = adaptor->Size();
+  constexpr typename AdaptorType::InstanceIdentifier expectedSize = 3;
+  const typename AdaptorType::InstanceIdentifier     size = adaptor->Size();
   ITK_TEST_EXPECT_EQUAL(expectedSize, size);
 
-  typename AdaptorType::AbsoluteFrequencyType expectedFreq = 1;
-  typename AdaptorType::AbsoluteFrequencyType freq = adaptor->GetFrequency(instance);
+  constexpr typename AdaptorType::AbsoluteFrequencyType expectedFreq = 1;
+  const typename AdaptorType::AbsoluteFrequencyType     freq = adaptor->GetFrequency(instance);
   ITK_TEST_EXPECT_EQUAL(expectedFreq, freq);
 
-  typename AdaptorType::TotalAbsoluteFrequencyType expectedTotalFreq = 3;
-  typename AdaptorType::TotalAbsoluteFrequencyType totalFreq = adaptor->GetTotalFrequency();
+  constexpr typename AdaptorType::TotalAbsoluteFrequencyType expectedTotalFreq = 3;
+  const typename AdaptorType::TotalAbsoluteFrequencyType     totalFreq = adaptor->GetTotalFrequency();
   ITK_TEST_EXPECT_EQUAL(expectedTotalFreq, totalFreq);
 
 

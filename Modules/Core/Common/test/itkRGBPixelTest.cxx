@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,9 +34,9 @@ itkRGBPixelTest(int, char *[])
   pixelArray[1] = pixelInit1;
 
   std::cout << "sizeof(pixel) = " << sizeof(pixel) << std::endl;
-  if (sizeof(pixel) != 3 * sizeof(itk::RGBPixel<float>::ComponentType))
+  if constexpr (sizeof(pixel) != 3 * sizeof(itk::RGBPixel<float>::ComponentType))
   {
-    std::cerr << "ERROR: sizeof(pixel) == " << sizeof(pixel) << " but is shopuld be "
+    std::cerr << "ERROR: sizeof(pixel) == " << sizeof(pixel) << " but is should be "
               << 3 * sizeof(itk::RGBPixel<float>::ComponentType) << std::endl;
     return EXIT_FAILURE;
   }
@@ -70,7 +70,7 @@ itkRGBPixelTest(int, char *[])
   }
 
   std::cout << "std::cout << pixel << std::endl;" << std::endl;
-  std::cout << "\t" << pixel << std::endl;
+  std::cout << '\t' << pixel << std::endl;
 
   for (unsigned int j = 0; j < 2; ++j)
   {
@@ -98,9 +98,7 @@ itkRGBPixelTest(int, char *[])
   pb[1] = 3.55;
   pb[2] = 5.55;
 
-  itk::RGBPixel<float> pc;
-
-  pc = pa + pb;
+  itk::RGBPixel<float> pc = pa + pb;
   std::cout << "addition = " << pc << std::endl;
 
   pc = pa - pb;
@@ -123,11 +121,11 @@ itkRGBPixelTest(int, char *[])
   rgbl[1] = 150;
   rgbl[2] = 120;
 
-  const float luminance = rgbl.GetLuminance();
-  const float realLuminance = rgbl[0] * 0.30 + rgbl[1] * 0.59 + rgbl[2] * 0.11;
-  const float tolerance = 1e-4;
+  const float     luminance = rgbl.GetLuminance();
+  const float     realLuminance = rgbl[0] * 0.30 + rgbl[1] * 0.59 + rgbl[2] * 0.11;
+  constexpr float tolerance = 1e-4;
 
-  if (std::fabs(luminance - realLuminance) > tolerance)
+  if (itk::Math::abs(luminance - realLuminance) > tolerance)
   {
     std::cerr << "Error in luminance conversion" << std::endl;
     return EXIT_FAILURE;

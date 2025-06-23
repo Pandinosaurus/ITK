@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,14 +42,15 @@ namespace itk
  *
  * \ingroup ITKMetricsv4
  */
-template <typename TPointSet, typename TOutput = double, typename TCoordRep = double>
-class ITK_TEMPLATE_EXPORT ManifoldParzenWindowsPointSetFunction : public PointSetFunction<TPointSet, TOutput, TCoordRep>
+template <typename TPointSet, typename TOutput = double, typename TCoordinate = double>
+class ITK_TEMPLATE_EXPORT ManifoldParzenWindowsPointSetFunction
+  : public PointSetFunction<TPointSet, TOutput, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ManifoldParzenWindowsPointSetFunction);
 
   using Self = ManifoldParzenWindowsPointSetFunction;
-  using Superclass = PointSetFunction<TPointSet, TOutput, TCoordRep>;
+  using Superclass = PointSetFunction<TPointSet, TOutput, TCoordinate>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
@@ -59,8 +60,8 @@ public:
   /** Extract dimension from output image. */
   static constexpr unsigned int PointDimension = TPointSet::PointDimension;
 
-  using InputPointSetType = typename Superclass::InputPointSetType;
-  using InputPointType = typename Superclass::InputPointType;
+  using typename Superclass::InputPointSetType;
+  using typename Superclass::InputPointType;
 
   /** Point set type alias support */
   using PointSetType = TPointSet;
@@ -71,7 +72,11 @@ public:
   /** Other type alias */
   using RealType = TOutput;
   using OutputType = TOutput;
-  using CoordRepType = TCoordRep;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
 
   /** Typedef for points locator class to speed up finding neighboring points */
   using PointsLocatorType = PointsLocator<PointsContainer>;
@@ -96,7 +101,7 @@ public:
   itkGetConstMacro(CovarianceKNeighborhood, unsigned int);
 
   /**
-   * Set the evaluation K neighborhood.  To evaluate the the manifold parzen
+   * Set the evaluation K neighborhood.  To evaluate the manifold parzen
    * windows function, one could sum the value contributed by each Gaussian or
    * to speed calculation, we could sum the value contributed by the nearest
    * K Gaussians.  Default = 50.
@@ -188,18 +193,18 @@ protected:
   GenerateData();
 
 private:
-  typename PointsLocatorType::Pointer m_PointsLocator;
+  typename PointsLocatorType::Pointer m_PointsLocator{};
 
   unsigned int m_CovarianceKNeighborhood{ 5 };
   unsigned int m_EvaluationKNeighborhood{ 50 };
-  RealType     m_RegularizationSigma;
-  RealType     m_KernelSigma;
+  RealType     m_RegularizationSigma{};
+  RealType     m_KernelSigma{};
 
-  GaussianContainerType m_Gaussians;
+  GaussianContainerType m_Gaussians{};
   bool                  m_Normalize{ true };
   bool                  m_UseAnisotropicCovariances{ true };
 
-  MultiThreaderBase::Pointer m_MultiThreader;
+  MultiThreaderBase::Pointer m_MultiThreader{};
 };
 
 } // end namespace itk

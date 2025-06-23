@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class KalmanLinearEstimator
+ * \class KalmanLinearEstimator
  * \brief Implement a linear recursive estimator.
  *
  * KalmanLinearEstimator class implements a linear recursive estimator.  The
@@ -111,7 +111,7 @@ public:
 
   /** This method returns the vector of estimated parameters
    * \sa Estimator */
-  const VectorType &
+  [[nodiscard]] const VectorType &
   GetEstimator() const
   {
     return m_Estimator;
@@ -119,7 +119,7 @@ public:
 
   /** This method returns the covariance matrix of the estimated parameters
    * \sa Variance */
-  const MatrixType &
+  [[nodiscard]] const MatrixType &
   GetVariance() const
   {
     return m_Variance;
@@ -138,11 +138,11 @@ private:
   VectorType m_Estimator;
 
   /** Estimation of the parameter's covariance matrix. This matrix contains
-   * the information about the estate of the estimator. It holds all the
+   * the information about the state of the estimator. It holds all the
    * information obtained from previous measures provided to the
    * estimator. The initialization of this matrix is critical to the behavior
    * of the estimator, at least to ensure a short transient period for
-   * estabilizing the estimation.  \sa SetVariance \sa GetVariance */
+   * stabilizing the estimation.  \sa SetVariance \sa GetVariance */
   MatrixType m_Variance;
 };
 
@@ -151,13 +151,13 @@ void
 KalmanLinearEstimator<T, VEstimatorDimension>::UpdateWithNewMeasure(const ValueType &  newMeasure,
                                                                     const VectorType & newPredictor)
 {
-  ValueType measurePrediction = dot_product(newPredictor, m_Estimator);
+  const ValueType measurePrediction = dot_product(newPredictor, m_Estimator);
 
-  ValueType errorMeasurePrediction = newMeasure - measurePrediction;
+  const ValueType errorMeasurePrediction = newMeasure - measurePrediction;
 
   VectorType Corrector = m_Variance * newPredictor;
 
-  for (unsigned int j = 0; j < VEstimatorDimension; j++)
+  for (unsigned int j = 0; j < VEstimatorDimension; ++j)
   {
     m_Estimator(j) += Corrector(j) * errorMeasurePrediction;
   }
@@ -171,11 +171,11 @@ KalmanLinearEstimator<T, VEstimatorDimension>::UpdateVariance(const VectorType &
 {
   VectorType aux = m_Variance * newPredictor;
 
-  ValueType denominator = 1.0 / (1.0 + dot_product(aux, newPredictor));
+  const ValueType denominator = 1.0 / (1.0 + dot_product(aux, newPredictor));
 
-  for (unsigned int col = 0; col < VEstimatorDimension; col++)
+  for (unsigned int col = 0; col < VEstimatorDimension; ++col)
   {
-    for (unsigned int row = 0; row < VEstimatorDimension; row++)
+    for (unsigned int row = 0; row < VEstimatorDimension; ++row)
     {
       m_Variance(col, row) -= aux(col) * aux(row) * denominator;
     }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +45,7 @@
 // * VS7.x and MinGW have _wopen and _wfopen but cannot open a
 //   (i/o)fstream using a wide string. They can however compile fdstream
 
-#if defined(ITK_SUPPORTS_WCHAR_T_FILENAME_CSTYLEIO) &&                                                                 \
+#if defined(ITK_SUPPORTS_WCHAR_T_FILENAME_CSTYLEIO) && \
   (defined(ITK_SUPPORTS_WCHAR_T_FILENAME_IOSTREAMS_CONSTRUCTORS) || defined(ITK_SUPPORTS_FDSTREAM_HPP))
 #  define LOCAL_USE_WIN32_WOPEN 1
 #  include <windows.h> // required by winnls.h
@@ -62,9 +62,7 @@
 #  include "itkfdstream/fdstream.hxx"
 #endif
 
-namespace itk
-{
-namespace i18n
+namespace itk::i18n
 {
 // Check if the string is correctly encoded
 #if LOCAL_USE_WIN32_WOPEN
@@ -115,7 +113,7 @@ Utf8StringToWString(const std::string & str)
 // Get a file descriptor from a filename (using utf8 to wstring
 // on windows if requested) without specifying any specific permissions
 inline int
-I18nOpen(const std::string & str, const int & flags)
+I18nOpen(const std::string & str, const int flags)
 {
 #if LOCAL_USE_WIN32_WOPEN
   // mingw has _wopen
@@ -130,7 +128,7 @@ I18nOpen(const std::string & str, const int & flags)
 // Get a file descriptor from a filename (using utf8 to wstring
 // on windows if requested)
 inline int
-I18nOpen(const std::string & str, const int & flags, const int & mode)
+I18nOpen(const std::string & str, const int flags, const int mode)
 {
 #if LOCAL_USE_WIN32_WOPEN
   // mingw has _wopen
@@ -171,10 +169,9 @@ I18nOpenForWriting(const std::string & str, const bool append = false)
   {
     return I18nOpen(str, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
   }
-  else
-  {
-    return I18nOpen(str, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
-  }
+
+  return I18nOpen(str, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+
 #else
   if (!append)
   {
@@ -241,13 +238,12 @@ private:
 class I18nIfstream : public std::istream
 {
 public:
-  I18nIfstream(const char * str, std::ios_base::openmode mode = std::ios_base::in)
+  I18nIfstream(const char * str, std::ios_base::openmode itkNotused(mode) = std::ios_base::in)
     : std::istream(0)
     , m_fd(I18nOpenForReading(str))
     , m_buf(m_fd)
   {
     ///\todo better handle mode flag
-    (void)mode;
     this->rdbuf(&m_buf);
   }
 
@@ -293,8 +289,8 @@ public:
 using I18nOfstream = std::ofstream;
 using I18nIfstream = std::ifstream;
 #endif
-} // namespace i18n
-} // namespace itk
+} // namespace itk::i18n
+
 
 #undef LOCAL_USE_WIN32_WOPEN
 #undef LOCAL_USE_FDSTREAM

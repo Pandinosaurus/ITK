@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,13 +51,13 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUImageToImageFilter, TParentImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUImageToImageFilter);
 
   /** Superclass type alias. */
-  using DataObjectIdentifierType = typename Superclass::DataObjectIdentifierType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::DataObjectIdentifierType;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -98,7 +98,7 @@ protected:
   {}
 
   // GPU kernel manager
-  typename GPUKernelManager::Pointer m_GPUKernelManager;
+  typename GPUKernelManager::Pointer m_GPUKernelManager{};
 
   // GPU kernel handle - kernel should be defined in specific filter (not in the
   // base class)

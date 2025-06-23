@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -95,7 +95,7 @@ main(int argc, char * argv[])
   //  Mathematical morphology operations are implemented by applying an
   //  operator over the neighborhood of each input pixel. The combination of
   //  the rule and the neighborhood is known as \emph{structuring
-  //  element}. Although some rules have become de facto standards for image
+  //  element}. Although some rules have become defacto standards for image
   //  processing, there is a good deal of freedom as to what kind of
   //  algorithmic rule should be applied to the neighborhood. The
   //  implementation in ITK follows the typical rule of minimum for
@@ -134,11 +134,11 @@ main(int argc, char * argv[])
 
 
   // Creation of Reader and Writer filters
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writerDilation = WriterType::New();
-  WriterType::Pointer writerErosion = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writerDilation = WriterType::New();
+  auto writerErosion = WriterType::New();
 
-  ThresholdFilterType::Pointer thresholder = ThresholdFilterType::New();
+  auto thresholder = ThresholdFilterType::New();
 
   //  Software Guide : BeginLatex
   //
@@ -153,8 +153,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ErodeFilterType::Pointer  binaryErode = ErodeFilterType::New();
-  DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
+  auto binaryErode = ErodeFilterType::New();
+  auto binaryDilate = DilateFilterType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -211,8 +211,8 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   thresholder->SetInput(reader->GetOutput());
 
-  InputPixelType background = 0;
-  InputPixelType foreground = 255;
+  constexpr InputPixelType background = 0;
+  constexpr InputPixelType foreground = 255;
 
   thresholder->SetOutsideValue(background);
   thresholder->SetInsideValue(foreground);

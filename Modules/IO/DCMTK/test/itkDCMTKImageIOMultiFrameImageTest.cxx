@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@
 #include "itkSubtractImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 using PixelType = short;
 using ImageType = itk::Image<PixelType, 3>;
@@ -52,9 +53,9 @@ CloseEnough(double a, double b)
 bool
 Equal(DirectionType dir1, DirectionType dir2)
 {
-  for (unsigned i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
-    for (unsigned j = 0; j < 3; ++j)
+    for (unsigned int j = 0; j < 3; ++j)
     {
       if (!CloseEnough(dir1(i, j), dir2(i, j)))
       {
@@ -68,7 +69,7 @@ Equal(DirectionType dir1, DirectionType dir2)
 bool
 Equal(SpacingType spacing1, SpacingType spacing2)
 {
-  for (unsigned i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     if (!CloseEnough(spacing1[i], spacing2[i]))
     {
@@ -83,30 +84,24 @@ Equal(SpacingType spacing1, SpacingType spacing2)
 // known to exist in the test file in order to ensure that
 // they're properly read out of the functional group.
 int
-itkDCMTKImageIOMultiFrameImageTest(int ac, char * av[])
+itkDCMTKImageIOMultiFrameImageTest(int argc, char * argv[])
 {
-  if (ac < 2)
+  if (argc < 2)
   {
-    std::cerr << "Usage: " << av[0] << " <multiframe image>" << std::endl;
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " multiframeImage" << std::endl;
     return EXIT_FAILURE;
   }
 
-  ImageIOType::Pointer dcmImageIO = ImageIOType::New();
+  auto dcmImageIO = ImageIOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->SetImageIO(dcmImageIO);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
+
   ImageType::Pointer im = reader->GetOutput();
   DirectionType      dir = im->GetDirection();
   SpacingType        spacing = im->GetSpacing();
@@ -143,5 +138,8 @@ itkDCMTKImageIOMultiFrameImageTest(int ac, char * av[])
               << spacing << std::endl;
     return EXIT_FAILURE;
   }
+
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

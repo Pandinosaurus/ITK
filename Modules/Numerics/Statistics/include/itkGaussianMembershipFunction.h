@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkMatrix.h"
 #include "itkMembershipFunctionBase.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class GaussianMembershipFunction
+ * \class GaussianMembershipFunction
  * \brief GaussianMembershipFunction models class membership through a
  * multivariate Gaussian function.
  *
@@ -64,10 +62,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(GaussianMembershipFunction, MembershipFunction);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(GaussianMembershipFunction);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** SmartPointer class for superclass */
   using MembershipFunctionPointer = typename Superclass::Pointer;
 
@@ -75,7 +74,7 @@ public:
   using MeasurementVectorType = TMeasurementVector;
 
   /** Length of each measurement vector */
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MeasurementVectorSizeType;
 
   /** Type of the mean vector. RealType on a vector-type is the same
    * vector-type but with a real element type.  */
@@ -97,7 +96,7 @@ public:
   /** Set the covariance matrix. Covariance matrix is a
    * VariableSizeMatrix of doubles. The inverse of the covariance
    * matrix and the normalization term for the multivariate Gaussian
-   * are calculated whenever the covaraince matrix is changed. */
+   * are calculated whenever the covariance matrix is changed. */
   void
   SetCovariance(const CovarianceMatrixType & cov);
 
@@ -116,7 +115,7 @@ public:
   /** Method to clone a membership function, i.e. create a new instance of
    * the same type of membership function and configure its ivars to
    * match. */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 protected:
@@ -126,22 +125,21 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MeanVectorType       m_Mean;       // mean
-  CovarianceMatrixType m_Covariance; // covariance matrix
+  MeanVectorType       m_Mean{};       // mean
+  CovarianceMatrixType m_Covariance{}; // covariance matrix
 
   // inverse covariance matrix. automatically calculated
-  // when covariance matirx is set.
-  CovarianceMatrixType m_InverseCovariance;
+  // when covariance matrix is set.
+  CovarianceMatrixType m_InverseCovariance{};
 
   // pre_factor (normalization term). automatically calculated
-  // when covariance matirx is set.
-  double m_PreFactor;
+  // when covariance matrix is set.
+  double m_PreFactor{};
 
   /** Boolean to cache whether the covariance is singular or nearly singular */
-  bool m_CovarianceNonsingular;
+  bool m_CovarianceNonsingular{ true };
 };
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkGaussianMembershipFunction.hxx"

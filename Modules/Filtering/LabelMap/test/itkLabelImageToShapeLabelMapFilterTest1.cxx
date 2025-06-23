@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,8 @@ itkLabelImageToShapeLabelMapFilterTest1(int argc, char * argv[])
 {
   if (argc != 6)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputBinaryImage outputShapeLabelMap";
     std::cerr << " backgroundValue computeFeretDiameter computePerimeter";
     std::cerr << std::endl;
@@ -43,11 +44,11 @@ itkLabelImageToShapeLabelMapFilterTest1(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using L2SType = itk::LabelImageToShapeLabelMapFilter<ImageType, LabelMapType>;
-  L2SType::Pointer l2s = L2SType::New();
+  auto l2s = L2SType::New();
   l2s->SetInput(reader->GetOutput());
 
   const PixelType backgroundValue = std::stoi(argv[3]);
@@ -64,11 +65,11 @@ itkLabelImageToShapeLabelMapFilterTest1(int argc, char * argv[])
 
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  L2IType::Pointer l2i = L2IType::New();
+  auto l2i = L2IType::New();
   l2i->SetInput(l2s->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,42 +28,59 @@ int
 itkBinaryOpeningByReconstructionImageFilterTest(int argc, char * argv[])
 {
 
-  if (argc != 6)
+  if (argc != 7)
   {
-    std::cerr << "usage: " << itkNameOfTestExecutableMacro(argv) << " input output conn fg kernelSize" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output kernelSize conn foregroundValue backgroundValue" << std::endl;
+    return EXIT_FAILURE;
   }
 
   constexpr int dim = 2;
+  using PixelType = unsigned char;
 
-  using IType = itk::Image<unsigned char, dim>;
+  using IType = itk::Image<PixelType, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
   using KernelType = itk::BinaryBallStructuringElement<bool, dim>;
-  KernelType           ball;
-  KernelType::SizeType ballSize;
-  ballSize.Fill(std::stoi(argv[5]));
+  KernelType ball;
+  auto       ballSize = KernelType::SizeType::Filled(std::stoi(argv[3]));
   ball.SetRadius(ballSize);
   ball.CreateStructuringElement();
 
   using I2LType = itk::BinaryOpeningByReconstructionImageFilter<IType, KernelType>;
-  I2LType::Pointer reconstruction = I2LType::New();
+  auto reconstruction = I2LType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(reconstruction, BinaryOpeningByReconstructionImageFilter, KernelImageFilter);
+
+
   reconstruction->SetInput(reader->GetOutput());
   reconstruction->SetKernel(ball);
-  reconstruction->SetFullyConnected(std::stoi(argv[3]));
-  reconstruction->SetForegroundValue(std::stoi(argv[4]));
-  //   reconstruction->SetBackgroundValue( std::stoi(argv[6]) );
-  itk::SimpleFilterWatcher watcher(reconstruction, "filter");
+
+  auto fullyConnected = static_cast<bool>(std::stoi(argv[4]));
+  ITK_TEST_SET_GET_BOOLEAN(reconstruction, FullyConnected, fullyConnected);
+
+  auto foregroundValue = static_cast<typename I2LType::PixelType>(std::stoi(argv[5]));
+  reconstruction->SetForegroundValue(foregroundValue);
+  ITK_TEST_SET_GET_VALUE(foregroundValue, reconstruction->GetForegroundValue());
+
+  auto backgroundValue = static_cast<typename I2LType::PixelType>(std::stoi(argv[6]));
+  reconstruction->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, reconstruction->GetBackgroundValue());
+
+  const itk::SimpleFilterWatcher watcher(reconstruction, "filter");
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(reconstruction->GetOutput());
   writer->SetFileName(argv[2]);
-  writer->Update();
-  return 0;
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
+
+  return EXIT_SUCCESS;
 }

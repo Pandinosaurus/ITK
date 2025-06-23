@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -76,13 +76,14 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(CyclicShiftImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CyclicShiftImageFilter);
 
   /** Set/get the shift. Shifts may be positive or negative. */
+  /** @ITKStartGrouping */
   itkSetMacro(Shift, OffsetType);
   itkGetConstMacro(Shift, OffsetType);
-
+  /** @ITKEndGrouping */
 protected:
   CyclicShiftImageFilter();
   ~CyclicShiftImageFilter() override = default;
@@ -101,7 +102,7 @@ protected:
 
   /** Protected so that subclasses may set it without calling
   Modified(). */
-  OffsetType m_Shift;
+  OffsetType m_Shift{};
 }; // end of class
 } // end namespace itk
 

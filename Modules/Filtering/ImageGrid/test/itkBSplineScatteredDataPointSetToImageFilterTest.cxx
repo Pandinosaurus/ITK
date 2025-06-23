@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,10 +48,10 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   using VectorImageType = itk::Image<VectorType, ParametricDimension>;
   using PointSetType = itk::PointSet<VectorImageType::PixelType, ParametricDimension>;
 
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
@@ -64,7 +64,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
 
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
   {
-    if (It.Get() != itk::NumericTraits<PixelType>::ZeroValue())
+    if (It.Get() != PixelType{})
     {
       // We extract both the 2-D location of the point
       // and the pixel value of that point.
@@ -72,10 +72,10 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
       PointSetType::PointType point;
       reader->GetOutput()->TransformIndexToPhysicalPoint(It.GetIndex(), point);
 
-      unsigned long i = pointSet->GetNumberOfPoints();
+      const unsigned long i = pointSet->GetNumberOfPoints();
       pointSet->SetPoint(i, point);
 
-      PointSetType::PixelType V(DataDimension);
+      auto V = itk::MakeFilled<PointSetType::PixelType>(DataDimension);
       V[0] = static_cast<RealType>(It.Get());
       pointSet->SetPointData(i, V);
     }
@@ -84,7 +84,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   // Instantiate the B-spline filter and set the desired parameters.
   using FilterType = itk::BSplineScatteredDataPointSetToImageFilter<PointSetType, VectorImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineScatteredDataPointSetToImageFilter, PointSetToImageFilter);
 
@@ -92,8 +92,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   unsigned int splineOrder = 0u;
   ITK_TRY_EXPECT_EXCEPTION(filter->SetSplineOrder(splineOrder));
 
-  FilterType::ArrayType splineOrderArray;
-  splineOrderArray.Fill(4u);
+  auto splineOrderArray = itk::MakeFilled<FilterType::ArrayType>(4u);
   filter->SetSplineOrder(splineOrderArray);
   ITK_TEST_SET_GET_VALUE(splineOrderArray, filter->GetSplineOrder());
 
@@ -103,11 +102,10 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(splineOrderArray, filter->GetSplineOrder());
 
 
-  unsigned numberOfLevels = 0u;
+  unsigned int numberOfLevels = 0u;
   ITK_TRY_EXPECT_EXCEPTION(filter->SetNumberOfLevels(numberOfLevels));
 
-  FilterType::ArrayType numberOfLevelsArray;
-  numberOfLevelsArray.Fill(4u);
+  auto numberOfLevelsArray = itk::MakeFilled<FilterType::ArrayType>(4u);
   filter->SetNumberOfLevels(numberOfLevelsArray);
   ITK_TEST_SET_GET_VALUE(numberOfLevelsArray, filter->GetNumberOfLevels());
 
@@ -117,14 +115,12 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(numberOfLevelsArray, filter->GetNumberOfLevels());
 
 
-  FilterType::ArrayType ncps;
-  ncps.Fill(4u);
+  auto ncps = itk::MakeFilled<FilterType::ArrayType>(4u);
   filter->SetNumberOfControlPoints(ncps);
   ITK_TEST_SET_GET_VALUE(ncps, filter->GetNumberOfControlPoints());
 
 
-  FilterType::ArrayType close;
-  close.Fill(0u);
+  constexpr FilterType::ArrayType close{};
   filter->SetCloseDimension(close);
   ITK_TEST_SET_GET_VALUE(close, filter->GetCloseDimension());
 
@@ -151,7 +147,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
 
   // Write the output to an image.
   using RealImageType = itk::Image<RealType, ParametricDimension>;
-  RealImageType::Pointer image = RealImageType::New();
+  auto image = RealImageType::New();
   image->SetRegions(reader->GetOutput()->GetLargestPossibleRegion());
   image->Allocate();
   itk::ImageRegionIteratorWithIndex<RealImageType> Itt(image, image->GetLargestPossibleRegion());
@@ -162,7 +158,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest(int argc, char * argv[])
   }
 
   using WriterType = itk::ImageFileWriter<RealImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(image);
   writer->SetFileName(argv[2]);
 

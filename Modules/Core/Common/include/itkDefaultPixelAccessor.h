@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,9 +54,6 @@ template <typename TType>
 class ITK_TEMPLATE_EXPORT DefaultPixelAccessor
 {
 public:
-  DefaultPixelAccessor() = default;
-  ~DefaultPixelAccessor() = default;
-
   /** External type alias. It defines the external aspect
    * that this class will exhibit. */
   using ExternalType = TType;
@@ -80,7 +77,7 @@ public:
   }
 
   /** Get a const reference to the pixel. */
-  inline const TType &
+  [[nodiscard]] inline const TType &
   Get(const TType & input) const
   {
     return input;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class SegmentationBorder
+ * \class SegmentationBorder
  * \brief Base class for SegmentationBorder object
  *
  * itkSegmentationBorder is the base class for the SegmentationBorder
@@ -58,13 +58,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SegmentationBorder, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SegmentationBorder);
 
   /** Set/Get the length of a border object. */
+  /** @ITKStartGrouping */
   itkSetMacro(BorderLength, double);
   itkGetConstReferenceMacro(BorderLength, double);
-
+  /** @ITKEndGrouping */
   /** Define a virtual SegmentationBorder function. This function allows
    * access to specific instantiations of other border representations. This
    * is the function should be overloaded in any derived classes for the user

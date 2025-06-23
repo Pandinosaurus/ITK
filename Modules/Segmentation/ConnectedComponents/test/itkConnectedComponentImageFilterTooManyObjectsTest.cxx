@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,8 @@ itkConnectedComponentImageFilterTooManyObjectsTest(int itkNotUsed(argc), char *[
 
   // create a test input image with more objects in it than what the output type
   // can handle - 255
-  ImageType::Pointer  img = ImageType::New();
-  ImageType::SizeType size;
-  size.Fill(512);
+  auto img = ImageType::New();
+  auto size = ImageType::SizeType::Filled(512);
   img->SetRegions(size);
   img->Allocate();
   img->FillBuffer(0);
@@ -47,9 +46,9 @@ itkConnectedComponentImageFilterTooManyObjectsTest(int itkNotUsed(argc), char *[
   }
 
   using FilterType = itk::ConnectedComponentImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(img);
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   try
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -90,14 +90,14 @@ main(int argc, char * argv[])
                                                 OutputImageType,
                                                 VoronoiImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
 
   using RescalerType =
     itk::RescaleIntensityImageFilter<OutputImageType, OutputImageType>;
 
-  RescalerType::Pointer scaler = RescalerType::New();
+  auto scaler = RescalerType::New();
 
   // Software Guide : BeginLatex
   //
@@ -113,8 +113,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
   using VoronoiWriterType = itk::ImageFileWriter<VoronoiImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -149,7 +149,7 @@ main(int argc, char * argv[])
   //
   //  \index{itk::Danielsson\-Distance\-Map\-Image\-Filter!GetVoronoiMap()}
   //
-  VoronoiWriterType::Pointer voronoiWriter = VoronoiWriterType::New();
+  auto voronoiWriter = VoronoiWriterType::New();
   voronoiWriter->SetFileName(voronoiMapFileName);
   voronoiWriter->SetInput(filter->GetVoronoiMap());
 
@@ -175,7 +175,7 @@ main(int argc, char * argv[])
   //  and creating an object of this class in the following lines.
 
   using WriterOffsetType = itk::ImageFileWriter<OffsetImageType>;
-  WriterOffsetType::Pointer offsetWriter = WriterOffsetType::New();
+  auto offsetWriter = WriterOffsetType::New();
   offsetWriter->SetInput(filter->GetVectorDistanceMap());
   offsetWriter->SetFileName(argv[4]);
 

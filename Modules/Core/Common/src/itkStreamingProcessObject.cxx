@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ StreamingProcessObject::GenerateData()
   // minimum of what the user specified via SetNumberOfStreamDivisions()
   // and what the Splitter thinks is a reasonable value.
   //
-  unsigned int numberOfInputRequestRegion = this->GetNumberOfInputRequestedRegions();
+  const unsigned int numberOfInputRequestRegion = this->GetNumberOfInputRequestedRegions();
 
   //
   // Loop over the number of pieces, execute the upstream pipeline on each
@@ -82,9 +82,9 @@ StreamingProcessObject::GenerateData()
     try
     {
       this->StreamedGenerateData(piece);
-      this->UpdateProgress(float(piece + 1) / numberOfInputRequestRegion);
+      this->UpdateProgress(static_cast<float>(piece + 1) / numberOfInputRequestRegion);
     }
-    catch (ProcessAborted &)
+    catch (const ProcessAborted &)
     {
       this->InvokeEvent(AbortEvent());
       this->ResetPipeline();
@@ -139,8 +139,8 @@ StreamingProcessObject::UpdateOutputData(DataObject * itkNotUsed(output))
   const DataObjectPointerArraySizeType ninputs = this->GetNumberOfValidRequiredInputs();
   if (ninputs < this->GetNumberOfRequiredInputs())
   {
-    itkExceptionMacro(<< "At least " << this->GetNumberOfRequiredInputs() << " inputs are required but only " << ninputs
-                      << " are specified.");
+    itkExceptionMacro("At least " << this->GetNumberOfRequiredInputs() << " inputs are required but only " << ninputs
+                                  << " are specified.");
   }
 
   this->SetAbortGenerateData(false);
@@ -206,7 +206,7 @@ StreamingProcessObject::ResetPipeline()
 }
 
 
-StreamingProcessObject::StreamingProcessObject(void) = default;
+StreamingProcessObject::StreamingProcessObject() = default;
 
 
 StreamingProcessObject::~StreamingProcessObject() = default;

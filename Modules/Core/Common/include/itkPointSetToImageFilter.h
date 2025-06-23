@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class PointSetToImageFilter
+ * \class PointSetToImageFilter
  * \brief Base class for filters that take a PointSet
  *        as input and produce an image as output.
  *  By default, if the user does not specify the size of the output image,
@@ -50,11 +50,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Some convenient type alias. */
   using InputPointSetType = TInputPointSet;
@@ -88,10 +88,11 @@ public:
    * spacing is the geometric distance between image samples.
    * It is stored internally as double, but may be set from
    * float. \sa GetSpacing() */
+  /** @ITKStartGrouping */
   itkSetMacro(Spacing, SpacingType);
   virtual void
   SetSpacing(const double * v);
-
+  /** @ITKEndGrouping */
   virtual void
   SetSpacing(const float * v);
 
@@ -104,17 +105,19 @@ public:
   /** Get/Set the direction of the image. The
    * direction is the relationship of the grid to physical
    * coordinates. */
+  /** @ITKStartGrouping */
   itkSetMacro(Direction, DirectionType);
   itkGetConstReferenceMacro(Direction, DirectionType);
-
+  /** @ITKEndGrouping */
   /** Set the origin of the image. The origin is the geometric
    * coordinates of the image origin.  It is stored internally
    * as double but may be set from float.
    * \sa GetOrigin() */
+  /** @ITKStartGrouping */
   itkSetMacro(Origin, PointType);
   virtual void
   SetOrigin(const double * v);
-
+  /** @ITKEndGrouping */
   virtual void
   SetOrigin(const float * v);
 
@@ -130,22 +133,25 @@ public:
    * If this "inside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(InsideValue, ValueType);
   itkGetConstMacro(InsideValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value for pixels outside the point-set.
    * By default, this filter will return an image
    * that contains values from the point specified as input.
    * If this "outside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutsideValue, ValueType);
   itkGetConstMacro(OutsideValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get Size */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
-
+  /** @ITKEndGrouping */
 protected:
   PointSetToImageFilter();
   ~PointSetToImageFilter() override = default;
@@ -156,16 +162,16 @@ protected:
   void
   GenerateData() override;
 
-  SizeType m_Size;
+  SizeType m_Size{};
 
-  PointType m_Origin;
+  PointType m_Origin{};
 
-  SpacingType m_Spacing;
+  SpacingType m_Spacing{};
 
-  DirectionType m_Direction;
+  DirectionType m_Direction{};
 
-  ValueType m_InsideValue;
-  ValueType m_OutsideValue;
+  ValueType m_InsideValue{};
+  ValueType m_OutsideValue{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

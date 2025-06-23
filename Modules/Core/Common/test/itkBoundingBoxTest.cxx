@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,9 @@
  *
  *=========================================================================*/
 
-#define ITK_LEGACY_TEST
+#ifndef ITK_LEGACY_REMOVE
+#  define ITK_LEGACY_TEST
+#endif
 #include <iostream>
 #include "itkBoundingBox.h"
 #include "itkMath.h"
@@ -27,9 +29,9 @@ itkBoundingBoxTest(int, char *[])
   // Test out the bounding box code
 
   using BB = itk::BoundingBox<unsigned long, 1, double>;
-  BB::Pointer myBox = BB::New();
+  auto myBox = BB::New();
 
-  BB::PointsContainerPointer Points = BB::PointsContainer::New();
+  const BB::PointsContainerPointer Points = BB::PointsContainer::New();
 
   itk::Point<double, 1> P;
 
@@ -38,7 +40,7 @@ itkBoundingBoxTest(int, char *[])
     const BB::BoundsArrayType & bounds = myBox->GetBounds();
     for (unsigned int i = 0; i < bounds.Size(); ++i)
     {
-      if (itk::Math::NotExactlyEquals(bounds[i], itk::NumericTraits<BB::CoordRepType>::ZeroValue()))
+      if (itk::Math::NotExactlyEquals(bounds[i], BB::CoordinateType{}))
       {
         std::cerr << "Bounding Box initialization test failed" << std::endl;
         std::cerr << bounds << std::endl;
@@ -52,7 +54,7 @@ itkBoundingBoxTest(int, char *[])
     BB::PointType center = myBox->GetCenter();
     for (unsigned int i = 0; i < 1; ++i)
     {
-      if (itk::Math::NotExactlyEquals(center[i], itk::NumericTraits<BB::CoordRepType>::ZeroValue()))
+      if (itk::Math::NotExactlyEquals(center[i], BB::CoordinateType{}))
       {
         std::cerr << "Empty Box GetCenter initialization test failed" << std::endl;
         return EXIT_FAILURE;
@@ -62,7 +64,7 @@ itkBoundingBoxTest(int, char *[])
   }
 
 
-  if (itk::Math::NotExactlyEquals(myBox->GetDiagonalLength2(), itk::NumericTraits<double>::ZeroValue()))
+  if (itk::Math::NotExactlyEquals(myBox->GetDiagonalLength2(), 0.0))
   {
     return EXIT_FAILURE;
   }
@@ -77,7 +79,7 @@ itkBoundingBoxTest(int, char *[])
 
   for (unsigned int i = 0; i < 10; ++i)
   {
-    P[0] = (double)i;
+    P[0] = static_cast<double>(i);
     Points->InsertElement(i, P);
   }
   std::cout << "Insert points passed" << std::endl;
@@ -115,15 +117,14 @@ itkBoundingBoxTest(int, char *[])
     std::cout << "Null GetCenter test passed" << std::endl;
   }
 
-  itk::NumericTraits<double>::AccumulateType diagonal;
-  diagonal = myBox->GetDiagonalLength2();
+  const itk::NumericTraits<double>::AccumulateType diagonal = myBox->GetDiagonalLength2();
   if (diagonal != 81.0)
   {
     return EXIT_FAILURE;
   }
   std::cout << "GetDiagonalLength2 passed" << std::endl;
 
-  BB::PointsContainerConstPointer NewPoints = myBox->GetPoints();
+  const BB::PointsContainerConstPointer NewPoints = myBox->GetPoints();
 
   // End with a Print.
   myBox->Print(std::cout);
@@ -133,12 +134,12 @@ itkBoundingBoxTest(int, char *[])
   std::cout << " Some Testing in 3D " << std::endl;
 
   using CC = itk::BoundingBox<unsigned long, 3, double>;
-  CC::Pointer my3DBox = CC::New();
+  auto my3DBox = CC::New();
 
-  CC::PointsContainerPointer Points3D = CC::PointsContainer::New();
+  const CC::PointsContainerPointer Points3D = CC::PointsContainer::New();
 
-  CC::PointType::ValueType qval1[3] = { -1.0f, -1.0f, -1.0f };
-  CC::PointType            Q = qval1;
+  constexpr CC::PointType::ValueType qval1[3] = { -1.0f, -1.0f, -1.0f };
+  CC::PointType                      Q = qval1;
   Points3D->InsertElement(0, Q);
 
   CC::PointType::ValueType qval2[3] = { 1.0f, 1.0f, 1.0f };
@@ -157,7 +158,7 @@ itkBoundingBoxTest(int, char *[])
   Q = qval3;
   if (!my3DBox->IsInside(Q))
   {
-    std::cerr << "Point " << Q << " Should be repoted inside " << std::endl;
+    std::cerr << "Point " << Q << " Should be reported inside " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -165,7 +166,7 @@ itkBoundingBoxTest(int, char *[])
   Q = qval4;
   if (my3DBox->IsInside(Q))
   {
-    std::cerr << "Point " << Q << " Should be repoted outside " << std::endl;
+    std::cerr << "Point " << Q << " Should be reported outside " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -178,7 +179,8 @@ itkBoundingBoxTest(int, char *[])
   {
     for (unsigned int i = 0; i < 3; ++i)
     {
-      if ((*it)[i] != std::pow(-1.0, (double)(j / (int(std::pow(2.0, (double)i))))))
+      if ((*it)[i] !=
+          std::pow(-1.0, static_cast<double>(j / (static_cast<int>(std::pow(2.0, static_cast<double>(i)))))))
       {
         std::cout << "[FAILED]" << std::endl;
         return EXIT_FAILURE;
@@ -191,15 +193,15 @@ itkBoundingBoxTest(int, char *[])
 
   // Testing the DeepCopy method
   {
-    const double                tolerance = 1e-10;
-    CC::Pointer                 clone = my3DBox->DeepCopy();
+    constexpr double            tolerance = 1e-10;
+    const CC::Pointer           clone = my3DBox->DeepCopy();
     const CC::BoundsArrayType & originalBounds = my3DBox->GetBounds();
     const CC::BoundsArrayType & clonedbounds = clone->GetBounds();
     for (unsigned int i = 0; i < originalBounds.Size(); ++i)
     {
-      if (std::fabs(originalBounds[i] - clonedbounds[i]) > tolerance)
+      if (itk::Math::abs(originalBounds[i] - clonedbounds[i]) > tolerance)
       {
-        std::cerr << "Clonning test failed" << std::endl;
+        std::cerr << "Cloning test failed" << std::endl;
         std::cerr << originalBounds << std::endl;
         std::cerr << clonedbounds << std::endl;
         return EXIT_FAILURE;

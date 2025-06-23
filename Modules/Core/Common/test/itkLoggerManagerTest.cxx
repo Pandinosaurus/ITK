@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkStdStreamLogOutput.h"
 #include "itkLoggerManager.h"
 #include "itkLogTester.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -35,22 +36,26 @@ itkLoggerManagerTest(int argc, char * argv[])
     }
 
     // Create an ITK StdStreamLogOutputs
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
     coutput->SetStream(std::cout);
     std::ofstream fout(argv[1]);
     foutput->SetStream(fout);
 
     // Create an ITK Loggers using itk::LoggerManager
-    itk::LoggerManager::Pointer manager = itk::LoggerManager::New();
+    const itk::LoggerManager::Pointer manager = itk::LoggerManager::New();
 
-    itk::Logger::Pointer logger = manager->CreateLogger("org.itk.logTester.logger",
-                                                        itk::LoggerBase::PriorityLevelEnum::DEBUG,
-                                                        itk::LoggerBase::PriorityLevelEnum::CRITICAL);
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(manager, LoggerManager, Object);
 
-    itk::ThreadLogger::Pointer t_logger = manager->CreateThreadLogger("org.itk.ThreadLogger",
-                                                                      itk::LoggerBase::PriorityLevelEnum::WARNING,
-                                                                      itk::LoggerBase::PriorityLevelEnum::CRITICAL);
+
+    const itk::Logger::Pointer logger = manager->CreateLogger("org.itk.logTester.logger",
+                                                              itk::LoggerBase::PriorityLevelEnum::DEBUG,
+                                                              itk::LoggerBase::PriorityLevelEnum::CRITICAL);
+
+    const itk::ThreadLogger::Pointer t_logger =
+      manager->CreateThreadLogger("org.itk.ThreadLogger",
+                                  itk::LoggerBase::PriorityLevelEnum::WARNING,
+                                  itk::LoggerBase::PriorityLevelEnum::CRITICAL);
 
     std::cout << "Testing itk::LoggerManager" << std::endl;
 
@@ -79,8 +84,7 @@ itkLoggerManagerTest(int argc, char * argv[])
     manager->Write(itk::Logger::PriorityLevelEnum::FATAL, "This is the FATAL message.\n");
     manager->Write(itk::LoggerBase::PriorityLevelEnum::MUSTFLUSH, "This is the MUSTFLUSH message.\n");
     std::cout << "  Message #3" << std::endl;
-    itk::Logger * pLogger;
-    pLogger = manager->GetLogger("org.itk.logTester.logger");
+    itk::Logger * pLogger = manager->GetLogger("org.itk.logTester.logger");
     if (pLogger == nullptr)
     {
       throw "LoggerManager::GetLogger() failed";

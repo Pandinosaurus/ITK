@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPadImageFilter_hxx
 #define itkPadImageFilter_hxx
 
-#include "itkPadImageFilter.h"
 
 #include "itkImageAlgorithm.h"
 #include "itkImageRegionExclusionIteratorWithIndex.h"
@@ -34,7 +33,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 PadImageFilter<TInputImage, TOutputImage>::PadImageFilter()
 {
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     m_PadLowerBound[j] = 0;
     m_PadUpperBound[j] = 0;
@@ -52,26 +51,26 @@ PadImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent i
 
   os << indent << "Output Pad Lower Bounds: [";
 
-  if (ImageDimension >= 1)
+  if constexpr (ImageDimension >= 1)
   {
     os << m_PadLowerBound[0];
   }
-  for (unsigned int j = 1; j < ImageDimension; j++)
+  for (unsigned int j = 1; j < ImageDimension; ++j)
   {
     os << ", " << m_PadLowerBound[j];
   }
-  os << "]" << std::endl;
+  os << ']' << std::endl;
 
   os << indent << "Output Pad Upper Bounds: [";
-  if (ImageDimension >= 1)
+  if constexpr (ImageDimension >= 1)
   {
     os << m_PadUpperBound[0];
   }
-  for (unsigned int j = 1; j < ImageDimension; j++)
+  for (unsigned int j = 1; j < ImageDimension; ++j)
   {
     os << ", " << m_PadUpperBound[j];
   }
-  os << "]" << std::endl;
+  os << ']' << std::endl;
 }
 
 /**
@@ -91,8 +90,8 @@ PadImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
-  typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
+  const typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
+  const typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
 
   if (!outputPtr || !inputPtr)
   {
@@ -101,7 +100,6 @@ PadImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
   // we need to compute the output image size, and the
   // output image start index
-  unsigned int                     i;
   typename TOutputImage::SizeType  outputSize;
   typename TOutputImage::IndexType outputStartIndex;
   typename TInputImage::SizeType   inputSize;
@@ -110,15 +108,13 @@ PadImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
   inputStartIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
 
-  for (i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     outputSize[i] = inputSize[i] + m_PadLowerBound[i] + m_PadUpperBound[i];
     outputStartIndex[i] = inputStartIndex[i] - static_cast<OffsetValueType>(m_PadLowerBound[i]);
   }
 
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }

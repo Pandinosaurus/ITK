@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +51,8 @@ itkDivideImageFilterTest2(int, char *[])
   using RegionType = itk::ImageRegion<Dimension>;
 
   // Create two images
-  InputImageType1::Pointer inputImageA = InputImageType1::New();
-  InputImageType2::Pointer inputImageB = InputImageType2::New();
+  auto inputImageA = InputImageType1::New();
+  auto inputImageB = InputImageType2::New();
 
   // Define their size, and start index
   SizeType size;
@@ -70,21 +70,17 @@ itkDivideImageFilterTest2(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->SetNumberOfComponentsPerPixel(4);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Initialize the content of Image A
-  InputImageType1::PixelType            valueA(inputImageA->GetNumberOfComponentsPerPixel());
-  InputImageType1::PixelType::ValueType elementValueA = 2.0;
+  InputImageType1::PixelType                      valueA(inputImageA->GetNumberOfComponentsPerPixel());
+  constexpr InputImageType1::PixelType::ValueType elementValueA = 2.0;
   valueA.Fill(elementValueA);
   inputImageA->FillBuffer(valueA);
 
@@ -97,7 +93,7 @@ itkDivideImageFilterTest2(int, char *[])
   using FilterType = itk::DivideImageFilter<InputImageType1, InputImageType2, OutputImageType>;
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DivideImageFilter, BinaryGeneratorImageFilter);
 
@@ -111,7 +107,7 @@ itkDivideImageFilterTest2(int, char *[])
 
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the image output
   OutputImageIteratorType oIt(outputImage, outputImage->GetBufferedRegion());
@@ -119,8 +115,8 @@ itkDivideImageFilterTest2(int, char *[])
 
   // Check the content of the result image
   //
-  const auto expectedValue = static_cast<OutputImageType::PixelType::ValueType>(elementValueA / valueB);
-  const OutputImageType::PixelType::ValueType epsilon = 1e-6;
+  constexpr auto expectedValue = static_cast<OutputImageType::PixelType::ValueType>(elementValueA / valueB);
+  constexpr OutputImageType::PixelType::ValueType epsilon = 1e-6;
   while (!oIt.IsAtEnd())
   {
     for (unsigned int i = 0; i < oIt.GetImageDimension(); ++i)
@@ -129,7 +125,7 @@ itkDivideImageFilterTest2(int, char *[])
       {
         std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
         std::cerr << "Test failed!" << std::endl;
-        std::cerr << "Error in pixel value at index [" << oIt.GetIndex() << ":" << i << "]" << std::endl;
+        std::cerr << "Error in pixel value at index [" << oIt.GetIndex() << ':' << i << ']' << std::endl;
         std::cerr << "Expected value " << expectedValue << std::endl;
         std::cerr << " differs from " << oIt.Get()[i];
         std::cerr << " by more than " << epsilon << std::endl;

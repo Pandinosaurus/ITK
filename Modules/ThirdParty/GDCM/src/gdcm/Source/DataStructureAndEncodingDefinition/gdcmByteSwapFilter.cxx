@@ -27,8 +27,6 @@ namespace gdcm
 //{
 //}
 //-----------------------------------------------------------------------------
-ByteSwapFilter::~ByteSwapFilter()
-= default;
 
 bool ByteSwapFilter::ByteSwap()
 {
@@ -137,7 +135,6 @@ bool ByteSwapFilter::ByteSwap()
       de.SetTag(
         Tag( SwapperDoOp::Swap( tag.GetGroup() ), SwapperDoOp::Swap( tag.GetElement() ) ) );
       copy.Insert( de );
-      DS.Remove( de.GetTag() );
       }
     DS = copy;
     }

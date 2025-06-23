@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 // itkDeformationFieldJacobianDeterminantFilter.h -> itkDisplacementFieldJacobianDeterminantFilter.h
 #include "itkDisplacementFieldJacobianDeterminantFilter.h"
 
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 int
 main(int argc, char * argv[])
 {
@@ -46,11 +46,11 @@ main(int argc, char * argv[])
   using FilterType = itk::DisplacementFieldJacobianDeterminantFilter<InputImageType>;
 
   // Set up deformation field reader
-  ReaderType::Pointer reader = ReaderType::New();
+  const ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Connect deformation-to-Jacobian filter
-  FilterType::Pointer filter = FilterType::New();
+  const FilterType::Pointer filter = FilterType::New();
   filter->SetInput(reader->GetOutput());
   //  filter->SetUseImageSpacingOn();
   filter->Update();
@@ -58,7 +58,7 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
   // Write Jacobian determinant image.
-  WriterType::Pointer writer = WriterType::New();
+  const WriterType::Pointer writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(filter->GetOutput());
 

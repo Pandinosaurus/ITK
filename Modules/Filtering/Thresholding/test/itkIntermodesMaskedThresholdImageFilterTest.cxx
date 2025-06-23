@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,25 +49,25 @@ itkIntermodesMaskedThresholdImageFilterTest(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using MaskReaderType = itk::ImageFileReader<OutputImageType>;
-  MaskReaderType::Pointer maskReader = MaskReaderType::New();
+  auto maskReader = MaskReaderType::New();
   maskReader->SetFileName(argv[2]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(maskReader->Update());
 
 
   using FilterType = itk::IntermodesThresholdImageFilter<InputImageType, OutputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, IntermodesThresholdImageFilter, HistogramThresholdImageFilter);
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   auto insideValue = static_cast<FilterType::OutputPixelType>(255);
   filter->SetInsideValue(insideValue);
@@ -77,20 +77,19 @@ itkIntermodesMaskedThresholdImageFilterTest(int argc, char * argv[])
   filter->SetOutsideValue(outsideValue);
   ITK_TEST_SET_GET_VALUE(outsideValue, filter->GetOutsideValue());
 
-  bool maskOutput = static_cast<bool>(std::stoi(argv[4]));
+  const bool maskOutput = static_cast<bool>(std::stoi(argv[4]));
   ITK_TEST_SET_GET_BOOLEAN(filter, MaskOutput, maskOutput);
 
   auto maskValue = static_cast<FilterType::MaskPixelType>(std::stod(argv[5]));
   filter->SetMaskValue(maskValue);
   ITK_TEST_SET_GET_VALUE(maskValue, filter->GetMaskValue());
 
-  unsigned long maximumSmoothingIterations = std::stoi(argv[6]);
+  const unsigned long maximumSmoothingIterations = std::stoi(argv[6]);
   filter->SetMaximumSmoothingIterations(maximumSmoothingIterations);
   ITK_TEST_SET_GET_VALUE(maximumSmoothingIterations, filter->GetMaximumSmoothingIterations());
 
-  bool useInterMode = static_cast<bool>(std::stoi(argv[7]));
-  filter->SetUseInterMode(useInterMode);
-  ITK_TEST_SET_GET_VALUE(useInterMode, filter->GetUseInterMode());
+  const bool useInterMode = static_cast<bool>(std::stoi(argv[7]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, UseInterMode, useInterMode);
 
 
   filter->SetInput(reader->GetOutput());
@@ -101,21 +100,22 @@ itkIntermodesMaskedThresholdImageFilterTest(int argc, char * argv[])
 
 
   // Regression test: compare computed threshold
-  FilterType::InputPixelType expectedThreshold = std::stod(argv[8]);
-  FilterType::InputPixelType resultThreshold = filter->GetThreshold();
+  const FilterType::InputPixelType expectedThreshold = std::stod(argv[8]);
+  const FilterType::InputPixelType resultThreshold = filter->GetThreshold();
   if (itk::Math::NotAlmostEquals(expectedThreshold, resultThreshold))
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in GetThreshold()" << std::endl;
-    std::cerr << "Expected: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(expectedThreshold)
-              << ", but got: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(resultThreshold)
-              << std::endl;
+    std::cerr << "Expected: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(expectedThreshold)
+              << ", but got: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(resultThreshold) << std::endl;
     return EXIT_FAILURE;
   }
 
   // Write output image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[3]);
 

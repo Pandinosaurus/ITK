@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ namespace itk
  *
  * ContinuousIndex is a templated class that holds a set of coordinates
  * (components).
- * The template parameter TCoordRep can be any floating point type (float, double).
+ * The template parameter TCoordinate can be any floating point type (float, double).
  * The VIndexDimension defines the number of  components in the continuous
  * index array.
  *
@@ -42,21 +42,25 @@ namespace itk
  *
  * \ingroup ITKCommon
  */
-template <typename TCoordRep = double, unsigned int VIndexDimension = 2>
-class ContinuousIndex : public Point<TCoordRep, VIndexDimension>
+template <typename TCoordinate = double, unsigned int VIndexDimension = 2>
+class ITK_TEMPLATE_EXPORT ContinuousIndex : public Point<TCoordinate, VIndexDimension>
 {
-  static_assert(std::is_floating_point<TCoordRep>::value,
+  static_assert(std::is_floating_point_v<TCoordinate>,
                 "The coordinates of a continuous index must be represented by floating point numbers.");
 
 public:
   /** Standard class type aliases. */
   using Self = ContinuousIndex;
-  using Superclass = Point<TCoordRep, VIndexDimension>;
+  using Superclass = Point<TCoordinate, VIndexDimension>;
 
   /** ValueType can be used to declare a variable that is the same type
    * as a data element held in an Point.   */
-  using ValueType = TCoordRep;
-  using CoordRepType = TCoordRep;
+  using ValueType = TCoordinate;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
 
   /** Dimension of the Space */
   static constexpr unsigned int IndexDimension = VIndexDimension;
@@ -69,15 +73,9 @@ public:
   using Iterator = typename BaseArray::Iterator;
   using ConstIterator = typename BaseArray::ConstIterator;
 
-  /** Constructors */
+  /** Default-constructor.
+   * \note The other five "special member functions" are defaulted implicitly, following the C++ "Rule of Zero". */
   ContinuousIndex() = default;
-  ContinuousIndex(const ContinuousIndex &) = default;
-  ContinuousIndex(ContinuousIndex &&) = default;
-  ContinuousIndex &
-  operator=(const ContinuousIndex &) = default;
-  ContinuousIndex &
-  operator=(ContinuousIndex &&) = default;
-  ~ContinuousIndex() = default;
 
   /** Pass-through constructor to the Point base class. */
   ContinuousIndex(const ValueType r[IndexDimension])
@@ -89,7 +87,7 @@ public:
   {
     for (unsigned int i = 0; i < VIndexDimension; ++i)
     {
-      (*this)[i] = static_cast<TCoordRep>(index[i]);
+      (*this)[i] = static_cast<TCoordinate>(index[i]);
     }
   }
 };

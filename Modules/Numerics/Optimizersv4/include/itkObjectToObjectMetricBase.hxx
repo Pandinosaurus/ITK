@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkObjectToObjectMetricBase_hxx
 #define itkObjectToObjectMetricBase_hxx
 
-#include "itkObjectToObjectMetricBase.h"
 
 namespace itk
 {
@@ -26,10 +25,10 @@ namespace itk
 //-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::ObjectToObjectMetricBaseTemplate()
+  : m_GradientSource(GradientSourceEnum::GRADIENT_SOURCE_MOVING)
+  , m_Value(MeasureType{})
 {
   // Don't call SetGradientSource, to avoid valgrind warning.
-  this->m_GradientSource = GradientSourceEnum::GRADIENT_SOURCE_MOVING;
-  this->m_Value = NumericTraits<MeasureType>::ZeroValue();
 }
 
 //-------------------------------------------------------------------
@@ -52,8 +51,8 @@ ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::GetGradientSour
 
 //-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
-typename ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::MeasureType
-ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::GetCurrentValue() const
+auto
+ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::GetCurrentValue() const -> MeasureType
 {
   return m_Value;
 }
@@ -65,22 +64,7 @@ ObjectToObjectMetricBaseTemplate<TInternalComputationValueType>::PrintSelf(std::
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Value: " << m_Value << std::endl;
-  os << indent << "GradientSourceEnum: ";
-  switch (m_GradientSource)
-  {
-    case GradientSourceEnum::GRADIENT_SOURCE_FIXED:
-      os << "GRADIENT_SOURCE_FIXED";
-      break;
-    case GradientSourceEnum::GRADIENT_SOURCE_MOVING:
-      os << "GRADIENT_SOURCE_MOVING";
-      break;
-    case GradientSourceEnum::GRADIENT_SOURCE_BOTH:
-      os << "GRADIENT_SOURCE_BOTH";
-      break;
-    default:
-      itkExceptionMacro(<< "Unknown GradientSource.");
-  }
-  os << std::endl;
+  os << indent << "GradientSourceEnum: " << m_GradientSource << std::endl;
 }
 
 } // namespace itk

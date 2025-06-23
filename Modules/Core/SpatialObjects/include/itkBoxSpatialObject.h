@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class BoxSpatialObject
+ * \class BoxSpatialObject
  *
  * \brief
  * The class may be used to represent N-dimensional boxes.
@@ -45,14 +45,14 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = SpatialObject<TDimension>;
   using SuperclassPointer = SmartPointer<Superclass>;
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::BoundingBoxType;
   using SizeType = FixedArray<double, TDimension>;
   using PointsContainerType = typename BoundingBoxType::PointsContainer;
 
   itkNewMacro(Self);
-  itkTypeMacro(BoxSpatialObject, SpatialObject);
+  itkOverrideGetNameOfClassMacro(BoxSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -71,7 +71,7 @@ public:
   /** Get the position of the box spatial object in object space. */
   itkGetConstReferenceMacro(PositionInObjectSpace, PointType);
 
-  /** Test whether a point is inside or outside the object */
+  /** Test whether a point is inside the object. */
   bool
   IsInsideInObjectSpace(const PointType & point) const override;
 
@@ -88,17 +88,15 @@ protected:
   BoxSpatialObject();
   ~BoxSpatialObject() override = default;
 
-  /** Print the object informations in a stream. */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
-  /** object space */
-  SizeType  m_SizeInObjectSpace;
-  PointType m_PositionInObjectSpace;
+  SizeType  m_SizeInObjectSpace{};
+  PointType m_PositionInObjectSpace{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,9 @@ itkBinaryShapeOpeningImageFilterTest1(int argc, char * argv[])
 
   if (argc != 9)
   {
-    std::cerr << "Usage: " << argv[0] << " input output";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output";
     std::cerr << " foreground background lambda";
     std::cerr << "reverseOrdering connectivity attribute" << std::endl;
     return EXIT_FAILURE;
@@ -40,26 +42,26 @@ itkBinaryShapeOpeningImageFilterTest1(int argc, char * argv[])
   using IType = itk::Image<unsigned char, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using BinaryOpeningType = itk::BinaryShapeOpeningImageFilter<IType>;
-  BinaryOpeningType::Pointer opening = BinaryOpeningType::New();
+  auto opening = BinaryOpeningType::New();
 
   opening->SetInput(reader->GetOutput());
 
   // testing get/set ForegroundValue macro
-  int ForegroundValue = (std::stoi(argv[3]));
+  const int ForegroundValue = (std::stoi(argv[3]));
   opening->SetForegroundValue(ForegroundValue);
   ITK_TEST_SET_GET_VALUE(ForegroundValue, opening->GetForegroundValue());
 
   // testing get/set BackgroundValue macro
-  int BackgroundValue = (std::stoi(argv[4]));
+  const int BackgroundValue = (std::stoi(argv[4]));
   opening->SetBackgroundValue(BackgroundValue);
   ITK_TEST_SET_GET_VALUE(BackgroundValue, opening->GetBackgroundValue());
 
   // testing get and set macros for Lambda
-  double lambda = std::stod(argv[5]);
+  const double lambda = std::stod(argv[5]);
   opening->SetLambda(lambda);
   ITK_TEST_SET_GET_VALUE(lambda, opening->GetLambda());
 
@@ -71,7 +73,7 @@ itkBinaryShapeOpeningImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, opening->GetReverseOrdering());
 
   // testing get and set macros or ReverseOrdering
-  bool reverseOrdering = std::stoi(argv[6]);
+  const bool reverseOrdering = std::stoi(argv[6]);
   opening->SetReverseOrdering(reverseOrdering);
   ITK_TEST_SET_GET_VALUE(reverseOrdering, opening->GetReverseOrdering());
 
@@ -83,19 +85,19 @@ itkBinaryShapeOpeningImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, opening->GetFullyConnected());
 
   // testing get and set macros or FullyConnected
-  bool fullyConnected = std::stoi(argv[7]);
+  const bool fullyConnected = std::stoi(argv[7]);
   opening->SetFullyConnected(fullyConnected);
   ITK_TEST_SET_GET_VALUE(fullyConnected, opening->GetFullyConnected());
 
   // testing get and set macros for Attribute
-  BinaryOpeningType::AttributeType attribute = std::stoi(argv[8]);
+  const BinaryOpeningType::AttributeType attribute = std::stoi(argv[8]);
   opening->SetAttribute(attribute);
   ITK_TEST_SET_GET_VALUE(attribute, opening->GetAttribute());
 
-  itk::SimpleFilterWatcher watcher(opening, "filter");
+  const itk::SimpleFilterWatcher watcher(opening, "filter");
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(opening->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

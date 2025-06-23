@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +41,11 @@ itkMetaImageIOTest(int argc, char * argv[])
   using PixelType = unsigned short;
   using myImage = itk::Image<PixelType, 3>;
 
-  itk::ImageFileReader<myImage>::Pointer reader = itk::ImageFileReader<myImage>::New();
+  const itk::ImageFileReader<myImage>::Pointer reader = itk::ImageFileReader<myImage>::New();
 
   // Force use of MetaIO
   using IOType = itk::MetaImageIO;
-  IOType::Pointer metaIn = IOType::New();
+  auto metaIn = IOType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(metaIn, MetaImageIO, ImageIOBase);
 
@@ -61,8 +61,8 @@ itkMetaImageIOTest(int argc, char * argv[])
   }
 
   // Test subsampling factor (change it then change it back)
-  unsigned int origSubSamplingFactor = metaIn->GetSubSamplingFactor();
-  unsigned int subSamplingFactor = 2;
+  const unsigned int     origSubSamplingFactor = metaIn->GetSubSamplingFactor();
+  constexpr unsigned int subSamplingFactor = 2;
   metaIn->SetSubSamplingFactor(subSamplingFactor);
   ITK_TEST_SET_GET_VALUE(subSamplingFactor, metaIn->GetSubSamplingFactor());
 
@@ -87,16 +87,18 @@ itkMetaImageIOTest(int argc, char * argv[])
     ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
   }
 
-  myImage::Pointer image = reader->GetOutput();
+  const myImage::Pointer image = reader->GetOutput();
   image->Print(std::cout);
 
-  myImage::RegionType region = image->GetLargestPossibleRegion();
+  // MetaImage is expected to have a modality tag
+  [[maybe_unused]] auto val = image->GetMetaDataDictionary().Get("Modality");
+
+  const myImage::RegionType region = image->GetLargestPossibleRegion();
   std::cout << "region " << region;
 
   // Generate test image
-  itk::ImageFileWriter<myImage>::Pointer writer;
-  writer = itk::ImageFileWriter<myImage>::New();
-  IOType::Pointer metaOut = IOType::New();
+  const itk::ImageFileWriter<myImage>::Pointer writer = itk::ImageFileWriter<myImage>::New();
+  auto                                         metaOut = IOType::New();
   writer->SetImageIO(metaOut);
   writer->SetInput(reader->GetOutput());
   writer->SetFileName(argv[2]);

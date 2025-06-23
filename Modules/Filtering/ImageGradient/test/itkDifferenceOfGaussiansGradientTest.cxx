@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   TImageType::PointValueType   sourceImageOrigin[] = { 0, 0, 0 };
 
   // Creates the sourceImage (but doesn't set the size or allocate memory)
-  TImageType::Pointer sourceImage = TImageType::New();
+  auto sourceImage = TImageType::New();
   sourceImage->SetOrigin(sourceImageOrigin);
   sourceImage->SetSpacing(sourceImageSpacing);
 
@@ -65,19 +65,16 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   TImageType::RegionType largestPossibleRegion;
   // Resize the region
   largestPossibleRegion.SetSize(sourceImageSizeObject);
-  // Set the largest legal region size (i.e. the size of the whole sourceImage) to what we just defined
-  sourceImage->SetLargestPossibleRegion(largestPossibleRegion);
-  // Set the buffered region
-  sourceImage->SetBufferedRegion(largestPossibleRegion);
-  // Set the requested region
-  sourceImage->SetRequestedRegion(largestPossibleRegion);
+  // Set the largest legal region size (i.e. the size of the whole sourceImage), the buffered, and
+  // the requested region to what we just defined.
+  sourceImage->SetRegions(largestPossibleRegion);
   // Now allocate memory for the sourceImage
   sourceImage->Allocate();
 
   printf("New sourceImage allocated\n");
 
   // Initialize the image to hold all 0's
-  itk::ImageRegionIterator<TImageType> it = itk::ImageRegionIterator<TImageType>(sourceImage, largestPossibleRegion);
+  itk::ImageRegionIterator<TImageType> it(sourceImage, largestPossibleRegion);
 
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
@@ -91,7 +88,7 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
 
   // Create and initialize a new sphere function
 
-  TFunctionType::Pointer spatialFunc = TFunctionType::New();
+  auto spatialFunc = TFunctionType::New();
   spatialFunc->SetRadius(5);
 
   TFunctionPositionType center;
@@ -103,19 +100,19 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   printf("Sphere spatial function created\n");
 
   //---------Create and initialize a spatial function iterator-----------
-  TImageType::IndexType            seedPos;
-  const TImageType::IndexValueType pos[] = { 10, 10, 10 };
+  TImageType::IndexType                seedPos;
+  constexpr TImageType::IndexValueType pos[] = { 10, 10, 10 };
   seedPos.SetIndex(pos);
 
   using TItType = itk::FloodFilledSpatialFunctionConditionalIterator<TImageType, TFunctionType>;
-  TItType sfi = TItType(sourceImage, spatialFunc, seedPos);
+  TItType sfi(sourceImage, spatialFunc, seedPos);
 
   //
   // show seed indices
   std::cout << "Seeds for FloodFilledSpatialFunctionConditionalIterator" << std::endl;
   for (const auto & seed : sfi.GetSeeds())
   {
-    std::cout << seed << " ";
+    std::cout << seed << ' ';
   }
   std::cout << std::endl;
 
@@ -131,8 +128,8 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   using TOutputType = TImageType;
 
   // Create a binomial blur filter
-  itk::BinomialBlurImageFilter<TImageType, TOutputType>::Pointer binfilter;
-  binfilter = itk::BinomialBlurImageFilter<TImageType, TOutputType>::New();
+  const itk::BinomialBlurImageFilter<TImageType, TOutputType>::Pointer binfilter =
+    itk::BinomialBlurImageFilter<TImageType, TOutputType>::New();
 
   sourceImage->SetRequestedRegion(sourceImage->GetLargestPossibleRegion());
 
@@ -141,7 +138,7 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   binfilter->SetRepetitions(4);
 
   // Set up the output of the filter
-  TImageType::Pointer blurredImage = binfilter->GetOutput();
+  const TImageType::Pointer blurredImage = binfilter->GetOutput();
 
   // Execute the filter
   binfilter->Update();
@@ -151,19 +148,19 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
 
   // Create a differennce of gaussians gradient filter
   using TDOGFilterType = itk::DifferenceOfGaussiansGradientImageFilter<TOutputType, double>;
-  TDOGFilterType::Pointer  DOGFilter = TDOGFilterType::New();
-  itk::SimpleFilterWatcher watcher(DOGFilter);
+  auto                           DOGFilter = TDOGFilterType::New();
+  const itk::SimpleFilterWatcher watcher(DOGFilter);
 
   // We're filtering the output of the binomial filter
   DOGFilter->SetInput(blurredImage);
 
   // Test the get/set macro for width
   DOGFilter->SetWidth(4);
-  unsigned int theWidth = DOGFilter->GetWidth();
+  const unsigned int theWidth = DOGFilter->GetWidth();
   std::cout << "DOGFilter->GetWidth(): " << theWidth << std::endl;
 
   // Get the output of the gradient filter
-  TDOGFilterType::TOutputImage::Pointer gradientImage = DOGFilter->GetOutput();
+  const TDOGFilterType::TOutputImage::Pointer gradientImage = DOGFilter->GetOutput();
 
   // Go!
   DOGFilter->Update();
@@ -171,7 +168,7 @@ itkDifferenceOfGaussiansGradientTest(int, char *[])
   //-------------Test vector magnitude-------------
   using VectorMagType = itk::VectorMagnitudeImageFilter<TDOGFilterType::TOutputImage, itk::Image<unsigned char, dim>>;
 
-  VectorMagType::Pointer vectorMagFilter = VectorMagType::New();
+  auto vectorMagFilter = VectorMagType::New();
 
   vectorMagFilter->SetInput(gradientImage);
   vectorMagFilter->Update();

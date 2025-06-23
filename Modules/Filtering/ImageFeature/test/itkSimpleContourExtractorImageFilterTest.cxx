@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,27 +52,27 @@ itkSimpleContourExtractorImageFilterTest(int argc, char * argv[])
   using FilterType = itk::SimpleContourExtractorImageFilter<ImageType, ImageType>;
 
   // Create the reader and writer
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, SimpleContourExtractorImageFilter, BoxImageFilter);
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   // Connect the pipeline
   filter->SetInput(reader->GetOutput());
   writer->SetInput(filter->GetOutput());
 
-  FilterType::InputPixelType  inputForegroundValue = 255;
-  FilterType::InputPixelType  inputBackgroundValue = 0;
-  FilterType::OutputPixelType outputForegroundValue = itk::NumericTraits<FilterType::OutputPixelType>::max();
-  FilterType::OutputPixelType outputBackgroundValue = itk::NumericTraits<FilterType::OutputPixelType>::ZeroValue();
+  constexpr FilterType::InputPixelType  inputForegroundValue = 255;
+  constexpr FilterType::InputPixelType  inputBackgroundValue = 0;
+  constexpr FilterType::OutputPixelType outputForegroundValue = itk::NumericTraits<FilterType::OutputPixelType>::max();
+  constexpr FilterType::OutputPixelType outputBackgroundValue{};
 
   filter->SetInputForegroundValue(inputForegroundValue);
 
@@ -91,9 +91,7 @@ itkSimpleContourExtractorImageFilterTest(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(outputBackgroundValue, filter->GetOutputBackgroundValue());
 
 
-  FilterType::InputSizeType radius;
-
-  radius.Fill(1);
+  auto radius = FilterType::InputSizeType::Filled(1);
 
   filter->SetRadius(radius);
 

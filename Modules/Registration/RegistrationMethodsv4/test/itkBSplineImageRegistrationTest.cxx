@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,8 @@ public:
       return;
     }
 
-    unsigned int                                             currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
+    const unsigned int                                             currentLevel = filter->GetCurrentLevel();
+    const typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
       filter->GetShrinkFactorsPerDimension(currentLevel);
     typename TFilter::SmoothingSigmasArrayType                 smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
@@ -64,7 +64,7 @@ public:
 
     const itk::ObjectToObjectOptimizerBase * optimizerBase = filter->GetOptimizer();
     using GradientDescentOptimizerv4Type = itk::GradientDescentOptimizerv4;
-    typename GradientDescentOptimizerv4Type::ConstPointer optimizer =
+    const typename GradientDescentOptimizerv4Type::ConstPointer optimizer =
       dynamic_cast<const GradientDescentOptimizerv4Type *>(optimizerBase);
     if (!optimizer)
     {
@@ -89,7 +89,7 @@ public:
     {
       for (itk::SizeValueType i = 0; i < gradient.GetSize(); i += (gradient.GetSize() / 16))
       {
-        std::cout << gradient[i] << " ";
+        std::cout << gradient[i] << ' ';
       }
     }
     std::cout << std::endl;
@@ -102,11 +102,12 @@ PerformBSplineImageRegistration(int argc, char * argv[])
 {
   if (argc < 6)
   {
-    std::cout
-      << itkNameOfTestExecutableMacro(argv)
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr
       << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations"
       << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   using PixelType = double;
@@ -115,23 +116,23 @@ PerformBSplineImageRegistration(int argc, char * argv[])
 
   using ImageReaderType = itk::ImageFileReader<FixedImageType>;
 
-  typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName(argv[2]);
   fixedImageReader->Update();
-  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   fixedImage->Update();
   fixedImage->DisconnectPipeline();
 
-  typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
   movingImageReader->SetFileName(argv[3]);
   movingImageReader->Update();
-  typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
   movingImage->Update();
   movingImage->DisconnectPipeline();
 
   using AffineTransformType = itk::AffineTransform<double, VImageDimension>;
   using AffineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, AffineTransformType>;
-  typename AffineRegistrationType::Pointer affineSimple = AffineRegistrationType::New();
+  auto affineSimple = AffineRegistrationType::New();
   affineSimple->SetFixedImage(fixedImage);
   affineSimple->SetMovingImage(movingImage);
 
@@ -149,7 +150,7 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   }
 
   using GradientDescentOptimizerv4Type = itk::GradientDescentOptimizerv4;
-  typename GradientDescentOptimizerv4Type::Pointer affineOptimizer =
+  const typename GradientDescentOptimizerv4Type::Pointer affineOptimizer =
     dynamic_cast<GradientDescentOptimizerv4Type *>(affineSimple->GetModifiableOptimizer());
   if (!affineOptimizer)
   {
@@ -160,12 +161,12 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   affineOptimizer->SetDoEstimateLearningRateAtEachIteration(true);
 
   using AffineCommandType = CommandIterationUpdate<AffineRegistrationType>;
-  typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
+  auto affineObserver = AffineCommandType::New();
   affineSimple->AddObserver(itk::IterationEvent(), affineObserver);
 
   {
     using ImageMetricType = itk::ImageToImageMetricv4<FixedImageType, MovingImageType>;
-    typename ImageMetricType::Pointer imageMetric =
+    const typename ImageMetricType::Pointer imageMetric =
       dynamic_cast<ImageMetricType *>(affineSimple->GetModifiableMetric());
     if (imageMetric.IsNull())
     {
@@ -175,27 +176,19 @@ PerformBSplineImageRegistration(int argc, char * argv[])
     imageMetric->SetFloatingPointCorrectionResolution(1e4);
   }
 
-  try
-  {
-    std::cout << "Affine txf:" << std::endl;
-    affineSimple->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(affineSimple->Update());
+
 
   {
     using ImageMetricType = itk::ImageToImageMetricv4<FixedImageType, MovingImageType>;
-    typename ImageMetricType::Pointer imageMetric =
+    const typename ImageMetricType::Pointer imageMetric =
       dynamic_cast<ImageMetricType *>(affineOptimizer->GetModifiableMetric());
     std::cout << "Affine parameters after registration: " << std::endl
               << affineOptimizer->GetCurrentPosition() << std::endl
               << "Last LearningRate: " << affineOptimizer->GetLearningRate() << std::endl
               << "Use FltPtCorrex: " << imageMetric->GetUseFloatingPointCorrection() << std::endl
               << "FltPtCorrexRes: " << imageMetric->GetFloatingPointCorrectionResolution() << std::endl
-              << "Number of threads used: metric: " << imageMetric->GetNumberOfWorkUnitsUsed() << std::endl
+              << "Number of work units used: metric: " << imageMetric->GetNumberOfWorkUnitsUsed() << std::endl
               << " optimizer: " << affineOptimizer->GetNumberOfWorkUnits() << std::endl;
   }
 
@@ -204,20 +197,19 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   //
 
   using CorrelationMetricType = itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType>;
-  typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-  typename CorrelationMetricType::RadiusType radius;
-  radius.Fill(4);
+  auto correlationMetric = CorrelationMetricType::New();
+  auto radius = itk::MakeFilled<typename CorrelationMetricType::RadiusType>(4);
   correlationMetric->SetRadius(radius);
   correlationMetric->SetUseMovingImageGradientFilter(false);
   correlationMetric->SetUseFixedImageGradientFilter(false);
 
   using ScalesEstimatorType = itk::RegistrationParameterScalesFromPhysicalShift<CorrelationMetricType>;
-  typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
+  auto scalesEstimator = ScalesEstimatorType::New();
   scalesEstimator->SetMetric(correlationMetric);
   scalesEstimator->SetTransformForward(true);
   scalesEstimator->SetSmallParameterVariation(1.0);
 
-  typename GradientDescentOptimizerv4Type::Pointer optimizer = GradientDescentOptimizerv4Type::New();
+  auto optimizer = GradientDescentOptimizerv4Type::New();
   optimizer->SetLearningRate(1.0);
   optimizer->SetNumberOfIterations(std::stoi(argv[6]));
   optimizer->SetScalesEstimator(scalesEstimator);
@@ -227,7 +219,7 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   using RealType = typename AffineRegistrationType::RealType;
 
   using CompositeTransformType = itk::CompositeTransform<RealType, VImageDimension>;
-  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+  auto compositeTransform = CompositeTransformType::New();
   compositeTransform->AddTransform(affineSimple->GetModifiableTransform());
 
   constexpr unsigned int numberOfLevels = 3;
@@ -235,7 +227,7 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   using BSplineTransformType = itk::BSplineTransform<RealType, VImageDimension, SplineOrder>;
 
   using BSplineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, BSplineTransformType>;
-  typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
+  auto bsplineRegistration = BSplineRegistrationType::New();
 
   // Shrink the virtual domain by specified factors for each level.  See documentation
   // for the itkShrinkImageFilter for more detailed behavior.
@@ -253,11 +245,11 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   smoothingSigmasPerLevel[1] = 1;
   smoothingSigmasPerLevel[2] = 1;
 
-  typename BSplineTransformType::Pointer outputBSplineTransform = BSplineTransformType::New();
+  auto outputBSplineTransform = BSplineTransformType::New();
 
   typename BSplineTransformType::PhysicalDimensionsType physicalDimensions;
   typename BSplineTransformType::MeshSizeType           meshSize;
-  for (unsigned int d = 0; d < VImageDimension; d++)
+  for (unsigned int d = 0; d < VImageDimension; ++d)
   {
     physicalDimensions[d] =
       fixedImage->GetSpacing()[d] * static_cast<RealType>(fixedImage->GetLargestPossibleRegion().GetSize()[d] - 1);
@@ -268,10 +260,10 @@ PerformBSplineImageRegistration(int argc, char * argv[])
 
   typename BSplineRegistrationType::TransformParametersAdaptorsContainerType adaptors;
   // Create the transform adaptors specific to B-splines
-  for (unsigned int level = 0; level < numberOfLevels; level++)
+  for (unsigned int level = 0; level < numberOfLevels; ++level)
   {
     using ShrinkFilterType = itk::ShrinkImageFilter<FixedImageType, FixedImageType>;
-    typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(fixedImage);
     shrinkFilter->Update();
@@ -279,13 +271,13 @@ PerformBSplineImageRegistration(int argc, char * argv[])
     // A good heuristic is to double the b-spline mesh resolution at each level
 
     typename BSplineTransformType::MeshSizeType requiredMeshSize;
-    for (unsigned int d = 0; d < VImageDimension; d++)
+    for (unsigned int d = 0; d < VImageDimension; ++d)
     {
       requiredMeshSize[d] = meshSize[d] << level;
     }
 
     using BSplineAdaptorType = itk::BSplineTransformParametersAdaptor<BSplineTransformType>;
-    typename BSplineAdaptorType::Pointer bsplineAdaptor = BSplineAdaptorType::New();
+    auto bsplineAdaptor = BSplineAdaptorType::New();
     bsplineAdaptor->SetTransform(outputBSplineTransform);
     bsplineAdaptor->SetRequiredTransformDomainMeshSize(requiredMeshSize);
     bsplineAdaptor->SetRequiredTransformDomainOrigin(shrinkFilter->GetOutput()->GetOrigin());
@@ -315,19 +307,11 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   bsplineRegistration->InPlaceOn();
 
   using BSplineRegistrationCommandType = CommandIterationUpdate<BSplineRegistrationType>;
-  typename BSplineRegistrationCommandType::Pointer bsplineObserver = BSplineRegistrationCommandType::New();
+  auto bsplineObserver = BSplineRegistrationCommandType::New();
   bsplineRegistration->AddObserver(itk::IterationEvent(), bsplineObserver);
 
-  try
-  {
-    std::cout << "BSpline. txf - bspline update" << std::endl;
-    bsplineRegistration->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(bsplineRegistration->Update());
+
 
   compositeTransform->AddTransform(bsplineRegistration->GetModifiableTransform());
 
@@ -335,12 +319,11 @@ PerformBSplineImageRegistration(int argc, char * argv[])
             << "Last LearningRate: " << optimizer->GetLearningRate() << std::endl
             << "Use FltPtCorrex: " << correlationMetric->GetUseFloatingPointCorrection() << std::endl
             << "FltPtCorrexRes: " << correlationMetric->GetFloatingPointCorrectionResolution() << std::endl
-            << "Number of threads used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
-            << "Number of threads used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
+            << "Number of work units used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
             << " optimizer: " << bsplineRegistration->GetOptimizer()->GetNumberOfWorkUnits() << std::endl;
 
   using ResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
   resampler->SetTransform(compositeTransform);
   resampler->SetInput(movingImage);
   resampler->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
@@ -351,7 +334,7 @@ PerformBSplineImageRegistration(int argc, char * argv[])
   resampler->Update();
 
   using WriterType = itk::ImageFileWriter<FixedImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[4]);
   writer->SetInput(resampler->GetOutput());
   writer->Update();
@@ -364,11 +347,12 @@ itkBSplineImageRegistrationTest(int argc, char * argv[])
 {
   if (argc < 6)
   {
-    std::cout
-      << itkNameOfTestExecutableMacro(argv)
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr
       << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations"
       << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   switch (std::stoi(argv[1]))
@@ -381,7 +365,7 @@ itkBSplineImageRegistrationTest(int argc, char * argv[])
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
   }
 
   // Test streaming enumeration for ImageRegistrationMethodv4Enums::MetricSamplingStrategy elements

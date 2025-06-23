@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,13 @@
 #define itkComplexToComplexFFTImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "itkMacro.h"
 #include "ITKFFTExport.h"
 #include <complex>
 
 namespace itk
 {
-/**\class ComplexToComplexFFTImageFilterEnums
+/** \class ComplexToComplexFFTImageFilterEnums
  * \brief Contains enum classes used by ComplexToComplexFFTImageFilter class
  * \ingroup ITKFFT
  * \ingroup FourierTransform
@@ -33,9 +34,7 @@ class ComplexToComplexFFTImageFilterEnums
 {
 public:
   /**
-   *\class TransformDirection
    * \ingroup ITKFFT
-   * \ingroup FourierTransform
    * */
   enum class TransformDirection : uint8_t
   {
@@ -45,15 +44,13 @@ public:
 };
 // Define how to print enumeration
 extern ITKFFT_EXPORT std::ostream &
-                     operator<<(std::ostream & out, const ComplexToComplexFFTImageFilterEnums::TransformDirection value);
+operator<<(std::ostream & out, const ComplexToComplexFFTImageFilterEnums::TransformDirection value);
 
 /**
- *\class ComplexToComplexFFTImageFilter
+ * \class ComplexToComplexFFTImageFilter
  *
  * \brief Implements an API to enable the Fourier transform or the inverse
  * Fourier transform of images with complex valued voxels to be computed.
- *
- * \ingroup FourierTransform
  *
  * \author Simon K. Warfield simon.warfield\@childrens.harvard.edu
  *
@@ -65,23 +62,23 @@ extern ITKFFT_EXPORT std::ostream &
  * official view of NCRR or NIH.
  *
  * This class was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/128
+ * https://doi.org/10.54294/h4j7t7
  *
  * \ingroup FourierTransform
+ * \ingroup ITKFFT
  *
  * \sa ForwardFFTImageFilter
- * \ingroup ITKFFT
  */
-template <typename TImage>
-class ITK_TEMPLATE_EXPORT ComplexToComplexFFTImageFilter : public ImageToImageFilter<TImage, TImage>
+template <typename TInputImage, typename TOutputImage = TInputImage>
+class ITK_TEMPLATE_EXPORT ComplexToComplexFFTImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ComplexToComplexFFTImageFilter);
 
   /** Input and output image types. */
-  using ImageType = TImage;
-  using InputImageType = TImage;
-  using OutputImageType = TImage;
+  using ImageType = TInputImage;
+  using InputImageType = TInputImage;
+  using OutputImageType = TOutputImage;
 
   /** Standard class type aliases. */
   using Self = ComplexToComplexFFTImageFilter;
@@ -91,16 +88,15 @@ public:
 
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ComplexToComplexFFTImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ComplexToComplexFFTImageFilter);
 
   /** Customized object creation methods that support configuration-based
    * selection of FFT implementation.
    *
-   * Default implementation is FFTW.
+   * Default implementation is VnlFFT.
    */
-  static Pointer
-  New();
+  itkFactoryOnlyNewMacro(Self);
 
   using TransformDirectionEnum = ComplexToComplexFFTImageFilterEnums::TransformDirection;
 #if !defined(ITK_LEGACY_REMOVE)
@@ -109,16 +105,17 @@ public:
   static constexpr TransformDirectionEnum INVERSE = TransformDirectionEnum::INVERSE;
 #endif
 
-  /** Image type type alias support */
+  /** Image type alias support */
   using ImageSizeType = typename ImageType::SizeType;
 
   /** Set/Get the direction in which the transform will be applied.
    * By selecting FORWARD, this filter will perform a direct, i.e. forward, Fourier Transform,
    * By selecting INVERSE, this filter will perform an inverse, i.e. backward, Fourier Transform,
    */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(TransformDirection, TransformDirectionEnum);
   itkGetConstMacro(TransformDirection, TransformDirectionEnum);
-
+  /** @ITKEndGrouping */
 protected:
   ComplexToComplexFFTImageFilter() = default;
 
@@ -132,6 +129,10 @@ private:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkComplexToComplexFFTImageFilter.hxx"
+#endif
+
+#ifdef ITK_FFTIMAGEFILTERINIT_FACTORY_REGISTER_MANAGER
+#  include "itkFFTImageFilterInitFactoryRegisterManager.h"
 #endif
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,21 +32,19 @@ namespace itk
 {
 
 /**
- *\class BinaryReconstructionByErosionImageFilter
+ * \class BinaryReconstructionByErosionImageFilter
  * \brief binary reconstruction by erosion of an image
  *
  * Reconstruction by erosion operates on a "marker" image and a "mask"
  * image, and is defined as the erosion of the marker image with
  * respect to the mask image iterated until stability.
  *
- * Geodesic morphology is described in Chapter 6.2 of Pierre Soille's
- * book "Morphological Image Analysis: Principles and Applications",
- * Second Edition, Springer, 2003.
+ * Geodesic morphology is described in \cite soille2004.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa MorphologyImageFilter, ReconstructionByErosionImageFilter, BinaryReconstructionByDilationImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
@@ -92,8 +90,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(BinaryReconstructionByErosionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryReconstructionByErosionImageFilter);
 
   /**
    * Set/Get whether the connected components are defined strictly by
@@ -101,40 +99,41 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputImagePixelType>));
-  // End concept checking
-#endif
 
   /**
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ForegroundValue, OutputImagePixelType);
   itkGetConstMacro(ForegroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the marker image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MarkerImage, InputImageType);
   itkGetInputMacro(MarkerImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mask image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, InputImageType);
   itkGetInputMacro(MaskImage, InputImageType);
-
+  /** @ITKEndGrouping */
 protected:
   BinaryReconstructionByErosionImageFilter();
   ~BinaryReconstructionByErosionImageFilter() override = default;
@@ -157,9 +156,9 @@ protected:
   GenerateData() override;
 
 private:
-  bool                 m_FullyConnected;
-  OutputImagePixelType m_BackgroundValue;
-  OutputImagePixelType m_ForegroundValue;
+  bool                 m_FullyConnected{};
+  OutputImagePixelType m_BackgroundValue{};
+  OutputImagePixelType m_ForegroundValue{};
 }; // end of class
 
 } // end namespace itk

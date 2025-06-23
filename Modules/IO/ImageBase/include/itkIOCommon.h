@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,15 +26,14 @@
 
 namespace itk
 {
-/**\class IOCommonEnums
+/** \class IOCommonEnums
  * \brief Contains all enum classes used by IOCommon class.
  * \ingroup ITKIOImageBase
  */
 class IOCommonEnums
 {
 public:
-  /**\class AtomicPixel
-   * \ingroup IOFilters
+  /**
    * \ingroup ITKIOImageBase
    * enumerated constants for the different data types
    */
@@ -67,14 +66,10 @@ extern ITKIOImageBase_EXPORT std::ostream &
 class ITKIOImageBase_EXPORT IOCommon
 {
 public:
-  using SysConstants = enum
-
+  enum SysConstants
   {
-
     ITK_MAXPATHLEN = 2048, /**< Maximum length of a filename */
-
     MAX_FILENAMELIST_SIZE = 512
-
   };
 
   using AtomicPixelEnum = IOCommonEnums::AtomicPixel;
@@ -102,35 +97,35 @@ public:
   ComputeSizeOfAtomicPixelType(const AtomicPixelEnum pixelType);
 };
 
-extern ITKIOImageBase_EXPORT const char * const ITK_OnDiskStorageTypeName;
-extern ITKIOImageBase_EXPORT const char * const ITK_ImageFileBaseName;
-extern ITKIOImageBase_EXPORT const char * const ITK_VoxelUnits;
-extern ITKIOImageBase_EXPORT const char * const ITK_OnDiskBitPerPixel;
-extern ITKIOImageBase_EXPORT const char * const SPM_ROI_SCALE;
-extern ITKIOImageBase_EXPORT const char * const ITK_FileNotes;
-extern ITKIOImageBase_EXPORT const char * const ITK_Origin;
-extern ITKIOImageBase_EXPORT const char * const ITK_Spacing;
-extern ITKIOImageBase_EXPORT const char * const ITK_ZDirection;
-extern ITKIOImageBase_EXPORT const char * const ITK_FileOriginator;
-extern ITKIOImageBase_EXPORT const char * const ITK_OriginationDate;
-extern ITKIOImageBase_EXPORT const char * const ITK_PatientID;
-extern ITKIOImageBase_EXPORT const char * const ITK_ExperimentDate;
-extern ITKIOImageBase_EXPORT const char * const ITK_ExperimentTime;
-extern ITKIOImageBase_EXPORT const char * const ITK_InputFilterName;
-extern ITKIOImageBase_EXPORT const char * const ITK_NumberOfDimensions;
-extern ITKIOImageBase_EXPORT const char * const ITK_ImageType;
-extern ITKIOImageBase_EXPORT const char * const ITK_PatientName;
-extern ITKIOImageBase_EXPORT const char * const ITK_ScanID;
-extern ITKIOImageBase_EXPORT const char * const ROI_NAME;
-extern ITKIOImageBase_EXPORT const char * const ROI_X_SIZE;
-extern ITKIOImageBase_EXPORT const char * const ROI_X_RESOLUTION;
-extern ITKIOImageBase_EXPORT const char * const ROI_Y_SIZE;
-extern ITKIOImageBase_EXPORT const char * const ROI_Y_RESOLUTION;
-extern ITKIOImageBase_EXPORT const char * const ROI_Z_SIZE;
-extern ITKIOImageBase_EXPORT const char * const ROI_Z_RESOLUTION;
-extern ITKIOImageBase_EXPORT const char * const ROI_NUM_SEGMENTS;
-extern ITKIOImageBase_EXPORT const char * const ROI_PLANE;
-extern ITKIOImageBase_EXPORT const char * const ROI_SCAN_ID;
+extern const ITKIOImageBase_EXPORT char * const ITK_OnDiskStorageTypeName;
+extern const ITKIOImageBase_EXPORT char * const ITK_ImageFileBaseName;
+extern const ITKIOImageBase_EXPORT char * const ITK_VoxelUnits;
+extern const ITKIOImageBase_EXPORT char * const ITK_OnDiskBitPerPixel;
+extern const ITKIOImageBase_EXPORT char * const SPM_ROI_SCALE;
+extern const ITKIOImageBase_EXPORT char * const ITK_FileNotes;
+extern const ITKIOImageBase_EXPORT char * const ITK_Origin;
+extern const ITKIOImageBase_EXPORT char * const ITK_Spacing;
+extern const ITKIOImageBase_EXPORT char * const ITK_ZDirection;
+extern const ITKIOImageBase_EXPORT char * const ITK_FileOriginator;
+extern const ITKIOImageBase_EXPORT char * const ITK_OriginationDate;
+extern const ITKIOImageBase_EXPORT char * const ITK_PatientID;
+extern const ITKIOImageBase_EXPORT char * const ITK_ExperimentDate;
+extern const ITKIOImageBase_EXPORT char * const ITK_ExperimentTime;
+extern const ITKIOImageBase_EXPORT char * const ITK_InputFilterName;
+extern const ITKIOImageBase_EXPORT char * const ITK_NumberOfDimensions;
+extern const ITKIOImageBase_EXPORT char * const ITK_ImageType;
+extern const ITKIOImageBase_EXPORT char * const ITK_PatientName;
+extern const ITKIOImageBase_EXPORT char * const ITK_ScanID;
+extern const ITKIOImageBase_EXPORT char * const ROI_NAME;
+extern const ITKIOImageBase_EXPORT char * const ROI_X_SIZE;
+extern const ITKIOImageBase_EXPORT char * const ROI_X_RESOLUTION;
+extern const ITKIOImageBase_EXPORT char * const ROI_Y_SIZE;
+extern const ITKIOImageBase_EXPORT char * const ROI_Y_RESOLUTION;
+extern const ITKIOImageBase_EXPORT char * const ROI_Z_SIZE;
+extern const ITKIOImageBase_EXPORT char * const ROI_Z_RESOLUTION;
+extern const ITKIOImageBase_EXPORT char * const ROI_NUM_SEGMENTS;
+extern const ITKIOImageBase_EXPORT char * const ROI_PLANE;
+extern const ITKIOImageBase_EXPORT char * const ROI_SCAN_ID;
 } // end namespace itk
 
 #endif // itkIOCommon_h

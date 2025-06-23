@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ namespace itk
  * Limitations:  The coordinates must be in an image of the same dimension as the
  *       input image.  There is no reason why this should be the case and future
  *       revisions should look at eliminating this limitation.
- *    Currently TCoordType must be the same as the input pixel type (TInputImage).
+ *    Currently TCoordinate must be the same as the input pixel type (TInputImage).
  *       Again future revisions should look at eliminating this limitation.
  *    Though the output generation may be streamed the entire input image,
  *       must be supplied. The coordinates may be streamed in smaller blocks.
@@ -75,8 +75,8 @@ namespace itk
 
 template <typename TInputImage,
           typename TOutputImage,
-          typename TCoordType = typename TInputImage::PixelType,
-          typename InterpolatorType = BSplineInterpolateImageFunction<TInputImage, TCoordType>>
+          typename TCoordinate = typename TInputImage::PixelType,
+          typename InterpolatorType = BSplineInterpolateImageFunction<TInputImage, TCoordinate>>
 class ITK_TEMPLATE_EXPORT InterpolateImagePointsFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
@@ -88,8 +88,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InterpolateImagePointsFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InterpolateImagePointsFilter);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
@@ -98,9 +98,9 @@ public:
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Typedefs from the Superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::InputImagePointer;
 
   /** Typedefs to describe and access output image. */
   using OutputImagePointer = typename TOutputImage::Pointer;
@@ -115,7 +115,7 @@ public:
   using ContinuousIndexType = typename InterpolatorType::ContinuousIndexType;
 
   /** Typedefs to describe and access coordinate images */
-  using CoordImageType = Image<TCoordType, Self::ImageDimension>;
+  using CoordImageType = Image<TCoordinate, Self::ImageDimension>;
 
   /** Typedef for region copier */
   using RegionCopierType = ImageToImageFilterDetail::ImageRegionCopier<Self::ImageDimension, Self::ImageDimension>;
@@ -154,11 +154,7 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   InterpolateImagePointsFilter();
@@ -179,7 +175,7 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override
+  VerifyInputInformation() const override
   {}
 
 private:
@@ -188,9 +184,9 @@ private:
   using CoordImageIterator = ImageRegionConstIterator<CoordImageType>;
   using CoordImageRegionType = typename CoordImageType::RegionType;
 
-  InterpolatorPointer m_Interpolator;
-  PixelType           m_DefaultPixelValue; // default pixel value if the
-                                           // point is outside the image
+  InterpolatorPointer m_Interpolator{};
+  PixelType           m_DefaultPixelValue{}; // default pixel value if the
+                                             // point is outside the image
 };
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,19 +51,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DOMTextNode, DOMNode);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DOMTextNode);
 
   /** Functions to set/get the enclosed text of this node. */
-  itkSetMacro(Text, std::string &);
+  /** @ITKStartGrouping */
+  itkSetMacro(Text, const std::string &);
   itkGetConstReferenceMacro(Text, std::string);
-
+  /** @ITKEndGrouping */
 protected:
   DOMTextNode() { this->SetName("!"); }
 
 private:
   /** Variable to hold the text string of this node. */
-  std::string m_Text;
+  std::string m_Text{};
 };
 
 } // namespace itk

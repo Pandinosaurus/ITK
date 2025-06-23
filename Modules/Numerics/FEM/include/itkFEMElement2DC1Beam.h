@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,15 +24,13 @@
 #include "itkFEMMaterialLinearElasticity.h"
 #include "ITKFEMExport.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class Element2DC1Beam
  * \brief 1D Beam (spring that also bends) finite element in 2D space.
  *
- * The Displacements at each node are modelled with two translational,
+ * The Displacements at each node are modeled with two translational,
  * and one rotational, degree of freedom.
  * \ingroup ITKFEM
  */
@@ -49,12 +47,12 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Element2DC1Beam, TemplatedParentClass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Element2DC1Beam);
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
 
@@ -170,7 +168,6 @@ private:
    */
   const MaterialLinearElasticity * m_mat{ nullptr };
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMElement2DC1Beam_h

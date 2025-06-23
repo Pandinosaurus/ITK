@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,11 +68,10 @@ public:
       return static_cast<OutputPixelType>(
         std::log(static_cast<OutputPixelType>(A) / static_cast<OutputPixelType>(m_TotalFrequency)) / std::log(2.0));
     }
-    else
-    { // Check for Log 0. Always assume that the frequency is atleast 1.
-      return static_cast<OutputPixelType>(
-        std::log(static_cast<OutputPixelType>(A + 1) / static_cast<OutputPixelType>(m_TotalFrequency)) / std::log(2.0));
-    }
+
+    // Check for Log 0. Always assume that the frequency is at least 1.
+    return static_cast<OutputPixelType>(
+      std::log(static_cast<OutputPixelType>(A + 1) / static_cast<OutputPixelType>(m_TotalFrequency)) / std::log(2.0));
   }
 
   void
@@ -81,7 +80,7 @@ public:
     m_TotalFrequency = n;
   }
 
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetTotalFrequency() const
   {
     return m_TotalFrequency;
@@ -113,8 +112,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(HistogramToLogProbabilityImageFilter, HistogramToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramToLogProbabilityImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);

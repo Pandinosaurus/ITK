@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +39,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaArrayReader, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaArrayReader);
 
   /** Set the filename. */
   itkSetStringMacro(FileName);
@@ -117,8 +117,8 @@ public:
    *  buffer into which the data was directly read (a copy does not occur).
    *  If _letVectorManageData is true, the buffer persists even after this
    *  MetaArrayReader is destroyed. Otherwise, the buffer (and therefore
-   *  the validity of the dat ain the Array) is destroyed when the
-   *  MetaArrayReader is dstroyed. */
+   *  the validity of the data in the Array) is destroyed when the
+   *  MetaArrayReader is destroyed. */
   template <typename TValue>
   void
   GetOutput(MET_ValueEnumType _metaElementType, Array<TValue> * _array, bool _letArrayManageData = true)
@@ -141,8 +141,7 @@ public:
   {
     if (static_cast<int>(VLength) <= m_MetaArray.Length())
     {
-      unsigned int i;
-      for (i = 0; i < VLength; i++)
+      for (unsigned int i = 0; i < VLength; ++i)
       {
         this->GetElement((*_array)[i], i);
       }
@@ -151,7 +150,7 @@ public:
     return false;
   }
 
-  /** Get an itkVectort.
+  /** Get an itkVector.
    *  Specify the MetaType of the elements of the itkVector and provide
    *  a pointer to the itkVector into which the data should be copied. */
   template <typename TValue, unsigned int VLength>
@@ -160,8 +159,7 @@ public:
   {
     if (static_cast<int>(VLength) <= m_MetaArray.Length())
     {
-      unsigned int i;
-      for (i = 0; i < VLength; i++)
+      for (unsigned int i = 0; i < VLength; ++i)
       {
         this->GetElement((*_vector)[i], i);
       }
@@ -180,8 +178,7 @@ public:
   {
     if (static_cast<int>(VLength) <= m_MetaArray.Length())
     {
-      unsigned int i;
-      for (i = 0; i < VLength; i++)
+      for (unsigned int i = 0; i < VLength; ++i)
       {
         this->GetElement((*_vector)[i], i);
       }
@@ -197,8 +194,8 @@ public:
    *  was directly read (a copy does not occur).
    *  If _letVectorManageData is true, the buffer persists even after this
    *  MetaArrayReader is destroyed. Otherwise, the buffer (and therefore
-   *  the validity of the dat ain the VariableLengthVector) is destroyed
-   *  when the MetaArrayReader is dstroyed. */
+   *  the validity of the data in the VariableLengthVector) is destroyed
+   *  when the MetaArrayReader is destroyed. */
   template <typename TValue>
   void
   GetOutput(MET_ValueEnumType              _metaElementType,
@@ -232,10 +229,10 @@ public:
     int rows = m_MetaArray.Length();
     int cols = m_MetaArray.ElementNumberOfChannels();
     _array->SetSize(rows);
-    for (int i = 0; i < rows; i++)
+    for (int i = 0; i < rows; ++i)
     {
       (*_array)[i].SetSize(cols);
-      for (int j = 0; j < cols; j++)
+      for (int j = 0; j < cols; ++j)
       {
         (*_array)[i][j] = static_cast<typename TValue::ValueType>(m_MetaArray.ElementData(i * cols + j));
       }
@@ -249,9 +246,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MetaArray m_MetaArray;
+  MetaArray m_MetaArray{};
 
-  std::string m_FileName;
+  std::string m_FileName{};
 
   void * m_Buffer{ nullptr };
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkScalarImageKmeansImageFilter_hxx
 #define itkScalarImageKmeansImageFilter_hxx
 
-#include "itkScalarImageKmeansImageFilter.h"
 #include "itkImageRegionExclusionIteratorWithIndex.h"
 
 #include "itkDistanceToCentroidMembershipFunction.h"
@@ -43,13 +42,13 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::SetImageRegion(const Im
 
 template <typename TInputImage, typename TOutputImage>
 void
-ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::VerifyPreconditions() ITKv5_CONST
+ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::VerifyPreconditions() const
 {
   this->Superclass::VerifyPreconditions();
 
   if (this->m_InitialMeans.empty())
   {
-    itkExceptionMacro("Atleast One InialMean is required.");
+    itkExceptionMacro("At least one InitialMean is required.");
   }
 }
 
@@ -57,14 +56,14 @@ template <typename TInputImage, typename TOutputImage>
 void
 ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  typename AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
 
   // Setup the regions here if a sub-region has been specified to restrict
-  // classification on. Since this is not ThreadedGenenerateData, we are
+  // classification on. Since this is not ThreadedGenerateData, we are
   // safe...
   if (m_ImageRegionDefined)
   {
-    typename RegionOfInterestFilterType::Pointer regionOfInterestFilter = RegionOfInterestFilterType::New();
+    auto regionOfInterestFilter = RegionOfInterestFilterType::New();
     regionOfInterestFilter->SetRegionOfInterest(m_ImageRegion);
     regionOfInterestFilter->SetInput(this->GetInput());
     regionOfInterestFilter->Update();
@@ -75,18 +74,18 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
     adaptor->SetImage(this->GetInput());
   }
 
-  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
 
   treeGenerator->SetSample(adaptor);
   treeGenerator->SetBucketSize(16);
   treeGenerator->Update();
 
-  typename EstimatorType::Pointer estimator = EstimatorType::New();
+  auto estimator = EstimatorType::New();
 
   const size_t numberOfClasses = this->m_InitialMeans.size();
 
   ParametersType initialMeans(numberOfClasses);
-  for (unsigned int cl = 0; cl < numberOfClasses; cl++)
+  for (unsigned int cl = 0; cl < numberOfClasses; ++cl)
   {
     initialMeans[cl] = this->m_InitialMeans[cl];
   }
@@ -103,8 +102,8 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
   using RegionType = typename InputImageType::RegionType;
 
   // Now classify the samples
-  DecisionRuleType::Pointer        decisionRule = DecisionRuleType::New();
-  typename ClassifierType::Pointer classifier = ClassifierType::New();
+  auto decisionRule = DecisionRuleType::New();
+  auto classifier = ClassifierType::New();
 
   classifier->SetDecisionRule(decisionRule);
   classifier->SetInput(adaptor);
@@ -124,12 +123,12 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
   unsigned int                 label = 0;
   MembershipFunctionVectorType membershipFunctions;
 
-  for (unsigned int k = 0; k < numberOfClasses; k++)
+  for (unsigned int k = 0; k < numberOfClasses; ++k)
   {
     classLabels[k] = label;
     label += labelInterval;
-    MembershipFunctionPointer    membershipFunction = MembershipFunctionType::New();
-    MembershipFunctionOriginType origin(adaptor->GetMeasurementVectorSize());
+    const MembershipFunctionPointer membershipFunction = MembershipFunctionType::New();
+    MembershipFunctionOriginType    origin(adaptor->GetMeasurementVectorSize());
     origin[0] = this->m_FinalMeans[k]; // A scalar image has a MeasurementVector
                                        // of dimension 1
     membershipFunction->SetCentroid(origin);
@@ -137,13 +136,13 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
     membershipFunctions.push_back(constMembershipFunction);
   }
 
-  typename ClassifierType::MembershipFunctionVectorObjectPointer membershipFunctionsObject =
+  const typename ClassifierType::MembershipFunctionVectorObjectPointer membershipFunctionsObject =
     ClassifierType::MembershipFunctionVectorObjectType::New();
   membershipFunctionsObject->Set(membershipFunctions);
   classifier->SetMembershipFunctions(membershipFunctionsObject);
 
   using ClassLabelVectorObjectType = typename ClassifierType::ClassLabelVectorObjectType;
-  typename ClassLabelVectorObjectType::Pointer classLabelsObject = ClassLabelVectorObjectType::New();
+  auto classLabelsObject = ClassLabelVectorObjectType::New();
   classLabelsObject->Set(classLabels);
   classifier->SetClassLabels(classLabelsObject);
 
@@ -151,7 +150,7 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
   classifier->Update();
 
   // Now classify the pixels
-  typename OutputImageType::Pointer outputPtr = this->GetOutput();
+  const typename OutputImageType::Pointer outputPtr = this->GetOutput();
 
   using ImageIterator = ImageRegionIterator<OutputImageType>;
 
@@ -175,8 +174,8 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   using LabelIterator = typename ClassifierOutputType::ConstIterator;
 
-  LabelIterator iter = membershipSample->Begin();
-  LabelIterator end = membershipSample->End();
+  LabelIterator       iter = membershipSample->Begin();
+  const LabelIterator end = membershipSample->End();
 
   while (iter != end)
   {
@@ -195,7 +194,7 @@ ScalarImageKmeansImageFilter<TInputImage, TOutputImage>::GenerateData()
     exIt.GoToBegin();
     if (m_UseNonContiguousLabels)
     {
-      OutputPixelType outsideLabel = labelInterval * numberOfClasses;
+      const OutputPixelType outsideLabel = labelInterval * numberOfClasses;
       while (!exIt.IsAtEnd())
       {
         exIt.Set(outsideLabel);

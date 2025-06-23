@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,17 +61,16 @@ itkImagePCAShapeModelEstimatorTest(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
   using OutputImageIterator = itk::ImageRegionIterator<OutputImageType>;
 
-  InputImageType::Pointer image1 = InputImageType::New();
+  auto image1 = InputImageType::New();
 
-  InputImageType::Pointer image2 = InputImageType::New();
+  auto image2 = InputImageType::New();
 
-  InputImageType::Pointer image3 = InputImageType::New();
+  auto image3 = InputImageType::New();
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
-  InputImageType::IndexType index;
-  index.Fill(0);
-  InputImageType::RegionType region;
+  constexpr InputImageType::IndexType index{};
+  InputImageType::RegionType          region;
 
   region.SetSize(inputImageSize);
   region.SetIndex(index);
@@ -106,7 +105,7 @@ itkImagePCAShapeModelEstimatorTest(int, char *[])
   // Manually create and store each vector
 
   // Image no. 1
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     image1It.Set(1);
     ++image1It;
@@ -136,7 +135,7 @@ itkImagePCAShapeModelEstimatorTest(int, char *[])
   // Set the image model estimator
   using ImagePCAShapeModelEstimatorType = itk::ImagePCAShapeModelEstimator<InputImageType, OutputImageType>;
 
-  ImagePCAShapeModelEstimatorType::Pointer applyPCAShapeEstimator = ImagePCAShapeModelEstimatorType::New();
+  auto applyPCAShapeEstimator = ImagePCAShapeModelEstimatorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(applyPCAShapeEstimator, ImagePCAShapeModelEstimator, ImageShapeModelEstimatorBase);
 
@@ -160,13 +159,13 @@ itkImagePCAShapeModelEstimatorTest(int, char *[])
 
   // Print the eigen vectors
   vnl_vector<double> eigenValues = applyPCAShapeEstimator->GetEigenValues();
-  unsigned int       numEigVal = eigenValues.size();
+  const unsigned int numEigVal = eigenValues.size();
   std::cout << "Number of returned eign-values: " << numEigVal << std::endl;
 
   std::cout << "The " << applyPCAShapeEstimator->GetNumberOfPrincipalComponentsRequired()
             << " largest eigen values are:" << std::endl;
 
-  for (unsigned int i = 0; i < std::min(numEigVal, NUMLARGESTPC); i++)
+  for (unsigned int i = 0; i < std::min(numEigVal, NUMLARGESTPC); ++i)
   {
     std::cout << eigenValues[i] << std::endl;
   }
@@ -175,30 +174,30 @@ itkImagePCAShapeModelEstimatorTest(int, char *[])
 
 
   // Print the MeanImage
-  OutputImageType::Pointer outImage = applyPCAShapeEstimator->GetOutput(0);
-  OutputImageIterator      outImageIt(outImage, outImage->GetBufferedRegion());
+  const OutputImageType::Pointer outImage = applyPCAShapeEstimator->GetOutput(0);
+  OutputImageIterator            outImageIt(outImage, outImage->GetBufferedRegion());
   outImageIt.GoToBegin();
 
   std::cout << "The mean image is:" << std::endl;
   while (!outImageIt.IsAtEnd())
   {
-    std::cout << (double)(outImageIt.Get()) << ";" << std::endl;
+    std::cout << static_cast<double>(outImageIt.Get()) << ';' << std::endl;
     ++outImageIt;
   }
   std::cout << "  " << std::endl;
 
   // Print the largest two eigen vectors
-  for (unsigned int j = 1; j < NUMLARGESTPC + 1; j++)
+  for (unsigned int j = 1; j < NUMLARGESTPC + 1; ++j)
   {
-    OutputImageType::Pointer outImage2 = applyPCAShapeEstimator->GetOutput(j);
-    OutputImageIterator      outImage2It(outImage2, outImage2->GetBufferedRegion());
+    const OutputImageType::Pointer outImage2 = applyPCAShapeEstimator->GetOutput(j);
+    OutputImageIterator            outImage2It(outImage2, outImage2->GetBufferedRegion());
     outImage2It.GoToBegin();
 
     std::cout << "" << std::endl;
     std::cout << "The eigen vector number: " << j << " is:" << std::endl;
     while (!outImage2It.IsAtEnd())
     {
-      std::cout << (double)(outImage2It.Get()) << ";" << std::endl;
+      std::cout << static_cast<double>(outImage2It.Get()) << ';' << std::endl;
       ++outImage2It;
     }
     std::cout << "  " << std::endl;

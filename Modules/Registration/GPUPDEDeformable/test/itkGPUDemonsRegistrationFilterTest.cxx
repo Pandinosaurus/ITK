@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +39,8 @@
 #include "itkGPUImage.h"
 #include "itkGPUKernelManager.h"
 #include "itkGPUContextManager.h"
-#include "itkGPUDemonsRegistrationFilter.h"
 #include "itkMacro.h"
+#include "itkTestingMacros.h"
 
 namespace
 {
@@ -56,10 +56,10 @@ public:
   ShowProgress()
   {
     // std::cout
-    itkDebugMacro(<< "Progress: " << m_Process->GetProgress() << "  "
-                  << "Iter: " << m_Process->GetElapsedIterations() << "  "
-                  << "Metric: " << m_Process->GetMetric() << "  "
-                  << "RMSChange: " << m_Process->GetRMSChange() << "  ");
+    itkDebugMacro("Progress: " << m_Process->GetProgress() << "  "
+                               << "Iter: " << m_Process->GetElapsedIterations() << "  "
+                               << "Metric: " << m_Process->GetMetric() << "  "
+                               << "RMSChange: " << m_Process->GetRMSChange() << "  ");
     //               << std::endl;
 
     if (m_Process->GetElapsedIterations() == 10000)
@@ -80,27 +80,27 @@ const bool             smoothUpdateField = true;
 itk::TimeProbe m_GPUTime;
 itk::TimeProbe m_CPUTime;
 
-template <unsigned VDimension>
+template <unsigned int VDimension>
 int
 GPUDemonsRegistrationFilterTestTemplate(int argc, char * argv[]);
 
-template <unsigned VDimension, typename TDisplacementFieldPointer>
+template <unsigned int VDimension, typename TDisplacementFieldPointer>
 TDisplacementFieldPointer
 itkGPUDemons(int argc, char * argv[]);
-template <unsigned VDimension, typename TDisplacementFieldPointer>
+template <unsigned int VDimension, typename TDisplacementFieldPointer>
 TDisplacementFieldPointer
 itkCPUDemons(int argc, char * argv[]);
 
 char *
 AppendFileName(char * src, const char * postfix)
 {
-  char * dest = new char[strlen(src) + strlen(postfix) + 1];
+  size_t destLength = strlen(src) + strlen(postfix) + 1;
+  char * dest = new char[destLength];
   char * pos = strrchr(src, '.');
   int    skip = pos - src;
 
-  sprintf(dest, "%s", src);
-  sprintf(dest + skip, "%s", postfix);
-  sprintf(dest + skip + strlen(postfix), "%s", pos);
+  snprintf(dest, destLength, "%s", src);
+  snprintf(dest + skip, destLength - skip, "%s%s", postfix, pos);
   return dest;
 }
 
@@ -112,7 +112,7 @@ itkGPUDemonsRegistrationFilterTest(int argc, char * argv[])
   if (argc < 6)
   {
     std::cerr << "Missing Parameters " << std::endl;
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " imageDimension numOfIterations ";
     std::cerr << " fixedImageFile movingImageFile ";
     std::cerr << " outputImageFile " << std::endl;
@@ -155,7 +155,7 @@ GPUDemonsRegistrationFilterTestTemplate(int argc, char * argv[])
 
   GPUDisplacementFieldPointer gpuOut;
   CPUDisplacementFieldPointer cpuOut;
-  for (unsigned int i = 0; i < numberOfRepeatedTests; i++)
+  for (unsigned int i = 0; i < numberOfRepeatedTests; ++i)
   {
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "Starting GPU Demons" << std::endl;
@@ -177,10 +177,10 @@ GPUDemonsRegistrationFilterTestTemplate(int argc, char * argv[])
   size1 = gpuOut->GetLargestPossibleRegion().GetNumberOfPixels();
   size2 = cpuOut->GetLargestPossibleRegion().GetNumberOfPixels();
 
-  for (unsigned int i = 0; (i < size1) && (i < size2); i++)
+  for (unsigned int i = 0; (i < size1) && (i < size2); ++i)
   {
     diff = 0;
-    for (unsigned int d = 0; d < ImageDimension; d++)
+    for (unsigned int d = 0; d < ImageDimension; ++d)
     {
       tmp = gpuBuf[i * ImageDimension + d] - cpuBuf[i * ImageDimension + d];
       diff += tmp * tmp;
@@ -221,7 +221,7 @@ GPUDemonsRegistrationFilterTestTemplate(int argc, char * argv[])
   return EXIT_SUCCESS;
 }
 
-template <unsigned VDimension, typename TDisplacementFieldPointer>
+template <unsigned int VDimension, typename TDisplacementFieldPointer>
 TDisplacementFieldPointer
 itkGPUDemons(int, char * argv[])
 {
@@ -236,8 +236,8 @@ itkGPUDemons(int, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  typename FixedImageReaderType::Pointer  fixedImageReader = FixedImageReaderType::New();
-  typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[3]);
   movingImageReader->SetFileName(argv[4]);
@@ -248,15 +248,15 @@ itkGPUDemons(int, char * argv[])
   using FixedImageCasterType = itk::CastImageFilter<FixedImageType, InternalImageType>;
   using MovingImageCasterType = itk::CastImageFilter<MovingImageType, InternalImageType>;
 
-  typename FixedImageCasterType::Pointer  fixedImageCaster = FixedImageCasterType::New();
-  typename MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
+  auto fixedImageCaster = FixedImageCasterType::New();
+  auto movingImageCaster = MovingImageCasterType::New();
 
   fixedImageCaster->SetInput(fixedImageReader->GetOutput());
   movingImageCaster->SetInput(movingImageReader->GetOutput());
 
-  // maching intensity histogram
+  // matching intensity histogram
   using MatchingFilterType = itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType>;
-  typename MatchingFilterType::Pointer matcher = MatchingFilterType::New();
+  auto matcher = MatchingFilterType::New();
 
   matcher->SetInput(movingImageCaster->GetOutput());
   matcher->SetReferenceImage(fixedImageCaster->GetOutput());
@@ -271,13 +271,12 @@ itkGPUDemons(int, char * argv[])
   using RegistrationFilterType =
     itk::GPUDemonsRegistrationFilter<InternalImageType, InternalImageType, DisplacementFieldType>;
 
-  typename RegistrationFilterType::Pointer filter = RegistrationFilterType::New();
+  auto filter = RegistrationFilterType::New();
 
   using ProgressType = ShowProgressObject<RegistrationFilterType>;
   ProgressType progressWatch(filter);
   progressWatch.DebugOn();
-  typename itk::SimpleMemberCommand<ProgressType>::Pointer command;
-  command = itk::SimpleMemberCommand<ProgressType>::New();
+  typename itk::SimpleMemberCommand<ProgressType>::Pointer command = itk::SimpleMemberCommand<ProgressType>::New();
   command->SetCallbackFunction(&progressWatch, &ProgressType::ShowProgress);
   filter->AddObserver(itk::ProgressEvent(), command);
 
@@ -302,9 +301,9 @@ itkGPUDemons(int, char * argv[])
   // warp the image with the deformation field
   using WarperType = itk::WarpImageFilter<MovingImageType, MovingImageType, DisplacementFieldType>;
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
-  typename WarperType::Pointer       warper = WarperType::New();
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  typename FixedImageType::Pointer   fixedImage = fixedImageReader->GetOutput();
+  auto                             warper = WarperType::New();
+  auto                             interpolator = InterpolatorType::New();
+  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   warper->SetInput(movingImageReader->GetOutput());
   warper->SetInterpolator(interpolator);
@@ -321,8 +320,8 @@ itkGPUDemons(int, char * argv[])
   using CastFilterType = itk::CastImageFilter<MovingImageType, OutputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename WriterType::Pointer     writer = WriterType::New();
-  typename CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
   char * outName = AppendFileName(argv[5], "_gpu");
   writer->SetFileName(outName);
@@ -336,7 +335,7 @@ itkGPUDemons(int, char * argv[])
   return ret;
 }
 
-template <unsigned VDimension, typename TDisplacementFieldPointer>
+template <unsigned int VDimension, typename TDisplacementFieldPointer>
 TDisplacementFieldPointer
 itkCPUDemons(int, char * argv[])
 {
@@ -351,8 +350,8 @@ itkCPUDemons(int, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  typename FixedImageReaderType::Pointer  fixedImageReader = FixedImageReaderType::New();
-  typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[3]);
   movingImageReader->SetFileName(argv[4]);
@@ -363,15 +362,15 @@ itkCPUDemons(int, char * argv[])
   using FixedImageCasterType = itk::CastImageFilter<FixedImageType, InternalImageType>;
   using MovingImageCasterType = itk::CastImageFilter<MovingImageType, InternalImageType>;
 
-  typename FixedImageCasterType::Pointer  fixedImageCaster = FixedImageCasterType::New();
-  typename MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
+  auto fixedImageCaster = FixedImageCasterType::New();
+  auto movingImageCaster = MovingImageCasterType::New();
 
   fixedImageCaster->SetInput(fixedImageReader->GetOutput());
   movingImageCaster->SetInput(movingImageReader->GetOutput());
 
-  // maching intensity histogram
+  // matching intensity histogram
   using MatchingFilterType = itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType>;
-  typename MatchingFilterType::Pointer matcher = MatchingFilterType::New();
+  auto matcher = MatchingFilterType::New();
 
   matcher->SetInput(movingImageCaster->GetOutput());
   matcher->SetReferenceImage(fixedImageCaster->GetOutput());
@@ -386,12 +385,11 @@ itkCPUDemons(int, char * argv[])
   using RegistrationFilterType =
     itk::DemonsRegistrationFilter<InternalImageType, InternalImageType, DisplacementFieldType>;
 
-  typename RegistrationFilterType::Pointer filter = RegistrationFilterType::New();
+  auto filter = RegistrationFilterType::New();
 
   using ProgressType = ShowProgressObject<RegistrationFilterType>;
   ProgressType                                             progressWatch(filter);
-  typename itk::SimpleMemberCommand<ProgressType>::Pointer command;
-  command = itk::SimpleMemberCommand<ProgressType>::New();
+  typename itk::SimpleMemberCommand<ProgressType>::Pointer command = itk::SimpleMemberCommand<ProgressType>::New();
   command->SetCallbackFunction(&progressWatch, &ProgressType::ShowProgress);
   filter->AddObserver(itk::ProgressEvent(), command);
 
@@ -411,9 +409,9 @@ itkCPUDemons(int, char * argv[])
   // warp the image with the deformation field
   using WarperType = itk::WarpImageFilter<MovingImageType, MovingImageType, DisplacementFieldType>;
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
-  typename WarperType::Pointer       warper = WarperType::New();
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  typename FixedImageType::Pointer   fixedImage = fixedImageReader->GetOutput();
+  auto                             warper = WarperType::New();
+  auto                             interpolator = InterpolatorType::New();
+  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   warper->SetInput(movingImageReader->GetOutput());
   warper->SetInterpolator(interpolator);
@@ -429,8 +427,8 @@ itkCPUDemons(int, char * argv[])
   using CastFilterType = itk::CastImageFilter<MovingImageType, OutputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename WriterType::Pointer     writer = WriterType::New();
-  typename CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
   char * outName = AppendFileName(argv[5], "_cpu");
   writer->SetFileName(outName);

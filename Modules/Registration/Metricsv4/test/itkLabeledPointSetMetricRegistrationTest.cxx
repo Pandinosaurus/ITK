@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,15 +69,13 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
   using PointSetType = typename PointSetMetricType::FixedPointSetType;
   using PointType = typename PointSetType::PointType;
 
-  typename PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  typename PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
   // two circles with a small offset
   PointType offset;
-  for (unsigned int d = 0; d < PointSetType::PointDimension; d++)
+  for (unsigned int d = 0; d < PointSetType::PointDimension; ++d)
   {
     offset[d] = 2.0;
   }
@@ -86,8 +84,8 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
   {
     auto label = static_cast<unsigned int>(1.5 + count / 35);
 
-    PointType fixedPoint;
-    float     radius = 100.0;
+    PointType       fixedPoint;
+    constexpr float radius = 100.0;
     fixedPoint[0] = radius * std::cos(theta);
     fixedPoint[1] = radius * std::sin(theta);
     if (PointSetType::PointDimension > 2)
@@ -111,11 +109,11 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
   }
 
   using AffineTransformType = itk::AffineTransform<double, PointSetType::PointDimension>;
-  typename AffineTransformType::Pointer transform = AffineTransformType::New();
+  auto transform = AffineTransformType::New();
   transform->SetIdentity();
 
   using LabeledPointSetMetricType = itk::LabeledPointSetToPointSetMetricv4<PointSetType>;
-  typename LabeledPointSetMetricType::Pointer metric = LabeledPointSetMetricType::New();
+  auto metric = LabeledPointSetMetricType::New();
   metric->SetFixedPointSet(fixedPoints);
   metric->SetMovingPointSet(movingPoints);
   metric->SetMovingTransform(transform);
@@ -125,7 +123,7 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
   // scales estimator
   using RegistrationParameterScalesFromShiftType =
     itk::RegistrationParameterScalesFromPhysicalShift<LabeledPointSetMetricType>;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+  const typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric(metric);
   // needed with pointset metrics
@@ -133,14 +131,14 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
 
   // optimizer
   using OptimizerType = itk::GradientDescentOptimizerv4;
-  typename OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfIterations);
   optimizer->SetScalesEstimator(shiftScaleEstimator);
   optimizer->SetMaximumStepSizeInPhysicalUnits(3.0);
 
   using CommandType = itkLabeledPointSetMetricRegistrationTestCommandIterationUpdate<OptimizerType>;
-  typename CommandType::Pointer observer = CommandType::New();
+  auto observer = CommandType::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   optimizer->SetMinimumConvergenceValue(0.0);
@@ -155,13 +153,13 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
 
   // applying the resultant transform to moving points and verify result
   std::cout << "Fixed\tMoving\tMovingTransformed\tFixedTransformed\tDiff" << std::endl;
-  bool                                                      passed = true;
-  typename PointType::ValueType                             tolerance = 1e-2;
-  typename AffineTransformType::InverseTransformBasePointer movingInverse =
+  bool                                                            passed = true;
+  const typename PointType::ValueType                             tolerance = 1e-2;
+  const typename AffineTransformType::InverseTransformBasePointer movingInverse =
     metric->GetMovingTransform()->GetInverseTransform();
-  typename AffineTransformType::InverseTransformBasePointer fixedInverse =
+  const typename AffineTransformType::InverseTransformBasePointer fixedInverse =
     metric->GetFixedTransform()->GetInverseTransform();
-  for (unsigned int n = 0; n < metric->GetNumberOfComponents(); n++)
+  for (unsigned int n = 0; n < metric->GetNumberOfComponents(); ++n)
   {
     // compare the points in virtual domain
     PointType transformedMovingPoint = movingInverse->TransformPoint(movingPoints->GetPoint(n));
@@ -169,9 +167,9 @@ itkLabeledPointSetMetricRegistrationTestPerMetric(unsigned int numberOfIteration
     PointType difference;
     difference[0] = transformedMovingPoint[0] - transformedFixedPoint[0];
     difference[1] = transformedMovingPoint[1] - transformedFixedPoint[1];
-    std::cout << fixedPoints->GetPoint(n) << "\t" << movingPoints->GetPoint(n) << "\t" << transformedMovingPoint << "\t"
-              << transformedFixedPoint << "\t" << difference << std::endl;
-    if (fabs(difference[0]) > tolerance || fabs(difference[1]) > tolerance)
+    std::cout << fixedPoints->GetPoint(n) << '\t' << movingPoints->GetPoint(n) << '\t' << transformedMovingPoint << '\t'
+              << transformedFixedPoint << '\t' << difference << std::endl;
+    if (itk::Math::abs(difference[0]) > tolerance || itk::Math::abs(difference[1]) > tolerance)
     {
       passed = false;
     }
@@ -201,8 +199,8 @@ itkLabeledPointSetMetricRegistrationTest(int argc, char * argv[])
 
   {
     using PointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType>;
-    PointSetMetricType::Pointer metric = PointSetMetricType::New();
-    int                         success =
+    auto      metric = PointSetMetricType::New();
+    const int success =
       itkLabeledPointSetMetricRegistrationTestPerMetric<PointSetMetricType>(numberOfIterations, metric.GetPointer());
 
     allSuccess *= success;
@@ -210,10 +208,10 @@ itkLabeledPointSetMetricRegistrationTest(int argc, char * argv[])
 
   {
     using PointSetMetricType = itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType>;
-    PointSetMetricType::Pointer metric = PointSetMetricType::New();
+    auto metric = PointSetMetricType::New();
     metric->SetPointSetSigma(2.0);
     metric->SetEvaluationKNeighborhood(3);
-    int success =
+    const int success =
       itkLabeledPointSetMetricRegistrationTestPerMetric<PointSetMetricType>(numberOfIterations, metric.GetPointer());
 
     allSuccess *= success;
@@ -221,14 +219,14 @@ itkLabeledPointSetMetricRegistrationTest(int argc, char * argv[])
 
   {
     using PointSetMetricType = itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType>;
-    PointSetMetricType::Pointer metric = PointSetMetricType::New();
+    auto metric = PointSetMetricType::New();
     metric->SetPointSetSigma(1.0);
     metric->SetKernelSigma(10.0);
     metric->SetUseAnisotropicCovariances(false);
     metric->SetCovarianceKNeighborhood(5);
     metric->SetEvaluationKNeighborhood(10);
     metric->SetAlpha(1.1);
-    int success =
+    const int success =
       itkLabeledPointSetMetricRegistrationTestPerMetric<PointSetMetricType>(numberOfIterations, metric.GetPointer());
 
     allSuccess *= success;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,9 +74,9 @@ protected:
   using PZwQuerySystemInformation = NTSTATUS(WINAPI *)(UINT, PVOID, ULONG, PULONG);
 
   // handle ntdll.dll library
-  HMODULE m_hNTLib;
+  HMODULE m_hNTLib{ nullptr };
   // Windows native API function to query system information
-  PZwQuerySystemInformation ZwQuerySystemInformation;
+  PZwQuerySystemInformation ZwQuerySystemInformation{ nullptr };
 #  endif // defined(SUPPORT_TOOLHELP32)
 };
 #endif // defined(WIN32) || defined(_WIN32)
@@ -87,6 +87,7 @@ class ITKCommon_EXPORT LinuxMemoryUsageObserver : public MemoryUsageObserverBase
 public:
   /** destructor */
   ~LinuxMemoryUsageObserver() override;
+
   MemoryLoadType
   GetMemoryUsage() override;
 };
@@ -98,6 +99,7 @@ class ITKCommon_EXPORT MacOSXMemoryUsageObserver : public MemoryUsageObserverBas
 public:
   /** destructor */
   ~MacOSXMemoryUsageObserver() override;
+
   MemoryLoadType
   GetMemoryUsage() override;
 };
@@ -109,6 +111,7 @@ class ITKCommon_EXPORT SunSolarisMemoryUsageObserver : public MemoryUsageObserve
 public:
   /** destructor */
   virtual ~SunSolarisMemoryUsageObserver();
+
   virtual MemoryLoadType
   GetMemoryUsage();
 };
@@ -120,11 +123,12 @@ class ITKCommon_EXPORT SysResourceMemoryUsageObserver : public MemoryUsageObserv
 public:
   /** destructor */
   ~SysResourceMemoryUsageObserver() override;
+
   MemoryLoadType
   GetMemoryUsage() override;
 };
 
-#  if defined(ITK_HAS_MALLINFO)
+#  if defined(ITK_HAS_MALLINFO) || defined(ITK_HAS_MALLINFO2)
 /** \class MallinfoMemoryUsageObserver
  * \brief The MallinfoMemoryUsageObserver
  * \ingroup ITKCommon
@@ -134,9 +138,11 @@ class ITKCommon_EXPORT MallinfoMemoryUsageObserver : public MemoryUsageObserverB
 public:
   /** destructor */
   ~MallinfoMemoryUsageObserver() override;
+
   MemoryLoadType
   GetMemoryUsage() override;
 };
+
 #  endif // Mallinfo
 #endif   // !defined(WIN32) && !defined(_WIN32)
 

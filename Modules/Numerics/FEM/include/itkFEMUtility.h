@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 
 class MetaObject;
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \file itkFEMUtility.h
@@ -275,7 +273,6 @@ public:
   Integrate(double (*f)(double), double a, double b, int n = 3);
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMUtility_h

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 // through NLM’s website [3]. The original Visible Male cryosectional
 // images are non-interlaced 24-bit RGB pixels with a resolution of
 // 2048x1216 pixels by 1871 slices with a physical spacing of
-// approximately 0.33 mm in slice and 1.0 mm between slices. Theses
+// approximately 0.33 mm in slice and 1.0 mm between slices. These
 // dimensions results in about 13 gigabytes of data, which is an
 // appropriate size to demonstrate streaming. The following are two
 // examples of streaming which shows all three IO classes capable of
@@ -55,8 +55,8 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  std::string visibleHumanPath = argv[1];
-  std::string outputImageFile = argv[2];
+  const std::string visibleHumanPath = argv[1];
+  const std::string outputImageFile = argv[2];
 
   using RGBPixelType = itk::RGBPixel<unsigned char>;
   using PixelType = unsigned char;
@@ -64,17 +64,17 @@ main(int argc, char * argv[])
   using RGB3DImageType = itk::Image<RGBPixelType, 3>;
   using RGB2DImageType = itk::Image<RGBPixelType, 2>;
 
-  // genderate the names of the decompressed Visible Male images
+  // generate the names of the decompressed Visible Male images
   using NameGeneratorType = itk::NumericSeriesFileNames;
-  NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+  auto nameGenerator = NameGeneratorType::New();
   nameGenerator->SetSeriesFormat(visibleHumanPath + "a_vm%04d.raw");
   nameGenerator->SetStartIndex(1001);
   nameGenerator->SetEndIndex(2878);
   nameGenerator->SetIncrementIndex(1);
 
-  // create a ImageIO for the red channel
+  // create an ImageIO for the red channel
   using ImageIOType = itk::RawImageIO<PixelType, 2>;
-  ImageIOType::Pointer rimageio = ImageIOType::New();
+  auto rimageio = ImageIOType::New();
   rimageio->SetDimensions(0, 2048);
   rimageio->SetDimensions(1, 1216);
   rimageio->SetSpacing(0, .33);
@@ -82,8 +82,8 @@ main(int argc, char * argv[])
   rimageio->SetHeaderSize(rimageio->GetImageSizeInPixels() * 0);
 
 
-  // create a ImageIO for the green channel
-  ImageIOType::Pointer gimageio = ImageIOType::New();
+  // create an ImageIO for the green channel
+  auto gimageio = ImageIOType::New();
   gimageio->SetDimensions(0, 2048);
   gimageio->SetDimensions(1, 1216);
   gimageio->SetSpacing(0, .33);
@@ -91,8 +91,8 @@ main(int argc, char * argv[])
   gimageio->SetHeaderSize(gimageio->GetImageSizeInPixels() * 1);
 
 
-  // create a ImageIO for the blue channel
-  ImageIOType::Pointer bimageio = ImageIOType::New();
+  // create an ImageIO for the blue channel
+  auto bimageio = ImageIOType::New();
   bimageio->SetDimensions(0, 2048);
   bimageio->SetDimensions(1, 1216);
   bimageio->SetSpacing(0, .33);
@@ -100,30 +100,30 @@ main(int argc, char * argv[])
   bimageio->SetHeaderSize(bimageio->GetImageSizeInPixels() * 2);
 
   using SeriesReaderType = itk::ImageSeriesReader<ImageType>;
-  SeriesReaderType::Pointer rreader = SeriesReaderType::New();
+  auto rreader = SeriesReaderType::New();
   rreader->SetFileNames(nameGenerator->GetFileNames());
   rreader->SetImageIO(rimageio);
   // the z-spacing will default to be correctly 1mm
 
-  SeriesReaderType::Pointer greader = SeriesReaderType::New();
+  auto greader = SeriesReaderType::New();
   greader->SetFileNames(nameGenerator->GetFileNames());
   greader->SetImageIO(gimageio);
 
-  SeriesReaderType::Pointer breader = SeriesReaderType::New();
+  auto breader = SeriesReaderType::New();
   breader->SetFileNames(nameGenerator->GetFileNames());
   breader->SetImageIO(bimageio);
 
   using ComposeRGBFilterType =
     itk::ComposeImageFilter<ImageType, RGB3DImageType>;
-  ComposeRGBFilterType::Pointer composeRGB = ComposeRGBFilterType::New();
+  auto composeRGB = ComposeRGBFilterType::New();
   composeRGB->SetInput1(rreader->GetOutput());
   composeRGB->SetInput2(greader->GetOutput());
   composeRGB->SetInput3(breader->GetOutput());
 
   // this filter is needed if square pixels are needed
-  //   const int xyShrinkFactor = 3;
+  //   constexpr int xyShrinkFactor = 3;
   //   using ShrinkImageFilterType = itk::ShrinkImageFilter<  RGB3DImageType,
-  //   RGB3DImageType >; ShrinkImageFilterType::Pointer shrinker =
+  //   RGB3DImageType >; auto shrinker =
   //   ShrinkImageFilterType::New(); shrinker->SetInput(
   //   composeRGB->GetOutput() ); shrinker->SetShrinkFactors(  xyShrinkFactor
   //   ); shrinker->SetShrinkFactor( 2, 1 );
@@ -144,7 +144,7 @@ main(int argc, char * argv[])
   // create a 2D coronal slice from the volume
   using ExtractFilterType =
     itk::ExtractImageFilter<RGB3DImageType, RGB2DImageType>;
-  ExtractFilterType::Pointer extract = ExtractFilterType::New();
+  auto extract = ExtractFilterType::New();
   // Note on direction cosines: Because our plane is in the xz-plane,
   // the default submatrix would be invalid, so we must use the identity
   extract->SetDirectionCollapseToIdentity();
@@ -154,7 +154,7 @@ main(int argc, char * argv[])
 
 
   using ImageWriterType = itk::ImageFileWriter<RGB2DImageType>;
-  ImageWriterType::Pointer writer = ImageWriterType::New();
+  auto writer = ImageWriterType::New();
   writer->SetFileName(outputImageFile);
 
   // this line is a request for the number of regions
@@ -162,7 +162,7 @@ main(int argc, char * argv[])
   writer->SetNumberOfStreamDivisions(200);
   writer->SetInput(extract->GetOutput());
 
-  itk::SimpleFilterWatcher watcher1(writer, "stream writing");
+  const itk::SimpleFilterWatcher watcher1(writer, "stream writing");
 
 
   try

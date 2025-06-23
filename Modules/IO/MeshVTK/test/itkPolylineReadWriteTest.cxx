@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,23 +19,26 @@
 #include "itkMesh.h"
 
 #include "itkMeshFileTestHelper.h"
+#include "itkTestingMacros.h"
 
 int
 itkPolylineReadWriteTest(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Invalid commands, You need input and output mesh file name " << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName outputFileName [isBinary]"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
-  bool IsBinary = (argc > 3);
+  const bool isBinary = (argc > 3);
 
-  constexpr unsigned int dimension = 3;
+  constexpr unsigned int Dimension = 3;
   using PixelType = itk::VariableLengthVector<float>;
-  using MeshType = itk::Mesh<PixelType, dimension>;
+  using MeshType = itk::Mesh<PixelType, Dimension>;
 
-  if (test<MeshType>(argv[1], argv[2], IsBinary))
+  if (test<MeshType>(argv[1], argv[2], isBinary))
   {
     return EXIT_FAILURE;
   }

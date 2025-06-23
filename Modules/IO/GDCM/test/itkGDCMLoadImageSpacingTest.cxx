@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +51,8 @@ itkGDCMLoadImageSpacingTest(int argc, char * argv[])
   using ImageType = itk::Image<unsigned short, 2>;
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  itk::GDCMImageIO::Pointer imageIO = itk::GDCMImageIO::New();
-  ReaderType::Pointer       reader = ReaderType::New();
+  const itk::GDCMImageIO::Pointer imageIO = itk::GDCMImageIO::New();
+  auto                            reader = ReaderType::New();
   reader->SetImageIO(imageIO);
   reader->SetFileName(imageFilename);
   try
@@ -64,10 +64,10 @@ itkGDCMLoadImageSpacingTest(int argc, char * argv[])
     std::cerr << "Error when reading input: " << error << std::endl;
   }
 
-  ImageType::Pointer image = reader->GetOutput();
+  const ImageType::Pointer image = reader->GetOutput();
   std::cout << image << std::endl;
   ImageType::SpacingType spacing = image->GetSpacing();
-  if (std::abs(spacing[0] - spacing0) >= 0.000001 || std::abs(spacing[1] - spacing1) >= 0.000001)
+  if (itk::Math::abs(spacing[0] - spacing0) >= 0.000001 || itk::Math::abs(spacing[1] - spacing1) >= 0.000001)
   {
     return EXIT_FAILURE;
   }

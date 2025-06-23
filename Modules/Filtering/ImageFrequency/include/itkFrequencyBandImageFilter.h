@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,12 @@
 #ifndef itkFrequencyBandImageFilter_h
 #define itkFrequencyBandImageFilter_h
 
-#include <itkUnaryFrequencyDomainFilter.h>
+#include "itkUnaryFrequencyDomainFilter.h"
 
 namespace itk
 {
 /**
- *\class FrequencyBandImageFilter
+ * \class FrequencyBandImageFilter
  * \brief Performs a frequency band filtering on a frequency domain image
  *
  * The default filtering functor filters in the range LowFrequencyThreshold and
@@ -50,7 +50,7 @@ namespace itk
  * \ingroup ITKImageFrequency
  */
 template <typename TImageType, typename TFrequencyIterator = FrequencyFFTLayoutImageRegionIteratorWithIndex<TImageType>>
-class FrequencyBandImageFilter : public UnaryFrequencyDomainFilter<TImageType, TFrequencyIterator>
+class ITK_TEMPLATE_EXPORT FrequencyBandImageFilter : public UnaryFrequencyDomainFilter<TImageType, TFrequencyIterator>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FrequencyBandImageFilter);
@@ -64,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FrequencyBandImageFilter, UnaryFrequencyDomainFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FrequencyBandImageFilter);
 
   /** Typedef to images */
   using ImageType = TImageType;
@@ -84,9 +84,11 @@ public:
   using FrequencyValueType = typename FrequencyIteratorType::FrequencyValueType;
 
   /****** Frequency Threshold Getters/Setters *****/
+
   /** Band range: Low threshold/boundary in Hertz */
   itkGetConstReferenceMacro(LowFrequencyThreshold, FrequencyValueType);
   itkSetMacro(LowFrequencyThreshold, FrequencyValueType);
+
   /**
    * Set low frequency threshold when input frequency is in radians.
    * @param freqLowInRadians low freq in radians.
@@ -95,11 +97,12 @@ public:
   SetLowFrequencyThresholdInRadians(const FrequencyValueType & freqLowInRadians);
 
   /** Band range: High threshold/boundary in Hertz */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(HighFrequencyThreshold, FrequencyValueType);
   itkSetMacro(HighFrequencyThreshold, FrequencyValueType);
   void
   SetHighFrequencyThresholdInRadians(const FrequencyValueType & freqHighInRadians);
-
+  /** @ITKEndGrouping */
   /**
    * Set LowFrequencyThreshold and HighFrequencyThreshold at the same time,
    * input frequencies in Hertz.
@@ -123,29 +126,32 @@ public:
 
   /** The pixel values that correspond to m_LowFrequencyThreshold are passed to the output image,
    * independent of m_PassBand */
+  /** @ITKStartGrouping */
   itkSetMacro(PassLowFrequencyThreshold, bool);
   itkGetConstReferenceMacro(PassLowFrequencyThreshold, bool);
   itkBooleanMacro(PassLowFrequencyThreshold);
-
+  /** @ITKEndGrouping */
   /** The pixel values that correspond to m_HighFrequencyThreshold are passed to the output image,
    * independent of m_PassBand */
+  /** @ITKStartGrouping */
   itkSetMacro(PassHighFrequencyThreshold, bool);
   itkGetConstReferenceMacro(PassHighFrequencyThreshold, bool);
   itkBooleanMacro(PassHighFrequencyThreshold);
-
+  /** @ITKEndGrouping */
   /** True: the band is a PassBand. False: StopBand **/
+  /** @ITKStartGrouping */
   itkSetMacro(PassBand, bool);
   itkGetConstReferenceMacro(PassBand, bool);
   itkBooleanMacro(PassBand);
-
+  /** @ITKEndGrouping */
   /**
    * Utility method equivalent to:
    * SetPassBand(true)
-   * SetPassLowFrequencyThreshold(pass_low_threshold)
-   * SetPassHighFrequencyThreshold(pass_high_threshold)
+   * SetPassLowFrequencyThreshold(passLowThreshold)
+   * SetPassHighFrequencyThreshold(passHighThreshold)
    *
-   * @param pass_low_threshold flag to let pass or not low boundary
-   * @param pass_high_threshold flag to let pass or not high boundary
+   * @param passLowThreshold flag to let pass or not low boundary
+   * @param passHighThreshold flag to let pass or not high boundary
    */
   void
   SetPassBand(const bool passLowThreshold, const bool passHighThreshold);
@@ -153,33 +159,36 @@ public:
   /**
    * Utility method equivalent to:
    * SetPassBand(false)
-   * SetPassLowFrequencyThreshold(pass_low_threshold)
-   * SetPassHighFrequencyThreshold(pass_high_threshold)
+   * SetPassLowFrequencyThreshold(passLowThreshold)
+   * SetPassHighFrequencyThreshold(passHighThreshold)
    *
-   * @param pass_low_threshold flag to let pass or not low boundary
-   * @param pass_high_threshold flag to let pass or not high boundary
+   * @param passLowThreshold flag to let pass or not low boundary
+   * @param passHighThreshold flag to let pass or not high boundary
    */
   void
   SetStopBand(const bool passLowThreshold, const bool passHighThreshold);
 
   /** If true the frequency cut-off uses the radius of the frequency vector. If false, it uses the max absolute value of
    * the frequency vector. */
+  /** @ITKStartGrouping */
   itkSetMacro(RadialBand, bool);
   itkGetConstReferenceMacro(RadialBand, bool);
   itkBooleanMacro(RadialBand);
-
+  /** @ITKEndGrouping */
   /** Control if negative frequencies with absolute value equal to low frequency threshold are passing.
    * Only effective when RadialBand is false **/
+  /** @ITKStartGrouping */
   itkSetMacro(PassNegativeLowFrequencyThreshold, bool);
   itkGetConstReferenceMacro(PassNegativeLowFrequencyThreshold, bool);
   itkBooleanMacro(PassNegativeLowFrequencyThreshold);
-
+  /** @ITKEndGrouping */
   /** Control if negative frequencies with absolute value equal to high frequency threshold are passing.
    * Only effective when RadialBand is false **/
+  /** @ITKStartGrouping */
   itkSetMacro(PassNegativeHighFrequencyThreshold, bool);
   itkGetConstReferenceMacro(PassNegativeHighFrequencyThreshold, bool);
   itkBooleanMacro(PassNegativeHighFrequencyThreshold);
-
+  /** @ITKEndGrouping */
 
 protected:
   FrequencyBandImageFilter();
@@ -188,17 +197,17 @@ protected:
 
   /* Checks the logic of FrequencyThresholds. */
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
 
   /* This is the box functor, which implements the filter's behavior. */
   void
   BandPass(FrequencyIteratorType & freqIt);
 
 private:
-  std::function<void(const ImageRegionType &)> m_DynamicThreadedGenerateDataFunction;
+  std::function<void(const ImageRegionType &)> m_DynamicThreadedGenerateDataFunction{};
 
-  FrequencyValueType m_LowFrequencyThreshold;
-  FrequencyValueType m_HighFrequencyThreshold;
+  FrequencyValueType m_LowFrequencyThreshold{};
+  FrequencyValueType m_HighFrequencyThreshold{};
 
   bool m_PassBand{ true };
   bool m_PassLowFrequencyThreshold{ true };

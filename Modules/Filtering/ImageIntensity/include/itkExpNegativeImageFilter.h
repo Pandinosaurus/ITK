@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkExpNegativeImageFilter_h
 
 #include "itkUnaryFunctorImageFilter.h"
-#include "itkMath.h"
 #include "itkMath.h"
 
 namespace itk
@@ -35,24 +34,16 @@ template <typename TInput, typename TOutput>
 class ExpNegative
 {
 public:
-  ExpNegative() { m_Factor = 1.0; }
+  ExpNegative() = default;
   ~ExpNegative() = default;
-
-  bool
-  operator!=(const ExpNegative & other) const
-  {
-    if (Math::NotExactlyEquals(m_Factor, other.m_Factor))
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const ExpNegative & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Factor, other.m_Factor);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ExpNegative);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -67,19 +58,19 @@ public:
     m_Factor = factor;
   }
 
-  double
+  [[nodiscard]] double
   GetFactor() const
   {
     return m_Factor;
   }
 
 private:
-  double m_Factor;
+  double m_Factor{ 1.0 };
 };
 } // namespace Functor
 
 /**
- *\class ExpNegativeImageFilter
+ * \class ExpNegativeImageFilter
  * \brief Computes the function exp(-K.x) for each input pixel.
  *
  * Every output pixel is equal to std::exp(-K.x ). where x is the
@@ -114,8 +105,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ExpNegativeImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExpNegativeImageFilter);
 
   void
   SetFactor(double factor)
@@ -127,18 +118,14 @@ public:
     this->GetFunctor().SetFactor(factor);
     this->Modified();
   }
-  double
+  [[nodiscard]] double
   GetFactor() const
   {
     return this->GetFunctor().GetFactor();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ExpNegativeImageFilter() = default;

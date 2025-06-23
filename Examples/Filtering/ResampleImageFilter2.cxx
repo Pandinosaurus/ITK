@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,12 +68,7 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  int exampleAction = 0;
-
-  if (argc >= 4)
-  {
-    exampleAction = std::stoi(argv[3]);
-  }
+  int exampleAction = std::stoi(argv[3]);
 
   constexpr unsigned int Dimension = 2;
   using InputPixelType = unsigned char;
@@ -86,8 +81,8 @@ main(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -96,13 +91,13 @@ main(int argc, char * argv[])
   using FilterType =
     itk::ResampleImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   using TransformType = itk::AffineTransform<double, Dimension>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   using InterpolatorType =
     itk::NearestNeighborInterpolateImageFunction<InputImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   filter->SetInterpolator(interpolator);
 
 
@@ -131,7 +126,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // pixel spacing in millimeters along X & Y
-    const double spacing[Dimension] = { 1.0, 1.0 };
+    constexpr double spacing[Dimension] = { 1.0, 1.0 };
     filter->SetOutputSpacing(spacing);
     // Software Guide : EndCodeSnippet
   }
@@ -163,7 +158,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // space coordinate of origin
-    const double origin[Dimension] = { 30.0, 40.0 };
+    constexpr double origin[Dimension] = { 30.0, 40.0 };
     filter->SetOutputOrigin(origin);
     // Software Guide : EndCodeSnippet
   }
@@ -248,7 +243,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // space coordinate of origin
-    const double origin[Dimension] = { 60.0, 30.0 };
+    constexpr double origin[Dimension] = { 60.0, 30.0 };
     filter->SetOutputOrigin(origin);
     // Software Guide : EndCodeSnippet
   }
@@ -325,7 +320,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // space coordinate of origin
-    const double origin[Dimension] = { 0.0, 0.0 };
+    constexpr double origin[Dimension] = { 0.0, 0.0 };
     filter->SetOutputOrigin(origin);
     // Software Guide : EndCodeSnippet
   }
@@ -341,7 +336,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // pixel spacing in millimeters
-    const double spacing[Dimension] = { 2.0, 3.0 };
+    constexpr double spacing[Dimension] = { 2.0, 3.0 };
     filter->SetOutputSpacing(spacing);
     // Software Guide : EndCodeSnippet
   }
@@ -462,7 +457,7 @@ main(int argc, char * argv[])
   {
     // Software Guide : BeginCodeSnippet
     // space coordinate of origin
-    const double origin[Dimension] = { 25.0, 35.0 };
+    constexpr double origin[Dimension] = { 25.0, 35.0 };
     filter->SetOutputOrigin(origin);
     // Software Guide : EndCodeSnippet
   }
@@ -491,7 +486,7 @@ main(int argc, char * argv[])
 
   {
     // Software Guide : BeginCodeSnippet
-    const double spacing[Dimension] = { 4.0, 4.5 };
+    constexpr double spacing[Dimension] = { 4.0, 4.5 };
     filter->SetOutputSpacing(spacing);
     // Software Guide : EndCodeSnippet
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ TEST(ITKBuildInformation, InformationFeatures)
 {
   using MapType = itk::BuildInformation::MapType;
 
-  itk::BuildInformation::Pointer instance = itk::BuildInformation::GetInstance();
+  const itk::BuildInformation::Pointer instance = itk::BuildInformation::GetInstance();
   EXPECT_EQ(instance.IsNull(), false);
 
 
@@ -43,19 +43,24 @@ TEST(ITKBuildInformation, InformationFeatures)
   if (it != localMap.end())
   {
     EXPECT_EQ(it->first, std::string{ "PROJECT_URL" });
-    EXPECT_EQ(it->second.m_Value, std::string{ "http://www.itk.org" });
+    EXPECT_EQ(it->second.m_Value, std::string{ "https://www.itk.org" });
     EXPECT_EQ(it->second.m_Description, std::string{ "The URL of project." });
   }
 
-  for (auto mapEntry : localMap)
+  for (const auto & mapEntry : localMap)
   {
+    const auto & key = mapEntry.first;
+
     std::cout << "--------------------------------------------------------------------" << std::endl
-              << "Key: " << mapEntry.first << std::endl
+              << "Key: " << key << std::endl
               << "\tValue: " << mapEntry.second.m_Value << std::endl
               << "\tDescription: " << mapEntry.second.m_Description << std::endl;
+
+    EXPECT_EQ(itk::BuildInformation::GetValue(key), mapEntry.second.m_Value);
+    EXPECT_EQ(itk::BuildInformation::GetDescription(key), mapEntry.second.m_Description);
   }
 
-  EXPECT_EQ(itk::BuildInformation::GetValue("PROJECT_URL"), "http://www.itk.org");
+  EXPECT_EQ(itk::BuildInformation::GetValue("PROJECT_URL"), "https://www.itk.org");
 
   EXPECT_GT(itk::BuildInformation::GetAllKeys().size(), static_cast<size_t>(5));
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
 {
 
 /**
- *\class FastMarchingStoppingCriterionBase
+ * \class FastMarchingStoppingCriterionBase
   \brief Abstract Stopping Criterion dedicated for Fast Marching Methods
 
   \ingroup ITKFastMarching
@@ -50,15 +50,15 @@ public:
   using OutputDomainType = typename Traits::OutputDomainType;
   using OutputDomainPointer = typename Traits::OutputDomainPointer;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingStoppingCriterionBase, StoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingStoppingCriterionBase);
 
   /** Reinitialize internal values. */
   void
   Reinitialize()
   {
-    m_CurrentValue = NumericTraits<OutputPixelType>::ZeroValue();
-    m_PreviousValue = NumericTraits<OutputPixelType>::ZeroValue();
+    m_CurrentValue = OutputPixelType{};
+    m_PreviousValue = OutputPixelType{};
 
     this->Reset();
   }
@@ -78,18 +78,17 @@ protected:
   FastMarchingStoppingCriterionBase()
     : Superclass()
     , m_Domain(nullptr)
-  {
-    m_CurrentValue = NumericTraits<OutputPixelType>::ZeroValue();
-    m_PreviousValue = NumericTraits<OutputPixelType>::ZeroValue();
-  }
+    , m_PreviousValue(OutputPixelType{})
+    , m_CurrentValue(OutputPixelType{})
+  {}
 
   /** Destructor */
   ~FastMarchingStoppingCriterionBase() override = default;
 
-  OutputDomainPointer m_Domain;
+  OutputDomainPointer m_Domain{};
 
-  OutputPixelType m_PreviousValue;
-  OutputPixelType m_CurrentValue;
+  OutputPixelType m_PreviousValue{};
+  OutputPixelType m_CurrentValue{};
 
   /** Inherited classes must implement this method and make sure member variables
   got reinitialized. */

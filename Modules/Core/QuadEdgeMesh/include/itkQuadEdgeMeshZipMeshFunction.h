@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshZipMeshFunction
- * \brief Fuse the incoming edge and it's Onext() follower (like a zipper does).
+ * \brief Fuse the incoming edge and its Onext() follower (like a zipper does).
  *
  * \ingroup QEMeshModifierFunctions
  * \ingroup ITKQuadEdgeMesh
@@ -44,14 +44,14 @@ public:
   using Superclass = QuadEdgeMeshFunctionBase<TMesh, typename TQEType::OriginRefType>;
 
   itkNewMacro(Self);
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(QuadEdgeMeshZipMeshFunction, QuadEdgeMeshFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshZipMeshFunction);
 
   /** Type of QuadEdge with which to apply slicing. */
   using QEType = TQEType;
 
-  using MeshType = typename Superclass::MeshType;
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::MeshType;
+  using typename Superclass::OutputType;
 
   /**
    * \return The OriginRefType of the point that will be removed during the

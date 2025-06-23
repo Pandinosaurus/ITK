@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,32 +22,15 @@
 #include "VNLIterativeSparseSolverTraits.h"
 
 #include "itkParameterizationQuadEdgeMeshFilter.h"
+#include "itkTestingMacros.h"
 
 template <typename TSolver>
 int
-ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
+ParameterizationQuadEdgeMeshFilterTest(const char * inputFilename,
+                                       unsigned int borderType,
+                                       unsigned int coefficientType,
+                                       const char * outputFilename)
 {
-  // ** ERROR MESSAGE AND HELP ** //
-  if (argc < 5)
-  {
-    std::cout << "Requires 4 arguments: " << std::endl;
-    std::cout << "1-Input file name " << std::endl;
-    std::cout << "2-Border Type" << std::endl;
-    std::cout << "   * 0: SQUARE" << std::endl;
-    std::cout << "   * 1: DISK" << std::endl;
-    std::cout << "3-CoefficientType Type" << std::endl;
-    std::cout << "   * 0: OnesMatrixCoefficients" << std::endl;
-    std::cout << "   * 1: InverseEuclideanDistanceMatrixCoefficients" << std::endl;
-    std::cout << "   * 2: ConformalMatrixCoefficients" << std::endl;
-    std::cout << "   * 3: AuthalicMatrixCoefficients" << std::endl;
-    std::cout << "   * 4: HarmonicMatrixCoefficients" << std::endl;
-    std::cout << "4-Solver type (0: iterative, 1: LU decomposition)" << std::endl;
-    std::cout << "5-Output file name " << std::endl;
-
-    return EXIT_FAILURE;
-  }
-
-
   // ** TYPEDEF **
   using Coord = typename TSolver::ValueType;
 
@@ -58,8 +41,8 @@ ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
 
 
   // ** READ THE FILE IN **
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(inputFilename);
 
   try
   {
@@ -72,19 +55,16 @@ ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  typename MeshType::Pointer mesh = reader->GetOutput();
+  const typename MeshType::Pointer mesh = reader->GetOutput();
 
   // ** CHOSE< COMPUTE AND SET BORDER TRANSFORM **
-  typename BorderTransformType::Pointer border_transform = BorderTransformType::New();
+  auto border_transform = BorderTransformType::New();
   border_transform->SetInput(mesh);
   // two following line for coverage
   border_transform->SetRadius(border_transform->GetRadius());
   border_transform->GetNameOfClass();
 
-  int               border;
-  std::stringstream ssout(argv[2]);
-  ssout >> border;
-  switch (border) // choose border type
+  switch (borderType) // choose border type
   {
     case 0: // square shaped domain
       border_transform->SetTransformType(itk::BorderQuadEdgeMeshFilterEnums::BorderTransform::SQUARE_BORDER_TRANSFORM);
@@ -109,15 +89,17 @@ ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
   itk::HarmonicMatrixCoefficients<MeshType>                 coeff4;
 
   using ParametrizationType = itk::ParameterizationQuadEdgeMeshFilter<MeshType, MeshType, TSolver>;
-  typename ParametrizationType::Pointer param = ParametrizationType::New();
-  param->SetInput(mesh);
+  auto param = ParametrizationType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(param, ParameterizationQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+
+
   param->SetBorderTransform(border_transform);
+  ITK_TEST_SET_GET_VALUE(border_transform, param->GetBorderTransform());
 
-  int               param_type;
-  std::stringstream ssout3(argv[3]);
-  ssout3 >> param_type;
+  param->SetInput(mesh);
 
-  switch (param_type)
+  switch (coefficientType)
   {
     case 0:
       param->SetCoefficientsMethod(&coeff0);
@@ -137,18 +119,18 @@ ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
     default:
       std::cerr << "3rd argument must be " << std::endl;
       std::cerr << "0, 1, 2, 3 or 4" << std::endl;
-      std::cerr << "Here it is: " << param_type << std::endl;
+      std::cerr << "Here it is: " << coefficientType << std::endl;
       return EXIT_FAILURE;
   }
 
   // ** PROCESS **
   param->Update();
-  typename MeshType::Pointer output = param->GetOutput();
+  const typename MeshType::Pointer output = param->GetOutput();
 
   // ** WRITE OUTPUT **
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(param->GetOutput());
-  writer->SetFileName(argv[5]);
+  writer->SetFileName(outputFilename);
   writer->Update();
 
   // ** PRINT **
@@ -162,17 +144,36 @@ ParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
 int
 itkParameterizationQuadEdgeMeshFilterTest(int argc, char * argv[])
 {
+  if (argc != 6)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputFilename borderType (0: SQUARE; 1: DISK)" << std::endl;
+    std::cerr << " coefficientType" << std::endl;
+    std::cerr << "   * 0: OnesMatrixCoefficients" << std::endl;
+    std::cerr << "   * 1: InverseEuclideanDistanceMatrixCoefficients" << std::endl;
+    std::cerr << "   * 2: ConformalMatrixCoefficients" << std::endl;
+    std::cerr << "   * 3: AuthalicMatrixCoefficients" << std::endl;
+    std::cerr << "   * 4: HarmonicMatrixCoefficients" << std::endl;
+    std::cerr << " solverType (0: iterative; 1: LU decomposition)" << std::endl;
+    std::cerr << " outputFilename" << std::endl;
+
+    return EXIT_FAILURE;
+  }
+
   using TCoord = double;
   using IterativeSolverTraits = VNLIterativeSparseSolverTraits<TCoord>;
   using LUSolverTraits = VNLSparseLUSolverTraits<TCoord>;
 
   if (std::stoi(argv[4]) == 0)
   {
-    return ParameterizationQuadEdgeMeshFilterTest<IterativeSolverTraits>(argc, argv);
+    return ParameterizationQuadEdgeMeshFilterTest<IterativeSolverTraits>(
+      argv[1], std::stoi(argv[2]), std::stoi(argv[3]), argv[5]);
   }
-  else if (std::stoi(argv[4]) == 1)
+  if (std::stoi(argv[4]) == 1)
   {
-    return ParameterizationQuadEdgeMeshFilterTest<LUSolverTraits>(argc, argv);
+    return ParameterizationQuadEdgeMeshFilterTest<LUSolverTraits>(
+      argv[1], std::stoi(argv[2]), std::stoi(argv[3]), argv[5]);
   }
   else
   {

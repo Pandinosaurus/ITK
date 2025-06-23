@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,10 +59,10 @@ itkTimeProbeTest2(int, char *[])
   std::cout << "InstantValue:      " << localTimer.GetInstantValue() << std::endl;
   std::cout << "Minimum:           " << localTimer.GetMinimum() << std::endl;
   std::cout << "Mean:              " << localTimer.GetMean() << std::endl;
-  std::cout << "Maximu:            " << localTimer.GetMaximum() << std::endl;
-  std::cout << "Standard deviation:" << localTimer.GetStandardDeviation() << std::endl;
+  std::cout << "Maximum:           " << localTimer.GetMaximum() << std::endl;
+  std::cout << "StandardDeviation: " << localTimer.GetStandardDeviation() << std::endl;
 
-  unsigned int iteration(100);
+  constexpr unsigned int iteration(100);
 
   for (unsigned int it = 0; it < iteration; ++it)
   {
@@ -74,6 +74,7 @@ itkTimeProbeTest2(int, char *[])
     {
       sum += i;
     }
+    std::cout << "Dummy sum: " << sum << std::endl;
 
     localTimer.Stop();
   }
@@ -87,11 +88,11 @@ itkTimeProbeTest2(int, char *[])
   // Print current values
   std::cout << "InstantValue:      " << localTimer.GetInstantValue() << std::endl;
 
-  // Print a regualr report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
+  // Print a regular report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
   std::cout << std::endl << "Print a normal report" << std::endl;
   localTimer.Report();
 
-  // Print a expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
+  // Print an expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
   //                          Mean/Min *100 (%), Mean, Max, Max- Mean, Max/Mean(%),
   //                          Total Diff(:Max - Min) and STD)
   std::cout << std::endl << "Print an expanded report" << std::endl;
@@ -108,33 +109,33 @@ itkTimeProbeTest2(int, char *[])
     std::cerr << "Reset() failure" << std::endl;
     return EXIT_FAILURE;
   }
-  if (localTimer.GetNumberOfStops() != itk::NumericTraits<itk::TimeProbe::CountType>::ZeroValue())
+  if (localTimer.GetNumberOfStops() != itk::TimeProbe::CountType{})
   {
     std::cerr << "Reset() failure" << std::endl;
     return EXIT_FAILURE;
   }
-  if (itk::Math::NotExactlyEquals(localTimer.GetTotal(),
-                                  itk::NumericTraits<itk::TimeProbe::TimeStampType>::ZeroValue()))
+  if (itk::Math::NotExactlyEquals(localTimer.GetTotal(), itk::TimeProbe::TimeStampType{}))
   {
     std::cerr << "Reset() failure" << std::endl;
     return EXIT_FAILURE;
   }
-  if (itk::Math::NotExactlyEquals(localTimer.GetMean(), itk::NumericTraits<itk::TimeProbe::TimeStampType>::ZeroValue()))
+  if (itk::Math::NotExactlyEquals(localTimer.GetMean(), itk::TimeProbe::TimeStampType{}))
   {
     std::cerr << "Reset() failure" << std::endl;
     return EXIT_FAILURE;
   }
 
   /** Invoke GetRealTimeClock. */
-  itk::RealTimeStamp timeStamp = localTimer.GetRealTimeClock()->GetRealTimeStamp();
+  const itk::RealTimeStamp timeStamp = localTimer.GetRealTimeClock()->GetRealTimeStamp();
   std::cout << std::endl << "Check RealTimeStamp" << std::endl;
-  std::cout << "day  " << timeStamp.GetTimeInDays() << std::endl;
-  std::cout << "hour " << timeStamp.GetTimeInHours() << std::endl;
-  std::cout << "min  " << timeStamp.GetTimeInMinutes() << std::endl;
-  std::cout << "sec  " << timeStamp.GetTimeInSeconds() << std::endl;
-  std::cout << "msec " << timeStamp.GetTimeInMilliSeconds() << std::endl;
-  std::cout << "usec " << timeStamp.GetTimeInMicroSeconds() << std::endl;
+  std::cout << "TimeInDays:         " << timeStamp.GetTimeInDays() << std::endl;
+  std::cout << "TimeInHours:        " << timeStamp.GetTimeInHours() << std::endl;
+  std::cout << "TimeInMinutes:      " << timeStamp.GetTimeInMinutes() << std::endl;
+  std::cout << "TimeInSeconds:      " << timeStamp.GetTimeInSeconds() << std::endl;
+  std::cout << "TimeInMilliSeconds: " << timeStamp.GetTimeInMilliSeconds() << std::endl;
+  std::cout << "TimeInMicroSeconds: " << timeStamp.GetTimeInMicroSeconds() << std::endl;
 
-  std::cout << "[PASSED]" << std::endl;
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

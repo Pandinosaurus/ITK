@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class OtsuThresholdCalculator
+ * \class OtsuThresholdCalculator
  * \brief Computes the Otsu's threshold for an image.
  *
  * This calculator computes the Otsu's threshold which separates an image
@@ -56,8 +56,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(OtsuThresholdCalculator, HistogramThresholdCalculator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(OtsuThresholdCalculator);
 
   /** Type definition for the input image. */
   using HistogramType = THistogram;
@@ -65,10 +65,11 @@ public:
 
   /** Should the threshold value be mid-point of the bin or the maximum?
    * Default is to return bin maximum. */
+  /** @ITKStartGrouping */
   itkSetMacro(ReturnBinMidpoint, bool);
   itkGetConstReferenceMacro(ReturnBinMidpoint, bool);
   itkBooleanMacro(ReturnBinMidpoint);
-
+  /** @ITKEndGrouping */
   /** for backward compatibility. Update() should be preferred. */
   void
   Compute()
@@ -78,10 +79,8 @@ public:
 
 protected:
   OtsuThresholdCalculator()
-
-  {
-    m_OtsuMultipleThresholdsCalculator = OtsuMultipleThresholdsCalculator<THistogram>::New();
-  }
+    : m_OtsuMultipleThresholdsCalculator(OtsuMultipleThresholdsCalculator<THistogram>::New())
+  {}
   ~OtsuThresholdCalculator() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -89,12 +88,8 @@ protected:
   GenerateData() override;
 
 private:
-  typename OtsuMultipleThresholdsCalculator<THistogram>::Pointer m_OtsuMultipleThresholdsCalculator;
-#if defined(ITKV4_COMPATIBILITY)
-  bool m_ReturnBinMidpoint{ true };
-#else
-  bool m_ReturnBinMidpoint{ false };
-#endif
+  typename OtsuMultipleThresholdsCalculator<THistogram>::Pointer m_OtsuMultipleThresholdsCalculator{};
+  bool                                                           m_ReturnBinMidpoint{ false };
 };
 
 } // end namespace itk

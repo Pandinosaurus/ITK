@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,8 +42,9 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Matt McCormick <matt.mccormick@kitware.com>
-itk_fetch_module(Strain
-"Filters to estimate a strain tensor field from a displacement field or a
+itk_fetch_module(
+  Strain
+  "Filters to estimate a strain tensor field from a displacement field or a
 spatial transformation.
 
 For more information, see:
@@ -51,9 +52,9 @@ For more information, see:
   McCormick M.
   N-Dimensional Computation of Strain Tensor Images in the Insight Toolkit
   The Insight Journal. January-December. 2017.
-  https://www.insight-journal.org/browse/publication/984
+  https://doi.org/10.54294/1wtpo8
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/KitwareMedical/ITKStrain.git
-  GIT_TAG 9af85d856d1c2ababba7ca8b4d0e2aa71593c032
+  GIT_REPOSITORY https://github.com/KitwareMedical/ITKStrain.git
+  GIT_TAG 1397eb6b4ce6d0e789af8ecc2fbe6cdf889e63ab
   )

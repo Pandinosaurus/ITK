@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +50,8 @@ runGPUMeanImageFilterTest(const std::string & inFile, const std::string & outFil
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  typename WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(inFile);
   writer->SetFileName(outFile);
@@ -67,20 +67,20 @@ runGPUMeanImageFilterTest(const std::string & inFile, const std::string & outFil
   typename InputImageType::SizeType indexRadius;
   indexRadius[0] = 2; // radius along x
   indexRadius[1] = 2; // radius along y
-  if (VImageDimension > 2)
+  if constexpr (VImageDimension > 2)
   {
     indexRadius[2] = 2; // radius along z
   }
 
   // test 1~8 threads for CPU
-  for (int nThreads = 1; nThreads <= 8; nThreads++)
+  for (int numberOfWorkUnits = 1; numberOfWorkUnits <= 8; ++numberOfWorkUnits)
   {
-    typename MeanFilterType::Pointer CPUFilter = MeanFilterType::New();
+    auto CPUFilter = MeanFilterType::New();
 
     itk::TimeProbe cputimer;
     cputimer.Start();
 
-    CPUFilter->SetNumberOfWorkUnits(nThreads);
+    CPUFilter->SetNumberOfWorkUnits(numberOfWorkUnits);
 
     CPUFilter->SetInput(reader->GetOutput());
     CPUFilter->SetRadius(indexRadius);
@@ -89,14 +89,14 @@ runGPUMeanImageFilterTest(const std::string & inFile, const std::string & outFil
     cputimer.Stop();
 
     std::cout << "CPU mean filter took " << cputimer.GetMean() << " seconds with " << CPUFilter->GetNumberOfWorkUnits()
-              << " threads.\n"
+              << " work units.\n"
               << std::endl;
 
     // -------
 
-    if (nThreads == 8)
+    if (numberOfWorkUnits == 8)
     {
-      typename GPUMeanFilterType::Pointer GPUFilter = GPUMeanFilterType::New();
+      auto GPUFilter = GPUMeanFilterType::New();
 
       itk::TimeProbe gputimer;
       gputimer.Start();

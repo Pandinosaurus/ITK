@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,18 +56,17 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<MovingImageType, CoordRepPixelType>;
 
 
-  double epsilon = 0.000001;
+  constexpr double epsilon = 0.000001;
 
-  TransformType::Pointer    transform = TransformType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
 
-  FixedImageType::SizeType fixedImageSize;
-  fixedImageSize.Fill(128);
+  auto fixedImageSize = FixedImageType::SizeType::Filled(128);
 
   // Create fixed image
-  FixedImageType::Pointer fixedImage = FixedImageType::New();
+  auto fixedImage = FixedImageType::New();
   fixedImage->SetRegions(fixedImageSize);
-  fixedImage->Allocate(true); // initialize buffer to zero
+  fixedImage->AllocateInitialized();
   fixedImage->Update();
 
   FixedImageIteratorType fixedIt(fixedImage, fixedImage->GetBufferedRegion());
@@ -80,13 +79,12 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
     }
   }
 
-  MovingImageType::SizeType movingImageSize;
-  movingImageSize.Fill(128);
+  auto movingImageSize = MovingImageType::SizeType::Filled(128);
 
   // Create moving image
-  MovingImageType::Pointer movingImage = MovingImageType::New();
+  auto movingImage = MovingImageType::New();
   movingImage->SetRegions(movingImageSize);
-  movingImage->Allocate(true); // initialize buffer to zero
+  movingImage->AllocateInitialized();
   movingImage->Update();
 
   MovingImageIteratorType movingIt(movingImage, movingImage->GetBufferedRegion());
@@ -99,11 +97,11 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
     }
   }
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, KappaStatisticImageToImageMetric, ImageToImageMetric);
 
-  MetricType::RealType foregroundValue = 255;
+  constexpr MetricType::RealType foregroundValue = 255;
   metric->SetForegroundValue(foregroundValue);
   ITK_TEST_SET_GET_VALUE(foregroundValue, metric->GetForegroundValue());
 
@@ -117,7 +115,7 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   transform->SetIdentity();
   metric->SetTransform(transform);
 
-  TransformType::ParametersType parameters = transform->GetParameters();
+  const TransformType::ParametersType parameters = transform->GetParameters();
 
   // Test error conditions
   //
@@ -147,7 +145,7 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   // The value 0.620753 was computed by hand for these two images
   double                  expectedMatchMeasure = 0.620753;
   MetricType::MeasureType value = metric->GetValue(parameters);
-  if (!itk::Math::FloatAlmostEqual((double)value, expectedMatchMeasure, 10, epsilon))
+  if (!itk::Math::FloatAlmostEqual(static_cast<double>(value), expectedMatchMeasure, 10, epsilon))
   {
     std::cerr << "Error !" << std::endl;
     std::cerr << "Expected: " << expectedMatchMeasure << " but got " << static_cast<double>(value) << std::endl;
@@ -160,14 +158,14 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   //
   metric->ComputeGradient();
 
-  GradientImageType::Pointer xGradImage = GradientImageType::New();
+  auto xGradImage = GradientImageType::New();
   xGradImage->SetRegions(movingImageSize);
-  xGradImage->Allocate(true); // initialize buffer to zero
+  xGradImage->AllocateInitialized();
   xGradImage->Update();
 
-  GradientImageType::Pointer yGradImage = GradientImageType::New();
+  auto yGradImage = GradientImageType::New();
   yGradImage->SetRegions(movingImageSize);
-  yGradImage->Allocate(true); // initialize buffer to zero
+  yGradImage->AllocateInitialized();
   yGradImage->Update();
 
   GradientImageIteratorType xGradIt(xGradImage, xGradImage->GetBufferedRegion());
@@ -216,7 +214,7 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
       std::cerr << "Error !" << std::endl;
       std::cerr << "Expected: [" << static_cast<double>(gradIt.Get()[0]) << ", " << static_cast<double>(gradIt.Get()[1])
                 << "], but got [" << static_cast<double>(xGradIt.Get()) << ", " << static_cast<double>(yGradIt.Get())
-                << "]" << std::endl;
+                << ']' << std::endl;
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
@@ -232,14 +230,14 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   metric->GetDerivative(parameters, derivative);
 
   // The value 0.0477502 was computed by hand
-  double expectedDerivativeMeasure = -0.0477502;
+  constexpr double expectedDerivativeMeasure = -0.0477502;
   for (unsigned int i = 0; i < derivative.size(); ++i)
   {
-    if (!itk::Math::FloatAlmostEqual((double)derivative[i], expectedDerivativeMeasure, 10, epsilon))
+    if (!itk::Math::FloatAlmostEqual(static_cast<double>(derivative[i]), expectedDerivativeMeasure, 10, epsilon))
     {
       std::cerr << "Error !" << std::endl;
       std::cerr << "Expected: " << expectedDerivativeMeasure << " but got " << static_cast<double>(derivative[i])
-                << " at index [" << i << "]" << std::endl;
+                << " at index [" << i << ']' << std::endl;
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
@@ -250,7 +248,7 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   //
   metric->GetValueAndDerivative(parameters, value, derivative);
 
-  if (!itk::Math::FloatAlmostEqual((double)value, expectedMatchMeasure, 10, epsilon))
+  if (!itk::Math::FloatAlmostEqual(static_cast<double>(value), expectedMatchMeasure, 10, epsilon))
   {
     std::cerr << "Error !" << std::endl;
     std::cerr << "Expected: " << expectedMatchMeasure << " but got " << static_cast<double>(value) << std::endl;
@@ -259,11 +257,11 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   }
   for (unsigned int i = 0; i < derivative.size(); ++i)
   {
-    if (!itk::Math::FloatAlmostEqual((double)derivative[i], expectedDerivativeMeasure, 10, epsilon))
+    if (!itk::Math::FloatAlmostEqual(static_cast<double>(derivative[i]), expectedDerivativeMeasure, 10, epsilon))
     {
       std::cerr << "Error !" << std::endl;
       std::cerr << "Expected: " << expectedDerivativeMeasure << " but got " << static_cast<double>(derivative[i])
-                << " at index [" << i << "]" << std::endl;
+                << " at index [" << i << ']' << std::endl;
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
@@ -282,7 +280,7 @@ itkKappaStatisticImageToImageMetricTest(int, char *[])
   // The value 0.379247 was computed by hand
   expectedMatchMeasure = 0.379247;
   value = metric->GetValue(parameters);
-  if (!itk::Math::FloatAlmostEqual((double)value, expectedMatchMeasure, 10, epsilon))
+  if (!itk::Math::FloatAlmostEqual(static_cast<double>(value), expectedMatchMeasure, 10, epsilon))
   {
     std::cerr << "Error !" << std::endl;
     std::cerr << "Expected: " << expectedMatchMeasure << " but got " << static_cast<double>(value) << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,12 +40,14 @@ template <typename TFilter>
 class ShowIterationObject
 {
 public:
-  ShowIterationObject(TFilter * filter) { m_Filter = filter; }
+  ShowIterationObject(TFilter * filter)
+    : m_Filter(filter)
+  {}
   void
   ShowIteration()
   {
     std::cout << m_Filter->GetElapsedIterations() << ": ";
-    std::cout << m_Filter->GetCurrentParameters() << " ";
+    std::cout << m_Filter->GetCurrentParameters() << ' ';
     std::cout << m_Filter->GetRMSChange() << std::endl;
   }
 
@@ -73,10 +75,10 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   using OptimizerType = itk::AmoebaOptimizer;
   using ParametersType = FilterType::ParametersType;
 
-  FilterType::Pointer        filter = FilterType::New();
-  ShapeFunctionType::Pointer shape = ShapeFunctionType::New();
-  CostFunctionType::Pointer  costFunction = CostFunctionType::New();
-  OptimizerType::Pointer     optimizer = OptimizerType::New();
+  auto filter = FilterType::New();
+  auto shape = ShapeFunctionType::New();
+  auto costFunction = CostFunctionType::New();
+  auto optimizer = OptimizerType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(
     filter, GeodesicActiveContourShapePriorLevelSetImageFilter, ShapePriorSegmentationLevelSetImageFilter);
@@ -96,16 +98,16 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   //
   // The true shape is just the circle.
   //
-  PixelType background = 0;
-  PixelType foreground = 190;
+  constexpr PixelType background = 0;
+  constexpr PixelType foreground = 190;
 
   // Fill in the background
-  ImageType::Pointer inputImage = ImageType::New();
+  auto inputImage = ImageType::New();
   inputImage->SetRegions(imageRegion);
   inputImage->Allocate();
   inputImage->FillBuffer(background);
 
-  ImageType::Pointer trueShape = ImageType::New();
+  auto trueShape = ImageType::New();
   trueShape->SetRegions(imageRegion);
   trueShape->Allocate();
   trueShape->FillBuffer(background);
@@ -117,9 +119,7 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   ImageType::SizeType rectSize;
   rectSize[0] = 80;
   rectSize[1] = 10;
-  ImageType::RegionType rectRegion;
-  rectRegion.SetIndex(rectStart);
-  rectRegion.SetSize(rectSize);
+  const ImageType::RegionType rectRegion{ rectStart, rectSize };
 
   using Iterator = itk::ImageRegionIterator<ImageType>;
   Iterator it(inputImage, rectRegion);
@@ -146,7 +146,7 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
 
   while (!it.IsAtEnd())
   {
-    ImageType::IndexType         index = it.GetIndex();
+    const ImageType::IndexType   index = it.GetIndex();
     ShapeFunctionType::PointType point;
     inputImage->TransformIndexToPhysicalPoint(index, point);
     if (shape->Evaluate(point) <= 0.0)
@@ -164,17 +164,17 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Then apply a sigmoid function to the gradient magnitude.
   //
   using CastFilterType = itk::CastImageFilter<ImageType, InternalImageType>;
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto caster = CastFilterType::New();
   caster->SetInput(inputImage);
 
   using GradientImageType = itk::GradientMagnitudeRecursiveGaussianImageFilter<InternalImageType, InternalImageType>;
 
-  GradientImageType::Pointer gradMagnitude = GradientImageType::New();
+  auto gradMagnitude = GradientImageType::New();
   gradMagnitude->SetInput(caster->GetOutput());
   gradMagnitude->SetSigma(1.0);
 
   using SigmoidFilterType = itk::SigmoidImageFilter<InternalImageType, InternalImageType>;
-  SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
+  auto sigmoid = SigmoidFilterType::New();
   sigmoid->SetOutputMinimum(0.0);
   sigmoid->SetOutputMaximum(1.0);
   sigmoid->SetAlpha(-0.4);
@@ -186,12 +186,12 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Use fast marching to create an signed distance from a seed point.
   //
   using FastMarchingFilterType = itk::FastMarchingImageFilter<InternalImageType>;
-  FastMarchingFilterType::Pointer fastMarching = FastMarchingFilterType::New();
+  auto fastMarching = FastMarchingFilterType::New();
 
   using NodeContainer = FastMarchingFilterType::NodeContainer;
   using NodeType = FastMarchingFilterType::NodeType;
 
-  NodeContainer::Pointer seeds = NodeContainer::New();
+  auto seeds = NodeContainer::New();
 
   // Choose an initial contour that is within the shape to be segmented
   // The initial contour is a circle centered at {47,47} with radius 10.0
@@ -228,8 +228,7 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   costFunction->SetShapeParameterMeans(mean);
   costFunction->SetShapeParameterStandardDeviations(stddev);
 
-  CostFunctionType::WeightsType weights;
-  weights.Fill(1.0);
+  auto weights = itk::MakeFilled<CostFunctionType::WeightsType>(1.0);
   weights[1] = 10.0;
   costFunction->SetWeights(weights);
 
@@ -267,8 +266,8 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Connect an observer to the filter
   //
   using WatcherType = ShowIterationObject<FilterType>;
-  WatcherType                                    iterationWatcher(filter);
-  itk::SimpleMemberCommand<WatcherType>::Pointer command = itk::SimpleMemberCommand<WatcherType>::New();
+  WatcherType                                          iterationWatcher(filter);
+  const itk::SimpleMemberCommand<WatcherType>::Pointer command = itk::SimpleMemberCommand<WatcherType>::New();
   command->SetCallbackFunction(&iterationWatcher, &WatcherType::ShowIteration);
   filter->AddObserver(itk::IterationEvent(), command);
 
@@ -276,7 +275,7 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Threshold the output level set to display the final contour.
   //
   using ThresholdFilterType = itk::BinaryThresholdImageFilter<InternalImageType, ImageType>;
-  ThresholdFilterType::Pointer thresholder = ThresholdFilterType::New();
+  auto thresholder = ThresholdFilterType::New();
 
   thresholder->SetInput(filter->GetOutput());
   thresholder->SetLowerThreshold(-1e+10);
@@ -288,7 +287,7 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Compute overlap between the true shape and the segmented shape.
   //
   using OverlapCalculatorType = itk::SimilarityIndexImageFilter<ImageType, ImageType>;
-  OverlapCalculatorType::Pointer overlap = OverlapCalculatorType::New();
+  auto overlap = OverlapCalculatorType::New();
 
   overlap->SetInput1(trueShape);
   overlap->SetInput2(thresholder->GetOutput());
@@ -317,11 +316,11 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   // Uncomment to write out images
   /*
     using WriterType = itk::ImageFileWriter< ImageType >;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     using RescaleFilterType = itk::RescaleIntensityImageFilter< InternalImageType,
       ImageType >;
-    RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    auto rescaler = RescaleFilterType::New();
 
     writer->SetFileName( "inputImage.png" );
     writer->SetInput( inputImage );
@@ -387,29 +386,29 @@ itkGeodesicActiveContourShapePriorLevelSetImageFilterTest(int, char *[])
   //
   // Exercise error handling testing.
   //
-  bool pass;
+  bool pass = false;
 
-#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent)                                          \
-  filter->Set##ComponentName(badComponent);                                                                            \
-  try                                                                                                                  \
-  {                                                                                                                    \
-    pass = false;                                                                                                      \
-    filter->Update();                                                                                                  \
-  }                                                                                                                    \
-  catch (const itk::ExceptionObject & err)                                                                             \
-  {                                                                                                                    \
-    std::cout << "Caught expected ExceptionObject" << std::endl;                                                       \
-    std::cout << err << std::endl;                                                                                     \
-    pass = true;                                                                                                       \
-    filter->ResetPipeline();                                                                                           \
-  }                                                                                                                    \
-  filter->Set##ComponentName(goodComponent);                                                                           \
-                                                                                                                       \
-  if (!pass)                                                                                                           \
-  {                                                                                                                    \
-    std::cout << "Test failed." << std::endl;                                                                          \
-    return EXIT_FAILURE;                                                                                               \
-  }                                                                                                                    \
+#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent) \
+  filter->Set##ComponentName(badComponent);                                   \
+  try                                                                         \
+  {                                                                           \
+    pass = false;                                                             \
+    filter->Update();                                                         \
+  }                                                                           \
+  catch (const itk::ExceptionObject & err)                                    \
+  {                                                                           \
+    std::cout << "Caught expected ExceptionObject" << std::endl;              \
+    std::cout << err << std::endl;                                            \
+    pass = true;                                                              \
+    filter->ResetPipeline();                                                  \
+  }                                                                           \
+  filter->Set##ComponentName(goodComponent);                                  \
+                                                                              \
+  if (!pass)                                                                  \
+  {                                                                           \
+    std::cout << "Test failed." << std::endl;                                 \
+    return EXIT_FAILURE;                                                      \
+  }                                                                           \
   ITK_MACROEND_NOOP_STATEMENT
 
   TEST_INITIALIZATION_ERROR(ShapeFunction, nullptr, shape);

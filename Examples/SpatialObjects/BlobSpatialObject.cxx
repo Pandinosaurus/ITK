@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 //
 // \index{itk::BlobSpatialObject}
 //
-// \doxygen{BlobSpatialObject} defines an N-dimensional blob.
+// \doxygen{BlobSpatialObject} defines an n-dimensional blob.
 // This class derives from \doxygen{itkPointBasedSpatialObject}.  A blob
 // is defined as a list of points which compose the object.
 //
@@ -79,7 +79,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   BlobType::BlobPointListType list;
 
-  for (unsigned int i = 0; i < 4; i++)
+  for (unsigned int i = 0; i < 4; ++i)
   {
     BlobPointType p;
     PointType     pnt;
@@ -106,7 +106,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  BlobPointer blob = BlobType::New();
+  const BlobPointer blob = BlobType::New();
   blob->GetProperty().SetName("My Blob");
   blob->SetId(1);
   blob->SetPoints(list);
@@ -121,7 +121,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  BlobType::BlobPointListType pointList = blob->GetPoints();
+  const BlobType::BlobPointListType pointList = blob->GetPoints();
   std::cout << "The blob contains " << pointList.size();
   std::cout << " points" << std::endl;
   // Software Guide : EndCodeSnippet
@@ -143,13 +143,11 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  BlobType::BlobPointListType::const_iterator it = blob->GetPoints().begin();
-  while (it != blob->GetPoints().end())
+  for (auto & currentPoint : blob->GetPoints())
   {
-    std::cout << "Position = " << (*it).GetPositionInWorldSpace()
+    std::cout << "Position = " << currentPoint.GetPositionInWorldSpace()
               << std::endl;
-    std::cout << "Color = " << (*it).GetColor() << std::endl;
-    ++it;
+    std::cout << "Color = " << currentPoint.GetColor() << std::endl;
   }
   // Software Guide : EndCodeSnippet
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,15 +77,15 @@ namespace itk
  * TParametersValueType The type to be used for scalar numeric
  *                      values.  Either float or double.
  *
- * NDimensions   The number of dimensions of the vector space.
+ * VDimension   The number of dimensions of the vector space.
  *
  * This class provides several methods for setting the matrix and vector
  * defining the transform. To support the registration framework, the
  * transform parameters can also be set as an Array<double> of size
- * (NDimension + 1) * NDimension using method SetParameters().
- * The first (NDimension x NDimension) parameters defines the matrix in
+ * (VDimension + 1) * VDimension using method SetParameters().
+ * The first (VDimension x VDimension) parameters defines the matrix in
  * row-major order (where the column index varies the fastest).
- * The last NDimension parameters defines the translation
+ * The last VDimension parameters defines the translation
  * in each dimensions.
  *
  * This class also supports the specification of a center of rotation (center)
@@ -95,60 +95,60 @@ namespace itk
  * \ingroup ITKTransform
  */
 
-template <typename TParametersValueType = double, unsigned int NDimensions = 3>
+template <typename TParametersValueType = double, unsigned int VDimension = 3>
 // Number of dimensions in the input space
 class ITK_TEMPLATE_EXPORT AffineTransform
-  : public MatrixOffsetTransformBase<TParametersValueType, NDimensions, NDimensions>
+  : public MatrixOffsetTransformBase<TParametersValueType, VDimension, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(AffineTransform);
 
   /** Standard type alias   */
   using Self = AffineTransform;
-  using Superclass = MatrixOffsetTransformBase<TParametersValueType, NDimensions, NDimensions>;
+  using Superclass = MatrixOffsetTransformBase<TParametersValueType, VDimension, VDimension>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(AffineTransform, MatrixOffsetTransformBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AffineTransform);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int InputSpaceDimension = NDimensions;
-  static constexpr unsigned int OutputSpaceDimension = NDimensions;
-  static constexpr unsigned int SpaceDimension = NDimensions;
-  static constexpr unsigned int ParametersDimension = NDimensions * (NDimensions + 1);
+  static constexpr unsigned int InputSpaceDimension = VDimension;
+  static constexpr unsigned int OutputSpaceDimension = VDimension;
+  static constexpr unsigned int SpaceDimension = VDimension;
+  static constexpr unsigned int ParametersDimension = VDimension * (VDimension + 1);
 
   /** Parameters Type   */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
-  using ScalarType = typename Superclass::ScalarType;
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputVnlVectorType = typename Superclass::InputVnlVectorType;
-  using OutputVnlVectorType = typename Superclass::OutputVnlVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
-  using MatrixType = typename Superclass::MatrixType;
-  using InverseMatrixType = typename Superclass::InverseMatrixType;
-  using CenterType = typename Superclass::CenterType;
-  using OffsetType = typename Superclass::OffsetType;
-  using TranslationType = typename Superclass::TranslationType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputVnlVectorType;
+  using typename Superclass::OutputVnlVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::MatrixType;
+  using typename Superclass::InverseMatrixType;
+  using typename Superclass::CenterType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::TranslationType;
 
   /** Base inverse transform type. This type should not be changed to the
    * concrete inverse transform type or inheritance would be lost.*/
   using InverseTransformBaseType = typename Superclass::InverseTransformBaseType;
   using InverseTransformBasePointer = typename InverseTransformBaseType::Pointer;
 
-  /** Compose affine transformation with a translation
+  /** Compose affine transformation with a translation.
    *
    * This method modifies self to include a translation of the
    * origin.  The translation is precomposed with self if pre is
@@ -157,7 +157,7 @@ public:
   void
   Translate(const OutputVectorType & trans, bool pre = false);
 
-  /** Compose affine transformation with a scaling
+  /** Compose affine transformation with a scaling.
    *
    * This method modifies self to magnify the source by a given
    * factor along each axis.  If all factors are the same, or only a
@@ -174,7 +174,7 @@ public:
   void
   Scale(const TParametersValueType & factor, bool pre = false);
 
-  /** Compose affine transformation with an elementary rotation
+  /** Compose affine transformation with an elementary rotation.
    *
    * This method composes self with a rotation that affects two
    * specified axes, replacing the current value of self.  The
@@ -192,7 +192,7 @@ public:
   void
   Rotate(int axis1, int axis2, TParametersValueType angle, bool pre = false);
 
-  /** Compose 2D affine transformation with a rotation
+  /** Compose 2D affine transformation with a rotation.
    *
    * This method composes self, which must be a 2D affine
    * transformation, with a clockwise rotation through a given angle
@@ -204,11 +204,11 @@ public:
    * \warning Only to be use in two dimensions
    *
    * \todo Find a way to generate a compile-time error
-   *       is this is used with NDimensions != 2. */
+   *       is this is used with VDimension != 2. */
   void
   Rotate2D(TParametersValueType angle, bool pre = false);
 
-  /** Compose 3D affine transformation with a rotation
+  /** Compose 3D affine transformation with a rotation.
    *
    * This method composes self, which must be a 3D affine
    * transformation, with a clockwise rotation around a specified
@@ -220,7 +220,7 @@ public:
    * \warning Only to be used in dimension 3
    *
    * \todo Find a way to generate a compile-time error
-   * is this is used with NDimensions != 3. */
+   * is this is used with VDimension != 3. */
   void
   Rotate3D(const OutputVectorType & axis, TParametersValueType angle, bool pre = false);
 
@@ -238,15 +238,15 @@ public:
   void
   Shear(int axis1, int axis2, TParametersValueType coef, bool pre = false);
 
-  /** Get an inverse of this transform. */
+  /** Get the inverse of the transform. */
   bool
   GetInverse(Self * inverse) const;
 
-  /** Return an inverse of this transform. */
+  /** Get the inverse of the transform. */
   InverseTransformBasePointer
   GetInverseTransform() const override;
 
-  /** Compute distance between two affine transformations
+  /** Compute distance between two affine transformations.
    *
    * This method computes a "distance" between two affine
    * transformations.  This distance is guaranteed to be a metric,
@@ -274,16 +274,17 @@ protected:
    * to values specified by the caller.  If the arguments are
    * omitted, then the AffineTransform is initialized to an identity
    * transformation in the appropriate number of dimensions.   */
-  AffineTransform(const MatrixType & matrix, const OutputVectorType & offset);
+  /** @ITKStartGrouping */
+#if !defined(ITK_LEGACY_REMOVE)
+  [[deprecated("Removed unused constructor")]] AffineTransform(const MatrixType &       matrix,
+                                                               const OutputVectorType & offset);
+#endif
   AffineTransform(unsigned int parametersDimension);
   AffineTransform();
-
+  /** @ITKEndGrouping */
   /** Destroy an AffineTransform object   */
   ~AffineTransform() override = default;
 
-  /** Print contents of an AffineTransform */
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override;
 }; // class AffineTransform
 
 } // namespace itk

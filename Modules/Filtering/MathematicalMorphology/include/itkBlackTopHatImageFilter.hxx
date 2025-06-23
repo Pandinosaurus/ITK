@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkBlackTopHatImageFilter_hxx
 
 #include "itkImageRegionIterator.h"
-#include "itkBlackTopHatImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkProgressAccumulator.h"
@@ -28,18 +27,16 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 BlackTopHatImageFilter<TInputImage, TOutputImage, TKernel>::BlackTopHatImageFilter()
-{
-  m_SafeBorder = true;
-  m_Algorithm = AlgorithmEnum::HISTO;
-  m_ForceAlgorithm = false;
-}
+  : m_SafeBorder(true)
+  , m_Algorithm(AlgorithmEnum::HISTO)
+{}
 
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 void
 BlackTopHatImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
@@ -48,7 +45,7 @@ BlackTopHatImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
 
   // Delegate to a closing filter.
   using ClosingFilterType = GrayscaleMorphologicalClosingImageFilter<TInputImage, TInputImage, TKernel>;
-  typename ClosingFilterType::Pointer close = ClosingFilterType::New();
+  auto close = ClosingFilterType::New();
 
   close->SetInput(this->GetInput());
   close->SetKernel(this->GetKernel());
@@ -63,8 +60,7 @@ BlackTopHatImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
   }
 
   // Need to subtract the input from the closed image
-  typename SubtractImageFilter<TInputImage, TInputImage, TOutputImage>::Pointer subtract =
-    SubtractImageFilter<TInputImage, TInputImage, TOutputImage>::New();
+  auto subtract = SubtractImageFilter<TInputImage, TInputImage, TOutputImage>::New();
 
   subtract->SetInput1(close->GetOutput());
   subtract->SetInput2(this->GetInput());

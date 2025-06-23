@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "itkFEMException.h"
 #include <vector>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class FEMPArray
@@ -69,7 +67,7 @@ public:
   ClassTypePointer
   Find(int gn);
 
-  ClassTypeConstPointer
+  [[nodiscard]] ClassTypeConstPointer
   Find(int gn) const;
 
   /**
@@ -104,8 +102,8 @@ public:
  * Find function for for non-const objects
  */
 template <typename T>
-typename FEMPArray<T>::ClassTypePointer
-FEMPArray<T>::Find(int gn)
+auto
+FEMPArray<T>::Find(int gn) -> ClassTypePointer
 {
   auto it = this->begin();
   auto iend = this->end();
@@ -115,13 +113,13 @@ FEMPArray<T>::Find(int gn)
     {
       break;
     }
-    it++;
+    ++it;
   }
 
   if (it == this->end())
   {
     /**
-     * We din't find an object with that GN...
+     * We didn't find an object with that GN...
      */
     throw FEMExceptionObjectNotFound(__FILE__, __LINE__, "FEMPArray::Find() const", typeid(T).name(), gn);
   }
@@ -136,8 +134,8 @@ FEMPArray<T>::Find(int gn)
  * Find function for for const objects
  */
 template <typename T>
-typename FEMPArray<T>::ClassTypeConstPointer
-FEMPArray<T>::Find(int gn) const
+auto
+FEMPArray<T>::Find(int gn) const -> ClassTypeConstPointer
 {
   using ConstIterator = typename Superclass::const_iterator;
 
@@ -149,13 +147,13 @@ FEMPArray<T>::Find(int gn) const
     {
       break;
     }
-    it++;
+    ++it;
   }
 
   if (it == this->end())
   {
     /**
-     * We din't find an object with that GN...
+     * We didn't find an object with that GN...
      */
     throw FEMExceptionObjectNotFound(__FILE__, __LINE__, "FEMPArray::Find() const", typeid(T).name(), gn);
   }
@@ -170,18 +168,16 @@ template <typename T>
 int
 FEMPArray<T>::Renumber()
 {
-  typename Superclass::iterator i;
-  int                           j = 0;
-  for (i = this->begin(); i != this->end(); i++)
+  int j = 0;
+  for (auto i = this->begin(); i != this->end(); ++i)
   {
     (*i)->SetGlobalNumber(j);
-    j++;
+    ++j;
   }
 
   return j;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMPArray_h

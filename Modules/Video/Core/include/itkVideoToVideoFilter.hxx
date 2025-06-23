@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 
 #include "itkImageToImageFilter.h"
 
-#include "itkVideoToVideoFilter.h"
 
 namespace itk
 {
@@ -108,8 +107,8 @@ VideoToVideoFilter<TInputVideoStream, TOutputVideoStream>::UpdateOutputInformati
   const InputVideoStreamType * input = this->GetInput();
 
   // Get first input frame's largest possible spatial region
-  SizeValueType               firstInputFrameNum = input->GetLargestPossibleTemporalRegion().GetFrameStart();
-  InputFrameSpatialRegionType inputRegion = input->GetFrameLargestPossibleSpatialRegion(firstInputFrameNum);
+  const SizeValueType               firstInputFrameNum = input->GetLargestPossibleTemporalRegion().GetFrameStart();
+  const InputFrameSpatialRegionType inputRegion = input->GetFrameLargestPossibleSpatialRegion(firstInputFrameNum);
 
   // Propagate this spatial region to output frames
   this->GetOutput()->SetAllLargestPossibleSpatialRegions(inputRegion);
@@ -149,12 +148,12 @@ VideoToVideoFilter<TInputVideoStream, TOutputVideoStream>::GenerateOutputRequest
 
   // Go through the requested temporal region and for any frame that doesn't
   // have a requested spatial region, set it to the largest possible
-  SizeValueType outFrameStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
-  SizeValueType outFrameDuration = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
+  const SizeValueType outFrameStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
+  const SizeValueType outFrameDuration = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
   for (SizeValueType i = outFrameStart; i < outFrameStart + outFrameDuration; ++i)
   {
     // Get the requested spatial region for this frame
-    OutputFrameSpatialRegionType spatialRegion = this->GetOutput()->GetFrameRequestedSpatialRegion(i);
+    const OutputFrameSpatialRegionType spatialRegion = this->GetOutput()->GetFrameRequestedSpatialRegion(i);
 
     // Check if the region has 0 size for all dimensions
     bool validRegion = false;
@@ -186,28 +185,26 @@ VideoToVideoFilter<TInputVideoStream, TOutputVideoStream>::GenerateInputRequeste
   Superclass::GenerateInputRequestedRegion();
 
   // Get the spatial region from the output frame
-  SizeValueType                outputStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
-  OutputFrameSpatialRegionType outputRegion = this->GetOutput()->GetFrameRequestedSpatialRegion(outputStart);
+  const SizeValueType                outputStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
+  const OutputFrameSpatialRegionType outputRegion = this->GetOutput()->GetFrameRequestedSpatialRegion(outputStart);
 
-  // Convert to input spatial region (TODO: handle dificult cases)
-  InputFrameSpatialRegionType inputRegion;
-  inputRegion.SetSize(outputRegion.GetSize());
-  inputRegion.SetIndex(outputRegion.GetIndex());
+  // Convert to input spatial region (TODO: handle difficult cases)
+  const InputFrameSpatialRegionType inputRegion = outputRegion;
 
   // Create input spatial regions for each frame of each input
   for (unsigned int i = 0; i < this->GetNumberOfInputs(); ++i)
   {
-    // Get the input and it's requeted temporal region
+    // Get the input and its requested temporal region
     auto * input = dynamic_cast<InputVideoStreamType *>(this->ProcessObject::GetInput(i));
     if (!input)
     {
       continue;
     }
-    TemporalRegion inRequestedTemporalRegion = input->GetRequestedTemporalRegion();
+    const TemporalRegion inRequestedTemporalRegion = input->GetRequestedTemporalRegion();
 
     // Loop over all frames in the temporal region
-    SizeValueType inputStart = inRequestedTemporalRegion.GetFrameStart();
-    SizeValueType numFrames = inRequestedTemporalRegion.GetFrameDuration();
+    const SizeValueType inputStart = inRequestedTemporalRegion.GetFrameStart();
+    const SizeValueType numFrames = inRequestedTemporalRegion.GetFrameDuration();
     for (SizeValueType j = inputStart; j < inputStart + numFrames; ++j)
     {
       // Set the requested spatial region on the input

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ public:
   using InputImagePixelType = TInputPix;
 
   void
-  DoLine(std::vector<TInputPix> & buffer, std::vector<TInputPix> & inbuffer, unsigned bufflength);
+  DoLine(std::vector<TInputPix> & buffer, std::vector<TInputPix> & inbuffer, unsigned int bufflength);
 
   void
   SetSize(unsigned int size)
@@ -56,7 +56,7 @@ public:
   ~AnchorErodeDilateLine() = default;
 
 private:
-  unsigned int m_Size;
+  unsigned int m_Size{ 2 };
 
   using HistogramType = Function::MorphologyHistogram<InputImagePixelType, TCompare>;
 
@@ -87,8 +87,8 @@ private:
     // not require
     // too much memory. Other types are not usable with that algorithm
     return typeid(InputImagePixelType) == typeid(unsigned char) || typeid(InputImagePixelType) == typeid(signed char) ||
-           typeid(InputImagePixelType) == typeid(unsigned short) ||
-           typeid(InputImagePixelType) == typeid(signed short) || typeid(InputImagePixelType) == typeid(bool);
+           typeid(InputImagePixelType) == typeid(unsigned short) || typeid(InputImagePixelType) == typeid(short) ||
+           typeid(InputImagePixelType) == typeid(bool);
   }
 
   inline bool

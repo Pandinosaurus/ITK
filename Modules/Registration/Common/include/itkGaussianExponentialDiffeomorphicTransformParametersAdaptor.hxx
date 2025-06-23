@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGaussianExponentialDiffeomorphicTransformParametersAdaptor_hxx
 #define itkGaussianExponentialDiffeomorphicTransformParametersAdaptor_hxx
 
-#include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkMath.h"
 
 namespace itk
@@ -29,7 +28,6 @@ GaussianExponentialDiffeomorphicTransformParametersAdaptor<
   TTransform>::GaussianExponentialDiffeomorphicTransformParametersAdaptor()
   : m_GaussianSmoothingVarianceForTheConstantVelocityField(0.5)
   , m_GaussianSmoothingVarianceForTheUpdateField(1.75)
-
 {}
 
 template <typename TTransform>
@@ -85,21 +83,21 @@ GaussianExponentialDiffeomorphicTransformParametersAdaptor<TTransform>::PrintSel
 {
   Superclass::PrintSelf(os, indent);
 
-  if (this->m_GaussianSmoothingVarianceForTheConstantVelocityFieldSetTime > 0)
-  {
-    os << indent << "Gaussian smoothing parameters: " << std::endl;
-    if (this->m_GaussianSmoothingVarianceForTheConstantVelocityFieldSetTime > 0)
-    {
-      os << indent << "m_GaussianSmoothingVarianceForTheConstantVelocityField: "
-         << this->m_GaussianSmoothingVarianceForTheConstantVelocityField << std::endl;
-    }
-    if (this->m_GaussianSmoothingVarianceForTheUpdateFieldSetTime > 0)
-    {
-      os << indent
-         << "m_GaussianSmoothingVarianceForTheUpdateField: " << this->m_GaussianSmoothingVarianceForTheUpdateField
-         << std::endl;
-    }
-  }
+  os << indent << "GaussianSmoothingVarianceForTheConstantVelocityField: "
+     << static_cast<typename NumericTraits<ScalarType>::PrintType>(
+          m_GaussianSmoothingVarianceForTheConstantVelocityField)
+     << std::endl;
+  os << indent << "GaussianSmoothingVarianceForTheUpdateField: "
+     << static_cast<typename NumericTraits<ScalarType>::PrintType>(m_GaussianSmoothingVarianceForTheUpdateField)
+     << std::endl;
+  os << indent << "GaussianSmoothingVarianceForTheConstantVelocityFieldSetTime: "
+     << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(
+          m_GaussianSmoothingVarianceForTheConstantVelocityFieldSetTime)
+     << std::endl;
+  os << indent << "GaussianSmoothingVarianceForTheUpdateFieldSetTime: "
+     << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(
+          m_GaussianSmoothingVarianceForTheUpdateFieldSetTime)
+     << std::endl;
 }
 
 } // namespace itk

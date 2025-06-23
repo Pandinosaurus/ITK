@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkRenyiEntropyThresholdCalculator_hxx
 #define itkRenyiEntropyThresholdCalculator_hxx
 
-#include "itkRenyiEntropyThresholdCalculator.h"
 #include "itkProgressReporter.h"
 #include "itkMath.h"
 
@@ -32,20 +31,20 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
 {
   const HistogramType * histogram = this->GetInput();
 
-  TotalAbsoluteFrequencyType total = histogram->GetTotalFrequency();
-  if (total == NumericTraits<TotalAbsoluteFrequencyType>::ZeroValue())
+  const TotalAbsoluteFrequencyType total = histogram->GetTotalFrequency();
+  if (total == TotalAbsoluteFrequencyType{})
   {
-    itkExceptionMacro(<< "Histogram is empty");
+    itkExceptionMacro("Histogram is empty");
   }
   m_Size = histogram->GetSize(0);
-  ProgressReporter progress(this, 0, m_Size);
+  const ProgressReporter progress(this, 0, m_Size);
   if (m_Size == 1)
   {
     this->GetOutput()->Set(static_cast<OutputType>(histogram->GetMeasurement(0, 0)));
     return;
   }
 
-  const double tolerance = itk::Math::eps;
+  constexpr double tolerance = itk::Math::eps;
 
   InstanceIdentifier ih;
 
@@ -53,14 +52,14 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
   std::vector<double> P1(m_Size);         /* cumulative normalized histogram */
   std::vector<double> P2(m_Size);
 
-  for (ih = 0; ih < m_Size; ih++)
+  for (ih = 0; ih < m_Size; ++ih)
   {
     norm_histo[ih] = static_cast<double>(histogram->GetFrequency(ih, 0)) / static_cast<double>(total);
   }
 
   P1[0] = norm_histo[0];
   P2[0] = 1.0 - P1[0];
-  for (ih = 1; ih < m_Size; ih++)
+  for (ih = 1; ih < m_Size; ++ih)
   {
     P1[ih] = P1[ih - 1] + norm_histo[ih];
     P2[ih] = 1.0 - P1[ih];
@@ -68,9 +67,9 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
 
   // Determine the first non-zero bin
   m_FirstBin = 0;
-  for (ih = 0; ih < m_Size; ih++)
+  for (ih = 0; ih < m_Size; ++ih)
   {
-    if (!(std::abs(P1[ih]) < tolerance))
+    if (!(itk::Math::abs(P1[ih]) < tolerance))
     {
       m_FirstBin = ih;
       break;
@@ -81,7 +80,7 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
   m_LastBin = static_cast<InstanceIdentifier>(m_Size - 1);
   for (ih = m_Size - 1; ih >= m_FirstBin; ih--)
   {
-    if (!(std::abs(P2[ih]) < tolerance))
+    if (!(itk::Math::abs(P2[ih]) < tolerance))
     {
       m_LastBin = ih;
       break;
@@ -119,10 +118,10 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
   double beta3 = 0.;
 
   // Adjust beta values.
-  // Note that t_star1, t_star2, t_star3 are unsigned.
-  if (std::abs(static_cast<double>(t_star1) - static_cast<double>(t_star2)) <= 5.)
+  // Note that t_star1, t_star2, t_star3 are unsigned int.
+  if (itk::Math::abs(static_cast<double>(t_star1) - static_cast<double>(t_star2)) <= 5.)
   {
-    if (std::abs(static_cast<double>(t_star2) - static_cast<double>(t_star3)) <= 5.)
+    if (itk::Math::abs(static_cast<double>(t_star2) - static_cast<double>(t_star3)) <= 5.)
     {
       beta1 = 1.;
       beta2 = 2.;
@@ -137,7 +136,7 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
   }
   else
   {
-    if (std::abs(static_cast<double>(t_star2) - static_cast<double>(t_star3)) <= 5.)
+    if (itk::Math::abs(static_cast<double>(t_star2) - static_cast<double>(t_star3)) <= 5.)
     {
       beta1 = 3.;
       beta2 = 1.;
@@ -155,12 +154,12 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
   itkAssertInDebugAndIgnoreInReleaseMacro(t_star2 < m_Size);
   itkAssertInDebugAndIgnoreInReleaseMacro(t_star3 < m_Size);
 
-  double omega = P1[t_star3] - P1[t_star1];
+  const double omega = P1[t_star3] - P1[t_star1];
 
   // Determine the optimal threshold value
-  double realOptThreshold = static_cast<double>(t_star1) * (P1[t_star1] + 0.25 * omega * beta1) +
-                            static_cast<double>(t_star2) * 0.25 * omega * beta2 +
-                            static_cast<double>(t_star3) * (P2[t_star3] + 0.25 * omega * beta3);
+  const double realOptThreshold = static_cast<double>(t_star1) * (P1[t_star1] + 0.25 * omega * beta1) +
+                                  static_cast<double>(t_star2) * 0.25 * omega * beta2 +
+                                  static_cast<double>(t_star3) * (P2[t_star3] + 0.25 * omega * beta3);
 
   auto opt_threshold = static_cast<InstanceIdentifier>(realOptThreshold);
 
@@ -168,11 +167,12 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::GenerateData()
 }
 
 template <typename THistogram, typename TOutput>
-typename RenyiEntropyThresholdCalculator<THistogram, TOutput>::InstanceIdentifier
+auto
 RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding(const HistogramType *       histogram,
                                                                              const std::vector<double> & normHisto,
                                                                              const std::vector<double> & P1,
                                                                              const std::vector<double> & P2)
+  -> InstanceIdentifier
 {
 
   // Calculate the total entropy each gray-level and fin the threshold that
@@ -182,32 +182,32 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding(con
     0; // was MIN_INT in original code, but if an empty image is processed it gives an error later on.
   double max_ent = NumericTraits<double>::min(); // max entropy
 
-  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; it++)
+  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; ++it)
   {
     // Entropy of the background pixels
     double ent_back = 0.0;
-    for (InstanceIdentifier ih = 0; ih <= it; ih++)
+    for (InstanceIdentifier ih = 0; ih <= it; ++ih)
     {
-      if (histogram->GetFrequency(ih, 0) != NumericTraits<AbsoluteFrequencyType>::ZeroValue())
+      if (histogram->GetFrequency(ih, 0) != AbsoluteFrequencyType{})
       {
-        double x = (normHisto[ih] / P1[it]);
+        const double x = (normHisto[ih] / P1[it]);
         ent_back -= x * std::log(x);
       }
     }
 
     // Entropy of the object pixels
     double ent_obj = 0.0;
-    for (InstanceIdentifier ih = it + 1; ih < m_Size; ih++)
+    for (InstanceIdentifier ih = it + 1; ih < m_Size; ++ih)
     {
-      if (histogram->GetFrequency(ih, 0) != NumericTraits<AbsoluteFrequencyType>::ZeroValue())
+      if (histogram->GetFrequency(ih, 0) != AbsoluteFrequencyType{})
       {
-        double x = (normHisto[ih] / P2[it]);
+        const double x = (normHisto[ih] / P2[it]);
         ent_obj -= x * std::log(x);
       }
     }
 
     // Total entropy
-    double tot_ent = ent_back + ent_obj;
+    const double tot_ent = ent_back + ent_obj;
 
     // IJ.log(""+max_ent+"  "+tot_ent);
 
@@ -221,39 +221,39 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding(con
 }
 
 template <typename THistogram, typename TOutput>
-typename RenyiEntropyThresholdCalculator<THistogram, TOutput>::InstanceIdentifier
+auto
 RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding2(
   const HistogramType *       itkNotUsed(histogram),
   const std::vector<double> & normHisto,
   const std::vector<double> & P1,
-  const std::vector<double> & P2)
+  const std::vector<double> & P2) -> InstanceIdentifier
 {
 
   InstanceIdentifier threshold =
     0; // was MIN_INT in original code, but if an empty image is processed it gives an error later on.
-  double max_ent = NumericTraits<double>::min();
-  double alpha = 0.5;
-  double term = 1.0 / (1.0 - alpha);
+  double           max_ent = NumericTraits<double>::min();
+  constexpr double alpha = 0.5;
+  const double     term = 1.0 / (1.0 - alpha);
 
-  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; it++)
+  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; ++it)
   {
     // Entropy of the background pixels
     double ent_back = 0.0;
-    for (InstanceIdentifier ih = 0; ih <= it; ih++)
+    for (InstanceIdentifier ih = 0; ih <= it; ++ih)
     {
       ent_back += std::sqrt(normHisto[ih] / P1[it]);
     }
 
     // Entropy of the object pixel
     double ent_obj = 0.0;
-    for (InstanceIdentifier ih = it + 1; ih < m_Size; ih++)
+    for (InstanceIdentifier ih = it + 1; ih < m_Size; ++ih)
     {
       ent_obj += std::sqrt(normHisto[ih] / P2[it]);
     }
 
     // Total entropy
-    double product = ent_back * ent_obj;
-    double tot_ent = 0.;
+    const double product = ent_back * ent_obj;
+    double       tot_ent = 0.;
 
     if (product > 0.0)
     {
@@ -271,39 +271,39 @@ RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding2(
 }
 
 template <typename THistogram, typename TOutput>
-typename RenyiEntropyThresholdCalculator<THistogram, TOutput>::InstanceIdentifier
+auto
 RenyiEntropyThresholdCalculator<THistogram, TOutput>::MaxEntropyThresholding3(
   const HistogramType *       itkNotUsed(histogram),
   const std::vector<double> & normHisto,
   const std::vector<double> & P1,
-  const std::vector<double> & P2)
+  const std::vector<double> & P2) -> InstanceIdentifier
 {
   InstanceIdentifier threshold =
     0; // was MIN_INT in original code, but if an empty image is processed it gives an error later on.
-  double max_ent = 0.0;
-  double alpha = 2.0;
-  double term = 1.0 / (1.0 - alpha);
-  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; it++)
+  double           max_ent = 0.0;
+  constexpr double alpha = 2.0;
+  const double     term = 1.0 / (1.0 - alpha);
+  for (InstanceIdentifier it = m_FirstBin; it <= m_LastBin; ++it)
   {
     // Entropy of the background pixels
     double ent_back = 0.0;
-    for (InstanceIdentifier ih = 0; ih <= it; ih++)
+    for (InstanceIdentifier ih = 0; ih <= it; ++ih)
     {
-      double x = normHisto[ih] / P1[it];
+      const double x = normHisto[ih] / P1[it];
       ent_back += x * x;
     }
 
     // Entropy of the object pixels
     double ent_obj = 0.0;
-    for (InstanceIdentifier ih = it + 1; ih < m_Size; ih++)
+    for (InstanceIdentifier ih = it + 1; ih < m_Size; ++ih)
     {
-      double x = normHisto[ih] / P2[it];
+      const double x = normHisto[ih] / P2[it];
       ent_obj += x * x;
     }
 
     // Total entropy
-    double tot_ent = 0.0;
-    double product = ent_back * ent_obj;
+    double       tot_ent = 0.0;
+    const double product = ent_back * ent_obj;
     if (product > 0.0)
     {
       tot_ent = term * std::log(product);

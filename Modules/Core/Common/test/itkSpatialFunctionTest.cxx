@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ itkSpatialFunctionTest(int, char *[])
 
   // Create and initialize a new sphere function
 
-  TFunctionType::Pointer spatialFunc = TFunctionType::New();
+  auto spatialFunc = TFunctionType::New();
   spatialFunc->SetRadius(5);
 
   TFunctionPositionType center;
@@ -52,13 +52,15 @@ itkSpatialFunctionTest(int, char *[])
   //----------------Test evaluation of function------------------
 
   // We're going to evaluate it at the center of the sphere (10,10,10)
-  bool funcVal = spatialFunc->Evaluate(center);
+  const bool funcVal = spatialFunc->Evaluate(center);
   printf("Sphere function value is %i\n", funcVal);
 
   // The function should have returned a value of 1, since the center is inside
   // the sphere
   if (funcVal == 1)
+  {
     return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
+  }
+
+  return EXIT_FAILURE;
 }

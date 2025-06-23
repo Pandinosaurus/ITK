@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -100,7 +100,7 @@ PointToVectorConversionTest()
 
   ITKPoint3dType itkA = itk::OpenCVBasicTypeBridge<ITKPoint3dType, cvVectorType>::FromOpenCVToITK(cvU);
 
-  for (unsigned int dim = 0; dim < 3; dim++)
+  for (unsigned int dim = 0; dim < 3; ++dim)
   {
     if (itkA[dim] != cvU[dim])
     {
@@ -169,16 +169,16 @@ Size2ConversionTest()
 int
 MatrixConversionTest()
 {
-  constexpr unsigned int NRows = 2;
-  constexpr unsigned int NColumns = 3;
-  using ITKMatrixType = itk::Matrix<double, NRows, NColumns>;
-  using CVMatrixType = cv::Matx<double, NRows, NColumns>;
+  constexpr unsigned int NumberOfRows = 2;
+  constexpr unsigned int NumberOfColumns = 3;
+  using ITKMatrixType = itk::Matrix<double, NumberOfRows, NumberOfColumns>;
+  using CVMatrixType = cv::Matx<double, NumberOfRows, NumberOfColumns>;
 
   CVMatrixType cvA;
   int          k = 1;
-  for (unsigned int i = 0; i < NRows; i++)
+  for (unsigned int i = 0; i < NumberOfRows; ++i)
   {
-    for (unsigned int j = 0; j < NColumns; j++)
+    for (unsigned int j = 0; j < NumberOfColumns; ++j)
     {
       cvA(i, j) = static_cast<double>(k++);
     }
@@ -188,13 +188,13 @@ MatrixConversionTest()
 
   int oResult = EXIT_SUCCESS;
 
-  for (unsigned int i = 0; i < NRows; i++)
+  for (unsigned int i = 0; i < NumberOfRows; ++i)
   {
-    for (unsigned int j = 0; j < NColumns; j++)
+    for (unsigned int j = 0; j < NumberOfColumns; ++j)
     {
       if (cvA(i, j) != ITKA[i][j])
       {
-        std::cerr << "cvA(" << i << ", " << j << ") != ITKA[" << i << "][" << j << "]" << std::endl;
+        std::cerr << "cvA(" << i << ", " << j << ") != ITKA[" << i << "][" << j << ']' << std::endl;
         std::cerr << cvA(i, j) << " != " << ITKA[i][j] << std::endl;
 
         std::cerr << "***" << std::endl;
@@ -216,7 +216,7 @@ VectorConversionTest()
   using CVVectorType = cv::Vec<double, Dimension>;
 
   CVVectorType cvA;
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     cvA[i] = static_cast<double>(i);
   }
@@ -225,11 +225,11 @@ VectorConversionTest()
 
   int oResult = EXIT_SUCCESS;
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     if (cvA[i] != ITKA[i])
     {
-      std::cerr << "cvA[" << i << "] != ITKA[" << i << "]" << std::endl;
+      std::cerr << "cvA[" << i << "] != ITKA[" << i << ']' << std::endl;
       std::cerr << cvA[i] << " != " << ITKA[i] << std::endl;
 
       std::cerr << "***" << std::endl;
@@ -442,16 +442,16 @@ Size2ConversionTest()
 int
 MatrixConversionTest()
 {
-  constexpr unsigned int NRows = 2;
-  constexpr unsigned int NColumns = 3;
-  using ITKMatrixType = itk::Matrix<double, NRows, NColumns>;
-  using CVMatrixType = cv::Matx<double, NRows, NColumns>;
+  constexpr unsigned int NumberOfRows = 2;
+  constexpr unsigned int NumberOfColumns = 3;
+  using ITKMatrixType = itk::Matrix<double, NumberOfRows, NumberOfColumns>;
+  using CVMatrixType = cv::Matx<double, NumberOfRows, NumberOfColumns>;
 
   ITKMatrixType itkA;
   int           k = 1;
-  for (unsigned int i = 0; i < NRows; i++)
+  for (unsigned int i = 0; i < NumberOfRows; ++i)
   {
-    for (unsigned int j = 0; j < NColumns; j++)
+    for (unsigned int j = 0; j < NumberOfColumns; ++j)
     {
       itkA[i][j] = static_cast<double>(k++);
     }
@@ -461,13 +461,13 @@ MatrixConversionTest()
 
   int oResult = EXIT_SUCCESS;
 
-  for (unsigned int i = 0; i < NRows; i++)
+  for (unsigned int i = 0; i < NumberOfRows; ++i)
   {
-    for (unsigned int j = 0; j < NColumns; j++)
+    for (unsigned int j = 0; j < NumberOfColumns; ++j)
     {
       if (cvA(i, j) != itkA[i][j])
       {
-        std::cerr << "cvA(" << i << ", " << j << ") != itkA[" << i << "][" << j << "]" << std::endl;
+        std::cerr << "cvA(" << i << ", " << j << ") != itkA[" << i << "][" << j << ']' << std::endl;
         std::cerr << cvA(i, j) << " != " << itkA[i][j] << std::endl;
 
         std::cerr << "***" << std::endl;
@@ -489,7 +489,7 @@ VectorConversionTest()
   using CVVectorType = cv::Vec<double, Dimension>;
 
   ITKVectorType itkA;
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     itkA[i] = static_cast<double>(i);
   }
@@ -498,11 +498,11 @@ VectorConversionTest()
 
   int oResult = EXIT_SUCCESS;
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     if (cvA[i] != itkA[i])
     {
-      std::cerr << "cvA[" << i << "] != itkA[" << i << "]" << std::endl;
+      std::cerr << "cvA[" << i << "] != itkA[" << i << ']' << std::endl;
       std::cerr << cvA[i] << " != " << itkA[i] << std::endl;
 
       std::cerr << "***" << std::endl;
@@ -528,7 +528,7 @@ PointToVectorConversionTest()
 
   cvVectorType cvU = itk::OpenCVBasicTypeBridge<ITKPoint3dType, cvVectorType>::FromITKToOpenCV(itkA);
 
-  for (unsigned int dim = 0; dim < 3; dim++)
+  for (unsigned int dim = 0; dim < 3; ++dim)
   {
     if (itkA[dim] != cvU[dim])
     {

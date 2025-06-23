@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,15 +20,15 @@
 
 #include "itkQuadEdgeMeshExtendedTraits.h"
 #include "itkDiscreteMinimumCurvatureQuadEdgeMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkDiscreteMinimumCurvatureQuadEdgeMeshFilterTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cout << "*** GaussianCurvature ***" << std::endl;
-    std::cout << "This example requires at least one argument:" << std::endl;
-    std::cout << " 1- FileName" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -42,7 +42,7 @@ itkDiscreteMinimumCurvatureQuadEdgeMeshFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::MeshFileReader<MeshType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   try
   {
@@ -55,16 +55,21 @@ itkDiscreteMinimumCurvatureQuadEdgeMeshFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  MeshType::Pointer mesh = reader->GetOutput();
+  const MeshType::Pointer mesh = reader->GetOutput();
 
-  CurvatureFilterType::Pointer min_curvature = CurvatureFilterType::New();
+  auto min_curvature = CurvatureFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    min_curvature, DiscreteMinimumCurvatureQuadEdgeMeshFilter, DiscretePrincipalCurvaturesQuadEdgeMeshFilter);
+
+
   min_curvature->SetInput(mesh);
   min_curvature->Update();
 
-  MeshType::Pointer output = min_curvature->GetOutput();
+  const MeshType::Pointer output = min_curvature->GetOutput();
 
   using WriterType = itk::MeshFileWriter<MeshType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(output);
   writer->SetFileName("min_curvature.vtk");
   writer->Update();

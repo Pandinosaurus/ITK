@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 
 namespace itk
 {
-/**\class ThresholdMaximumConnectedComponentsImageFilter
+/** \class ThresholdMaximumConnectedComponentsImageFilter
  * \brief Finds the threshold value of an image based on  maximizing the number
  * of objects in the image that are larger than a given minimal size.
  *
@@ -56,13 +56,7 @@ namespace itk
  * Stable State Thresholding works well on images with a large number
  * of objects to be counted.
  *
- * \par References:
- * 1) Urish KL, August J, Huard J. "Unsupervised segmentation for myofiber
- * counting in immunoflourescent microscopy images". Insight Journal.
- * ISC/NA-MIC/MICCAI Workshop on Open-Source Software (2005)
- * http://insight-journal.org/browse/publication/40
- * 2) Pikaz A, Averbuch, A. "Digital image thresholding based on topological
- * stable-state". Pattern Recognition, 29(5): 829-843, 1996.
+ * For algorithmic details see \cite urish2005 and \cite pikaz1996.
  *
  * \par
  * Questions: email Ken Urish at ken.urish(at)gmail.com
@@ -86,8 +80,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ThresholdMaximumConnectedComponentsImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThresholdMaximumConnectedComponentsImageFilter);
 
   /** Typedef to describe the type of pixel. */
   using PixelType = typename TInputImage::PixelType;
@@ -103,9 +97,10 @@ public:
    * optimization portion of this filter. Essentially, it eliminates
    * noise from being counted as an object. The default value is
    * zero. */
+  /** @ITKStartGrouping */
   itkSetMacro(MinimumObjectSizeInPixels, unsigned int);
   itkGetConstMacro(MinimumObjectSizeInPixels, unsigned int);
-
+  /** @ITKEndGrouping */
   /**
    * The following Set/Get methods are for the binary threshold
    * function. This class automatically calculates the lower threshold
@@ -119,13 +114,14 @@ public:
    *                            Upper threshold boundary is the
    *                              maximum pixel type intensity.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InsideValue, OutputPixelType);
   itkSetMacro(OutsideValue, OutputPixelType);
   itkSetMacro(UpperBoundary, PixelType);
   itkGetConstMacro(InsideValue, OutputPixelType);
   itkGetConstMacro(OutsideValue, OutputPixelType);
   itkGetConstMacro(UpperBoundary, PixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Returns the number of objects in the image. This information is
    * only valid after the filter has executed. Useful if your counting
@@ -133,7 +129,7 @@ public:
   itkGetConstMacro(NumberOfObjects, SizeValueType);
 
   /**
-   * Returns the automatic threshold setpoint. This information is
+   * Returns the automatic threshold value. This information is
    * only valid after the filter has executed. */
   itkGetConstMacro(ThresholdValue, PixelType);
 
@@ -155,6 +151,15 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Update the filter. It essentially uses a bisection method to search for
+   * the threshold setPt that maximizes the number of connected components in
+   * the image. The ComputeConnectedComponents does the threshold and then a
+   * connected components object count. It is removed from GenerateData
+   * to make this all easier to read.
+   *
+   * Remove the comments on the output statements to see how the search
+   * strategy works.
+   */
   void
   GenerateData() override;
 
@@ -198,26 +203,26 @@ private:
   //
   // Declare member variables for the filters of the internal pipeline.
   //
-  typename ThresholdFilterType::Pointer m_ThresholdFilter;
-  typename ConnectedFilterType::Pointer m_ConnectedComponent;
+  typename ThresholdFilterType::Pointer m_ThresholdFilter{};
+  typename ConnectedFilterType::Pointer m_ConnectedComponent{};
 
-  typename RelabelFilterType::Pointer m_LabeledComponent;
+  typename RelabelFilterType::Pointer m_LabeledComponent{};
 
-  typename MinMaxCalculatorType::Pointer m_MinMaxCalculator;
+  typename MinMaxCalculatorType::Pointer m_MinMaxCalculator{};
 
   // Variables defined by the user
-  unsigned int m_MinimumObjectSizeInPixels;
+  unsigned int m_MinimumObjectSizeInPixels{};
 
   // Binary threshold variables
-  OutputPixelType m_OutsideValue;
-  OutputPixelType m_InsideValue;
+  OutputPixelType m_OutsideValue{};
+  OutputPixelType m_InsideValue{};
 
-  PixelType m_LowerBoundary;
-  PixelType m_UpperBoundary;
+  PixelType m_LowerBoundary{};
+  PixelType m_UpperBoundary{};
 
   // Filter variables
-  PixelType     m_ThresholdValue;
-  SizeValueType m_NumberOfObjects;
+  PixelType     m_ThresholdValue{};
+  SizeValueType m_NumberOfObjects{};
 };
 } // end namespace itk
 

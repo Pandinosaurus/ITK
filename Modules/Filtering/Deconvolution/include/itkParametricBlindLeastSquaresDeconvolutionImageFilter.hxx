@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkParametricBlindLeastSquaresDeconvolutionImageFilter_hxx
 #define itkParametricBlindLeastSquaresDeconvolutionImageFilter_hxx
 
-#include "itkParametricBlindLeastSquaresDeconvolutionImageFilter.h"
 
 #include "itkComplexConjugateImageAdaptor.h"
 #include "itkImageDuplicator.h"
@@ -30,10 +29,9 @@ namespace itk
 template <typename TInputImage, typename TKernelImage, typename TOutputImage>
 ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage>::
   ParametricBlindLeastSquaresDeconvolutionImageFilter()
-{
-  m_Alpha = 0.01;
-  m_Beta = 0.01;
-}
+  : m_Alpha(0.01)
+  , m_Beta(0.01)
+{}
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage>
 void
@@ -70,7 +68,7 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
   this->PrepareInput(this->GetInput(), m_TransformedInput, progress, 0.5f * progressWeight);
 
   using DuplicatorType = ImageDuplicator<InternalComplexImageType>;
-  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  auto duplicator = DuplicatorType::New();
   duplicator->SetInputImage(m_TransformedInput);
   duplicator->Update();
   m_TransformedCurrentEstimate = duplicator->GetOutput();
@@ -137,7 +135,7 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
   // Compute the convolution of the difference with the flipped and
   // normalized version of the current image estimate
   using InverseFFTFilterType = HalfHermitianToRealInverseFFTImageFilter<InternalComplexImageType, InternalImageType>;
-  typename InverseFFTFilterType::Pointer ifft = InverseFFTFilterType::New();
+  auto ifft = InverseFFTFilterType::New();
   ifft->SetActualXDimensionIsOdd(this->GetXDimensionIsOdd());
   ifft->SetInput(m_TransformedCurrentEstimate);
   ifft->UpdateLargestPossibleRegion();
@@ -145,7 +143,7 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
   // Shift the image by negative one half the input size in each
   // dimension
   using EstimateShiftFilterType = CyclicShiftImageFilter<InternalImageType>;
-  typename EstimateShiftFilterType::Pointer    estimateShifter = EstimateShiftFilterType::New();
+  auto                                         estimateShifter = EstimateShiftFilterType::New();
   typename EstimateShiftFilterType::OffsetType shift;
   typename InternalImageType::SizeType         inputSize = this->GetInput()->GetLargestPossibleRegion().GetSize();
   for (unsigned int i = 0; i < InternalImageType::ImageDimension; ++i)
@@ -158,18 +156,18 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
 
   // Normalize the image so that it sums to 1
   using NormalizeEstimateFilterType = NormalizeToConstantImageFilter<InternalImageType, InternalImageType>;
-  typename NormalizeEstimateFilterType::Pointer normalizer = NormalizeEstimateFilterType::New();
+  auto normalizer = NormalizeEstimateFilterType::New();
   normalizer->SetConstant(1.0);
   normalizer->SetInput(estimateShifter->GetOutput());
 
   // Take the DFT of the shifted image
   using ForwardFFTFilterType = RealToHalfHermitianForwardFFTImageFilter<InternalImageType, InternalComplexImageType>;
-  typename ForwardFFTFilterType::Pointer fft = ForwardFFTFilterType::New();
+  auto fft = ForwardFFTFilterType::New();
   fft->SetInput(normalizer->GetOutput());
   fft->UpdateLargestPossibleRegion();
 
   using ComplexAdaptorType = ComplexConjugateImageAdaptor<InternalComplexImageType>;
-  typename ComplexAdaptorType::Pointer complexAdaptor = ComplexAdaptorType::New();
+  auto complexAdaptor = ComplexAdaptorType::New();
   complexAdaptor->SetImage(fft->GetOutput());
 
   // Now we can compute the Jacobian (the derivative of the least-squares
@@ -178,12 +176,12 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
   // objective function with respect to the parameters of the
   // parametric kernel
   using MultiplyFilterType = MultiplyImageFilter<InternalComplexImageType, ComplexAdaptorType>;
-  typename MultiplyFilterType::Pointer multiplier = MultiplyFilterType::New();
+  auto multiplier = MultiplyFilterType::New();
   multiplier->SetInput1(m_DifferenceFilter->GetOutput());
   multiplier->SetInput2(complexAdaptor);
 
   // Compute the inverse DFT of the result to get the Jacobian
-  typename InverseFFTFilterType::Pointer jacobianIFFT = InverseFFTFilterType::New();
+  auto jacobianIFFT = InverseFFTFilterType::New();
   jacobianIFFT->SetInput(multiplier->GetOutput());
   jacobianIFFT->SetActualXDimensionIsOdd(this->GetXDimensionIsOdd());
   jacobianIFFT->UpdateLargestPossibleRegion();
@@ -197,37 +195,37 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
   {
     using InternalKernelImageType = typename KernelSourceType::OutputImageType;
     using InternalKernelImagePointer = typename InternalKernelImageType::Pointer;
-    typename KernelSourceType::ParametersValueType theta = parameters[i];
-    double                                         deltaTheta = 0.0001;
-    double                                         thetaPlus = theta + deltaTheta;
-    double                                         thetaMinus = theta - deltaTheta;
+    const typename KernelSourceType::ParametersValueType theta = parameters[i];
+    constexpr double                                     deltaTheta = 0.0001;
+    const double                                         thetaPlus = theta + deltaTheta;
+    const double                                         thetaMinus = theta - deltaTheta;
 
     // Generate the plus image
     parameters[i] = thetaPlus;
     m_KernelSource->SetParameters(parameters);
     m_KernelSource->UpdateLargestPossibleRegion();
-    InternalKernelImagePointer plusImage = m_KernelSource->GetOutput();
+    const InternalKernelImagePointer plusImage = m_KernelSource->GetOutput();
     plusImage->DisconnectPipeline();
 
     // Generate the minus image
     parameters[i] = thetaMinus;
     m_KernelSource->SetParameters(parameters);
     m_KernelSource->UpdateLargestPossibleRegion();
-    InternalKernelImagePointer minusImage = m_KernelSource->GetOutput();
+    const InternalKernelImagePointer minusImage = m_KernelSource->GetOutput();
     minusImage->DisconnectPipeline();
 
     // Subtract the two and divide by deltaTheta * 2 to get the
     // partial derivative image estimate, then multiply the result by
     // the Jacobian. We'll do this all in one loop to simplify things.
-    typename InternalKernelImageType::RegionType      region(plusImage->GetLargestPossibleRegion());
-    ImageRegionConstIterator<InternalKernelImageType> plusImageIter(plusImage, region);
-    ImageRegionConstIterator<InternalKernelImageType> minusImageIter(minusImage, region);
-    ImageRegionConstIterator<InternalImageType>       jacobianImageIter(jacobianIFFT->GetOutput(), region);
+    const typename InternalKernelImageType::RegionType region(plusImage->GetLargestPossibleRegion());
+    ImageRegionConstIterator<InternalKernelImageType>  plusImageIter(plusImage, region);
+    ImageRegionConstIterator<InternalKernelImageType>  minusImageIter(minusImage, region);
+    ImageRegionConstIterator<InternalImageType>        jacobianImageIter(jacobianIFFT->GetOutput(), region);
 
     double sum = 0.0;
     while (!plusImageIter.IsAtEnd())
     {
-      double dhdTheta = (plusImageIter.Get() - minusImageIter.Get()) / (2.0 * deltaTheta);
+      const double dhdTheta = (plusImageIter.Get() - minusImageIter.Get()) / (2.0 * deltaTheta);
       sum += dhdTheta * jacobianImageIter.Get();
 
       ++plusImageIter;
@@ -255,7 +253,7 @@ ParametricBlindLeastSquaresDeconvolutionImageFilter<TInputImage, TKernelImage, T
 {
   // Take the inverse Fourier transform of the current estimate
   using InverseFFTFilterType = HalfHermitianToRealInverseFFTImageFilter<InternalComplexImageType, InternalImageType>;
-  typename InverseFFTFilterType::Pointer ifft = InverseFFTFilterType::New();
+  auto ifft = InverseFFTFilterType::New();
   ifft->SetActualXDimensionIsOdd(this->GetXDimensionIsOdd());
   ifft->SetInput(m_TransformedCurrentEstimate);
   ifft->UpdateLargestPossibleRegion();

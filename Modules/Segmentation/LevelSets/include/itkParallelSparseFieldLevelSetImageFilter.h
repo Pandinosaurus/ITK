@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkParallelSparseFieldLevelSetImageFilter_h
 #define itkParallelSparseFieldLevelSetImageFilter_h
 
+#include "itkBooleanStdVector.h"
 #include "itkFiniteDifferenceImageFilter.h"
 #include "itkSparseFieldLayer.h"
 #include "itkObjectStore.h"
@@ -29,7 +30,7 @@
 namespace itk
 {
 /** \class ParallelSparseFieldLevelSetNode
- * A data structure used in the ParallelSparsefieldlevelsetimagefilter to construct
+ * A data structure used in the ParallelSparseFieldLevelSetImageFilter to construct
  * lists of indices and other values.
  * \ingroup ITKLevelSets
  */
@@ -81,25 +82,25 @@ public:
 
   static constexpr unsigned int Dimension = NeighborhoodType::Dimension;
 
-  const RadiusType &
+  [[nodiscard]] const RadiusType &
   GetRadius() const
   {
     return m_Radius;
   }
 
-  const unsigned int &
+  [[nodiscard]] const unsigned int &
   GetArrayIndex(unsigned int i) const
   {
     return m_ArrayIndex[i];
   }
 
-  const OffsetType &
+  [[nodiscard]] const OffsetType &
   GetNeighborhoodOffset(unsigned int i) const
   {
     return m_NeighborhoodOffset[i];
   }
 
-  const unsigned int &
+  [[nodiscard]] const unsigned int &
   GetSize() const
   {
     return m_Size;
@@ -120,19 +121,19 @@ public:
   }
 
   void
-  Print(std::ostream & os) const;
+  Print(std::ostream & os, Indent indent) const;
 
 private:
-  char                      m_Pad1[128];
-  unsigned int              m_Size;
-  RadiusType                m_Radius;
-  std::vector<unsigned int> m_ArrayIndex;
-  std::vector<OffsetType>   m_NeighborhoodOffset;
+  char                      m_Pad1[128]{};
+  unsigned int              m_Size{ 2 * Dimension };
+  RadiusType                m_Radius{};
+  std::vector<unsigned int> m_ArrayIndex{};
+  std::vector<OffsetType>   m_NeighborhoodOffset{};
 
   /** An internal table for keeping track of stride lengths in a neighborhood,
    *  i.e. the memory offsets between pixels along each dimensional axis. */
-  unsigned int m_StrideTable[Dimension];
-  char         m_Pad2[128];
+  unsigned int m_StrideTable[Dimension]{};
+  char         m_Pad2[128]{};
 };
 
 /**
@@ -242,12 +243,7 @@ private:
  *  FiniteDifferenceFunction to use for calculations.  This is set using the
  *  method SetDifferenceFunction in the parent class.
  *
- * \par REFERENCES
- * Whitaker, Ross. A Level-Set Approach to 3D Reconstruction from Range Data.
- * International Journal of Computer Vision.  V. 29 No. 3, 203-231. 1998.
- *
- * \par
- * Sethian, J.A. Level Set Methods. Cambridge University Press. 1996.
+ * For algorithmic details see \cite whitaker1998 and \cite sethian1996.
  *
  * \ingroup ITKLevelSets
  */
@@ -265,16 +261,16 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /**Typedefs from the superclass */
-  using TimeStepType = typename Superclass::TimeStepType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodScalesType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ParallelSparseFieldLevelSetImageFilter, FiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ParallelSparseFieldLevelSetImageFilter);
 
   /** Information derived from the image types. */
   using InputImageType = TInputImage;
@@ -317,13 +313,15 @@ public:
   /** Set/Get the number of layers to use in the sparse field.  Argument is the
    *  number of layers on ONE side of the active layer, so the total layers in
    *   the sparse field is 2 * NumberOfLayers + 1 */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfLayers, StatusType);
   itkGetConstMacro(NumberOfLayers, StatusType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value of the isosurface to use in the input image. */
+  /** @ITKStartGrouping */
   itkSetMacro(IsoSurfaceValue, ValueType);
   itkGetConstMacro(IsoSurfaceValue, ValueType);
-
+  /** @ITKEndGrouping */
   LayerPointerType
   GetActiveListForIndex(const IndexType index)
   {
@@ -336,13 +334,9 @@ public:
     return m_Data[ThreadNum].m_Layers[0];
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<PixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, PixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ParallelSparseFieldLevelSetImageFilter();
@@ -351,7 +345,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Connectivity information for examining neighbor pixels.   */
-  ParallelSparseFieldCityBlockNeighborList<NeighborhoodIterator<OutputImageType>> m_NeighborList;
+  ParallelSparseFieldCityBlockNeighborList<NeighborhoodIterator<OutputImageType>> m_NeighborList{};
 
   /** The constant gradient to maintain between isosurfaces in the
       spare-field of the level-set image.  This value defaults to 1.0 */
@@ -387,34 +381,34 @@ protected:
    * each pixel.  This way we only need to consider the zero level set in our
    * calculations.  Makes the implementation easier and more efficient.
    * This is used only during the initialization of the level set. */
-  typename OutputImageType::Pointer m_ShiftedImage;
+  typename OutputImageType::Pointer m_ShiftedImage{};
 
   /** An array which contains all of the layers needed in the sparse
    * field. Layers are organized as follows: m_Layer[0] = active layer,
    * m_Layer[i:odd] = inside layer (i+1)/2, m_Layer[i:even] = outside layer i/2.
    * This is used only during the initialization of the level set. */
-  LayerListType m_Layers;
+  LayerListType m_Layers{};
 
   /** The number of layers to use in the sparse field.  Sparse field will
    * consist of m_NumberOfLayers layers on both sides of a single active layer.
    * This active layer is the interface of interest, i.e. the zero
    * level set. */
-  StatusType m_NumberOfLayers;
+  StatusType m_NumberOfLayers{};
 
   /** An image of status values used internally by the algorithm. */
-  typename StatusImageType::Pointer m_StatusImage;
-  typename OutputImageType::Pointer m_OutputImage;
+  typename StatusImageType::Pointer m_StatusImage{};
+  typename OutputImageType::Pointer m_OutputImage{};
 
   /** Images used temporarily during the initialization of the thread data
     structures. */
-  typename StatusImageType::Pointer m_StatusImageTemp;
-  typename OutputImageType::Pointer m_OutputImageTemp;
+  typename StatusImageType::Pointer m_StatusImageTemp{};
+  typename OutputImageType::Pointer m_OutputImageTemp{};
 
   /** Storage for layer node objects. */
-  typename LayerNodeStorageType::Pointer m_LayerNodeStore;
+  typename LayerNodeStorageType::Pointer m_LayerNodeStore{};
 
   /** The value in the input which represents the isosurface of interest. */
-  ValueType m_IsoSurfaceValue;
+  ValueType m_IsoSurfaceValue{};
 
   /** The RMS change calculated from each update.  Can be used by a subclass to
    *  determine halting criteria.  Valid only for the previous iteration, not
@@ -551,7 +545,7 @@ protected:
 
   // This method can be overridden in derived classes.
   // The pixel at 'index' is entering the active layer for thread 'ThreadId'.
-  // The outputimage at 'index' will have the value as given by the
+  // The output image at 'index' will have the value as given by the
   // 'value' parameter.
   virtual void
   ThreadedProcessPixelEnteringActiveLayer(const IndexType & itkNotUsed(index),
@@ -572,7 +566,7 @@ protected:
   TimeStepType
   CalculateChange() override
   {
-    return NumericTraits<TimeStepType>::ZeroValue();
+    return TimeStepType{};
   }
 
   /** This method does the actual work of calculating change over a region
@@ -691,11 +685,12 @@ protected:
 
   /** Redistribute an load among the threads to obtain a more balanced load distribution.
    *  This is performed in parallel by all the threads. */
+  /** @ITKStartGrouping */
   void
   ThreadedLoadBalance1(ThreadIdType ThreadId);
   void
   ThreadedLoadBalance2(ThreadIdType ThreadId);
-
+  /** @ITKEndGrouping */
   void
   SignalNeighborsAndWait(ThreadIdType ThreadId);
 
@@ -711,12 +706,12 @@ protected:
   ThreadedInitializeIteration(ThreadIdType ThreadId);
 
   /** Thread-specific data */
-  std::vector<TimeStepType> m_TimeStepList;
-  std::vector<bool>         m_ValidTimeStepList;
-  TimeStepType              m_TimeStep;
+  std::vector<TimeStepType> m_TimeStepList{};
+  BooleanStdVectorType      m_ValidTimeStepList{};
+  TimeStepType              m_TimeStep{};
 
-  /** The number of threads to use. */
-  ThreadIdType m_NumOfThreads{ 0 };
+  /** The number of work units to use. */
+  ThreadIdType m_NumOfWorkUnits{ 0 };
 
   /** The dimension along which to distribute the load. */
   unsigned int m_SplitAxis{ 0 };
@@ -773,7 +768,7 @@ protected:
     /** Local histogram with each thread */
     int * m_ZHistogram;
 
-    /** pseudo-Semaphores used for signalling and waiting neighbor
+    /** pseudo-Semaphores used for signaling and waiting neighbor
      *  threads. Strictly speaking the semaphores are NOT just
      *  accessed by the thread that owns them
      *  BUT also by the thread's neighbors. So they are NOT truly "local" data. */
@@ -783,7 +778,7 @@ protected:
     std::condition_variable m_Condition[2];
 
     /** Indicates whether to use m_Semaphore[0] or m_Semaphore[1] for
-      signalling/waiting */
+      signaling/waiting */
     unsigned int m_SemaphoreArrayNumber;
   };
 

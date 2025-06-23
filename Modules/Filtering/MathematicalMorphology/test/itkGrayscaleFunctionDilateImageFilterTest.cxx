@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,11 +20,11 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkSimpleFilterWatcher.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 int
 itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
 {
-  unsigned int i;
 
   // Define the dimension of the images
   constexpr unsigned int myDimension = 2;
@@ -46,7 +46,7 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create an image
-  myImageType::Pointer inputImage = myImageType::New();
+  auto inputImage = myImageType::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -57,9 +57,7 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   start[0] = 0;
   start[1] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image
   inputImage->SetRegions(region);
@@ -99,7 +97,7 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   ind[1] = 19;
   inputImage->SetPixel(ind, fgValue);
 
-  i = 0;
+  unsigned int i = 0;
   it.GoToBegin();
   while (!it.IsAtEnd())
   {
@@ -119,8 +117,12 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   using myFilterType = itk::GrayscaleFunctionDilateImageFilter<myImageType, myImageType, myKernelType>;
 
   // Create the filter
-  myFilterType::Pointer    filter = myFilterType::New();
-  itk::SimpleFilterWatcher filterWatcher(filter);
+  auto filter = myFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GrayscaleFunctionDilateImageFilter, MorphologyImageFilter);
+
+
+  const itk::SimpleFilterWatcher filterWatcher(filter);
 
   // Create the structuring element
   myKernelType           ball;
@@ -135,36 +137,29 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   filter->SetKernel(ball);
 
   // Get the Smart Pointer to the Filter Output
-  myImageType::Pointer outputImage = filter->GetOutput();
-
+  const myImageType::Pointer outputImage = filter->GetOutput();
 
   // Execute the filter
-  try
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
+
+  std::cout << "BoundaryCondition: " << filter->GetBoundaryCondition() << std::endl;
+
+  // Create an iterator for going through the image output
+  myIteratorType it2(outputImage, outputImage->GetBufferedRegion());
+
+  // Print the content of the result image
+  std::cout << "Result " << std::endl;
+  i = 0;
+  while (!it2.IsAtEnd())
   {
+    std::cout << it2.Get() << "  ";
+    ++it2;
 
-    filter->Update();
-    // Create an iterator for going through the image output
-    myIteratorType it2(outputImage, outputImage->GetBufferedRegion());
-
-    //  Print the content of the result image
-    std::cout << "Result " << std::endl;
-    i = 0;
-    while (!it2.IsAtEnd())
+    if (++i % 20 == 0)
     {
-      std::cout << it2.Get() << "  ";
-      ++it2;
-
-      if (++i % 20 == 0)
-      {
-        std::cout << std::endl;
-      }
+      std::cout << std::endl;
     }
-  }
-
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught during filter Update\n" << e;
-    return -1;
   }
 
   // if there is a file name specified as an argument, write the data
@@ -172,11 +167,13 @@ itkGrayscaleFunctionDilateImageFilterTest(int argc, char * argv[])
   if (argc == 2)
   {
     using WriterType = itk::ImageFileWriter<myImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetFileName(argv[1]);
     writer->SetInput(filter->GetOutput());
     writer->Update();
   }
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,9 +28,10 @@ itkAttributeLabelObjectAccessorsTest1(int argc, char * argv[])
 
   if (argc != 3)
   {
-    std::cerr << "usage: " << argv[0] << " label input" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " label input" << std::endl;
+    return EXIT_FAILURE;
   }
 
   // declare the dimension used, and the type of the input image
@@ -47,15 +48,15 @@ itkAttributeLabelObjectAccessorsTest1(int argc, char * argv[])
 
   // We read the input image.
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
   // And convert it to a LabelMap
   using I2LType = itk::LabelImageToLabelMapFilter<IType, LabelMapType>;
-  I2LType::Pointer i2l = I2LType::New();
+  auto i2l = I2LType::New();
   i2l->SetInput(reader->GetOutput());
   // The next step is made outside the pipeline model, so we call Update() now.
   i2l->Update();
@@ -67,7 +68,7 @@ itkAttributeLabelObjectAccessorsTest1(int argc, char * argv[])
   // values in the 2nd image. The StatisticsLabelObject can give us that value, without
   // having to code that by hand - that's an example.
 
-  LabelMapType::Pointer labelMap = i2l->GetOutput();
+  const LabelMapType::Pointer labelMap = i2l->GetOutput();
   for (LabelMapType::Iterator it(labelMap); !it.IsAtEnd(); ++it)
   {
     // the label is there if we need it, but it can also be found at labelObject->GetLabel().
@@ -75,6 +76,9 @@ itkAttributeLabelObjectAccessorsTest1(int argc, char * argv[])
 
     // the label object
     LabelObjectType * labelObject = it.GetLabelObject();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(labelObject, AttributeLabelObject, LabelObject);
+
 
     // init the vars
     double        mean = 0;
@@ -100,9 +104,7 @@ itkAttributeLabelObjectAccessorsTest1(int argc, char * argv[])
     // make sure that the accessor provide the same values than the GetAttribute() method
     itk::Functor::AttributeLabelObjectAccessor<LabelObjectType> accessor;
     ITK_TEST_SET_GET_VALUE(accessor(labelObject), labelObject->GetAttribute());
-    // exercise the print self method
-    labelObject->Print(std::cout);
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

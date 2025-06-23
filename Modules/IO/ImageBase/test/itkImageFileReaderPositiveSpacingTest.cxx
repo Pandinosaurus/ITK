@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,31 +18,32 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include <itkTestingComparisonImageFilter.h>
-#include <itkMath.h>
-#include <itkNumericTraits.h>
+#include "itkTestingComparisonImageFilter.h"
+#include "itkMath.h"
+#include "itkNumericTraits.h"
+#include "itkTestingMacros.h"
 #include "metaImage.h"
 
 int
-itkImageFileReaderPositiveSpacingTest(int ac, char * av[])
+itkImageFileReaderPositiveSpacingTest(int argc, char * argv[])
 {
 
-  if (ac < 1)
+  if (argc < 1)
   {
-    std::cout << "usage: ITKImageIOBaseTestDriver itkImageFileReaderPositiveSpacingTest" << std::endl;
+    std::cout << "Usage: " << itkNameOfTestExecutableMacro(argv) << std::endl;
     return EXIT_FAILURE;
   }
 
   using ImageNDType = itk::Image<short, 2>;
   using ReaderType = itk::ImageFileReader<ImageNDType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->Update();
-  ImageNDType::Pointer image = reader->GetOutput();
+  const ImageNDType::Pointer image = reader->GetOutput();
   image->DisconnectPipeline();
   ImageNDType::SpacingType spacing = image->GetSpacing();
-  for (unsigned int ii = 0; ii < image->GetImageDimension(); ii++)
+  for (unsigned int ii = 0; ii < image->GetImageDimension(); ++ii)
   {
     if (spacing[ii] < 0)
     {
@@ -51,15 +52,13 @@ itkImageFileReaderPositiveSpacingTest(int ac, char * av[])
     }
   }
   std::cout << "Spacing: " << spacing << std::endl;
-  ImageNDType::DirectionType direction = image->GetDirection();
-  std::cout << "Direction: "
-            << "\n"
-            << direction << std::endl;
+  const ImageNDType::DirectionType direction = image->GetDirection();
+  std::cout << "Direction: " << '\n' << direction << std::endl;
 
   MetaImage metaImage;
-  if (!metaImage.Read(av[1], false))
+  if (!metaImage.Read(argv[1], false))
   {
-    std::cerr << "File cannot be opened " << av[1] << " for reading." << std::endl
+    std::cerr << "File cannot be opened " << argv[1] << " for reading." << std::endl
               << "Reason: " << itksys::SystemTools::GetLastSystemError();
     return EXIT_FAILURE;
   }
@@ -68,22 +67,20 @@ itkImageFileReaderPositiveSpacingTest(int ac, char * av[])
   ImageNDType::PointType     ioOrigin;
   ImageNDType::SizeType      ioSize;
   const double *             transformMatrix = metaImage.TransformMatrix();
-  for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ii++)
+  for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ++ii)
   {
     ioSize[ii] = metaImage.DimSize(ii);
     ioSpacing[ii] = metaImage.ElementSpacing(ii);
     ioOrigin[ii] = metaImage.Position(ii);
     // Please note: direction cosines are stored as columns of the
     // direction matrix
-    for (unsigned int jj = 0; jj < ImageNDType::ImageDimension; jj++)
+    for (unsigned int jj = 0; jj < ImageNDType::ImageDimension; ++jj)
     {
       ioDirection[jj][ii] = transformMatrix[ii * ImageNDType::ImageDimension + jj];
     }
   }
   std::cout << "Spacing baseline: " << ioSpacing << std::endl;
-  std::cout << "Direction baseline: "
-            << "\n"
-            << ioDirection << std::endl;
+  std::cout << "Direction baseline: " << '\n' << ioDirection << std::endl;
 
   // Go through entire image and make sure that at each physical pixel location, the value of the images, with negative
   // spacing and positive spacing, are the same.
@@ -91,28 +88,26 @@ itkImageFileReaderPositiveSpacingTest(int ac, char * av[])
   // We manually go through all pixels in the input image and compare their value without
   // their value in the image loaded without ensuring positive spacing.
   ImageNDType::DirectionType scale;
-  ImageNDType::DirectionType indexToPhysicalPoint;
-  ImageNDType::DirectionType physicalPointToIndex;
-  for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ii++)
+  for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ++ii)
   {
     scale[ii][ii] = ioSpacing[ii];
   }
-  indexToPhysicalPoint = ioDirection * scale;
-  physicalPointToIndex = indexToPhysicalPoint.GetInverse();
+  const ImageNDType::DirectionType indexToPhysicalPoint = ioDirection * scale;
+  ImageNDType::DirectionType       physicalPointToIndex = indexToPhysicalPoint.GetInverse();
 
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageNDType>;
   IteratorType it(image, image->GetLargestPossibleRegion());
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    ImageNDType::IndexType index = it.GetIndex();
-    ImageNDType::PointType point;
+    const ImageNDType::IndexType index = it.GetIndex();
+    ImageNDType::PointType       point;
     image->TransformIndexToPhysicalPoint(index, point);
     // Compute index from physical point in baseline
     ImageNDType::IndexType baselineIndex;
-    for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ii++)
+    for (unsigned int ii = 0; ii < ImageNDType::ImageDimension; ++ii)
     {
-      double sum = itk::NumericTraits<double>::ZeroValue();
-      for (unsigned int jj = 0; jj < ImageNDType::ImageDimension; jj++)
+      double sum = 0.0;
+      for (unsigned int jj = 0; jj < ImageNDType::ImageDimension; ++jj)
       {
         sum += physicalPointToIndex[ii][jj] * (point[jj] - ioOrigin[jj]);
       }
@@ -121,9 +116,8 @@ itkImageFileReaderPositiveSpacingTest(int ac, char * av[])
     if (index != baselineIndex)
     {
       std::cerr << "Difference found between original image and flipped spacing image: "
-                << "Indices do not correspond."
-                << "\n"
-                << "Flipped image: " << index << "\n"
+                << "Indices do not correspond." << '\n'
+                << "Flipped image: " << index << '\n'
                 << "Baseline image:" << baselineIndex << std::endl;
       return EXIT_FAILURE;
     }

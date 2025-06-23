@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,36 +78,36 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MatchCardinalityImageToImageMetric, ImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MatchCardinalityImageToImageMetric);
 
   /** Types transferred from the base class */
-  using RealType = typename Superclass::RealType;
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformParametersType = typename Superclass::TransformParametersType;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using GradientPixelType = typename Superclass::GradientPixelType;
+  using typename Superclass::RealType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformParametersType;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::GradientPixelType;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
-  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
-  using FixedImageRegionType = typename Superclass::FixedImageRegionType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::FixedImageConstPointer;
+  using typename Superclass::MovingImageConstPointer;
+  using typename Superclass::FixedImageRegionType;
 
   /** Get the derivatives of the match measure. */
   void
   GetDerivative(const TransformParametersType &, DerivativeType & derivative) const override
   {
-    itkWarningMacro(<< "This metric does not provide metric derivatives.");
-    derivative.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+    itkWarningMacro("This metric does not provide metric derivatives.");
+    derivative.Fill(typename DerivativeType::ValueType{});
   }
 
   /**  Get the value of the metric at a particular parameter
    *  setting. The metric value is the number of pixel matches (or
-   *  mis-matches, see SetMeasureMatches()) normalized by the number
+   *  mismatches, see SetMeasureMatches()) normalized by the number
    *  of pixels under consideration (within the buffer and if
    *  specified within a mask). In other words, the metric measure the
    *  percentage of pixel matches or mismatches. */
@@ -120,9 +120,11 @@ public:
    * other words, the metric measures the percentage of pixel matches
    * or mismatches. The default is to measure matches
    * (MeasureMatchesOn). */
+  /** @ITKStartGrouping */
   itkSetMacro(MeasureMatches, bool);
   itkBooleanMacro(MeasureMatches);
   itkGetConstMacro(MeasureMatches, bool);
+  /** @ITKEndGrouping */
 
   /** Return the multithreader used by this class. */
   MultiThreaderBase *
@@ -162,7 +164,10 @@ protected:
 
   /** Static function used as a "callback" by the MultiThreaderBase.  The threading
    * library will call this routine for each thread, which will delegate the
-   * control to ThreadedGetValue(). */
+   * control to ThreadedGetValue.
+   *
+   * Calls the ThreadedGenerateData method after setting the correct region for this thread.
+   */
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   ThreaderCallback(void * arg);
 
@@ -174,13 +179,14 @@ protected:
   };
 
 private:
-  bool                       m_MeasureMatches;
-  std::vector<MeasureType>   m_ThreadMatches;
-  std::vector<SizeValueType> m_ThreadCounts;
+  // default to measure percentage of pixel matches
+  bool                       m_MeasureMatches{ true };
+  std::vector<MeasureType>   m_ThreadMatches{};
+  std::vector<SizeValueType> m_ThreadCounts{};
 
   /** Support processing data in multiple threads. Used by subclasses
    * (e.g., ImageSource). */
-  MultiThreaderBase::Pointer m_Threader;
+  MultiThreaderBase::Pointer m_Threader{ MultiThreaderBase::New() };
 };
 } // end namespace itk
 

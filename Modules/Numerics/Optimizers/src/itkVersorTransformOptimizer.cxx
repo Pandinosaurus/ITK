@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,13 +28,14 @@ void
 VersorTransformOptimizer::StepAlongGradient(double factor, const DerivativeType & transformedGradient)
 {
   const ParametersType & currentPosition = this->GetCurrentPosition();
-  unsigned int           NumberOfParameters = m_CostFunction->GetNumberOfParameters();
+  const unsigned int     NumberOfParameters = m_CostFunction->GetNumberOfParameters();
 
-  // The parameters are assumed to be the right part of the versor
+  // The parameters are assumed to be the right part of the versor and the
+  // components of the translation vector.
   //
   VectorType rightPart;
 
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     rightPart[i] = currentPosition[i];
   }
@@ -64,7 +65,7 @@ VersorTransformOptimizer::StepAlongGradient(double factor, const DerivativeType 
   // Composing the currentRotation with the gradientRotation
   // produces the new Rotation versor
   //
-  VersorType newRotation = currentRotation * gradientRotation;
+  const VersorType newRotation = currentRotation * gradientRotation;
 
   ParametersType newParameters(NumberOfParameters);
 
@@ -74,7 +75,7 @@ VersorTransformOptimizer::StepAlongGradient(double factor, const DerivativeType 
 
   // Optimize the non-versor parameters as the
   // RegularStepGradientDescentOptimizer
-  for (unsigned int j = 3; j < NumberOfParameters; j++)
+  for (unsigned int j = 3; j < NumberOfParameters; ++j)
   {
     newParameters[j] = currentPosition[j] + transformedGradient[j] * factor;
   }

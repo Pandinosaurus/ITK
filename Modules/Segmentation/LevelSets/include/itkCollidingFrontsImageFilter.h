@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CollidingFrontsImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CollidingFrontsImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -94,7 +94,7 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** FastMarchingUpwindGradientImageFilter type alias. */
   using FastMarchingUpwindGradientImageFilterType =
@@ -151,11 +151,7 @@ public:
   itkGetConstMacro(StopOnTargets, bool);
   itkBooleanMacro(StopOnTargets);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   CollidingFrontsImageFilter();
@@ -168,13 +164,13 @@ protected:
   PrintSelf(std::ostream &, Indent) const override;
 
 private:
-  NodeContainerPointer m_SeedPoints1;
-  NodeContainerPointer m_SeedPoints2;
+  NodeContainerPointer m_SeedPoints1{};
+  NodeContainerPointer m_SeedPoints2{};
 
-  bool m_StopOnTargets;
-  bool m_ApplyConnectivity;
+  bool m_StopOnTargets{};
+  bool m_ApplyConnectivity{};
 
-  double m_NegativeEpsilon;
+  double m_NegativeEpsilon{};
 };
 } // end namespace itk
 

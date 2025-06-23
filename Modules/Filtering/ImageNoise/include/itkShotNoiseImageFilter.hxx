@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 #ifndef itkShotNoiseImageFilter_hxx
 #define itkShotNoiseImageFilter_hxx
 
-#include "itkShotNoiseImageFilter.h"
+#include "itkBitCast.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
@@ -46,16 +46,15 @@ ShotNoiseImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(
 
   // Create a random generator per thread
   IndexValueType indSeed = 0;
-  for (unsigned d = 0; d < TOutputImage::ImageDimension; d++)
+  for (unsigned int d = 0; d < TOutputImage::ImageDimension; ++d)
   {
     indSeed += outputRegionForThread.GetIndex(d);
   }
-  typename Statistics::MersenneTwisterRandomVariateGenerator::Pointer rand =
-    Statistics::MersenneTwisterRandomVariateGenerator::New();
-  const uint32_t seed = Self::Hash(this->GetSeed(), uint32_t(indSeed));
-  rand->Initialize(seed);
-  typename Statistics::NormalVariateGenerator::Pointer randn = Statistics::NormalVariateGenerator::New();
-  randn->Initialize(*reinterpret_cast<const int32_t *>(&seed));
+  auto           rand = Statistics::MersenneTwisterRandomVariateGenerator::New();
+  const uint32_t seed = Self::Hash(this->GetSeed(), static_cast<uint32_t>(indSeed));
+  rand->SetSeed(seed);
+  auto randn = Statistics::NormalVariateGenerator::New();
+  randn->Initialize(bit_cast<int32_t>(seed));
 
   // Define the portion of the input to walk for this thread, using
   // the CallCopyOutputRegionToInputRegion method allows for the input
@@ -64,11 +63,8 @@ ShotNoiseImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(
   this->CallCopyOutputRegionToInputRegion(inputRegionForThread, outputRegionForThread);
 
   // Define the iterators
-  ImageScanlineConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
-  ImageScanlineIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
-
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
+  ImageScanlineConstIterator inputIt(inputPtr, inputRegionForThread);
+  ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 

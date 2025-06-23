@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,26 +19,21 @@
 #include "itkUnsharpMaskLevelSetImageFilter.h"
 #include <iostream>
 
-const unsigned int HEIGHT = (128);
-const unsigned int WIDTH = (128);
+constexpr unsigned int HEIGHT = (128);
+constexpr unsigned int WIDTH = (128);
 
 #define RADIUS (std::min(HEIGHT, WIDTH) / 4)
 
 // Distance transform function for square
 float
-square(unsigned x, unsigned y)
+square(unsigned int x, unsigned int y)
 {
-  float X, Y;
-  X = itk::Math::abs(x - (float)WIDTH / 2.0);
-  Y = itk::Math::abs(y - (float)HEIGHT / 2.0);
-  float dis;
+  const float X = itk::Math::abs(x - float{ WIDTH } / 2.0);
+  const float Y = itk::Math::abs(y - float{ HEIGHT } / 2.0);
+  float       dis = -std::sqrt((X - RADIUS) * (X - RADIUS) + (Y - RADIUS) * (Y - RADIUS));
   if (!((X > RADIUS) && (Y > RADIUS)))
   {
     dis = RADIUS - std::max(X, Y);
-  }
-  else
-  {
-    dis = -std::sqrt((X - RADIUS) * (X - RADIUS) + (Y - RADIUS) * (Y - RADIUS));
   }
   return (dis);
 }
@@ -65,27 +60,25 @@ itkUnsharpMaskLevelSetImageFilterTest(int, char *[])
 {
   using ImageType = itk::Image<float, 2>;
 
-  ImageType::Pointer im_init = ImageType::New();
+  auto im_init = ImageType::New();
 
-  ImageType::RegionType r;
-  ImageType::SizeType   sz = { { HEIGHT, WIDTH } };
-  ImageType::IndexType  idx = { { 0, 0 } };
+  ImageType::RegionType          r;
+  constexpr ImageType::SizeType  sz = { { HEIGHT, WIDTH } };
+  constexpr ImageType::IndexType idx = { { 0, 0 } };
   r.SetSize(sz);
   r.SetIndex(idx);
 
-  im_init->SetLargestPossibleRegion(r);
-  im_init->SetBufferedRegion(r);
-  im_init->SetRequestedRegion(r);
+  im_init->SetRegions(r);
   im_init->Allocate();
 
   evaluate_function(im_init, square);
   using FilterType = itk::UnsharpMaskLevelSetImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetMaxFilterIteration(99);
   filter->SetNormalProcessUnsharpWeight(1);
 
   filter->SetInput(im_init);
-  std::cout << "max iteration = " << (filter->GetMaxFilterIteration()) << "\n";
+  std::cout << "max iteration = " << (filter->GetMaxFilterIteration()) << '\n';
   std::cout << "Starting processing.\n";
   filter->Update();
   filter->Print(std::cout);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ namespace itk
    \code
        itk::MyObjectType::Pointer output_object;
        const char* input_xml_file_name = ...
-       itk::MyObjectDOMReader::Pointer reader = itk::MyObjectDOMReader::New();
+       auto reader = itk::MyObjectDOMReader::New();
        reader->SetFileName( input_xml_file_name );
        reader->Update();
        output_object = reader->GetOutput();
@@ -70,7 +70,7 @@ public:
   /** Standard class type aliases. */
   using Self = DOMReader;
 
-  itkTypeMacro(DOMReader, Object);
+  itkOverrideGetNameOfClassMacro(DOMReader);
 
   using OutputType = TOutput;
 
@@ -136,22 +136,24 @@ protected:
 
 private:
   /** Get/Set the intermediate DOM object. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(IntermediateDOM, DOMNodeType);
   itkGetModifiableObjectMacro(IntermediateDOM, DOMNodeType);
-
+  /** @ITKEndGrouping */
   /** Variable to hold the input XML file name. */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** Variable to hold the output object, created internally or supplied by the user. */
-  OutputType * m_Output;
+  OutputType * m_Output{};
+
   /** Variable to hold the output object if it is a smart object. */
-  typename LightObject::Pointer m_OutputHolder;
+  typename LightObject::Pointer m_OutputHolder{};
 
   /** Variable to hold the intermediate DOM object. */
-  DOMNodePointer m_IntermediateDOM;
+  DOMNodePointer m_IntermediateDOM{};
 
   /** Variable to log various messages during the reading process. */
-  mutable LoggerPointer m_Logger;
+  mutable LoggerPointer m_Logger{};
 };
 
 } // namespace itk

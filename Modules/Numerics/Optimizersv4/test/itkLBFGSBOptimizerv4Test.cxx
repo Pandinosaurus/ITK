@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 #include "itkTextOutput.h"
 #include "itkMath.h"
 #include "itkTestingMacros.h"
-#include "itkMath.h"
 #include <iostream>
 
 /**
@@ -31,7 +30,7 @@
  *  f(x) = 1/2 x^T A x - b^T x  subject to  -1 <= x <= 10
  *
  *  Where A is represented as an itkMatrix and
- *  b is represented as a itkVector
+ *  b is represented as an itkVector
  *
  *  The system in this example is:
  *
@@ -50,7 +49,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(LBFGSBOptimizerv4TestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(LBFGSBOptimizerv4TestMetric);
 
   enum
   {
@@ -66,9 +65,8 @@ public:
 
   LBFGSBOptimizerv4TestMetric()
     : m_Parameters(0)
-  {
-    m_HasLocalSupport = false;
-  }
+
+  {}
 
   void
   Initialize() override
@@ -120,10 +118,10 @@ public:
   GetValue() const override
   {
 
-    double x = m_Parameters[0];
-    double y = m_Parameters[1];
+    const double x = m_Parameters[0];
+    const double y = m_Parameters[1];
 
-    double val = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const double val = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
 
     std::cout << "GetValue ( " << x << " , " << y << ") = " << val << std::endl;
 
@@ -133,15 +131,15 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    double x = m_Parameters[0];
-    double y = m_Parameters[1];
+    const double x = m_Parameters[0];
+    const double y = m_Parameters[1];
 
     derivative = DerivativeType(SpaceDimension);
     derivative[0] = -(3 * x + 2 * y - 2);
     derivative[1] = -(2 * x + 6 * y + 8);
 
-    std::cout << "GetDerivative ( " << x << " , " << y << ") = "
-              << "(" << -derivative[0] << " , " << -derivative[1] << ")" << std::endl;
+    std::cout << "GetDerivative ( " << x << " , " << y << ") = " << '(' << -derivative[0] << " , " << -derivative[1]
+              << ')' << std::endl;
   }
 
   void
@@ -153,7 +151,7 @@ public:
 
 private:
   ParametersType m_Parameters;
-  bool           m_HasLocalSupport;
+  bool           m_HasLocalSupport{ false };
 };
 
 /** To ensure the events get fired. */
@@ -233,22 +231,40 @@ itkLBFGSBOptimizerv4Test(int, char *[])
 
   using OptimizerType = itk::LBFGSBOptimizerv4;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, LBFGSBOptimizerv4, LBFGSOptimizerBasev4);
+
 
   // Declaration of the metric
-  LBFGSBOptimizerv4TestMetric::Pointer metric = LBFGSBOptimizerv4TestMetric::New();
+  auto metric = LBFGSBOptimizerv4TestMetric::New();
 
   itkOptimizer->SetMetric(metric);
 
-  const double  F_Convergence_Factor = 1e+7;  // Function value tolerance
-  const double  Projected_G_Tolerance = 1e-5; // Proj gradient tolerance
-  constexpr int Max_Iterations = 25;          // Maximum number of iterations
+  constexpr bool trace = false;
+  ITK_TEST_SET_GET_BOOLEAN(itkOptimizer, Trace, trace);
+
+  constexpr double F_Convergence_Factor = 1e+7;  // Function value tolerance
+  constexpr double Projected_G_Tolerance = 1e-5; // Proj gradient tolerance
+  constexpr int    Max_Iterations = 25;          // Maximum number of iterations
 
   itkOptimizer->SetCostFunctionConvergenceFactor(F_Convergence_Factor);
+  ITK_TEST_SET_GET_VALUE(F_Convergence_Factor, itkOptimizer->GetCostFunctionConvergenceFactor());
+
   itkOptimizer->SetGradientConvergenceTolerance(Projected_G_Tolerance);
+  ITK_TEST_SET_GET_VALUE(Projected_G_Tolerance, itkOptimizer->GetGradientConvergenceTolerance());
+
   itkOptimizer->SetNumberOfIterations(Max_Iterations);
-  itkOptimizer->SetMaximumNumberOfFunctionEvaluations(100);
+  ITK_TEST_SET_GET_VALUE(Max_Iterations, itkOptimizer->GetNumberOfIterations());
+
+  constexpr unsigned int maximumNumberOfEvaluations = 100;
+  itkOptimizer->SetMaximumNumberOfFunctionEvaluations(maximumNumberOfEvaluations);
+  ITK_TEST_SET_GET_VALUE(maximumNumberOfEvaluations, itkOptimizer->GetMaximumNumberOfFunctionEvaluations());
+
+  constexpr unsigned int maximumNumberOfCorrections = 5;
+  itkOptimizer->SetMaximumNumberOfCorrections(maximumNumberOfCorrections);
+  ITK_TEST_SET_GET_VALUE(maximumNumberOfCorrections, itkOptimizer->GetMaximumNumberOfCorrections());
 
   constexpr unsigned int        SpaceDimension = 2;
   OptimizerType::ParametersType initialValue(SpaceDimension);
@@ -266,6 +282,7 @@ itkLBFGSBOptimizerv4Test(int, char *[])
   currentValue = initialValue;
 
   itkOptimizer->SetInitialPosition(currentValue);
+  ITK_TEST_SET_GET_VALUE(currentValue, itkOptimizer->GetInitialPosition());
 
   /**
    * Set the boundary condition for each variable, where
@@ -283,43 +300,32 @@ itkLBFGSBOptimizerv4Test(int, char *[])
   select.Fill(itk::LBFGSBOptimizerv4::BOTHBOUNDED);
 
   itkOptimizer->SetLowerBound(lower);
+  ITK_TEST_SET_GET_VALUE(lower, itkOptimizer->GetLowerBound());
+
   itkOptimizer->SetUpperBound(upper);
+  ITK_TEST_SET_GET_VALUE(upper, itkOptimizer->GetUpperBound());
+
   itkOptimizer->SetBoundSelection(select);
+  ITK_TEST_SET_GET_VALUE(select, itkOptimizer->GetBoundSelection());
 
-  itkOptimizer->Print(std::cout);
+  ITK_TEST_EXPECT_TRUE(!itkOptimizer->CanUseScales());
 
-  EventChecker::Pointer eventChecker = EventChecker::New();
+  auto eventChecker = EventChecker::New();
   itkOptimizer->AddObserver(itk::StartEvent(), eventChecker);
   itkOptimizer->AddObserver(itk::IterationEvent(), eventChecker);
   itkOptimizer->AddObserver(itk::EndEvent(), eventChecker);
 
-  try
-  {
-    itkOptimizer->StartOptimization();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception thrown ! " << std::endl;
-    std::cerr << "An error occurred during Optimization" << std::endl;
-    std::cerr << "Location    = " << e.GetLocation() << std::endl;
-    std::cerr << "Description = " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(itkOptimizer->StartOptimization());
+
 
   const OptimizerType::ParametersType & finalPosition = itkOptimizer->GetCurrentPosition();
 
-  std::cout << "Solution = (" << finalPosition[0] << "," << finalPosition[1] << ")" << std::endl;
+  std::cout << "Solution = (" << finalPosition[0] << ',' << finalPosition[1] << ')' << std::endl;
   std::cout << "Final Function Value = " << itkOptimizer->GetValue() << std::endl;
 
   std::cout << "Infinity Norm of Projected Gradient = " << itkOptimizer->GetInfinityNormOfProjectedGradient()
             << std::endl;
   std::cout << "End condition   = " << itkOptimizer->GetStopConditionDescription() << std::endl;
-  std::cout << "Trace   = " << itkOptimizer->GetTrace() << std::endl;
-  std::cout << "metricConvergenceFactor   = " << itkOptimizer->GetCostFunctionConvergenceFactor() << std::endl;
-  std::cout << "ProjectedGradientTolerance   = " << itkOptimizer->GetGradientConvergenceTolerance() << std::endl;
-  std::cout << "NumberOfIterations   = " << itkOptimizer->GetNumberOfIterations() << std::endl;
-  std::cout << "MaximumNumberOfEvaluations   = " << itkOptimizer->GetMaximumNumberOfFunctionEvaluations() << std::endl;
-  std::cout << "MaximumNumberOfCorrections   = " << itkOptimizer->GetMaximumNumberOfCorrections() << std::endl;
   std::cout << "CurrentOfIterations  = " << itkOptimizer->GetCurrentIteration() << std::endl;
 
   if (!eventChecker->GetHadStartEvent())
@@ -384,20 +390,10 @@ itkLBFGSBOptimizerv4Test(int, char *[])
   metric->SetParameters(initialValue);
   itkOptimizer->SetNumberOfIterations(1);
 
-  try
-  {
-    itkOptimizer->StartOptimization();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception thrown ! " << std::endl;
-    std::cerr << "An error occurred during Optimization" << std::endl;
-    std::cerr << "Location    = " << e.GetLocation() << std::endl;
-    std::cerr << "Description = " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(itkOptimizer->StartOptimization());
 
-  std::cout << "Solution        = (" << finalPosition[0] << "," << finalPosition[1] << ")" << std::endl;
+
+  std::cout << "Solution        = (" << finalPosition[0] << ',' << finalPosition[1] << ')' << std::endl;
   std::cout << "NumberOfIterations  = " << itkOptimizer->GetCurrentIteration() << std::endl;
 
   if (itkOptimizer->GetCurrentIteration() != 1)
@@ -420,7 +416,7 @@ itkLBFGSBOptimizerv4Test(int, char *[])
   //
   std::cout << std::endl << "Test in unbounded mode:" << std::endl;
 
-  OptimizerType::Pointer itkOptimizer2 = OptimizerType::New();
+  auto itkOptimizer2 = OptimizerType::New();
 
   // Set up boundary conditions
   select.Fill(0);
@@ -442,25 +438,15 @@ itkLBFGSBOptimizerv4Test(int, char *[])
   itkOptimizer2->AddObserver(itk::IterationEvent(), eventChecker);
   itkOptimizer2->AddObserver(itk::EndEvent(), eventChecker);
 
-  try
-  {
-    itkOptimizer2->StartOptimization();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception thrown ! " << std::endl;
-    std::cerr << "An error occurred during Optimization" << std::endl;
-    std::cerr << "Location    = " << e.GetLocation() << std::endl;
-    std::cerr << "Description = " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(itkOptimizer2->StartOptimization());
+
 
   std::cout << "Boundaries after optimization: " << std::endl;
   std::cout << "Upper bound size: " << itkOptimizer2->GetUpperBound().size() << std::endl;
   std::cout << "Lower bound size: " << itkOptimizer2->GetLowerBound().size() << std::endl;
 
   const OptimizerType::ParametersType & finalPosition2 = itkOptimizer2->GetCurrentPosition();
-  std::cout << "Solution = (" << finalPosition2[0] << "," << finalPosition2[1] << ")" << std::endl;
+  std::cout << "Solution = (" << finalPosition2[0] << ',' << finalPosition2[1] << ')' << std::endl;
   std::cout << "Final Function Value = " << itkOptimizer2->GetValue() << std::endl;
 
   // check results

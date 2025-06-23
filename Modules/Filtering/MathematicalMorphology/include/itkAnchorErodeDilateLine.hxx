@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,17 @@
 #ifndef itkAnchorErodeDilateLine_hxx
 #define itkAnchorErodeDilateLine_hxx
 
-#include "itkAnchorErodeDilateLine.h"
 
 namespace itk
 {
 template <typename TInputPix, typename TCompare>
-AnchorErodeDilateLine<TInputPix, TCompare>::AnchorErodeDilateLine()
-{
-  m_Size = 2;
-}
+AnchorErodeDilateLine<TInputPix, TCompare>::AnchorErodeDilateLine() = default;
 
 template <typename TInputPix, typename TCompare>
 void
 AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buffer,
                                                    std::vector<TInputPix> & inbuffer,
-                                                   unsigned                 bufflength)
+                                                   unsigned int             bufflength)
 {
   // TCompare will be < for erosions
   // TFunction2 will be <=
@@ -48,7 +44,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
     // This is important when operating near the corner of images with
     // angled structuring elements
     InputImagePixelType Extreme = inbuffer[0];
-    for (unsigned i = 0; i < bufflength; i++)
+    for (unsigned int i = 0; i < bufflength; ++i)
     {
       if (StrictCompare(Extreme, inbuffer[i]))
       {
@@ -56,26 +52,27 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
       }
     }
 
-    for (unsigned i = 0; i < bufflength; i++)
+    for (unsigned int i = 0; i < bufflength; ++i)
     {
       buffer[i] = Extreme;
     }
     return;
   }
 
-  int middle = (int)m_Size / 2;
+  const int middle = static_cast<int>(m_Size) / 2;
 
-  int                 outLeftP = 0, outRightP = (int)bufflength - 1;
-  int                 inLeftP = 0, inRightP = (int)bufflength - 1;
-  InputImagePixelType Extreme;
-  HistogramType       histo;
+  int           outLeftP = 0;
+  int           outRightP = static_cast<int>(bufflength) - 1;
+  int           inLeftP = 0;
+  int           inRightP = static_cast<int>(bufflength) - 1;
+  HistogramType histo;
   if (bufflength <= m_Size)
   {
     // basically a standard histogram method
     // Left border, first half of structuring element
-    Extreme = inbuffer[inLeftP];
+    InputImagePixelType Extreme = inbuffer[inLeftP];
     histo.AddPixel(Extreme);
-    for (int i = 0; (i < middle); i++)
+    for (int i = 0; (i < middle); ++i)
     {
       ++inLeftP;
       histo.AddPixel(inbuffer[inLeftP]);
@@ -87,11 +84,11 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
     buffer[outLeftP] = Extreme;
 
     // Second half of SE
-    for (int i = 0; i < (int)m_Size - middle - 1; i++)
+    for (int i = 0; i < static_cast<int>(m_Size) - middle - 1; ++i)
     {
       ++inLeftP;
       ++outLeftP;
-      if (inLeftP < (int)bufflength)
+      if (inLeftP < static_cast<int>(bufflength))
       {
         histo.AddPixel(inbuffer[inLeftP]);
         if (StrictCompare(inbuffer[inLeftP], Extreme))
@@ -102,9 +99,9 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
       buffer[outLeftP] = Extreme;
     }
     // now finish
-    outLeftP++;
+    ++outLeftP;
     int left = 0;
-    for (; outLeftP < (int)bufflength; outLeftP++, left++)
+    for (; outLeftP < static_cast<int>(bufflength); outLeftP++, left++)
     {
       histo.RemovePixel(inbuffer[left]);
       Extreme = histo.GetValue();
@@ -114,9 +111,9 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
   }
 
   // Left border, first half of structuring element
-  Extreme = inbuffer[inLeftP];
+  InputImagePixelType Extreme = inbuffer[inLeftP];
   histo.AddPixel(Extreme);
-  for (int i = 0; (i < middle); i++)
+  for (int i = 0; (i < middle); ++i)
   {
     ++inLeftP;
     histo.AddPixel(inbuffer[inLeftP]);
@@ -128,7 +125,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
   buffer[outLeftP] = Extreme;
 
   // Second half of SE
-  for (int i = 0; i < (int)m_Size - middle - 1; i++)
+  for (int i = 0; i < static_cast<int>(m_Size) - middle - 1; ++i)
   {
     ++inLeftP;
     ++outLeftP;
@@ -145,7 +142,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::DoLine(std::vector<TInputPix> & buff
     ++inLeftP;
     ++outLeftP;
 
-    histo.RemovePixel(inbuffer[inLeftP - (int)m_Size]);
+    histo.RemovePixel(inbuffer[inLeftP - static_cast<int>(m_Size)]);
     histo.AddPixel(inbuffer[inLeftP]);
     Extreme = histo.GetValue();
     buffer[outLeftP] = Extreme;
@@ -171,9 +168,9 @@ AnchorErodeDilateLine<TInputPix, TCompare>::StartLine(std::vector<TInputPix> & b
                                                       int                      itkNotUsed(middle))
 {
   // This returns true to indicate return to startLine label in pseudo
-  // code, and false to indicate finshLine
+  // code, and false to indicate finishLine
   int currentP = inLeftP + 1;
-  int sentinel;
+  int sentinel = 0;
 
   while ((currentP < inRightP) && Compare(inbuffer[currentP], Extreme))
   {
@@ -184,7 +181,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::StartLine(std::vector<TInputPix> & b
   }
   inLeftP = currentP - 1;
 
-  sentinel = inLeftP + (int)m_Size;
+  sentinel = inLeftP + static_cast<int>(m_Size);
   if (sentinel > inRightP)
   {
     // finish
@@ -221,43 +218,39 @@ AnchorErodeDilateLine<TInputPix, TCompare>::StartLine(std::vector<TInputPix> & b
     inLeftP = currentP;
     return (true);
   }
-  else
+
+  // Now we need a histogram
+  // Initialise it
+  ++outLeftP;
+  ++inLeftP;
+  for (int aux = inLeftP; aux <= currentP; ++aux)
   {
-    // Now we need a histogram
-    // Initialise it
-    ++outLeftP;
-    ++inLeftP;
-    for (int aux = inLeftP; aux <= currentP; ++aux)
-    {
-      histo.AddPixel(inbuffer[aux]);
-    }
-    Extreme = histo.GetValue();
-    buffer[outLeftP] = Extreme;
+    histo.AddPixel(inbuffer[aux]);
   }
+  Extreme = histo.GetValue();
+  buffer[outLeftP] = Extreme;
 
   while (currentP < inRightP)
   {
     ++currentP;
     if (Compare(inbuffer[currentP], Extreme))
     {
-      // Found a new extrem
+      // Found a new extreme
       Extreme = inbuffer[currentP];
       ++outLeftP;
       buffer[outLeftP] = Extreme;
       inLeftP = currentP;
       return (true);
     }
-    else
-    {
-      // update histogram
-      histo.AddPixel(inbuffer[currentP]);
-      histo.RemovePixel(inbuffer[inLeftP]);
-      // find extreme
-      Extreme = histo.GetValue();
-      ++inLeftP;
-      ++outLeftP;
-      buffer[outLeftP] = Extreme;
-    }
+
+    // update histogram
+    histo.AddPixel(inbuffer[currentP]);
+    histo.RemovePixel(inbuffer[inLeftP]);
+    // find extreme
+    Extreme = histo.GetValue();
+    ++inLeftP;
+    ++outLeftP;
+    buffer[outLeftP] = Extreme;
   }
   return (false);
 }
@@ -279,7 +272,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::FinishLine(std::vector<TInputPix> & 
   Extreme = inbuffer[inRightP];
   histo.AddPixel(Extreme);
 
-  for (int i = 0; i < middle; i++)
+  for (int i = 0; i < middle; ++i)
   {
     --inRightP;
     histo.AddPixel(inbuffer[inRightP]);
@@ -290,7 +283,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::FinishLine(std::vector<TInputPix> & 
   }
   buffer[outRightP] = Extreme;
   // second half of SE
-  for (int i = 0; (i < (int)m_Size - middle - 1) && (outLeftP < outRightP); i++)
+  for (int i = 0; (i < static_cast<int>(m_Size) - middle - 1) && (outLeftP < outRightP); ++i)
   {
     --inRightP;
     --outRightP;
@@ -306,7 +299,7 @@ AnchorErodeDilateLine<TInputPix, TCompare>::FinishLine(std::vector<TInputPix> & 
   {
     --inRightP;
     --outRightP;
-    histo.RemovePixel(inbuffer[inRightP + (int)m_Size]);
+    histo.RemovePixel(inbuffer[inRightP + static_cast<int>(m_Size)]);
     histo.AddPixel(inbuffer[inRightP]);
     if (StrictCompare(inbuffer[inRightP], Extreme))
     {

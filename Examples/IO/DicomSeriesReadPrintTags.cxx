@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +57,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -73,7 +73,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageSeriesReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -85,7 +85,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using ImageIOType = itk::GDCMImageIO;
 
-  ImageIOType::Pointer dicomIO = ImageIOType::New();
+  auto dicomIO = ImageIOType::New();
 
   reader->SetImageIO(dicomIO);
   // Software Guide : EndCodeSnippet
@@ -103,7 +103,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using NamesGeneratorType = itk::GDCMSeriesFileNames;
 
-  NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+  auto nameGenerator = NamesGeneratorType::New();
 
   nameGenerator->SetInputDirectory(argv[1]);
   // Software Guide : EndCodeSnippet
@@ -119,7 +119,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using FileNamesContainer = std::vector<std::string>;
-  FileNamesContainer fileNames = nameGenerator->GetInputFileNames();
+  const FileNamesContainer fileNames = nameGenerator->GetInputFileNames();
 
   reader->SetFileNames(fileNames);
   // Software Guide : EndCodeSnippet
@@ -212,15 +212,15 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   while (itr != end)
   {
-    itk::MetaDataObjectBase::Pointer entry = itr->second;
+    const itk::MetaDataObjectBase::Pointer entry = itr->second;
 
-    MetaDataStringType::Pointer entryvalue =
+    const MetaDataStringType::Pointer entryvalue =
       dynamic_cast<MetaDataStringType *>(entry.GetPointer());
 
     if (entryvalue)
     {
-      std::string tagkey = itr->first;
-      std::string tagvalue = entryvalue->GetMetaDataObjectValue();
+      const std::string tagkey = itr->first;
+      const std::string tagvalue = entryvalue->GetMetaDataObjectValue();
       std::cout << tagkey << " = " << tagvalue << std::endl;
     }
 
@@ -238,7 +238,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  std::string entryId = "0010|0010";
+  const std::string entryId = "0010|0010";
 
   auto tagItr = dictionary.Find(entryId);
 
@@ -260,12 +260,12 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MetaDataStringType::ConstPointer entryvalue =
+  const MetaDataStringType::ConstPointer entryvalue =
     dynamic_cast<const MetaDataStringType *>(tagItr->second.GetPointer());
 
   if (entryvalue)
   {
-    std::string tagvalue = entryvalue->GetMetaDataObjectValue();
+    const std::string tagvalue = entryvalue->GetMetaDataObjectValue();
     std::cout << "Patient's Name (" << entryId << ") ";
     std::cout << " is: " << tagvalue << std::endl;
   }

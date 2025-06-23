@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkJointHistogramMutualInformationComputeJointPDFThreader_hxx
 #define itkJointHistogramMutualInformationComputeJointPDFThreader_hxx
 
-#include "itkJointHistogramMutualInformationComputeJointPDFThreader.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
@@ -33,8 +32,7 @@ JointHistogramMutualInformationComputeJointPDFThreader<
   VirtualPointType virtualPoint;
   VirtualIndexType virtualIndex;
   using IteratorType = ImageRegionConstIteratorWithIndex<VirtualImageType>;
-  IteratorType it(this->m_Associate->GetVirtualImage(), imageSubRegion);
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  for (IteratorType it(this->m_Associate->GetVirtualImage(), imageSubRegion); !it.IsAtEnd(); ++it)
   {
     virtualIndex = it.GetIndex();
     this->m_Associate->TransformVirtualIndexToPhysicalPoint(virtualIndex, virtualPoint);

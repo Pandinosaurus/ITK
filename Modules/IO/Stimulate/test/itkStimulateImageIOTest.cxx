@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,7 @@ itkStimulateImageIOTest(int argc, char * argv[])
   size[0] = 128;
   size[1] = 64;
 
-  itk::RandomImageSource<FloatImageType>::Pointer random;
-  random = itk::RandomImageSource<FloatImageType>::New();
+  const itk::RandomImageSource<FloatImageType>::Pointer random = itk::RandomImageSource<FloatImageType>::New();
   random->SetMin(0.0);
   random->SetMax(1.0);
   random->SetSize(size);
@@ -55,12 +54,16 @@ itkStimulateImageIOTest(int argc, char * argv[])
   // Create a mapper (in this case a writer). A mapper
   // is templated on the input type.
   //
-  itk::StimulateImageIO::Pointer sprIO;
-  sprIO = itk::StimulateImageIO::New();
+  const itk::StimulateImageIO::Pointer sprIO = itk::StimulateImageIO::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(sprIO, StimulateImageIO, ImageIOBase);
+
+
+  // Not used; empty method body; called for coverage purposes
+  sprIO->WriteImageInformation();
 
   // Write out the image
-  itk::ImageFileWriter<FloatImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<FloatImageType>::New();
+  const itk::ImageFileWriter<FloatImageType>::Pointer writer = itk::ImageFileWriter<FloatImageType>::New();
   writer->SetInput(random->GetOutput());
   writer->SetFileName(argv[1]);
   writer->SetImageIO(sprIO);
@@ -74,8 +77,7 @@ itkStimulateImageIOTest(int argc, char * argv[])
   try
   {
     // Create a source object (in this case a reader)
-    itk::ImageFileReader<FloatImageType>::Pointer reader;
-    reader = itk::ImageFileReader<FloatImageType>::New();
+    const itk::ImageFileReader<FloatImageType>::Pointer reader = itk::ImageFileReader<FloatImageType>::New();
     reader->SetImageIO(sprIO);
     reader->SetFileName(argv[1]);
     reader->Update();

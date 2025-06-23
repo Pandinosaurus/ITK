@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,9 +35,8 @@ namespace itk
  * This transform is especially useful for normalizing a convolution
  * kernel.
  *
- * This code was contributed in the Insight Journal paper: "FFT based
- * convolution" by Lehmann G.
- * http://insight-journal.org/browse/publication/717
+ * This code was contributed in the Insight Journal paper
+ * \cite Lehmann_2010_b.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -89,19 +88,16 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(NormalizeToConstantImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalizeToConstantImageFilter);
 
   /** Set/get the normalization constant. */
+  /** @ITKStartGrouping */
   itkSetMacro(Constant, RealType);
   itkGetConstMacro(Constant, RealType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputHasPixelTraitsCheck, (Concept::HasPixelTraits<InputImagePixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   NormalizeToConstantImageFilter();
@@ -116,7 +112,7 @@ protected:
   GenerateData() override;
 
 private:
-  RealType m_Constant;
+  RealType m_Constant{};
 
 }; // end of class
 } // end namespace itk

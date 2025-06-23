@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,32 +46,35 @@ itkStatisticsImageFilterTest(int argc, char * argv[])
 
   itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->SetSeed(987);
 
-  FloatImage::Pointer    image = FloatImage::New();
-  FloatImage::RegionType region;
-  FloatImage::SizeType   size;
-  size.Fill(64);
-  FloatImage::IndexType index;
-  index.Fill(0);
+  auto                            image = FloatImage::New();
+  FloatImage::RegionType          region;
+  auto                            size = FloatImage::SizeType::Filled(64);
+  constexpr FloatImage::IndexType index{};
 
   region.SetIndex(index);
   region.SetSize(size);
 
   // first try a constant image
-  float fillValue = -100.0;
+  constexpr float fillValue = -100.0;
   image->SetRegions(region);
   image->Allocate();
   image->FillBuffer(static_cast<FloatImage::PixelType>(fillValue));
 
-  float sum = fillValue * static_cast<float>(region.GetNumberOfPixels());
-  float sumOfSquares = std::pow(fillValue, 2.0) * static_cast<float>(region.GetNumberOfPixels());
+  const float sum = fillValue * static_cast<float>(region.GetNumberOfPixels());
+  const float sumOfSquares = std::pow(fillValue, 2.0) * static_cast<float>(region.GetNumberOfPixels());
 
   using FilterType = itk::StatisticsImageFilter<FloatImage>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher filterWatch(filter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, StatisticsImageFilter, ImageSink);
+
+
+  const itk::SimpleFilterWatcher filterWatch(filter);
+
+  filter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
+  ITK_TEST_SET_GET_VALUE(numberOfStreamDivisions, filter->GetNumberOfStreamDivisions());
 
   filter->SetInput(image);
-  filter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
@@ -112,13 +115,13 @@ itkStatisticsImageFilterTest(int argc, char * argv[])
   // Now generate a real image
 
   using SourceType = itk::RandomImageSource<FloatImage>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
   FloatImage::SizeValueType randomSize[3] = { 17, 8, 241 };
 
   source->SetSize(randomSize);
-  float minValue = -100.0;
-  float maxValue = 1000.0;
+  constexpr float minValue = -100.0;
+  constexpr float maxValue = 1000.0;
 
   source->SetMin(static_cast<FloatImage::PixelType>(minValue));
   source->SetMax(static_cast<FloatImage::PixelType>(maxValue));
@@ -127,8 +130,8 @@ itkStatisticsImageFilterTest(int argc, char * argv[])
   filter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->UpdateLargestPossibleRegion());
 
-  double expectedSigma = std::sqrt((maxValue - minValue) * (maxValue - minValue) / 12.0);
-  double epsilon = (maxValue - minValue) * .001;
+  const double     expectedSigma = std::sqrt((maxValue - minValue) * (maxValue - minValue) / 12.0);
+  constexpr double epsilon = (maxValue - minValue) * .001;
 
   if (itk::Math::abs(filter->GetSigma() - expectedSigma) > epsilon)
   {
@@ -136,13 +139,13 @@ itkStatisticsImageFilterTest(int argc, char * argv[])
   }
 
   // Now generate an image with a known mean and variance
-  itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer rvgen =
+  const itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer rvgen =
     itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance();
-  double knownMean = 12.0;
-  double knownVariance = 10.0;
+  constexpr double knownMean = 12.0;
+  constexpr double knownVariance = 10.0;
 
   using DoubleImage = itk::Image<double, 3>;
-  DoubleImage::Pointer    dImage = DoubleImage::New();
+  auto                    dImage = DoubleImage::New();
   DoubleImage::SizeType   dsize;
   DoubleImage::IndexType  dindex;
   DoubleImage::RegionType dregion;
@@ -159,13 +162,13 @@ itkStatisticsImageFilterTest(int argc, char * argv[])
     ++it;
   }
   using DFilterType = itk::StatisticsImageFilter<DoubleImage>;
-  DFilterType::Pointer dfilter = DFilterType::New();
+  auto dfilter = DFilterType::New();
   dfilter->SetInput(dImage);
   dfilter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
   ITK_TRY_EXPECT_NO_EXCEPTION(dfilter->UpdateLargestPossibleRegion());
-  double testMean = dfilter->GetMean();
-  double testVariance = dfilter->GetVariance();
-  double diff = itk::Math::abs(testMean - knownMean);
+  const double testMean = dfilter->GetMean();
+  const double testVariance = dfilter->GetVariance();
+  double       diff = itk::Math::abs(testMean - knownMean);
   if ((diff != 0.0 && knownMean != 0.0) && diff / itk::Math::abs(knownMean) > .01)
   {
     std::cout << "Expected mean is " << knownMean << ", computed mean is " << testMean << std::endl;

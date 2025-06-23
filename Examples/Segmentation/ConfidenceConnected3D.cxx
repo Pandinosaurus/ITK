@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,32 +58,21 @@ main(int argc, char * argv[])
 
   using CastingFilterType =
     itk::CastImageFilter<InternalImageType, OutputImageType>;
-  CastingFilterType::Pointer caster = CastingFilterType::New();
+  auto caster = CastingFilterType::New();
 
-
-  using ReaderType = itk::ImageFileReader<InternalImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
+  const auto input = itk::ReadImage<InternalImageType>(argv[1]);
 
   using CurvatureFlowImageFilterType =
     itk::CurvatureFlowImageFilter<InternalImageType, InternalImageType>;
-  CurvatureFlowImageFilterType::Pointer smoothing =
-    CurvatureFlowImageFilterType::New();
+  auto smoothing = CurvatureFlowImageFilterType::New();
 
   using ConnectedFilterType =
     itk::ConfidenceConnectedImageFilter<InternalImageType, InternalImageType>;
-  ConnectedFilterType::Pointer confidenceConnected =
-    ConnectedFilterType::New();
+  auto confidenceConnected = ConnectedFilterType::New();
 
-  smoothing->SetInput(reader->GetOutput());
+  smoothing->SetInput(input);
   confidenceConnected->SetInput(smoothing->GetOutput());
   caster->SetInput(confidenceConnected->GetOutput());
-  writer->SetInput(caster->GetOutput());
 
   smoothing->SetNumberOfIterations(2);
   smoothing->SetTimeStep(0.05);
@@ -125,7 +114,7 @@ main(int argc, char * argv[])
 
   try
   {
-    writer->Update();
+    itk::WriteImage(caster->GetOutput(), argv[2]);
   }
   catch (const itk::ExceptionObject & excep)
   {

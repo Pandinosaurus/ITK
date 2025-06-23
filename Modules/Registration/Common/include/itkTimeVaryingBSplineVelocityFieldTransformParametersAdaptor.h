@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,8 +78,8 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TimeVaryingBSplineVelocityFieldTransformParametersAdaptor, TransformParametersAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TimeVaryingBSplineVelocityFieldTransformParametersAdaptor);
 
   /** Typedefs associated with the transform */
   using TransformType = TTransform;
@@ -152,7 +152,7 @@ public:
   GetRequiredControlPointLatticeOrigin() const
   {
     OriginType requiredLatticeOrigin;
-    for (SizeValueType i = 0; i < TotalDimension; i++)
+    for (SizeValueType i = 0; i < TotalDimension; ++i)
     {
       requiredLatticeOrigin[i] = this->m_RequiredFixedParameters[TotalDimension + i];
     }
@@ -164,9 +164,9 @@ public:
   GetRequiredControlPointLatticeSpacing() const
   {
     SpacingType requiredLatticeSpacing;
-    for (SizeValueType i = 0; i < TotalDimension; i++)
+    for (SizeValueType i = 0; i < TotalDimension; ++i)
     {
-      FixedParametersValueType domainPhysicalDimensions =
+      const FixedParametersValueType domainPhysicalDimensions =
         static_cast<FixedParametersValueType>(this->m_RequiredTransformDomainSize[i] - 1.0) *
         this->m_RequiredTransformDomainSpacing[i];
       requiredLatticeSpacing[i] =
@@ -180,7 +180,7 @@ public:
   GetRequiredControlPointLatticeSize() const
   {
     SizeType requiredLatticeSize;
-    for (SizeValueType i = 0; i < TotalDimension; i++)
+    for (SizeValueType i = 0; i < TotalDimension; ++i)
     {
       requiredLatticeSize[i] = static_cast<SizeValueType>(this->m_RequiredFixedParameters[i]);
     }
@@ -213,13 +213,13 @@ private:
   void
   UpdateRequiredFixedParameters();
 
-  MeshSizeType  m_RequiredTransformDomainMeshSize;
-  OriginType    m_RequiredTransformDomainOrigin;
-  DirectionType m_RequiredTransformDomainDirection;
-  SpacingType   m_RequiredTransformDomainSpacing;
-  SizeType      m_RequiredTransformDomainSize;
+  MeshSizeType  m_RequiredTransformDomainMeshSize{};
+  OriginType    m_RequiredTransformDomainOrigin{};
+  DirectionType m_RequiredTransformDomainDirection{};
+  SpacingType   m_RequiredTransformDomainSpacing{};
+  SizeType      m_RequiredTransformDomainSize{};
 
-  SizeValueType m_SplineOrder;
+  SizeValueType m_SplineOrder{};
 
 }; // class TimeVaryingBSplineVelocityFieldTransformParametersAdaptor
 } // namespace itk

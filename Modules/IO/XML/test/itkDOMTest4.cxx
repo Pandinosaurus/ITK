@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,23 +26,25 @@ because it is used here to verify the correctness of the query output.
 
 #include <iostream>
 #include "itkMacro.h"
+#include "itkTestingMacros.h"
 
 int
 itkDOMTest4(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "arguments expected: <test>.xml <QueryString> <GroundTruthPathString>" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <test>.xml <QueryString> <GroundTruthPathString>"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
   try
   {
     // read the DOM object from the input XML file
-    itk::DOMNodeXMLReader::Pointer reader = itk::DOMNodeXMLReader::New();
+    const itk::DOMNodeXMLReader::Pointer reader = itk::DOMNodeXMLReader::New();
     reader->SetFileName(argv[1]);
     reader->Update();
-    itk::DOMNode::Pointer dom = reader->GetOutput();
+    const itk::DOMNode::Pointer dom = reader->GetOutput();
 
     std::string sQueryString = argv[2];
     // itk_add_test has problem to supply an empty string, so we use a special string

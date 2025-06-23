@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ RunTest(int argc, char * argv[])
   using InImageType = itk::Image<InputImagePixelType, Dimension>;
   using ReaderType = itk::ImageFileReader<InImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[2]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
@@ -42,11 +42,11 @@ RunTest(int argc, char * argv[])
   using OutImageType = itk::Image<OutPixelType, Dimension>;
   using WriterType = itk::ImageFileWriter<OutImageType>;
 
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
 
   using FilterType = itk::UnsharpMaskImageFilter<InImageType, OutImageType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // this does not work from within a templated method (GCC gives an error)
   // ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, UnsharpMaskImageFilter, ImageToImageFilter);
@@ -66,7 +66,7 @@ RunTest(int argc, char * argv[])
     filter->SetThreshold(std::stod(argv[6]));
   }
 
-  bool clamp = itk::NumericTraits<typename FilterType::OutputPixelType>::IsInteger;
+  const bool clamp = std::is_integral_v<typename FilterType::OutputPixelType>;
   filter->SetClamp(clamp);
   ITK_TEST_SET_GET_VALUE(clamp, filter->GetClamp());
 
@@ -98,7 +98,7 @@ itkUnsharpMaskImageFilterTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "Usage:\n itkUnsharpMaskImageFilterTest";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " float | uchar in.png out.nrrd [amount [sigma [threshold]]]" << std::endl;
     return EXIT_FAILURE;
   }

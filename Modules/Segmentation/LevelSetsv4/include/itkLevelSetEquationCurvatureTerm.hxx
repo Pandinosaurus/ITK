@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,13 @@
 #ifndef itkLevelSetEquationCurvatureTerm_hxx
 #define itkLevelSetEquationCurvatureTerm_hxx
 
-#include "itkLevelSetEquationCurvatureTerm.h"
 
 namespace itk
 {
 template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
 LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::LevelSetEquationCurvatureTerm()
 {
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     this->m_NeighborhoodScales[i] = 1.0;
   }
@@ -46,21 +45,20 @@ LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::SetC
 }
 
 template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
-typename LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::LevelSetOutputRealType
+auto
 LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::Value(const LevelSetInputIndexType & iP,
                                                                                   const LevelSetDataType &       iData)
+  -> LevelSetOutputRealType
 {
   // MeanCurvature has should be computed by this point.
-  itkAssertInDebugAndIgnoreInReleaseMacro(iData.MeanCurvature.m_Computed == true);
+  itkAssertInDebugAndIgnoreInReleaseMacro(iData.MeanCurvature.m_Computed);
 
   if (!m_UseCurvatureImage)
   {
     return iData.MeanCurvature.m_Value;
   }
-  else
-  {
-    return m_CurvatureImage->GetPixel(iP) * iData.MeanCurvature.m_Value;
-  }
+
+  return m_CurvatureImage->GetPixel(iP) * iData.MeanCurvature.m_Value;
 }
 
 template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
@@ -73,41 +71,22 @@ LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::Init
   {
     if (m_CurvatureImage.IsNull())
     {
-      itkGenericExceptionMacro(<< "m_UseCurvatureImage is true and m_CurvatureImage is null");
+      itkGenericExceptionMacro("m_UseCurvatureImage is true and m_CurvatureImage is null");
     }
   }
 }
 
 template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
-void
-LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::Initialize(const LevelSetInputIndexType &)
-{}
-
-template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
-void
-LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::Update()
-{}
-
-template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
-void
-LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::UpdatePixel(
-  const LevelSetInputIndexType & itkNotUsed(iP),
-  const LevelSetOutputRealType & itkNotUsed(oldValue),
-  const LevelSetOutputRealType & itkNotUsed(newValue))
-{}
-
-template <typename TInput, typename TLevelSetContainer, typename TCurvatureImage>
-typename LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::LevelSetOutputRealType
+auto
 LevelSetEquationCurvatureTerm<TInput, TLevelSetContainer, TCurvatureImage>::Value(const LevelSetInputIndexType & iP)
+  -> LevelSetOutputRealType
 {
   if (!m_UseCurvatureImage)
   {
     return this->m_CurrentLevelSetPointer->EvaluateMeanCurvature(iP);
   }
-  else
-  {
-    return m_CurvatureImage->GetPixel(iP) * this->m_CurrentLevelSetPointer->EvaluateMeanCurvature(iP);
-  }
+
+  return m_CurvatureImage->GetPixel(iP) * this->m_CurrentLevelSetPointer->EvaluateMeanCurvature(iP);
 }
 
 } // namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@
 #include "itkMetaDataObject.h"
 
 #include <iterator>
+#include <numeric>     // For iota.
+#include <type_traits> // For remove_const_t, remove_reference_t, etc.
 
 namespace
 {
@@ -36,7 +38,7 @@ createMetaDataDictionary()
 
   using ObjectType = itk::LightObject;
   using PointerType = typename ObjectType::Pointer;
-  PointerType obj = ObjectType::New();
+  const PointerType obj = ObjectType::New();
   itk::EncapsulateMetaData<PointerType>(metaDataDictionary, "object", obj);
 
   return metaDataDictionary;
@@ -72,9 +74,9 @@ TEST(MetaDataDictionary, Basic)
   EXPECT_NE(dic.Get("one"), nullptr);
   EXPECT_NE(dic.Get("two"), nullptr);
   EXPECT_NE(dic.Get("object"), nullptr);
-  EXPECT_THROW(dic.Get("three"), itk::ExceptionObject);
-  EXPECT_THROW(dic.Get(""), itk::ExceptionObject);
-  EXPECT_THROW(dic.Get("ONE"), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novalue = dic.Get("three"), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novlaue = dic.Get(""), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novalue = dic.Get("ONE"), itk::ExceptionObject);
 
   EXPECT_EQ(dic.GetKeys().size(), 3u);
 
@@ -141,9 +143,9 @@ TEST(MetaDataDictionary, ConstBasic)
   EXPECT_NE(cdic.Get("one"), nullptr);
   EXPECT_NE(cdic.Get("two"), nullptr);
   EXPECT_NE(cdic.Get("object"), nullptr);
-  EXPECT_THROW(cdic.Get("three"), itk::ExceptionObject);
-  EXPECT_THROW(cdic.Get(""), itk::ExceptionObject);
-  EXPECT_THROW(cdic.Get("ONE"), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novalue = cdic.Get("three"), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novalue = cdic.Get(""), itk::ExceptionObject);
+  EXPECT_THROW([[maybe_unused]] auto novalue = cdic.Get("ONE"), itk::ExceptionObject);
 
   EXPECT_EQ(cdic.GetKeys().size(), 3u);
 
@@ -251,4 +253,103 @@ TEST(MetaDataDictionary, CopyOnWrite)
     itk::ExposeMetaData<float>(dic_copy, "one", f);
     EXPECT_EQ(f, 1.0f);
   }
+}
+
+
+TEST(MetaDataDictionary, Equal)
+{
+  const auto expectEqual = [](const itk::MetaDataDictionary & object1, const itk::MetaDataDictionary & object2) {
+    // Test that equal objects can be used as arguments to GoogleTest EXPECT_EQ.
+    EXPECT_EQ(object1, object2);
+    EXPECT_EQ(object2, object1);
+
+    // Test symmetry, as well as consistency between equal and unequal.
+    EXPECT_TRUE(object1 == object2);
+    EXPECT_TRUE(object2 == object1);
+    EXPECT_FALSE(object1 != object2);
+    EXPECT_FALSE(object2 != object1);
+  };
+
+  const auto expectUnequal = [](const itk::MetaDataDictionary & object1, const itk::MetaDataDictionary & object2) {
+    // Test that unequal objects can be used as arguments to GoogleTest EXPECT_NE.
+    EXPECT_NE(object1, object2);
+    EXPECT_NE(object2, object1);
+
+    // Test symmetry, as well as consistency between equal and unequal.
+    EXPECT_TRUE(object1 != object2);
+    EXPECT_TRUE(object2 != object1);
+    EXPECT_FALSE(object1 == object2);
+    EXPECT_FALSE(object2 == object1);
+  };
+
+  const itk::MetaDataDictionary defaultMetaDataDictionary{};
+
+  expectEqual(defaultMetaDataDictionary, {});
+
+  const auto createMetaDataDictionary = [](const int value) {
+    itk::MetaDataDictionary metaDataDictionary;
+    itk::EncapsulateMetaData(metaDataDictionary, "key", value);
+    return metaDataDictionary;
+  };
+
+  const auto metaDataDictionary1 = createMetaDataDictionary(1);
+  const auto metaDataDictionary2 = createMetaDataDictionary(2);
+
+  expectEqual(metaDataDictionary1, metaDataDictionary1);
+  expectEqual(metaDataDictionary2, metaDataDictionary2);
+  expectEqual(metaDataDictionary1, createMetaDataDictionary(1));
+  expectEqual(metaDataDictionary2, createMetaDataDictionary(2));
+
+  expectUnequal(metaDataDictionary1, metaDataDictionary2);
+  expectUnequal(metaDataDictionary1, defaultMetaDataDictionary);
+  expectUnequal(metaDataDictionary2, defaultMetaDataDictionary);
+}
+
+
+TEST(MetaDataDictionary, SupportsCStyleArrays)
+{
+  itk::MetaDataDictionary dictionary;
+
+  const auto check = [&dictionary](const auto & value) {
+    using ValueType = std::remove_const_t<std::remove_reference_t<decltype(value)>>;
+
+    const std::string key = "key";
+    itk::EncapsulateMetaData(dictionary, key, value);
+    const itk::MetaDataObjectBase * const base = dictionary.Get(key);
+    ASSERT_NE(base, nullptr);
+
+    const auto * const actualDataObject = dynamic_cast<const itk::MetaDataObject<ValueType> *>(base);
+    ASSERT_NE(actualDataObject, nullptr);
+
+    const ValueType & actualValue = actualDataObject->GetMetaDataObjectValue();
+
+    // itk::EncapsulateMetaData is expected to make a _copy_ of the input value. So it should not just store a reference
+    // to that value.
+    EXPECT_NE(&actualValue, &value);
+
+    const auto expectedDataObject = itk::MetaDataObject<ValueType>::New();
+    ASSERT_NE(expectedDataObject, nullptr);
+    expectedDataObject->SetMetaDataObjectValue(value);
+
+    // The value from the dictionary is expected to compare equal to the original input value.
+    EXPECT_EQ(*actualDataObject, *expectedDataObject);
+  };
+
+  for (const int i : { 0, 1 })
+  {
+    // Check a simple C-style array.
+    const int simpleArray[] = { i, 1 - i };
+    check(simpleArray);
+  }
+
+  // Check a two-dimensional array.
+  constexpr size_t numberOfRows{ 3 };
+  constexpr size_t numberOfColumns{ 4 };
+  int              twoDimensionalArray[numberOfRows][numberOfColumns];
+
+  // Just ensure that each element of the two-dimentional array has a different value.
+  int * const beginOfData = &(twoDimensionalArray[0][0]);
+  std::iota(beginOfData, beginOfData + numberOfRows * numberOfColumns, 1);
+
+  check(twoDimensionalArray);
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,9 +30,7 @@ using OutputFrameType = itk::Image<OutputPixelType, Dimension>;
 using OutputVideoType = itk::VideoStream<OutputFrameType>;
 using SizeValueType = itk::SizeValueType;
 
-namespace itk
-{
-namespace VideoToVideoFilterTest
+namespace itk::VideoToVideoFilterTest
 {
 
 /**
@@ -41,13 +39,11 @@ namespace VideoToVideoFilterTest
 InputFrameType::Pointer
 CreateInputFrame(InputPixelType val)
 {
-  InputFrameType::Pointer out = InputFrameType::New();
+  auto out = InputFrameType::New();
 
-  InputFrameType::RegionType largestRegion;
-  InputFrameType::SizeType   sizeLR;
-  InputFrameType::IndexType  startLR;
-
-  startLR.Fill(0);
+  InputFrameType::RegionType          largestRegion;
+  InputFrameType::SizeType            sizeLR;
+  constexpr InputFrameType::IndexType startLR{};
   sizeLR[0] = 50;
   sizeLR[1] = 40;
   largestRegion.SetSize(sizeLR);
@@ -68,7 +64,7 @@ CreateInputFrame(InputPixelType val)
 }
 
 /**
- *\class DummyVideoToVideoFilter
+ * \class DummyVideoToVideoFilter
  * \brief A simple implementation of VideoTOVideoFilter for the test
  */
 template <typename TInputVideoStream, typename TOutputVideoStream>
@@ -91,7 +87,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(DummyVideoToVideoFilter, VideoToVideoFilter);
+  itkOverrideGetNameOfClassMacro(DummyVideoToVideoFilter);
 
 protected:
   /** Constructor */
@@ -110,13 +106,13 @@ protected:
     const InputVideoStreamType * input = this->GetInput();
     OutputVideoStreamType *      output = this->GetOutput();
 
-    typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
-    SizeValueType                                      outputStart = outReqTempRegion.GetFrameStart();
-    SizeValueType                                      outputDuration = outReqTempRegion.GetFrameDuration();
+    const typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
+    const SizeValueType                                      outputStart = outReqTempRegion.GetFrameStart();
+    const SizeValueType                                      outputDuration = outReqTempRegion.GetFrameDuration();
 
-    typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
-    SizeValueType                                     inputStart = inReqTempRegion.GetFrameStart();
-    SizeValueType                                     inputDuration = inReqTempRegion.GetFrameDuration();
+    const typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
+    const SizeValueType                                     inputStart = inReqTempRegion.GetFrameStart();
+    const SizeValueType                                     inputDuration = inReqTempRegion.GetFrameDuration();
 
     // Print out your threadId
     std::cout << "Working on thread " << threadId << std::endl;
@@ -127,13 +123,13 @@ protected:
     // unit output sizes
     if (outputDuration != this->TemporalProcessObject::m_UnitOutputNumberOfFrames)
     {
-      itkExceptionMacro(<< "Trying to generate output of non-unit size. Got: " << outputDuration
-                        << " Expected: " << this->TemporalProcessObject::m_UnitOutputNumberOfFrames);
+      itkExceptionMacro("Trying to generate output of non-unit size. Got: "
+                        << outputDuration << " Expected: " << this->TemporalProcessObject::m_UnitOutputNumberOfFrames);
     }
     if (inputDuration < this->TemporalProcessObject::m_UnitInputNumberOfFrames)
     {
-      itkExceptionMacro(<< "Input buffered region smaller than unit size. Got: " << inputDuration
-                        << " Expected: " << this->TemporalProcessObject::m_UnitInputNumberOfFrames);
+      itkExceptionMacro("Input buffered region smaller than unit size. Got: "
+                        << inputDuration << " Expected: " << this->TemporalProcessObject::m_UnitInputNumberOfFrames);
     }
 
     // Get the two input frames and average them in the requested spatial region
@@ -148,7 +144,7 @@ protected:
     while (!outIter.IsAtEnd())
     {
       // Average input pixel values
-      OutputPixelType val = ((OutputPixelType)inIter0.Get() + (OutputPixelType)inIter1.Get()) / 2;
+      const OutputPixelType val = ((OutputPixelType)inIter0.Get() + (OutputPixelType)inIter1.Get()) / 2;
       outIter.Set(val);
       ++outIter;
       ++inIter0;
@@ -157,8 +153,7 @@ protected:
   }
 };
 
-} // end namespace VideoToVideoFilterTest
-} // end namespace itk
+} // namespace itk::VideoToVideoFilterTest
 
 /**
  * Test the basic functionality of temporal data objects
@@ -173,15 +168,15 @@ itkVideoToVideoFilterTest(int, char *[])
 
   // Instantiate a filter
   using VideoFilterType = itk::VideoToVideoFilterTest::DummyVideoToVideoFilter<InputVideoType, OutputVideoType>;
-  VideoFilterType::Pointer filter = VideoFilterType::New();
+  auto filter = VideoFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DummyVideoToVideoFilter, VideoToVideoFilter);
 
   // Set up an input video stream
-  InputVideoType::Pointer inputVideo = InputVideoType::New();
+  auto                    inputVideo = InputVideoType::New();
   itk::TemporalRegion     inputLargestTemporalRegion;
-  SizeValueType           inputStart = 0;
-  SizeValueType           inputDuration = 10;
+  constexpr SizeValueType inputStart = 0;
+  constexpr SizeValueType inputDuration = 10;
   inputLargestTemporalRegion.SetFrameStart(inputStart);
   inputLargestTemporalRegion.SetFrameDuration(inputDuration);
   inputVideo->SetLargestPossibleTemporalRegion(inputLargestTemporalRegion);
@@ -227,8 +222,8 @@ itkVideoToVideoFilterTest(int, char *[])
   std::cout << "Number of output buffers: " << filter->GetOutput()->GetNumberOfBuffers() << std::endl;
 
   // Make sure results are correct in the requested spatial region
-  SizeValueType outputStart = filter->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
-  SizeValueType outputDuration = filter->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
+  const SizeValueType outputStart = filter->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
+  const SizeValueType outputDuration = filter->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
   for (SizeValueType i = outputStart; i < outputStart + outputDuration; ++i)
   {
     std::cout << "Checking frame: " << i << std::endl;
@@ -236,8 +231,8 @@ itkVideoToVideoFilterTest(int, char *[])
     const OutputFrameType *                        frame = filter->GetOutput()->GetFrame(i);
     itk::ImageRegionConstIterator<OutputFrameType> iter(frame, frame->GetRequestedRegion());
 
-    OutputPixelType expectedVal = ((OutputPixelType)(i)-1.0 + (OutputPixelType)(i)) / 2.0;
-    OutputPixelType epsilon = .00001;
+    const OutputPixelType     expectedVal = ((OutputPixelType)(i)-1.0 + (OutputPixelType)(i)) / 2.0;
+    constexpr OutputPixelType epsilon = .00001;
     while (!iter.IsAtEnd())
     {
       if (iter.Get() < expectedVal - epsilon || iter.Get() > expectedVal + epsilon)
@@ -250,8 +245,7 @@ itkVideoToVideoFilterTest(int, char *[])
     }
 
     // Make sure nothing set outside of requested spatial region
-    OutputFrameType::IndexType idx;
-    idx.Fill(0);
+    constexpr OutputFrameType::IndexType idx{};
     if (frame->GetRequestedRegion().IsInside(idx))
     {
       std::cerr << "Filter set pixel outside of requested region" << std::endl;
@@ -270,8 +264,8 @@ itkVideoToVideoFilterTest(int, char *[])
   filter->UpdateOutputInformation();
 
   // Make sure the requested spatial regions are empty
-  SizeValueType startFrame = filter->GetOutput()->GetLargestPossibleTemporalRegion().GetFrameStart();
-  SizeValueType numFrames = filter->GetOutput()->GetLargestPossibleTemporalRegion().GetFrameDuration();
+  const SizeValueType startFrame = filter->GetOutput()->GetLargestPossibleTemporalRegion().GetFrameStart();
+  const SizeValueType numFrames = filter->GetOutput()->GetLargestPossibleTemporalRegion().GetFrameDuration();
   if (numFrames == 0)
   {
     std::cerr << "Output's largest possible temporal region not set correctly" << std::endl;

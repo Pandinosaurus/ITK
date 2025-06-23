@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,13 +44,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Method for defining the name of the class */
-  itkTypeMacro(RealTimeClock, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RealTimeClock);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Define the type for the timestap */
+  /** Define the type for the timestamp */
   using TimeStampType = double;
 
   /** Define the type for the frequency of the clock */
@@ -79,8 +79,8 @@ protected:
 
 private:
   FrequencyType m_Frequency{ 1 };
-  TimeStampType m_Difference;
-  TimeStampType m_Origin;
+  TimeStampType m_Difference{};
+  TimeStampType m_Origin{};
 
   // Returns a timestamp in a TimeStamp data structure.
   // We hide this method in the private section, because it returns the

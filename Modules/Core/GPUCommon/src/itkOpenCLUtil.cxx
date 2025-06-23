@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,9 +54,7 @@ OpenCLGetAvailableDevices(cl_platform_id platform, cl_device_type devType, cl_ui
   cl_uint        totalNumDevices;
 
   // get total # of devices
-  cl_int errid;
-
-  errid = clGetDeviceIDs(platform, devType, 0, nullptr, &totalNumDevices);
+  cl_int errid = clGetDeviceIDs(platform, devType, 0, nullptr, &totalNumDevices);
   OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
   auto * totalDevices = (cl_device_id *)malloc(totalNumDevices * sizeof(cl_device_id));
@@ -66,7 +64,7 @@ OpenCLGetAvailableDevices(cl_platform_id platform, cl_device_type devType, cl_ui
   (*numAvailableDevices) = 0;
 
   // check available devices
-  for (cl_uint i = 0; i < totalNumDevices; i++)
+  for (cl_uint i = 0; i < totalNumDevices; ++i)
   {
     cl_bool isAvailable;
     clGetDeviceInfo(totalDevices[i], CL_DEVICE_AVAILABLE, sizeof(cl_bool), &isAvailable, nullptr);
@@ -80,7 +78,7 @@ OpenCLGetAvailableDevices(cl_platform_id platform, cl_device_type devType, cl_ui
   availableDevices = (cl_device_id *)malloc((*numAvailableDevices) * sizeof(cl_device_id));
 
   int idx = 0;
-  for (cl_uint i = 0; i < totalNumDevices; i++)
+  for (cl_uint i = 0; i < totalNumDevices; ++i)
   {
     cl_bool isAvailable;
     clGetDeviceInfo(totalDevices[i], CL_DEVICE_AVAILABLE, sizeof(cl_bool), &isAvailable, nullptr);
@@ -336,7 +334,7 @@ OpenCLCheckError(cl_int error, const char * filename, int lineno, const char * l
       "CL_INVALID_GLOBAL_WORK_SIZE",
     };
     // print error message
-    const int          errorCount = sizeof(errorString) / sizeof(errorString[0]);
+    constexpr int      errorCount = std::size(errorString);
     const int          index = -error;
     std::ostringstream errorMsg;
 
@@ -348,7 +346,7 @@ OpenCLCheckError(cl_int error, const char * filename, int lineno, const char * l
     {
       errorMsg << "OpenCL Error : Unspecified Error" << std::endl;
     }
-    ::itk::ExceptionObject e_(filename, lineno, errorMsg.str().c_str(), location);
+    itk::ExceptionObject e_(filename, lineno, errorMsg.str().c_str(), location);
     throw e_;
   }
 }
@@ -360,7 +358,9 @@ IsGPUAvailable()
   cl_platform_id platformId = OpenCLSelectPlatform("NVIDIA");
 
   if (platformId == nullptr)
+  {
     return false;
+  }
 
   cl_device_type devType = CL_DEVICE_TYPE_GPU;
 
@@ -370,7 +370,9 @@ IsGPUAvailable()
   free(device_id);
 
   if (numDevices < 1)
+  {
     return false;
+  }
 
   return true;
 }
@@ -439,8 +441,7 @@ GetValidTypename(const std::type_info & intype, const std::vector<std::string> &
 {
   std::string                              typestr = GetTypename(intype);
   bool                                     isValid = false;
-  std::vector<std::string>::const_iterator validPos;
-  validPos = std::find(validtypes.begin(), validtypes.end(), typestr);
+  std::vector<std::string>::const_iterator validPos = std::find(validtypes.begin(), validtypes.end(), typestr);
   if (validPos != validtypes.end())
   {
     isValid = true;
@@ -455,8 +456,8 @@ std::string
 Get64BitPragma()
 {
   std::ostringstream msg;
-  msg << "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n";
-  msg << "#pragma OPENCL EXTENSION cl_amd_fp64 : enable\n";
+  msg << "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n"
+      << "#pragma OPENCL EXTENSION cl_amd_fp64 : enable\n";
   return msg.str();
 }
 
@@ -464,7 +465,7 @@ void
 GetTypenameInString(const std::type_info & intype, std::ostringstream & ret)
 {
   std::string typestr = GetTypename(intype);
-  ret << typestr << "\n";
+  ret << typestr << '\n';
   if (typestr == "double")
   {
     std::string pragmastr = Get64BitPragma();

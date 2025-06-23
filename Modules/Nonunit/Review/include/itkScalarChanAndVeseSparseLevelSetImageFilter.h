@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,31 +27,13 @@ namespace itk
 /** \class ScalarChanAndVeseSparseLevelSetImageFilter
  * \brief Sparse implementation of the Chan and Vese multiphase level set image filter.
  *
- * This code was adapted from the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * This code was adapted from the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  *
@@ -82,17 +64,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarChanAndVeseSparseLevelSetImageFilter, MultiphaseSparseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarChanAndVeseSparseLevelSetImageFilter);
 
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Inherited type alias from the superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputPointType = typename Superclass::InputPointType;
-  using ValueType = typename Superclass::ValueType;
-  using InputSpacingType = typename Superclass::InputSpacingType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputPointType;
+  using typename Superclass::ValueType;
+  using typename Superclass::InputSpacingType;
 
   using FeatureImageType = TFeatureImage;
   using FeatureImagePointer = typename FeatureImageType::Pointer;
@@ -101,15 +83,15 @@ public:
   using FeatureIndexValueType = typename FeatureIndexType::IndexValueType;
   using FeatureRegionType = typename FeatureImageType::RegionType;
 
-  /** Output image type type alias */
+  /** Output image type alias */
   using OutputImageType = TOutputImage;
   using IndexType = typename OutputImageType::IndexType;
   using OutputPixelType = typename OutputImageType::PixelType;
 
-  using TimeStepType = typename Superclass::TimeStepType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
-  using IdCellType = typename Superclass::IdCellType;
+  using typename Superclass::IdCellType;
 
   using FunctionType = TFunction;
   using FunctionPtr = typename FunctionType::Pointer;
@@ -120,11 +102,7 @@ public:
   using ROIFilterType = RegionOfInterestImageFilter<FeatureImageType, FeatureImageType>;
   using ROIFilterPointer = typename ROIFilterType::Pointer;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
-  // End concept checking
-#endif
 
   /** Set/Get the feature image to be used for speed function of the level set
    *  equation.  Equivalent to calling Set/GetInput(1, ..) */
@@ -136,14 +114,14 @@ public:
 
 protected:
   ScalarChanAndVeseSparseLevelSetImageFilter()
+    : m_SharedData(SharedDataType::New())
   {
     this->SetNumberOfLayers(2); // Narrow-band usage
-    this->m_SharedData = SharedDataType::New();
   }
 
   ~ScalarChanAndVeseSparseLevelSetImageFilter() override = default;
 
-  SharedDataPointer m_SharedData;
+  SharedDataPointer m_SharedData{};
 
   void
   Initialize() override;

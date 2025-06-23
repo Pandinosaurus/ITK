@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(UpdateShiSparseLevelSet, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(UpdateShiSparseLevelSet);
 
   static constexpr unsigned int ImageDimension = VDimension;
 
@@ -90,36 +90,39 @@ public:
   void
   Update();
 
-  /** Set/Get the sparse levet set image */
+  /** Set/Get the sparse level set image */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(InputLevelSet, LevelSetType);
   itkGetModifiableObjectMacro(InputLevelSet, LevelSetType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the RMS change for the update */
   itkGetMacro(RMSChangeAccumulator, LevelSetOutputRealType);
 
   /** Set/Get the Equation container for computing the update */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(EquationContainer, EquationContainerType);
   itkGetModifiableObjectMacro(EquationContainer, EquationContainerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the current level set id */
+  /** @ITKStartGrouping */
   itkSetMacro(CurrentLevelSetId, IdentifierType);
   itkGetMacro(CurrentLevelSetId, IdentifierType);
-
+  /** @ITKEndGrouping */
 protected:
   UpdateShiSparseLevelSet();
   ~UpdateShiSparseLevelSet() override = default;
 
   // output
-  LevelSetPointer m_OutputLevelSet;
+  LevelSetPointer m_OutputLevelSet{};
 
-  IdentifierType           m_CurrentLevelSetId;
-  LevelSetOutputRealType   m_RMSChangeAccumulator;
-  EquationContainerPointer m_EquationContainer;
+  IdentifierType           m_CurrentLevelSetId{};
+  LevelSetOutputRealType   m_RMSChangeAccumulator{};
+  EquationContainerPointer m_EquationContainer{};
 
   using LabelImageType = Image<int8_t, ImageDimension>;
   using LabelImagePointer = typename LabelImageType::Pointer;
 
-  LabelImagePointer m_InternalImage;
+  LabelImagePointer m_InternalImage{};
 
   using NeighborhoodIteratorType = ShapedNeighborhoodIterator<LabelImageType>;
 
@@ -142,8 +145,8 @@ protected:
 
 private:
   // input
-  LevelSetPointer    m_InputLevelSet;
-  LevelSetOffsetType m_Offset;
+  LevelSetPointer    m_InputLevelSet{};
+  LevelSetOffsetType m_Offset{};
 
   using NodePairType = std::pair<LevelSetInputType, LevelSetOutputType>;
 };

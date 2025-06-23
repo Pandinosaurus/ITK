@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkRawImageIO.h"
 #include "itkImageFileReader.h"
 #include "itkImageLinearIteratorWithIndex.h"
+#include "itkTestingMacros.h"
 
 
 // Specific ImageIO test
@@ -41,7 +42,7 @@ public:
     using ReaderType = itk::ImageFileReader<TImageType>;
     using IOType = itk::RawImageIO<PixelType, ImageDimension>;
 
-    typename IOType::Pointer io = IOType::New();
+    auto io = IOType::New();
 
     io->SetFileTypeToBinary();
 
@@ -54,25 +55,17 @@ public:
       io->SetByteOrderToLittleEndian();
     }
 
-    for (unsigned int j = 0; j < TImageType::ImageDimension; j++)
+    for (unsigned int j = 0; j < TImageType::ImageDimension; ++j)
     {
       io->SetDimensions(j, dims[j]);
     }
 
-    typename ReaderType::Pointer reader = ReaderType::New();
+    auto reader = ReaderType::New();
     reader->SetFileName(filename);
     reader->SetImageIO(io);
 
-    try
-    {
-      reader->Update();
-    }
-    catch (const itk::ExceptionObject & excp)
-    {
-      std::cerr << "Exception while reading file " << filename << std::endl;
-      std::cerr << excp << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
     std::cout << "Reading file " << filename << " succeeded " << std::endl;
 
@@ -83,13 +76,13 @@ public:
     it.SetDirection(0);
 
 
-    PixelType value = itk::NumericTraits<PixelType>::ZeroValue();
+    PixelType value{};
     while (!it.IsAtEnd())
     {
       while (!it.IsAtEndOfLine())
       {
-        PixelType readValue = it.Get();
-        std::cout << readValue << " ";
+        const PixelType readValue = it.Get();
+        std::cout << readValue << ' ';
         if (readValue != value)
         {
           std::cerr << "At index " << it.GetIndex() << std::endl;
@@ -111,6 +104,13 @@ int
 itkRawImageIOTest4(int argc, char * argv[])
 {
 
+  if (argc < 3)
+  {
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Output1 Output2" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   using PixelType = unsigned short;
   constexpr unsigned int ImageDimension = 2;
 
@@ -121,14 +121,8 @@ itkRawImageIOTest4(int argc, char * argv[])
   using ComponentType = itk::PixelTraits<PixelType>::ValueType;
   using ByteSwapperType = itk::ByteSwapper<ComponentType>;
 
-  PixelType    value = itk::NumericTraits<PixelType>::ZeroValue();
-  unsigned int numberOfPixels = dims[0] * dims[1];
-
-  if (argc < 3)
-  {
-    std::cerr << "Usage: " << argv[0] << " Output1 Output2\n";
-    return EXIT_FAILURE;
-  }
+  PixelType          value{};
+  const unsigned int numberOfPixels = dims[0] * dims[1];
 
 
   // Create the BigEndian binary file
@@ -146,7 +140,7 @@ itkRawImageIOTest4(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  for (unsigned int i = 0; i < numberOfPixels; i++)
+  for (unsigned int i = 0; i < numberOfPixels; ++i)
   {
     PixelType swappedValue = value;
     // make sure that the file is written in
@@ -178,8 +172,8 @@ itkRawImageIOTest4(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  value = itk::NumericTraits<PixelType>::ZeroValue();
-  for (unsigned int i = 0; i < numberOfPixels; i++)
+  value = PixelType{};
+  for (unsigned int i = 0; i < numberOfPixels; ++i)
   {
     PixelType swappedValue = value;
     // make sure that the file is written in
@@ -199,20 +193,17 @@ itkRawImageIOTest4(int argc, char * argv[])
   RawImageIOReadFileTester<ImageType> readTester;
 
 
-  int status;
-
   std::cout << "Testing read of Big Endian File" << std::endl;
   bool fileIsBigEndian = true;
-  status = readTester.Read(argv[1], fileIsBigEndian, dims);
+  int  status = readTester.Read(argv[1], fileIsBigEndian, dims);
   if (status == EXIT_FAILURE)
   {
     std::cerr << "Reading Raw BigEndian FAILED !!" << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "Reading Raw BigEndian PASSED !!" << std::endl << std::endl;
-  }
+
+  std::cout << "Reading Raw BigEndian PASSED !!" << std::endl << std::endl;
+
 
   std::cout << "Testing read of Little Endian File" << std::endl;
   fileIsBigEndian = false;
@@ -222,10 +213,9 @@ itkRawImageIOTest4(int argc, char * argv[])
     std::cerr << "Reading Raw LittleEndian FAILED !!" << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "Reading Raw LittleEndian PASSED !!" << std::endl << std::endl;
-  }
+
+  std::cout << "Reading Raw LittleEndian PASSED !!" << std::endl << std::endl;
+
 
   std::cout << "Test PASSED !!" << std::endl << std::endl;
 

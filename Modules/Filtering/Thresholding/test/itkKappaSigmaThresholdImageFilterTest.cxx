@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,16 +50,16 @@ itkKappaSigmaThresholdImageFilterTest(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using FilterType = itk::KappaSigmaThresholdImageFilter<InputImageType, MaskImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, KappaSigmaThresholdImageFilter, ImageToImageFilter);
 
@@ -76,7 +76,7 @@ itkKappaSigmaThresholdImageFilterTest(int argc, char * argv[])
   filter->SetMaskValue(maskValue);
   ITK_TEST_SET_GET_VALUE(maskValue, filter->GetMaskValue());
 
-  double sigmaFactor = std::stod(argv[4]);
+  const double sigmaFactor = std::stod(argv[4]);
   filter->SetSigmaFactor(sigmaFactor);
   ITK_TEST_SET_GET_VALUE(sigmaFactor, filter->GetSigmaFactor());
 
@@ -91,21 +91,22 @@ itkKappaSigmaThresholdImageFilterTest(int argc, char * argv[])
 
 
   // Regression test: compare computed threshold
-  FilterType::InputPixelType expectedThreshold = std::stod(argv[6]);
-  FilterType::InputPixelType resultThreshold = filter->GetThreshold();
+  const FilterType::InputPixelType expectedThreshold = std::stod(argv[6]);
+  const FilterType::InputPixelType resultThreshold = filter->GetThreshold();
   if (itk::Math::NotAlmostEquals(expectedThreshold, resultThreshold))
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in GetThreshold()" << std::endl;
-    std::cerr << "Expected: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(expectedThreshold)
-              << ", but got: " << itk::NumericTraits<FilterType::InputPixelType>::PrintType(resultThreshold)
-              << std::endl;
+    std::cerr << "Expected: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(expectedThreshold)
+              << ", but got: "
+              << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(resultThreshold) << std::endl;
     return EXIT_FAILURE;
   }
 
   // Write output image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 

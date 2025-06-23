@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,11 +72,9 @@ itkAdaptImageFilterTest(int, char *[])
   index[0] = 0;
   index[1] = 0;
 
-  myRGBImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const myRGBImageType::RegionType region{ index, size };
 
-  myRGBImageType::Pointer myImage = myRGBImageType::New();
+  auto myImage = myRGBImageType::New();
 
 
   myImage->SetRegions(region);
@@ -91,8 +89,9 @@ itkAdaptImageFilterTest(int, char *[])
   it1.GoToBegin();
   while (!it1.IsAtEnd())
   {
-    color.Set(
-      (float)vnl_sample_uniform(0.0, 1.0), (float)vnl_sample_uniform(0.0, 1.0), (float)vnl_sample_uniform(0.0, 1.0));
+    color.Set(static_cast<float>(vnl_sample_uniform(0.0, 1.0)),
+              static_cast<float>(vnl_sample_uniform(0.0, 1.0)),
+              static_cast<float>(vnl_sample_uniform(0.0, 1.0)));
     it1.Set(color);
     ++it1;
   }
@@ -113,9 +112,9 @@ itkAdaptImageFilterTest(int, char *[])
   bool passed = true;
 
   // Convert to a red image
-  itk::AdaptImageFilter<myRGBImageType, myImageType, myRedAccessorType>::Pointer adaptImageToRed =
+  const itk::AdaptImageFilter<myRGBImageType, myImageType, myRedAccessorType>::Pointer adaptImageToRed =
     itk::AdaptImageFilter<myRGBImageType, myImageType, myRedAccessorType>::New();
-  itk::SimpleFilterWatcher redWatcher(adaptImageToRed, "Red");
+  const itk::SimpleFilterWatcher redWatcher(adaptImageToRed, "Red");
   adaptImageToRed->SetInput(myImage);
   adaptImageToRed->UpdateLargestPossibleRegion();
 
@@ -138,9 +137,9 @@ itkAdaptImageFilterTest(int, char *[])
   }
 
   // Convert to a green image
-  itk::AdaptImageFilter<myRGBImageType, myImageType, myGreenAccessorType>::Pointer adaptImageToGreen =
+  const itk::AdaptImageFilter<myRGBImageType, myImageType, myGreenAccessorType>::Pointer adaptImageToGreen =
     itk::AdaptImageFilter<myRGBImageType, myImageType, myGreenAccessorType>::New();
-  itk::SimpleFilterWatcher greenWatcher(adaptImageToGreen, "Green");
+  const itk::SimpleFilterWatcher greenWatcher(adaptImageToGreen, "Green");
 
   adaptImageToGreen->SetInput(myImage);
   adaptImageToGreen->UpdateLargestPossibleRegion();
@@ -164,9 +163,9 @@ itkAdaptImageFilterTest(int, char *[])
   }
 
   // Convert to a blue image
-  itk::AdaptImageFilter<myRGBImageType, myImageType, myBlueAccessorType>::Pointer adaptImageToBlue =
+  const itk::AdaptImageFilter<myRGBImageType, myImageType, myBlueAccessorType>::Pointer adaptImageToBlue =
     itk::AdaptImageFilter<myRGBImageType, myImageType, myBlueAccessorType>::New();
-  itk::SimpleFilterWatcher blueWatcher(adaptImageToBlue, "Blue");
+  const itk::SimpleFilterWatcher blueWatcher(adaptImageToBlue, "Blue");
 
   adaptImageToBlue->SetInput(myImage);
   adaptImageToBlue->UpdateLargestPossibleRegion();
@@ -195,9 +194,6 @@ itkAdaptImageFilterTest(int, char *[])
     std::cout << "AdaptImageFilterTest passed." << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cerr << "AdaptImageFilterTest failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+  std::cerr << "AdaptImageFilterTest failed." << std::endl;
+  return EXIT_FAILURE;
 }

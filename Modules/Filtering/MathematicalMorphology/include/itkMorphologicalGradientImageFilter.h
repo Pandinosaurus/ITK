@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,8 +62,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MorphologicalGradientImageFilter, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MorphologicalGradientImageFilter);
 
   /** Image related type alias. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -76,7 +76,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   using FlatKernelType = FlatStructuringElement<Self::ImageDimension>;
   using HistogramFilterType = MovingHistogramMorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>;
@@ -111,10 +111,11 @@ public:
   SetKernel(const KernelType & kernel) override;
 
   /** Set/Get the backend filter class. */
+  /** @ITKStartGrouping */
   void
   SetAlgorithm(AlgorithmEnum algo);
   itkGetConstMacro(Algorithm, AlgorithmEnum);
-
+  /** @ITKEndGrouping */
   /** MorphologicalGradientImageFilter need to set its internal filters as
     modified */
   void
@@ -131,22 +132,22 @@ protected:
 
 private:
   // the filters used internally
-  typename HistogramFilterType::Pointer m_HistogramFilter;
+  typename HistogramFilterType::Pointer m_HistogramFilter{};
 
-  typename BasicDilateFilterType::Pointer m_BasicDilateFilter;
+  typename BasicDilateFilterType::Pointer m_BasicDilateFilter{};
 
-  typename BasicErodeFilterType::Pointer m_BasicErodeFilter;
+  typename BasicErodeFilterType::Pointer m_BasicErodeFilter{};
 
-  typename AnchorDilateFilterType::Pointer m_AnchorDilateFilter;
+  typename AnchorDilateFilterType::Pointer m_AnchorDilateFilter{};
 
-  typename AnchorErodeFilterType::Pointer m_AnchorErodeFilter;
+  typename AnchorErodeFilterType::Pointer m_AnchorErodeFilter{};
 
-  typename VHGWDilateFilterType::Pointer m_VanHerkGilWermanDilateFilter;
+  typename VHGWDilateFilterType::Pointer m_VanHerkGilWermanDilateFilter{};
 
-  typename VHGWErodeFilterType::Pointer m_VanHerkGilWermanErodeFilter;
+  typename VHGWErodeFilterType::Pointer m_VanHerkGilWermanErodeFilter{};
 
   // and the name of the filter
-  AlgorithmEnum m_Algorithm;
+  AlgorithmEnum m_Algorithm{};
 }; // end of class
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,13 +39,15 @@ namespace itk
 /** \class MINCTransformAdapter
  * \ingroup  ITKIOTransformMINC
  * \brief ITK wrapper around MINC general transform functions, supports all the transformations that MINC XFM supports
+ *        note, this wrapper does not take into account RAS to LPS conversion flag, and always assumes MINC convention
  *
  * \author Vladimir S. FONOV
  *         Brain Imaging Center, Montreal Neurological Institute, McGill University, Montreal Canada 2012
  * \ingroup ITKIOTransformMINC
  */
-template <typename TParametersValueType = double, unsigned int NInputDimensions = 3, unsigned int NOutputDimensions = 3>
-class MINCTransformAdapter : public Transform<TParametersValueType, NInputDimensions, NOutputDimensions>
+template <typename TParametersValueType = double, unsigned int VInputDimension = 3, unsigned int VOutputDimension = 3>
+class ITK_TEMPLATE_EXPORT MINCTransformAdapter
+  : public Transform<TParametersValueType, VInputDimension, VOutputDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MINCTransformAdapter);
@@ -53,32 +55,32 @@ public:
   /** Standard class type aliases. */
   using Self = MINCTransformAdapter;
 
-  using Superclass = Transform<TParametersValueType, NInputDimensions, NOutputDimensions>;
+  using Superclass = Transform<TParametersValueType, VInputDimension, VOutputDimension>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::NumberOfParametersType;
 
   /** New method for creating an object using a factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MINCTransformAdapter, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MINCTransformAdapter);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int InputSpaceDimension = NInputDimensions;
-  static constexpr unsigned int OutputSpaceDimension = NOutputDimensions;
+  static constexpr unsigned int InputSpaceDimension = VInputDimension;
+  static constexpr unsigned int OutputSpaceDimension = VOutputDimension;
 
   /** Type of the input parameters. */
   using ScalarType = double;
 
   /** Type of the input parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
 
   /** Type of the Jacobian matrix. */
-  using JacobianType = typename Superclass::JacobianType;
+  using typename Superclass::JacobianType;
 
   /** Standard vector type for this class. */
   using InputVectorType = Vector<TParametersValueType, Self::InputSpaceDimension>;
@@ -95,12 +97,12 @@ public:
   using OutputCovariantVectorType = CovariantVector<TParametersValueType, Self::OutputSpaceDimension>;
 
   /** Standard coordinate point type for this class */
-  using InputPointType = Point<TParametersValueType, NInputDimensions>;
-  using OutputPointType = Point<TParametersValueType, NInputDimensions>;
+  using InputPointType = Point<TParametersValueType, VInputDimension>;
+  using OutputPointType = Point<TParametersValueType, VInputDimension>;
 
   /** Standard vnl_vector type for this class. */
-  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, NInputDimensions>;
-  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, NOutputDimensions>;
+  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, VInputDimension>;
+  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, VOutputDimension>;
 
   /**  Method to transform a point. */
   OutputPointType
@@ -123,13 +125,13 @@ public:
     return pnt;
   }
 
-  //! use finate element difference to estimate local jacobian
+  //! use finite element difference to estimate local jacobian
   void
   estimate_local_jacobian(const InputPointType & orig, vnl_matrix_fixed<double, 3, 3> & m)
   {
-    double       u1, v1, w1;
-    double       u2, v2, w2;
-    const double delta = 1e-4;
+    double           u1, v1, w1;
+    double           u2, v2, w2;
+    constexpr double delta = 1e-4;
 
     general_transform_point((m_Invert ? &m_Xfm_inv : &m_Xfm), orig[0] - delta, orig[1], orig[2], &u1, &v1, &w1);
     general_transform_point((m_Invert ? &m_Xfm_inv : &m_Xfm), orig[0] + delta, orig[1], orig[2], &u2, &v2, &w2);
@@ -152,18 +154,16 @@ public:
 
   /**  Method to transform a vector. */
   OutputVectorType
-  TransformVector(const InputVectorType & vector, const InputPointType &) const override
+  TransformVector(const InputVectorType &, const InputPointType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return vector;
+    itkExceptionMacro("Not Implemented");
   }
 
   /**  Method to transform a vector. */
   OutputVnlVectorType
-  TransformVector(const InputVnlVectorType & vector, const InputPointType &) const override
+  TransformVector(const InputVnlVectorType &, const InputPointType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return vector;
+    itkExceptionMacro("Not Implemented");
   }
 
   /**  Method to transform a vector. */
@@ -189,18 +189,16 @@ public:
 
   /**  Method to transform a vector. */
   OutputVectorPixelType
-  TransformVector(const InputVectorPixelType & vector, const InputPointType &) const override
+  TransformVector(const InputVectorPixelType &, const InputPointType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return vector;
+    itkExceptionMacro("Not Implemented");
   }
 
   /**  Method to transform a CovariantVector. */
   OutputCovariantVectorType
-  TransformCovariantVector(const InputCovariantVectorType & vector, const InputPointType &) const override
+  TransformCovariantVector(const InputCovariantVectorType &, const InputPointType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return vector;
+    itkExceptionMacro("Not Implemented");
   }
 
   /**  Method to transform a CovariantVector. */
@@ -219,10 +217,9 @@ public:
 
   /**  Method to transform a CovariantVector. */
   OutputVectorPixelType
-  TransformCovariantVector(const InputVectorPixelType & vector, const InputPointType &) const override
+  TransformCovariantVector(const InputVectorPixelType &, const InputPointType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return vector;
+    itkExceptionMacro("Not Implemented");
   }
 
   /** Set the transformation to an Identity
@@ -236,21 +233,20 @@ public:
   void
   SetFixedParameters(const FixedParametersType &) override
   {
-    itkExceptionMacro(<< "Not Implemented");
+    itkExceptionMacro("Not Implemented");
   }
 
   void
   ComputeJacobianWithRespectToParameters(const InputPointType &, JacobianType &) const override
   {
-    itkExceptionMacro(<< "Not Implemented");
+    itkExceptionMacro("Not Implemented");
   }
 
   NumberOfParametersType
   GetNumberOfParameters() const override
   {
     // this transform is defined by XFM file
-    itkExceptionMacro(<< "Not Defined");
-    return 0;
+    itkExceptionMacro("Not Defined");
   }
 
   /** Set the Transformation Parameters
@@ -258,14 +254,13 @@ public:
   void
   SetParameters(const ParametersType &) override
   {
-    itkExceptionMacro(<< "Not Implemented");
+    itkExceptionMacro("Not Implemented");
   }
 
   const ParametersType &
   GetParameters() const override
   {
-    itkExceptionMacro(<< "Not Implemented");
-    return m_Parameters;
+    itkExceptionMacro("Not Implemented");
   }
 
   void
@@ -273,7 +268,9 @@ public:
   {
     cleanup();
     if (input_transform_file(xfm, &m_Xfm) != VIO_OK)
-      itkExceptionMacro(<< "Error reading XFM:" << xfm);
+    {
+      itkExceptionMacro("Error reading XFM:" << xfm);
+    }
     m_Initialized = true;
   }
 
@@ -281,7 +278,9 @@ public:
   Invert()
   {
     if (!m_Initialized)
-      itkExceptionMacro(<< "XFM not initialized");
+    {
+      itkExceptionMacro("XFM not initialized");
+    }
     if (!m_Initialized_invert)
     {
       create_inverse_general_transform(&m_Xfm, &m_Xfm_inv);
@@ -292,10 +291,11 @@ public:
 
 protected:
   MINCTransformAdapter()
-    : Transform<TParametersValueType, NInputDimensions, NOutputDimensions>(0)
   {
-    if (NInputDimensions != 3 || NOutputDimensions != 3)
-      itkExceptionMacro(<< "Sorry, only 3D to 3d minc xfm transform is currently implemented");
+    if constexpr (VInputDimension != 3 || VOutputDimension != 3)
+    {
+      itkExceptionMacro("MINC transform is currently implemented only for 3D to 3D.");
+    }
   }
 
   ~MINCTransformAdapter() override { cleanup(); }
@@ -315,10 +315,10 @@ protected:
     m_Initialized_invert = false;
   }
 
-  ParametersType m_Parameters;
+  ParametersType m_Parameters{};
 
-  mutable VIO_General_transform m_Xfm;
-  mutable VIO_General_transform m_Xfm_inv;
+  mutable VIO_General_transform m_Xfm{};
+  mutable VIO_General_transform m_Xfm_inv{};
 
   bool m_Invert{ false };
   bool m_Initialized{ false };

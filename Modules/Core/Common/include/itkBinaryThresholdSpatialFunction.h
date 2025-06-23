@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,14 +52,14 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryThresholdSpatialFunction, SpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryThresholdSpatialFunction);
 
   /** New macro for creation of through the object factory. */
   itkNewMacro(Self);
 
   /** OutputType type alias support. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputType type alias support. */
   using InputType = typename TFunction::InputType;
@@ -71,31 +71,34 @@ public:
   using FunctionOutputType = typename TFunction::OutputType;
 
   /** Set/Get the lower threshold. */
+  /** @ITKStartGrouping */
   itkSetMacro(LowerThreshold, FunctionOutputType);
   itkGetConstReferenceMacro(LowerThreshold, FunctionOutputType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the upper threshold. */
+  /** @ITKStartGrouping */
   itkSetMacro(UpperThreshold, FunctionOutputType);
   itkGetConstReferenceMacro(UpperThreshold, FunctionOutputType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the underlying function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Function, FunctionType);
   itkGetModifiableObjectMacro(Function, FunctionType);
-
+  /** @ITKEndGrouping */
   /** Evaluate the function at a given position. */
   OutputType
   Evaluate(const InputType & point) const override;
 
 protected:
-  BinaryThresholdSpatialFunction();
+  BinaryThresholdSpatialFunction() = default;
   ~BinaryThresholdSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  FunctionOutputType m_LowerThreshold;
-  FunctionOutputType m_UpperThreshold;
+  FunctionOutputType m_LowerThreshold{ NumericTraits<FunctionOutputType>::NonpositiveMin() };
+  FunctionOutputType m_UpperThreshold{ NumericTraits<FunctionOutputType>::max() };
 
-  typename FunctionType::Pointer m_Function;
+  typename FunctionType::Pointer m_Function{};
 };
 } // end namespace itk
 

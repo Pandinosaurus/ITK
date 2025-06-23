@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,6 @@ class GaussianDerivativeOperatorEnums
 {
 public:
   /**
-   * \class InterpolationMode
    * \ingroup ITKCommon
    * Interpolation modes
    */
@@ -56,7 +55,7 @@ extern ITKCommon_EXPORT std::ostream &
  *
  * GaussianDerivativeOperator can be used to calculate Gaussian derivatives
  * by taking its inner product with to a Neighborhood
- * (NeighborhooIterator) that is swept across an image region.
+ * (NeighborhoodIterator) that is swept across an image region.
  * It is a directional operator.  N successive applications
  * oriented along each dimensional direction will calculate separable,
  * efficient, N-D Gaussian derivatives of an image region.
@@ -69,22 +68,20 @@ extern ITKCommon_EXPORT std::ostream &
  *     it performs only smoothing as a standard itk::GaussianOperator)
  *
  * (3) The "maximum error" allowed in the discrete Gaussian
- * function.  "Maximum errror" is defined as the difference between the area
+ * function.  "Maximum error" is defined as the difference between the area
  * under the discrete Gaussian curve and the area under the continuous
  * Gaussian. Maximum error affects the Gaussian operator size. Care should
  * be taken not to make this value too small relative to the variance
  * lest the operator size become unreasonably large.
  *
  * References:
- * The Gaussian kernel contained in this operator was described
- * by Tony Lindeberg  (Discrete Scale-Space Theory and the Scale-Space
- * Primal Sketch. Dissertation. Royal Institute of Technology, Stockholm,
- * Sweden. May 1991.).
+ * The Gaussian kernel contained in this operator was described in
+ * \cite lindeberg1991.
  *
  * \author Ivan Macia, Vicomtech, Spain, https://www.vicomtech.org/en
  *
  * This implementation is derived from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/179
+ * https://doi.org/10.54294/mrg5is
  *
  * \note GaussianDerivativeOperator does not have any user-declared "special member function",
  * following the C++ Rule of Zero: the compiler will generate them if necessary.
@@ -109,6 +106,9 @@ public:
   using Self = GaussianDerivativeOperator;
   using Superclass = NeighborhoodOperator<TPixel, VDimension, TAllocator>;
 
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianDerivativeOperator);
+
   using InterpolationModeEnum = GaussianDerivativeOperatorEnums::InterpolationMode;
 
   /** Neighborhood operator types. */
@@ -123,44 +123,47 @@ public:
    * algorithms such as blob detection. The scaling results in the
    * value of the derivatives being independent of the size of an
    * object. */
+  /** @ITKStartGrouping */
   void
   SetNormalizeAcrossScale(bool flag)
   {
     m_NormalizeAcrossScale = flag;
   }
-  bool
+  [[nodiscard]] bool
   GetNormalizeAcrossScale() const
   {
     return m_NormalizeAcrossScale;
   }
   itkBooleanMacro(NormalizeAcrossScale);
-
+  /** @ITKEndGrouping */
   /** Set/Get the variance of the Gaussian kernel.
    *
    */
+  /** @ITKStartGrouping */
   void
   SetVariance(const double variance)
   {
     m_Variance = variance;
   }
-  double
+  [[nodiscard]] double
   GetVariance() const
   {
     return m_Variance;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the spacing for the direction of this kernel. */
+  /** @ITKStartGrouping */
   void
   SetSpacing(const double spacing)
   {
     m_Spacing = spacing;
   }
-  double
+  [[nodiscard]] double
   GetSpacing() const
   {
     return m_Spacing;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the desired maximum error of the gaussian approximation.  Maximum
    * error is the difference between the area under the discrete Gaussian curve
    * and the area under the continuous Gaussian. Maximum error affects the
@@ -171,7 +174,7 @@ public:
     constexpr double Min = 0.00001;
     const double     Max = 1.0 - Min;
 
-    m_MaximumError = std::max(Min, std::min(Max, maxerror));
+    m_MaximumError = std::clamp(maxerror, Min, Max);
   }
   double
   GetMaximumError()
@@ -183,30 +186,33 @@ public:
    *  large variances will yield very large kernel sizes.  This value can be
    *  used to truncate a kernel in such instances.  A warning will be given on
    *  truncation of the kernel. */
+  /** @ITKStartGrouping */
   void
   SetMaximumKernelWidth(unsigned int n)
   {
     m_MaximumKernelWidth = n;
   }
-
+  itkGetConstMacro(MaximumKernelWidth, unsigned int);
+  /** @ITKEndGrouping */
   /** Sets/Get the order of the derivative. */
+  /** @ITKStartGrouping */
   void
   SetOrder(const unsigned int order)
   {
     m_Order = order;
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetOrder() const
   {
     return m_Order;
   }
-
-  /** Prints member variables */
+  /** @ITKEndGrouping */
   void
-  PrintSelf(std::ostream & os, Indent i) const override;
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 protected:
-  using CoefficientVector = typename Superclass::CoefficientVector;
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
 
   /** Returns the value of the modified Bessel function I0(x) at a point x >= 0.
    */
@@ -235,17 +241,10 @@ protected:
   }
 
 private:
-  /* methods for generations of the coefficients for a gaussian
-   * operator of 0-order respecting the remaining parameters */
-  CoefficientVector
+  /* Methods for generations of the coefficients for a Gaussian
+   * operator of 0-order respecting the remaining parameters. */
+  [[nodiscard]] CoefficientVector
   GenerateGaussianCoefficients() const;
-
-  /** For compatibility with itkWarningMacro */
-  const char *
-  GetNameOfClass() const override
-  {
-    return "itkGaussianDerivativeOperator";
-  }
 
   /** Normalize derivatives across scale space */
   bool m_NormalizeAcrossScale{ true };

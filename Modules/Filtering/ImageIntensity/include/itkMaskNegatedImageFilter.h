@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include "itkBinaryGeneratorImageFilter.h"
 #include "itkNumericTraits.h"
+#include "itkVariableLengthVector.h"
 #include "itkMath.h"
 
 namespace itk
@@ -37,22 +38,13 @@ class MaskNegatedInput
 public:
   using AccumulatorType = typename NumericTraits<TInput>::AccumulateType;
 
-  MaskNegatedInput()
-    : m_OutsideValue(NumericTraits<TOutput>::ZeroValue())
-    , m_MaskingValue(NumericTraits<TMask>::ZeroValue())
-  {}
-  ~MaskNegatedInput() = default;
   bool
-  operator!=(const MaskNegatedInput &) const
+  operator==(const MaskNegatedInput &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const MaskNegatedInput & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(MaskNegatedInput);
 
   inline TOutput
   operator()(const TInput & A, const TMask & B) const
@@ -61,10 +53,8 @@ public:
     {
       return m_OutsideValue;
     }
-    else
-    {
-      return static_cast<TOutput>(A);
-    }
+
+    return static_cast<TOutput>(A);
   }
 
   /** Method to explicitly set the outside value of the mask */
@@ -75,7 +65,7 @@ public:
   }
 
   /** Method to get the outside value of the mask */
-  const TOutput &
+  [[nodiscard]] const TOutput &
   GetOutsideValue() const
   {
     return m_OutsideValue;
@@ -89,15 +79,29 @@ public:
   }
 
   /** Method to get the outside value of the mask */
-  const TMask &
+  [[nodiscard]] const TMask &
   GetMaskingValue() const
   {
     return m_MaskingValue;
   }
 
 private:
-  TOutput m_OutsideValue;
-  TMask   m_MaskingValue;
+  template <typename TPixelType>
+  TPixelType
+  DefaultOutsideValue(TPixelType *)
+  {
+    return TPixelType{};
+  }
+
+  template <typename TValue>
+  VariableLengthVector<TValue>
+  DefaultOutsideValue(VariableLengthVector<TValue> *)
+  {
+    // set the outside value to be of zero length
+    return VariableLengthVector<TValue>(0);
+  }
+  TOutput m_OutsideValue{ DefaultOutsideValue(static_cast<TOutput *>(nullptr)) };
+  TMask   m_MaskingValue{};
 };
 } // namespace Functor
 
@@ -136,7 +140,8 @@ private:
  * \endsphinx
  */
 template <typename TInputImage, typename TMaskImage, typename TOutputImage = TInputImage>
-class MaskNegatedImageFilter : public BinaryGeneratorImageFilter<TInputImage, TMaskImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT MaskNegatedImageFilter
+  : public BinaryGeneratorImageFilter<TInputImage, TMaskImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MaskNegatedImageFilter);
@@ -153,8 +158,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MaskNegatedImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskNegatedImageFilter);
 
   /** Typedefs **/
   using MaskImageType = TMaskImage;
@@ -211,13 +216,9 @@ public:
     return static_cast<const MaskImageType *>(this->ProcessObject::GetInput(1));
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(MaskEqualityComparableCheck, (Concept::EqualityComparable<typename TMaskImage::PixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   MaskNegatedImageFilter() = default;
@@ -233,6 +234,10 @@ protected:
   void
   BeforeThreadedGenerateData() override
   {
+    using PixelType = typename TOutputImage::PixelType;
+    this->CheckOutsideValue(static_cast<PixelType *>(nullptr));
+
+
     this->SetFunctor(this->GetFunctor());
   }
 
@@ -244,7 +249,39 @@ private:
     return m_Functor;
   }
 
-  FunctorType m_Functor;
+  FunctorType m_Functor{};
+
+  template <typename TPixelType>
+  void
+  CheckOutsideValue(const TPixelType *)
+  {}
+
+  template <typename TValue>
+  void
+  CheckOutsideValue(const VariableLengthVector<TValue> *)
+  {
+    // Check to see if the outside value contains only zeros. If so,
+    // resize it to have the same number of zeros as the output
+    // image. Otherwise, check that the number of components in the
+    // outside value is the same as the number of components in the
+    // output image. If not, throw an exception.
+    const VariableLengthVector<TValue> currentValue = this->GetFunctor().GetOutsideValue();
+    VariableLengthVector<TValue>       zeroVector(currentValue.GetSize());
+    zeroVector.Fill(TValue{});
+
+    if (currentValue == zeroVector)
+    {
+      zeroVector.SetSize(this->GetOutput()->GetVectorLength());
+      zeroVector.Fill(TValue{});
+      this->GetFunctor().SetOutsideValue(zeroVector);
+    }
+    else if (this->GetFunctor().GetOutsideValue().GetSize() != this->GetOutput()->GetVectorLength())
+    {
+      itkExceptionMacro("Number of components in OutsideValue: "
+                        << this->GetFunctor().GetOutsideValue().GetSize() << " is not the same as the "
+                        << "number of components in the image: " << this->GetOutput()->GetVectorLength());
+    }
+  }
 };
 } // end namespace itk
 

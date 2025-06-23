@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,18 +44,18 @@ itkDanielssonDistanceMapImageFilterTest2(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using ConnectedType = itk::ConnectedComponentImageFilter<InputImageType, InputImageType>;
-  ConnectedType::Pointer connectedComponents = ConnectedType::New();
+  auto connectedComponents = ConnectedType::New();
   connectedComponents->SetInput(reader->GetOutput());
 
   using FilterType = itk::DanielssonDistanceMapImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(connectedComponents->GetOutput());
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
@@ -66,12 +66,12 @@ itkDanielssonDistanceMapImageFilterTest2(int argc, char * argv[])
   // Extract the Voronoi map from the distance map filter, rescale it,
   // and write it out.
   using RescaleType = itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto rescaler = RescaleType::New();
   rescaler->SetInput(filter->GetVoronoiMap());
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(rescaler->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

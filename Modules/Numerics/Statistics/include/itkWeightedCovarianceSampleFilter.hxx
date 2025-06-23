@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,28 +18,14 @@
 #ifndef itkWeightedCovarianceSampleFilter_hxx
 #define itkWeightedCovarianceSampleFilter_hxx
 
-#include "itkWeightedCovarianceSampleFilter.h"
 #include "itkWeightedMeanSampleFilter.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 WeightedCovarianceSampleFilter<TSample>::WeightedCovarianceSampleFilter()
 {
   this->ProcessObject::SetNthInput(1, nullptr);
-}
-
-template <typename TSample>
-void
-WeightedCovarianceSampleFilter<TSample>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  Superclass::PrintSelf(os, indent);
-  // m_Weights
-  os << indent << "Weights: " << this->GetWeightsInput() << std::endl;
-  // m_WeightingFunction
-  os << indent << "WeightingFunction: " << this->GetWeightingFunctionInput() << std::endl;
 }
 
 template <typename TSample>
@@ -76,13 +62,13 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeightingFun
   // set up input / output
   const SampleType * input = this->GetInput();
 
-  MeasurementVectorSizeType measurementVectorSize = input->GetMeasurementVectorSize();
+  const MeasurementVectorSizeType measurementVectorSize = input->GetMeasurementVectorSize();
 
   auto * decoratedOutput = itkDynamicCastInDebugMode<MatrixDecoratedType *>(this->ProcessObject::GetOutput(0));
 
   MatrixType output = decoratedOutput->Get();
   output.SetSize(measurementVectorSize, measurementVectorSize);
-  output.Fill(NumericTraits<typename MatrixType::ValueType>::ZeroValue());
+  output.Fill(typename MatrixType::ValueType{});
 
   auto * decoratedMeanOutput =
     itkDynamicCastInDebugMode<MeasurementVectorDecoratedType *>(this->ProcessObject::GetOutput(1));
@@ -91,7 +77,7 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeightingFun
   const WeightingFunctionType * const weightingFunction = this->GetWeightingFunction();
 
   using WeightedMeanFilterType = WeightedMeanSampleFilter<SampleType>;
-  typename WeightedMeanFilterType::Pointer meanFilter = WeightedMeanFilterType::New();
+  auto meanFilter = WeightedMeanFilterType::New();
 
   meanFilter->SetInput(input);
   meanFilter->SetWeightingFunction(weightingFunction);
@@ -104,9 +90,9 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeightingFun
   MeasurementVectorRealType diff;
   NumericTraits<MeasurementVectorRealType>::SetLength(diff, measurementVectorSize);
 
-  WeightValueType totalWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalWeight{};
 
-  WeightValueType totalSquaredWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalSquaredWeight{};
 
   typename SampleType::ConstIterator       iter = input->Begin();
   const typename SampleType::ConstIterator end = input->End();
@@ -173,13 +159,13 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeights()
   // set up input / output
   const SampleType * input = this->GetInput();
 
-  MeasurementVectorSizeType measurementVectorSize = input->GetMeasurementVectorSize();
+  const MeasurementVectorSizeType measurementVectorSize = input->GetMeasurementVectorSize();
 
   auto * decoratedOutput = itkDynamicCastInDebugMode<MatrixDecoratedType *>(this->ProcessObject::GetOutput(0));
 
   MatrixType output = decoratedOutput->Get();
   output.SetSize(measurementVectorSize, measurementVectorSize);
-  output.Fill(NumericTraits<typename MatrixType::ValueType>::ZeroValue());
+  output.Fill(typename MatrixType::ValueType{});
 
   auto * decoratedMeanOutput =
     itkDynamicCastInDebugMode<MeasurementVectorDecoratedType *>(this->ProcessObject::GetOutput(1));
@@ -188,7 +174,7 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeights()
   const WeightArrayType & weightsArray = this->GetWeights();
 
   using WeightedMeanFilterType = WeightedMeanSampleFilter<SampleType>;
-  typename WeightedMeanFilterType::Pointer meanFilter = WeightedMeanFilterType::New();
+  auto meanFilter = WeightedMeanFilterType::New();
 
   meanFilter->SetInput(input);
   meanFilter->SetWeights(weightsArray);
@@ -201,9 +187,9 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeights()
   MeasurementVectorRealType diff;
   NumericTraits<MeasurementVectorRealType>::SetLength(diff, measurementVectorSize);
 
-  WeightValueType totalWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalWeight{};
 
-  WeightValueType totalSquaredWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalSquaredWeight{};
 
   typename SampleType::ConstIterator       iter = input->Begin();
   const typename SampleType::ConstIterator end = input->End();
@@ -262,7 +248,6 @@ WeightedCovarianceSampleFilter<TSample>::ComputeCovarianceMatrixWithWeights()
 
   decoratedOutput->Set(output);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

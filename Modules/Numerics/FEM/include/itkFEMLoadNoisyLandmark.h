@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,14 +22,12 @@
 #include "itkFEMLoadLandmark.h"
 #include "ITKFEMExport.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
- * \class itkFEMLoadNoisyLandmark
+ * \class FEMLoadNoisyLandmark
  * \brief This landmark is derived from the motion of a specific landmark, but
- * allows the existance of noise or outliers
+ * allows the existence of noise or outliers
  *
  * \author Yixun Liu
  *
@@ -51,8 +49,8 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoadNoisyLandmark, LoadLandmark);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoadNoisyLandmark);
 
   /** Outlier or not */
   void
@@ -196,17 +194,17 @@ private:
   /**
    * Real displacement of the landmark
    */
-  VectorType m_RealDisplacement;
+  VectorType m_RealDisplacement{};
 
   /**
    * Simulated displacement of the landmark
    */
-  VectorType m_SimulatedDisplacement;
+  VectorType m_SimulatedDisplacement{};
 
   /**
    * Shape function vector
    */
-  VectorType m_Shape;
+  VectorType m_Shape{};
 
   /**
    * Magnitude of the error
@@ -231,15 +229,14 @@ private:
   /**
    * Structure tensor
    */
-  MatrixType m_StructureTensor;
+  MatrixType m_StructureTensor{};
 
   /**
    * Landmark tensor, which can be the stiffness tensor or the product
    * of the stiffness tensor and the structure tensor
    */
-  MatrixType m_LandmarkTensor;
+  MatrixType m_LandmarkTensor{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLoadNoisyLandmark_h

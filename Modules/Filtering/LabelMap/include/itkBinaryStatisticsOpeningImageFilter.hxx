@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,16 @@
 #ifndef itkBinaryStatisticsOpeningImageFilter_hxx
 #define itkBinaryStatisticsOpeningImageFilter_hxx
 
-#include "itkBinaryStatisticsOpeningImageFilter.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TFeatureImage>
 BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::BinaryStatisticsOpeningImageFilter()
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_ForegroundValue(NumericTraits<OutputImagePixelType>::max())
+  , m_Attribute(LabelObjectType::MEAN)
 {
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  m_ForegroundValue = NumericTraits<OutputImagePixelType>::max();
-  m_FullyConnected = false;
-  m_ReverseOrdering = false;
-  m_Lambda = 0.0;
-  m_Attribute = LabelObjectType::MEAN;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -43,7 +39,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateInputReq
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -62,14 +58,14 @@ void
 BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
   // Allocate the output
   this->AllocateOutputs();
 
-  typename LabelizerType::Pointer labelizer = LabelizerType::New();
+  auto labelizer = LabelizerType::New();
   labelizer->SetInput(this->GetInput());
   labelizer->SetInputForegroundValue(m_ForegroundValue);
   labelizer->SetOutputBackgroundValue(m_BackgroundValue);
@@ -77,7 +73,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
   labelizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(labelizer, .3f);
 
-  typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
+  auto valuator = LabelObjectValuatorType::New();
   valuator->SetInput(labelizer->GetOutput());
   valuator->SetFeatureImage(this->GetFeatureImage());
   valuator->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -92,7 +88,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
   }
   progress->RegisterInternalFilter(valuator, .3f);
 
-  typename OpeningType::Pointer opening = OpeningType::New();
+  auto opening = OpeningType::New();
   opening->SetInput(valuator->GetOutput());
   opening->SetLambda(m_Lambda);
   opening->SetReverseOrdering(m_ReverseOrdering);
@@ -100,7 +96,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::GenerateData()
   opening->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(opening, .2f);
 
-  typename BinarizerType::Pointer binarizer = BinarizerType::New();
+  auto binarizer = BinarizerType::New();
   binarizer->SetInput(opening->GetOutput());
   binarizer->SetForegroundValue(m_ForegroundValue);
   binarizer->SetBackgroundValue(m_BackgroundValue);
@@ -119,7 +115,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::PrintSelf(std::o
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent
      << "BackgroundValue: " << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(m_BackgroundValue)
      << std::endl;
@@ -128,7 +124,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>::PrintSelf(std::o
      << std::endl;
   os << indent << "Lambda: " << m_Lambda << std::endl;
   os << indent << "ReverseOrdering: " << m_ReverseOrdering << std::endl;
-  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")"
+  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ')'
      << std::endl;
 }
 } // end namespace itk

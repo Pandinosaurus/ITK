@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFEMObject_hxx
 #define itkFEMObject_hxx
 
-#include "itkFEMObject.h"
 
 #include "itkFEMLoadNode.h"
 #include "itkFEMLoadElementBase.h"
@@ -33,18 +32,13 @@
 
 #include <algorithm>
 
-namespace itk
+namespace itk::fem
 {
-namespace fem
-{
-/*
- * Default constructor for FEMObject class
- */
+
 template <unsigned int VDimension>
 FEMObject<VDimension>::FEMObject()
+
 {
-  m_NGFN = 0;
-  m_NMFC = 0;
   this->m_ElementContainer = ElementContainerType::New();
   this->m_NodeContainer = NodeContainerType::New();
   this->m_LoadContainer = LoadContainerType::New();
@@ -68,11 +62,11 @@ FEMObject<VDimension>::Clear()
   // Required because of circular references between nodes
   // and elements
   int numElements = this->GetNumberOfElements();
-  for (int e = 0; e < numElements; e++)
+  for (int e = 0; e < numElements; ++e)
   {
     Element::Pointer el = this->GetElement(e);
     unsigned int     Npts = el->GetNumberOfNodes();
-    for (unsigned int pt = 0; pt < Npts; pt++)
+    for (unsigned int pt = 0; pt < Npts; ++pt)
     {
       el->GetNode(pt)->m_elements.clear();
     }
@@ -80,14 +74,14 @@ FEMObject<VDimension>::Clear()
   this->m_ElementContainer->Initialize();
 
   int numNodes = this->GetNumberOfNodes();
-  for (int e = 0; e < numNodes; e++)
+  for (int e = 0; e < numNodes; ++e)
   {
     Element::Node::Pointer n = this->GetNode(e);
     n->m_elements.clear();
   }
   this->m_NodeContainer->Initialize();
   int numLoads = this->GetNumberOfLoads();
-  for (int e = 0; e < numLoads; e++)
+  for (int e = 0; e < numLoads; ++e)
   {
     Element::Pointer dummy;
     Load *           l = this->GetLoad(e).GetPointer();
@@ -111,10 +105,10 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
   fem::Element::Node::Pointer n1;
 
   itk::fem::Element::VectorType pt(VDimension);
-  for (int i = 0; i < numNodes; i++)
+  for (int i = 0; i < numNodes; ++i)
   {
     n1 = fem::Element::Node::New();
-    for (unsigned int j = 0; j < VDimension; j++)
+    for (unsigned int j = 0; j < VDimension; ++j)
     {
       pt[j] = Copy->GetNode(i)->GetCoordinates()[j];
     }
@@ -125,14 +119,14 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
 
   // copy material information
   int numMat = Copy->GetNumberOfMaterials();
-  for (int i = 0; i < numMat; i++)
+  for (int i = 0; i < numMat; ++i)
   {
     auto * mCopy = dynamic_cast<fem::MaterialLinearElasticity *>(Copy->GetMaterial(i).GetPointer());
     if (mCopy == nullptr)
     {
-      itkExceptionMacro(<< "dynamic_cast failed.");
+      itkExceptionMacro("dynamic_cast failed.");
     }
-    fem::MaterialLinearElasticity::Pointer m = fem::MaterialLinearElasticity::New();
+    auto m = fem::MaterialLinearElasticity::New();
     m->SetGlobalNumber(mCopy->GetGlobalNumber());
     m->SetYoungsModulus(mCopy->GetYoungsModulus());
     m->SetPoissonsRatio(mCopy->GetPoissonsRatio());
@@ -144,7 +138,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
   // copy element information
   int                       numElements = Copy->GetNumberOfElements();
   itk::LightObject::Pointer a = nullptr;
-  for (int i = 0; i < numElements; i++)
+  for (int i = 0; i < numElements; ++i)
   {
     fem::Element * elCopy = Copy->GetElement(i);
     // create a new object of the correct class
@@ -153,12 +147,12 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
     auto * o1 = dynamic_cast<fem::Element *>(a.GetPointer());
     if (o1 == nullptr)
     {
-      itkExceptionMacro(<< "dynamic_cast failed.");
+      itkExceptionMacro("dynamic_cast failed.");
     }
     o1->SetGlobalNumber(elCopy->GetGlobalNumber());
 
     numNodes = elCopy->GetNumberOfNodes();
-    for (int j = 0; j < numNodes; j++)
+    for (int j = 0; j < numNodes; ++j)
     {
       o1->SetNode(j, (this->GetNodeWithGlobalNumber(elCopy->GetNode(j)->GetGlobalNumber())));
     }
@@ -170,20 +164,20 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
 
   // Copy load/bc information
   int numLoads = Copy->GetNumberOfLoads();
-  for (int k = 0; k < numLoads; k++)
+  for (int k = 0; k < numLoads; ++k)
   {
     fem::Load * load = Copy->GetLoad(k);
     // create a new object of the correct class
 
-    std::string loadname = std::string(load->GetNameOfClass());
+    std::string loadname(load->GetNameOfClass());
     if (loadname == "LoadNode")
     {
       auto * lCopy = dynamic_cast<fem::LoadNode *>(load);
       if (lCopy == nullptr)
       {
-        itkExceptionMacro(<< "dynamic_cast failed.");
+        itkExceptionMacro("dynamic_cast failed.");
       }
-      fem::LoadNode::Pointer o1 = fem::LoadNode::New();
+      auto o1 = fem::LoadNode::New();
 
       o1->SetGlobalNumber(lCopy->GetGlobalNumber());
 
@@ -193,7 +187,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
 
       int                dim = VDimension;
       vnl_vector<double> F(dim);
-      for (int i = 0; i < dim; i++)
+      for (int i = 0; i < dim; ++i)
       {
         F[i] = lCopy->GetForce()[i];
       }
@@ -205,10 +199,10 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       auto * lCopy = dynamic_cast<fem::LoadBC *>(load);
       if (lCopy == nullptr)
       {
-        itkExceptionMacro(<< "dynamic_cast failed.");
+        itkExceptionMacro("dynamic_cast failed.");
       }
 
-      fem::LoadBC::Pointer o1 = fem::LoadBC::New();
+      auto o1 = fem::LoadBC::New();
 
       o1->SetGlobalNumber(lCopy->GetGlobalNumber());
 
@@ -218,7 +212,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
 
       int                numRHS = lCopy->GetValue().size();
       vnl_vector<double> F(numRHS);
-      for (int i = 0; i < numRHS; i++)
+      for (int i = 0; i < numRHS; ++i)
       {
         F[i] = lCopy->GetValue()[i];
       }
@@ -230,10 +224,10 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       auto * lCopy = dynamic_cast<fem::LoadBCMFC *>(load);
       if (lCopy == nullptr)
       {
-        itkExceptionMacro(<< "dynamic_cast failed.");
+        itkExceptionMacro("dynamic_cast failed.");
       }
 
-      fem::LoadBCMFC::Pointer o1 = fem::LoadBCMFC::New();
+      auto o1 = fem::LoadBCMFC::New();
       o1->SetGlobalNumber(lCopy->GetGlobalNumber());
 
       int   NumLHS;
@@ -242,7 +236,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       float Value;
 
       NumLHS = lCopy->GetNumberOfLeftHandSideTerms();
-      for (int i = 0; i < NumLHS; i++)
+      for (int i = 0; i < NumLHS; ++i)
       {
         fem::LoadBCMFC::MFCTerm mfcTerm = lCopy->GetLeftHandSideArray()[i];
         elementGN = mfcTerm.m_element->GetGlobalNumber();
@@ -256,7 +250,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       }
 
       int NumRHS = lCopy->GetNumberOfRightHandSideTerms();
-      for (int i = 0; i < NumRHS; i++)
+      for (int i = 0; i < NumRHS; ++i)
       {
         o1->GetRightHandSideArray().set_size(o1->GetRightHandSideArray().size() + 1);
         o1->GetRightHandSideArray().put(o1->GetRightHandSideArray().size() - 1, lCopy->GetRightHandSideArray()[i]);
@@ -268,10 +262,10 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       auto * lCopy = dynamic_cast<fem::LoadEdge *>(load);
       if (lCopy == nullptr)
       {
-        itkExceptionMacro(<< "dynamic_cast failed.");
+        itkExceptionMacro("dynamic_cast failed.");
       }
 
-      fem::LoadEdge::Pointer o1 = fem::LoadEdge::New();
+      auto o1 = fem::LoadEdge::New();
 
       o1->SetGlobalNumber(lCopy->GetGlobalNumber());
 
@@ -289,9 +283,9 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       if (numRows)
       {
         o1->GetForce().set_size(numRows, numCols);
-        for (int i = 0; i < numRows; i++)
+        for (int i = 0; i < numRows; ++i)
         {
-          for (int j = 0; j < numCols; j++)
+          for (int j = 0; j < numCols; ++j)
           {
             o1->GetForce()[i][j] = force[i][j];
           }
@@ -304,10 +298,10 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
       auto * lCopy = dynamic_cast<fem::LoadGravConst *>(load);
       if (lCopy == nullptr)
       {
-        itkExceptionMacro(<< "dynamic_cast failed.");
+        itkExceptionMacro("dynamic_cast failed.");
       }
 
-      fem::LoadGravConst::Pointer o1 = fem::LoadGravConst::New();
+      auto o1 = fem::LoadGravConst::New();
 
       o1->SetGlobalNumber(lCopy->GetGlobalNumber());
       for (auto & i : lCopy->GetElementArray())
@@ -317,7 +311,7 @@ FEMObject<VDimension>::DeepCopy(FEMObject * Copy)
 
       int dim = lCopy->GetForce().size();
       o1->GetForce().set_size(dim);
-      for (int i = 0; i < dim; i++)
+      for (int i = 0; i < dim; ++i)
       {
         o1->GetForce()[i] = lCopy->GetForce()[i];
       }
@@ -334,9 +328,6 @@ FEMObject<VDimension>::FinalizeMesh()
   this->GenerateMFC();
 }
 
-/**
- * Assign a global freedom number to each DOF in a system.
- */
 template <unsigned int VDimension>
 void
 FEMObject<VDimension>::GenerateMFC()
@@ -356,7 +347,7 @@ FEMObject<VDimension>::GenerateMFC()
   // search for MFC's in Loads array, because they affect the master stiffness
   // matrix
   int numLoads = this->m_LoadContainer->Size();
-  for (int l = 0; l < numLoads; l++)
+  for (int l = 0; l < numLoads; ++l)
   {
     auto * l1 = dynamic_cast<LoadBCMFC *>(this->GetLoad(l).GetPointer());
     if (l1 != nullptr)
@@ -365,14 +356,11 @@ FEMObject<VDimension>::GenerateMFC()
       l1->SetIndex(m_NMFC);
 
       // increase the number of MFC
-      m_NMFC++;
+      ++m_NMFC;
     }
   }
 }
 
-/**
- * Assign a global freedom number to each DOF in a system.
- */
 template <unsigned int VDimension>
 void
 FEMObject<VDimension>::GenerateGFN()
@@ -380,7 +368,7 @@ FEMObject<VDimension>::GenerateGFN()
   // Clear the list of elements and global freedom numbers in nodes
   // FIXME: should be removed once Mesh is there
   int numNodes = this->m_NodeContainer->Size();
-  for (int n = 0; n < numNodes; n++)
+  for (int n = 0; n < numNodes; ++n)
   {
     Element::Node::Pointer np = this->GetNode(n);
     np->m_elements.clear();
@@ -388,15 +376,15 @@ FEMObject<VDimension>::GenerateGFN()
   }
 
   int numElements = this->m_ElementContainer->Size();
-  for (int e = 0; e < numElements; e++) // step over
+  for (int e = 0; e < numElements; ++e) // step over
                                         // all
                                         // elements
   {
-    // Add the elemens in the nodes list of elements
+    // Add the elements in the nodes list of elements
     // FIXME: should be removed once Mesh is there
     Element::Pointer el = this->GetElement(e);
     unsigned int     Npts = el->GetNumberOfNodes();
-    for (unsigned int pt = 0; pt < Npts; pt++)
+    for (unsigned int pt = 0; pt < Npts; ++pt)
     {
       el->GetNode(pt)->m_elements.insert(el);
     }
@@ -409,19 +397,19 @@ FEMObject<VDimension>::GenerateGFN()
   // Start numbering DOFs from 0
   m_NGFN = 0;
   // Step over all elements
-  for (int e = 0; e < numElements; e++)
+  for (int e = 0; e < numElements; ++e)
   {
     // FIXME: Write a code that checks if two elements are compatible, when they
     // share a node
     Element::Pointer el = GetElement(e);
-    for (unsigned int n = 0; n < el->GetNumberOfNodes(); n++)
+    for (unsigned int n = 0; n < el->GetNumberOfNodes(); ++n)
     {
-      for (unsigned int dof = 0; dof < el->GetNumberOfDegreesOfFreedomPerNode(); dof++)
+      for (unsigned int dof = 0; dof < el->GetNumberOfDegreesOfFreedomPerNode(); ++dof)
       {
         if (el->GetNode(n)->GetDegreeOfFreedom(dof) == Element::InvalidDegreeOfFreedomID)
         {
           el->GetNode(n)->SetDegreeOfFreedom(dof, m_NGFN);
-          m_NGFN++;
+          ++m_NGFN;
         }
       }
     }
@@ -441,7 +429,7 @@ FEMObject<VDimension>::RenumberNodeContainer()
 {
 
   int numNodes = this->m_NodeContainer->Size();
-  for (int i = 0; i < numNodes; i++)
+  for (int i = 0; i < numNodes; ++i)
   {
     this->GetNode(i)->SetGlobalNumber(i);
   }
@@ -532,7 +520,7 @@ Element::ConstPointer
 FEMObject<VDimension>::GetElementWithGlobalNumber(int globalNumber) const
 {
   int numElements = this->m_ElementContainer->Size();
-  for (int i = 0; i < numElements; i++)
+  for (int i = 0; i < numElements; ++i)
   {
     if (this->m_ElementContainer->GetElement(i)->GetGlobalNumber() == globalNumber)
     {
@@ -567,7 +555,7 @@ Element::Node::Pointer
 FEMObject<VDimension>::GetNodeWithGlobalNumber(int globalNumber)
 {
   int numNodes = this->m_NodeContainer->Size();
-  for (int i = 0; i < numNodes; i++)
+  for (int i = 0; i < numNodes; ++i)
   {
     if (this->m_NodeContainer->GetElement(i)->GetGlobalNumber() == globalNumber)
     {
@@ -595,7 +583,7 @@ Load::Pointer
 FEMObject<VDimension>::GetLoadWithGlobalNumber(int globalNumber)
 {
   int numLoads = this->m_LoadContainer->Size();
-  for (int i = 0; i < numLoads; i++)
+  for (int i = 0; i < numLoads; ++i)
   {
     if (this->m_LoadContainer->GetElement(i)->GetGlobalNumber() == globalNumber)
     {
@@ -624,7 +612,7 @@ Material::ConstPointer
 FEMObject<VDimension>::GetMaterialWithGlobalNumber(int globalNumber) const
 {
   int numMaterials = this->m_MaterialContainer->Size();
-  for (int i = 0; i < numMaterials; i++)
+  for (int i = 0; i < numMaterials; ++i)
   {
     if (this->m_MaterialContainer->GetElement(i)->GetGlobalNumber() == globalNumber)
     {
@@ -655,7 +643,6 @@ FEMObject<VDimension>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "MaterialContainer: " << this->m_MaterialContainer << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMObject_hxx

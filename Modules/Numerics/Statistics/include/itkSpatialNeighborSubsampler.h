@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkRegionConstrainedSubsampler.h"
 #include "itkImageHelper.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class SpatialNeighborSubsampler
+ * \class SpatialNeighborSubsampler
  * \brief A subsampler that selects all points
  * within the specified radius of the query point.
  *
@@ -60,28 +58,28 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(SpatialNeighborSubsampler, RegionConstrainedSubsampler);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpatialNeighborSubsampler);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** type alias alias for the source data container */
-  using SampleType = typename Superclass::SampleType;
-  using SampleConstPointer = typename Superclass::SampleConstPointer;
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::SampleType;
+  using typename Superclass::SampleConstPointer;
+  using typename Superclass::MeasurementVectorType;
+  using typename Superclass::InstanceIdentifier;
 
-  using SubsampleType = typename Superclass::SubsampleType;
-  using SubsamplePointer = typename Superclass::SubsamplePointer;
-  using SubsampleConstIterator = typename Superclass::SubsampleConstIterator;
-  using InstanceIdentifierHolder = typename Superclass::InstanceIdentifierHolder;
+  using typename Superclass::SubsampleType;
+  using typename Superclass::SubsamplePointer;
+  using typename Superclass::SubsampleConstIterator;
+  using typename Superclass::InstanceIdentifierHolder;
 
   /** type alias related to region */
-  using RegionType = typename Superclass::RegionType;
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::RegionType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
+  using typename Superclass::SizeType;
   using RadiusType = typename RegionType::SizeType;
 
   static constexpr unsigned int ImageDimension = RegionType::ImageDimension;
@@ -89,11 +87,12 @@ public:
   using ImageHelperType = ImageHelper<Self::ImageDimension, Self::ImageDimension>;
 
   /** Method to set the radius */
+  /** @ITKStartGrouping */
   void
   SetRadius(const RadiusType & radius);
   void
   SetRadius(unsigned int radius);
-
+  /** @ITKEndGrouping */
   /** Method to get the radius */
   itkGetConstReferenceMacro(Radius, RadiusType);
 
@@ -114,7 +113,7 @@ protected:
    * This does a complete copy of the subsampler state
    * to the new subsampler
    */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
   SpatialNeighborSubsampler();
@@ -123,12 +122,11 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  RadiusType m_Radius;
-  bool       m_RadiusInitialized;
+  RadiusType m_Radius{};
+  bool       m_RadiusInitialized{};
 }; // end of class SpatialNeighborSubsampler
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkSpatialNeighborSubsampler.hxx"

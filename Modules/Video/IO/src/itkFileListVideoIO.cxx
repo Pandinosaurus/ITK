@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,14 @@
 #include "itkFileListVideoIO.h"
 
 #include "itkImageIOFactory.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
 
-FileListVideoIO::FileListVideoIO()
-{
-  this->ResetMembers();
-}
+FileListVideoIO::FileListVideoIO() { this->ResetMembers(); }
 
-FileListVideoIO::~FileListVideoIO()
-{
-  this->FinishReadingOrWriting();
-}
+FileListVideoIO::~FileListVideoIO() { this->FinishReadingOrWriting(); }
 
 void
 FileListVideoIO::FinishReadingOrWriting()
@@ -56,7 +51,7 @@ FileListVideoIO::SetFileName(const char * fileList)
 }
 
 std::vector<std::string>
-FileListVideoIO ::SplitFileNames(const std::string & fileList)
+FileListVideoIO::SplitFileNames(const std::string & fileList)
 {
   std::vector<std::string> out;
 
@@ -65,7 +60,7 @@ FileListVideoIO ::SplitFileNames(const std::string & fileList)
   while (pos != std::string::npos && len > 0)
   {
     // Get the substring
-    std::string str = fileList.substr(pos, len);
+    const std::string str = fileList.substr(pos, len);
 
     // Update pos
     pos = str.find(',');
@@ -76,7 +71,7 @@ FileListVideoIO ::SplitFileNames(const std::string & fileList)
     // Move past the delimiter
     if (pos != std::string::npos)
     {
-      pos++;
+      ++pos;
     }
     len -= pos;
   }
@@ -107,7 +102,7 @@ bool
 FileListVideoIO::CanReadFile(const char * filename)
 {
   // Make sure file names have been specified
-  std::string              strFileName = filename;
+  const std::string        strFileName = filename;
   std::vector<std::string> fileList = this->SplitFileNames(strFileName);
   if (fileList.empty())
   {
@@ -121,7 +116,7 @@ FileListVideoIO::CanReadFile(const char * filename)
   }
 
   // Make sure we can instantiate an ImageIO to read the first file
-  ImageIOBase::Pointer ioTemp =
+  const ImageIOBase::Pointer ioTemp =
     ImageIOFactory::CreateImageIO(fileList[0].c_str(), ImageIOFactory::IOFileModeEnum::ReadMode);
   if (ioTemp.IsNull())
   {
@@ -145,10 +140,10 @@ FileListVideoIO::ReadImageInformation()
   {
 
     // Make sure file can be read
-    std::string filename = m_FileNames[0];
+    const std::string filename = m_FileNames[0];
     if (!this->CanReadFile(filename.c_str()))
     {
-      itkExceptionMacro(<< "Cannot Read File: " << filename);
+      itkExceptionMacro("Cannot Read File: " << filename);
     }
 
     // Open the internal IO (don't use local so that spacing, origin, direction
@@ -166,7 +161,7 @@ FileListVideoIO::ReadImageInformation()
     m_LastIFrame = m_FrameTotal - 1;
 
     // Fill dimensions and origin
-    unsigned int numberOfDimensions = m_ImageIO->GetNumberOfDimensions();
+    const unsigned int numberOfDimensions = m_ImageIO->GetNumberOfDimensions();
     this->SetNumberOfDimensions(numberOfDimensions);
 
     for (unsigned int i = 0; i < numberOfDimensions; ++i)
@@ -204,7 +199,7 @@ FileListVideoIO::Read(void * buffer)
   // non-zero)
   if (m_Dimensions[0] == 0)
   {
-    itkExceptionMacro(<< "Cannot read frame with zero dimension. May need to call ReadImageInformation");
+    itkExceptionMacro("Cannot read frame with zero dimension. May need to call ReadImageInformation");
   }
 
   // If video is not already open, open it and keep it open
@@ -220,7 +215,7 @@ FileListVideoIO::Read(void * buffer)
   // Move on to the next frame
   if (m_CurrentFrame < m_FrameTotal - 1)
   {
-    m_CurrentFrame++;
+    ++m_CurrentFrame;
   }
 }
 
@@ -283,7 +278,7 @@ FileListVideoIO::CanWriteFile(const char * filename)
   }
 
   // Make sure we can instantiate an ImageIO to write the first file
-  ImageIOBase::Pointer ioTemp =
+  const ImageIOBase::Pointer ioTemp =
     ImageIOFactory::CreateImageIO(fileList[0].c_str(), ImageIOFactory::IOFileModeEnum::WriteMode);
   if (ioTemp.IsNull())
   {
@@ -356,7 +351,7 @@ FileListVideoIO::Write(const void * buffer)
   // Move to the next frame
   if (m_CurrentFrame < m_FrameTotal - 1)
   {
-    m_CurrentFrame++;
+    ++m_CurrentFrame;
   }
 }
 
@@ -464,18 +459,18 @@ FileListVideoIO::ResetMembers()
 }
 
 bool
-FileListVideoIO ::VerifyExtensions(const std::vector<std::string> & fileList) const
+FileListVideoIO::VerifyExtensions(const std::vector<std::string> & fileList) const
 {
   for (size_t i = 1; i < fileList.size(); ++i)
   {
-    size_t prevExtPos = fileList[i - 1].rfind(".");
-    size_t extPos = fileList[i].rfind(".");
+    const size_t prevExtPos = fileList[i - 1].rfind('.');
+    const size_t extPos = fileList[i].rfind('.');
     if (prevExtPos == std::string::npos || extPos == std::string::npos)
     {
       return false;
     }
-    std::string prevExt = fileList[i - 1].substr(prevExtPos + 1, fileList[i - 1].length() - prevExtPos - 1);
-    std::string ext = fileList[i].substr(extPos + 1, fileList[i].length() - extPos - 1);
+    const std::string prevExt = fileList[i - 1].substr(prevExtPos + 1, fileList[i - 1].length() - prevExtPos - 1);
+    const std::string ext = fileList[i].substr(extPos + 1, fileList[i].length() - extPos - 1);
 
     if (strcmp(prevExt.c_str(), ext.c_str()))
     {
@@ -488,21 +483,13 @@ FileListVideoIO ::VerifyExtensions(const std::vector<std::string> & fileList) co
 void
 FileListVideoIO::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
 
-  if (!m_ImageIO.IsNull())
-  {
-    os << indent << "Internal ImageIO:" << std::endl;
-    m_ImageIO->Print(os, indent.GetNextIndent());
-  }
+  itkPrintSelfObjectMacro(ImageIO);
 
-  os << indent << "Image filenames:" << std::endl;
-  auto it = m_FileNames.begin();
-  while (it != m_FileNames.end())
-  {
-    os << indent << *it << std::endl;
-    ++it;
-  }
+  os << indent << "FileNames: " << m_FileNames << std::endl;
 }
 
 } // end namespace itk

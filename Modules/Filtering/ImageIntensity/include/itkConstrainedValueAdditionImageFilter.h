@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,19 +34,13 @@ template <typename TInput1, typename TInput2, typename TOutput>
 class ConstrainedValueAddition
 {
 public:
-  ConstrainedValueAddition() = default;
-  ~ConstrainedValueAddition() = default;
   bool
-  operator!=(const ConstrainedValueAddition &) const
+  operator==(const ConstrainedValueAddition &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const ConstrainedValueAddition & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstrainedValueAddition);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
@@ -94,7 +88,8 @@ public:
  * \ingroup ITKImageIntensity
  */
 template <typename TInputImage1, typename TInputImage2, typename TOutputImage>
-class ConstrainedValueAdditionImageFilter : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
+class ITK_TEMPLATE_EXPORT ConstrainedValueAdditionImageFilter
+  : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ConstrainedValueAdditionImageFilter);
@@ -111,17 +106,13 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ConstrainedValueAdditionImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConstrainedValueAdditionImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage1::PixelType, double>));
   itkConceptMacro(Input2ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage2::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToOutputCastCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
   itkConceptMacro(DoubleLessThanOutputCheck, (Concept::LessThanComparable<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ConstrainedValueAdditionImageFilter()

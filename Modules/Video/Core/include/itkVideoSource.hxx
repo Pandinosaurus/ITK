@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVideoSource_hxx
 #define itkVideoSource_hxx
 
-#include "itkVideoSource.h"
 #include "itkMultiThreaderBase.h"
 
 namespace itk
@@ -32,7 +31,7 @@ namespace itk
 template <typename TOutputVideoStream>
 VideoSource<TOutputVideoStream>::VideoSource()
 {
-  typename OutputVideoStreamType::Pointer output =
+  const typename OutputVideoStreamType::Pointer output =
     static_cast<OutputVideoStreamType *>(this->MakeOutput(0).GetPointer());
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
@@ -54,8 +53,8 @@ VideoSource<TOutputVideoStream>::PrintSelf(std::ostream & os, Indent indent) con
 // GetOutput()
 //
 template <typename TOutputVideoStream>
-typename VideoSource<TOutputVideoStream>::OutputVideoStreamType *
-VideoSource<TOutputVideoStream>::GetOutput()
+auto
+VideoSource<TOutputVideoStream>::GetOutput() -> OutputVideoStreamType *
 {
   // Make sure there is at least 1 output
   if (this->GetNumberOfOutputs() < 1)
@@ -105,8 +104,8 @@ VideoSource<TOutputVideoStream>::GraftNthOutput(unsigned int idx, TOutputVideoSt
 {
   if (idx >= this->GetNumberOfOutputs())
   {
-    itkExceptionMacro(<< "Requested to graft output " << idx << " but this VideoSource only has "
-                      << this->GetNumberOfOutputs() << " Outputs.");
+    itkExceptionMacro("Requested to graft output " << idx << " but this VideoSource only has "
+                                                   << this->GetNumberOfOutputs() << " Outputs.");
   }
   if (!graft)
   {
@@ -139,8 +138,8 @@ void
 VideoSource<TOutputVideoStream>::GenerateOutputRequestedTemporalRegion(TemporalDataObject * output)
 {
   // Check if requested temporal region unset
-  bool           resetNumFrames = false;
-  TemporalRegion outputRequest = output->GetRequestedTemporalRegion();
+  bool                 resetNumFrames = false;
+  const TemporalRegion outputRequest = output->GetRequestedTemporalRegion();
 
   if (!outputRequest.GetFrameDuration())
   {
@@ -155,7 +154,7 @@ VideoSource<TOutputVideoStream>::GenerateOutputRequestedTemporalRegion(TemporalD
   // region. This should only happen for filters at the end of the pipeline
   // since mid-pipeline filters will have their outputs' requested temporal
   // regions set automatically.
-  SizeValueType requestDuration = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
+  const SizeValueType requestDuration = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
   if (resetNumFrames && this->GetOutput()->GetNumberOfBuffers() < requestDuration)
   {
     this->GetOutput()->SetNumberOfBuffers(requestDuration);
@@ -165,8 +164,8 @@ VideoSource<TOutputVideoStream>::GenerateOutputRequestedTemporalRegion(TemporalD
   // spatial regions for every frame to the largest possible as well
   if (resetNumFrames)
   {
-    SizeValueType frameStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
-    SizeValueType numFrames = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
+    const SizeValueType frameStart = this->GetOutput()->GetRequestedTemporalRegion().GetFrameStart();
+    const SizeValueType numFrames = this->GetOutput()->GetRequestedTemporalRegion().GetFrameDuration();
     for (SizeValueType i = frameStart; i < frameStart + numFrames; ++i)
     {
       // this->GetOutput()->SetFrameRequestedSpatialRegion(i,
@@ -188,13 +187,13 @@ VideoSource<TOutputVideoStream>::AllocateOutputs()
   OutputVideoStreamType * output = this->GetOutput();
 
   // Get a list of unbuffered requested frames
-  TemporalRegion unbufferedRegion = output->GetUnbufferedRequestedTemporalRegion();
+  const TemporalRegion unbufferedRegion = output->GetUnbufferedRequestedTemporalRegion();
 
   // We don't touch the buffered temporal region here because that is handled
   // by the default implementation of GenerateData in TemporalProcessObject
 
   // If there are no unbuffered frames, return now
-  SizeValueType numFrames = unbufferedRegion.GetFrameDuration();
+  const SizeValueType numFrames = unbufferedRegion.GetFrameDuration();
 
   if (numFrames == 0)
   {
@@ -206,11 +205,11 @@ VideoSource<TOutputVideoStream>::AllocateOutputs()
 
   // Loop through the unbuffered frames and set the buffered spatial region to
   // match the requested spatial region then allocate the data
-  SizeValueType startFrame = unbufferedRegion.GetFrameStart();
+  const SizeValueType startFrame = unbufferedRegion.GetFrameStart();
   for (SizeValueType i = startFrame; i < startFrame + numFrames; ++i)
   {
     output->SetFrameBufferedSpatialRegion(i, output->GetFrameRequestedSpatialRegion(i));
-    typename OutputFrameType::Pointer frame = output->GetFrame(i);
+    const typename OutputFrameType::Pointer frame = output->GetFrame(i);
     frame->SetBufferedRegion(output->GetFrameRequestedSpatialRegion(i));
     frame->Allocate();
   }
@@ -223,7 +222,7 @@ template <typename TOutputVideoStream>
 void
 VideoSource<TOutputVideoStream>::TemporalStreamingGenerateData()
 {
-  // Call a method that can be overriden by a subclass to allocate
+  // Call a method that can be overridden by a subclass to allocate
   // memory for the filter's outputs
   this->AllocateOutputs();
 
@@ -237,10 +236,7 @@ VideoSource<TOutputVideoStream>::TemporalStreamingGenerateData()
   str.Filter = this;
 
   this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
-
-  // multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->ThreaderCallback, &str);
 
   // Call a method that can be overridden by a subclass to perform
   // some calculations after all the threads have completed
@@ -256,8 +252,8 @@ VideoSource<TOutputVideoStream>::ThreadedGenerateData(
   const typename TOutputVideoStream::SpatialRegionType & itkNotUsed(outputRegionForThread),
   int                                                    itkNotUsed(threadId))
 {
-  itkExceptionMacro(<< "itk::ERROR: " << this->GetNameOfClass() << "(" << this << "): "
-                    << "Subclass should override this method!!!");
+  itkExceptionMacro("itk::ERROR: " << this->GetNameOfClass() << '(' << this << "): "
+                                   << "Subclass should override this method!!!");
 }
 
 //
@@ -276,22 +272,18 @@ VideoSource<TOutputVideoStream>::SplitRequestedSpatialRegion(
 {
   // Get the output pointer and a pointer to the first output frame
   OutputVideoStreamType * outputPtr = this->GetOutput();
-  SizeValueType           currentFrame = outputPtr->GetRequestedTemporalRegion().GetFrameStart();
+  const SizeValueType     currentFrame = outputPtr->GetRequestedTemporalRegion().GetFrameStart();
   OutputFrameType *       framePtr = outputPtr->GetFrame(currentFrame);
 
   const typename TOutputVideoStream::SizeType & requestedRegionSize = framePtr->GetRequestedRegion().GetSize();
 
-  int                                    splitAxis;
-  typename TOutputVideoStream::IndexType splitIndex;
-  typename TOutputVideoStream::SizeType  splitSize;
-
   // Initialize the splitRegion to the output requested region
   splitRegion = framePtr->GetRequestedRegion();
-  splitIndex = splitRegion.GetIndex();
-  splitSize = splitRegion.GetSize();
+  typename TOutputVideoStream::IndexType splitIndex = splitRegion.GetIndex();
+  typename TOutputVideoStream::SizeType  splitSize = splitRegion.GetSize();
 
   // split on the outermost dimension available
-  splitAxis = framePtr->GetImageDimension() - 1;
+  int splitAxis = framePtr->GetImageDimension() - 1;
   while (requestedRegionSize[splitAxis] == 1)
   {
     --splitAxis;
@@ -303,19 +295,14 @@ VideoSource<TOutputVideoStream>::SplitRequestedSpatialRegion(
   }
 
   // determine the actual number of pieces that will be generated
-  typename TOutputVideoStream::SizeType::SizeValueType range = requestedRegionSize[splitAxis];
+  const typename TOutputVideoStream::SizeType::SizeValueType range = requestedRegionSize[splitAxis];
 
-  int valuesPerThread;
-  int maxThreadIdUsed;
-  if (range == 0)
+  int valuesPerThread = 0;
+  int maxThreadIdUsed = 0;
+  if (range != 0)
   {
-    valuesPerThread = 0;
-    maxThreadIdUsed = 0;
-  }
-  else
-  {
-    valuesPerThread = Math::Ceil<int>(range / (double)num);
-    maxThreadIdUsed = Math::Ceil<int>(range / (double)valuesPerThread) - 1;
+    valuesPerThread = Math::Ceil<int>(range / static_cast<double>(num));
+    maxThreadIdUsed = Math::Ceil<int>(range / static_cast<double>(valuesPerThread)) - 1;
   }
 
   // Split the region
@@ -347,26 +334,23 @@ template <typename TOutputVideoStream>
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 VideoSource<TOutputVideoStream>::ThreaderCallback(void * arg)
 {
-  ThreadStruct * str;
-  int            total, threadId, threadCount;
+  const int workUnitID = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->WorkUnitID;
+  const int threadCount = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->NumberOfWorkUnits;
 
-  threadId = ((MultiThreaderBase::WorkUnitInfo *)(arg))->WorkUnitID;
-  threadCount = ((MultiThreaderBase::WorkUnitInfo *)(arg))->NumberOfWorkUnits;
-
-  str = (ThreadStruct *)(((MultiThreaderBase::WorkUnitInfo *)(arg))->UserData);
+  auto * str = (ThreadStruct *)((static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->UserData);
 
   // execute the actual method with appropriate output region
   // first find out how many pieces extent can be split into.
   typename TOutputVideoStream::SpatialRegionType splitRegion;
-  total = str->Filter->SplitRequestedSpatialRegion(threadId, threadCount, splitRegion);
+  const int total = str->Filter->SplitRequestedSpatialRegion(workUnitID, threadCount, splitRegion);
 
-  if (threadId < total)
+  if (workUnitID < total)
   {
-    str->Filter->ThreadedGenerateData(splitRegion, threadId);
+    str->Filter->ThreadedGenerateData(splitRegion, workUnitID);
   }
   // else
   //   {
-  //   otherwise don't use this thread. Sometimes the threads dont
+  //   otherwise don't use this thread. Sometimes the threads don't
   //   break up very well and it is just as efficient to leave a
   //   few threads idle.
   //   }

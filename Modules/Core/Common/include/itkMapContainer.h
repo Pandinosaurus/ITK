@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
  * \brief A wrapper of the STL "map" container.
  *
  * Define a front-end to the STL "map" container that conforms to the
- * IndexedContainerInterface.  This is a full-fleged Object, so
+ * IndexedContainerInterface.  This is a full-fledged Object, so
  * there are events, modification time, debug, and reference count
  * information.
  *
@@ -55,8 +55,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(MapContainer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MapContainer);
 
   /** Save the template parameters. */
   using ElementIdentifier = TElementIdentifier;
@@ -73,6 +73,7 @@ public:
   /** Provide pass-through constructors corresponding to all the STL
    * map constructors.  These are for internal use only since this is also
    * an Object which must be constructed through the "New()" routine. */
+  /** @ITKStartGrouping */
   MapContainer()
     : MapType()
   {}
@@ -88,7 +89,7 @@ public:
   MapContainer(TInputIterator first, TInputIterator last, const MapKeyCompareType & comp)
     : MapType(first, last, comp)
   {}
-
+  /** @ITKEndGrouping */
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -97,22 +98,26 @@ public:
 
   /** Cast the container to a STL container type */
   STLContainerType &
-  CastToSTLContainer() ITK_NOEXCEPT
+  CastToSTLContainer() noexcept
   {
     return *this;
   }
 
   /** Cast the container to a const STL container type */
   const STLContainerType &
-  CastToSTLConstContainer() const ITK_NOEXCEPT
+  CastToSTLConstContainer() const noexcept
   {
     return *this;
   }
 
   using STLContainerType::begin;
+  using STLContainerType::cbegin;
   using STLContainerType::end;
+  using STLContainerType::cend;
   using STLContainerType::rbegin;
+  using STLContainerType::crbegin;
   using STLContainerType::rend;
+  using STLContainerType::crend;
 
   using STLContainerType::empty;
   using STLContainerType::size;
@@ -177,8 +182,16 @@ public:
       : m_Iter(i)
     {}
 
-    Iterator & operator*() { return *this; }
-    Iterator * operator->() { return this; }
+    Iterator &
+    operator*()
+    {
+      return *this;
+    }
+    Iterator *
+    operator->()
+    {
+      return this;
+    }
     Iterator &
     operator++()
     {
@@ -211,24 +224,19 @@ public:
     {
       return m_Iter == r.m_Iter;
     }
-    bool
-    operator!=(const Iterator & r) const
-    {
-      return m_Iter != r.m_Iter;
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & r) const
     {
       return m_Iter == r.m_Iter;
     }
-    bool
-    operator!=(const ConstIterator & r) const
-    {
-      return m_Iter != r.m_Iter;
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
     /** Get the index into the MapContainer associated with this iterator.   */
-    ElementIdentifier
+    [[nodiscard]] ElementIdentifier
     Index() const
     {
       return m_Iter->first;
@@ -267,8 +275,16 @@ public:
       : m_Iter(r.m_Iter)
     {}
 
-    ConstIterator & operator*() { return *this; }
-    ConstIterator * operator->() { return this; }
+    ConstIterator &
+    operator*()
+    {
+      return *this;
+    }
+    ConstIterator *
+    operator->()
+    {
+      return this;
+    }
     ConstIterator &
     operator++()
     {
@@ -301,31 +317,26 @@ public:
     {
       return m_Iter == r.m_Iter;
     }
-    bool
-    operator!=(const Iterator & r) const
-    {
-      return m_Iter != r.m_Iter;
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & r) const
     {
       return m_Iter == r.m_Iter;
     }
-    bool
-    operator!=(const ConstIterator & r) const
-    {
-      return m_Iter != r.m_Iter;
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
     /** Get the index into the MapContainer associated with this iterator.   */
-    ElementIdentifier
+    [[nodiscard]] ElementIdentifier
     Index() const
     {
       return m_Iter->first;
     }
 
     /** Get the value at this iterator's location in the MapContainer.   */
-    const Element &
+    [[nodiscard]] const Element &
     Value() const
     {
       return m_Iter->second;
@@ -451,7 +462,8 @@ public:
    * memory usage.
    */
   void
-  Squeeze();
+  Squeeze()
+  {}
 
   /**
    * Tell the container to release any memory it may have allocated and

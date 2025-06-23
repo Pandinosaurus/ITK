@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,12 +32,10 @@
 #include <algorithm>
 #include <iostream>
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ScalarImageToCooccurrenceListSampleFilter
+ * \class ScalarImageToCooccurrenceListSampleFilter
  *  \brief Converts pixel data into a list of pairs in order to compute a cooccurrence Histogram.
  *
  *  This class is intended to be used in combination with the ListToHistogramFilter class.
@@ -89,8 +87,8 @@ public:
   const SampleType *
   GetOutput() const;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageToCooccurrenceListSampleFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarImageToCooccurrenceListSampleFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -118,10 +116,9 @@ protected:
   GenerateData() override;
 
 private:
-  OffsetTable m_OffsetTable;
+  OffsetTable m_OffsetTable{};
 }; // end of class ScalarImageToListSampleFilter
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkScalarImageToCooccurrenceListSampleFilter.hxx"

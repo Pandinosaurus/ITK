@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,25 +18,21 @@
 #ifndef itkSummerColormapFunction_hxx
 #define itkSummerColormapFunction_hxx
 
-#include "itkSummerColormapFunction.h"
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TScalar, typename TRGBPixel>
-typename SummerColormapFunction<TScalar, TRGBPixel>::RGBPixelType
-SummerColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
+auto
+SummerColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const -> RGBPixelType
 {
   // Map the input scalar between [0, 1].
-  RealType value = this->RescaleInputValue(v);
+  const RealType value = this->RescaleInputValue(v);
 
   // Apply the color mapping.
-  RealType red = value;
+  const RealType red = value;
 
-  RealType green = 0.5 * value + 0.5;
+  const RealType green = 0.5 * value + 0.5;
 
-  RealType blue = 0.4;
+  constexpr RealType blue = 0.4;
 
   // Set the rgb components after rescaling the values.
   RGBPixelType pixel;
@@ -48,7 +44,6 @@ SummerColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
 
   return pixel;
 }
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

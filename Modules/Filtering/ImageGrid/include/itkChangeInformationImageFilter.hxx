@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,42 +18,18 @@
 #ifndef itkChangeInformationImageFilter_hxx
 #define itkChangeInformationImageFilter_hxx
 
-#include "itkChangeInformationImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkContinuousIndex.h"
 #include "itkObjectFactory.h"
 
 namespace itk
 {
-/**
- *
- */
-template <typename TInputImage>
-ChangeInformationImageFilter<TInputImage>::ChangeInformationImageFilter()
-{
-  m_ReferenceImage = nullptr;
-
-  m_ChangeSpacing = false;
-  m_ChangeOrigin = false;
-  m_ChangeDirection = false;
-  m_ChangeRegion = false;
-
-  m_CenterImage = false;
-  m_UseReferenceImage = false;
-
-  m_OutputSpacing.Fill(1.0);
-  m_OutputOrigin.Fill(0.0);
-  m_OutputDirection.SetIdentity();
-  m_OutputOffset.Fill(0);
-}
 
 template <typename TInputImage>
 void
 ChangeInformationImageFilter<TInputImage>::GenerateOutputInformation()
 {
   Superclass::GenerateOutputInformation();
-
-  unsigned int i;
 
   typename TInputImage::RegionType outputRegion;
   typename TInputImage::SizeType   inputSize;
@@ -67,8 +43,8 @@ ChangeInformationImageFilter<TInputImage>::GenerateOutputInformation()
   itkDebugMacro("GenerateOutputInformation Start");
 
   // Get pointers to the input and output
-  typename Superclass::OutputImagePointer output = this->GetOutput();
-  typename Superclass::InputImagePointer  input = const_cast<TInputImage *>(this->GetInput());
+  const typename Superclass::OutputImagePointer output = this->GetOutput();
+  const typename Superclass::InputImagePointer  input = const_cast<TInputImage *>(this->GetInput());
 
   if (!output || !input)
   {
@@ -133,12 +109,12 @@ ChangeInformationImageFilter<TInputImage>::GenerateOutputInformation()
     typename TInputImage::PointType                     centerPoint;
     ContinuousIndex<SpacePrecisionType, ImageDimension> centerIndex;
 
-    for (i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       centerIndex[i] = static_cast<double>((outputSize[i] - 1) / 2.0);
     }
     output->TransformContinuousIndexToPhysicalPoint(centerIndex, centerPoint);
-    for (i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       origin[i] = output->GetOrigin()[i] - centerPoint[i];
     }
@@ -196,56 +172,34 @@ ChangeInformationImageFilter<TInputImage>::GenerateData()
   output->SetBufferedRegion(region);
 }
 
-/**
- *
- */
 template <typename TInputImage>
 void
 ChangeInformationImageFilter<TInputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "CenterImage: " << (m_CenterImage ? "On" : "Off") << std::endl;
-  os << indent << "ChangeSpacing: " << (m_ChangeSpacing ? "On" : "Off") << std::endl;
-  os << indent << "ChangeOrigin: " << (m_ChangeOrigin ? "On" : "Off") << std::endl;
-  os << indent << "ChangeDirection: " << (m_ChangeDirection ? "On" : "Off") << std::endl;
-  os << indent << "ChangeRegion: " << (m_ChangeRegion ? "On" : "Off") << std::endl;
-  os << indent << "UseReferenceImage: " << (m_UseReferenceImage ? "On" : "Off") << std::endl;
-  if (m_ReferenceImage)
-  {
-    os << indent << "ReferenceImage: " << m_ReferenceImage.GetPointer() << std::endl;
-  }
-  else
-  {
-    os << indent << "ReferenceImage: 0" << std::endl;
-  }
-  os << indent << "OutputSpacing: [";
-  if (ImageDimension >= 1)
-  {
-    os << m_OutputSpacing[0];
-  }
-  for (unsigned int j = 1; j < ImageDimension; j++)
-  {
-    os << ", " << m_OutputSpacing[j];
-  }
-  os << "]" << std::endl;
+  itkPrintSelfObjectMacro(ReferenceImage);
 
-  os << indent << "OutputOrigin: [";
-  if (ImageDimension >= 1)
-  {
-    os << m_OutputOrigin[0];
-  }
-  for (unsigned int j = 1; j < ImageDimension; j++)
-  {
-    os << ", " << m_OutputOrigin[j];
-  }
-  os << "]" << std::endl;
+  itkPrintSelfBooleanMacro(CenterImage);
+  itkPrintSelfBooleanMacro(ChangeSpacing);
+  itkPrintSelfBooleanMacro(ChangeOrigin);
+  itkPrintSelfBooleanMacro(ChangeDirection);
+  itkPrintSelfBooleanMacro(ChangeRegion);
+  itkPrintSelfBooleanMacro(UseReferenceImage);
 
-  os << indent << "OutputDirection:" << std::endl;
-  os << m_OutputDirection << std::endl;
+  os << indent << "OutputSpacing: " << static_cast<typename NumericTraits<SpacingType>::PrintType>(m_OutputSpacing)
+     << std::endl;
+  os << indent << "OutputOrigin: " << static_cast<typename NumericTraits<PointType>::PrintType>(m_OutputOrigin)
+     << std::endl;
+  os << indent
+     << "OutputDirection: " << static_cast<typename NumericTraits<DirectionType>::PrintType>(m_OutputDirection)
+     << std::endl;
 
-  os << indent << "OutputOffset: [";
-  os << m_OutputOffset << std::endl;
+  os << indent
+     << "OutputOffset: " << static_cast<typename NumericTraits<OutputImageOffsetType>::PrintType>(m_OutputOffset)
+     << std::endl;
+  os << indent << "Shift: " << static_cast<typename NumericTraits<OutputImageOffsetType>::PrintType>(m_Shift)
+     << std::endl;
 }
 } // end namespace itk
 

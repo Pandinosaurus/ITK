@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,19 @@
 #include "itkStreamingImageFilter.h"
 #include "itkMedianImageFilter.h"
 #include "itkMetaImageIO.h"
+#include "itkTestingMacros.h"
 
 int
-itkMetaImageStreamingIOTest(int ac, char * av[])
+itkMetaImageStreamingIOTest(int argc, char * argv[])
 {
+  if (argc < 3)
+  {
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFilename outputFilename [numberOfDataPieces]"
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+
   //  Image types are defined below.
   using InputPixelType = unsigned char;
   using OutputPixelType = unsigned char;
@@ -42,20 +51,20 @@ itkMetaImageStreamingIOTest(int ac, char * av[])
 
   using StreamingFilterType = itk::StreamingImageFilter<OutputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  StreamingFilterType::Pointer streamer = StreamingFilterType::New();
+  auto streamer = StreamingFilterType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
-  IOType::Pointer metaIn = IOType::New();
-  IOType::Pointer metaOut = IOType::New();
+  auto metaIn = IOType::New();
+  auto metaOut = IOType::New();
   reader->SetImageIO(metaIn);
   writer->SetImageIO(metaOut);
 
-  const std::string inputFilename = av[1];
-  const std::string outputFilename = av[2];
+  const std::string inputFilename = argv[1];
+  const std::string outputFilename = argv[2];
 
   reader->SetFileName(inputFilename);
   reader->SetUseStreaming(true);
@@ -89,9 +98,9 @@ itkMetaImageStreamingIOTest(int ac, char * av[])
   // By default we decide to use 4 pieces, but this value can
   // be changed from the command line.
   unsigned int numberOfDataPieces = 4;
-  if (ac > 3)
+  if (argc > 3)
   {
-    numberOfDataPieces = std::stoi(av[3]);
+    numberOfDataPieces = std::stoi(argv[3]);
   }
 
   streamer->SetNumberOfStreamDivisions(numberOfDataPieces);

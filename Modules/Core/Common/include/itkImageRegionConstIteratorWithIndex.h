@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
  * iterator templated over image type that walks an image region and is
  * specialized to keep track of its index location.
  *
- * The "WithIndex" family of iteators was designed for algorithms that use both
+ * The "WithIndex" family of iterators was designed for algorithms that use both
  * the values and locations of image pixels in calculations. Unlike
  * ImageRegionIterator, which calculates an index only when requested,
  * ImageRegionIteratorWithIndex maintains its index location as a member
@@ -135,28 +135,29 @@ public:
   using Superclass = ImageConstIteratorWithIndex<TImage>;
 
   /**
-   * Index type alias support While these were already typdef'ed in the superclass
+   * Index type alias support While these were already typedef'ed in the superclass
    * they need to be redone here for this subclass to compile properly with gcc.
    */
+
   /** Types inherited from the Superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
 
   /** Default constructor. Needed since we provide a cast constructor. */
   ImageRegionConstIteratorWithIndex()
     : ImageConstIteratorWithIndex<TImage>()
   {}
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageRegionConstIteratorWithIndex(const TImage * ptr, const RegionType & region)
     : ImageConstIteratorWithIndex<TImage>(ptr, region)
   {}

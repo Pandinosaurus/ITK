@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,14 @@
 #ifndef itkClassifierBase_hxx
 #define itkClassifierBase_hxx
 
-#include "itkClassifierBase.h"
 #include "itkCommand.h"
 
 namespace itk
 {
 template <typename TDataContainer>
 ClassifierBase<TDataContainer>::ClassifierBase()
+  : m_DecisionRule(nullptr)
 {
-  m_NumberOfClasses = 0;
-  m_DecisionRule = nullptr;
   m_MembershipFunctions.resize(0);
 }
 
@@ -37,21 +35,14 @@ ClassifierBase<TDataContainer>::PrintSelf(std::ostream & os, Indent indent) cons
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Number of classes: " << m_NumberOfClasses << std::endl;
-  os << indent << "DecisionRule: ";
-  if (m_DecisionRule.IsNotNull())
-  {
-    os << m_DecisionRule << std::endl;
-  }
-  else
-  {
-    os << "not set." << std::endl;
-  }
+  os << indent << "NumberOfClasses: " << m_NumberOfClasses << std::endl;
+
+  itkPrintSelfObjectMacro(DecisionRule);
 
   os << indent << "MembershipFunctions: " << std::endl;
   for (unsigned int i = 0; i < m_MembershipFunctions.size(); ++i)
   {
-    os << indent << m_MembershipFunctions[i] << std::endl;
+    os << indent.GetNextIndent() << m_MembershipFunctions[i] << std::endl;
   }
 }
 
@@ -62,19 +53,16 @@ ClassifierBase<TDataContainer>::Update()
   if (m_NumberOfClasses == 0)
   {
     itkExceptionMacro("Zero class");
-    return;
   }
 
   if (m_MembershipFunctions.empty())
   {
     itkExceptionMacro("No membership function");
-    return;
   }
 
   if (m_NumberOfClasses != m_MembershipFunctions.size())
   {
     itkExceptionMacro("The number of classes and the number of membership mismatch.");
-    return;
   }
 
   this->GenerateData();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class Hessian3DToVesselnessMeasureImageFilter
+ * \class Hessian3DToVesselnessMeasureImageFilter
  * \brief Line filter to provide a vesselness measure for tubular objects from the
  * hessian matrix.
  *
@@ -87,8 +87,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
   using InputPixelType = typename InputImageType::PixelType;
   using OutputPixelType = TPixel;
 
@@ -101,27 +101,25 @@ public:
   using EigenAnalysisFilterType =
     SymmetricEigenAnalysisFixedDimensionImageFilter<ImageDimension, InputImageType, EigenValueImageType>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(Hessian3DToVesselnessMeasureImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Hessian3DToVesselnessMeasureImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Set/Get macros for alpha_1. Please refer to
    * http://www.image.med.osaka-u.ac.jp/member/yoshi/paper/linefilter.pdf */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha1, double);
   itkGetConstMacro(Alpha1, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get macros for alpha_2. Please refer to
    * http://www.image.med.osaka-u.ac.jp/member/yoshi/paper/linefilter.pdf */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha2, double);
   itkGetConstMacro(Alpha2, double);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   Hessian3DToVesselnessMeasureImageFilter();
@@ -134,10 +132,10 @@ protected:
   GenerateData() override;
 
 private:
-  typename EigenAnalysisFilterType::Pointer m_SymmetricEigenValueFilter;
+  typename EigenAnalysisFilterType::Pointer m_SymmetricEigenValueFilter{};
 
-  double m_Alpha1;
-  double m_Alpha2;
+  double m_Alpha1{};
+  double m_Alpha2{};
 };
 } // end namespace itk
 

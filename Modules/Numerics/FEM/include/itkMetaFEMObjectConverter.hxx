@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMetaFEMObjectConverter_hxx
 #define itkMetaFEMObjectConverter_hxx
 
-#include "itkMetaFEMObjectConverter.h"
 
 #include "itkFEMElementBase.h"
 #include "itkFEMLightObject.h"
@@ -30,31 +29,29 @@
 namespace itk
 {
 
-/** Constructor */
-template <unsigned int NDimensions>
-MetaFEMObjectConverter<NDimensions>::MetaFEMObjectConverter() = default;
+template <unsigned int VDimension>
+MetaFEMObjectConverter<VDimension>::MetaFEMObjectConverter() = default;
 
-template <unsigned int NDimensions>
-typename MetaFEMObjectConverter<NDimensions>::MetaObjectType *
-MetaFEMObjectConverter<NDimensions>::CreateMetaObject()
+template <unsigned int VDimension>
+auto
+MetaFEMObjectConverter<VDimension>::CreateMetaObject() -> MetaObjectType *
 {
   return dynamic_cast<MetaObjectType *>(new FEMObjectMetaObjectType);
 }
 
-/** Convert a metaFEMObject into an FEMObject SpatialObject  */
-template <unsigned int NDimensions>
-typename MetaFEMObjectConverter<NDimensions>::SpatialObjectPointer
-MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+template <unsigned int VDimension>
+auto
+MetaFEMObjectConverter<VDimension>::MetaObjectToSpatialObject(const MetaObjectType * mo) -> SpatialObjectPointer
 {
   const auto * FEMmo = dynamic_cast<const MetaFEMObject *>(mo);
   if (FEMmo == nullptr)
   {
-    itkExceptionMacro(<< "Can't convert MetaObject to MetaFEMObject");
+    itkExceptionMacro("Can't convert MetaObject to MetaFEMObject");
   }
 
   FEMObjectSpatialObjectPointer FEMSO = FEMObjectSpatialObjectType::New();
 
-  using FEMObjectType = fem::FEMObject<NDimensions>;
+  using FEMObjectType = fem::FEMObject<VDimension>;
   using FEMObjectPointer = typename FEMObjectType::Pointer;
 
   FEMObjectPointer myFEMObject = FEMObjectType::New();
@@ -71,16 +68,16 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
 
     // create a new object of the correct class
     // a = FEMOF::Create(clID);
-    fem::Element::Node::Pointer o1 = fem::Element::Node::New();
+    auto o1 = fem::Element::Node::New();
     o1->SetGlobalNumber(node->m_GN);
     fem::Element::VectorType pt(node->m_Dim);
-    for (unsigned int i = 0; i < node->m_Dim; i++)
+    for (unsigned int i = 0; i < node->m_Dim; ++i)
     {
       pt[i] = node->m_X[i];
     }
     o1->SetCoordinates(pt);
     myFEMObject->AddNextNode(o1);
-    it_nodes++;
+    ++it_nodes;
   }
 
   // copy all the material information
@@ -96,16 +93,16 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
   {
     FEMObjectMaterial * material = (*it_material);
 
-    fem::MaterialLinearElasticity::Pointer o1 = fem::MaterialLinearElasticity::New();
+    auto o1 = fem::MaterialLinearElasticity::New();
     o1->SetGlobalNumber(material->m_GN);
     o1->SetYoungsModulus(material->E); /* Young modulus */
     o1->SetPoissonsRatio(material->nu);
-    o1->SetCrossSectionalArea(material->A); /* Crossection area */
+    o1->SetCrossSectionalArea(material->A); /* Cross section area */
     o1->SetMomentOfInertia(material->I);    /* Moment of inertia */
     o1->SetThickness(material->h);
     o1->SetDensityHeatProduct(material->RhoC);
     myFEMObject->AddNextMaterial(o1);
-    it_material++;
+    ++it_material;
   }
 
   // copy all the Element information
@@ -123,13 +120,13 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
 
     o1->SetGlobalNumber(element->m_GN);
     int numNodes = element->m_NumNodes;
-    for (int i = 0; i < numNodes; i++)
+    for (int i = 0; i < numNodes; ++i)
     {
       o1->SetNode(i, myFEMObject->GetNodeWithGlobalNumber(element->m_NodesId[i]));
     }
     o1->SetMaterial(myFEMObject->GetMaterialWithGlobalNumber(element->m_MaterialGN).GetPointer());
     myFEMObject->AddNextElement(o1);
-    it_elements++;
+    ++it_elements;
   }
 
   // copy all the load and boundary condition information
@@ -142,10 +139,10 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
   {
     FEMObjectLoad * load = (*it_load);
 
-    std::string loadname = std::string(load->m_LoadName);
+    std::string loadname(load->m_LoadName);
     if (loadname == "LoadNode")
     {
-      fem::LoadNode::Pointer o1 = fem::LoadNode::New();
+      auto o1 = fem::LoadNode::New();
       o1->SetGlobalNumber(load->m_GN);
 
       o1->SetElement(myFEMObject->GetElementWithGlobalNumber(load->m_ElementGN));
@@ -154,7 +151,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
 
       int                dim = load->m_Dim;
       vnl_vector<double> F(dim);
-      for (int i = 0; i < dim; i++)
+      for (int i = 0; i < dim; ++i)
       {
         F[i] = load->m_ForceVector[i];
       }
@@ -163,7 +160,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
     }
     else if (loadname == "LoadBC")
     {
-      fem::LoadBC::Pointer o1 = fem::LoadBC::New();
+      auto o1 = fem::LoadBC::New();
       o1->SetGlobalNumber(load->m_GN);
 
       o1->SetDegreeOfFreedom(load->m_DOF);
@@ -172,7 +169,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
 
       int                numRHS = load->m_NumRHS;
       vnl_vector<double> F(numRHS);
-      for (int i = 0; i < numRHS; i++)
+      for (int i = 0; i < numRHS; ++i)
       {
         F[i] = load->m_RHS[i];
       }
@@ -181,7 +178,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
     }
     else if (loadname == "LoadBCMFC")
     {
-      fem::LoadBCMFC::Pointer o1 = fem::LoadBCMFC::New();
+      auto o1 = fem::LoadBCMFC::New();
       o1->SetGlobalNumber(load->m_GN);
 
       int   NumLHS;
@@ -190,7 +187,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
       float Value;
       NumLHS = load->m_NumLHS;
 
-      for (int i = 0; i < NumLHS; i++)
+      for (int i = 0; i < NumLHS; ++i)
       {
         auto * mfcTerm = dynamic_cast<FEMObjectMFCTerm *>(load->m_LHS[i]);
         elementGN = mfcTerm->m_ElementGN;
@@ -204,7 +201,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
 
       int NumRHS = load->m_NumRHS;
 
-      for (int i = 0; i < NumRHS; i++)
+      for (int i = 0; i < NumRHS; ++i)
       {
         o1->GetRightHandSideArray().set_size(o1->GetRightHandSideArray().size() + 1);
         o1->GetRightHandSideArray().put(o1->GetRightHandSideArray().size() - 1, load->m_RHS[i]);
@@ -214,7 +211,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
     }
     else if (loadname == "LoadEdge")
     {
-      fem::LoadEdge::Pointer o1 = fem::LoadEdge::New();
+      auto o1 = fem::LoadEdge::New();
       o1->SetGlobalNumber(load->m_GN);
 
       int numRows;
@@ -231,10 +228,10 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
         std::vector<float> forcevector = force[0];
         auto               numCols = static_cast<int>(forcevector.size());
         o1->GetForce().set_size(numRows, numCols);
-        for (int i = 0; i < numRows; i++)
+        for (int i = 0; i < numRows; ++i)
         {
           forcevector = force[i];
-          for (int j = 0; j < numCols; j++)
+          for (int j = 0; j < numCols; ++j)
           {
             o1->GetForce()[i][j] = forcevector[j];
           }
@@ -244,16 +241,16 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
     }
     else if (loadname == "LoadGravConst")
     {
-      fem::LoadGravConst::Pointer o1 = fem::LoadGravConst::New();
+      auto o1 = fem::LoadGravConst::New();
       o1->SetGlobalNumber(load->m_GN);
 
-      for (int i = 0; i < load->m_NumElements; i++)
+      for (int i = 0; i < load->m_NumElements; ++i)
       {
         o1->GetElementArray().push_back(myFEMObject->GetElementWithGlobalNumber(load->m_Elements[i]).GetPointer());
       }
 
       o1->GetForce().set_size(load->m_Dim);
-      for (int i = 0; i < load->m_Dim; i++)
+      for (int i = 0; i < load->m_Dim; ++i)
       {
         o1->GetForce()[i] = load->m_ForceVector[i];
       }
@@ -261,7 +258,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
     }
     else if (loadname == "LoadLandmark")
     {
-      fem::LoadLandmark::Pointer o1 = fem::LoadLandmark::New();
+      auto o1 = fem::LoadLandmark::New();
       o1->SetGlobalNumber(load->m_GN);
       o1->SetEta(load->m_Variance);
       o1->GetElementArray().resize(1);
@@ -276,7 +273,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
       target.set_size(dim);
       point.set_size(dim);
       force.set_size(dim);
-      for (int i = 0; i < dim; i++)
+      for (int i = 0; i < dim; ++i)
       {
         source[i] = load->m_Deformed[i];
         target[i] = load->m_Undeformed[i];
@@ -295,7 +292,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
      o1->GetTarget().set_size(dim);
      o1->GetForce().set_size(dim);
 
-     for (int i=0; i<dim; i++)
+     for (int i=0; i<dim; ++i)
      {
      o1->GetSource()[i] = load->m_Deformed[i];
      o1->GetPoint()[i] = load->m_Deformed[i];
@@ -305,7 +302,7 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
      */
       myFEMObject->AddNextLoad(o1);
     }
-    it_load++;
+    ++it_load;
   }
 
   FEMSO->SetFEMObject(myFEMObject);
@@ -313,36 +310,35 @@ MetaFEMObjectConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectT
   return FEMSO.GetPointer();
 }
 
-/** Convert an FEMObject SpatialObject into a metaFEMObject */
-template <unsigned int NDimensions>
-typename MetaFEMObjectConverter<NDimensions>::MetaObjectType *
-MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+template <unsigned int VDimension>
+auto
+MetaFEMObjectConverter<VDimension>::SpatialObjectToMetaObject(const SpatialObjectType * so) -> MetaObjectType *
 {
   FEMObjectSpatialObjectConstPointer FEMSO = dynamic_cast<const FEMObjectSpatialObjectType *>(so);
   if (FEMSO.IsNull())
   {
-    itkExceptionMacro(<< "Can't downcast SpatialObject to FEMObjectSpatialObject");
+    itkExceptionMacro("Can't downcast SpatialObject to FEMObjectSpatialObject");
   }
 
-  using FEMObjectType = fem::FEMObject<NDimensions>;
+  using FEMObjectType = fem::FEMObject<VDimension>;
   using FEMObjectConstPointer = typename FEMObjectType::ConstPointer;
 
   FEMObjectConstPointer curFEMObject = FEMSO->GetFEMObject();
 
-  auto * FEMmo = new MetaFEMObject(NDimensions);
+  auto * FEMmo = new MetaFEMObject(VDimension);
 
   // copy the relevant info from spatial object to femobject
 
   // copy node info.
   const int numSONodes = curFEMObject->GetNumberOfNodes();
-  for (int i = 0; i < numSONodes; i++)
+  for (int i = 0; i < numSONodes; ++i)
   {
-    auto *                           Node = new FEMObjectNode(NDimensions);
+    auto *                           Node = new FEMObjectNode(VDimension);
     fem::Element::Node::ConstPointer SONode = curFEMObject->GetNode(i);
     fem::Element::VectorType         pt = SONode->GetCoordinates();
 
     Node->m_GN = SONode->GetGlobalNumber();
-    for (unsigned int j = 0; j < NDimensions; j++)
+    for (unsigned int j = 0; j < VDimension; ++j)
     {
       Node->m_X[j] = pt[j];
     }
@@ -351,7 +347,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
 
   // copy material info.
   int numMaterial = curFEMObject->GetNumberOfMaterials();
-  for (int i = 0; i < numMaterial; i++)
+  for (int i = 0; i < numMaterial; ++i)
   {
     fem::Material::ConstPointer SOMaterial = curFEMObject->GetMaterial(i);
     auto *                      Material = new FEMObjectMaterial;
@@ -377,20 +373,20 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
 
   // copy element info.
   const int numElements = curFEMObject->GetNumberOfElements();
-  for (int i = 0; i < numElements; i++)
+  for (int i = 0; i < numElements; ++i)
   {
     fem::Element::ConstPointer SOElement = curFEMObject->GetElement(i);
     const int                  numNodes = SOElement->GetNumberOfNodes();
     auto *                     Element = new FEMObjectElement(numNodes);
 
     Element->m_GN = SOElement->GetGlobalNumber();
-    Element->m_Dim = NDimensions;
+    Element->m_Dim = VDimension;
     Element->m_NumNodes = numNodes;
 
     std::string element_name = SOElement->GetNameOfClass();
     strcpy(Element->m_ElementName, element_name.c_str());
     Element->m_MaterialGN = SOElement->GetMaterial()->GetGlobalNumber();
-    for (int j = 0; j < numNodes; j++)
+    for (int j = 0; j < numNodes; ++j)
     {
       Element->m_NodesId[j] = SOElement->GetNode(j)->GetGlobalNumber();
     }
@@ -418,7 +414,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
       int dim = SOLoadCast->GetForce().size();
       Load->m_ForceVector.resize(dim);
       Load->m_Dim = dim;
-      for (int j = 0; j < dim; j++)
+      for (int j = 0; j < dim; ++j)
       {
         Load->m_ForceVector[j] = SOLoadCast->GetForce()[j];
       }
@@ -435,7 +431,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
       int numRHS = SOLoadCast->GetValue().size();
       Load->m_RHS.resize(numRHS);
       Load->m_NumRHS = numRHS;
-      for (int j = 0; j < numRHS; j++)
+      for (int j = 0; j < numRHS; ++j)
       {
         Load->m_RHS[j] = SOLoadCast->GetValue()[j];
       }
@@ -453,7 +449,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
 
       Load->m_NumLHS = SOLoadCast->GetNumberOfLeftHandSideTerms();
 
-      for (int i = 0; i < Load->m_NumLHS; i++)
+      for (int i = 0; i < Load->m_NumLHS; ++i)
       {
         /** set the global number of element that we're applying the load to */
         elementGN = SOLoadCast->GetLeftHandSideTerm(i).m_element->GetGlobalNumber();
@@ -472,7 +468,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
       /** set the rhs */
       Load->m_NumRHS = SOLoadCast->GetNumberOfRightHandSideTerms();
       Load->m_RHS.resize(Load->m_NumRHS);
-      for (int i = 0; i < Load->m_NumRHS; i++)
+      for (int i = 0; i < Load->m_NumRHS; ++i)
       {
         Load->m_RHS[i] = SOLoadCast->GetRightHandSideTerm(i);
       }
@@ -493,10 +489,10 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
       const int numRows = force.rows();
       const int numCols = force.columns();
 
-      for (int i = 0; i < numRows; i++)
+      for (int i = 0; i < numRows; ++i)
       {
         std::vector<float> F(numCols);
-        for (int j = 0; j < numCols; j++)
+        for (int j = 0; j < numCols; ++j)
         {
           F[j] = force[i][j];
         }
@@ -510,16 +506,16 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
 
       Load->m_GN = SOLoadCast->GetGlobalNumber();
 
-      const auto numLoadElements = static_cast<const int>(SOLoadCast->GetElementArray().size());
+      const int numLoadElements = static_cast<int>(SOLoadCast->GetElementArray().size());
       Load->m_NumElements = numLoadElements;
-      for (int i = 0; i < numLoadElements; i++)
+      for (int i = 0; i < numLoadElements; ++i)
       {
         const int elementGN = SOLoadCast->GetElementArray()[i]->GetGlobalNumber();
         Load->m_Elements.push_back(elementGN);
       }
 
       Load->m_Dim = SOLoadCast->GetForce().size();
-      for (int i = 0; i < Load->m_Dim; i++)
+      for (int i = 0; i < Load->m_Dim; ++i)
       {
         Load->m_ForceVector.push_back(SOLoadCast->GetForce()[i]);
       }
@@ -539,7 +535,7 @@ MetaFEMObjectConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObje
       Load->m_Undeformed.resize(dim);
       Load->m_Deformed.resize(dim);
 
-      for (int i = 0; i < dim; i++)
+      for (int i = 0; i < dim; ++i)
       {
         Load->m_Deformed[i] = SOLoadCast->GetSource()[i];
         Load->m_Undeformed[i] = SOLoadCast->GetTarget()[i];

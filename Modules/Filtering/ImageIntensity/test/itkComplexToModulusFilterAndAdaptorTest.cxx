@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   using RegionType = itk::ImageRegion<ImageDimension>;
 
   // Create two images
-  InputImageType::Pointer inputImage = InputImageType::New();
+  auto inputImage = InputImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -68,17 +68,15 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
   // Create one iterator for the Input Image (this is a light object)
   InputIteratorType it(inputImage, inputImage->GetBufferedRegion());
 
   // Initialize the content of Image A
-  InputPixelType value(13, 25);
+  constexpr InputPixelType value(13, 25);
 
-  double modulus = std::sqrt(value.real() * value.real() + value.imag() * value.imag());
+  const double modulus = std::sqrt(value.real() * value.real() + value.imag() * value.imag());
 
   std::cout << "Modulus of input pixel = " << modulus << std::endl;
   it.GoToBegin();
@@ -92,7 +90,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   using FilterType = itk::ComplexToModulusImageFilter<InputImageType, OutputImageType>;
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ComplexToModulusImageFilter, UnaryGeneratorImageFilter);
 
@@ -103,13 +101,13 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   filter->Update();
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the image output
   OutputIteratorType ot(outputImage, outputImage->GetRequestedRegion());
 
   //  Check the content of the result image
-  const OutputImageType::PixelType epsilon = 1e-6;
+  constexpr OutputImageType::PixelType epsilon = 1e-6;
   ot.GoToBegin();
   it.GoToBegin();
   while (!ot.IsAtEnd())
@@ -117,7 +115,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
     const InputImageType::PixelType  input = it.Get();
     const OutputImageType::PixelType output = ot.Get();
 
-    double normd = std::sqrt(input.real() * input.real() + input.imag() * input.imag());
+    const double normd = std::sqrt(input.real() * input.real() + input.imag() * input.imag());
 
     const auto norm = static_cast<OutputImageType::PixelType>(normd);
 
@@ -140,7 +138,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
 
   using AdaptorType = itk::ComplexToModulusImageAdaptor<InputImageType, OutputImageType::PixelType>;
 
-  AdaptorType::Pointer imaginaryAdaptor = AdaptorType::New();
+  auto imaginaryAdaptor = AdaptorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(imaginaryAdaptor, ComplexToModulusImageAdaptor, ImageAdaptor);
 
@@ -148,7 +146,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
 
   using DiffFilterType = itk::SubtractImageFilter<OutputImageType, AdaptorType, OutputImageType>;
 
-  DiffFilterType::Pointer diffFilter = DiffFilterType::New();
+  auto diffFilter = DiffFilterType::New();
 
   diffFilter->SetInput1(outputImage);
   diffFilter->SetInput2(imaginaryAdaptor);
@@ -156,7 +154,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   diffFilter->Update();
 
   // Get the filter output
-  OutputImageType::Pointer diffImage = diffFilter->GetOutput();
+  const OutputImageType::Pointer diffImage = diffFilter->GetOutput();
 
   // Check the content of the diff image:
   // Create an iterator for going through the image output
@@ -166,7 +164,7 @@ itkComplexToModulusFilterAndAdaptorTest(int, char *[])
   while (!dt.IsAtEnd())
   {
     const OutputImageType::PixelType diff = dt.Get();
-    if (std::fabs(diff) > epsilon)
+    if (itk::Math::abs(diff) > epsilon)
     {
       std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
       std::cerr << "Error in itkComplexToModulusImageFilterTest " << std::endl;

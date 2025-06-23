@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,9 @@
 #define itkQuadEdgeMeshLineCell_h
 
 #include "itkAutoPointer.h"
+#include "itkMesh.h"
 #include "itkGeometricalQuadEdge.h"
+#include "itkCommonEnums.h"
 
 namespace itk
 {
@@ -53,31 +55,31 @@ public:
 
   // itkCellInheritedTypedefs
   using Superclass = TCellInterface;
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
   using CellType = typename Superclass::CellType;
-  using CellAutoPointer = typename Superclass::CellAutoPointer;
-  using CellConstAutoPointer = typename Superclass::CellConstAutoPointer;
-  using CellRawPointer = typename Superclass::CellRawPointer;
-  using CellConstRawPointer = typename Superclass::CellConstRawPointer;
+  using typename Superclass::CellAutoPointer;
+  using typename Superclass::CellConstAutoPointer;
+  using typename Superclass::CellRawPointer;
+  using typename Superclass::CellConstRawPointer;
   using CellTraits = typename Superclass::CellTraits;
-  using CoordRepType = typename Superclass::CoordRepType;
-  using InterpolationWeightType = typename Superclass::InterpolationWeightType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
-  using CellIdentifier = typename Superclass::CellIdentifier;
-  using CellFeatureIdentifier = typename Superclass::CellFeatureIdentifier;
+  using typename Superclass::CoordinateType;
+  using typename Superclass::InterpolationWeightType;
+  using typename Superclass::PointIdentifier;
+  using typename Superclass::CellIdentifier;
+  using typename Superclass::CellFeatureIdentifier;
   using CellFeatureCount = typename Superclass::CellFeatureIdentifier;
-  using PointType = typename Superclass::PointType;
-  using PointsContainer = typename Superclass::PointsContainer;
-  using UsingCellsContainer = typename Superclass::UsingCellsContainer;
-  using ParametricCoordArrayType = typename Superclass::ParametricCoordArrayType;
-  using ShapeFunctionsArrayType = typename Superclass::ShapeFunctionsArrayType;
+  using typename Superclass::PointType;
+  using typename Superclass::PointsContainer;
+  using typename Superclass::UsingCellsContainer;
+  using typename Superclass::ParametricCoordArrayType;
+  using typename Superclass::ShapeFunctionsArrayType;
   static constexpr unsigned int PointDimension = Superclass::PointDimension;
   static constexpr unsigned int CellDimension = 2;
 
   /** Multivisitor type. */
   using MultiVisitor = typename CellType::MultiVisitor;
 
-  //** */
+  /** */
   using PointIdIterator = typename CellTraits::PointIdIterator;
   using PointIdConstIterator = typename CellTraits::PointIdConstIterator;
   using PointIdInternalIterator = typename CellTraits::PointIdInternalIterator;
@@ -92,8 +94,8 @@ public:
   using QEDual = typename QEType::DualType;
 
 public:
-  /** Standard part of every itk Object. */
-  itkTypeMacro(QuadEdgeMeshLineCell, TCellInterface);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshLineCell);
 
   // accessor to the new QEGeom link that replaces now inheritance.
   QEType *
@@ -104,8 +106,10 @@ public:
 
 public:
   /** Object memory management methods. */
+  /** @ITKStartGrouping */
   QuadEdgeMeshLineCell();
   ~QuadEdgeMeshLineCell() override;
+  /** @ITKEndGrouping */
 
   /** Accessors for m_Identifier. */
   void
@@ -232,9 +236,9 @@ private:
    * In order to have constant time access at the itk level instead of
    * of doing a search in the Mesh::Cell container.
    */
-  CellIdentifier          m_Identifier;
-  QEType *                m_QuadEdgeGeom;
-  mutable PointIdentifier m_PointIds[2];
+  CellIdentifier          m_Identifier{};
+  QEType *                m_QuadEdgeGeom{};
+  mutable PointIdentifier m_PointIds[2]{};
 };
 } // end namespace itk
 

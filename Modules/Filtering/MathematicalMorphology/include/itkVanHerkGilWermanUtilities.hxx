@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVanHerkGilWermanUtilities_hxx
 #define itkVanHerkGilWermanUtilities_hxx
 
-#include "itkVanHerkGilWermanUtilities.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNeighborhoodAlgorithm.h"
@@ -42,19 +41,19 @@ void
 FillForwardExt(std::vector<PixelType> & pixbuffer,
                std::vector<PixelType> & fExtBuffer,
                const unsigned int       KernLen,
-               unsigned                 len)
+               unsigned int             len)
 {
-  unsigned  size = len;
-  unsigned  blocks = size / KernLen;
-  unsigned  i = 0;
-  TFunction m_TF;
+  const unsigned int size = len;
+  const unsigned int blocks = size / KernLen;
+  unsigned int       i = 0;
+  TFunction          m_TF;
 
-  for (unsigned j = 0; j < blocks; j++)
+  for (unsigned int j = 0; j < blocks; ++j)
   {
     PixelType Ext = pixbuffer[i];
     fExtBuffer[i] = Ext;
     ++i;
-    for (unsigned k = 1; k < KernLen; k++)
+    for (unsigned int k = 1; k < KernLen; ++k)
     {
       PixelType V = pixbuffer[i];
       fExtBuffer[i] = m_TF(V, fExtBuffer[i - 1]);
@@ -66,7 +65,7 @@ FillForwardExt(std::vector<PixelType> & pixbuffer,
   {
     PixelType V = pixbuffer[i];
     fExtBuffer[i] = V;
-    i++;
+    ++i;
   }
   while (i < size)
   {
@@ -81,30 +80,30 @@ void
 FillReverseExt(std::vector<PixelType> & pixbuffer,
                std::vector<PixelType> & rExtBuffer,
                const unsigned int       KernLen,
-               unsigned                 len)
+               unsigned int             len)
 {
-  auto           size = (IndexValueType)(len);
-  IndexValueType blocks = size / (int)KernLen;
-  IndexValueType i = size - 1;
-  TFunction      m_TF;
+  auto                 size = static_cast<IndexValueType>(len);
+  const IndexValueType blocks = size / static_cast<int>(KernLen);
+  IndexValueType       i = size - 1;
+  TFunction            m_TF;
 
-  if ((i > (blocks * (int)KernLen - 1)))
+  if (i > blocks * static_cast<int>(KernLen) - 1)
   {
     rExtBuffer[i] = pixbuffer[i];
     --i;
-    while (i >= (int)(blocks * KernLen))
+    while (i >= static_cast<int>(blocks * KernLen))
     {
       PixelType V = pixbuffer[i];
       rExtBuffer[i] = m_TF(V, rExtBuffer[i + 1]);
       --i;
     }
   }
-  for (unsigned j = 0; j < (unsigned)blocks; j++)
+  for (unsigned int j = 0; j < static_cast<unsigned int>(blocks); ++j)
   {
     PixelType Ext = pixbuffer[i];
     rExtBuffer[i] = Ext;
     --i;
-    for (unsigned k = 1; k < KernLen; k++)
+    for (unsigned int k = 1; k < KernLen; ++k)
     {
       PixelType V = pixbuffer[i];
       rExtBuffer[i] = m_TF(V, rExtBuffer[i + 1]);
@@ -140,46 +139,47 @@ DoFace(typename TImage::ConstPointer             input,
   // using ItType = ImageRegionConstIteratorWithIndex<TImage>;
   // ItType it(input, face);
 
-  typename TImage::Pointer dumbImg = TImage::New();
+  auto dumbImg = TImage::New();
   dumbImg->SetRegions(face);
 
   TLine NormLine = line;
   NormLine.Normalize();
   // set a generous tolerance
-  float     tol = 1.0 / LineOffsets.size();
-  TFunction m_TF;
-  for (unsigned int it = 0; it < face.GetNumberOfPixels(); it++)
+  const float tol = 1.0 / LineOffsets.size();
+  TFunction   m_TF;
+  for (unsigned int it = 0; it < face.GetNumberOfPixels(); ++it)
   {
-    typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
-    unsigned                   start, end;
+    const typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
+    unsigned int                     start = 0; /*one-line-declaration*/
+    unsigned int                     end = 0;   /*one-line-declaration*/
     if (FillLineBuffer<TImage, TBres, TLine>(input, Ind, NormLine, tol, LineOffsets, AllImage, pixbuffer, start, end))
     {
-      const unsigned len = end - start + 1;
+      const unsigned int len = end - start + 1;
       // compat
       pixbuffer[0] = border;
       pixbuffer[len + 1] = border;
       FillForwardExt<typename TImage::PixelType, TFunction>(pixbuffer, fExtBuffer, KernLen, len + 2);
       FillReverseExt<typename TImage::PixelType, TFunction>(pixbuffer, rExtBuffer, KernLen, len + 2);
       // now compute result
-      unsigned int size = len + 2;
+      const unsigned int size = len + 2;
       if (size <= KernLen / 2)
       {
-        for (unsigned j = 0; j < size; j++)
+        for (unsigned int j = 0; j < size; ++j)
         {
           pixbuffer[j] = fExtBuffer[size - 1];
         }
       }
       else if (size <= KernLen)
       {
-        for (unsigned j = 0; j < size - KernLen / 2; j++)
+        for (unsigned int j = 0; j < size - KernLen / 2; ++j)
         {
           pixbuffer[j] = fExtBuffer[j + KernLen / 2];
         }
-        for (unsigned j = size - KernLen / 2; j <= KernLen / 2; j++)
+        for (unsigned int j = size - KernLen / 2; j <= KernLen / 2; ++j)
         {
           pixbuffer[j] = fExtBuffer[size - 1];
         }
-        for (unsigned j = KernLen / 2 + 1; j < size; j++)
+        for (unsigned int j = KernLen / 2 + 1; j < size; ++j)
         {
           pixbuffer[j] = rExtBuffer[j - KernLen / 2];
         }
@@ -187,26 +187,26 @@ DoFace(typename TImage::ConstPointer             input,
       else
       {
         // line beginning
-        for (unsigned j = 0; j < KernLen / 2; j++)
+        for (unsigned int j = 0; j < KernLen / 2; ++j)
         {
           pixbuffer[j] = fExtBuffer[j + KernLen / 2];
         }
-        for (unsigned j = KernLen / 2, k = KernLen / 2 + KernLen / 2, l = KernLen / 2 - KernLen / 2;
+        for (unsigned int j = KernLen / 2, k = KernLen / 2 + KernLen / 2, l = KernLen / 2 - KernLen / 2;
              j < size - KernLen / 2;
              j++, k++, l++)
         {
 
-          typename TImage::PixelType V1 = fExtBuffer[k];
-          typename TImage::PixelType V2 = rExtBuffer[l];
+          const typename TImage::PixelType V1 = fExtBuffer[k];
+          const typename TImage::PixelType V2 = rExtBuffer[l];
           pixbuffer[j] = m_TF(V1, V2);
         }
-        // line end -- involves reseting the end of the reverse
+        // line end -- involves resetting the end of the reverse
         // extreme array
-        for (unsigned j = size - 2; (j > 0) && (j >= (size - KernLen - 1)); j--)
+        for (unsigned int j = size - 2; (j > 0) && (j >= (size - KernLen - 1)); j--)
         {
           rExtBuffer[j] = m_TF(rExtBuffer[j + 1], rExtBuffer[j]);
         }
-        for (unsigned j = size - KernLen / 2; j < size; j++)
+        for (unsigned int j = size - KernLen / 2; j < size; ++j)
         {
           pixbuffer[j] = rExtBuffer[j - KernLen / 2];
         }

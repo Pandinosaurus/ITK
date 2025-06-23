@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,22 +36,13 @@ public:
   /** Has to have empty throw(). */
   ~ImageSeriesWriterException() noexcept override;
 
-  /** Run-time information. */
-  itkTypeMacro(ImageSeriesWriterException, ExceptionObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSeriesWriterException);
 
   /** Constructor. */
-  ImageSeriesWriterException(char * file, unsigned int line, const char * message = "Error in IO")
-    : ExceptionObject(file, line)
-  {
-    SetDescription(message);
-  }
-
-  /** Constructor. */
-  ImageSeriesWriterException(const std::string & file, unsigned int line, const char * message = "Error in IO")
-    : ExceptionObject(file, line)
-  {
-    SetDescription(message);
-  }
+  ImageSeriesWriterException(std::string file, unsigned int line, std::string message = "Error in IO")
+    : ExceptionObject(std::move(file), line, std::move(message))
+  {}
 };
 
 /** \class ImageSeriesWriter
@@ -61,7 +52,7 @@ public:
  * The writer is templated over an input image type and an output
  * image type. Usually, the output image type will have fewer
  * dimensions than the input image type. Each file has a name created
- * using the SeriesFormat. This string is used as a sprintf argument
+ * using the SeriesFormat. This string is used as a snprintf argument
  * to build a filename. The string should contain zero or one  "%d" or
  * equivalent. The "%d" is an incremental file number that starts at
  * StartIndex and is incremented by IncrementIndex.
@@ -95,8 +86,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSeriesWriter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSeriesWriter);
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -129,8 +120,10 @@ public:
    * get the ImageIO instance that is created, or to manually set one
    * when the factory mechanism may not work (e.g., for raw files or
    * for non-standard file suffix). */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(ImageIO, ImageIOBase);
   itkGetModifiableObjectMacro(ImageIO, ImageIOBase);
+  /** @ITKEndGrouping */
 
   /** A special version of the Update() method for writers.  It
    * invokes start and end events and handles releasing data. It
@@ -149,23 +142,30 @@ public:
 
   /** Use this method to set the starting index of the series.
    * The default value is 1. */
+  /** @ITKStartGrouping */
   itkSetMacro(StartIndex, SizeValueType);
   itkGetConstMacro(StartIndex, SizeValueType);
+  /** @ITKEndGrouping */
 
   /** Set the increment of the index of the series. The
    * default value is 1.  */
+  /** @ITKStartGrouping */
   itkSetMacro(IncrementIndex, SizeValueType);
   itkGetConstMacro(IncrementIndex, SizeValueType);
+  /** @ITKEndGrouping */
 
   /** The format string used to generate each filename in the
-   * series. The filename is built with sprintf(filename, SeriesFormat,
+   * series. The filename is built with snprintf(filename, length, SeriesFormat,
    * number) where number starts at StartIndex and is incremented by
    * IncrementIndex. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(SeriesFormat);
   itkGetStringMacro(SeriesFormat);
+  /** @ITKEndGrouping */
 
   /** Set/Get the vector of strings that contains the file names. Files
    *  are processed in sequential order. */
+  /** @ITKStartGrouping */
   void
   SetFileNames(const FileNamesContainer & name)
   {
@@ -181,11 +181,12 @@ public:
   {
     return m_FileNames;
   }
+  /** @ITKEndGrouping */
 
   /** Set the first file name to be processed. This deletes previous
    * filenames. */
   void
-  SetFileName(std::string const & name)
+  SetFileName(const std::string & name)
   {
     m_FileNames.clear();
     m_FileNames.push_back(name);
@@ -195,7 +196,7 @@ public:
   /** Add a single filename to the list of files. To add a vector of
    * filenames, use the AddFileNames method. */
   void
-  AddFileName(std::string const & name)
+  AddFileName(const std::string & name)
   {
     m_FileNames.push_back(name);
     this->Modified();
@@ -206,10 +207,11 @@ public:
   itkSetMacro(MetaDataDictionaryArray, DictionaryArrayRawPointer);
 
   /** Set the compression On or Off */
+  /** @ITKStartGrouping */
   itkSetMacro(UseCompression, bool);
   itkGetConstReferenceMacro(UseCompression, bool);
   itkBooleanMacro(UseCompression);
-
+  /** @ITKEndGrouping */
 protected:
   ImageSeriesWriter();
   ~ImageSeriesWriter() override = default;
@@ -225,25 +227,25 @@ protected:
   void
   GenerateNumericFileNamesAndWrite();
 
-  ImageIOBase::Pointer m_ImageIO;
+  ImageIOBase::Pointer m_ImageIO{};
 
   // track whether the ImageIO is user specified
   bool m_UserSpecifiedImageIO{ false };
 
 private:
   /** A list of filenames to be processed. */
-  FileNamesContainer m_FileNames;
+  FileNamesContainer m_FileNames{};
 
   /** These variables are used for generating filenames using a numeric
    * approach This functionality is being DEPRECATED since it belongs to a
    * NumericSeriesFileNames class. Removing this functionality from here allows
    * to use additional SeriesFileNames such as the DICOM filenames generators.
    * */
-  std::string   m_SeriesFormat;
+  std::string   m_SeriesFormat{};
   SizeValueType m_StartIndex{ 1 };
   SizeValueType m_IncrementIndex{ 1 };
 
-  bool m_UseCompression;
+  bool m_UseCompression{};
 
   /** Array of MetaDataDictionary used for passing information to each slice */
   DictionaryArrayRawPointer m_MetaDataDictionaryArray{ nullptr };

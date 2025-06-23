@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,10 @@
 #define itkGPUAnisotropicDiffusionImageFilter_hxx
 
 #include "itkGPUAnisotropicDiffusionFunction.h"
-#include "itkGPUAnisotropicDiffusionImageFilter.h"
 
 namespace itk
 {
 
-/** Prepare for the iteration process. */
 template <typename TInputImage, typename TOutputImage, typename TParentImageFilter>
 void
 GPUAnisotropicDiffusionImageFilter<TInputImage, TOutputImage, TParentImageFilter>::InitializeIteration()
@@ -43,12 +41,14 @@ GPUAnisotropicDiffusionImageFilter<TInputImage, TOutputImage, TParentImageFilter
   double minSpacing;
   if (this->GetUseImageSpacing())
   {
-    minSpacing = this->GetInput()->GetSpacing()[0];
-    for (unsigned int i = 1; i < ImageDimension; i++)
+    const auto & spacing = this->GetInput()->GetSpacing();
+
+    minSpacing = spacing[0];
+    for (unsigned int i = 1; i < ImageDimension; ++i)
     {
-      if (this->GetInput()->GetSpacing()[i] < minSpacing)
+      if (spacing[i] < minSpacing)
       {
-        minSpacing = this->GetInput()->GetSpacing()[i];
+        minSpacing = spacing[i];
       }
     }
   }
@@ -56,20 +56,20 @@ GPUAnisotropicDiffusionImageFilter<TInputImage, TOutputImage, TParentImageFilter
   {
     minSpacing = 1.0;
   }
-  if (this->GetTimeStep() > (minSpacing / std::pow(2.0, static_cast<double>(ImageDimension) + 1)))
+  if (this->GetTimeStep() > (minSpacing / double{ 1ULL << (ImageDimension + 1) }))
   {
-    //    f->SetTimeStep(1.0 / std::pow(2.0,
-    // static_cast<double>(ImageDimension)));
-    itkWarningMacro(<< "Anisotropic diffusion unstable time step: " << this->GetTimeStep() << std::endl
+    //    f->SetTimeStep(1.0 / double{ 1ULL << ImageDimension });
+    itkWarningMacro("Anisotropic diffusion unstable time step: "
+                    << this->GetTimeStep() << std::endl
                     << "Stable time step for this image must be smaller than "
-                    << minSpacing / std::pow(2.0, static_cast<double>(ImageDimension + 1)));
+                    << minSpacing / double{ 1ULL << (ImageDimension + 1) });
   }
 
   if (this->m_GradientMagnitudeIsFixed == false)
   {
     if ((this->GetElapsedIterations() % this->GetConductanceScalingUpdateInterval()) == 0)
     {
-      /** GPU version of average squared gradient magniture calculation */
+      /** GPU version of average squared gradient magnitude calculation */
       f->GPUCalculateAverageGradientMagnitudeSquared(this->GetOutput());
     }
   }
@@ -82,20 +82,13 @@ GPUAnisotropicDiffusionImageFilter<TInputImage, TOutputImage, TParentImageFilter
 
   if (this->GetNumberOfIterations() != 0)
   {
-    this->UpdateProgress(((float)(this->GetElapsedIterations())) / ((float)(this->GetNumberOfIterations())));
+    this->UpdateProgress((static_cast<float>(this->GetElapsedIterations())) /
+                         (static_cast<float>(this->GetNumberOfIterations())));
   }
   else
   {
     this->UpdateProgress(0);
   }
-}
-
-template <typename TInputImage, typename TOutputImage, typename TParentImageFilter>
-void
-GPUAnisotropicDiffusionImageFilter<TInputImage, TOutputImage, TParentImageFilter>::PrintSelf(std::ostream & os,
-                                                                                             Indent indent) const
-{
-  GPUSuperclass::PrintSelf(os, indent.GetNextIndent());
 }
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,9 @@
 #ifndef itkPathToPathFilter_hxx
 #define itkPathToPathFilter_hxx
 
-#include "itkPathToPathFilter.h"
 
 namespace itk
 {
-/**
- *
- */
-template <typename TInputPath, typename TOutputPath>
-PathToPathFilter<TInputPath, TOutputPath>::PathToPathFilter()
-{
-  // Let the superclass do everything
-}
-
 /**
  *
  */
@@ -57,8 +47,8 @@ PathToPathFilter<TInputPath, TOutputPath>::SetInput(unsigned int index, const TI
  *
  */
 template <typename TInputPath, typename TOutputPath>
-const typename PathToPathFilter<TInputPath, TOutputPath>::InputPathType *
-PathToPathFilter<TInputPath, TOutputPath>::GetInput()
+auto
+PathToPathFilter<TInputPath, TOutputPath>::GetInput() -> const InputPathType *
 {
   return itkDynamicCastInDebugMode<const TInputPath *>(this->GetPrimaryInput());
 }
@@ -67,8 +57,8 @@ PathToPathFilter<TInputPath, TOutputPath>::GetInput()
  *
  */
 template <typename TInputPath, typename TOutputPath>
-const typename PathToPathFilter<TInputPath, TOutputPath>::InputPathType *
-PathToPathFilter<TInputPath, TOutputPath>::GetInput(unsigned int idx)
+auto
+PathToPathFilter<TInputPath, TOutputPath>::GetInput(unsigned int idx) -> const InputPathType *
 {
   return itkDynamicCastInDebugMode<const TInputPath *>(this->ProcessObject::GetInput(idx));
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,8 +62,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianDerivativeImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianDerivativeImageFunction);
 
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
@@ -77,13 +77,13 @@ public:
   static constexpr unsigned int ImageDimension2 = ImageDimension;
 #endif
 
-  using ContinuousIndexType = ContinuousIndex<SpacePrecisionType, Self::ImageDimension>;
+  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
 
   using NeighborhoodType = Neighborhood<InputPixelType, Self::ImageDimension>;
   using OperatorNeighborhoodType = Neighborhood<TOutput, Self::ImageDimension>;
 
   using VectorType = Vector<TOutput, Self::ImageDimension>;
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
   using OperatorArrayType = FixedArray<OperatorNeighborhoodType, Self::ImageDimension>;
 
   using GaussianDerivativeSpatialFunctionType = GaussianDerivativeSpatialFunction<TOutput, 1>;
@@ -96,7 +96,7 @@ public:
 
   /** Point type alias support */
   // using PointType = Point< TOutput, Self::ImageDimension >;
-  using PointType = typename InputImageType::PointType;
+  using PointType = typename Superclass::PointType;
 
   /** Evaluate the function at the specified point. */
   OutputType
@@ -114,6 +114,7 @@ public:
    * UseImageSpacing controls the extent of the computations.
    * Set UseImageSpacing to true to set the units to physical units of the image.
    * Set UseImageSpacing to false to set the units of pixels. */
+  /** @ITKStartGrouping */
   void
   SetUseImageSpacing(const bool val)
   {
@@ -121,11 +122,12 @@ public:
     {
       this->m_UseImageSpacing = val;
       this->RecomputeGaussianKernel();
+      this->Modified();
     }
   }
   itkBooleanMacro(UseImageSpacing);
   itkGetMacro(UseImageSpacing, bool);
-
+  /** @ITKEndGrouping */
   /** The variance for the discrete Gaussian kernel. Sets the variance
    * independently for each dimension, but see also
    * SetVariance(const double v). The default is 0.0 in each dimension.
@@ -137,7 +139,7 @@ public:
   void
   SetSigma(const double sigma);
 
-  const double *
+  [[nodiscard]] const double *
   GetSigma() const
   {
     return m_Sigma;
@@ -150,7 +152,7 @@ public:
   void
   SetExtent(const double extent);
 
-  const double *
+  [[nodiscard]] const double *
   GetExtent() const
   {
     return m_Extent;
@@ -176,16 +178,16 @@ protected:
   RecomputeGaussianKernel();
 
 private:
-  double m_Sigma[ImageDimension];
+  double m_Sigma[ImageDimension]{};
 
   /** Array of 1D operators. Contains a derivative kernel for
    * each dimension. Note: A future version of ITK could extend this array
    * to include a Gaussian blurring kernel for each dimension.*/
-  OperatorArrayType m_OperatorArray;
+  OperatorArrayType m_OperatorArray{};
 
-  std::vector<Offset<ImageDimension>> m_ImageNeighborhoodOffsets[ImageDimension];
+  std::vector<Offset<ImageDimension>> m_ImageNeighborhoodOffsets[ImageDimension]{};
 
-  double m_Extent[ImageDimension];
+  double m_Extent[ImageDimension]{};
 
   /** Flag to indicate whether to use image spacing. */
   bool m_UseImageSpacing{ true };

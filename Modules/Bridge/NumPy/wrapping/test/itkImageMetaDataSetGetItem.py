@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,6 @@
 
 import sys
 import numpy as np
-from distutils.version import StrictVersion as VS
-
-if VS(np.__version__) < VS("1.15.0"):
-    print("NumPy 1.15.0 or greater is required")
-    sys.exit(0)
-
 import itk
 
 if len(sys.argv) < 2:

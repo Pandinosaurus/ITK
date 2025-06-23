@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,11 +21,7 @@
 #include "itkObjectFactory.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace Statistics
-{
-namespace SampleTest
+namespace itk::Statistics::SampleTest
 {
 
 template <typename TMeasurementVector>
@@ -41,19 +37,19 @@ public:
 
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(MySample, Sample);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MySample);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementVectorType;
 
-  using TotalAbsoluteFrequencyType = typename Superclass::TotalAbsoluteFrequencyType;
+  using typename Superclass::TotalAbsoluteFrequencyType;
 
-  using AbsoluteFrequencyType = typename Superclass::AbsoluteFrequencyType;
+  using typename Superclass::AbsoluteFrequencyType;
 
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::InstanceIdentifier;
 
   /** Get the size of the sample (number of measurements) */
   InstanceIdentifier
@@ -89,7 +85,7 @@ public:
   TotalAbsoluteFrequencyType
   GetTotalFrequency() const override
   {
-    TotalAbsoluteFrequencyType sum = NumericTraits<TotalAbsoluteFrequencyType>::ZeroValue();
+    TotalAbsoluteFrequencyType sum{};
     auto                       itr = m_Frequencies.begin();
     while (itr != m_Frequencies.end())
     {
@@ -120,9 +116,9 @@ private:
   std::vector<AbsoluteFrequencyType> m_Frequencies;
 };
 
-} // namespace SampleTest
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics::SampleTest
+
+
 int
 itkSampleTest2(int, char *[])
 {
@@ -133,7 +129,7 @@ itkSampleTest2(int, char *[])
 
   using SampleType = itk::Statistics::SampleTest::MySample<MeasurementVectorType>;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
   std::cout << sample->GetNameOfClass() << std::endl;
   std::cout << sample->SampleType::Superclass::GetNameOfClass() << std::endl;
@@ -152,19 +148,19 @@ itkSampleTest2(int, char *[])
 
   MeasurementVectorType measure(MeasurementVectorSize);
 
-  for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+  for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
   {
     measure[i] = 29 * i * i;
   }
 
   using AbsoluteFrequencyType = SampleType::AbsoluteFrequencyType;
 
-  AbsoluteFrequencyType frequency = 17;
+  constexpr AbsoluteFrequencyType frequency = 17;
 
   sample->AddMeasurementVector(measure, frequency);
 
-  MeasurementVectorType measureBack = sample->GetMeasurementVector(0);
-  AbsoluteFrequencyType frequencyBack = sample->GetFrequency(0);
+  MeasurementVectorType       measureBack = sample->GetMeasurementVector(0);
+  const AbsoluteFrequencyType frequencyBack = sample->GetFrequency(0);
 
   if (frequencyBack != frequency)
   {
@@ -172,7 +168,7 @@ itkSampleTest2(int, char *[])
     return EXIT_FAILURE;
   }
 
-  for (unsigned int j = 0; j < MeasurementVectorSize; j++)
+  for (unsigned int j = 0; j < MeasurementVectorSize; ++j)
   {
     if (itk::Math::NotExactlyEquals(measureBack[j], measure[j]))
     {

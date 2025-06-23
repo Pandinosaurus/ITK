@@ -29,6 +29,9 @@ zap.pl           crlf=input
 
 # Custom attribute to mark sources as using our C++/C code style.
 [attr]our-c-style  whitespace=tab-in-indent,no-lf-at-eof  hooks.style=KWStyle,clangformat
+# Custom attribute to mark sources as using our CMake code style.
+[attr]our-cmake-style  whitespace=tab-in-indent,no-lf-at-eof hooks.style=cmakeformat
+
 
 *.c              our-c-style
 *.h              our-c-style
@@ -36,7 +39,9 @@ zap.pl           crlf=input
 *.hxx            our-c-style
 *.txx            our-c-style
 *.txt            whitespace=tab-in-indent,no-lf-at-eof
-*.cmake          whitespace=tab-in-indent,no-lf-at-eof
+*.cmake          whitespace=tab-in-indent,no-lf-at-eof our-cmake-style
+*.wrap           whitespace=tab-in-indent,no-lf-at-eof our-cmake-style
+CMakeLists.txt   whitespace=tab-in-indent,no-lf-at-eof our-cmake-style
 
 # ExternalData content links must have LF newlines
 *.md5            crlf=input
@@ -46,19 +51,16 @@ zap.pl           crlf=input
 *                     hooks-max-size=100000
 Modules/Numerics/FEM/src/dsrc2c.c hooks-max-size=260000
 Modules/ThirdParty/** hooks-max-size=300000 hooks.style=
-Modules/ThirdParty/NIFTI/src/nifti/nifti2/nifti2_io.c hooks-max-size=400000
-Modules/ThirdParty/VNL/src/vxl/v3p/netlib/triangle.c hooks-max-size=670000
+Modules/ThirdParty/ZLIB/src/itkzlib-ng/crc32_braid_tbl.h hooks-max-size=700000
+Modules/ThirdParty/GDCM/src/gdcm/Source/DataDictionary/privatedicts.xml hooks-max-size=400000
 Modules/Filtering/Denoising/include/itkPatchBasedDenoisingImageFilter.hxx hooks-max-size=120000
-Documentation/ReleaseNotes/* hooks-max-size=300000
-Utilities/Doxygen/doxygen.config.in hooks-max-size=150000
+Documentation/docs/releases/* hooks-max-size=300000
+Documentation/Art/* hooks-max-size=300000
+pixi.lock hooks-max-size=1000000
 
-Modules/ThirdParty/GDCM/src/gdcm/Source/DataDictionary/gdcmPrivateDefaultDicts.cxx hook-max-size=1021501
-Modules/ThirdParty/GDCM/src/gdcm/Utilities/gdcmopenjpeg/src/lib/openjp2/j2k.c hook-max-size=654063
-Modules/ThirdParty/GDCM/src/gdcm/Source/InformationObjectDefinition/Part3.xml hook-max-size=4336000
-Source/InformationObjectDefinition/Part3.xml hook-max-size=4336000
+# VNL-specific .gitattributes should go into Modules/ThirdParty/VNL/.gitattributes
+# GDCM-specific .gitattributes should go into Modules/ThirdParty/GDCM/src/gdcm/.gitattributes
 
-# Avoid ghostflow-check-master failures
-Modules/ThirdParty/HDF5/src/itkhdf5/src/H5C.c      hook-max-size=400000
-Modules/ThirdParty/HDF5/src/itkhdf5/src/H5Dchunk.c hook-max-size=400000
-Modules/ThirdParty/HDF5/src/itkhdf5/src/H5Shyper.c hook-max-size=500000
-Modules/ThirdParty/HDF5/src/itkhdf5/src/H5Tconv.c  hook-max-size=500000
+# HDF5-specific .gitattributes should go into Modules/ThirdParty/HDF5/.gitattributes
+# GitHub syntax highlighting
+pixi.lock linguist-language=YAML linguist-generated=true

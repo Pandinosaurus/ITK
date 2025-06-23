@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkGDCMSeriesFileNames.h"
 #include "itksys/SystemTools.hxx"
 #include "itkProgressReporter.h"
+#include "itkPrintHelper.h"
 #include "gdcmSerieHelper.h"
 
 namespace itk
@@ -37,9 +38,9 @@ GDCMSeriesFileNames::SetInputDirectory(const char * name)
 {
   if (!name)
   {
-    itkExceptionMacro(<< "SetInputDirectory() received a nullptr string");
+    itkExceptionMacro("SetInputDirectory() received a nullptr string");
   }
-  std::string fname = name;
+  const std::string fname = name;
   this->SetInputDirectory(fname);
 }
 
@@ -50,12 +51,12 @@ GDCMSeriesFileNames::AddSeriesRestriction(const std::string & tag)
 }
 
 void
-GDCMSeriesFileNames::SetInputDirectory(std::string const & name)
+GDCMSeriesFileNames::SetInputDirectory(const std::string & name)
 {
   if (name.empty())
   {
-    itkWarningMacro(<< "You need to specify a directory where "
-                       "the DICOM files are located");
+    itkWarningMacro("You need to specify a directory where "
+                    "the DICOM files are located");
     return;
   }
   if (m_InputDirectory == name)
@@ -84,20 +85,20 @@ GDCMSeriesFileNames::GetSeriesUIDs()
   gdcm::FileList * flist = m_SerieHelper->GetFirstSingleSerieUIDFileSet();
   while (flist)
   {
-    if (!flist->empty()) // make sure we have at leat one serie
+    if (!flist->empty()) // make sure we have at least one serie
     {
       gdcm::File * file = (*flist)[0]; // for example take the first one
 
       // Create its unique series ID
-      std::string id = m_SerieHelper->CreateUniqueSeriesIdentifier(file).c_str();
+      const std::string id = m_SerieHelper->CreateUniqueSeriesIdentifier(file).c_str();
 
-      m_SeriesUIDs.push_back(id.c_str());
+      m_SeriesUIDs.emplace_back(id.c_str());
     }
     flist = m_SerieHelper->GetNextSingleSerieUIDFileSet();
   }
   if (m_SeriesUIDs.empty())
   {
-    itkWarningMacro(<< "No Series were found");
+    itkWarningMacro("No Series were found");
   }
   return m_SeriesUIDs;
 }
@@ -110,7 +111,7 @@ GDCMSeriesFileNames::GetFileNames(const std::string serie)
   gdcm::FileList * flist = m_SerieHelper->GetFirstSingleSerieUIDFileSet();
   if (!flist)
   {
-    itkWarningMacro(<< "No Series can be found, make sure your restrictions are not too strong");
+    itkWarningMacro("No Series can be found, make sure your restrictions are not too strong");
     return m_InputFileNames;
   }
   if (!serie.empty()) // user did not specify any sub selection based on UID
@@ -118,10 +119,10 @@ GDCMSeriesFileNames::GetFileNames(const std::string serie)
     bool found = false;
     while (flist && !found)
     {
-      if (!flist->empty()) // make sure we have at leat one serie
+      if (!flist->empty()) // make sure we have at least one serie
       {
-        gdcm::File * file = (*flist)[0]; // for example take the first one
-        std::string  id = m_SerieHelper->CreateUniqueSeriesIdentifier(file).c_str();
+        gdcm::File *      file = (*flist)[0]; // for example take the first one
+        const std::string id = m_SerieHelper->CreateUniqueSeriesIdentifier(file).c_str();
 
         if (id == serie)
         {
@@ -133,43 +134,25 @@ GDCMSeriesFileNames::GetFileNames(const std::string serie)
     }
     if (!found)
     {
-      itkWarningMacro(<< "No Series were found");
+      itkWarningMacro("No Series were found");
       return m_InputFileNames;
     }
   }
   m_SerieHelper->OrderFileList(flist);
 
-  gdcm::FileList::iterator it;
   if (!flist->empty())
   {
     ProgressReporter progress(this, 0, static_cast<itk::SizeValueType>(flist->size()), 10);
-    for (it = flist->begin(); it != flist->end(); ++it)
+    for (auto & element : *flist)
     {
-#if GDCM_MAJOR_VERSION < 2
-      gdcm::File * header = *it;
-      if (!header)
-      {
-        itkWarningMacro(<< "GDCMSeriesFileNames got nullptr header, "
-                           "this is a serious bug");
-        continue;
-      }
-      if (!header->IsReadable())
-      {
-        itkWarningMacro(<< "GDCMSeriesFileNames got a non DICOM file:" << header->GetFileName());
-        continue;
-      }
-      m_InputFileNames.push_back(header->GetFileName());
-      progress.CompletedPixel();
-#else
-      gdcm::FileWithName * header = *it;
+      gdcm::FileWithName * header = element;
       m_InputFileNames.push_back(header->filename);
       progress.CompletedPixel();
-#endif
     }
   }
   else
   {
-    itkDebugMacro(<< "No files were found");
+    itkDebugMacro("No files were found");
   }
 
   return m_InputFileNames;
@@ -196,7 +179,7 @@ GDCMSeriesFileNames::GetOutputFileNames()
 
   if (m_OutputDirectory.empty())
   {
-    itkDebugMacro(<< "No output directory was specified");
+    itkDebugMacro("No output directory was specified");
     return m_OutputFileNames;
   }
 
@@ -209,40 +192,40 @@ GDCMSeriesFileNames::GetOutputFileNames()
   if (!m_InputFileNames.empty())
   {
     bool hasExtension = false;
-    for (const auto & m_InputFileName : m_InputFileNames)
+    for (const auto & inputFileName : m_InputFileNames)
     {
       // look for extension ".dcm" and ".DCM"
-      std::string::size_type dcmPos = m_InputFileName.rfind(".dcm");
-      if ((dcmPos != std::string::npos) && (dcmPos == m_InputFileName.length() - 4))
+      std::string::size_type dcmPos = inputFileName.rfind(".dcm");
+      if ((dcmPos != std::string::npos) && (dcmPos == inputFileName.length() - 4))
       {
         hasExtension = true;
       }
       else
       {
-        dcmPos = m_InputFileName.rfind(".DCM");
-        if ((dcmPos != std::string::npos) && (dcmPos == m_InputFileName.length() - 4))
+        dcmPos = inputFileName.rfind(".DCM");
+        if ((dcmPos != std::string::npos) && (dcmPos == inputFileName.length() - 4))
         {
           hasExtension = true;
         }
       }
 
       // look for extension ".dicom" and ".DICOM"
-      std::string::size_type dicomPos = m_InputFileName.rfind(".dicom");
-      if ((dicomPos != std::string::npos) && (dicomPos == m_InputFileName.length() - 6))
+      std::string::size_type dicomPos = inputFileName.rfind(".dicom");
+      if ((dicomPos != std::string::npos) && (dicomPos == inputFileName.length() - 6))
       {
         hasExtension = true;
       }
       else
       {
-        dicomPos = m_InputFileName.rfind(".DICOM");
-        if ((dicomPos != std::string::npos) && (dicomPos == m_InputFileName.length() - 6))
+        dicomPos = inputFileName.rfind(".DICOM");
+        if ((dicomPos != std::string::npos) && (dicomPos == inputFileName.length() - 6))
         {
           hasExtension = true;
         }
       }
 
       // construct a filename, adding an extension if necessary
-      std::string filename = m_OutputDirectory + itksys::SystemTools::GetFilenameName(m_InputFileName);
+      std::string filename = m_OutputDirectory + itksys::SystemTools::GetFilenameName(inputFileName);
       if (!hasExtension)
       {
         // input filename has no extension, add a ".dcm"
@@ -255,7 +238,7 @@ GDCMSeriesFileNames::GetOutputFileNames()
   }
   else
   {
-    itkDebugMacro(<< "No files were found.");
+    itkDebugMacro("No files were found.");
   }
 
   return m_OutputFileNames;
@@ -264,31 +247,32 @@ GDCMSeriesFileNames::GetOutputFileNames()
 void
 GDCMSeriesFileNames::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
 
-  unsigned int i;
   os << indent << "InputDirectory: " << m_InputDirectory << std::endl;
-  os << indent << "LoadSequences:" << m_LoadSequences << std::endl;
-  os << indent << "LoadPrivateTags:" << m_LoadPrivateTags << std::endl;
-  if (m_Recursive)
+  os << indent << "OutputDirectory: " << m_OutputDirectory << std::endl;
+
+  os << indent << "InputFileNames: " << m_InputFileNames << std::endl;
+  os << indent << "OutputFileNames: " << m_OutputFileNames << std::endl;
+
+  os << indent << "SerieHelper: ";
+  if (m_SerieHelper.get() != nullptr)
   {
-    os << indent << "Recursive: True" << std::endl;
+    os << m_SerieHelper.get() << std::endl;
   }
   else
   {
-    os << indent << "Recursive: False" << std::endl;
+    os << "(null)" << std::endl;
   }
 
-  for (i = 0; i < m_InputFileNames.size(); i++)
-  {
-    os << indent << "InputFileNames[" << i << "]: " << m_InputFileNames[i] << std::endl;
-  }
+  os << indent << "SeriesUIDs: " << m_SeriesUIDs << std::endl;
 
-  os << indent << "OutputDirectory: " << m_OutputDirectory << std::endl;
-  for (i = 0; i < m_OutputFileNames.size(); i++)
-  {
-    os << indent << "OutputFileNames[" << i << "]: " << m_OutputFileNames[i] << std::endl;
-  }
+  itkPrintSelfBooleanMacro(UseSeriesDetails);
+  itkPrintSelfBooleanMacro(Recursive);
+  itkPrintSelfBooleanMacro(LoadSequences);
+  itkPrintSelfBooleanMacro(LoadPrivateTags);
 }
 
 void

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkImageSeriesWriter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkJPEG2000ImageIOFactory.h"
+#include "itkTestingMacros.h"
 
 #include <fstream>
 
@@ -27,7 +28,9 @@ itkJPEG2000ImageIOTest05(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cerr << "Usage: " << argv[0] << " input outputdir extension" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input outputdir extension" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -37,38 +40,32 @@ itkJPEG2000ImageIOTest05(int argc, char * argv[])
   using OutputImageType = itk::Image<PixelType, 2>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   // reader->SetUseStreaming( true );
 
-  try
-  {
-    reader->Update();
-    reader->GetOutput()->Print(std::cout);
-  }
-  catch (const itk::ExceptionObject & ex)
-  {
-    std::cout << ex;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
+
+  reader->GetOutput()->Print(std::cout);
 
   //  Register the factory
   itk::JPEG2000ImageIOFactory::RegisterOneFactory();
 
-  itk::NumericSeriesFileNames::Pointer fit = itk::NumericSeriesFileNames::New();
+  const itk::NumericSeriesFileNames::Pointer fit = itk::NumericSeriesFileNames::New();
 
   using WriterType = itk::ImageSeriesWriter<ImageType, OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
 
   char format[4096];
-  sprintf(format, "%s/series.%%d.%s", argv[2], argv[3]);
+  snprintf(format, sizeof(format), "%s/series.%%d.%s", argv[2], argv[3]);
 
   std::cout << "Format = " << format << std::endl;
 
-  ImageType::RegionType region = reader->GetOutput()->GetBufferedRegion();
-  ImageType::SizeType   size = region.GetSize();
+  const ImageType::RegionType region = reader->GetOutput()->GetBufferedRegion();
+  ImageType::SizeType         size = region.GetSize();
 
   fit->SetStartIndex(0);
   fit->SetEndIndex(size[2] - 1); // The number of slices to write
@@ -78,16 +75,8 @@ itkJPEG2000ImageIOTest05(int argc, char * argv[])
   writer->SetInput(reader->GetOutput());
   writer->SetFileNames(fit->GetFileNames());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Error while writing the series with SeriesFileNames generator" << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

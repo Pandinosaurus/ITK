@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,16 @@
 #ifndef itkIndex_h
 #define itkIndex_h
 
+#include "itkMakeFilled.h"
 #include "itkOffset.h"
+
+#include <cstddef>     // For ptrdiff_t.
+#include <type_traits> // For is_integral.
 
 namespace itk
 {
 
-/** \struct Index
- * \brief Represent a n-dimensional index in a n-dimensional image.
+/** \brief Represent a n-dimensional index in a n-dimensional image.
  *
  * Index is a templated class to represent a multi-dimensional index,
  * i.e. (i,j,k,...). Index is templated over the dimension of the index.
@@ -73,14 +76,14 @@ public:
 
   /** Compatible Index and value type alias */
   using IndexType = Index<VDimension>;
-  using IndexValueType = ::itk::IndexValueType;
+  using IndexValueType = itk::IndexValueType;
 
   /** Compatible Size type alias. */
   using SizeType = Size<VDimension>;
 
   /** Compatible Offset and Offset value type alias. */
   using OffsetType = Offset<VDimension>;
-  using OffsetValueType = ::itk::OffsetValueType;
+  using OffsetValueType = itk::OffsetValueType;
 
   /** Dimension constant */
   static constexpr unsigned int Dimension = VDimension;
@@ -206,7 +209,8 @@ public:
   /**
    * Multiply an index by a size (elementwise product).
    */
-  const Self operator*(const SizeType & vec) const
+  const Self
+  operator*(const SizeType & vec) const
   {
     Self result;
 
@@ -219,7 +223,7 @@ public:
 
   /** Get the index. This provides a read only pointer to the index.
    * \sa SetIndex() */
-  const IndexValueType *
+  [[nodiscard]] const IndexValueType *
   GetIndex() const
   {
     return m_InternalArray;
@@ -242,7 +246,7 @@ public:
    * \sa SetIndex()
    * \sa GetElement() */
   void
-  SetElement(unsigned long element, IndexValueType val)
+  SetElement(unsigned int element, IndexValueType val)
   {
     m_InternalArray[element] = val;
   }
@@ -253,8 +257,8 @@ public:
    * \warning No bound checking is performed
    * \sa GetIndex()
    * \sa SetElement() */
-  IndexValueType
-  GetElement(unsigned long element) const
+  [[nodiscard]] IndexValueType
+  GetElement(unsigned int element) const
   {
     return m_InternalArray[element];
   }
@@ -285,9 +289,9 @@ public:
   alignas(IndexValueType) IndexValueType m_InternalArray[VDimension];
 
   /** Copy values from a FixedArray by rounding each one of the components */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   inline void
-  CopyWithRound(const FixedArray<TCoordRep, VDimension> & point)
+  CopyWithRound(const FixedArray<TCoordinate, VDimension> & point)
   {
     for (unsigned int i = 0; i < VDimension; ++i)
     {
@@ -296,9 +300,9 @@ public:
   }
 
   /** Copy values from a FixedArray by casting each one of the components */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   inline void
-  CopyWithCast(const FixedArray<TCoordRep, VDimension> & point)
+  CopyWithCast(const FixedArray<TCoordinate, VDimension> & point)
   {
     for (unsigned int i = 0; i < VDimension; ++i)
     {
@@ -319,13 +323,13 @@ public:
    * so that the Index class can be treated as a container
    * class in a way that is similar to the std::array.
    */
-  using value_type = ::itk::IndexValueType;
+  using value_type = itk::IndexValueType;
   using reference = value_type &;
   using const_reference = const value_type &;
   using iterator = value_type *;
   using const_iterator = const value_type *;
   using size_type = unsigned int;
-  using difference_type = std::ptrdiff_t;
+  using difference_type = ptrdiff_t;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -340,33 +344,45 @@ public:
   }
 
   void
-  swap(Index & other)
+  swap(Index & other) noexcept
   {
     std::swap(m_InternalArray, other.m_InternalArray);
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cbegin() const
+  {
+    return &m_InternalArray[0];
+  }
+
+  constexpr iterator
   begin()
   {
-    return iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   begin() const
   {
-    return const_iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cend() const
+  {
+    return &m_InternalArray[VDimension];
+  }
+
+  constexpr iterator
   end()
   {
-    return iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   end() const
   {
-    return const_iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
   reverse_iterator
@@ -375,7 +391,7 @@ public:
     return reverse_iterator(end());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rbegin() const
   {
     return const_reverse_iterator(end());
@@ -387,33 +403,41 @@ public:
     return reverse_iterator(begin());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rend() const
   {
     return const_reverse_iterator(begin());
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   size() const
   {
     return VDimension;
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   max_size() const
   {
     return VDimension;
   }
 
-  constexpr bool
+  [[nodiscard]] constexpr bool
   empty() const
   {
     return false;
   }
 
-  reference operator[](size_type pos) { return m_InternalArray[pos]; }
+  constexpr reference
+  operator[](size_type pos)
+  {
+    return m_InternalArray[pos];
+  }
 
-  const_reference operator[](size_type pos) const { return m_InternalArray[pos]; }
+  constexpr const_reference
+  operator[](size_type pos) const
+  {
+    return m_InternalArray[pos];
+  }
 
   reference
   at(size_type pos)
@@ -422,32 +446,32 @@ public:
     return m_InternalArray[pos];
   }
 
-  const_reference
+  [[nodiscard]] const_reference
   at(size_type pos) const
   {
     ExceptionThrowingBoundsCheck(pos);
     return m_InternalArray[pos];
   }
 
-  reference
+  constexpr reference
   front()
   {
     return *begin();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   front() const
   {
     return *begin();
   }
 
-  reference
+  constexpr reference
   back()
   {
     return VDimension ? *(end() - 1) : *end();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   back() const
   {
     return VDimension ? *(end() - 1) : *end();
@@ -459,7 +483,7 @@ public:
     return &m_InternalArray[0];
   }
 
-  const IndexValueType *
+  [[nodiscard]] const IndexValueType *
   data() const
   {
     return &m_InternalArray[0];
@@ -468,12 +492,10 @@ public:
 
   /** Returns an Index object, filled with the specified value for each element.
    */
-  static Self
+  static constexpr Self
   Filled(const IndexValueType value)
   {
-    Self result;
-    result.Fill(value);
-    return result;
+    return MakeFilled<Self>(value);
   }
 
 
@@ -503,16 +525,16 @@ template <unsigned int VDimension>
 std::ostream &
 operator<<(std::ostream & os, const Index<VDimension> & obj)
 {
-  os << "[";
+  os << '[';
   for (unsigned int i = 0; i + 1 < VDimension; ++i)
   {
     os << obj[i] << ", ";
   }
-  if (VDimension >= 1)
+  if constexpr (VDimension >= 1)
   {
     os << obj[VDimension - 1];
   }
-  os << "]";
+  os << ']';
   return os;
 }
 
@@ -563,14 +585,24 @@ operator>=(const Index<VDimension> & one, const Index<VDimension> & two)
 // Specialized algorithms [6.2.2.2].
 template <unsigned int VDimension>
 inline void
-swap(Index<VDimension> & one, Index<VDimension> & two)
+swap(Index<VDimension> & one, Index<VDimension> & two) noexcept
 {
   std::swap(one.m_InternalArray, two.m_InternalArray);
 }
 
-// static constexpr definition explicitly needed in C++11
-template <unsigned int VDimension>
-constexpr unsigned int Index<VDimension>::Dimension;
+
+/** Makes an Index object, having the specified index values. */
+template <typename... T>
+auto
+MakeIndex(const T... values)
+{
+  const auto toValueType = [](const auto value) {
+    static_assert(std::is_integral_v<decltype(value)>, "Each value must have an integral type!");
+    return static_cast<IndexValueType>(value);
+  };
+  return Index<sizeof...(T)>{ { toValueType(values)... } };
+}
+
 } // end namespace itk
 
 #endif

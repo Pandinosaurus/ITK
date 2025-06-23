@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,18 +62,17 @@ namespace itk
  * Moving object. This direction of the transform is the one that makes easier
  * to resample the Moving object into the space of the Fixed object.
  *
- * In the particular case of the ImageToSpatialObject registration, the
+ * In the particular case of ImageToSpatialObject registration, the
  * Transform to be computed is the one mapping points from the SpatialObject
- * into the Image, despite the fact that the SpatialObject is called the
- * "Moving" object and the image is called the "Fixed" object. This change of
- * reference system is the consequence of using this type of registration in
- * applications that are based on Visualization. In the context of such
- * visualizations it is simpler to think in terms of the Transform that can be
- * used for displaying the SpatialObject in the appropriate position with
- * respect to the image. Since this process does not involve resampling, but
- * providing a Transform to a visualization routine, it is usually more
- * natural to use the Transform that maps points from the SpatialObject space
- * the image space.
+ * into the Image.  This allows the SpatialObject to drive the location and
+ * geometry of the measurements made in the image - thereby if the spatial
+ * object is sparse and/or contains varying geometric features, the metric
+ * applied to measure how well that object matches with the image can be
+ * rapidly computed only at the sparse locations and using measures that
+ * match the local geometry that should be at those locations in the image.
+ * This is particularly useful for fast intra-operative registration when the
+ * pre-operative data is used to define a SpatialObject and can anticipate
+ * how that object will appear in the intra-operative images.
  *
  * A full discussion of the Transform directions in the ITK registration
  * framework can be found in the ITK Software Guide.
@@ -96,8 +95,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToSpatialObjectRegistrationMethod, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToSpatialObjectRegistrationMethod);
 
   /**  Type of the Fixed image. */
   using FixedImageType = TFixedImage;
@@ -136,33 +135,40 @@ public:
   using DataObjectPointer = typename DataObject::Pointer;
 
   /** Set/Get the Fixed image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedImage, FixedImageType);
   itkGetConstObjectMacro(FixedImage, FixedImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Moving Spatial Object. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingSpatialObject, MovingSpatialObjectType);
   itkGetConstObjectMacro(MovingSpatialObject, MovingSpatialObjectType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Metric. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
   itkGetModifiableObjectMacro(Metric, MetricType);
-
-  /** Set/Get the Transfrom. */
+  /** @ITKEndGrouping */
+  /** Set/Get the Transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Transform, TransformType);
   itkGetModifiableObjectMacro(Transform, TransformType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Interpolator. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the initial transformation parameters. */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialTransformParameters, ParametersType);
   itkGetConstReferenceMacro(InitialTransformParameters, ParametersType);
-
+  /** @ITKEndGrouping */
   /** Get the last transformation parameters visited by
    * the optimizer. */
   itkGetConstReferenceMacro(LastTransformParameters, ParametersType);
@@ -198,18 +204,18 @@ protected:
   void
   Initialize();
 
-  ParametersType m_InitialTransformParameters;
-  ParametersType m_LastTransformParameters;
+  ParametersType m_InitialTransformParameters{};
+  ParametersType m_LastTransformParameters{};
 
 private:
-  MetricPointer          m_Metric;
-  OptimizerType::Pointer m_Optimizer;
+  MetricPointer          m_Metric{};
+  OptimizerType::Pointer m_Optimizer{};
 
-  MovingSpatialObjectConstPointer m_MovingSpatialObject;
-  FixedImageConstPointer          m_FixedImage;
+  MovingSpatialObjectConstPointer m_MovingSpatialObject{};
+  FixedImageConstPointer          m_FixedImage{};
 
-  TransformPointer    m_Transform;
-  InterpolatorPointer m_Interpolator;
+  TransformPointer    m_Transform{};
+  InterpolatorPointer m_Interpolator{};
 };
 } // end namespace itk
 

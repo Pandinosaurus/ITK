@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class LevelSetDomainPartition
+ * \class LevelSetDomainPartition
  *
  * \brief Helper class used to share data in the ScalarChanAndVeseLevelSetFunction.
  * \ingroup ITKLevelSetsv4
@@ -45,12 +45,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkTypeMacro(LevelSetDomainPartition, LevelSetDomainPartitionBase);
+  itkOverrideGetNameOfClassMacro(LevelSetDomainPartition);
 
   using ImageType = TImage;
   using ImagePointer = typename ImageType::Pointer;
 
-  using ListPixelType = typename Superclass::ListPixelType;
+  using typename Superclass::ListPixelType;
 
   /** Populate a list image with each pixel being a list of overlapping
    *  level set support at that pixel */

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor_hxx
 #define itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor_hxx
 
-#include "itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor.h"
 
 #include "itkBSplineDecompositionImageFilter.h"
 #include "itkBSplineResampleImageFunction.h"
@@ -33,17 +32,14 @@ namespace itk
 template <typename TTransform>
 TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<
   TTransform>::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor()
+  : m_SplineOrder(3)
 {
   this->m_RequiredFixedParameters.SetSize(TotalDimension * (TotalDimension + 4));
-
   this->m_RequiredTransformDomainOrigin.Fill(0.0);
   this->m_RequiredTransformDomainDirection.SetIdentity();
   this->m_RequiredTransformDomainSize.Fill(1);
   this->m_RequiredTransformDomainSpacing.Fill(0.0);
   this->m_RequiredTransformDomainMeshSize.Fill(1);
-
-  this->m_SplineOrder = 3;
-
   this->UpdateRequiredFixedParameters();
 }
 
@@ -134,47 +130,47 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::UpdateReq
   //  grid direction
 
   // set the grid size parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredFixedParameters[i] = this->m_RequiredTransformDomainMeshSize[i] + this->m_SplineOrder;
   }
 
   // Set the origin parameters
   OriginType origin;
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
-    FixedParametersValueType domainPhysicalDimensions =
+    const FixedParametersValueType domainPhysicalDimensions =
       (this->m_RequiredTransformDomainSize[i] - 1.0) * this->m_RequiredTransformDomainSpacing[i];
 
-    FixedParametersValueType gridSpacing =
+    const FixedParametersValueType gridSpacing =
       domainPhysicalDimensions / static_cast<FixedParametersValueType>(this->m_RequiredTransformDomainMeshSize[i]);
     origin[i] = -0.5 * gridSpacing * (this->m_SplineOrder - 1);
   }
   origin = this->m_RequiredTransformDomainDirection * origin;
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredFixedParameters[TotalDimension + i] =
       static_cast<FixedParametersValueType>(origin[i] + this->m_RequiredTransformDomainOrigin[i]);
   }
 
   // Set the domain sampled size parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredFixedParameters[2 * TotalDimension + i] =
       static_cast<SizeValueType>(this->m_RequiredTransformDomainSize[i]);
   }
 
   // Set the domain sampled spacing parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredFixedParameters[3 * TotalDimension + i] =
       static_cast<ParametersValueType>(this->m_RequiredTransformDomainSpacing[i]);
   }
 
   // Set the direction parameters
-  for (SizeValueType di = 0; di < TotalDimension; di++)
+  for (SizeValueType di = 0; di < TotalDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < TotalDimension; dj++)
+    for (SizeValueType dj = 0; dj < TotalDimension; ++dj)
     {
       this->m_RequiredFixedParameters[4 * TotalDimension + (di * TotalDimension + dj)] =
         static_cast<ParametersValueType>(this->m_RequiredTransformDomainDirection[di][dj]);
@@ -190,9 +186,9 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::SetRequir
   Superclass::SetRequiredFixedParameters(fixedParameters);
 
   // Set the direction parameters
-  for (SizeValueType di = 0; di < TotalDimension; di++)
+  for (SizeValueType di = 0; di < TotalDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < TotalDimension; dj++)
+    for (SizeValueType dj = 0; dj < TotalDimension; ++dj)
     {
       this->m_RequiredTransformDomainDirection[di][dj] =
         this->m_RequiredFixedParameters[4 * TotalDimension + (di * TotalDimension + dj)];
@@ -200,7 +196,7 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::SetRequir
   }
 
   // set the mesh size parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredTransformDomainMeshSize[i] =
       static_cast<SizeValueType>(this->m_RequiredFixedParameters[i]) - this->m_SplineOrder;
@@ -208,30 +204,30 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::SetRequir
 
   // Set the origin parameters
   OriginType origin;
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
-    FixedParametersValueType domainPhysicalDimensions =
+    const FixedParametersValueType domainPhysicalDimensions =
       static_cast<FixedParametersValueType>(this->m_RequiredTransformDomainSize[i] - 1.0) *
       this->m_RequiredTransformDomainSpacing[i];
-    FixedParametersValueType gridSpacing =
+    const FixedParametersValueType gridSpacing =
       domainPhysicalDimensions / static_cast<FixedParametersValueType>(this->m_RequiredTransformDomainMeshSize[i]);
     origin[i] = 0.5 * gridSpacing * (this->m_SplineOrder - 1);
   }
   origin = this->m_RequiredTransformDomainDirection * origin;
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredTransformDomainOrigin[i] = origin[i] + this->m_RequiredFixedParameters[TotalDimension + i];
   }
 
   // Set the domain sampled size parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredTransformDomainSize[i] =
       static_cast<SizeValueType>(this->m_RequiredFixedParameters[2 * TotalDimension + i]);
   }
 
   // Set the domain sampled spacing parameters
-  for (SizeValueType i = 0; i < TotalDimension; i++)
+  for (SizeValueType i = 0; i < TotalDimension; ++i)
   {
     this->m_RequiredTransformDomainSpacing[i] =
       static_cast<ParametersValueType>(this->m_RequiredFixedParameters[3 * TotalDimension + i]);
@@ -252,14 +248,14 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTran
     return;
   }
 
-  SizeType      requiredLatticeSize = this->GetRequiredControlPointLatticeSize();
-  OriginType    requiredLatticeOrigin = this->GetRequiredControlPointLatticeOrigin();
-  SpacingType   requiredLatticeSpacing = this->GetRequiredControlPointLatticeSpacing();
-  DirectionType requiredLatticeDirection = this->GetRequiredControlPointLatticeDirection();
+  const SizeType      requiredLatticeSize = this->GetRequiredControlPointLatticeSize();
+  const OriginType    requiredLatticeOrigin = this->GetRequiredControlPointLatticeOrigin();
+  const SpacingType   requiredLatticeSpacing = this->GetRequiredControlPointLatticeSpacing();
+  const DirectionType requiredLatticeDirection = this->GetRequiredControlPointLatticeDirection();
 
   const RegionType & latticeRegion =
     this->m_Transform->GetTimeVaryingVelocityFieldControlPointLattice()->GetLargestPossibleRegion();
-  IndexType requiredLatticeIndex = latticeRegion.GetIndex();
+  const IndexType requiredLatticeIndex = latticeRegion.GetIndex();
 
   using ComponentImageType = Image<ParametersValueType, TotalDimension>;
 
@@ -268,23 +264,20 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTran
   using UpsampleFilterType = ResampleImageFilter<ComponentImageType, ComponentImageType, ParametersValueType>;
   using DecompositionFilterType = BSplineDecompositionImageFilter<ComponentImageType, ComponentImageType>;
 
-  VectorType zeroVector(0.0);
-
-  TimeVaryingVelocityFieldControlPointLatticePointer requiredLattice =
+  const TimeVaryingVelocityFieldControlPointLatticePointer requiredLattice =
     TimeVaryingVelocityFieldControlPointLatticeType::New();
   requiredLattice->SetRegions(requiredLatticeSize);
   requiredLattice->SetOrigin(requiredLatticeOrigin);
   requiredLattice->SetSpacing(requiredLatticeSpacing);
   requiredLattice->SetDirection(requiredLatticeDirection);
-  requiredLattice->Allocate();
-  requiredLattice->FillBuffer(zeroVector);
+  requiredLattice->AllocateInitialized();
 
   // Loop over dimension: each direction is upsampled separately.
-  for (SizeValueType j = 0; j < TotalDimension - 1; j++)
+  for (SizeValueType j = 0; j < TotalDimension - 1; ++j)
   {
     using SelectionFilterType =
       VectorIndexSelectionCastImageFilter<TimeVaryingVelocityFieldControlPointLatticeType, ComponentImageType>;
-    typename SelectionFilterType::Pointer selector = SelectionFilterType::New();
+    auto selector = SelectionFilterType::New();
     selector->SetInput(this->m_Transform->GetTimeVaryingVelocityFieldControlPointLattice());
     selector->SetIndex(j);
 
@@ -299,8 +292,8 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTran
      * This code is copied from the itk-example
      * DeformableRegistration6.cxx .
      */
-    typename UpsampleFilterType::Pointer              upsampler = UpsampleFilterType::New();
-    typename CoefficientUpsampleFunctionType::Pointer coeffUpsampleFunction = CoefficientUpsampleFunctionType::New();
+    auto upsampler = UpsampleFilterType::New();
+    auto coeffUpsampleFunction = CoefficientUpsampleFunctionType::New();
 
     upsampler->SetInterpolator(coeffUpsampleFunction);
     upsampler->SetSize(requiredLatticeSize);
@@ -310,7 +303,7 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTran
     upsampler->SetOutputDirection(requiredLatticeDirection);
     upsampler->SetInput(selector->GetOutput());
 
-    typename DecompositionFilterType::Pointer decompositionFilter = DecompositionFilterType::New();
+    auto decompositionFilter = DecompositionFilterType::New();
     decompositionFilter->SetSplineOrder(this->m_Transform->GetSplineOrder());
     decompositionFilter->SetInput(upsampler->GetOutput());
     decompositionFilter->Update();
@@ -344,11 +337,11 @@ TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TTransform>::PrintSelf
 {
   Superclass::PrintSelf(os, indent);
 
-  os << "Required transform domain origin: " << this->m_RequiredTransformDomainOrigin << std::endl;
-  os << "Required transform domain mesh size: " << this->m_RequiredTransformDomainMeshSize << std::endl;
-  os << "Required transform domain sampled size: " << this->m_RequiredTransformDomainSize << std::endl;
-  os << "Required transform domain sampled spacing: " << this->m_RequiredTransformDomainSpacing << std::endl;
-  os << "Required transform domain direction: " << this->m_RequiredTransformDomainDirection << std::endl;
+  os << indent << "Required transform domain origin: " << this->m_RequiredTransformDomainOrigin << std::endl;
+  os << indent << "Required transform domain mesh size: " << this->m_RequiredTransformDomainMeshSize << std::endl;
+  os << indent << "Required transform domain sampled size: " << this->m_RequiredTransformDomainSize << std::endl;
+  os << indent << "Required transform domain sampled spacing: " << this->m_RequiredTransformDomainSpacing << std::endl;
+  os << indent << "Required transform domain direction: " << this->m_RequiredTransformDomainDirection << std::endl;
 }
 
 } // namespace itk

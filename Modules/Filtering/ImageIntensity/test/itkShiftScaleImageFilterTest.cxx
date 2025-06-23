@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,8 +21,9 @@
 
 #include "itkShiftScaleImageFilter.h"
 #include "itkRandomImageSource.h"
-
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
+
 int
 itkShiftScaleImageFilterTest(int, char *[])
 {
@@ -32,27 +33,25 @@ itkShiftScaleImageFilterTest(int, char *[])
   using TestOutputImage = itk::Image<unsigned char, 3>;
   using RealType = itk::NumericTraits<char>::RealType;
 
-  TestInputImage::Pointer    inputImage = TestInputImage::New();
-  TestInputImage::RegionType region;
-  TestInputImage::SizeType   size;
-  size.Fill(64);
-  TestInputImage::IndexType index;
-  index.Fill(0);
+  auto                                inputImage = TestInputImage::New();
+  TestInputImage::RegionType          region;
+  auto                                size = TestInputImage::SizeType::Filled(64);
+  constexpr TestInputImage::IndexType index{};
 
   region.SetIndex(index);
   region.SetSize(size);
 
   // first try a constant image
-  double fillValue = -100.0;
+  constexpr double fillValue = -100.0;
   inputImage->SetRegions(region);
   inputImage->Allocate();
   inputImage->FillBuffer(static_cast<TestInputImage::PixelType>(fillValue));
 
   using FilterType = itk::ShiftScaleImageFilter<TestInputImage, TestOutputImage>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // Set up Start, End and Progress callbacks
-  itk::SimpleFilterWatcher filterWatch(filter);
+  const itk::SimpleFilterWatcher filterWatch(filter);
 
   // Filter the image
   filter->SetInput(inputImage);
@@ -61,16 +60,16 @@ itkShiftScaleImageFilterTest(int, char *[])
   // Now generate a real image
 
   using SourceType = itk::RandomImageSource<TestInputImage>;
-  SourceType::Pointer           source = SourceType::New();
+  auto                          source = SourceType::New();
   TestInputImage::SizeValueType randomSize[3] = { 17, 8, 20 };
 
   // Set up Start, End and Progress callbacks
-  itk::SimpleFilterWatcher sourceWatch(source);
+  const itk::SimpleFilterWatcher sourceWatch(source);
 
   // Set up source
   source->SetSize(randomSize);
-  double minValue = -128.0;
-  double maxValue = 127.0;
+  constexpr double minValue = -128.0;
+  constexpr double maxValue = 127.0;
 
   source->SetMin(static_cast<TestInputImage::PixelType>(minValue));
   source->SetMax(static_cast<TestInputImage::PixelType>(maxValue));
@@ -78,27 +77,21 @@ itkShiftScaleImageFilterTest(int, char *[])
 
 
   // Test GetMacros
-  RealType getShift = filter->GetShift();
+  const RealType getShift = filter->GetShift();
   std::cout << "filter->GetShift(): " << getShift << std::endl;
-  RealType getScale = filter->GetScale();
+  const RealType getScale = filter->GetScale();
   std::cout << "filter->GetScale(): " << getScale << std::endl;
-  long underflowCount = filter->GetUnderflowCount();
+  const long underflowCount = filter->GetUnderflowCount();
   std::cout << "filter->GetUnderflowCount(): " << underflowCount << std::endl;
-  long overflowCount = filter->GetOverflowCount();
+  const long overflowCount = filter->GetOverflowCount();
   std::cout << "filter->GetOverflowCount(): " << overflowCount << std::endl;
 
 
   filter->SetInput(source->GetOutput());
   filter->SetScale(4.0);
-  try
-  {
-    filter->UpdateLargestPossibleRegion();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e;
-    return -1;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->UpdateLargestPossibleRegion());
+
 
   return EXIT_SUCCESS;
 }

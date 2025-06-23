@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,8 @@ runGPUBinaryThresholdImageFilterTest(const std::string & inFile, const std::stri
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  typename WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   if (!itk::IsGPUAvailable())
   {
@@ -67,14 +67,14 @@ runGPUBinaryThresholdImageFilterTest(const std::string & inFile, const std::stri
   constexpr OutputPixelType outsideValue = 0;
   constexpr OutputPixelType insideValue = 255;
 
-  for (int nThreads = 1; nThreads <= 8; nThreads++)
+  for (int numberOfWorkUnits = 1; numberOfWorkUnits <= 8; ++numberOfWorkUnits)
   {
-    typename ThresholdFilterType::Pointer CPUFilter = ThresholdFilterType::New();
-    itk::TimeProbe                        cputimer;
+    auto           CPUFilter = ThresholdFilterType::New();
+    itk::TimeProbe cputimer;
     cputimer.Start();
 
     // build pipeline
-    CPUFilter->SetNumberOfWorkUnits(nThreads);
+    CPUFilter->SetNumberOfWorkUnits(numberOfWorkUnits);
 
     CPUFilter->SetOutsideValue(outsideValue);
     CPUFilter->SetInsideValue(insideValue);
@@ -87,12 +87,12 @@ runGPUBinaryThresholdImageFilterTest(const std::string & inFile, const std::stri
     cputimer.Stop();
 
     std::cout << "CPU binary threshold took " << cputimer.GetMean() << " seconds with "
-              << CPUFilter->GetNumberOfWorkUnits() << " threads.\n"
+              << CPUFilter->GetNumberOfWorkUnits() << " work units.\n"
               << std::endl;
 
-    if (nThreads == 8)
+    if (numberOfWorkUnits == 8)
     {
-      typename GPUThresholdFilterType::Pointer GPUFilter = GPUThresholdFilterType::New();
+      auto GPUFilter = GPUThresholdFilterType::New();
 
       itk::TimeProbe gputimer;
       gputimer.Start();
@@ -124,13 +124,13 @@ runGPUBinaryThresholdImageFilterTest(const std::string & inFile, const std::stri
 
       for (cit.GoToBegin(), git.GoToBegin(); !cit.IsAtEnd(); ++cit, ++git)
       {
-        double err = (double)(cit.Get()) - (double)(git.Get());
+        double err = static_cast<double>(cit.Get()) - static_cast<double>(git.Get());
         diff += err * err;
         nPix++;
       }
       if (nPix > 0)
       {
-        double RMSError = sqrt(diff / (double)nPix);
+        double RMSError = sqrt(diff / static_cast<double>(nPix));
         std::cout << "RMS Error : " << RMSError << std::endl;
         double RMSThreshold = 0;
         writer->SetInput(GPUFilter->GetOutput());
@@ -145,7 +145,7 @@ runGPUBinaryThresholdImageFilterTest(const std::string & inFile, const std::stri
         }
         if (RMSError > RMSThreshold)
         {
-          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ")" << std::endl;
+          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ')' << std::endl;
           return EXIT_FAILURE;
         }
       }

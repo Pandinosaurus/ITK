@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,9 @@ itkBinaryShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
 
   if (argc != 9)
   {
-    std::cerr << "Usage: " << argv[0] << " input output";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output";
     std::cerr << " foreground background numberOfObjectsToKeep";
     std::cerr << " reverseOrdering connectivity attribute" << std::endl;
     return EXIT_FAILURE;
@@ -40,26 +42,26 @@ itkBinaryShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
   using IType = itk::Image<unsigned char, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using BinaryKeepNObjectsType = itk::BinaryShapeKeepNObjectsImageFilter<IType>;
-  BinaryKeepNObjectsType::Pointer KeepNObjects = BinaryKeepNObjectsType::New();
+  auto KeepNObjects = BinaryKeepNObjectsType::New();
 
   KeepNObjects->SetInput(reader->GetOutput());
 
   // testing get/set ForegroundValue macro
-  int ForegroundValue = (std::stoi(argv[3]));
+  const int ForegroundValue = (std::stoi(argv[3]));
   KeepNObjects->SetForegroundValue(ForegroundValue);
   ITK_TEST_SET_GET_VALUE(ForegroundValue, KeepNObjects->GetForegroundValue());
 
   // testing get/set BackgroundValue macro
-  int BackgroundValue = (std::stoi(argv[4]));
+  const int BackgroundValue = (std::stoi(argv[4]));
   KeepNObjects->SetBackgroundValue(BackgroundValue);
   ITK_TEST_SET_GET_VALUE(BackgroundValue, KeepNObjects->GetBackgroundValue());
 
   // testing get and set macros for Lambda
-  unsigned int numberOfObjects = std::stoi(argv[5]);
+  const unsigned int numberOfObjects = std::stoi(argv[5]);
   KeepNObjects->SetNumberOfObjects(numberOfObjects);
   ITK_TEST_SET_GET_VALUE(numberOfObjects, KeepNObjects->GetNumberOfObjects());
 
@@ -71,7 +73,7 @@ itkBinaryShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, KeepNObjects->GetReverseOrdering());
 
   // testing get and set macros or ReverseOrdering
-  bool reverseOrdering = std::stoi(argv[6]);
+  const bool reverseOrdering = std::stoi(argv[6]);
   KeepNObjects->SetReverseOrdering(reverseOrdering);
   ITK_TEST_SET_GET_VALUE(reverseOrdering, KeepNObjects->GetReverseOrdering());
 
@@ -83,7 +85,7 @@ itkBinaryShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, KeepNObjects->GetFullyConnected());
 
   // testing get and set macros or FullyConnected
-  bool fullyConnected = std::stoi(argv[7]);
+  const bool fullyConnected = std::stoi(argv[7]);
   KeepNObjects->SetFullyConnected(fullyConnected);
   ITK_TEST_SET_GET_VALUE(fullyConnected, KeepNObjects->GetFullyConnected());
 
@@ -94,13 +96,13 @@ itkBinaryShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
 
   const std::string attributeByName{ argv[8] };
   KeepNObjects->SetAttribute(attributeByName); // SetAttribute accepts a string for conversion to internal label code
-  const BinaryKeepNObjectsType::AttributeType attributeByCode = BinaryKeepNObjectsType::LabelObjectType::LABEL;
+  constexpr BinaryKeepNObjectsType::AttributeType attributeByCode = BinaryKeepNObjectsType::LabelObjectType::LABEL;
   ITK_TEST_SET_GET_VALUE(attributeByCode, KeepNObjects->GetAttribute());
 
-  itk::SimpleFilterWatcher watcher(KeepNObjects, "filter");
+  const itk::SimpleFilterWatcher watcher(KeepNObjects, "filter");
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(KeepNObjects->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

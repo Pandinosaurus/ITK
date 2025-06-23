@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ ImageRegionSplitterMultidimensional::GetNumberOfSplitsInternal(unsigned int     
   // number of splits in each dimension
   std::vector<unsigned int> splits(dim); // Note: stack allocation preferred
 
-  unsigned int numberOfPieces = this->ComputeSplits(dim, requestedNumber, regionIndex, regionSize, &splits[0]);
+  const unsigned int numberOfPieces = this->ComputeSplits(dim, requestedNumber, regionIndex, regionSize, &splits[0]);
 
   return numberOfPieces;
 }
@@ -63,7 +63,7 @@ ImageRegionSplitterMultidimensional::GetSplitInternal(unsigned int   dim,
 
   // determine which splitted region we are in
   unsigned int offset = splitI;
-  for (unsigned i = dim - 1; i > 0; --i)
+  for (unsigned int i = dim - 1; i > 0; --i)
   {
     unsigned int dimensionOffset = 1;
     for (unsigned int j = 0; j < i; ++j)
@@ -82,13 +82,14 @@ ImageRegionSplitterMultidimensional::GetSplitInternal(unsigned int   dim,
   {
     const SizeValueType inputRegionSize = regionSize[i];
     const auto          indexOffset =
-      Math::Floor<IndexValueType>((splittedRegionIndex[i]) * (inputRegionSize / double(splits[i])));
+      Math::Floor<IndexValueType>((splittedRegionIndex[i]) * (inputRegionSize / static_cast<double>(splits[i])));
 
     regionIndex[i] += indexOffset;
     if (splittedRegionIndex[i] < splits[i] - 1)
     {
       regionSize[i] =
-        Math::Floor<SizeValueType>((splittedRegionIndex[i] + 1) * (inputRegionSize / double(splits[i]))) - indexOffset;
+        Math::Floor<SizeValueType>((splittedRegionIndex[i] + 1) * (inputRegionSize / static_cast<double>(splits[i]))) -
+        indexOffset;
     }
     else
     {
@@ -103,7 +104,7 @@ ImageRegionSplitterMultidimensional::GetSplitInternal(unsigned int   dim,
 
 /**
  * given the requestedNumber of regions to split the "region" argument
- * into, it retures the number of splitted regions in each dimension
+ * into, it returns the number of splitted regions in each dimension
  * as "splits" and returns the total number of splitted regions
  */
 unsigned int
@@ -156,7 +157,7 @@ ImageRegionSplitterMultidimensional::ComputeSplits(unsigned int         dim,
     // update the variable with the new split
     numberOfPieces += additionalNumPieces;
     ++splits[maxSplitDim];
-    splitRegionSize[maxSplitDim] = regionSize[maxSplitDim] / double(splits[maxSplitDim]);
+    splitRegionSize[maxSplitDim] = regionSize[maxSplitDim] / static_cast<double>(splits[maxSplitDim]);
   }
 }
 

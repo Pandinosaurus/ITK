@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,32 +18,24 @@
 #ifndef itkHotColormapFunction_hxx
 #define itkHotColormapFunction_hxx
 
-#include "itkHotColormapFunction.h"
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TScalar, typename TRGBPixel>
-typename HotColormapFunction<TScalar, TRGBPixel>::RGBPixelType
-HotColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
+auto
+HotColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const -> RGBPixelType
 {
   // Map the input scalar between [0, 1].
-  RealType value = this->RescaleInputValue(v);
+  const RealType value = this->RescaleInputValue(v);
 
   // Apply the color mapping.
   RealType red = 63.0 / 26.0 * value - 1.0 / 13.0;
-
-  red = std::max(0.0, red);
-  red = std::min(1.0, red);
+  red = std::clamp(red, 0.0, 1.0);
 
   RealType green = 63.0 / 26.0 * value - 11.0 / 13.0;
-  green = std::max(0.0, green);
-  green = std::min(1.0, green);
+  green = std::clamp(green, 0.0, 1.0);
 
   RealType blue = 4.5 * value - 3.5;
-  blue = std::max(0.0, blue);
-  blue = std::min(1.0, blue);
+  blue = std::clamp(blue, 0.0, 1.0);
 
   // Set the rgb components after rescaling the values.
   RGBPixelType pixel;
@@ -55,7 +47,6 @@ HotColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
 
   return pixel;
 }
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

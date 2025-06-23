@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,13 +57,13 @@ itkImageRegistrationMethodTest_11(int, char *[])
   using RegistrationType = itk::ImageRegistrationMethod<FixedImageType, MovingImageType>;
 
 
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  FixedImageType::Pointer   fixedImage = FixedImageType::New();
-  MovingImageType::Pointer  movingImage = MovingImageType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto fixedImage = FixedImageType::New();
+  auto movingImage = MovingImageType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
 
   registration->SetMetric(metric);
@@ -87,12 +87,12 @@ itkImageRegistrationMethodTest_11(int, char *[])
   //
   // Now verify that they can be changed
   //
-  MetricType::Pointer       metric2 = MetricType::New();
-  TransformType::Pointer    transform2 = TransformType::New();
-  OptimizerType::Pointer    optimizer2 = OptimizerType::New();
-  FixedImageType::Pointer   fixedImage2 = FixedImageType::New();
-  MovingImageType::Pointer  movingImage2 = MovingImageType::New();
-  InterpolatorType::Pointer interpolator2 = InterpolatorType::New();
+  auto metric2 = MetricType::New();
+  auto transform2 = TransformType::New();
+  auto optimizer2 = OptimizerType::New();
+  auto fixedImage2 = FixedImageType::New();
+  auto movingImage2 = MovingImageType::New();
+  auto interpolator2 = InterpolatorType::New();
 
 
   registration->SetMetric(metric2);
@@ -117,12 +117,12 @@ itkImageRegistrationMethodTest_11(int, char *[])
   //
   //  Now verify that they can be set to nullptr
   //
-  MetricType::Pointer       metric3 = nullptr;
-  TransformType::Pointer    transform3 = nullptr;
-  OptimizerType::Pointer    optimizer3 = nullptr;
-  FixedImageType::Pointer   fixedImage3 = nullptr;
-  MovingImageType::Pointer  movingImage3 = nullptr;
-  InterpolatorType::Pointer interpolator3 = nullptr;
+  const MetricType::Pointer       metric3 = nullptr;
+  const TransformType::Pointer    transform3 = nullptr;
+  const OptimizerType::Pointer    optimizer3 = nullptr;
+  const FixedImageType::Pointer   fixedImage3 = nullptr;
+  const MovingImageType::Pointer  movingImage3 = nullptr;
+  const InterpolatorType::Pointer interpolator3 = nullptr;
 
 
   registration->SetMetric(metric3);

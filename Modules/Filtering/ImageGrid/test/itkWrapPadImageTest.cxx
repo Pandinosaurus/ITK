@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,21 +30,37 @@ int
 VerifyPixel(int row, int col, short val, float & expected)
 {
   if (row < 0)
+  {
     row += 8;
+  }
   if (row < 0)
+  {
     row += 8;
+  }
   if (row > 7)
+  {
     row -= 8;
+  }
   if (row > 7)
+  {
     row -= 8;
+  }
   if (col < 0)
+  {
     col += 12;
+  }
   if (col < 0)
+  {
     col += 12;
+  }
   if (col > 11)
+  {
     col -= 12;
+  }
   if (col > 11)
+  {
     col -= 12;
+  }
   expected = 8 * col + row;
   return (itk::Math::AlmostEquals(val, expected));
 }
@@ -59,14 +75,14 @@ itkWrapPadImageTest(int, char *[])
   using VectorImage = itk::VectorImage<short, 2>;
 
   // Test the creation of an image with native type
-  ShortImage::Pointer    image = ShortImage::New();
-  ShortImage::IndexType  index = { { 0, 0 } };
-  ShortImage::SizeType   size = { { 8, 12 } };
-  ShortImage::RegionType region(index, size);
+  auto                         image = ShortImage::New();
+  ShortImage::IndexType        index = { { 0, 0 } };
+  ShortImage::SizeType         size = { { 8, 12 } };
+  const ShortImage::RegionType region(index, size);
   image->SetRegions(region);
   image->Allocate();
 
-  VectorImage::Pointer vectorImage = VectorImage::New();
+  auto vectorImage = VectorImage::New();
   vectorImage->SetRegions(region);
   vectorImage->SetNumberOfComponentsPerPixel(3);
   vectorImage->Allocate();
@@ -86,7 +102,7 @@ itkWrapPadImageTest(int, char *[])
 
   // Create a filter
   using PadFilterType = itk::WrapPadImageFilter<ShortImage, FloatImage>;
-  PadFilterType::Pointer wrapPad = PadFilterType::New();
+  auto wrapPad = PadFilterType::New();
   wrapPad->SetInput(image);
 
   itk::WrapPadImageFilter<VectorImage, VectorImage>::Pointer vectorWrapPad;
@@ -112,7 +128,7 @@ itkWrapPadImageTest(int, char *[])
             << wrapPad->GetOutput()->GetSpacing()[1] << std::endl;
 
   ShortImage::RegionType requestedRegion;
-  bool                   passed;
+  bool                   passed = false;
 
   // CASE 1
   lowerBound[0] = 1;
@@ -135,7 +151,7 @@ itkWrapPadImageTest(int, char *[])
   passed = true;
   size = requestedRegion.GetSize();
   index = requestedRegion.GetIndex();
-  if ((index[0] != (0 - (long)lowerBound[0])) || (index[1] != (0 - (long)lowerBound[1])) ||
+  if ((index[0] != (0 - static_cast<long>(lowerBound[0]))) || (index[1] != (0 - static_cast<long>(lowerBound[1]))) ||
       (size[0] != (8 + lowerBound[0] + upperBound[0])) || (size[1] != (12 + lowerBound[1] + upperBound[1])))
   {
     passed = false;
@@ -144,8 +160,8 @@ itkWrapPadImageTest(int, char *[])
   {
     for (; !itIn1.IsAtEnd(); ++itIn1, ++vitIn1)
     {
-      int                   row = itIn1.GetIndex()[0];
-      int                   column = itIn1.GetIndex()[1];
+      const int             row = itIn1.GetIndex()[0];
+      const int             column = itIn1.GetIndex()[1];
       FloatImage::PixelType expected = 0.0f;
 
       if (!VerifyPixel(row, column, static_cast<short>(itIn1.Get()), expected))
@@ -200,7 +216,7 @@ itkWrapPadImageTest(int, char *[])
     passed = true;
     size = requestedRegion.GetSize();
     index = requestedRegion.GetIndex();
-    if ((index[0] != (0 - (long)lowerBound[0])) || (index[1] != (0 - (long)lowerBound[1])) ||
+    if ((index[0] != (0 - static_cast<long>(lowerBound[0]))) || (index[1] != (0 - static_cast<long>(lowerBound[1]))) ||
         (size[0] != (8 + lowerBound[0] + upperBound[0])) || (size[1] != (12 + lowerBound[1] + upperBound[1])))
     {
       passed = false;
@@ -209,8 +225,8 @@ itkWrapPadImageTest(int, char *[])
     {
       for (; !itIn2.IsAtEnd(); ++itIn2, ++vitIn2)
       {
-        int                   row = itIn2.GetIndex()[0];
-        int                   column = itIn2.GetIndex()[1];
+        const int             row = itIn2.GetIndex()[0];
+        const int             column = itIn2.GetIndex()[1];
         FloatImage::PixelType expected = 0.0f;
 
         if (!VerifyPixel(row, column, static_cast<short>(itIn2.Get()), expected))
@@ -251,11 +267,11 @@ itkWrapPadImageTest(int, char *[])
 
   // Create a stream
   using StreamingFilter = itk::StreamingImageFilter<FloatImage, FloatImage>;
-  StreamingFilter::Pointer stream = StreamingFilter::New();
+  auto stream = StreamingFilter::New();
   stream->SetInput(wrapPad->GetOutput());
   stream->SetNumberOfStreamDivisions(3);
 
-  itk::StreamingImageFilter<VectorImage, VectorImage>::Pointer vectorStream =
+  const itk::StreamingImageFilter<VectorImage, VectorImage>::Pointer vectorStream =
     itk::StreamingImageFilter<VectorImage, VectorImage>::New();
   vectorStream->SetInput(vectorWrapPad->GetOutput());
   vectorStream->SetNumberOfStreamDivisions(3);
@@ -277,7 +293,7 @@ itkWrapPadImageTest(int, char *[])
     passed = true;
     size = requestedRegion.GetSize();
     index = requestedRegion.GetIndex();
-    if ((index[0] != (0 - (long)lowerBound[0])) || (index[1] != (0 - (long)lowerBound[1])) ||
+    if ((index[0] != (0 - static_cast<long>(lowerBound[0]))) || (index[1] != (0 - static_cast<long>(lowerBound[1]))) ||
         (size[0] != (8 + lowerBound[0] + upperBound[0])) || (size[1] != (12 + lowerBound[1] + upperBound[1])))
     {
       passed = false;
@@ -286,8 +302,8 @@ itkWrapPadImageTest(int, char *[])
     {
       for (; !itIn3.IsAtEnd(); ++itIn3, ++vitIn3)
       {
-        int                   row = itIn3.GetIndex()[0];
-        int                   column = itIn3.GetIndex()[1];
+        const int             row = itIn3.GetIndex()[0];
+        const int             column = itIn3.GetIndex()[1];
         FloatImage::PixelType expected = 0.0f;
 
         if (!VerifyPixel(row, column, static_cast<short>(itIn3.Get()), expected))

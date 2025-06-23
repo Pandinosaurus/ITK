@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,17 @@
 
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkTestingMacros.h"
 
 template <unsigned int vecLength>
 int
 itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
 {
-  int  imageSize = std::stoi(argv[1]);
-  int  reps = std::stoi(argv[2]);
-  bool doEAI = std::stoi(argv[3]);
-  bool doEACI = std::stoi(argv[4]);
-  bool doE = std::stoi(argv[5]);
+  const int  imageSize = std::stoi(argv[1]);
+  const int  reps = std::stoi(argv[2]);
+  const bool doEAI = std::stoi(argv[3]);
+  const bool doEACI = std::stoi(argv[4]);
+  const bool doE = std::stoi(argv[5]);
 
   std::cout << "imageSize: " << imageSize << " reps: " << reps << " doEAI, doEACI, doE: " << doEAI << ", " << doEACI
             << ", " << doE << std::endl;
@@ -37,10 +38,9 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
   using PixelType = itk::Vector<float, vecLength>;
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typename ImageType::Pointer  image = ImageType::New();
-  typename ImageType::SizeType size;
-  size.Fill(imageSize);
-  typename ImageType::RegionType region(size);
+  auto                                 image = ImageType::New();
+  auto                                 size = ImageType::SizeType::Filled(imageSize);
+  const typename ImageType::RegionType region(size);
 
   image->SetRegions(region);
   image->Allocate();
@@ -54,7 +54,7 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
   while (!iter.IsAtEnd())
   {
     PixelType pix;
-    for (unsigned int n = 0; n < vecLength; n++)
+    for (unsigned int n = 0; n < vecLength; ++n)
     {
       pix[n] = counter; //(n+1) + counter;
     }
@@ -64,26 +64,25 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
   }
 
   // set up central difference calculator
-  using CoordRepType = float;
+  using CoordinateType = float;
   using DerivativeType = itk::Matrix<double, vecLength, 2>;
 
-  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordRepType, DerivativeType>;
+  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordinateType, DerivativeType>;
   using OutputType = typename FunctionType::OutputType;
 
-  typename FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
 
   function->SetInputImage(image);
 
   typename ImageType::IndexType index;
 
   OutputType indexOutput;
-  OutputType total;
-  total.Fill(0);
+  OutputType total{};
 
   std::cout << "UseImageDirection: " << function->GetUseImageDirection() << std::endl;
 
   /// loop
-  for (int l = 0; l < reps; l++)
+  for (int l = 0; l < reps; ++l)
   {
     iter.GoToBegin();
     while (!iter.IsAtEnd())
@@ -100,7 +99,7 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
         typename FunctionType::ContinuousIndexType cindex;
         cindex[0] = index[0] + 0.1;
         cindex[1] = index[1] + 0.1;
-        OutputType continuousIndexOutput = function->EvaluateAtContinuousIndex(cindex);
+        const OutputType continuousIndexOutput = function->EvaluateAtContinuousIndex(cindex);
         total += continuousIndexOutput;
       }
 
@@ -108,7 +107,7 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTestRun(char * argv[])
       {
         typename FunctionType::PointType point;
         image->TransformIndexToPhysicalPoint(index, point);
-        OutputType pointOutput = function->Evaluate(point);
+        const OutputType pointOutput = function->Evaluate(point);
         total += pointOutput;
       }
 
@@ -125,10 +124,11 @@ itkCentralDifferenceImageFunctionOnVectorSpeedTest(int argc, char * argv[])
 {
   if (argc != 7)
   {
-    std::cerr << "usage: size reps doEAI doEACI doE vecLength" << std::endl;
+    std::cerr << "usage: " << itkNameOfTestExecutableMacro(argv) << " size reps doEAI doEACI doE vecLength"
+              << std::endl;
     return EXIT_FAILURE;
   }
-  int vecLength = std::stoi(argv[6]);
+  const int vecLength = std::stoi(argv[6]);
 
   switch (vecLength)
   {

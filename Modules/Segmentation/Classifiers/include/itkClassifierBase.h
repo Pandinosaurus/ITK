@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class ClassifierBase
+ * \class ClassifierBase
  * \brief Base class for classifier objects.
  *
  * ClassifierBase is the base class for classifier objects. It provides
@@ -93,8 +93,8 @@ public:
   using Self = ClassifierBase;
   using Superclass = LightProcessObject;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ClassifierBase, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ClassifierBase);
 
   /** Sets the number of classes. */
   itkSetMacro(NumberOfClasses, unsigned int);
@@ -116,7 +116,7 @@ public:
 
   /** Sets the pointer to the decision rule.
    * Stores the decision rule that makes the real decision using
-   * informations from MembershipFunctions and other prior knowledge */
+   * information from MembershipFunctions and other prior knowledge */
   void
   SetDecisionRule(DecisionRuleType * ptrToDecisionRule)
   {
@@ -168,13 +168,13 @@ protected:
 
 private:
   /** Number of classes */
-  unsigned int m_NumberOfClasses;
+  unsigned int m_NumberOfClasses{};
 
   /** Pointer to the decision rule to be used for classification. */
-  typename DecisionRuleType::Pointer m_DecisionRule;
+  typename DecisionRuleType::Pointer m_DecisionRule{};
 
   /** Container to hold the membership functions */
-  MembershipFunctionPointerVector m_MembershipFunctions;
+  MembershipFunctionPointerVector m_MembershipFunctions{};
 }; // class Classifier
 } // namespace itk
 

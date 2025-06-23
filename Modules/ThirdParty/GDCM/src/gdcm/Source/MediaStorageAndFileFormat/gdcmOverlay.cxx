@@ -26,17 +26,10 @@ class OverlayInternal
 {
 public:
   OverlayInternal():
-  InPixelData(false),
-  Group(0), // invalid default
-  Rows(0),
-  Columns(0),
-  NumberOfFrames(0),
+  
   Description(),
   Type(),
-  //Origin[2],
-  FrameOrigin(0),
-  BitsAllocated(0),
-  BitPosition(0),
+  
   Data() { Origin[0] = Origin[1] = 0; }
   /*
   (6000,0010) US 484                                      #   2, 1 OverlayRows
@@ -51,19 +44,19 @@ public:
   (6000,3000) OW 0000\0000\0000\0000\0000\0000\0000\0000\0000\0000\0000\0000\0000... # 29282, 1 OverlayData
   */
 
-  bool InPixelData;
+  bool InPixelData{false};
 // Identifier need to be in the [6000,60FF] range (no odd number):
-  unsigned short Group;
+  unsigned short Group{0};
 // Descriptor:
-  unsigned short Rows;           // (6000,0010) US 484                                      #   2, 1 OverlayRows
-  unsigned short Columns;        // (6000,0011) US 484                                      #   2, 1 OverlayColumns
-  unsigned int   NumberOfFrames; // (6000,0015) IS [1]                                      #   2, 1 NumberOfFramesInOverlay
+  unsigned short Rows{0};           // (6000,0010) US 484                                      #   2, 1 OverlayRows
+  unsigned short Columns{0};        // (6000,0011) US 484                                      #   2, 1 OverlayColumns
+  unsigned int   NumberOfFrames{0}; // (6000,0015) IS [1]                                      #   2, 1 NumberOfFramesInOverlay
   std::string    Description;    // (6000,0022) LO [Siemens MedCom Object Graphics]         #  30, 1 OverlayDescription
   std::string    Type;           // (6000,0040) CS [G]                                      #   2, 1 OverlayType
   signed short   Origin[2];      // (6000,0050) SS 1\1                                      #   4, 2 OverlayOrigin
-  unsigned short FrameOrigin;    // (6000,0051) US 1                                        #   2, 1 ImageFrameOrigin
-  unsigned short BitsAllocated;  // (6000,0100) US 1                                        #   2, 1 OverlayBitsAllocated
-  unsigned short BitPosition;    // (6000,0102) US 0                                        #   2, 1 OverlayBitPosition
+  unsigned short FrameOrigin{0};    // (6000,0051) US 1                                        #   2, 1 ImageFrameOrigin
+  unsigned short BitsAllocated{0};  // (6000,0100) US 1                                        #   2, 1 OverlayBitsAllocated
+  unsigned short BitPosition{0};    // (6000,0102) US 0                                        #   2, 1 OverlayBitPosition
   //std::vector<bool> Data;
   std::vector<char> Data; // hold the Overlay data, but not the trailing DICOM padding (\0)
   void Print(std::ostream &os) const {
@@ -202,7 +195,7 @@ void Overlay::Update(const DataElement & de)
     // if OverlayBitsAllocated is 16 it imply Overlay in unused pixel bits
     if( at.GetValue() != 1 )
       {
-      gdcmDebugMacro( "Unsuported OverlayBitsAllocated: " << at.GetValue() );
+      gdcmDebugMacro( "Unsupported OverlayBitsAllocated: " << at.GetValue() );
       }
     SetBitsAllocated( at.GetValue() );
     }
@@ -212,7 +205,7 @@ void Overlay::Update(const DataElement & de)
     at.SetFromDataElement( de );
     if( at.GetValue() != 0 ) // For old ACR when using unused bits...
       {
-      gdcmDebugMacro( "Unsuported OverlayBitPosition: " << at.GetValue() );
+      gdcmDebugMacro( "Unsupported OverlayBitPosition: " << at.GetValue() );
       }
     SetBitPosition( at.GetValue() );
     }
@@ -281,7 +274,7 @@ bool Overlay::GrabOverlayFromPixelData(DataSet const &ds)
       gdcmWarningMacro("Internal Data is empty." );
       return false;
       }
-    unsigned char * overlay = (unsigned char*)&Internal->Data[0];
+    unsigned char * overlay = (unsigned char*)Internal->Data.data();
     int c = 0;
     uint8_t pmask = (uint8_t)(1 << Internal->BitPosition);
     assert( length / 1 == ovlength * 8 );
@@ -333,7 +326,7 @@ bool Overlay::GrabOverlayFromPixelData(DataSet const &ds)
       gdcmWarningMacro("Internal Data is empty." );
       return false;
       }
-    unsigned char * overlay = (unsigned char*)&Internal->Data[0];
+    unsigned char * overlay = (unsigned char*)Internal->Data.data();
     int c = 0;
     uint16_t pmask = (uint16_t)(1 << Internal->BitPosition);
     assert( length / 2 == ovlength * 8 );

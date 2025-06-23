@@ -40,14 +40,14 @@ AAssociateACPDU::AAssociateACPDU()
 void AAssociateACPDU::SetCalledAETitle(const char calledaetitle[16])
 {
   //size_t len = strlen( calledaetitle );
-  //assert( len <= 16 ); // since forwared from AA-RQ no reason to be invalid
+  //assert( len <= 16 ); // since forwarded from AA-RQ no reason to be invalid
   memcpy(Reserved11_26, calledaetitle, 16 );
 }
 
 void AAssociateACPDU::SetCallingAETitle(const char callingaetitle[16])
 {
   //size_t len = strlen( callingaetitle );
-  //assert( len <= 16 ); // since forwared from AA-RQ no reason to be invalid
+  //assert( len <= 16 ); // since forwarded from AA-RQ no reason to be invalid
   memcpy(Reserved27_42, callingaetitle, 16 );
 }
 
@@ -147,7 +147,7 @@ const std::ostream &AAssociateACPDU::Write(std::ostream &os) const
   //os.write( called, 16 );
   os.write( (const char*)&Reserved43_74, sizeof(Reserved43_74) );
   AppContext.Write( os );
-  gdcmAssertAlwaysMacro( PresContextAC.size() );
+  gdcmAssertAlwaysMacro( !PresContextAC.empty() );
   std::vector<PresentationContextAC>::const_iterator it = PresContextAC.begin();
   for( ; it != PresContextAC.end(); ++it )
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,33 +18,32 @@
 #ifndef itkMetaEllipseConverter_hxx
 #define itkMetaEllipseConverter_hxx
 
-#include "itkMetaEllipseConverter.h"
 
 namespace itk
 {
 
-template <unsigned int NDimensions>
-typename MetaEllipseConverter<NDimensions>::MetaObjectType *
-MetaEllipseConverter<NDimensions>::CreateMetaObject()
+template <unsigned int VDimension>
+auto
+MetaEllipseConverter<VDimension>::CreateMetaObject() -> MetaObjectType *
 {
   return dynamic_cast<MetaObjectType *>(new EllipseMetaObjectType);
 }
 
 /** Convert a metaEllipse into an ellipse SpatialObject  */
-template <unsigned int NDimensions>
-typename MetaEllipseConverter<NDimensions>::SpatialObjectPointer
-MetaEllipseConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+template <unsigned int VDimension>
+auto
+MetaEllipseConverter<VDimension>::MetaObjectToSpatialObject(const MetaObjectType * mo) -> SpatialObjectPointer
 {
   const auto * ellipseMO = dynamic_cast<const EllipseMetaObjectType *>(mo);
   if (ellipseMO == nullptr)
   {
-    itkExceptionMacro(<< "Can't downcast MetaObject to EllipseMetaObject");
+    itkExceptionMacro("Can't downcast MetaObject to EllipseMetaObject");
   }
 
-  EllipseSpatialObjectPointer ellipseSO = EllipseSpatialObjectType::New();
+  const EllipseSpatialObjectPointer ellipseSO = EllipseSpatialObjectType::New();
 
   typename EllipseSpatialObjectType::ArrayType radii;
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     radii[i] = ellipseMO->Radius()[i];
   }
@@ -62,21 +61,21 @@ MetaEllipseConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectTyp
 }
 
 /** Convert an ellipse SpatialObject into a metaEllipse */
-template <unsigned int NDimensions>
-typename MetaEllipseConverter<NDimensions>::MetaObjectType *
-MetaEllipseConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+template <unsigned int VDimension>
+auto
+MetaEllipseConverter<VDimension>::SpatialObjectToMetaObject(const SpatialObjectType * so) -> MetaObjectType *
 {
-  EllipseSpatialObjectConstPointer ellipseSO = dynamic_cast<const EllipseSpatialObjectType *>(so);
+  const EllipseSpatialObjectConstPointer ellipseSO = dynamic_cast<const EllipseSpatialObjectType *>(so);
   if (ellipseSO.IsNull())
   {
-    itkExceptionMacro(<< "Can't downcast SpatialObject to EllipseSpatialObject");
+    itkExceptionMacro("Can't downcast SpatialObject to EllipseSpatialObject");
   }
 
-  auto * ellipseMO = new EllipseMetaObjectType(NDimensions);
+  auto * ellipseMO = new EllipseMetaObjectType(VDimension);
 
-  auto * radii = new float[NDimensions];
+  float radii[VDimension];
 
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     radii[i] = ellipseSO->GetRadiusInObjectSpace()[i];
   }
@@ -93,7 +92,6 @@ MetaEllipseConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObject
                    ellipseSO->GetProperty().GetBlue(),
                    ellipseSO->GetProperty().GetAlpha());
 
-  delete[] radii;
   return ellipseMO;
 }
 

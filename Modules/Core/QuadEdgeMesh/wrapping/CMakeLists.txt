@@ -1,6 +1,7 @@
 itk_wrap_module(ITKQuadEdgeMesh)
 
-set(WRAPPER_SUBMODULE_ORDER
+set(
+  WRAPPER_SUBMODULE_ORDER
   itkQuadEdge
   itkGeometricalQuadEdge
   itkQuadEdgeMeshPoint
@@ -11,5 +12,4 @@ set(WRAPPER_SUBMODULE_ORDER
   # itkQuadEdgeMesh
   itkQuadEdgeMeshToQuadEdgeMeshFilter
 )
-itk_auto_load_submodules()
-itk_end_wrap_module()
+itk_auto_load_and_end_wrap_submodules()

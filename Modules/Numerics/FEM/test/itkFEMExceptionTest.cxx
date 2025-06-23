@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ int
 itkFEMExceptionTest(int, char *[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -34,7 +34,7 @@ itkFEMExceptionTest(int, char *[])
   {
     throw itk::fem::FEMException(__FILE__, __LINE__, "itkFEMException");
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Exception caught\n";
   }
@@ -43,7 +43,7 @@ itkFEMExceptionTest(int, char *[])
   {
     throw itk::fem::FEMExceptionIO(__FILE__, __LINE__, "itkFEMExceptionIO", "IO exception");
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "IO exception caught\n";
   }
@@ -52,7 +52,7 @@ itkFEMExceptionTest(int, char *[])
   {
     throw itk::fem::FEMExceptionWrongClass(__FILE__, __LINE__, "itkFEMExceptionWrongClass");
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Wrong class exception caught\n";
   }
@@ -61,7 +61,7 @@ itkFEMExceptionTest(int, char *[])
   {
     throw itk::fem::FEMExceptionObjectNotFound(__FILE__, __LINE__, "itkFEMExceptionObjectNotFound", "baseClassName", 0);
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Not found exception caught\n";
   }
@@ -70,7 +70,7 @@ itkFEMExceptionTest(int, char *[])
   {
     throw itk::fem::FEMExceptionSolution(__FILE__, __LINE__, "itkFEMExceptionSolution", "Solution exception");
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Solution exception caught\n";
   }

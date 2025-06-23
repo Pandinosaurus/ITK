@@ -49,7 +49,7 @@ namespace gdcm
  * Because VR:DS is closer to a 64bits floating point type FLOAT64 is thus a
  * best matching pixel type for the floating point transformation.
  *
- * Example: Let say input is FLOAT64, and we want UINT16 as ouput, we would do:
+ * Example: Let say input is FLOAT64, and we want UINT16 as output, we would do:
  *
  *\code
     Rescaler ir;
@@ -88,7 +88,7 @@ public:
   /// By default (when UseTargetPixelType is false), a best
   /// matching Target Pixel Type is computed. However user can override
   /// this auto selection by switching UseTargetPixelType:true and
-  /// also specifying the specifix Target Pixel Type
+  /// also specifying the specific Target Pixel Type
   void SetTargetPixelType( PixelFormat const & targetst );
 
   /// Override default behavior of Rescale

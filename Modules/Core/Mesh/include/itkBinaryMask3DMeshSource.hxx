@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBinaryMask3DMeshSource_hxx
 #define itkBinaryMask3DMeshSource_hxx
 
-#include "itkBinaryMask3DMeshSource.h"
 #include "itkContinuousIndex.h"
 #include "itkNumericTraits.h"
 #include "itkMath.h"
@@ -34,8 +33,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::BinaryMask3DMeshSource()
   // Modify superclass default values, can be overridden by subclasses
   this->SetNumberOfRequiredInputs(1);
 
-  SizeType size;
-  size.Fill(0);
+  constexpr SizeType size{};
   m_RegionOfInterest.SetSize(size);
 
   this->GetOutput()->GetPoints()->Reserve(m_NodeLimit);
@@ -45,11 +43,9 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::BinaryMask3DMeshSource()
 template <typename TInputImage, typename TOutputMesh>
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::~BinaryMask3DMeshSource()
 {
-  int i;
-
   if (m_CurrentFrame)
   {
-    for (i = 0; i < 2000; i++)
+    for (int i = 0; i < 2000; ++i)
     {
       free(m_CurrentFrame[i]);
     }
@@ -57,7 +53,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::~BinaryMask3DMeshSource()
   }
   if (m_CurrentRow)
   {
-    for (i = 0; i < 200; i++)
+    for (int i = 0; i < 200; ++i)
     {
       free(m_CurrentRow[i]);
     }
@@ -65,7 +61,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::~BinaryMask3DMeshSource()
   }
   if (m_LastFrame)
   {
-    for (i = 0; i < m_LastFrameNum; i++)
+    for (int i = 0; i < m_LastFrameNum; ++i)
     {
       free(m_LastFrame[i]);
     }
@@ -73,7 +69,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::~BinaryMask3DMeshSource()
   }
   if (m_LastRow)
   {
-    for (i = 0; i < m_LastRowNum; i++)
+    for (int i = 0; i < m_LastRowNum; ++i)
     {
       free(m_LastRow[i]);
     }
@@ -88,7 +84,6 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::SetInput(const InputImageType 
   this->ProcessObject::SetNthInput(0, const_cast<InputImageType *>(image));
 }
 
-/** Generate the data */
 template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::GenerateData()
@@ -110,14 +105,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::XFlip(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         break;
@@ -154,7 +146,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::XFlip(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -162,14 +154,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::YFlip(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         x[i] = 3;
@@ -206,7 +195,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::YFlip(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -214,14 +203,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::ZFlip(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         x[i] = 5;
@@ -258,7 +244,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::ZFlip(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -266,14 +252,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::XRotation(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         x[i] = 4;
@@ -314,7 +297,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::XRotation(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -322,14 +305,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::YRotation(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         x[i] = 9;
@@ -370,7 +350,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::YRotation(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -378,14 +358,11 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::ZRotation(unsigned char * x)
 {
-  unsigned char nodeindex;
-
   int i = 0;
-
   while (i < 3)
   {
-    nodeindex = x[i];
-    switch ((int)nodeindex)
+    const auto nodeindex = x[i];
+    switch (static_cast<int>(nodeindex))
     {
       case 1:
         x[i] = 3;
@@ -426,7 +403,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::ZRotation(unsigned char * x)
       case 13:
         break;
     }
-    i++;
+    ++i;
   }
 }
 
@@ -434,9 +411,7 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::inverse(unsigned char * x)
 {
-  unsigned char tmp;
-
-  tmp = x[2];
+  const unsigned char tmp = x[2];
   x[2] = x[1];
   x[1] = tmp;
 }
@@ -1039,157 +1014,150 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::CreateMesh()
   InputImageIterator it3(m_InputImage, m_RegionOfInterest);
   InputImageIterator it4(m_InputImage, m_RegionOfInterest);
 
-  it1.GoToBegin();
-  it2.GoToBegin();
-  it3.GoToBegin();
-  it4.GoToBegin();
-
   InputImageSizeType inputImageSize = m_RegionOfInterest.GetSize();
   m_ImageWidth = inputImageSize[0];
   m_ImageHeight = inputImageSize[1];
   m_ImageDepth = inputImageSize[2];
-  int frame = m_ImageWidth * m_ImageHeight;
-  int row = m_ImageWidth;
-
-  int i = 0;
-  int j;
-
-  while (i < frame)
+  const int frame = m_ImageWidth * m_ImageHeight;
+  const int row = m_ImageWidth;
   {
-    ++it3;
-    ++it4;
-    i++;
+    int i = 0;
+
+    while (i < frame)
+    {
+      ++it3;
+      ++it4;
+      ++i;
+    }
+
+    i = 0;
+
+    while (i < row)
+    {
+      ++it2;
+      ++it4;
+      ++i;
+    }
   }
-
-  i = 0;
-
-  while (i < row)
-  {
-    ++it2;
-    ++it4;
-    i++;
-  }
-
-  unsigned char vertexindex;
 
   if (m_CurrentRow)
   {
-    for (i = 0; i < 200; i++)
+    for (int i = 0; i < 200; ++i)
     {
       free(m_CurrentRow[i]);
     }
     free(m_CurrentRow);
   }
-  m_CurrentRow = (IdentifierType **)malloc(200 * sizeof(IdentifierType *));
-  for (i = 0; i < 200; i++)
+  m_CurrentRow = static_cast<IdentifierType **>(malloc(200 * sizeof(IdentifierType *)));
+  for (int i = 0; i < 200; ++i)
   {
-    m_CurrentRow[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+    m_CurrentRow[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
   }
 
   if (m_CurrentFrame)
   {
-    for (i = 0; i < 2000; i++)
+    for (int i = 0; i < 2000; ++i)
     {
       free(m_CurrentFrame[i]);
     }
     free(m_CurrentFrame);
   }
 
-  m_CurrentFrame = (IdentifierType **)malloc(2000 * sizeof(IdentifierType *));
+  m_CurrentFrame = static_cast<IdentifierType **>(malloc(2000 * sizeof(IdentifierType *)));
 
-  for (i = 0; i < 2000; i++)
+  for (int i = 0; i < 2000; ++i)
   {
-    m_CurrentFrame[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+    m_CurrentFrame[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
   }
 
-  i = 0;
-
-  while (!it4.IsAtEnd())
   {
-    vertexindex = 0;
+    int i = 0;
+    while (!it4.IsAtEnd())
+    {
+      unsigned char vertexindex = 0;
 
-    if (Math::ExactlyEquals(it1.Value(), m_ObjectValue))
-    {
-      vertexindex += 1;
-    }
-    if (Math::ExactlyEquals(it2.Value(), m_ObjectValue))
-    {
-      vertexindex += 8;
-    }
-    if (Math::ExactlyEquals(it3.Value(), m_ObjectValue))
-    {
-      vertexindex += 16;
-    }
-    if (Math::ExactlyEquals(it4.Value(), m_ObjectValue))
-    {
-      vertexindex += 128;
-    }
-    ++it1;
-    ++it2;
-    ++it3;
-    ++it4;
-
-    if ((i % m_ImageWidth < m_ImageWidth - 1) &&
-        ((i % (m_ImageWidth * m_ImageHeight)) / m_ImageWidth < m_ImageHeight - 1))
-    {
       if (Math::ExactlyEquals(it1.Value(), m_ObjectValue))
       {
-        vertexindex += 2;
+        vertexindex += 1;
       }
       if (Math::ExactlyEquals(it2.Value(), m_ObjectValue))
       {
-        vertexindex += 4;
+        vertexindex += 8;
       }
       if (Math::ExactlyEquals(it3.Value(), m_ObjectValue))
       {
-        vertexindex += 32;
+        vertexindex += 16;
       }
       if (Math::ExactlyEquals(it4.Value(), m_ObjectValue))
       {
-        vertexindex += 64;
+        vertexindex += 128;
       }
-    }
-    else
-    {
-      if ((i % (m_ImageWidth * m_ImageHeight)) / m_ImageWidth == m_ImageHeight - 1)
+      ++it1;
+      ++it2;
+      ++it3;
+      ++it4;
+
+      if ((i % m_ImageWidth < m_ImageWidth - 1) &&
+          ((i % (m_ImageWidth * m_ImageHeight)) / m_ImageWidth < m_ImageHeight - 1))
       {
-        if (vertexindex > 50)
-        {
-          vertexindex -= 128;
-        }
-        if (((vertexindex > 7) && (vertexindex < 10)) || (vertexindex > 17))
-        {
-          vertexindex -= 8;
-        }
         if (Math::ExactlyEquals(it1.Value(), m_ObjectValue))
         {
           vertexindex += 2;
+        }
+        if (Math::ExactlyEquals(it2.Value(), m_ObjectValue))
+        {
+          vertexindex += 4;
         }
         if (Math::ExactlyEquals(it3.Value(), m_ObjectValue))
         {
           vertexindex += 32;
         }
+        if (Math::ExactlyEquals(it4.Value(), m_ObjectValue))
+        {
+          vertexindex += 64;
+        }
       }
-    }
+      else
+      {
+        if ((i % (m_ImageWidth * m_ImageHeight)) / m_ImageWidth == m_ImageHeight - 1)
+        {
+          if (vertexindex > 50)
+          {
+            vertexindex -= 128;
+          }
+          if (((vertexindex > 7) && (vertexindex < 10)) || (vertexindex > 17))
+          {
+            vertexindex -= 8;
+          }
+          if (Math::ExactlyEquals(it1.Value(), m_ObjectValue))
+          {
+            vertexindex += 2;
+          }
+          if (Math::ExactlyEquals(it3.Value(), m_ObjectValue))
+          {
+            vertexindex += 32;
+          }
+        }
+      }
+      for (auto & voxelElem : m_CurrentVoxel)
+      {
+        voxelElem = 0;
+      }
 
-    for (j = 0; j < 14; j++)
-    {
-      m_CurrentVoxel[j] = 0;
+      if ((vertexindex == 0) || (vertexindex == 255))
+      {
+        //      for ( j=0; j<13; j++ ) m_LastVoxel[j] = 0;
+      }
+      else
+      {
+        this->AddCells(m_LUT[vertexindex][0], m_LUT[vertexindex][1], i);
+      }
+      ++i;
     }
-
-    if ((vertexindex == 0) || (vertexindex == 255))
-    {
-      //      for ( j=0; j<13; j++ ) m_LastVoxel[j] = 0;
-    }
-    else
-    {
-      this->AddCells(m_LUT[vertexindex][0], m_LUT[vertexindex][1], i);
-    }
-    i++;
   }
 
   // This indicates that the current BufferedRegion is equal to the
-  // requested region. This action prevents useless rexecutions of
+  // requested region. This action prevents useless re-executions of
   // the pipeline.
   this->m_OutputMesh->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
 }
@@ -1198,22 +1166,17 @@ template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltype, unsigned char celltran, int index)
 {
-
-  int               i;
-  IdentifierType ** currentrowtmp;
-  IdentifierType ** currentframetmp;
-
-  currentrowtmp = (IdentifierType **)malloc(4 * sizeof(IdentifierType *));
-  for (i = 0; i < 4; i++)
+  auto ** currentrowtmp = static_cast<IdentifierType **>(malloc(4 * sizeof(IdentifierType *)));
+  for (int i = 0; i < 4; ++i)
   {
-    currentrowtmp[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+    currentrowtmp[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
     currentrowtmp[i][0] = 0;
     currentrowtmp[i][1] = 0;
   }
-  currentframetmp = (IdentifierType **)malloc(4 * sizeof(IdentifierType *));
-  for (i = 0; i < 4; i++)
+  auto ** currentframetmp = static_cast<IdentifierType **>(malloc(4 * sizeof(IdentifierType *)));
+  for (int i = 0; i < 4; ++i)
   {
-    currentframetmp[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+    currentframetmp[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
     currentframetmp[i][0] = 0;
     currentframetmp[i][1] = 0;
   }
@@ -1221,9 +1184,9 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
   if ((index % m_ImageWidth == 0) || (index > m_LastVoxelIndex + 1))
   {
     m_ColFlag = 0;
-    for (i = 0; i < 14; i++)
+    for (auto & i : m_LastVoxel)
     {
-      m_LastVoxel[i] = 0;
+      i = 0;
     }
   }
   else
@@ -1262,18 +1225,18 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       {
         if (m_LastRowNum > m_CurrentRowIndex)
         {
-          for (i = m_CurrentRowIndex; i < m_LastRowNum; i++)
+          for (int i = m_CurrentRowIndex; i < m_LastRowNum; ++i)
           {
             free(m_LastRow[i]);
           }
         }
         m_LastRow = (IdentifierType **)realloc(m_LastRow, m_CurrentRowIndex * sizeof(IdentifierType *));
       }
-      for (i = 0; i < m_CurrentRowIndex; i++)
+      for (int i = 0; i < m_CurrentRowIndex; ++i)
       {
         if (i > m_LastRowNum - 1)
         {
-          m_LastRow[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+          m_LastRow[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
         }
         m_LastRow[i][0] = m_CurrentRow[i][0];
         m_LastRow[i][1] = m_CurrentRow[i][1];
@@ -1288,7 +1251,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
     {
       if (m_LastRowNum > 0)
       {
-        for (i = 0; i < m_LastRowNum; i++)
+        for (int i = 0; i < m_LastRowNum; ++i)
         {
           free(m_LastRow[i]);
         }
@@ -1311,18 +1274,18 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       {
         if (m_LastFrameNum > m_CurrentFrameIndex)
         {
-          for (i = m_CurrentFrameIndex; i < m_LastFrameNum; i++)
+          for (int i = m_CurrentFrameIndex; i < m_LastFrameNum; ++i)
           {
             free(m_LastFrame[i]);
           }
         }
         m_LastFrame = (IdentifierType **)realloc(m_LastFrame, m_CurrentFrameIndex * sizeof(IdentifierType *));
       }
-      for (i = 0; i < m_CurrentFrameIndex; i++)
+      for (int i = 0; i < m_CurrentFrameIndex; ++i)
       {
         if (i > m_LastFrameNum - 1)
         {
-          m_LastFrame[i] = (IdentifierType *)malloc(2 * sizeof(IdentifierType));
+          m_LastFrame[i] = static_cast<IdentifierType *>(malloc(2 * sizeof(IdentifierType)));
         }
         m_LastFrame[i][0] = m_CurrentFrame[i][0];
         m_LastFrame[i][1] = m_CurrentFrame[i][1];
@@ -1335,7 +1298,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
   {
     if (index % (m_ImageWidth * m_ImageHeight) == 0)
     {
-      for (i = 0; i < m_LastFrameNum; i++)
+      for (int i = 0; i < m_LastFrameNum; ++i)
       {
         free(m_LastFrame[i]);
       }
@@ -1388,13 +1351,11 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
 
   typename TriCell::CellAutoPointer        insertCell;
   typename OutputMeshType::PointIdentifier tripoints[3];
-  unsigned char *                          tp;
-  tp = (unsigned char *)malloc(3 * sizeof(unsigned char));
+  auto *                                   tp = static_cast<unsigned char *>(malloc(3 * sizeof(unsigned char)));
 
-  IdentifierType * tpl;
-  tpl = (IdentifierType *)malloc(3 * sizeof(IdentifierType));
+  auto * tpl = static_cast<IdentifierType *>(malloc(3 * sizeof(IdentifierType)));
 
-  switch ((int)celltype)
+  switch (static_cast<int>(celltype))
   {
     case 1:
       tp[0] = 1;
@@ -1409,7 +1370,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 2:
       tp[0] = 4;
@@ -1424,7 +1385,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 10;
       tp[1] = 9;
       tp[2] = 2;
@@ -1437,7 +1398,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 3:
       tp[0] = 1;
@@ -1452,7 +1413,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 3;
       tp[2] = 11;
@@ -1465,7 +1426,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 4:
       tp[0] = 1;
@@ -1480,7 +1441,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 6;
       tp[1] = 11;
       tp[2] = 7;
@@ -1493,7 +1454,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 5:
       tp[0] = 1;
@@ -1508,7 +1469,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 9;
@@ -1521,7 +1482,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 9;
       tp[1] = 13;
       tp[2] = 8;
@@ -1534,7 +1495,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 2;
       tp[2] = 6;
@@ -1547,7 +1508,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 6;
       tp[2] = 8;
@@ -1560,7 +1521,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 6:
       tp[0] = 10;
@@ -1575,7 +1536,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 4;
       tp[1] = 2;
       tp[2] = 9;
@@ -1588,7 +1549,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 6;
       tp[1] = 11;
       tp[2] = 7;
@@ -1601,7 +1562,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 7:
       tp[0] = 1;
@@ -1616,7 +1577,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 6;
       tp[1] = 11;
       tp[2] = 7;
@@ -1629,7 +1590,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 3;
       tp[1] = 4;
       tp[2] = 12;
@@ -1642,7 +1603,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 8:
       tp[0] = 13;
@@ -1657,7 +1618,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 6;
       tp[2] = 8;
@@ -1670,7 +1631,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 8;
       tp[2] = 4;
@@ -1683,7 +1644,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 4;
       tp[2] = 2;
@@ -1696,7 +1657,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 9:
       tp[0] = 1;
@@ -1711,7 +1672,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 10;
       tp[1] = 6;
       tp[2] = 13;
@@ -1724,7 +1685,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 6;
       tp[1] = 7;
       tp[2] = 13;
@@ -1737,7 +1698,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 7;
       tp[1] = 12;
       tp[2] = 13;
@@ -1750,7 +1711,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 12;
       tp[1] = 4;
       tp[2] = 13;
@@ -1763,7 +1724,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 4;
@@ -1776,7 +1737,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 10:
       tp[0] = 1;
@@ -1791,7 +1752,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 9;
       tp[1] = 12;
       tp[2] = 3;
@@ -1804,7 +1765,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 5;
       tp[1] = 10;
       tp[2] = 7;
@@ -1817,7 +1778,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 10;
       tp[1] = 11;
       tp[2] = 7;
@@ -1830,7 +1791,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 11:
       tp[0] = 1;
@@ -1845,7 +1806,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 10;
       tp[2] = 11;
@@ -1858,7 +1819,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 7;
       tp[1] = 13;
       tp[2] = 11;
@@ -1871,7 +1832,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 7;
       tp[1] = 8;
       tp[2] = 13;
@@ -1884,7 +1845,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 8;
       tp[2] = 4;
@@ -1897,7 +1858,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 4;
@@ -1910,7 +1871,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 12:
       tp[0] = 1;
@@ -1925,7 +1886,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 9;
@@ -1938,7 +1899,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 9;
       tp[1] = 13;
       tp[2] = 8;
@@ -1951,7 +1912,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 2;
       tp[2] = 6;
@@ -1964,7 +1925,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 6;
       tp[2] = 8;
@@ -1977,7 +1938,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 3;
       tp[1] = 4;
       tp[2] = 12;
@@ -1990,7 +1951,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 13:
       tp[0] = 1;
@@ -2005,7 +1966,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 5;
       tp[1] = 10;
       tp[2] = 6;
@@ -2018,7 +1979,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 3;
       tp[2] = 11;
@@ -2031,7 +1992,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 8;
       tp[1] = 7;
       tp[2] = 12;
@@ -2044,7 +2005,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 14:
       tp[0] = 1;
@@ -2059,7 +2020,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 10;
       tp[1] = 6;
       tp[2] = 13;
@@ -2072,7 +2033,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 6;
       tp[1] = 7;
       tp[2] = 13;
@@ -2085,7 +2046,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 7;
       tp[1] = 12;
       tp[2] = 13;
@@ -2098,7 +2059,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 12;
       tp[1] = 4;
       tp[2] = 13;
@@ -2111,7 +2072,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 4;
@@ -2124,7 +2085,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 3;
       tp[2] = 11;
@@ -2137,7 +2098,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 15:
       tp[0] = 1;
@@ -2152,7 +2113,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 13;
       tp[2] = 10;
@@ -2165,7 +2126,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 3;
       tp[2] = 13;
@@ -2178,7 +2139,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 3;
       tp[1] = 12;
       tp[2] = 13;
@@ -2191,7 +2152,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 4;
       tp[1] = 13;
       tp[2] = 12;
@@ -2204,7 +2165,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 4;
@@ -2217,7 +2178,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
     case 16:
       tp[0] = 13;
@@ -2232,7 +2193,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 5;
       tp[1] = 6;
       tp[2] = 13;
@@ -2245,7 +2206,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 13;
       tp[1] = 6;
       tp[2] = 2;
@@ -2258,7 +2219,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 2;
       tp[1] = 3;
       tp[2] = 13;
@@ -2271,7 +2232,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 3;
       tp[1] = 12;
       tp[2] = 13;
@@ -2284,7 +2245,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 4;
       tp[1] = 13;
       tp[2] = 12;
@@ -2297,7 +2258,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       tp[0] = 1;
       tp[1] = 13;
       tp[2] = 4;
@@ -2310,54 +2271,53 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
       insertCell->SetPointIds(tripoints);
       this->m_OutputMesh->SetCell(m_NumberOfCells, insertCell);
       this->m_OutputMesh->SetCellData(m_NumberOfCells, 0.0);
-      m_NumberOfCells++;
+      ++m_NumberOfCells;
       break;
   }
-
-  i = 0;
-  int j;
-  while (i < 4)
   {
-    if (currentrowtmp[i][0] != 0)
+    int i = 0;
+    while (i < 4)
     {
-      m_CurrentRow[m_CurrentRowIndex][1] = currentrowtmp[i][1];
-      m_CurrentRow[m_CurrentRowIndex++][0] = currentrowtmp[i][0];
-      if (m_CurrentRowIndex == m_CurrentRowNum)
+      if (currentrowtmp[i][0] != 0)
       {
-        m_CurrentRowNum += 100;
-        m_CurrentRow = (IdentifierType **)realloc(m_CurrentRow, sizeof(IdentifierType *) * m_CurrentRowNum);
-        for (j = m_CurrentRowIndex; j < m_CurrentRowNum; j++)
+        m_CurrentRow[m_CurrentRowIndex][1] = currentrowtmp[i][1];
+        m_CurrentRow[m_CurrentRowIndex++][0] = currentrowtmp[i][0];
+        if (m_CurrentRowIndex == m_CurrentRowNum)
         {
-          m_CurrentRow[j] = (IdentifierType *)malloc(sizeof(IdentifierType) * 2);
+          m_CurrentRowNum += 100;
+          m_CurrentRow = (IdentifierType **)realloc(m_CurrentRow, sizeof(IdentifierType *) * m_CurrentRowNum);
+          for (int j = m_CurrentRowIndex; j < m_CurrentRowNum; ++j)
+          {
+            m_CurrentRow[j] = static_cast<IdentifierType *>(malloc(sizeof(IdentifierType) * 2));
+          }
         }
       }
-    }
 
-    if (currentframetmp[i][0] != 0)
-    {
-      m_CurrentFrame[m_CurrentFrameIndex][1] = currentframetmp[i][1];
-      m_CurrentFrame[m_CurrentFrameIndex++][0] = currentframetmp[i][0];
-      if (m_CurrentFrameIndex == m_CurrentFrameNum)
+      if (currentframetmp[i][0] != 0)
       {
-        m_CurrentFrameNum += 1000;
-        m_CurrentFrame = (IdentifierType **)realloc(m_CurrentFrame, sizeof(IdentifierType *) * m_CurrentFrameNum);
-        for (j = m_CurrentFrameIndex; j < m_CurrentFrameNum; j++)
+        m_CurrentFrame[m_CurrentFrameIndex][1] = currentframetmp[i][1];
+        m_CurrentFrame[m_CurrentFrameIndex++][0] = currentframetmp[i][0];
+        if (m_CurrentFrameIndex == m_CurrentFrameNum)
         {
-          m_CurrentFrame[j] = (IdentifierType *)malloc(sizeof(IdentifierType) * 2);
+          m_CurrentFrameNum += 1000;
+          m_CurrentFrame = (IdentifierType **)realloc(m_CurrentFrame, sizeof(IdentifierType *) * m_CurrentFrameNum);
+          for (int j = m_CurrentFrameIndex; j < m_CurrentFrameNum; ++j)
+          {
+            m_CurrentFrame[j] = static_cast<IdentifierType *>(malloc(sizeof(IdentifierType) * 2));
+          }
         }
       }
-    }
 
-    i++;
+      ++i;
+    }
   }
-
-  for (i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     free(currentrowtmp[i]);
   }
   free(currentrowtmp);
 
-  for (i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     free(currentframetmp[i]);
   }
@@ -2371,7 +2331,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddCells(unsigned char celltyp
   m_LastVoxel[9] = m_CurrentVoxel[10];
   m_LastVoxel[8] = m_CurrentVoxel[6];
   m_LastVoxel[12] = m_CurrentVoxel[11];
-  for (i = 1; i < 14; i++)
+  for (int i = 1; i < 14; ++i)
   {
     m_CurrentVoxel[i] = 0;
   }
@@ -2385,10 +2345,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
                                                            IdentifierType ** currentrowtmp,
                                                            IdentifierType ** currentframetmp)
 {
-  int        i;
-  OPointType new_p;
-
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     m_PointFound = 0;
     if (m_AvailableNodes[nodesid[i]] != 0)
@@ -2409,6 +2366,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
       // We transform the point to the physical space since the mesh does not
       // have the notion
       // of spacing and origin
+      OPointType new_p;
       this->m_InputImage->TransformContinuousIndexToPhysicalPoint(indTemp, new_p);
       this->m_OutputMesh->SetPoint(m_NumberOfNodes, new_p);
 
@@ -2468,7 +2426,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
       globalnodesid[i] = m_NumberOfNodes;
       m_AvailableNodes[nodesid[i]] = 0;
       m_CurrentVoxel[nodesid[i]] = m_NumberOfNodes;
-      m_NumberOfNodes++;
+      ++m_NumberOfNodes;
     }
     else
     {
@@ -2493,20 +2451,18 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
         {
           continue;
         }
-        else
+
+        if (nodesid[i] == 9)
         {
-          if (nodesid[i] == 9)
-          {
-            globalnodesid[i] = this->SearchThroughLastRow((index % m_ImageWidth) * 13 - 3, 0, m_LastRowNum - 1);
-          }
-          if (nodesid[i] == 10)
-          {
-            globalnodesid[i] = this->SearchThroughLastRow((index % m_ImageWidth) * 13 + 22, 0, m_LastRowNum - 1);
-          }
-          if (m_PointFound != 0)
-          {
-            continue;
-          }
+          globalnodesid[i] = this->SearchThroughLastRow((index % m_ImageWidth) * 13 - 3, 0, m_LastRowNum - 1);
+        }
+        if (nodesid[i] == 10)
+        {
+          globalnodesid[i] = this->SearchThroughLastRow((index % m_ImageWidth) * 13 + 22, 0, m_LastRowNum - 1);
+        }
+        if (m_PointFound != 0)
+        {
+          continue;
         }
       }
       if ((m_LastFrameNum != 0) && ((nodesid[i] == 1) || (nodesid[i] == 2) || (nodesid[i] == 3) || (nodesid[i] == 4)))
@@ -2517,22 +2473,20 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
         {
           continue;
         }
-        else
+
+        if (nodesid[i] == 4)
         {
-          if (nodesid[i] == 4)
-          {
-            globalnodesid[i] =
-              this->SearchThroughLastFrame((index % (m_ImageWidth * m_ImageHeight)) * 13 - 11, 0, m_LastFrameNum - 1);
-          }
-          if (nodesid[i] == 1)
-          {
-            globalnodesid[i] = this->SearchThroughLastFrame(
-              (index % (m_ImageWidth * m_ImageHeight) - m_ImageWidth) * 13 + 3, 0, m_LastFrameNum - 1);
-          }
-          if (m_PointFound != 0)
-          {
-            continue;
-          }
+          globalnodesid[i] =
+            this->SearchThroughLastFrame((index % (m_ImageWidth * m_ImageHeight)) * 13 - 11, 0, m_LastFrameNum - 1);
+        }
+        if (nodesid[i] == 1)
+        {
+          globalnodesid[i] = this->SearchThroughLastFrame(
+            (index % (m_ImageWidth * m_ImageHeight) - m_ImageWidth) * 13 + 3, 0, m_LastFrameNum - 1);
+        }
+        if (m_PointFound != 0)
+        {
+          continue;
         }
       }
     }
@@ -2540,7 +2494,7 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::AddNodes(int               ind
     if (m_PointFound == 0)
     {
       m_AvailableNodes[nodesid[i]] = 1;
-      i--;
+      --i;
     }
   }
 }
@@ -2607,27 +2561,23 @@ template <typename TInputImage, typename TOutputMesh>
 IdentifierType
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::SearchThroughLastRow(int index, int start, int end)
 {
-  int  mid;
   auto lindex = static_cast<IdentifierType>(index);
-
   if ((end - start) > 1)
   {
-    mid = static_cast<int>(std::floor(static_cast<float>((start + end) / 2)));
+    const auto mid = static_cast<int>(std::floor(static_cast<float>((start + end) / 2)));
     if (lindex == m_LastRow[mid][0])
     {
       m_PointFound = 1;
       return m_LastRow[mid][1];
     }
+
+    if (lindex > m_LastRow[mid][0])
+    {
+      return this->SearchThroughLastRow(index, mid + 1, end);
+    }
     else
     {
-      if (lindex > m_LastRow[mid][0])
-      {
-        return this->SearchThroughLastRow(index, mid + 1, end);
-      }
-      else
-      {
-        return this->SearchThroughLastRow(index, start, mid);
-      }
+      return this->SearchThroughLastRow(index, start, mid);
     }
   }
   else
@@ -2650,13 +2600,12 @@ template <typename TInputImage, typename TOutputMesh>
 IdentifierType
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::SearchThroughLastFrame(int index, int start, int end)
 {
-  int            mid;
   auto           lindex = static_cast<IdentifierType>(index);
   IdentifierType result = 0;
 
   if ((end - start) > 1)
   {
-    mid = static_cast<int>(std::floor(static_cast<float>((start + end) / 2)));
+    const auto mid = static_cast<int>(std::floor(static_cast<float>((start + end) / 2)));
     if (lindex == m_LastFrame[mid][0])
     {
       m_PointFound = 1;
@@ -2690,22 +2639,124 @@ BinaryMask3DMeshSource<TInputImage, TOutputMesh>::SearchThroughLastFrame(int ind
   return result;
 }
 
-/** PrintSelf */
 template <typename TInputImage, typename TOutputMesh>
 void
 BinaryMask3DMeshSource<TInputImage, TOutputMesh>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "ObjectValue: " << static_cast<NumericTraits<unsigned char>::PrintType>(m_ObjectValue) << std::endl;
-
-  os << indent << "NumberOfNodes: " << m_NumberOfNodes << std::endl;
-
-  os << indent << "NumberOfCells: " << m_NumberOfCells << std::endl;
-
-  os << indent << "RegionOfInterestProvidedByUser: " << m_RegionOfInterestProvidedByUser << std::endl;
-
+  itkPrintSelfBooleanMacro(RegionOfInterestProvidedByUser);
   os << indent << "RegionOfInterest: " << m_RegionOfInterest << std::endl;
+
+  os << indent << "LUT: " << m_LUT << std::endl;
+
+  os << indent << "LastVoxel: " << static_cast<typename NumericTraits<IdentifierType>::PrintType>(*m_LastVoxel)
+     << std::endl;
+  os << indent << "CurrentVoxel: " << static_cast<typename NumericTraits<IdentifierType>::PrintType>(*m_CurrentVoxel)
+     << std::endl;
+
+  os << indent << "LastRow: ";
+  if (m_LastRow != nullptr)
+  {
+    if (*m_LastRow != nullptr)
+    {
+      os << static_cast<typename NumericTraits<IdentifierType>::PrintType>(**m_LastRow) << std::endl;
+    }
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "LastFrame: ";
+  if (m_LastFrame != nullptr)
+  {
+    if (*m_LastFrame != nullptr)
+    {
+      os << static_cast<typename NumericTraits<IdentifierType>::PrintType>(**m_LastFrame) << std::endl;
+    }
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "CurrentRow: ";
+  if (m_CurrentRow != nullptr)
+  {
+    if (*m_CurrentRow != nullptr)
+    {
+      os << static_cast<typename NumericTraits<IdentifierType>::PrintType>(**m_CurrentRow) << std::endl;
+    }
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "CurrentFrame: ";
+  if (m_CurrentFrame != nullptr)
+  {
+    if (*m_CurrentFrame != nullptr)
+    {
+      os << static_cast<typename NumericTraits<IdentifierType>::PrintType>(**m_CurrentFrame) << std::endl;
+    }
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "CurrentRowIndex: " << m_CurrentRowIndex << std::endl;
+  os << indent << "CurrentFrameIndex: " << m_CurrentFrameIndex << std::endl;
+  os << indent << "LastRowNum: " << m_LastRowNum << std::endl;
+  os << indent << "LastFrameNum: " << m_LastFrameNum << std::endl;
+  os << indent << "CurrentRowNum: " << m_CurrentRowNum << std::endl;
+  os << indent << "CurrentFrameNum: " << m_CurrentFrameNum << std::endl;
+  os << indent << "AvailableNodes: " << m_AvailableNodes << std::endl;
+
+  os << indent << "LocationOffset: " << m_LocationOffset << std::endl;
+
+  os << indent << "NumberOfNodes: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfNodes)
+     << std::endl;
+  os << indent << "NumberOfCells: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfCells)
+     << std::endl;
+
+  os << indent << "NodeLimit: " << m_NodeLimit << std::endl;
+  os << indent << "CellLimit: " << m_CellLimit << std::endl;
+  os << indent << "ImageWidth: " << m_ImageWidth << std::endl;
+  os << indent << "ImageHeight: " << m_ImageHeight << std::endl;
+  os << indent << "ImageDepth: " << m_ImageDepth << std::endl;
+  os << indent << "ColFlag: " << m_ColFlag << std::endl;
+  os << indent << "RowFlag: " << m_RowFlag << std::endl;
+  os << indent << "FrameFlag: " << m_FrameFlag << std::endl;
+  os << indent << "LastRowIndex: " << m_LastRowIndex << std::endl;
+  os << indent << "LastVoxelIndex: " << m_LastVoxelIndex << std::endl;
+  os << indent << "LastFrameIndex: " << m_LastFrameIndex << std::endl;
+
+  os << indent << "PointFound: " << m_PointFound << std::endl;
+  os << indent << "ObjectValue: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_ObjectValue)
+     << std::endl;
+
+  os << indent << "m_OutputMesh: ";
+  if (m_OutputMesh != nullptr)
+  {
+    os << *m_OutputMesh << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
+
+  os << indent << "InputImage: ";
+  if (m_InputImage != nullptr)
+  {
+    os << *m_InputImage << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
 }
 } // namespace itk
 

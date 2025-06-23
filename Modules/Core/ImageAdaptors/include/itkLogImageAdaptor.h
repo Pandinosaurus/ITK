@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 namespace Accessor
 {
 /**
- *\class LogPixelAccessor
+ * \class LogPixelAccessor
  * \brief Give access to the std::log() function of a value
  *
  * LogPixelAccessor is templated over an internal type and an
@@ -53,19 +53,19 @@ public:
   static inline void
   Set(TInternalType & output, const TExternalType & input)
   {
-    output = (TInternalType)std::log((double)input);
+    output = (TInternalType)std::log(static_cast<double>(input));
   }
 
   static inline TExternalType
   Get(const TInternalType & input)
   {
-    return (TExternalType)std::log((double)input);
+    return (TExternalType)std::log(static_cast<double>(input));
   }
 };
 } // end namespace Accessor
 
 /**
- *\class LogImageAdaptor
+ * \class LogImageAdaptor
  * \brief Presents an image as being composed of the std::log() of its pixels
  *
  * Additional casting is performed according to the input and output image
@@ -88,8 +88,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LogImageAdaptor, ImageAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LogImageAdaptor);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);

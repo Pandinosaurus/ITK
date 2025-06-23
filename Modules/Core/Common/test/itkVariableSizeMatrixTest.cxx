@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,10 +56,10 @@ itkVariableSizeMatrixTest(int, char *[])
 
   std::cout << "***** h" << std::endl << h << std::endl;
 
-  FloatVariableSizeMatrixType hDouble = h * 2.0;
+  const FloatVariableSizeMatrixType hDouble = h * 2.0;
   std::cout << "***** h * 2" << std::endl << hDouble << std::endl;
 
-  FloatVariableSizeMatrixType hHalf = h / 2.0;
+  const FloatVariableSizeMatrixType hHalf = h / 2.0;
   std::cout << "***** h / 2" << std::endl << hHalf << std::endl;
 
   if (hDouble == hHalf)
@@ -105,7 +105,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
 
   // Product by vnl_matrix
-  vnl_matrix<float> dVnl(2, 3, 10.0);
+  const vnl_matrix<float> dVnl(2, 3, 10.0);
   std::cout << "***** h" << std::endl << h << std::endl;
   std::cout << "***** dVnl" << std::endl << dVnl << std::endl;
   std::cout << "***** h * dVnl" << std::endl << h * dVnl << std::endl;
@@ -184,7 +184,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   try
@@ -193,7 +193,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   try
@@ -202,7 +202,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   try
@@ -211,7 +211,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   try
@@ -220,7 +220,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   try
@@ -229,7 +229,7 @@ itkVariableSizeMatrixTest(int, char *[])
   }
   catch (const itk::ExceptionObject & e)
   {
-    (&e)->Print(std::cout);
+    e.Print(std::cout);
   }
 
   std::cout << "[PASSED]" << std::endl;

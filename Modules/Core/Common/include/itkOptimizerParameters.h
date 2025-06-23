@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ public:
   using Superclass = Array<TParametersValueType>;
   using ArrayType = Superclass;
   using VnlVectorType = typename Superclass::VnlVectorType;
-  using SizeValueType = typename Superclass::SizeValueType;
+  using typename Superclass::SizeValueType;
 
   /** Helper class for managing different types of parameter
    * data. */
@@ -96,7 +96,7 @@ public:
   Initialize()
   {
     // Set the default OptimizerParametersHelper
-    this->m_Helper.reset(new OptimizerParametersHelperType);
+    this->m_Helper = std::make_unique<OptimizerParametersHelperType>();
   }
 
 
@@ -154,7 +154,8 @@ public:
    * TODO Determine behavior when copying from obj pointing to image parameters.
    *  By default should copy image param data into Array portion of new object,
    *  i.e. into data_block. Is that what we want? */
-  const Self &
+  /** @ITKStartGrouping */
+  Self &
   operator=(const Self & rhs)
   {
     // Note: there's no need to copy the OptimizerParametersHelper.
@@ -163,7 +164,7 @@ public:
     return *this;
   }
 
-  const Self &
+  Self &
   operator=(const ArrayType & rhs)
   {
     // Call the superclass implementation
@@ -171,19 +172,19 @@ public:
     return *this;
   }
 
-  const Self &
+  Self &
   operator=(const VnlVectorType & rhs)
   {
     // Call the superclass implementation
     this->ArrayType::operator=(rhs);
     return *this;
   }
+  /** @ITKEndGrouping */
 
   ~OptimizerParameters() override = default;
 
 private:
-  std::unique_ptr<OptimizerParametersHelperType> m_Helper =
-    std::unique_ptr<OptimizerParametersHelperType>{ new OptimizerParametersHelperType };
+  std::unique_ptr<OptimizerParametersHelperType> m_Helper{ std::make_unique<OptimizerParametersHelperType>() };
 };
 
 } // namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,30 +77,29 @@ public:
   /** Image related type alias. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShiftScaleImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShiftScaleImageFilter);
 
   /** Set/Get the amount to Shift each Pixel. The shift is followed by a Scale.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Shift, RealType);
   itkGetConstMacro(Shift, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the amount to Scale each Pixel. The Scale is applied after the
     Shift. */
+  /** @ITKStartGrouping */
   itkSetMacro(Scale, RealType);
   itkGetConstMacro(Scale, RealType);
-
+  /** @ITKEndGrouping */
   /** Get the number of pixels that underflowed and overflowed. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(UnderflowCount, SizeValueType);
   itkGetConstMacro(OverflowCount, SizeValueType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputImagePixelType>));
   itkConceptMacro(InputPlusRealTypeCheck, (Concept::AdditiveOperators<InputImagePixelType, RealType, RealType>));
   itkConceptMacro(RealTypeMultiplyOperatorCheck, (Concept::MultiplyOperator<RealType>));
-  // End concept checking
-#endif
 
 protected:
   ShiftScaleImageFilter() = default;
@@ -117,13 +116,13 @@ protected:
   DynamicThreadedGenerateData(const OutputImageRegionType &) override;
 
 private:
-  RealType m_Shift{ NumericTraits<RealType>::ZeroValue() };
+  RealType m_Shift{};
   RealType m_Scale{ NumericTraits<RealType>::OneValue() };
 
   SizeValueType m_UnderflowCount{ 0 };
   SizeValueType m_OverflowCount{ 0 };
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 };
 } // end namespace itk
 

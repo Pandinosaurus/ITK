@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,16 +23,13 @@ namespace itk
 {
 
 CSVFileReaderBase::CSVFileReaderBase()
-{
-  this->m_FileName = "";
-  this->m_FieldDelimiterCharacter = ',';
-  this->m_StringDelimiterCharacter = '"';
-  this->m_HasColumnHeaders = true;
-  this->m_HasRowHeaders = true;
-  this->m_UseStringDelimiterCharacter = false;
-  this->m_Line = "";
-  this->m_EndOfColumnHeadersLine = 0;
-}
+  : m_FileName("")
+  , m_FieldDelimiterCharacter(',')
+  , m_StringDelimiterCharacter('"')
+  , m_HasRowHeaders(true)
+  , m_HasColumnHeaders(true)
+  , m_Line("")
+{}
 
 void
 CSVFileReaderBase::PrintSelf(std::ostream & os, Indent indent) const
@@ -52,20 +49,17 @@ CSVFileReaderBase::PrepareForParsing()
 {
   if (this->m_FileName.empty())
   {
-    itkExceptionMacro(<< "There is no file name provided!"
-                      << "Please provide a filename.");
+    itkExceptionMacro("There is no file name provided! Please provide a filename.");
   }
 
   if (this->m_UseStringDelimiterCharacter && !(this->m_HasRowHeaders || this->m_HasColumnHeaders))
   {
-    itkWarningMacro(<< " Use string delimiter has been set to on"
-                    << "but row and/or column headers indicators are off!");
+    itkWarningMacro(" Use string delimiter has been set to on but row and/or column headers indicators are off!");
   }
 
   if (this->m_UseStringDelimiterCharacter && this->m_FieldDelimiterCharacter == this->m_StringDelimiterCharacter)
   {
-    itkExceptionMacro(<< "The same character has been set for the string"
-                      << "delimiter and the field delimiter character!");
+    itkExceptionMacro("The same character has been set for the string delimiter and the field delimiter character!");
   }
 }
 
@@ -100,9 +94,9 @@ CSVFileReaderBase::GetDataDimension(SizeValueType & rows, SizeValueType & cols)
       {
         if (cellnum % 2 != 0)
         {
-          prev_cols++;
+          ++prev_cols;
         }
-        cellnum++;
+        ++cellnum;
       }
     }
 
@@ -112,7 +106,7 @@ CSVFileReaderBase::GetDataDimension(SizeValueType & rows, SizeValueType & cols)
     {
       while (std::getline(linestream, cell, this->m_FieldDelimiterCharacter))
       {
-        prev_cols++;
+        ++prev_cols;
       }
     }
     // previous columns now holds the number of headers minus the first header,
@@ -136,7 +130,7 @@ CSVFileReaderBase::GetDataDimension(SizeValueType & rows, SizeValueType & cols)
     {
       if (this->m_UseStringDelimiterCharacter)
       {
-        for (int k = 0; k < 2; k++)
+        for (int k = 0; k < 2; ++k)
         {
           std::getline(linestream, cell, this->m_StringDelimiterCharacter);
         }
@@ -151,9 +145,9 @@ CSVFileReaderBase::GetDataDimension(SizeValueType & rows, SizeValueType & cols)
     // Count the entries
     while (std::getline(linestream, cell, this->m_FieldDelimiterCharacter))
     {
-      cols++;
+      ++cols;
     }
-    rows++;
+    ++rows;
 
     // Determine the max #columns and #rows
     current_cols = cols;
@@ -179,8 +173,7 @@ CSVFileReaderBase::GetDataDimension(SizeValueType & rows, SizeValueType & cols)
   // warning to the user.
   if (!isSame)
   {
-    itkWarningMacro(<< "Warning: Data appears to contain missing data! "
-                    << "These will be set to NaN.");
+    itkWarningMacro("Warning: Data appears to contain missing data! These will be set to NaN.");
   }
 
   cols = max_cols;
@@ -205,7 +198,7 @@ CSVFileReaderBase::GetNextField(std::string & str)
 
   std::string empty;
   // Check that we are not at the end of the file
-  itkDebugMacro(<< "m_Line: " << m_Line);
+  itkDebugMacro("m_Line: " << m_Line);
   if (!this->m_InputStream.eof())
   {
     bool OnANewLine = false;
@@ -285,7 +278,7 @@ CSVFileReaderBase::GetNextField(std::string & str)
   // Alert the user if end of file is reached
   else
   {
-    itkExceptionMacro(<< "End of file reached. No more entries");
+    itkExceptionMacro("End of file reached. No more entries");
   }
 }
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,14 +35,14 @@ namespace itk
  * Derivative support is currently not implemented
  *
  * This implementation was taken from the Insight Journal paper:
- * https://hdl.handle.net/1926/585
+ * https://doi.org/10.54294/z83ly1
  *
  * \ingroup ImageInterpolators
  * \ingroup ITKReview
  */
-template <typename TImageType, typename TCoordRep = double, typename TCoefficientType = double>
+template <typename TImageType, typename TCoordinate = double, typename TCoefficientType = double>
 class ITK_TEMPLATE_EXPORT ComplexBSplineInterpolateImageFunction
-  : public InterpolateImageFunction<TImageType, TCoordRep>
+  : public InterpolateImageFunction<TImageType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ComplexBSplineInterpolateImageFunction);
@@ -50,14 +50,14 @@ public:
   /** Standard class type alias. */
   using Self = ComplexBSplineInterpolateImageFunction;
   /** Standard class type alias. */
-  using Superclass = InterpolateImageFunction<TImageType, TCoordRep>;
+  using Superclass = InterpolateImageFunction<TImageType, TCoordinate>;
   /** Standard class type alias. */
   using Pointer = SmartPointer<Self>;
   /** Standard class type alias. */
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ComplexBSplineInterpolateImageFunction, InterpolateImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ComplexBSplineInterpolateImageFunction);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
@@ -66,22 +66,22 @@ public:
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** Size type alias support */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** PointType type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Internal Real and imaginary image type */
   using InternalImageType = Image<double, Self::ImageDimension>;
@@ -91,7 +91,7 @@ public:
   using ImaginaryFilterType = ComplexToImaginaryImageFilter<InputImageType, InternalImageType>;
 
   /** Underlying real BSpline interpolator */
-  using InterpolatorType = BSplineInterpolateImageFunction<InternalImageType, TCoordRep, TCoefficientType>;
+  using InterpolatorType = BSplineInterpolateImageFunction<InternalImageType, TCoordinate, TCoefficientType>;
 
   /** Evaluate the function at a ContinuousIndex position.
    *
@@ -122,7 +122,7 @@ public:
   void
   SetSplineOrder(unsigned int SplineOrder);
 
-  itkGetConstMacro(SplineOrder, int);
+  itkGetConstMacro(SplineOrder, unsigned int);
 
   /** Set the input image.  This must be set by the user, after setting the
     spline order! */
@@ -143,14 +143,14 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int m_SplineOrder;
+  unsigned int m_SplineOrder{};
 
-  typename InterpolatorType::Pointer m_RealInterpolator;
-  typename InterpolatorType::Pointer m_ImaginaryInterpolator;
+  typename InterpolatorType::Pointer m_RealInterpolator{};
+  typename InterpolatorType::Pointer m_ImaginaryInterpolator{};
 
-  typename RealFilterType::Pointer m_RealFilter;
+  typename RealFilterType::Pointer m_RealFilter{};
 
-  typename ImaginaryFilterType::Pointer m_ImaginaryFilter;
+  typename ImaginaryFilterType::Pointer m_ImaginaryFilter{};
 }; // class
 } // namespace itk
 

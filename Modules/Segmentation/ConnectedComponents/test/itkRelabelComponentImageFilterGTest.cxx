@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,17 +31,17 @@ namespace
 {
 
 
-typename itk::Image<unsigned, 2>::Pointer
+typename itk::Image<unsigned int, 2>::Pointer
 CreateTestImageA()
 {
 
   using namespace itk::GTest::TypedefsAndConstructors::Dimension2;
 
-  using PixelType = unsigned;
+  using PixelType = unsigned int;
   using ImageType = itk::Image<PixelType, Dimension>;
 
   auto image = ImageType::New();
-  image->SetRegions(ImageType::RegionType(MakeSize(3u, 3u)));
+  image->SetRegions(ImageType::RegionType(itk::MakeSize(3u, 3u)));
   image->Allocate();
   image->FillBuffer(0);
 
@@ -70,7 +70,7 @@ TEST(RelabelComponentImageFilter, nosort_nosize)
   filter->Update();
 
   EXPECT_EQ(filter->GetNumberOfObjects(), 3);
-  std::vector<unsigned> expected({ 1u, 2u, 3u });
+  const std::vector<unsigned int> expected({ 1u, 2u, 3u });
   ITK_EXPECT_VECTOR_NEAR(filter->GetSizeOfObjectsInPixels(), expected, 0);
   EXPECT_EQ(filter->GetOutput()->GetPixel({ { 2, 2 } }), 3u);
 }
@@ -88,7 +88,7 @@ TEST(RelabelComponentImageFilter, nosort_size)
   filter->Update();
 
   EXPECT_EQ(filter->GetNumberOfObjects(), 2);
-  std::vector<unsigned> expected({ 2u, 3u });
+  const std::vector<unsigned int> expected({ 2u, 3u });
   ITK_EXPECT_VECTOR_NEAR(filter->GetSizeOfObjectsInPixels(), expected, 0);
   EXPECT_EQ(filter->GetOutput()->GetPixel({ { 2, 2 } }), 2u);
 }
@@ -105,7 +105,7 @@ TEST(RelabelComponentImageFilter, sort_size)
   filter->Update();
 
   EXPECT_EQ(filter->GetNumberOfObjects(), 2u);
-  std::vector<unsigned> expected({ 3u, 2u });
+  const std::vector<unsigned int> expected({ 3u, 2u });
   ITK_EXPECT_VECTOR_NEAR(filter->GetSizeOfObjectsInPixels(), expected, 0);
   EXPECT_EQ(filter->GetOutput()->GetPixel({ { 2, 2 } }), 1u);
 }
@@ -123,7 +123,7 @@ TEST(RelabelComponentImageFilter, sort_nosize)
   filter->Update();
 
   EXPECT_EQ(filter->GetNumberOfObjects(), 3u);
-  std::vector<unsigned> expected({ 3u, 2u, 1u });
+  const std::vector<unsigned int> expected({ 3u, 2u, 1u });
   ITK_EXPECT_VECTOR_NEAR(filter->GetSizeOfObjectsInPixels(), expected, 0);
   EXPECT_EQ(filter->GetOutput()->GetPixel({ { 2, 2 } }), 1u);
 }
@@ -141,12 +141,12 @@ TEST(RelabelComponentImageFilter, big_zero)
   typename ImageType::RegionType region;
   region.SetSize({ { 512, 512, 512 } });
   image->SetRegions(region);
-  image->Allocate(true);
+  image->AllocateInitialized();
 
   auto filter = itk::RelabelComponentImageFilter<ImageType, ImageType>::New();
   filter->SetInput(image);
 
-  itk::SimpleFilterWatcher watcher1(filter, "relabeler");
+  const itk::SimpleFilterWatcher watcher1(filter, "relabeler");
 
   filter->Update();
 }
@@ -169,7 +169,7 @@ TEST(RelabelComponentImageFilter, big_random)
   auto filter = itk::RelabelComponentImageFilter<ImageType, ImageType>::New();
   filter->SetInput(randomSource->GetOutput());
 
-  itk::SimpleFilterWatcher watcher1(filter, "relabeler");
+  const itk::SimpleFilterWatcher watcher1(filter, "relabeler");
 
   filter->Update();
 }

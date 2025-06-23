@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@
  * itk::ParticleSwarmOptimizer. To demonstrate the power and flexibility of
  * the new DOM-based object reading, we formulate our XML format for the PSO
  * object in a special way, e.g. using children and text nodes (instead of
- * attributes) for some data fields. This may not be the favouriate way for
+ * attributes) for some data fields. This may not be the favourite way for
  * some users, but users can always define their own XML format, and customize
  * this implementation.
  *
@@ -54,7 +54,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ParticleSwarmOptimizerDOMReader, DOMReader);
+  itkOverrideGetNameOfClassMacro(ParticleSwarmOptimizerDOMReader);
 
 protected:
   ParticleSwarmOptimizerDOMReader() = default;

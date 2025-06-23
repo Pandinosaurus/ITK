@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,8 +54,7 @@ itkLevelSetEquationOverlapPenaltyTermTest(int, char *[])
   using InputImageIteratorType = itk::ImageRegionIteratorWithIndex<InputImageType>;
 
   // load binary mask
-  InputImageType::SizeType size;
-  size.Fill(50);
+  auto size = InputImageType::SizeType::Filled(50);
 
   InputImageType::PointType origin;
   origin[0] = 0.0;
@@ -65,20 +64,17 @@ itkLevelSetEquationOverlapPenaltyTermTest(int, char *[])
   spacing[0] = 1.0;
   spacing[1] = 1.0;
 
-  InputImageType::IndexType index;
-  index.Fill(0);
+  InputImageType::IndexType index{};
 
-  InputImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  InputImageType::RegionType region{ index, size };
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(region);
   binary->SetSpacing(spacing);
   binary->SetOrigin(origin);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
   index.Fill(10);
   size.Fill(30);
@@ -95,40 +91,40 @@ itkLevelSetEquationOverlapPenaltyTermTest(int, char *[])
   }
 
   // Convert binary mask to sparse level set
-  BinaryToSparseAdaptorType::Pointer adaptor1 = BinaryToSparseAdaptorType::New();
+  auto adaptor1 = BinaryToSparseAdaptorType::New();
   adaptor1->SetInputImage(binary);
   adaptor1->Initialize();
   std::cout << "Finished converting levelset1 to sparse format" << std::endl;
 
   // Convert binary mask to sparse level set
-  BinaryToSparseAdaptorType::Pointer adaptor2 = BinaryToSparseAdaptorType::New();
+  auto adaptor2 = BinaryToSparseAdaptorType::New();
   adaptor2->SetInputImage(binary);
   adaptor2->Initialize();
   std::cout << "Finished converting levelset2 to sparse format" << std::endl;
 
-  SparseLevelSetType::Pointer level_set1 = adaptor1->GetModifiableLevelSet();
-  SparseLevelSetType::Pointer level_set2 = adaptor2->GetModifiableLevelSet();
+  const SparseLevelSetType::Pointer level_set1 = adaptor1->GetModifiableLevelSet();
+  const SparseLevelSetType::Pointer level_set2 = adaptor2->GetModifiableLevelSet();
 
   IdListType list_ids;
   list_ids.push_back(1);
   list_ids.push_back(2);
 
-  IdListImageType::Pointer id_image = IdListImageType::New();
+  auto id_image = IdListImageType::New();
   id_image->SetRegions(binary->GetLargestPossibleRegion());
   id_image->Allocate();
   id_image->FillBuffer(list_ids);
 
-  DomainMapImageFilterType::Pointer domainMapFilter = DomainMapImageFilterType::New();
+  auto domainMapFilter = DomainMapImageFilterType::New();
   domainMapFilter->SetInput(id_image);
   domainMapFilter->Update();
   std::cout << "Domain map computed" << std::endl;
 
   // Define the Heaviside function
-  HeavisideFunctionBaseType::Pointer heaviside = HeavisideFunctionBaseType::New();
+  auto heaviside = HeavisideFunctionBaseType::New();
   heaviside->SetEpsilon(2.0);
 
   // Insert the levelsets in a levelset container
-  LevelSetContainerType::Pointer lscontainer = LevelSetContainerType::New();
+  auto lscontainer = LevelSetContainerType::New();
   lscontainer->SetHeaviside(heaviside);
   lscontainer->SetDomainMapFilter(domainMapFilter);
 
@@ -146,17 +142,34 @@ itkLevelSetEquationOverlapPenaltyTermTest(int, char *[])
 
 
   // Create overlap penalty term
-  OverlapPenaltyTermType::Pointer penaltyTerm0 = OverlapPenaltyTermType::New();
+  auto penaltyTerm0 = OverlapPenaltyTermType::New();
   penaltyTerm0->SetInput(binary);
   penaltyTerm0->SetCoefficient(1000.0);
   penaltyTerm0->SetCurrentLevelSetId(0);
   penaltyTerm0->SetLevelSetContainer(lscontainer);
 
-  OverlapPenaltyTermType::Pointer penaltyTerm1 = OverlapPenaltyTermType::New();
+  auto penaltyTerm1 = OverlapPenaltyTermType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(penaltyTerm1, LevelSetEquationOverlapPenaltyTerm, LevelSetEquationTermBase);
+
+
   penaltyTerm1->SetInput(binary);
-  penaltyTerm1->SetCoefficient(1000.0);
-  penaltyTerm1->SetCurrentLevelSetId(1);
+  ITK_TEST_SET_GET_VALUE(binary, penaltyTerm1->GetInput());
+
+  constexpr typename OverlapPenaltyTermType::LevelSetOutputRealType coefficient = 1000.0;
+  penaltyTerm1->SetCoefficient(coefficient);
+  ITK_TEST_SET_GET_VALUE(coefficient, penaltyTerm1->GetCoefficient());
+
+  constexpr typename OverlapPenaltyTermType::LevelSetIdentifierType currentLevelSetId = 1;
+  penaltyTerm1->SetCurrentLevelSetId(currentLevelSetId);
+  ITK_TEST_SET_GET_VALUE(currentLevelSetId, penaltyTerm1->GetCurrentLevelSetId());
+
   penaltyTerm1->SetLevelSetContainer(lscontainer);
+  ITK_TEST_SET_GET_VALUE(lscontainer, penaltyTerm1->GetLevelSetContainer());
+
+  const std::string termName = "Overlap term";
+  penaltyTerm1->SetTermName(termName);
+  ITK_TEST_SET_GET_VALUE(termName, penaltyTerm1->GetTermName());
 
   std::cout << "Penalty terms created" << std::endl;
 
@@ -181,8 +194,7 @@ itkLevelSetEquationOverlapPenaltyTermTest(int, char *[])
   index[1] = 5;
 
   std::cout << penaltyTerm0->Evaluate(index) << std::endl;
-  if (itk::Math::NotAlmostEquals(penaltyTerm0->Evaluate(index),
-                                 itk::NumericTraits<OverlapPenaltyTermType::LevelSetOutputRealType>::ZeroValue()))
+  if (itk::Math::NotAlmostEquals(penaltyTerm0->Evaluate(index), OverlapPenaltyTermType::LevelSetOutputRealType{}))
   {
     return EXIT_FAILURE;
   }

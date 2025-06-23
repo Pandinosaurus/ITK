@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,14 @@
 
 #include "itkFEMElement2DC1Beam.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 // Overload the CreateAnother() method.
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 Element2DC1Beam::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   copyPtr->SetNode(0, this->GetNode(0));
   copyPtr->SetNode(1, this->GetNode(1));
@@ -44,6 +42,7 @@ Element2DC1Beam::Element2DC1Beam()
 {}
 
 Element2DC1Beam::Element2DC1Beam(NodeIDType n1_, NodeIDType n2_, Material::ConstPointer m_)
+  : m_mat(dynamic_cast<const MaterialLinearElasticity *>(m_.GetPointer()))
 {
   // Set the geometrical points
   this->SetNode(0, n1_);
@@ -54,7 +53,6 @@ Element2DC1Beam::Element2DC1Beam(NodeIDType n1_, NodeIDType n2_, Material::Const
    * we were given the pointer to the right class.
    * If the material class was incorrect an exception is thrown.
    */
-  m_mat = dynamic_cast<const MaterialLinearElasticity *>(m_.GetPointer());
   if (!m_mat)
   {
     throw FEMExceptionWrongClass(__FILE__, __LINE__, "Element2DC0LinearLineStress::Element2DC0LinearLineStress()");
@@ -348,5 +346,4 @@ Element2DC1Beam::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Materials: " << this->m_mat << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

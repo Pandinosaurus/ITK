@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,17 +45,17 @@
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 2)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0] << "  inputImageFileName "
-              << std::endl;
-    return -1;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << argv[0] << " inputImageFileName" << std::endl;
+    return EXIT_FAILURE;
   }
 
   using PixelType = unsigned char;
@@ -63,23 +63,9 @@ main(int argc, char * argv[])
 
   using ImageType = itk::Image<PixelType, Dimension>;
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
+  ImageType::Pointer input;
 
-  ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName(argv[1]);
-
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem encoutered while reading image file : " << argv[1]
-              << std::endl;
-    std::cerr << excp << std::endl;
-    return -1;
-  }
+  input = itk::ReadImage<ImageType>(argv[1]);
 
 
   // Software Guide : BeginCodeSnippet
@@ -87,14 +73,14 @@ main(int argc, char * argv[])
   // Create a List from the scalar image
   using AdaptorType = itk::Statistics::ImageToListSampleAdaptor<ImageType>;
 
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
 
-  adaptor->SetImage(reader->GetOutput());
+  adaptor->SetImage(input);
 
   // Create the K-d tree structure
   using TreeGeneratorType =
     itk::Statistics::WeightedCentroidKdTreeGenerator<AdaptorType>;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
 
   treeGenerator->SetSample(adaptor);
   treeGenerator->SetBucketSize(16);
@@ -104,7 +90,7 @@ main(int argc, char * argv[])
   using TreeType = TreeGeneratorType::KdTreeType;
   using EstimatorType = itk::Statistics::KdTreeBasedKmeansEstimator<TreeType>;
 
-  EstimatorType::Pointer estimator = EstimatorType::New();
+  auto estimator = EstimatorType::New();
 
   constexpr unsigned int numberOfClasses = 3;
 
@@ -145,4 +131,26 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   return EXIT_SUCCESS;
+}
+} // namespace
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

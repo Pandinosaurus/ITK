@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,23 +30,23 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType = double, unsigned int NDimensions = 3, unsigned int VSplineOrder = 3>
-class ITK_TEMPLATE_EXPORT BSplineBaseTransform : public Transform<TParametersValueType, NDimensions, NDimensions>
+template <typename TParametersValueType = double, unsigned int VDimension = 3, unsigned int VSplineOrder = 3>
+class ITK_TEMPLATE_EXPORT BSplineBaseTransform : public Transform<TParametersValueType, VDimension, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BSplineBaseTransform);
 
   /** Standard class type aliases. */
   using Self = BSplineBaseTransform;
-  using Superclass = Transform<TParametersValueType, NDimensions, NDimensions>;
+  using Superclass = Transform<TParametersValueType, VDimension, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineBaseTransform, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineBaseTransform);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int SpaceDimension = NDimensions;
+  static constexpr unsigned int SpaceDimension = VDimension;
 
   /** The BSpline order. */
   static constexpr unsigned int SplineOrder = VSplineOrder;
@@ -55,22 +55,22 @@ public:
   itkCloneMacro(Self);
 
   /** Standard scalar type for this class. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Standard parameters container. */
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
 
   /** Standard Jacobian container. */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Transform category type. */
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /** The number of parameters defining this transform. */
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::NumberOfParametersType;
 
   /** Standard vector type for this class. */
   using InputVectorType = Vector<TParametersValueType, Self::SpaceDimension>;
@@ -177,7 +177,7 @@ public:
   using ParametersValueType = typename ParametersType::ValueType;
   using ImageType = Image<ParametersValueType, Self::SpaceDimension>;
   using ImagePointer = typename ImageType::Pointer;
-  using CoefficientImageArray = FixedArray<ImagePointer, NDimensions>;
+  using CoefficientImageArray = FixedArray<ImagePointer, VDimension>;
 
   /** Set the array of coefficient images.
    *
@@ -200,7 +200,7 @@ public:
     return this->m_CoefficientImages;
   }
 
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Update the transform's parameters by the adding values in \c update
    * to current parameter values.
@@ -234,8 +234,11 @@ public:
   using WeightsType = typename WeightsFunctionType::WeightsType;
   using ContinuousIndexType = typename WeightsFunctionType::ContinuousIndexType;
 
+  /** Number of weights. */
+  static constexpr unsigned int NumberOfWeights{ WeightsFunctionType::NumberOfWeights };
+
   /** Parameter index array type. */
-  using ParameterIndexArrayType = Array<unsigned long>;
+  using ParameterIndexArrayType = FixedArray<unsigned long, NumberOfWeights>;
 
   /**
    * Transform points by a BSpline deformable transformation.
@@ -252,12 +255,13 @@ public:
                  ParameterIndexArrayType & indices,
                  bool &                    inside) const = 0;
 
+#if !defined(ITK_LEGACY_REMOVE)
   /** Get number of weights. */
-  unsigned long
-  GetNumberOfWeights() const
+  itkLegacyMacro(unsigned long GetNumberOfWeights() const)
   {
     return m_WeightsFunction->GetNumberOfWeights();
   }
+#endif
 
   /** Method to transform a vector -
    *  not applicable for this type of transform. */
@@ -265,7 +269,7 @@ public:
   OutputVectorType
   TransformVector(const InputVectorType &) const override
   {
-    itkExceptionMacro(<< "Method not applicable for deformable transform.");
+    itkExceptionMacro("Method not applicable for deformable transform.");
   }
 
   /** Method to transform a vnl_vector -
@@ -273,7 +277,7 @@ public:
   OutputVnlVectorType
   TransformVector(const InputVnlVectorType &) const override
   {
-    itkExceptionMacro(<< "Method not applicable for deformable transform. ");
+    itkExceptionMacro("Method not applicable for deformable transform. ");
   }
 
   /** Method to transform a CovariantVector -
@@ -282,7 +286,7 @@ public:
   OutputCovariantVectorType
   TransformCovariantVector(const InputCovariantVectorType &) const override
   {
-    itkExceptionMacro(<< "Method not applicable for deformable transform. ");
+    itkExceptionMacro("Method not applicable for deformable transform. ");
   }
 
   /** Get Jacobian at a point. A very specialized function just for BSplines */
@@ -297,13 +301,13 @@ public:
   void
   ComputeJacobianWithRespectToPosition(const InputPointType &, JacobianPositionType &) const override
   {
-    itkExceptionMacro(<< "ComputeJacobianWithRespectToPosition not yet implemented "
-                         "for "
+    itkExceptionMacro("ComputeJacobianWithRespectToPosition not yet implemented "
+                      "for "
                       << this->GetNameOfClass());
   }
   using Superclass::ComputeJacobianWithRespectToPosition;
 
-  /** Return the number of parameters that completely define the Transfom */
+  /** Return the number of parameters that completely define the Transform */
   NumberOfParametersType
   GetNumberOfParameters() const override = 0;
 
@@ -317,7 +321,7 @@ public:
     return Self::TransformCategoryEnum::BSpline;
   }
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfAffectedWeights() const;
 
   using PhysicalDimensionsType = typename ImageType::SpacingType;
@@ -337,12 +341,14 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  BSplineBaseTransform();
+  BSplineBaseTransform() = default;
   ~BSplineBaseTransform() override = default;
 
   /** Get/Set to allow subclasses to access and manipulate the weights function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(WeightsFunction, WeightsFunctionType);
   itkGetModifiableObjectMacro(WeightsFunction, WeightsFunctionType);
+  /** @ITKEndGrouping */
 
   /** Wrap flat array into images of coefficients. */
   void
@@ -391,13 +397,13 @@ protected:
    *  in each dimension wrapped from the flat parameters in
    *  m_InternalParametersBuffer
    */
-  CoefficientImageArray m_CoefficientImages;
+  CoefficientImageArray m_CoefficientImages{ Self::ArrayOfImagePointerGeneratorHelper() };
 
   /** Internal parameters buffer. */
-  ParametersType m_InternalParametersBuffer;
+  ParametersType m_InternalParametersBuffer{};
 
   /** Pointer to function used to compute Bspline interpolation weights. */
-  typename WeightsFunctionType::Pointer m_WeightsFunction;
+  typename WeightsFunctionType::Pointer m_WeightsFunction{ WeightsFunctionType::New() };
 
 private:
   static CoefficientImageArray

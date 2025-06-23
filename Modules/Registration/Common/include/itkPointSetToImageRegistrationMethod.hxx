@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,23 +18,20 @@
 #ifndef itkPointSetToImageRegistrationMethod_hxx
 #define itkPointSetToImageRegistrationMethod_hxx
 
-#include "itkPointSetToImageRegistrationMethod.h"
 
 namespace itk
 {
 
 template <typename TFixedPointSet, typename TMovingImage>
 PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::PointSetToImageRegistrationMethod()
+  : m_InitialTransformParameters(ParametersType(FixedPointSetType::PointDimension))
+  , m_LastTransformParameters(ParametersType(FixedPointSetType::PointDimension))
 {
   this->SetNumberOfRequiredOutputs(1);
-
-  m_InitialTransformParameters = ParametersType(FixedPointSetType::PointDimension);
-  m_LastTransformParameters = ParametersType(FixedPointSetType::PointDimension);
-
   m_InitialTransformParameters.Fill(0);
   m_LastTransformParameters.Fill(0);
 
-  TransformOutputPointer transformDecorator =
+  const TransformOutputPointer transformDecorator =
     itkDynamicCastInDebugMode<TransformOutputType *>(this->MakeOutput(0).GetPointer());
 
   this->ProcessObject::SetNthOutput(0, transformDecorator.GetPointer());
@@ -55,32 +52,32 @@ PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::Initialize()
 {
   if (!m_FixedPointSet)
   {
-    itkExceptionMacro(<< "FixedPointSet is not present");
+    itkExceptionMacro("FixedPointSet is not present");
   }
 
   if (!m_MovingImage)
   {
-    itkExceptionMacro(<< "MovingImage is not present");
+    itkExceptionMacro("MovingImage is not present");
   }
 
   if (!m_Metric)
   {
-    itkExceptionMacro(<< "Metric is not present");
+    itkExceptionMacro("Metric is not present");
   }
 
   if (!m_Optimizer)
   {
-    itkExceptionMacro(<< "Optimizer is not present");
+    itkExceptionMacro("Optimizer is not present");
   }
 
   if (!m_Transform)
   {
-    itkExceptionMacro(<< "Transform is not present");
+    itkExceptionMacro("Transform is not present");
   }
 
   if (!m_Interpolator)
   {
-    itkExceptionMacro(<< "Interpolator is not present");
+    itkExceptionMacro("Interpolator is not present");
   }
 
   // Set up the metric
@@ -97,7 +94,7 @@ PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::Initialize()
   // Validate initial transform parameters
   if (m_InitialTransformParameters.Size() != m_Transform->GetNumberOfParameters())
   {
-    itkExceptionMacro(<< "Size mismatch between initial parameter and transform");
+    itkExceptionMacro("Size mismatch between initial parameter and transform");
   }
 
   m_Optimizer->SetInitialPosition(m_InitialTransformParameters);
@@ -117,13 +114,13 @@ PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GenerateData()
   {
     this->Initialize();
   }
-  catch (ExceptionObject & err)
+  catch (const ExceptionObject &)
   {
     m_LastTransformParameters = ParametersType(1);
     m_LastTransformParameters.Fill(0.0f);
 
     // Pass the exception to the caller
-    throw err;
+    throw;
   }
 
   // Do the optimization
@@ -131,14 +128,14 @@ PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GenerateData()
   {
     m_Optimizer->StartOptimization();
   }
-  catch (ExceptionObject & err)
+  catch (const ExceptionObject &)
   {
     // An error has occurred in the optimization.
     // Update the parameters
     m_LastTransformParameters = m_Optimizer->GetCurrentPosition();
 
     // Pass the exception to the caller
-    throw err;
+    throw;
   }
 
   // Get the results
@@ -148,8 +145,8 @@ PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GenerateData()
 }
 
 template <typename TFixedPointSet, typename TMovingImage>
-const typename PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::TransformOutputType *
-PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GetOutput() const
+auto
+PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GetOutput() const -> const TransformOutputType *
 {
   return static_cast<const TransformOutputType *>(this->ProcessObject::GetOutput(0));
 }
@@ -170,44 +167,43 @@ ModifiedTimeType
 PointSetToImageRegistrationMethod<TFixedPointSet, TMovingImage>::GetMTime() const
 {
   ModifiedTimeType mtime = Superclass::GetMTime();
-  ModifiedTimeType m;
 
   // Some of the following should be removed once ivars are put in the
   // input and output lists
 
   if (m_Transform)
   {
-    m = m_Transform->GetMTime();
+    ModifiedTimeType m = m_Transform->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 
   if (m_Interpolator)
   {
-    m = m_Interpolator->GetMTime();
+    ModifiedTimeType m = m_Interpolator->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 
   if (m_Metric)
   {
-    m = m_Metric->GetMTime();
+    ModifiedTimeType m = m_Metric->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 
   if (m_Optimizer)
   {
-    m = m_Optimizer->GetMTime();
+    ModifiedTimeType m = m_Optimizer->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 
   if (m_FixedPointSet)
   {
-    m = m_FixedPointSet->GetMTime();
+    ModifiedTimeType m = m_FixedPointSet->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 
   if (m_MovingImage)
   {
-    m = m_MovingImage->GetMTime();
+    ModifiedTimeType m = m_MovingImage->GetMTime();
     mtime = (m > mtime ? m : mtime);
   }
 

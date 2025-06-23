@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkAttributeOpeningLabelMapFilter_hxx
 #define itkAttributeOpeningLabelMapFilter_hxx
 
-#include "itkAttributeOpeningLabelMapFilter.h"
 #include "itkProgressReporter.h"
 
 
@@ -27,9 +26,9 @@ namespace itk
 
 template <typename TImage, typename TAttributeAccessor>
 AttributeOpeningLabelMapFilter<TImage, TAttributeAccessor>::AttributeOpeningLabelMapFilter()
+  : m_Lambda(AttributeValueType{})
+
 {
-  m_Lambda = NumericTraits<AttributeValueType>::ZeroValue();
-  m_ReverseOrdering = false;
   // create the output image for the removed objects
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput(1, static_cast<TImage *>(this->MakeOutput(1).GetPointer()));
@@ -56,8 +55,8 @@ AttributeOpeningLabelMapFilter<TImage, TAttributeAccessor>::GenerateData()
   typename ImageType::Iterator it(output);
   while (!it.IsAtEnd())
   {
-    typename LabelObjectType::LabelType label = it.GetLabel();
-    LabelObjectType *                   labelObject = it.GetLabelObject();
+    const typename LabelObjectType::LabelType label = it.GetLabel();
+    LabelObjectType *                         labelObject = it.GetLabelObject();
 
     if ((!m_ReverseOrdering && accessor(labelObject) < m_Lambda) ||
         (m_ReverseOrdering && accessor(labelObject) > m_Lambda))

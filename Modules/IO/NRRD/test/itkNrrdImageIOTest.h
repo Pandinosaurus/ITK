@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #define itkNrrdImageIOTest_h
 
 #include <fstream>
+#include <string>
 #include "itkImageRegionIterator.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -33,13 +34,13 @@ itkNrrdImageIOTestGenerateRandomImage(unsigned int size)
 {
   using ImageType = itk::Image<TPixelType, VImageDimension>;
 
-  typename itk::RandomImageSource<ImageType>::Pointer source = itk::RandomImageSource<ImageType>::New();
+  const typename itk::RandomImageSource<ImageType>::Pointer source = itk::RandomImageSource<ImageType>::New();
 
   typename ImageType::SizeType    sz;
   typename ImageType::SpacingType spacing;
   typename ImageType::PointType   origin;
 
-  for (unsigned int i = 0; i < VImageDimension; i++)
+  for (unsigned int i = 0; i < VImageDimension; ++i)
   {
     sz[i] = size;
     spacing[i] = static_cast<float>(i + 1);
@@ -56,22 +57,25 @@ itkNrrdImageIOTestGenerateRandomImage(unsigned int size)
 
 template <typename TPixelType, unsigned int VImageDimension>
 int
-itkNrrdImageIOTestReadWriteTest(std::string fn, unsigned int size, std::string inputFile, bool compression = false)
+itkNrrdImageIOTestReadWriteTest(const std::string & fn,
+                                unsigned int        size,
+                                const std::string & inputFile,
+                                bool                compression = false)
 {
   using ImageType = itk::Image<TPixelType, VImageDimension>;
 
-  typename itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
-  typename itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
+  const typename itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
+  const typename itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
 
-  itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
+  const itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(io, NrrdImageIO, ImageIOBase);
 
 
   ITK_TEST_EXPECT_TRUE(io->SupportsDimension(VImageDimension));
 
-  constexpr unsigned NRRD_DIM_MAX = 16; // taken from NrrdIO.h which is not in the include path
-  unsigned long      dim = NRRD_DIM_MAX + 1;
+  constexpr unsigned int NRRD_DIM_MAX = 16; // taken from NrrdIO.h which is not in the include path
+  const unsigned long    dim = NRRD_DIM_MAX + 1;
   ITK_TEST_EXPECT_TRUE(!io->SupportsDimension(dim));
 
   // Binary files have no image information to read
@@ -85,7 +89,7 @@ itkNrrdImageIOTestReadWriteTest(std::string fn, unsigned int size, std::string i
 
   if (inputFile != "null")
   {
-    typename itk::ImageFileReader<ImageType>::Pointer tmpReader = itk::ImageFileReader<ImageType>::New();
+    const typename itk::ImageFileReader<ImageType>::Pointer tmpReader = itk::ImageFileReader<ImageType>::New();
     tmpReader->SetImageIO(io);
     tmpReader->SetFileName(inputFile.c_str());
 
@@ -99,13 +103,27 @@ itkNrrdImageIOTestReadWriteTest(std::string fn, unsigned int size, std::string i
   {
     // Generate a random image.
     image = itkNrrdImageIOTestGenerateRandomImage<TPixelType, VImageDimension>(size);
+
+    // add custom metadata
+    itk::MetaDataDictionary dictionary;
+
+    itk::EncapsulateMetaData(dictionary, "ASimpleString", std::string("a string"));
+    itk::EncapsulateMetaData(dictionary, "ASimpleFloat", 1.2f);
+    itk::EncapsulateMetaData(dictionary, "ASimpleDouble", 2.3);
+    itk::EncapsulateMetaData(dictionary, "ASimpleInt", 3);
+
+    itk::EncapsulateMetaData(dictionary, "Array<int>", itk::Array<int>(3, 1));
+    itk::EncapsulateMetaData(dictionary, "Array<float>", itk::Array<float>(4, 2.2f));
+    itk::EncapsulateMetaData(dictionary, "Array<double>", itk::Array<double>(5, 3.3));
+
+    image->SetMetaDataDictionary(dictionary);
   }
 
   // Write, then read the image.
   try
   {
     writer->SetFileName(fn.c_str());
-    if (compression == true)
+    if (compression)
     {
       writer->UseCompressionOn();
     }
@@ -153,6 +171,42 @@ itkNrrdImageIOTestReadWriteTest(std::string fn, unsigned int size, std::string i
       return EXIT_FAILURE;
     }
   }
+  if (inputFile == "null")
+  {
+    // check incorporated metadata
+    itk::MetaDataDictionary dictionary = reader->GetOutput()->GetMetaDataDictionary();
+
+    auto check_metadata_entry = [](auto & dict, auto & key, auto & expected) {
+      std::string val;
+      if (!itk::ExposeMetaData<std::string>(dict, key, val))
+      {
+        std::cerr << "Missing expected metadata entry:" << key << std::endl;
+        return false;
+      }
+      if (val != expected)
+      {
+        std::cerr << "Wrong metadata for " << key << ", expected:" << expected << " got:" << val.c_str() << std::endl;
+        return false;
+      }
+      return true;
+    };
+
+    if (!check_metadata_entry(dictionary, "ASimpleString", "a string"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "ASimpleFloat", "1.2"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "ASimpleDouble", "2.3"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "ASimpleInt", "3"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "Array<int>", "[1, 1, 1]"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "Array<float>", "[2.2, 2.2, 2.2, 2.2]"))
+      return EXIT_FAILURE;
+    if (!check_metadata_entry(dictionary, "Array<double>", "[3.3, 3.3, 3.3, 3.3, 3.3]"))
+      return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
 

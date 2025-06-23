@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,8 @@ namespace itk
  * This filter calculates Gaussian derivative by separable convolution of an image
  * and a discrete Gaussian derivative operator (kernel).
  *
- * The Gaussian operators used here were described by Tony Lindeberg (Discrete
- * Scale-Space Theory and the Scale-Space Primal Sketch.  Dissertation. Royal
- * Institute of Technology, Stockholm, Sweden. May 1991.)
+ * The Gaussian operators used here were described by Tony Lindeberg
+ * \cite lindeberg1991.
  *
  * The variance or standard deviation (sigma) will be evaluated as pixel units
  * if SetUseImageSpacing is off (false) or as physical units if
@@ -44,7 +43,7 @@ namespace itk
  * \author Ivan Macia, Vicomtech, Spain, https://www.vicomtech.org/en
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/179
+ * https://doi.org/10.54294/mrg5is
  *
  * \sa GaussianDerivativeOperator
  * \sa Image
@@ -70,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DiscreteGaussianDerivativeImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DiscreteGaussianDerivativeImageFilter);
 
   /** Image type information. */
   using InputImageType = TInputImage;
@@ -97,29 +96,33 @@ public:
   /** Order of derivatives in each dimension. Sets the derivative order
    * independently for each dimension, but see also
    * SetOrder(const unsigned int v). The default is 1 in each dimension. */
+  /** @ITKStartGrouping */
   itkSetMacro(Order, OrderArrayType);
   itkGetConstMacro(Order, const OrderArrayType);
-
+  /** @ITKEndGrouping */
   /** The variance for the discrete Gaussian kernel.  Sets the variance
    * independently for each dimension, but
    * see also SetVariance(const double v). The default is 0.0 in each
    * dimension. If UseImageSpacing is true, the units are the physical units
    * of your image.  If UseImageSpacing is false then the units are
    * pixels. */
+  /** @ITKStartGrouping */
   itkSetMacro(Variance, ArrayType);
   itkGetConstMacro(Variance, const ArrayType);
-
+  /** @ITKEndGrouping */
   /** The algorithm will size the discrete kernel so that the error
    * resulting from truncation of the kernel is no greater than
    * MaximumError. The default is 0.01 in each dimension. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumError, ArrayType);
   itkGetConstMacro(MaximumError, const ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set the kernel to be no wider than MaximumKernelWidth pixels,
    *  even if MaximumError demands it. The default is 32 pixels. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(MaximumKernelWidth, int);
   itkSetMacro(MaximumKernelWidth, int);
-
+  /** @ITKEndGrouping */
   /** \brief Set/Get number of pieces to divide the input for the
    * internal composite pipeline. The upstream pipeline will not be
    * effected.
@@ -135,65 +138,55 @@ public:
   /** Convenience Set methods for setting all dimensional parameters
    *  to the same values.
    */
-  /*@{*/
+  /** @ITKStartGrouping */
   void
   SetOrder(const typename OrderArrayType::ValueType v)
   {
-    OrderArrayType a;
-
-    a.Fill(v);
+    auto a = MakeFilled<OrderArrayType>(v);
     this->SetOrder(a);
   }
 
   void
   SetVariance(const typename ArrayType::ValueType v)
   {
-    ArrayType a;
-
-    a.Fill(v);
+    auto a = MakeFilled<ArrayType>(v);
     this->SetVariance(a);
   }
 
   void
   SetMaximumError(const typename ArrayType::ValueType v)
   {
-    ArrayType a;
-
-    a.Fill(v);
+    auto a = MakeFilled<ArrayType>(v);
     this->SetMaximumError(a);
   }
-
-  /*@}*/
+  /** @ITKEndGrouping */
 
   /** Set/Get whether or not the filter will use the spacing of the input
       image in its calculations. Default is ImageSpacingOn. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
-
+  /** @ITKEndGrouping */
   /** Set/Get the flag for calculating scale-space normalized derivatives.
    * Normalized derivatives are obtained multiplying by the scale
    * parameter t. */
+  /** @ITKStartGrouping */
   itkSetMacro(NormalizeAcrossScale, bool);
   itkGetConstMacro(NormalizeAcrossScale, bool);
   itkBooleanMacro(NormalizeAcrossScale);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   DiscreteGaussianDerivativeImageFilter()
+    : m_MaximumKernelWidth(32)
+    , m_UseImageSpacing(true)
+    , m_InternalNumberOfStreamDivisions(ImageDimension * ImageDimension)
   {
     m_Order.Fill(1);
     m_Variance.Fill(0.0);
     m_MaximumError.Fill(0.01);
-    m_MaximumKernelWidth = 32;
-    m_UseImageSpacing = true;
-    m_NormalizeAcrossScale = false;
-    m_InternalNumberOfStreamDivisions = ImageDimension * ImageDimension;
   }
 
   ~DiscreteGaussianDerivativeImageFilter() override = default;
@@ -219,30 +212,30 @@ protected:
 
 private:
   /** The order of the derivatives in each dimensional direction. */
-  OrderArrayType m_Order;
+  OrderArrayType m_Order{};
 
   /** The variance of the gaussian blurring kernel in each dimensional
     direction. */
-  ArrayType m_Variance;
+  ArrayType m_Variance{};
 
   /** The maximum error of the gaussian blurring kernel in each dimensional
    * direction. For definition of maximum error, see GaussianOperator.
    * \sa GaussianOperator */
-  ArrayType m_MaximumError;
+  ArrayType m_MaximumError{};
 
   /** Maximum allowed kernel width for any dimension of the discrete Gaussian
       approximation */
-  int m_MaximumKernelWidth;
+  int m_MaximumKernelWidth{};
 
   /** Flag to indicate whether to use image spacing */
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{};
 
   /** Flag for scale-space normalization of derivatives. */
-  bool m_NormalizeAcrossScale;
+  bool m_NormalizeAcrossScale{};
 
   /** Number of pieces to divide the input on the internal composite
   pipeline. The upstream pipeline will not be effected. */
-  unsigned int m_InternalNumberOfStreamDivisions;
+  unsigned int m_InternalNumberOfStreamDivisions{};
 };
 } // end namespace itk
 

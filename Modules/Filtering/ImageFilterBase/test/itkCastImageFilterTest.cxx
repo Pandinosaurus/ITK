@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@
 namespace itk
 {}
 
-// Better name demanging for gcc
+// Better name demangling for gcc
 #if defined(__GNUC__) && !defined(__EMSCRIPTEN__)
 #  define GCC_USEDEMANGLE
 #endif
@@ -77,8 +77,8 @@ GetCastTypeName()
 {
   std::string name;
 #ifdef GCC_USEDEMANGLE
-  char const * mangledName = typeid(T).name();
-  int          status;
+  const char * mangledName = typeid(T).name();
+  int          status = 0;
   char *       unmangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, &status);
   name = unmangled;
   free(unmangled);
@@ -90,28 +90,28 @@ GetCastTypeName()
 }
 
 // A reference defining C++ behavior:
-// http://www.cplusplus.com/doc/tutorial/typecasting/
+// https://www.cplusplus.com/doc/tutorial/typecasting/
 // static_cast_is_well_defined function returns true if the result of the static cast is well defined
 // and false if the result is undefined.
 template <typename TInput, typename TOutput>
-static typename std::enable_if<std::is_integral<TOutput>::value && std::is_integral<TInput>::value, bool>::type
-  static_cast_is_well_defined(TInput)
+static std::enable_if_t<std::is_integral_v<TOutput> && std::is_integral_v<TInput>, bool>
+static_cast_is_well_defined(TInput)
 {
   return true; // casting from int to int types employes deterministic 2's complement behavior
 }
 
 template <typename TInput, typename TOutput>
-static typename std::enable_if<std::is_floating_point<TOutput>::value &&
-                                 (std::is_floating_point<TInput>::value || std::is_integral<TInput>::value),
-                               bool>::type static_cast_is_well_defined(TInput)
+static std::enable_if_t<std::is_floating_point_v<TOutput> &&
+                          (std::is_floating_point_v<TInput> || std::is_integral_v<TInput>),
+                        bool>
+static_cast_is_well_defined(TInput)
 {
   return true; // Floating point to floating point static casts are always consistently defined.
 }
 
 template <typename TInput, typename TOutput>
-static typename std::enable_if<std::is_integral<TOutput>::value && std::is_unsigned<TOutput>::value &&
-                                 std::is_floating_point<TInput>::value,
-                               bool>::type
+static std::enable_if_t<std::is_integral_v<TOutput> && std::is_unsigned_v<TOutput> && std::is_floating_point_v<TInput>,
+                        bool>
 static_cast_is_well_defined(TInput value)
 {
   if (value < 0.0 || value > static_cast<TInput>(std::numeric_limits<TOutput>::max()))
@@ -122,9 +122,8 @@ static_cast_is_well_defined(TInput value)
 }
 
 template <typename TInput, typename TOutput>
-static typename std::enable_if<std::is_integral<TOutput>::value && std::is_signed<TOutput>::value &&
-                                 std::is_floating_point<TInput>::value,
-                               bool>::type
+static std::enable_if_t<std::is_integral_v<TOutput> && std::is_signed_v<TOutput> && std::is_floating_point_v<TInput>,
+                        bool>
 static_cast_is_well_defined(TInput value)
 {
   if (value < static_cast<TInput>(std::numeric_limits<TOutput>::min()) ||
@@ -144,19 +143,19 @@ TestCastFromTo()
   using FilterType = itk::CastImageFilter<InputImageType, OutputImageType>;
 
   using SourceType = itk::RandomImageSource<InputImageType>;
-  typename SourceType::Pointer randomValuesImageSource = SourceType::New();
+  auto randomValuesImageSource = SourceType::New();
   {
     typename InputImageType::SizeValueType randomSize[3] = { 18, 17, 23 };
     randomValuesImageSource->SetSize(randomSize);
   }
   randomValuesImageSource->UpdateLargestPossibleRegion();
-  typename InputImageType::Pointer randomSourceImagePtr = randomValuesImageSource->GetOutput();
+  const typename InputImageType::Pointer randomSourceImagePtr = randomValuesImageSource->GetOutput();
   {
-    typename InputImageType::IndexType Index000{ { 0, 0, 0 } };
-    typename InputImageType::IndexType Index100{ { 1, 0, 0 } };
-    typename InputImageType::IndexType Index200{ { 2, 0, 0 } };
-    typename InputImageType::IndexType Index300{ { 3, 0, 0 } };
-    typename InputImageType::IndexType Index400{ { 4, 0, 0 } };
+    const typename InputImageType::IndexType Index000{ { 0, 0, 0 } };
+    const typename InputImageType::IndexType Index100{ { 1, 0, 0 } };
+    const typename InputImageType::IndexType Index200{ { 2, 0, 0 } };
+    const typename InputImageType::IndexType Index300{ { 3, 0, 0 } };
+    const typename InputImageType::IndexType Index400{ { 4, 0, 0 } };
 
     /* Exercise input image type domain values (important for float -> integer conversions)
      *
@@ -178,7 +177,7 @@ TestCastFromTo()
     randomSourceImagePtr->SetPixel(Index400, std::numeric_limits<TInputPixelType>::round_error());
   }
 
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(randomSourceImagePtr);
   filter->UpdateLargestPossibleRegion();
 
@@ -282,12 +281,12 @@ TestVectorImageCast1()
   using FloatVectorImageType = itk::VectorImage<float, 2>;
 
   // Create a 1x3 image of 2D vectors
-  FloatVectorImageType::Pointer image = FloatVectorImageType::New();
+  auto image = FloatVectorImageType::New();
 
-  const itk::Size<2>  size{ { 1, 3 } };
-  const itk::Index<2> start{ { 0, 0 } };
+  constexpr itk::Size<2>  size{ { 1, 3 } };
+  constexpr itk::Index<2> start{ { 0, 0 } };
 
-  itk::ImageRegion<2> region(start, size);
+  const itk::ImageRegion<2> region(start, size);
   image->SetNumberOfComponentsPerPixel(2);
   image->SetRegions(region);
   image->Allocate();
@@ -299,7 +298,7 @@ TestVectorImageCast1()
   image->FillBuffer(vec);
 
   using CastImageFilterType = itk::CastImageFilter<FloatVectorImageType, UnsignedCharVectorImageType>;
-  CastImageFilterType::Pointer castImageFilter = CastImageFilterType::New();
+  auto castImageFilter = CastImageFilterType::New();
   castImageFilter->SetInput(image);
   castImageFilter->Update();
 
@@ -342,19 +341,19 @@ bool
 TestVectorImageCast2()
 {
   // This function casts a VectorImage<float, 2>
-  // to a Image<Vector<unsigned char, 2>, 2>
+  // to an Image<Vector<unsigned char, 2>, 2>
   std::cout << "Casting from a VectorImage<float, 2> to Image<Vector<unsigned char, 2>, 2> ... ";
 
   using UnsignedCharVectorImageType = itk::Image<itk::Vector<unsigned char, 2>, 2>;
   using FloatVectorImageType = itk::VectorImage<float, 2>;
 
   // Create a 1x3 image of 2D vectors
-  FloatVectorImageType::Pointer image = FloatVectorImageType::New();
+  auto image = FloatVectorImageType::New();
 
-  const itk::Size<2>  size{ { 1, 3 } };
-  const itk::Index<2> start{ { 0, 0 } };
+  constexpr itk::Size<2>  size{ { 1, 3 } };
+  constexpr itk::Index<2> start{ { 0, 0 } };
 
-  itk::ImageRegion<2> region(start, size);
+  const itk::ImageRegion<2> region(start, size);
   image->SetNumberOfComponentsPerPixel(2);
   image->SetRegions(region);
   image->Allocate();
@@ -366,7 +365,7 @@ TestVectorImageCast2()
   image->FillBuffer(vec);
 
   using CastImageFilterType = itk::CastImageFilter<FloatVectorImageType, UnsignedCharVectorImageType>;
-  CastImageFilterType::Pointer castImageFilter = CastImageFilterType::New();
+  auto castImageFilter = CastImageFilterType::New();
   castImageFilter->SetInput(image);
   castImageFilter->Update();
 
@@ -412,8 +411,8 @@ itkCastImageFilterTest(int, char *[])
 
   // This test casts floats to char, generating float point exceptions.
   // We disable float point exceptions only for this tests
-  bool fpeSupport = itk::FloatingPointExceptions::HasFloatingPointExceptionsSupport();
-  bool fpeStatus = itk::FloatingPointExceptions::GetEnabled();
+  const bool fpeSupport = itk::FloatingPointExceptions::HasFloatingPointExceptionsSupport();
+  const bool fpeStatus = itk::FloatingPointExceptions::GetEnabled();
   if (fpeSupport && fpeStatus)
   {
     std::cout << "FloatingPointExceptions are disabled only for this test." << std::endl;

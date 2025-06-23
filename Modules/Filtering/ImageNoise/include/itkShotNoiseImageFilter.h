@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class ShotNoiseImageFilter
+ * \class ShotNoiseImageFilter
  *
  * \brief Alter an image with shot noise.
  *
@@ -86,7 +86,7 @@ namespace itk
  * \author Gaetan Lehmann
  *
  * This code was contributed in the Insight Journal paper "Noise
- * Simulation". https://www.insight-journal.org/browse/publication/721
+ * Simulation". https://doi.org/10.54294/vh6vbw
  *
  * \ingroup ITKImageNoise
  */
@@ -105,14 +105,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShotNoiseImageFilter, NoiseBaseImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShotNoiseImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -125,15 +125,12 @@ public:
    * The scaling can be seen as the inverse of the gain used during the
    * acquisition. The noisy signal is then scaled back to its input intensity
    * range. Defaults to 1.0. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Scale, double);
   itkSetMacro(Scale, double);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
+  /** @ITKEndGrouping */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
-  /** End concept checking */
-#endif
 
 protected:
   ShotNoiseImageFilter();

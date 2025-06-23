@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ namespace
 {
 template <typename TImage>
 typename TImage::Pointer
-CreateImage(const unsigned sizeX, const unsigned sizeY)
+CreateImage(const unsigned int sizeX, const unsigned int sizeY)
 {
   const auto                      image = TImage::New();
   const typename TImage::SizeType imageSize = { { sizeX, sizeY } };
@@ -54,16 +54,16 @@ CreateImage(const unsigned sizeX, const unsigned sizeY)
 // Creates a test image, filled with a sequence of natural numbers, 1, 2, 3, ..., N.
 template <typename TImage>
 typename TImage::Pointer
-CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned sizeX, const unsigned sizeY)
+CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned int sizeX, const unsigned int sizeY)
 {
   using PixelType = typename TImage::PixelType;
   const auto image = CreateImage<TImage>(sizeX, sizeY);
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  const unsigned int numberOfPixels = sizeX * sizeY;
 
   PixelType * const bufferPointer = image->GetBufferPointer();
 
-  for (unsigned i = 0; i < numberOfPixels; ++i)
+  for (unsigned int i = 0; i < numberOfPixels; ++i)
   {
     bufferPointer[i] = static_cast<typename TImage::PixelType>(i + 1);
   }
@@ -89,8 +89,8 @@ TEST(ConstantBoundaryImageNeighborhoodPixelAccessPolicy, YieldsZeroOutsideImageB
   const auto image = CreateImage<ImageType>(sizeX, sizeY);
   image->FillBuffer(42);
 
-  const ImageType::IndexType                                locationOutsideImage{ { -1, -1 } };
-  const itk::Size<ImageType::ImageDimension>                radius = { {} };
+  constexpr ImageType::IndexType                            locationOutsideImage{ { -1, -1 } };
+  constexpr itk::Size<ImageType::ImageDimension>            radius = { {} };
   const std::vector<itk::Offset<ImageType::ImageDimension>> offsets =
     itk::GenerateRectangularImageNeighborhoodOffsets(radius);
   const RangeType range{ *image, locationOutsideImage, offsets };
@@ -119,8 +119,8 @@ TEST(ConstantBoundaryImageNeighborhoodPixelAccessPolicy, YieldsSpecifiedConstant
   const auto image = CreateImage<ImageType>(sizeX, sizeY);
   image->FillBuffer(42);
 
-  const ImageType::IndexType                                locationOutsideImage{ { -1, -1 } };
-  const itk::Size<ImageType::ImageDimension>                radius = { {} };
+  constexpr ImageType::IndexType                            locationOutsideImage{ { -1, -1 } };
+  constexpr itk::Size<ImageType::ImageDimension>            radius = { {} };
   const std::vector<itk::Offset<ImageType::ImageDimension>> offsets =
     itk::GenerateRectangularImageNeighborhoodOffsets(radius);
   const auto numberOfExpectedNeighbors = offsets.size();
@@ -138,7 +138,7 @@ TEST(ConstantBoundaryImageNeighborhoodPixelAccessPolicy, YieldsSpecifiedConstant
     ASSERT_EQ(range.size(), numberOfExpectedNeighbors);
 
     // Test by using RangeType::operator[]:
-    for (std::size_t i = 0; i < numberOfExpectedNeighbors; ++i)
+    for (size_t i = 0; i < numberOfExpectedNeighbors; ++i)
     {
       const PixelType pixel = range[i];
       EXPECT_EQ(pixel, constantValue);
@@ -163,8 +163,8 @@ TEST(ConstantBoundaryImageNeighborhoodPixelAccessPolicy, YieldsSameValuesAsConst
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  const ImageType::IndexType                                location{ {} };
-  const itk::Size<ImageType::ImageDimension>                radius = { { 1, 2 } };
+  constexpr ImageType::IndexType                            location{ {} };
+  constexpr itk::Size<ImageType::ImageDimension>            radius = { { 1, 2 } };
   const std::vector<itk::Offset<ImageType::ImageDimension>> offsets =
     itk::GenerateRectangularImageNeighborhoodOffsets(radius);
 

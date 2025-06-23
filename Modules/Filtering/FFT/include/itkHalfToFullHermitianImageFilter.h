@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class HalfToFullHermitianImageFilter
+ * \class HalfToFullHermitianImageFilter
  *
  * \brief Expands a half image produced from a real-to-complex
  * discrete Fourier transform (DFT) to the full complex image.
@@ -72,16 +72,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HalfToFullHermitianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HalfToFullHermitianImageFilter);
 
   /** Extract the dimensionality of the input and output images. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Was the original truncated dimension size in the x-dimension odd? */
+  /** @ITKStartGrouping */
   itkSetGetDecoratedInputMacro(ActualXDimensionIsOdd, bool);
   itkBooleanMacro(ActualXDimensionIsOdd);
-
+  /** @ITKEndGrouping */
 protected:
   HalfToFullHermitianImageFilter();
   ~HalfToFullHermitianImageFilter() override = default;

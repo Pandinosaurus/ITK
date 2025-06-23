@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
  *         permission of the authors, Milan Sonka, Joseph Reinhardt,
  *         Ryan Long, Hans Johnson, Gary Christensen, and others.
  *         The specification for this file format is taken from the
- *         web site http://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
+ *         web site https://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
  * \author Kent Williams
  *         The University of Iowa 2003
  * \brief This file was written as a modification to the itkMetaImageIO
@@ -39,7 +39,7 @@
 namespace itk
 {
 /**
- *\class GE5ImageIO
+ * \class GE5ImageIO
  *
  * \author Hans J. Johnson
  * \brief Class that defines how to read GE5 file format.
@@ -61,8 +61,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GE5ImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GE5ImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -126,7 +126,7 @@ protected:
 
 private:
   int
-  CheckGE5xImages(char const * const imageFileTemplate, std::string & reason);
+  CheckGE5xImages(const char * const imageFileTemplate, std::string & reason);
 };
 } // end namespace itk
 

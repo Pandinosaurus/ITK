@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,19 @@
 
 // First include the header file to be tested:
 #include "itkNumberToString.h"
+#include "itkMath.h"
 #include <gtest/gtest.h>
 
 namespace
 {
+
+template <typename>
+constexpr const char * floatingPointTypeName = "unspecified type";
+template <>
+constexpr const char * floatingPointTypeName<float> = "float";
+template <>
+constexpr const char * floatingPointTypeName<double> = "double";
+
 
 template <typename TValue>
 void
@@ -42,10 +51,11 @@ Test_non_finite_special_floating_point_values()
 {
   using NumericLimitsType = std::numeric_limits<TValue>;
   const itk::NumberToString<TValue> numberToString{};
+  const auto                        message = std::string("Floating point type: ") + floatingPointTypeName<TValue>;
 
-  EXPECT_EQ(numberToString(NumericLimitsType::quiet_NaN()), "NaN");
-  EXPECT_EQ(numberToString(NumericLimitsType::infinity()), "Infinity");
-  EXPECT_EQ(numberToString(-NumericLimitsType::infinity()), "-Infinity");
+  EXPECT_EQ(numberToString(NumericLimitsType::quiet_NaN()), "NaN") << message;
+  EXPECT_EQ(numberToString(NumericLimitsType::infinity()), "Infinity") << message;
+  EXPECT_EQ(numberToString(-NumericLimitsType::infinity()), "-Infinity") << message;
 }
 
 
@@ -55,6 +65,7 @@ Test_round_trip_of_finite_numeric_limits()
 {
   using NumericLimitsType = std::numeric_limits<TValue>;
   const itk::NumberToString<TValue> numberToString{};
+  const auto                        message = std::string("Floating point type: ") + floatingPointTypeName<TValue>;
 
   for (const TValue expectedValue : { NumericLimitsType::lowest(),
                                       NumericLimitsType::epsilon(),
@@ -64,11 +75,11 @@ Test_round_trip_of_finite_numeric_limits()
                                       NumericLimitsType::max() })
   {
     std::istringstream inputStream{ numberToString(expectedValue) };
-    EXPECT_FALSE(inputStream.eof());
+    EXPECT_FALSE(inputStream.eof()) << message;
     TValue actualValue;
     inputStream >> actualValue;
-    EXPECT_TRUE(inputStream.eof());
-    EXPECT_EQ(actualValue, expectedValue);
+    EXPECT_TRUE(inputStream.eof()) << message;
+    EXPECT_EQ(actualValue, expectedValue) << message;
   }
 }
 
@@ -78,23 +89,66 @@ void
 Test_decimal_notation_supports_up_to_twentyone_digits()
 {
   const itk::NumberToString<TValue> numberToString{};
+  const auto                        message = std::string("Floating point type: ") + floatingPointTypeName<TValue>;
 
-  for (std::int8_t exponent{ 20 }; exponent > 0; --exponent)
+  for (uint64_t exponent{ 20 }; exponent > 0; --exponent)
   {
-    const auto power_of_ten = std::pow(TValue{ 10 }, static_cast<TValue>(exponent));
+    const TValue power_of_ten{ static_cast<TValue>(itk::Math::UnsignedPower(10, exponent - 1)) * TValue{ 10 } };
 
     // Test +/- 10 ^ exponent
-    EXPECT_EQ(numberToString(power_of_ten), '1' + std::string(exponent, '0'));
-    EXPECT_EQ(numberToString(-power_of_ten), "-1" + std::string(exponent, '0'));
+    EXPECT_EQ(numberToString(power_of_ten), '1' + std::string(exponent, '0')) << message;
+    EXPECT_EQ(numberToString(-power_of_ten), "-1" + std::string(exponent, '0')) << message;
   }
 
-  for (std::int8_t exponent{ -6 }; exponent < 0; ++exponent)
+  for (uint64_t exponent{ 6 }; exponent > 0; --exponent)
   {
-    const auto power_of_ten = std::pow(TValue{ 10 }, static_cast<TValue>(exponent));
+    const TValue power_of_ten{ TValue{ 1 } / static_cast<TValue>(itk::Math::UnsignedPower(10, exponent)) };
 
-    // Test +/- 10 ^ exponent
-    EXPECT_EQ(numberToString(power_of_ten), "0." + std::string(-1 - exponent, '0') + '1');
-    EXPECT_EQ(numberToString(-power_of_ten), "-0." + std::string(-1 - exponent, '0') + '1');
+    // Test +/- 10 ^ -exponent
+    EXPECT_EQ(numberToString(power_of_ten), "0." + std::string(exponent - 1, '0') + '1') << message;
+    EXPECT_EQ(numberToString(-power_of_ten), "-0." + std::string(exponent - 1, '0') + '1') << message;
+  }
+}
+
+
+template <typename TValue>
+void
+Test_default_specialization_of_NumberToString()
+{
+  using NumericLimitsType = std::numeric_limits<TValue>;
+
+  for (const TValue value : { NumericLimitsType::lowest(),
+                              NumericLimitsType::denorm_min(),
+                              TValue(),
+                              NumericLimitsType::epsilon(),
+                              NumericLimitsType::min(),
+                              NumericLimitsType::max(),
+                              NumericLimitsType::infinity(),
+                              NumericLimitsType::quiet_NaN() })
+  {
+    // Expect the same string from the default specialization `NumberToString<>` as from the TValue specific
+    // `NumberToString<TValue>`.
+    EXPECT_EQ(itk::NumberToString<>()(value), itk::NumberToString<TValue>()(value));
+  }
+}
+
+template <typename TValue>
+void
+Test_ConvertNumberToString()
+{
+  using NumericLimitsType = std::numeric_limits<TValue>;
+
+  for (const TValue value : { NumericLimitsType::lowest(),
+                              NumericLimitsType::denorm_min(),
+                              TValue(),
+                              NumericLimitsType::epsilon(),
+                              NumericLimitsType::min(),
+                              NumericLimitsType::max(),
+                              NumericLimitsType::infinity(),
+                              NumericLimitsType::quiet_NaN() })
+  {
+    // Expect the same string from `ConvertNumberToString` as from `NumberToString<TValue>`.
+    EXPECT_EQ(itk::ConvertNumberToString(value), itk::NumberToString<TValue>()(value));
   }
 }
 
@@ -141,4 +195,25 @@ TEST(NumberToString, DecimalNotationUpTo21Digits)
 {
   Test_decimal_notation_supports_up_to_twentyone_digits<float>();
   Test_decimal_notation_supports_up_to_twentyone_digits<double>();
+}
+
+
+TEST(NumberToString, DefaultSpecialization)
+{
+  Test_default_specialization_of_NumberToString<int8_t>();
+  Test_default_specialization_of_NumberToString<uint8_t>();
+  Test_default_specialization_of_NumberToString<intmax_t>();
+  Test_default_specialization_of_NumberToString<uintmax_t>();
+  Test_default_specialization_of_NumberToString<float>();
+  Test_default_specialization_of_NumberToString<double>();
+}
+
+TEST(NumberToString, ConvertNumberToString)
+{
+  Test_ConvertNumberToString<int8_t>();
+  Test_ConvertNumberToString<uint8_t>();
+  Test_ConvertNumberToString<intmax_t>();
+  Test_ConvertNumberToString<uintmax_t>();
+  Test_ConvertNumberToString<float>();
+  Test_ConvertNumberToString<double>();
 }

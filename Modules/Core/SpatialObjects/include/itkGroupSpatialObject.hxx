@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,18 +19,15 @@
 #define itkGroupSpatialObject_hxx
 
 
-#include "itkGroupSpatialObject.h"
-
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TDimension>
 GroupSpatialObject<TDimension>::GroupSpatialObject()
 {
   this->SetTypeName("GroupSpatialObject");
 }
 
-/** InternalClone */
 template <unsigned int TDimension>
 typename LightObject::Pointer
 GroupSpatialObject<TDimension>::InternalClone() const
@@ -39,23 +36,15 @@ GroupSpatialObject<TDimension>::InternalClone() const
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   return loPtr;
 }
 
-/** Print the object */
-template <unsigned int TDimension>
-void
-GroupSpatialObject<TDimension>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  os << indent << "GroupSpatialObject(" << this << ")" << std::endl;
-  Superclass::PrintSelf(os, indent);
-}
 } // end namespace itk
 
 #endif // end itkGroupSpatialObject_hxx

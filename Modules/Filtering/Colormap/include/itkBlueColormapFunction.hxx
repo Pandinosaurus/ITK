@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,14 @@
 #ifndef itkBlueColormapFunction_hxx
 #define itkBlueColormapFunction_hxx
 
-#include "itkBlueColormapFunction.h"
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TScalar, typename TRGBPixel>
-typename BlueColormapFunction<TScalar, TRGBPixel>::RGBPixelType
-BlueColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
+auto
+BlueColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const -> RGBPixelType
 {
   // Map the input scalar between [0, 1].
-  RealType value = this->RescaleInputValue(v);
+  const RealType value = this->RescaleInputValue(v);
 
   // Set the rgb components after rescaling the values.
   RGBPixelType pixel;
@@ -41,7 +37,6 @@ BlueColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
 
   return pixel;
 }
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

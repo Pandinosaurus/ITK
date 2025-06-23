@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,19 +42,15 @@ itkLineIteratorTest(int argc, char * argv[])
 
 
   // Set up a test image
-  ImageType::RegionType::IndexType index;
-  index.Fill(0);
+  constexpr ImageType::RegionType::IndexType index{};
 
-  ImageType::RegionType::SizeType size;
-  size.Fill(200);
+  auto size = ImageType::RegionType::SizeType::Filled(200);
 
-  ImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const ImageType::RegionType region{ index, size };
 
-  ImageType::Pointer output = ImageType::New();
+  auto output = ImageType::New();
   output->SetRegions(region);
-  output->Allocate(true); // initialize buffer to zero
+  output->AllocateInitialized();
 
   // First test: empty line
   IndexType startIndex;
@@ -118,8 +114,7 @@ itkLineIteratorTest(int argc, char * argv[])
   endIndex.Fill(189);
   LineIteratorType it(output, startIndex, endIndex);
 
-  std::vector<IndexType>::iterator itBaseline;
-  itBaseline = baselineIndex.begin();
+  auto itBaseline = baselineIndex.begin();
   while (!it.IsAtEnd())
   {
     it.Set(255);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 //  Software Guide : BeginLatex
 //
 //  Thanks to the flexibility offered by the
-//  \href{http://www.boost.org/more/generic_programming.html}{Generic
+//  \href{https://www.boost.org/more/generic_programming.html}{Generic
 //  Programming} style on which ITK is based, it is possible to
 //  instantiate images of arbitrary pixel type.  The following example
 //  illustrates how a color image with RGB pixels can be defined.
@@ -83,13 +83,13 @@ main(int, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   // Software Guide : EndCodeSnippet
 
-  ReaderType::Pointer reader = ReaderType::New();
-  const char * const  filename = argv[1];
+  auto               reader = ReaderType::New();
+  const char * const filename = argv[1];
   reader->SetFileName(filename);
   reader->Update();
 
-  ImageType::Pointer         image = reader->GetOutput();
-  const ImageType::IndexType pixelIndex = { { 25, 35, 0 } };
+  const ImageType::Pointer       image = reader->GetOutput();
+  constexpr ImageType::IndexType pixelIndex = { { 25, 35, 0 } };
 
   // Software Guide : BeginLatex
   //

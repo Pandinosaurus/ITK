@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class BayesianClassifierInitializationImageFilter
+ * \class BayesianClassifierInitializationImageFilter
  *
  * \brief This filter is intended to be used as a helper class to
  * initialize the BayesianClassifierImageFilter.
@@ -96,8 +96,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BayesianClassifierInitializationImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BayesianClassifierInitializationImageFilter);
 
   /** Input image iterators */
   using InputImageIteratorType = ImageRegionConstIterator<InputImageType>;
@@ -130,26 +130,24 @@ public:
    * the filter will create ones for you. These default density functions
    * are Gaussian density functions centered around the K-means of the
    * input image.  */
+  /** @ITKStartGrouping */
   virtual void
   SetMembershipFunctions(MembershipFunctionContainerType * membershipFunction);
   itkGetModifiableObjectMacro(MembershipFunctionContainer, MembershipFunctionContainerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get methods for the number of classes. The user must supply this. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfClasses, unsigned int);
   itkGetConstMacro(NumberOfClasses, unsigned int);
-
+  /** @ITKEndGrouping */
   void
   GenerateOutputInformation() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputMultiplyOperatorCheck, (Concept::MultiplyOperator<InputPixelType>));
   itkConceptMacro(DoubleConvertibleToProbabilityCheck, (Concept::Convertible<double, TProbabilityPrecisionType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(ProbabilityHasNumericTraitsCheck, (Concept::HasNumericTraits<TProbabilityPrecisionType>));
   itkConceptMacro(DoublePlusInputCheck, (Concept::AdditiveOperators<double, InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   BayesianClassifierInitializationImageFilter();
@@ -174,7 +172,7 @@ private:
   bool         m_UserSuppliesMembershipFunctions{ false };
   unsigned int m_NumberOfClasses{ 0 };
 
-  typename MembershipFunctionContainerType::Pointer m_MembershipFunctionContainer;
+  typename MembershipFunctionContainerType::Pointer m_MembershipFunctionContainer{};
 };
 } // end namespace itk
 

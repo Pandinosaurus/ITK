@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +58,7 @@ public:
   using TransformType = itk::VersorRigid3DTransform<double>;
 
   itkNewMacro(Self);
-  itkTypeMacro(versorRigid3DCostFunction, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(versorRigid3DCostFunction);
 
   static constexpr unsigned int SpaceDimension = 6;
 
@@ -115,17 +115,17 @@ public:
   GetValue(const ParametersType & parameters) const override
   {
     TransformType::ParametersType p(Self::SpaceDimension);
-    for (unsigned int i = 0; i < 6; i++)
+    for (unsigned int i = 0; i < 6; ++i)
     {
       p[i] = parameters[i];
     }
 
     m_Transform->SetParameters(p);
 
-    PointType P2 = m_Transform->TransformPoint(m_P1);
-    PointType Q2 = m_Transform->TransformPoint(m_Q1);
+    const PointType P2 = m_Transform->TransformPoint(m_P1);
+    const PointType Q2 = m_Transform->TransformPoint(m_Q1);
 
-    MeasureType measure = P2.SquaredEuclideanDistanceTo(m_P) + Q2.SquaredEuclideanDistanceTo(m_Q);
+    const MeasureType measure = P2.SquaredEuclideanDistanceTo(m_P) + Q2.SquaredEuclideanDistanceTo(m_Q);
 
     return measure;
   }
@@ -134,7 +134,7 @@ public:
   GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const override
   {
     VectorType rightPart;
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       rightPart[i] = parameters[i];
     }
@@ -155,9 +155,9 @@ public:
     versorY.SetRotationAroundY(deltaAngle);
     versorZ.SetRotationAroundZ(deltaAngle);
 
-    VersorType plusdDeltaX = currentVersor * versorX;
-    VersorType plusdDeltaY = currentVersor * versorY;
-    VersorType plusdDeltaZ = currentVersor * versorZ;
+    const VersorType plusdDeltaX = currentVersor * versorX;
+    const VersorType plusdDeltaY = currentVersor * versorY;
+    const VersorType plusdDeltaZ = currentVersor * versorZ;
 
     ParametersType parametersPlustDeltaVX = parameters;
     ParametersType parametersPlustDeltaVY = parameters;
@@ -189,7 +189,7 @@ public:
     derivative[1] = (turnYValue - baseValue) / deltaAngle;
     derivative[2] = (turnZValue - baseValue) / deltaAngle;
 
-    const double deltaTranslation = deltaAngle; // just to keep the scaling
+    constexpr double deltaTranslation = deltaAngle; // just to keep the scaling
 
     parametersPlustDeltaTX[3] += deltaTranslation;
     parametersPlustDeltaTY[4] += deltaTranslation;
@@ -230,12 +230,12 @@ itkVersorRigid3DTransformOptimizerTest(int, char *[])
   using ScalesType = OptimizerType::ScalesType;
 
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
 
 
   // Declaration of the CostFunction adaptor
-  versorRigid3DCostFunction::Pointer costFunction = versorRigid3DCostFunction::New();
+  auto costFunction = versorRigid3DCostFunction::New();
 
 
   itkOptimizer->SetCostFunction(costFunction);
@@ -250,7 +250,7 @@ itkVersorRigid3DTransformOptimizerTest(int, char *[])
   axis[1] = 0.0f;
   axis[2] = 0.0f;
 
-  VersorType::ValueType angle = 0.0f;
+  constexpr VersorType::ValueType angle = 0.0f;
 
   VersorType initialRotation;
   initialRotation.Set(axis, angle);
@@ -306,20 +306,20 @@ itkVersorRigid3DTransformOptimizerTest(int, char *[])
 
   VersorType             finalRotation;
   VersorType::VectorType finalRightPart;
-  for (unsigned int i = 0; i < spaceDimensions; i++)
+  for (unsigned int i = 0; i < spaceDimensions; ++i)
   {
     finalRightPart[i] = finalPosition[i];
   }
   finalRotation.Set(finalRightPart);
   std::cout << std::endl;
-  std::cout << "Solution versor  = (" << finalRotation << ")" << std::endl;
+  std::cout << "Solution versor  = (" << finalRotation << ')' << std::endl;
 
   VersorType::VectorType finalTranslation;
-  for (unsigned int j = 0; j < spaceDimensions; j++)
+  for (unsigned int j = 0; j < spaceDimensions; ++j)
   {
     finalTranslation[j] = finalPosition[j + spaceDimensions];
   }
-  std::cout << "Solution vector  = (" << finalTranslation << ")" << std::endl;
+  std::cout << "Solution vector  = (" << finalTranslation << ')' << std::endl;
 
   //
   // check results to see if it is within range
@@ -329,12 +329,11 @@ itkVersorRigid3DTransformOptimizerTest(int, char *[])
   // True versor
 
   VersorType::VectorType trueAxis;
-  VersorType::ValueType  trueAngle;
   trueAxis[0] = 1.0f;
   trueAxis[1] = 0.0f;
   trueAxis[2] = 0.0f;
-  trueAngle = 10.0 * std::atan(1.0f) / 45.0;
-  VersorType trueRotation;
+  const VersorType::ValueType trueAngle = 10.0 * std::atan(1.0f) / 45.0;
+  VersorType                  trueRotation;
   trueRotation.Set(trueAxis, trueAngle);
 
   ParametersType trueParameters(parametersDimensions);
@@ -349,7 +348,7 @@ itkVersorRigid3DTransformOptimizerTest(int, char *[])
   std::cout << "Final parameters = " << finalPosition << std::endl;
   std::cout << "True Parameters  = " << trueParameters << std::endl;
 
-  VersorType                  ratio = finalRotation * trueRotation.GetReciprocal();
+  const VersorType            ratio = finalRotation * trueRotation.GetReciprocal();
   const VersorType::ValueType cosHalfAngle = ratio.GetW();
   const VersorType::ValueType cosHalfAngleSquare = cosHalfAngle * cosHalfAngle;
   if (cosHalfAngleSquare < 0.95)

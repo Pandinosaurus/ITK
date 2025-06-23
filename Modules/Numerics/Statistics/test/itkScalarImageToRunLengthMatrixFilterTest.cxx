@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,18 +41,17 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
 
 
-  InputImageType::Pointer image = InputImageType::New();
-  InputImageType::Pointer mask = InputImageType::New();
+  auto image = InputImageType::New();
+  auto mask = InputImageType::New();
 
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
   InputImageType::RegionType region;
 
   region.SetSize(inputImageSize);
   {
-    InputImageType::IndexType index;
-    index.Fill(0);
+    constexpr InputImageType::IndexType index{};
     region.SetIndex(index);
   }
 
@@ -73,7 +72,7 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
 
   imageIt.GoToBegin();
 
-  for (unsigned int i = 0; i < 5; i++)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     for (unsigned int j = 0; j < 5; j++, ++imageIt)
     {
@@ -96,7 +95,7 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
   // setup the iterator
   InputImageIterator maskIt(mask, mask->GetBufferedRegion());
   maskIt.GoToBegin();
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 5; ++i)
     for (int j = 0; j < 5; j++, ++maskIt)
     {
       if (j == 2 && i > 0 && i < 4)
@@ -114,13 +113,13 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
 
     using FilterType = itk::Statistics::ScalarImageToRunLengthMatrixFilter<InputImageType>;
 
-    FilterType::Pointer filter = FilterType::New();
+    auto filter = FilterType::New();
 
     filter->SetInput(image);
 
-    InputImageType::OffsetType      offset1 = { { 0, -1 } };
-    InputImageType::OffsetType      offset2 = { { -1, 0 } };
-    FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
+    constexpr InputImageType::OffsetType  offset1 = { { 0, -1 } };
+    constexpr InputImageType::OffsetType  offset2 = { { -1, 0 } };
+    const FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
     offsetV->push_back(offset1);
     offsetV->push_back(offset2);
 
@@ -139,14 +138,13 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
     //--------------------------------------------------------------------------
     bool passed = true;
 
-    unsigned int frequencies[5][5] = {
+    const unsigned int frequencies[5][5] = {
       { 0, 3, 0, 0, 0 }, { 0, 1, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }
     };
 
-    unsigned int count = 0;
-    for (unsigned int i = 0; i < 5; i++)
+    for (unsigned int i = 0; i < 5; ++i)
     {
-      for (unsigned int j = 0; j < 5; j++)
+      for (unsigned int j = 0; j < 5; ++j)
       {
         using IndexType = FilterType::HistogramType::IndexType;
         IndexType index(hist->GetMeasurementVectorSize());
@@ -154,15 +152,13 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
         index[1] = j;
         if (hist->GetFrequency(index) != frequencies[j][i])
         {
-          std::cerr << "Expected frequency  (i,j)= "
-                    << "(" << i << "," << j << ")" << frequencies[j][i]
+          std::cerr << "Expected frequency  (i,j)= " << '(' << i << ',' << j << ')' << frequencies[j][i]
                     << ", calculated = " << hist->GetFrequency(index) << std::endl;
           passed = false;
         }
-        count++;
       }
     }
-    unsigned int totalF = hist->GetTotalFrequency();
+    const unsigned int totalF = hist->GetTotalFrequency();
     if (totalF != 4)
     {
       std::cerr << "Expected total frequency = 4, calculated = " << totalF << std::endl;
@@ -235,14 +231,13 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
     filter->Update();
     hist = filter->GetOutput();
 
-    unsigned int frequencies2[5][5] = {
+    const unsigned int frequencies2[5][5] = {
       { 0, 12, 0, 10, 0 }, { 0, 0, 0, 0, 0 }, { 0, 3, 0, 2, 0 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }
     };
 
-    count = 0;
-    for (unsigned int i = 0; i < 5; i++)
+    for (unsigned int i = 0; i < 5; ++i)
     {
-      for (unsigned int j = 0; j < 5; j++)
+      for (unsigned int j = 0; j < 5; ++j)
       {
         using IndexType = FilterType::HistogramType::IndexType;
         IndexType index(hist->GetMeasurementVectorSize());
@@ -250,12 +245,10 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
         index[1] = j;
         if (hist->GetFrequency(index) != frequencies2[j][i])
         {
-          std::cerr << "Expected frequency2  (i,j)= "
-                    << "(" << i << "," << j << ")" << frequencies2[j][i]
+          std::cerr << "Expected frequency2  (i,j)= " << '(' << i << ',' << j << ')' << frequencies2[j][i]
                     << ", calculated = " << hist->GetFrequency(index) << std::endl;
           passed = false;
         }
-        count++;
       }
     }
 
@@ -266,11 +259,9 @@ itkScalarImageToRunLengthMatrixFilterTest(int, char *[])
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cerr << "Test succeeded" << std::endl;
-      return EXIT_SUCCESS;
-    }
+
+    std::cerr << "Test succeeded" << std::endl;
+    return EXIT_SUCCESS;
   }
   catch (const itk::ExceptionObject & err)
   {

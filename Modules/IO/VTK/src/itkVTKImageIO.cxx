@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,16 +19,17 @@
 #include "itkByteSwapper.h"
 
 #include "itksys/SystemTools.hxx"
+#include "itkMakeUniqueForOverwrite.h"
 
 
 namespace itk
 {
 VTKImageIO::VTKImageIO()
+
 {
   this->SetNumberOfDimensions(2);
   m_ByteOrder = IOByteOrderEnum::LittleEndian;
   m_FileType = IOFileEnum::Binary;
-  m_HeaderSize = 0;
 
   this->AddSupportedReadExtension(".vtk");
   this->AddSupportedWriteExtension(".vtk");
@@ -42,7 +43,7 @@ VTKImageIO::GetNextLine(std::ifstream & ifs, std::string & line, bool lowerCase,
   // The terminal condition for this recursive calls
   if (count > 5)
   {
-    itkExceptionMacro(<< "Error of GetNextLine due to consecutive 5 empty lines in the given .*vtk file ");
+    itkExceptionMacro("Error of GetNextLine due to consecutive 5 empty lines in the given .*vtk file ");
   }
 
   // Get a next line from a given *.vtk file
@@ -51,7 +52,7 @@ VTKImageIO::GetNextLine(std::ifstream & ifs, std::string & line, bool lowerCase,
   // Check the End-of-File of the file
   if (ifs.eof())
   {
-    itkExceptionMacro(<< "Premature EOF in reading a line");
+    itkExceptionMacro("Premature EOF in reading a line");
   }
 
   // Convert characters of the line to lowercas
@@ -99,10 +100,8 @@ VTKImageIO::CanReadFile(const char * filename)
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 
@@ -127,7 +126,7 @@ VTKImageIO::CanStreamWrite()
 void
 VTKImageIO::SetPixelTypeFromString(const std::string & pixelType)
 {
-  IOComponentEnum compType = GetComponentTypeFromString(pixelType);
+  const IOComponentEnum compType = GetComponentTypeFromString(pixelType);
   if (compType == IOComponentEnum::UNKNOWNCOMPONENTTYPE)
   {
     if (pixelType.find("vtktypeuint64") < pixelType.length())
@@ -140,7 +139,7 @@ VTKImageIO::SetPixelTypeFromString(const std::string & pixelType)
     }
     else
     {
-      itkExceptionMacro(<< "Unrecognized pixel type");
+      itkExceptionMacro("Unrecognized pixel type");
     }
   }
   else
@@ -156,7 +155,7 @@ VTKImageIO::GetComponentTypeAsString(IOComponentEnum t)
   {
     return "vtktypeuint64";
   }
-  else if (t == IOComponentEnum::LONGLONG)
+  if (t == IOComponentEnum::LONGLONG)
   {
     return "vtktypeint64";
   }
@@ -184,14 +183,14 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
   }
   else
   {
-    itkExceptionMacro(<< "Unrecognized type");
+    itkExceptionMacro("Unrecognized type");
   }
 
   this->GetNextLine(file, text);
 
   if (text.find("structured_points") >= text.length())
   {
-    itkExceptionMacro(<< "Not structured points, can't read");
+    itkExceptionMacro("Not structured points, can't read");
   }
 
   this->GetNextLine(file, text);
@@ -220,14 +219,14 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
     {
       this->SetNumberOfDimensions(3);
     }
-    for (unsigned int i = 0; i < this->GetNumberOfDimensions(); i++)
+    for (unsigned int i = 0; i < this->GetNumberOfDimensions(); ++i)
     {
       this->SetDimensions(i, dims[i]);
     }
   }
   else
   {
-    itkExceptionMacro(<< "No dimensions defined");
+    itkExceptionMacro("No dimensions defined");
   }
 
   for (bool readAttribute = false; !readAttribute;)
@@ -238,11 +237,11 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
     {
       double spacing[3];
       // save and reset old locale
-      std::locale currentLocale = std::locale::global(std::locale::classic());
+      const std::locale currentLocale = std::locale::global(std::locale::classic());
       sscanf(text.c_str(), "%*s %lf %lf %lf", spacing, spacing + 1, spacing + 2);
       // reset locale
       std::locale::global(currentLocale);
-      for (unsigned int i = 0; i < m_NumberOfDimensions; i++)
+      for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
       {
         this->SetSpacing(i, spacing[i]);
       }
@@ -252,11 +251,11 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
     {
       double origin[3];
       // save and reset old locale
-      std::locale currentLocale = std::locale::global(std::locale::classic());
+      const std::locale currentLocale = std::locale::global(std::locale::classic());
       sscanf(text.c_str(), "%*s %lf %lf %lf", origin, origin + 1, origin + 2);
       // reset locale
       std::locale::global(currentLocale);
-      for (unsigned int i = 0; i < m_NumberOfDimensions; i++)
+      for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
       {
         this->SetOrigin(i, origin[i]);
       }
@@ -269,7 +268,7 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
       this->SetNumberOfComponents(3);
       this->SetPixelType(IOPixelEnum::VECTOR);
       char pixelType[256];
-      sscanf(text.c_str(), "%*s %*s %s", pixelType);
+      sscanf(text.c_str(), "%*s %*s %255s", pixelType);
       text = pixelType;
 
       this->SetPixelTypeFromString(text);
@@ -316,7 +315,7 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
       char         pixelType[256];
       unsigned int numComp = 1;
       // numComp is optional
-      sscanf(text.c_str(), "%*s %*s %s %u", pixelType, &numComp);
+      sscanf(text.c_str(), "%*s %*s %255s %u", pixelType, &numComp);
       text = pixelType;
       if (numComp == 1)
       {
@@ -330,7 +329,7 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
       this->SetNumberOfComponents(numComp);
 
       // maybe "LOOKUP_TABLE default"
-      std::streampos pos = file.tellg();
+      const std::streampos pos = file.tellg();
 
       this->GetNextLine(file, text);
       if (!(text.find("lookup_table") < text.length()))
@@ -345,7 +344,7 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
       readAttribute = true;
 
       char pixelType[256];
-      sscanf(text.c_str(), "%*s %*s %s", pixelType);
+      sscanf(text.c_str(), "%*s %*s %255s", pixelType);
       text = pixelType;
       this->SetPixelType(IOPixelEnum::SYMMETRICSECONDRANKTENSOR);
       this->SetNumberOfComponents(6);
@@ -354,7 +353,7 @@ VTKImageIO::InternalReadImageInformation(std::ifstream & file)
 
     if (!file.good())
     {
-      itkExceptionMacro(<< "Error reading header");
+      itkExceptionMacro("Error reading header");
     }
   }
 
@@ -386,7 +385,7 @@ VTKImageIO::ReadHeaderSize(std::ifstream & file)
       readAttribute = true;
 
       // maybe "LOOKUP_TABLE default"
-      std::streampos pos = file.tellg();
+      const std::streampos pos = file.tellg();
       this->GetNextLine(file, text);
 
       if (!(text.find("lookup_table") < text.length()))
@@ -395,13 +394,14 @@ VTKImageIO::ReadHeaderSize(std::ifstream & file)
         file.seekg(pos);
       }
       else
-      {}
+      {
+      }
     } // found scalars
   }
 
   if (file.fail())
   {
-    itkExceptionMacro(<< "Failed reading header information");
+    itkExceptionMacro("Failed reading header information");
   }
 
   // set the header size based on how much we just read
@@ -461,7 +461,7 @@ VTKImageIO::ReadBufferAsASCII(std::istream &              is,
   {
     if (this->GetNumberOfComponents() != 6)
     {
-      itkExceptionMacro(<< "itk::ERROR: VTKImageIO: Unsupported number of components in tensor.");
+      itkExceptionMacro("itk::ERROR: VTKImageIO: Unsupported number of components in tensor.");
     }
 
     switch (ctype)
@@ -496,11 +496,11 @@ VTKImageIO::ReadSymmetricTensorBufferAsBinary(std::istream & is, void * buffer, 
 {
   std::streamsize bytesRemaining = num;
   const SizeType  componentSize = this->GetComponentSize();
-  SizeType        pixelSize = componentSize * 6;
+  const SizeType  pixelSize = componentSize * 6;
 
   if (this->GetNumberOfComponents() != 6)
   {
-    itkExceptionMacro(<< "Unsupported tensor dimension.");
+    itkExceptionMacro("Unsupported tensor dimension.");
   }
   while (bytesRemaining)
   {
@@ -520,7 +520,7 @@ VTKImageIO::ReadSymmetricTensorBufferAsBinary(std::istream & is, void * buffer, 
 
   if (is.fail())
   {
-    itkExceptionMacro(<< "Failure during writing of file.");
+    itkExceptionMacro("Failure during writing of file.");
   }
 }
 
@@ -535,7 +535,7 @@ VTKImageIO::Read(void * buffer)
 
     if (this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
     {
-      itkExceptionMacro(<< "Cannot stream read binary second rank tensors.");
+      itkExceptionMacro("Cannot stream read binary second rank tensors.");
     }
 
     // open and stream read
@@ -549,16 +549,19 @@ VTKImageIO::Read(void * buffer)
       case 1:
         break;
       case 2:
-        ByteSwapper<uint16_t>::SwapRangeFromSystemToBigEndian((uint16_t *)buffer, this->GetIORegionSizeInComponents());
+        ByteSwapper<uint16_t>::SwapRangeFromSystemToBigEndian(static_cast<uint16_t *>(buffer),
+                                                              this->GetIORegionSizeInComponents());
         break;
       case 4:
-        ByteSwapper<uint32_t>::SwapRangeFromSystemToBigEndian((uint32_t *)buffer, this->GetIORegionSizeInComponents());
+        ByteSwapper<uint32_t>::SwapRangeFromSystemToBigEndian(static_cast<uint32_t *>(buffer),
+                                                              this->GetIORegionSizeInComponents());
         break;
       case 8:
-        ByteSwapper<uint64_t>::SwapRangeFromSystemToBigEndian((uint64_t *)buffer, this->GetIORegionSizeInComponents());
+        ByteSwapper<uint64_t>::SwapRangeFromSystemToBigEndian(static_cast<uint64_t *>(buffer),
+                                                              this->GetIORegionSizeInComponents());
         break;
       default:
-        itkExceptionMacro(<< "Unknown component size" << this->GetComponentSize());
+        itkExceptionMacro("Unknown component size" << this->GetComponentSize());
     }
   }
   else
@@ -570,11 +573,11 @@ VTKImageIO::Read(void * buffer)
 
     if (file.fail())
     {
-      itkExceptionMacro(<< "Failed seeking to data position");
+      itkExceptionMacro("Failed seeking to data position");
     }
 
     // seek pass the header
-    std::streampos dataPos = static_cast<std::streampos>(this->GetHeaderSize());
+    const std::streampos dataPos = static_cast<std::streampos>(this->GetHeaderSize());
     file.seekg(dataPos, std::ios::beg);
 
     // We are positioned at the data. The data is read depending on whether
@@ -600,16 +603,19 @@ VTKImageIO::Read(void * buffer)
         case 1:
           break;
         case 2:
-          ByteSwapper<uint16_t>::SwapRangeFromSystemToBigEndian((uint16_t *)buffer, this->GetImageSizeInComponents());
+          ByteSwapper<uint16_t>::SwapRangeFromSystemToBigEndian(static_cast<uint16_t *>(buffer),
+                                                                this->GetImageSizeInComponents());
           break;
         case 4:
-          ByteSwapper<uint32_t>::SwapRangeFromSystemToBigEndian((uint32_t *)buffer, this->GetImageSizeInComponents());
+          ByteSwapper<uint32_t>::SwapRangeFromSystemToBigEndian(static_cast<uint32_t *>(buffer),
+                                                                this->GetImageSizeInComponents());
           break;
         case 8:
-          ByteSwapper<uint64_t>::SwapRangeFromSystemToBigEndian((uint64_t *)buffer, this->GetImageSizeInComponents());
+          ByteSwapper<uint64_t>::SwapRangeFromSystemToBigEndian(static_cast<uint64_t *>(buffer),
+                                                                this->GetImageSizeInComponents());
           break;
         default:
-          itkExceptionMacro(<< "Unknown component size" << this->GetComponentSize());
+          itkExceptionMacro("Unknown component size" << this->GetComponentSize());
       }
     }
   }
@@ -638,15 +644,15 @@ VTKImageIO::WriteImageInformation(const void * itkNotUsed(buffer))
   this->OpenFileForWriting(file, m_FileName, true);
 
   // Check the image region for proper dimensions, etc.
-  unsigned int numDims = this->GetNumberOfDimensions();
+  const unsigned int numDims = this->GetNumberOfDimensions();
   if (numDims < 1 || numDims > 3)
   {
-    itkExceptionMacro(<< "VTK Writer can only write 1, 2 or 3-dimensional images");
+    itkExceptionMacro("VTK Writer can only write 1, 2 or 3-dimensional images");
   }
 
   // Write the VTK header information
-  file << "# vtk DataFile Version 3.0\n";
-  file << "VTK File Generated by Insight Segmentation and Registration Toolkit (ITK)\n";
+  file << "# vtk DataFile Version 3.0\n"
+       << "VTK File Generated by Insight Segmentation and Registration Toolkit (ITK)\n";
 
   if (this->GetFileType() == IOFileEnum::ASCII)
   {
@@ -664,19 +670,16 @@ VTKImageIO::WriteImageInformation(const void * itkNotUsed(buffer))
   file.flush();
 
   // Write characteristics of the data
-  file << "DATASET STRUCTURED_POINTS\n";
-  file << "DIMENSIONS " << this->GetDimensions(0) << " "
-       << ((this->GetNumberOfDimensions() > 1) ? this->GetDimensions(1) : 1) << " "
-       << ((this->GetNumberOfDimensions() > 2) ? this->GetDimensions(2) : 1) << " "
-       << "\n";
-  file << "SPACING " << this->GetSpacing(0) << " " << ((this->GetNumberOfDimensions() > 1) ? this->GetSpacing(1) : 1.0)
-       << " " << ((this->GetNumberOfDimensions() > 2) ? this->GetSpacing(2) : 1.0) << " "
-       << "\n";
-  file << "ORIGIN " << this->GetOrigin(0) << " " << ((this->GetNumberOfDimensions() > 1) ? this->GetOrigin(1) : 0.0)
-       << " " << ((this->GetNumberOfDimensions() > 2) ? this->GetOrigin(2) : 0.0) << " "
-       << "\n";
+  file << "DATASET STRUCTURED_POINTS\n"
+       << "DIMENSIONS " << this->GetDimensions(0) << ' '
+       << ((this->GetNumberOfDimensions() > 1) ? this->GetDimensions(1) : 1) << ' '
+       << ((this->GetNumberOfDimensions() > 2) ? this->GetDimensions(2) : 1) << ' ' << '\n';
+  file << "SPACING " << this->GetSpacing(0) << ' ' << ((this->GetNumberOfDimensions() > 1) ? this->GetSpacing(1) : 1.0)
+       << ' ' << ((this->GetNumberOfDimensions() > 2) ? this->GetSpacing(2) : 1.0) << ' ' << '\n';
+  file << "ORIGIN " << this->GetOrigin(0) << ' ' << ((this->GetNumberOfDimensions() > 1) ? this->GetOrigin(1) : 0.0)
+       << ' ' << ((this->GetNumberOfDimensions() > 2) ? this->GetOrigin(2) : 0.0) << ' ' << '\n';
 
-  file << "POINT_DATA " << this->GetImageSizeInPixels() << "\n";
+  file << "POINT_DATA " << this->GetImageSizeInPixels() << '\n';
 
   // NOTE: we don't write out RGB pixel types with ascii due to complication of
   // the required datatypes and the different ranges
@@ -684,25 +687,24 @@ VTKImageIO::WriteImageInformation(const void * itkNotUsed(buffer))
        (this->GetPixelType() == IOPixelEnum::RGBA && this->GetNumberOfComponents() == 4)) &&
       (this->GetComponentType() == IOComponentEnum::UCHAR) && (this->GetFileType() == IOFileEnum::Binary))
   {
-    file << "COLOR_SCALARS color_scalars"
-         << " " << this->GetNumberOfComponents() << "\n";
+    file << "COLOR_SCALARS color_scalars" << ' ' << this->GetNumberOfComponents() << '\n';
   }
   // Prefer the VECTORS representation when possible:
   else if (this->GetPixelType() == IOPixelEnum::VECTOR && this->GetNumberOfComponents() == 3)
   {
-    file << "VECTORS vectors " << this->GetComponentTypeAsString(m_ComponentType) << "\n";
+    file << "VECTORS vectors " << Self::GetComponentTypeAsString(m_ComponentType) << '\n';
   }
   else if (this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
   {
-    file << "TENSORS tensors " << this->GetComponentTypeAsString(m_ComponentType) << "\n";
+    file << "TENSORS tensors " << Self::GetComponentTypeAsString(m_ComponentType) << '\n';
   }
   else
   {
     // According to VTK documentation number of components should in
     // range (1,4):
     // todo this should be asserted or checked earlier!
-    file << "SCALARS scalars " << this->GetComponentTypeAsString(m_ComponentType) << " "
-         << this->GetNumberOfComponents() << "\n"
+    file << "SCALARS scalars " << Self::GetComponentTypeAsString(m_ComponentType) << ' '
+         << this->GetNumberOfComponents() << '\n'
          << "LOOKUP_TABLE default\n";
   }
 
@@ -726,8 +728,8 @@ WriteTensorBuffer(std::ostream &              os,
   ImageIOBase::SizeType i = 0;
   if (components == 3)
   {
-    PrintType zero(itk::NumericTraits<TComponent>::ZeroValue());
-    PrintType e12;
+    const auto zero(TComponent{});
+    PrintType  e12;
     while (i < num)
     {
       // row 1
@@ -771,7 +773,7 @@ WriteTensorBuffer(std::ostream &              os,
   }
   else
   {
-    ::itk::ExceptionObject e_(
+    itk::ExceptionObject e_(
       __FILE__, __LINE__, "itk::ERROR: VTKImageIO: Unsupported number of components in tensor.", ITK_LOCATION);
     throw e_;
   }
@@ -816,43 +818,41 @@ VTKImageIO::WriteBufferAsASCII(std::ostream &              os,
   }
 }
 
-#define WriteVTKImageBinaryBlockMACRO(storageType)                                                                     \
-  {                                                                                                                    \
-    const ImageIOBase::BufferSizeType numbytes =                                                                       \
-      static_cast<ImageIOBase::BufferSizeType>(this->GetImageSizeInBytes());                                           \
-    const ImageIOBase::BufferSizeType numberImageComponents =                                                          \
-      static_cast<ImageIOBase::BufferSizeType>(this->GetImageSizeInComponents());                                      \
-    const bool    isSymmetricSecondRankTensor = (this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR);      \
-    storageType * tempmemory = new storageType[numberImageComponents];                                                 \
-    memcpy(tempmemory, buffer, numbytes);                                                                              \
-    ByteSwapper<storageType>::SwapRangeFromSystemToBigEndian(tempmemory, numberImageComponents);                       \
-    /* write the image */                                                                                              \
-    if (isSymmetricSecondRankTensor)                                                                                   \
-    {                                                                                                                  \
-      this->WriteSymmetricTensorBufferAsBinary(file, tempmemory, numbytes);                                            \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-      if (!this->WriteBufferAsBinary(file, tempmemory, numbytes))                                                      \
-      {                                                                                                                \
-        itkExceptionMacro(<< "Could not write file: " << m_FileName);                                                  \
-      }                                                                                                                \
-    }                                                                                                                  \
-    delete[] tempmemory;                                                                                               \
+#define WriteVTKImageBinaryBlockMACRO(storageType)                                                             \
+  {                                                                                                            \
+    const ImageIOBase::BufferSizeType numbytes =                                                               \
+      static_cast<ImageIOBase::BufferSizeType>(this->GetImageSizeInBytes());                                   \
+    const ImageIOBase::BufferSizeType numberImageComponents =                                                  \
+      static_cast<ImageIOBase::BufferSizeType>(this->GetImageSizeInComponents());                              \
+    const bool isSymmetricSecondRankTensor = (this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR); \
+    const auto tempmemory = make_unique_for_overwrite<storageType[]>(numberImageComponents);                   \
+    memcpy(tempmemory.get(), buffer, numbytes);                                                                \
+    ByteSwapper<storageType>::SwapRangeFromSystemToBigEndian(tempmemory.get(), numberImageComponents);         \
+    /* write the image */                                                                                      \
+    if (isSymmetricSecondRankTensor)                                                                           \
+    {                                                                                                          \
+      this->WriteSymmetricTensorBufferAsBinary(file, tempmemory.get(), numbytes);                              \
+    }                                                                                                          \
+    else                                                                                                       \
+    {                                                                                                          \
+      if (!this->WriteBufferAsBinary(file, tempmemory.get(), numbytes))                                        \
+      {                                                                                                        \
+        itkExceptionMacro("Could not write file: " << m_FileName);                                             \
+      }                                                                                                        \
+    }                                                                                                          \
   }
 
-#define StreamWriteVTKImageBinaryBlockMACRO(storageType)                                                               \
-  {                                                                                                                    \
-    const ImageIOBase::BufferSizeType numbytes =                                                                       \
-      static_cast<ImageIOBase::BufferSizeType>(this->GetIORegionSizeInBytes());                                        \
-    const ImageIOBase::BufferSizeType numberImageComponents =                                                          \
-      static_cast<ImageIOBase::BufferSizeType>(this->GetIORegionSizeInComponents());                                   \
-    storageType * tempmemory = new storageType[numberImageComponents];                                                 \
-    memcpy(tempmemory, buffer, numbytes);                                                                              \
-    ByteSwapper<storageType>::SwapRangeFromSystemToBigEndian(tempmemory, numberImageComponents);                       \
-    /* write the image */                                                                                              \
-    this->StreamWriteBufferAsBinary(file, tempmemory);                                                                 \
-    delete[] tempmemory;                                                                                               \
+#define StreamWriteVTKImageBinaryBlockMACRO(storageType)                                               \
+  {                                                                                                    \
+    const ImageIOBase::BufferSizeType numbytes =                                                       \
+      static_cast<ImageIOBase::BufferSizeType>(this->GetIORegionSizeInBytes());                        \
+    const ImageIOBase::BufferSizeType numberImageComponents =                                          \
+      static_cast<ImageIOBase::BufferSizeType>(this->GetIORegionSizeInComponents());                   \
+    const auto tempmemory = make_unique_for_overwrite<storageType[]>(numberImageComponents);           \
+    memcpy(tempmemory.get(), buffer, numbytes);                                                        \
+    ByteSwapper<storageType>::SwapRangeFromSystemToBigEndian(tempmemory.get(), numberImageComponents); \
+    /* write the image */                                                                              \
+    this->StreamWriteBufferAsBinary(file, tempmemory.get());                                           \
   }
 
 void
@@ -862,16 +862,13 @@ VTKImageIO::WriteSymmetricTensorBufferAsBinary(std::ostream &                 os
 {
   std::streamsize bytesRemaining = num;
   const SizeType  componentSize = this->GetComponentSize();
-  SizeType        pixelSize;
-  char            zero[1024];
-
-  memset(zero, 0, 1024);
+  constexpr char  zero[1024]{};
 
   switch (this->GetNumberOfComponents())
   {
     case 3:
     {
-      pixelSize = componentSize * 3;
+      SizeType pixelSize = componentSize * 3;
       while (bytesRemaining)
       {
         // row 1
@@ -891,7 +888,7 @@ VTKImageIO::WriteSymmetricTensorBufferAsBinary(std::ostream &                 os
     }
     case 6:
     {
-      pixelSize = componentSize * 6;
+      SizeType pixelSize = componentSize * 6;
       while (bytesRemaining)
       {
         // row 1
@@ -913,12 +910,12 @@ VTKImageIO::WriteSymmetricTensorBufferAsBinary(std::ostream &                 os
       break;
     }
     default:
-      itkExceptionMacro(<< "Unsupported tensor dimension.");
+      itkExceptionMacro("Unsupported tensor dimension.");
   }
 
   if (os.fail())
   {
-    itkExceptionMacro(<< "Failure during writing of file.");
+    itkExceptionMacro("Failure during writing of file.");
   }
 }
 
@@ -931,7 +928,7 @@ VTKImageIO::Write(const void * buffer)
 
     if (this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
     {
-      itkExceptionMacro(<< "Cannot stream write binary second rank tensors.");
+      itkExceptionMacro("Cannot stream write binary second rank tensors.");
     }
 
     std::ofstream file;
@@ -949,7 +946,7 @@ VTKImageIO::Write(const void * buffer)
       // write one byte at the end of the file to allocate (this is a
       // nifty trick which should not write the entire size of the file
       // just allocate it, if the system supports sparse files)
-      std::streampos seekPos = this->GetImageSizeInBytes() + this->GetHeaderSize() - 1;
+      const std::streampos seekPos = this->GetImageSizeInBytes() + this->GetHeaderSize() - 1;
       file.seekp(seekPos, std::ios::cur);
       file.write("\0", 1);
       file.seekp(0);
@@ -967,7 +964,7 @@ VTKImageIO::Write(const void * buffer)
     }
 
     // the binary data must be written in big endian format
-    if (!ByteSwapper<uint16_t>::SystemIsBigEndian())
+    if constexpr (!ByteSwapper<uint16_t>::SystemIsBigEndian())
     {
       // only swap  when needed
       switch (this->GetComponentSize())
@@ -981,7 +978,7 @@ VTKImageIO::Write(const void * buffer)
         case 8:
           StreamWriteVTKImageBinaryBlockMACRO(uint64_t) break;
         default:
-          itkExceptionMacro(<< "Unknown component size" << this->GetComponentSize());
+          itkExceptionMacro("Unknown component size" << this->GetComponentSize());
       }
     }
     else
@@ -1001,12 +998,12 @@ VTKImageIO::Write(const void * buffer)
     itkAssertOrThrowMacro(this->GetHeaderSize() != 0, "Header size is unknown when it shouldn't be!");
 
     // seek pass the header
-    std::streampos dataPos = static_cast<std::streampos>(this->GetHeaderSize());
+    const std::streampos dataPos = static_cast<std::streampos>(this->GetHeaderSize());
     file.seekp(dataPos, std::ios::beg);
 
     if (file.fail())
     {
-      itkExceptionMacro(<< "Failed seeking to data position");
+      itkExceptionMacro("Failed seeking to data position");
     }
 
     // Write the actual pixel data
@@ -1017,7 +1014,7 @@ VTKImageIO::Write(const void * buffer)
     else // binary
     {
       // the binary data must be written in big endian format
-      if (!ByteSwapper<uint16_t>::SystemIsBigEndian())
+      if constexpr (!ByteSwapper<uint16_t>::SystemIsBigEndian())
       {
         // only swap  when needed
         switch (this->GetComponentSize())
@@ -1031,7 +1028,7 @@ VTKImageIO::Write(const void * buffer)
           case 8:
             WriteVTKImageBinaryBlockMACRO(uint64_t) break;
           default:
-            itkExceptionMacro(<< "Unknown component size" << this->GetComponentSize());
+            itkExceptionMacro("Unknown component size" << this->GetComponentSize());
         }
       }
       else
@@ -1045,7 +1042,7 @@ VTKImageIO::Write(const void * buffer)
         {
           if (!this->WriteBufferAsBinary(file, buffer, this->GetImageSizeInBytes()))
           {
-            itkExceptionMacro(<< "Could not write file: " << m_FileName);
+            itkExceptionMacro("Could not write file: " << m_FileName);
           }
         }
       }

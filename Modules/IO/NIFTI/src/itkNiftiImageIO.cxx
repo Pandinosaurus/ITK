@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,29 +15,32 @@
  *  limitations under the License.
  *
  *=========================================================================*/
+
 #include "itkNiftiImageIO.h"
 #include "itkIOCommon.h"
 #include "itkMetaDataObject.h"
-#include "itkSpatialOrientationAdapter.h"
+#include "itkAnatomicalOrientation.h"
 #include <nifti1_io.h>
-
 #include "itkNiftiImageIOConfigurePrivate.h"
+#include "itkMakeUniqueForOverwrite.h"
+#include "itksys/SystemTools.hxx"
+#include "itksys/SystemInformation.hxx"
 
 namespace itk
 {
-//#define ITK_USE_VERY_VERBOSE_NIFTI_DEBUGGING
+// #define ITK_USE_VERY_VERBOSE_NIFTI_DEBUGGING
 #if defined(ITK_USE_VERY_VERBOSE_NIFTI_DEBUGGING)
 namespace
 {
 static int
-print_hex_vals(char const * const data, const int nbytes, FILE * const fp)
+print_hex_vals(const char * const data, const int nbytes, FILE * const fp)
 {
   if (!data || nbytes < 1 || !fp)
   {
     return -1;
   }
   fputs("0x", fp);
-  for (int c = 0; c < nbytes; c++)
+  for (int c = 0; c < nbytes; ++c)
   {
     fprintf(fp, " %x", data[c]);
   }
@@ -45,7 +48,7 @@ print_hex_vals(char const * const data, const int nbytes, FILE * const fp)
   return 0;
 }
 
-static const char * const
+static const char *
 str_intent(const unsigned int intent)
 {
   switch (intent)
@@ -161,7 +164,7 @@ DumpNiftiHeader(const std::string & fname)
           hp->regular,
           hp->dim_info);
   fprintf(stderr, "    dim[8]         =");
-  for (int c = 0; c < 8; c++)
+  for (int c = 0; c < 8; ++c)
   {
     fprintf(stderr, " %d", hp->dim[c]);
   }
@@ -183,12 +186,12 @@ DumpNiftiHeader(const std::string & fname)
           hp->bitpix,
           hp->slice_start);
   // break pixdim over 2 lines
-  for (int c = 0; c < 4; c++)
+  for (int c = 0; c < 4; ++c)
   {
     fprintf(stderr, " %f", hp->pixdim[c]);
   }
   fprintf(stderr, "\n                    ");
-  for (int c = 4; c < 8; c++)
+  for (int c = 4; c < 8; ++c)
   {
     fprintf(stderr, " %f", hp->pixdim[c]);
   }
@@ -270,14 +273,14 @@ dumpdata(const void * x)
 {
   std::cerr << "----------------------" << std::endl;
   const float * a = (const float *)x;
-  for (unsigned int i = 0; i < 24; i++) // t
+  for (unsigned int i = 0; i < 24; ++i) // t
   {
     std::cerr << a[i] << std::endl;
   }
 }
 } // namespace
 #else
-#  define dumpdata(x)
+#  define dumpdata(x) ITK_NOOP_STATEMENT
 #endif // #if defined(ITK_USE_VERY_VERBOSE_NIFTI_DEBUGGING)
 
 namespace
@@ -289,7 +292,7 @@ str_xform2code(const std::string & codeName)
   {
     return NIFTI_XFORM_SCANNER_ANAT;
   }
-  else if (codeName == "NIFTI_XFORM_ALIGNED_ANAT")
+  if (codeName == "NIFTI_XFORM_ALIGNED_ANAT")
   {
     return NIFTI_XFORM_ALIGNED_ANAT;
   }
@@ -332,24 +335,24 @@ UpperToLowerOrder(int dim)
 {
   auto ** mat = new int *[dim];
 
-  for (int i = 0; i < dim; i++)
+  for (int i = 0; i < dim; ++i)
   {
     mat[i] = new int[dim];
   }
   // fill in
   int index(0);
-  for (int i = 0; i < dim; i++)
+  for (int i = 0; i < dim; ++i)
   {
-    for (int j = i; j < dim; j++)
+    for (int j = i; j < dim; ++j)
     {
       mat[i][j] = index;
       mat[j][i] = index;
-      index++;
+      ++index;
     }
   }
   auto * rval = new int[index + 1];
   int    index2(0);
-  for (int i = 0; i < dim; i++)
+  for (int i = 0; i < dim; ++i)
   {
     for (int j = 0; j <= i; j++, index2++)
     {
@@ -357,46 +360,7 @@ UpperToLowerOrder(int dim)
     }
   }
   rval[index2] = -1;
-  for (int i = 0; i < dim; i++)
-  {
-    delete[] mat[i];
-  }
-  delete[] mat;
-  return rval;
-}
-
-// returns an ordering array for converting lower triangular symmetric matrix
-// to upper triangular symmetric matrix
-int *
-LowerToUpperOrder(int dim)
-{
-  auto ** mat = new int *[dim];
-
-  for (int i = 0; i < dim; i++)
-  {
-    mat[i] = new int[dim];
-  }
-  // fill in
-  int index(0);
-  for (int i = 0; i < dim; i++)
-  {
-    for (int j = 0; j <= i; j++, index++)
-    {
-      mat[i][j] = index;
-      mat[j][i] = index;
-    }
-  }
-  auto * rval = new int[index + 1];
-  int    index2(0);
-  for (int i = 0; i < dim; i++)
-  {
-    for (int j = i; j < dim; j++, index2++)
-    {
-      rval[index2] = mat[i][j];
-    }
-  }
-  rval[index2] = -1;
-  for (int i = 0; i < dim; i++)
+  for (int i = 0; i < dim; ++i)
   {
     delete[] mat[i];
   }
@@ -415,39 +379,50 @@ SymMatDim(int count)
   while (count > 0)
   {
     count -= row;
-    dim++;
-    row++;
+    ++dim;
+    ++row;
   }
   return dim;
 }
 
 ImageIORegion
-NiftiImageIO ::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion & requestedRegion) const
+NiftiImageIO::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion & requestedRegion) const
 {
   return requestedRegion;
 }
 
 
-// This internal proxy class provides a pointer-like interface to a nifti_image*, by supporting
-// conversions between proxy and nifti_image pointer and arrow syntax (e.g., m_NiftiImage->data).
+// Custom class to manage memory for nifti_image_struct
+struct NiftiImageDeleter
+{
+  void
+  operator()(nifti_image * ptr) const
+  {
+    nifti_image_free(ptr);
+  }
+};
+
+
 class NiftiImageIO::NiftiImageProxy
 {
-  nifti_image * m_ptr;
-
 public:
-  NiftiImageProxy(nifti_image * ptr)
-    : m_ptr(ptr)
-  {}
+  NiftiImageProxy() = default;
+  ~NiftiImageProxy() = default;
 
-  operator nifti_image *() { return m_ptr; }
+  // Disable copy and move semantics
+  NiftiImageProxy(const NiftiImageProxy &) = delete;
+  NiftiImageProxy &
+  operator=(const NiftiImageProxy &) = delete;
+  NiftiImageProxy(NiftiImageProxy &&) = delete;
+  NiftiImageProxy &
+  operator=(NiftiImageProxy &&) = delete;
 
-  nifti_image * operator->() { return m_ptr; }
+  std::unique_ptr<nifti_image, NiftiImageDeleter> ptr;
 };
 
 
 NiftiImageIO::NiftiImageIO()
-  : m_NiftiImageHolder(new NiftiImageProxy(nullptr))
-  , m_NiftiImage(*m_NiftiImageHolder.get())
+  : m_Holder{ std::make_unique<NiftiImageProxy>() }
   , m_LegacyAnalyze75Mode{ ITK_NIFTI_IO_ANALYZE_FLAVOR_DEFAULT }
 {
   this->SetNumberOfDimensions(3);
@@ -460,28 +435,38 @@ NiftiImageIO::NiftiImageIO()
     this->AddSupportedWriteExtension(ext);
     this->AddSupportedReadExtension(ext);
   }
+  std::string envVar;
+  if (itksys::SystemTools::GetEnv("ITK_NIFTI_SFORM_PERMISSIVE", envVar))
+  {
+    envVar = itksys::SystemTools::UpperCase(envVar);
+    this->SetSFORM_Permissive(envVar != "NO" && envVar != "OFF" && envVar != "FALSE");
+  }
+  if constexpr (ITK_NIFTI_IO_SFORM_PERMISSIVE_DEFAULT)
+  {
+    m_SFORM_Permissive = ITK_NIFTI_IO_SFORM_PERMISSIVE_DEFAULT;
+  }
 }
 
-NiftiImageIO::~NiftiImageIO()
-{
-  nifti_image_free(this->m_NiftiImage);
-}
+NiftiImageIO::~NiftiImageIO() = default;
 
 void
-NiftiImageIO ::PrintSelf(std::ostream & os, Indent indent) const
+NiftiImageIO::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "NiftiImageHolder: " << *(this->m_NiftiImageHolder).get() << std::endl;
-  os << indent << "NiftiImage: " << this->m_NiftiImage << std::endl;
-  os << indent << "RescaleSlope: " << this->m_RescaleSlope << std::endl;
-  os << indent << "RescaleIntercept: " << this->m_RescaleIntercept << std::endl;
-  os << indent << "OnDiskComponentType: " << this->m_OnDiskComponentType << std::endl;
-  os << indent << "LegacyAnalyze75Mode: " << this->m_LegacyAnalyze75Mode << std::endl;
+  os << indent << "NiftiImageHolder: " << m_Holder->ptr.get() << std::endl;
+  os << indent << "RescaleSlope: " << m_RescaleSlope << std::endl;
+  os << indent << "RescaleIntercept: " << m_RescaleIntercept << std::endl;
+  itkPrintSelfBooleanMacro(ConvertRAS);
+  itkPrintSelfBooleanMacro(ConvertRASVectors);
+  itkPrintSelfBooleanMacro(ConvertRASDisplacementVectors);
+  os << indent << "OnDiskComponentType: " << m_OnDiskComponentType << std::endl;
+  os << indent << "LegacyAnalyze75Mode: " << m_LegacyAnalyze75Mode << std::endl;
+  os << indent << "SFORM permissive: " << (m_SFORM_Permissive ? "On" : "Off") << std::endl;
 }
 
 bool
-NiftiImageIO ::CanWriteFile(const char * FileNameToWrite)
+NiftiImageIO::CanWriteFile(const char * FileNameToWrite)
 {
   const bool ValidFileNameFound = nifti_is_complete_filename(FileNameToWrite) > 0;
 
@@ -491,17 +476,20 @@ NiftiImageIO ::CanWriteFile(const char * FileNameToWrite)
 bool
 NiftiImageIO::MustRescale() const
 {
-  return std::abs(this->m_RescaleSlope) > std::numeric_limits<double>::epsilon() &&
-         (std::abs(this->m_RescaleSlope - 1.0) > std::numeric_limits<double>::epsilon() ||
-          std::abs(this->m_RescaleIntercept) > std::numeric_limits<double>::epsilon());
+  return itk::Math::abs(this->m_RescaleSlope) > std::numeric_limits<double>::epsilon() &&
+         (itk::Math::abs(this->m_RescaleSlope - 1.0) > std::numeric_limits<double>::epsilon() ||
+          itk::Math::abs(this->m_RescaleIntercept) > std::numeric_limits<double>::epsilon());
 }
+
+namespace
+{
 
 // Internal function to rescale pixel according to Rescale Slope/Intercept
 template <typename TBuffer>
 void
 RescaleFunction(TBuffer * buffer, double slope, double intercept, size_t size)
 {
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; ++i)
   {
     double tmp = static_cast<double>(buffer[i]) * slope;
     tmp += intercept;
@@ -515,39 +503,70 @@ CastCopy(float * to, const void * from, size_t pixelcount)
 {
   const auto * _from = static_cast<const PixelType *>(from);
 
-  for (size_t i = 0; i < pixelcount; i++)
+  for (size_t i = 0; i < pixelcount; ++i)
   {
     to[i] = static_cast<float>(_from[i]);
   }
 }
+
+// Internal function to convert vectors between RAS and LPS coordinate systems.
+// Dimensions are CXYZT (ITK memory layout)
+template <typename TBuffer>
+void
+ConvertRASToFromLPS_CXYZT(TBuffer * buffer, size_t size)
+{
+  const size_t numberOfVectors = size / 3;
+  for (size_t i = 0; i < numberOfVectors; ++i)
+  {
+    buffer[0] *= -1;
+    buffer[1] *= -1;
+    buffer += 3;
+  }
+}
+
+// Internal function to convert vectors between RAS and LPS coordinate systems.
+// Dimensions are XYZTC (NIFTI memory layout)
+template <typename TBuffer>
+void
+ConvertRASToFromLPS_XYZTC(TBuffer * buffer, size_t size)
+{
+  // Flip the sign of the first two components (L<->R, P<->A)
+  // and keep the third component (S) unchanged.
+  const size_t numberOfComponents = size / 3 * 2;
+  for (size_t i = 0; i < numberOfComponents; ++i)
+  {
+    buffer[i] *= -1;
+  }
+}
+} // namespace
 
 void
 NiftiImageIO::Read(void * buffer)
 {
   void * data = nullptr;
 
-  ImageIORegion            regionToRead = this->GetIORegion();
+  const ImageIORegion      regionToRead = this->GetIORegion();
   ImageIORegion::SizeType  size = regionToRead.GetSize();
   ImageIORegion::IndexType start = regionToRead.GetIndex();
 
-  size_t       numElts = 1;
-  int          _origin[7];
-  int          _size[7];
-  unsigned int i;
-
-  for (i = 0; i < start.size(); i++)
+  size_t numElts = 1;
+  int    _origin[7];
+  int    _size[7];
   {
-    _origin[i] = static_cast<int>(start[i]);
-    _size[i] = static_cast<int>(size[i]);
-    numElts *= _size[i];
+    unsigned int i = 0;
+    for (; i < start.size(); ++i)
+    {
+      _origin[i] = static_cast<int>(start[i]);
+      _size[i] = static_cast<int>(size[i]);
+      numElts *= _size[i];
+    }
+    for (; i < 7; ++i)
+    {
+      _origin[i] = 0;
+      _size[i] = 1;
+    }
   }
-  for (; i < 7; i++)
-  {
-    _origin[i] = 0;
-    _size[i] = 1;
-  }
-
-  unsigned int numComponents = this->GetNumberOfComponents();
+  const unsigned int numComponents = this->GetNumberOfComponents();
   //
   // special case for images of vector pixels
   if (numComponents > 1 && this->GetPixelType() != IOPixelEnum::COMPLEX)
@@ -560,45 +579,49 @@ NiftiImageIO::Read(void * buffer)
     _size[4] = numComponents;
   }
   // Free memory if any was occupied already (incase of re-using the IO filter).
-  nifti_image_free(this->m_NiftiImage);
+  m_Holder->ptr.reset();
 
   //
   // allocate nifti image...
-  this->m_NiftiImage = nifti_image_read(this->GetFileName(), false);
-  if (this->m_NiftiImage == nullptr)
+  m_Holder->ptr.reset(nifti_image_read(this->GetFileName(), false));
+  if (!m_Holder->ptr)
   {
-    itkExceptionMacro(<< "nifti_image_read (just header) failed for file: " << this->GetFileName());
+    itkExceptionMacro("nifti_image_read (just header) failed for file: " << this->GetFileName());
   }
 
   //
-  // decide whether to read whole region or subregion, by stepping
+  // decide whether to read a whole region or subregion, by stepping
   // thru dims and comparing them to requested sizes
-  for (i = 0; i < this->GetNumberOfDimensions(); i++)
   {
-    if (this->m_NiftiImage->dim[i + 1] != _size[i])
+    unsigned int i = 0;
+
+    for (; i < this->GetNumberOfDimensions(); ++i)
     {
-      break;
+      if (m_Holder->ptr->dim[i + 1] != _size[i])
+      {
+        break;
+      }
+    }
+    // if all dimensions match requested size, just read in
+    // all data as a block
+    if (i == this->GetNumberOfDimensions())
+    {
+      if (nifti_image_load(m_Holder->ptr.get()) == -1)
+      {
+        itkExceptionMacro("nifti_image_load failed for file: " << this->GetFileName());
+      }
+      data = m_Holder->ptr->data;
+    }
+    else
+    {
+      // read in a subregion
+      if (nifti_read_subregion_image(m_Holder->ptr.get(), _origin, _size, &data) == -1)
+      {
+        itkExceptionMacro("nifti_read_subregion_image failed for file: " << this->GetFileName());
+      }
     }
   }
-  // if all dimensions match requested size, just read in
-  // all data as a block
-  if (i == this->GetNumberOfDimensions())
-  {
-    if (nifti_image_load(this->m_NiftiImage) == -1)
-    {
-      itkExceptionMacro(<< "nifti_image_load failed for file: " << this->GetFileName());
-    }
-    data = this->m_NiftiImage->data;
-  }
-  else
-  {
-    // read in a subregion
-    if (nifti_read_subregion_image(this->m_NiftiImage, _origin, _size, &data) == -1)
-    {
-      itkExceptionMacro(<< "nifti_read_subregion_image failed for file: " << this->GetFileName());
-    }
-  }
-  unsigned int pixelSize = this->m_NiftiImage->nbyper;
+  unsigned int pixelSize = m_Holder->ptr->nbyper;
   //
   // if we're going to have to rescale pixels, and the on-disk
   // pixel type is different than the pixel type reported to
@@ -645,18 +668,18 @@ NiftiImageIO::Read(void * buffer)
         CastCopy<unsigned long long>(_data, data, numElts);
         break;
       case IOComponentEnum::FLOAT:
-        itkExceptionMacro(<< "FLOAT pixels do not need Casting to float");
+        itkExceptionMacro("FLOAT pixels do not need Casting to float");
       case IOComponentEnum::DOUBLE:
-        itkExceptionMacro(<< "DOUBLE pixels do not need Casting to float");
+        itkExceptionMacro("DOUBLE pixels do not need Casting to float");
       case IOComponentEnum::LDOUBLE:
-        itkExceptionMacro(<< "LDOUBLE pixels do not need Casting to float");
+        itkExceptionMacro("LDOUBLE pixels do not need Casting to float");
       case IOComponentEnum::UNKNOWNCOMPONENTTYPE:
-        itkExceptionMacro(<< "Bad OnDiskComponentType UNKNOWNCOMPONENTTYPE");
+        itkExceptionMacro("Bad OnDiskComponentType UNKNOWNCOMPONENTTYPE");
     }
     //
     // we're replacing the data pointer, so if it was allocated
     // in nifti_read_subregion_image, free the old data here
-    if (data != this->m_NiftiImage->data)
+    if (data != m_Holder->ptr->data)
     {
       free(data);
     }
@@ -672,7 +695,7 @@ NiftiImageIO::Read(void * buffer)
     //
     // if read_subregion was called it allocates a buffer that needs to be
     // freed.
-    if (data != this->m_NiftiImage->data)
+    if (data != m_Holder->ptr->data)
     {
       free(data);
     }
@@ -681,39 +704,38 @@ NiftiImageIO::Read(void * buffer)
   {
     // otherwise nifti is x y z t vec l m 0, itk is
     // vec x y z t l m o
-    const auto * niftibuf = (const char *)data;
-    auto *       itkbuf = (char *)buffer;
-    const size_t rowdist = this->m_NiftiImage->dim[1];
-    const size_t slicedist = rowdist * this->m_NiftiImage->dim[2];
-    const size_t volumedist = slicedist * this->m_NiftiImage->dim[3];
-    const size_t seriesdist = volumedist * this->m_NiftiImage->dim[4];
+    const auto * niftibuf = static_cast<const char *>(data);
+    auto *       itkbuf = static_cast<char *>(buffer);
+    const size_t rowdist = m_Holder->ptr->dim[1];
+    const size_t slicedist = rowdist * m_Holder->ptr->dim[2];
+    const size_t volumedist = slicedist * m_Holder->ptr->dim[3];
+    const size_t seriesdist = volumedist * m_Holder->ptr->dim[4];
     //
     // as per ITK bug 0007485
     // NIfTI is lower triangular, ITK is upper triangular.
-    int * vecOrder;
+    int * vecOrder = nullptr;
     if (this->GetPixelType() == IOPixelEnum::DIFFUSIONTENSOR3D ||
         this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
     {
-      //      vecOrder = LowerToUpperOrder(SymMatDim(numComponents));
       vecOrder = UpperToLowerOrder(SymMatDim(numComponents));
     }
     else
     {
       vecOrder = new int[numComponents];
-      for (i = 0; i < numComponents; i++)
+      for (unsigned int i = 0; i < numComponents; ++i)
       {
         vecOrder[i] = i;
       }
     }
-    for (int t = 0; t < this->m_NiftiImage->dim[4]; t++)
+    for (int t = 0; t < m_Holder->ptr->dim[4]; ++t)
     {
-      for (int z = 0; z < this->m_NiftiImage->dim[3]; z++)
+      for (int z = 0; z < m_Holder->ptr->dim[3]; ++z)
       {
-        for (int y = 0; y < this->m_NiftiImage->dim[2]; y++)
+        for (int y = 0; y < m_Holder->ptr->dim[2]; ++y)
         {
-          for (int x = 0; x < this->m_NiftiImage->dim[1]; x++)
+          for (int x = 0; x < m_Holder->ptr->dim[1]; ++x)
           {
-            for (unsigned int c = 0; c < numComponents; c++)
+            for (unsigned int c = 0; c < numComponents; ++c)
             {
               const size_t nifti_index =
                 (c * seriesdist + volumedist * t + slicedist * z + rowdist * y + x) * pixelSize;
@@ -733,7 +755,7 @@ NiftiImageIO::Read(void * buffer)
     dumpdata(buffer);
     // if read_subregion was called it allocates a buffer that needs to be
     // freed.
-    if (data != this->m_NiftiImage->data)
+    if (data != m_Holder->ptr->data)
     {
       free(data);
     }
@@ -786,9 +808,30 @@ NiftiImageIO::Read(void * buffer)
       default:
         if (this->GetPixelType() == IOPixelEnum::SCALAR)
         {
-          itkExceptionMacro(<< "Datatype: " << this->GetComponentTypeAsString(this->m_ComponentType)
-                            << " not supported");
+          itkExceptionMacro("Datatype: " << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType)
+                                         << " not supported");
         }
+    }
+  }
+
+  if (this->m_ConvertRAS)
+  {
+    if (this->GetPixelType() != IOPixelEnum::VECTOR && this->GetPixelType() != IOPixelEnum::POINT)
+    {
+      itkExceptionMacro("RAS conversion requires pixel to be 3-component vector or point. Current pixel type is "
+                        << numComponents << "-component " << this->GetPixelType() << '.');
+    }
+    switch (this->m_ComponentType)
+    {
+      case IOComponentEnum::FLOAT:
+        ConvertRASToFromLPS_CXYZT(static_cast<float *>(buffer), numElts * numComponents);
+        break;
+      case IOComponentEnum::DOUBLE:
+        ConvertRASToFromLPS_CXYZT(static_cast<double *>(buffer), numElts * numComponents);
+        break;
+      default:
+        itkExceptionMacro("RAS conversion of datatype " << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType)
+                                                        << " is not supported");
     }
   }
 }
@@ -810,7 +853,7 @@ NiftiImageIO::DetermineFileType(const char * FileNameToRead)
 // Nifti Header.  Some code is redundant with ReadImageInformation
 // a StateMachine could provide a better implementation
 bool
-NiftiImageIO ::CanReadFile(const char * FileNameToRead)
+NiftiImageIO::CanReadFile(const char * FileNameToRead)
 {
   // is_nifti_file returns
   //      == 2 for a nifti file (header+data in 2 files)
@@ -822,7 +865,7 @@ NiftiImageIO ::CanReadFile(const char * FileNameToRead)
   {
     return true;
   }
-  else if (imageFTYPE == 0 && (this->GetLegacyAnalyze75Mode() != NiftiImageIOEnums::Analyze75Flavor::AnalyzeReject))
+  if (imageFTYPE == 0 && (this->GetLegacyAnalyze75Mode() != NiftiImageIOEnums::Analyze75Flavor::AnalyzeReject))
   {
     return true;
   }
@@ -834,172 +877,181 @@ NiftiImageIO ::CanReadFile(const char * FileNameToRead)
 void
 NiftiImageIO::SetImageIOMetadataFromNIfTI()
 {
-  auto & nim = this->m_NiftiImage;
-
   // Encapsulate as much information as possible.
   MetaDataDictionary & thisDic = this->GetMetaDataDictionary();
   // Necessary to clear dict if ImageIO object is re-used
   thisDic.Clear();
 
+  EncapsulateMetaData<std::string>(thisDic, "ITK_sform_corrected", m_SFORM_Corrected ? "YES" : "NO");
+
   std::ostringstream nifti_type;
-  nifti_type << nim->nifti_type;
+  nifti_type << m_Holder->ptr->nifti_type;
   EncapsulateMetaData<std::string>(thisDic, "nifti_type", nifti_type.str());
 
   std::ostringstream dim_info;
-  dim_info << FPS_INTO_DIM_INFO(nim->freq_dim, nim->phase_dim, nim->slice_dim);
+  dim_info << FPS_INTO_DIM_INFO(m_Holder->ptr->freq_dim, m_Holder->ptr->phase_dim, m_Holder->ptr->slice_dim);
   EncapsulateMetaData<std::string>(thisDic, "dim_info", dim_info.str());
 
-  for (int idx = 0; idx < 8; idx++)
+  for (int idx = 0; idx < 8; ++idx)
   {
     std::ostringstream dim;
-    dim << nim->dim[idx];
+    dim << m_Holder->ptr->dim[idx];
     std::ostringstream dimKey;
-    dimKey << "dim[" << idx << "]";
+    dimKey << "dim[" << idx << ']';
     EncapsulateMetaData<std::string>(thisDic, dimKey.str(), dim.str());
   }
 
   std::ostringstream intent_p1;
-  intent_p1 << nim->intent_p1;
+  intent_p1 << m_Holder->ptr->intent_p1;
   EncapsulateMetaData<std::string>(thisDic, "intent_p1", intent_p1.str());
 
   std::ostringstream intent_p2;
-  intent_p2 << nim->intent_p2;
+  intent_p2 << m_Holder->ptr->intent_p2;
   EncapsulateMetaData<std::string>(thisDic, "intent_p2", intent_p2.str());
 
   std::ostringstream intent_p3;
-  intent_p3 << nim->intent_p3;
+  intent_p3 << m_Holder->ptr->intent_p3;
   EncapsulateMetaData<std::string>(thisDic, "intent_p3", intent_p3.str());
 
   std::ostringstream intent_code;
-  intent_code << nim->intent_code;
+  intent_code << m_Holder->ptr->intent_code;
   EncapsulateMetaData<std::string>(thisDic, "intent_code", intent_code.str());
 
   std::ostringstream datatype;
-  datatype << nim->datatype;
+  datatype << m_Holder->ptr->datatype;
   EncapsulateMetaData<std::string>(thisDic, "datatype", datatype.str());
 
   std::ostringstream bitpix;
-  bitpix << (8 * nim->nbyper);
+  bitpix << (8 * m_Holder->ptr->nbyper);
   EncapsulateMetaData<std::string>(thisDic, "bitpix", bitpix.str());
 
   std::ostringstream slice_start;
-  slice_start << nim->slice_start;
+  slice_start << m_Holder->ptr->slice_start;
   EncapsulateMetaData<std::string>(thisDic, "slice_start", slice_start.str());
 
-  for (int idx = 0; idx < 8; idx++)
+  for (int idx = 0; idx < 8; ++idx)
   {
     std::ostringstream pixdim;
-    pixdim << nim->pixdim[idx];
+    pixdim << m_Holder->ptr->pixdim[idx];
     std::ostringstream pixdimKey;
-    pixdimKey << "pixdim[" << idx << "]";
+    pixdimKey << "pixdim[" << idx << ']';
     EncapsulateMetaData<std::string>(thisDic, pixdimKey.str(), pixdim.str());
   }
 
   std::ostringstream vox_offset;
-  vox_offset << nim->iname_offset;
+  vox_offset << m_Holder->ptr->iname_offset;
   EncapsulateMetaData<std::string>(thisDic, "vox_offset", vox_offset.str());
 
   std::ostringstream scl_slope;
-  scl_slope << nim->scl_slope;
+  scl_slope << m_Holder->ptr->scl_slope;
   EncapsulateMetaData<std::string>(thisDic, "scl_slope", scl_slope.str());
 
   std::ostringstream scl_inter;
-  scl_inter << nim->scl_inter;
+  scl_inter << m_Holder->ptr->scl_inter;
   EncapsulateMetaData<std::string>(thisDic, "scl_inter", scl_inter.str());
 
   std::ostringstream slice_end;
-  slice_end << nim->slice_end;
+  slice_end << m_Holder->ptr->slice_end;
   EncapsulateMetaData<std::string>(thisDic, "slice_end", slice_end.str());
 
   std::ostringstream slice_code;
-  slice_code << nim->slice_code;
+  slice_code << m_Holder->ptr->slice_code;
   EncapsulateMetaData<std::string>(thisDic, "slice_code", slice_code.str());
 
   std::ostringstream xyzt_units;
-  xyzt_units << SPACE_TIME_TO_XYZT(nim->xyz_units, nim->time_units);
+  xyzt_units << SPACE_TIME_TO_XYZT(m_Holder->ptr->xyz_units, m_Holder->ptr->time_units);
   EncapsulateMetaData<std::string>(thisDic, "xyzt_units", xyzt_units.str());
 
   std::ostringstream cal_max;
-  cal_max << nim->cal_max;
+  cal_max << m_Holder->ptr->cal_max;
   EncapsulateMetaData<std::string>(thisDic, "cal_max", cal_max.str());
 
   std::ostringstream cal_min;
-  cal_min << nim->cal_min;
+  cal_min << m_Holder->ptr->cal_min;
   EncapsulateMetaData<std::string>(thisDic, "cal_min", cal_min.str());
 
   std::ostringstream slice_duration;
-  slice_duration << nim->slice_duration;
+  slice_duration << m_Holder->ptr->slice_duration;
   EncapsulateMetaData<std::string>(thisDic, "slice_duration", slice_duration.str());
 
   std::ostringstream toffset;
-  toffset << nim->toffset;
+  toffset << m_Holder->ptr->toffset;
   EncapsulateMetaData<std::string>(thisDic, "toffset", toffset.str());
 
   std::ostringstream descrip;
-  descrip << nim->descrip;
+  descrip << m_Holder->ptr->descrip;
   EncapsulateMetaData<std::string>(thisDic, "descrip", descrip.str());
 
   std::ostringstream aux_file;
-  aux_file << nim->aux_file;
+  aux_file << m_Holder->ptr->aux_file;
   EncapsulateMetaData<std::string>(thisDic, "aux_file", aux_file.str());
 
   std::ostringstream qform_code;
-  qform_code << nim->qform_code;
+  qform_code << m_Holder->ptr->qform_code;
   EncapsulateMetaData<std::string>(thisDic, "qform_code", qform_code.str());
-  EncapsulateMetaData<std::string>(thisDic, "qform_code_name", std::string(str_xform(nim->qform_code)));
+  EncapsulateMetaData<std::string>(thisDic, "qform_code_name", std::string(str_xform(m_Holder->ptr->qform_code)));
 
   std::ostringstream sform_code;
-  sform_code << nim->sform_code;
+  sform_code << m_Holder->ptr->sform_code;
   EncapsulateMetaData<std::string>(thisDic, "sform_code", sform_code.str());
-  EncapsulateMetaData<std::string>(thisDic, "sform_code_name", std::string(str_xform(nim->sform_code)));
+  EncapsulateMetaData<std::string>(thisDic, "sform_code_name", std::string(str_xform(m_Holder->ptr->sform_code)));
 
   std::ostringstream quatern_b;
-  quatern_b << nim->quatern_b;
+  quatern_b << m_Holder->ptr->quatern_b;
   EncapsulateMetaData<std::string>(thisDic, "quatern_b", quatern_b.str());
 
   std::ostringstream quatern_c;
-  quatern_c << nim->quatern_c;
+  quatern_c << m_Holder->ptr->quatern_c;
   EncapsulateMetaData<std::string>(thisDic, "quatern_c", quatern_c.str());
 
   std::ostringstream quatern_d;
-  quatern_d << nim->quatern_d;
+  quatern_d << m_Holder->ptr->quatern_d;
   EncapsulateMetaData<std::string>(thisDic, "quatern_d", quatern_d.str());
 
   std::ostringstream qoffset_x;
-  qoffset_x << nim->qoffset_x;
+  qoffset_x << m_Holder->ptr->qoffset_x;
   EncapsulateMetaData<std::string>(thisDic, "qoffset_x", qoffset_x.str());
 
   std::ostringstream qoffset_y;
-  qoffset_y << nim->qoffset_y;
+  qoffset_y << m_Holder->ptr->qoffset_y;
   EncapsulateMetaData<std::string>(thisDic, "qoffset_y", qoffset_y.str());
 
   std::ostringstream qoffset_z;
-  qoffset_z << nim->qoffset_z;
+  qoffset_z << m_Holder->ptr->qoffset_z;
   EncapsulateMetaData<std::string>(thisDic, "qoffset_z", qoffset_z.str());
 
   std::ostringstream srow_x;
-  srow_x << nim->sto_xyz.m[0][0] << " " << nim->sto_xyz.m[0][1] << " " << nim->sto_xyz.m[0][2] << " "
-         << nim->sto_xyz.m[0][3];
+  srow_x << m_Holder->ptr->sto_xyz.m[0][0] << ' ' << m_Holder->ptr->sto_xyz.m[0][1] << ' '
+         << m_Holder->ptr->sto_xyz.m[0][2] << ' ' << m_Holder->ptr->sto_xyz.m[0][3];
   EncapsulateMetaData<std::string>(thisDic, "srow_x", srow_x.str());
 
   std::ostringstream srow_y;
-  srow_y << nim->sto_xyz.m[1][0] << " " << nim->sto_xyz.m[1][1] << " " << nim->sto_xyz.m[1][2] << " "
-         << nim->sto_xyz.m[1][3];
+  srow_y << m_Holder->ptr->sto_xyz.m[1][0] << ' ' << m_Holder->ptr->sto_xyz.m[1][1] << ' '
+         << m_Holder->ptr->sto_xyz.m[1][2] << ' ' << m_Holder->ptr->sto_xyz.m[1][3];
   EncapsulateMetaData<std::string>(thisDic, "srow_y", srow_y.str());
 
   std::ostringstream srow_z;
-  srow_z << nim->sto_xyz.m[2][0] << " " << nim->sto_xyz.m[2][1] << " " << nim->sto_xyz.m[2][2] << " "
-         << nim->sto_xyz.m[2][3];
+  srow_z << m_Holder->ptr->sto_xyz.m[2][0] << ' ' << m_Holder->ptr->sto_xyz.m[2][1] << ' '
+         << m_Holder->ptr->sto_xyz.m[2][2] << ' ' << m_Holder->ptr->sto_xyz.m[2][3];
   EncapsulateMetaData<std::string>(thisDic, "srow_z", srow_z.str());
 
   std::ostringstream intent_name;
-  intent_name << nim->intent_name;
+  intent_name << m_Holder->ptr->intent_name;
   EncapsulateMetaData<std::string>(thisDic, "intent_name", intent_name.str());
+
+  // The below were added after ITK 5.3rc2.
+
+  EncapsulateMetaData<float>(thisDic, "qfac", m_Holder->ptr->qfac);
+
+  // Use the ITK Matrix template instantiation that matches the `mat44` typedef from niftilib.
+  using Matrix44Type = Matrix<float, 4, 4>;
+  EncapsulateMetaData<Matrix44Type>(thisDic, "qto_xyz", Matrix44Type(m_Holder->ptr->qto_xyz.m));
 }
 
 void
-NiftiImageIO ::ReadImageInformation()
+NiftiImageIO::ReadImageInformation()
 {
+
   const int image_FTYPE = is_nifti_file(this->GetFileName());
   if (image_FTYPE == 0)
   {
@@ -1012,12 +1064,14 @@ NiftiImageIO ::ReadImageInformation()
     else
     {
       if (this->GetLegacyAnalyze75Mode() == NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4Warning)
+      {
         itkWarningMacro(<< this->GetFileName() << " is Analyze file and it's deprecated ");
+      }
       // to disable this message, specify preferred Analyze flavor using SetLegacyAnalyze75Mode
     }
   }
 
-  this->m_NiftiImage = nifti_image_read(this->GetFileName(), false);
+  m_Holder->ptr.reset(nifti_image_read(this->GetFileName(), false));
   static std::string prev;
   if (prev != this->GetFileName())
   {
@@ -1026,25 +1080,25 @@ NiftiImageIO ::ReadImageInformation()
 #endif
     prev = this->GetFileName();
   }
-  if (this->m_NiftiImage == nullptr)
+  if (m_Holder->ptr == nullptr)
   {
     itkExceptionMacro(<< this->GetFileName() << " is not recognized as a NIFTI file");
   }
   // Check the intent code, it is a vector image, or matrix image, then this is
   // not true.
   //
-  if (this->m_NiftiImage->intent_code == NIFTI_INTENT_VECTOR ||
-      this->m_NiftiImage->intent_code == NIFTI_INTENT_SYMMATRIX)
+  if (m_Holder->ptr->intent_code == NIFTI_INTENT_DISPVECT || m_Holder->ptr->intent_code == NIFTI_INTENT_VECTOR ||
+      m_Holder->ptr->intent_code == NIFTI_INTENT_SYMMATRIX)
   {
-    if (this->m_NiftiImage->dim[4] > 1)
+    if (m_Holder->ptr->dim[4] > 1)
     {
       this->SetNumberOfDimensions(4);
     }
-    else if (this->m_NiftiImage->dim[3] > 1)
+    else if (m_Holder->ptr->dim[3] > 1)
     {
       this->SetNumberOfDimensions(3);
     }
-    else if (this->m_NiftiImage->dim[2] > 1)
+    else if (m_Holder->ptr->dim[2] > 1)
     {
       this->SetNumberOfDimensions(2);
     }
@@ -1053,7 +1107,7 @@ NiftiImageIO ::ReadImageInformation()
       this->SetNumberOfDimensions(1);
     }
   }
-  else if (this->m_NiftiImage->intent_code == NIFTI_INTENT_GENMATRIX)
+  else if (m_Holder->ptr->intent_code == NIFTI_INTENT_GENMATRIX)
   { // TODO:  NEED TO DEAL WITH CASE WHERE NIFTI_INTENT_MATRIX
     itkExceptionMacro(<< this->GetFileName()
                       << " has an intent code of NIFTI_INTENT_GENMATRIX which is not yet implemented in ITK");
@@ -1061,26 +1115,26 @@ NiftiImageIO ::ReadImageInformation()
   else
   { // Simple Scalar Image
     //
-    //    this->SetNumberOfDimensions(this->m_NiftiImage->dim[0]);
+    //    this->SetNumberOfDimensions(m_Internal->ptr->dim[0]);
     // HACK ALERT KW
     // Apparently some straight-from-the-scanner files report as 4D
     // with T = 1; this causes ImageFileReader to erroneously ignore the
     // reported
     // direction cosines.
-    unsigned realdim;
-    for (realdim = this->m_NiftiImage->dim[0]; this->m_NiftiImage->dim[realdim] == 1 && realdim > 3; realdim--)
+    unsigned int realdim = m_Holder->ptr->dim[0];
+    for (; m_Holder->ptr->dim[realdim] == 1 && realdim > 3; realdim--)
     {
     }
     this->SetNumberOfDimensions(realdim);
     this->SetNumberOfComponents(1);
   }
 
-  if (this->m_NiftiImage->intent_code == NIFTI_INTENT_VECTOR ||
-      this->m_NiftiImage->intent_code == NIFTI_INTENT_SYMMATRIX)
+  if (m_Holder->ptr->intent_code == NIFTI_INTENT_DISPVECT || m_Holder->ptr->intent_code == NIFTI_INTENT_VECTOR ||
+      m_Holder->ptr->intent_code == NIFTI_INTENT_SYMMATRIX)
   {
-    this->SetNumberOfComponents(this->m_NiftiImage->dim[5]);
+    this->SetNumberOfComponents(m_Holder->ptr->dim[5]);
   }
-  else if (this->m_NiftiImage->intent_code == NIFTI_INTENT_GENMATRIX)
+  else if (m_Holder->ptr->intent_code == NIFTI_INTENT_GENMATRIX)
   { // TODO:  NEED TO DEAL WITH CASE WHERE NIFTI_INTENT_MATRIX
     itkExceptionMacro(<< this->GetFileName()
                       << " has an intent code of NIFTI_INTENT_GENMATRIX which is not yet implemented in ITK");
@@ -1089,7 +1143,7 @@ NiftiImageIO ::ReadImageInformation()
   // type of NIFTI_TYPE_COMPLEX64 NIFTI_TYPE_COMPLEX128 NIFTI_TYPE_RGB24 not
   // supported.
 
-  switch (this->m_NiftiImage->datatype)
+  switch (m_Holder->ptr->datatype)
   {
     case NIFTI_TYPE_INT8:
       this->m_ComponentType = IOComponentEnum::CHAR;
@@ -1117,7 +1171,7 @@ NiftiImageIO ::ReadImageInformation()
       break;
     case NIFTI_TYPE_INT64:
       // if long is big enough, use long
-      if (sizeof(long) == 8)
+      if constexpr (sizeof(long) == 8)
       {
         this->m_ComponentType = IOComponentEnum::LONG;
       }
@@ -1129,7 +1183,7 @@ NiftiImageIO ::ReadImageInformation()
       break;
     case NIFTI_TYPE_UINT64:
       // if unsigned long is big enough, use unsigned long
-      if (sizeof(unsigned long) == 8)
+      if constexpr (sizeof(unsigned long) == 8)
       {
         this->m_ComponentType = IOComponentEnum::ULONG;
       }
@@ -1176,14 +1230,20 @@ NiftiImageIO ::ReadImageInformation()
   }
 
   // there are a wide variety of intents we ignore
-  // but a few wee need to care about
-  switch (this->m_NiftiImage->intent_code)
+  // but a few we need to care about
+  this->m_ConvertRAS = false;
+  switch (m_Holder->ptr->intent_code)
   {
     case NIFTI_INTENT_SYMMATRIX:
       this->SetPixelType(IOPixelEnum::SYMMETRICSECONDRANKTENSOR);
       break;
+    case NIFTI_INTENT_DISPVECT:
+      this->SetPixelType(IOPixelEnum::VECTOR);
+      this->m_ConvertRAS = m_ConvertRASDisplacementVectors;
+      break;
     case NIFTI_INTENT_VECTOR:
       this->SetPixelType(IOPixelEnum::VECTOR);
+      this->m_ConvertRAS = m_ConvertRASVectors;
       break;
     case NIFTI_INTENT_NONE:
     case NIFTI_INTENT_CORREL:
@@ -1213,7 +1273,6 @@ NiftiImageIO ::ReadImageInformation()
     case NIFTI_INTENT_LABEL:
     case NIFTI_INTENT_NEURONAME:
     case NIFTI_INTENT_GENMATRIX:
-    case NIFTI_INTENT_DISPVECT:
     case NIFTI_INTENT_POINTSET:
     case NIFTI_INTENT_TRIANGLE:
     case NIFTI_INTENT_QUATERNION:
@@ -1228,21 +1287,21 @@ NiftiImageIO ::ReadImageInformation()
   }
 
   // set slope/intercept
-  // this->m_NiftiImage->qform_code == 0 && this->m_NiftiImage->sform_code == 0
+  // m_Internal->ptr->qform_code == 0 && m_Internal->ptr->sform_code == 0
   // do this only for Analyze files
-  if (this->m_NiftiImage->nifti_type == 0)
+  if (m_Holder->ptr->nifti_type == 0)
   {
     this->m_RescaleSlope = 1;
     this->m_RescaleIntercept = 0;
   }
   else
   {
-    this->m_RescaleSlope = this->m_NiftiImage->scl_slope;
-    if (std::abs(this->m_RescaleSlope) < NumericTraits<double>::epsilon())
+    this->m_RescaleSlope = m_Holder->ptr->scl_slope;
+    if (itk::Math::abs(this->m_RescaleSlope) < NumericTraits<double>::epsilon())
     {
       this->m_RescaleSlope = 1;
     }
-    this->m_RescaleIntercept = this->m_NiftiImage->scl_inter;
+    this->m_RescaleIntercept = m_Holder->ptr->scl_inter;
   }
 
   this->m_OnDiskComponentType = this->m_ComponentType;
@@ -1263,7 +1322,7 @@ NiftiImageIO ::ReadImageInformation()
   //
   // set up the dimension stuff
   double spacingscale = 1.0; // default to mm
-  switch (XYZT_TO_SPACE(this->m_NiftiImage->xyz_units))
+  switch (m_Holder->ptr->xyz_units)
   {
     case NIFTI_UNITS_METER:
       spacingscale = 1e3;
@@ -1276,7 +1335,7 @@ NiftiImageIO ::ReadImageInformation()
       break;
   }
   double timingscale = 1.0; // Default to seconds
-  switch (XYZT_TO_TIME(this->m_NiftiImage->xyz_units))
+  switch (m_Holder->ptr->time_units)
   {
     case NIFTI_UNITS_SEC:
       timingscale = 1.0;
@@ -1289,50 +1348,49 @@ NiftiImageIO ::ReadImageInformation()
       break;
   }
   // see http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
-  bool ignore_negative_pixdim = this->m_NiftiImage->nifti_type == 0 &&
-                                this->GetLegacyAnalyze75Mode() == NiftiImageIOEnums::Analyze75Flavor::AnalyzeFSL;
+  const bool ignore_negative_pixdim =
+    m_Holder->ptr->nifti_type == 0 && this->GetLegacyAnalyze75Mode() == NiftiImageIOEnums::Analyze75Flavor::AnalyzeFSL;
 
   const int dims = this->GetNumberOfDimensions();
   switch (dims)
   {
     case 7:
-      this->SetDimensions(6, this->m_NiftiImage->nw);
+      this->SetDimensions(6, m_Holder->ptr->nw);
       // NOTE: Scaling is not defined in this dimension
-      this->SetSpacing(6, ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dw) : this->m_NiftiImage->dw);
-      ITK_FALLTHROUGH;
+      this->SetSpacing(6, ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dw) : m_Holder->ptr->dw);
+      [[fallthrough]];
     case 6:
-      this->SetDimensions(5, this->m_NiftiImage->nv);
+      this->SetDimensions(5, m_Holder->ptr->nv);
       // NOTE: Scaling is not defined in this dimension
-      this->SetSpacing(5, ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dv) : this->m_NiftiImage->dv);
-      ITK_FALLTHROUGH;
+      this->SetSpacing(5, ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dv) : m_Holder->ptr->dv);
+      [[fallthrough]];
     case 5:
-      this->SetDimensions(4, this->m_NiftiImage->nu);
+      this->SetDimensions(4, m_Holder->ptr->nu);
       // NOTE: Scaling is not defined in this dimension
-      this->SetSpacing(4, ignore_negative_pixdim ? std::abs(this->m_NiftiImage->du) : this->m_NiftiImage->du);
-      ITK_FALLTHROUGH;
+      this->SetSpacing(4, ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->du) : m_Holder->ptr->du);
+      [[fallthrough]];
     case 4:
-      this->SetDimensions(3, this->m_NiftiImage->nt);
-      this->SetSpacing(3,
-                       ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dt * timingscale)
-                                              : this->m_NiftiImage->dt * timingscale);
-      ITK_FALLTHROUGH;
+      this->SetDimensions(3, m_Holder->ptr->nt);
+      this->SetSpacing(
+        3, ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dt * timingscale) : m_Holder->ptr->dt * timingscale);
+      [[fallthrough]];
     case 3:
-      this->SetDimensions(2, this->m_NiftiImage->nz);
+      this->SetDimensions(2, m_Holder->ptr->nz);
       this->SetSpacing(2,
-                       ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dz * spacingscale)
-                                              : this->m_NiftiImage->dz * spacingscale);
-      ITK_FALLTHROUGH;
+                       ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dz * spacingscale)
+                                              : m_Holder->ptr->dz * spacingscale);
+      [[fallthrough]];
     case 2:
-      this->SetDimensions(1, this->m_NiftiImage->ny);
+      this->SetDimensions(1, m_Holder->ptr->ny);
       this->SetSpacing(1,
-                       ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dy * spacingscale)
-                                              : this->m_NiftiImage->dy * spacingscale);
-      ITK_FALLTHROUGH;
+                       ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dy * spacingscale)
+                                              : m_Holder->ptr->dy * spacingscale);
+      [[fallthrough]];
     case 1:
-      this->SetDimensions(0, this->m_NiftiImage->nx);
+      this->SetDimensions(0, m_Holder->ptr->nx);
       this->SetSpacing(0,
-                       ignore_negative_pixdim ? std::abs(this->m_NiftiImage->dx * spacingscale)
-                                              : this->m_NiftiImage->dx * spacingscale);
+                       ignore_negative_pixdim ? itk::Math::abs(m_Holder->ptr->dx * spacingscale)
+                                              : m_Holder->ptr->dx * spacingscale);
       break;
     default:
       itkExceptionMacro(<< this->GetFileName() << " has " << dims << " dimensions, and is not supported or invalid!");
@@ -1347,18 +1405,17 @@ NiftiImageIO ::ReadImageInformation()
   EncapsulateMetaData<std::string>(thisDic, ITK_InputFilterName, classname);
 
   // set the image orientation
-  this->SetImageIOOrientationFromNIfTI(dims);
+  this->SetImageIOOrientationFromNIfTI(dims, spacingscale, timingscale);
 
   // Set the metadata.
   this->SetImageIOMetadataFromNIfTI();
 
   // Important hist fields
-  const std::string description(this->m_NiftiImage->descrip);
+  const std::string description(m_Holder->ptr->descrip);
   EncapsulateMetaData<std::string>(this->GetMetaDataDictionary(), ITK_FileNotes, description);
 
   // We don't need the image anymore
-  nifti_image_free(this->m_NiftiImage);
-  this->m_NiftiImage = nullptr;
+  m_Holder->ptr.reset();
 }
 
 namespace
@@ -1368,9 +1425,9 @@ mat44_transpose(const mat44 & in)
 {
   mat44 out;
 
-  for (unsigned int i = 0; i < 4; i++)
+  for (unsigned int i = 0; i < 4; ++i)
   {
-    for (unsigned int j = 0; j < 4; j++)
+    for (unsigned int j = 0; j < 4; ++j)
     {
       out.m[i][j] = in.m[j][i];
     }
@@ -1380,26 +1437,26 @@ mat44_transpose(const mat44 & in)
 } // namespace
 
 void
-NiftiImageIO ::WriteImageInformation()
+NiftiImageIO::WriteImageInformation()
 {
   //
   //
   // First of all we need to not go any further if there's
   // a dimension of the image that won't fit in a 16 bit short.
-  for (unsigned int i = 0; i < this->GetNumberOfDimensions(); i++)
+  for (unsigned int i = 0; i < this->GetNumberOfDimensions(); ++i)
   {
     const unsigned int curdim(this->GetDimensions(i));
     if (curdim > static_cast<unsigned int>(NumericTraits<short>::max()))
     {
-      itkExceptionMacro(<< "Dimension(" << i << ") = " << curdim << " is greater than maximum possible dimension "
-                        << NumericTraits<short>::max());
+      itkExceptionMacro("Dimension(" << i << ") = " << curdim << " is greater than maximum possible dimension "
+                                     << NumericTraits<short>::max());
     }
   }
 
   // fill out the image header.
-  if (this->m_NiftiImage == nullptr)
+  if (m_Holder->ptr == nullptr)
   {
-    this->m_NiftiImage = nifti_simple_init_nim();
+    m_Holder->ptr.reset(nifti_simple_init_nim());
   }
   //
   // set the filename
@@ -1409,7 +1466,7 @@ NiftiImageIO ::WriteImageInformation()
   const char * tempextension = nifti_find_file_extension(FName.c_str());
   if (tempextension == nullptr)
   {
-    itkExceptionMacro(<< "Bad Nifti file name. No extension found for file: " << FName);
+    itkExceptionMacro("Bad Nifti file name. No extension found for file: " << FName);
   }
   const std::string ExtensionName(tempextension);
   char *            tempbasename = nifti_makebasename(FName.c_str());
@@ -1420,35 +1477,35 @@ NiftiImageIO ::WriteImageInformation()
   const bool                   IsCompressed = (ext == std::string::npos) ? false : true;
   if ((ExtensionName == ".nii" || ExtensionName == ".nii.gz") && this->GetUseLegacyModeForTwoFileWriting() == false)
   {
-    this->m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;
+    m_Holder->ptr->nifti_type = NIFTI_FTYPE_NIFTI1_1;
   }
   else if ((ExtensionName == ".nia") && this->GetUseLegacyModeForTwoFileWriting() == false)
   {
-    this->m_NiftiImage->nifti_type = NIFTI_FTYPE_ASCII;
+    m_Holder->ptr->nifti_type = NIFTI_FTYPE_ASCII;
   }
   else if (ExtensionName == ".hdr" || ExtensionName == ".img" || ExtensionName == ".hdr.gz" ||
            ExtensionName == ".img.gz")
   { // NOTE: LegacyMode is only valid for header extensions .hdr and .img
     if (this->GetUseLegacyModeForTwoFileWriting() == false)
     {
-      // This filter needs to write nifti files in it's default mode
+      // This filter needs to write nifti files in its default mode
       // , not default to legacy analyze files.
-      this->m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_2;
+      m_Holder->ptr->nifti_type = NIFTI_FTYPE_NIFTI1_2;
     }
     else
     {
       //  If it is desired to write out the nifti variant of
       //  ANALYZE7.5.
       //  NOTE: OREINTATION IS NOT WELL DEFINED IN THIS FORMAT.
-      this->m_NiftiImage->nifti_type = NIFTI_FTYPE_ANALYZE;
+      m_Holder->ptr->nifti_type = NIFTI_FTYPE_ANALYZE;
     }
   }
   else
   {
-    itkExceptionMacro(<< "Bad Nifti file name: " << FName);
+    itkExceptionMacro("Bad Nifti file name: " << FName);
   }
-  this->m_NiftiImage->fname = nifti_makehdrname(BaseName.c_str(), this->m_NiftiImage->nifti_type, false, IsCompressed);
-  this->m_NiftiImage->iname = nifti_makeimgname(BaseName.c_str(), this->m_NiftiImage->nifti_type, false, IsCompressed);
+  m_Holder->ptr->fname = nifti_makehdrname(BaseName.c_str(), m_Holder->ptr->nifti_type, false, IsCompressed);
+  m_Holder->ptr->iname = nifti_makeimgname(BaseName.c_str(), m_Holder->ptr->nifti_type, false, IsCompressed);
   //     FIELD         NOTES
   //     -----------------------------------------------------
   //     sizeof_hdr    must be 348
@@ -1456,72 +1513,78 @@ NiftiImageIO ::WriteImageInformation()
   //     dim           dim[0] and dim[1] are always required;
   //                   dim[2] is required for 2-D volumes,
   //                   dim[3] for 3-D volumes, etc.
-  this->m_NiftiImage->nvox = 1;
-  // Spacial dims in ITK are given in mm.
+  m_Holder->ptr->nvox = 1;
+  // Spatial dims in ITK are given in mm.
   // If 4D assume 4thD is in SECONDS, for all of ITK.
   // NOTE: Due to an ambiguity in the nifti specification, some developers
   // external tools believe that the time units must be set, even if there
-  // is only one dataset.  Having the time specified for a purly spatial
+  // is only one dataset.  Having the time specified for a purely spatial
   // image has no consequence, so go ahead and set it to seconds.
-  this->m_NiftiImage->xyz_units = static_cast<int>(NIFTI_UNITS_MM | NIFTI_UNITS_SEC);
-  this->m_NiftiImage->dim[7] = this->m_NiftiImage->nw = 1;
-  this->m_NiftiImage->dim[6] = this->m_NiftiImage->nv = 1;
-  this->m_NiftiImage->dim[5] = this->m_NiftiImage->nu = 1;
-  this->m_NiftiImage->dim[4] = this->m_NiftiImage->nt = 1;
-  this->m_NiftiImage->dim[3] = this->m_NiftiImage->nz = 1;
-  this->m_NiftiImage->dim[2] = this->m_NiftiImage->ny = 1;
-  this->m_NiftiImage->dim[1] = this->m_NiftiImage->nx = 1;
+  m_Holder->ptr->xyz_units = int{ NIFTI_UNITS_MM };
+  m_Holder->ptr->time_units = int{ NIFTI_UNITS_SEC };
+  m_Holder->ptr->dim[7] = m_Holder->ptr->nw = 1;
+  m_Holder->ptr->dim[6] = m_Holder->ptr->nv = 1;
+  m_Holder->ptr->dim[5] = m_Holder->ptr->nu = 1;
+  m_Holder->ptr->dim[4] = m_Holder->ptr->nt = 1;
+  m_Holder->ptr->dim[3] = m_Holder->ptr->nz = 1;
+  m_Holder->ptr->dim[2] = m_Holder->ptr->ny = 1;
+  m_Holder->ptr->dim[1] = m_Holder->ptr->nx = 1;
   switch (this->GetNumberOfDimensions())
   {
     case 7:
-      this->m_NiftiImage->dim[7] = this->m_NiftiImage->nw = static_cast<int>(this->GetDimensions(6));
-      this->m_NiftiImage->pixdim[7] = this->m_NiftiImage->dw = static_cast<float>(this->GetSpacing(6));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[7];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[7] = m_Holder->ptr->nw = static_cast<int>(this->GetDimensions(6));
+      m_Holder->ptr->pixdim[7] = m_Holder->ptr->dw = static_cast<float>(this->GetSpacing(6));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[7];
+      [[fallthrough]];
     case 6:
-      this->m_NiftiImage->dim[6] = this->m_NiftiImage->nv = this->GetDimensions(5);
-      this->m_NiftiImage->pixdim[6] = this->m_NiftiImage->dv = static_cast<float>(this->GetSpacing(5));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[6];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[6] = m_Holder->ptr->nv = this->GetDimensions(5);
+      m_Holder->ptr->pixdim[6] = m_Holder->ptr->dv = static_cast<float>(this->GetSpacing(5));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[6];
+      [[fallthrough]];
     case 5:
-      this->m_NiftiImage->dim[5] = this->m_NiftiImage->nu = this->GetDimensions(4);
-      this->m_NiftiImage->pixdim[5] = this->m_NiftiImage->du = static_cast<float>(this->GetSpacing(4));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[5];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[5] = m_Holder->ptr->nu = this->GetDimensions(4);
+      m_Holder->ptr->pixdim[5] = m_Holder->ptr->du = static_cast<float>(this->GetSpacing(4));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[5];
+      [[fallthrough]];
     case 4:
-      this->m_NiftiImage->dim[4] = this->m_NiftiImage->nt = this->GetDimensions(3);
-      this->m_NiftiImage->pixdim[4] = this->m_NiftiImage->dt = static_cast<float>(this->GetSpacing(3));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[4];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[4] = m_Holder->ptr->nt = this->GetDimensions(3);
+      m_Holder->ptr->pixdim[4] = m_Holder->ptr->dt = static_cast<float>(this->GetSpacing(3));
+      // Add time origin here because it is not set with the spatial origin in
+      // SetNIfTIOrientationFromImageIO
+      m_Holder->ptr->toffset = static_cast<float>(this->GetOrigin(3));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[4];
+      [[fallthrough]];
     case 3:
-      this->m_NiftiImage->dim[3] = this->m_NiftiImage->nz = this->GetDimensions(2);
-      this->m_NiftiImage->pixdim[3] = this->m_NiftiImage->dz = static_cast<float>(this->GetSpacing(2));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[3];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[3] = m_Holder->ptr->nz = this->GetDimensions(2);
+      m_Holder->ptr->pixdim[3] = m_Holder->ptr->dz = static_cast<float>(this->GetSpacing(2));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[3];
+      [[fallthrough]];
     case 2:
-      this->m_NiftiImage->dim[2] = this->m_NiftiImage->ny = this->GetDimensions(1);
-      this->m_NiftiImage->pixdim[2] = this->m_NiftiImage->dy = static_cast<float>(this->GetSpacing(1));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[2];
-      ITK_FALLTHROUGH;
+      m_Holder->ptr->dim[2] = m_Holder->ptr->ny = this->GetDimensions(1);
+      m_Holder->ptr->pixdim[2] = m_Holder->ptr->dy = static_cast<float>(this->GetSpacing(1));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[2];
+      [[fallthrough]];
     case 1:
-      this->m_NiftiImage->dim[1] = this->m_NiftiImage->nx = this->GetDimensions(0);
-      this->m_NiftiImage->pixdim[1] = this->m_NiftiImage->dx = static_cast<float>(this->GetSpacing(0));
-      this->m_NiftiImage->nvox *= this->m_NiftiImage->dim[1];
+      m_Holder->ptr->dim[1] = m_Holder->ptr->nx = this->GetDimensions(0);
+      m_Holder->ptr->pixdim[1] = m_Holder->ptr->dx = static_cast<float>(this->GetSpacing(0));
+      m_Holder->ptr->nvox *= m_Holder->ptr->dim[1];
   }
   const unsigned int numComponents = this->GetNumberOfComponents();
+
+  const MetaDataDictionary & thisDic = this->GetMetaDataDictionary();
 
   // TODO:  Also need to check for RGB images where numComponets=3
   if (numComponents > 1 && !(this->GetPixelType() == IOPixelEnum::COMPLEX && numComponents == 2) &&
       !(this->GetPixelType() == IOPixelEnum::RGB && numComponents == 3) &&
       !(this->GetPixelType() == IOPixelEnum::RGBA && numComponents == 4))
   {
-    this->m_NiftiImage->ndim = 5;   // This must be 5 for NIFTI_INTENT_VECTOR
-                                    // images.
-    this->m_NiftiImage->dim[0] = 5; // This must be 5 for NIFTI_INTENT_VECTOR
-                                    // images.
+    m_Holder->ptr->ndim = 5;   // This must be 5 for NIFTI_INTENT_VECTOR and NIFTI_INTENT_DISPVECT
+                               // images.
+    m_Holder->ptr->dim[0] = 5; // This must be 5 for NIFTI_INTENT_VECTOR and NIFTI_INTENT_DISPVECT
+                               // images.
     if (this->GetNumberOfDimensions() > 4)
     {
-      itkExceptionMacro(<< "Can not store a vector image of more than 4 dimensions in a Nifti file. Dimension="
+      itkExceptionMacro("Can not store a vector image of more than 4 dimensions in a Nifti file. Dimension="
                         << this->GetNumberOfDimensions());
     }
     //
@@ -1529,120 +1592,134 @@ NiftiImageIO ::WriteImageInformation()
     if (this->GetPixelType() == IOPixelEnum::DIFFUSIONTENSOR3D ||
         this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
     {
-      this->m_NiftiImage->intent_code = NIFTI_INTENT_SYMMATRIX;
+      m_Holder->ptr->intent_code = NIFTI_INTENT_SYMMATRIX;
     }
     else
     {
-      this->m_NiftiImage->intent_code = NIFTI_INTENT_VECTOR;
+      // Each voxel is a vector. Set intent code to NIFTI_INTENT_VECTOR (default)
+      // or NIFTI_INTENT_DISPVECT.
+      int         intentCode = NIFTI_INTENT_VECTOR;
+      std::string intentCodeStrInMetaData;
+      if (itk::ExposeMetaData<std::string>(thisDic, "intent_code", intentCodeStrInMetaData))
+      {
+        std::istringstream is(intentCodeStrInMetaData);
+        int                intentCodeInMetaData = -1;
+        is >> intentCodeInMetaData;
+        if (intentCodeInMetaData == NIFTI_INTENT_DISPVECT)
+        {
+          intentCode = NIFTI_INTENT_DISPVECT;
+        }
+      }
+      m_Holder->ptr->intent_code = intentCode;
     }
-    this->m_NiftiImage->nu = this->m_NiftiImage->dim[5] = this->GetNumberOfComponents();
+    m_Holder->ptr->nu = m_Holder->ptr->dim[5] = this->GetNumberOfComponents();
     if (this->GetNumberOfDimensions() < 4)
     {
-      this->m_NiftiImage->nt = this->m_NiftiImage->dim[4] = 1;
+      m_Holder->ptr->nt = m_Holder->ptr->dim[4] = 1;
     }
     if (this->GetNumberOfDimensions() < 3)
     {
-      this->m_NiftiImage->nz = this->m_NiftiImage->dim[3] = 1;
+      m_Holder->ptr->nz = m_Holder->ptr->dim[3] = 1;
     }
     if (this->GetNumberOfDimensions() < 2)
     {
-      this->m_NiftiImage->ny = this->m_NiftiImage->dim[2] = 1;
+      m_Holder->ptr->ny = m_Holder->ptr->dim[2] = 1;
     }
     if (this->GetNumberOfDimensions() < 1)
     {
-      this->m_NiftiImage->nx = this->m_NiftiImage->dim[1] = 1;
+      m_Holder->ptr->nx = m_Holder->ptr->dim[1] = 1;
     }
     // Update nvox value because in nifti, vector components are the slowest
     // changing direction, not the fastest.
-    this->m_NiftiImage->nvox *= this->GetNumberOfComponents();
+    m_Holder->ptr->nvox *= this->GetNumberOfComponents();
   }
   else
   {
-    this->m_NiftiImage->ndim = this->GetNumberOfDimensions();
-    this->m_NiftiImage->dim[0] = this->GetNumberOfDimensions();
+    m_Holder->ptr->ndim = this->GetNumberOfDimensions();
+    m_Holder->ptr->dim[0] = this->GetNumberOfDimensions();
   }
 
   //     -----------------------------------------------------
   //     datatype      needed to specify type of image data
   //     -----------------------------------------------------
-  //     bitpix        should correspond correctly to datatype
+  //         bitpix        should correspond correctly to datatype
   //     -----------------------------------------------------
   switch (this->GetComponentType())
   {
     case IOComponentEnum::UCHAR:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_UINT8;
-      this->m_NiftiImage->nbyper = 1;
+      m_Holder->ptr->datatype = NIFTI_TYPE_UINT8;
+      m_Holder->ptr->nbyper = 1;
       break;
     case IOComponentEnum::CHAR:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_INT8;
-      this->m_NiftiImage->nbyper = 1;
+      m_Holder->ptr->datatype = NIFTI_TYPE_INT8;
+      m_Holder->ptr->nbyper = 1;
       break;
     case IOComponentEnum::USHORT:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_UINT16;
-      this->m_NiftiImage->nbyper = 2;
+      m_Holder->ptr->datatype = NIFTI_TYPE_UINT16;
+      m_Holder->ptr->nbyper = 2;
       break;
     case IOComponentEnum::SHORT:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_INT16;
-      this->m_NiftiImage->nbyper = 2;
+      m_Holder->ptr->datatype = NIFTI_TYPE_INT16;
+      m_Holder->ptr->nbyper = 2;
       break;
     case IOComponentEnum::UINT:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_UINT32;
-      this->m_NiftiImage->nbyper = 4;
+      m_Holder->ptr->datatype = NIFTI_TYPE_UINT32;
+      m_Holder->ptr->nbyper = 4;
       break;
     case IOComponentEnum::INT:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_INT32;
-      this->m_NiftiImage->nbyper = 4;
+      m_Holder->ptr->datatype = NIFTI_TYPE_INT32;
+      m_Holder->ptr->nbyper = 4;
       break;
     case IOComponentEnum::ULONG:
       switch (sizeof(unsigned long))
       {
         case 4:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_UINT32;
-          this->m_NiftiImage->nbyper = 4;
+          m_Holder->ptr->datatype = NIFTI_TYPE_UINT32;
+          m_Holder->ptr->nbyper = 4;
           break;
         case 8:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_UINT64;
-          this->m_NiftiImage->nbyper = 8;
+          m_Holder->ptr->datatype = NIFTI_TYPE_UINT64;
+          m_Holder->ptr->nbyper = 8;
           break;
         default:
-          itkExceptionMacro(<< "'unsigned long' type is neither 32 or 64 bits.");
+          itkExceptionMacro("'unsigned long' type is neither 32 or 64 bits.");
       }
       break;
     case IOComponentEnum::LONG:
       switch (sizeof(long))
       {
         case 4:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_INT32;
-          this->m_NiftiImage->nbyper = 4;
+          m_Holder->ptr->datatype = NIFTI_TYPE_INT32;
+          m_Holder->ptr->nbyper = 4;
           break;
         case 8:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_INT64;
-          this->m_NiftiImage->nbyper = 8;
+          m_Holder->ptr->datatype = NIFTI_TYPE_INT64;
+          m_Holder->ptr->nbyper = 8;
           break;
         default:
-          itkExceptionMacro(<< "'long' type is neither 32 or 64 bits.");
+          itkExceptionMacro("'long' type is neither 32 or 64 bits.");
       }
       break;
     case IOComponentEnum::ULONGLONG:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_UINT64;
-      this->m_NiftiImage->nbyper = 8;
+      m_Holder->ptr->datatype = NIFTI_TYPE_UINT64;
+      m_Holder->ptr->nbyper = 8;
       break;
     case IOComponentEnum::LONGLONG:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_INT64;
-      this->m_NiftiImage->nbyper = 8;
+      m_Holder->ptr->datatype = NIFTI_TYPE_INT64;
+      m_Holder->ptr->nbyper = 8;
       break;
     case IOComponentEnum::FLOAT:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_FLOAT32;
-      this->m_NiftiImage->nbyper = 4;
+      m_Holder->ptr->datatype = NIFTI_TYPE_FLOAT32;
+      m_Holder->ptr->nbyper = 4;
       break;
     case IOComponentEnum::DOUBLE:
-      this->m_NiftiImage->datatype = NIFTI_TYPE_FLOAT64;
-      this->m_NiftiImage->nbyper = 8;
+      m_Holder->ptr->datatype = NIFTI_TYPE_FLOAT64;
+      m_Holder->ptr->nbyper = 8;
       break;
     case IOComponentEnum::UNKNOWNCOMPONENTTYPE:
     default:
     {
-      itkExceptionMacro(<< "More than one component per pixel not supported");
+      itkExceptionMacro("More than one component per pixel not supported");
     }
   }
   switch (this->GetPixelType())
@@ -1653,26 +1730,26 @@ NiftiImageIO ::WriteImageInformation()
     case IOPixelEnum::SCALAR:
       break;
     case IOPixelEnum::RGB:
-      this->m_NiftiImage->nbyper *= 3;
-      this->m_NiftiImage->datatype = NIFTI_TYPE_RGB24;
+      m_Holder->ptr->nbyper *= 3;
+      m_Holder->ptr->datatype = NIFTI_TYPE_RGB24;
       break;
     case IOPixelEnum::RGBA:
-      this->m_NiftiImage->nbyper *= 4;
-      this->m_NiftiImage->datatype = NIFTI_TYPE_RGBA32;
+      m_Holder->ptr->nbyper *= 4;
+      m_Holder->ptr->datatype = NIFTI_TYPE_RGBA32;
       break;
     case IOPixelEnum::COMPLEX:
-      this->m_NiftiImage->nbyper *= 2;
+      m_Holder->ptr->nbyper *= 2;
       switch (this->GetComponentType())
       {
         case IOComponentEnum::FLOAT:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_COMPLEX64;
+          m_Holder->ptr->datatype = NIFTI_TYPE_COMPLEX64;
           break;
         case IOComponentEnum::DOUBLE:
-          this->m_NiftiImage->datatype = NIFTI_TYPE_COMPLEX128;
+          m_Holder->ptr->datatype = NIFTI_TYPE_COMPLEX128;
           break;
         default:
         {
-          itkExceptionMacro(<< "Only float or double precision complex type supported");
+          itkExceptionMacro("Only float or double precision complex type supported");
         }
       }
       break;
@@ -1686,31 +1763,45 @@ NiftiImageIO ::WriteImageInformation()
     case IOPixelEnum::MATRIX:
     case IOPixelEnum::UNKNOWNPIXELTYPE:
     default:
-      itkExceptionMacro(<< "Can not process this pixel type for writing into nifti");
+      itkExceptionMacro("Can not process this pixel type for writing into nifti");
   }
   //     -----------------------------------------------------
   //     vox_offset    required for an "n+1" header
   //     -----------------------------------------------------
   //     magic         must be "ni1\0" or "n+1\0"
   //     -----------------------------------------------------
-  this->m_NiftiImage->scl_slope = static_cast<float>(m_RescaleSlope);
-  this->m_NiftiImage->scl_inter = static_cast<float>(m_RescaleIntercept);
+  m_Holder->ptr->scl_slope = static_cast<float>(m_RescaleSlope);
+  m_Holder->ptr->scl_inter = static_cast<float>(m_RescaleIntercept);
   // TODO: Note both arguments are the same, no need to distinguish between them.
   this->SetNIfTIOrientationFromImageIO(this->GetNumberOfDimensions(), this->GetNumberOfDimensions());
 
-  MetaDataDictionary & thisDic = this->GetMetaDataDictionary();
-  std::string          temp;
+  std::string temp;
   if (itk::ExposeMetaData<std::string>(thisDic, "aux_file", temp))
   {
     if (temp.length() > 23)
     {
-      itkExceptionMacro(<< "aux_file too long, Nifti limit is 23 characters");
+      itkExceptionMacro("aux_file too long, Nifti limit is 23 characters");
     }
     else
     {
-      strcpy(this->m_NiftiImage->aux_file, temp.c_str());
+      strcpy(m_Holder->ptr->aux_file, temp.c_str());
     }
   }
+  if (itk::ExposeMetaData<std::string>(thisDic, "ITK_FileNotes", temp))
+  {
+    if (temp.length() > 79)
+    {
+      itkExceptionMacro("ITK_FileNotes (Nifti descrip field) too long, Nifti limit is 79 characters");
+    }
+    else
+    {
+      strcpy(m_Holder->ptr->descrip, temp.c_str());
+    }
+  }
+
+  // Enable RAS conversion based on metadata and flags
+  this->m_ConvertRAS = (m_ConvertRASVectors && m_Holder->ptr->intent_code == NIFTI_INTENT_VECTOR) ||
+                       (m_ConvertRASDisplacementVectors && m_Holder->ptr->intent_code == NIFTI_INTENT_DISPVECT);
 }
 
 namespace
@@ -1720,7 +1811,7 @@ Normalize(std::vector<double> & x)
 {
   double sum = 0.0;
 
-  for (double i : x)
+  for (const double i : x)
   {
     sum += (i * i);
   }
@@ -1736,7 +1827,7 @@ Normalize(std::vector<double> & x)
 }
 
 // These helpful routines
-// http://callumhay.blogspot.com/2010/10/decomposing-affine-transforms.html
+// https://callumhay.blogspot.com/2010/10/decomposing-affine-transforms.html
 // are used to check the status of the sform matrix.
 
 /**
@@ -1746,53 +1837,61 @@ Normalize(std::vector<double> & x)
 static bool
 IsAffine(const mat44 & nifti_mat)
 {
-  const vnl_matrix_fixed<float, 4, 4> mat(&(nifti_mat.m[0][0]));
+  vnl_matrix_fixed<double, 4, 4> mat;
+
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j)
+    {
+      mat[i][j] = double{ nifti_mat.m[i][j] };
+    }
+
   // First make sure the bottom row meets the condition that it is (0, 0, 0, 1)
   {
-    float bottom_row_error = std::fabs(mat[3][3] - 1.0f);
+    double bottom_row_error = itk::Math::abs(mat[3][3] - 1.0);
     for (int i = 0; i < 3; ++i)
     {
-      bottom_row_error += fabs(mat[3][i]);
+      bottom_row_error += itk::Math::abs(mat[3][i]);
     }
     if (bottom_row_error > std::numeric_limits<float>::epsilon())
     {
       return false;
     }
   }
-  // Get the inverse of this matrix:
-  // Make sure the matrix is invertible to begin with...
-  if (fabs(vnl_determinant(mat)) <= 1e-5)
+
+  const double condition = vnl_matrix_inverse<double>(mat.as_matrix()).well_condition();
+  // Check matrix is invertible by testing condition number of inverse
+  if (!(condition > std::numeric_limits<double>::epsilon()))
   {
     return false;
   }
 
-  // Calculate the inverse and seperate the inverse translation component
+  // Calculate the inverse and separate the inverse translation component
   // and the top 3x3 part of the inverse matrix
-  const vnl_matrix_fixed<float, 4, 4> inv4x4Matrix = vnl_matrix_inverse<float>(mat.as_matrix()).as_matrix();
-  const vnl_vector_fixed<float, 3>    inv4x4Translation(inv4x4Matrix[0][3], inv4x4Matrix[1][3], inv4x4Matrix[2][3]);
-  const vnl_matrix_fixed<float, 3, 3> inv4x4Top3x3 = inv4x4Matrix.extract(3, 3, 0, 0);
+  const vnl_matrix_fixed<double, 4, 4> inv4x4Matrix = vnl_matrix_inverse<double>(mat.as_matrix()).as_matrix();
+  const vnl_vector_fixed<double, 3>    inv4x4Translation(inv4x4Matrix[0][3], inv4x4Matrix[1][3], inv4x4Matrix[2][3]);
+  const vnl_matrix_fixed<double, 3, 3> inv4x4Top3x3 = inv4x4Matrix.extract(3, 3, 0, 0);
 
   // Grab just the top 3x3 matrix
-  const vnl_matrix_fixed<float, 3, 3> top3x3Matrix = mat.extract(3, 3, 0, 0);
-  const vnl_matrix_fixed<float, 3, 3> invTop3x3Matrix = vnl_matrix_inverse<float>(top3x3Matrix.as_matrix()).as_matrix();
-  const vnl_vector_fixed<float, 3>    inv3x3Translation = -(invTop3x3Matrix * mat.get_column(3).extract(3));
+  const vnl_matrix_fixed<double, 3, 3> top3x3Matrix = mat.extract(3, 3, 0, 0);
+  const vnl_matrix_fixed<double, 3, 3> invTop3x3Matrix =
+    vnl_matrix_inverse<double>(top3x3Matrix.as_matrix()).as_matrix();
+  const vnl_vector_fixed<double, 3> inv3x3Translation = -(invTop3x3Matrix * mat.get_column(3).extract(3));
 
   // Make sure we adhere to the conditions of a 4x4 invertible affine transform matrix
-  const float     diff_matrix_array_one_norm = (inv4x4Top3x3 - invTop3x3Matrix).array_one_norm();
-  const float     diff_vector_translation_one_norm = (inv4x4Translation - inv3x3Translation).one_norm();
-  constexpr float normed_tolerance_matrix_close = 1e-2;
+  const double     diff_matrix_array_one_norm = (inv4x4Top3x3 - invTop3x3Matrix).array_one_norm();
+  const double     diff_vector_translation_one_norm = (inv4x4Translation - inv3x3Translation).one_norm();
+  constexpr double normed_tolerance_matrix_close = 1e-2;
   return !((diff_matrix_array_one_norm > normed_tolerance_matrix_close) ||
            (diff_vector_translation_one_norm > normed_tolerance_matrix_close));
 }
 } // namespace
 
 void
-NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
+NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short dims, double spacingscale, double timingscale)
 {
-  typedef SpatialOrientationAdapter OrientAdapterType;
   // in the case of an Analyze75 file, use old analyze orient method.
   // but this could be a nifti file without qform and sform
-  if (this->m_NiftiImage->qform_code == NIFTI_XFORM_UNKNOWN && this->m_NiftiImage->sform_code == NIFTI_XFORM_UNKNOWN)
+  if (m_Holder->ptr->qform_code == NIFTI_XFORM_UNKNOWN && m_Holder->ptr->sform_code == NIFTI_XFORM_UNKNOWN)
   {
     m_Origin[0] = 0.0;
     if (dims > 1)
@@ -1804,41 +1903,55 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
       m_Origin[2] = 0.0;
     }
 
-    if (this->m_NiftiImage->nifti_type == 0 &&
+    if (m_Holder->ptr->nifti_type == 0 &&
         this->GetLegacyAnalyze75Mode() != NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4 &&
         this->GetLegacyAnalyze75Mode() != NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4Warning)
     { // only do this for Analyze file format
-      SpatialOrientationAdapter::OrientationType orient;
-      switch (this->m_NiftiImage->analyze75_orient)
+      AnatomicalOrientation orient(AnatomicalOrientation::PositiveEnum::INVALID);
+      switch (m_Holder->ptr->analyze75_orient)
       {
         case a75_transverse_unflipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior);
           break;
         case a75_sagittal_unflipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                         AnatomicalOrientation::CoordinateEnum::RightToLeft);
           break;
         case a75_coronal_unflipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
           break;
         case a75_transverse_flipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                         AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior);
           break;
         case a75_sagittal_flipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                         AnatomicalOrientation::CoordinateEnum::LeftToRight);
           break;
         case a75_coronal_flipped:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                         AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
           break;
         case a75_orient_unknown:
-          orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP;
+          orient = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
           break;
       }
-      const SpatialOrientationAdapter::DirectionType dir = OrientAdapterType().ToDirectionCosines(orient);
-      const int                                      max_defined_orientation_dims = (dims > 3) ? 3 : dims;
-      for (int d = 0; d < max_defined_orientation_dims; d++)
+      const auto dir = orient.GetAsDirection();
+      const int  max_defined_orientation_dims = (dims > 3) ? 3 : dims;
+      for (int d = 0; d < max_defined_orientation_dims; ++d)
       {
         std::vector<double> direction(dims, 0.0);
-        for (int i = 0; i < max_defined_orientation_dims; i++)
+        for (int i = 0; i < max_defined_orientation_dims; ++i)
         {
           direction[i] = dir[i][d];
         }
@@ -1855,10 +1968,10 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
     // so check it first.
     // Commonly the 4x4 double precision dicom information is stored in
     // the 4x4 single precision sform fields, and that original representation
-    // is converted (with lossy conversoin) into the qform representation.
+    // is converted (with lossy conversion) into the qform representation.
     const bool qform_sform_are_similar = [=]() -> bool {
-      vnl_matrix_fixed<float, 4, 4> sto_xyz{ &(this->m_NiftiImage->sto_xyz.m[0][0]) };
-      vnl_matrix_fixed<float, 4, 4> qto_xyz{ &(this->m_NiftiImage->qto_xyz.m[0][0]) };
+      const vnl_matrix_fixed<float, 4, 4> sto_xyz{ &(m_Holder->ptr->sto_xyz.m[0][0]) };
+      const vnl_matrix_fixed<float, 4, 4> qto_xyz{ &(m_Holder->ptr->qto_xyz.m[0][0]) };
 
       // First check rotation matrix components to ensure that they are similar;
       const auto srotation_scale = sto_xyz.extract(3, 3, 0, 0);
@@ -1884,49 +1997,49 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
     bool prefer_sform_over_qform = qform_sform_are_similar;
     // If the qform and sform to_xyz representations are not numerically very similar,
     // use a more in-depth evaluation
-    if (!prefer_sform_over_qform || this->m_NiftiImage->sform_code != NIFTI_XFORM_UNKNOWN)
+    if (!prefer_sform_over_qform || m_Holder->ptr->sform_code != NIFTI_XFORM_UNKNOWN)
     {
       const bool sform_decomposable_without_skew = [this]() -> bool {
-        if (!IsAffine(this->m_NiftiImage->sto_xyz))
+        if (!IsAffine(m_Holder->ptr->sto_xyz))
         {
           return false;
         }
-        else
-        {
-          const vnl_matrix_fixed<float, 4, 4> sto_xyz{ &(this->m_NiftiImage->sto_xyz.m[0][0]) };
-          // vnl_vector_fixed<float, 3>                          translation;
-          vnl_matrix_fixed<float, 3, 3> rotation = sto_xyz.extract(3, 3, 0, 0);
-          {
-            // Ensure that the scales are approximately the same for spacing directions
-            vnl_vector_fixed<float, 3> scale;
-            scale[0] = rotation.get_column(0).magnitude();
-            constexpr float large_value_tolerance = 1e-3; // Numerical precision of sform is not very good
-            if (std::fabs(this->m_NiftiImage->dx - scale[0]) > large_value_tolerance)
-            {
-              return false;
-            }
-            scale[1] = rotation.get_column(1).magnitude();
-            if (std::fabs(this->m_NiftiImage->dy - scale[1]) > large_value_tolerance)
-            {
-              return false;
-            }
-            scale[2] = rotation.get_column(2).magnitude();
-            if (std::fabs(this->m_NiftiImage->dz - scale[2]) > large_value_tolerance)
-            {
-              return false;
-            }
-          }
-          // Remove scale from columns
-          for (int i = 0; i < 3; ++i)
-          {
-            rotation.set_column(i, rotation.get_column(i).normalize());
-          }
 
-          // Only orthonormal matricies have transpose as inverse
-          const vnl_matrix_fixed<float, 3, 3> candidate_identity = rotation * rotation.transpose();
-          const bool                          is_orthonormal = candidate_identity.is_identity(1.0e-4);
-          return is_orthonormal;
+        const vnl_matrix_fixed<float, 4, 4> sto_xyz{ &(m_Holder->ptr->sto_xyz.m[0][0]) };
+        // vnl_vector_fixed<float, 3>                          translation;
+        vnl_matrix_fixed<float, 3, 3> rotation = sto_xyz.extract(3, 3, 0, 0);
+        {
+          // Ensure that the scales are approximately the same for spacing directions
+          bool            sform_scales_ok{ true };
+          constexpr float large_value_tolerance = 1e-3; // Numerical precision of sform is not very good
+          if (itk::Math::abs(m_Holder->ptr->dx - rotation.get_column(0).magnitude()) > large_value_tolerance)
+          {
+            sform_scales_ok = false;
+          }
+          else if (itk::Math::abs(m_Holder->ptr->dy - rotation.get_column(1).magnitude()) > large_value_tolerance)
+          {
+            sform_scales_ok = false;
+          }
+          else if (itk::Math::abs(m_Holder->ptr->dz - rotation.get_column(2).magnitude()) > large_value_tolerance)
+          {
+            sform_scales_ok = false;
+          }
+          if (!sform_scales_ok)
+          {
+            itkWarningMacro(<< this->GetFileName() << " has unexpected scales in sform");
+          }
         }
+        // Remove scale from columns
+        for (int i = 0; i < 3; ++i)
+        {
+          rotation.set_column(i, rotation.get_column(i).normalize());
+        }
+
+        // Only orthonormal matrices have transpose as inverse
+        const vnl_matrix_fixed<float, 3, 3> candidate_identity = rotation * rotation.transpose();
+        const bool                          is_orthonormal = candidate_identity.is_identity(1.0e-4);
+
+        return is_orthonormal;
       }();
 
       // The sform can more closely match the DICOM representation of directions.
@@ -1939,42 +2052,102 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
       if (sform_decomposable_without_skew)
       {
         // Use sform for direction if qform intent is unknown, and sform intent is known and orthonormal.
-        if (this->m_NiftiImage->qform_code == NIFTI_XFORM_UNKNOWN &&
-            this->m_NiftiImage->sform_code != NIFTI_XFORM_UNKNOWN)
+        if (m_Holder->ptr->qform_code == NIFTI_XFORM_UNKNOWN && m_Holder->ptr->sform_code != NIFTI_XFORM_UNKNOWN)
         {
           prefer_sform_over_qform = true;
         }
         // Use sform if it is labeled as SCANNER_ANAT format and is orthonormal.
-        else if (this->m_NiftiImage->sform_code == NIFTI_XFORM_SCANNER_ANAT)
+        else if (m_Holder->ptr->sform_code == NIFTI_XFORM_SCANNER_ANAT)
         {
           prefer_sform_over_qform = true;
         }
-        else if (this->m_NiftiImage->qform_code != NIFTI_XFORM_UNKNOWN &&
-                 this->m_NiftiImage->sform_code != NIFTI_XFORM_UNKNOWN)
+        else if (m_Holder->ptr->qform_code != NIFTI_XFORM_UNKNOWN && m_Holder->ptr->sform_code != NIFTI_XFORM_UNKNOWN)
         {
           // If sform and qform are similar, or intent is SCANNER_ANAT, prefer sform's higher numerical precision
           const bool sform_and_qform_are_very_similar = [this]() -> bool {
-            const vnl_matrix_fixed<float, 4, 4> sform_as_matrix{ &(this->m_NiftiImage->sto_xyz.m[0][0]) };
-            const vnl_matrix_fixed<float, 4, 4> qform_as_matrix{ &(this->m_NiftiImage->qto_xyz.m[0][0]) };
+            const vnl_matrix_fixed<float, 4, 4> sform_as_matrix{ &(m_Holder->ptr->sto_xyz.m[0][0]) };
+            const vnl_matrix_fixed<float, 4, 4> qform_as_matrix{ &(m_Holder->ptr->qto_xyz.m[0][0]) };
 
-            // if sform_as_matrix * inv(qform_as_matrix) is approximately and identity matrix,
-            // then they are very similar.
-            const vnl_matrix_fixed<float, 4, 4> is_ident = sform_as_matrix * qform_as_matrix.transpose();
-            const bool                          matricies_are_similar = is_ident.is_identity(1.0e-4);
-            return matricies_are_similar;
+            // extract rotation matrix
+            const vnl_matrix_fixed<float, 3, 3> sform_3x3 = sform_as_matrix.extract(3, 3, 0, 0);
+            const vnl_matrix_fixed<float, 3, 3> qform_3x3 = qform_as_matrix.extract(3, 3, 0, 0);
+            vnl_svd<float>                      sform_svd(sform_3x3.as_ref());
+            vnl_svd<float>                      qform_svd(qform_3x3.as_ref());
+
+            // extract offset
+            const vnl_vector<float> sform_offset{ sform_as_matrix.get_column(3).extract(3, 0) };
+            const vnl_vector<float> qform_offset{ qform_as_matrix.get_column(3).extract(3, 0) };
+            // extract perspective
+            const vnl_vector<float> sform_perspective{ sform_as_matrix.get_row(3).as_vector() };
+            const vnl_vector<float> qform_perspective{ qform_as_matrix.get_row(3).as_vector() };
+            // if sform_3x3 * inv(qform_3x3) is approximately and identity matrix then they are very similar.
+            const vnl_matrix_fixed<float, 3, 3> candidate_identity{
+              sform_svd.U() * vnl_matrix_inverse<float>(qform_svd.U()).as_matrix()
+            };
+
+            const bool spacing_similar{ sform_svd.W().diagonal().is_equal(qform_svd.W().diagonal(), 1.0e-4) };
+            const bool rotation_matricies_are_similar{ candidate_identity.is_identity(1.0e-4) };
+            const bool offsets_are_similar{ sform_offset.is_equal(qform_offset, 1.0e-4) };
+            const bool perspectives_are_similar{ sform_perspective.is_equal(qform_perspective, 1.0e-4) };
+
+            return rotation_matricies_are_similar && offsets_are_similar && perspectives_are_similar && spacing_similar;
           }();
           prefer_sform_over_qform = sform_and_qform_are_very_similar;
         }
-      } // sform is orthonormal
-    }   // sform not NIFTI_XFORM_UNKNOWN
+      }
+      else if (m_SFORM_Permissive) // sform is orthonormal
+      {
+        // Fix to deal with non-orthogonal matrixes
+        // this approach uses SVD decomposition
+        // maybe it is better to use nifti_make_orthog_mat44
+        // to be consistent with other software?
+        itkWarningMacro(<< this->GetFileName() << " has non-orthogonal sform");
 
+        vnl_matrix_fixed<double, 3, 3> mat;
+
+        for (int i = 0; i < 3; ++i)
+          for (int j = 0; j < 3; ++j)
+          {
+            mat[i][j] = double{ m_Holder->ptr->sto_xyz.m[i][j] };
+          }
+
+        vnl_svd<double> svd(mat.as_ref(), 1e-8);
+
+        if (svd.singularities() == 0)
+        {
+          mat = svd.U() * svd.V().conjugate_transpose();
+          mat44 _mat;
+
+          for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+            {
+              _mat.m[i][j] = static_cast<float>(mat[i][j]);
+            }
+
+          // preserve origin
+          for (int i = 0; i < 3; ++i)
+          {
+            _mat.m[i][3] = m_Holder->ptr->sto_xyz.m[i][3];
+          }
+          for (int i = 0; i < 4; ++i) // should be 0 0 0 1
+          {
+            _mat.m[3][i] = m_Holder->ptr->sto_xyz.m[3][i];
+          }
+
+          this->m_SFORM_Corrected = true;
+          return _mat;
+        }
+      }
+    } // sform not NIFTI_XFORM_UNKNOWN
     if (prefer_sform_over_qform)
     {
-      return this->m_NiftiImage->sto_xyz;
+      this->m_SFORM_Corrected = false;
+      return m_Holder->ptr->sto_xyz;
     }
-    else if (this->m_NiftiImage->qform_code != NIFTI_XFORM_UNKNOWN)
+    if (m_Holder->ptr->qform_code != NIFTI_XFORM_UNKNOWN)
     {
-      return this->m_NiftiImage->qto_xyz;
+      this->m_SFORM_Corrected = false;
+      return m_Holder->ptr->qto_xyz;
     }
 
     itkGenericExceptionMacro("ITK only supports orthonormal direction cosines.  No orthonormal definition found!");
@@ -1982,19 +2155,23 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
 
   //
   // set origin
-  m_Origin[0] = -theMat.m[0][3];
+  m_Origin[0] = -theMat.m[0][3] * spacingscale;
   if (dims > 1)
   {
-    m_Origin[1] = -theMat.m[1][3];
+    m_Origin[1] = -theMat.m[1][3] * spacingscale;
   }
   if (dims > 2)
   {
-    m_Origin[2] = theMat.m[2][3];
+    m_Origin[2] = theMat.m[2][3] * spacingscale;
+  }
+  if (dims > 3)
+  {
+    m_Origin[3] = m_Holder->ptr->toffset * timingscale;
   }
 
   const int           max_defined_orientation_dims = (dims > 3) ? 3 : dims;
   std::vector<double> xDirection(dims, 0.0);
-  for (int i = 0; i < max_defined_orientation_dims; i++)
+  for (int i = 0; i < max_defined_orientation_dims; ++i)
   {
     xDirection[i] = theMat.m[i][0];
     if (i < 2)
@@ -2008,7 +2185,7 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
   if (max_defined_orientation_dims > 1)
   {
     std::vector<double> yDirection(dims, 0.0);
-    for (int i = 0; i < max_defined_orientation_dims; i++)
+    for (int i = 0; i < max_defined_orientation_dims; ++i)
     {
       yDirection[i] = theMat.m[i][1];
       if (i < 2)
@@ -2023,7 +2200,7 @@ NiftiImageIO::SetImageIOOrientationFromNIfTI(unsigned short int dims)
   if (max_defined_orientation_dims > 2)
   {
     std::vector<double> zDirection(dims, 0.0);
-    for (int i = 0; i < max_defined_orientation_dims; i++)
+    for (int i = 0; i < max_defined_orientation_dims; ++i)
     {
       zDirection[i] = theMat.m[i][2];
       if (i < 2)
@@ -2074,7 +2251,7 @@ NiftiImageIO::getSFormCodeFromDictionary() const
 }
 
 void
-NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsigned short int dims)
+NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short origdims, unsigned short dims)
 {
   //
   // use NIFTI method 2
@@ -2083,31 +2260,34 @@ NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsign
   //       dicom direction cosine information.
   // https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
   // https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform.html
-  this->m_NiftiImage->qform_code = this->getQFormCodeFromDictionary();
-  this->m_NiftiImage->sform_code = this->getSFormCodeFromDictionary();
+  m_Holder->ptr->qform_code = this->getQFormCodeFromDictionary();
+  m_Holder->ptr->sform_code = this->getSFormCodeFromDictionary();
 
   //
   // set the quaternions, from the direction vectors
   // Initialize to size 3 with values of 0
   //
-  // The type here must be float, because that matches the signature
+  // The type here must be a float, because that matches the signature
   // of the nifti_make_orthog_mat44() method below.
   using DirectionMatrixComponentType = float;
   const int                                 mindims(dims < 3 ? 3 : dims);
   std::vector<DirectionMatrixComponentType> dirx(mindims, 0.0f);
-  unsigned int                              i;
-  for (i = 0; i < this->GetDirection(0).size(); i++)
   {
-    dirx[i] = static_cast<DirectionMatrixComponentType>(-this->GetDirection(0)[i]);
-  }
-  if (i < 3)
-  {
-    dirx[2] = 0.0f;
+    unsigned int i = 0;
+    for (; i < this->GetDirection(0).size(); ++i)
+    {
+      dirx[i] = static_cast<DirectionMatrixComponentType>(-this->GetDirection(0)[i]);
+    }
+    if (i < 3)
+    {
+      dirx[2] = 0.0f;
+    }
   }
   std::vector<DirectionMatrixComponentType> diry(mindims, 0);
   if (origdims > 1)
   {
-    for (i = 0; i < this->GetDirection(1).size(); i++)
+    unsigned int i = 0;
+    for (; i < this->GetDirection(1).size(); ++i)
     {
       diry[i] = static_cast<DirectionMatrixComponentType>(-this->GetDirection(1)[i]);
     }
@@ -2119,15 +2299,15 @@ NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsign
   std::vector<DirectionMatrixComponentType> dirz(mindims, 0);
   if (origdims > 2)
   {
-    for (size_t ii = 0; ii < this->GetDirection(2).size(); ii++)
+    for (size_t ii = 0; ii < this->GetDirection(2).size(); ++ii)
     {
       dirz[ii] = static_cast<DirectionMatrixComponentType>(-this->GetDirection(2)[ii]);
     }
     //  Read comments in nifti1.h about interpreting
     //  "DICOM Image Orientation (Patient)"
-    dirx[2] = -dirx[2];
-    diry[2] = -diry[2];
-    dirz[2] = -dirz[2];
+    dirx[2] *= -1;
+    diry[2] *= -1;
+    dirz[2] *= -1;
   }
   else
   {
@@ -2137,6 +2317,33 @@ NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsign
   mat44 matrix =
     nifti_make_orthog_mat44(dirx[0], dirx[1], dirx[2], diry[0], diry[1], diry[2], dirz[0], dirz[1], dirz[2]);
   matrix = mat44_transpose(matrix);
+  // Check if matrix is orthogonal and issue a warning if it was
+  // coerced to orthogonal. Use same epsilon as used in SetImageIOOrientationFromNIfTI
+  const unsigned int matDim(this->GetDirection(0).size());
+  vnl_matrix<float>  imageMat(matDim, matDim);
+  for (unsigned c = 0; c < matDim; ++c)
+  {
+    auto col = this->GetDirection(c);
+    for (unsigned r = 0; r < matDim; ++r)
+    {
+      imageMat[r][c] = col[r];
+    }
+  }
+  auto candidateIdentity = imageMat * imageMat.transpose();
+  if (!candidateIdentity.is_identity(1.0e-4))
+  {
+    itkWarningMacro("Non-orthogonal direction matrix coerced to orthogonal");
+  }
+
+  // also issue a warning if original file had non-orthogonal matrix?
+  {
+    const MetaDataDictionary & thisDic = this->GetMetaDataDictionary();
+    std::string                temp;
+    if (itk::ExposeMetaData<std::string>(thisDic, "nifti_sform_corrected", temp) && temp == "YES")
+    {
+      itkWarningMacro("Non-orthogonal direction matrix in original nifti file was non-orthogonal");
+    }
+  }
   // Fill in origin.
   matrix.m[0][3] = static_cast<float>(-this->GetOrigin(0));
   matrix.m[1][3] = (origdims > 1) ? static_cast<float>(-this->GetOrigin(1)) : 0.0f;
@@ -2144,40 +2351,39 @@ NiftiImageIO::SetNIfTIOrientationFromImageIO(unsigned short int origdims, unsign
   matrix.m[2][3] = (origdims > 2) ? static_cast<float>(this->GetOrigin(2)) : 0.0f;
 
   nifti_mat44_to_quatern(matrix,
-                         &(this->m_NiftiImage->quatern_b),
-                         &(this->m_NiftiImage->quatern_c),
-                         &(this->m_NiftiImage->quatern_d),
-                         &(this->m_NiftiImage->qoffset_x),
-                         &(this->m_NiftiImage->qoffset_y),
-                         &(this->m_NiftiImage->qoffset_z),
+                         &(m_Holder->ptr->quatern_b),
+                         &(m_Holder->ptr->quatern_c),
+                         &(m_Holder->ptr->quatern_d),
+                         &(m_Holder->ptr->qoffset_x),
+                         &(m_Holder->ptr->qoffset_y),
+                         &(m_Holder->ptr->qoffset_z),
                          nullptr,
                          nullptr,
                          nullptr,
-                         &(this->m_NiftiImage->qfac));
+                         &(m_Holder->ptr->qfac));
   // copy q matrix to s matrix
-  this->m_NiftiImage->qto_xyz = matrix;
-  this->m_NiftiImage->sto_xyz = matrix;
+  m_Holder->ptr->qto_xyz = matrix;
+  m_Holder->ptr->sto_xyz = matrix;
   //
   //
-  unsigned int sto_limit = origdims > 3 ? 3 : origdims;
-  for (unsigned int ii = 0; ii < sto_limit; ii++)
+  const unsigned int sto_limit = origdims > 3 ? 3 : origdims;
+  for (unsigned int ii = 0; ii < sto_limit; ++ii)
   {
-    for (unsigned int jj = 0; jj < sto_limit; jj++)
+    for (unsigned int jj = 0; jj < sto_limit; ++jj)
     {
-      this->m_NiftiImage->sto_xyz.m[ii][jj] =
-        static_cast<float>(this->GetSpacing(jj)) * this->m_NiftiImage->sto_xyz.m[ii][jj];
+      m_Holder->ptr->sto_xyz.m[ii][jj] = static_cast<float>(this->GetSpacing(jj)) * m_Holder->ptr->sto_xyz.m[ii][jj];
     }
   }
-  this->m_NiftiImage->sto_ijk = nifti_mat44_inverse(this->m_NiftiImage->sto_xyz);
-  this->m_NiftiImage->qto_ijk = nifti_mat44_inverse(this->m_NiftiImage->qto_xyz);
+  m_Holder->ptr->sto_ijk = nifti_mat44_inverse(m_Holder->ptr->sto_xyz);
+  m_Holder->ptr->qto_ijk = nifti_mat44_inverse(m_Holder->ptr->qto_xyz);
 
-  this->m_NiftiImage->pixdim[0] = this->m_NiftiImage->qfac;
-  this->m_NiftiImage->qform_code = NIFTI_XFORM_SCANNER_ANAT;
-  this->m_NiftiImage->sform_code = NIFTI_XFORM_SCANNER_ANAT;
+  m_Holder->ptr->pixdim[0] = m_Holder->ptr->qfac;
+  m_Holder->ptr->qform_code = NIFTI_XFORM_SCANNER_ANAT;
+  m_Holder->ptr->sform_code = NIFTI_XFORM_SCANNER_ANAT;
 }
 
 void
-NiftiImageIO ::Write(const void * buffer)
+NiftiImageIO::Write(const void * buffer)
 {
   // Write the image Information before writing data
   this->WriteImageInformation();
@@ -2188,33 +2394,40 @@ NiftiImageIO ::Write(const void * buffer)
   {
     // Need a const cast here so that we don't have to copy the memory
     // for writing.
-    this->m_NiftiImage->data = const_cast<void *>(buffer);
-    nifti_image_write(this->m_NiftiImage);
-    this->m_NiftiImage->data = nullptr; // if left pointing to data buffer
-    // nifti_image_free will try and free this memory
+    m_Holder->ptr->data = const_cast<void *>(buffer);
+    const int nifti_write_status = nifti_image_write_status(m_Holder->ptr.get());
+    m_Holder->ptr->data = nullptr; // Must free before throwing exception.
+                                   // if left pointing to data buffer
+                                   // nifti_image_free inside Destructor of ITKNiftiIO
+                                   // will try and free this memory, and then
+                                   // so will destructor of the image that really owns it.
+    if (nifti_write_status)
+    {
+      itkExceptionMacro("ERROR: nifti library failed to write image: " << this->GetFileName());
+    }
   }
   else /// Image intent is vector image
   {
-    for (unsigned int i = 1; i < 8; i++)
+    for (unsigned int i = 1; i < 8; ++i)
     {
-      if (this->m_NiftiImage->dim[i] == 0)
+      if (m_Holder->ptr->dim[i] == 0)
       {
-        this->m_NiftiImage->dim[i] = 1;
+        m_Holder->ptr->dim[i] = 1;
       }
     }
-    const size_t numVoxels = size_t(this->m_NiftiImage->dim[1]) * size_t(this->m_NiftiImage->dim[2]) *
-                             size_t(this->m_NiftiImage->dim[3]) * size_t(this->m_NiftiImage->dim[4]);
+    const size_t numVoxels = static_cast<size_t>(m_Holder->ptr->dim[1]) * static_cast<size_t>(m_Holder->ptr->dim[2]) *
+                             static_cast<size_t>(m_Holder->ptr->dim[3]) * static_cast<size_t>(m_Holder->ptr->dim[4]);
     const size_t buffer_size = numVoxels * numComponents // Number of components
-                               * this->m_NiftiImage->nbyper;
+                               * m_Holder->ptr->nbyper;
 
-    auto *             nifti_buf = new char[buffer_size];
-    const auto * const itkbuf = (const char *)buffer;
+    const auto         nifti_buf = make_unique_for_overwrite<char[]>(buffer_size);
+    const auto * const itkbuf = static_cast<const char *>(buffer);
     // Data must be rearranged to meet nifti organzation.
     // nifti_layout[vec][t][z][y][x] = itk_layout[t][z][y][z][vec]
-    const size_t rowdist = m_NiftiImage->dim[1];
-    const size_t slicedist = rowdist * m_NiftiImage->dim[2];
-    const size_t volumedist = slicedist * m_NiftiImage->dim[3];
-    const size_t seriesdist = volumedist * m_NiftiImage->dim[4];
+    const size_t rowdist = m_Holder->ptr->dim[1];
+    const size_t slicedist = rowdist * m_Holder->ptr->dim[2];
+    const size_t volumedist = slicedist * m_Holder->ptr->dim[3];
+    const size_t seriesdist = volumedist * m_Holder->ptr->dim[4];
     //
     // as per ITK bug 0007485
     // NIfTI is lower triangular, ITK is upper triangular.
@@ -2225,7 +2438,7 @@ NiftiImageIO ::Write(const void * buffer)
     // ITK stores it a b c d e f, but NIfTI is a b d c e f
     // so on read, step sequentially through the source vector, but
     // reverse the order of vec[2] and vec[3]
-    int * vecOrder;
+    int * vecOrder = nullptr;
     if (this->GetPixelType() == IOPixelEnum::DIFFUSIONTENSOR3D ||
         this->GetPixelType() == IOPixelEnum::SYMMETRICSECONDRANKTENSOR)
     {
@@ -2234,28 +2447,28 @@ NiftiImageIO ::Write(const void * buffer)
     else
     {
       vecOrder = new int[numComponents];
-      for (unsigned i = 0; i < numComponents; i++)
+      for (unsigned int i = 0; i < numComponents; ++i)
       {
         vecOrder[i] = i;
       }
     }
-    for (int t = 0; t < this->m_NiftiImage->dim[4]; t++)
+    for (int t = 0; t < m_Holder->ptr->dim[4]; ++t)
     {
-      for (int z = 0; z < this->m_NiftiImage->dim[3]; z++)
+      for (int z = 0; z < m_Holder->ptr->dim[3]; ++z)
       {
-        for (int y = 0; y < this->m_NiftiImage->dim[2]; y++)
+        for (int y = 0; y < m_Holder->ptr->dim[2]; ++y)
         {
-          for (int x = 0; x < this->m_NiftiImage->dim[1]; x++)
+          for (int x = 0; x < m_Holder->ptr->dim[1]; ++x)
           {
-            for (unsigned int c = 0; c < numComponents; c++)
+            for (unsigned int c = 0; c < numComponents; ++c)
             {
               const size_t nifti_index =
-                (c * seriesdist + volumedist * t + slicedist * z + rowdist * y + x) * this->m_NiftiImage->nbyper;
+                (c * seriesdist + volumedist * t + slicedist * z + rowdist * y + x) * m_Holder->ptr->nbyper;
               const size_t itk_index =
                 ((volumedist * t + slicedist * z + rowdist * y + x) * numComponents + vecOrder[c]) *
-                this->m_NiftiImage->nbyper;
+                m_Holder->ptr->nbyper;
 
-              for (int b = 0; b < this->m_NiftiImage->nbyper; ++b)
+              for (int b = 0; b < m_Holder->ptr->nbyper; ++b)
               {
                 nifti_buf[nifti_index + b] = itkbuf[itk_index + b];
               }
@@ -2264,14 +2477,39 @@ NiftiImageIO ::Write(const void * buffer)
         }
       }
     }
+
+    if (this->m_ConvertRAS)
+    {
+      if (this->GetPixelType() != IOPixelEnum::VECTOR && this->GetPixelType() != IOPixelEnum::POINT)
+      {
+        itkExceptionMacro("RAS conversion requires pixel to be 3-component vector or point. Current pixel type is "
+                          << numComponents << "-component " << this->GetPixelType() << '.');
+      }
+      switch (this->m_ComponentType)
+      {
+        case IOComponentEnum::FLOAT:
+          ConvertRASToFromLPS_XYZTC(reinterpret_cast<float *>(nifti_buf.get()), numComponents * seriesdist);
+          break;
+        case IOComponentEnum::DOUBLE:
+          ConvertRASToFromLPS_XYZTC(reinterpret_cast<double *>(nifti_buf.get()), numComponents * seriesdist);
+          break;
+        default:
+          itkExceptionMacro("RAS conversion of datatype "
+                            << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType) << " is not supported");
+      }
+    }
+
     delete[] vecOrder;
     dumpdata(buffer);
     // Need a const cast here so that we don't have to copy the memory for
     // writing.
-    this->m_NiftiImage->data = static_cast<void *>(nifti_buf);
-    nifti_image_write(this->m_NiftiImage);
-    this->m_NiftiImage->data = nullptr; // if left pointing to data buffer
-    delete[] nifti_buf;
+    m_Holder->ptr->data = static_cast<void *>(nifti_buf.get());
+    const int nifti_write_status = nifti_image_write_status(m_Holder->ptr.get());
+    m_Holder->ptr->data = nullptr; // if left pointing to data buffer
+    if (nifti_write_status)
+    {
+      itkExceptionMacro("ERROR: nifti library failed to write image: " << this->GetFileName());
+    }
   }
 }
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,18 +23,18 @@
 int
 itkOtsuMultipleThresholdsCalculatorTest(int argc, char * argv[])
 {
-  if (argc != 2)
+  if (argc != 3)
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage:" << std::endl;
-    std::cerr << itkNameOfTestExecutableMacro(argv) << " valleyEmphasis" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " valleyEmphasis returnBinMidpoint" << std::endl;
     return EXIT_FAILURE;
   }
 
   using MeasurementType = float;
   using HistogramType = itk::Statistics::Histogram<MeasurementType>;
 
-  HistogramType::Pointer histogram = HistogramType::New();
+  auto histogram = HistogramType::New();
 
   // Initialize histogram
   HistogramType::SizeType              size;
@@ -58,16 +58,16 @@ itkOtsuMultipleThresholdsCalculatorTest(int argc, char * argv[])
   values.push_back(32.0);
   values.push_back(48.0);
 
-  MeasurementType range = 2.0;
+  constexpr MeasurementType range = 2.0;
 
   // Create histogram with samples at values +- range
   for (HistogramType::Iterator iter = histogram->Begin(); iter != histogram->End(); ++iter)
   {
-    HistogramType::MeasurementType measurement = iter.GetMeasurementVector()[0];
+    const HistogramType::MeasurementType measurement = iter.GetMeasurementVector()[0];
 
-    for (ValuesVectorType::const_iterator viter = values.begin(); viter != values.end(); ++viter)
+    for (const float value : values)
     {
-      if (measurement > (*viter - range) && measurement < (*viter + range))
+      if (measurement > (value - range) && measurement < (value + range))
       {
         iter.SetFrequency(1);
       }
@@ -79,13 +79,9 @@ itkOtsuMultipleThresholdsCalculatorTest(int argc, char * argv[])
 
   using OtsuMultipleThresholdCalculatorType = itk::OtsuMultipleThresholdsCalculator<HistogramType>;
 
-  OtsuMultipleThresholdCalculatorType::Pointer otsuThresholdCalculator = OtsuMultipleThresholdCalculatorType::New();
+  auto otsuThresholdCalculator = OtsuMultipleThresholdCalculatorType::New();
 
-#if defined(ITKV4_COMPATIBILITY)
-  ITK_TEST_EXPECT_TRUE(otsuThresholdCalculator->GetReturnBinMidpoint());
-#else
   ITK_TEST_EXPECT_TRUE(!otsuThresholdCalculator->GetReturnBinMidpoint());
-#endif
 
   otsuThresholdCalculator->SetInputHistogram(histogram);
   otsuThresholdCalculator->SetNumberOfThresholds(numberOfThresholds);
@@ -95,8 +91,11 @@ itkOtsuMultipleThresholdsCalculatorTest(int argc, char * argv[])
   otsuThresholdCalculator->SetNumberOfThresholds(numberOfThresholds);
   ITK_TEST_SET_GET_VALUE(numberOfThresholds, otsuThresholdCalculator->GetNumberOfThresholds());
 
-  bool valleyEmphasis = std::stoi(argv[1]);
+  const bool valleyEmphasis = std::stoi(argv[1]);
   ITK_TEST_SET_GET_BOOLEAN(otsuThresholdCalculator, ValleyEmphasis, valleyEmphasis);
+
+  const bool returnBinMidpoint = std::stoi(argv[2]);
+  ITK_TEST_SET_GET_BOOLEAN(otsuThresholdCalculator, ReturnBinMidpoint, returnBinMidpoint);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(otsuThresholdCalculator->Compute());
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFastMarchingUpwindGradientImageFilterBase_hxx
 #define itkFastMarchingUpwindGradientImageFilterBase_hxx
 
-#include "itkFastMarchingUpwindGradientImageFilterBase.h"
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
 #include "itkMath.h"
@@ -32,13 +31,13 @@ namespace itk
 template <typename TInput, typename TOutput>
 FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::FastMarchingUpwindGradientImageFilterBase()
 {
-  GradientImagePointer GradientImage = GradientImageType::New();
+  const GradientImagePointer GradientImage = GradientImageType::New();
   this->SetNthOutput(1, GradientImage.GetPointer());
 }
 
 template <typename TInput, typename TOutput>
-typename FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::GradientImageType *
-FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::GetGradientImage()
+auto
+FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::GetGradientImage() -> GradientImageType *
 {
   return dynamic_cast<GradientImageType *>(this->ProcessObject::GetOutput(1));
 }
@@ -63,7 +62,7 @@ FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::InitializeOutput(Out
   Superclass::InitializeOutput(output);
 
   // allocate memory for the GradientImage if requested
-  GradientImagePointer GradientImage = this->GetGradientImage();
+  const GradientImagePointer GradientImage = this->GetGradientImage();
 
   GradientImage->CopyInformation(this->GetInput());
   GradientImage->SetBufferedRegion(output->GetBufferedRegion());
@@ -75,9 +74,7 @@ FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::InitializeOutput(Out
 
   GradientPixelType zeroGradient;
   using GradientPixelValueType = typename GradientPixelType::ValueType;
-  zeroGradient.Fill(NumericTraits<GradientPixelValueType>::ZeroValue());
-
-  gradientIt.GoToBegin();
+  zeroGradient.Fill(GradientPixelValueType{});
 
   while (!gradientIt.IsAtEnd())
   {
@@ -112,7 +109,7 @@ FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::ComputeGradient(Outp
   OutputPixelType   dx_backward;
   GradientPixelType gradientPixel;
 
-  const OutputPixelType ZERO = NumericTraits<OutputPixelType>::ZeroValue();
+  constexpr OutputPixelType ZERO{};
 
   OutputSpacingType spacing = oImage->GetSpacing();
 
@@ -120,7 +117,7 @@ FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::ComputeGradient(Outp
 
   centerPixel = oImage->GetPixel(iNode);
 
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     neighIndex = iNode;
 
@@ -171,7 +168,7 @@ FastMarchingUpwindGradientImageFilterBase<TInput, TOutput>::ComputeGradient(Outp
     gradientPixel[j] /= spacing[j];
   }
 
-  GradientImagePointer GradientImage = this->GetGradientImage();
+  const GradientImagePointer GradientImage = this->GetGradientImage();
   GradientImage->SetPixel(iNode, gradientPixel);
 }
 } // namespace itk

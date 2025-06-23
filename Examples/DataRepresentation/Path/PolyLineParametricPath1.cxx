@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,7 @@ main(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(argv[1]);
 
@@ -84,9 +84,8 @@ main(int argc, char * argv[])
   }
 
   // Software Guide : BeginCodeSnippet
-  ImageType::ConstPointer image = reader->GetOutput();
-  PathType::Pointer       path = PathType::New();
-  path->Initialize();
+  const ImageType::ConstPointer image = reader->GetOutput();
+  auto                          path = PathType::New();
 
   using ContinuousIndexType = PathType::ContinuousIndexType;
   ContinuousIndexType cindex;
@@ -102,9 +101,15 @@ main(int argc, char * argv[])
   point[0] = origin[0] + spacing[0] * size[0];
   point[1] = origin[1] + spacing[1] * size[1];
 
-  image->TransformPhysicalPointToContinuousIndex(origin, cindex);
+  using ContinuousIndexValueType = ContinuousIndexType::ValueType;
+
+  cindex =
+    image->TransformPhysicalPointToContinuousIndex<ContinuousIndexValueType>(
+      origin);
   path->AddVertex(cindex);
-  image->TransformPhysicalPointToContinuousIndex(point, cindex);
+  cindex =
+    image->TransformPhysicalPointToContinuousIndex<ContinuousIndexValueType>(
+      point);
   path->AddVertex(cindex);
   // Software Guide : EndCodeSnippet
 

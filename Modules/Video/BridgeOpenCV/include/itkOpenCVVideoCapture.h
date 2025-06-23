@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
 {
 
 /**
- *\class OpenCVVideoCapture
+ * \class OpenCVVideoCapture
  * \brief This class implements OpenCV's VideoCapture API and takes an itk
  * VideoStream as input
  *
@@ -51,9 +51,6 @@ template <typename TVideoStream>
 class ITK_TEMPLATE_EXPORT OpenCVVideoCapture : public cv::VideoCapture
 {
 public:
-  /**-CONSTRUCTORS AND DESTRUCTOR--------------------------------------------*/
-
-  /** ITK stype type alias */
   using VideoStreamType = TVideoStream;
   using Self = OpenCVVideoCapture<VideoStreamType>;
   using FrameType = typename VideoStreamType::FrameType;
@@ -69,10 +66,10 @@ public:
    * that generated it. */
   virtual ~OpenCVVideoCapture() {}
 
-  /** ITK's type info */
-  itkTypeMacroNoParent(OpenCVVideoCapture);
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(OpenCVVideoCapture);
 
-  /**-OPEN CLOSE FUNCTIONALITY-----------------------------------------------*/
+  // Open, close functionality
 
   /** overload reading from file and camera just to throw exceptions */
   virtual bool
@@ -108,7 +105,7 @@ public:
   virtual void
   release();
 
-  /**-FRAME ACCESS-----------------------------------------------------------*/
+  // Frame access
 
   /** Grab the next frame from the VideoStream */
   virtual bool
@@ -123,11 +120,11 @@ public:
   virtual Self &
   operator>>(cv::Mat & image);
 
-  /** non-operator version of >>'s functionality */
+  /** Non-operator version of >>'s functionality */
   virtual bool
   read(cv::Mat & image);
 
-  /**-PROPERTIES-------------------------------------------------------------*/
+  // Properties
 
   /** Set a property */
   virtual bool
@@ -139,11 +136,11 @@ public:
 
 protected:
   /** Internal VideoStream */
-  VideoStreamType * m_VideoStream;
+  VideoStreamType * m_VideoStream{};
 
   /** Property members */
-  double m_FpS;
-  int    m_FourCC;
+  double m_FpS{};
+  int    m_FourCC{};
 
 }; // end class VideoCapture
 

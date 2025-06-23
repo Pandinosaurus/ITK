@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkInvertDisplacementFieldImageFilter_hxx
 #define itkInvertDisplacementFieldImageFilter_hxx
 
-#include "itkInvertDisplacementFieldImageFilter.h"
 
 #include "itkComposeDisplacementFieldsImageFilter.h"
 #include "itkImageDuplicator.h"
@@ -44,7 +43,9 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::InvertDisplacemen
   , m_Epsilon(0.0)
 
 {
-  this->SetNumberOfRequiredInputs(1);
+  this->Self::SetPrimaryInputName("DisplacementField");
+  this->Self::AddOptionalInputName("InverseFieldInitialEstimate");
+
   this->DynamicMultiThreadingOn();
 }
 
@@ -71,16 +72,16 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
   this->UpdateProgress(0.0f);
   this->AllocateOutputs();
 
-  VectorType zeroVector(0.0);
+  constexpr VectorType zeroVector{};
 
-  typename DisplacementFieldType::ConstPointer displacementField = this->GetInput();
+  const typename DisplacementFieldType::ConstPointer displacementField = this->GetInput();
 
   typename InverseDisplacementFieldType::Pointer inverseDisplacementField;
 
   if (this->GetInverseFieldInitialEstimate())
   {
     using DuplicatorType = ImageDuplicator<InverseDisplacementFieldType>;
-    typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    auto duplicator = DuplicatorType::New();
     duplicator->SetInputImage(this->GetInverseFieldInitialEstimate());
     duplicator->Update();
 
@@ -94,30 +95,31 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
     inverseDisplacementField->FillBuffer(zeroVector);
   }
 
-  for (unsigned int d = 0; d < ImageDimension; d++)
+  for (unsigned int d = 0; d < ImageDimension; ++d)
   {
     this->m_DisplacementFieldSpacing[d] = displacementField->GetSpacing()[d];
   }
 
   this->m_ScaledNormImage->CopyInformation(displacementField);
   this->m_ScaledNormImage->SetRegions(displacementField->GetRequestedRegion());
-  this->m_ScaledNormImage->Allocate(true); // initialize buffer to zero
+  this->m_ScaledNormImage->AllocateInitialized();
 
-  SizeValueType numberOfPixelsInRegion = (displacementField->GetRequestedRegion()).GetNumberOfPixels();
+  const SizeValueType numberOfPixelsInRegion = (displacementField->GetRequestedRegion()).GetNumberOfPixels();
   this->m_MaxErrorNorm = NumericTraits<RealType>::max();
   this->m_MeanErrorNorm = NumericTraits<RealType>::max();
   unsigned int iteration = 0;
 
   float oldProgress = 0.0f;
 
-  while (iteration++ < this->m_MaximumNumberOfIterations && this->m_MaxErrorNorm > this->m_MaxErrorToleranceThreshold &&
-         this->m_MeanErrorNorm > this->m_MeanErrorToleranceThreshold)
+  while ((iteration++ < this->m_MaximumNumberOfIterations) &&
+         (this->m_MaxErrorNorm > this->m_MaxErrorToleranceThreshold) &&
+         (this->m_MeanErrorNorm > this->m_MeanErrorToleranceThreshold))
   {
     itkDebugMacro("Iteration " << iteration << ": mean error norm = " << this->m_MeanErrorNorm
                                << ", max error norm = " << this->m_MaxErrorNorm);
 
     using ComposerType = ComposeDisplacementFieldsImageFilter<DisplacementFieldType>;
-    typename ComposerType::Pointer composer = ComposerType::New();
+    auto composer = ComposerType::New();
     composer->SetDisplacementField(displacementField);
     composer->SetWarpingField(inverseDisplacementField);
 
@@ -126,10 +128,10 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
     this->m_ComposedField->DisconnectPipeline();
 
     // Multithread processing to multiply each element of the composed field by 1 / spacing
-    this->m_MeanErrorNorm = NumericTraits<RealType>::ZeroValue();
-    this->m_MaxErrorNorm = NumericTraits<RealType>::ZeroValue();
+    this->m_MeanErrorNorm = RealType{};
+    this->m_MaxErrorNorm = RealType{};
 
-    float               newProgress = float(2 * iteration - 1) / (2 * m_MaximumNumberOfIterations);
+    float               newProgress = static_cast<float>(2 * iteration - 1) / (2 * m_MaximumNumberOfIterations);
     ProgressTransformer pt(oldProgress, newProgress, this);
     this->m_DoThreadedEstimateInverse = false;
     this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -149,7 +151,7 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
     }
 
     oldProgress = newProgress;
-    newProgress = float(2 * iteration) / (2 * m_MaximumNumberOfIterations);
+    newProgress = static_cast<float>(2 * iteration) / (2 * m_MaximumNumberOfIterations);
     ProgressTransformer pt2(oldProgress, newProgress, this);
     // Multithread processing to estimate inverse field
     this->m_DoThreadedEstimateInverse = true;
@@ -172,7 +174,7 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
   const typename DisplacementFieldType::RegionType fullRegion = this->m_ComposedField->GetRequestedRegion();
   const typename DisplacementFieldType::SizeType   size = fullRegion.GetSize();
   const typename DisplacementFieldType::IndexType  startIndex = fullRegion.GetIndex();
-  const typename DisplacementFieldType::PixelType  zeroVector(0.0);
+  const typename DisplacementFieldType::PixelType  zeroVector{};
 
   ImageRegionIterator<DisplacementFieldType> ItE(this->m_ComposedField, region);
   ImageRegionIterator<RealImageType>         ItS(this->m_ScaledNormImage, region);
@@ -183,8 +185,8 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
 
     for (ItI.GoToBegin(), ItE.GoToBegin(), ItS.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItE, ++ItS)
     {
-      VectorType update = ItE.Get();
-      RealType   scaledNorm = ItS.Get();
+      VectorType     update = ItE.Get();
+      const RealType scaledNorm = ItS.Get();
 
       if (scaledNorm > this->m_Epsilon * this->m_MaxErrorNorm)
       {
@@ -195,7 +197,7 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
       typename DisplacementFieldType::IndexType index = ItI.GetIndex();
       if (this->m_EnforceBoundaryCondition)
       {
-        for (unsigned int d = 0; d < ImageDimension; d++)
+        for (unsigned int d = 0; d < ImageDimension; ++d)
         {
           if (index[d] == startIndex[d] || index[d] == static_cast<IndexValueType>(size[d]) - startIndex[d] - 1)
           {
@@ -209,8 +211,8 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
   else
   {
     VectorType inverseSpacing;
-    RealType   localMean = NumericTraits<RealType>::ZeroValue();
-    RealType   localMax = NumericTraits<RealType>::ZeroValue();
+    RealType   localMean{};
+    RealType   localMax{};
     for (unsigned int d = 0; d < ImageDimension; ++d)
     {
       inverseSpacing[d] = 1.0 / this->m_DisplacementFieldSpacing[d];
@@ -235,7 +237,7 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
       ItE.Set(-displacement);
     }
     {
-      std::lock_guard<std::mutex> holder(m_Mutex);
+      const std::lock_guard<std::mutex> lockGuard(m_Mutex);
       this->m_MeanErrorNorm += localMean;
       if (this->m_MaxErrorNorm < localMax)
       {
@@ -253,9 +255,9 @@ InvertDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrintSelf(std::os
 
   itkPrintSelfObjectMacro(Interpolator);
 
-  os << "Maximum number of iterations: " << this->m_MaximumNumberOfIterations << std::endl;
-  os << "Max error tolerance threshold: " << this->m_MaxErrorToleranceThreshold << std::endl;
-  os << "Mean error tolerance threshold: " << this->m_MeanErrorToleranceThreshold << std::endl;
+  os << indent << "Maximum number of iterations: " << this->m_MaximumNumberOfIterations << std::endl;
+  os << indent << "Max error tolerance threshold: " << this->m_MaxErrorToleranceThreshold << std::endl;
+  os << indent << "Mean error tolerance threshold: " << this->m_MeanErrorToleranceThreshold << std::endl;
 }
 
 } // end namespace itk

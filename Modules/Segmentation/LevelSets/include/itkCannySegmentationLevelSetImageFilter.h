@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ namespace itk
  *    SegmentationLevelSetImageFilter), it works by first constructing a scalar
  *    speed term and a vector advection field based on edge features in the
  *    image.  The level set front is then moved according to these two terms
- *    with the addition of a third curvature term to contol the smoothness of
+ *    with the addition of a third curvature term to control the smoothness of
  *    the solution.
  *
  *  \par
@@ -140,25 +140,26 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FeatureImageType = typename Superclass::FeatureImageType;
-  using VectorImageType = typename Superclass::VectorImageType;
-  using SpeedImageType = typename Superclass::SpeedImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FeatureImageType;
+  using typename Superclass::VectorImageType;
+  using typename Superclass::SpeedImageType;
 
   /** Type of the segmentation function */
-  using CannyFunctionType = ::itk::CannySegmentationLevelSetFunction<OutputImageType, FeatureImageType>;
+  using CannyFunctionType = itk::CannySegmentationLevelSetFunction<OutputImageType, FeatureImageType>;
 
   using ScalarValueType = typename CannyFunctionType::ScalarValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CannySegmentationLevelSetImageFilter, SegmentationLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CannySegmentationLevelSetImageFilter);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
   /** Set the Threshold parameter of the CannyEdgeDetectionImageFilter
    * used by the underlying level set function. */
+  /** @ITKStartGrouping */
   void
   SetThreshold(ScalarValueType v)
   {
@@ -169,20 +170,21 @@ public:
   {
     return this->m_CannyFunction->GetThreshold();
   }
-
+  /** @ITKEndGrouping */
   /** Set the Variance parameter of the CannyEdgeDetectionImageFilter
    * used by the underlying level set function. */
+  /** @ITKStartGrouping */
   void
   SetVariance(double v)
   {
     this->m_CannyFunction->SetVariance(v);
   }
-  double
+  [[nodiscard]] double
   GetVariance() const
   {
     return this->m_CannyFunction->GetVariance();
   }
-
+  /** @ITKEndGrouping */
   /** Get the Canny image that was used to create the speed and
       advection images */
   OutputImageType *
@@ -191,18 +193,14 @@ public:
     return this->m_CannyFunction->GetCannyImage();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<TOutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ~CannySegmentationLevelSetImageFilter() override = default;
   CannySegmentationLevelSetImageFilter();
 
 private:
-  typename CannyFunctionType::Pointer m_CannyFunction;
+  typename CannyFunctionType::Pointer m_CannyFunction{};
 };
 } // end namespace itk
 

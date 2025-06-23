@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,29 +18,25 @@
 #ifndef itkRegionGrowImageFilter_hxx
 #define itkRegionGrowImageFilter_hxx
 
-#include "itkRegionGrowImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 RegionGrowImageFilter<TInputImage, TOutputImage>::RegionGrowImageFilter()
+
 {
   m_GridSize.Fill(2);
-  m_MaximumNumberOfRegions = 0;
 }
 
-/**
- * PrintSelf
- */
 template <typename TInputImage, typename TOutputImage>
 void
 RegionGrowImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Region grow image filter object" << std::endl;
-  os << indent << "Maximum number of regions: " << m_MaximumNumberOfRegions << std::endl;
-  os << indent << "Maximum grid size : " << m_GridSize << std::endl;
-} // end PrintSelf
+
+  os << indent << "MaximumNumberOfRegions: " << m_MaximumNumberOfRegions << std::endl;
+  os << indent << "GridSize: " << static_cast<typename NumericTraits<GridSizeType>::PrintType>(m_GridSize) << std::endl;
+}
 } // namespace itk
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 
 template <typename TPixel>
 int
-DoIt(int argc, char * argv[], const std::string pixelType)
+DoIt(int argc, char * argv[], const std::string & pixelType)
 {
   if (argc < 2)
   {
@@ -42,55 +42,50 @@ DoIt(int argc, char * argv[], const std::string pixelType)
   using OutputImageType = itk::Image<PixelType, Dimension>;
   using IndexType = typename InputImageType::IndexType;
 
-  typename InputImageType::Pointer inputimg = InputImageType::New();
-  IndexType                        index;
-  index.Fill(0);
-  typename InputImageType::RegionType region;
-
+  auto                              inputimg = InputImageType::New();
+  constexpr IndexType               index{};
   typename InputImageType::SizeType size;
   size[0] = width;
   size[1] = height;
 
+  typename InputImageType::RegionType region;
   region.SetSize(size);
   region.SetIndex(index);
 
-  inputimg->SetLargestPossibleRegion(region);
-  inputimg->SetBufferedRegion(region);
-  inputimg->SetRequestedRegion(region);
+  inputimg->SetRegions(region);
   inputimg->Allocate();
 
-  int       row, col;
   IndexType myIndex;
-  for (row = 0; row < 20; row++)
+  for (int row = 0; row < 20; ++row)
   {
-    for (col = 0; col < 20; col++)
+    for (int col = 0; col < 20; ++col)
     {
       myIndex[1] = row;
       myIndex[0] = col;
       inputimg->SetPixel(myIndex, false);
     }
   }
-  for (row = 0; row < 15; row++)
+  for (int row = 0; row < 15; ++row)
   {
-    for (col = 0; col < 20; col++)
+    for (int col = 0; col < 20; ++col)
     {
       myIndex[1] = row;
       myIndex[0] = col;
       inputimg->SetPixel(myIndex, true);
     }
   }
-  for (row = 0; row < 10; row++)
+  for (int row = 0; row < 10; ++row)
   {
-    for (col = 5; col < 15; col++)
+    for (int col = 5; col < 15; ++col)
     {
       myIndex[1] = row;
       myIndex[0] = col;
       inputimg->SetPixel(myIndex, false);
     }
   }
-  for (row = 0; row < 7; row++)
+  for (int row = 0; row < 7; ++row)
   {
-    for (col = 7; col < 12; col++)
+    for (int col = 7; col < 12; ++col)
     {
       myIndex[1] = row;
       myIndex[0] = col;
@@ -100,20 +95,20 @@ DoIt(int argc, char * argv[], const std::string pixelType)
   // InputImageType::IndexType Seed = {10,2};
 
   using FilterType = itk::HardConnectedComponentImageFilter<InputImageType, OutputImageType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   filter->SetInput(inputimg);
   // filter->SetObjectSeed(Seed);
   filter->Update();
 
   using inputIterator = itk::ImageRegionIterator<InputImageType>;
-  inputIterator it = inputIterator(inputimg, region);
+  inputIterator it(inputimg, region);
 
   std::cout << "Input Image" << std::endl;
   it.GoToBegin();
-  for (int i = 0; i < height * width; i++)
+  for (int i = 0; i < height * width; ++i)
   {
     if ((i % width) == 0)
     {
@@ -125,11 +120,11 @@ DoIt(int argc, char * argv[], const std::string pixelType)
   std::cout << std::endl;
 
   using outputIterator = itk::ImageRegionIterator<OutputImageType>;
-  outputIterator ot = outputIterator(filter->GetOutput(), region);
+  outputIterator ot(filter->GetOutput(), region);
 
   std::cout << std::endl << "Output Image" << std::endl;
   ot.GoToBegin();
-  for (int i = 0; i < height * width; i++)
+  for (int i = 0; i < height * width; ++i)
   {
     if ((i % width) == 0)
     {
@@ -142,7 +137,7 @@ DoIt(int argc, char * argv[], const std::string pixelType)
   std::cout << std::endl;
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(std::string(outputImageFileName) + pixelType + ".png");
   writer->SetInput(filter->GetOutput());
   try

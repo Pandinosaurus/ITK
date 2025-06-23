@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,17 @@
 #ifndef itkFourierSeriesPath_hxx
 #define itkFourierSeriesPath_hxx
 
-#include "itkFourierSeriesPath.h"
 #include <cmath>
 
 namespace itk
 {
 template <unsigned int VDimension>
-typename FourierSeriesPath<VDimension>::OutputType
-FourierSeriesPath<VDimension>::Evaluate(const InputType & input) const
+auto
+FourierSeriesPath<VDimension>::Evaluate(const InputType & input) const -> OutputType
 {
   InputType  theta;
   OutputType output;
-  int        numHarmonics;
-
-  numHarmonics = m_CosCoefficients->Size();
+  const int  numHarmonics = m_CosCoefficients->Size();
   output.Fill(0);
 
   const double PI = 4.0 * std::atan(1.0);
@@ -41,7 +38,7 @@ FourierSeriesPath<VDimension>::Evaluate(const InputType & input) const
     output += m_CosCoefficients->ElementAt(0);
   }
 
-  for (int n = 1; n < numHarmonics; n++)
+  for (int n = 1; n < numHarmonics; ++n)
   {
     // input defined over [0,1] maps to theta defined over [0,2pi * n]
     theta = PI * 2.0 * n * input;
@@ -53,19 +50,17 @@ FourierSeriesPath<VDimension>::Evaluate(const InputType & input) const
 }
 
 template <unsigned int VDimension>
-typename FourierSeriesPath<VDimension>::VectorType
-FourierSeriesPath<VDimension>::EvaluateDerivative(const InputType & input) const
+auto
+FourierSeriesPath<VDimension>::EvaluateDerivative(const InputType & input) const -> VectorType
 {
   InputType  theta;
   VectorType output;
-  int        numHarmonics;
-
-  numHarmonics = m_CosCoefficients->Size();
+  const int  numHarmonics = m_CosCoefficients->Size();
   output.Fill(0);
 
   const double PI = 4.0 * std::atan(1.0);
 
-  for (int n = 1; n < numHarmonics; n++)
+  for (int n = 1; n < numHarmonics; ++n)
   {
     // input defined over [0,1] maps to theta defined over [0,2pi * n]
     theta = PI * 2.0 * n * input;
@@ -80,34 +75,29 @@ template <unsigned int VDimension>
 void
 FourierSeriesPath<VDimension>::AddHarmonic(const VectorType & CosCoefficients, const VectorType & SinCoefficients)
 {
-  unsigned int numHarmonics = m_CosCoefficients->Size();
+  const unsigned int numHarmonics = m_CosCoefficients->Size();
 
   m_CosCoefficients->InsertElement(numHarmonics, CosCoefficients);
   m_SinCoefficients->InsertElement(numHarmonics, SinCoefficients);
   this->Modified();
 }
 
-/**
- * Constructor
- */
 template <unsigned int VDimension>
 FourierSeriesPath<VDimension>::FourierSeriesPath()
+  : m_CosCoefficients(CoefficientsType::New())
+  , m_SinCoefficients(CoefficientsType::New())
 {
   this->SetDefaultInputStepSize(1.0 / 50.0);
-  m_CosCoefficients = CoefficientsType::New();
-  m_SinCoefficients = CoefficientsType::New();
 }
 
-/**
- * Standard "PrintSelf" method
- */
 template <unsigned int VDimension>
 void
 FourierSeriesPath<VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Cos Coefficients:  " << m_CosCoefficients << std::endl;
-  os << indent << "Sin Coefficients:  " << m_SinCoefficients << std::endl;
+
+  itkPrintSelfObjectMacro(CosCoefficients);
+  itkPrintSelfObjectMacro(SinCoefficients);
 }
 } // namespace itk
 

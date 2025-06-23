@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkImageSliceIteratorTest(int, char *[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
 
-  ImageType::Pointer myImage = ImageType::New();
+  auto myImage = ImageType::New();
 
   ImageType::SizeType size;
 
@@ -40,16 +40,11 @@ itkImageSliceIteratorTest(int, char *[])
   size[1] = 100;
   size[2] = 100;
 
-  ImageType::IndexType start;
-  start.Fill(0);
+  ImageType::IndexType start{};
 
-  ImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  ImageType::RegionType region{ start, size };
 
-  myImage->SetLargestPossibleRegion(region);
-  myImage->SetBufferedRegion(region);
-  myImage->SetRequestedRegion(region);
+  myImage->SetRegions(region);
   myImage->Allocate();
 
   using IteratorType = itk::ImageSliceIteratorWithIndex<ImageType>;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@
 #include "itkMultipleValuedVnlCostFunctionAdaptor.h"
 #include "itkCommand.h"
 #include "ITKOptimizersExport.h"
+
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -45,8 +47,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultipleValuedNonLinearVnlOptimizer, MultipleValueNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultipleValuedNonLinearVnlOptimizer);
 
   /**  ParametersType type alias.
    *  It defines a position in the optimization search space. */
@@ -88,10 +90,11 @@ public:
    * current parameters. For GUI update purposes, this method is a
    * good option, for mathematical validation you should rather call
    * GetValue(). */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CachedValue, MeasureType);
   itkGetConstReferenceMacro(CachedDerivative, DerivativeType);
   itkGetConstReferenceMacro(CachedCurrentPosition, ParametersType);
-
+  /** @ITKEndGrouping */
 protected:
   MultipleValuedNonLinearVnlOptimizer();
   ~MultipleValuedNonLinearVnlOptimizer() override;
@@ -126,14 +129,14 @@ private:
   void
   IterationReport(const EventObject & event);
 
-  CostFunctionAdaptorType * m_CostFunctionAdaptor;
-  bool                      m_UseGradient;
+  std::unique_ptr<CostFunctionAdaptorType> m_CostFunctionAdaptor;
+  bool                                     m_UseGradient{};
 
-  CommandType::Pointer m_Command;
+  CommandType::Pointer m_Command{};
 
-  mutable ParametersType m_CachedCurrentPosition;
-  mutable MeasureType    m_CachedValue;
-  mutable DerivativeType m_CachedDerivative;
+  mutable ParametersType m_CachedCurrentPosition{};
+  mutable MeasureType    m_CachedValue{};
+  mutable DerivativeType m_CachedDerivative{};
 };
 } // end namespace itk
 

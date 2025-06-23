@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,21 +38,21 @@ namespace itk
  * \ingroup ImageFunctions
  * \ingroup ITKImageFunction
  */
-template <typename TInputImage, typename TCoordRep = float>
+template <typename TInputImage, typename TCoordinate = float>
 class ITK_TEMPLATE_EXPORT NeighborhoodBinaryThresholdImageFunction
-  : public BinaryThresholdImageFunction<TInputImage, TCoordRep>
+  : public BinaryThresholdImageFunction<TInputImage, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(NeighborhoodBinaryThresholdImageFunction);
 
   /** Standard class type aliases. */
   using Self = NeighborhoodBinaryThresholdImageFunction;
-  using Superclass = BinaryThresholdImageFunction<TInputImage, TCoordRep>;
+  using Superclass = BinaryThresholdImageFunction<TInputImage, TCoordinate>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NeighborhoodBinaryThresholdImageFunction, BinaryThresholdImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NeighborhoodBinaryThresholdImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -60,20 +60,20 @@ public:
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
 
-  /** OutputType typdef support. */
-  using OutputType = typename Superclass::OutputType;
+  /** OutputType typedef support. */
+  using typename Superclass::OutputType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** PixelType type alias support */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** Dimension of the underlying image. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
@@ -87,7 +87,7 @@ public:
   /** Get the radius of the neighborhood used in computation */
   itkGetConstReferenceMacro(Radius, InputSizeType);
 
-  /** Evalulate the function at specified index */
+  /** Evaluate the function at specified index */
   bool
   EvaluateAtIndex(const IndexType & index) const override;
 
@@ -117,7 +117,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  InputSizeType m_Radius;
+  InputSizeType m_Radius{};
 };
 } // end namespace itk
 

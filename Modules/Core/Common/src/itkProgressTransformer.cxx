@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,18 +33,16 @@ public:
   using ConstPointer = itk::SmartPointer<const Self>;
 
   itkNewMacro(DummyProcess);
-  itkTypeMacro(DummyProcess, ProcessObject);
+  itkOverrideGetNameOfClassMacro(DummyProcess);
 };
 } // namespace
 
 ProgressTransformer::ProgressTransformer(float start, float end, ProcessObject * targetFilter)
   : m_TargetFilter(targetFilter)
-  , m_ProgressTag(0)
+
 {
-  m_Start = std::max(start, 0.0f);
-  m_Start = std::min(m_Start, 1.0f);
-  m_End = std::max(end, 0.0f);
-  m_End = std::min(m_End, 1.0f);
+  m_Start = std::clamp(start, 0.0f, 1.0f);
+  m_End = std::clamp(end, 0.0f, 1.0f);
   m_Dummy = DummyProcess::New();
 
   m_ProgressCommand = CommandType::New();
@@ -56,8 +54,7 @@ void
 ProgressTransformer::UpdateProgress()
 {
   float progress = m_Dummy->GetProgress();
-  progress = std::max(progress, 0.0f);
-  progress = std::min(progress, 1.0f);
+  progress = std::clamp(progress, 0.0f, 1.0f);
 
   progress = m_Start + progress * (m_End - m_Start); // transform progress
   m_TargetFilter->UpdateProgress(progress);

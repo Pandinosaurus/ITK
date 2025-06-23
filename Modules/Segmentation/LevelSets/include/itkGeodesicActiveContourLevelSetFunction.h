@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,11 +60,7 @@ namespace itk
  *
  * This term behaves like a doublet attracting the contour to the edges.
  *
- * This implementation is based on:
- * "Geodesic Active Contours",
- * V. Caselles, R. Kimmel and G. Sapiro.
- * International Journal on Computer Vision,
- * Vol 22, No. 1, pp 61-97, 1997
+ * This implementation is based on \cite caselles1997.
  *
  * \sa LevelSetFunction
  * \sa SegmentationLevelSetImageFunction
@@ -90,18 +86,18 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GeodesicActiveContourLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GeodesicActiveContourLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using VectorImageType = typename Superclass::VectorImageType;
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
+  using typename Superclass::ImageType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::VectorImageType;
+  using typename Superclass::GlobalDataStruct;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -125,6 +121,7 @@ public:
 
   /** Set/Get the sigma for the Gaussian kernel used to compute the gradient
    * of the feature image needed for the advection term of the equation. */
+  /** @ITKStartGrouping */
   void
   SetDerivativeSigma(const double v)
   {
@@ -135,7 +132,7 @@ public:
   {
     return m_DerivativeSigma;
   }
-
+  /** @ITKEndGrouping */
   void
   Initialize(const RadiusType & r) override
   {
@@ -148,12 +145,11 @@ public:
 
 protected:
   GeodesicActiveContourLevelSetFunction()
+    : m_DerivativeSigma(1.0)
   {
     this->SetAdvectionWeight(NumericTraits<ScalarValueType>::OneValue());
     this->SetPropagationWeight(NumericTraits<ScalarValueType>::OneValue());
     this->SetCurvatureWeight(NumericTraits<ScalarValueType>::OneValue());
-
-    m_DerivativeSigma = 1.0;
   }
 
   ~GeodesicActiveContourLevelSetFunction() override = default;
@@ -162,7 +158,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_DerivativeSigma;
+  double m_DerivativeSigma{};
 };
 } // end namespace itk
 

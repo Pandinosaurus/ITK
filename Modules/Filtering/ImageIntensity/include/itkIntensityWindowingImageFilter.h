@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,25 +41,18 @@ public:
     , m_WindowMinimum(0)
   {}
   ~IntensityWindowingTransform() = default;
-  bool
-  operator!=(const IntensityWindowingTransform & other) const
-  {
-    if (Math::NotExactlyEquals(m_Factor, other.m_Factor) || Math::NotExactlyEquals(m_Offset, other.m_Offset) ||
-        Math::NotExactlyEquals(m_OutputMaximum, other.m_OutputMaximum) ||
-        Math::NotExactlyEquals(m_OutputMinimum, other.m_OutputMinimum) ||
-        Math::NotExactlyEquals(m_WindowMaximum, other.m_WindowMaximum) ||
-        Math::NotExactlyEquals(m_WindowMinimum, other.m_WindowMinimum))
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const IntensityWindowingTransform & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Factor, other.m_Factor) && Math::ExactlyEquals(m_Offset, other.m_Offset) &&
+           Math::ExactlyEquals(m_OutputMaximum, other.m_OutputMaximum) &&
+           Math::ExactlyEquals(m_OutputMinimum, other.m_OutputMinimum) &&
+           Math::ExactlyEquals(m_WindowMaximum, other.m_WindowMaximum) &&
+           Math::ExactlyEquals(m_WindowMinimum, other.m_WindowMinimum);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(IntensityWindowingTransform);
 
   void
   SetFactor(RealType a)
@@ -118,7 +111,7 @@ private:
 } // end namespace Functor
 
 /**
- *\class IntensityWindowingImageFilter
+ * \class IntensityWindowingImageFilter
  * \brief Applies a linear transformation to the intensity levels of the
  * input Image that are inside a user-defined interval. Values below this
  * interval are mapped to a constant. Values over the interval are mapped
@@ -172,23 +165,25 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(IntensityWindowingImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IntensityWindowingImageFilter);
 
   /** Set/Get the values of the maximum and minimum
    *  intensities of the output image. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputMinimum, OutputPixelType);
   itkSetMacro(OutputMaximum, OutputPixelType);
   itkGetConstReferenceMacro(OutputMinimum, OutputPixelType);
   itkGetConstReferenceMacro(OutputMaximum, OutputPixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the values of the maximum and minimum
    *  intensities of the input intensity window. */
+  /** @ITKStartGrouping */
   itkSetMacro(WindowMinimum, InputPixelType);
   itkSetMacro(WindowMaximum, InputPixelType);
   itkGetConstReferenceMacro(WindowMinimum, InputPixelType);
   itkGetConstReferenceMacro(WindowMaximum, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the window width and level. This is an alternative API
    * to using the SetWindowMinimum()/SetWindowMaximum(). The window
    * minimum and maximum are set as [level-window/2,
@@ -205,9 +200,10 @@ public:
   /** Get the Scale and Shift used for the linear transformation
       of gray level values.
    \warning These Values are only valid after the filter has been updated. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Scale, RealType);
   itkGetConstReferenceMacro(Shift, RealType);
-
+  /** @ITKEndGrouping */
   /** Process to execute before entering the multithreaded section. */
   void
   BeforeThreadedGenerateData() override;
@@ -215,25 +211,21 @@ public:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   IntensityWindowingImageFilter();
   ~IntensityWindowingImageFilter() override = default;
 
 private:
-  RealType m_Scale;
-  RealType m_Shift;
+  RealType m_Scale{};
+  RealType m_Shift{};
 
-  InputPixelType m_WindowMinimum;
-  InputPixelType m_WindowMaximum;
+  InputPixelType m_WindowMinimum{};
+  InputPixelType m_WindowMaximum{};
 
-  OutputPixelType m_OutputMinimum;
-  OutputPixelType m_OutputMaximum;
+  OutputPixelType m_OutputMinimum{};
+  OutputPixelType m_OutputMaximum{};
 };
 } // end namespace itk
 

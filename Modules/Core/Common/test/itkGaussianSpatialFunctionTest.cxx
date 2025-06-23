@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,8 @@ itkGaussianSpatialFunctionTest(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cout << "Usage: " << itkNameOfTestExecutableMacro(argv) << " scale normalized" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " scale normalized" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -39,7 +40,7 @@ itkGaussianSpatialFunctionTest(int argc, char * argv[])
 
   // Create and initialize the Spatial function
 
-  GaussianSpatialFunctionType::Pointer gaussianSpatialFunction = GaussianSpatialFunctionType::New();
+  auto gaussianSpatialFunction = GaussianSpatialFunctionType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(gaussianSpatialFunction, GaussianSpatialFunction, SpatialFunction);
 
@@ -57,7 +58,7 @@ itkGaussianSpatialFunctionTest(int argc, char * argv[])
   gaussianSpatialFunction->SetSigma(sigma);
   ITK_TEST_SET_GET_VALUE(sigma, gaussianSpatialFunction->GetSigma());
 
-  double scale = std::stod(argv[1]);
+  const double scale = std::stod(argv[1]);
   gaussianSpatialFunction->SetScale(scale);
   ITK_TEST_SET_GET_VALUE(scale, gaussianSpatialFunction->GetScale());
 
@@ -86,7 +87,7 @@ itkGaussianSpatialFunctionTest(int argc, char * argv[])
   point[1] = mean[1];
   point[2] = mean[2];
 
-  double computedValueAtMean = gaussianSpatialFunction->Evaluate(point);
+  const double computedValueAtMean = gaussianSpatialFunction->Evaluate(point);
 
   double expectedValueAtMean = 1.0;
   if (gaussianSpatialFunction->GetNormalized())
@@ -98,17 +99,20 @@ itkGaussianSpatialFunctionTest(int argc, char * argv[])
   else
   {
     constexpr double oneDimensionalFactor = 1.0;
-    const double     factor = oneDimensionalFactor * oneDimensionalFactor * oneDimensionalFactor;
+    constexpr double factor = oneDimensionalFactor * oneDimensionalFactor * oneDimensionalFactor;
     expectedValueAtMean = scale / factor;
   }
 
   if (itk::Math::NotAlmostEquals(expectedValueAtMean, computedValueAtMean))
   {
-    std::cout << "Error in point " << point << ": ";
-    std::cout << "expected: " << expectedValueAtMean << ", but got " << computedValueAtMean << std::endl;
-    std::cout << "Test failed" << std::endl;
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in Evaluate at point " << point << std::endl;
+    std::cerr << "Expected value " << expectedValueAtMean << std::endl;
+    std::cerr << " differs from " << computedValueAtMean << std::endl;
     return EXIT_FAILURE;
   }
 
+
+  std::cerr << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

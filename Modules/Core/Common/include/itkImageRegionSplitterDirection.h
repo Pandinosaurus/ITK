@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,16 +45,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageRegionSplitterDirection, ImageRegionSplitterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageRegionSplitterDirection);
 
   /** Get the direction in which not to split the image.*
    *
    * Defaults to 0.
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Direction, unsigned int);
   itkSetMacro(Direction, unsigned int);
-
+  /** @ITKEndGrouping */
 
 protected:
   ImageRegionSplitterDirection();
@@ -77,7 +78,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int m_Direction;
+  unsigned int m_Direction{};
 };
 } // end namespace itk
 

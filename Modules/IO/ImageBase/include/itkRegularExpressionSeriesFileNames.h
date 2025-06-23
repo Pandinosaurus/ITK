@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,30 +81,34 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegularExpressionSeriesFileNames, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegularExpressionSeriesFileNames);
 
   /* -------- Define the API for RegularExpressionSeriesFileNames ---------- */
   /** The directory containing the files. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(Directory);
   itkGetStringMacro(Directory);
-
+  /** @ITKEndGrouping */
   /** The RegularExpression. Refer to the description for valid expressions */
+  /** @ITKStartGrouping */
   itkSetStringMacro(RegularExpression);
   itkGetStringMacro(RegularExpression);
-
+  /** @ITKEndGrouping */
   /** The index of the submatch that will be used to sort the
    * matches. */
+  /** @ITKStartGrouping */
   itkSetMacro(SubMatch, unsigned int);
   itkGetConstMacro(SubMatch, unsigned int);
-
+  /** @ITKEndGrouping */
   /** NumericSortOn changes the sort of the submatch field to a
    * numeric sort. NumericSortOff is the default, and sorts the
    * submatch alphabetically. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumericSort, bool);
   itkGetConstMacro(NumericSort, bool);
   itkBooleanMacro(NumericSort);
-
+  /** @ITKEndGrouping */
   /** Returns a vector containing the series' file names. The file
    * names are sorted by the sub expression selected by the SubMatch id. */
   const std::vector<std::string> &
@@ -120,12 +124,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  std::string  m_Directory;
+  std::string  m_Directory{};
   unsigned int m_SubMatch{ 1 };
   bool         m_NumericSort{ false };
-  std::string  m_RegularExpression;
+  std::string  m_RegularExpression{};
 
-  std::vector<std::string> m_FileNames;
+  std::vector<std::string> m_FileNames{};
 };
 } // namespace itk
 

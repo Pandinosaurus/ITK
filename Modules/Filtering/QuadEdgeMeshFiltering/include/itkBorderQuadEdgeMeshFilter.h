@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,14 +26,14 @@
 
 namespace itk
 {
-/**\class BorderQuadEdgeMeshFilterEnums
+/** \class BorderQuadEdgeMeshFilterEnums
  * \brief Contains all enum classes used by
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 class BorderQuadEdgeMeshFilterEnums
 {
 public:
-  /**\class BorderTransform
+  /** \class BorderTransform
    * \ingroup ITKQuadEdgeMeshFiltering
    * */
   enum class BorderTransform : uint8_t
@@ -42,7 +42,7 @@ public:
     DISK_BORDER_TRANSFORM
   };
 
-  /**\class BorderPick
+  /** \class BorderPick
    * \ingroup ITKQuadEdgeMeshFiltering
    * */
   enum class BorderPick : uint8_t
@@ -53,9 +53,9 @@ public:
 };
 // Define how to print enumeration
 extern ITKQuadEdgeMeshFiltering_EXPORT std::ostream &
-                                       operator<<(std::ostream & out, const BorderQuadEdgeMeshFilterEnums::BorderTransform value);
+operator<<(std::ostream & out, const BorderQuadEdgeMeshFilterEnums::BorderTransform value);
 extern ITKQuadEdgeMeshFiltering_EXPORT std::ostream &
-                                       operator<<(std::ostream & out, const BorderQuadEdgeMeshFilterEnums::BorderPick value);
+operator<<(std::ostream & out, const BorderQuadEdgeMeshFilterEnums::BorderPick value);
 /**
  * \class BorderQuadEdgeMeshFilter
  * \brief Transform one border of a QuadEdgeMesh into either a circle
@@ -92,7 +92,11 @@ public:
 
   using InputMeshType = TInputMesh;
   using InputMeshConstPointer = typename InputMeshType::ConstPointer;
-  using InputCoordRepType = typename InputMeshType::CoordRepType;
+  using InputCoordinateType = typename InputMeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using InputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `InputCoordRepType`. Please use `InputCoordinateType` instead!") = InputCoordinateType;
+#endif
   using InputPointType = typename InputMeshType::PointType;
   using InputTraits = typename InputMeshType::Traits;
   using InputPointIdentifier = typename InputMeshType::PointIdentifier;
@@ -111,7 +115,11 @@ public:
 
   using OutputMeshType = TOutputMesh;
   using OutputMeshPointer = typename OutputMeshType::Pointer;
-  using OutputCoordRepType = typename OutputMeshType::CoordRepType;
+  using OutputCoordinateType = typename OutputMeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using OutputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `OutputCoordRepType`. Please use `OutputCoordinateType` instead!") = OutputCoordinateType;
+#endif
   using OutputPointType = typename OutputMeshType::PointType;
   using OutputTraits = typename OutputMeshType::Traits;
   using OutputPointIdentifier = typename OutputMeshType::PointIdentifier;
@@ -126,7 +134,7 @@ public:
   using OutputCellsContainerConstIterator = typename OutputMeshType::CellsContainerConstIterator;
 
   itkNewMacro(Self);
-  itkTypeMacro(BorderQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  itkOverrideGetNameOfClassMacro(BorderQuadEdgeMeshFilter);
   static constexpr unsigned int PointDimension = InputTraits::PointDimension;
 
   using InputVectorPointType = std::vector<InputPointType>;
@@ -153,8 +161,8 @@ public:
   itkSetEnumMacro(BorderPick, BorderPickEnum);
   itkGetConstMacro(BorderPick, BorderPickEnum);
 
-  itkSetMacro(Radius, InputCoordRepType);
-  itkGetConstMacro(Radius, InputCoordRepType);
+  itkSetMacro(Radius, InputCoordinateType);
+  itkGetConstMacro(Radius, InputCoordinateType);
 
   void
   ComputeTransform();
@@ -173,14 +181,14 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  BorderTransformEnum m_TransformType;
-  BorderPickEnum      m_BorderPick;
+  BorderTransformEnum m_TransformType{};
+  BorderPickEnum      m_BorderPick{};
 
-  InputCoordRepType m_Radius;
+  InputCoordinateType m_Radius{};
 
-  InputVectorPointType m_Border;
+  InputVectorPointType m_Border{};
 
-  MapPointIdentifier m_BoundaryPtMap;
+  MapPointIdentifier m_BoundaryPtMap{};
 
   void
   GenerateData() override;
@@ -200,7 +208,7 @@ protected:
   InputPointType
   GetMeshBarycentre();
 
-  InputCoordRepType
+  InputCoordinateType
   RadiusMaxSquare();
 
   void

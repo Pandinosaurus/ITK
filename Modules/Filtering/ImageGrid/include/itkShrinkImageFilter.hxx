@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkShrinkImageFilter_hxx
 #define itkShrinkImageFilter_hxx
 
-#include "itkShrinkImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkContinuousIndex.h"
 #include "itkObjectFactory.h"
@@ -39,7 +38,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 ShrinkImageFilter<TInputImage, TOutputImage>::ShrinkImageFilter()
 {
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     m_ShrinkFactors[j] = 1;
   }
@@ -54,9 +53,9 @@ ShrinkImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inden
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Shrink Factor: ";
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
-    os << m_ShrinkFactors[j] << " ";
+    os << m_ShrinkFactors[j] << ' ';
   }
   os << std::endl;
 }
@@ -65,21 +64,11 @@ template <typename TInputImage, typename TOutputImage>
 void
 ShrinkImageFilter<TInputImage, TOutputImage>::SetShrinkFactors(unsigned int factor)
 {
-  unsigned int j;
-
-  for (j = 0; j < ImageDimension; j++)
-  {
-    if (factor != m_ShrinkFactors[j])
-    {
-      break;
-    }
-  }
-  if (j < ImageDimension)
+  if (ContainerFillWithCheck(m_ShrinkFactors, factor, ImageDimension))
   {
     this->Modified();
-    for (j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
-      m_ShrinkFactors[j] = factor;
       if (m_ShrinkFactors[j] < 1)
       {
         m_ShrinkFactors[j] = 1;
@@ -99,7 +88,14 @@ ShrinkImageFilter<TInputImage, TOutputImage>::SetShrinkFactor(unsigned int i, un
   }
 
   this->Modified();
-  m_ShrinkFactors[i] = factor;
+  if (m_ShrinkFactors[i] < 1)
+  {
+    m_ShrinkFactors[i] = 1;
+  }
+  else
+  {
+    m_ShrinkFactors[i] = factor;
+  }
 }
 
 
@@ -109,45 +105,37 @@ ShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
   // Get the input and output pointers
-  InputImageConstPointer inputPtr = this->GetInput();
-  OutputImagePointer     outputPtr = this->GetOutput();
+  const InputImageConstPointer inputPtr = this->GetInput();
+  const OutputImagePointer     outputPtr = this->GetOutput();
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
   // Convert the factor for convenient multiplication
-  unsigned int i;
-
   typename TOutputImage::SizeType factorSize;
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     factorSize[i] = m_ShrinkFactors[i];
   }
 
-  // Define a few indices that will be used to transform from an input pixel
-  // to an output pixel
-  OutputIndexType  outputIndex;
-  InputIndexType   inputIndex;
-  OutputOffsetType offsetIndex;
-
-  typename TOutputImage::PointType tempPoint;
-
   // Use this index to compute the offset everywhere in this class
-  outputIndex = outputPtr->GetLargestPossibleRegion().GetIndex();
+  OutputIndexType outputIndex = outputPtr->GetLargestPossibleRegion().GetIndex();
 
   // We wish to perform the following mapping of outputIndex to
   // inputIndex on all points in our region
+  typename TOutputImage::PointType tempPoint;
   outputPtr->TransformIndexToPhysicalPoint(outputIndex, tempPoint);
-  inputIndex = inputPtr->TransformPhysicalPointToIndex(tempPoint);
+  InputIndexType inputIndex = inputPtr->TransformPhysicalPointToIndex(tempPoint);
 
   // Given that the size is scaled by a constant factor eq:
   // inputIndex = outputIndex * factorSize
   // is equivalent up to a fixed offset which we now compute
-  OffsetValueType zeroOffset = 0;
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  constexpr OffsetValueType zeroOffset = 0;
+  OutputOffsetType          offsetIndex;
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     offsetIndex[i] = inputIndex[i] - outputIndex[i] * m_ShrinkFactors[i];
     // It is plausible that due to small amounts of loss of numerical
-    // precision that the offset it negaive, this would cause sampling
+    // precision that the offset it negative, this would cause sampling
     // out of out region, this is insurance against that possibility
     offsetIndex[i] = std::max(zeroOffset, offsetIndex[i]);
   }
@@ -155,9 +143,8 @@ ShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   // Define/declare an iterator that will walk the output region for this
   // thread.
   using OutputIterator = ImageRegionIteratorWithIndex<TOutputImage>;
-  OutputIterator outIt(outputPtr, outputRegionForThread);
 
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(outputPtr, outputRegionForThread); !outIt.IsAtEnd(); ++outIt)
   {
     // Determine the index and physical location of the output pixel
     outputIndex = outIt.GetIndex();
@@ -170,7 +157,6 @@ ShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
 
     // Copy the input pixel to the output
     outIt.Set(inputPtr->GetPixel(inputIndex));
-    ++outIt;
     progress.CompletedPixel();
   }
 }
@@ -193,41 +179,37 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   // Compute the input requested region (size and start index)
   // Use the image transformations to insure an input requested region
   // that will provide the proper range
-  unsigned int                             i;
   const typename TOutputImage::SizeType &  outputRequestedRegionSize = outputPtr->GetRequestedRegion().GetSize();
   const typename TOutputImage::IndexType & outputRequestedRegionStartIndex = outputPtr->GetRequestedRegion().GetIndex();
 
   // Convert the factor for convenient multiplication
   typename TOutputImage::SizeType factorSize;
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     factorSize[i] = m_ShrinkFactors[i];
   }
 
-  OutputIndexType  outputIndex;
-  InputIndexType   inputIndex, inputRequestedRegionIndex;
-  OutputOffsetType offsetIndex;
-
-  typename TInputImage::SizeType   inputRequestedRegionSize;
-  typename TOutputImage::PointType tempPoint;
+  InputIndexType inputRequestedRegionIndex;
 
   // Use this index to compute the offset everywhere in this class
-  outputIndex = outputPtr->GetLargestPossibleRegion().GetIndex();
+  OutputIndexType outputIndex = outputPtr->GetLargestPossibleRegion().GetIndex();
 
   // We wish to perform the following mapping of outputIndex to
   // inputIndex on all points in our region
+  typename TOutputImage::PointType tempPoint;
   outputPtr->TransformIndexToPhysicalPoint(outputIndex, tempPoint);
-  inputIndex = inputPtr->TransformPhysicalPointToIndex(tempPoint);
+  InputIndexType inputIndex = inputPtr->TransformPhysicalPointToIndex(tempPoint);
 
   // Given that the size is scaled by a constant factor eq:
   // inputIndex = outputIndex * factorSize
   // is equivalent up to a fixed offset which we now compute
-  OffsetValueType zeroOffset = 0;
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  constexpr OffsetValueType zeroOffset = 0;
+  OutputOffsetType          offsetIndex;
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     offsetIndex[i] = inputIndex[i] - outputIndex[i] * m_ShrinkFactors[i];
     // It is plausible that due to small amounts of loss of numerical
-    // precision that the offset it negaive, this would cause sampling
+    // precision that the offset it negative, this would cause sampling
     // out of out region, this is insurance against that possibility
     offsetIndex[i] = std::max(zeroOffset, offsetIndex[i]);
   }
@@ -237,7 +219,8 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   // originally this was
   // inputRequestedRegionSize = outputRequestedRegionSize * factorSize;
   // but since we don't sample edge to edge, we can reduce the size
-  for (i = 0; i < TInputImage::ImageDimension; ++i)
+  typename TInputImage::SizeType inputRequestedRegionSize;
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     inputRequestedRegionSize[i] = (outputRequestedRegionSize[i] - 1) * factorSize[i] + 1;
   }
@@ -267,7 +250,6 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
   // Compute the output spacing, the output image size, and the
   // output image start index
-  unsigned int                              i;
   const typename TInputImage::SpacingType & inputSpacing = inputPtr->GetSpacing();
   const typename TInputImage::SizeType &    inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
   const typename TInputImage::IndexType &   inputStartIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
@@ -275,13 +257,13 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   typename TOutputImage::SpacingType outputSpacing;
   typename TOutputImage::SizeType    outputSize;
   typename TOutputImage::IndexType   outputStartIndex;
-
-  for (i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
-    outputSpacing[i] = inputSpacing[i] * (double)m_ShrinkFactors[i];
+    outputSpacing[i] = inputSpacing[i] * static_cast<double>(m_ShrinkFactors[i]);
 
     // Round down so that all output pixels fit input input region
-    outputSize[i] = static_cast<SizeValueType>(std::floor((double)inputSize[i] / (double)m_ShrinkFactors[i]));
+    outputSize[i] = static_cast<SizeValueType>(
+      std::floor(static_cast<double>(inputSize[i]) / static_cast<double>(m_ShrinkFactors[i])));
 
     if (outputSize[i] < 1)
     {
@@ -290,8 +272,8 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
     // Because of the later origin shift this starting index is not
     // critical
-    outputStartIndex[i] =
-      static_cast<IndexValueType>(std::ceil((double)inputStartIndex[i] / (double)m_ShrinkFactors[i]));
+    outputStartIndex[i] = static_cast<IndexValueType>(
+      std::ceil(static_cast<double>(inputStartIndex[i]) / static_cast<double>(m_ShrinkFactors[i])));
   }
 
   outputPtr->SetSpacing(outputSpacing);
@@ -300,7 +282,7 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   // The physical center's of the input and output should be the same
   ContinuousIndex<SpacePrecisionType, TOutputImage::ImageDimension> inputCenterIndex;
   ContinuousIndex<SpacePrecisionType, TOutputImage::ImageDimension> outputCenterIndex;
-  for (i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     inputCenterIndex[i] = inputStartIndex[i] + (inputSize[i] - 1) / 2.0;
     outputCenterIndex[i] = outputStartIndex[i] + (outputSize[i] - 1) / 2.0;
@@ -312,14 +294,11 @@ ShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   outputPtr->TransformContinuousIndexToPhysicalPoint(outputCenterIndex, outputCenterPoint);
 
   const typename TOutputImage::PointType & inputOrigin = inputPtr->GetOrigin();
-  typename TOutputImage::PointType         outputOrigin;
-  outputOrigin = inputOrigin + (inputCenterPoint - outputCenterPoint);
+  const typename TOutputImage::PointType   outputOrigin = inputOrigin + (inputCenterPoint - outputCenterPoint);
   outputPtr->SetOrigin(outputOrigin);
 
   // Set region
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }

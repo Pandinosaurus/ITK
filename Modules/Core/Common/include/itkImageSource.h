@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,8 +83,8 @@ public:
   using DataObjectIdentifierType = Superclass::DataObjectIdentifierType;
   using DataObjectPointerArraySizeType = Superclass::DataObjectPointerArraySizeType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSource, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSource);
 
   /** Some convenient type alias. */
   using OutputImageType = TOutputImage;
@@ -142,11 +142,12 @@ public:
    * types. Derived classes should have names get methods for these
    * outputs.
    */
+  /** @ITKStartGrouping */
   OutputImageType *
   GetOutput();
   const OutputImageType *
   GetOutput() const;
-
+  /** @ITKEndGrouping */
   OutputImageType *
   GetOutput(unsigned int idx);
 
@@ -164,7 +165,7 @@ public:
      \code
         // Setup the mini-pipeline to process the input to this filter
         // The input is not connected to the pipeline.
-        typename InputImageType::Pointer input = InputImageType::New();
+        auto input = InputImageType::New();
         input->Graft( const_cast< InputImageType * >( this->GetInput() );
         firstFilterInMiniPipeline->SetInput( input );
 
@@ -221,11 +222,12 @@ public:
    * SmartPointer to a DataObject. If a subclass of ImageSource has
    * multiple outputs of different types, then that class must provide
    * an implementation of MakeOutput(). */
+  /** @ITKStartGrouping */
   ProcessObject::DataObjectPointer
   MakeOutput(ProcessObject::DataObjectPointerArraySizeType idx) override;
   ProcessObject::DataObjectPointer
   MakeOutput(const ProcessObject::DataObjectIdentifierType &) override;
-
+  /** @ITKEndGrouping */
 protected:
   ImageSource();
   ~ImageSource() override = default;
@@ -295,11 +297,12 @@ protected:
    * in a single thread being reused to process multiple work units.
    *
    * \sa GenerateData(), SplitRequestedRegion() */
+  /** @ITKStartGrouping */
   virtual void
   ThreadedGenerateData(const OutputImageRegionType & region, ThreadIdType threadId);
   virtual void
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread);
-
+  /** @ITKEndGrouping */
   /** The GenerateData method normally allocates the buffers for all of the
    * outputs of a filter. Some filters may want to override this default
    * behavior. For example, a filter may have multiple outputs with
@@ -395,11 +398,12 @@ protected:
   /** Whether to use classic multi-threading infrastructure (OFF by default).
    * Classic multi-threading uses derived class' ImageRegionSplitter,
    * thus enabling custom region splitting methods. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(DynamicMultiThreading, bool);
   itkSetMacro(DynamicMultiThreading, bool);
   itkBooleanMacro(DynamicMultiThreading);
-
-  bool m_DynamicMultiThreading;
+  /** @ITKEndGrouping */
+  bool m_DynamicMultiThreading{ true };
 };
 } // end namespace itk
 

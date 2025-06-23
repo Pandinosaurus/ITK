@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,9 @@
  *=========================================================================*/
 
 #include "itkLabeledPointSetToPointSetMetricv4.h"
+#include "itkEuclideanDistancePointSetToPointSetMetricv4.h"
 #include "itkTranslationTransform.h"
+#include "itkTestingMacros.h"
 
 #include <fstream>
 #include "itkMath.h"
@@ -32,20 +34,18 @@ itkLabeledPointSetMetricTestRun()
 
   using PointType = typename PointSetType::PointType;
 
-  typename PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  typename PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
   // Produce two simple point sets of 1) a circle and 2) the same circle with an offset;
   PointType offset;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     offset[d] = 1.1 + d;
   }
   unsigned long count = 0;
-  float         pointSetRadius = 100.0;
+  const float   pointSetRadius = 100.0;
   for (float theta = 0; theta < 2.0 * itk::Math::pi; theta += 0.1)
   {
     LabelType label = 1;
@@ -57,7 +57,7 @@ itkLabeledPointSetMetricTestRun()
     PointType fixedPoint;
     fixedPoint[0] = pointSetRadius * std::cos(theta);
     fixedPoint[1] = pointSetRadius * std::sin(theta);
-    if (Dimension > 2)
+    if constexpr (Dimension > 2)
     {
       fixedPoint[2] = pointSetRadius * std::sin(theta);
     }
@@ -67,7 +67,7 @@ itkLabeledPointSetMetricTestRun()
     PointType movingPoint;
     movingPoint[0] = fixedPoint[0] + offset[0];
     movingPoint[1] = fixedPoint[1] + offset[1];
-    if (Dimension > 2)
+    if constexpr (Dimension > 2)
     {
       movingPoint[2] = fixedPoint[2] + offset[2];
     }
@@ -81,27 +81,39 @@ itkLabeledPointSetMetricTestRun()
   // Simple translation transform for moving point set
   //
   using TranslationTransformType = itk::TranslationTransform<double, Dimension>;
-  typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
+  auto translationTransform = TranslationTransformType::New();
   translationTransform->SetIdentity();
 
   // Instantiate the metric
   using PointSetMetricType = itk::LabeledPointSetToPointSetMetricv4<PointSetType>;
-  typename PointSetMetricType::Pointer metric = PointSetMetricType::New();
+  auto metric = PointSetMetricType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, LabeledPointSetToPointSetMetricv4, PointSetToPointSetMetricv4);
+
+
+  using EuclideanDistanceMetricType =
+    itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, double>;
+  auto pointSetMetric = EuclideanDistanceMetricType::New();
+  metric->SetPointSetMetric(pointSetMetric);
+  ITK_TEST_SET_GET_VALUE(pointSetMetric, metric->GetPointSetMetric());
+
   metric->SetFixedPointSet(fixedPoints);
   metric->SetMovingPointSet(movingPoints);
   metric->SetMovingTransform(translationTransform);
   metric->Initialize();
 
-  typename PointSetMetricType::MeasureType    value = metric->GetValue(), value2;
-  typename PointSetMetricType::DerivativeType derivative, derivative2;
+  const typename PointSetMetricType::MeasureType value = metric->GetValue();
+  typename PointSetMetricType::DerivativeType    derivative;
   metric->GetDerivative(derivative);
+  typename PointSetMetricType::MeasureType    value2;
+  typename PointSetMetricType::DerivativeType derivative2;
   metric->GetValueAndDerivative(value2, derivative2);
 
   std::cout << "value: " << value << std::endl;
   std::cout << "derivative: " << derivative << std::endl;
-  for (unsigned int d = 0; d < metric->GetNumberOfParameters(); d++)
+  for (unsigned int d = 0; d < metric->GetNumberOfParameters(); ++d)
   {
-    if (std::fabs(derivative[d] - offset[d]) / offset[d] > 0.01)
+    if (itk::Math::abs(derivative[d] - offset[d]) / offset[d] > 0.01)
     {
       std::cerr << "derivative does not match expected offset of " << offset << std::endl;
       return EXIT_FAILURE;
@@ -130,7 +142,7 @@ itkLabeledPointSetMetricTestRun()
   moving_str2 << "0 0 0 0" << std::endl;
 
   typename PointType::VectorType vector;
-  for (unsigned int d = 0; d < metric->GetNumberOfParameters(); d++)
+  for (unsigned int d = 0; d < metric->GetNumberOfParameters(); ++d)
   {
     vector[d] = derivative[count++];
   }
@@ -141,12 +153,12 @@ itkLabeledPointSetMetricTestRun()
     PointType sourcePoint = ItM.Value();
     PointType targetPoint = sourcePoint + vector;
 
-    for (unsigned int d = 0; d < metric->GetNumberOfParameters(); d++)
+    for (unsigned int d = 0; d < metric->GetNumberOfParameters(); ++d)
     {
-      moving_str1 << sourcePoint[d] << " ";
-      moving_str2 << targetPoint[d] << " ";
+      moving_str1 << sourcePoint[d] << ' ';
+      moving_str2 << targetPoint[d] << ' ';
     }
-    if (Dimension < 3)
+    if constexpr (Dimension < 3)
     {
       moving_str1 << "0 ";
       moving_str2 << "0 ";

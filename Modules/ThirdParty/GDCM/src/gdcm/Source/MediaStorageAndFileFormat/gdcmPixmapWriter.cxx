@@ -123,12 +123,12 @@ Attribute<0x0028,0x0004> piat;
       rawlut8.resize(256);
       //unsigned short rawlut16[65536];
       std::vector<unsigned short> rawlut16;
-      unsigned short *rawlut = &rawlut8[0];
+      unsigned short *rawlut = rawlut8.data();
       unsigned int lutlen = 256;
       if( pf.GetBitsAllocated() == 16 )
         {
         rawlut16.resize(65536);
-        rawlut = &rawlut16[0];
+        rawlut = rawlut16.data();
         lutlen = 65536;
         }
       unsigned int l;
@@ -403,7 +403,7 @@ bool PixmapWriter::PrepareWrite( MediaStorage const & ref_ms )
     }
 
 
-  // Cleanup LUT here since cant be done within gdcm::ImageApplyLookupTable
+  // Cleanup LUT here since cannot be done within gdcm::ImageApplyLookupTable
   if( pi == PhotometricInterpretation::RGB )
     {
     // usual tags:
@@ -683,7 +683,7 @@ bool PixmapWriter::PrepareWrite( MediaStorage const & ref_ms )
     const ByteValue *bv = ds.GetDataElement( Tag(0x0008,0x0016) ).GetByteValue();
     if( !bv )
       {
-      gdcmErrorMacro( "Cant be empty" );
+      gdcmErrorMacro( "Cannot be empty" );
       return false;
       }
     if( strncmp( bv->GetPointer(), msstr, bv->GetLength() ) != 0 )

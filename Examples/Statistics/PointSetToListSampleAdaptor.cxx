@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,7 @@ main()
 
   // Software Guide : BeginCodeSnippet
   using PointSetType = itk::PointSet<short>;
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -80,7 +80,7 @@ main()
   // dimension, we have to modify the \code{TMeshTraits} (one of the optional
   // template arguments for the \code{PointSet} class). The easiest way of
   // creating a custom mesh traits instance is to specialize the existing
-  // \doxygen{DefaultStaticMeshTraits}. By specifying the \code{TCoordRep}
+  // \doxygen{DefaultStaticMeshTraits}. By specifying the \code{TCoordinate}
   // template argument, we can change the coordinate value type of a point.
   // By specifying the \code{VPointDimension} template argument, we can
   // change the dimension of the point. As mentioned earlier, a
@@ -123,7 +123,7 @@ main()
   // Software Guide : BeginCodeSnippet
   using SampleType =
     itk::Statistics::PointSetToListSampleAdaptor<PointSetType>;
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex

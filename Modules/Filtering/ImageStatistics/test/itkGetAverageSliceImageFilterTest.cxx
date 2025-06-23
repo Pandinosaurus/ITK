@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,22 +38,23 @@ itkGetAverageSliceImageFilterTest(int argc, char * argv[])
   using SeriesFileNames = itk::GDCMSeriesFileNames;
   using ImageIOType = itk::GDCMImageIO;
 
-  if (argc < 3)
+  if (argc < 4)
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << itkNameOfTestExecutableMacro(argv) << "  inputDICOMDirectory outputFile" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << "  inputDICOMDirectory outputFile averagedOutDimension"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
   // Get the input filenames
-  SeriesFileNames::Pointer names = SeriesFileNames::New();
+  auto names = SeriesFileNames::New();
 
   // Get the DICOM filenames from the directory
   names->SetInputDirectory(argv[1]);
 
   // Create the reader
-  ImageIOType::Pointer gdcmIO = ImageIOType::New();
-  ReaderType::Pointer  reader = ReaderType::New();
+  auto gdcmIO = ImageIOType::New();
+  auto reader = ReaderType::New();
   reader->SetImageIO(gdcmIO);
   try
   {
@@ -68,9 +69,14 @@ itkGetAverageSliceImageFilterTest(int argc, char * argv[])
   }
 
   // GetAverage the input images
-  GetAveragerType::Pointer average = GetAveragerType::New();
+  auto average = GetAveragerType::New();
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(average, GetAverageSliceImageFilter, AccumulateImageFilter);
+
+  auto averagedOutDimension = static_cast<unsigned int>(std::stoi(argv[3]));
+  average->SetAveragedOutDimension(averagedOutDimension);
+  ITK_TEST_SET_GET_VALUE(averagedOutDimension, average->GetAveragedOutDimension());
+
   average->SetInput(reader->GetOutput());
-  average->SetAveragedOutDimension(2);
 
   try
   {
@@ -88,7 +94,7 @@ itkGetAverageSliceImageFilterTest(int argc, char * argv[])
 
   try
   {
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetFileName(argv[2]);
 
     writer->SetInput(average->GetOutput());

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,10 +39,10 @@ struct OpenCVBasicTypeBridge
 {};
 
 template <typename TPoint>
-struct OpenCVBasicTypeBridge<TPoint, cv::Point_<typename TPoint::CoordRepType>>
+struct OpenCVBasicTypeBridge<TPoint, cv::Point_<typename TPoint::CoordinateType>>
 {
   using ITKDataType = TPoint;
-  using CoordinateType = typename TPoint::CoordRepType;
+  using CoordinateType = typename TPoint::CoordinateType;
   using OpenCVDataType = cv::Point_<CoordinateType>;
 
   static ITKDataType
@@ -61,17 +61,14 @@ struct OpenCVBasicTypeBridge<TPoint, cv::Point_<typename TPoint::CoordRepType>>
     return OpenCVDataType(iP[0], iP[1]);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<TPoint::PointDimension, 2>));
-#endif
 };
 
 template <typename TPoint>
-struct OpenCVBasicTypeBridge<TPoint, cv::Point3_<typename TPoint::CoordRepType>>
+struct OpenCVBasicTypeBridge<TPoint, cv::Point3_<typename TPoint::CoordinateType>>
 {
   using ITKDataType = TPoint;
-  using CoordinateType = typename TPoint::CoordRepType;
+  using CoordinateType = typename TPoint::CoordinateType;
   using OpenCVDataType = cv::Point3_<CoordinateType>;
 
   static ITKDataType
@@ -91,10 +88,7 @@ struct OpenCVBasicTypeBridge<TPoint, cv::Point3_<typename TPoint::CoordRepType>>
     return OpenCVDataType(iP[0], iP[1], iP[2]);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<TPoint::PointDimension, 3>));
-#endif
 };
 
 template <>
@@ -167,11 +161,11 @@ struct OpenCVBasicTypeBridge<itk::Size<2>, cv::Size>
   }
 };
 
-template <typename T, unsigned int NRows, unsigned int NColumns>
-struct OpenCVBasicTypeBridge<itk::Matrix<T, NRows, NColumns>, cv::Matx<T, NRows, NColumns>>
+template <typename T, unsigned int VRows, unsigned int VColumns>
+struct OpenCVBasicTypeBridge<itk::Matrix<T, VRows, VColumns>, cv::Matx<T, VRows, VColumns>>
 {
-  using ITKDataType = itk::Matrix<T, NRows, NColumns>;
-  using OpenCVDataType = cv::Matx<T, NRows, NColumns>;
+  using ITKDataType = itk::Matrix<T, VRows, VColumns>;
+  using OpenCVDataType = cv::Matx<T, VRows, VColumns>;
 
   static ITKDataType
   FromOpenCVToITK(const OpenCVDataType & iP)

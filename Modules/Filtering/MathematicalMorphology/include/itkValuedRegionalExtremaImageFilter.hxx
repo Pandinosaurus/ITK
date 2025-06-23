@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
-#include "itkValuedRegionalExtremaImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkConnectedComponentAlgorithm.h"
 
@@ -31,7 +30,6 @@ namespace itk
 template <typename TInputImage, typename TOutputImage, typename TFunction1, typename TFunction2>
 ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunction2>::ValuedRegionalExtremaImageFilter()
   : m_MarkerValue(0)
-
 {}
 
 
@@ -81,15 +79,13 @@ ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunctio
 
   InputIterator  inIt(input, output->GetRequestedRegion());
   OutputIterator outIt(output, output->GetRequestedRegion());
-  inIt.GoToBegin();
-  outIt.GoToBegin();
 
-  InputImagePixelType firstValue = inIt.Get();
+  const InputImagePixelType firstValue = inIt.Get();
   this->m_Flat = true;
 
   while (!outIt.IsAtEnd())
   {
-    InputImagePixelType currentValue = inIt.Get();
+    const InputImagePixelType currentValue = inIt.Get();
     outIt.Set(static_cast<OutputImagePixelType>(currentValue));
     if (currentValue != firstValue)
     {
@@ -109,8 +105,7 @@ ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunctio
     // Note : all comments refer to finding regional minima, because
     // it is briefer and clearer than trying to describe both regional
     // maxima and minima processes at the same time
-    ISizeType kernelRadius;
-    kernelRadius.Fill(1);
+    auto            kernelRadius = ISizeType::Filled(1);
     NOutputIterator outNIt(kernelRadius, output, output->GetRequestedRegion());
     setConnectivity(&outNIt, m_FullyConnected);
 
@@ -131,12 +126,11 @@ ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunctio
     outIt.GoToBegin();
     // set up the stack and neighbor list
     IndexStack                              IS;
-    typename NOutputIterator::IndexListType IndexList;
-    IndexList = outNIt.GetActiveIndexList();
+    typename NOutputIterator::IndexListType IndexList = outNIt.GetActiveIndexList();
 
     while (!outIt.IsAtEnd())
     {
-      OutputImagePixelType V = outIt.Get();
+      const OutputImagePixelType V = outIt.Get();
       // if the output pixel value = the marker value then we have
       // already visited this pixel and don't need to do so again
       if (compareOut(V, m_MarkerValue))
@@ -150,7 +144,7 @@ ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunctio
         typename ConstInputIterator::ConstIterator sIt;
         for (sIt = inNIt.Begin(); !sIt.IsAtEnd(); ++sIt)
         {
-          InputImagePixelType Adjacent = sIt.Get();
+          const InputImagePixelType Adjacent = sIt.Get();
           if (compareIn(Adjacent, Cent))
           {
             // The centre pixel cannot be part of a regional minima
@@ -217,7 +211,7 @@ ValuedRegionalExtremaImageFilter<TInputImage, TOutputImage, TFunction1, TFunctio
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent << "Flat: " << m_Flat << std::endl;
   os << indent << "MarkerValue: " << m_MarkerValue << std::endl;
 }

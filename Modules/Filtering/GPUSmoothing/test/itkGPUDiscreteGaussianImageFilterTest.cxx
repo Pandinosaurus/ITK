@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  typename WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(inFile);
   writer->SetFileName(outFile);
@@ -61,14 +61,14 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
   float variance = 4.0;
 
   // test 1~8 threads for CPU
-  for (int nThreads = 1; nThreads <= 8; nThreads++)
+  for (int numberOfWorkUnits = 1; numberOfWorkUnits <= 8; ++numberOfWorkUnits)
   {
-    typename CPUFilterType::Pointer CPUFilter = CPUFilterType::New();
+    auto CPUFilter = CPUFilterType::New();
 
     itk::TimeProbe cputimer;
     cputimer.Start();
 
-    CPUFilter->SetNumberOfWorkUnits(nThreads);
+    CPUFilter->SetNumberOfWorkUnits(numberOfWorkUnits);
 
     CPUFilter->SetInput(reader->GetOutput());
     CPUFilter->SetVariance(variance);
@@ -77,14 +77,14 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
     cputimer.Stop();
 
     std::cout << "CPU Gaussian Filter took " << cputimer.GetMean() << " seconds with "
-              << CPUFilter->GetNumberOfWorkUnits() << " threads.\n"
+              << CPUFilter->GetNumberOfWorkUnits() << " work units.\n"
               << std::endl;
 
     // -------
 
-    if (nThreads == 8)
+    if (numberOfWorkUnits == 8)
     {
-      typename GPUFilterType::Pointer GPUFilter = GPUFilterType::New();
+      auto GPUFilter = GPUFilterType::New();
 
       itk::TimeProbe gputimer;
       gputimer.Start();
@@ -111,9 +111,11 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
 
       for (cit.GoToBegin(), git.GoToBegin(); !cit.IsAtEnd(); ++cit, ++git)
       {
-        double err = (double)(cit.Get()) - (double)(git.Get());
-        //         if(err > 0.1 || (double)cit.Get() < 0.1) std::cout << "CPU : " << (double)(cit.Get()) << ", GPU : "
-        //         << (double)(git.Get()) << std::endl;
+        double err = static_cast<double>(cit.Get()) - static_cast<double>(git.Get());
+        //         if(err > 0.1 || static_cast<double>(cit.Get()) < 0.1) std::cout << "CPU : " <<
+        //         static_cast<double>(cit.Get()) <<
+        //         ", GPU : "
+        //         << static_cast<double>(git.Get()) << std::endl;
         diff += err * err;
         nPix++;
       }
@@ -123,7 +125,7 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
 
       if (nPix > 0)
       {
-        double RMSError = sqrt(diff / (double)nPix);
+        double RMSError = sqrt(diff / static_cast<double>(nPix));
         std::cout << "RMS Error : " << RMSError << std::endl;
         // the CPU filter operator has type double
         // but the double precision is not well-supported on most GPUs
@@ -142,7 +144,7 @@ runGPUDiscreteGaussianImageFilterTest(const std::string & inFile, const std::str
         }
         if (RMSError > RMSThreshold)
         {
-          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ")" << std::endl;
+          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ')' << std::endl;
           return EXIT_FAILURE;
         }
       }

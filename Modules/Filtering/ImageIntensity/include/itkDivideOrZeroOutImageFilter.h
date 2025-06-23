@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@ namespace itk
 
 
 /** \class DivideOrZeroOutImageFilter
- * \brief
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la
  * Reproduction, INRA de Jouy-en-Josas, France.
@@ -38,7 +37,8 @@ namespace itk
  *
  */
 template <typename TInputImage1, typename TInputImage2 = TInputImage1, typename TOutputImage = TInputImage1>
-class DivideOrZeroOutImageFilter : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
+class ITK_TEMPLATE_EXPORT DivideOrZeroOutImageFilter
+  : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(DivideOrZeroOutImageFilter);
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(DivideOrZeroOutImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DivideOrZeroOutImageFilter);
 
   /** Print internal ivars */
   void
@@ -73,6 +73,7 @@ public:
 
   /** Set/get the threshold below which pixels in the denominator will
    * be considered zero. */
+  /** @ITKStartGrouping */
   void
   SetThreshold(DenominatorPixelType threshold)
   {
@@ -87,9 +88,11 @@ public:
   {
     return this->GetFunctor().m_Threshold;
   }
+  /** @ITKEndGrouping */
 
   /** Set/get the constant value returned when the denominator input
    * value is considered zero. */
+  /** @ITKStartGrouping */
   void
   SetConstant(OutputPixelType constant)
   {
@@ -104,7 +107,7 @@ public:
   {
     return this->GetFunctor().m_Constant;
   }
-
+  /** @ITKEndGrouping */
 protected:
   DivideOrZeroOutImageFilter() = default;
   ~DivideOrZeroOutImageFilter() override = default;
@@ -123,7 +126,7 @@ private:
     return m_Functor;
   }
 
-  FunctorType m_Functor;
+  FunctorType m_Functor{};
 };
 
 } // end namespace itk

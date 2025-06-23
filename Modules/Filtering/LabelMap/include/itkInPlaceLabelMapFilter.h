@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 namespace itk
 {
 /**
- *\class InPlaceLabelMapFilter
+ * \class InPlaceLabelMapFilter
  * \brief Base class for filters that takes an image as input and overwrites
  * that image as the output
  *
@@ -69,7 +69,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "Label object representation and manipulation with ITK"
  * by Lehmann G.
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
@@ -91,17 +91,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InPlaceLabelMapFilter, LabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InPlaceLabelMapFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -123,17 +123,18 @@ public:
 
   /** In place operation can be turned on and off. This only has an
    * effect when the input and output image type match. */
+  /** @ITKStartGrouping */
   itkSetMacro(InPlace, bool);
   itkGetMacro(InPlace, bool);
   itkBooleanMacro(InPlace);
-
+  /** @ITKEndGrouping */
   /** Can the filter run in place? To do so, the filter's first input
    * and output must have the same dimension and pixel type. This
    * method can be used in conjunction with the InPlace ivar to
    * determine whether a particular use of the filter is really
    * running in place. Some filters may be able to optimize their
    * operation if the InPlace is true and CanRunInPlace is true. */
-  bool
+  [[nodiscard]] bool
   CanRunInPlace() const
   {
     return true; // used to test if TInputImage == TOutputImage. But

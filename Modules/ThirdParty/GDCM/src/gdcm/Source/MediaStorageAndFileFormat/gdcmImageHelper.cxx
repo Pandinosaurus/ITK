@@ -27,7 +27,7 @@
 #include "gdcmSegmentedPaletteColorLookupTable.h"
 #include "gdcmByteValue.h"
 
-#include <math.h> // fabs
+#include <cmath> // fabs
 
   /* TODO:
    *
@@ -48,6 +48,8 @@ namespace gdcm
 bool ImageHelper::ForceRescaleInterceptSlope = false;
 bool ImageHelper::PMSRescaleInterceptSlope = true;
 bool ImageHelper::ForcePixelSpacing = false;
+// By default, this is off, if you want behavior documented in DICOM CP 2330, turn it on
+bool ImageHelper::SecondaryCaptureImagePlaneModule = false;
 
 static bool GetOriginValueFromSequence(const DataSet& ds, const Tag& tfgs, std::vector<double> &ori)
 {
@@ -203,8 +205,9 @@ static bool ComputeZSpacingFromIPP(const DataSet &ds, double &zspacing)
   if( !sqi ) return false;
   assert( sqi );
   double normal[3];
-  DirectionCosines dc( &cosines[0] );
+  DirectionCosines dc( cosines.data() );
   dc.Cross( normal );
+  DirectionCosines::Normalize(normal);
 
   // For each item
   SequenceOfItems::SizeType nitems = sqi->GetNumberOfItems();
@@ -347,7 +350,7 @@ static bool GetSpacingValueFromSequence(const DataSet& ds, const Tag& tfgs, std:
   sp.push_back( at.GetValue(1) );
   sp.push_back( at.GetValue(0) );
 
-  // BUG ! Check for instace:
+  // BUG ! Check for instance:
   // gdcmData/BRTUM001.dcm
   // Slice Thickness is 5.0 while the Zspacing should be 6.0 !
 #if 0
@@ -369,6 +372,28 @@ static bool GetSpacingValueFromSequence(const DataSet& ds, const Tag& tfgs, std:
 
   return true;
 }
+
+static SmartPointer<SequenceOfItems> InsertOrReplaceSQ( DataSet & ds, const Tag &tag )
+{
+  SmartPointer<SequenceOfItems> sqi;
+  if( !ds.FindDataElement( tag ) )
+  {
+    sqi = new SequenceOfItems;
+    DataElement de( tag );
+    de.SetVR( VR::SQ );
+    de.SetValue( *sqi );
+    assert( de.GetVL().IsUndefined() );
+    de.SetVLToUndefined();
+    ds.Insert( de );
+  }
+  sqi = ds.GetDataElement( tag ).GetValueAsSQ();
+  sqi->SetLengthToUndefined();
+  DataElement de_dup = ds.GetDataElement( tag );
+  de_dup.SetValue( *sqi );
+  ds.Replace( de_dup );
+  return sqi;
+}
+
 
 // UltrasoundMultiframeImageStorage
 static bool GetUltraSoundSpacingValueFromSequence(const DataSet& ds, std::vector<double> &sp)
@@ -398,6 +423,7 @@ static bool GetUltraSoundSpacingValueFromSequence(const DataSet& ds, std::vector
   if( !ds.FindDataElement( tsqusreg ) ) return false;
   //const SequenceOfItems * sqi = ds.GetDataElement( tsqusreg ).GetSequenceOfItems();
   SmartPointer<SequenceOfItems> sqi = ds.GetDataElement( tsqusreg ).GetValueAsSQ();
+  if( !sqi ) return false;
   assert( sqi );
   // Get first item:
   const Item &item = sqi->GetItem(1);
@@ -417,7 +443,50 @@ static bool GetUltraSoundSpacingValueFromSequence(const DataSet& ds, std::vector
 
   return true;
 }
+static void SetUltraSoundSpacingValueFromSequence(DataSet& ds, std::vector<double> const &spacing)
+{
+/*
+(0018,6011) SQ (Sequence with explicit length #=1)      # 196, 1 SequenceOfUltrasoundRegions
+  (fffe,e000) na (Item with explicit length #=15)         # 188, 1 Item
+    (0018,6012) US 1                                        #   2, 1 RegionSpatialFormat
+    (0018,6014) US 1                                        #   2, 1 RegionDataType
+    (0018,6016) UL 0                                        #   4, 1 RegionFlags
+    (0018,6018) UL 0                                        #   4, 1 RegionLocationMinX0
+    (0018,601a) UL 0                                        #   4, 1 RegionLocationMinY0
+    (0018,601c) UL 479                                      #   4, 1 RegionLocationMaxX1
+    (0018,601e) UL 479                                      #   4, 1 RegionLocationMaxY1
+    (0018,6020) SL 0                                        #   4, 1 ReferencePixelX0
+    (0018,6022) SL 0                                        #   4, 1 ReferencePixelY0
+    (0018,6024) US 3                                        #   2, 1 PhysicalUnitsXDirection
+    (0018,6026) US 3                                        #   2, 1 PhysicalUnitsYDirection
+    (0018,6028) FD 0                                        #   8, 1 ReferencePixelPhysicalValueX
+    (0018,602a) FD 0                                        #   8, 1 ReferencePixelPhysicalValueY
+    (0018,602c) FD 0.002                                    #   8, 1 PhysicalDeltaX
+    (0018,602e) FD 0.002                                    #   8, 1 PhysicalDeltaY
+  (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+(fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+*/
+  const Tag tsqusreg(0x0018,0x6011);
+        SmartPointer<SequenceOfItems> sqi = InsertOrReplaceSQ( ds, tsqusreg);
+        if( !sqi->GetNumberOfItems() )
+        {
+          Item item; //( Tag(0xfffe,0xe000) );
+          sqi->AddItem( item );
+        }
+        Item &item1 = sqi->GetItem(1);
+        item1.SetVLToUndefined();
+        DataSet &subds = item1.GetNestedDataSet();
+ 
+  //  (0018,602c) FD 0.002                                    #   8, 1 PhysicalDeltaX
+  //  (0018,602e) FD 0.002                                    #   8, 1 PhysicalDeltaY
+  Attribute<0x0018,0x602c> at1;
+        at1.SetValue( spacing[0] );
+  Attribute<0x0018,0x602e> at2;
+        at2.SetValue( spacing[1] );
+        subds.Replace( at1.GetAsDataElement() );
+        subds.Replace( at2.GetAsDataElement() );
 
+}
 
 
 /* Enhanced stuff looks like:
@@ -511,7 +580,7 @@ std::vector<double> ImageHelper::GetOriginValue(File const & f)
 
   // else
   const Tag timagepositionpatient(0x0020, 0x0032);
-  if( ms != MediaStorage::SecondaryCaptureImageStorage && ds.FindDataElement( timagepositionpatient ) )
+  if( (ms != MediaStorage::SecondaryCaptureImageStorage || SecondaryCaptureImagePlaneModule) && ds.FindDataElement( timagepositionpatient ) )
     {
     const DataElement& de = ds.GetDataElement( timagepositionpatient );
     Attribute<0x0020,0x0032> at = {{0,0,0}}; // default value if empty
@@ -545,7 +614,7 @@ bool ImageHelper::GetDirectionCosinesFromDataSet(DataSet const & ds, std::vector
       {
       dircos[i] = at.GetValue(i);
       }
-    DirectionCosines dc( &dircos[0] );
+    DirectionCosines dc( dircos.data() );
     if( !dc.IsValid() )
       {
       dc.Normalize();
@@ -663,7 +732,7 @@ std::vector<double> ImageHelper::GetDirectionCosinesValue(File const & f)
     }
 
   dircos.resize( 6 );
-  if( ms == MediaStorage::SecondaryCaptureImageStorage || !GetDirectionCosinesFromDataSet(ds, dircos) )
+  if( (ms == MediaStorage::SecondaryCaptureImageStorage && !SecondaryCaptureImagePlaneModule) || !GetDirectionCosinesFromDataSet(ds, dircos) )
     {
     dircos[0] = 1;
     dircos[1] = 0;
@@ -705,6 +774,16 @@ void ImageHelper::SetForcePixelSpacing(bool b)
 bool ImageHelper::GetForcePixelSpacing()
 {
   return ForcePixelSpacing;
+}
+
+void ImageHelper::SetSecondaryCaptureImagePlaneModule(bool b)
+{
+  SecondaryCaptureImagePlaneModule = b;
+}
+
+bool ImageHelper::GetSecondaryCaptureImagePlaneModule()
+{
+  return SecondaryCaptureImagePlaneModule;
 }
 
 bool GetRescaleInterceptSlopeValueFromDataSet(const DataSet& ds, std::vector<double> & interceptslope)
@@ -859,7 +938,7 @@ std::vector<unsigned int> ImageHelper::GetDimensionsValue(const File& f)
           }
         else
           {
-          gdcmWarningMacro( "Sorry cant read attribute (wrong VR): " << at.GetTag() );
+          gdcmWarningMacro( "Sorry cannot read attribute (wrong VR): " << at.GetTag() );
           }
         }
       }
@@ -912,6 +991,9 @@ void ImageHelper::SetDimensionsValue(File& f, const Pixmap & img)
            ds.Replace(numframes.GetAsDataElement());
         }
       }
+      else if( ms.MediaStorage::GetModalityDimension() == 2 /*&& dims[2] == 1*/ )
+        ds.Remove( numframes.GetTag() );
+
     }
     else // cleanup
       ds.Remove( numframes.GetTag() );
@@ -940,10 +1022,19 @@ void ImageHelper::SetDimensionsValue(File& f, const Pixmap & img)
       const Tag tfgs(0x5200,0x9230);
       if( ds.FindDataElement( tfgs ) )
       {
-        SmartPointer<SequenceOfItems> sqi = ds.GetDataElement( tfgs ).GetValueAsSQ();
+        const DataElement &de = ds.GetDataElement( tfgs );
+        SmartPointer<SequenceOfItems> sqi = de.GetValueAsSQ();
         assert( sqi );
-        sqi->SetLengthToUndefined();
         sqi->SetNumberOfItems( dims[2] );
+        {
+          // Simple mechanism to avoid recomputation of Sequence Length: make
+          // them undefined length
+          DataElement dup(de.GetTag());
+          dup.SetVR(VR::SQ);
+          dup.SetValue(*sqi);
+          dup.SetVLToUndefined();
+          ds.Replace(dup);
+        }
       }
     }
 
@@ -1055,7 +1146,7 @@ std::vector<double> ImageHelper::GetRescaleInterceptSlopeValue(File const & f)
           {
           gdcmAssertAlwaysMacro(0); // Not supported !
           }
-        // dont know how to handle multiples:
+        // don't know how to handle multiples:
         gdcmAssertAlwaysMacro( sqi->GetNumberOfItems() == 1 );
         const Item &item = sqi->GetItem(1);
         const DataSet & subds = item.GetNestedDataSet();
@@ -1096,7 +1187,7 @@ std::vector<double> ImageHelper::GetRescaleInterceptSlopeValue(File const & f)
         interceptslope[1] = el_rs.GetValue();
         if( interceptslope[1] == 0 )
           interceptslope[1] = 1;
-        gdcmWarningMacro( "PMS Modality LUT loaded for MR Image Storage: [" << interceptslope[0] << "," << interceptslope[1] << "]" );
+        gdcmDebugMacro( "PMS Modality LUT loaded for MR Image Storage: [" << interceptslope[0] << "," << interceptslope[1] << "]" );
       }
       }
     else
@@ -1104,8 +1195,13 @@ std::vector<double> ImageHelper::GetRescaleInterceptSlopeValue(File const & f)
       std::vector<double> dummy(2);
       if( GetRescaleInterceptSlopeValueFromDataSet(ds, dummy) )
         {
-        // for everyone else, read your DCS, and set: ForceRescaleInterceptSlope = true if needed
-        gdcmDebugMacro( "Modality LUT unused for MR Image Storage: [" << dummy[0] << "," << dummy[1] << "]" );
+        if(dummy[0] != 0 || dummy[1] != 1) {
+        // SIEMENS is sending MFSPLIT with Modality LUT
+	// Case is: MAGNETOM Prisma / syngo MR XA30A with MFSPLIT
+        interceptslope[0] = dummy[0];
+        interceptslope[1] = dummy[1];
+        gdcmDebugMacro( "Forcing Modality LUT used for MR Image Storage: [" << dummy[0] << "," << dummy[1] << "]" );
+        }
         }
       }
 #endif
@@ -1142,7 +1238,7 @@ Tag ImageHelper::GetSpacingTagFromMediaStorage(MediaStorage const &ms)
   switch(ms)
     {
   case MediaStorage::EnhancedUSVolumeStorage:
-  // Enhanced stuff are handled elsewere... look carefully :)
+  // Enhanced stuff are handled elsewhere... look carefully :)
   //case MediaStorage::EnhancedMRImageStorage:
   //case MediaStorage::EnhancedCTImageStorage:
   //case MediaStorage::XRay3DAngiographicImageStorage
@@ -1180,6 +1276,16 @@ Tag ImageHelper::GetSpacingTagFromMediaStorage(MediaStorage const &ms)
     t = Tag(0x3002,0x0011); // ImagePlanePixelSpacing
     break;
   case MediaStorage::SecondaryCaptureImageStorage:
+    if( ImageHelper::SecondaryCaptureImagePlaneModule ) {
+      // Make SecondaryCaptureImagePlaneModule act as ForcePixelSpacing
+      // This is different from Basic Pixel Spacing Calibration Macro Attributes
+      //
+      gdcmDebugMacro( "FIXME: Multiple tags can identify Secondary Capture spacing. This function should not be used for Secondary Capture data." );
+      t = Tag(0x0028,0x0030);
+    } else {
+      t = Tag(0x0018,0x2010);
+    }
+    break;
   case MediaStorage::MultiframeSingleBitSecondaryCaptureImageStorage:
   case MediaStorage::MultiframeGrayscaleByteSecondaryCaptureImageStorage:
   case MediaStorage::MultiframeGrayscaleWordSecondaryCaptureImageStorage:
@@ -1269,6 +1375,13 @@ Warning - Dicom dataset contains attributes not present in standard DICOM IOD - 
   case MediaStorage::UltrasoundMultiFrameImageStorageRetired:
   // SC:
   case MediaStorage::SecondaryCaptureImageStorage:
+    // (0018,0088) DS [3]                                      #   2, 1 SpacingBetweenSlices
+    if( ImageHelper::SecondaryCaptureImagePlaneModule ) {
+    t = Tag(0x0018,0x0088);
+    } else {
+    t = Tag(0xffff,0xffff);
+    }
+    break;
   case MediaStorage::MultiframeSingleBitSecondaryCaptureImageStorage:
   case MediaStorage::MultiframeGrayscaleByteSecondaryCaptureImageStorage:
   case MediaStorage::MultiframeGrayscaleWordSecondaryCaptureImageStorage:
@@ -1345,7 +1458,7 @@ std::vector<double> ImageHelper::GetSpacingValue(File const & f)
     gdcmWarningMacro( "Could not find Spacing" );
     return sp;
     }
-  else if( ms == MediaStorage::UltrasoundMultiFrameImageStorage )
+  else if( ms == MediaStorage::UltrasoundMultiFrameImageStorage || ms == MediaStorage::UltrasoundImageStorage )
     {
     if( GetUltraSoundSpacingValueFromSequence(ds, sp) )
       {
@@ -1368,7 +1481,25 @@ std::vector<double> ImageHelper::GetSpacingValue(File const & f)
       }
     }
 
-  Tag spacingtag = GetSpacingTagFromMediaStorage(ms);
+  Tag spacingtag = Tag(0xffff,0xffff);
+  if( ms == MediaStorage::SecondaryCaptureImageStorage && SecondaryCaptureImagePlaneModule )
+    {
+    // See the note: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.8.html#sect_A.8.1.3
+    if( ds.FindDataElement( Tag(0x0028,0x0030) ) )
+      {
+      // Type 1C in 'SC Image' (for calibrated images)
+      spacingtag = Tag(0x0028,0x0030);
+      }
+    else if( ds.FindDataElement( Tag(0x0018,0x2010) ) )
+      {
+      // Type 3 in 'SC Image'
+      spacingtag = Tag(0x0018,0x2010);
+      }
+    }
+  else
+    {
+    spacingtag = GetSpacingTagFromMediaStorage(ms);
+    }
   if( spacingtag != Tag(0xffff,0xffff) && ds.FindDataElement( spacingtag ) && !ds.GetDataElement( spacingtag ).IsEmpty() )
     {
     const DataElement& de = ds.GetDataElement( spacingtag );
@@ -1389,7 +1520,7 @@ std::vector<double> ImageHelper::GetSpacingValue(File const & f)
         ss.str( s );
         // Stupid file: CT-MONO2-8-abdo.dcm
         // The spacing is something like that: [0.2\0\0.200000]
-        // I would need to throw an expection that VM is not compatible
+        // I would need to throw an exception that VM is not compatible
         el.SetLength( entry.GetVM().GetLength() * entry.GetVR().GetSizeof() );
         std::string::size_type found = s.find('\\');
         if( found != std::string::npos )
@@ -1404,7 +1535,7 @@ std::vector<double> ImageHelper::GetSpacingValue(File const & f)
               }
             else
               {
-              gdcmWarningMacro( "Cant have a spacing of 0" );
+              gdcmWarningMacro( "Cannot have a spacing of 0" );
               sp.push_back( 1.0 );
               }
             }
@@ -1435,7 +1566,15 @@ std::vector<double> ImageHelper::GetSpacingValue(File const & f)
         el.SetLength( entry.GetVM().GetLength() * entry.GetVR().GetSizeof() );
         el.Read( ss );
         for(unsigned int i = 0; i < el.GetLength(); ++i)
-          sp.push_back( el.GetValue(i) );
+        {
+          if( el.GetValue(i) )
+            sp.push_back( el.GetValue(i) );
+          else
+            {
+            gdcmWarningMacro( "Cannot have a spacing of 0" );
+            sp.push_back( 1.0 );
+            }
+        }
         std::swap( sp[0], sp[1]);
         assert( sp.size() == (unsigned int)entry.GetVM() );
         }
@@ -1574,27 +1713,6 @@ $ dcmdump D_CLUNIE_NM1_JPLL.dcm" | grep 0028,0009
   return sp;
 }
 
-static SmartPointer<SequenceOfItems> InsertOrReplaceSQ( DataSet & ds, const Tag &tag )
-{
-  SmartPointer<SequenceOfItems> sqi;
-  if( !ds.FindDataElement( tag ) )
-  {
-    sqi = new SequenceOfItems;
-    DataElement de( tag );
-    de.SetVR( VR::SQ );
-    de.SetValue( *sqi );
-    assert( de.GetVL().IsUndefined() );
-    de.SetVLToUndefined();
-    ds.Insert( de );
-  }
-  sqi = ds.GetDataElement( tag ).GetValueAsSQ();
-  sqi->SetLengthToUndefined();
-  DataElement de_dup = ds.GetDataElement( tag );
-  de_dup.SetValue( *sqi );
-  ds.Replace( de_dup );
-  return sqi;
-}
-
 void ImageHelper::SetSpacingValue(DataSet & ds, const std::vector<double> & spacing)
 {
   MediaStorage ms;
@@ -1697,6 +1815,11 @@ void ImageHelper::SetSpacingValue(DataSet & ds, const std::vector<double> & spac
     ds.Remove(t2);
     }
  
+    return;
+    }
+  else if( ms == MediaStorage::UltrasoundMultiFrameImageStorage || ms == MediaStorage::UltrasoundImageStorage )
+    {
+    SetUltraSoundSpacingValueFromSequence(ds, spacing);
     return;
     }
 
@@ -1877,7 +2000,7 @@ void ImageHelper::SetOriginValue(DataSet & ds, const Image & image)
   ms.SetFromDataSet(ds);
   assert( MediaStorage::IsImage( ms ) );
 
-  if( ms == MediaStorage::SecondaryCaptureImageStorage )
+  if( ms == MediaStorage::SecondaryCaptureImageStorage && !ImageHelper::SecondaryCaptureImagePlaneModule )
     {
     // https://sourceforge.net/p/gdcm/bugs/322/
     // default behavior is simply to pass
@@ -1891,6 +2014,7 @@ void ImageHelper::SetOriginValue(DataSet & ds, const Image & image)
    && ms != MediaStorage::PETImageStorage
    //&& ms != MediaStorage::ComputedRadiographyImageStorage
    && ms != MediaStorage::SegmentationStorage
+   && ms != MediaStorage::SecondaryCaptureImageStorage /* CP 2330 */
    && ms != MediaStorage::MultiframeSingleBitSecondaryCaptureImageStorage
    && ms != MediaStorage::MultiframeGrayscaleByteSecondaryCaptureImageStorage
    && ms != MediaStorage::MultiframeGrayscaleWordSecondaryCaptureImageStorage
@@ -1952,6 +2076,7 @@ void ImageHelper::SetOriginValue(DataSet & ds, const Image & image)
 
     double normal[3];
     dc.Cross( normal );
+    DirectionCosines::Normalize(normal);
 
     for(unsigned int i = 0; i < dimz; ++i )
       {
@@ -2027,7 +2152,7 @@ void ImageHelper::SetDirectionCosinesValue(DataSet & ds, const std::vector<doubl
   ms.SetFromDataSet(ds);
   assert( MediaStorage::IsImage( ms ) );
 
-  if( ms == MediaStorage::SecondaryCaptureImageStorage )
+  if( ms == MediaStorage::SecondaryCaptureImageStorage && !ImageHelper::SecondaryCaptureImagePlaneModule )
     {
     // https://sourceforge.net/p/gdcm/bugs/322/
     // default behavior is simply to pass
@@ -2040,6 +2165,7 @@ void ImageHelper::SetDirectionCosinesValue(DataSet & ds, const std::vector<doubl
    && ms != MediaStorage::RTDoseStorage
    && ms != MediaStorage::PETImageStorage
    //&& ms != MediaStorage::ComputedRadiographyImageStorage
+   && ms != MediaStorage::SecondaryCaptureImageStorage /* CP 2330 */
    && ms != MediaStorage::MultiframeSingleBitSecondaryCaptureImageStorage
    && ms != MediaStorage::MultiframeGrayscaleByteSecondaryCaptureImageStorage
    && ms != MediaStorage::MultiframeGrayscaleWordSecondaryCaptureImageStorage
@@ -2068,7 +2194,7 @@ void ImageHelper::SetDirectionCosinesValue(DataSet & ds, const std::vector<doubl
   Attribute<0x0020,0x0037> iop = {{1,0,0,0,1,0}}; // default value
 
   assert( dircos.size() == 6 );
-  DirectionCosines dc( &dircos[0] );
+  DirectionCosines dc( dircos.data() );
   if( !dc.IsValid() )
     {
     gdcmWarningMacro( "Direction Cosines are not valid. Using default value (1\\0\\0\\0\\1\\0)" );
@@ -2202,6 +2328,7 @@ void ImageHelper::SetRescaleInterceptSlopeValue(File & f, const Image & img)
     {
     if( img.GetIntercept() != 0. || img.GetSlope() != 1. )
       {
+      gdcmErrorMacro( "Cannot have non-identity intercept/slope values." );
       throw "Impossible"; // Please report
       }
     return;
@@ -2406,7 +2533,7 @@ bool ImageHelper::GetRealWorldValueMappingContent(File const & f, RealWorldValue
   ms.SetFromFile(f);
   const DataSet& ds = f.GetDataSet();
 
-  if( ms == MediaStorage::MRImageStorage )
+  if( ms == MediaStorage::MRImageStorage || ms == MediaStorage::NuclearMedicineImageStorage )
   {
 	  const Tag trwvms(0x0040,0x9096); // Real World Value Mapping Sequence
 	  if( ds.FindDataElement( trwvms ) )
@@ -2419,7 +2546,7 @@ bool ImageHelper::GetRealWorldValueMappingContent(File const & f, RealWorldValue
 			  {
 				  gdcmAssertAlwaysMacro(0); // Not supported !
 			  }
-			  // dont know how to handle multiples:
+			  // don't know how to handle multiples:
 			  gdcmAssertAlwaysMacro( sqi0->GetNumberOfItems() == 1 );
 			  const Item &item0 = sqi0->GetItem(1);
 			  const DataSet & subds0 = item0.GetNestedDataSet();
@@ -2820,6 +2947,7 @@ MediaStorage ImageHelper::ComputeMediaStorageFromModality(const char *modality,
       || pi == PhotometricInterpretation::YBR_RCT
       || pi == PhotometricInterpretation::YBR_ICT
       || pi == PhotometricInterpretation::YBR_PARTIAL_420
+      || pi == PhotometricInterpretation::YBR_FULL /* PI when coming from other gdcm filter */
       || pi == PhotometricInterpretation::YBR_FULL_422 ) &&
       pixeltype.GetBitsAllocated() == 8 &&
       pixeltype.GetBitsStored() == 8 &&

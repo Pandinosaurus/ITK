@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,13 +40,13 @@ main(int, char *[])
   using ImageType = itk::Image<unsigned short, 3>;
 
   // Then the image object can be created
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   // The image region should be initialized
-  const ImageType::SizeType size = {
+  constexpr ImageType::SizeType size = {
     { 200, 200, 200 }
   }; // Size along {X,Y,Z}
-  const ImageType::IndexType start = {
+  constexpr ImageType::IndexType start = {
     { 0, 0, 0 }
   }; // First index on {X,Y,Z}
 
@@ -82,7 +82,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const ImageType::IndexType pixelIndex = {
+  constexpr ImageType::IndexType pixelIndex = {
     { 27, 29, 37 }
   }; // Position of {X,Y,Z}
   // Software Guide : EndCodeSnippet
@@ -99,7 +99,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ImageType::PixelType pixelValue = image->GetPixel(pixelIndex);
+  const ImageType::PixelType pixelValue = image->GetPixel(pixelIndex);
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex

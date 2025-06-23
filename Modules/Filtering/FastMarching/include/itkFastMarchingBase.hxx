@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,10 +19,8 @@
 #ifndef itkFastMarchingBase_hxx
 #define itkFastMarchingBase_hxx
 
-#include "itkFastMarchingBase.h"
 
 #include "itkProgressReporter.h"
-#include "itkMath.h"
 #include "itkMath.h"
 
 namespace itk
@@ -30,23 +28,20 @@ namespace itk
 // -----------------------------------------------------------------------------
 template <typename TInput, typename TOutput>
 FastMarchingBase<TInput, TOutput>::FastMarchingBase()
+  : m_SpeedConstant(1.)
+  , m_InverseSpeed(-1.)
+  , m_NormalizationFactor(1.)
+  , m_TargetReachedValue(OutputPixelType{})
+  , m_LargeValue(NumericTraits<OutputPixelType>::max())
+  , m_TopologyValue(m_LargeValue)
+  , m_TrialPoints(nullptr)
+  , m_AlivePoints(nullptr)
+  , m_ProcessedPoints(nullptr)
+  , m_ForbiddenPoints(nullptr)
+  , m_TopologyCheck(TopologyCheckEnum::Nothing)
 {
   this->ProcessObject::SetNumberOfRequiredInputs(0);
-
-  m_TrialPoints = nullptr;
-  m_AlivePoints = nullptr;
-  m_ProcessedPoints = nullptr;
-  m_ForbiddenPoints = nullptr;
-
   // m_Heap = PriorityQueueType::New();
-  m_SpeedConstant = 1.;
-  m_InverseSpeed = -1.;
-  m_NormalizationFactor = 1.;
-  m_TargetReachedValue = NumericTraits<OutputPixelType>::ZeroValue();
-  m_TopologyCheck = TopologyCheckEnum::Nothing;
-  m_LargeValue = NumericTraits<OutputPixelType>::max();
-  m_TopologyValue = m_LargeValue;
-  m_CollectPoints = false;
 }
 // -----------------------------------------------------------------------------
 
@@ -70,19 +65,19 @@ FastMarchingBase<TInput, TOutput>::Initialize(OutputDomainType * oDomain)
 {
   if (m_TrialPoints.IsNull())
   {
-    itkExceptionMacro(<< "No Trial Nodes");
+    itkExceptionMacro("No Trial Nodes");
   }
   if (m_StoppingCriterion.IsNull())
   {
-    itkExceptionMacro(<< "No Stopping Criterion Set");
+    itkExceptionMacro("No Stopping Criterion Set");
   }
   if (m_NormalizationFactor < itk::Math::eps)
   {
-    itkExceptionMacro(<< "Normalization Factor is null or negative");
+    itkExceptionMacro("Normalization Factor is null or negative");
   }
   if (m_SpeedConstant < itk::Math::eps)
   {
-    itkExceptionMacro(<< "SpeedConstant is null or negative");
+    itkExceptionMacro("SpeedConstant is null or negative");
   }
   if (m_CollectPoints)
   {
@@ -107,7 +102,7 @@ FastMarchingBase<TInput, TOutput>::Initialize(OutputDomainType * oDomain)
   this->InitializeOutput(oDomain);
 
   // By setting the output domain to the stopping criterion, we enable funky
-  // criterion based on informations extracted from it
+  // criterion based on information extracted from it
   m_StoppingCriterion->SetDomain(oDomain);
 }
 // -----------------------------------------------------------------------------
@@ -142,7 +137,7 @@ FastMarchingBase<TInput, TOutput>::GenerateData()
       NodePairType current_node_pair = m_Heap.top();
       m_Heap.pop();
 
-      NodeType current_node = current_node_pair.GetNode();
+      const NodeType current_node = current_node_pair.GetNode();
       current_value = this->GetOutputValue(output, current_node);
 
       if (Math::ExactlyEquals(current_value, current_node_pair.GetValue()))
@@ -175,7 +170,7 @@ FastMarchingBase<TInput, TOutput>::GenerateData()
       }
     }
   }
-  catch (ProcessAborted &)
+  catch (const ProcessAborted &)
   {
     // User aborted filter execution Here we catch an exception thrown by the
     // progress reporter and rethrow it with the correct line number and file

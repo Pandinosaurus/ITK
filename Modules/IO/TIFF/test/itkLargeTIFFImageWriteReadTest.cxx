@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,19 +42,11 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
 
   using SizeValueType = itk::SizeValueType;
 
-  typename ImageType::RegionType region;
-  typename ImageType::IndexType  index;
-
-  PixelType pixelValue;
-
-  itk::TimeProbesCollectorBase chronometer;
-
+  const typename ImageType::IndexType  index{};
+  const typename ImageType::RegionType region{ index, size };
   {
     // Write block
-    typename ImageType::Pointer image = ImageType::New();
-    index.Fill(0);
-    region.SetSize(size);
-    region.SetIndex(index);
+    auto image = ImageType::New();
 
     image->SetRegions(region);
 
@@ -64,7 +56,7 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
       numberOfPixels *= static_cast<SizeValueType>(region.GetSize(i));
     }
 
-    const SizeValueType oneMebiByte = SizeValueType(1024) * SizeValueType(1024);
+    constexpr SizeValueType oneMebiByte = static_cast<SizeValueType>(1024) * static_cast<SizeValueType>(1024);
 
     const SizeValueType sizeInBytes = sizeof(PixelType) * numberOfPixels;
 
@@ -72,7 +64,7 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
 
 
     std::cout << "Trying to allocate an image of size " << sizeInMebiBytes << " MiB " << std::endl;
-
+    itk::TimeProbesCollectorBase chronometer;
     chronometer.Start("Allocate");
     image->Allocate();
     chronometer.Stop("Allocate");
@@ -82,7 +74,7 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
     IteratorType itr(image, region);
     itr.GoToBegin();
 
-    pixelValue = itk::NumericTraits<PixelType>::ZeroValue();
+    PixelType pixelValue{};
 
     chronometer.Start("Initializing");
     while (!itr.IsAtEnd())
@@ -95,7 +87,7 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
 
     std::cout << "Trying to write the image to disk" << std::endl;
 
-    typename WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetInput(image);
     writer->SetFileName(filename);
 
@@ -109,27 +101,26 @@ itkLargeTIFFImageWriteReadTestHelper(std::string filename, typename TImage::Size
   } // end write block to free the memory
 
   std::cout << "Trying to read the image back from disk" << std::endl;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(filename);
 
-  itk::TIFFImageIO::Pointer io = itk::TIFFImageIO::New();
+  const itk::TIFFImageIO::Pointer io = itk::TIFFImageIO::New();
   reader->SetImageIO(io);
 
+  itk::TimeProbesCollectorBase chronometer;
   chronometer.Start("Read");
-
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
-
   chronometer.Stop("Read");
 
-  typename ImageType::ConstPointer readImage = reader->GetOutput();
+  const typename ImageType::ConstPointer readImage = reader->GetOutput();
 
   ConstIteratorType ritr(readImage, region);
 
   ritr.GoToBegin();
 
-  std::cout << "Comparing the pixel values" << std::endl;
+  std::cout << "Comparing the pixel values..." << std::endl;
 
-  pixelValue = itk::NumericTraits<PixelType>::ZeroValue();
+  PixelType pixelValue{};
 
   chronometer.Start("Compare");
   while (!ritr.IsAtEnd())
@@ -176,24 +167,18 @@ itkLargeTIFFImageWriteReadTest(int argc, char * argv[])
     using PixelType = unsigned short;
     using ImageType = itk::Image<PixelType, Dimension>;
 
-    ImageType::SizeType size;
-
-    size.Fill(atol(argv[2]));
+    auto size = ImageType::SizeType::Filled(atol(argv[2]));
 
     return itkLargeTIFFImageWriteReadTestHelper<ImageType>(filename, size);
   }
-  else
-  {
-    constexpr unsigned int Dimension = 3;
 
-    using PixelType = unsigned short;
-    using ImageType = itk::Image<PixelType, Dimension>;
+  constexpr unsigned int Dimension = 3;
 
-    ImageType::SizeType size;
+  using PixelType = unsigned short;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
-    size.Fill(atol(argv[2]));
-    size[2] = atol(argv[3]);
+  auto size = ImageType::SizeType::Filled(atol(argv[2]));
+  size[2] = atol(argv[3]);
 
-    return itkLargeTIFFImageWriteReadTestHelper<ImageType>(filename, size);
-  }
+  return itkLargeTIFFImageWriteReadTestHelper<ImageType>(filename, size);
 }

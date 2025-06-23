@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,19 +20,16 @@
 
 #include <iostream>
 
-#include "itkGaussianMixtureModelComponent.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 GaussianMixtureModelComponent<TSample>::GaussianMixtureModelComponent()
+  : m_GaussianMembershipFunction(NativeMembershipFunctionType::New())
+  , m_MeanEstimator(MeanEstimatorType::New())
+  , m_CovarianceEstimator(CovarianceEstimatorType::New())
 {
-  m_MeanEstimator = MeanEstimatorType::New();
-  m_CovarianceEstimator = CovarianceEstimatorType::New();
-  m_GaussianMembershipFunction = NativeMembershipFunctionType::New();
   this->SetMembershipFunction((MembershipFunctionType *)m_GaussianMembershipFunction.GetPointer());
   m_Mean.Fill(0.0);
   m_Covariance.SetIdentity();
@@ -66,9 +63,9 @@ GaussianMixtureModelComponent<TSample>::SetSample(const TSample * sample)
   NumericTraits<MeasurementVectorType>::SetLength(m_Mean, measurementVectorLength);
   m_Covariance.SetSize(measurementVectorLength, measurementVectorLength);
 
-  m_Mean.Fill(NumericTraits<double>::ZeroValue());
+  m_Mean.Fill(0.0);
 
-  m_Covariance.Fill(NumericTraits<double>::ZeroValue());
+  m_Covariance.Fill(0.0);
 
   typename NativeMembershipFunctionType::MeanVectorType mean;
 
@@ -89,13 +86,11 @@ GaussianMixtureModelComponent<TSample>::SetParameters(const ParametersType & par
   Superclass::SetParameters(parameters);
 
   unsigned int paramIndex = 0;
-  unsigned int i, j;
+  bool         changed = false;
 
-  bool changed = false;
+  const MeasurementVectorSizeType measurementVectorSize = this->GetSample()->GetMeasurementVectorSize();
 
-  MeasurementVectorSizeType measurementVectorSize = this->GetSample()->GetMeasurementVectorSize();
-
-  for (i = 0; i < measurementVectorSize; i++)
+  for (unsigned int i = 0; i < measurementVectorSize; ++i)
   {
     if (Math::NotExactlyEquals(m_Mean[i], parameters[paramIndex]))
     {
@@ -110,16 +105,16 @@ GaussianMixtureModelComponent<TSample>::SetParameters(const ParametersType & par
 
   NumericTraits<typename NativeMembershipFunctionType::MeanVectorType>::SetLength(mean, measurementVectorSize);
 
-  for (i = 0; i < measurementVectorSize; ++i)
+  for (unsigned int i = 0; i < measurementVectorSize; ++i)
   {
     mean[i] = m_Mean[i];
   }
 
   m_GaussianMembershipFunction->SetMean(mean);
 
-  for (i = 0; i < measurementVectorSize; i++)
+  for (unsigned int i = 0; i < measurementVectorSize; ++i)
   {
-    for (j = 0; j < measurementVectorSize; j++)
+    for (unsigned int j = 0; j < measurementVectorSize; ++j)
     {
       if (Math::NotExactlyEquals(m_Covariance.GetVnlMatrix().get(i, j), parameters[paramIndex]))
       {
@@ -138,28 +133,25 @@ template <typename TSample>
 double
 GaussianMixtureModelComponent<TSample>::CalculateParametersChange()
 {
-  unsigned int i, j;
-
   typename MeanVectorType::MeasurementVectorType meanEstimate = m_MeanEstimator->GetMean();
 
   CovarianceMatrixType                                 covEstimateDecoratedObject = m_CovarianceEstimator->GetOutput();
   typename CovarianceMatrixType::MeasurementVectorType covEstimate = covEstimateDecoratedObject->et();
 
-  double                    temp;
-  double                    changes = 0.0;
   MeasurementVectorSizeType measurementVectorSize = this->GetSample()->GetMeasurementVectorSize();
 
-  for (i = 0; i < measurementVectorSize; i++)
+  double changes = 0.0;
+  for (unsigned int i = 0; i < measurementVectorSize; ++i)
   {
-    temp = m_Mean[i] - meanEstimate[i];
+    double temp = m_Mean[i] - meanEstimate[i];
     changes += temp * temp;
   }
 
-  for (i = 0; i < measurementVectorSize; i++)
+  for (unsigned int i = 0; i < measurementVectorSize; ++i)
   {
-    for (j = 0; j < measurementVectorSize; j++)
+    for (unsigned int j = 0; j < measurementVectorSize; ++j)
     {
-      temp = m_Covariance.GetVnlMatrix().get(i, j) - covEstimate.GetVnlMatrix().get(i, j);
+      double temp = m_Covariance.GetVnlMatrix().get(i, j) - covEstimate.GetVnlMatrix().get(i, j);
       changes += temp * temp;
     }
   }
@@ -172,14 +164,14 @@ template <typename TSample>
 void
 GaussianMixtureModelComponent<TSample>::GenerateData()
 {
-  MeasurementVectorSizeType measurementVectorSize = this->GetSample()->GetMeasurementVectorSize();
+  const MeasurementVectorSizeType measurementVectorSize = this->GetSample()->GetMeasurementVectorSize();
 
   this->AreParametersModified(false);
 
   const WeightArrayType & weights = this->GetWeights();
 
-  typename TSample::ConstIterator iter = this->GetSample()->Begin();
-  typename TSample::ConstIterator end = this->GetSample()->End();
+  typename TSample::ConstIterator       iter = this->GetSample()->Begin();
+  const typename TSample::ConstIterator end = this->GetSample()->End();
 
   typename TSample::MeasurementVectorType measurements;
 
@@ -193,17 +185,14 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
   m_MeanEstimator->SetWeights(weights);
   m_MeanEstimator->Update();
 
-  MeasurementVectorSizeType i, j;
-  double                    temp;
-  double                    changes;
   bool                      changed = false;
   ParametersType            parameters = this->GetFullParameters();
   MeasurementVectorSizeType paramIndex = 0;
 
   typename MeanEstimatorType::MeasurementVectorType meanEstimate = m_MeanEstimator->GetMean();
-  for (i = 0; i < measurementVectorSize; i++)
+  for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
   {
-    changes = itk::Math::abs(m_Mean[i] - meanEstimate[i]);
+    const double changes = itk::Math::abs(m_Mean[i] - meanEstimate[i]);
 
     if (changes > this->GetMinimalParametersChange())
     {
@@ -215,7 +204,7 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
   if (changed)
   {
     m_Mean = meanEstimate;
-    for (paramIndex = 0; paramIndex < measurementVectorSize; paramIndex++)
+    for (paramIndex = 0; paramIndex < measurementVectorSize; ++paramIndex)
     {
       parameters[paramIndex] = meanEstimate[paramIndex];
     }
@@ -231,14 +220,14 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
   typename CovarianceEstimatorType::MatrixType covEstimate = m_CovarianceEstimator->GetCovarianceMatrix();
 
   changed = false;
-  for (i = 0; i < measurementVectorSize; i++)
+  for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
   {
     if (!changed)
     {
-      for (j = 0; j < measurementVectorSize; j++)
+      for (MeasurementVectorSizeType j = 0; j < measurementVectorSize; ++j)
       {
-        temp = m_Covariance.GetVnlMatrix().get(i, j) - covEstimate.GetVnlMatrix().get(i, j);
-        changes = itk::Math::abs(temp);
+        const double temp = m_Covariance.GetVnlMatrix().get(i, j) - covEstimate.GetVnlMatrix().get(i, j);
+        const double changes = itk::Math::abs(temp);
         if (changes > this->GetMinimalParametersChange())
         {
           changed = true;
@@ -251,9 +240,9 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
   if (changed)
   {
     m_Covariance = covEstimate;
-    for (i = 0; i < measurementVectorSize; i++)
+    for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
     {
-      for (j = 0; j < measurementVectorSize; j++)
+      for (MeasurementVectorSizeType j = 0; j < measurementVectorSize; ++j)
       {
         parameters[paramIndex] = covEstimate.GetVnlMatrix().get(i, j);
         ++paramIndex;
@@ -264,7 +253,7 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
 
   // THIS IS NEEDED TO update m_Mean and m_Covariance.SHOULD BE REMOVED
   paramIndex = 0;
-  for (i = 0; i < measurementVectorSize; i++)
+  for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
   {
     m_Mean[i] = parameters[paramIndex];
     ++paramIndex;
@@ -273,15 +262,15 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
   typename NativeMembershipFunctionType::MeanVectorType mean;
   NumericTraits<typename NativeMembershipFunctionType::MeanVectorType>::SetLength(mean, measurementVectorSize);
 
-  for (i = 0; i < measurementVectorSize; ++i)
+  for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
   {
     mean[i] = m_Mean[i];
   }
   m_GaussianMembershipFunction->SetMean(mean);
 
-  for (i = 0; i < measurementVectorSize; i++)
+  for (MeasurementVectorSizeType i = 0; i < measurementVectorSize; ++i)
   {
-    for (j = 0; j < measurementVectorSize; j++)
+    for (MeasurementVectorSizeType j = 0; j < measurementVectorSize; ++j)
     {
       m_Covariance.GetVnlMatrix().put(i, j, parameters[paramIndex]);
       ++paramIndex;
@@ -291,7 +280,6 @@ GaussianMixtureModelComponent<TSample>::GenerateData()
 
   Superclass::SetParameters(parameters);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

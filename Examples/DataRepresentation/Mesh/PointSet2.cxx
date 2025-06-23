@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,9 +55,9 @@ main(int, char *[])
   //  \code{PointSet} is being used. The dynamic \code{PointSet} uses
   //  \doxygen{MapContainer} while the static \code{PointSet} uses
   //  \doxygen{VectorContainer}. The vector and map containers are basically
-  //  ITK wrappers around the \href{http://www.sgi.com/tech/stl/}{STL}
-  //  classes \href{http://www.sgi.com/tech/stl/Map.html}{\code{std::map}}
-  //  and \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector}}.
+  //  ITK wrappers around the \href{https://www.sgi.com/tech/stl/}{STL}
+  //  classes \href{https://www.sgi.com/tech/stl/Map.html}{\code{std::map}}
+  //  and \href{https://www.sgi.com/tech/stl/Vector.html}{\code{std::vector}}.
   //  By default, \code{PointSet} uses a static style, and therefore the
   //  default type of point container is \code{VectorContainer}.  Both map and
   //  vector containers are templated over the type of element they contain.
@@ -74,7 +74,7 @@ main(int, char *[])
 
 
   // Software Guide : BeginCodeSnippet
-  PointsContainer::Pointer points = PointsContainer::New();
+  auto points = PointsContainer::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -117,7 +117,7 @@ main(int, char *[])
   points->InsertElement(pointId++, p1);
   // Software Guide : EndCodeSnippet
 
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
 
   //  Software Guide : BeginLatex
   //
@@ -149,7 +149,7 @@ main(int, char *[])
 
 
   // Software Guide : BeginCodeSnippet
-  PointsContainer::Pointer points2 = pointSet->GetPoints();
+  const PointsContainer::Pointer points2 = pointSet->GetPoints();
   // Software Guide : EndCodeSnippet
 
 
@@ -204,12 +204,12 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  PointsIterator end = points->End();
+  const PointsIterator end = points->End();
   while (pointIterator != end)
   {
-    PointType p = pointIterator.Value(); // access the point
-    std::cout << p << std::endl;         // print the point
-    ++pointIterator;                     // advance to next point
+    const PointType p = pointIterator.Value(); // access the point
+    std::cout << p << std::endl;               // print the point
+    ++pointIterator;                           // advance to next point
   }
   // Software Guide : EndCodeSnippet
 

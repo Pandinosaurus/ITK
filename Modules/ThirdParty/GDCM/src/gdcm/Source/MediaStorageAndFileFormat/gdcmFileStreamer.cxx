@@ -22,17 +22,20 @@
 #include "gdcmEvent.h"
 #include "gdcmProgressEvent.h"
 
+// The GNU C library (glibc) requires this be defined to have fseeko() and ftello().
+#ifdef __GNU_LIBRARY__
 #define _FILE_OFFSET_BITS 64
+#endif
 
+#include <cstdio>
 #include <limits>
 #include <sys/stat.h> // fstat
-#include <stdio.h>
 
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
 #include <io.h>
 typedef int64_t off64_t;
 #else
-#if defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__EMSCRIPTEN__)
 #  define off64_t off_t
 #endif
 #include <unistd.h> // ftruncate
@@ -51,7 +54,7 @@ namespace gdcm
 // much guarantee to be 32bits only.
 static inline int FSeeko(FILE *stream, off64_t offset, int whence)
 {
-#if _WIN32
+#ifdef _WIN32
 #if defined(__MINGW32__)
   return fseek(stream, offset, whence); // 32bits
 #else
@@ -64,7 +67,7 @@ static inline int FSeeko(FILE *stream, off64_t offset, int whence)
 
 static inline off64_t FTello(FILE *stream)
 {
-#if _WIN32
+#ifdef _WIN32
 #if defined(__MINGW32__)
   return ftell( stream ); // 32bits
 #else
@@ -77,7 +80,7 @@ static inline off64_t FTello(FILE *stream)
 
 static inline bool FTruncate( const int fd, const off64_t len )
 {
-#if _WIN32
+#ifdef _WIN32
 #if defined(__MINGW32__)
   const long size = len;
   const int ret = _chsize( fd, size ); // 32bits
@@ -193,17 +196,9 @@ enum Operation
 class FileStreamerInternals
 {
 public:
-  FileStreamerInternals():operation(NOOPERATION),
-  CurrentTag(0x0,0x0),
-  MaxSizeDE(0),
-  StartOffset(0),
-  CheckTemplateFileName(false),
-  InitializeCopy(false),
-  CheckPixelDataElement(false),
-  pFile(nullptr),
-  ReservedDataLength(0),
-  ReservedGroupDataElement(0),
-  Self(nullptr)
+  FileStreamerInternals():
+  CurrentTag(0x0,0x0)
+  
     {
     PrivateCreator.SetByteValue("",0);
     }
@@ -662,26 +657,26 @@ public:
   std::string TemplateFilename;
   std::string OutFilename;
 private:
-  Operation operation;
+  Operation operation{NOOPERATION};
   Tag CurrentTag;
   DataElement PrivateCreator;
-  size_t MaxSizeDE;
-  uint8_t StartOffset;
+  size_t MaxSizeDE{0};
+  uint8_t StartOffset{0};
 public:
-  bool CheckTemplateFileName;
-  bool InitializeCopy;
-  bool CheckPixelDataElement;
+  bool CheckTemplateFileName{false};
+  bool InitializeCopy{false};
+  bool CheckPixelDataElement{false};
 private:
   // really private !
-  FILE* pFile;
+  FILE* pFile{nullptr};
   std::streampos thepos;
   size_t actualde;
   size_t CurrentDataLenth;
   Tag CurrentGroupTag;
-  off64_t ReservedDataLength;
-  unsigned short ReservedGroupDataElement;
+  off64_t ReservedDataLength{0};
+  unsigned short ReservedGroupDataElement{0};
 public:
-  FileStreamer *Self;
+  FileStreamer *Self{nullptr};
 private:
   bool UpdateDataElement( const Tag & t )
     {
@@ -796,7 +791,7 @@ bool FileStreamer::InitializeCopy()
       Reader reader;
       reader.SetFileName( filename );
       if( !reader.Read() ) return false;
-      if( strcmp( filename, outfilename ) )
+      if( strcmp( filename, outfilename ) != 0 )
         {
         Writer writer;
         writer.SetFileName( outfilename );
@@ -810,7 +805,7 @@ bool FileStreamer::InitializeCopy()
       assert( outfilename );
       std::ifstream is( filename, std::ios::binary );
       if( !is.good() ) return false;
-      if( strcmp( filename, outfilename ) )
+      if( strcmp( filename, outfilename ) != 0 )
         {
         std::ofstream of( outfilename, std::ios::binary );
         if( !of.good() ) return false;

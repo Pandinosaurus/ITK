@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ itkArrowSpatialObjectTest(int, char *[])
 {
   using ArrowType = itk::ArrowSpatialObject<3>;
 
-  ArrowType::Pointer myArrow = ArrowType::New();
+  auto myArrow = ArrowType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(myArrow, ArrowSpatialObject, SpatialObject);
 
@@ -43,15 +43,14 @@ itkArrowSpatialObjectTest(int, char *[])
 
   // Testing the length
   std::cout << "Testing length : ";
-  double length = 2;
+  constexpr double length = 2;
   myArrow->SetLengthInObjectSpace(length);
   ITK_TEST_SET_GET_VALUE(length, myArrow->GetLengthInObjectSpace());
 
   // Testing the direction of the arrow
   std::cout << "Testing direction : ";
 
-  ArrowType::VectorType direction;
-  direction.Fill(0);
+  ArrowType::VectorType direction{};
   direction[1] = 1.0;
 
   myArrow->SetDirectionInObjectSpace(direction);
@@ -100,7 +99,7 @@ itkArrowSpatialObjectTest(int, char *[])
 
   std::cout << "Testing 2D Arrow:";
   using Arrow2DType = itk::ArrowSpatialObject<2>;
-  Arrow2DType::Pointer myArrow2D = Arrow2DType::New();
+  auto myArrow2D = Arrow2DType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(myArrow2D, ArrowSpatialObject, SpatialObject);
 

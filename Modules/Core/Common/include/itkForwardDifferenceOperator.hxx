@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,19 +17,18 @@
  *=========================================================================*/
 #ifndef itkForwardDifferenceOperator_hxx
 #define itkForwardDifferenceOperator_hxx
-#include "itkForwardDifferenceOperator.h"
 
 #include "itkNumericTraits.h"
 
 namespace itk
 {
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-typename ForwardDifferenceOperator<TPixel, VDimension, TAllocator>::CoefficientVector
-ForwardDifferenceOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
+auto
+ForwardDifferenceOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients() -> CoefficientVector
 {
   CoefficientVector coeff(3);
 
-  coeff[0] = NumericTraits<PixelType>::ZeroValue();
+  coeff[0] = PixelType{};
   coeff[1] = -1.0 * NumericTraits<PixelType>::OneValue();
   coeff[2] = NumericTraits<PixelType>::OneValue();
 

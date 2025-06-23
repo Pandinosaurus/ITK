@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 namespace Accessor
 {
 /**
- *\class VectorImageToImagePixelAccessor
+ * \class VectorImageToImagePixelAccessor
  * \brief Extract components from a VectorImage.
  *
  * This accessor is used to extract components from a VectorImage. It is used
@@ -66,21 +66,19 @@ public:
   }
 
   inline void
-  Set(InternalType & output, const ExternalType & input, const unsigned long offset) const
+  Set(InternalType & output, const ExternalType & input, const SizeValueType offset) const
   {
     return Set(Superclass::Get(output, offset), input);
   }
 
-  inline ExternalType
+  [[nodiscard]] inline ExternalType
   Get(const ActualPixelType & input) const
   {
-    ExternalType output;
-
-    output = input[m_ComponentIdx];
+    const ExternalType output = input[m_ComponentIdx];
     return output;
   }
 
-  inline ExternalType
+  [[nodiscard]] inline ExternalType
   Get(const InternalType & input, const SizeValueType offset) const
   {
     return Get(Superclass::Get(input, offset));
@@ -92,7 +90,7 @@ public:
     m_ComponentIdx = idx;
   }
 
-  VectorLengthType
+  [[nodiscard]] VectorLengthType
   GetExtractComponentIdx() const
   {
     return m_ComponentIdx;
@@ -106,7 +104,7 @@ public:
   }
 
   /** Get Vector lengths */
-  VectorLengthType
+  [[nodiscard]] VectorLengthType
   GetVectorLength() const
   {
     return Superclass::GetVectorLength();
@@ -123,7 +121,7 @@ private:
 } // end namespace Accessor
 
 /**
- *\class VectorImageToImageAdaptor
+ * \class VectorImageToImageAdaptor
  * \brief Presents a VectorImage and extracts a component from it into an image.
  *
  * The class is expected to be templated over a pixel type and dimension. These
@@ -162,15 +160,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorImageToImageAdaptor, ImageAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorImageToImageAdaptor);
 
   /** PixelContainer type alias support Used to construct a container for
    * the pixel data. */
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using PixelContainerConstPointer = typename Superclass::PixelContainerConstPointer;
-  using IOPixelType = typename Superclass::IOPixelType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::PixelContainerConstPointer;
+  using typename Superclass::IOPixelType;
 
   /** Typedef for the length of vectors in the VectorImage. */
   using VectorLengthType = typename VectorImageType::VectorLengthType;

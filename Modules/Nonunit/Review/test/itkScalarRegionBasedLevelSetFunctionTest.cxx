@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,12 +40,12 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ScalarRegionBasedLevelSetFunctionTestHelper, ScalarRegionBasedLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarRegionBasedLevelSetFunctionTestHelper);
 
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeaturePixelType = typename Superclass::FeaturePixelType;
-  using FeatureIndexType = typename Superclass::FeatureIndexType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeaturePixelType;
+  using typename Superclass::FeatureIndexType;
 
   ScalarValueType
   ComputeInternalTerm(const FeaturePixelType &, const FeatureIndexType &) override
@@ -86,7 +86,7 @@ protected:
   ~ScalarRegionBasedLevelSetFunctionTestHelper() override = default;
 };
 
-template <unsigned int NDimension>
+template <unsigned int VDimension>
 class ScalarRegionBasedLevelSetFunctionSharedDataHelper : public DataObject
 {
 public:
@@ -98,19 +98,19 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ScalarRegionBasedLevelSetFunctionSharedDataHelper, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarRegionBasedLevelSetFunctionSharedDataHelper);
 
   unsigned long m_FunctionCount;
 
-  using IndexType = Index<NDimension>;
+  using IndexType = Index<VDimension>;
   using ListPixelType = std::list<unsigned int>;
 
-  using ImageType = Image<ListPixelType, NDimension>;
+  using ImageType = Image<ListPixelType, VDimension>;
   typename ImageType::Pointer m_NearestNeighborListImage;
 
   using PixelType = double;
-  using InputImageType = Image<PixelType, NDimension>;
+  using InputImageType = Image<PixelType, VDimension>;
 
   struct SingleData
   {
@@ -155,7 +155,7 @@ itkScalarRegionBasedLevelSetFunctionTest(int, char *[])
   using RegionBasedLevelSetFunctionType =
     itk::ScalarRegionBasedLevelSetFunctionTestHelper<ImageType, FeatureImageType, DataHelperType>;
 
-  RegionBasedLevelSetFunctionType::Pointer function = RegionBasedLevelSetFunctionType::New();
+  auto function = RegionBasedLevelSetFunctionType::New();
   if (function.IsNull())
   {
     return EXIT_FAILURE;

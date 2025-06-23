@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,43 +46,43 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType, unsigned int NDimensions = 3>
-class ITK_TEMPLATE_EXPORT IdentityTransform : public Transform<TParametersValueType, NDimensions, NDimensions>
+template <typename TParametersValueType, unsigned int VDimension = 3>
+class ITK_TEMPLATE_EXPORT IdentityTransform : public Transform<TParametersValueType, VDimension, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(IdentityTransform);
 
   /** Standard class type aliases. */
   using Self = IdentityTransform;
-  using Superclass = Transform<TParametersValueType, NDimensions, NDimensions>;
+  using Superclass = Transform<TParametersValueType, VDimension, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** New method for creating an object using a factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IdentityTransform, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IdentityTransform);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int InputSpaceDimension = NDimensions;
-  static constexpr unsigned int OutputSpaceDimension = NDimensions;
+  static constexpr unsigned int InputSpaceDimension = VDimension;
+  static constexpr unsigned int OutputSpaceDimension = VDimension;
 
   /** Type of the input parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
   using ScalarType = ParametersValueType;
 
 
   /** Type of the Jacobian matrix. */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Transform category type. */
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /** Standard vector type for this class. */
   using InputVectorType = Vector<TParametersValueType, Self::InputSpaceDimension>;
@@ -174,9 +174,8 @@ public:
   void
   ComputeJacobianWithRespectToParameters(const InputPointType &, JacobianType & jacobian) const override
   {
-    jacobian = this->m_ZeroJacobian;
+    jacobian.SetSize(VDimension, 0);
   }
-
 
   /** Get the jacobian with respect to position, which simply is an identity
    *  jacobian because the transform is position-invariant.
@@ -187,9 +186,10 @@ public:
   {
     jac.set_identity();
   }
+
   using Superclass::ComputeJacobianWithRespectToPosition;
 
-  /* Always returns true if not null, as an identity is it's own inverse */
+  /* Always returns true if not null, as an identity is its own inverse */
   bool
   GetInverse(Self * inverseTransform) const
   {
@@ -240,19 +240,8 @@ public:
   {}
 
 protected:
-  IdentityTransform()
-    : Transform<TParametersValueType, NDimensions, NDimensions>(0)
-    , m_ZeroJacobian(NDimensions, 0)
-  {
-    // The Jacobian is constant, therefore it can be initialized in the
-    // constructor.
-    this->m_ZeroJacobian.Fill(0.0);
-  }
-
+  IdentityTransform() = default;
   ~IdentityTransform() override = default;
-
-private:
-  JacobianType m_ZeroJacobian;
 };
 } // end namespace itk
 

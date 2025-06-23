@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
  * \brief Helper class for a group of filters which operate on scan-lines.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \ingroup ITKImageLabel
  */
@@ -94,16 +94,13 @@ public:
   using OutputOffsetType = typename TOutputImage::OffsetType;
   using OutputImagePixelType = typename TOutputImage::PixelType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Concept checking -- input and output dimensions must be the same
   itkConceptMacro(SameDimension, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
-#endif
 
   using EnclosingFilter = ImageToImageFilter<TInputImage, TOutputImage>;
 
   ScanlineFilterCommon(EnclosingFilter * enclosingFilter)
     : m_EnclosingFilter(enclosingFilter)
-    , m_FullyConnected(false)
+
   {}
   ~ScanlineFilterCommon() = default;
 
@@ -139,11 +136,11 @@ protected:
   SizeValueType
   IndexToLinearIndex(const IndexType & index) const
   {
-    SizeValueType linearIndex = 0;
-    SizeValueType stride = 1;
-    RegionType    requestedRegion = m_EnclosingFilter->GetOutput()->GetRequestedRegion();
+    SizeValueType    linearIndex = 0;
+    SizeValueType    stride = 1;
+    const RegionType requestedRegion = m_EnclosingFilter->GetOutput()->GetRequestedRegion();
     // ignore x axis, which is always full size
-    for (unsigned dim = 1; dim < ImageDimension; dim++)
+    for (unsigned int dim = 1; dim < ImageDimension; ++dim)
     {
       itkAssertOrThrowMacro(requestedRegion.GetIndex(dim) <= index[dim], "Index must be within the requested region!");
       linearIndex += (index[dim] - requestedRegion.GetIndex(dim)) * stride;
@@ -157,19 +154,16 @@ protected:
   {
     m_UnionFind = UnionFindType(numberOfLabels + 1);
 
-    typename LineMapType::iterator MapBegin, MapEnd, LineIt;
-    MapBegin = m_LineMap.begin();
-    MapEnd = m_LineMap.end();
-    LineIt = MapBegin;
+    const auto        MapBegin = m_LineMap.begin();
+    const auto        MapEnd = m_LineMap.end();
     InternalLabelType label = 1;
-    for (LineIt = MapBegin; LineIt != MapEnd; ++LineIt)
+    for (typename LineMapType::iterator LineIt = MapBegin; LineIt != MapEnd; ++LineIt)
     {
-      LineEncodingIterator cIt;
-      for (cIt = LineIt->begin(); cIt != LineIt->end(); ++cIt)
+      for (auto cIt = LineIt->begin(); cIt != LineIt->end(); ++cIt)
       {
         cIt->label = label;
         m_UnionFind[label] = label;
-        label++;
+        ++label;
       }
     }
   }
@@ -188,9 +182,9 @@ protected:
   void
   LinkLabels(const InternalLabelType label1, const InternalLabelType label2)
   {
-    std::lock_guard<std::mutex> mutexHolder(m_Mutex);
-    InternalLabelType           E1 = this->LookupSet(label1);
-    InternalLabelType           E2 = this->LookupSet(label2);
+    const std::lock_guard<std::mutex> lockGuard(m_Mutex);
+    const InternalLabelType           E1 = this->LookupSet(label1);
+    const InternalLabelType           E2 = this->LookupSet(label2);
 
     if (E1 < E2)
     {
@@ -213,7 +207,7 @@ protected:
     OutputPixelType consecutiveLabel = 0;
     SizeValueType   count = 0;
 
-    for (size_t i = 1; i < N; i++)
+    for (size_t i = 1; i < N; ++i)
     {
       const auto label = static_cast<size_t>(m_UnionFind[i]);
       if (label == i)
@@ -236,9 +230,9 @@ protected:
     // This checks whether the line encodings are really neighbors. The first
     // dimension gets ignored because the encodings are along that axis.
     SizeValueType diffSum = 0;
-    for (unsigned i = 1; i < OutputImageDimension; i++)
+    for (unsigned int i = 1; i < OutputImageDimension; ++i)
     {
-      SizeValueType diff = Math::abs(A[i] - B[i]);
+      const SizeValueType diff = itk::Math::abs(A[i] - B[i]);
       if (diff > 1)
       {
         return false;
@@ -271,7 +265,7 @@ protected:
     {
       OutputOffsetType Off = current[0].where - Neighbour[0].where;
 
-      for (unsigned int i = 1; i < ImageDimension; i++)
+      for (unsigned int i = 1; i < ImageDimension; ++i)
       {
         if (Off[i] != 0)
         {
@@ -287,28 +281,26 @@ protected:
       offset = 1;
     }
 
-    LineEncodingConstIterator nIt, mIt, cIt;
+    auto mIt = Neighbour.begin(); // out marker iterator
 
-    mIt = Neighbour.begin(); // out marker iterator
-
-    for (cIt = current.begin(); cIt != current.end(); ++cIt)
+    for (auto cIt = current.begin(); cIt != current.end(); ++cIt)
     {
       if (!labelCompare || cIt->label != InternalLabelType(background))
       {
-        OffsetValueType cStart = cIt->where[0]; // the start x position
-        OffsetValueType cLast = cStart + cIt->length - 1;
+        const OffsetValueType cStart = cIt->where[0]; // the start x position
+        const OffsetValueType cLast = cStart + cIt->length - 1;
 
         if (labelCompare)
         {
           mIt = Neighbour.begin();
         }
 
-        for (nIt = mIt; nIt != Neighbour.end(); ++nIt)
+        for (auto nIt = mIt; nIt != Neighbour.end(); ++nIt)
         {
           if (!labelCompare || cIt->label != nIt->label)
           {
-            OffsetValueType nStart = nIt->where[0];
-            OffsetValueType nLast = nStart + nIt->length - 1;
+            const OffsetValueType nStart = nIt->where[0];
+            const OffsetValueType nLast = nStart + nIt->length - 1;
 
             // there are a few ways that neighbouring lines might overlap
             //   neighbor      S------------------E
@@ -323,10 +315,10 @@ protected:
             //   neighbor      S------------------E
             //   current             S-------E
             //-------------
-            OffsetValueType ss1 = nStart - offset;
+            const OffsetValueType ss1 = nStart - offset;
             // OffsetValueType ss2 = nStart + offset;
-            OffsetValueType ee1 = nLast - offset;
-            OffsetValueType ee2 = nLast + offset;
+            const OffsetValueType ee1 = nLast - offset;
+            const OffsetValueType ee2 = nLast + offset;
 
             bool            eq = false;
             OffsetValueType oStart = 0;
@@ -390,17 +382,16 @@ protected:
   {
     // Create a neighborhood so that we can generate a table of offsets
     // to "previous" line indexes
-    // We are going to mis-use the neighborhood iterators to compute the
+    // We are going to misuse the neighborhood iterators to compute the
     // offset for us. All this messing around produces an array of
     // offsets that will be used to index the map
-    typename TOutputImage::Pointer output = m_EnclosingFilter->GetOutput();
+    const typename TOutputImage::Pointer output = m_EnclosingFilter->GetOutput();
     using PretendImageType = Image<OffsetValueType, TOutputImage::ImageDimension - 1>;
     using PretendSizeType = typename PretendImageType::RegionType::SizeType;
     using PretendIndexType = typename PretendImageType::RegionType::IndexType;
     using LineNeighborhoodType = ConstShapedNeighborhoodIterator<PretendImageType>;
 
-    typename PretendImageType::Pointer fakeImage;
-    fakeImage = PretendImageType::New();
+    auto fakeImage = PretendImageType::New();
 
     typename PretendImageType::RegionType LineRegion;
 
@@ -408,15 +399,14 @@ protected:
 
     PretendSizeType PretendSize;
     // The first dimension has been collapsed
-    for (SizeValueType i = 0; i < PretendSize.GetSizeDimension(); i++)
+    for (SizeValueType i = 0; i < PretendSize.GetSizeDimension(); ++i)
     {
       PretendSize[i] = OutSize[i + 1];
     }
 
     LineRegion.SetSize(PretendSize);
     fakeImage->SetRegions(LineRegion);
-    PretendSizeType kernelRadius;
-    kernelRadius.Fill(1);
+    auto                 kernelRadius = PretendSizeType::Filled(1);
     LineNeighborhoodType lnit(kernelRadius, fakeImage, LineRegion);
 
     if (wholeNeighborhood)
@@ -428,15 +418,12 @@ protected:
       setConnectivityPrevious(&lnit, m_FullyConnected);
     }
 
-    typename LineNeighborhoodType::IndexListType ActiveIndexes;
-    ActiveIndexes = lnit.GetActiveIndexList();
+    typename LineNeighborhoodType::IndexListType ActiveIndexes = lnit.GetActiveIndexList();
 
-    typename LineNeighborhoodType::IndexListType::const_iterator LI;
+    const PretendIndexType idx = LineRegion.GetIndex();
+    const OffsetValueType  offset = fakeImage->ComputeOffset(idx);
 
-    PretendIndexType idx = LineRegion.GetIndex();
-    OffsetValueType  offset = fakeImage->ComputeOffset(idx);
-
-    for (LI = ActiveIndexes.begin(); LI != ActiveIndexes.end(); ++LI)
+    for (auto LI = ActiveIndexes.begin(); LI != ActiveIndexes.end(); ++LI)
     {
       m_LineOffsets.push_back(fakeImage->ComputeOffset(idx + lnit.GetOffset(*LI)) - offset);
     }
@@ -472,11 +459,11 @@ protected:
   ComputeEquivalence(const SizeValueType workUnitResultsIndex, bool strictlyLess)
   {
     const OffsetValueType linecount = m_LineMap.size();
-    WorkUnitData          wud = m_WorkUnitResults[workUnitResultsIndex];
+    const WorkUnitData    wud = m_WorkUnitResults[workUnitResultsIndex];
     SizeValueType         lastLine = wud.lastLine;
     if (!strictlyLess)
     {
-      lastLine++;
+      ++lastLine;
       // make sure we are not wrapping around
       itkAssertInDebugAndIgnoreInReleaseMacro(lastLine >= wud.lastLine);
     }
@@ -487,12 +474,12 @@ protected:
         auto it = this->m_LineOffsets.begin();
         while (it != this->m_LineOffsets.end())
         {
-          OffsetValueType neighIdx = thisIdx + (*it);
+          const OffsetValueType neighIdx = thisIdx + (*it);
           // check if the neighbor is in the map
           if (neighIdx >= 0 && neighIdx < linecount && !m_LineMap[neighIdx].empty())
           {
             // Now check whether they are really neighbors
-            bool areNeighbors = this->CheckNeighbors(m_LineMap[thisIdx][0].where, m_LineMap[neighIdx][0].where);
+            const bool areNeighbors = this->CheckNeighbors(m_LineMap[thisIdx][0].where, m_LineMap[neighIdx][0].where);
             if (areNeighbors)
             {
               this->CompareLines(m_LineMap[thisIdx],
@@ -513,7 +500,7 @@ protected:
   }
 
 protected:
-  bool                  m_FullyConnected;
+  bool                  m_FullyConnected{ false };
   OffsetVectorType      m_LineOffsets;
   UnionFindType         m_UnionFind;
   ConsecutiveVectorType m_Consecutive;

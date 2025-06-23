@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace
 {
 
-const double epsilon = 1e-10;
+constexpr double epsilon = 1e-10;
 
 template <typename TPoint>
 bool
@@ -35,9 +35,9 @@ testPoint(const TPoint & p1, const TPoint & p2)
 {
   bool pass = true;
 
-  for (unsigned int i = 0; i < TPoint::PointDimension; i++)
+  for (unsigned int i = 0; i < TPoint::PointDimension; ++i)
   {
-    if (std::fabs(p1[i] - p2[i]) > epsilon)
+    if (itk::Math::abs(p1[i] - p2[i]) > epsilon)
     {
       pass = false;
     }
@@ -49,14 +49,13 @@ template <typename TMatrix>
 bool
 testMatrix(const TMatrix & m1, const TMatrix & m2)
 {
-  unsigned int i, j;
-  bool         pass = true;
+  bool pass = true;
 
-  for (i = 0; i < TMatrix::RowDimensions; i++)
+  for (unsigned int i = 0; i < TMatrix::RowDimensions; ++i)
   {
-    for (j = 0; j < TMatrix::ColumnDimensions; j++)
+    for (unsigned int j = 0; j < TMatrix::ColumnDimensions; ++j)
     {
-      if (std::fabs(m1[i][j] - m2[i][j]) > epsilon)
+      if (itk::Math::abs(m1[i][j] - m2[i][j]) > epsilon)
       {
         pass = false;
       }
@@ -69,14 +68,13 @@ template <typename TArray2D>
 bool
 testJacobian(const TArray2D & m1, const TArray2D & m2)
 {
-  unsigned int i, j;
-  bool         pass = true;
+  bool pass = true;
 
-  for (i = 0; i < m1.rows(); i++)
+  for (unsigned int i = 0; i < m1.rows(); ++i)
   {
-    for (j = 0; j < m1.cols(); j++)
+    for (unsigned int j = 0; j < m1.cols(); ++j)
     {
-      if (std::fabs(m1[i][j] - m2[i][j]) > epsilon)
+      if (itk::Math::abs(m1[i][j] - m2[i][j]) > epsilon)
       {
         pass = false;
       }
@@ -91,9 +89,9 @@ testVectorArray(const TVector & v1, const TVector & v2)
 {
   bool pass = true;
 
-  for (unsigned int i = 0; i < v1.Size(); i++)
+  for (unsigned int i = 0; i < v1.Size(); ++i)
   {
-    if (std::fabs(v1[i] - v2[i]) > epsilon)
+    if (itk::Math::abs(v1[i] - v2[i]) > epsilon)
     {
       pass = false;
     }
@@ -108,19 +106,19 @@ testVectorArray(const TVector & v1, const TVector & v2)
 int
 itkCompositeTransformTest(int, char *[])
 {
-  constexpr unsigned int NDimensions = 2;
+  constexpr unsigned int VDimension = 2;
 
   /* Create composite transform */
-  using CompositeType = itk::CompositeTransform<double, NDimensions>;
+  using CompositeType = itk::CompositeTransform<double, VDimension>;
   using ScalarType = CompositeType::ScalarType;
 
-  CompositeType::Pointer compositeTransform = CompositeType::New();
+  auto compositeTransform = CompositeType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(compositeTransform, CompositeTransform, MultiTransform);
 
-  /* Test obects */
-  using Matrix2Type = itk::Matrix<ScalarType, NDimensions, NDimensions>;
-  using Vector2Type = itk::Vector<ScalarType, NDimensions>;
+  /* Test objects */
+  using Matrix2Type = itk::Matrix<ScalarType, VDimension, VDimension>;
+  using Vector2Type = itk::Vector<ScalarType, VDimension>;
 
 
   /* Test that we have an empty the queue */
@@ -159,14 +157,14 @@ itkCompositeTransformTest(int, char *[])
 
 
   /* Add an affine transform */
-  using AffineType = itk::AffineTransform<ScalarType, NDimensions>;
-  AffineType::Pointer affine = AffineType::New();
-  Matrix2Type         matrix2;
-  Vector2Type         vector2;
+  using AffineType = itk::AffineTransform<ScalarType, VDimension>;
+  auto        affine = AffineType::New();
+  Matrix2Type matrix2;
   matrix2[0][0] = 1;
   matrix2[0][1] = 2;
   matrix2[1][0] = 3;
   matrix2[1][1] = 4;
+  Vector2Type vector2;
   vector2[0] = 5;
   vector2[1] = 6;
   affine->SetMatrix(matrix2);
@@ -185,8 +183,8 @@ itkCompositeTransformTest(int, char *[])
 
   /* Retrieve the transform and check that it's the same */
   std::cout << "Retrieve 1st transform." << std::endl;
-  AffineType::ConstPointer affineGet =
-    dynamic_cast<AffineType const *>(compositeTransform->GetNthTransformConstPointer(0));
+  const AffineType::ConstPointer affineGet =
+    dynamic_cast<const AffineType *>(compositeTransform->GetNthTransformConstPointer(0));
   if (affineGet.IsNull())
   {
     std::cout << "Failed retrieving transform from queue." << std::endl;
@@ -194,8 +192,8 @@ itkCompositeTransformTest(int, char *[])
   }
 
   std::cout << "Retrieve matrix and offset. " << std::endl;
-  Matrix2Type matrix2Get = affineGet->GetMatrix();
-  Vector2Type vector2Get = affineGet->GetOffset();
+  const Matrix2Type matrix2Get = affineGet->GetMatrix();
+  const Vector2Type vector2Get = affineGet->GetOffset();
   if (!testMatrix(matrix2, matrix2Get) || !testVectorArray(vector2, vector2Get))
   {
     std::cout << "Failed retrieving correct transform data." << std::endl;
@@ -205,9 +203,8 @@ itkCompositeTransformTest(int, char *[])
   /* Get parameters with single transform.
    * Should be same as GetParameters from affine transform. */
   std::cout << "Get Parameters: " << std::endl;
-  CompositeType::ParametersType parametersTest, parametersTruth;
-  parametersTest = compositeTransform->GetParameters();
-  parametersTruth = affine->GetParameters();
+  CompositeType::ParametersType parametersTest = compositeTransform->GetParameters();
+  CompositeType::ParametersType parametersTruth = affine->GetParameters();
   std::cout << "affine parametersTruth: " << std::endl
             << parametersTruth << std::endl
             << "parametersTest from Composite: " << std::endl
@@ -220,7 +217,7 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Set parameters with single transform. */
-  CompositeType::ParametersType parametersNew(6), parametersReturned;
+  CompositeType::ParametersType parametersNew(6);
   parametersNew[0] = 0;
   parametersNew[1] = 10;
   parametersNew[2] = 20;
@@ -230,7 +227,7 @@ itkCompositeTransformTest(int, char *[])
   std::cout << "Set Parameters: " << std::endl;
   compositeTransform->SetParameters(parametersNew);
   std::cout << "retrieving... " << std::endl;
-  parametersReturned = compositeTransform->GetParameters();
+  CompositeType::ParametersType parametersReturned = compositeTransform->GetParameters();
   std::cout << "parametersNew: " << std::endl
             << parametersNew << std::endl
             << "parametersReturned: " << std::endl
@@ -283,15 +280,14 @@ itkCompositeTransformTest(int, char *[])
   compositeTransform->AddTransform(affine);
 
   /* Setup test point and truth value for tests */
-  CompositeType::InputPointType  inputPoint;
-  CompositeType::OutputPointType outputPoint, affineTruth;
+  CompositeType::InputPointType inputPoint;
   inputPoint[0] = 2;
   inputPoint[1] = 3;
+  CompositeType::OutputPointType affineTruth;
   affineTruth[0] = 13;
   affineTruth[1] = 24;
 
-  CompositeType::InputVectorType  inputVector;
-  CompositeType::OutputVectorType outputVector;
+  CompositeType::InputVectorType inputVector;
   inputVector[0] = 0.4;
   inputVector[1] = 0.6;
 
@@ -301,7 +297,7 @@ itkCompositeTransformTest(int, char *[])
   inputCVector[1] = 0.6;
 
   /* Test transforming the point with just the single affine transform */
-  outputPoint = compositeTransform->TransformPoint(inputPoint);
+  CompositeType::OutputPointType outputPoint = compositeTransform->TransformPoint(inputPoint);
   if (!testPoint(outputPoint, affineTruth))
   {
     std::cout << "Failed transforming point with single transform." << std::endl;
@@ -309,15 +305,15 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Test inverse */
-  CompositeType::Pointer         inverseTransform = CompositeType::New();
-  CompositeType::OutputPointType inverseTruth, inverseOutput;
+  auto inverseTransform = CompositeType::New();
+
   if (!compositeTransform->GetInverse(inverseTransform))
   {
     std::cout << "ERROR: GetInverse() failed." << std::endl;
     return EXIT_FAILURE;
   }
-  inverseTruth = inputPoint;
-  inverseOutput = inverseTransform->TransformPoint(affineTruth);
+  CompositeType::OutputPointType inverseTruth = inputPoint;
+  CompositeType::OutputPointType inverseOutput = inverseTransform->TransformPoint(affineTruth);
   std::cout << "Transform point with inverse composite transform: " << std::endl
             << "  Test point: " << affineTruth << std::endl
             << "  Truth: " << inverseTruth << std::endl
@@ -329,13 +325,13 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Test ComputeJacobianWithRespectToParameters */
-
-  CompositeType::JacobianType   jacComposite, jacSingle;
   CompositeType::InputPointType jacPoint;
   jacPoint[0] = 1;
   jacPoint[1] = 2;
+  CompositeType::JacobianType jacSingle;
   affine->ComputeJacobianWithRespectToParameters(jacPoint, jacSingle);
   std::cout << "Single jacobian:" << std::endl << jacSingle << std::endl;
+  CompositeType::JacobianType jacComposite;
   compositeTransform->ComputeJacobianWithRespectToParameters(jacPoint, jacComposite);
   std::cout << "Composite jacobian:" << std::endl << jacComposite << std::endl;
   if (!testJacobian(jacComposite, jacSingle))
@@ -347,7 +343,7 @@ itkCompositeTransformTest(int, char *[])
   /*
    * Create and add 2nd transform
    */
-  AffineType::Pointer affine2 = AffineType::New();
+  auto affine2 = AffineType::New();
   matrix2[0][0] = 11;
   matrix2[0][1] = 22;
   matrix2[1][0] = 33;
@@ -375,8 +371,7 @@ itkCompositeTransformTest(int, char *[])
 
   /* Transform a point with both transforms. Remember that transforms
    * are applied in *reverse* queue order, with most-recently added transform first. */
-  CompositeType::OutputPointType compositeTruth;
-  compositeTruth = affine2->TransformPoint(inputPoint);
+  CompositeType::OutputPointType compositeTruth = affine2->TransformPoint(inputPoint);
   compositeTruth = affine->TransformPoint(compositeTruth);
 
   outputPoint = compositeTransform->TransformPoint(inputPoint);
@@ -391,17 +386,15 @@ itkCompositeTransformTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  CompositeType::OutputVectorType compositeTruthVector;
-  compositeTruthVector = affine2->TransformVector(inputVector);
+  CompositeType::OutputVectorType compositeTruthVector = affine2->TransformVector(inputVector);
   compositeTruthVector = affine->TransformVector(compositeTruthVector);
-  outputVector = compositeTransform->TransformVector(inputVector);
+  const CompositeType::OutputVectorType outputVector = compositeTransform->TransformVector(inputVector);
   std::cout << "Transform vector with two-component composite transform: " << std::endl
             << "  Test vector: " << inputVector << std::endl
             << "  Truth: " << compositeTruthVector << std::endl
             << "  Output: " << outputVector << std::endl;
 
-  CompositeType::OutputCovariantVectorType compositeTruthCVector;
-  compositeTruthCVector = affine2->TransformCovariantVector(inputCVector);
+  CompositeType::OutputCovariantVectorType compositeTruthCVector = affine2->TransformCovariantVector(inputCVector);
   compositeTruthCVector = affine->TransformCovariantVector(compositeTruthCVector);
   outputCVector = compositeTransform->TransformCovariantVector(inputCVector);
   std::cout << "Transform covariant vector with two-component composite transform: " << std::endl
@@ -410,33 +403,32 @@ itkCompositeTransformTest(int, char *[])
             << "  Output: " << outputCVector << std::endl;
 
 
-  CompositeType::InputDiffusionTensor3DType  inputTensor;
-  CompositeType::OutputDiffusionTensor3DType outputTensor;
+  CompositeType::InputDiffusionTensor3DType inputTensor;
   inputTensor[0] = 3.0;
   inputTensor[1] = 0.3;
   inputTensor[2] = 0.2;
   inputTensor[3] = 2.0;
   inputTensor[4] = 0.1;
   inputTensor[5] = 1.0;
-  CompositeType::OutputDiffusionTensor3DType compositeTruthTensor;
-  compositeTruthTensor = affine2->TransformDiffusionTensor3D(inputTensor);
+  CompositeType::OutputDiffusionTensor3DType compositeTruthTensor = affine2->TransformDiffusionTensor3D(inputTensor);
   compositeTruthTensor = affine->TransformDiffusionTensor3D(compositeTruthTensor);
-  outputTensor = compositeTransform->TransformDiffusionTensor3D(inputTensor);
+  const CompositeType::OutputDiffusionTensor3DType outputTensor =
+    compositeTransform->TransformDiffusionTensor3D(inputTensor);
   std::cout << "Transform tensor with two-component composite transform: " << std::endl
             << "  Test tensor: " << inputTensor << std::endl
             << "  Truth: " << compositeTruthTensor << std::endl
             << "  Output: " << outputTensor << std::endl;
 
-  CompositeType::InputSymmetricSecondRankTensorType  inputSTensor;
-  CompositeType::OutputSymmetricSecondRankTensorType outputSTensor;
+  CompositeType::InputSymmetricSecondRankTensorType inputSTensor;
   inputSTensor(1, 0) = 0.5;
   inputSTensor(0, 0) = 3.0;
   inputSTensor(1, 1) = 2.0;
 
-  CompositeType::OutputSymmetricSecondRankTensorType compositeTruthSTensor;
-  compositeTruthSTensor = affine2->TransformSymmetricSecondRankTensor(inputSTensor);
+  CompositeType::OutputSymmetricSecondRankTensorType compositeTruthSTensor =
+    affine2->TransformSymmetricSecondRankTensor(inputSTensor);
   compositeTruthSTensor = affine->TransformSymmetricSecondRankTensor(compositeTruthSTensor);
-  outputSTensor = compositeTransform->TransformSymmetricSecondRankTensor(inputSTensor);
+  const CompositeType::OutputSymmetricSecondRankTensorType outputSTensor =
+    compositeTransform->TransformSymmetricSecondRankTensor(inputSTensor);
   std::cout << "Transform tensor with two-component composite transform: " << std::endl
             << "  Test tensor: " << inputSTensor << std::endl
             << "  Truth: " << compositeTruthSTensor << std::endl
@@ -475,9 +467,10 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Get inverse transform again, but using other accessor. */
-  CompositeType::ConstPointer inverseTransform2;
+
   std::cout << "Call GetInverseTransform():" << std::endl;
-  inverseTransform2 = dynamic_cast<const CompositeType *>(compositeTransform->GetInverseTransform().GetPointer());
+  const CompositeType::ConstPointer inverseTransform2 =
+    dynamic_cast<const CompositeType *>(compositeTransform->GetInverseTransform().GetPointer());
   if (!inverseTransform2)
   {
     std::cout << "Failed calling GetInverseTransform()." << std::endl;
@@ -494,7 +487,7 @@ itkCompositeTransformTest(int, char *[])
   /* Test IsLinear() by calling on each sub transform */
   std::cout << "Test IsLinear" << std::endl;
   bool allAreLinear = true;
-  for (unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++)
+  for (unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); ++n)
   {
     if (!compositeTransform->GetNthTransformConstPointer(n)->IsLinear())
     {
@@ -509,9 +502,9 @@ itkCompositeTransformTest(int, char *[])
 
   /* Test GetNumberOfParameters */
   std::cout << "GetNumberOfParameters: " << std::endl;
-  unsigned int affineParamsN = affine->GetNumberOfParameters();
-  unsigned int affine2ParamsN = affine2->GetNumberOfParameters();
-  unsigned int nParameters = compositeTransform->GetNumberOfParameters();
+  unsigned int       affineParamsN = affine->GetNumberOfParameters();
+  unsigned int       affine2ParamsN = affine2->GetNumberOfParameters();
+  const unsigned int nParameters = compositeTransform->GetNumberOfParameters();
   std::cout << "Number of parameters: " << nParameters << std::endl;
   if (nParameters != affineParamsN + affine2ParamsN)
   {
@@ -525,11 +518,11 @@ itkCompositeTransformTest(int, char *[])
   parametersTruth.SetSize(affine2ParamsN + affineParamsN);
   /* Fill using different method than is used in the class.
      Remember we added affine2 2nd, so it's at front of queue */
-  for (unsigned int n = 0; n < affine2ParamsN; n++)
+  for (unsigned int n = 0; n < affine2ParamsN; ++n)
   {
     parametersTruth.SetElement(n, affine2->GetParameters().GetElement(n));
   }
-  for (unsigned int n = 0; n < affineParamsN; n++)
+  for (unsigned int n = 0; n < affineParamsN; ++n)
   {
     parametersTruth.SetElement(n + affine2ParamsN, affine->GetParameters().GetElement(n));
   }
@@ -570,11 +563,11 @@ itkCompositeTransformTest(int, char *[])
   affine2ParamsN = affine2->GetFixedParameters().Size();
   parametersTruth.SetSize(affine2ParamsN + affineParamsN);
   parametersTruth.Fill(0); // Try this to quiet valgrind
-  for (unsigned int n = 0; n < affine2ParamsN; n++)
+  for (unsigned int n = 0; n < affine2ParamsN; ++n)
   {
     parametersTruth.SetElement(n, affine2->GetFixedParameters().GetElement(n));
   }
-  for (unsigned int n = 0; n < affineParamsN; n++)
+  for (unsigned int n = 0; n < affineParamsN; ++n)
   {
     parametersTruth.SetElement(n + affine2ParamsN, affine->GetFixedParameters().GetElement(n));
   }
@@ -611,7 +604,7 @@ itkCompositeTransformTest(int, char *[])
    */
 
   /* Add yet another affine transform */
-  AffineType::Pointer affine3 = AffineType::New();
+  auto affine3 = AffineType::New();
   matrix2[0][0] = 1.1;
   matrix2[0][1] = 2.2;
   matrix2[1][0] = 3.3;
@@ -653,7 +646,7 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Test accessors */
-  CompositeType::TransformQueueType transformQueue = compositeTransform->GetTransformQueue();
+  const CompositeType::TransformQueueType transformQueue = compositeTransform->GetTransformQueue();
   if (transformQueue.size() != 3)
   {
     std::cout << "Failed getting transform queue." << std::endl;
@@ -661,7 +654,7 @@ itkCompositeTransformTest(int, char *[])
   }
   std::cout << "Got TransformQueue." << std::endl;
 
-  CompositeType::TransformsToOptimizeFlagsType flagsQueue = compositeTransform->GetTransformsToOptimizeFlags();
+  const CompositeType::TransformsToOptimizeFlagsType flagsQueue = compositeTransform->GetTransformsToOptimizeFlags();
   if (flagsQueue.size() != 3)
   {
     std::cout << "Failed getting optimize flags queue." << std::endl;
@@ -669,8 +662,8 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Get inverse and check TransformsToOptimize flags are correct */
-  CompositeType::ConstPointer inverseTransform3;
-  inverseTransform3 = dynamic_cast<const CompositeType *>(compositeTransform->GetInverseTransform().GetPointer());
+  const CompositeType::ConstPointer inverseTransform3 =
+    dynamic_cast<const CompositeType *>(compositeTransform->GetInverseTransform().GetPointer());
   if (!inverseTransform3)
   {
     std::cout << "Failed calling GetInverseTransform() (3)." << std::endl;
@@ -700,13 +693,13 @@ itkCompositeTransformTest(int, char *[])
 
   parametersTest = compositeTransform->GetParameters();
   affineParamsN = affine->GetNumberOfParameters();
-  unsigned int affine3ParamsN = affine3->GetNumberOfParameters();
+  const unsigned int affine3ParamsN = affine3->GetNumberOfParameters();
   parametersTruth.SetSize(affineParamsN + affine3ParamsN);
-  for (unsigned int n = 0; n < affine3ParamsN; n++)
+  for (unsigned int n = 0; n < affine3ParamsN; ++n)
   {
     parametersTruth.SetElement(n, affine3->GetParameters().GetElement(n));
   }
-  for (unsigned int n = 0; n < affineParamsN; n++)
+  for (unsigned int n = 0; n < affineParamsN; ++n)
   {
     parametersTruth.SetElement(n + affine3ParamsN, affine->GetParameters().GetElement(n));
   }
@@ -726,15 +719,18 @@ itkCompositeTransformTest(int, char *[])
    * Remember that the point gets transformed by preceding transforms
    * before its used for individual Jacobian. */
   std::cout << "Test ComputeJacobianWithRespectToParameters with three transforms: " << std::endl;
-  CompositeType::JacobianType   jacTruth, jacComposite2, jacAffine, jacAffine3;
   CompositeType::InputPointType jacPoint2;
   jacPoint2[0] = 1;
   jacPoint2[1] = 2;
+  CompositeType::JacobianType jacComposite2;
   compositeTransform->ComputeJacobianWithRespectToParameters(jacPoint2, jacComposite2);
+  CompositeType::JacobianType jacAffine3;
   affine3->ComputeJacobianWithRespectToParameters(jacPoint2, jacAffine3);
   jacPoint2 = affine3->TransformPoint(jacPoint2);
   jacPoint2 = affine2->TransformPoint(jacPoint2);
+  CompositeType::JacobianType jacAffine;
   affine->ComputeJacobianWithRespectToParameters(jacPoint2, jacAffine);
+  CompositeType::JacobianType jacTruth;
   jacTruth.SetSize(jacAffine3.rows(), jacAffine.cols() + jacAffine3.cols());
   jacTruth.update(affine->GetMatrix() * affine2->GetMatrix() * jacAffine3, 0, 0);
   jacTruth.update(jacAffine, 0, jacAffine3.cols());
@@ -773,10 +769,11 @@ itkCompositeTransformTest(int, char *[])
 
     /* Update partially two transforms, with a scaling factor */
     compositeTransform->SetNthTransformToOptimizeOn(0);
+    compositeTransform->SetNthTransformToOptimizeOff(1);
     truth = compositeTransform->GetParameters();
     update.SetSize(compositeTransform->GetNumberOfParameters());
-    AffineType::ScalarType factor = 0.5;
-    for (unsigned int i = 0; i < compositeTransform->GetNumberOfParameters(); i++)
+    constexpr AffineType::ScalarType factor = 0.5;
+    for (unsigned int i = 0; i < compositeTransform->GetNumberOfParameters(); ++i)
     {
       update[i] = i;
       truth[i] += update[i] * factor;
@@ -794,8 +791,8 @@ itkCompositeTransformTest(int, char *[])
   }
 
   /* Test RemoveTransform */
-  bool opt1 = compositeTransform->GetTransformsToOptimizeFlags()[0];
-  bool opt2 = compositeTransform->GetTransformsToOptimizeFlags()[1];
+  const bool opt1 = compositeTransform->GetTransformsToOptimizeFlags()[0];
+  const bool opt2 = compositeTransform->GetTransformsToOptimizeFlags()[1];
   compositeTransform->RemoveTransform();
   if (compositeTransform->GetNumberOfTransforms() != 2)
   {
@@ -834,20 +831,20 @@ itkCompositeTransformTest(int, char *[])
    * transforms
    */
 
-  CompositeType::Pointer nestedCompositeTransform = CompositeType::New();
-  CompositeType::Pointer compositeTransform1 = CompositeType::New();
-  CompositeType::Pointer compositeTransform2 = CompositeType::New();
-  CompositeType::Pointer compositeTransform3 = CompositeType::New();
-  CompositeType::Pointer compositeTransform4 = CompositeType::New();
+  auto nestedCompositeTransform = CompositeType::New();
+  auto compositeTransform1 = CompositeType::New();
+  auto compositeTransform2 = CompositeType::New();
+  auto compositeTransform3 = CompositeType::New();
+  auto compositeTransform4 = CompositeType::New();
 
-  using TranslationTransformType = itk::TranslationTransform<double, NDimensions>;
+  using TranslationTransformType = itk::TranslationTransform<double, VDimension>;
   using TranslationTransformPointer = TranslationTransformType::Pointer;
   using TranslationTransformVector = std::vector<TranslationTransformPointer>;
   TranslationTransformVector translationTransformVector(12);
-  for (itk::SizeValueType n = 0; n < 12; n++)
+  for (itk::SizeValueType n = 0; n < 12; ++n)
   {
     translationTransformVector[n] = TranslationTransformType::New();
-    TranslationTransformType::ParametersType params(NDimensions);
+    TranslationTransformType::ParametersType params(VDimension);
     params.Fill(n);
     translationTransformVector[n]->SetParameters(params);
   }
@@ -892,7 +889,7 @@ itkCompositeTransformTest(int, char *[])
 
   /* Verify the transform order */
   bool passed = true;
-  for (itk::SizeValueType n = 0; n < 12; n++)
+  for (itk::SizeValueType n = 0; n < 12; ++n)
   {
     const TranslationTransformType::ParametersType & params = translationTransformVector[n]->GetParameters();
     if (itk::Math::NotExactlyEquals(params[0], n))
@@ -903,10 +900,10 @@ itkCompositeTransformTest(int, char *[])
   if (!passed)
   {
     std::cout << "Transform are not in correct order after flattening: " << std::endl;
-    for (itk::SizeValueType n = 0; n < 12; n++)
+    for (itk::SizeValueType n = 0; n < 12; ++n)
     {
       const TranslationTransformType::ParametersType & params = translationTransformVector[n]->GetParameters();
-      std::cout << " " << params[0];
+      std::cout << ' ' << params[0];
     }
     std::cout << std::endl;
     return EXIT_FAILURE;

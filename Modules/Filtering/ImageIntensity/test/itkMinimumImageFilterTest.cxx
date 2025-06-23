@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,8 @@ itkMinimumImageFilterTest(int, char *[])
   using MinimumFilterType = itk::MinimumImageFilter<ImageType, ImageType, ImageType>;
 
   // Create two images
-  ImageType::Pointer inputImageA = ImageType::New();
-  ImageType::Pointer inputImageB = ImageType::New();
+  auto inputImageA = ImageType::New();
+  auto inputImageB = ImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -65,20 +65,16 @@ itkMinimumImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Define the pixel values for each image
-  PixelType largePixelValue = 3;
-  PixelType smallPixelValue = 2;
+  constexpr PixelType largePixelValue = 3;
+  constexpr PixelType smallPixelValue = 2;
 
   // Declare Iterator types apropriated for each image
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -104,7 +100,7 @@ itkMinimumImageFilterTest(int, char *[])
   }
 
   // Create the filter
-  MinimumFilterType::Pointer minimumImageFilter = MinimumFilterType::New();
+  auto minimumImageFilter = MinimumFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(minimumImageFilter, MinimumImageFilter, BinaryGeneratorImageFilter);
 
@@ -113,7 +109,7 @@ itkMinimumImageFilterTest(int, char *[])
   minimumImageFilter->SetInput2(inputImageB);
 
   // Get the Smart Pointer to the filter output
-  ImageType::Pointer outputImage = minimumImageFilter->GetOutput();
+  const ImageType::Pointer outputImage = minimumImageFilter->GetOutput();
 
 
   // Execute the filter
@@ -123,7 +119,7 @@ itkMinimumImageFilterTest(int, char *[])
   // Note that we are not comparing the entirety of the filter output in order
   // to keep compile time as small as possible
 
-  ImageType::IndexType pixelIndex = { { 0, 1, 1 } };
+  constexpr ImageType::IndexType pixelIndex = { { 0, 1, 1 } };
 
   ITK_TEST_EXPECT_EQUAL(outputImage->GetPixel(start), smallPixelValue);
   ITK_TEST_EXPECT_EQUAL(outputImage->GetPixel(pixelIndex), smallPixelValue);

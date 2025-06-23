@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class LBFGSOptimizerv4
+ * \class LBFGSOptimizerv4
  * \brief Wrap of the vnl_lbfgs algorithm for use in ITKv4 registration framework.
  * The vnl_lbfgs is a wrapper for the NETLIB fortran code by Nocedal [1].
  *
@@ -42,9 +42,9 @@ namespace itk
  * The step size \f$ s \f$ is determined through line search with the approach
  * by More and Thuente [4]. This line search approach finds a step size such that
  * \f[
- * \lVert \nabla f(x + s (\nabla^2 f(x_n) )^{-1} \nabla f(x) ) \rVert
+ * \| \nabla f(x + s (\nabla^2 f(x_n) )^{-1} \nabla f(x) ) \|
  *   \le
- * \nu \lVert \nabla f(x) \rVert
+ * \nu \| \nabla f(x) \|
  * \f]
  * The parameter \f$ \nu \f$ is set through SetLineSearchAccuracy() (default 0.9)
  * The default step length, i.e. starting step length for the line search,
@@ -52,7 +52,7 @@ namespace itk
  *
  * The optimization stops when either the gradient satisfies the condition
  * \f[
- * \lVert \nabla f(x) \rVert \le \epsilon \max(1, \lVert X \rVert)
+ * \| \nabla f(x) \| \le \epsilon \max(1, \| X \|)
  * \f]
  * or a maximum number of function evaluations has been reached.
  * The tolerance \f$\epsilon\f$ is set through SetGradientConvergenceTolerance()
@@ -63,26 +63,11 @@ namespace itk
  * should be set or left at one. Otherwise the Hessian approximation as well as
  * the line search will be disturbed and the optimizer is unlikely to find a minima.
  *
- *
- * References:
- *
- * [1] [NETLIB lbfgs](http://users.iems.northwestern.edu/~nocedal/lbfgs.html)
- *
- * [2] Jorge Nocedal.
- * Updating Quasi-Newton Matrices with Limited Storage.
- * Mathematics of Computation, Vol. 35, No. 151, pp. 773-782, 1980.
- *
- * [3] Dong C. Liu and Jorge Nocedal.
- * On the limited memory BFGS method for large scale optimization.
- * Mathematical Programming B, Vol. 45, No. 3, pp. 503-528, 1989.
- *
- * [4] More, J. J. and D. J. Thuente.
- * Line Search Algorithms with Guaranteed Sufficient Decrease.
- * ACM Transactions on Mathematical Software 20, no. 3 (1994): 286-307.
+ * For algorithmic details see [NETLIB lbfgs](http://users.iems.northwestern.edu/~nocedal/lbfgs.html),
+ * \cite nocedal1980, \cite liu1989 and \cite more1994.
  *
  * \ingroup ITKOptimizersv4
  */
-
 class ITKOptimizersv4_EXPORT LBFGSOptimizerv4 : public LBFGSOptimizerBasev4<vnl_lbfgs>
 {
 public:
@@ -101,8 +86,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LBFGSOptimizerv4, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LBFGSOptimizerv4);
 
   /** Start optimization with an initial value. */
   void

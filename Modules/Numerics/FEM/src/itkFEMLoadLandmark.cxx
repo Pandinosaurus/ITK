@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,15 @@
 
 #include "itkFEMLoadLandmark.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 // Overload the CreateAnother() method.
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 LoadLandmark::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   // Copy Load Contents
   copyPtr->m_Eta = this->m_Eta;
@@ -55,7 +53,7 @@ Element::ConstPointer
 LoadLandmark::GetAssignedElement(Element::ArrayType1::Pointer elements)
 {
   int numElements = elements->Size();
-  for (int n = 0; n < numElements; n++)
+  for (int n = 0; n < numElements; ++n)
   {
     Element::Pointer nel = elements->GetElement(n);
     if ((nel)->GetLocalFromGlobalCoordinates(m_Source, this->m_Point))
@@ -78,7 +76,7 @@ LoadLandmark::AssignToElement(Element::ArrayType::Pointer elements)
 
   // Compute & store the local coordinates of the undeformed point and
   // the pointer to the element
-  for (Element::ArrayType::const_iterator n = elements->begin(); n != elements->end() && !isFound; ++n)
+  for (auto n = elements->begin(); n != elements->end() && !isFound; ++n)
   {
     if ((*n)->GetLocalFromGlobalCoordinates(m_Source, this->m_Point))
     {
@@ -100,7 +98,7 @@ LoadLandmark::AssignToElement(Element::ArrayType1::Pointer elements)
   // the pointer of the element
 
   int numElements = elements->Size();
-  for (int n = 0; n < numElements && !isFound; n++)
+  for (int n = 0; n < numElements && !isFound; ++n)
   {
     Element::Pointer nel = elements->GetElement(n);
     if ((nel)->GetLocalFromGlobalCoordinates(m_Source, this->m_Point))
@@ -173,9 +171,9 @@ LoadLandmark::ApplyLoad(Element::ConstPointer element, Element::VectorType & Fe)
   // "Integrate" at the location of the point load
   shapeF = element->ShapeFunctions(pt);
   // Calculate the equivalent nodal loads
-  for (unsigned int n = 0; n < Nnodes; n++)
+  for (unsigned int n = 0; n < Nnodes; ++n)
   {
-    for (unsigned int d = 0; d < NnDOF; d++)
+    for (unsigned int d = 0; d < NnDOF; ++d)
     {
       Fe[n * NnDOF + d] += shapeF[n] * force[d];
     }
@@ -194,5 +192,4 @@ LoadLandmark::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Solution: " << this->m_Solution << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

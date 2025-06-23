@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,13 +82,13 @@ public:
     m_TheoreticalData.SetSize(RangeDimension);
 
     // Compute points of the function over a square region
-    unsigned valueindex = 0;
-    for (int y = -YRange; y <= YRange; y++)
+    unsigned int valueindex = 0;
+    for (int y = -YRange; y <= YRange; ++y)
     {
-      const auto yd = (double)y;
-      for (int x = -XRange; x <= XRange; x++)
+      const auto yd = static_cast<double>(y);
+      for (int x = -XRange; x <= XRange; ++x)
       {
-        const auto xd = (double)x;
+        const auto xd = static_cast<double>(x);
         m_TheoreticalData[valueindex] = ra * xd + rb * yd + rc;
         valueindex++;
       }
@@ -101,22 +101,22 @@ public:
   {
 
     std::cout << "GetValue( ";
-    double a = parameters[0];
-    double b = parameters[1];
-    double c = parameters[2];
+    const double a = parameters[0];
+    const double b = parameters[1];
+    const double c = parameters[2];
 
     std::cout << a << " , ";
     std::cout << b << " , ";
     std::cout << c << ")  " << std::endl;
 
     // Compute points of the function over a square region
-    unsigned valueindex = 0;
-    for (int y = -YRange; y <= YRange; y++)
+    unsigned int valueindex = 0;
+    for (int y = -YRange; y <= YRange; ++y)
     {
-      const auto yd = (double)y;
-      for (int x = -XRange; x <= XRange; x++)
+      const auto yd = static_cast<double>(y);
+      for (int x = -XRange; x <= XRange; ++x)
       {
-        const auto xd = (double)x;
+        const auto xd = static_cast<double>(x);
         double     value = a * xd + b * yd + c;
         value -= m_TheoreticalData[valueindex];
         m_Measure[valueindex] = value;
@@ -132,22 +132,22 @@ public:
   {
 
     std::cout << "GetDerivative( ";
-    double a = parameters[0];
-    double b = parameters[1];
-    double c = parameters[2];
+    const double a = parameters[0];
+    const double b = parameters[1];
+    const double c = parameters[2];
 
     std::cout << a << " , ";
     std::cout << b << " , ";
     std::cout << c << ") " << std::endl;
 
     // Compute points of the function over a square region
-    unsigned valueindex = 0;
-    for (int y = -YRange; y <= YRange; y++)
+    unsigned int valueindex = 0;
+    for (int y = -YRange; y <= YRange; ++y)
     {
-      const auto yd = (double)y;
-      for (int x = -XRange; x <= XRange; x++)
+      const auto yd = static_cast<double>(y);
+      for (int x = -XRange; x <= XRange; ++x)
       {
-        const auto xd = (double)x;
+        const auto xd = static_cast<double>(x);
         m_Derivative[0][valueindex] = xd;
         m_Derivative[1][valueindex] = yd;
         m_Derivative[2][valueindex] = 1.0;
@@ -185,7 +185,7 @@ public:
   itkNewMacro(Self);
 
 protected:
-  CommandIterationUpdateLevenbergMarquardt() { m_IterationNumber = 0; }
+  CommandIterationUpdateLevenbergMarquardt() {}
 
 public:
   using OptimizerType = itk::LevenbergMarquardtOptimizer;
@@ -215,7 +215,7 @@ public:
   }
 
 private:
-  unsigned long m_IterationNumber;
+  unsigned long m_IterationNumber{ 0 };
 
   itk::FunctionEvaluationIterationEvent m_FunctionEvent;
   itk::GradientEvaluationIterationEvent m_GradientEvent;
@@ -235,18 +235,18 @@ itkRunLevenbergMarquardOptimization(bool   useGradient,
 
   using vnlOptimizerType = OptimizerType::InternalOptimizerType;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto optimizer = OptimizerType::New();
 
   // Declaration of the CostFunction adaptor
-  LMCostFunction::Pointer costFunction = LMCostFunction::New();
+  auto costFunction = LMCostFunction::New();
 
   using ParametersType = LMCostFunction::ParametersType;
   ParametersType parameters(LMCostFunction::SpaceDimension);
   parameters.Fill(0.0);
   costFunction->GetValue(parameters);
 
-  std::cout << "Number of Values = " << costFunction->GetNumberOfValues() << "\n";
+  std::cout << "Number of Values = " << costFunction->GetNumberOfValues() << '\n';
 
   try
   {
@@ -289,7 +289,7 @@ itkRunLevenbergMarquardOptimization(bool   useGradient,
 
   optimizer->SetInitialPosition(currentValue);
 
-  CommandIterationUpdateLevenbergMarquardt::Pointer observer = CommandIterationUpdateLevenbergMarquardt::New();
+  auto observer = CommandIterationUpdateLevenbergMarquardt::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
   optimizer->AddObserver(itk::FunctionEvaluationIterationEvent(), observer);
 
@@ -317,6 +317,14 @@ itkRunLevenbergMarquardOptimization(bool   useGradient,
     case vnl_nonlinear_minimizer::ERROR_DODGY_INPUT:
       std::cout << " Error Dogy Input";
       break;
+#if VXL_VERSION_MAJOR >= 4
+    // ABNORMAL_TERMINATION_IN_LNSRCH stop condition added in VXL 4.0
+    case vnl_nonlinear_minimizer::ABNORMAL_TERMINATION_IN_LNSRCH:
+      std::cout << "Abnormal termination in line search.  Often caused by "
+                << "rounding errors dominating computation.  This can occur if the function is a very "
+                << "flat surface, or has oscillations.";
+      break;
+#endif
     case vnl_nonlinear_minimizer::CONVERGED_FTOL:
       std::cout << " Converged F  Tolerance";
       break;
@@ -352,24 +360,25 @@ itkRunLevenbergMarquardOptimization(bool   useGradient,
   std::cout << std::endl;
 
 
-  OptimizerType::ParametersType finalPosition;
-  finalPosition = optimizer->GetCurrentPosition();
+  OptimizerType::ParametersType finalPosition = optimizer->GetCurrentPosition();
 
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ",";
-  std::cout << finalPosition[2] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ',';
+  std::cout << finalPosition[2] << ')' << std::endl;
 
 
   //
   // check results to see if it is within range
   //
-  bool   pass = true;
-  double trueParameters[3] = { ra, rb, rc };
-  for (unsigned int j = 0; j < LMCostFunction::SpaceDimension; j++)
+  bool             pass = true;
+  constexpr double trueParameters[3] = { ra, rb, rc };
+  for (unsigned int j = 0; j < LMCostFunction::SpaceDimension; ++j)
   {
     if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
+    {
       pass = false;
+    }
   }
 
   if (!pass)
@@ -383,15 +392,14 @@ itkRunLevenbergMarquardOptimization(bool   useGradient,
   OptimizerType::MeasureType finalValue = optimizer->GetValue();
 
   // We compare only the first value for this test
-  if (std::fabs(finalValue[0] - 0.0) > 0.01)
+  if (itk::Math::abs(finalValue[0] - 0.0) > 0.01)
   {
     std::cout << "[FAILURE]" << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "[SUCCESS]" << std::endl;
-  }
+
+  std::cout << "[SUCCESS]" << std::endl;
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
@@ -403,9 +411,6 @@ itkLevenbergMarquardtOptimizerTest(int argc, char * argv[])
 {
   std::cout << "Levenberg Marquardt optimizer test \n \n";
 
-
-  bool useGradient;
-  int  result;
 
   double F_Tolerance = 1e-2;      // Function value tolerance
   double G_Tolerance = 1e-2;      // Gradient magnitude tolerance
@@ -447,8 +452,8 @@ itkLevenbergMarquardtOptimizerTest(int argc, char * argv[])
   std::cout << std::endl;
   std::cout << std::endl;
   std::cout << "Running using the Gradient computed by vnl " << std::endl;
-  useGradient = false;
-  result = itkRunLevenbergMarquardOptimization(
+  bool useGradient = false;
+  int  result = itkRunLevenbergMarquardOptimization(
     useGradient, F_Tolerance, G_Tolerance, X_Tolerance, Epsilon_Function, Max_Iterations);
   if (result == EXIT_FAILURE)
   {

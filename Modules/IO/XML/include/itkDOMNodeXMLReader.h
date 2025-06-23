@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DOMNodeXMLReader, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DOMNodeXMLReader);
 
   using OutputType = DOMNode;
   using OutputPointer = OutputType::Pointer;
@@ -88,6 +88,7 @@ public:
    * Get/Set The output DOM object will be created automatically, but the user
    * can appoint a user DOM object as the output by calling this function.
    */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(DOMNodeXML, OutputType);
 #if !defined(ITK_LEGACY_REMOVE)
   // Provide backwards compatible interface
@@ -97,7 +98,7 @@ public:
     this->SetDOMNodeXML(_arg);
   }
 #endif
-
+  /** @ITKEndGrouping */
   /**
    * Provide an interface to match that
    * of other ProcessObjects
@@ -105,6 +106,7 @@ public:
    * by returning a non-const pointer
    * for the generated Object.
    */
+  /** @ITKStartGrouping */
   // NOTE:  The m_DOMNodeXML is only
   //       exposed via the Source generation interface
   //       by the GetOutput() method that mimics
@@ -119,7 +121,7 @@ public:
   {
     return this->m_DOMNodeXML.GetPointer();
   }
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   // This interface was exposed in ITKv4 when the itkGetModifiableObjectMacro was used
   virtual OutputType *
@@ -165,10 +167,10 @@ protected:
 
 private:
   /** Variable to hold the input XML file name. */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** Variable to hold the output DOM object, created internally or supplied by the user. */
-  OutputPointer m_DOMNodeXML;
+  OutputPointer m_DOMNodeXML{};
 
   /** Variable to keep the current context during XML parsing. */
   OutputType * m_Context{ nullptr };
@@ -180,10 +182,9 @@ private:
 inline std::istream &
 operator>>(std::istream & is, itk::DOMNode & object)
 {
-  itk::DOMNodeXMLReader::Pointer reader = itk::DOMNodeXMLReader::New();
+  auto reader = itk::DOMNodeXMLReader::New();
   reader->SetDOMNodeXML(&object);
   reader->Update(is);
   return is;
 }
-
 #endif // itkDOMNodeXMLReader_h

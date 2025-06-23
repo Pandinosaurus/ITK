@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,13 +69,13 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
   using CommandIterationType = itk::CommandIterationUpdate<OptimizerType>;
 
 
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
-  ImageSourceType::Pointer imageSource = ImageSourceType::New();
+  auto imageSource = ImageSourceType::New();
 
   SizeType size;
   size[0] = 100;
@@ -83,8 +83,8 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
 
   imageSource->GenerateImages(size);
 
-  FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
-  MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
+  const FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
+  const MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
 
   //
   // Connect all the components required for Registratio
@@ -102,7 +102,7 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
   metric->SetFixedImageRegion(fixedImage->GetBufferedRegion());
 
   // Instantiate an Observer to report the progress of the Optimization
-  CommandIterationType::Pointer iterationCommand = CommandIterationType::New();
+  auto iterationCommand = CommandIterationType::New();
   iterationCommand->SetOptimizer(optimizer);
 
   // Scale the translation components of the Transform in the Optimizer
@@ -112,8 +112,8 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
 
   unsigned long numberOfIterations = 100;
   double        translationScale = 1e-6;
-  double        maximumStepLenght = 10.0; // no step will be larger than this
-  double        minimumStepLenght = 0.1;  // convergence criterion
+  double        maximumStepLength = 10.0; // no step will be larger than this
+  double        minimumStepLength = 0.1;  // convergence criterion
   double        gradientTolerance = 0.01; // convergence criterion
 
   if (argc > 1)
@@ -128,13 +128,13 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
   }
   if (argc > 3)
   {
-    maximumStepLenght = std::stod(argv[3]);
-    std::cout << "maximumStepLenght = " << maximumStepLenght << std::endl;
+    maximumStepLength = std::stod(argv[3]);
+    std::cout << "maximumStepLength = " << maximumStepLength << std::endl;
   }
   if (argc > 4)
   {
-    minimumStepLenght = std::stod(argv[4]);
-    std::cout << "minimumStepLenght = " << minimumStepLenght << std::endl;
+    minimumStepLength = std::stod(argv[4]);
+    std::cout << "minimumStepLength = " << minimumStepLength << std::endl;
   }
   if (argc > 5)
   {
@@ -142,15 +142,15 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
     std::cout << "gradientTolerance = " << gradientTolerance << std::endl;
   }
 
-  for (unsigned int i = 0; i < dimension; i++)
+  for (unsigned int i = 0; i < dimension; ++i)
   {
     scales[i + dimension * dimension] = translationScale;
   }
 
   optimizer->SetScales(scales);
   optimizer->SetNumberOfIterations(numberOfIterations);
-  optimizer->SetMinimumStepLength(minimumStepLenght);
-  optimizer->SetMaximumStepLength(maximumStepLenght);
+  optimizer->SetMinimumStepLength(minimumStepLength);
+  optimizer->SetMaximumStepLength(maximumStepLength);
   optimizer->SetGradientMagnitudeTolerance(gradientTolerance);
   optimizer->MinimizeOn();
 
@@ -181,7 +181,7 @@ itkImageRegistrationMethodTest_2(int argc, char * argv[])
   const unsigned int offsetOrder = finalParameters.Size() - actualParameters.Size();
   constexpr double   tolerance = 1.0; // equivalent to 1 pixel.
 
-  for (unsigned int i = 0; i < numbeOfParameters; i++)
+  for (unsigned int i = 0; i < numbeOfParameters; ++i)
   {
     // the parameters are negated in order to get the inverse transformation.
     // this only works for comparing translation parameters....

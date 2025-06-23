@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /** \class ObjectToObjectMultiMetricv4
- * \brief This class takes one ore more ObjectToObject metrics and assigns weights to their derivatives
+ * \brief This class takes one or more ObjectToObject metrics and assigns weights to their derivatives
  * to compute a single result.
  *
  * This class takes N ObjectToObject-derived component metrics and assigns a weight to each of the metrics'
@@ -106,22 +106,22 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectToObjectMultiMetricv4, ObjectToObjectMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectToObjectMultiMetricv4);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** Types inherited from Superclass. */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
-  using CoordinateRepresentationType = typename Superclass::CoordinateRepresentationType;
-  using MovingTransformType = typename Superclass::MovingTransformType;
-  using FixedTransformType = typename Superclass::FixedTransformType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::NumberOfParametersType;
+  using typename Superclass::CoordinateRepresentationType;
+  using typename Superclass::MovingTransformType;
+  using typename Superclass::FixedTransformType;
 
   /** type alias related to the metric queue */
   using MetricType = Superclass;
@@ -138,15 +138,15 @@ public:
   itkSetMacro(MetricWeights, WeightsArrayType);
   itkGetMacro(MetricWeights, WeightsArrayType);
 
-  /** Add a metric to the queue */
+  /** Add a metric to the queue. */
   void
   AddMetric(MetricType * metric);
 
-  /** Clear the metric queue */
+  /** Clear the metric queue. */
   void
   ClearMetricQueue();
 
-  /** Get the number of metrics */
+  /** Get the number of metrics. */
   SizeValueType
   GetNumberOfMetrics() const;
 
@@ -186,8 +186,8 @@ public:
   GetDerivative(DerivativeType &) const override;
 
   /** Evaluate the metric value and derivative.
-   * \note \param value will contain the value of only the *first* metric on return.
-   * \param derivative holds the combined derivative on return.
+   * \param firstValue will contain the value of only the *first* metric on return.
+   * \param derivativeResult holds the combined derivative on return.
    *
    * \sa GetValueArray
    * \sa GetWeightedValue */
@@ -211,7 +211,7 @@ public:
   bool
   SupportsArbitraryVirtualDomainSamples() const override;
 
-  using MetricCategoryType = typename Superclass::MetricCategoryType;
+  using typename Superclass::MetricCategoryType;
 
   /** Get metric category */
   MetricCategoryType
@@ -227,9 +227,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MetricQueueType              m_MetricQueue;
-  WeightsArrayType             m_MetricWeights;
-  mutable MetricValueArrayType m_MetricValueArray;
+  MetricQueueType              m_MetricQueue{};
+  WeightsArrayType             m_MetricWeights{};
+  mutable MetricValueArrayType m_MetricValueArray{};
 };
 
 } // end namespace itk

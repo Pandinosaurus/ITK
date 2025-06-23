@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCenteredVersorTransformInitializer_hxx
 #define itkCenteredVersorTransformInitializer_hxx
 
-#include "itkCenteredVersorTransformInitializer.h"
 
 namespace itk
 {
@@ -28,8 +27,6 @@ CenteredVersorTransformInitializer<TFixedImage, TMovingImage>::CenteredVersorTra
   // Force to use Moments computation since we need here the second
   // order moments in order to estimate a rotation
   this->Superclass::MomentsOn();
-
-  this->m_ComputeRotation = false;
 }
 
 template <typename TFixedImage, typename TMovingImage>
@@ -44,10 +41,10 @@ CenteredVersorTransformInitializer<TFixedImage, TMovingImage>::InitializeTransfo
     using FixedMatrixType = typename Superclass::FixedImageCalculatorType::MatrixType;
     using MovingMatrixType = typename Superclass::MovingImageCalculatorType::MatrixType;
 
-    FixedMatrixType  fixedPrincipalAxis = this->GetFixedCalculator()->GetPrincipalAxes();
-    MovingMatrixType movingPrincipalAxis = this->GetMovingCalculator()->GetPrincipalAxes();
+    const FixedMatrixType  fixedPrincipalAxis = this->GetFixedCalculator()->GetPrincipalAxes();
+    const MovingMatrixType movingPrincipalAxis = this->GetMovingCalculator()->GetPrincipalAxes();
 
-    MovingMatrixType rotationMatrix = movingPrincipalAxis * fixedPrincipalAxis.GetInverse();
+    const MovingMatrixType rotationMatrix = movingPrincipalAxis * fixedPrincipalAxis.GetInverse();
 
     this->GetModifiableTransform()->SetMatrix(rotationMatrix);
   }

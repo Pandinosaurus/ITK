@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 
 namespace itk
 {
-/**\class TemporalDataObjectEnums
+/** \class TemporalDataObjectEnums
  * \brief Contains all enum classes used by TemporalUnit class.
  * \ingroup ITKVideoCore
  */
@@ -49,7 +49,7 @@ extern ITKVideoCore_EXPORT std::ostream &
                            operator<<(std::ostream & out, TemporalDataObjectEnums::TemporalUnit value);
 
 /**
- *\class TemporalDataObject
+ * \class TemporalDataObject
  * \brief DataObject subclass with knowledge of temporal region
  *
  * This class represents a data object that relies on temporal regions. It uses
@@ -89,27 +89,29 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TemporalDataObject, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TemporalDataObject);
 
   /** Get the type of temporal units we care about (Defaults to Frame)*/
   virtual TemporalUnitType
   GetTemporalUnit() const;
 
-  /** Explicity set temporal units (Defaults to Frame)*/
+  /** Explicitly set temporal units (Defaults to Frame)*/
+  /** @ITKStartGrouping */
   virtual void
   SetTemporalUnitToFrame();
   virtual void
   SetTemporalUnitToRealTime();
   virtual void
   SetTemporalUnitToFrameAndRealTime();
-
+  /** @ITKEndGrouping */
   /** Get/Set the number of frames that the internal buffer can hold */
+  /** @ITKStartGrouping */
   SizeValueType
   GetNumberOfBuffers();
   void
   SetNumberOfBuffers(SizeValueType num);
-
+  /** @ITKEndGrouping */
   virtual void
   SetLargestPossibleTemporalRegion(const TemporalRegionType & region);
   virtual const TemporalRegionType &
@@ -154,12 +156,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Buffer for holding component data objects */
-  BufferType::Pointer m_DataObjectBuffer;
+  BufferType::Pointer m_DataObjectBuffer{};
 
   /** We want to keep track of our regions in time. **/
-  TemporalRegionType m_LargestPossibleTemporalRegion;
-  TemporalRegionType m_RequestedTemporalRegion;
-  TemporalRegionType m_BufferedTemporalRegion;
+  TemporalRegionType m_LargestPossibleTemporalRegion{};
+  TemporalRegionType m_RequestedTemporalRegion{};
+  TemporalRegionType m_BufferedTemporalRegion{};
 
   TemporalUnitEnum m_TemporalUnit{ TemporalUnitEnum::Frame };
 }; // end class TemporalDataObject

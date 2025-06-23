@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 namespace itk
 {
 /**
- *\class ShrinkImageFilter
+ * \class ShrinkImageFilter
  * \brief Reduce the size of an image by an integer factor in each
  * dimension.
  *
@@ -79,8 +79,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShrinkImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShrinkImageFilter);
 
   /** Typedef to images */
   using OutputImageType = TOutputImage;
@@ -104,12 +104,13 @@ public:
 
   /** Set the shrink factors. Values are clamped to
    * a minimum value of 1. Default is 1 for all dimensions. */
+  /** @ITKStartGrouping */
   itkSetMacro(ShrinkFactors, ShrinkFactorsType);
   void
   SetShrinkFactors(unsigned int factor);
   void
   SetShrinkFactor(unsigned int i, unsigned int factor);
-
+  /** @ITKEndGrouping */
   /** Get the shrink factors. */
   itkGetConstReferenceMacro(ShrinkFactors, ShrinkFactorsType);
 
@@ -131,13 +132,9 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
-  // End concept checking
-#endif
 
 protected:
   ShrinkImageFilter();
@@ -160,7 +157,7 @@ protected:
 
 
 private:
-  ShrinkFactorsType m_ShrinkFactors;
+  ShrinkFactorsType m_ShrinkFactors{};
 };
 } // end namespace itk
 

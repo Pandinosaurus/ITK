@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUImageToImageFilter_hxx
 #define itkGPUImageToImageFilter_hxx
 
-#include "itkGPUImageToImageFilter.h"
 
 namespace itk
 {
@@ -80,8 +79,8 @@ GPUImageToImageFilter<TInputImage, TOutputImage, TParentImageFilter>::GraftOutpu
   }
   else
   {
-    itkExceptionMacro(<< "itk::GPUImageToImageFilter::GraftOutput() cannot cast " << typeid(output).name() << " to "
-                      << typeid(GPUOutputImage *).name());
+    itkExceptionMacro("itk::GPUImageToImageFilter::GraftOutput() cannot cast " << typeid(output).name() << " to "
+                                                                               << typeid(GPUOutputImage *).name());
   }
 }
 
@@ -110,8 +109,8 @@ GPUImageToImageFilter<TInputImage, TOutputImage, TParentImageFilter>::GraftOutpu
   }
   else
   {
-    itkExceptionMacro(<< "itk::GPUImageToImageFilter::GraftOutput() cannot cast " << typeid(output).name() << " to "
-                      << typeid(GPUOutputImage *).name());
+    itkExceptionMacro("itk::GPUImageToImageFilter::GraftOutput() cannot cast " << typeid(output).name() << " to "
+                                                                               << typeid(GPUOutputImage *).name());
   }
 }
 

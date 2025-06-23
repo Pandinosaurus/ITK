@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,11 +25,7 @@
 
 namespace itk
 {
-ImageIOBase::ImageIOBase()
-
-{
-  Reset(false);
-}
+ImageIOBase::ImageIOBase() { Reset(false); }
 
 void
 ImageIOBase::Reset(const bool)
@@ -37,7 +33,7 @@ ImageIOBase::Reset(const bool)
   m_Initialized = false;
   m_FileName = "";
   m_NumberOfComponents = 1;
-  for (unsigned int i = 0; i < m_NumberOfDimensions; i++)
+  for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
   {
     m_Dimensions[i] = 0;
     m_Strides[i] = 0;
@@ -68,13 +64,13 @@ ImageIOBase::GetSupportedReadExtensions() const
 void
 ImageIOBase::AddSupportedReadExtension(const char * extension)
 {
-  this->m_SupportedReadExtensions.push_back(extension);
+  this->m_SupportedReadExtensions.emplace_back(extension);
 }
 
 void
 ImageIOBase::AddSupportedWriteExtension(const char * extension)
 {
-  this->m_SupportedWriteExtensions.push_back(extension);
+  this->m_SupportedWriteExtensions.emplace_back(extension);
 }
 
 void
@@ -95,7 +91,7 @@ ImageIOBase::Resize(const unsigned int numDimensions, const unsigned int * dimen
   m_NumberOfDimensions = numDimensions;
   if (dimensions != nullptr)
   {
-    for (unsigned int i = 0; i < m_NumberOfDimensions; i++)
+    for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
     {
       m_Dimensions[i] = dimensions[i];
     }
@@ -108,7 +104,6 @@ ImageIOBase::SetDimensions(unsigned int i, SizeValueType dim)
 {
   if (i >= m_Dimensions.size())
   {
-    itkWarningMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Dimensions.size());
     itkExceptionMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Dimensions.size());
   }
   this->Modified();
@@ -120,7 +115,6 @@ ImageIOBase::SetOrigin(unsigned int i, double origin)
 {
   if (i >= m_Origin.size())
   {
-    itkWarningMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Origin.size());
     itkExceptionMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Origin.size());
   }
   this->Modified();
@@ -132,7 +126,6 @@ ImageIOBase::SetSpacing(unsigned int i, double spacing)
 {
   if (i >= m_Spacing.size())
   {
-    itkWarningMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Spacing.size());
     itkExceptionMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Spacing.size());
   }
   this->Modified();
@@ -144,7 +137,6 @@ ImageIOBase::SetDirection(unsigned int i, const std::vector<double> & direction)
 {
   if (i >= m_Direction.size())
   {
-    itkWarningMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Direction.size());
     itkExceptionMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Direction.size());
   }
   this->Modified();
@@ -156,20 +148,21 @@ ImageIOBase::SetDirection(unsigned int i, const vnl_vector<double> & direction)
 {
   if (i >= m_Direction.size())
   {
-    itkWarningMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Direction.size());
     itkExceptionMacro("Index: " << i << " is out of bounds, expected maximum is " << m_Direction.size());
   }
   this->Modified();
   std::vector<double> v;
   v.resize(m_Direction.size());
   // Note: direction.size() <= v.size().
-  for (unsigned int j = 0; j < direction.size(); j++)
+  for (unsigned int j = 0; j < direction.size(); ++j)
   {
     v[j] = direction[j];
   }
   m_Direction[i] = v;
 }
 
+
+#ifndef ITK_LEGACY_REMOVE
 const std::type_info &
 ImageIOBase::GetComponentTypeInfo() const
 {
@@ -204,13 +197,15 @@ ImageIOBase::GetComponentTypeInfo() const
       itkExceptionMacro("Unknown component type: " << m_ComponentType);
   }
 }
+#endif
+
 
 void
 ImageIOBase::ComputeStrides()
 {
   m_Strides[0] = this->GetComponentSize();
   m_Strides[1] = m_NumberOfComponents * m_Strides[0];
-  for (unsigned int i = 2; i <= (m_NumberOfDimensions + 1); i++)
+  for (unsigned int i = 2; i <= (m_NumberOfDimensions + 1); ++i)
   {
     m_Strides[i] = static_cast<SizeType>(m_Dimensions[i - 2]) * m_Strides[i - 1];
   }
@@ -220,10 +215,8 @@ ImageIOBase::ComputeStrides()
 ImageIOBase::SizeType
 ImageIOBase::GetImageSizeInPixels() const
 {
-  unsigned int i;
-  SizeType     numPixels = 1;
-
-  for (i = 0; i < m_NumberOfDimensions; i++)
+  SizeType numPixels = 1;
+  for (unsigned int i = 0; i < m_NumberOfDimensions; ++i)
   {
     numPixels *= m_Dimensions[i];
   }
@@ -280,9 +273,9 @@ ImageIOBase::SetNumberOfDimensions(unsigned int dim)
     m_Dimensions.resize(dim);
     m_Direction.resize(dim);
     std::vector<double> axis(dim);
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < dim; ++i)
     {
-      for (unsigned int j = 0; j < dim; j++)
+      for (unsigned int j = 0; j < dim; ++j)
       {
         if (i == j)
         {
@@ -310,12 +303,7 @@ ImageIOBase::ReadBufferAsBinary(std::istream & is, void * buffer, ImageIOBase::S
 
   const std::streamsize numberOfBytesRead = is.gcount();
 
-#ifdef __APPLE_CC__
-  // fail() is broken in the Mac. It returns true when reaches eof().
-  if (numberOfBytesRead != numberOfBytesToBeRead)
-#else
   if ((numberOfBytesRead != numberOfBytesToBeRead) || is.fail())
-#endif
   {
     return false; // read failed
   }
@@ -328,7 +316,7 @@ ImageIOBase::GetPixelSize() const
 {
   if (m_ComponentType == IOComponentEnum::UNKNOWNCOMPONENTTYPE || m_PixelType == IOPixelEnum::UNKNOWNPIXELTYPE)
   {
-    itkExceptionMacro("Unknown pixel or component type: (" << m_PixelType << ", " << m_ComponentType << ")");
+    itkExceptionMacro("Unknown pixel or component type: (" << m_PixelType << ", " << m_ComponentType << ')');
   }
 
   return this->GetComponentSize() * this->GetNumberOfComponents();
@@ -406,12 +394,12 @@ ImageIOBase::GetFileTypeAsString(IOFileEnum t) const
   switch (t)
   {
     case IOFileEnum::ASCII:
-      return std::string("ASCII");
+      return { "ASCII" };
     case IOFileEnum::Binary:
-      return std::string("Binary");
+      return { "Binary" };
     case IOFileEnum::TypeNotApplicable:
     default:
-      return std::string("TypeNotApplicable");
+      return { "TypeNotApplicable" };
   }
   // Not reachable return s = "TypeNotApplicable";
 }
@@ -422,12 +410,12 @@ ImageIOBase::GetByteOrderAsString(IOByteOrderEnum t) const
   switch (t)
   {
     case IOByteOrderEnum::BigEndian:
-      return std::string("BigEndian");
+      return { "BigEndian" };
     case IOByteOrderEnum::LittleEndian:
-      return std::string("LittleEndian");
+      return { "LittleEndian" };
     case IOByteOrderEnum::OrderNotApplicable:
     default:
-      return std::string("OrderNotApplicable");
+      return { "OrderNotApplicable" };
   }
 }
 
@@ -437,33 +425,33 @@ ImageIOBase::GetComponentTypeAsString(IOComponentEnum t)
   switch (t)
   {
     case IOComponentEnum::UCHAR:
-      return std::string("unsigned_char");
+      return { "unsigned_char" };
     case IOComponentEnum::CHAR:
-      return std::string("char");
+      return { "char" };
     case IOComponentEnum::USHORT:
-      return std::string("unsigned_short");
+      return { "unsigned_short" };
     case IOComponentEnum::SHORT:
-      return std::string("short");
+      return { "short" };
     case IOComponentEnum::UINT:
-      return std::string("unsigned_int");
+      return { "unsigned_int" };
     case IOComponentEnum::INT:
-      return std::string("int");
+      return { "int" };
     case IOComponentEnum::ULONG:
-      return std::string("unsigned_long");
+      return { "unsigned_long" };
     case IOComponentEnum::LONG:
-      return std::string("long");
+      return { "long" };
     case IOComponentEnum::ULONGLONG:
-      return std::string("unsigned_long_long");
+      return { "unsigned_long_long" };
     case IOComponentEnum::LONGLONG:
-      return std::string("long_long");
+      return { "long_long" };
     case IOComponentEnum::FLOAT:
-      return std::string("float");
+      return { "float" };
     case IOComponentEnum::DOUBLE:
-      return std::string("double");
+      return { "double" };
     case IOComponentEnum::UNKNOWNCOMPONENTTYPE:
-      return std::string("unknown");
+      return { "unknown" };
     default:
-      return std::string("unknown");
+      return { "unknown" };
   }
 }
 
@@ -474,7 +462,7 @@ ImageIOBase::GetComponentTypeFromString(const std::string & typeString)
   {
     return IOComponentEnum::UCHAR;
   }
-  else if (typeString.compare("char") == 0)
+  if (typeString.compare("char") == 0)
   {
     return IOComponentEnum::CHAR;
   }
@@ -530,33 +518,33 @@ ImageIOBase::GetPixelTypeAsString(IOPixelEnum t)
   switch (t)
   {
     case IOPixelEnum::SCALAR:
-      return std::string("scalar");
+      return { "scalar" };
     case IOPixelEnum::VECTOR:
-      return std::string("vector");
+      return { "vector" };
     case IOPixelEnum::COVARIANTVECTOR:
-      return std::string("covariant_vector");
+      return { "covariant_vector" };
     case IOPixelEnum::POINT:
-      return std::string("point");
+      return { "point" };
     case IOPixelEnum::OFFSET:
-      return std::string("offset");
+      return { "offset" };
     case IOPixelEnum::RGB:
-      return std::string("rgb");
+      return { "rgb" };
     case IOPixelEnum::RGBA:
-      return std::string("rgba");
+      return { "rgba" };
     case IOPixelEnum::SYMMETRICSECONDRANKTENSOR:
-      return std::string("symmetric_second_rank_tensor");
+      return { "symmetric_second_rank_tensor" };
     case IOPixelEnum::DIFFUSIONTENSOR3D:
-      return std::string("diffusion_tensor_3D");
+      return { "diffusion_tensor_3D" };
     case IOPixelEnum::COMPLEX:
-      return std::string("complex");
+      return { "complex" };
     case IOPixelEnum::FIXEDARRAY:
-      return std::string("fixed_array");
+      return { "fixed_array" };
     case IOPixelEnum::MATRIX:
-      return std::string("matrix");
+      return { "matrix" };
     case IOPixelEnum::UNKNOWNPIXELTYPE:
-      return std::string("unknown");
+      return { "unknown" };
     default:
-      return std::string("unknown");
+      return { "unknown" };
   }
 }
 
@@ -567,7 +555,7 @@ ImageIOBase::GetPixelTypeFromString(const std::string & pixelString)
   {
     return IOPixelEnum::SCALAR;
   }
-  else if (pixelString.compare("vector") == 0)
+  if (pixelString.compare("vector") == 0)
   {
     return IOPixelEnum::VECTOR;
   }
@@ -623,7 +611,7 @@ ImageIOBase::OpenFileForReading(std::ifstream & inputStream, const std::string &
   // Make sure that we have a file to
   if (filename.empty())
   {
-    itkExceptionMacro(<< "A FileName must be specified.");
+    itkExceptionMacro("A FileName must be specified.");
   }
 
   // Close file from any previous image
@@ -633,7 +621,7 @@ ImageIOBase::OpenFileForReading(std::ifstream & inputStream, const std::string &
   }
 
   // Open the new file for reading
-  itkDebugMacro(<< "Opening file for reading: " << filename);
+  itkDebugMacro("Opening file for reading: " << filename);
 
   std::ios::openmode mode = std::ios::in;
   if (!ascii)
@@ -641,12 +629,17 @@ ImageIOBase::OpenFileForReading(std::ifstream & inputStream, const std::string &
     mode |= std::ios::binary;
   }
 
+#ifdef _MSC_VER
+  const std::wstring uncpath = itksys::SystemTools::ConvertToWindowsExtendedPath(filename.c_str());
+  inputStream.open(uncpath.c_str(), std::ios::binary);
+#else
   inputStream.open(filename.c_str(), mode);
+#endif
 
   if (!inputStream.is_open() || inputStream.fail())
   {
-    itkExceptionMacro(<< "Could not open file: " << filename << " for reading." << std::endl
-                      << "Reason: " << itksys::SystemTools::GetLastSystemError());
+    itkExceptionMacro("Could not open file: " << filename << " for reading." << std::endl
+                                              << "Reason: " << itksys::SystemTools::GetLastSystemError());
   }
 }
 
@@ -656,7 +649,7 @@ ImageIOBase::OpenFileForWriting(std::ofstream & outputStream, const std::string 
   // Make sure that we have a file to
   if (filename.empty())
   {
-    itkExceptionMacro(<< "A FileName must be specified.");
+    itkExceptionMacro("A FileName must be specified.");
   }
 
   // Close file from any previous image
@@ -666,7 +659,7 @@ ImageIOBase::OpenFileForWriting(std::ofstream & outputStream, const std::string 
   }
 
   // Open the new file for writing
-  itkDebugMacro(<< "Opening file for writing: " << filename);
+  itkDebugMacro("Opening file for writing: " << filename);
 
   std::ios::openmode mode = std::ios::out;
   if (truncate)
@@ -680,7 +673,7 @@ ImageIOBase::OpenFileForWriting(std::ofstream & outputStream, const std::string 
     // opening a nonexistent file for reading + writing is not allowed on some platforms
     if (!itksys::SystemTools::FileExists(filename.c_str()))
     {
-      itksys::SystemTools::Touch(filename.c_str(), true);
+      itksys::SystemTools::Touch(filename, true);
       // don't worry about failure here, errors should be detected later when the file
       // is "actually" opened, unless there is a race condition
     }
@@ -694,8 +687,8 @@ ImageIOBase::OpenFileForWriting(std::ofstream & outputStream, const std::string 
 
   if (!outputStream.is_open() || outputStream.fail())
   {
-    itkExceptionMacro(<< "Could not open file: " << filename << " for writing." << std::endl
-                      << "Reason: " << itksys::SystemTools::GetLastSystemError());
+    itkExceptionMacro("Could not open file: " << filename << " for writing." << std::endl
+                                              << "Reason: " << itksys::SystemTools::GetLastSystemError());
   }
 }
 
@@ -708,13 +701,13 @@ WriteBuffer(std::ostream & os, const TComponent * buffer, ImageIOBase::SizeType 
   const TComponent * ptr = buffer;
 
   using PrintType = typename itk::NumericTraits<TComponent>::PrintType;
-  for (ImageIOBase::SizeType i = 0; i < num; i++)
+  for (ImageIOBase::SizeType i = 0; i < num; ++i)
   {
     if (!(i % 6) && i)
     {
-      os << "\n";
+      os << '\n';
     }
-    os << PrintType(*ptr++) << " ";
+    os << PrintType(*ptr++) << ' ';
   }
 }
 } // namespace
@@ -937,7 +930,7 @@ ImageIOBase::ReadBufferAsASCII(std::istream & is, void * buffer, IOComponentEnum
 
 namespace
 {
-std::mutex                       ioDefaultSplitterLock;
+std::mutex                       ioDefaultSplitterMutex;
 ImageRegionSplitterBase::Pointer ioDefaultSplitter;
 
 } // namespace
@@ -949,7 +942,7 @@ ImageIOBase::GetImageRegionSplitter() const
   {
     // thread safe lazy initialization,  prevent race condition on
     // setting, with an atomic set if null.
-    std::lock_guard<std::mutex> lock(ioDefaultSplitterLock);
+    const std::lock_guard<std::mutex> lockGuard(ioDefaultSplitterMutex);
     if (ioDefaultSplitter.IsNull())
     {
       ioDefaultSplitter = ImageRegionSplitterSlowDimension::New().GetPointer();
@@ -1108,21 +1101,21 @@ ImageIOBase::GenerateStreamableReadRegionFromRequestedRegion(const ImageIORegion
   }
 
   // dimension size we use to represent the region
-  unsigned int maxDimension =
+  const unsigned int maxDimension =
     minIODimension > requested.GetImageDimension() ? minIODimension : requested.GetImageDimension();
 
   // First: allocate with the correct dimensions
   ImageIORegion streamableRegion(maxDimension);
 
   // Second: copy only the number of dimension that the file has.
-  for (unsigned int i = 0; i < minIODimension; i++)
+  for (unsigned int i = 0; i < minIODimension; ++i)
   {
     streamableRegion.SetSize(i, this->m_Dimensions[i]);
     streamableRegion.SetIndex(i, 0);
   }
 
   // Third: set the rest to the default : start = 0, size = 1
-  for (unsigned int j = minIODimension; j < streamableRegion.GetImageDimension(); j++)
+  for (unsigned int j = minIODimension; j < streamableRegion.GetImageDimension(); ++j)
   {
     streamableRegion.SetSize(j, 1);
     streamableRegion.SetIndex(j, 0);
@@ -1164,9 +1157,9 @@ ImageIOBase::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "IOByteOrderEnum: " << this->GetByteOrderAsString(m_ByteOrder) << std::endl;
   os << indent << "IORegion: " << std::endl;
   m_IORegion.Print(os, indent.GetNextIndent());
-  os << indent << "Number of Components/Pixel: " << m_NumberOfComponents << "\n";
-  os << indent << "Pixel Type: " << this->GetPixelTypeAsString(m_PixelType) << std::endl;
-  os << indent << "Component Type: " << this->GetComponentTypeAsString(m_ComponentType) << std::endl;
+  os << indent << "NumberOfComponents/Pixel: " << m_NumberOfComponents << std::endl;
+  os << indent << "PixeType: " << Self::GetPixelTypeAsString(m_PixelType) << std::endl;
+  os << indent << "ComponentType: " << Self::GetComponentTypeAsString(m_ComponentType) << std::endl;
   os << indent << "Dimensions: " << m_Dimensions << std::endl;
   os << indent << "Origin: " << m_Origin << std::endl;
   os << indent << "Spacing: " << m_Spacing << std::endl;
@@ -1175,57 +1168,15 @@ ImageIOBase::PrintSelf(std::ostream & os, Indent indent) const
   {
     os << indent << direction << std::endl;
   }
-  if (m_UseCompression)
-  {
-    os << indent << "UseCompression: On" << std::endl;
-  }
-  else
-  {
-    os << indent << "UseCompression: Off" << std::endl;
-  }
+  itkPrintSelfBooleanMacro(UseCompression);
   os << indent << "CompressionLevel: " << m_CompressionLevel << std::endl;
   os << indent << "MaximumCompressionLevel: " << m_MaximumCompressionLevel << std::endl;
   os << indent << "Compressor: " << m_Compressor << std::endl;
-  if (m_UseStreamedReading)
-  {
-    os << indent << "UseStreamedReading: On" << std::endl;
-  }
-  else
-  {
-    os << indent << "UseStreamedReading: Off" << std::endl;
-  }
-  if (m_UseStreamedWriting)
-  {
-    os << indent << "UseStreamedWriting: On" << std::endl;
-  }
-  else
-  {
-    os << indent << "UseStreamedWriting: Off" << std::endl;
-  }
-  if (m_ExpandRGBPalette)
-  {
-    os << indent << "ExpandRGBPalette: On" << std::endl;
-  }
-  else
-  {
-    os << indent << "ExpandRGBPalette: Off" << std::endl;
-  }
-  if (m_IsReadAsScalarPlusPalette)
-  {
-    os << indent << "IsReadAsScalarPlusPalette: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "IsReadAsScalarPlusPalette: False" << std::endl;
-  }
-  if (m_WritePalette)
-  {
-    os << indent << "WritePalette: On" << std::endl;
-  }
-  else
-  {
-    os << indent << "WritePalette: Off" << std::endl;
-  }
+  itkPrintSelfBooleanMacro(UseStreamedReading);
+  itkPrintSelfBooleanMacro(UseStreamedWriting);
+  itkPrintSelfBooleanMacro(ExpandRGBPalette);
+  itkPrintSelfBooleanMacro(IsReadAsScalarPlusPalette);
+  itkPrintSelfBooleanMacro(WritePalette);
 }
 
 } // namespace itk

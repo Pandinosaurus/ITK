@@ -1,5 +1,5 @@
-#ifndef _ZNZLIB_H_
-#define _ZNZLIB_H_
+#ifndef ZNZLIB_H
+#define ZNZLIB_H
 
 /*
 znzlib.h  (zipped or non-zipped library)
@@ -47,6 +47,7 @@ extern "C" {
 #include <string.h>
 #include <stdarg.h>
 
+
 /* include optional check for HAVE_FDOPEN here, from deleted config.h:
 
    uncomment the following line if fdopen() exists for your compiler and
@@ -54,6 +55,18 @@ extern "C" {
 */
 /* #define HAVE_FDOPEN */
 
+#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64) || defined(_MSVC) || defined(_MSC_VER)
+#include <io.h>
+#define fseek _fseeki64
+#define ftell _ftelli64
+#define znz_off_t long long
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+#define znz_off_t off_t
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#define znz_off_t off_t
+#endif
 
 #ifdef HAVE_ZLIB
 #if defined(ITKZLIB) && !defined(ITK_USE_SYSTEM_ZLIB)
@@ -61,6 +74,30 @@ extern "C" {
 #else
 #include "zlib.h"
 #endif
+#endif
+
+#ifndef ZNZ_API
+  #if defined(_WIN32) || defined(__CYGWIN__)
+    #if defined(ZNZ_BUILD_SHARED)
+      #ifdef __GNUC__
+        #define ZNZ_API __attribute__ ((dllexport))
+      #else
+        #define ZNZ_API __declspec( dllexport )
+      #endif
+    #elif defined(ZNZ_USE_SHARED)
+      #ifdef __GNUC__
+        #define ZNZ_API __attribute__ ((dllimport))
+      #else
+        #define ZNZ_API __declspec( dllimport )
+      #endif
+    #else
+      #define ZNZ_API
+    #endif
+  #elif (defined(__GNUC__) && __GNUC__ >= 4) || defined(__clang__)
+    #define ZNZ_API __attribute__ ((visibility ("default")))
+  #else
+    #define ZNZ_API
+  #endif
 #endif
 
 struct znzptr {
@@ -85,32 +122,36 @@ typedef struct znzptr * znzFile;
    use_compression!=0 uses zlib (gzip) compression
 */
 
-znzFile znzopen(const char *path, const char *mode, int use_compression);
+ZNZ_API znzFile znzopen(const char *path, const char *mode, int use_compression);
 
-znzFile znzdopen(int fd, const char *mode, int use_compression);
+#ifdef COMPILE_NIFTIUNUSED_CODE
+ZNZ_API znzFile znzdopen(int fd, const char *mode, int use_compression);
+#endif
 
-int Xznzclose(znzFile * file);
+ZNZ_API int Xznzclose(znzFile * file);
 
-size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file);
+ZNZ_API size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file);
 
-size_t znzwrite(const void* buf, size_t size, size_t nmemb, znzFile file);
+ZNZ_API size_t znzwrite(const void* buf, size_t size, size_t nmemb, znzFile file);
 
-long znzseek(znzFile file, long offset, int whence);
+ZNZ_API znz_off_t znzseek(znzFile file, znz_off_t offset, int whence);
 
-int znzrewind(znzFile stream);
+ZNZ_API int znzrewind(znzFile stream);
 
-long znztell(znzFile file);
+ZNZ_API znz_off_t znztell(znzFile file);
 
-int znzputs(const char *str, znzFile file);
+ZNZ_API int znzputs(const char *str, znzFile file);
 
-char * znzgets(char* str, int size, znzFile file);
+#ifdef COMPILE_NIFTIUNUSED_CODE
+ZNZ_API char * znzgets(char* str, int size, znzFile file);
 
-int znzputc(int c, znzFile file);
+ZNZ_API int znzputc(int c, znzFile file);
 
-int znzgetc(znzFile file);
+ZNZ_API int znzgetc(znzFile file);
 
 #if !defined(WIN32)
-int znzprintf(znzFile stream, const char *format, ...);
+ZNZ_API int znzprintf(znzFile stream, const char *format, ...);
+#endif
 #endif
 
 /*=================*/

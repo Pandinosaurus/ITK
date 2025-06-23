@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ void
 OFFMeshIOFactory::PrintSelf(std::ostream &, Indent) const
 {}
 
-OFFMeshIOFactory ::OFFMeshIOFactory()
+OFFMeshIOFactory::OFFMeshIOFactory()
 {
   this->RegisterOverride("itkMeshIOBase", "itkOFFMeshIO", "OFF Mesh IO", true, CreateObjectFunction<OFFMeshIO>::New());
 }
@@ -48,16 +48,10 @@ OFFMeshIOFactory::GetDescription() const
 
 // Undocumented API used to register during static initialization.
 // DO NOT CALL DIRECTLY.
-static bool OFFMeshIOFactoryHasBeenRegistered;
-
 void ITKIOMeshOFF_EXPORT
-     OFFMeshIOFactoryRegister__Private()
+OFFMeshIOFactoryRegister__Private()
 {
-  if (!OFFMeshIOFactoryHasBeenRegistered)
-  {
-    OFFMeshIOFactoryHasBeenRegistered = true;
-    OFFMeshIOFactory::RegisterOneFactory();
-  }
+  ObjectFactoryBase::RegisterInternalFactoryOnce<OFFMeshIOFactory>();
 }
 
 } // end namespace itk

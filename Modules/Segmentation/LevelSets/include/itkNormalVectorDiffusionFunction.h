@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,8 +68,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(NormalVectorDiffusionFunction, NormalVectorFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalVectorDiffusionFunction);
 
   /** Image dimension derived from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -78,16 +78,16 @@ public:
   itkNewMacro(Self);
 
   /** Typedefs from the superclass. */
-  using TimeStepType = typename Superclass::TimeStepType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using IndexType = typename Superclass::IndexType;
-  using SparseImageType = typename Superclass::SparseImageType;
-  using NodeType = typename Superclass::NodeType;
-  using NodeValueType = typename Superclass::NodeValueType;
-  using NormalVectorType = typename Superclass::NormalVectorType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SparseImageType;
+  using typename Superclass::NodeType;
+  using typename Superclass::NodeValueType;
+  using typename Superclass::NormalVectorType;
 
   /** This method is used to choose between isotropic/anisotropic filtering. A
       parameter value of 0 indicates isotropic diffusion and is the
@@ -100,7 +100,7 @@ public:
   }
 
   /** This method returns the isotropic/anisotropic filtering parameter. */
-  int
+  [[nodiscard]] int
   GetNormalProcessType() const
   {
     return m_NormalProcessType;
@@ -161,22 +161,20 @@ protected:
     {
       return NumericTraits<NodeValueType>::OneValue();
     }
-    else
-    {
-      return static_cast<NodeValueType>(std::exp(m_FluxStopConstant * v));
-    }
+
+    return static_cast<NodeValueType>(std::exp(m_FluxStopConstant * v));
   }
 
 private:
   /** The conductance parameter used for anisotropic diffusion. */
-  NodeValueType m_ConductanceParameter;
+  NodeValueType m_ConductanceParameter{};
 
   /** The internal variable used in the FluxStopFunction. It is computed from
    * ConductanceParameter. */
-  NodeValueType m_FluxStopConstant;
+  NodeValueType m_FluxStopConstant{};
 
   /** The isotropic/anisotropic filtering choice parameter. */
-  int m_NormalProcessType;
+  int m_NormalProcessType{};
 };
 } // end namespace itk
 

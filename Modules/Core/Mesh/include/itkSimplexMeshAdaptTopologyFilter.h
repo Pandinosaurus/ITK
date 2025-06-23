@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,8 +62,8 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimplexMeshAdaptTopologyFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimplexMeshAdaptTopologyFilter);
 
   using InputMeshType = TInputMesh;
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -99,27 +99,23 @@ public:
   {
   public:
     InputMeshPointer                     mesh;
-    double                               totalArea;
-    double                               totalCurvature;
+    double                               totalArea{ 0 };
+    double                               totalCurvature{ 0 };
     double                               minCellSize;
-    double                               maxCellSize;
+    double                               maxCellSize{ 0 };
     typename DoubleValueMapType::Pointer areaMap;
     typename DoubleValueMapType::Pointer curvatureMap;
 
     double minCurvature;
-    double maxCurvature;
+    double maxCurvature{ 0 };
 
     SimplexCellVisitor()
-    {
-      areaMap = DoubleValueMapType::New();
-      curvatureMap = DoubleValueMapType::New();
-      totalArea = 0;
-      totalCurvature = 0;
-      minCellSize = NumericTraits<double>::max();
-      maxCellSize = 0;
-      minCurvature = NumericTraits<double>::max();
-      maxCurvature = 0;
-    }
+      : minCellSize(NumericTraits<double>::max())
+      , areaMap(DoubleValueMapType::New())
+      , curvatureMap(DoubleValueMapType::New())
+      , minCurvature(NumericTraits<double>::max())
+
+    {}
 
     /** \brief visits all polygon cells and computes the area,
      *  NOTE: works for convex polygons only!!!
@@ -129,16 +125,14 @@ public:
     {
       typename InputPolygonType::PointIdIterator it = poly->PointIdsBegin();
 
-      double          meanCurvature = 0;
-      PointIdentifier refPoint = *it;
-      double          val = mesh->GetMeanCurvature(*it++);
-      meanCurvature += std::abs(val);
+      double                meanCurvature = 0;
+      const PointIdentifier refPoint = *it;
+      double                val = mesh->GetMeanCurvature(*it++);
+      meanCurvature += itk::Math::abs(val);
 
       PointIdentifier id1 = *it;
       val = mesh->GetMeanCurvature(*it++);
-      meanCurvature += std::abs(val);
-
-      PointIdentifier id2;
+      meanCurvature += itk::Math::abs(val);
 
       double area = 0;
 
@@ -146,16 +140,16 @@ public:
 
       while (it != poly->PointIdsEnd())
       {
-        id2 = *it;
+        const PointIdentifier id2 = *it;
         area += ComputeArea(refPoint, id1, id2);
         id1 = id2;
         val = mesh->GetMeanCurvature(*it);
-        meanCurvature += std::abs(val);
-        cnt++;
-        it++;
+        meanCurvature += itk::Math::abs(val);
+        ++cnt;
+        ++it;
       }
 
-      meanCurvature /= (double)cnt;
+      meanCurvature /= static_cast<double>(cnt);
       totalArea += area;
       totalCurvature += meanCurvature;
 
@@ -183,16 +177,14 @@ public:
     double
     ComputeArea(PointIdentifier p1, PointIdentifier p2, PointIdentifier p3)
     {
-      InputPointType v1, v2, v3;
-
-      v1.Fill(0);
-      v2.Fill(0);
-      v3.Fill(0);
+      InputPointType v1{};
+      InputPointType v2{};
+      InputPointType v3{};
 
       mesh->GetPoint(p1, &v1);
       mesh->GetPoint(p2, &v2);
       mesh->GetPoint(p3, &v3);
-      return std::abs(vnl_cross_3d((v2 - v1).GetVnlVector(), (v3 - v1).GetVnlVector()).two_norm() / 2.0);
+      return itk::Math::abs(vnl_cross_3d((v2 - v1).GetVnlVector(), (v3 - v1).GetVnlVector()).two_norm() / 2.0);
     }
 
     typename DoubleValueMapType::Pointer
@@ -305,7 +297,7 @@ protected:
   /**
    * class member storing cell id offset
    */
-  CellIdentifier m_IdOffset;
+  CellIdentifier m_IdOffset{};
 
   /**
    * threshold controls the percentage of cells
@@ -328,9 +320,9 @@ protected:
    * \brief member for accessing the filter result during
    *  creation
    */
-  OutputMeshPointer m_Output;
+  OutputMeshPointer m_Output{};
 
-  InputCellAutoPointer m_NewSimplexCellPointer;
+  InputCellAutoPointer m_NewSimplexCellPointer{};
 };
 } // namespace itk
 

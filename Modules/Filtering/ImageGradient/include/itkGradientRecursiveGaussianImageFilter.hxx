@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,25 +18,21 @@
 #ifndef itkGradientRecursiveGaussianImageFilter_hxx
 #define itkGradientRecursiveGaussianImageFilter_hxx
 
-#include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GradientRecursiveGaussianImageFilter()
-{
-  m_NormalizeAcrossScale = false;
-  this->m_UseImageDirection = true;
 
-  itkStaticAssert(ImageDimension > 0, "Images shall have one dimension at least");
+{
+  static_assert(ImageDimension > 0, "Images shall have one dimension at least");
   const unsigned int imageDimensionMinus1 = ImageDimension - 1;
-  if (ImageDimension > 1)
+  if constexpr (ImageDimension > 1)
   {
     m_SmoothingFilters.resize(imageDimensionMinus1);
 
@@ -57,7 +53,7 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GradientRecursi
   m_DerivativeFilter->InPlaceOff();
   m_DerivativeFilter->SetInput(this->GetInput());
 
-  if (ImageDimension > 1)
+  if constexpr (ImageDimension > 1)
   {
     m_SmoothingFilters[0]->SetInput(m_DerivativeFilter->GetOutput());
     for (unsigned int i = 1; i != imageDimensionMinus1; ++i)
@@ -76,20 +72,14 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GradientRecursi
   this->SetSigma(1.0);
 }
 
-/**
- * Set value of Sigma along all dimensions.
- */
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigma(ScalarRealType sigma)
 {
-  SigmaArrayType sigmas(sigma);
+  const SigmaArrayType sigmas(sigma);
   this->SetSigmaArray(sigmas);
 }
 
-/**
- * Set value of Sigma array.
- */
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigmaArray(const SigmaArrayType & sigma)
@@ -97,7 +87,7 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigmaArray(c
   if (this->m_Sigma != sigma)
   {
     this->m_Sigma = sigma;
-    itkStaticAssert(ImageDimension > 0, "Images shall have one dimension at least");
+    static_assert(ImageDimension > 0, "Images shall have one dimension at least");
     const unsigned int imageDimensionMinus1 = ImageDimension - 1;
     for (unsigned int i = 0; i != imageDimensionMinus1; ++i)
     {
@@ -109,38 +99,29 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetSigmaArray(c
   }
 }
 
-/**
- * Get the Sigma array.
- */
 template <typename TInputImage, typename TOutputImage>
-typename GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SigmaArrayType
-GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigmaArray() const
+auto
+GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigmaArray() const -> SigmaArrayType
 {
   return m_Sigma;
 }
 
-/**
- * Get value of Sigma. Returns the sigma along the first dimension.
- */
 template <typename TInputImage, typename TOutputImage>
-typename GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::ScalarRealType
-GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigma() const
+auto
+GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GetSigma() const -> ScalarRealType
 {
   return m_Sigma[0];
 }
 
-/**
- * Set Normalize Across Scale Space
- */
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetNormalizeAcrossScale(bool normalize)
 {
   m_NormalizeAcrossScale = normalize;
 
-  itkStaticAssert(ImageDimension > 0, "Images shall have one dimension at least");
+  static_assert(ImageDimension > 0, "Images shall have one dimension at least");
   const unsigned int imageDimensionMinus1 = ImageDimension - 1;
-  for (unsigned int i = 0; i != imageDimensionMinus1; i++)
+  for (unsigned int i = 0; i != imageDimensionMinus1; ++i)
   {
     m_SmoothingFilters[i]->SetNormalizeAcrossScale(normalize);
   }
@@ -149,9 +130,6 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::SetNormalizeAcr
   this->Modified();
 }
 
-//
-//
-//
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
@@ -161,7 +139,7 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRe
   Superclass::GenerateInputRequestedRegion();
 
   // This filter needs all of the input
-  typename GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::InputImagePointer image =
+  const typename GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::InputImagePointer image =
     const_cast<InputImageType *>(this->GetInput());
   if (image)
   {
@@ -169,9 +147,6 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRe
   }
 }
 
-//
-//
-//
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::EnlargeOutputRequestedRegion(DataObject * output)
@@ -184,24 +159,21 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::EnlargeOutputRe
   }
 }
 
-/**
- * Compute filter for Gaussian kernel
- */
 template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this
   // minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Compute the contribution of each filter to the total progress.
   const double weight = 1.0 / (ImageDimension * ImageDimension);
 
-  itkStaticAssert(ImageDimension > 0, "Images shall have one dimension at least");
+  static_assert(ImageDimension > 0, "Images shall have one dimension at least");
   const unsigned int imageDimensionMinus1 = ImageDimension - 1;
-  if (ImageDimension > 1)
+  if constexpr (ImageDimension > 1)
   {
     for (unsigned int i = 0; i != imageDimensionMinus1; ++i)
     {
@@ -212,7 +184,7 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   progress->RegisterInternalFilter(m_DerivativeFilter, weight);
 
   const typename TInputImage::ConstPointer inputImage(this->GetInput());
-  typename TOutputImage::Pointer           outputImage(this->GetOutput());
+  const typename TOutputImage::Pointer     outputImage(this->GetOutput());
 
   unsigned int nComponents = inputImage->GetNumberOfComponentsPerPixel();
   /* An Image of VariableLengthVectors will return 0 */
@@ -235,7 +207,8 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   m_DerivativeFilter->SetInput(inputImage);
 
   // For variable length output pixel types
-  ImageRegionIteratorWithIndex<OutputImageType> initGradIt(outputImage, this->m_ImageAdaptor->GetRequestedRegion());
+  const ImageRegionIteratorWithIndex<OutputImageType> initGradIt(outputImage,
+                                                                 this->m_ImageAdaptor->GetRequestedRegion());
 
 
   for (unsigned int nc = 0; nc < nComponents; ++nc)
@@ -256,32 +229,24 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
       }
       m_DerivativeFilter->SetDirection(dim);
 
-      GaussianFilterPointer lastFilter;
 
-      if (ImageDimension > 1)
+      typename RealImageType::Pointer derivativeImage;
+      if constexpr (ImageDimension > 1)
       {
-        const auto imageDimensionMinus2 = static_cast<unsigned int>(ImageDimension - 2);
-        lastFilter = m_SmoothingFilters[imageDimensionMinus2];
+        const auto                  imageDimensionMinus2 = static_cast<unsigned int>(ImageDimension - 2);
+        const GaussianFilterPointer lastFilter = m_SmoothingFilters[imageDimensionMinus2];
         lastFilter->UpdateLargestPossibleRegion();
+        derivativeImage = lastFilter->GetOutput();
       }
       else
       {
         m_DerivativeFilter->UpdateLargestPossibleRegion();
+        derivativeImage = m_DerivativeFilter->GetOutput();
       }
 
       // Copy the results to the corresponding component
       // on the output image of vectors
       m_ImageAdaptor->SelectNthElement(nc * ImageDimension + dim);
-
-      typename RealImageType::Pointer derivativeImage;
-      if (ImageDimension > 1)
-      {
-        derivativeImage = lastFilter->GetOutput();
-      }
-      else
-      {
-        derivativeImage = m_DerivativeFilter->GetOutput();
-      }
 
       ImageRegionIteratorWithIndex<RealImageType> it(derivativeImage, derivativeImage->GetRequestedRegion());
 
@@ -303,9 +268,9 @@ GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   }
 
   // manually release memory in last filter in the mini-pipeline
-  if (ImageDimension > 1)
+  if constexpr (ImageDimension > 1)
   {
-    int temp_dim = static_cast<int>(ImageDimension) - 2;
+    const int temp_dim = int{ ImageDimension } - 2;
     m_SmoothingFilters[temp_dim]->GetOutput()->ReleaseData();
   }
   else
@@ -352,10 +317,18 @@ template <typename TInputImage, typename TOutputImage>
 void
 GradientRecursiveGaussianImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
-  os << indent << "NormalizeAcrossScale: " << m_NormalizeAcrossScale << std::endl;
-  os << indent << "UseImageDirection :   " << (this->m_UseImageDirection ? "On" : "Off") << std::endl;
-  os << "Sigma: " << m_Sigma << std::endl;
+
+  os << indent << "SmoothingFilters: " << m_SmoothingFilters << std::endl;
+
+  itkPrintSelfObjectMacro(DerivativeFilter);
+  itkPrintSelfObjectMacro(ImageAdaptor);
+
+  itkPrintSelfBooleanMacro(NormalizeAcrossScale);
+  itkPrintSelfBooleanMacro(UseImageDirection);
+  os << indent << "Sigma: " << m_Sigma << std::endl;
 }
 
 } // end namespace itk

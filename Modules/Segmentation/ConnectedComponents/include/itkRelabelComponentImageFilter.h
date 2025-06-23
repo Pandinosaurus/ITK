@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +47,7 @@ namespace itk
  * extract the largest object or the "k" largest objects. Any
  * particular object can be extracted from the relabeled output using
  * a BinaryThresholdImageFilter. A group of objects can be extracted
- * from the relabled output using a ThresholdImageFilter.
+ * from the relabeled output using a ThresholdImageFilter.
  *
  * Once all the objects are relabeled, the application can query the
  * number of objects and the size of each object. Object sizes are
@@ -93,7 +93,7 @@ public:
   /**
    * Types from the Superclass
    */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /**
    * Extract some information from the image types.  Dimensionality
@@ -124,7 +124,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(RelabelComponentImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(RelabelComponentImageFilter);
 
   /**
    * Method for creation through the object factory.
@@ -153,9 +153,10 @@ public:
 
   /** Get/Set the number of objects enumerated and described when the
    * filter is printed. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfObjectsToPrint, SizeValueType);
   itkGetConstReferenceMacro(NumberOfObjectsToPrint, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set the minimum size in pixels for an object. All objects
    * smaller than this size will be discarded and will not appear
    * in the output label map. NumberOfObjects will count only the
@@ -173,16 +174,17 @@ public:
 
   /** Controls whether the object labels are sorted by size.
    * If false, initial order of labels is kept. */
+  /** @ITKStartGrouping */
   itkSetMacro(SortByObjectSize, bool);
   itkGetConstMacro(SortByObjectSize, bool);
   itkBooleanMacro(SortByObjectSize);
-
+  /** @ITKEndGrouping */
   /** Get the size of each object in pixels. This information is only
    * valid after the filter has executed.  Size of the background is
    * not calculated.  Size of object #1 is
    * GetSizeOfObjectsInPixels()[0]. Size of object #2 is
    * GetSizeOfObjectsInPixels()[1]. Etc. */
-  const ObjectSizeInPixelsContainerType &
+  [[nodiscard]] const ObjectSizeInPixelsContainerType &
   GetSizeOfObjectsInPixels() const
   {
     // The GetConstReferenceMacro can't be used here because this container
@@ -195,7 +197,7 @@ public:
    * executed. Size of the background is not calculated.  Size of
    * object #1 is GetSizeOfObjectsInPhysicalUnits()[0]. Size of object
    * #2 is GetSizeOfObjectsInPhysicalUnits()[1]. Etc. */
-  const ObjectSizeInPhysicalUnitsContainerType &
+  [[nodiscard]] const ObjectSizeInPhysicalUnitsContainerType &
   GetSizeOfObjectsInPhysicalUnits() const
   {
     // The GetConstReferenceMacro can't be used here because this container
@@ -209,14 +211,12 @@ public:
   ObjectSizeType
   GetSizeOfObjectInPixels(LabelType obj) const
   {
-    if (obj > 0 && obj <= m_NumberOfObjects)
+    if (obj > 0 && static_cast<SizeValueType>(obj) <= m_NumberOfObjects)
     {
       return m_SizeOfObjectsInPixels[obj - 1];
     }
-    else
-    {
-      return 0;
-    }
+
+    return 0;
   }
 
   /** Get the size of a particular object in physical space (in units of pixel
@@ -225,25 +225,19 @@ public:
   float
   GetSizeOfObjectInPhysicalUnits(LabelType obj) const
   {
-    if (obj > 0 && obj <= m_NumberOfObjects)
+    if (obj > 0 && static_cast<SizeValueType>(obj) <= m_NumberOfObjects)
     {
       return m_SizeOfObjectsInPhysicalUnits[obj - 1];
     }
-    else
-    {
-      return 0;
-    }
+
+    return 0;
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(UnsignedLongConvertibleToInputCheck, (Concept::Convertible<LabelType, InputPixelType>));
   itkConceptMacro(OutputLongConvertibleToUnsignedLongCheck, (Concept::Convertible<OutputPixelType, LabelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
-  // End concept checking
-#endif
 
 protected:
   RelabelComponentImageFilter();
@@ -287,13 +281,13 @@ private:
   ObjectSizeType m_MinimumObjectSize{ 0 };
   bool           m_SortByObjectSize{ true };
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 
   using MapType = std::map<LabelType, RelabelComponentObjectType>;
-  MapType m_SizeMap;
+  MapType m_SizeMap{};
 
-  ObjectSizeInPixelsContainerType        m_SizeOfObjectsInPixels;
-  ObjectSizeInPhysicalUnitsContainerType m_SizeOfObjectsInPhysicalUnits;
+  ObjectSizeInPixelsContainerType        m_SizeOfObjectsInPixels{};
+  ObjectSizeInPhysicalUnitsContainerType m_SizeOfObjectsInPhysicalUnits{};
 };
 } // end namespace itk
 

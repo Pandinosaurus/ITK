@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,17 @@
 
 // First include the header file to be tested:
 #include "itkPoint.h"
+#include "itkRangeGTestUtilities.h"
 #include <gtest/gtest.h>
 
-#include <iterator> // For begin and end.
-#include <numeric>  // For iota.
+#include <initializer_list>
+#include <iterator>    // For begin and end.
+#include <numeric>     // For iota.
+#include <type_traits> // For is_same.
 
 namespace
 {
-template <unsigned VDimension>
+template <unsigned int VDimension>
 void
 Expect_Point_can_be_constructed_by_std_array()
 {
@@ -46,6 +49,15 @@ Expect_Point_can_be_constructed_by_std_array()
 } // namespace
 
 
+// Tests that a Point that is "value-initialized" (by empty braces, `{}`) is zero-filled.
+TEST(Point, ValueInitializedIsZeroFilled)
+{
+  itk::RangeGTestUtilities::ExpectEachElementIsZero(itk::Point<int>{});
+  itk::RangeGTestUtilities::ExpectEachElementIsZero(itk::Point<float, 2>{});
+  itk::RangeGTestUtilities::ExpectEachElementIsZero(itk::Point<double, 4>{});
+}
+
+
 // Tests that a Point can be constructed by specifying
 // its coordinates by an std::array<ValueType, VDimension>.
 TEST(Point, CanBeConstructedByStdArray)
@@ -53,4 +65,22 @@ TEST(Point, CanBeConstructedByStdArray)
   // Test for 2-D and 3-D.
   Expect_Point_can_be_constructed_by_std_array<2>();
   Expect_Point_can_be_constructed_by_std_array<3>();
+}
+
+
+TEST(Point, Make)
+{
+  static_assert(std::is_same_v<decltype(itk::MakePoint(0))::ValueType, int> &&
+                  std::is_same_v<decltype(itk::MakePoint(0.0))::ValueType, double>,
+                "The value type of the created point should be the same as the type of the (first) argument");
+
+  static_assert((decltype(itk::MakePoint(1, 1))::Dimension == 2) && (decltype(itk::MakePoint(1, 1, 1))::Dimension == 3),
+                "The dimension of the created point should equal the number of arguments");
+
+  EXPECT_EQ(itk::MakePoint(0, 0), (itk::Point<int, 2>()));
+  EXPECT_EQ(itk::MakePoint(0, 0, 0), (itk::Point<int, 3>()));
+
+  const auto point = itk::MakePoint(1, 2, 3, 4);
+  const auto values = { 1, 2, 3, 4 };
+  EXPECT_TRUE(std::equal(point.begin(), point.end(), values.begin(), values.end()));
 }

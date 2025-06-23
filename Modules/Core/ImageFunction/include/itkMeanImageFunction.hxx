@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMeanImageFunction_hxx
 #define itkMeanImageFunction_hxx
 
-#include "itkMeanImageFunction.h"
 
 #include "itkImage.h"
 #include "itkShapedImageNeighborhoodRange.h"
@@ -26,18 +25,16 @@
 namespace itk
 {
 
-template <typename TInputImage, typename TCoordRep>
-MeanImageFunction<TInputImage, TCoordRep>::MeanImageFunction()
+template <typename TInputImage, typename TCoordinate>
+MeanImageFunction<TInputImage, TCoordinate>::MeanImageFunction()
 
   = default;
 
-template <typename TInputImage, typename TCoordRep>
-typename MeanImageFunction<TInputImage, TCoordRep>::RealType
-MeanImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+MeanImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> RealType
 {
-  RealType sum;
-
-  sum = NumericTraits<RealType>::ZeroValue();
+  RealType sum{};
 
   const InputImageType * const image = this->GetInputImage();
 
@@ -63,9 +60,9 @@ MeanImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & ind
 }
 
 
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-MeanImageFunction<TInputImage, TCoordRep>::SetNeighborhoodRadius(const unsigned int radius)
+MeanImageFunction<TInputImage, TCoordinate>::SetNeighborhoodRadius(const unsigned int radius)
 {
   if (m_NeighborhoodRadius != radius)
   {
@@ -76,9 +73,9 @@ MeanImageFunction<TInputImage, TCoordRep>::SetNeighborhoodRadius(const unsigned 
 }
 
 
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-MeanImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+MeanImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 

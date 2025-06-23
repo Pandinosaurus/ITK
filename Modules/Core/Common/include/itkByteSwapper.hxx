@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,471 +27,140 @@
  *=========================================================================*/
 #ifndef itkByteSwapper_hxx
 #define itkByteSwapper_hxx
-#include "itkByteSwapper.h"
+#include "itkMakeUniqueForOverwrite.h"
+#include <algorithm> // For for_each_n and swap.
+#include <cstddef>   // For byte.
 #include <memory>
 #include <cstring>
 
 namespace itk
 {
 // The following are the public methods --------------------------------
-//
-// Machine definitions
-#ifdef CMAKE_WORDS_BIGENDIAN
-template <typename T>
-bool
-ByteSwapper<T>::SystemIsBigEndian()
-{
-  return true;
-}
-template <typename T>
-bool
-ByteSwapper<T>::SystemIsLittleEndian()
-{
-  return false;
-}
-#else
-template <typename T>
-bool
-ByteSwapper<T>::SystemIsBigEndian()
-{
-  return false;
-}
-template <typename T>
-bool
-ByteSwapper<T>::SystemIsLittleEndian()
-{
-  return true;
-}
-#endif
 
 //------Big Endian methods----------------------------------------------
 
 // Use different swap methods based on type
-#ifdef CMAKE_WORDS_BIGENDIAN
+
 template <typename T>
 void
-ByteSwapper<T>::SwapFromSystemToBigEndian(T *)
-{}
-#else
-template <typename T>
-void
-ByteSwapper<T>::SwapFromSystemToBigEndian(T * p)
+ByteSwapper<T>::SwapFromSystemToBigEndian([[maybe_unused]] T * p)
 {
-  switch (sizeof(T))
+  if constexpr (!m_SystemIsBigEndian && sizeof(T) > 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::Swap2((void *)p);
-      return;
-    case 4:
-      ByteSwapper<T>::Swap4((void *)p);
-      return;
-    case 8:
-      ByteSwapper<T>::Swap8((void *)p);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
+    SwapBytes(*p);
   }
 }
 
-#endif
-
-#ifdef CMAKE_WORDS_BIGENDIAN
 template <typename T>
 void
-ByteSwapper<T>::SwapRangeFromSystemToBigEndian(T *, BufferSizeType)
+ByteSwapper<T>::SwapRangeFromSystemToBigEndian([[maybe_unused]] T * p, [[maybe_unused]] BufferSizeType num)
 {
-  // nothing needs to be done here...
-}
-
-#else
-
-#  ifdef __INTEL_COMPILER
-#    pragma warning disable 280 // remark #280: selector expression is constant
-#  endif
-template <typename T>
-void
-ByteSwapper<T>::SwapRangeFromSystemToBigEndian(T * p, BufferSizeType num)
-{
-  switch (sizeof(T))
+  if constexpr (!m_SystemIsBigEndian && sizeof(T) > 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::Swap2Range((void *)p, num);
-      return;
-    case 4:
-      ByteSwapper<T>::Swap4Range((void *)p, num);
-      return;
-    case 8:
-      ByteSwapper<T>::Swap8Range((void *)p, num);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
-      return;
+    std::for_each_n(p, num, [](T & element) { SwapBytes(element); });
   }
 }
 
-#endif
-
-#ifdef CMAKE_WORDS_BIGENDIAN
 template <typename T>
 void
-ByteSwapper<T>::SwapWriteRangeFromSystemToBigEndian(T * p, int num, OStreamType * fp)
+ByteSwapper<T>::SwapWriteRangeFromSystemToBigEndian(const T * p, int num, std::ostream * fp)
 {
-  num *= sizeof(T);
-  fp->write((char *)p, num);
-}
-
-#else
-template <typename T>
-void
-ByteSwapper<T>::SwapWriteRangeFromSystemToBigEndian(T * p, int num, OStreamType * fp)
-{
-  switch (sizeof(T))
+  if constexpr (m_SystemIsBigEndian || sizeof(T) == 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::SwapWrite2Range((void *)p, num, fp);
-      return;
-    case 4:
-      ByteSwapper<T>::SwapWrite4Range((void *)p, num, fp);
-      return;
-    case 8:
-      ByteSwapper<T>::SwapWrite8Range((void *)p, num, fp);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
+    num *= sizeof(T);
+    fp->write(reinterpret_cast<const char *>(p), num);
+  }
+  else
+  {
+    SwapWriteRange(p, num, *fp);
   }
 }
 
-#endif
 
 //------Little Endian methods----------------------------------------------
 
-#ifdef CMAKE_WORDS_BIGENDIAN
 template <typename T>
 void
-ByteSwapper<T>::SwapFromSystemToLittleEndian(T * p)
+ByteSwapper<T>::SwapFromSystemToLittleEndian([[maybe_unused]] T * p)
 {
-  switch (sizeof(T))
+  if constexpr (m_SystemIsBigEndian && sizeof(T) > 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::Swap2((void *)p);
-      return;
-    case 4:
-      ByteSwapper<T>::Swap4((void *)p);
-      return;
-    case 8:
-      ByteSwapper<T>::Swap8((void *)p);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
+    SwapBytes(*p);
   }
 }
 
-#else
 template <typename T>
 void
-ByteSwapper<T>::SwapFromSystemToLittleEndian(T *)
-{}
-#endif
-
-#ifdef CMAKE_WORDS_BIGENDIAN
-template <typename T>
-void
-ByteSwapper<T>::SwapRangeFromSystemToLittleEndian(T * p, BufferSizeType num)
+ByteSwapper<T>::SwapRangeFromSystemToLittleEndian([[maybe_unused]] T * p, [[maybe_unused]] BufferSizeType num)
 {
-  switch (sizeof(T))
+  if constexpr (m_SystemIsBigEndian && sizeof(T) > 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::Swap2Range((void *)p, num);
-      return;
-    case 4:
-      ByteSwapper<T>::Swap4Range((void *)p, num);
-      return;
-    case 8:
-      ByteSwapper<T>::Swap8Range((void *)p, num);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
+    std::for_each_n(p, num, [](T & element) { SwapBytes(element); });
   }
 }
 
-#else
 template <typename T>
 void
-ByteSwapper<T>::SwapRangeFromSystemToLittleEndian(T *, BufferSizeType)
-{}
-#endif
-
-#ifdef CMAKE_WORDS_BIGENDIAN
-template <typename T>
-void
-ByteSwapper<T>::SwapWriteRangeFromSystemToLittleEndian(T * p, int num, OStreamType * fp)
+ByteSwapper<T>::SwapWriteRangeFromSystemToLittleEndian(const T * p, int num, std::ostream * fp)
 {
-  switch (sizeof(T))
+  if constexpr (m_SystemIsBigEndian && sizeof(T) > 1)
   {
-    case 1:
-      return;
-    case 2:
-      ByteSwapper<T>::SwapWrite2Range((void *)p, num, fp);
-      return;
-    case 4:
-      ByteSwapper<T>::SwapWrite4Range((void *)p, num, fp);
-      return;
-    case 8:
-      ByteSwapper<T>::SwapWrite8Range((void *)p, num, fp);
-      return;
-    default:
-      itkGenericExceptionMacro(<< "Cannot swap number of bytes requested");
+    SwapWriteRange(p, num, *fp);
+  }
+  else
+  {
+    num *= sizeof(T);
+    fp->write(reinterpret_cast<const char *>(p), num);
   }
 }
 
-#else
+
+// The following member functions are private:
+
 template <typename T>
 void
-ByteSwapper<T>::SwapWriteRangeFromSystemToLittleEndian(T * p, int num, OStreamType * fp)
+ByteSwapper<T>::SwapBytes(T & value)
 {
-  num *= sizeof(T);
-  fp->write((char *)p, num);
-}
+  static constexpr size_t numberOfBytes = sizeof(T);
 
-#endif
-
-// The following are the protected methods -------------------------
-//
-
-//------2-byte methods----------------------------------------------
-
-// Swap 2 byte word.
-template <typename T>
-void
-ByteSwapper<T>::Swap2(void * pin)
-{
-  auto *               p = static_cast<unsigned short *>(pin);
-  const unsigned short h1 = (*p) << static_cast<short unsigned int>(8);
-  const unsigned short h2 = (*p) >> static_cast<short unsigned int>(8);
-  *p = h1 | h2;
-}
-
-// Swap bunch of bytes. Num is the number of two byte words to swap.
-template <typename T>
-void
-ByteSwapper<T>::Swap2Range(void * ptr, BufferSizeType num)
-{
-  auto * pos = static_cast<char *>(ptr);
-  for (BufferSizeType i = 0; i < num; ++i)
+  // Historically (from ITK v1.2.0, March 2003) the following number of bytes are supported:
+  if constexpr (numberOfBytes == 2 || numberOfBytes == 4 || numberOfBytes == 8)
   {
-    const char one_byte = pos[0];
-    pos[0] = pos[1];
-    pos[1] = one_byte;
-    pos = pos + 2;
-  }
-}
+    // When the value is an integer, the following code is equivalent to `value = std::byteswap(value)`, in C++26:
+    auto * const bytes = reinterpret_cast<std::byte *>(&value);
 
-// Swap bunch of bytes. Num is the number of four byte words to swap.
-template <typename T>
-void
-ByteSwapper<T>::SwapWrite2Range(void * ptr, BufferSizeType num, OStreamType * fp)
-{
-  BufferSizeType chunkSize = 1000000;
-  if (num < chunkSize)
-  {
-    chunkSize = num;
-  }
-  auto * cpy = new char[chunkSize * 2];
-  while (num)
-  {
-    memcpy(cpy, ptr, chunkSize * 2);
-
-    char * pos = cpy;
-    for (BufferSizeType i = 0; i < chunkSize; ++i)
+    for (size_t i{}; i < (numberOfBytes / 2); ++i)
     {
-      const char one_byte = pos[0];
-      pos[0] = pos[1];
-      pos[1] = one_byte;
-      pos = pos + 2;
-    }
-    fp->write((char *)cpy, static_cast<std::streamsize>(2 * chunkSize));
-    ptr = (char *)ptr + chunkSize * 2;
-    num -= chunkSize;
-    if (num < chunkSize)
-    {
-      chunkSize = num;
+      std::swap(bytes[i], bytes[(numberOfBytes - 1) - i]);
     }
   }
-  delete[] cpy;
-}
-
-//------4-byte methods----------------------------------------------
-
-// Swap four byte word.
-template <typename T>
-void
-ByteSwapper<T>::Swap4(void * ptr)
-{
-  char   one_byte;
-  auto * p = static_cast<char *>(ptr);
-
-  one_byte = p[0];
-  p[0] = p[3];
-  p[3] = one_byte;
-
-  one_byte = p[1];
-  p[1] = p[2];
-  p[2] = one_byte;
-}
-
-// Swap bunch of bytes. Num is the number of four byte words to swap.
-template <typename T>
-void
-ByteSwapper<T>::Swap4Range(void * ptr, BufferSizeType num)
-{
-  auto * pos = static_cast<char *>(ptr);
-
-  for (BufferSizeType i = 0; i < num; ++i)
+  else
   {
-    char one_byte = pos[0];
-    pos[0] = pos[3];
-    pos[3] = one_byte;
-
-    one_byte = pos[1];
-    pos[1] = pos[2];
-    pos[2] = one_byte;
-    pos = pos + 4;
+    itkGenericExceptionMacro("Cannot swap number of bytes requested");
   }
 }
 
-// Swap bunch of bytes. Num is the number of four byte words to swap.
 template <typename T>
 void
-ByteSwapper<T>::SwapWrite4Range(void * ptr, BufferSizeType num, OStreamType * fp)
+ByteSwapper<T>::SwapWriteRange(const T * buffer, SizeValueType numberOfElements, std::ostream & outputStream)
 {
-  BufferSizeType chunkSize = 1000000;
+  auto chunkSize = std::min(numberOfElements, SizeValueType{ 1000000 });
 
-  if (num < chunkSize)
+  const auto chunk = make_unique_for_overwrite<T[]>(chunkSize);
+
+  while (numberOfElements > 0)
   {
-    chunkSize = num;
-  }
-  auto * cpy = new char[chunkSize * 4];
+    std::copy_n(buffer, chunkSize, chunk.get());
+    std::for_each_n(chunk.get(), chunkSize, [](T & element) { SwapBytes(element); });
 
-  while (num)
-  {
-    memcpy(cpy, ptr, chunkSize * 4);
-
-    char * pos = cpy;
-    for (BufferSizeType i = 0; i < chunkSize; ++i)
-    {
-      char one_byte = pos[0];
-      pos[0] = pos[3];
-      pos[3] = one_byte;
-
-      one_byte = pos[1];
-      pos[1] = pos[2];
-      pos[2] = one_byte;
-      pos = pos + 4;
-    }
-    fp->write((char *)cpy, static_cast<std::streamsize>(4 * chunkSize));
-    ptr = (char *)ptr + chunkSize * 4;
-    num -= chunkSize;
-    if (num < chunkSize)
-    {
-      chunkSize = num;
-    }
-  }
-  delete[] cpy;
-}
-
-//------8-byte methods----------------------------------------------
-
-// Swap 8 byte double precision
-template <typename T>
-void
-ByteSwapper<T>::Swap8(void * ptr)
-{
-  char   one_byte;
-  auto * p = static_cast<char *>(ptr);
-
-  one_byte = p[0];
-  p[0] = p[7];
-  p[7] = one_byte;
-
-  one_byte = p[1];
-  p[1] = p[6];
-  p[6] = one_byte;
-
-  one_byte = p[2];
-  p[2] = p[5];
-  p[5] = one_byte;
-
-  one_byte = p[3];
-  p[3] = p[4];
-  p[4] = one_byte;
-}
-
-// Swap bunch of bytes. Num is the number of eight byte words to swap.
-template <typename T>
-void
-ByteSwapper<T>::Swap8Range(void * ptr, BufferSizeType num)
-{
-  auto * pos = static_cast<char *>(ptr);
-
-  for (BufferSizeType i = 0; i < num; ++i)
-  {
-    char one_byte = pos[0];
-    pos[0] = pos[7];
-    pos[7] = one_byte;
-
-    one_byte = pos[1];
-    pos[1] = pos[6];
-    pos[6] = one_byte;
-
-    one_byte = pos[2];
-    pos[2] = pos[5];
-    pos[5] = one_byte;
-
-    one_byte = pos[3];
-    pos[3] = pos[4];
-    pos[4] = one_byte;
-    pos = pos + 8;
+    outputStream.write(reinterpret_cast<const char *>(chunk.get()),
+                       static_cast<std::streamsize>(chunkSize * sizeof(T)));
+    buffer += chunkSize;
+    numberOfElements -= chunkSize;
+    chunkSize = std::min(numberOfElements, chunkSize);
   }
 }
 
-// Swap bunch of bytes. Num is the number of four byte words to swap.
-template <typename T>
-void
-ByteSwapper<T>::SwapWrite8Range(void * ptr, BufferSizeType num, OStreamType * fp)
-{
-  BufferSizeType chunkSize = 1000000;
-  if (num < chunkSize)
-  {
-    chunkSize = num;
-  }
-  auto * cpy = new char[chunkSize * 8];
-
-  while (num)
-  {
-    memcpy(cpy, ptr, chunkSize * 8);
-
-    ByteSwapper<T>::Swap8Range((void *)cpy, chunkSize);
-
-    fp->write((char *)cpy, static_cast<std::streamsize>(8 * chunkSize));
-    ptr = (char *)ptr + chunkSize * 8;
-    num -= chunkSize;
-    if (num < chunkSize)
-    {
-      chunkSize = num;
-    }
-  }
-  delete[] cpy;
-}
 } // end namespace itk
 
 #endif

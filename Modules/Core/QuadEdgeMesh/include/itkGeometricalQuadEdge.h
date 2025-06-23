@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class GeometricalQuadEdge
+ * \class GeometricalQuadEdge
  * \brief This class extends the QuadEdge by adding a reference to the Origin.
  *
  * The class is implemented in such a way that it can generate its own Dual.
@@ -45,12 +45,12 @@ namespace itk
  * and QEDual of \ref QuadEdgeMesh identical and would prevent any algorithm
  * requiring to distinguish those types (e.g. by relying on a
  * dynamic_cast<QEType*>) to be effective.  This justifies the existence of
- * last dummy template parameter and it's default value.
+ * last dummy template parameter and its default value.
  *
  * \author Alexandre Gouaillard, Leonardo Florez-Valencia, Eric Boix
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/122
+ * https://doi.org/10.54294/4mx7kk
  *
  * \sa QuadEdge
  *
@@ -88,6 +88,7 @@ public:
   using ConstIteratorGeom = QuadEdgeMeshConstIteratorGeom<Self>;
 
   /** Basic iterators methods. */
+  /** @ITKStartGrouping */
   inline itkQEDefineIteratorGeomMethodsMacro(Onext);
   inline itkQEDefineIteratorGeomMethodsMacro(Sym);
   inline itkQEDefineIteratorGeomMethodsMacro(Lnext);
@@ -101,7 +102,7 @@ public:
   inline itkQEDefineIteratorGeomMethodsMacro(InvLnext);
   inline itkQEDefineIteratorGeomMethodsMacro(InvRnext);
   inline itkQEDefineIteratorGeomMethodsMacro(InvDnext);
-
+  /** @ITKEndGrouping */
   /** QE macros. */
   itkQEAccessorsMacro(Superclass, Self, DualType);
 
@@ -172,43 +173,45 @@ public:
   }
 
   /** Get methods. */
+  /** @ITKStartGrouping */
   // ORIENTATION_NOTE: this definition of GetLeft (or GetRight)
   // implicitly assumes that the Onext order is counter-clockwise !
-  inline const OriginRefType
+  [[nodiscard]] [[nodiscard]] inline const OriginRefType
   GetOrigin() const
   {
     return (m_Origin);
   }
-  inline const OriginRefType
+  [[nodiscard]] [[nodiscard]] inline const OriginRefType
   GetDestination() const
   {
     return (GetSym()->GetOrigin());
   }
-  inline const DualOriginRefType
+  [[nodiscard]] [[nodiscard]] inline const DualOriginRefType
   GetRight() const
   {
     return (GetRot()->GetOrigin());
   }
-  inline const DualOriginRefType
+  [[nodiscard]] [[nodiscard]] inline const DualOriginRefType
   GetLeft() const
   {
     return (GetInvRot()->GetOrigin());
   }
-
+  /** @ITKEndGrouping */
   /** Boolean accessors. */
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsOriginSet() const;
 
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsDestinationSet() const;
 
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsRightSet() const;
 
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsLeftSet() const;
 
   /** Extra data set methods. */
+  /** @ITKStartGrouping */
   inline void
   SetPrimalData(const PrimalDataType data)
   {
@@ -220,7 +223,7 @@ public:
   {
     this->GetRot()->SetPrimalData(data);
   }
-
+  /** @ITKEndGrouping */
   inline void
   SetPrimalData()
   {
@@ -244,6 +247,7 @@ public:
   }
 
   /** Extra data get methods. */
+  /** @ITKStartGrouping */
   inline PrimalDataType
   GetPrimalData()
   {
@@ -254,8 +258,9 @@ public:
   {
     return (this->GetRot()->GetPrimalData());
   }
-
+  /** @ITKEndGrouping */
   /** Boolean accessors. */
+  /** @ITKStartGrouping */
   inline bool
   IsPrimalDataSet()
   {
@@ -266,7 +271,7 @@ public:
   {
     return (this->GetRot()->IsPrimalDataSet());
   }
-
+  /** @ITKEndGrouping */
   /**
    * @return Returns true when "this" has no faces set on both sides.
    *         Return false otherwise.
@@ -292,13 +297,13 @@ public:
    * @return Returns true when "this" has faces set on both sides.
    *         Return false otherwise.
    */
-  inline bool
+  [[nodiscard]] [[nodiscard]] inline bool
   IsInternal() const
   {
     return (this->IsLeftSet() && this->IsRightSet());
   }
 
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsOriginInternal() const;
 
   bool
@@ -323,6 +328,7 @@ public:
   ReorderOnextRingBeforeAddFace(Self * second);
 
   /** Disconnection methods. */
+  /** @ITKStartGrouping */
   inline bool
   IsOriginDisconnected()
   {
@@ -338,7 +344,7 @@ public:
   {
     return (this->IsOriginDisconnected() && this->IsDestinationDisconnected());
   }
-
+  /** @ITKEndGrouping */
   void
   Disconnect();
 
@@ -358,10 +364,10 @@ public:
   static const OriginRefType m_NoPoint;
 
 protected:
-  OriginRefType      m_Origin;           // Geometrical information
-  PrimalDataType     m_Data;             // User data associated to this edge.
+  OriginRefType      m_Origin{};         // Geometrical information
+  PrimalDataType     m_Data{};           // User data associated to this edge.
   bool               m_DataSet{ false }; // Indicates if the data is set.
-  LineCellIdentifier m_LineCellIdent;
+  LineCellIdentifier m_LineCellIdent{};
 };
 } // namespace itk
 

@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,9 +49,9 @@ parser.add_option(
 opts, args = parser.parse_args()
 
 # declares classes which will not be wrapped
-excluded = set([])
+excluded = set()
 if opts.exclude:
-    with open(opts.exclude, "r") as fp:
+    with open(opts.exclude) as fp:
         to_exclude = [c.strip() for c in fp.readlines()]
         excluded.update(set(to_exclude))
 
@@ -59,30 +59,25 @@ if opts.exclude:
 headers = []
 for d in args:
     headers += sum(
-        [
+        (
             f
             for p, d, f in os.walk(d)
             if "Deprecated" not in p and "TestKernel" not in p
-        ],
+        ),
         [],
     )
-classes = (
-    set(
-        [
-            f[len("itk") : -len(".h")]
-            for f in headers
-            if f.startswith("itk")
-            and not f.startswith("itkv3")
-            and f.endswith(opts.base + ".h")
-        ]
-    )
-    - excluded
-)
+classes = {
+    f[len("itk") : -len(".h")]
+    for f in headers
+    if f.startswith("itk")
+    and not f.startswith("itkv3")
+    and f.endswith(opts.base + ".h")
+} - excluded
 
 # get filter from wrapper files
 # remove classes which are not in the toolkit (external projects,
 # PyImageFilter, ...)
-wrapped = set([a for a in dir(itk) if a.endswith(opts.base)]).intersection(classes)
+wrapped = {a for a in dir(itk) if a.endswith(opts.base)}.intersection(classes)
 
 nonWrapped = classes - wrapped
 
@@ -92,7 +87,7 @@ nonWrapped = classes - wrapped
 for f in sorted(nonWrapped):
     print(f)
 
-# and print stats in stderr to avoid poluting the list above
+# and print stats in stderr to avoid polluting the list above
 print("", file=sys.stderr)
 print("%i %s" % (len(classes), opts.base), file=sys.stderr)
 print("%i wrapped %s" % (len(wrapped), opts.base), file=sys.stderr)

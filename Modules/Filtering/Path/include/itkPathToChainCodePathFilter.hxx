@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPathToChainCodePathFilter_hxx
 #define itkPathToChainCodePathFilter_hxx
 
-#include "itkPathToChainCodePathFilter.h"
 
 namespace itk
 {
@@ -34,18 +33,16 @@ template <typename TInputPath, typename TOutputChainCodePath>
 void
 PathToChainCodePathFilter<TInputPath, TOutputChainCodePath>::GenerateData()
 {
-  OffsetType offset;
-  OffsetType tempOffset;
-  OffsetType zeroOffset;
-
-  zeroOffset.Fill(0);
+  OffsetType           offset;
+  OffsetType           tempOffset;
+  constexpr OffsetType zeroOffset{};
 
   InputPathInputType inputPathInput;
 
-  int dimension = OffsetType::GetOffsetDimension();
+  const int dimension = OffsetType::GetOffsetDimension();
 
-  typename Superclass::InputPathConstPointer inputPtr = this->GetInput();
-  typename Superclass::OutputPathPointer     outputPtr = this->GetOutput(0);
+  const typename Superclass::InputPathConstPointer inputPtr = this->GetInput();
+  const typename Superclass::OutputPathPointer     outputPtr = this->GetOutput(0);
 
   // outputPtr->SetRequestedRegion( inputPtr->GetRequestedRegion() );
   // outputPtr->SetBufferedRegion( inputPtr->GetBufferedRegion() );
@@ -70,7 +67,7 @@ PathToChainCodePathFilter<TInputPath, TOutputChainCodePath>::GenerateData()
     }
     else
     {
-      for (int d = 0; d < dimension; d++)
+      for (int d = 0; d < dimension; ++d)
       {
         if (offset[d])
         {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,9 @@
 #ifndef itkImageIteratorWithIndex_hxx
 #define itkImageIteratorWithIndex_hxx
 
-#include "itkImageIteratorWithIndex.h"
 
 namespace itk
 {
-
-//----------------------------------------------------------------------
-//  Constructor
-//----------------------------------------------------------------------
-template <typename TImage>
-ImageIteratorWithIndex<TImage>::ImageIteratorWithIndex(const Self & it)
-  : ImageConstIteratorWithIndex<TImage>(it)
-{}
 
 //----------------------------------------------------------------------
 //  Constructor
@@ -53,17 +44,6 @@ ImageIteratorWithIndex<TImage>::ImageIteratorWithIndex(const ImageConstIteratorW
 template <typename TImage>
 ImageIteratorWithIndex<TImage> &
 ImageIteratorWithIndex<TImage>::operator=(const ImageConstIteratorWithIndex<TImage> & it)
-{
-  this->ImageConstIteratorWithIndex<TImage>::operator=(it);
-  return *this;
-}
-
-//----------------------------------------------------------------------
-//    Assignment Operator
-//----------------------------------------------------------------------
-template <typename TImage>
-ImageIteratorWithIndex<TImage> &
-ImageIteratorWithIndex<TImage>::operator=(const Self & it)
 {
   this->ImageConstIteratorWithIndex<TImage>::operator=(it);
   return *this;

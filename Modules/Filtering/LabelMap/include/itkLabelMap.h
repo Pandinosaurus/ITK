@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class LabelMap
+ * \class LabelMap
  *  \brief Templated n-dimensional image to store labeled objects.
  *
  * LabelMap is an image class specialized in storing the labeled
@@ -56,7 +56,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \ingroup ImageObjects
  * \ingroup LabeledImageObject
@@ -82,14 +82,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LabelMap, ImageBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelMap);
 
   using LabelObjectType = TLabelObject;
 
   using LabelObjectPointerType = typename LabelObjectType::Pointer;
 
-  using SizeValueType = typename Superclass::SizeValueType;
+  using typename Superclass::SizeValueType;
   using LengthType = SizeValueType;
 
   /** Dimension of the image.  This constant is used by functions that are
@@ -107,31 +107,31 @@ public:
   using LabelObjectVectorType = std::vector<LabelObjectPointerType>;
 
   /** Index type alias support An index is used to access pixel values. */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** Offset type alias support An offset is used to access pixel values. */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
 
   /** Size type alias support A size is used to define region bounds. */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** Direction type alias support A matrix of direction cosines. */
-  using DirectionType = typename Superclass::DirectionType;
+  using typename Superclass::DirectionType;
 
   /** Region type alias support A region is used to specify a subset of an image.
    */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Spacing type alias support  Spacing holds the size of a pixel.  The
    * spacing is the geometric distance between image samples. */
-  using SpacingType = typename Superclass::SpacingType;
+  using typename Superclass::SpacingType;
 
   /** Origin type alias support  The origin is the geometric coordinates
    * of the index (0,0). */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Offset type alias (relative position between indices) */
-  using OffsetValueType = typename Superclass::OffsetValueType;
+  using typename Superclass::OffsetValueType;
 
   /** Restore the data object to its initial state. This means releasing
    * memory. */
@@ -150,11 +150,12 @@ public:
    * This method throws an exception if the label doesn't exist in this image,
    * or if the label is the background one.
    */
+  /** @ITKStartGrouping */
   LabelObjectType *
   GetLabelObject(const LabelType & label);
   const LabelObjectType *
   GetLabelObject(const LabelType & label) const;
-
+  /** @ITKEndGrouping */
   /**
    * Return true is the image contains the label given in parameter and false
    * otherwise. If the label is the background one, true is also returned, so
@@ -165,15 +166,16 @@ public:
 
   /**
    * Return the LabelObject with at the position given in parameter.
-   * This method can be useful when the labels are not consecutives, but is quite
+   * This method can be useful when the labels are not consecutive, but is quite
    * inefficient.
    * This method throws an exception if the index doesn't exist in this image.
    */
+  /** @ITKStartGrouping */
   LabelObjectType *
   GetNthLabelObject(const SizeValueType & pos);
   const LabelObjectType *
   GetNthLabelObject(const SizeValueType & pos) const;
-
+  /** @ITKEndGrouping */
   /**
    * Return the pixel value at a given index in the image. If the given index
    * is contained in several objects, only the smallest label of those objects
@@ -191,7 +193,7 @@ public:
    * has a unique value.
    *
    * The complexity of this method is at best O(L) where L is the number of lines
-   * in the image - usit with care.
+   * in the image - use it with care.
    */
   void
   SetPixel(const IndexType & idx, const LabelType & iLabel);
@@ -233,7 +235,7 @@ public:
 
   /**
    * Add a label object to the image. If a label object already has the label,
-   * it is overriden.
+   * it is overridden.
    */
   void
   AddLabelObject(LabelObjectType * labelObject);
@@ -267,7 +269,10 @@ public:
    * Return the number of label objects in the image
    */
   typename Self::SizeValueType
-  GetNumberOfLabelObjects() const;
+  GetNumberOfLabelObjects() const
+  {
+    return static_cast<SizeValueType>(m_LabelObjectContainer.size());
+  }
 
   /**
    * Return the labels of the label objects available in the label map
@@ -276,7 +281,7 @@ public:
   GetLabels() const;
 
   /**
-   * Return the the label objects available in the label map
+   * Return the label objects available in the label map
    */
   LabelObjectVectorType
   GetLabelObjects() const;
@@ -284,9 +289,10 @@ public:
   /**
    * Set/Get the background label
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(BackgroundValue, LabelType);
   itkSetMacro(BackgroundValue, LabelType);
-
+  /** @ITKEndGrouping */
   /**
    * Print all the objects stored in that collection - a convenient method
    * for prototyping.
@@ -307,7 +313,7 @@ public:
   Optimize();
 
   /**
-   *\class ConstIterator
+   * \class ConstIterator
    * \brief A forward iterator over the LabelObjects of a LabelMap
    * \ingroup ITKLabelMap
    */
@@ -317,35 +323,19 @@ public:
     ConstIterator() = default;
 
     ConstIterator(const Self * lm)
+      : m_Begin(lm->m_LabelObjectContainer.begin())
+      , m_End(lm->m_LabelObjectContainer.end())
     {
-      m_Begin = lm->m_LabelObjectContainer.begin();
-      m_End = lm->m_LabelObjectContainer.end();
       m_Iterator = m_Begin;
     }
 
-    ConstIterator(const ConstIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-    }
-
-    ConstIterator &
-    operator=(const ConstIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-      return *this;
-    }
-
-    const LabelObjectType *
+    [[nodiscard]] const LabelObjectType *
     GetLabelObject() const
     {
       return m_Iterator->second;
     }
 
-    const LabelType &
+    [[nodiscard]] const LabelType &
     GetLabel() const
     {
       return m_Iterator->first;
@@ -372,11 +362,7 @@ public:
       return m_Iterator == iter.m_Iterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
     }
 
-    bool
-    operator!=(const ConstIterator & iter) const
-    {
-      return !(*this == iter);
-    }
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
     void
     GoToBegin()
@@ -384,7 +370,7 @@ public:
       m_Iterator = m_Begin;
     }
 
-    bool
+    [[nodiscard]] bool
     IsAtEnd() const
     {
       return m_Iterator == m_End;
@@ -398,7 +384,7 @@ public:
   };
 
   /**
-   *\class Iterator
+   * \class Iterator
    * \brief A forward iterator over the LabelObjects of a LabelMap
    * \ingroup ITKLabelMap
    */
@@ -408,26 +394,10 @@ public:
     Iterator() = default;
 
     Iterator(Self * lm)
+      : m_Begin(lm->m_LabelObjectContainer.begin())
+      , m_End(lm->m_LabelObjectContainer.end())
     {
-      m_Begin = lm->m_LabelObjectContainer.begin();
-      m_End = lm->m_LabelObjectContainer.end();
       m_Iterator = m_Begin;
-    }
-
-    Iterator(const Iterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-    }
-
-    Iterator &
-    operator=(const Iterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-      return *this;
     }
 
     LabelObjectType *
@@ -436,7 +406,7 @@ public:
       return m_Iterator->second;
     }
 
-    const LabelType &
+    [[nodiscard]] const LabelType &
     GetLabel() const
     {
       return m_Iterator->first;
@@ -463,11 +433,7 @@ public:
       return m_Iterator == iter.m_Iterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
     }
 
-    bool
-    operator!=(const Iterator & iter) const
-    {
-      return !(*this == iter);
-    }
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
 
     void
     GoToBegin()
@@ -475,7 +441,7 @@ public:
       m_Iterator = m_Begin;
     }
 
-    bool
+    [[nodiscard]] bool
     IsAtEnd() const
     {
       return m_Iterator == m_End;
@@ -491,7 +457,7 @@ public:
   };
 
 protected:
-  LabelMap();
+  LabelMap() = default;
   ~LabelMap() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -505,8 +471,8 @@ private:
   using LabelObjectContainerIterator = typename LabelObjectContainerType::iterator;
   using LabelObjectContainerConstIterator = typename LabelObjectContainerType::const_iterator;
 
-  LabelObjectContainerType m_LabelObjectContainer;
-  LabelType                m_BackgroundValue;
+  LabelObjectContainerType m_LabelObjectContainer{};
+  LabelType                m_BackgroundValue{};
 
   void
   AddPixel(const LabelObjectContainerIterator & it, const IndexType & idx, const LabelType & label);

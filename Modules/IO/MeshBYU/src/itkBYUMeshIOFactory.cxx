@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ BYUMeshIOFactory::PrintSelf(std::ostream &, Indent) const
 {}
 
 
-BYUMeshIOFactory ::BYUMeshIOFactory()
+BYUMeshIOFactory::BYUMeshIOFactory()
 {
   this->RegisterOverride("itkMeshIOBase", "itkBYUMeshIO", "BYU Mesh IO", true, CreateObjectFunction<BYUMeshIO>::New());
 }
@@ -52,16 +52,10 @@ BYUMeshIOFactory::GetDescription() const
 
 // Undocumented API used to register during static initialization.
 // DO NOT CALL DIRECTLY.
-static bool BYUMeshIOFactoryHasBeenRegistered;
-
 void ITKIOMeshBYU_EXPORT
-     BYUMeshIOFactoryRegister__Private()
+BYUMeshIOFactoryRegister__Private()
 {
-  if (!BYUMeshIOFactoryHasBeenRegistered)
-  {
-    BYUMeshIOFactoryHasBeenRegistered = true;
-    BYUMeshIOFactory::RegisterOneFactory();
-  }
+  ObjectFactoryBase::RegisterInternalFactoryOnce<BYUMeshIOFactory>();
 }
 
 } // end namespace itk

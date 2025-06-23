@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCSVArray2DFileReader_hxx
 #define itkCSVArray2DFileReader_hxx
 
-#include "itkCSVArray2DFileReader.h"
 
 #include "itksys/SystemTools.hxx"
 #include <limits>
@@ -28,9 +27,8 @@ namespace itk
 
 template <typename TData>
 CSVArray2DFileReader<TData>::CSVArray2DFileReader()
-{
-  this->m_Array2DDataObject = Array2DDataObjectType::New();
-}
+  : m_Array2DDataObject(Array2DDataObjectType::New())
+{}
 
 template <typename TData>
 void
@@ -74,7 +72,7 @@ CSVArray2DFileReader<TData>::Parse()
     this->m_Array2DDataObject->HasColumnHeadersOn();
 
     // push the entries into the column headers vector.
-    for (unsigned int i = 0; i < columns + 1; i++)
+    for (unsigned int i = 0; i < columns + 1; ++i)
     {
       this->GetNextField(entry);
       this->m_Array2DDataObject->ColumnHeadersPushBack(entry);
@@ -93,7 +91,7 @@ CSVArray2DFileReader<TData>::Parse()
   }
 
   // Get the rest of the data
-  for (unsigned int i = 0; i < rows; i++)
+  for (unsigned int i = 0; i < rows; ++i)
   {
     // if there are row headers, push them into the vector for row headers
     if (this->m_HasRowHeaders)
@@ -104,7 +102,7 @@ CSVArray2DFileReader<TData>::Parse()
     }
 
     // parse the numeric data into the Array2D object
-    for (unsigned int j = 0; j < columns; j++)
+    for (unsigned int j = 0; j < columns; ++j)
     {
       this->GetNextField(entry);
       this->m_Array2DDataObject->SetMatrixData(i, j, this->ConvertStringToValueType<TData>(entry));
@@ -132,8 +130,8 @@ CSVArray2DFileReader<TData>::Update()
 
 /** Get the output */
 template <typename TData>
-typename CSVArray2DFileReader<TData>::Array2DDataObjectPointer
-CSVArray2DFileReader<TData>::GetOutput()
+auto
+CSVArray2DFileReader<TData>::GetOutput() -> Array2DDataObjectPointer
 {
   return this->GetModifiableArray2DDataObject();
 }

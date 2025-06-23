@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 // This test is designed to test reading and writing of miss matched
 // dimensions
@@ -28,7 +29,8 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
 
   if (argc < 4)
   {
-    std::cout << "usage: itkIOTests itkImageFileReaderTest inputFileName outputDirectory outputExtension" << std::endl;
+    std::cout << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName outputDirectory outputExtension"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -46,15 +48,15 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   using Writer4DType = itk::ImageFileWriter<Image4DType>;
 
 
-  std::string tempFile1 =
+  const std::string tempFile1 =
     std::string(argv[2]) + std::string("/itkImageFileReaderDimensionsTest_1.") + std::string(argv[3]);
-  std::string tempFile2 =
+  const std::string tempFile2 =
     std::string(argv[2]) + std::string("/itkImageFileReaderDimensionsTest_2.") + std::string(argv[3]);
-  std::string tempFile3 =
+  const std::string tempFile3 =
     std::string(argv[2]) + std::string("/itkImageFileReaderDimensionsTest_3.") + std::string(argv[3]);
-  std::string tempFile4 =
+  const std::string tempFile4 =
     std::string(argv[2]) + std::string("/itkImageFileReaderDimensionsTest_4.") + std::string(argv[3]);
-  std::string tempFile5 =
+  const std::string tempFile5 =
     std::string(argv[2]) + std::string("/itkImageFileReaderDimensionsTest_5.") + std::string(argv[3]);
 
   // we expect the filename to be 2 or 3 dimensions
@@ -62,10 +64,10 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing reading to 4D image" << std::endl;
   try
   {
-    Reader4DType::Pointer reader = Reader4DType::New();
+    auto reader = Reader4DType::New();
     reader->SetFileName(argv[1]);
 
-    Writer4DType::Pointer writer = Writer4DType::New();
+    auto writer = Writer4DType::New();
     writer->SetInput(reader->GetOutput());
     writer->SetFileName(tempFile1);
     writer->Update();
@@ -80,12 +82,12 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing reading from 4D image into 3D" << std::endl;
   try
   {
-    Reader3DType::Pointer reader = Reader3DType::New();
+    auto reader = Reader3DType::New();
     // we expect the filename to be 4 dimensions
     reader->SetFileName(tempFile1);
 
 
-    Writer3DType::Pointer writer = Writer3DType::New();
+    auto writer = Writer3DType::New();
     writer->SetInput(reader->GetOutput());
     writer->SetFileName(tempFile2);
     writer->Update();
@@ -101,10 +103,10 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing requested stream reading from 3D image into 4D" << std::endl;
   try
   {
-    Reader4DType::Pointer reader = Reader4DType::New();
+    auto reader = Reader4DType::New();
     reader->SetFileName(tempFile2);
 
-    Writer4DType::Pointer writer = Writer4DType::New();
+    auto writer = Writer4DType::New();
     writer->SetInput(reader->GetOutput());
     writer->SetFileName(tempFile3);
     writer->SetNumberOfStreamDivisions(4);
@@ -121,11 +123,11 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing requested stream reading from 4D image into 3D" << std::endl;
   try
   {
-    Reader3DType::Pointer reader = Reader3DType::New();
+    auto reader = Reader3DType::New();
     reader->SetFileName(tempFile3);
     reader->Update();
 
-    Writer3DType::Pointer writer = Writer3DType::New();
+    auto writer = Writer3DType::New();
     writer->SetInput(reader->GetOutput());
     writer->SetFileName(tempFile4);
     writer->SetNumberOfStreamDivisions(4);
@@ -142,7 +144,7 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing reading from 4D image into 2D" << std::endl;
   try
   {
-    Reader2DType::Pointer reader = Reader2DType::New();
+    auto reader = Reader2DType::New();
     // we expect the filename to be 4 dimensions
     reader->SetFileName(tempFile1);
     reader->UpdateLargestPossibleRegion();
@@ -159,10 +161,10 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing requested invalid paste IORegion" << std::endl;
   try
   {
-    Reader4DType::Pointer reader = Reader4DType::New();
+    auto reader = Reader4DType::New();
     reader->SetFileName(tempFile4);
 
-    Image4DType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
+    const Image4DType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
 
     // the dimension of this ioregion is an error, since it is one
     // less then the image file dimension
@@ -174,7 +176,7 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
     }
 
 
-    Writer4DType::Pointer writer = Writer4DType::New();
+    auto writer = Writer4DType::New();
     writer->SetInput(reader->GetOutput());
     writer->SetFileName(tempFile5); // this file name should not
                                     // matter since it should never be written
@@ -200,7 +202,7 @@ itkImageFileReaderDimensionsTest(int argc, char * argv[])
   std::cout << "testing reading to char 2D image" << std::endl;
   try
   {
-    CharReader2DType::Pointer reader = CharReader2DType::New();
+    auto reader = CharReader2DType::New();
     reader->SetFileName(argv[1]);
     reader->Update();
   }

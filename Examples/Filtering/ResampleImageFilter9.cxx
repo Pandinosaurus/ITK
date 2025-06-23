@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,10 +63,9 @@ main(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writerNearest =
-    WriterType::New(); // writer for nearest neighbor
-  WriterType::Pointer writerLinear = WriterType::New(); // writer for linear
+  auto reader = ReaderType::New();
+  auto writerNearest = WriterType::New(); // writer for nearest neighbor
+  auto writerLinear = WriterType::New();  // writer for linear
 
   reader->SetFileName(argv[1]);
   writerNearest->SetFileName(argv[2]);
@@ -74,32 +73,29 @@ main(int argc, char * argv[])
 
   using FilterType = itk::ResampleImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer nearestFilter = FilterType::New();
-  FilterType::Pointer linearFilter = FilterType::New();
+  auto nearestFilter = FilterType::New();
+  auto linearFilter = FilterType::New();
 
   // Interpolators
   using NearestInterpolatorType =
     itk::NearestNeighborInterpolateImageFunction<ImageType, double>;
-  NearestInterpolatorType::Pointer interpolatorNearest =
-    NearestInterpolatorType::New();
+  auto interpolatorNearest = NearestInterpolatorType::New();
 
   using LinearInterpolatorType =
     itk::LinearInterpolateImageFunction<ImageType, double>;
-  LinearInterpolatorType::Pointer interpolatorLinear =
-    LinearInterpolatorType::New();
+  auto interpolatorLinear = LinearInterpolatorType::New();
 
   nearestFilter->SetInterpolator(interpolatorNearest);
   linearFilter->SetInterpolator(interpolatorLinear);
 
   using TransformType = itk::IdentityTransform<double, Dimension>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   nearestFilter->SetTransform(transform);
   linearFilter->SetTransform(transform);
 
   // Software Guide : BeginCodeSnippet
-  PixelType defaultValue;
-  defaultValue.Fill(50);
+  auto defaultValue = itk::MakeFilled<PixelType>(50);
   nearestFilter->SetDefaultPixelValue(defaultValue);
   linearFilter->SetDefaultPixelValue(defaultValue);
   // Software Guide : EndCodeSnippet

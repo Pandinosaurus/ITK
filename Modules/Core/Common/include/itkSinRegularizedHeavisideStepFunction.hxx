@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,50 +18,45 @@
 #ifndef itkSinRegularizedHeavisideStepFunction_hxx
 #define itkSinRegularizedHeavisideStepFunction_hxx
 
-#include "itkSinRegularizedHeavisideStepFunction.h"
 #include "itkMath.h"
 
 namespace itk
 {
 template <typename TInput, typename TOutput>
-typename SinRegularizedHeavisideStepFunction<TInput, TOutput>::OutputType
-SinRegularizedHeavisideStepFunction<TInput, TOutput>::Evaluate(const InputType & input) const
+auto
+SinRegularizedHeavisideStepFunction<TInput, TOutput>::Evaluate(const InputType & input) const -> OutputType
 {
   if (static_cast<RealType>(input) >= this->GetEpsilon())
   {
     return NumericTraits<OutputType>::OneValue();
   }
-  else
-  {
-    if (static_cast<RealType>(input) <= -this->GetEpsilon())
-    {
-      return NumericTraits<OutputType>::ZeroValue();
-    }
-    else
-    {
-      const RealType angleFactor = 0.5 * itk::Math::pi * this->GetOneOverEpsilon();
-      const RealType angle = input * angleFactor;
 
-      return static_cast<OutputType>(0.5 * (1.0 + std::sin(angle)));
-    }
-  }
-}
-
-template <typename TInput, typename TOutput>
-typename SinRegularizedHeavisideStepFunction<TInput, TOutput>::OutputType
-SinRegularizedHeavisideStepFunction<TInput, TOutput>::EvaluateDerivative(const InputType & input) const
-{
-  if (itk::Math::abs(static_cast<RealType>(input)) >= this->GetEpsilon())
+  if (static_cast<RealType>(input) <= -this->GetEpsilon())
   {
-    return NumericTraits<OutputType>::ZeroValue();
+    return OutputType{};
   }
   else
   {
     const RealType angleFactor = 0.5 * itk::Math::pi * this->GetOneOverEpsilon();
     const RealType angle = input * angleFactor;
 
-    return static_cast<OutputType>(0.5 * angleFactor * std::cos(angle));
+    return static_cast<OutputType>(0.5 * (1.0 + std::sin(angle)));
   }
+}
+
+template <typename TInput, typename TOutput>
+auto
+SinRegularizedHeavisideStepFunction<TInput, TOutput>::EvaluateDerivative(const InputType & input) const -> OutputType
+{
+  if (itk::Math::abs(static_cast<RealType>(input)) >= this->GetEpsilon())
+  {
+    return OutputType{};
+  }
+
+  const RealType angleFactor = 0.5 * itk::Math::pi * this->GetOneOverEpsilon();
+  const RealType angle = input * angleFactor;
+
+  return static_cast<OutputType>(0.5 * angleFactor * std::cos(angle));
 }
 
 } // namespace itk

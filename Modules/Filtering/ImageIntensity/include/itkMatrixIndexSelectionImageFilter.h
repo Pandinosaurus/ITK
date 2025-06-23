@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,20 +45,12 @@ public:
   }
 
   bool
-  operator!=(const MatrixIndexSelection & other) const
-  {
-    if (m_I != other.m_I || m_J != other.m_J)
-    {
-      return true;
-    }
-    return false;
-  }
-
-  bool
   operator==(const MatrixIndexSelection & other) const
   {
-    return !(*this != other);
+    return m_I == other.m_I && m_J == other.m_J;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(MatrixIndexSelection);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -108,8 +100,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(MatrixIndexSelectionImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MatrixIndexSelectionImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -128,11 +120,7 @@ public:
     return this->GetFunctor().GetIndices(i, j);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   MatrixIndexSelectionImageFilter() = default;

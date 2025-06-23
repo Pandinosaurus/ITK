@@ -1,4 +1,5 @@
-set(ITKStatistics_SRCS
+set(
+  ITKStatistics_SRCS
   itkProbabilityDistribution.cxx
   itkDenseFrequencyContainer2.cxx
   itkSparseFrequencyContainer2.cxx
@@ -11,8 +12,8 @@ set(ITKStatistics_SRCS
   itkMaximumRatioDecisionRule.cxx
   itkMinimumDecisionRule.cxx
   itkHistogramToRunLengthFeaturesFilter.cxx
-itkExpectationMaximizationMixtureModelEstimator.cxx
-itkHistogramToTextureFeaturesFilter.cxx
-  )
+  itkExpectationMaximizationMixtureModelEstimator.cxx
+  itkHistogramToTextureFeaturesFilter.cxx
+)
 
 itk_module_add_library(ITKStatistics ${ITKStatistics_SRCS})

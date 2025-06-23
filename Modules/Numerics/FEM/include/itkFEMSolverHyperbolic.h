@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,7 @@
 
 #include "itkFEMSolver.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 /**
@@ -48,8 +46,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SolverHyperbolic, Solver<TDimension>);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SolverHyperbolic);
 
   using Float = Element::Float;
 
@@ -66,7 +64,7 @@ public:
   itkGetMacro(NumberOfIterations, unsigned int);
 
   /** Returns the time step used for dynamic problems. */
-  Float
+  [[nodiscard]] Float
   GetTimeStep() const override
   {
     return this->m_TimeStep;
@@ -149,14 +147,13 @@ protected:
     vector_tmp = 5
   };
 
-  Float        m_TimeStep;
-  Float        m_Gamma;
-  Float        m_Beta;
-  unsigned int m_NumberOfIterations;
+  Float        m_TimeStep{};
+  Float        m_Gamma{};
+  Float        m_Beta{};
+  unsigned int m_NumberOfIterations{};
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMSolverHyperbolic.hxx"

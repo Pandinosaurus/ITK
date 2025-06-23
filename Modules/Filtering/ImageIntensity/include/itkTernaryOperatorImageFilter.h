@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class TernaryOperatorImageFilter
+ * \class TernaryOperatorImageFilter
  * \brief Return the value of input 2 if input 1 is false, and that of input 3 otherwise.
  *
  * \author Davis Vigneault
@@ -51,7 +51,7 @@ namespace itk
    \code
 
    using TernaryType = itk::TernaryOperatorImageFilter< MaskType, ImageType >;
-   TernaryType::Pointer ternaryFilter = TernaryType::New();
+   auto ternaryFilter = TernaryType::New();
 
    ternaryFilter->SetInput1( maskImage );
    ternaryFilter->SetInput2( foregroundImage );
@@ -64,7 +64,7 @@ namespace itk
  * \ingroup ITKImageIntensity
  */
 template <typename TMask, typename TImage>
-class TernaryOperatorImageFilter : public TernaryGeneratorImageFilter<TMask, TImage, TImage, TImage>
+class ITK_TEMPLATE_EXPORT TernaryOperatorImageFilter : public TernaryGeneratorImageFilter<TMask, TImage, TImage, TImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(TernaryOperatorImageFilter);
@@ -84,8 +84,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(TernaryOperatorImageFilter, TernaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TernaryOperatorImageFilter);
 
 protected:
   TernaryOperatorImageFilter()

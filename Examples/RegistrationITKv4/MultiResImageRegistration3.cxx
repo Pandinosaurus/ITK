@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -134,9 +134,10 @@ public:
   }
 };
 
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
   if (argc < 4)
   {
@@ -181,16 +182,14 @@ main(int argc, char * argv[])
   //  All the components are instantiated using their \code{New()} method
   //  and connected to the registration object as in previous example.
   //
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
-  MetricType::Pointer       metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
+  auto metric = MetricType::New();
 
-  FixedImagePyramidType::Pointer fixedImagePyramid =
-    FixedImagePyramidType::New();
-  MovingImagePyramidType::Pointer movingImagePyramid =
-    MovingImagePyramidType::New();
+  auto fixedImagePyramid = FixedImagePyramidType::New();
+  auto movingImagePyramid = MovingImagePyramidType::New();
 
   registration->SetOptimizer(optimizer);
   registration->SetTransform(transform);
@@ -199,29 +198,21 @@ main(int argc, char * argv[])
   registration->SetFixedImagePyramid(fixedImagePyramid);
   registration->SetMovingImagePyramid(movingImagePyramid);
 
-
-  using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
-  using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
-
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
-
-  fixedImageReader->SetFileName(argv[1]);
-  movingImageReader->SetFileName(argv[2]);
-
+  const FixedImageType::Pointer fixedImage =
+    itk::ReadImage<FixedImageType>(argv[1]);
+  const MovingImageType::Pointer movingImage =
+    itk::ReadImage<MovingImageType>(argv[2]);
 
   using FixedCastFilterType =
     itk::CastImageFilter<FixedImageType, InternalImageType>;
   using MovingCastFilterType =
     itk::CastImageFilter<MovingImageType, InternalImageType>;
 
-  FixedCastFilterType::Pointer  fixedCaster = FixedCastFilterType::New();
-  MovingCastFilterType::Pointer movingCaster = MovingCastFilterType::New();
+  auto fixedCaster = FixedCastFilterType::New();
+  auto movingCaster = MovingCastFilterType::New();
 
-  fixedCaster->SetInput(fixedImageReader->GetOutput());
-  movingCaster->SetInput(movingImageReader->GetOutput());
+  fixedCaster->SetInput(fixedImage);
+  movingCaster->SetInput(movingImage);
 
   registration->SetFixedImage(fixedCaster->GetOutput());
   registration->SetMovingImage(movingCaster->GetOutput());
@@ -278,39 +269,32 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   using CommandType = RegistrationInterfaceCommand<RegistrationType>;
-  CommandType::Pointer command = CommandType::New();
+  auto command = CommandType::New();
   registration->AddObserver(itk::IterationEvent(), command);
 
 
   registration->SetNumberOfLevels(3);
 
-  try
-  {
-    registration->Update();
-    std::cout << "Optimizer stop condition: "
-              << registration->GetOptimizer()->GetStopConditionDescription()
-              << std::endl;
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << "ExceptionObject caught !" << std::endl;
-    std::cout << err << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  registration->Update();
+  std::cout << "Optimizer stop condition: "
+            << registration->GetOptimizer()->GetStopConditionDescription()
+            << std::endl;
+
 
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
-  double TranslationAlongX = finalParameters[0];
-  double TranslationAlongY = finalParameters[1];
-  double TranslationAlongZ = finalParameters[2];
+  const double TranslationAlongX = finalParameters[0];
+  const double TranslationAlongY = finalParameters[1];
+  const double TranslationAlongZ = finalParameters[2];
 
-  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
 
-  double bestValue = optimizer->GetValue();
+  const double bestValue = optimizer->GetValue();
 
 
   // Print out results
@@ -325,17 +309,15 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  TransformType::Pointer finalTransform = TransformType::New();
+  auto finalTransform = TransformType::New();
 
   finalTransform->SetParameters(finalParameters);
   finalTransform->SetFixedParameters(transform->GetFixedParameters());
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(finalTransform);
-  resample->SetInput(movingImageReader->GetOutput());
-
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  resample->SetInput(movingImage);
 
   PixelType backgroundGrayLevel = 100;
   if (argc > 4)
@@ -356,45 +338,32 @@ main(int argc, char * argv[])
 
   using CastFilterType =
     itk::CastImageFilter<FixedImageType, OutputImageType>;
-
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
-
-
-  writer->SetFileName(argv[3]);
-
-
+  auto caster = CastFilterType::New();
   caster->SetInput(resample->GetOutput());
-  writer->SetInput(caster->GetOutput());
-  writer->Update();
+  itk::WriteImage(caster->GetOutput(), argv[3]);
 
   //
   // Generate checkerboards before and after registration
   //
   using CheckerBoardFilterType = itk::CheckerBoardImageFilter<FixedImageType>;
 
-  CheckerBoardFilterType::Pointer checker = CheckerBoardFilterType::New();
+  auto checker = CheckerBoardFilterType::New();
 
   checker->SetInput1(fixedImage);
   checker->SetInput2(resample->GetOutput());
 
   caster->SetInput(checker->GetOutput());
-  writer->SetInput(caster->GetOutput());
 
   resample->SetDefaultPixelValue(0);
 
   // Before registration
-  TransformType::Pointer identityTransform = TransformType::New();
+  auto identityTransform = TransformType::New();
   identityTransform->SetIdentity();
   resample->SetTransform(identityTransform);
 
   if (argc > 5)
   {
-    writer->SetFileName(argv[5]);
-    writer->Update();
+    itk::WriteImage(caster->GetOutput(), argv[5]);
   }
 
 
@@ -402,9 +371,31 @@ main(int argc, char * argv[])
   resample->SetTransform(finalTransform);
   if (argc > 6)
   {
-    writer->SetFileName(argv[6]);
-    writer->Update();
+    itk::WriteImage(caster->GetOutput(), argv[6]);
   }
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,12 +30,8 @@ namespace itk
  * \brief Deformably register two images using a diffeomorphic demons algorithm.
  *
  * This class was contributed by Tom Vercauteren, INRIA & Mauna Kea Technologies,
- * based on a variation of the DemonsRegistrationFilter. The basic modification
- * is to use diffeomorphism exponentials.
- *
- * See T. Vercauteren, X. Pennec, A. Perchant and N. Ayache,
- * "Non-parametric Diffeomorphic Image Registration with the Demons Algorithm",
- * Proc. of MICCAI 2007.
+ * based on a variation of the DemonsRegistrationFilter
+ * \cite vercauteren2007. The basic modification is to use diffeomorphism exponentials.
  *
  * DiffeomorphicDemonsRegistrationFilter implements the demons deformable algorithm that
  * register two images by computing the deformation field which will map a
@@ -67,7 +63,7 @@ namespace itk
  * and deformation field type all have the same number of dimensions.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/154
+ * https://doi.org/10.54294/ux2obj
  *
  * \sa DemonsRegistrationFilter
  * \sa DemonsRegistrationFunction
@@ -90,23 +86,23 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DiffeomorphicDemonsRegistrationFilter, PDEDeformableRegistrationFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DiffeomorphicDemonsRegistrationFilter);
 
   /** FixedImage image type. */
-  using FixedImageType = typename Superclass::FixedImageType;
-  using FixedImagePointer = typename Superclass::FixedImagePointer;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::FixedImagePointer;
 
   /** MovingImage image type. */
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointer = typename Superclass::MovingImagePointer;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointer;
 
   /** Deformation field type. */
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
-  using DisplacementFieldPointer = typename Superclass::DisplacementFieldPointer;
+  using typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldPointer;
 
   /** FiniteDifferenceFunction type. */
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
   /** Take timestep type from the FiniteDifferenceFunction. */
   using TimeStepType = typename FiniteDifferenceFunctionType::TimeStepType;
@@ -120,12 +116,12 @@ public:
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
-   * computed over the the overlapping region between the two images.
+   * computed over the overlapping region between the two images.
    * This value is calculated for the current iteration */
-  virtual double
+  [[nodiscard]] virtual double
   GetMetric() const;
 
-  const double &
+  [[nodiscard]] const double &
   GetRMSChange() const override;
 
   virtual void
@@ -137,10 +133,11 @@ public:
   /** Use a first-order approximation of the exponential.
    *  This amounts to using an update rule of the type
    *  s <- s o (Id + u) instead of s <- s o exp(u) */
+  /** @ITKStartGrouping */
   itkSetMacro(UseFirstOrderExp, bool);
   itkGetConstMacro(UseFirstOrderExp, bool);
   itkBooleanMacro(UseFirstOrderExp);
-
+  /** @ITKEndGrouping */
   /** Set/Get the threshold below which the absolute difference of
    * intensity yields a match. When the intensities match between a
    * moving and fixed image pixel, the update vector (for that
@@ -148,7 +145,7 @@ public:
   virtual void
   SetIntensityDifferenceThreshold(double);
 
-  virtual double
+  [[nodiscard]] virtual double
   GetIntensityDifferenceThreshold() const;
 
   /** Set/Get the maximum length in terms of pixels of
@@ -156,7 +153,7 @@ public:
   virtual void
   SetMaximumUpdateStepLength(double);
 
-  virtual double
+  [[nodiscard]] virtual double
   GetMaximumUpdateStepLength() const;
 
 protected:
@@ -179,8 +176,11 @@ protected:
   ApplyUpdate(const TimeStepType & dt) override;
 
 private:
-  /** Downcast the DifferenceFunction using a dynamic_cast to ensure that it is of the correct type.
-   * this method will throw an exception if the function is not of the expected type. */
+  /** Downcast the DifferenceFunction using a dynamic_cast to ensure that it is of the correct type (i.e.
+   * a DemonsRegistrationFunction).
+   *
+   * Throws an exception if the function is not of the expected type.
+   */
   DemonsRegistrationFunctionType *
   DownCastDifferenceFunctionType();
 
@@ -207,10 +207,10 @@ private:
   using FieldInterpolatorOutputType = typename FieldInterpolatorType::OutputType;
   using AdderPointer = typename AdderType::Pointer;
 
-  MultiplyByConstantPointer m_Multiplier;
-  FieldExponentiatorPointer m_Exponentiator;
-  VectorWarperPointer       m_Warper;
-  AdderPointer              m_Adder;
+  MultiplyByConstantPointer m_Multiplier{};
+  FieldExponentiatorPointer m_Exponentiator{};
+  VectorWarperPointer       m_Warper{};
+  AdderPointer              m_Adder{};
   bool                      m_UseFirstOrderExp{ false };
 };
 } // end namespace itk

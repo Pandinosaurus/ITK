@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,18 +42,18 @@ itkBrukerImageTest(int argc, char * argv[])
 
   itk::Bruker2dseqImageIOFactory::RegisterOneFactory();
 
-  itk::Bruker2dseqImageIO::Pointer brukerImageIO = itk::Bruker2dseqImageIO::New();
+  const itk::Bruker2dseqImageIO::Pointer brukerImageIO = itk::Bruker2dseqImageIO::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(brukerImageIO, Bruker2dseqImageIO, ImageIOBase);
 
   const char * inputFilename = argv[1];
-  bool         canReadFile = brukerImageIO->CanReadFile(inputFilename);
+  const bool   canReadFile = brukerImageIO->CanReadFile(inputFilename);
   if (canReadFile)
   {
     using ReaderType = itk::ImageFileReader<ImageType>;
     using WriterType = itk::ImageFileWriter<ImageType>;
-    ReaderType::Pointer reader = ReaderType::New();
-    WriterType::Pointer writer = WriterType::New();
+    auto reader = ReaderType::New();
+    auto writer = WriterType::New();
     reader->SetFileName(argv[1]);
     ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
     // Bruker has a lot of extraneous meta-data, get rid of it

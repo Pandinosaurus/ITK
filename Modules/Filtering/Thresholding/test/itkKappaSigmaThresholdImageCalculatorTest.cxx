@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,19 +38,19 @@ itkKappaSigmaThresholdImageCalculatorTest(int argc, char * argv[])
 
   constexpr unsigned int Dimension = 2;
 
-  using PixelType = signed short;
+  using PixelType = short;
 
   using ImageType = itk::Image<PixelType, Dimension>;
   using MaskType = itk::Image<unsigned char, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
   // Create and initialize the calculator
   using CalculatorType = itk::KappaSigmaThresholdImageCalculator<ImageType, MaskType>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(calculator, KappaSigmaThresholdImageCalculator, Object);
 
@@ -63,7 +63,7 @@ itkKappaSigmaThresholdImageCalculatorTest(int argc, char * argv[])
   calculator->SetSigmaFactor(sigmaFactor);
   ITK_TEST_SET_GET_VALUE(sigmaFactor, calculator->GetSigmaFactor());
 
-  auto numberOfIterations = static_cast<unsigned>(std::stoi(argv[5]));
+  auto numberOfIterations = static_cast<unsigned int>(std::stoi(argv[5]));
   calculator->SetNumberOfIterations(numberOfIterations);
   ITK_TEST_SET_GET_VALUE(numberOfIterations, calculator->GetNumberOfIterations());
 
@@ -72,15 +72,18 @@ itkKappaSigmaThresholdImageCalculatorTest(int argc, char * argv[])
   calculator->Compute();
 
   // Regression test: compare computed threshold
-  CalculatorType::InputPixelType expectedThreshold = std::stod(argv[5]);
-  CalculatorType::InputPixelType resultThreshold = calculator->GetOutput();
-  double                         tolerance = 1e-3;
-  if (!itk::Math::FloatAlmostEqual((double)expectedThreshold, (double)resultThreshold, 10, tolerance))
+  const CalculatorType::InputPixelType expectedThreshold = std::stod(argv[5]);
+  const CalculatorType::InputPixelType resultThreshold = calculator->GetOutput();
+  constexpr double                     tolerance = 1e-3;
+  if (!itk::Math::FloatAlmostEqual(
+        static_cast<double>(expectedThreshold), static_cast<double>(resultThreshold), 10, tolerance))
   {
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in GetOutput()" << std::endl;
-    std::cerr << "Expected: " << itk::NumericTraits<CalculatorType::InputPixelType>::PrintType(expectedThreshold)
-              << ", but got: " << itk::NumericTraits<CalculatorType::InputPixelType>::PrintType(resultThreshold)
+    std::cerr << "Expected: "
+              << static_cast<itk::NumericTraits<CalculatorType::InputPixelType>::PrintType>(expectedThreshold)
+              << ", but got: "
+              << static_cast<itk::NumericTraits<CalculatorType::InputPixelType>::PrintType>(resultThreshold)
               << std::endl;
     return EXIT_FAILURE;
   }

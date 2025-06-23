@@ -10,28 +10,63 @@ endif()
 # Add compiler flags needed to use VTK. VTK has been found at this point.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VTK_REQUIRED_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VTK_REQUIRED_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${VTK_REQUIRED_EXE_LINKER_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${VTK_REQUIRED_SHARED_LINKER_FLAGS}")
-set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${VTK_REQUIRED_MODULE_LINKER_FLAGS}")
+set(
+  CMAKE_EXE_LINKER_FLAGS
+  "${CMAKE_EXE_LINKER_FLAGS} ${VTK_REQUIRED_EXE_LINKER_FLAGS}"
+)
+set(
+  CMAKE_SHARED_LINKER_FLAGS
+  "${CMAKE_SHARED_LINKER_FLAGS} ${VTK_REQUIRED_SHARED_LINKER_FLAGS}"
+)
+set(
+  CMAKE_MODULE_LINKER_FLAGS
+  "${CMAKE_MODULE_LINKER_FLAGS} ${VTK_REQUIRED_MODULE_LINKER_FLAGS}"
+)
 
 # The VTK DICOMParser and vtkmetaio includes conflict with the ITK
 # versions. Here we remove them from the include directories.
 #
-string(REGEX REPLACE "[^;]*MetaIO;"
-         "" ITKVtkGlue_VTK_INCLUDE_DIRS "${ITKVtkGlue_VTK_INCLUDE_DIRS}")
-string(REGEX REPLACE "[^;]*vtkmetaio;"
-         "" ITKVtkGlue_VTK_INCLUDE_DIRS "${ITKVtkGlue_VTK_INCLUDE_DIRS}")
-string(REGEX REPLACE "[^;]*DICOMParser;"
-         "" ITKVtkGlue_VTK_INCLUDE_DIRS "${ITKVtkGlue_VTK_INCLUDE_DIRS}")
+string(
+  REGEX
+  REPLACE
+  "[^;]*MetaIO;"
+  ""
+  ITKVtkGlue_VTK_INCLUDE_DIRS
+  "${ITKVtkGlue_VTK_INCLUDE_DIRS}"
+)
+string(
+  REGEX
+  REPLACE
+  "[^;]*vtkmetaio;"
+  ""
+  ITKVtkGlue_VTK_INCLUDE_DIRS
+  "${ITKVtkGlue_VTK_INCLUDE_DIRS}"
+)
+string(
+  REGEX
+  REPLACE
+  "[^;]*DICOMParser;"
+  ""
+  ITKVtkGlue_VTK_INCLUDE_DIRS
+  "${ITKVtkGlue_VTK_INCLUDE_DIRS}"
+)
 
 # Set up the include and library dirs needed for the module
 set(ITKVtkGlue_SYSTEM_INCLUDE_DIRS ${ITKVtkGlue_VTK_INCLUDE_DIRS})
 set(ITKVtkGlue_SYSTEM_LIBRARY_DIRS ${ITKVtkGlue_VTK_LIBRARY_DIRS})
 
 # Add preprocessor definitions needed to use VTK.
-set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS ${ITKVtkGlue_VTK_DEFINITIONS})
+set_property(
+  DIRECTORY
+  APPEND
+  PROPERTY
+    COMPILE_DEFINITIONS
+      ${ITKVtkGlue_VTK_DEFINITIONS}
+)
 
-set(ITKVtkGlue_EXPORT_CODE_INSTALL "
+set(
+  ITKVtkGlue_EXPORT_CODE_INSTALL
+  "
 set(VTK_DIR \"${VTK_DIR}\")
 
 find_package(VTK NO_MODULE REQUIRED)
@@ -80,18 +115,16 @@ if(NOT VTK_RENDERING_BACKEND STREQUAL \"None\")
     ${_target_prefix}InteractionWidgets
   )
 endif()
-if(${VTK_VERSION} VERSION_LESS 6.0.0)
-  set(ITKVtkGlue_VTK_INCLUDE_DIRS ${VTK_INCLUDE_DIRS})
-  set(ITKVtkGlue_VTK_LIBRARIES ${VTK_LIBRARIES})
-else()
-  vtk_module_config(ITKVtkGlue_VTK
-    \${_required_vtk_libraries}
-    )
-  set(ITKVtkGlue_VTK_LIBRARIES \${_required_vtk_libraries})
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS \${ITKVtkGlue_VTK_DEFINITIONS})
-endif()
-")
-set(ITKVtkGlue_EXPORT_CODE_BUILD "
+vtk_module_config(ITKVtkGlue_VTK
+  \${_required_vtk_libraries}
+  )
+set(ITKVtkGlue_VTK_LIBRARIES \${_required_vtk_libraries})
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS \${ITKVtkGlue_VTK_DEFINITIONS})
+"
+)
+set(
+  ITKVtkGlue_EXPORT_CODE_BUILD
+  "
 if(NOT ITK_BINARY_DIR)
   set(VTK_DIR \"${VTK_DIR}\")
 
@@ -140,18 +173,14 @@ if(NOT ITK_BINARY_DIR)
       ${_target_prefix}InteractionWidgets
     )
   endif()
-  if( ${VTK_VERSION} VERSION_LESS 6.0.0 )
-    set(ITKVtkGlue_VTK_INCLUDE_DIRS ${VTK_INCLUDE_DIRS})
-    set(ITKVtkGlue_VTK_LIBRARIES ${VTK_LIBRARIES})
-  else()
-    vtk_module_config(ITKVtkGlue_VTK
-      \${_required_vtk_libraries}
-      )
-    set(ITKVtkGlue_VTK_LIBRARIES \${_required_vtk_libraries})
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS \${ITKVtkGlue_VTK_DEFINITIONS})
-  endif()
+  vtk_module_config(ITKVtkGlue_VTK
+    \${_required_vtk_libraries}
+    )
+  set(ITKVtkGlue_VTK_LIBRARIES \${_required_vtk_libraries})
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS \${ITKVtkGlue_VTK_DEFINITIONS})
 endif()
-")
+"
+)
 
 if(VTK_RENDERING_BACKEND STREQUAL "None")
   set(ITKVtkGlue_LIBRARIES ${ITKVtkGlue_VTK_LIBRARIES})

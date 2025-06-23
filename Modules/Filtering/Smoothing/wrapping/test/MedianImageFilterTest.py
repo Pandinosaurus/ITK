@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,11 @@
 
 import itk
 import itk.support.types as itkt
-from sys import argv
+from sys import argv, version_info
 import warnings
-from typing import Sequence, TypeVar, get_type_hints, get_args, get_origin, Union
+
+from typing import TypeVar, get_type_hints, get_args, get_origin, Union
+from collections.abc import Sequence
 
 try:
     from numpy.typing import ArrayLike
@@ -53,26 +55,25 @@ compare_filter.Update()
 assert compare_filter.GetMaximumDifference() < 0.000000001
 
 # Check the type hints
-type_hints = get_type_hints(itk.median_image_filter, globalns= { 'itk': itk })
+type_hints = get_type_hints(itk.median_image_filter, globalns={"itk": itk})
 
-assert 'args' in type_hints
-args_hints = type_hints['args']
+assert "args" in type_hints
+args_hints = type_hints["args"]
 assert get_origin(args_hints) is Union
 assert itk.ImageBase in get_args(args_hints)
 
-assert 'radius' in type_hints
-radius_hints = type_hints['radius']
+assert "radius" in type_hints
+radius_hints = type_hints["radius"]
 assert get_origin(radius_hints) is Union
 assert int in get_args(radius_hints)
 assert Sequence[int] in get_args(radius_hints)
 
-assert 'return' in type_hints
-result_hints = type_hints['return']
+assert "return" in type_hints
+result_hints = type_hints["return"]
 assert itk.ImageBase in get_args(args_hints)
 
 # Check for process_object attribute pointing to the associated class
 assert itk.median_image_filter.process_object is itk.MedianImageFilter
-
 
 # Test that `__call__()` inside itkTemplate is deprecated. Replaced
 # by snake_case functions

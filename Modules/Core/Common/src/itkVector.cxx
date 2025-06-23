@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
  */
 
 Vector<double, 3> ITKCommon_EXPORT
-                  CrossProduct(const Vector<double, 3> & a, const Vector<double, 3> & b)
+CrossProduct(const Vector<double, 3> & a, const Vector<double, 3> & b)
 {
   Vector<double, 3> c;
   c[0] = a[1] * b[2] - a[2] * b[1];
@@ -38,7 +38,7 @@ Vector<double, 3> ITKCommon_EXPORT
 }
 
 Vector<float, 3> ITKCommon_EXPORT
-                 CrossProduct(const Vector<float, 3> & a, const Vector<float, 3> & b)
+CrossProduct(const Vector<float, 3> & a, const Vector<float, 3> & b)
 {
   Vector<float, 3> c;
   c[0] = a[1] * b[2] - a[2] * b[1];
@@ -48,7 +48,7 @@ Vector<float, 3> ITKCommon_EXPORT
 }
 
 Vector<int, 3> ITKCommon_EXPORT
-               CrossProduct(const Vector<int, 3> & a, const Vector<int, 3> & b)
+CrossProduct(const Vector<int, 3> & a, const Vector<int, 3> & b)
 {
   Vector<int, 3> c;
   c[0] = a[1] * b[2] - a[2] * b[1];

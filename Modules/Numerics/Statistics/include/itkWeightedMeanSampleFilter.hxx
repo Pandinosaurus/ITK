@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,31 +18,17 @@
 #ifndef itkWeightedMeanSampleFilter_hxx
 #define itkWeightedMeanSampleFilter_hxx
 
-#include "itkWeightedMeanSampleFilter.h"
 
 #include <vector>
 #include "itkCompensatedSummation.h"
 #include "itkMeasurementVectorTraits.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 WeightedMeanSampleFilter<TSample>::WeightedMeanSampleFilter()
 {
   this->ProcessObject::SetNthInput(1, nullptr);
-}
-
-template <typename TSample>
-void
-WeightedMeanSampleFilter<TSample>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  Superclass::PrintSelf(os, indent);
-  // m_Weights
-  os << indent << "Weights: " << this->GetWeightsInput() << std::endl;
-  // m_WeightingFunction
-  os << indent << "Weighting Function: " << this->GetWeightingFunctionInput() << std::endl;
 }
 
 template <typename TSample>
@@ -93,10 +79,10 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeights()
 
   const WeightArrayType & weightsArray = this->GetWeights();
 
-  WeightValueType totalWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalWeight{};
 
-  typename SampleType::ConstIterator iter = input->Begin();
-  typename SampleType::ConstIterator end = input->End();
+  typename SampleType::ConstIterator       iter = input->Begin();
+  const typename SampleType::ConstIterator end = input->End();
 
   for (unsigned int sampleVectorIndex = 0; iter != end; ++iter, ++sampleVectorIndex)
   {
@@ -109,7 +95,7 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeights()
     const WeightValueType weight = (rawWeight * static_cast<WeightValueType>(frequency));
     totalWeight += weight;
 
-    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    for (unsigned int dim = 0; dim < measurementVectorSize; ++dim)
     {
       const auto component = static_cast<MeasurementRealType>(measurement[dim]);
 
@@ -119,7 +105,7 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeights()
 
   if (totalWeight > itk::Math::eps)
   {
-    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    for (unsigned int dim = 0; dim < measurementVectorSize; ++dim)
     {
       output[dim] = (sum[dim].GetSum() / static_cast<MeasurementRealType>(totalWeight));
     }
@@ -154,7 +140,7 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeightingFunction()
 
   const WeightingFunctionType * const weightFunction = this->GetWeightingFunction();
 
-  WeightValueType totalWeight = NumericTraits<WeightValueType>::ZeroValue();
+  WeightValueType totalWeight{};
 
   typename SampleType::ConstIterator       iter = input->Begin();
   const typename SampleType::ConstIterator end = input->End();
@@ -170,7 +156,7 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeightingFunction()
     const WeightValueType weight = (rawWeight * static_cast<WeightValueType>(frequency));
     totalWeight += weight;
 
-    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    for (unsigned int dim = 0; dim < measurementVectorSize; ++dim)
     {
       const auto component = static_cast<MeasurementRealType>(measurement[dim]);
 
@@ -180,7 +166,7 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeightingFunction()
 
   if (totalWeight > itk::Math::eps)
   {
-    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    for (unsigned int dim = 0; dim < measurementVectorSize; ++dim)
     {
       output[dim] = (sum[dim].GetSum() / static_cast<MeasurementRealType>(totalWeight));
     }
@@ -192,7 +178,6 @@ WeightedMeanSampleFilter<TSample>::ComputeMeanWithWeightingFunction()
 
   decoratedOutput->Set(output);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

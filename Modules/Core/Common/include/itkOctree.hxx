@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkOctree_hxx
 #define itkOctree_hxx
 
-#include "itkOctree.h"
 
 namespace itk
 {
@@ -32,10 +31,6 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::Octree()
   m_Tree.SetParentOctree(this);
 }
 
-template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
-Octree<TPixel, ColorTableSize, MappingFunctionType>::~Octree()
-{ /*Nothing to be done here*/
-}
 
 template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
 void
@@ -88,7 +83,7 @@ OCTREE_OCTANT(const unsigned int VoxX,
  * \defgroup Octant directional identifying functions
  * These functions determine if the directions are in the "lower" or
  * "upper" portion of the Octree in the given directions.
- * @{
+ * @ITKStartGrouping
  */
 inline unsigned int
 XF(const unsigned int octantID)
@@ -108,7 +103,7 @@ ZF(const unsigned int octantID)
   return (octantID >> 2) & 1; // Just return 1 if 2nd bit is a one
 }
 
-/** @} */ // End of defgroup
+/** @ITKEndGrouping */ // End of defgroup
 
 template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
 int
@@ -124,7 +119,9 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::GetValue(const unsigned int
   // Define CurrentOctreeNode at the Octree head Node
   OctreeNode * CurrentOctreeNode = &m_Tree;
   // Define the origin of current OctreeNode
-  unsigned int ox = 0, oy = 0, oz = 0;
+  unsigned int ox = 0;
+  unsigned int oy = 0;
+  unsigned int oz = 0;
   // Define the halfwidth, this will be changed inside of while loop
   unsigned int halfwidth = this->m_Width;
 
@@ -146,13 +143,13 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::GetValue(const unsigned int
 template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
 OctreeNodeBranch *
 Octree<TPixel, ColorTableSize, MappingFunctionType>::maskToOctree(const TPixel * Mask,
-                                                                  unsigned       width,
-                                                                  unsigned       x,
-                                                                  unsigned       y,
-                                                                  unsigned       z,
-                                                                  unsigned       xsize,
-                                                                  unsigned       ysize,
-                                                                  unsigned       zsize)
+                                                                  unsigned int   width,
+                                                                  unsigned int   x,
+                                                                  unsigned int   y,
+                                                                  unsigned int   z,
+                                                                  unsigned int   xsize,
+                                                                  unsigned int   ysize,
+                                                                  unsigned int   zsize)
 {
   if ((x >= xsize) || (y >= ysize) || (z >= zsize))
   {
@@ -179,44 +176,42 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::maskToOctree(const TPixel *
   {
     return nodeArray[0];
   }
-  else
-  {
-    auto * q = new OctreeNodeBranch(this);
 
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::ZERO);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::ZERO)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::ONE);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::ONE)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::TWO);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::TWO)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::THREE);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::THREE)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::FOUR);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::FOUR)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::FIVE);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::FIVE)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::SIX);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::SIX)]);
-    }
-    {
-      OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::SEVEN);
-      newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::SEVEN)]);
-    }
-    return (q);
+  auto * q = new OctreeNodeBranch(this);
+
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::ZERO);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::ZERO)]);
   }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::ONE);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::ONE)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::TWO);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::TWO)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::THREE);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::THREE)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::FOUR);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::FOUR)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::FIVE);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::FIVE)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::SIX);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::SIX)]);
+  }
+  {
+    OctreeNode * newbranch = q->GetLeaf(OctreeNode::LeafIdentifierEnum::SEVEN);
+    newbranch->SetBranch(nodeArray[static_cast<uint8_t>(OctreeNode::LeafIdentifierEnum::SEVEN)]);
+  }
+  return (q);
 }
 
 template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
@@ -226,14 +221,14 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::BuildFromBuffer(const void 
                                                                      const unsigned int ysize,
                                                                      const unsigned int zsize)
 {
-  unsigned maxSize = xsize >= ysize ? (xsize >= zsize ? xsize : zsize) : (ysize >= zsize ? ysize : zsize);
-  unsigned width = 1;
-  unsigned depth = 0;
+  const unsigned int maxSize = xsize >= ysize ? (xsize >= zsize ? xsize : zsize) : (ysize >= zsize ? ysize : zsize);
+  unsigned int       width = 1;
+  unsigned int       depth = 0;
 
   while (width < maxSize)
   {
     width *= 2;
-    depth++;
+    ++depth;
   }
   this->SetDepth(depth);
   this->SetWidth(width);
@@ -257,8 +252,8 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::BuildFromImage(ImageType * 
 }
 
 template <typename TPixel, unsigned int ColorTableSize, typename MappingFunctionType>
-typename Octree<TPixel, ColorTableSize, MappingFunctionType>::ImageTypePointer
-Octree<TPixel, ColorTableSize, MappingFunctionType>::GetImage()
+auto
+Octree<TPixel, ColorTableSize, MappingFunctionType>::GetImage() -> ImageTypePointer
 {
   typename ImageType::SizeType imageSize = { { 0, 0, 0 } };
   SizeValueType                sizes[3];
@@ -266,14 +261,10 @@ Octree<TPixel, ColorTableSize, MappingFunctionType>::GetImage()
   sizes[1] = m_TrueDims[1];
   sizes[2] = m_TrueDims[2];
   imageSize.SetSize(sizes);
-  const typename ImageType::IndexType imageIndex = { { 0, 0, 0 } };
-  typename ImageType::RegionType      region;
-  region.SetSize(imageSize);
-  region.SetIndex(imageIndex);
-  typename ImageType::Pointer img = ImageType::New();
-  img->SetLargestPossibleRegion(region);
-  img->SetBufferedRegion(region);
-  img->SetRequestedRegion(region);
+  const typename ImageType::IndexType  imageIndex = { { 0, 0, 0 } };
+  const typename ImageType::RegionType region(imageIndex, imageSize);
+  auto                                 img = ImageType::New();
+  img->SetRegions(region);
   img->Allocate();
   typename ImageType::IndexType setIndex;
   for (unsigned int i = 0; i < m_TrueDims[0]; ++i)

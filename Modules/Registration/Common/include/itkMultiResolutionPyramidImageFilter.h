@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
  * pyramid.
  *
  * MultiResolutionPyramidImageFilter provides a generic framework to
- * to create a image pryamid according to a user defined
+ * to create a image pyramid according to a user defined
  * multi-resolution schedule.
  *
  * The multi-resolution schedule is specified in terms for
@@ -120,8 +120,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiResolutionPyramidImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiResolutionPyramidImageFilter);
 
   /** ScheduleType type alias support */
   using ScheduleType = Array2D<unsigned int>;
@@ -131,11 +131,11 @@ public:
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
   /** Inherit types from Superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImageConstPointer;
 
   /** Set the number of multi-resolution levels. The matrix containing the
    * schedule will be resized accordingly.  The schedule is populated with
@@ -172,7 +172,7 @@ public:
   SetStartingShrinkFactors(const unsigned int * factors);
 
   /** Get the starting shrink factors */
-  const unsigned int *
+  [[nodiscard]] const unsigned int *
   GetStartingShrinkFactors() const;
 
   /** Test if the schedule is downward divisible. This method returns true if
@@ -213,12 +213,8 @@ public:
   itkGetConstMacro(UseShrinkImageFilter, bool);
   itkBooleanMacro(UseShrinkImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   MultiResolutionPyramidImageFilter();
@@ -226,16 +222,16 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** Generate the output data. */
+  /** Generate the output data for non-downward divisible schedules. */
   void
   GenerateData() override;
 
-  double m_MaximumError;
+  double m_MaximumError{};
 
-  unsigned int m_NumberOfLevels;
-  ScheduleType m_Schedule;
+  unsigned int m_NumberOfLevels{};
+  ScheduleType m_Schedule{};
 
-  bool m_UseShrinkImageFilter;
+  bool m_UseShrinkImageFilter{};
 };
 } // namespace itk
 

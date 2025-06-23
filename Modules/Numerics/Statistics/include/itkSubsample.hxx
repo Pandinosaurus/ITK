@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,16 @@
 #ifndef itkSubsample_hxx
 #define itkSubsample_hxx
 
-#include "itkSubsample.h"
 
 #include "itkObject.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 Subsample<TSample>::Subsample()
-{
-  m_Sample = nullptr;
-  m_TotalFrequency = NumericTraits<AbsoluteFrequencyType>::ZeroValue();
-  m_ActiveDimension = 0;
-}
+  : m_Sample(nullptr)
+  , m_TotalFrequency(AbsoluteFrequencyType{})
+{}
 
 template <typename TSample>
 void
@@ -76,10 +71,10 @@ void
 Subsample<TSample>::InitializeWithAllInstances()
 {
   m_IdHolder.resize(m_Sample->Size());
-  auto                            idIter = m_IdHolder.begin();
-  typename TSample::ConstIterator iter = m_Sample->Begin();
-  typename TSample::ConstIterator last = m_Sample->End();
-  m_TotalFrequency = NumericTraits<AbsoluteFrequencyType>::ZeroValue();
+  auto                                  idIter = m_IdHolder.begin();
+  typename TSample::ConstIterator       iter = m_Sample->Begin();
+  const typename TSample::ConstIterator last = m_Sample->End();
+  m_TotalFrequency = AbsoluteFrequencyType{};
   while (iter != last)
   {
     *idIter++ = iter.GetInstanceIdentifier();
@@ -104,8 +99,8 @@ Subsample<TSample>::AddInstance(InstanceIdentifier id)
 }
 
 template <typename TSample>
-typename Subsample<TSample>::InstanceIdentifier
-Subsample<TSample>::Size() const
+auto
+Subsample<TSample>::Size() const -> InstanceIdentifier
 {
   return static_cast<unsigned int>(m_IdHolder.size());
 }
@@ -115,13 +110,13 @@ void
 Subsample<TSample>::Clear()
 {
   m_IdHolder.clear();
-  m_TotalFrequency = NumericTraits<AbsoluteFrequencyType>::ZeroValue();
+  m_TotalFrequency = AbsoluteFrequencyType{};
   this->Modified();
 }
 
 template <typename TSample>
-const typename Subsample<TSample>::MeasurementVectorType &
-Subsample<TSample>::GetMeasurementVector(InstanceIdentifier id) const
+auto
+Subsample<TSample>::GetMeasurementVector(InstanceIdentifier id) const -> const MeasurementVectorType &
 {
   if (id >= m_IdHolder.size())
   {
@@ -129,13 +124,13 @@ Subsample<TSample>::GetMeasurementVector(InstanceIdentifier id) const
   }
 
   // translate the id to its Sample container id
-  InstanceIdentifier idInTheSample = m_IdHolder[id];
+  const InstanceIdentifier idInTheSample = m_IdHolder[id];
   return m_Sample->GetMeasurementVector(idInTheSample);
 }
 
 template <typename TSample>
-inline typename Subsample<TSample>::AbsoluteFrequencyType
-Subsample<TSample>::GetFrequency(InstanceIdentifier id) const
+inline auto
+Subsample<TSample>::GetFrequency(InstanceIdentifier id) const -> AbsoluteFrequencyType
 {
   if (id >= m_IdHolder.size())
   {
@@ -143,13 +138,13 @@ Subsample<TSample>::GetFrequency(InstanceIdentifier id) const
   }
 
   // translate the id to its Sample container id
-  InstanceIdentifier idInTheSample = m_IdHolder[id];
+  const InstanceIdentifier idInTheSample = m_IdHolder[id];
   return m_Sample->GetFrequency(idInTheSample);
 }
 
 template <typename TSample>
-inline typename Subsample<TSample>::TotalAbsoluteFrequencyType
-Subsample<TSample>::GetTotalFrequency() const
+inline auto
+Subsample<TSample>::GetTotalFrequency() const -> TotalAbsoluteFrequencyType
 {
   return m_TotalFrequency;
 }
@@ -163,7 +158,7 @@ Subsample<TSample>::Swap(unsigned int index1, unsigned int index2)
     itkExceptionMacro("Index out of range");
   }
 
-  InstanceIdentifier temp = m_IdHolder[index1];
+  const InstanceIdentifier temp = m_IdHolder[index1];
   m_IdHolder[index1] = m_IdHolder[index2];
   m_IdHolder[index2] = temp;
   this->Modified();
@@ -181,8 +176,8 @@ Subsample<TSample>::GetMeasurementVectorByIndex(unsigned int index) const
 }
 
 template <typename TSample>
-inline typename Subsample<TSample>::AbsoluteFrequencyType
-Subsample<TSample>::GetFrequencyByIndex(unsigned int index) const
+inline auto
+Subsample<TSample>::GetFrequencyByIndex(unsigned int index) const -> AbsoluteFrequencyType
 {
   if (index >= m_IdHolder.size())
   {
@@ -193,8 +188,8 @@ Subsample<TSample>::GetFrequencyByIndex(unsigned int index) const
 }
 
 template <typename TSample>
-typename Subsample<TSample>::InstanceIdentifier
-Subsample<TSample>::GetInstanceIdentifier(unsigned int index)
+auto
+Subsample<TSample>::GetInstanceIdentifier(unsigned int index) -> InstanceIdentifier
 {
   if (index >= m_IdHolder.size())
   {
@@ -222,7 +217,6 @@ Subsample<TSample>::Graft(const DataObject * thatObject)
     this->m_TotalFrequency = that->m_TotalFrequency;
   }
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

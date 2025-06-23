@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,13 +23,13 @@
 #include "itkMath.h"
 
 // This test tests the basic functionality of
-// VectorImageToImageAdaptor, espeically the Set/GetPixel() methods.
+// VectorImageToImageAdaptor, especially the Set/GetPixel() methods.
 
 int
 itkVectorImageToImageAdaptorTest(int, char *[])
 {
 
-  // image type type alias
+  // image type alias
   constexpr unsigned int Dimension = 3;
   constexpr unsigned int VectorLength = 4;
   constexpr unsigned int componentToExtract = 3;
@@ -40,20 +40,18 @@ itkVectorImageToImageAdaptorTest(int, char *[])
   using VectorImageToImageAdaptorType = itk::VectorImageToImageAdaptor<PixelType, Dimension>;
 
   // initialize a vector image
-  VectorImageType::Pointer             vectorImage = VectorImageType::New();
+  auto                                 vectorImage = VectorImageType::New();
   VectorImageType::IndexType           start;
   itk::VariableLengthVector<PixelType> f(VectorLength);
   VectorImageType::SizeType            size;
-  for (unsigned int i = 0; i < VectorLength; i++)
+  for (unsigned int i = 0; i < VectorLength; ++i)
   {
-    f[i] = PixelType(i);
+    f[i] = static_cast<PixelType>(i);
   }
   start.Fill(0);
   size.Fill(50);
 
-  VectorImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const VectorImageType::RegionType region{ start, size };
   vectorImage->SetVectorLength(VectorLength);
   vectorImage->SetRegions(region);
   vectorImage->Allocate();
@@ -61,7 +59,11 @@ itkVectorImageToImageAdaptorTest(int, char *[])
 
 
   // run the adaptor
-  VectorImageToImageAdaptorType::Pointer vectorImageToImageAdaptor = VectorImageToImageAdaptorType::New();
+  auto vectorImageToImageAdaptor = VectorImageToImageAdaptorType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(vectorImageToImageAdaptor, VectorImageToImageAdaptor, ImageAdaptor);
+
+
   vectorImageToImageAdaptor->SetExtractComponentIndex(componentToExtract);
 
   vectorImageToImageAdaptor->SetImage(vectorImage);
@@ -72,8 +74,8 @@ itkVectorImageToImageAdaptorTest(int, char *[])
   adaptIt.GoToBegin();
   while (!adaptIt.IsAtEnd())
   {
-    PixelType pixelV = adaptIt.Get();
-    if (itk::Math::NotAlmostEquals(pixelV, PixelType(componentToExtract)))
+    const PixelType pixelV = adaptIt.Get();
+    if (itk::Math::NotAlmostEquals(pixelV, static_cast<PixelType>(componentToExtract)))
     {
       std::cout << "Wrong Pixel Value: adaptIt(" << adaptIt.GetIndex() << ") = " << adaptIt.Get() << std::endl;
 
@@ -83,11 +85,10 @@ itkVectorImageToImageAdaptorTest(int, char *[])
   }
 
   // test Get/SetPixel() methods
-  VectorImageToImageAdaptorType::IndexType index;
-  index.Fill(10);
+  auto index = VectorImageToImageAdaptorType::IndexType::Filled(10);
   ITK_TEST_EXPECT_EQUAL(PixelType(componentToExtract), vectorImageToImageAdaptor->GetPixel(index));
 
-  PixelType v = 4.4f;
+  constexpr PixelType v = 4.4f;
   vectorImageToImageAdaptor->SetPixel(index, v);
   ITK_TEST_EXPECT_EQUAL(v, vectorImageToImageAdaptor->GetPixel(index));
 

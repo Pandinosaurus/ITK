@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,7 @@
 
 #include "itkFEMElement2DC0LinearQuadrilateral.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 void
 Element2DC0LinearQuadrilateral::GetIntegrationPointAndWeight(unsigned int i,
@@ -240,5 +238,4 @@ Element2DC0LinearQuadrilateral::PrintSelf(std::ostream & os, Indent indent) cons
   Superclass::PrintSelf(os, indent);
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

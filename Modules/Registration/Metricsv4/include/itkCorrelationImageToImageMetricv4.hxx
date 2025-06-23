@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCorrelationImageToImageMetricv4_hxx
 #define itkCorrelationImageToImageMetricv4_hxx
 
-#include "itkCorrelationImageToImageMetricv4.h"
 
 namespace itk
 {
@@ -33,14 +32,13 @@ CorrelationImageToImageMetricv4<TFixedImage,
                                 TVirtualImage,
                                 TInternalComputationValueType,
                                 TMetricTraits>::CorrelationImageToImageMetricv4()
-  : m_AverageFix(0.0)
+  : m_HelperDenseThreader(CorrelationHelperDenseThreaderType::New())
+  , m_HelperSparseThreader(CorrelationHelperSparseThreaderType::New())
+  , m_AverageFix(0.0)
   , m_AverageMov(0.0)
 {
   this->m_DenseGetValueAndDerivativeThreader = CorrelationDenseGetValueAndDerivativeThreaderType::New();
   this->m_SparseGetValueAndDerivativeThreader = CorrelationSparseGetValueAndDerivativeThreaderType::New();
-
-  m_HelperDenseThreader = CorrelationHelperDenseThreaderType::New();
-  m_HelperSparseThreader = CorrelationHelperSparseThreaderType::New();
 
   if (this->m_MovingTransform->GetTransformCategory() == MovingTransformType::TransformCategoryEnum::DisplacementField)
   {
@@ -79,8 +77,8 @@ CorrelationImageToImageMetricv4<TFixedImage,
 
   Superclass::InitializeForIteration();
 
-  this->m_AverageFix = NumericTraits<MeasureType>::ZeroValue();
-  this->m_AverageMov = NumericTraits<MeasureType>::ZeroValue();
+  this->m_AverageFix = MeasureType{};
+  this->m_AverageMov = MeasureType{};
 
   // compute the average intensity of the sampled pixels
   // Invoke the pipeline in the helper threader
@@ -88,7 +86,7 @@ CorrelationImageToImageMetricv4<TFixedImage,
 
   if (this->m_UseSampledPointSet) // sparse sampling
   {
-    SizeValueType numberOfPoints = this->GetNumberOfDomainPoints();
+    const SizeValueType numberOfPoints = this->GetNumberOfDomainPoints();
     if (numberOfPoints < 1)
     {
       itkExceptionMacro("FixedSampledPointSet must have 1 or more points.");

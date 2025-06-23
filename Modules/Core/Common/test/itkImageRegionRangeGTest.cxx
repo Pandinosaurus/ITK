@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ template class itk::ImageRegionRange<itk::Image<short, 4>>;
 template class itk::ImageRegionRange<const itk::Image<short>>;
 template class itk::ImageRegionRange<itk::VectorImage<short>>;
 template class itk::ImageRegionRange<const itk::VectorImage<short>>;
-template class itk::ImageRegionRange<itk::Image<itk::RGBPixel<std::uint8_t>>>;
+template class itk::ImageRegionRange<itk::Image<itk::RGBPixel<uint8_t>>>;
 template class itk::ImageRegionRange<itk::Image<itk::Vector<long, 11>>>;
 
 using itk::ImageRegionRange;
@@ -56,7 +56,7 @@ DoesImageRegionRangeIteratorDereferenceOperatorReturnReference()
 {
   using IteratorType = typename ImageRegionRange<TImage>::iterator;
 
-  return std::is_reference<decltype(*std::declval<IteratorType>())>::value;
+  return std::is_reference_v<decltype(*std::declval<IteratorType>())>;
 }
 
 
@@ -78,7 +78,7 @@ IsIteratorTypeTheSameAsConstIteratorType()
 {
   using RangeType = ImageRegionRange<TImage>;
 
-  return std::is_same<typename RangeType::iterator, typename RangeType::const_iterator>::value;
+  return std::is_same_v<typename RangeType::iterator, typename RangeType::const_iterator>;
 }
 
 
@@ -92,7 +92,7 @@ static_assert(IsIteratorTypeTheSameAsConstIteratorType<const itk::Image<int>>() 
 
 template <typename TImage>
 typename TImage::Pointer
-CreateImage(const unsigned sizeX, const unsigned sizeY)
+CreateImage(const unsigned int sizeX, const unsigned int sizeY)
 {
   const auto                      image = TImage::New();
   const typename TImage::SizeType imageSize = { { sizeX, sizeY } };
@@ -105,28 +105,28 @@ CreateImage(const unsigned sizeX, const unsigned sizeY)
 // Creates a test image, filled with a sequence of natural numbers, 1, 2, 3, ..., N.
 template <typename TImage>
 typename TImage::Pointer
-CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned sizeX, const unsigned sizeY)
+CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned int sizeX, const unsigned int sizeY)
 {
   using PixelType = typename TImage::PixelType;
-  const auto                          image = CreateImage<TImage>(sizeX, sizeY);
-  const itk::ImageBufferRange<TImage> imageBufferRange{ *image };
+  const auto                  image = CreateImage<TImage>(sizeX, sizeY);
+  const itk::ImageBufferRange imageBufferRange{ *image };
   std::iota(imageBufferRange.begin(), imageBufferRange.end(), PixelType{ 1 });
   return image;
 }
 
 
-template <typename TPixel, unsigned VImageDimension>
+template <typename TPixel, unsigned int VImageDimension>
 void
-SetVectorLengthIfImageIsVectorImage(itk::VectorImage<TPixel, VImageDimension> & image, const unsigned vectorLength)
+SetVectorLengthIfImageIsVectorImage(itk::VectorImage<TPixel, VImageDimension> & image, const unsigned int vectorLength)
 {
   image.SetVectorLength(vectorLength);
 }
 
 
-template <typename TPixel, unsigned VImageDimension>
+template <typename TPixel, unsigned int VImageDimension>
 void
 SetVectorLengthIfImageIsVectorImage(itk::Image<TPixel, VImageDimension> & itkNotUsed(image),
-                                    const unsigned                        itkNotUsed(vectorLength))
+                                    const unsigned int                    itkNotUsed(vectorLength))
 {
   // Do not set the VectorLength. The specified image is not a VectorImage.
 }
@@ -155,9 +155,8 @@ void
 ExpectRangeIsNotEmptyForNonEmptyImage()
 {
   // First create a non-empty image:
-  const auto                image = TImage::New();
-  typename TImage::SizeType imageSize;
-  imageSize.Fill(1);
+  const auto image = TImage::New();
+  auto       imageSize = TImage::SizeType::Filled(1);
   image->SetRegions(imageSize);
   SetVectorLengthIfImageIsVectorImage(*image, 1);
   image->Allocate();
@@ -175,7 +174,7 @@ Expect_ImageRegionRange_iterates_forward_over_same_pixels_as_ImageRegionIterator
   using PixelType = typename TImage::PixelType;
 
   itk::ImageRegionIterator<TImage> imageRegionIterator{ &image, iterationRegion };
-  ImageRegionRange<TImage>         range{ image, iterationRegion };
+  const ImageRegionRange<TImage>   range{ image, iterationRegion };
 
   ASSERT_TRUE(imageRegionIterator.IsAtBegin());
 
@@ -195,7 +194,7 @@ Expect_ImageRegionRange_iterates_backward_over_same_pixels_as_ImageRegionIterato
   const itk::ImageRegion<TImage::ImageDimension> & iterationRegion)
 {
   itk::ImageRegionIterator<TImage> imageRegionIterator{ &image, iterationRegion };
-  ImageRegionRange<TImage>         range{ image, iterationRegion };
+  const ImageRegionRange<TImage>   range{ image, iterationRegion };
 
   auto rangeIterator = range.cend();
   imageRegionIterator.GoToEnd();
@@ -282,7 +281,7 @@ TEST(ImageRegionRange, BeginAndEndOfNonEmptyImageRegionAreNotEqual)
   const auto                             image = CreateImage<ImageType>(2, 3);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  ImageRegionRange<ImageType> range{ *image, region };
+  const ImageRegionRange<ImageType> range{ *image, region };
 
   EXPECT_FALSE(range.begin() == range.end());
   EXPECT_NE(range.begin(), range.end());
@@ -299,7 +298,7 @@ TEST(ImageRegionRange, IteratorConvertsToConstIterator)
   const auto                             image = CreateImage<ImageType>(2, 3);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  RangeType range{ *image, region };
+  const RangeType range{ *image, region };
 
   const RangeType::iterator       begin = range.begin();
   const RangeType::const_iterator const_begin_from_begin = begin;
@@ -325,7 +324,7 @@ TEST(ImageRegionRange, IteratorsCanBePassedToStdVectorConstructor)
   const auto                             image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  ImageRegionRange<ImageType> range{ *image, region };
+  const ImageRegionRange<ImageType> range{ *image, region };
 
   // Easily store all pixels of the ImageRegionRange in an std::vector:
   const std::vector<PixelType> stdVector(range.begin(), range.end());
@@ -349,9 +348,9 @@ TEST(ImageRegionRange, IteratorsCanBePassedToStdReverseCopy)
   const auto                             image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  ImageRegionRange<ImageType> range{ *image, region };
+  const ImageRegionRange<ImageType> range{ *image, region };
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  constexpr unsigned int numberOfPixels = sizeX * sizeY;
 
   const std::vector<PixelType> stdVector(range.begin(), range.end());
   std::vector<PixelType>       reversedStdVector1(numberOfPixels);
@@ -389,7 +388,7 @@ TEST(ImageRegionRange, IteratorsCanBePassedToStdInnerProduct)
   const auto                             image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  ImageRegionRange<ImageType> range{ *image, region };
+  const ImageRegionRange<ImageType> range{ *image, region };
 
   const double innerProduct = std::inner_product(range.begin(), range.end(), range.begin(), 0.0);
 
@@ -412,7 +411,7 @@ TEST(ImageRegionRange, IteratorsCanBePassedToStdForEach)
   const auto                             image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  ImageRegionRange<ImageType> range{ *image, region };
+  const ImageRegionRange<ImageType> range{ *image, region };
 
   std::for_each(range.begin(), range.end(), [](const PixelType pixel) { EXPECT_TRUE(pixel > 0); });
 }
@@ -467,20 +466,20 @@ TEST(ImageRegionRange, SupportsVectorImage)
     sizeY = 2,
     sizeZ = 2
   };
-  const auto                         image = ImageType::New();
-  const typename ImageType::SizeType imageSize = { { sizeX, sizeY, sizeZ } };
+  const auto                             image = ImageType::New();
+  constexpr typename ImageType::SizeType imageSize = { { sizeX, sizeY, sizeZ } };
   image->SetRegions(imageSize);
   image->SetVectorLength(vectorLength);
-  image->Allocate(true);
+  image->AllocateInitialized();
   PixelType fillPixelValue(vectorLength);
   fillPixelValue.Fill(42);
   image->FillBuffer(fillPixelValue);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
   using RangeType = ImageRegionRange<ImageType>;
-  RangeType range{ *image, region };
+  const RangeType range{ *image, region };
 
-  for (PixelType pixelValue : range)
+  for (const PixelType pixelValue : range)
   {
     EXPECT_EQ(pixelValue, fillPixelValue);
   }
@@ -500,19 +499,7 @@ TEST(ImageRegionRange, SupportsVectorImage)
 
 TEST(ImageRegionRange, IteratorIsDefaultConstructible)
 {
-  using RangeType = ImageRegionRange<itk::Image<int>>;
-
-  RangeType::iterator defaultConstructedIterator{};
-
-  // Test that a default-constructed iterator behaves according to C++ proposal
-  // N3644, "Null Forward Iterators" by Alan Talbot, which is accepted with
-  // C++14: "value-initialized iterators may be compared and shall compare
-  // equal to other value-initialized iterators of the same type."
-  // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3644.pdf
-
-  EXPECT_TRUE(defaultConstructedIterator == defaultConstructedIterator);
-  EXPECT_FALSE(defaultConstructedIterator != defaultConstructedIterator);
-  EXPECT_EQ(defaultConstructedIterator, RangeType::iterator{});
+  itk::RangeGTestUtilities::ExpectIteratorIsDefaultConstructible<ImageRegionRange<itk::Image<int>>>();
 }
 
 
@@ -530,9 +517,9 @@ TEST(ImageRegionRange, ProvidesReverseIterators)
   const auto                             image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   const itk::ImageRegion<ImageDimension> region{ itk::Size<ImageDimension>::Filled(2) };
 
-  RangeType range{ *image, region };
+  const RangeType range{ *image, region };
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  constexpr unsigned int numberOfPixels = sizeX * sizeY;
 
   const std::vector<PixelType> stdVector(range.begin(), range.end());
   std::vector<PixelType>       reversedStdVector1(numberOfPixels);
@@ -599,7 +586,7 @@ TEST(ImageRegionRange, IteratesForwardOverSamePixelsAsImageRegionIterator)
   const auto image = ImageType::New();
   image->SetRegions(RegionType{ IndexType{ { -1, -2 } }, SizeType{ { 9, 11 } } });
   image->Allocate();
-  const itk::ImageBufferRange<ImageType> imageBufferRange{ *image };
+  const itk::ImageBufferRange imageBufferRange{ *image };
   std::iota(imageBufferRange.begin(), imageBufferRange.end(), PixelType{ 1 });
 
   Expect_ImageRegionRange_iterates_forward_over_same_pixels_as_ImageRegionIterator(
@@ -619,7 +606,7 @@ TEST(ImageRegionRange, IteratesBackwardOverSamePixelsAsImageRegionIterator)
   const auto image = ImageType::New();
   image->SetRegions(RegionType{ IndexType{ { -1, -2 } }, SizeType{ { 9, 11 } } });
   image->Allocate();
-  const itk::ImageBufferRange<ImageType> imageBufferRange{ *image };
+  const itk::ImageBufferRange imageBufferRange{ *image };
   std::iota(imageBufferRange.begin(), imageBufferRange.end(), PixelType{ 1 });
 
   Expect_ImageRegionRange_iterates_backward_over_same_pixels_as_ImageRegionIterator(
@@ -642,11 +629,11 @@ TEST(ImageRegionRange, ThrowsInReleaseWhenIterationRegionIsOutsideBufferedRegion
 
   const auto image = ImageType::New();
 
-  const IndexType imageIndex{ { -1, -2 } };
-  const SizeType  imageSize{ { 3, 4 } };
+  constexpr IndexType imageIndex{ { -1, -2 } };
+  constexpr SizeType  imageSize{ { 3, 4 } };
 
   image->SetRegions(RegionType{ imageIndex, imageSize });
-  image->Allocate(true);
+  image->AllocateInitialized();
 
   Check_Range_constructor_throws_ExceptionObject_when_iteration_region_is_outside_of_buffered_region(
     *image, RegionType{ imageIndex, imageSize + SizeType::Filled(1) });

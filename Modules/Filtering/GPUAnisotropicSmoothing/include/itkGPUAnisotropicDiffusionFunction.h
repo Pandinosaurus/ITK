@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
  * \ingroup ITKGPUAnisotropicSmoothing
  */
 template <typename TImage>
-class GPUAnisotropicDiffusionFunction : public GPUFiniteDifferenceFunction<TImage>
+class ITK_TEMPLATE_EXPORT GPUAnisotropicDiffusionFunction : public GPUFiniteDifferenceFunction<TImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(GPUAnisotropicDiffusionFunction);
@@ -46,17 +46,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(GPUAnisotropicDiffusionFunction, GPUFiniteDifferenceFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUAnisotropicDiffusionFunction);
 
   /** Inherit some parameters from the superclass type */
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
   using PixelrealType = typename Superclass::PixelRealType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::FloatOffsetType;
 
   /** Inherit some parameters from the superclass type */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -86,7 +86,7 @@ public:
 
   /** Set/Get the conductance parameter.  The conductance parameter. */
   void
-  SetConductanceParameter(const double & c)
+  SetConductanceParameter(const double c)
   {
     m_ConductanceParameter = c;
   }
@@ -105,7 +105,7 @@ public:
   }
 
   void
-  SetAverageGradientMagnitudeSquared(const double & c)
+  SetAverageGradientMagnitudeSquared(const double c)
   {
     m_AverageGradientMagnitudeSquared = c;
   }
@@ -152,16 +152,16 @@ protected:
   }
 
   // GPU buffer for Computing Average Squared Gradient Magnitude
-  typename GPUDataManager::Pointer   m_AnisotropicDiffusionFunctionGPUBuffer;
-  typename GPUKernelManager::Pointer m_AnisotropicDiffusionFunctionGPUKernelManager;
+  typename GPUDataManager::Pointer   m_AnisotropicDiffusionFunctionGPUBuffer{};
+  typename GPUKernelManager::Pointer m_AnisotropicDiffusionFunctionGPUKernelManager{};
 
   // GPU Kernel Handles
-  int m_AverageGradientMagnitudeSquaredGPUKernelHandle;
+  int m_AverageGradientMagnitudeSquaredGPUKernelHandle{};
 
 private:
-  double       m_AverageGradientMagnitudeSquared;
-  double       m_ConductanceParameter;
-  TimeStepType m_TimeStep;
+  double       m_AverageGradientMagnitudeSquared{};
+  double       m_ConductanceParameter{};
+  TimeStepType m_TimeStep{};
 };
 } // end namespace itk
 

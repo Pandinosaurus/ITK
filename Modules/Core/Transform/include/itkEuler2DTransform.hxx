@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkEuler2DTransform_hxx
 #define itkEuler2DTransform_hxx
 
-#include "itkEuler2DTransform.h"
 
 namespace itk
 {
@@ -63,12 +62,10 @@ Euler2DTransform<TParametersValueType>::GetInverse(Self * inverse) const
 
 // Return an inverse of this transform
 template <typename TParametersValueType>
-typename Euler2DTransform<TParametersValueType>::InverseTransformBasePointer
-Euler2DTransform<TParametersValueType>::GetInverseTransform() const
+auto
+Euler2DTransform<TParametersValueType>::GetInverseTransform() const -> InverseTransformBasePointer
 {
-  Pointer inv = New();
-
-  return GetInverse(inv) ? inv.GetPointer() : nullptr;
+  return Superclass::InvertTransform(*this);
 }
 
 // Create and return an inverse transformation

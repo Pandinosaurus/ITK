@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,7 +72,7 @@ namespace itk
  * Example filter usage:
    \code
    using FilterType = itk::FFTNormalizedCorrelationImageFilter< ShortImageType, DoubleImageType >;
-   FilterType::Pointer filter = FilterType::New();
+   auto filter = FilterType::New();
    filter->SetFixedImage( fixedImage );
    filter->SetMovingImage( movingImage );
    filter->SetRequiredNumberOfOverlappingPixels(20);
@@ -84,11 +84,7 @@ namespace itk
  * type. You will get a compilation error if the pixel type of the
  * output image is not float or double.
  *
- * References:
- * 1) D. Padfield. "Masked object registration in the Fourier domain."
- * Transactions on Image Processing.
- * 2) D. Padfield. "Masked FFT registration". In Proc. Computer
- * Vision and Pattern Recognition, 2010.
+ * For algorithmic details see \cite padfield2012 and \cite padfield2010.
  *
  * \author: Dirk Padfield, GE Global Research, padfield\@research.ge.com
  * \ingroup ITKConvolution
@@ -97,7 +93,6 @@ namespace itk
  * \sphinxexample{Filtering/Convolution/NormalizedCorrelationUsingFFT,Normalized Correlation Using FFT}
  * \endsphinx
  */
-
 template <typename TInputImage, typename TOutputImage>
 class ITK_TEMPLATE_EXPORT FFTNormalizedCorrelationImageFilter
   : public MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage>
@@ -114,8 +109,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FFTNormalizedCorrelationImageFilter, MaskedFFTNormalizedCorrelationImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FFTNormalizedCorrelationImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */

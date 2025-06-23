@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,14 @@ itkEllipseSpatialObjectTest(int, char *[])
 {
   using EllipseType = itk::EllipseSpatialObject<4>;
 
-  EllipseType::Pointer myEllipse = EllipseType::New();
+  auto myEllipse = EllipseType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(myEllipse, EllipseSpatialObject, SpatialObject);
 
 
   EllipseType::ArrayType radii;
 
-  for (unsigned int i = 0; i < 4; i++)
+  for (unsigned int i = 0; i < 4; ++i)
   {
     radii[i] = i;
   }
@@ -44,7 +44,7 @@ itkEllipseSpatialObjectTest(int, char *[])
 
   ITK_TEST_SET_GET_VALUE(radii, myEllipse->GetRadiusInObjectSpace());
 
-  EllipseType::ArrayType objectSpaceRadius = 3;
+  const EllipseType::ArrayType objectSpaceRadius(3);
   myEllipse->SetRadiusInObjectSpace(objectSpaceRadius);
   myEllipse->Update();
 
@@ -81,22 +81,19 @@ itkEllipseSpatialObjectTest(int, char *[])
   std::cout << "ObjectToWorldTransform : ";
 
   // Create myEllipse2 as a child of myEllipse
-  EllipseType::Pointer myEllipse2 = EllipseType::New();
+  auto myEllipse2 = EllipseType::New();
   myEllipse2->SetRadiusInObjectSpace(1);
   myEllipse->AddChild(myEllipse2);
 
-  EllipseType::TransformType::OffsetType offset;
-  offset.Fill(10);
+  auto offset = itk::MakeFilled<EllipseType::TransformType::OffsetType>(10);
   myEllipse->GetModifiableObjectToWorldTransform()->SetOffset(offset);
   myEllipse->ComputeObjectToParentTransform();
 
-  EllipseType::TransformType::OffsetType offset2;
-  offset2.Fill(15);
+  auto offset2 = itk::MakeFilled<EllipseType::TransformType::OffsetType>(15);
   myEllipse2->GetModifiableObjectToWorldTransform()->SetOffset(offset2);
   myEllipse2->ComputeObjectToParentTransform();
 
-  EllipseType::TransformType::OffsetType offset3;
-  offset3 = myEllipse2->GetModifiableObjectToParentTransform()->GetOffset();
+  EllipseType::TransformType::OffsetType offset3 = myEllipse2->GetModifiableObjectToParentTransform()->GetOffset();
 
   if ((itk::Math::NotExactlyEquals(offset3[0], 5)) || (itk::Math::NotExactlyEquals(offset3[1], 5)) ||
       (itk::Math::NotExactlyEquals(offset3[2], 5)) || (itk::Math::NotExactlyEquals(offset3[3], 5)))
@@ -113,7 +110,7 @@ itkEllipseSpatialObjectTest(int, char *[])
   std::cout << "Bounds = " << boundingBox->GetBounds() << std::endl;
 
   std::cout << "Update(): ";
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     const EllipseType::BoundingBoxType::BoundsArrayType bounds = boundingBox->GetBounds();
     if (itk::Math::NotAlmostEquals(bounds[2 * i], 7) ||

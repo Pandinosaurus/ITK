@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ namespace itk
  * The structuring element can be composed of arbitrary nonnegative
  * values (not restricted to zero or one). Element values greater than
  * zero indicate pixels that will be considered during the dilation.
- * The function dilation operation is defined as the maxixum over the
+ * The function dilation operation is defined as the maximum over the
  * element of the image value PLUS the structuring element value.
  *
  * For the each input image pixel,
@@ -62,23 +62,23 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GrayscaleFunctionDilateImageFilter, MorphologyImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GrayscaleFunctionDilateImageFilter);
 
   /** Declaration of pixel type. */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** Kernel (structuring element) iterator. */
-  using KernelIteratorType = typename Superclass::KernelIteratorType;
+  using typename Superclass::KernelIteratorType;
 
   /** Neighborhood iterator type. */
-  using NeighborhoodIteratorType = typename Superclass::NeighborhoodIteratorType;
+  using typename Superclass::NeighborhoodIteratorType;
 
   /** Kernel type alias. */
-  using KernelType = typename Superclass::KernelType;
+  using typename Superclass::KernelType;
 
   /** Default boundary condition type */
-  using DefaultBoundaryConditionType = typename Superclass::DefaultBoundaryConditionType;
+  using typename Superclass::DefaultBoundaryConditionType;
 
   /** ImageDimension constants */
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
@@ -88,8 +88,6 @@ public:
   /** Type of the pixels in the Kernel. */
   using KernelPixelType = typename TKernel::PixelType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<InputImageDimension, KernelDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<PixelType, typename TOutputImage::PixelType>));
@@ -97,8 +95,6 @@ public:
   itkConceptMacro(InputAdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(InputGreaterThanComparableCheck, (Concept::GreaterThanComparable<PixelType>));
   itkConceptMacro(KernelGreaterThanComparableCheck, (Concept::GreaterThanComparable<KernelPixelType>));
-  // End concept checking
-#endif
 
 protected:
   GrayscaleFunctionDilateImageFilter();
@@ -119,7 +115,7 @@ protected:
 private:
   // Default boundary condition for dilation filter, defaults to
   // NumericTraits<PixelType>::NonpositiveMin()
-  DefaultBoundaryConditionType m_DilateBoundaryCondition;
+  DefaultBoundaryConditionType m_DilateBoundaryCondition{};
 }; // end of class
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ public:
   {
     m_LowerThreshold = NumericTraits<TInput>::NonpositiveMin();
     m_UpperThreshold = NumericTraits<TInput>::max();
-    m_OutsideValue = NumericTraits<TOutput>::ZeroValue();
+    m_OutsideValue = TOutput{};
     m_InsideValue = NumericTraits<TOutput>::max();
   }
 
@@ -77,10 +77,10 @@ public:
   }
 
 private:
-  TInput  m_LowerThreshold;
-  TInput  m_UpperThreshold;
-  TOutput m_InsideValue;
-  TOutput m_OutsideValue;
+  TInput  m_LowerThreshold{};
+  TInput  m_UpperThreshold{};
+  TOutput m_InsideValue{};
+  TOutput m_OutsideValue{};
 };
 } // end of namespace Functor
 
@@ -119,8 +119,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUBinaryThresholdImageFilter, GPUUnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUBinaryThresholdImageFilter);
 
   /** Pixel types. */
   using InputPixelType = typename TInputImage::PixelType;
@@ -163,6 +163,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Class methods used to interface with the registered factories. */
+  /** @ITKStartGrouping */
   const char *
   GetITKSourceVersion() const override
   {
@@ -173,34 +174,35 @@ public:
   {
     return "A Factory for GPUBinaryThresholdImageFilter";
   }
+  /** @ITKEndGrouping */
 
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUBinaryThresholdImageFilterFactory, itk::ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUBinaryThresholdImageFilterFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    GPUBinaryThresholdImageFilterFactory::Pointer factory = GPUBinaryThresholdImageFilterFactory::New();
+    auto factory = GPUBinaryThresholdImageFilterFactory::New();
 
     itk::ObjectFactoryBase::RegisterFactory(factory);
   }
 
 private:
-#define OverrideThresholdFilterTypeMacro(ipt, opt, dm)                                                                 \
-  {                                                                                                                    \
-    using InputImageType = itk::Image<ipt, dm>;                                                                        \
-    using OutputImageType = itk::Image<opt, dm>;                                                                       \
-    this->RegisterOverride(                                                                                            \
-      typeid(itk::BinaryThresholdImageFilter<InputImageType, OutputImageType>).name(),                                 \
-      typeid(itk::GPUBinaryThresholdImageFilter<InputImageType, OutputImageType>).name(),                              \
-      "GPU Binary Threshold Image Filter Override",                                                                    \
-      true,                                                                                                            \
-      itk::CreateObjectFunction<GPUBinaryThresholdImageFilter<InputImageType, OutputImageType>>::New());               \
-  }                                                                                                                    \
+#define OverrideThresholdFilterTypeMacro(ipt, opt, dm)                                                   \
+  {                                                                                                      \
+    using InputImageType = itk::Image<ipt, dm>;                                                          \
+    using OutputImageType = itk::Image<opt, dm>;                                                         \
+    this->RegisterOverride(                                                                              \
+      typeid(itk::BinaryThresholdImageFilter<InputImageType, OutputImageType>).name(),                   \
+      typeid(itk::GPUBinaryThresholdImageFilter<InputImageType, OutputImageType>).name(),                \
+      "GPU Binary Threshold Image Filter Override",                                                      \
+      true,                                                                                              \
+      itk::CreateObjectFunction<GPUBinaryThresholdImageFilter<InputImageType, OutputImageType>>::New()); \
+  }                                                                                                      \
   ITK_MACROEND_NOOP_STATEMENT
 
   GPUBinaryThresholdImageFilterFactory()

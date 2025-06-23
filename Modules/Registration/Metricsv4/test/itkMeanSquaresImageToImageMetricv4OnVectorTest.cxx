@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,33 +38,17 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest(int, char ** const)
   using VectorType = itk::Vector<double, vectorLength>;
   using ImageType = itk::Image<VectorType, imageDimensionality>;
 
-  ImageType::SizeType size;
-  size.Fill(imageSize);
-  ImageType::IndexType index;
-  index.Fill(0);
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
-  ImageType::SpacingType spacing;
-  spacing.Fill(1.0);
-  ImageType::PointType origin;
-  origin.Fill(0);
-  ImageType::DirectionType direction;
-  direction.SetIdentity();
+  auto                           size = ImageType::SizeType::Filled(imageSize);
+  constexpr ImageType::IndexType index{};
+  const ImageType::RegionType    region{ index, size };
 
   /* Create simple test images. */
-  ImageType::Pointer fixedImage = ImageType::New();
+  auto fixedImage = ImageType::New();
   fixedImage->SetRegions(region);
-  fixedImage->SetSpacing(spacing);
-  fixedImage->SetOrigin(origin);
-  fixedImage->SetDirection(direction);
   fixedImage->Allocate();
 
-  ImageType::Pointer movingImage = ImageType::New();
+  auto movingImage = ImageType::New();
   movingImage->SetRegions(region);
-  movingImage->SetSpacing(spacing);
-  movingImage->SetOrigin(origin);
-  movingImage->SetDirection(direction);
   movingImage->Allocate();
 
   /* Fill images */
@@ -100,8 +84,8 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest(int, char ** const)
   using FixedTransformType = itk::TranslationTransform<double, imageDimensionality>;
   using MovingTransformType = itk::TranslationTransform<double, imageDimensionality>;
 
-  FixedTransformType::Pointer  fixedTransform = FixedTransformType::New();
-  MovingTransformType::Pointer movingTransform = MovingTransformType::New();
+  auto fixedTransform = FixedTransformType::New();
+  auto movingTransform = MovingTransformType::New();
 
   fixedTransform->SetIdentity();
   movingTransform->SetIdentity();
@@ -110,7 +94,7 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest(int, char ** const)
   using MetricTraitsType = itk::VectorImageToImageMetricTraitsv4<ImageType, ImageType, ImageType, vectorLength, double>;
   using MetricType = itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, double, MetricTraitsType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   /* Assign images and transforms.
    * By not setting a virtual domain image or virtual domain settings,
@@ -137,9 +121,8 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest(int, char ** const)
   std::cout << "Initialized" << std::endl;
 
   /* Evaluate with GetValueAndDerivative */
-  MetricType::MeasureType    valueReturn1, valueReturn2;
+  MetricType::MeasureType    valueReturn1 = NAN;
   MetricType::DerivativeType derivativeReturn;
-
   try
   {
     std::cout << "Calling GetValueAndDerivative..." << std::endl;
@@ -162,7 +145,7 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest(int, char ** const)
     std::cerr << "Caught unexpected exception during re-initialize: " << exc << std::endl;
     return EXIT_FAILURE;
   }
-
+  MetricType::MeasureType valueReturn2 = NAN;
   try
   {
     std::cout << "Calling GetValue..." << std::endl;

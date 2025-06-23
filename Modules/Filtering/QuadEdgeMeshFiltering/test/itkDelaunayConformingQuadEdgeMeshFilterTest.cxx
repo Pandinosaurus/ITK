@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,13 +43,13 @@ itkDelaunayConformingQuadEdgeMeshFilterTestHelper(const std::string & input,
   reader->SetFileName(input);
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  MeshType::Pointer mesh = reader->GetOutput();
+  const MeshType::Pointer mesh = reader->GetOutput();
 
   using GeneratorType = itk::Statistics::NormalVariateGenerator;
   const auto generator = GeneratorType::New();
   generator->Initialize(0);
 
-  const double sigma = 0.01;
+  constexpr double sigma = 0.01;
 
   for (auto it = mesh->GetPoints()->Begin(); it != mesh->GetPoints()->End(); ++it)
   {
@@ -102,9 +102,9 @@ itkDelaunayConformingQuadEdgeMeshFilterTest(int argc, char * argv[])
   // ** ERROR MESSAGE AND HELP ** //
   if (argc < 3)
   {
-    std::cout << "Requires 2 arguments: " << std::endl;
-    std::cout << "1-Input file name " << std::endl;
-    std::cout << "2-Output file name " << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputFilename outputFilename" << std::endl;
     return EXIT_FAILURE;
   }
 

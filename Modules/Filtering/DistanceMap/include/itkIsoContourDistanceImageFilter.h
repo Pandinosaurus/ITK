@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class IsoContourDistanceImageFilter
+ * \class IsoContourDistanceImageFilter
  *  \brief Compute an approximate distance from an interpolated isocontour
  *  to the close grid points.
  *
@@ -49,6 +49,8 @@ namespace itk
  *`Krissian K. and Westin C.F.',
  * EUROCAST NeuroImaging Workshop Las Palmas Spain,
  * Ninth International Conference on Computer Aided Systems Theory , pages 48-51, Feb 2003.
+ * NOTE: Attribution is incorrect, the manuscript does not appear to be
+ * part of the EUROCAST'03 proceedings (https://doi.org/10.1007/b13239).
  *
  *
  * \ingroup LevelSetSegmentation
@@ -70,12 +72,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IsoContourDistanceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IsoContourDistanceImageFilter);
 
   /**Typedefs from the superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
 
   /** Dimensionality of input and output data is assumed to be the same.
    * It is inherited from the superclass. */
@@ -108,20 +110,23 @@ public:
 
   /** Set/Get the value of the level set to be located. The default value is
    *  0. */
+  /** @ITKStartGrouping */
   itkSetMacro(LevelSetValue, PixelRealType);
   itkGetConstMacro(LevelSetValue, PixelRealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value of the level set to be located. The default value is
    *  0. */
+  /** @ITKStartGrouping */
   itkSetMacro(FarValue, PixelType);
   itkGetConstMacro(FarValue, PixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the narrowbanding flag. By default, narrowbanding is switched
    * off. */
+  /** @ITKStartGrouping */
   itkSetMacro(NarrowBanding, bool);
   itkGetConstMacro(NarrowBanding, bool);
   itkBooleanMacro(NarrowBanding);
-
+  /** @ITKEndGrouping */
   /** Set/Get the narrowband. */
   void
   SetNarrowBand(NarrowBandType * ptr);
@@ -132,8 +137,6 @@ public:
     return m_NarrowBand;
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<PixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
@@ -142,8 +145,6 @@ public:
   itkConceptMacro(OutputAdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   IsoContourDistanceImageFilter();
@@ -172,6 +173,7 @@ protected:
   void
   ThreadedGenerateDataBand(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId);
 
+  /** Split the band if the narrowband mode is used. */
   void
   BeforeThreadedGenerateData() override;
 
@@ -191,16 +193,16 @@ protected:
                const std::vector<OffsetValueType> & stride);
 
 private:
-  PixelRealType m_LevelSetValue;
-  PixelType     m_FarValue;
+  PixelRealType m_LevelSetValue{};
+  PixelType     m_FarValue{};
 
-  InputSpacingType m_Spacing;
+  InputSpacingType m_Spacing{};
 
-  bool                    m_NarrowBanding;
-  NarrowBandPointer       m_NarrowBand;
-  std::vector<RegionType> m_NarrowBandRegion;
+  bool                    m_NarrowBanding{};
+  NarrowBandPointer       m_NarrowBand{};
+  std::vector<RegionType> m_NarrowBandRegion{};
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 };
 } // namespace itk
 

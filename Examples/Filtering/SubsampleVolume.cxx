@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -89,7 +89,7 @@ main(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(argv[1]);
 
@@ -114,12 +114,12 @@ main(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
 
 
-  InputImageType::ConstPointer inputImage = reader->GetOutput();
+  const InputImageType::ConstPointer inputImage = reader->GetOutput();
 
 
   // Software Guide : BeginLatex
@@ -133,7 +133,7 @@ main(int argc, char * argv[])
   using CastFilterType =
     itk::CastImageFilter<InputImageType, InternalImageType>;
 
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto caster = CastFilterType::New();
 
   caster->SetInput(inputImage);
   // Software Guide : EndCodeSnippet
@@ -152,9 +152,9 @@ main(int argc, char * argv[])
   using GaussianFilterType =
     itk::RecursiveGaussianImageFilter<InternalImageType, InternalImageType>;
 
-  GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
-  GaussianFilterType::Pointer smootherY = GaussianFilterType::New();
-  GaussianFilterType::Pointer smootherZ = GaussianFilterType::New();
+  auto smootherX = GaussianFilterType::New();
+  auto smootherY = GaussianFilterType::New();
+  auto smootherZ = GaussianFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -223,7 +223,7 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<InternalImageType, OutputImageType>;
 
-  ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -238,7 +238,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using TransformType = itk::IdentityTransform<double, Dimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   transform->SetIdentity();
   resampler->SetTransform(transform);
   // Software Guide : EndCodeSnippet
@@ -257,7 +257,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using InterpolatorType =
     itk::LinearInterpolateImageFunction<InternalImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   resampler->SetInterpolator(interpolator);
   // Software Guide : EndCodeSnippet
 
@@ -343,7 +343,7 @@ main(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(resampler->GetOutput());
 
@@ -355,7 +355,7 @@ main(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
 

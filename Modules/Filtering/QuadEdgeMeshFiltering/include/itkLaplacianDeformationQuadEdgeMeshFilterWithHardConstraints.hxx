@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLaplacianDeformationQuadEdgeMeshFilterWithHardConstraints_hxx
 #define itkLaplacianDeformationQuadEdgeMeshFilterWithHardConstraints_hxx
 
-#include "itkLaplacianDeformationQuadEdgeMeshFilterWithHardConstraints.h"
 
 namespace itk
 {
@@ -58,8 +57,8 @@ LaplacianDeformationQuadEdgeMeshFilterWithHardConstraints<TInputMesh, TOutputMes
   VectorType & iBy,
   VectorType & iBz)
 {
-  OutputMapPointIdentifierConstIterator       it = this->m_InternalMap.begin();
-  const OutputMapPointIdentifierConstIterator end = this->m_InternalMap.end();
+  auto       it = this->m_InternalMap.begin();
+  const auto end = this->m_InternalMap.end();
 
   while (it != end)
   {
@@ -67,17 +66,17 @@ LaplacianDeformationQuadEdgeMeshFilterWithHardConstraints<TInputMesh, TOutputMes
     const auto                  internalId1 = static_cast<unsigned int>(it->second);
 
     RowType row;
-    this->FillMatrixRow(vId1, this->m_Order, NumericTraits<OutputCoordRepType>::OneValue(), row);
+    this->FillMatrixRow(vId1, this->m_Order, NumericTraits<OutputCoordinateType>::OneValue(), row);
 
-    RowConstIterator       rIt = row.begin();
-    const RowConstIterator rEnd = row.end();
+    auto       rIt = row.begin();
+    const auto rEnd = row.end();
 
     while (rIt != rEnd)
     {
       const OutputPointIdentifier vId2 = rIt->first;
-      const OutputCoordRepType    weight = rIt->second;
+      const OutputCoordinateType  weight = rIt->second;
 
-      ConstraintMapConstIterator cIt = this->m_Constraints.find(vId2);
+      const auto cIt = this->m_Constraints.find(vId2);
       if (cIt != this->m_Constraints.end())
       {
         iBx[internalId1] -= weight * (cIt->second)[0];
@@ -138,8 +137,8 @@ LaplacianDeformationQuadEdgeMeshFilterWithHardConstraints<TInputMesh, TOutputMes
 
     typename OutputMeshType::PointsContainer * points = output->GetPoints();
 
-    OutputMapPointIdentifierConstIterator       it = this->m_InternalMap.begin();
-    const OutputMapPointIdentifierConstIterator end = this->m_InternalMap.end();
+    auto       it = this->m_InternalMap.begin();
+    const auto end = this->m_InternalMap.end();
 
     while (it != end)
     {
@@ -148,20 +147,20 @@ LaplacianDeformationQuadEdgeMeshFilterWithHardConstraints<TInputMesh, TOutputMes
 
       OutputPointType & p = points->ElementAt(vId);
 
-      auto dx = static_cast<OutputCoordRepType>(X[internalId]);
+      auto dx = static_cast<OutputCoordinateType>(X[internalId]);
       p[0] += dx;
 
-      auto dy = static_cast<OutputCoordRepType>(Y[internalId]);
+      auto dy = static_cast<OutputCoordinateType>(Y[internalId]);
       p[1] += dy;
 
-      auto dz = static_cast<OutputCoordRepType>(Z[internalId]);
+      auto dz = static_cast<OutputCoordinateType>(Z[internalId]);
       p[2] += dz;
 
       ++it;
     }
 
-    ConstraintMapConstIterator       cIt = this->m_Constraints.begin();
-    const ConstraintMapConstIterator cEnd = this->m_Constraints.end();
+    auto       cIt = this->m_Constraints.begin();
+    const auto cEnd = this->m_Constraints.end();
 
     while (cIt != cEnd)
     {

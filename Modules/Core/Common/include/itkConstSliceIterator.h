@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,9 +39,8 @@ namespace itk
  * container's operator[] method.
  *
  * References:
- * Modelled after a slice iterator proposed by Bjarne Stroustrup
- * in C++ Programming Language, Third Edition. Bjarne Stroustrup.  Addison
- * Wesley, Reading, MA. 1997.
+ * Modeled after a slice iterator proposed by Bjarne Stroustrup
+ * in \cite stroustrup1997.
  *
  * \ingroup Iterators
  *
@@ -54,7 +53,6 @@ public:
   /** Constructor. */
   ConstSliceIterator(const TContainer * n, std::slice s)
     : m_ContainerPointer(n)
-    , m_Pos(0)
     , m_Slice(s)
   {}
 
@@ -83,7 +81,7 @@ public:
   ConstSliceIterator
   operator++()
   {
-    m_Pos++;
+    ++m_Pos;
     return *this;
   }
 
@@ -93,17 +91,25 @@ public:
   {
     ConstSliceIterator ans = *this;
 
-    m_Pos++;
+    ++m_Pos;
     return ans;
   }
 
   /** Returns the element at position n of the slice. Sets the
    * iterator to point to position n. */
-  const TPixel & operator[](SizeValueType n) { return this->Loc(m_Pos = n); }
+  const TPixel &
+  operator[](SizeValueType n)
+  {
+    return this->Loc(m_Pos = n);
+  }
 
   /** Dereferences the iterator, returning the value that it points
    * to. */
-  const TPixel & operator*() { return Loc(m_Pos); }
+  const TPixel &
+  operator*()
+  {
+    return Loc(m_Pos);
+  }
 
   /** Returns the logical && of the boolean == of two slice iterator positions,
    * stride, and start locations. */
@@ -114,12 +120,7 @@ public:
            orig.m_Slice.start() == this->m_Slice.start();
   }
 
-  /** Returns the logical inverse of the boolean == of two slice iterators. */
-  bool
-  operator!=(const ConstSliceIterator & orig) const
-  {
-    return !operator==(orig);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstSliceIterator);
 
   /** Returns the boolean < of two slice iterator positions.  Result
    * is only true if the slice iterators have the same stride and
@@ -133,7 +134,7 @@ public:
 
 private:
   /** Returns the value located at position n of the slice. */
-  const TPixel &
+  [[nodiscard]] const TPixel &
   Loc(SizeValueType n) const
   {
     return (*m_ContainerPointer)[static_cast<SizeValueType>(m_Slice.start() + n * m_Slice.stride())];
@@ -143,7 +144,7 @@ private:
   const TContainer * m_ContainerPointer;
 
   /** Current position within the slice. */
-  SizeValueType m_Pos;
+  SizeValueType m_Pos{ 0 };
 
   /** Slice structure information. */
   std::slice m_Slice;

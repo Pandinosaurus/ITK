@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkFiniteDifferenceSparseImageFilter_h
 #define itkFiniteDifferenceSparseImageFilter_h
 
+#include "itkBooleanStdVector.h"
 #include "itkFiniteDifferenceSparseImageFunction.h"
 #include "itkFiniteDifferenceImageFilter.h"
 #include "itkMultiThreaderBase.h"
@@ -73,15 +74,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(FiniteDifferenceSparseImageFilter, FiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FiniteDifferenceSparseImageFilter);
 
   /**Typedefs from the superclass */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
   using SparseOutputImageType = typename Superclass::OutputImageType;
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::FiniteDifferenceFunctionType;
   // the PixelType is from output image; therefore, it is a pointer
 
   /** Dimensionality of input and output data is assumed to be the same.
@@ -170,7 +171,7 @@ protected:
   TimeStepType
   CalculateChange() override;
 
-  /** Multuthreaded implementation of CalculateChange */
+  /** Multithreaded implementation of CalculateChange */
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   CalculateChangeThreaderCallback(void * arg);
 
@@ -197,19 +198,19 @@ protected:
     FiniteDifferenceSparseImageFilter * Filter;
     TimeStepType                        TimeStep;
     std::vector<TimeStepType>           TimeStepList;
-    std::vector<bool>                   ValidTimeStepList;
+    BooleanStdVectorType                ValidTimeStepList;
   };
 
 private:
   /** Flag to let the class know whether or not to call PrecalculateChange. */
-  bool m_PrecomputeFlag;
+  bool m_PrecomputeFlag{};
 
   /** The Sparse function type. */
-  SparseFunctionType * m_SparseFunction;
+  SparseFunctionType * m_SparseFunction{};
 
   /** A list of subregions of the active set of pixels in the sparse image
       which are passed to each thread for parallel processing. */
-  typename NodeListType::RegionListType m_RegionList;
+  typename NodeListType::RegionListType m_RegionList{};
 };
 } // end namespace itk
 

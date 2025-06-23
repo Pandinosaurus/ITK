@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,9 +39,8 @@ itkConnectedComponentImageFilterBackgroundTest(int argc, char * argv[])
 
   // Create an image with an arbitrary background value and a number
   // of islands with pixel values above and below the background value
-  ImageType::Pointer  image = ImageType::New();
-  ImageType::SizeType size;
-  size.Fill(512);
+  auto image = ImageType::New();
+  auto size = ImageType::SizeType::Filled(512);
   image->SetRegions(size);
   image->Allocate();
   image->FillBuffer(0);
@@ -59,10 +58,10 @@ itkConnectedComponentImageFilterBackgroundTest(int argc, char * argv[])
 
   // Instantiate and run the filter
   using FilterType = itk::ConnectedComponentImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetBackgroundValue(background);
   filter->SetInput(image);
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   try
   {
@@ -86,8 +85,8 @@ itkConnectedComponentImageFilterBackgroundTest(int argc, char * argv[])
   IteratorType iterator(output, output->GetLargestPossibleRegion());
   while (!iterator.IsAtEnd())
   {
-    PixelType            value = iterator.Get();
-    ImageType::IndexType index = iterator.GetIndex();
+    const PixelType            value = iterator.Get();
+    const ImageType::IndexType index = iterator.GetIndex();
     if (index == index1 || index == index2)
     {
       // Check that objects don't have the background value
@@ -103,7 +102,7 @@ itkConnectedComponentImageFilterBackgroundTest(int argc, char * argv[])
       if (value != background)
       {
         std::cerr << "Pixel at index " << index << " has value " << value
-                  << " but should have bacground value: " << background << "\n";
+                  << " but should have background value: " << background << '\n';
         return EXIT_FAILURE;
       }
     }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,29 +18,20 @@
 #ifndef itkEigenAnalysis2DImageFilter_hxx
 #define itkEigenAnalysis2DImageFilter_hxx
 
-#include "itkEigenAnalysis2DImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressReporter.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::EigenAnalysis2DImageFilter()
 {
   this->SetNumberOfRequiredInputs(3);
-  this->SetNumberOfRequiredOutputs(3);
-  this->SetNthOutput(0, this->MakeOutput(0));
-  this->SetNthOutput(1, this->MakeOutput(1));
-  this->SetNthOutput(2, this->MakeOutput(2));
+  ProcessObject::MakeRequiredOutputs(*this, 3);
   static_assert(EigenVectorType::Dimension == 2, "Error: PixelType of EigenVector Image must have exactly 2 elements!");
 }
 
-/**
- * Connect one the image containing the [0,0] elements of the input matrix
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
 void
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::SetInput1(TInputImage * image)
@@ -48,11 +39,6 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Se
   this->SetNthInput(0, image);
 }
 
-/**
- * Connect one the image containing the [0,1] elements of the input matrix
- * this element is the same [1,0] because this filter assumes symmetric
- * matrices
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
 void
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::SetInput2(TInputImage * image)
@@ -60,9 +46,6 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Se
   this->SetNthInput(1, image);
 }
 
-/**
- * Connect one the image containing the [1,1] elements of the input matrix
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
 void
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::SetInput3(TInputImage * image)
@@ -70,32 +53,26 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Se
   this->SetNthInput(2, image);
 }
 
-/**
- * Get the largest eigenvalue considering the sign
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
-typename EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::EigenValueImageType *
+auto
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::GetMaxEigenValue()
+  -> EigenValueImageType *
 {
   return dynamic_cast<EigenValueImageType *>(this->ProcessObject::GetOutput(0));
 }
 
-/**
- * Get the smallest eigenvalue considering the sign
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
-typename EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::EigenValueImageType *
+auto
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::GetMinEigenValue()
+  -> EigenValueImageType *
 {
   return dynamic_cast<EigenValueImageType *>(this->ProcessObject::GetOutput(1));
 }
 
-/**
- * Get the eigenvector corresponding to the largest eigenvalue (considering the sign)
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
-typename EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::EigenVectorImageType *
+auto
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::GetMaxEigenVector()
+  -> EigenVectorImageType *
 {
   auto * eigenVector = dynamic_cast<EigenVectorImageType *>(this->ProcessObject::GetOutput(2));
 
@@ -103,23 +80,16 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Ge
   {
     return eigenVector;
   }
-  else
-  {
-    itkWarningMacro(
 
-      << "EigenAnalysis2DImageFilter::GetMaxEigenVector(): dynamic_cast has failed. A reinterpret_cast is being "
-         "attempted."
-      << std::endl
-      << "Type name is: " << typeid(*this->GetOutput(2)).name());
-    return reinterpret_cast<EigenVectorImageType *>(this->ProcessObject::GetOutput(2));
-  }
+  itkWarningMacro(
+
+    << "EigenAnalysis2DImageFilter::GetMaxEigenVector(): dynamic_cast has failed. A reinterpret_cast is being "
+       "attempted."
+    << std::endl
+    << "Type name is: " << typeid(*this->GetOutput(2)).name());
+  return reinterpret_cast<EigenVectorImageType *>(this->ProcessObject::GetOutput(2));
 }
 
-/**
- *   Make Ouput
- * \todo Verify that MakeOutput is createing the right type of objects
- *  this could be the cause of the reinterpret_cast bug in this class
- */
 template <typename TInputImage, typename TEigenValueImage, typename TEigenVectorImage>
 DataObject::Pointer
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::MakeOutput(
@@ -146,15 +116,15 @@ template <typename TInputImage, typename TEigenValueImage, typename TEigenVector
 void
 EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::GenerateData()
 {
-  typename TInputImage::ConstPointer inputPtr1(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(0))));
+  const typename TInputImage::ConstPointer inputPtr1(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(0))));
 
-  typename TInputImage::ConstPointer inputPtr2(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(1))));
+  const typename TInputImage::ConstPointer inputPtr2(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(1))));
 
-  typename TInputImage::ConstPointer inputPtr3(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(2))));
+  const typename TInputImage::ConstPointer inputPtr3(dynamic_cast<const TInputImage *>((ProcessObject::GetInput(2))));
 
-  EigenValueImagePointer  outputPtr1 = this->GetMaxEigenValue();
-  EigenValueImagePointer  outputPtr2 = this->GetMinEigenValue();
-  EigenVectorImagePointer outputPtr3 = this->GetMaxEigenVector();
+  const EigenValueImagePointer  outputPtr1 = this->GetMaxEigenValue();
+  const EigenValueImagePointer  outputPtr2 = this->GetMinEigenValue();
+  const EigenVectorImagePointer outputPtr3 = this->GetMaxEigenVector();
 
   outputPtr1->SetBufferedRegion(inputPtr1->GetBufferedRegion());
   outputPtr2->SetBufferedRegion(inputPtr1->GetBufferedRegion());
@@ -164,7 +134,7 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Ge
   outputPtr2->Allocate();
   outputPtr3->Allocate();
 
-  EigenValueImageRegionType region = outputPtr1->GetRequestedRegion();
+  const EigenValueImageRegionType region = outputPtr1->GetRequestedRegion();
 
   ImageRegionConstIteratorWithIndex<TInputImage> inputIt1(inputPtr1, region);
   ImageRegionConstIteratorWithIndex<TInputImage> inputIt2(inputPtr2, region);
@@ -174,8 +144,7 @@ EigenAnalysis2DImageFilter<TInputImage, TEigenValueImage, TEigenVectorImage>::Ge
   ImageRegionIteratorWithIndex<EigenValueImageType>  outputIt2(outputPtr2, region);
   ImageRegionIteratorWithIndex<EigenVectorImageType> outputIt3(outputPtr3, region);
 
-  EigenVectorType nullVector;
-  nullVector.Fill(0.0);
+  constexpr EigenVectorType nullVector{};
 
   // support progress methods/callbacks
   ProgressReporter progress(this, 0, region.GetNumberOfPixels());

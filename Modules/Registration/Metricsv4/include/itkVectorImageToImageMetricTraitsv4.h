@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,8 +42,8 @@ namespace itk
 template <typename TFixedImageType,
           typename TMovingImageType,
           typename TVirtualImageType,
-          unsigned int NumberOfComponents,
-          typename TCoordRep = typename ObjectToObjectMetricBase::CoordinateRepresentationType>
+          unsigned int VNumberOfComponents,
+          typename TCoordinate = typename ObjectToObjectMetricBase::CoordinateRepresentationType>
 class VectorImageToImageMetricTraitsv4
 {
 public:
@@ -57,7 +57,7 @@ public:
   using FixedImagePixelType = typename FixedImageType::PixelType;
   using MovingImagePixelType = typename MovingImageType::PixelType;
 
-  using CoordinateRepresentationType = TCoordRep;
+  using CoordinateRepresentationType = TCoordinate;
 
   /* Image dimension accessors */
   using ImageDimensionType = unsigned int;
@@ -65,9 +65,9 @@ public:
   static constexpr ImageDimensionType MovingImageDimension = MovingImageType::ImageDimension;
   static constexpr ImageDimensionType VirtualImageDimension = VirtualImageType::ImageDimension;
 
-  using FixedImageGradientType = Vector<CoordinateRepresentationType, FixedImageDimension * NumberOfComponents>;
-  using MovingImageGradientType = Vector<CoordinateRepresentationType, MovingImageDimension * NumberOfComponents>;
-  using VirtualImageGradientType = Vector<CoordinateRepresentationType, VirtualImageDimension * NumberOfComponents>;
+  using FixedImageGradientType = Vector<CoordinateRepresentationType, FixedImageDimension * VNumberOfComponents>;
+  using MovingImageGradientType = Vector<CoordinateRepresentationType, MovingImageDimension * VNumberOfComponents>;
+  using VirtualImageGradientType = Vector<CoordinateRepresentationType, VirtualImageDimension * VNumberOfComponents>;
 
   using FixedImageGradientConvertType = DefaultConvertPixelTraits<FixedImageGradientType>;
   using MovingImageGradientConvertType = DefaultConvertPixelTraits<MovingImageGradientType>;
@@ -98,7 +98,7 @@ public:
     GradientRecursiveGaussianImageFilter<MovingImageType, MovingImageGradientImageType>;
 
   /** Image gradient calculator types. The TOutput template parameter
-   * is chosen to match that of CentralDiffererenceImageFunction. */
+   * is chosen to match that of CentralDifferenceImageFunction. */
   using FixedImageGradientCalculatorType =
     ImageFunction<FixedImageType, FixedImageGradientType, CoordinateRepresentationType>;
   using MovingImageGradientCalculatorType =

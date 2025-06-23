@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -93,8 +93,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorImage, ImageBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorImage);
 
   /** Pixel type alias support Used to declare pixel type in filters
    * or other operations. This is not the actual pixel type contained in
@@ -131,39 +131,39 @@ public:
   static constexpr unsigned int ImageDimension = VImageDimension;
 
   /** Index type alias support An index is used to access pixel values. */
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
 
   /** Offset type alias support An offset is used to access pixel values. */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
 
   /** Size type alias support A size is used to define region bounds. */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** Container used to store pixels in the image. */
   using PixelContainer = ImportImageContainer<SizeValueType, InternalPixelType>;
 
   /** Direction type alias support A matrix of direction cosines. */
-  using DirectionType = typename Superclass::DirectionType;
+  using typename Superclass::DirectionType;
 
   /** Region type alias support A region is used to specify a subset of an image.
    */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Spacing type alias support  Spacing holds the size of a pixel.  The
    * spacing is the geometric distance between image samples. */
-  using SpacingType = typename Superclass::SpacingType;
+  using typename Superclass::SpacingType;
 
   /** Origin type alias support  The origin is the geometric coordinates
    * of the index (0,0). */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** A pointer to the pixel container. */
   using PixelContainerPointer = typename PixelContainer::Pointer;
   using PixelContainerConstPointer = typename PixelContainer::ConstPointer;
 
   /** Offset type alias (relative position between indices) */
-  using OffsetValueType = typename Superclass::OffsetValueType;
+  using typename Superclass::OffsetValueType;
 
   using VectorLengthType = unsigned int;
 
@@ -181,29 +181,29 @@ public:
      \endcode
    *
    * \sa Image::Rebind
-   * \deprecated Use template alias RebindImageType instead
+   * Deprecated: Use template alias RebindImageType instead
    */
-  template <typename UPixelType, unsigned int NUImageDimension = VImageDimension>
+  template <typename UPixelType, unsigned int VUImageDimension = VImageDimension>
   struct Rebind
   {
-    using Type = itk::VectorImage<UPixelType, NUImageDimension>;
+    using Type = itk::VectorImage<UPixelType, VUImageDimension>;
   };
 
   /// \cond HIDE_SPECIALIZATION_DOCUMENTATION
-  template <typename UElementType, unsigned int NUImageDimension>
-  struct Rebind<VariableLengthVector<UElementType>, NUImageDimension>
+  template <typename UElementType, unsigned int VUImageDimension>
+  struct Rebind<VariableLengthVector<UElementType>, VUImageDimension>
   {
-    using Type = itk::VectorImage<UElementType, NUImageDimension>;
+    using Type = itk::VectorImage<UElementType, VUImageDimension>;
   };
   /// \endcond
 
-  template <typename UPixelType, unsigned int NUImageDimension = VImageDimension>
-  using RebindImageType = typename Rebind<UPixelType, NUImageDimension>::Type;
+  template <typename UPixelType, unsigned int VUImageDimension = VImageDimension>
+  using RebindImageType = typename Rebind<UPixelType, VUImageDimension>::Type;
 
   /** Allocate the image memory. The size of the image must
    * already be set, e.g. by calling SetRegions(). */
   void
-  Allocate(bool UseDefaultConstructor = false) override;
+  Allocate(bool UseValueInitialization = false) override;
 
   /** Restore the data object to its initial state. This means releasing
    * memory. */
@@ -223,7 +223,7 @@ public:
   void
   SetPixel(const IndexType & index, const PixelType & value)
   {
-    OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
+    const OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
 
     for (VectorLengthType i = 0; i < m_VectorLength; ++i)
     {
@@ -239,7 +239,7 @@ public:
   const PixelType
   GetPixel(const IndexType & index) const
   {
-    OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
+    const OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
 
     // Do not create a local for this method, to use return value
     // optimization.
@@ -258,7 +258,7 @@ public:
   PixelType
   GetPixel(const IndexType & index)
   {
-    OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
+    const OffsetValueType offset = m_VectorLength * this->FastComputeOffset(index);
 
     // Correctness of this method relies of return value optimization, do
     // not create a local for the value.
@@ -274,16 +274,25 @@ public:
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  PixelType operator[](const IndexType & index) { return this->GetPixel(index); }
+  PixelType
+  operator[](const IndexType & index)
+  {
+    return this->GetPixel(index);
+  }
 
   /** \brief Access a pixel.
    *
    * For efficiency, this function does not check that the
    * image has actually been allocated yet. */
-  const PixelType operator[](const IndexType & index) const { return this->GetPixel(index); }
+  const PixelType
+  operator[](const IndexType & index) const
+  {
+    return this->GetPixel(index);
+  }
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
+  /** @ITKStartGrouping */
   InternalPixelType *
   GetBufferPointer()
   {
@@ -294,7 +303,7 @@ public:
   {
     return m_Buffer ? m_Buffer->GetBufferPointer() : nullptr;
   }
-
+  /** @ITKEndGrouping */
   /** Return a pointer to the container. */
   PixelContainer *
   GetPixelContainer()
@@ -356,18 +365,19 @@ public:
   }
 
   /** Set/Get macros for the length of each vector in the vector image */
+  /** @ITKStartGrouping */
   itkSetMacro(VectorLength, VectorLengthType);
   itkGetConstReferenceMacro(VectorLength, VectorLengthType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the number of components each pixel has, ie the VectorLength */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfComponentsPerPixel() const override;
 
   void
   SetNumberOfComponentsPerPixel(unsigned int n) override;
 
 protected:
-  VectorImage();
+  VectorImage() = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -381,7 +391,7 @@ private:
   VectorLengthType m_VectorLength{ 0 };
 
   /** Memory for the current buffer. */
-  PixelContainerPointer m_Buffer;
+  PixelContainerPointer m_Buffer{ PixelContainer::New() };
 };
 } // end namespace itk
 

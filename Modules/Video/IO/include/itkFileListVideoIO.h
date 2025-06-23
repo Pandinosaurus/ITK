@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class FileListVideoIO
+ * \class FileListVideoIO
  *
  * \brief VideoIO object for reading and writing videos as a sequence of frame
  *  files.
@@ -51,8 +51,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FileListVideoIO, VideoIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FileListVideoIO);
 
   /** Get the internal ImageIOBase object. */
   itkGetConstObjectMacro(ImageIO, ImageIOBase);
@@ -61,11 +61,12 @@ public:
   itkGetConstMacro(FileNames, std::vector<std::string>);
 
   /** Override SetFileName to do parsing. */
+  /** @ITKStartGrouping */
   void
   SetFileName(const std::string & fileList) override;
   void
   SetFileName(const char * fileList) override;
-
+  /** @ITKEndGrouping */
   /** Close the reader and writer and reset members. */
   void
   FinishReadingOrWriting() override;
@@ -107,6 +108,7 @@ public:
   SetNextFrameToRead(FrameOffsetType frameNumber) override;
 
   /** Accessor functions for video specific information. */
+  /** @ITKStartGrouping */
   TemporalOffsetType
   GetPositionInMSec() const override
   {
@@ -138,7 +140,7 @@ public:
   {
     return this->m_LastIFrame;
   }
-
+  /** @ITKEndGrouping */
   /** Override accessors to pass through to internal image reader. */
   double
   GetSpacing(unsigned int i) const override;
@@ -196,9 +198,9 @@ protected:
   VerifyExtensions(const std::vector<std::string> & fileList) const;
 
 private:
-  ImageIOBase::Pointer m_ImageIO;
+  ImageIOBase::Pointer m_ImageIO{};
 
-  std::vector<std::string> m_FileNames;
+  std::vector<std::string> m_FileNames{};
 };
 } // end namespace itk
 

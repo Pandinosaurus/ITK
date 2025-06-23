@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkAbsoluteValueDifferenceImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -35,7 +36,7 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   constexpr float outputValue = 1.0;
 
   // Define the precision for output comparison
-  const float epsilon = 1e-6;
+  constexpr float epsilon = 1e-6;
 
   // Declare the types of the images
   using myImageType1 = itk::Image<float, myDimension>;
@@ -52,8 +53,8 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create two images
-  myImageType1::Pointer inputImageA = myImageType1::New();
-  myImageType2::Pointer inputImageB = myImageType2::New();
+  auto inputImageA = myImageType1::New();
+  auto inputImageB = myImageType2::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -66,20 +67,14 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   start[1] = 0;
   start[2] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Declare Iterator types apropriated for each image
@@ -112,12 +107,14 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   }
 
 
-  // Declare the type for the Magnitude Filter
+  // Declare the type for the filter
   using myFilterType = itk::AbsoluteValueDifferenceImageFilter<myImageType1, myImageType2, myImageType4>;
 
 
-  // Create a MagnitudeImageFilter
-  myFilterType::Pointer filter = myFilterType::New();
+  // Create the filter
+  auto filter = myFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, AbsoluteValueDifferenceImageFilter, BinaryGeneratorImageFilter);
 
 
   // Connect the input images
@@ -125,7 +122,7 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   filter->SetInput2(inputImageB);
 
   // Get the Smart Pointer to the Filter Output
-  myImageType4::Pointer outputImage = filter->GetOutput();
+  const myImageType4::Pointer outputImage = filter->GetOutput();
 
 
   // Execute the filter
@@ -134,12 +131,12 @@ itkAbsoluteValueDifferenceImageFilterTest(int, char *[])
   // Create an iterator for going through the image output
   myIteratorType4 it4(outputImage, outputImage->GetBufferedRegion());
 
-  //  Print the content of the result image
+  // Print the content of the result image
   std::cout << " Result " << std::endl;
   while (!it4.IsAtEnd())
   {
     std::cout << it4.Get() << std::endl;
-    if (std::fabs(it4.Get() - outputValue) > epsilon)
+    if (itk::Math::abs(it4.Get() - outputValue) > epsilon)
     {
       std::cerr << "Error in the output" << std::endl;
       std::cerr << "Value should be  " << outputValue << std::endl;

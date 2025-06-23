@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,8 @@ itkShapeOpeningLabelMapFilterTest1(int argc, char * argv[])
 {
   if (argc != 6)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " input output";
     std::cerr << " lambda reverseOrdering(0/1) attribute";
     std::cerr << std::endl;
@@ -47,23 +48,25 @@ itkShapeOpeningLabelMapFilterTest1(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<ShapeLabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using I2LType = itk::LabelImageToShapeLabelMapFilter<ImageType, LabelMapType>;
-  I2LType::Pointer i2l = I2LType::New();
+  auto i2l = I2LType::New();
   i2l->SetInput(reader->GetOutput());
 
   using LabelOpeningType = itk::ShapeOpeningLabelMapFilter<LabelMapType>;
-  LabelOpeningType::Pointer opening = LabelOpeningType::New();
+  auto opening = LabelOpeningType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(opening, ShapeOpeningLabelMapFilter, InPlaceLabelMapFilter);
 
   // testing get and set macros for Lambda
-  double lambda = std::stod(argv[3]);
+  const double lambda = std::stod(argv[3]);
   opening->SetLambda(lambda);
   ITK_TEST_SET_GET_VALUE(lambda, opening->GetLambda());
 
   // testing get and set macros for ReverseOrdering
-  bool reverseOrdering = std::stoi(argv[4]);
+  const bool reverseOrdering = std::stoi(argv[4]);
   opening->SetReverseOrdering(reverseOrdering);
   ITK_TEST_SET_GET_VALUE(reverseOrdering, opening->GetReverseOrdering());
 
@@ -75,21 +78,21 @@ itkShapeOpeningLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, opening->GetReverseOrdering());
 
   // testing get and set macros for Attribute
-  LabelOpeningType::AttributeType attribute = std::stoi(argv[5]);
+  const LabelOpeningType::AttributeType attribute = std::stoi(argv[5]);
   opening->SetAttribute(attribute);
   ITK_TEST_SET_GET_VALUE(attribute, opening->GetAttribute());
 
   opening->SetInput(i2l->GetOutput());
 
-  itk::SimpleFilterWatcher watcher(opening, "filter");
+  const itk::SimpleFilterWatcher watcher(opening, "filter");
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  L2IType::Pointer l2i = L2IType::New();
+  auto l2i = L2IType::New();
   l2i->SetInput(opening->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

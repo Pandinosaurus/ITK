@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,14 @@
 #ifndef itkConvolutionImageFilterBase_hxx
 #define itkConvolutionImageFilterBase_hxx
 
-#include "itkConvolutionImageFilterBase.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TKernelImage, typename TOutputImage>
 ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::ConvolutionImageFilterBase()
+  : m_BoundaryCondition(&m_DefaultBoundaryCondition)
 {
   this->AddRequiredInputName("KernelImage");
-
-  m_BoundaryCondition = &m_DefaultBoundaryCondition;
 }
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage>
@@ -40,20 +38,20 @@ ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::GenerateOut
 
   if (m_OutputRegionMode == ConvolutionImageFilterBaseEnums::ConvolutionImageFilterOutputRegion::VALID)
   {
-    OutputRegionType validRegion = this->GetValidRegion();
+    const OutputRegionType validRegion = this->GetValidRegion();
 
-    typename OutputImageType::Pointer outputPtr = this->GetOutput();
+    const typename OutputImageType::Pointer outputPtr = this->GetOutput();
     outputPtr->SetLargestPossibleRegion(validRegion);
   }
 }
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage>
-typename ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::OutputRegionType
-ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::GetValidRegion() const
+auto
+ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::GetValidRegion() const -> OutputRegionType
 {
-  typename InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename InputImageType::ConstPointer inputPtr = this->GetInput();
 
-  InputRegionType inputLargestPossibleRegion = inputPtr->GetLargestPossibleRegion();
+  const InputRegionType inputLargestPossibleRegion = inputPtr->GetLargestPossibleRegion();
 
   OutputIndexType validIndex = inputLargestPossibleRegion.GetIndex();
   OutputSizeType  validSize = inputLargestPossibleRegion.GetSize();
@@ -86,7 +84,7 @@ ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::GetValidReg
     }
   }
 
-  OutputRegionType validRegion(validIndex, validSize);
+  const OutputRegionType validRegion(validIndex, validSize);
 
   return validRegion;
 }
@@ -112,23 +110,18 @@ ConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage>::PrintSelf(s
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Normalize: " << m_Normalize << std::endl;
-  os << indent << "BoundaryCondition: " << m_BoundaryCondition->GetNameOfClass() << std::endl;
-  os << indent << "OutputRegionMode: ";
-  switch (m_OutputRegionMode)
+  os << indent << "DefaultBoundaryCondition: ";
+  m_DefaultBoundaryCondition.Print(os, indent);
+  os << indent << "BoundaryCondition: ";
+  if (m_BoundaryCondition)
   {
-    case OutputRegionModeEnum::SAME:
-      os << "SAME";
-      break;
-
-    case OutputRegionModeEnum::VALID:
-      os << "VALID";
-      break;
-
-    default:
-      os << "unknown";
-      break;
+    m_BoundaryCondition->Print(os, indent);
   }
-  os << std::endl;
+  else
+  {
+    os << indent << "nullptr" << std::endl;
+  }
+  os << indent << "OutputRegionMode: " << m_OutputRegionMode << std::endl;
 }
 } // namespace itk
 #endif

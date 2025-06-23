@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,6 +45,8 @@ namespace itk
 class ITKCommon_EXPORT RealTimeStamp
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(RealTimeStamp);
+
   using Self = RealTimeStamp;
 
   friend class RealTimeClock;
@@ -59,20 +61,22 @@ public:
   using TimeRepresentationType = RealTimeInterval::TimeRepresentationType;
 
   /** Return time in multiple units. */
-  TimeRepresentationType
+  /** @ITKStartGrouping */
+  [[nodiscard]] TimeRepresentationType
   GetTimeInMicroSeconds() const;
-  TimeRepresentationType
+  [[nodiscard]] TimeRepresentationType
   GetTimeInMilliSeconds() const;
-  TimeRepresentationType
+  [[nodiscard]] TimeRepresentationType
   GetTimeInSeconds() const;
-  TimeRepresentationType
+  [[nodiscard]] TimeRepresentationType
   GetTimeInMinutes() const;
-  TimeRepresentationType
+  [[nodiscard]] TimeRepresentationType
   GetTimeInHours() const;
-  TimeRepresentationType
+  [[nodiscard]] TimeRepresentationType
   GetTimeInDays() const;
-
+  /** @ITKEndGrouping */
   /** Arithmetic operations between RealTimeInterval and RealTimeStamp. */
+  /** @ITKStartGrouping */
   RealTimeInterval
   operator-(const Self &) const;
   Self
@@ -83,21 +87,21 @@ public:
   operator+=(const RealTimeInterval &);
   const Self &
   operator-=(const RealTimeInterval &);
-
+  /** @ITKEndGrouping */
   /** Comparison operations. */
+  /** @ITKStartGrouping */
   bool
   operator>(const Self &) const;
   bool
   operator<(const Self &) const;
   bool
   operator==(const Self &) const;
-  bool
-  operator!=(const Self &) const;
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
   bool
   operator<=(const Self &) const;
   bool
   operator>=(const Self &) const;
-
+  /** @ITKEndGrouping */
   /** Default print out of a RealTimeStamp */
   friend ITKCommon_EXPORT std::ostream &
                           operator<<(std::ostream & os, const RealTimeStamp & v);

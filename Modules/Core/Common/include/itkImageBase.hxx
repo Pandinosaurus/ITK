@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkImageBase_hxx
 #define itkImageBase_hxx
 
-#include "itkImageBase.h"
 
 #include <mutex>
 #include "itkProcessObject.h"
@@ -38,13 +37,6 @@
 
 namespace itk
 {
-
-template <unsigned int VImageDimension>
-void
-ImageBase<VImageDimension>::Allocate(bool)
-{}
-
-
 template <unsigned int VImageDimension>
 void
 ImageBase<VImageDimension>::Initialize()
@@ -72,14 +64,23 @@ ImageBase<VImageDimension>::SetSpacing(const SpacingType & spacing)
 {
   for (unsigned int i = 0; i < VImageDimension; ++i)
   {
-    if (this->m_Spacing[i] < 0.0)
+    // Check for zero-valued spacing
+    if (spacing[i] == 0.0)
     {
+      itkExceptionMacro(
+        "Zero-valued spacing is not supported and may result in undefined behavior.\nRefusing to change spacing from "
+        << this->m_Spacing << " to " << spacing);
+    }
+
+    // Check for negative-valued spacing
+    if (spacing[i] < 0.0)
+    {
+      constexpr char message[] = "Negative spacing is not supported and may result in undefined behavior.\n";
 #if !defined(ITK_LEGACY_REMOVE)
-      itkWarningMacro("Negative spacing is not supported and may result in undefined behavior. Spacing is "
-                      << this->m_Spacing);
+      itkWarningMacro(<< message << "Proceeding to set spacing to " << spacing);
       break;
 #else
-      itkExceptionMacro("Negative spacing is not allowed: Spacing is " << this->m_Spacing);
+      itkExceptionMacro(<< message << "Refusing to change spacing from " << this->m_Spacing << " to " << spacing);
 #endif
     }
   }
@@ -132,6 +133,12 @@ ImageBase<VImageDimension>::SetDirection(const DirectionType & direction)
 {
   bool modified = false;
 
+  if (vnl_determinant(direction.GetVnlMatrix()) == 0.0)
+  {
+    itkExceptionMacro("Bad direction, determinant is 0. Refusing to change direction from " << this->m_Direction
+                                                                                            << " to " << direction);
+  }
+
   for (unsigned int r = 0; r < VImageDimension; ++r)
   {
     for (unsigned int c = 0; c < VImageDimension; ++c)
@@ -160,16 +167,7 @@ ImageBase<VImageDimension>::ComputeIndexToPhysicalPointMatrices()
 
   for (unsigned int i = 0; i < VImageDimension; ++i)
   {
-    if (this->m_Spacing[i] == 0.0)
-    {
-      itkExceptionMacro("A spacing of 0 is not allowed: Spacing is " << this->m_Spacing);
-    }
     scale[i][i] = this->m_Spacing[i];
-  }
-
-  if (vnl_determinant(this->m_Direction.GetVnlMatrix()) == 0.0)
-  {
-    itkExceptionMacro(<< "Bad direction, determinant is 0. Direction is " << this->m_Direction);
   }
 
   this->m_IndexToPhysicalPoint = this->m_Direction * scale;
@@ -197,7 +195,7 @@ ImageBase<VImageDimension>::ComputeOffsetTable()
   }
   // if( num > NumericTraits<SizeValueType>::max() )
   //   {
-  //   itkExceptionMacro(<< "Requested number of pixels (" << num
+  //   itkExceptionMacro("Requested number of pixels (" << num
   //     << ") is greater than the largest possible number of pixels (" <<
   // NumericTraits<SizeValueType>::max() << ").");
   //   }
@@ -208,9 +206,11 @@ template <unsigned int VImageDimension>
 void
 ImageBase<VImageDimension>::UpdateOutputInformation()
 {
-  if (this->GetSource())
+  const auto source = this->GetSource();
+
+  if (source)
   {
-    this->GetSource()->UpdateOutputInformation();
+    source->UpdateOutputInformation();
   }
   else
   {
@@ -244,7 +244,7 @@ ImageBase<VImageDimension>::UpdateOutputData()
 {
   // If the requested region does not contain any pixels then there is
   // no reason to Update the output data. This is needed so that
-  // filters don't need to update all inputs. This occours in
+  // filters don't need to update all inputs. This occurs in
   // ImageBase as  oppose to DataObject, but cause this statement
   // requires the specific GetNumberOfPixels methods ( as oppose to a
   // generic Region::IsEmpty method ).
@@ -292,8 +292,8 @@ ImageBase<VImageDimension>::CopyInformation(const DataObject * data)
     else
     {
       // pointer could not be cast back down
-      itkExceptionMacro(<< "itk::ImageBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                        << typeid(const ImageBase *).name());
+      itkExceptionMacro("itk::ImageBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                         << typeid(const ImageBase *).name());
     }
   }
 }
@@ -340,14 +340,13 @@ template <unsigned int VImageDimension>
 bool
 ImageBase<VImageDimension>::RequestedRegionIsOutsideOfTheBufferedRegion()
 {
-  unsigned int      i;
   const IndexType & requestedRegionIndex = this->GetRequestedRegion().GetIndex();
   const IndexType & bufferedRegionIndex = this->GetBufferedRegion().GetIndex();
 
   const SizeType & requestedRegionSize = this->GetRequestedRegion().GetSize();
   const SizeType & bufferedRegionSize = this->GetBufferedRegion().GetSize();
 
-  for (i = 0; i < VImageDimension; ++i)
+  for (unsigned int i = 0; i < VImageDimension; ++i)
   {
     if ((requestedRegionIndex[i] < bufferedRegionIndex[i]) ||
         ((requestedRegionIndex[i] + static_cast<OffsetValueType>(requestedRegionSize[i])) >
@@ -365,9 +364,6 @@ template <unsigned int VImageDimension>
 bool
 ImageBase<VImageDimension>::VerifyRequestedRegion()
 {
-  bool         retval = true;
-  unsigned int i;
-
   // Is the requested region within the LargestPossibleRegion?
   // Note that the test is indeed against the largest possible region
   // rather than the buffered region; see DataObject::VerifyRequestedRegion.
@@ -377,17 +373,47 @@ ImageBase<VImageDimension>::VerifyRequestedRegion()
   const SizeType & requestedRegionSize = this->GetRequestedRegion().GetSize();
   const SizeType & largestPossibleRegionSize = this->GetLargestPossibleRegion().GetSize();
 
-  for (i = 0; i < VImageDimension; ++i)
+  for (unsigned int i = 0; i < VImageDimension; ++i)
   {
     if ((requestedRegionIndex[i] < largestPossibleRegionIndex[i]) ||
         ((requestedRegionIndex[i] + static_cast<OffsetValueType>(requestedRegionSize[i])) >
          (largestPossibleRegionIndex[i] + static_cast<OffsetValueType>(largestPossibleRegionSize[i]))))
     {
-      retval = false;
+      return false; // Short circuit return on first dimension test failure.
     }
   }
+  return true;
+}
 
-  return retval;
+
+template <unsigned int VImageDimension>
+bool
+ImageBase<VImageDimension>::IsCongruentImageGeometry(const ImageBase * otherImage,
+                                                     double            coordinateTolerance,
+                                                     double            directionTolerance) const
+{
+  // check that the image occupy the same physical space, and that
+  // each index is at the same physical location
+
+  // tolerance for origin and spacing depends on the size of pixel
+  // tolerance for directions a fraction of the unit cube.
+  const SpacePrecisionType coordinateTol =
+    itk::Math::abs(coordinateTolerance * this->GetSpacing()[0]); // use first dimension spacing
+
+  return this->GetOrigin().GetVnlVector().is_equal(otherImage->GetOrigin().GetVnlVector(), coordinateTol) &&
+         this->GetSpacing().GetVnlVector().is_equal(otherImage->GetSpacing().GetVnlVector(), coordinateTol) &&
+         this->GetDirection().GetVnlMatrix().is_equal(otherImage->GetDirection().GetVnlMatrix(), directionTolerance);
+}
+
+
+template <unsigned int VImageDimension>
+bool
+ImageBase<VImageDimension>::IsSameImageGeometryAs(const ImageBase * otherImage,
+                                                  double            coordinateTolerance,
+                                                  double            directionTolerance) const
+{
+  return this->IsCongruentImageGeometry(otherImage, coordinateTolerance, directionTolerance) &&
+         this->GetLargestPossibleRegion() == otherImage->GetLargestPossibleRegion();
 }
 
 
@@ -490,16 +516,18 @@ ImageBase<VImageDimension>::PrintSelf(std::ostream & os, Indent indent) const
 
   os << indent << "Origin: " << this->GetOrigin() << std::endl;
 
-  os << indent << "Direction: " << std::endl << this->GetDirection() << std::endl;
+
+  os << indent << "Direction: " << std::endl;
+  this->GetDirection().PrintSelf(os, indent.GetNextIndent());
 
   os << indent << "IndexToPointMatrix: " << std::endl;
-  os << this->m_IndexToPhysicalPoint << std::endl;
+  this->m_IndexToPhysicalPoint.PrintSelf(os, indent.GetNextIndent());
 
   os << indent << "PointToIndexMatrix: " << std::endl;
-  os << this->m_PhysicalPointToIndex << std::endl;
+  this->m_PhysicalPointToIndex.PrintSelf(os, indent.GetNextIndent());
 
   os << indent << "Inverse Direction: " << std::endl;
-  os << this->GetInverseDirection() << std::endl;
+  this->m_InverseDirection.PrintSelf(os, indent.GetNextIndent());
 }
 
 } // end namespace itk

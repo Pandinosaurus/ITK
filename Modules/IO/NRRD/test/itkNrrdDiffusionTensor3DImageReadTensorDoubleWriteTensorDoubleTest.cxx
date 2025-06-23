@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,15 +20,16 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkNrrdImageIO.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
 int
-itkNrrdDiffusionTensor3DImageReadTensorDoubleWriteTensorDoubleTest(int ac, char * av[])
+itkNrrdDiffusionTensor3DImageReadTensorDoubleWriteTensorDoubleTest(int argc, char * argv[])
 {
-  if (ac < 2)
+  if (argc < 2)
   {
-    std::cerr << "Usage: " << av[0] << " Input Output\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Input Output\n";
     return EXIT_FAILURE;
   }
 
@@ -37,11 +38,11 @@ itkNrrdDiffusionTensor3DImageReadTensorDoubleWriteTensorDoubleTest(int ac, char 
 
   using ReaderType = itk::ImageFileReader<InImage>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetImageIO(itk::NrrdImageIO::New());
 
-  reader->SetFileName(av[1]);
+  reader->SetFileName(argv[1]);
 
   try
   {
@@ -54,15 +55,14 @@ itkNrrdDiffusionTensor3DImageReadTensorDoubleWriteTensorDoubleTest(int ac, char 
     return EXIT_FAILURE;
   }
 
-  InImage::Pointer image = reader->GetOutput();
+  const InImage::Pointer image = reader->GetOutput();
   image->Print(std::cout);
 
   // Generate test image
-  itk::ImageFileWriter<InImage>::Pointer writer;
-  writer = itk::ImageFileWriter<InImage>::New();
+  const itk::ImageFileWriter<InImage>::Pointer writer = itk::ImageFileWriter<InImage>::New();
   writer->SetImageIO(itk::NrrdImageIO::New());
   writer->SetInput(reader->GetOutput());
-  writer->SetFileName(av[2]);
+  writer->SetFileName(argv[2]);
   try
   {
     writer->Update();

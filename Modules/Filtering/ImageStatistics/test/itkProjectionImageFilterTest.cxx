@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,20 +24,14 @@
 #include "itkProjectionImageFilter.h"
 #include "itkTestingMacros.h"
 
-namespace itk
-{
-namespace ProjectionImageFilterNamespace
-{
-namespace Function
+namespace itk::ProjectionImageFilterNamespace::Function
 {
 
 template <typename TInputPixel, typename TOutputPixel>
 class BinaryAccumulator
 {
 public:
-  BinaryAccumulator(unsigned long)
-    : m_IsForeground(false)
-  {}
+  BinaryAccumulator(unsigned long) {}
   ~BinaryAccumulator() = default;
 
   inline void
@@ -62,18 +56,15 @@ public:
     {
       return 100;
     }
-    else
-    {
-      return 0;
-    }
+
+    return 0;
   }
 
-  bool m_IsForeground;
+  bool m_IsForeground{ false };
 };
-} // end namespace Function
+} // namespace itk::ProjectionImageFilterNamespace::Function
 
-} // end namespace ProjectionImageFilterNamespace
-} // end namespace itk
+// end namespace ProjectionImageFilterNamespace
 
 int
 itkProjectionImageFilterTest(int argc, char * argv[])
@@ -86,19 +77,19 @@ itkProjectionImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  constexpr int dim = 3;
+  constexpr unsigned int Dimension = 3;
 
   using PixelType = unsigned char;
-  using ImageType = itk::Image<PixelType, dim>;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // produce an image with 3 labels: 0 (background), 100 and 200
 
   using LabelerType = itk::ThresholdLabelerImageFilter<ImageType, ImageType>;
-  LabelerType::Pointer labeler = LabelerType::New();
+  auto labeler = LabelerType::New();
   labeler->SetInput(reader->GetOutput());
   LabelerType::RealThresholdVector thresholds;
   thresholds.push_back(100);
@@ -106,7 +97,7 @@ itkProjectionImageFilterTest(int argc, char * argv[])
   labeler->SetRealThresholds(thresholds);
 
   using ChangeType = itk::ChangeLabelImageFilter<ImageType, ImageType>;
-  ChangeType::Pointer change = ChangeType::New();
+  auto change = ChangeType::New();
   change->SetInput(labeler->GetOutput());
   change->SetChange(1, 100);
   change->SetChange(2, 200);
@@ -115,25 +106,34 @@ itkProjectionImageFilterTest(int argc, char * argv[])
 
   using FilterType = itk::ProjectionImageFilter<ImageType, ImageType, FunctionType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ProjectionImageFilter, ImageToImageFilter);
+
+
   filter->SetInput(change->GetOutput());
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  // Test exceptions
+  unsigned int projectionDimension = ImageType::ImageDimension;
+  filter->SetProjectionDimension(projectionDimension);
+  ITK_TRY_EXPECT_EXCEPTION(filter->Update());
+
+
+  projectionDimension = ImageType::ImageDimension - 1;
+  filter->SetProjectionDimension(projectionDimension);
+  ITK_TEST_SET_GET_VALUE(projectionDimension, filter->GetProjectionDimension());
+
+
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSimilarity2DTransform_hxx
 #define itkSimilarity2DTransform_hxx
 
-#include "itkSimilarity2DTransform.h"
 #include "itkMath.h"
 
 namespace itk
@@ -27,32 +26,29 @@ namespace itk
 template <typename TParametersValueType>
 Similarity2DTransform<TParametersValueType>::Similarity2DTransform()
   : Superclass(ParametersDimension)
-{
-  m_Scale = 1.0f;
-}
+  , m_Scale(1.0f)
+{}
 
 
 template <typename TParametersValueType>
 Similarity2DTransform<TParametersValueType>::Similarity2DTransform(unsigned int parametersDimension)
   : Superclass(parametersDimension)
-{
-  m_Scale = 1.0f;
-}
+  , m_Scale(1.0f)
+{}
 
 
 template <typename TParametersValueType>
 Similarity2DTransform<TParametersValueType>::Similarity2DTransform(unsigned int, unsigned int parametersDimension)
   : Superclass(parametersDimension)
-{
-  m_Scale = 1.0f;
-}
+  , m_Scale(1.0f)
+{}
 
 
 template <typename TParametersValueType>
 void
 Similarity2DTransform<TParametersValueType>::SetParameters(const ParametersType & parameters)
 {
-  itkDebugMacro(<< "Setting parameters " << parameters);
+  itkDebugMacro("Setting parameters " << parameters);
 
   // Save parameters. Needed for proper operation of TransformUpdateParameters.
   if (&parameters != &(this->m_Parameters))
@@ -70,7 +66,7 @@ Similarity2DTransform<TParametersValueType>::SetParameters(const ParametersType 
 
   // Set translation
   OffsetType translation;
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     translation[i] = parameters[i + 2];
   }
@@ -83,27 +79,27 @@ Similarity2DTransform<TParametersValueType>::SetParameters(const ParametersType 
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 
-  itkDebugMacro(<< "After setting parameters ");
+  itkDebugMacro("After setting parameters ");
 }
 
 
 template <typename TParametersValueType>
-const typename Similarity2DTransform<TParametersValueType>::ParametersType &
-Similarity2DTransform<TParametersValueType>::GetParameters() const
+auto
+Similarity2DTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
-  itkDebugMacro(<< "Getting parameters ");
+  itkDebugMacro("Getting parameters ");
 
   this->m_Parameters[0] = this->GetScale();
   this->m_Parameters[1] = this->GetAngle();
 
   // Get the translation
   OffsetType translation = this->GetTranslation();
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     this->m_Parameters[i + 2] = translation[i];
   }
 
-  itkDebugMacro(<< "After getting parameters " << this->m_Parameters);
+  itkDebugMacro("After getting parameters " << this->m_Parameters);
 
   return this->m_Parameters;
 }
@@ -150,11 +146,10 @@ Similarity2DTransform<TParametersValueType>::ComputeMatrixParameters()
 
   // Throw if m_Scale is zero, or a denormal floating point number (close to zero)".
   // https://bitbashing.io/comparing-floats.html
-  // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+  // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
   if (m_Scale < std::numeric_limits<TParametersValueType>::min())
   {
-    itkExceptionMacro(<< "Bad Rotation Matrix. Scale cannot be zero.\n"
-                      << "m_Scale : " << m_Scale);
+    itkExceptionMacro("Bad Rotation Matrix. Scale cannot be zero.\nm_Scale : " << m_Scale);
   }
 
   this->SetVarAngle(std::acos(this->GetMatrix()[0][0] / m_Scale));
@@ -166,7 +161,7 @@ Similarity2DTransform<TParametersValueType>::ComputeMatrixParameters()
 
   if ((this->GetMatrix()[1][0] / m_Scale) - std::sin(this->GetAngle()) > 0.000001)
   {
-    itkExceptionMacro(<< "Bad Rotation Matrix");
+    itkExceptionMacro("Bad Rotation Matrix");
   }
 }
 
@@ -219,7 +214,8 @@ void
 Similarity2DTransform<TParametersValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Scale =" << m_Scale << std::endl;
+
+  os << indent << "Scale: " << static_cast<typename NumericTraits<ScaleType>::PrintType>(m_Scale) << std::endl;
 }
 
 
@@ -242,31 +238,25 @@ Similarity2DTransform<TParametersValueType>::GetInverse(Self * inverse) const
   }
 
   inverse->SetFixedParameters(this->GetFixedParameters());
-  this->GetInverseMatrix();
+  const auto & inverseMatrix = this->GetInverseMatrix();
   if (this->GetSingular())
   {
     return false;
   }
   inverse->SetCenter(this->GetCenter()); // inverse have the same center
-  inverse->SetScale(NumericTraits<double>::OneValue() / this->GetScale());
+  inverse->SetScale(1.0 / this->GetScale());
   inverse->SetAngle(-this->GetAngle());
-  inverse->SetTranslation(-(this->GetInverseMatrix() * this->GetTranslation()));
+  inverse->SetTranslation(-(inverseMatrix * this->GetTranslation()));
 
   return true;
 }
 
 
 template <typename TParametersValueType>
-typename Similarity2DTransform<TParametersValueType>::InverseTransformBasePointer
-Similarity2DTransform<TParametersValueType>::GetInverseTransform() const
+auto
+Similarity2DTransform<TParametersValueType>::GetInverseTransform() const -> InverseTransformBasePointer
 {
-  Pointer inv = New();
-
-  if (this->GetInverse(inv))
-  {
-    return inv.GetPointer();
-  }
-  return nullptr;
+  return Superclass::InvertTransform(*this);
 }
 
 

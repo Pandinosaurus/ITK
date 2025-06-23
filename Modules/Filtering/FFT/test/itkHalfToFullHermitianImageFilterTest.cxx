@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,8 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   // Print usage information.
   if (argc < 3)
   {
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <test image size x> <test image size y>"
-              << std::endl;
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " testImageSizeX testImageSizeY" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -40,7 +40,7 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   using ComplexImageType = itk::Image<std::complex<float>, 2>;
   using RandomSourceType = itk::RandomImageSource<ImageType>;
 
-  RandomSourceType::Pointer  source = RandomSourceType::New();
+  auto                       source = RandomSourceType::New();
   RandomSourceType::SizeType size;
   size[0] = std::stoi(argv[1]);
   size[1] = std::stoi(argv[2]);
@@ -52,7 +52,7 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   // Change the index of the image's largest possible region to test
   // generality of the filters.
   using ChangeFilterType = itk::ChangeInformationImageFilter<ImageType>;
-  ChangeFilterType::Pointer changer = ChangeFilterType::New();
+  auto changer = ChangeFilterType::New();
   changer->ChangeRegionOn();
   ChangeFilterType::OutputImageOffsetValueType indexShift[2];
   indexShift[0] = -3;
@@ -63,12 +63,12 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   // Compute frequency image, yielding the non-redundant half of the
   // full complex image.
   using FFTFilter = itk::RealToHalfHermitianForwardFFTImageFilter<ImageType, ComplexImageType>;
-  FFTFilter::Pointer fft = FFTFilter::New();
+  auto fft = FFTFilter::New();
   fft->SetInput(changer->GetOutput());
 
   // Expand the non-redundant half to the full complex image.
   using HalfToFullFilterType = itk::HalfToFullHermitianImageFilter<ComplexImageType>;
-  HalfToFullFilterType::Pointer halfToFullFilter = HalfToFullFilterType::New();
+  auto halfToFullFilter = HalfToFullFilterType::New();
   halfToFullFilter->SetActualXDimensionIsOdd(fft->GetActualXDimensionIsOddOutput());
   halfToFullFilter->SetInput(fft->GetOutput());
   halfToFullFilter->Update();
@@ -77,8 +77,8 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   ComplexImageType::SizeType fftSize = fft->GetOutput()->GetLargestPossibleRegion().GetSize();
 
   // Test that the output is the expected size.
-  ComplexImageType::RegionType halfToFullOutputRegion = halfToFullFilter->GetOutput()->GetLargestPossibleRegion();
-  ComplexImageType::SizeType   halfToFullOutputSize = halfToFullOutputRegion.GetSize();
+  const ComplexImageType::RegionType halfToFullOutputRegion = halfToFullFilter->GetOutput()->GetLargestPossibleRegion();
+  const ComplexImageType::SizeType   halfToFullOutputSize = halfToFullOutputRegion.GetSize();
   if (halfToFullOutputSize != size)
   {
     std::cerr << "HalfToFullHermitianImageFilter did not produce an image of the expected size. " << std::endl;
@@ -87,13 +87,12 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
   }
 
   // Test that the full image has the Hermitian property.
-  ComplexImageType::IndexType conjugateRegionIndex;
-  conjugateRegionIndex.Fill(0);
+  ComplexImageType::IndexType conjugateRegionIndex{};
   conjugateRegionIndex[0] = static_cast<ComplexImageType::IndexValueType>(fftSize[0]) + indexShift[0];
   conjugateRegionIndex[1] = indexShift[1];
   ComplexImageType::SizeType conjugateRegionSize(size);
   conjugateRegionSize[0] -= fftSize[0];
-  itk::ImageRegion<ComplexImageType::ImageDimension> conjugateRegion(conjugateRegionIndex, conjugateRegionSize);
+  const itk::ImageRegion<ComplexImageType::ImageDimension> conjugateRegion(conjugateRegionIndex, conjugateRegionSize);
 
   using ComplexIteratorType = itk::ImageRegionConstIteratorWithIndex<ComplexImageType>;
   ComplexIteratorType it(halfToFullFilter->GetOutput(), conjugateRegion);
@@ -115,7 +114,7 @@ itkHalfToFullHermitianImageFilterTest(int argc, char * argv[])
       std::cerr << std::endl
                 << "Mismatch found in conjugate index " << conjugateIndex << " (original index " << index
                 << "). Expected " << std::conj(halfToFullFilter->GetOutput()->GetPixel(index)) << ", got " << it.Get()
-                << "." << std::endl;
+                << '.' << std::endl;
       return EXIT_FAILURE;
     }
   }

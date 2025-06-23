@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,10 +21,8 @@ namespace itk
 {
 // ---------------------------------------------------------------------
 QuadEdge::QuadEdge()
-{
-  this->m_Onext = this;
-  this->m_Rot = nullptr;
-}
+  : m_Onext(this)
+{}
 
 // ---------------------------------------------------------------------
 QuadEdge::~QuadEdge()
@@ -431,7 +429,7 @@ QuadEdge::IsEdgeInOnextRing(Self * testEdge) const
       {
         return true;
       }
-      it++;
+      ++it;
     }
   }
   return false;
@@ -442,7 +440,7 @@ QuadEdge::IsLnextGivenSizeCyclic(const int size) const
 {
   const Self * iterated = this;
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; ++i)
   {
     iterated = iterated->GetLnext();
     if (!iterated)
@@ -462,7 +460,7 @@ QuadEdge::GetOrder() const
     const Self * it = this->GetOnext();
     while (it && it != this)
     {
-      order++;
+      ++order;
       it = it->GetOnext();
     }
     return order;

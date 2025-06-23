@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +32,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(LevelSetDomainPartitionBaseHelper, LevelSetDomainPartitionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetDomainPartitionBaseHelper);
 
   itkNewMacro(Self);
 
@@ -58,9 +58,9 @@ itkLevelSetDomainPartitionBaseTest(int, char *[])
 
   using DomainPartitionBaseHelperType = itk::LevelSetDomainPartitionBaseHelper<ImageType>;
 
-  itk::IdentifierType count = 2;
+  constexpr itk::IdentifierType count = 2;
 
-  DomainPartitionBaseHelperType::Pointer function = DomainPartitionBaseHelperType::New();
+  auto function = DomainPartitionBaseHelperType::New();
   function->SetNumberOfLevelSetFunctions(count);
 
   if (function->GetNumberOfLevelSetFunctions() != count)

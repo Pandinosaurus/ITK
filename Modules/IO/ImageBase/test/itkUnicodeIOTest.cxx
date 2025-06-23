@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 #include <cstring>
 
 // Some utility functions for the test
-#if defined(ITK_SUPPORTS_WCHAR_T_FILENAME_CSTYLEIO) &&                                                                 \
+#if defined(ITK_SUPPORTS_WCHAR_T_FILENAME_CSTYLEIO) && \
   (defined(ITK_SUPPORTS_WCHAR_T_FILENAME_IOSTREAMS_CONSTRUCTORS) || defined(ITK_SUPPORTS_FDSTREAM_HPP))
 #  define LOCAL_USE_WIN32_WOPEN 1
 #else
@@ -43,7 +43,7 @@ checkAlphaExists()
   utf8_str.append(1, '\xCE');
   utf8_str.append(1, '\xB1');
   utf8_str += ".txt";
-  FILE *      tmp = fopen(utf8_str.c_str(), "r");
+  FILE * tmp = fopen(utf8_str.c_str(), "r");
 #endif
   if (tmp != nullptr)
   {

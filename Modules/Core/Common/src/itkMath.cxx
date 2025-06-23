@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,7 @@
  *=========================================================================*/
 #include "itkMath.h"
 
-namespace itk
-{
-namespace Math
+namespace itk::Math
 {
 
 namespace
@@ -33,7 +31,7 @@ IsPrime(T n)
   {
     return false;
   }
-  const auto last = (T)std::sqrt((double)n);
+  const auto last = (T)std::sqrt(static_cast<double>(n));
   for (T x = 2; x <= last; ++x)
   {
     if (n % x == 0)
@@ -115,5 +113,4 @@ GreatestPrimeFactor(unsigned long long n)
   return GreatestPrimeFactor<unsigned long long>(n);
 }
 
-} // end namespace Math
-} // end namespace itk
+} // namespace itk::Math

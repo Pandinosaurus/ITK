@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,19 +43,19 @@ itkImageToImageFilterTest(int, char *[])
 
   constexpr unsigned int ImageDimension = 3;
   using InputPixelType = unsigned char;
-  using OutputPixelType = signed short;
+  using OutputPixelType = short;
 
   using InputImageType = itk::Image<InputPixelType, ImageDimension>;
   using OutputImageType = itk::Image<OutputPixelType, ImageDimension>;
 
   using FilterType = itk::ImageToImageFilterTestHelper<InputImageType, OutputImageType>;
 
-  InputImageType::Pointer inputImage1 = InputImageType::New();
-  InputImageType::Pointer inputImage2 = InputImageType::New();
-  InputImageType::Pointer inputImage3 = InputImageType::New();
-  InputImageType::Pointer inputImage4 = InputImageType::New();
+  auto inputImage1 = InputImageType::New();
+  auto inputImage2 = InputImageType::New();
+  auto inputImage3 = InputImageType::New();
+  auto inputImage4 = InputImageType::New();
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->Print(std::cout);
   std::cout << "Name of Class = " << filter->GetNameOfClass() << std::endl;

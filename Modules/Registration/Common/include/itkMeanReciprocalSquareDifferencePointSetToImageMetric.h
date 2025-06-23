@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,28 +58,28 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeanReciprocalSquareDifferencePointSetToImageMetric, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeanReciprocalSquareDifferencePointSetToImageMetric);
 
   /** Types transferred from the base class */
-  using RealType = typename Superclass::RealType;
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformParametersType = typename Superclass::TransformParametersType;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using GradientPixelType = typename Superclass::GradientPixelType;
+  using typename Superclass::RealType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformParametersType;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::GradientPixelType;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using FixedPointSetType = typename Superclass::FixedPointSetType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using FixedPointSetConstPointer = typename Superclass::FixedPointSetConstPointer;
-  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::FixedPointSetType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::FixedPointSetConstPointer;
+  using typename Superclass::MovingImageConstPointer;
 
-  using PointIterator = typename Superclass::PointIterator;
-  using PointDataIterator = typename Superclass::PointDataIterator;
+  using typename Superclass::PointIterator;
+  using typename Superclass::PointDataIterator;
 
   /** Get the derivatives of the match measure. */
   void
@@ -97,9 +97,10 @@ public:
 
   /**  Set/Get the lambda distance. (controls the capture radius of the metric).
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Lambda, double);
   itkGetConstMacro(Lambda, double);
-
+  /** @ITKEndGrouping */
 protected:
   MeanReciprocalSquareDifferencePointSetToImageMetric();
   ~MeanReciprocalSquareDifferencePointSetToImageMetric() override = default;
@@ -107,7 +108,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_Lambda;
+  double m_Lambda{};
 };
 } // end namespace itk
 

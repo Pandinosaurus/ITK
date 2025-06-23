@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkWarpVectorImageFilter_hxx
 #define itkWarpVectorImageFilter_hxx
-#include "itkWarpVectorImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -36,13 +35,13 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::WarpVector
   m_OutputOrigin.Fill(0.0);
   m_OutputDirection.SetIdentity();
 
-  for (unsigned int i = 0; i < PixelDimension; i++)
+  for (unsigned int i = 0; i < PixelDimension; ++i)
   {
     m_EdgePaddingValue[i] = 0;
   }
 
   // Setup default interpolator
-  typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
+  auto interp = DefaultInterpolatorType::New();
 
   m_Interpolator = static_cast<InterpolatorType *>(interp.GetPointer());
   this->DynamicMultiThreadingOn();
@@ -111,8 +110,8 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::SetDisplac
 
 
 template <typename TInputImage, typename TOutputImage, typename TDisplacementField>
-typename WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::DisplacementFieldType *
-WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::GetDisplacementField()
+auto
+WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::GetDisplacementField() -> DisplacementFieldType *
 {
   return itkDynamicCastInDebugMode<DisplacementFieldType *>(this->ProcessObject::GetInput(1));
 }
@@ -128,7 +127,7 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::BeforeThre
 {
   if (!m_Interpolator)
   {
-    itkExceptionMacro(<< "Interpolator not set");
+    itkExceptionMacro("Interpolator not set");
   }
 
   // Connect input image to interpolator
@@ -141,9 +140,9 @@ void
 WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  InputImageConstPointer   inputPtr = this->GetInput();
-  OutputImagePointer       outputPtr = this->GetOutput();
-  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
+  const InputImageConstPointer   inputPtr = this->GetInput();
+  const OutputImagePointer       outputPtr = this->GetOutput();
+  const DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
 
 
   ImageRegionIteratorWithIndex<OutputImageType> outputIt(outputPtr, outputRegionForThread);
@@ -163,7 +162,7 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::DynamicThr
     displacement = fieldIt.Get();
 
     // compute the required input image point
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       point[j] += displacement[j];
     }
@@ -174,7 +173,7 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::DynamicThr
       using OutputType = typename InterpolatorType::OutputType;
       const OutputType interpolatedValue = m_Interpolator->Evaluate(point);
 
-      for (unsigned int k = 0; k < PixelDimension; k++)
+      for (unsigned int k = 0; k < PixelDimension; ++k)
       {
         outputValue[k] = static_cast<ValueType>(interpolatedValue[k]);
       }
@@ -199,7 +198,7 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::GenerateIn
   Superclass::GenerateInputRequestedRegion();
 
   // request the largest possible region for the input image
-  InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
 
   if (inputPtr)
   {
@@ -208,8 +207,8 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::GenerateIn
 
   // just propagate up the output requested region for the
   // displacement field.
-  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
-  OutputImagePointer       outputPtr = this->GetOutput();
+  const DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
+  const OutputImagePointer       outputPtr = this->GetOutput();
   if (fieldPtr)
   {
     fieldPtr->SetRequestedRegion(outputPtr->GetRequestedRegion());
@@ -223,13 +222,13 @@ WarpVectorImageFilter<TInputImage, TOutputImage, TDisplacementField>::GenerateOu
   // call the superclass's implementation of this method
   Superclass::GenerateOutputInformation();
 
-  OutputImagePointer outputPtr = this->GetOutput();
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   outputPtr->SetSpacing(m_OutputSpacing);
   outputPtr->SetOrigin(m_OutputOrigin);
   outputPtr->SetDirection(m_OutputDirection);
 
-  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
+  const DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
   if (fieldPtr)
   {
     outputPtr->SetLargestPossibleRegion(fieldPtr->GetLargestPossibleRegion());

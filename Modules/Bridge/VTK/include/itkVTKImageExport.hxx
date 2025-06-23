@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVTKImageExport_hxx
 #define itkVTKImageExport_hxx
 
-#include "itkVTKImageExport.h"
 
 #include "itkPixelTraits.h"
 #include "itkNumericTraits.h"
@@ -98,7 +97,7 @@ VTKImageExport<TInputImage>::VTKImageExport()
   }
   else
   {
-    itkExceptionMacro(<< "Type currently not supported");
+    itkExceptionMacro("Type currently not supported");
   }
 }
 
@@ -123,8 +122,8 @@ VTKImageExport<TInputImage>::SetInput(const InputImageType * input)
  * Get the current input image.
  */
 template <typename TInputImage>
-typename VTKImageExport<TInputImage>::InputImageType *
-VTKImageExport<TInputImage>::GetInput()
+auto
+VTKImageExport<TInputImage>::GetInput() -> InputImageType *
 {
   return itkDynamicCastInDebugMode<TInputImage *>(this->ProcessObject::GetInput(0));
 }
@@ -138,23 +137,23 @@ template <typename TInputImage>
 int *
 VTKImageExport<TInputImage>::WholeExtentCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
-  InputRegionType region = input->GetLargestPossibleRegion();
-  InputSizeType   size = region.GetSize();
-  InputIndexType  index = region.GetIndex();
+  const InputRegionType region = input->GetLargestPossibleRegion();
+  InputSizeType         size = region.GetSize();
+  InputIndexType        index = region.GetIndex();
 
   unsigned int i = 0;
   // Fill in the known portion of the extent.
   for (; i < InputImageDimension; ++i)
   {
-    m_WholeExtent[i * 2] = int(index[i]);
-    m_WholeExtent[i * 2 + 1] = int(index[i] + size[i]) - 1;
+    m_WholeExtent[i * 2] = static_cast<int>(index[i]);
+    m_WholeExtent[i * 2 + 1] = static_cast<int>(index[i] + size[i]) - 1;
   }
   // Fill in the extent for dimensions up to three.
   for (; i < 3; ++i)
@@ -173,11 +172,11 @@ template <typename TInputImage>
 double *
 VTKImageExport<TInputImage>::SpacingCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   const typename TInputImage::SpacingType & spacing = input->GetSpacing();
@@ -204,7 +203,7 @@ template <typename TInputImage>
 float *
 VTKImageExport<TInputImage>::FloatSpacingCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   const typename TInputImage::SpacingType & spacing = input->GetSpacing();
 
@@ -230,11 +229,11 @@ template <typename TInputImage>
 double *
 VTKImageExport<TInputImage>::OriginCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   const typename TInputImage::PointType & origin = input->GetOrigin();
@@ -261,7 +260,7 @@ template <typename TInputImage>
 float *
 VTKImageExport<TInputImage>::FloatOriginCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   const typename TInputImage::PointType & origin = input->GetOrigin();
 
@@ -287,11 +286,11 @@ template <typename TInputImage>
 double *
 VTKImageExport<TInputImage>::DirectionCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   const typename TInputImage::DirectionType & direction = input->GetDirection();
@@ -359,14 +358,12 @@ VTKImageExport<TInputImage>::PropagateUpdateExtentCallback(int * extent)
     size[i] = (extent[i * 2 + 1] - extent[i * 2]) + 1;
   }
 
-  InputRegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const InputRegionType region(index, size);
 
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   input->SetRequestedRegion(region);
@@ -382,22 +379,22 @@ template <typename TInputImage>
 int *
 VTKImageExport<TInputImage>::DataExtentCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
-  InputRegionType region = input->GetBufferedRegion();
-  InputSizeType   size = region.GetSize();
-  InputIndexType  index = region.GetIndex();
+  const InputRegionType region = input->GetBufferedRegion();
+  InputSizeType         size = region.GetSize();
+  InputIndexType        index = region.GetIndex();
 
   unsigned int i = 0;
   for (; i < InputImageDimension; ++i)
   {
-    m_DataExtent[i * 2] = int(index[i]);
-    m_DataExtent[i * 2 + 1] = int(index[i] + size[i]) - 1;
+    m_DataExtent[i * 2] = static_cast<int>(index[i]);
+    m_DataExtent[i * 2 + 1] = static_cast<int>(index[i] + size[i]) - 1;
   }
   for (; i < 3; ++i)
   {
@@ -415,11 +412,11 @@ template <typename TInputImage>
 void *
 VTKImageExport<TInputImage>::BufferPointerCallback()
 {
-  InputImagePointer input = this->GetInput();
+  const InputImagePointer input = this->GetInput();
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   return input->GetBufferPointer();

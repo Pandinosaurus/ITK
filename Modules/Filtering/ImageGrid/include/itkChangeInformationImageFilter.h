@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -94,8 +94,8 @@ public:
   using PointType = typename InputImageType::PointType;
   using DirectionType = typename InputImageType::DirectionType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ChangeInformationImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ChangeInformationImageFilter);
 
   /** Copy the information from another Image.  By default,
    *  the information is copied from the input image. */
@@ -119,20 +119,26 @@ public:
   /** Specify a new data spacing explicitly.  The default is to
    * use the spacing of the Input, or of the ReferenceImage
    * if UseReferenceImage is set. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputSpacing, SpacingType);
   itkGetConstReferenceMacro(OutputSpacing, SpacingType);
+  /** @ITKEndGrouping */
 
   /** Specify a new data origin explicitly.  The default is to
    *  use the origin of the Input, or of the ReferenceImage
    *  if UseReferenceImage is true. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputOrigin, PointType);
   itkGetConstReferenceMacro(OutputOrigin, PointType);
+  /** @ITKEndGrouping */
 
   /** Specify a new direction cosine matrix explicitly.  The default is to
    *  use the direction of the Input, or of the ReferenceImage
    *  if UseReferenceImage is true. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputDirection, DirectionType);
   itkGetConstReferenceMacro(OutputDirection, DirectionType);
+  /** @ITKEndGrouping */
 
   /** Specify an offset for the buffered region. The default is to
    *  use the same buffered region as the input or an Offset computed from
@@ -142,9 +148,11 @@ public:
    *  controls the requested region. Therefore, changing the buffered region
    *  may mean the filter cannot produce the requested region.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputOffset, OutputImageOffsetType);
   itkGetConstReferenceMacro(OutputOffset, OutputImageOffsetType);
   itkSetVectorMacro(OutputOffset, OutputImageOffsetValueType, ImageDimension);
+  /** @ITKEndGrouping */
 
   /** Change the origin, spacing and region of the output image. */
   void
@@ -206,9 +214,11 @@ public:
   /** Set the Origin of the output so that image coordinate (0,0,0)
    * lies at the Center of the Image.  This will override
    * SetOutputOrigin. */
+  /** @ITKStartGrouping */
   itkSetMacro(CenterImage, bool);
   itkBooleanMacro(CenterImage);
   itkGetConstMacro(CenterImage, bool);
+  /** @ITKEndGrouping */
 
   /** Apply changes to the output image information. */
   void
@@ -223,7 +233,7 @@ public:
   GenerateData() override;
 
 protected:
-  ChangeInformationImageFilter();
+  ChangeInformationImageFilter() = default;
   ~ChangeInformationImageFilter() override = default;
 
   void
@@ -235,25 +245,25 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override
+  VerifyInputInformation() const override
   {}
 
 private:
-  InputImagePointer m_ReferenceImage;
+  InputImagePointer m_ReferenceImage{ nullptr };
 
-  bool m_CenterImage;
-  bool m_ChangeSpacing;
-  bool m_ChangeOrigin;
-  bool m_ChangeDirection;
-  bool m_ChangeRegion;
-  bool m_UseReferenceImage;
+  bool m_CenterImage{ false };
+  bool m_ChangeSpacing{ false };
+  bool m_ChangeOrigin{ false };
+  bool m_ChangeDirection{ false };
+  bool m_ChangeRegion{ false };
+  bool m_UseReferenceImage{ false };
 
-  SpacingType   m_OutputSpacing;
-  PointType     m_OutputOrigin;
-  DirectionType m_OutputDirection;
+  SpacingType   m_OutputSpacing{ MakeFilled<SpacingType>(1.0) };
+  PointType     m_OutputOrigin{};
+  DirectionType m_OutputDirection{ DirectionType::GetIdentity() };
 
-  OutputImageOffsetType m_OutputOffset;
-  OutputImageOffsetType m_Shift;
+  OutputImageOffsetType m_OutputOffset{};
+  OutputImageOffsetType m_Shift{};
 };
 } // end namespace itk
 

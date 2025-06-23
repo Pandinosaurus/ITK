@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@
 namespace itk
 {
 /**
- *\class OpenCVVideoIO
+ * \class OpenCVVideoIO
  *
  * \brief VideoIO object for reading and writing videos using OpenCV
  *
@@ -62,8 +62,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(OpenCVVideoIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(OpenCVVideoIO);
 
   /** Close the reader and writer and reset members */
   virtual void
@@ -168,7 +168,7 @@ public:
                       const std::vector<SizeValueType> & dim,
                       const char *                       fourCC,
                       unsigned int                       nChannels,
-                      IOComponentType                    componentType);
+                      IOComponentEnum                    componentType);
 
 protected:
   OpenCVVideoIO();
@@ -195,13 +195,13 @@ protected:
 
 private:
 private:
-  IplImage *      m_CVImage;
-  IplImage *      m_TempImage;
-  CvCapture *     m_Capture;
-  CvVideoWriter * m_Writer;
-  int             m_FourCC;
+  IplImage *      m_CVImage{};
+  IplImage *      m_TempImage{};
+  CvCapture *     m_Capture{};
+  CvVideoWriter * m_Writer{};
+  int             m_FourCC{};
 
-  int m_CameraIndex;
+  int m_CameraIndex{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,12 +32,12 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
-  itkTypeMacro(GradientDescentOptimizerBasev4TestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(GradientDescentOptimizerBasev4TestMetric);
 
   itkNewMacro(Self);
 
@@ -57,14 +57,14 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    derivative.Fill(itk::NumericTraits<ParametersValueType>::ZeroValue());
+    derivative.Fill(ParametersValueType{});
   }
 
   void
   GetValueAndDerivative(MeasureType & value, DerivativeType & derivative) const override
   {
     value = itk::NumericTraits<MeasureType>::OneValue();
-    derivative.Fill(itk::NumericTraits<ParametersValueType>::ZeroValue());
+    derivative.Fill(ParametersValueType{});
   }
 
   unsigned int
@@ -127,8 +127,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GradientDescentOptimizerBasev4TestOptimizer, GradientDescentOptimizerBasev4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientDescentOptimizerBasev4TestOptimizer);
 
   /* Provide an override for the pure virtual StartOptimization */
   void
@@ -170,18 +170,16 @@ itkGradientDescentOptimizerBasev4Test(int, char *[])
 
   using MetricType = GradientDescentOptimizerBasev4TestMetric<ImageType, ImageType>;
 
-  MetricType::Pointer                                  metric = MetricType::New();
-  GradientDescentOptimizerBasev4TestOptimizer::Pointer optimizer = GradientDescentOptimizerBasev4TestOptimizer::New();
+  auto metric = MetricType::New();
+  auto optimizer = GradientDescentOptimizerBasev4TestOptimizer::New();
 
-  /* exercise some methods */
+  constexpr bool doEstimateScales = true;
+  ITK_TEST_SET_GET_BOOLEAN(optimizer, DoEstimateScales, doEstimateScales);
+
   optimizer->SetMetric(metric);
-  if (optimizer->GetMetric() != metric)
-  {
-    std::cerr << "Set/GetMetric failed." << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TEST_SET_GET_VALUE(metric, optimizer->GetMetric());
 
-  std::cout << "value: " << optimizer->GetCurrentMetricValue() << std::endl;
+  ITK_TEST_SET_GET_VALUE(0.0, optimizer->GetCurrentMetricValue());
 
   optimizer->SetNumberOfWorkUnits(2);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,17 @@
  *=========================================================================*/
 #ifndef itkVoronoiSegmentationRGBImageFilter_hxx
 #define itkVoronoiSegmentationRGBImageFilter_hxx
-#include "itkVoronoiSegmentationRGBImageFilter.h"
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include <cmath>
 
 namespace itk
 {
-/* Constructor: setting of the default values for the parameters. */
+
 template <typename TInputImage, typename TOutputImage>
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::VoronoiSegmentationRGBImageFilter()
 {
-  unsigned int i;
-
-  for (i = 0; i < 6; i++)
+  for (unsigned int i = 0; i < 6; ++i)
   {
     m_Mean[i] = 0;
     m_STD[i] = 0;
@@ -53,10 +50,10 @@ template <typename TInputImage, typename TOutputImage>
 void
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetMeanPercentError(const double x[6])
 {
-  for (unsigned int i = 0; i < 6; i++)
+  for (unsigned int i = 0; i < 6; ++i)
   {
     m_MeanPercentError[i] = x[i];
-    m_MeanTolerance[i] = std::fabs(x[i] * m_Mean[i]);
+    m_MeanTolerance[i] = itk::Math::abs(x[i] * m_Mean[i]);
   }
 }
 
@@ -64,14 +61,13 @@ template <typename TInputImage, typename TOutputImage>
 void
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetSTDPercentError(const double x[6])
 {
-  for (unsigned int i = 0; i < 6; i++)
+  for (unsigned int i = 0; i < 6; ++i)
   {
     m_STDPercentError[i] = x[i];
     m_STDTolerance[i] = x[i] * m_STD[i];
   }
 }
 
-/* Initialization for the segmentation. */
 template <typename TInputImage, typename TOutputImage>
 void
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(unsigned int           inputNumber,
@@ -80,7 +76,6 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(unsigned 
   this->Superclass::SetInput(inputNumber, input);
 }
 
-/* Initialization for the segmentation. */
 template <typename TInputImage, typename TOutputImage>
 void
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(const InputImageType * input)
@@ -88,16 +83,10 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(const Inp
   this->Superclass::SetInput(input);
 
   this->SetSize(this->GetInput()->GetLargestPossibleRegion().GetSize());
-  IndexType index;
-  index.Fill(0);
-  RegionType region;
-  region.SetSize(this->GetSize());
-  region.SetIndex(index);
+  const RegionType region(this->GetSize());
 
   m_WorkingImage = RGBHCVImage::New();
-  m_WorkingImage->SetLargestPossibleRegion(region);
-  m_WorkingImage->SetBufferedRegion(region);
-  m_WorkingImage->SetRequestedRegion(region);
+  m_WorkingImage->SetRegions(region);
   m_WorkingImage->Allocate();
 
   itk::ImageRegionIteratorWithIndex<RGBHCVImage>         wit(m_WorkingImage, region);
@@ -105,15 +94,10 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(const Inp
   PixelType                                              ipixel;
   RGBHCVPixel                                            wpixel;
 
-  double X;
-  double Y;
-  double Z;
-  double L;
-  double a;
-  double b;
-  double X0 = m_MaxValueOfRGB * 0.982;
-  double Y0 = m_MaxValueOfRGB;
-  double Z0 = m_MaxValueOfRGB * 1.183;
+
+  const double X0 = m_MaxValueOfRGB * 0.982;
+  const double Y0 = m_MaxValueOfRGB;
+  const double Z0 = m_MaxValueOfRGB * 1.183;
 
   while (!iit.IsAtEnd())
   {
@@ -122,15 +106,16 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::SetInput(const Inp
     wpixel[1] = ipixel[1];
     wpixel[2] = ipixel[2];
 
-    X = 0.607 * ipixel[0] + 0.174 * ipixel[1] + 0.201 * ipixel[2];
-    Y = 0.299 * ipixel[0] + 0.587 * ipixel[1] + 0.114 * ipixel[2];
-    Z = 0.066 * ipixel[1] + 1.117 * ipixel[2];
+
+    double X = 0.607 * ipixel[0] + 0.174 * ipixel[1] + 0.201 * ipixel[2];
+    double Y = 0.299 * ipixel[0] + 0.587 * ipixel[1] + 0.114 * ipixel[2];
+    double Z = 0.066 * ipixel[1] + 1.117 * ipixel[2];
     X = std::pow((X / X0), 0.3333);
     Y = std::pow((Y / Y0), 0.3333);
     Z = std::pow((Z / Z0), 0.3333);
-    L = 116 * Y - 16;
-    a = 500 * (X - Y);
-    b = 200 * (Y - Z);
+    const double L = 116 * Y - 16;
+    const double a = 500 * (X - Y);
+    const double b = 200 * (Y - Z);
 
     if (b != 0.0)
     {
@@ -152,26 +137,25 @@ template <typename TInputImage, typename TOutputImage>
 bool
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TestHomogeneity(IndexList & Plist)
 {
-  auto        num = static_cast<int>(Plist.size());
-  int         i, j;
-  RGBHCVPixel getp;
-  double      addp[6] = { 0, 0, 0, 0, 0, 0 };
-  double      addpp[6] = { 0, 0, 0, 0, 0, 0 };
+  auto   num = static_cast<int>(Plist.size());
+  double addp[6] = { 0, 0, 0, 0, 0, 0 };
+  double addpp[6] = { 0, 0, 0, 0, 0, 0 };
 
-  for (i = 0; i < num; i++)
+  for (int i = 0; i < num; ++i)
   {
-    getp = m_WorkingImage->GetPixel(Plist[i]);
-    for (j = 0; j < 6; j++)
+    auto getp = m_WorkingImage->GetPixel(Plist[i]);
+    for (int j = 0; j < 6; ++j)
     {
       addp[j] = addp[j] + getp[j];
       addpp[j] = addpp[j] + getp[j] * getp[j];
     }
   }
 
-  double savemean[6], saveSTD[6];
+  double savemean[6];
+  double saveSTD[6];
   if (num > 1)
   {
-    for (i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       savemean[i] = addp[i] / num;
       saveSTD[i] = std::sqrt((addpp[i] - (addp[i] * addp[i]) / (num)) / (num - 1));
@@ -179,55 +163,46 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TestHomogeneity(In
   }
   else
   {
-    for (i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       savemean[i] = 0;
       saveSTD[i] = -1;
     }
   }
 
-  bool ok = true;
-  j = 0;
-  double savem, savev;
-  while (ok && (j < 3))
+  for (int j = 0; j < 3; ++j)
   {
-    savem = savemean[m_TestMean[j]] - m_Mean[m_TestMean[j]];
-    savev = saveSTD[m_TestSTD[j]] - m_STD[m_TestSTD[j]];
+    const double savem = savemean[m_TestMean[j]] - m_Mean[m_TestMean[j]];
+    const double savev = saveSTD[m_TestSTD[j]] - m_STD[m_TestSTD[j]];
     if ((savem < -m_MeanTolerance[m_TestMean[j]]) || (savem > m_MeanTolerance[m_TestMean[j]]))
     {
-      ok = false;
+      return false;
     }
     if ((savev < -m_STDTolerance[m_TestSTD[j]]) || (savev > m_STDTolerance[m_TestSTD[j]]))
     {
-      ok = false;
+      return false;
     }
-    j++;
   }
-
-  if (ok)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return true;
 }
 
 template <typename TInputImage, typename TOutputImage>
 void
 VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const BinaryObjectImage * aprior)
 {
-  RegionType region = this->GetInput()->GetRequestedRegion();
+  const RegionType region = this->GetInput()->GetRequestedRegion();
 
   itk::ImageRegionConstIteratorWithIndex<BinaryObjectImage> ait(aprior, region);
   itk::ImageRegionIteratorWithIndex<RGBHCVImage>            iit(m_WorkingImage, region);
 
-  unsigned int minx = 0, miny = 0, maxx = 0, maxy = 0;
+  unsigned int minx = 0;
+  unsigned int miny = 0;
+  unsigned int maxx = 0;
+  unsigned int maxy = 0;
   bool         status = false;
-  for (unsigned int i = 0; i < this->GetSize()[1]; i++)
+  for (unsigned int i = 0; i < this->GetSize()[1]; ++i)
   {
-    for (unsigned int j = 0; j < this->GetSize()[0]; j++)
+    for (unsigned int j = 0; j < this->GetSize()[0]; ++j)
     {
       if ((status == 0) && (ait.Get()))
       {
@@ -264,29 +239,29 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
 
   ait.GoToBegin();
   iit.GoToBegin();
-  unsigned int k;
-  for (unsigned int i = 0; i < miny; i++)
+
+  for (unsigned int i = 0; i < miny; ++i)
   {
-    for (unsigned int j = 0; j < this->GetSize()[0]; j++)
+    for (unsigned int j = 0; j < this->GetSize()[0]; ++j)
     {
       ++ait;
       ++iit;
     }
   }
-  for (unsigned int i = miny; i <= maxy; i++)
+  for (unsigned int i = miny; i <= maxy; ++i)
   {
-    for (unsigned int j = 0; j < minx; j++)
+    for (unsigned int j = 0; j < minx; ++j)
     {
       ++ait;
       ++iit;
     }
-    for (unsigned int j = minx; j <= maxx; j++)
+    for (unsigned int j = minx; j <= maxx; ++j)
     {
       currp = iit.Get();
       if (ait.Get())
       {
-        objnum++;
-        for (k = 0; k < 6; k++)
+        ++objnum;
+        for (unsigned int k = 0; k < 6; ++k)
         {
           objaddp[k] += currp[k];
           objaddpp[k] += currp[k] * currp[k];
@@ -294,8 +269,8 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
       }
       else
       {
-        bkgnum++;
-        for (k = 0; k < 6; k++)
+        ++bkgnum;
+        for (unsigned int k = 0; k < 6; ++k)
         {
           bkgaddp[k] += currp[k];
           bkgaddpp[k] += currp[k] * currp[k];
@@ -304,7 +279,7 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
       ++ait;
       ++iit;
     }
-    for (unsigned int j = maxx + 1; j < this->GetSize()[0]; j++)
+    for (unsigned int j = maxx + 1; j < this->GetSize()[0]; ++j)
     {
       ++ait;
       ++iit;
@@ -315,7 +290,7 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
   double b_STD[6];
   float  diffMean[6];
   float  diffSTD[6];
-  for (unsigned int i = 0; i < 6; i++)
+  for (unsigned int i = 0; i < 6; ++i)
   {
     m_Mean[i] = objaddp[i] / objnum;
     m_STD[i] = std::sqrt((objaddpp[i] - (objaddp[i] * objaddp[i]) / objnum) / (objnum - 1));
@@ -346,7 +321,7 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
     }
     if (diffMean[i] < 0)
     {
-      diffMean[i] = -diffMean[i];
+      diffMean[i] *= -1;
     }
     if (m_STD[i] != 0.0)
     {
@@ -358,7 +333,7 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
     }
     if (diffSTD[i] < 0)
     {
-      diffSTD[i] = -diffSTD[i];
+      diffSTD[i] *= -1;
     }
     if (this->GetUseBackgroundInAPrior())
     {
@@ -366,14 +341,14 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
     }
     else
     {
-      m_MeanTolerance[i] = std::fabs(m_Mean[i] * m_MeanPercentError[i]);
+      m_MeanTolerance[i] = itk::Math::abs(m_Mean[i] * m_MeanPercentError[i]);
     }
   }
 
   if (objnum < 10)
   {
-    /* a-prior doen's make too much sense */
-    for (unsigned int i = 0; i < 6; i++)
+    /* a-prior doesn't make too much sense */
+    for (unsigned int i = 0; i < 6; ++i)
     {
       m_MeanTolerance[i] = 0;
       m_STDTolerance[i] = 0;
@@ -382,10 +357,10 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
 
   /*  Sorting. */
   unsigned char tmp[6] = { 0, 1, 2, 3, 4, 5 };
-  for (unsigned j = 0; j < 3; j++)
+  for (unsigned int j = 0; j < 3; ++j)
   {
-    k = 0;
-    for (unsigned int i = 1; i < 6 - j; i++)
+    unsigned int k = 0;
+    for (unsigned int i = 1; i < 6 - j; ++i)
     {
       if (diffMean[tmp[i]] > diffMean[tmp[k]])
       {
@@ -396,10 +371,10 @@ VoronoiSegmentationRGBImageFilter<TInputImage, TOutputImage>::TakeAPrior(const B
     tmp[k] = tmp[5 - j];
   }
   unsigned char tmp1[6] = { 0, 1, 2, 3, 4, 5 };
-  for (unsigned int j = 0; j < 3; j++)
+  for (unsigned int j = 0; j < 3; ++j)
   {
-    k = 0;
-    for (unsigned int i = 1; i < 6 - j; i++)
+    unsigned int k = 0;
+    for (unsigned int i = 1; i < 6 - j; ++i)
     {
       if (diffSTD[tmp1[i]] > diffSTD[tmp1[k]])
       {

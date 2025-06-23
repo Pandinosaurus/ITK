@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +41,7 @@ namespace itk
  *
  * These parameters can also be automatically set by providing a binary image prior.
  *
- * Detailed information about this algorithm can be found in:
- *  " Semi-automated color segmentation of anatomical tissue,"
- *   C. Imelinska, M. Downes, and W. Yuan
- *  Computerized Medical Imaging and Graphics, Vol.24, pp 173-180, 2000.
- *
+ * Detailed information about this algorithm can be found in \cite imelinska2000.
  *
  * \ingroup HybridSegmentation
  * \ingroup ITKVoronoi
@@ -63,24 +59,25 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VoronoiSegmentationRGBImageFilter, VoronoiSegmentationImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VoronoiSegmentationRGBImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Convenient type alias. */
-  using BinaryObjectImage = typename Superclass::BinaryObjectImage;
-  using IndexList = typename Superclass::IndexList;
-  using IndexType = typename Superclass::IndexType;
-  using RegionType = typename Superclass::RegionType;
-  using PixelType = typename Superclass::PixelType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::BinaryObjectImage;
+  using typename Superclass::IndexList;
+  using typename Superclass::IndexType;
+  using typename Superclass::RegionType;
+  using typename Superclass::PixelType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageType;
   using RGBHCVPixel = Vector<float, 6>;
   using RGBHCVImage = Image<RGBHCVPixel>;
 
   /** \todo Document. */
+  /** @ITKStartGrouping */
   void
   SetMeanPercentError(const double x[6]);
   void
@@ -88,7 +85,7 @@ public:
   void
   GetMeanPercentError(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_MeanPercentError[i];
     }
@@ -96,7 +93,7 @@ public:
   void
   GetSTDPercentError(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_STDPercentError[i];
     }
@@ -104,7 +101,7 @@ public:
   void
   GetMean(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_Mean[i];
     }
@@ -112,7 +109,7 @@ public:
   void
   GetSTD(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_STD[i];
     }
@@ -120,7 +117,7 @@ public:
   void
   SetMean(const double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       m_Mean[i] = x[i];
     }
@@ -128,7 +125,7 @@ public:
   void
   SetSTD(const double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       m_STD[i] = x[i];
     }
@@ -136,7 +133,7 @@ public:
   void
   GetMeanTolerance(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_MeanTolerance[i];
     }
@@ -144,18 +141,19 @@ public:
   void
   GetSTDTolerance(double x[6])
   {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       x[i] = m_STDTolerance[i];
     }
   }
-
+  /** @ITKEndGrouping */
   /** Maximum value of the RGB, needed for color space conversions.
    * default as 8 bit per channel, if it is different, need to be
    * set before doing anything. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaxValueOfRGB, double);
   itkGetConstMacro(MaxValueOfRGB, double);
-
+  /** @ITKEndGrouping */
   /** Set the three channels to test the mean and STD respectively
    * 0:red, 1:green, 2:blue, 3:hue, 4:chroma, 5:value. */
   void
@@ -204,13 +202,9 @@ public:
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(IntConvertibleToOutputCheck, (Concept::Convertible<int, typename TOutputImage::PixelType>));
   itkConceptMacro(PixelDimensionCheck, (Concept::SameDimension<PixelType::Dimension, 3u>));
-  // End concept checking
-#endif
 
 protected:
   VoronoiSegmentationRGBImageFilter();
@@ -219,16 +213,16 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double                        m_Mean[6];
-  double                        m_STD[6];
-  double                        m_MeanTolerance[6];
-  double                        m_STDTolerance[6];
-  double                        m_MeanPercentError[6];
-  double                        m_STDPercentError[6];
-  double                        m_MaxValueOfRGB;
-  unsigned int                  m_TestMean[3];
-  unsigned int                  m_TestSTD[3];
-  typename RGBHCVImage::Pointer m_WorkingImage;
+  double                        m_Mean[6]{};
+  double                        m_STD[6]{};
+  double                        m_MeanTolerance[6]{};
+  double                        m_STDTolerance[6]{};
+  double                        m_MeanPercentError[6]{};
+  double                        m_STDPercentError[6]{};
+  double                        m_MaxValueOfRGB{};
+  unsigned int                  m_TestMean[3]{};
+  unsigned int                  m_TestSTD[3]{};
+  typename RGBHCVImage::Pointer m_WorkingImage{};
 
   bool
   TestHomogeneity(IndexList & Plist) override;

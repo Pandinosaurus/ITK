@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 
 #include "itkMedianImageFunction.h"
+#include "itkTestingMacros.h"
 
 int
 itkMedianImageFunctionTest(int, char *[])
@@ -30,12 +31,12 @@ itkMedianImageFunctionTest(int, char *[])
   using FunctionType = itk::MedianImageFunction<ImageType>;
 
   // Create and allocate the image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::SizeType   size;
   ImageType::IndexType  start;
   ImageType::RegionType region;
-  const int             sizeDim(50);
-  const int             centerIndex(sizeDim / 2);
+  constexpr int         sizeDim(50);
+  constexpr int         centerIndex(sizeDim / 2);
   size[0] = 50;
   size[1] = 50;
   size[2] = 50;
@@ -47,11 +48,14 @@ itkMedianImageFunctionTest(int, char *[])
   image->SetRegions(region);
   image->Allocate();
 
-  ImageType::PixelType initialValue = 27;
+  constexpr ImageType::PixelType initialValue = 27;
 
   image->FillBuffer(initialValue);
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(function, MedianImageFunction, ImageFunction);
+
 
   function->SetInputImage(image);
 
@@ -61,9 +65,7 @@ itkMedianImageFunctionTest(int, char *[])
   index[1] = centerIndex;
   index[2] = centerIndex;
 
-  FunctionType::OutputType median;
-
-  median = function->EvaluateAtIndex(index);
+  FunctionType::OutputType median = function->EvaluateAtIndex(index);
   std::cout << "function->EvaluateAtIndex( index ): "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(median) << std::endl;
 
@@ -72,8 +74,7 @@ itkMedianImageFunctionTest(int, char *[])
   point[0] = centerIndex;
   point[1] = centerIndex;
   point[2] = centerIndex;
-  FunctionType::OutputType median2;
-  median2 = function->Evaluate(point);
+  const FunctionType::OutputType median2 = function->Evaluate(point);
   std::cout << "function->Evaluate(point): "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(median2) << std::endl;
 
@@ -82,8 +83,7 @@ itkMedianImageFunctionTest(int, char *[])
   cindex[0] = centerIndex;
   cindex[1] = centerIndex;
   cindex[2] = centerIndex;
-  FunctionType::OutputType median3;
-  median3 = function->EvaluateAtContinuousIndex(cindex);
+  const FunctionType::OutputType median3 = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "function->EvaluateAtContinuousIndex(cindex): "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(median3) << std::endl;
 
@@ -96,7 +96,7 @@ itkMedianImageFunctionTest(int, char *[])
   }
 
   std::cout << "Test PASSED ! " << std::endl;
-  //
+
   std::cout << "Test setting the neighborhood radius" << std::endl;
 
   // first, put something in the neighborhood outside the current
@@ -136,9 +136,12 @@ itkMedianImageFunctionTest(int, char *[])
   }
 
   // now set the radius
-  function->SetNeighborhoodRadius(2);
+  constexpr unsigned int neighborhoodRadius = 2;
+  function->SetNeighborhoodRadius(neighborhoodRadius);
+  ITK_TEST_SET_GET_VALUE(neighborhoodRadius, function->GetNeighborhoodRadius());
+
   median = function->EvaluateAtIndex(index);
-  std::cout << "function->EvaluateAtIndex( index ), neighborhood radius 2: "
+  std::cout << "function->EvaluateAtIndex( index ), neighborhood radius " << neighborhoodRadius << ": "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(median) << std::endl;
   // Since we've changed the image outside the default neighborhood
   // for the MedianImageFunction, it would be an error for the median

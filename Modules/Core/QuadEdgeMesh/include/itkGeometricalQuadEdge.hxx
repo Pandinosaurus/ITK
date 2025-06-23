@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkGeometricalQuadEdge_hxx
 #define itkGeometricalQuadEdge_hxx
-#include "itkGeometricalQuadEdge.h"
 #include <limits>
 #include <iostream>
 
@@ -61,8 +60,8 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::SetLnextR
   while (maxSize && (it != this->EndGeomLnext()))
   {
     it.Value()->SetLeft(faceGeom);
-    it++;
-    maxSize--;
+    ++it;
+    --maxSize;
   }
 
   return (true);
@@ -92,7 +91,7 @@ template <typename TVRef, typename TFRef, typename TPrimalData, typename TDualDa
 bool
 GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::IsInOnextRing(Self * b)
 {
-  for (IteratorGeom it = this->BeginGeomOnext(); it != this->EndGeomOnext(); it++)
+  for (IteratorGeom it = this->BeginGeomOnext(); it != this->EndGeomOnext(); ++it)
   {
     if (b == it.Value())
     {
@@ -113,7 +112,7 @@ template <typename TVRef, typename TFRef, typename TPrimalData, typename TDualDa
 bool
 GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::IsInLnextRing(Self * b)
 {
-  for (IteratorGeom it = this->BeginGeomLnext(); it != this->EndGeomLnext(); it++)
+  for (IteratorGeom it = this->BeginGeomLnext(); it != this->EndGeomLnext(); ++it)
   {
     if (b == it.Value())
     {
@@ -166,9 +165,9 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::IsLnextSh
     // The condition isn't complicated: if left faces aren't set,
     // continue, if just one is set return false, if both are set
     // check if the face is the same
-    bool facesAreNotSet = !this->IsLeftSet() && !it.Value()->IsLeftSet();
-    bool facesAreTheSame = this->GetLeft() == it.Value()->GetLeft();
-    bool facesAreSet = this->IsLeftSet() && it.Value()->IsLeftSet();
+    const bool facesAreNotSet = !this->IsLeftSet() && !it.Value()->IsLeftSet();
+    const bool facesAreTheSame = this->GetLeft() == it.Value()->GetLeft();
+    const bool facesAreSet = this->IsLeftSet() && it.Value()->IsLeftSet();
     //
     // FIXME: This boolean expression can be simplified.
     // ALEX : what about the version below ?
@@ -199,8 +198,8 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::IsLnextSh
     {
       return (false);
     }
-    it++;
-    maxSize--;
+    ++it;
+    --maxSize;
   }
 
   if (it != this->EndGeomLnext())
@@ -214,13 +213,14 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::IsLnextSh
 /**
  */
 template <typename TVRef, typename TFRef, typename TPrimalData, typename TDualData, bool PrimalDual>
-typename GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::Self *
+auto
 GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::GetNextBorderEdgeWithUnsetLeft(Self * edgeTest)
+  -> Self *
 {
   // Definition: an edge is said to be a boundary edge when it is adjacent to
   // noface i.e. when at least one of the faces edge->GetLeft() or
   // edge->GetRight() is unset.  Definition: an point is said to be a boundary
-  // point when at least one of the edges of it's Onext() ring is a boundary
+  // point when at least one of the edges of its Onext() ring is a boundary
   // edge.
   //
   // Assume "this" edge belongs to a triangulation (i.e. it belongs to a QEMesh
@@ -251,7 +251,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::GetNextBo
   //          even though the Mesh represents a triangulation)
   //          the result of this method is not unique in the sense
   //          that the result depends on the edgeTest parameter.
-  //          Let us illusatre this dependence by considering a
+  //          Let us illustrate this dependence by considering a
   //          Mesh (which is a triangulation) which is not a 2-manifold.
   //          Assume the point P (the origin of "this" edge i.e.
   //          P = this->Originv()) is TWICE on the border i.e. it
@@ -274,7 +274,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::GetNextBo
   //                     /   *  |  *   \                             //
   //                    /       |       \                            //
   //
-  //          On this example, and if we assume the Onext() oder is
+  //          In this example, and if we assume the Onext() order is
   //          represented counter-clockwise, the edges are ordered as
   //          follows:
   //             b1, b2, i3, b4, b5, i6, i7
@@ -310,8 +310,8 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::GetNextBo
   }
 
   // Ok, no more special cases
-  IteratorGeom it = edgeTest->BeginGeomOnext();
-  IteratorGeom end = edgeTest->EndGeomOnext();
+  IteratorGeom       it = edgeTest->BeginGeomOnext();
+  const IteratorGeom end = edgeTest->EndGeomOnext();
 
   while (it != end)
   {
@@ -319,7 +319,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::GetNextBo
     {
       return (it.Value());
     }
-    it++;
+    ++it;
   }
 
   // No border edge found
@@ -407,7 +407,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::ReorderOn
   //   - p denotes some generic point,
   //   - A and B denote some specific points we want to discuss,
   //   - the Onext() ring order is represented counter-clockwise
-  //     [which is coherent with the definition of edge->GetRigth()]
+  //     [which is coherent with the definition of edge->GetRight()]
   //     i.e. the ordering of the edges is:
   //          b1, b2, b3, b4, b5, b6, b1...
   //
@@ -437,7 +437,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::ReorderOn
   // that this request is not absurd since the current situation at
   // P isn't the one of a 2-manifold: hence when building the current
   // Onext() ring of P, we had not enough information to decide
-  // wheter b4.Onext() should be b5 or b1. It is ONLY when we are
+  // whether b4.Onext() should be b5 or b1. It is ONLY when we are
   // required to build the triangle [P, A, B] that we have the
   // additional information that b4.Onext() is indeed b1.
   //    When we are required to build triangle [P, A, B], we hence
@@ -446,7 +446,7 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::ReorderOn
   // b4.Onext() to be b1. In other terms, when considering the
   // additional information that b4.Onext() is b1, and before
   // building the triangle [P, A, B], we need to reorder
-  // the Onext() ring of P from it's current state
+  // the Onext() ring of P from its current state
   //    b1, b2, b3, b4, b5, b6, b1...
   // to an order coherent with the [P, A, B] request, i.e.
   //     b1, b2, b5, b6, b3, b4, b1...
@@ -562,19 +562,11 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::ReorderOn
     return (false);
   }
 
-  Self * bsplice; // Does not require initialisation;
-  // Disconnect the triangles containing second:
-  if (second->IsLeftSet())
-  {
-    bsplice = second->GetNextBorderEdgeWithUnsetLeft();
-    second->GetOprev()->Splice(bsplice);
-  }
-  else
-  {
-    // Orientation is localy clockwise:
-    bsplice = second;
-    second->GetOprev()->Splice(bsplice);
-  }
+  // Disconnect the triangles containing second
+  Self * bsplice = (second->IsLeftSet()) ? second->GetNextBorderEdgeWithUnsetLeft() : second;
+  // Orientation is locally counter clockwise: Orientation is locally clockwise:
+
+  second->GetOprev()->Splice(bsplice);
 
   // Reconnect second after first:
   first->Splice(bsplice);
@@ -599,14 +591,14 @@ GeometricalQuadEdge<TVRef, TFRef, TPrimalData, TDualData, PrimalDual>::Disconnec
     while (it != e->EndGeomLnext())
     {
       it.Value()->UnsetLeft();
-      it++;
+      ++it;
     }
   }
   else if (this->IsInternal())
   {
     // Consolidate face
-    DualOriginRefType face = this->GetRight();
-    for (IteratorGeom it = this->BeginGeomLnext(); it != this->EndGeomLnext(); it++)
+    const DualOriginRefType face = this->GetRight();
+    for (IteratorGeom it = this->BeginGeomLnext(); it != this->EndGeomLnext(); ++it)
     {
       it.Value()->SetLeft(face);
     }

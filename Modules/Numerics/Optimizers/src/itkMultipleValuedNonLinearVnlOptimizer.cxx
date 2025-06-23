@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,9 @@ namespace itk
  * Constructor
  */
 MultipleValuedNonLinearVnlOptimizer::MultipleValuedNonLinearVnlOptimizer()
+  : m_CostFunctionAdaptor(nullptr)
+  , m_UseGradient(true)
 {
-  m_CostFunctionAdaptor = nullptr;
-  m_UseGradient = true;
   m_Command = CommandType::New();
   m_Command->SetCallbackFunction(this, &MultipleValuedNonLinearVnlOptimizer::IterationReport);
   m_CachedValue.Fill(0);
@@ -37,23 +37,17 @@ MultipleValuedNonLinearVnlOptimizer::MultipleValuedNonLinearVnlOptimizer()
 /**
  * Destructor
  */
-MultipleValuedNonLinearVnlOptimizer::~MultipleValuedNonLinearVnlOptimizer()
-{
-  delete m_CostFunctionAdaptor;
-  m_CostFunctionAdaptor = nullptr;
-}
+MultipleValuedNonLinearVnlOptimizer::~MultipleValuedNonLinearVnlOptimizer() = default;
 
 void
 MultipleValuedNonLinearVnlOptimizer::SetCostFunctionAdaptor(CostFunctionAdaptorType * adaptor)
 {
-  if (m_CostFunctionAdaptor == adaptor)
+  if (m_CostFunctionAdaptor.get() == adaptor)
   {
     return;
   }
 
-  delete m_CostFunctionAdaptor;
-
-  m_CostFunctionAdaptor = adaptor;
+  m_CostFunctionAdaptor.reset(adaptor);
 
   this->SetUseCostFunctionGradient(m_UseGradient);
 
@@ -63,13 +57,13 @@ MultipleValuedNonLinearVnlOptimizer::SetCostFunctionAdaptor(CostFunctionAdaptorT
 const MultipleValuedNonLinearVnlOptimizer::CostFunctionAdaptorType *
 MultipleValuedNonLinearVnlOptimizer::GetCostFunctionAdaptor() const
 {
-  return m_CostFunctionAdaptor;
+  return m_CostFunctionAdaptor.get();
 }
 
 MultipleValuedNonLinearVnlOptimizer::CostFunctionAdaptorType *
 MultipleValuedNonLinearVnlOptimizer::GetCostFunctionAdaptor()
 {
-  return m_CostFunctionAdaptor;
+  return m_CostFunctionAdaptor.get();
 }
 
 /** The purpose of this method is to get around the lack of const
@@ -77,7 +71,7 @@ MultipleValuedNonLinearVnlOptimizer::GetCostFunctionAdaptor()
 MultipleValuedNonLinearVnlOptimizer::CostFunctionAdaptorType *
 MultipleValuedNonLinearVnlOptimizer::GetNonConstCostFunctionAdaptor() const
 {
-  return m_CostFunctionAdaptor;
+  return m_CostFunctionAdaptor.get();
 }
 
 void
@@ -100,10 +94,8 @@ MultipleValuedNonLinearVnlOptimizer::GetUseCostFunctionGradient() const
   {
     return m_CostFunctionAdaptor->GetUseGradient();
   }
-  else
-  {
-    return m_UseGradient;
-  }
+
+  return m_UseGradient;
 }
 
 /** The purpose of this method is to get around the lack of iteration reporting
@@ -133,7 +125,7 @@ MultipleValuedNonLinearVnlOptimizer::PrintSelf(std::ostream & os, Indent indent)
   os << indent << "Cached Value: " << m_CachedValue << std::endl;
   os << indent << "Cached Derivative: " << m_CachedDerivative << std::endl;
   os << indent << "Cached current positiion: " << m_CachedCurrentPosition << std::endl;
-  os << "Command observer " << m_Command.GetPointer() << std::endl;
-  os << "Cost Function adaptor" << m_CostFunctionAdaptor << std::endl;
+  os << indent << "Command observer " << m_Command.GetPointer() << std::endl;
+  os << indent << "Cost Function adaptor" << m_CostFunctionAdaptor.get() << std::endl;
 }
 } // end namespace itk

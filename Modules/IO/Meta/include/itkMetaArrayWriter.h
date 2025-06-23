@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,26 +40,29 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaArrayWriter, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaArrayWriter);
 
   /** Set/Get the filename. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
-
+  /** @ITKEndGrouping */
   /** Set/Get the filename to which the data is written.
    *  Optional: use if header and data should be in separate files. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(DataFileName);
   itkGetStringMacro(DataFileName);
-
+  /** @ITKEndGrouping */
   /** Boolean to set binary mode.
    *  If set to On, data will be stored in the file in binary format; if set
-   *  to Off, data will be stored in ascci format.
+   *  to Off, data will be stored in ascii format.
    *  Default is Off. */
+  /** @ITKStartGrouping */
   itkBooleanMacro(Binary);
   itkSetMacro(Binary, bool);
   itkGetConstMacro(Binary, bool);
-
+  /** @ITKEndGrouping */
   /** Set the input itk Array to write. */
   template <typename TValue>
   void
@@ -110,7 +113,7 @@ public:
    *  length of the major array is the "length" of the array, while
    *  the length of the sub-arrays is the "number of channels" at each
    *  array position. Expected form itk::Array< itk::Array< * > >.
-   *  May work for othesub-array-types that define the [] operator and the
+   *  May work for other sub-array-types that define the [] operator and the
    *  GetSize() function. */
   template <typename TValue>
   void
@@ -121,19 +124,20 @@ public:
 
     m_MetaArray.InitializeEssential(rows, _metaElementType, cols, nullptr, true, true);
     m_Buffer = m_MetaArray.ElementData();
-    for (int i = 0; i < rows; i++)
+    for (int i = 0; i < rows; ++i)
     {
-      for (int j = 0; j < cols; j++)
+      for (int j = 0; j < cols; ++j)
       {
-        m_MetaArray.ElementData(i * cols + j, (double)((*_array)[i][j]));
+        m_MetaArray.ElementData(i * cols + j, static_cast<double>((*_array)[i][j]));
       }
     }
   }
 
   /** Set/Get the precision of the writing. */
+  /** @ITKStartGrouping */
   itkSetMacro(Precision, unsigned int);
   itkGetConstMacro(Precision, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set the data type written to the file. */
   void
   ConvertTo(MET_ValueEnumType _metaElementType);
@@ -153,10 +157,10 @@ private:
 
   unsigned int m_Precision{ 6 };
 
-  std::string m_FileName;
-  std::string m_DataFileName;
+  std::string m_FileName{};
+  std::string m_DataFileName{};
 
-  MetaArray m_MetaArray;
+  MetaArray m_MetaArray{};
 
   const void * m_Buffer{ nullptr };
 };

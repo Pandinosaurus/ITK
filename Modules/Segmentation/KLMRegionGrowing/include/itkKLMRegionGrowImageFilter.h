@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 namespace itk
 {
 /**
- *\class KLMRegionGrowImageFilter
+ * \class KLMRegionGrowImageFilter
  * \brief Base class for a region growing object that performs energy-based
  * region growing for multiband images.
  *
@@ -72,7 +72,7 @@ namespace itk
  * value for m_MaximumLambda
  * will result in fewer boundaries and fewer regions, while a smaller value
  * for m_MaximumLambda will result in more boundaries and more regions. To have
- * m_MaximumNumberOfRegions control exactly the number of output regions, m_MaximumLamda
+ * m_MaximumNumberOfRegions control exactly the number of output regions, m_MaximumLambda
  * should be set to a very large number. To have m_MaximumLambda control exactly
  * the number of output regions, m_MaximumNumberOfRegions should be set to 2. As a
  * default value, m_MaximumLambda is set to 1000 and m_MaximumNumberOfRegions
@@ -98,14 +98,11 @@ namespace itk
  * users request by calling GetLabelledImage() function. This function
  * returns a reference to the labelled image determined using the KLM
  * algorithm. The algorithm supports 2D and 3D data sets only. The input
- * image dimensions must be exact multiples of the user specified gridsizes.
+ * image dimensions must be exact multiples of the user specified grid sizes.
  * Appropriate padding must be performed by the user if any image which
- * are not multiples of the gridsizes are used.
+ * are not multiples of the grid sizes are used.
  *
- * For more information about the algorithm, see G. Koepfler, C. Lopez
- * and J. M. Morel, ``A Multiscale Algorithm for Image Segmentation by
- * Variational Method,'' {\em SIAM Journal of Numerical Analysis},
- * vol. 31, pp. 282-299, 1994.
+ * For more information about the algorithm, see \cite koepfler1994.
  *
  * Algorithm details:
  *
@@ -161,7 +158,6 @@ namespace itk
  * \ingroup RegionGrowingSegmentation
  * \ingroup ITKKLMRegionGrowing
  */
-
 template <typename TInputImage, typename TOutputImage>
 class ITK_TEMPLATE_EXPORT KLMRegionGrowImageFilter : public RegionGrowImageFilter<TInputImage, TOutputImage>
 {
@@ -177,8 +173,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KLMRegionGrowImageFilter, RegionGrowImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KLMRegionGrowImageFilter);
 
   /** Type definition for the input image. */
   using InputImageType = TInputImage;
@@ -206,7 +202,7 @@ public:
 
   /** Type definition for the input grid size type used to create
    * initial atomic regions. */
-  using GridSizeType = typename Superclass::GridSizeType;
+  using typename Superclass::GridSizeType;
 
   /** Type definition for the output image. */
   using OutputImageType = TOutputImage;
@@ -266,13 +262,15 @@ public:
   /** Set/Get the desired threshold parameter for lambda. See
    * itkSegmentationBorder documentation for details regarding this
    * parameter.  */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumLambda, double);
   itkGetConstReferenceMacro(MaximumLambda, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the desired number of regions. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfRegions, unsigned int);
   itkGetConstReferenceMacro(NumberOfRegions, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Generate labelled image. */
   LabelImagePointer
   GetLabelledImage();
@@ -285,17 +283,13 @@ public:
   void
   PrintAlgorithmBorderStats();
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename InputImagePixelType::ValueType>));
   itkConceptMacro(SameDimension, (Concept::SameDimension<Self::InputImageDimension, Self::OutputImageDimension>));
-#  if defined(THIS_CONCEPT_FAILS_ON_GCC)
+#if defined(THIS_CONCEPT_FAILS_ON_GCC)
   /** The input pixel type must be the same as that of the output image. */
   itkConceptMacro(SameVectorDimension,
                   (Concept::SameDimension<Self::InputImageVectorDimension, Self::OutputImageVectorDimension>));
-#  endif
-  // End concept checking
-#endif
+#endif // end THIS_CONCEPT_FAILS_ON_GCC
 
 protected:
   KLMRegionGrowImageFilter();
@@ -352,13 +346,13 @@ protected:
   /** Calculate the statistics representing the region. In this
    * case we compute the mean region intensity and the area of the
    * initial N-dimensional rectangular area. This is the function that
-   * can be overriden in order to enable a different statistical
+   * can be overridden in order to enable a different statistical
    * representation for region initialization. */
   virtual void
   InitializeRegionParameters(InputRegionType region);
 
   /** Function to resolve the region labels to be consecutively ordered.
-   * Each initial atomic region is given a new label and the aggregrate
+   * Each initial atomic region is given a new label and the aggregate
    * region area and mean intensity. */
   virtual void
   ResolveRegions();
@@ -377,12 +371,12 @@ private:
   unsigned int m_InitialNumberOfRegions{ 0 };
   double       m_TotalBorderLength{ 0.0 };
 
-  std::vector<KLMSegmentationRegionPtr>      m_RegionsPointer;
-  std::vector<KLMSegmentationBorderPtr>      m_BordersPointer;
-  std::vector<KLMSegmentationBorderArrayPtr> m_BordersDynamicPointer;
+  std::vector<KLMSegmentationRegionPtr>      m_RegionsPointer{};
+  std::vector<KLMSegmentationBorderPtr>      m_BordersPointer{};
+  std::vector<KLMSegmentationBorderArrayPtr> m_BordersDynamicPointer{};
   KLMSegmentationBorderArrayPtr *            m_BorderCandidate{ nullptr };
 
-  MeanRegionIntensityType m_InitialRegionMean;
+  MeanRegionIntensityType m_InitialRegionMean{};
   double                  m_InitialRegionArea{ 0 };
 }; // class KLMRegionGrowImageFilter
 } // namespace itk

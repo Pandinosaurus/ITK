@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,15 +77,14 @@ public:
    * \param ChildID The numerical identifier of the desired child.
    * \return A pointer to the Desired child. NOTE: This is always an
    * instance of an OctreeNode.
-   * @{
+   * @ITKStartGrouping
    */
-  OctreeNode &
+  [[nodiscard]] OctreeNode &
   GetChild(const LeafIdentifierEnum ChildID) const;
 
   OctreeNode &
   GetChild(const LeafIdentifierEnum ChildID);
-  /** @}
-   */
+  /** @ITKEndGrouping */
 
   /**
    * Determines the color value of the specified Child for this OctreeNode
@@ -93,12 +92,12 @@ public:
    * member function.  Behavior is undefined when the child is another Octree.
    * \return A value between 0 and 255 to indicate the color of the Desired child.
    */
-  long int
+  [[nodiscard]] long
   GetColor() const;
 
   /**
    * Sets the color value of the specified Child for this OctreeNode
-   * \param NodeColor The desired color of this node.
+   * \param color The desired color of this node.
    * \post All children of the specified child are removed, and the child is set to
    * the desired value.
    */
@@ -117,7 +116,7 @@ public:
    * Determines if the child is a leaf node (colored), or a branch node (uncolored)
    * \return true if it is colored, false if it is not
    */
-  bool
+  [[nodiscard]] bool
   IsNodeColored() const;
 
   inline void
@@ -138,8 +137,8 @@ private:
   /**
    * Each element holds COLOR or pointer to another octree node
    */
-  OctreeNodeBranch * m_Branch;
-  OctreeBase *       m_Parent;
+  OctreeNodeBranch * m_Branch{};
+  OctreeBase *       m_Parent{};
 };
 
 class ITKCommon_EXPORT OctreeNodeBranch

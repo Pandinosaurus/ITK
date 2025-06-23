@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,12 +75,12 @@ public:
         // value
         // or the iterator is invalidated.
         TInputPixel toErase = mapIt->first;
-        mapIt++;
+        ++mapIt;
         m_Map.erase(toErase);
       }
       else
       {
-        mapIt++;
+        ++mapIt;
       }
     }
 
@@ -107,12 +107,12 @@ class VectorMorphologicalGradientHistogram
 {
 public:
   VectorMorphologicalGradientHistogram()
+    : m_Min(NumericTraits<TInputPixel>::max())
+    , m_Max(NumericTraits<TInputPixel>::NonpositiveMin())
+
   {
     // initialize members need for the vector based algorithm
     m_Vector.resize(NumericTraits<TInputPixel>::max() - NumericTraits<TInputPixel>::NonpositiveMin() + 1, 0);
-    m_Max = NumericTraits<TInputPixel>::NonpositiveMin();
-    m_Min = NumericTraits<TInputPixel>::max();
-    m_Count = 0;
   }
 
   ~VectorMorphologicalGradientHistogram() = default;
@@ -138,23 +138,23 @@ public:
     {
       m_Min = p;
     }
-    m_Count++;
+    ++m_Count;
   }
 
   inline void
   RemovePixel(const TInputPixel & p)
   {
     m_Vector[p - NumericTraits<TInputPixel>::NonpositiveMin()]--;
-    m_Count--;
+    --m_Count;
     if (m_Count > 0)
     {
       while (m_Vector[m_Max - NumericTraits<TInputPixel>::NonpositiveMin()] == 0)
       {
-        m_Max--;
+        --m_Max;
       }
       while (m_Vector[m_Min - NumericTraits<TInputPixel>::NonpositiveMin()] == 0)
       {
-        m_Min++;
+        ++m_Min;
       }
     }
     else
@@ -177,10 +177,8 @@ public:
     {
       return m_Max - m_Min;
     }
-    else
-    {
-      return NumericTraits<TInputPixel>::ZeroValue();
-    }
+
+    return TInputPixel{};
   }
 
   static bool
@@ -192,7 +190,7 @@ public:
   std::vector<SizeValueType> m_Vector;
   TInputPixel                m_Min;
   TInputPixel                m_Max;
-  SizeValueType              m_Count;
+  SizeValueType              m_Count{ 0 };
 };
 
 /// \cond HIDE_SPECIALIZATION_DOCUMENTATION
@@ -209,7 +207,7 @@ class MorphologicalGradientHistogram<signed char> : public VectorMorphologicalGr
 {};
 
 template <>
-class MorphologicalGradientHistogram<bool> : public VectorMorphologicalGradientHistogram<bool>
+class ITK_TEMPLATE_EXPORT MorphologicalGradientHistogram<bool> : public VectorMorphologicalGradientHistogram<bool>
 {};
 
 /// \endcond
@@ -221,9 +219,7 @@ class MorphologicalGradientHistogram<bool> : public VectorMorphologicalGradientH
  * \brief Morphological gradients enhance the variation of pixel
  * intensity in a given neighborhood.
  *
- * Morphological gradient is described in Chapter 3.8.1 of Pierre
- * Soille's book  "Morphological Image Analysis: Principles and
- * Applications", Second Edition, Springer, 2003.
+ * Morphological gradient is described in \cite soille2004a.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -255,8 +251,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MovingHistogramMorphologicalGradientImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MovingHistogramMorphologicalGradientImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -266,7 +262,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
   using OutputPixelType = typename TOutputImage::PixelType;
 
   using HistogramType = Function::MorphologicalGradientHistogram<PixelType>;

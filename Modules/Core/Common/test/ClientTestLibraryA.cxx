@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,14 +26,14 @@ namespace
 
 template <typename TDerived>
 int
-dynamic_castDownCast(const char * type, const char * instanceSource, itk::Object const * base)
+dynamic_castDownCast(const char * type, const char * instanceSource, const itk::Object * base)
 {
   using DerivedType = TDerived;
 
-  constexpr static int passed = 0;
-  constexpr static int failed = 1;
+  static constexpr int passed = 0;
+  static constexpr int failed = 1;
 
-  DerivedType const * derived = dynamic_cast<DerivedType const *>(base);
+  const DerivedType * derived = dynamic_cast<const DerivedType *>(base);
   if (derived != nullptr)
   {
     std::cout << type << " cast in library A      for an instance from " << instanceSource << "\tsucceeded."
@@ -49,7 +49,7 @@ dynamic_castDownCast(const char * type, const char * instanceSource, itk::Object
 namespace LibraryA
 {
 
-ITKObjectProducer ::ITKObjectProducer()
+ITKObjectProducer::ITKObjectProducer()
 {
   m_EquivalencyTable = itk::EquivalencyTable::New();
   using ImageType = itk::Image<float, 3>;
@@ -69,14 +69,14 @@ ITKObjectProducer::Image()
 }
 
 int
-dynamic_castDownCastEquivalencyTable(const char * type, const char * instanceSource, itk::Object const * base)
+dynamic_castDownCastEquivalencyTable(const char * type, const char * instanceSource, const itk::Object * base)
 {
   using EquivalencyTableType = itk::EquivalencyTable;
   return dynamic_castDownCast<EquivalencyTableType>(type, instanceSource, base);
 }
 
 int
-dynamic_castDownCastImage(const char * type, const char * instanceSource, itk::Object const * base)
+dynamic_castDownCastImage(const char * type, const char * instanceSource, const itk::Object * base)
 {
   using ImageType = itk::Image<float, 3>;
   return dynamic_castDownCast<ImageType>(type, instanceSource, base);

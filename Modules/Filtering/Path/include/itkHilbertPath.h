@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class HilbertPath
+ * \class HilbertPath
  * \brief  Represent an n-dimensional Hilbert path for a given order
  *
  * This class is used to construct a Hilbert spacing-filling curve
@@ -40,9 +40,7 @@ namespace itk
  * image onto a single array.  More properties and visualizations can be
  * found in various places on the web.
  *
- * The implementation is based on
- * Chris Hamilton, "Compact Hilbert Indices", Technical Report CS-2006-07,
- * July 24, 2006.
+ * The implementation is based on \cite hamilton2006
  * and a direct porting of the Aldo Cortesi's python code found at
  * https://github.com/cortesi/scurve
  *
@@ -62,8 +60,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HilbertPath, Path);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HilbertPath);
 
   /** New() method for dynamic construction */
   itkNewMacro(Self);
@@ -72,8 +70,8 @@ public:
   static constexpr unsigned int Dimension = VDimension;
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::OutputType;
+  using typename Superclass::InputType;
 
   /** The input/output type alias*/
   using PathIndexType = InputType;
@@ -81,7 +79,7 @@ public:
   using HilbertOrderType = unsigned int;
   using HilbertPathType = std::vector<IndexType>;
   using HilbertPathSizeType = typename HilbertPathType::size_type;
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
 
   // Functions inherited from Path
 
@@ -147,8 +145,10 @@ public:
   /**
    * Set/get Hilbert order.  The multi-dimensional space is of size 2^(HilbertOrder).
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(HilbertOrder, HilbertOrderType, 1, NumericTraits<HilbertOrderType>::max());
   itkGetConstMacro(HilbertOrder, HilbertOrderType);
+  /** @ITKEndGrouping */
 
   /** Convert the path index to the multidimensional index location */
   IndexType
@@ -202,7 +202,7 @@ private:
   GetBitRange(const PathIndexType, const PathIndexType, const PathIndexType, const PathIndexType);
 
   HilbertOrderType m_HilbertOrder{ 1 };
-  HilbertPathType  m_HilbertPath;
+  HilbertPathType  m_HilbertPath{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,14 +33,14 @@ itkCropImageFilter3DTest(int, char *[])
   // Declare the types of the images
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  ImageType::RegionType            region;
-  const unsigned int               dimSize(8);
-  ImageType::RegionType::SizeType  size = { { dimSize, dimSize, dimSize } };
-  ImageType::RegionType::IndexType index = { { 0, 0, 0 } };
+  ImageType::RegionType                      region;
+  constexpr unsigned int                     dimSize(8);
+  constexpr ImageType::RegionType::SizeType  size = { { dimSize, dimSize, dimSize } };
+  constexpr ImageType::RegionType::IndexType index = { { 0, 0, 0 } };
   region.SetSize(size);
   region.SetIndex(index);
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   image->SetRegions(region);
   image->Allocate();
@@ -51,14 +51,15 @@ itkCropImageFilter3DTest(int, char *[])
     it.Set(i);
   }
 
-  itk::CropImageFilter<ImageType, ImageType>::Pointer cropFilter = itk::CropImageFilter<ImageType, ImageType>::New();
+  const itk::CropImageFilter<ImageType, ImageType>::Pointer cropFilter =
+    itk::CropImageFilter<ImageType, ImageType>::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(cropFilter, CropImageFilter, ExtractImageFilter);
 
   cropFilter->SetInput(image);
 
   // Set the filter properties
-  ImageType::SizeType extractSize = { { 1, 1, 1 } };
+  constexpr ImageType::SizeType extractSize = { { 1, 1, 1 } };
 
   cropFilter->SetBoundaryCropSize(extractSize);
 
@@ -70,11 +71,11 @@ itkCropImageFilter3DTest(int, char *[])
 
   ITK_TRY_EXPECT_NO_EXCEPTION(cropFilter->Update());
 
-  ImageType::Pointer croppedImage = cropFilter->GetOutput();
+  const ImageType::Pointer croppedImage = cropFilter->GetOutput();
 
   // check size of cropped image
   ImageType::RegionType::SizeType croppedSize = croppedImage->GetLargestPossibleRegion().GetSize();
-  for (unsigned i = 0; i < ImageType::RegionType::SizeType::GetSizeDimension(); i++)
+  for (unsigned int i = 0; i < ImageType::RegionType::SizeType::GetSizeDimension(); ++i)
   {
     if (croppedSize[i] != dimSize - 2)
     {
@@ -83,9 +84,9 @@ itkCropImageFilter3DTest(int, char *[])
       return EXIT_FAILURE;
     }
   }
-  ImageType::RegionType            subRegion;
-  ImageType::RegionType::SizeType  subSize = { { dimSize - 2, dimSize - 2, dimSize - 2 } };
-  ImageType::RegionType::IndexType subIndex = { { 1, 1, 1 } };
+  ImageType::RegionType                      subRegion;
+  constexpr ImageType::RegionType::SizeType  subSize = { { dimSize - 2, dimSize - 2, dimSize - 2 } };
+  constexpr ImageType::RegionType::IndexType subIndex = { { 1, 1, 1 } };
   subRegion.SetSize(subSize);
   subRegion.SetIndex(subIndex);
 

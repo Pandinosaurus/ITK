@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,8 +34,8 @@ ComputeStartEnd(const typename TImage::IndexType  StartIndex,
                 const float                       tol,
                 const typename TBres::OffsetArray LineOffsets,
                 const typename TImage::RegionType AllImage,
-                unsigned &                        start,
-                unsigned &                        end);
+                unsigned int &                    start,
+                unsigned int &                    end);
 
 template <typename TImage, typename TBres, typename TLine>
 int
@@ -55,8 +55,8 @@ CopyLineToImage(const typename TImage::Pointer            output,
                 const typename TImage::IndexType          StartIndex,
                 const typename TBres::OffsetArray         LineOffsets,
                 std::vector<typename TImage::PixelType> & outbuffer,
-                const unsigned                            start,
-                const unsigned                            end);
+                const unsigned int                        start,
+                const unsigned int                        end);
 
 // This returns a face with a normal between +/- 45 degrees of the
 // line. The face is enlarged so that AllImage is entirely filled by

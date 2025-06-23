@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkHoughTransform2DCirclesImageFilter_hxx
 #define itkHoughTransform2DCirclesImageFilter_hxx
 
-#include "itkHoughTransform2DCirclesImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkGaussianDerivativeImageFunction.h"
@@ -58,7 +57,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
   Superclass::GenerateInputRequestedRegion();
   if (this->GetInput())
   {
-    InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
+    const InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
     image->SetRequestedRegionToLargestPossibleRegion();
   }
 }
@@ -66,8 +65,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
 
 template <typename TInputPixelType, typename TOutputPixelType, typename TRadiusPixelType>
 void
-HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPixelType>::VerifyPreconditions()
-  ITKv5_CONST
+HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPixelType>::VerifyPreconditions() const
 {
   Superclass::VerifyPreconditions();
 
@@ -104,10 +102,9 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
   m_RadiusImage->SetOrigin(inputImage->GetOrigin());
   m_RadiusImage->SetSpacing(inputImage->GetSpacing());
   m_RadiusImage->SetDirection(inputImage->GetDirection());
-  m_RadiusImage->Allocate(true); // initialize buffer to zero
+  m_RadiusImage->AllocateInitialized();
 
   ImageRegionConstIteratorWithIndex<InputImageType> image_it(inputImage, inputImage->GetRequestedRegion());
-  image_it.GoToBegin();
 
   const ImageRegion<2> & region = outputImage->GetRequestedRegion();
 
@@ -132,7 +129,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
         for (double angle = -m_SweepAngle; angle <= m_SweepAngle; angle += 0.05)
         {
           double i = m_MinimumRadius;
-          double distance;
+          double distance = 0.0;
 
           do
           {
@@ -165,8 +162,6 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
   // Compute the average radius
   ImageRegionConstIterator<OutputImageType> output_it(outputImage, outputImage->GetLargestPossibleRegion());
   ImageRegionIterator<RadiusImageType>      radius_it(m_RadiusImage, m_RadiusImage->GetLargestPossibleRegion());
-  output_it.GoToBegin();
-  radius_it.GoToBegin();
   while (!output_it.IsAtEnd())
   {
     if (output_it.Get() > 1)
@@ -179,8 +174,9 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
 }
 
 template <typename TInputPixelType, typename TOutputPixelType, typename TRadiusPixelType>
-typename HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPixelType>::CirclesListType &
+auto
 HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPixelType>::GetCircles()
+  -> CirclesListType &
 {
   // Make sure that all the required inputs exist and have a non-null value
   this->VerifyPreconditions();
@@ -193,7 +189,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
 
   if (m_RadiusImage.IsNull())
   {
-    itkExceptionMacro(<< "Update() must be called before GetCircles().");
+    itkExceptionMacro("Update() must be called before GetCircles().");
   }
 
   m_CirclesList.clear();
@@ -217,8 +213,9 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
     gaussianFilter->Update();
     const InternalImageType::Pointer postProcessImage = gaussianFilter->GetOutput();
 
-    const auto                             minMaxCalculator = MinimumMaximumImageCalculator<InternalImageType>::New();
-    ImageRegionIterator<InternalImageType> it_input(postProcessImage, postProcessImage->GetLargestPossibleRegion());
+    const auto minMaxCalculator = MinimumMaximumImageCalculator<InternalImageType>::New();
+    const ImageRegionIterator<InternalImageType> it_input(postProcessImage,
+                                                          postProcessImage->GetLargestPossibleRegion());
 
     CirclesListSizeType circles = 0;
 
@@ -253,7 +250,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
 
       m_CirclesList.push_back(Circle);
 
-      circles++;
+      ++circles;
       if (circles >= m_NumberOfCircles)
       {
         break;
@@ -296,7 +293,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
   os << indent << "Disc Radius Ratio: " << m_DiscRadiusRatio << std::endl;
   os << indent << "Accumulator blur variance: " << m_Variance << std::endl;
   os << indent << "Sweep angle : " << m_SweepAngle << std::endl;
-  os << indent << "UseImageSpacing: " << m_UseImageSpacing << std::endl;
+  itkPrintSelfBooleanMacro(UseImageSpacing);
 
   itkPrintSelfObjectMacro(RadiusImage);
 
@@ -305,7 +302,7 @@ HoughTransform2DCirclesImageFilter<TInputPixelType, TOutputPixelType, TRadiusPix
   auto         it = m_CirclesList.begin();
   while (it != m_CirclesList.end())
   {
-    os << indent << "[" << i << "]: " << *it << std::endl;
+    os << indent << '[' << i << "]: " << *it << std::endl;
     ++it;
     ++i;
   }

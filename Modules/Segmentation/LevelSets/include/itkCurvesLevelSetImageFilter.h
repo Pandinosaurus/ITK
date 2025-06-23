@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +45,8 @@ namespace itk
  *    the initial contour does not have to lie wholly within the shape to be segmented.
  *    The initial contour is allow to overlap the shape boundary. The extra advection term
  *    in the update equation behaves like a doublet and attracts the contour to the boundary.
- *    This approach for segmentation follows that of Lorigo et al (2001).
+ *    This approach for segmentation follows that of Lorigo et al
+ *    (2001) \cite lorigo2001.
  *
  *    \par
  *    The second input is the feature image.  For this filter, this is the edge
@@ -65,14 +66,14 @@ namespace itk
  *    for more information on Inputs.
  *
  *    \par PARAMETERS
- *    The method SetUseNegatiiveFeatures() can be used to switch from propagating inwards (false)
+ *    The method SetUseNegativeFeatures() can be used to switch from propagating inwards (false)
  *    versus propagating outwards (true).
  *
  *    This implementation allows the user to set the weights between the propagation, advection
  *    and curvature term using methods SetPropagationScaling(), SetAdvectionScaling(),
  *    SetCurvatureScaling(). In general, the larger the CurvatureScaling, the smoother the
  *    resulting contour. To follow the implementation in Caselles's paper,
- *    set the PropagationScaling to \f$ c \f$ (the inflation or ballon force) and
+ *    set the PropagationScaling to \f$ c \f$ (the inflation or balloon force) and
  *    AdvectionScaling and CurvatureScaling both to 1.0.
  *
  *    \par OUTPUTS
@@ -82,10 +83,7 @@ namespace itk
  *    zero crossings of the image correspond to the position of the level set
  *    front.
  *
- *    \par REFERENCES
- *    L. Lorigo, O. Faugeras, W.E.L. Grimson, R. Keriven, R. Kikinis, A. Nabavi,
- *    and C.-F. Westin, Curves: Curve evolution for vessel segmentation.
- *    Medical Image Analysis, 5:195-206, 2001.
+ *    For algorithmic details see \cite lorigo2001.
  *
  *   \par
  *   See SparseFieldLevelSetImageFilter and
@@ -112,16 +110,16 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FeatureImageType = typename Superclass::FeatureImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FeatureImageType;
 
   /** Type of the segmentation function */
   using CurvesFunctionType = CurvesLevelSetFunction<OutputImageType, FeatureImageType>;
   using CurvesFunctionPointer = typename CurvesFunctionType::Pointer;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CurvesLevelSetImageFilter, SegmentationLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CurvesLevelSetImageFilter);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
@@ -134,17 +132,13 @@ public:
     this->Modified();
   }
 
-  float
+  [[nodiscard]] float
   GetDerivativeSigma() const
   {
     return m_CurvesFunction->GetDerivativeSigma();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<TOutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ~CurvesLevelSetImageFilter() override = default;
@@ -159,7 +153,7 @@ protected:
   GenerateData() override;
 
 private:
-  CurvesFunctionPointer m_CurvesFunction;
+  CurvesFunctionPointer m_CurvesFunction{};
 };
 } // end namespace itk
 

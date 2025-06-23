@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,22 +17,18 @@
  *=========================================================================*/
 #ifndef itkVoronoiDiagram2D_hxx
 #define itkVoronoiDiagram2D_hxx
-#include "itkVoronoiDiagram2D.h"
 
 #include <algorithm>
 
 namespace itk
 {
 
-template <typename TCoordRepType>
-VoronoiDiagram2D<TCoordRepType>::VoronoiDiagram2D()
-{
-  m_NumberOfSeeds = 0;
-}
+template <typename TCoordinate>
+VoronoiDiagram2D<TCoordinate>::VoronoiDiagram2D() = default;
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::PrintSelf(std::ostream & os, Indent indent) const
+VoronoiDiagram2D<TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Number Of Seeds: " << m_NumberOfSeeds << std::endl;
@@ -40,9 +36,9 @@ VoronoiDiagram2D<TCoordRepType>::PrintSelf(std::ostream & os, Indent indent) con
 
 
 /* Set the seed points, specify the number of seeds as "num". */
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::SetSeeds(int num, SeedsIterator begin)
+VoronoiDiagram2D<TCoordinate>::SetSeeds(int num, SeedsIterator begin)
 {
   m_Seeds.clear();
   auto ii(begin);
@@ -55,43 +51,43 @@ VoronoiDiagram2D<TCoordRepType>::SetSeeds(int num, SeedsIterator begin)
 
 
 /* Set the rectangle that encloses the Voronoi Diagram. */
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::SetBoundary(PointType vorsize)
+VoronoiDiagram2D<TCoordinate>::SetBoundary(PointType vorsize)
 {
   m_VoronoiBoundary[0] = vorsize[0];
   m_VoronoiBoundary[1] = vorsize[1];
 }
 
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::SetOrigin(PointType vorsize)
+VoronoiDiagram2D<TCoordinate>::SetOrigin(PointType vorsize)
 {
   m_VoronoiBoundaryOrigin[0] = vorsize[0];
   m_VoronoiBoundaryOrigin[1] = vorsize[1];
 }
 
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::GetPoint(int pId, PointType * answer)
+VoronoiDiagram2D<TCoordinate>::GetPoint(int pId, PointType * answer)
 {
   *answer = this->m_PointsContainer->ElementAt(pId);
 }
 
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::GetCellId(CellIdentifier cellId, CellAutoPointer & cellPtr)
+VoronoiDiagram2D<TCoordinate>::GetCellId(CellIdentifier cellId, CellAutoPointer & cellPtr)
 {
   cellPtr.TakeNoOwnership(m_VoronoiRegions[cellId]);
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::EdgeInfo
-VoronoiDiagram2D<TCoordRepType>::GetSeedsIDAroundEdge(VoronoiEdge * task)
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::GetSeedsIDAroundEdge(VoronoiEdge * task) -> EdgeInfo
 {
   EdgeInfo answer;
 
@@ -101,57 +97,57 @@ VoronoiDiagram2D<TCoordRepType>::GetSeedsIDAroundEdge(VoronoiEdge * task)
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::VoronoiEdgeIterator
-VoronoiDiagram2D<TCoordRepType>::EdgeBegin()
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::EdgeBegin() -> VoronoiEdgeIterator
 {
   return m_EdgeList.begin();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::VoronoiEdgeIterator
-VoronoiDiagram2D<TCoordRepType>::EdgeEnd()
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::EdgeEnd() -> VoronoiEdgeIterator
 {
   return m_EdgeList.end();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::NeighborIdIterator
-VoronoiDiagram2D<TCoordRepType>::NeighborIdsBegin(int seeds)
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::NeighborIdsBegin(int seeds) -> NeighborIdIterator
 {
   return m_CellNeighborsID[seeds].begin();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::NeighborIdIterator
-VoronoiDiagram2D<TCoordRepType>::NeighborIdsEnd(int seeds)
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::NeighborIdsEnd(int seeds) -> NeighborIdIterator
 {
   return m_CellNeighborsID[seeds].end();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::VertexIterator
-VoronoiDiagram2D<TCoordRepType>::VertexBegin()
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::VertexBegin() -> VertexIterator
 {
   return this->m_PointsContainer->Begin();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::VertexIterator
-VoronoiDiagram2D<TCoordRepType>::VertexEnd()
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::VertexEnd() -> VertexIterator
 {
   return this->m_PointsContainer->End();
 }
 
 
-template <typename TCoordRepType>
-typename VoronoiDiagram2D<TCoordRepType>::PointType
-VoronoiDiagram2D<TCoordRepType>::GetSeed(int SeedID)
+template <typename TCoordinate>
+auto
+VoronoiDiagram2D<TCoordinate>::GetSeed(int SeedID) -> PointType
 {
   PointType answer;
 
@@ -161,15 +157,15 @@ VoronoiDiagram2D<TCoordRepType>::GetSeed(int SeedID)
 }
 
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::Reset()
+VoronoiDiagram2D<TCoordinate>::Reset()
 {
   m_VoronoiRegions.clear();
   m_VoronoiRegions.resize(m_NumberOfSeeds);
   m_CellNeighborsID.resize(m_NumberOfSeeds);
 
-  for (unsigned int i = 0; i < m_NumberOfSeeds; i++)
+  for (unsigned int i = 0; i < m_NumberOfSeeds; ++i)
   {
     m_VoronoiRegions[i] = new PolygonCellType;
     m_CellNeighborsID[i].clear();
@@ -177,13 +173,13 @@ VoronoiDiagram2D<TCoordRepType>::Reset()
 }
 
 
-template <typename TCoordRepType>
+template <typename TCoordinate>
 void
-VoronoiDiagram2D<TCoordRepType>::InsertCells()
+VoronoiDiagram2D<TCoordinate>::InsertCells()
 {
   genericCellPointer cellPtr;
 
-  for (unsigned int i = 0; i < m_NumberOfSeeds; i++)
+  for (unsigned int i = 0; i < m_NumberOfSeeds; ++i)
   {
     cellPtr.TakeOwnership(m_VoronoiRegions[i]);
     this->SetCell(i, cellPtr);

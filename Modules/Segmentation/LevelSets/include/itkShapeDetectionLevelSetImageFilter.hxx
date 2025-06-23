@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,16 @@
 #ifndef itkShapeDetectionLevelSetImageFilter_hxx
 #define itkShapeDetectionLevelSetImageFilter_hxx
 
-#include "itkShapeDetectionLevelSetImageFilter.h"
 #include "itkMath.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TFeatureImage, typename TOutputType>
 ShapeDetectionLevelSetImageFilter<TInputImage, TFeatureImage, TOutputType>::ShapeDetectionLevelSetImageFilter()
+  : m_ShapeDetectionFunction(ShapeDetectionFunctionType::New())
 {
   /* Instantiate a shape detection function and set it as the segmentation
     function. */
-  m_ShapeDetectionFunction = ShapeDetectionFunctionType::New();
-
   this->SetSegmentationFunction(m_ShapeDetectionFunction);
 
   /* Turn off interpolation. */

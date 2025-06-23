@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,16 +28,13 @@
 #ifndef itkTestingStretchIntensityImageFilter_hxx
 #define itkTestingStretchIntensityImageFilter_hxx
 
-#include "itkTestingStretchIntensityImageFilter.h"
 #include "itkImageBufferRange.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkMath.h"
 #include "itkTotalProgressReporter.h"
 
-namespace itk
-{
-namespace Testing
+namespace itk::Testing
 {
 
 template <typename TInputImage, typename TOutputImage>
@@ -45,7 +42,7 @@ StretchIntensityImageFilter<TInputImage, TOutputImage>::StretchIntensityImageFil
   : m_Scale(1.0)
   , m_Shift(0.0)
   , m_InputMinimum(NumericTraits<InputPixelType>::max())
-  , m_InputMaximum(NumericTraits<InputPixelType>::ZeroValue())
+  , m_InputMaximum(InputPixelType{})
   , m_OutputMinimum(NumericTraits<OutputPixelType>::NonpositiveMin())
   , m_OutputMaximum(NumericTraits<OutputPixelType>::max())
 {
@@ -59,8 +56,7 @@ StretchIntensityImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateDa
 {
   if (m_OutputMinimum > m_OutputMaximum)
   {
-    itkExceptionMacro(<< "Minimum output value cannot be greater than Maximum output value.");
-    return;
+    itkExceptionMacro("Minimum output value cannot be greater than Maximum output value.");
   }
 
   const TInputImage * inputImage = this->GetInput();
@@ -107,13 +103,10 @@ StretchIntensityImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateD
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
-  InputImageRegionType inputRegionForThread = outputRegionForThread;
+  const InputImageRegionType inputRegionForThread = outputRegionForThread;
 
   ImageRegionConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
   ImageRegionIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
-
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
 
   while (!inputIt.IsAtEnd())
   {
@@ -168,7 +161,6 @@ StretchIntensityImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream &
   os << indent << "Output Maximum: " << static_cast<typename NumericTraits<OutputPixelType>::PrintType>(m_OutputMaximum)
      << std::endl;
 }
-} // end namespace Testing
-} // end namespace itk
+} // namespace itk::Testing
 
 #endif

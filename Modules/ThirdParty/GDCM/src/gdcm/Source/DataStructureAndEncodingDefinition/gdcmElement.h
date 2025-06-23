@@ -81,9 +81,9 @@ public:
   }
   // Implementation of Print is common to all Mode (ASCII/Binary)
   // TODO: Can we print a \ when in ASCII...well I don't think so
-  // it would mean we used a bad VM then, right ?
+  // it would mean we used a bad VM then, right?
   void Print(std::ostream &_os) const {
-    _os << Internal[0]; // VM is at least garantee to be one
+    _os << Internal[0]; // VM is at least guarantee to be one
     for(int i=1; i<VMToLength<TVM>::Length; ++i)
       _os << "," << Internal[i];
     }
@@ -314,7 +314,11 @@ static int doround(char *buf, unsigned int n) {
   return 0;
 }
 
-static int roundat(char *buf, unsigned int i, int iexp) {
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+#define snprintf _snprintf
+#endif
+
+static int roundat(char *buf, size_t bufLen, unsigned int i, int iexp) {
   if (doround(buf, i) != 0) {
     iexp += 1;
     switch(iexp) {
@@ -334,7 +338,7 @@ static int roundat(char *buf, unsigned int i, int iexp) {
       strcpy(buf, "100");
       break;
     default:
-      sprintf(buf, "1e%d", iexp);
+      snprintf(buf, bufLen, "1e%d", iexp);
     }
     return 1;
   }
@@ -353,20 +357,20 @@ static void x16printf(char *buf, int size, Float f) {
     size -= 1;
     *buf++ = '-';
   }
-  sprintf(line, "%1.16e", f);
+  snprintf(line, sizeof(line), "%1.16e", f);
   if (line[0] == '-') {
     f = -f;
     size -= 1;
     *buf++ = '-';
-    sprintf(line, "%1.16e", f);
+    snprintf(line, sizeof(line), "%1.16e", f);
   }
   *mant = line[0];
   i = (int)strcspn(mant, "eE");
   mant[i] = '\0';
   iexp = (int)strtol(mant + i + 1, nullptr, 10);
-  lexp = sprintf(exp, "e%d", iexp);
+  lexp = snprintf(exp, sizeof(exp), "e%d", iexp);
   if ((iexp >= size) || (iexp < -3)) {
-    i = roundat(mant, size - 1 -lexp, iexp);
+    i = roundat(mant, sizeof(line) - 1, size - 1 -lexp, iexp);
     if(i == 1) {
       strcpy(buf, mant);
       return;
@@ -379,16 +383,16 @@ static void x16printf(char *buf, int size, Float f) {
     strcat(buf, exp);
   }
   else if (iexp >= size - 2) {
-    roundat(mant, iexp + 1, iexp);
+    roundat(mant, sizeof(line) - 1, iexp + 1, iexp);
     strcpy(buf, mant);
   }
   else if (iexp >= 0) {
-    i = roundat(mant, size - 1, iexp);
+    i = roundat(mant, sizeof(line) - 1, size - 1, iexp);
     if (i == 1) {
       strcpy(buf, mant);
       return;
     }
-    strncpy(buf, mant, iexp + 1);
+    memcpy(buf, mant, iexp + 1);
     buf[iexp + 1] = '.';
     strncpy(buf + iexp + 2, mant + iexp + 1, size - iexp - 1);
     buf[size] = 0;
@@ -396,7 +400,7 @@ static void x16printf(char *buf, int size, Float f) {
   }
   else {
     int j;
-    i = roundat(mant, size + 1 + iexp, iexp);
+    i = roundat(mant, sizeof(line) - 1, size + 1 + iexp, iexp);
     if (i == 1) {
       strcpy(buf, mant);
       return;
@@ -405,15 +409,15 @@ static void x16printf(char *buf, int size, Float f) {
     for(j=0; j< -1 - iexp; j++) {
       buf[j+1] = '0';
     }
-    if ((i == 1) && (iexp != -1)) {
-      buf[-iexp] = '1';
-      buf++;
-    }
-    strncpy(buf - iexp, mant, size + 1 + iexp);
+    memcpy(buf - iexp, mant, size + 1 + iexp);
     buf[size] = 0;
     clean(buf);
   }
 }
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+#undef snprintf
+#endif
+
 #endif
 
 template<> inline void EncodingImplementation<VR::VRASCII>::Write(const double* data, unsigned long length, std::ostream &_os)  {
@@ -469,7 +473,7 @@ public:
     assert( _is ); // Is stream valid ?
     _is.read( reinterpret_cast<char*>(data+0), type_size);
     for(unsigned long i=1; i<length; ++i) {
-      assert( _is );
+      if( _is )
       _is.read( reinterpret_cast<char*>(data+i), type_size );
     }
     //ByteSwap<T>::SwapRangeFromSwapCodeIntoSystem(data,
@@ -485,7 +489,7 @@ public:
     assert( _is ); // Is stream valid ?
     _is.read( reinterpret_cast<char*>(data+0), type_size);
     for(unsigned long i=1; i<length; ++i) {
-      assert( _is );
+      if( _is )
       _is.read( reinterpret_cast<char*>(data+i), type_size );
     }
     //ByteSwap<T>::SwapRangeFromSwapCodeIntoSystem(data,
@@ -514,7 +518,7 @@ public:
 };
 
 // For particular case for ASCII string
-// WARNING: This template explicitly instanciates a particular
+// WARNING: This template explicitly instantiates a particular
 // EncodingImplementation THEREFORE it is required to be declared after the
 // EncodingImplementation is needs (doh!)
 #if 0
@@ -546,7 +550,7 @@ public:
   }
   // Implementation of Print is common to all Mode (ASCII/Binary)
   void Print(std::ostream &_os) const {
-    _os << Internal[0]; // VM is at least garantee to be one
+    _os << Internal[0]; // VM is at least guarantee to be one
     for(int i=1; i<VMToLength<TVM>::Length; ++i)
       _os << "," << Internal[i];
     }
@@ -697,7 +701,7 @@ public:
   void Print(std::ostream &_os) const {
     assert( Length );
     assert( Internal );
-    _os << Internal[0]; // VM is at least garantee to be one
+    _os << Internal[0]; // VM is at least guarantee to be one
     const unsigned long length = GetLength() < 25 ? GetLength() : 25;
     for(unsigned long i=1; i<length; ++i)
       _os << "," << Internal[i];
@@ -837,6 +841,16 @@ public:
   typedef Element<TVR, VM::VM3_n> Parent;
   void SetLength(int len) {
     if( len % 3 ) return;
+    Parent::SetLength(len);
+  }
+};
+template<long long TVR>
+class Element<TVR, VM::VM3_4> : public Element<TVR, VM::VM1_n>
+{
+public:
+  typedef Element<TVR, VM::VM1_n> Parent;
+  void SetLength(int len) {
+    if( len != 3 && len != 4 ) return;
     Parent::SetLength(len);
   }
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,16 +32,13 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
    */
 
   using OriginType = TransformType::OriginType;
-  OriginType origin;
-  origin.Fill(5.0);
+  auto origin = itk::MakeFilled<OriginType>(5.0);
 
   using PhysicalDimensionsType = TransformType::PhysicalDimensionsType;
-  PhysicalDimensionsType dimensions;
-  dimensions.Fill(100);
+  auto dimensions = itk::MakeFilled<PhysicalDimensionsType>(100);
 
   using MeshSizeType = TransformType::MeshSizeType;
-  MeshSizeType meshSize;
-  meshSize.Fill(10);
+  auto meshSize = MeshSizeType::Filled(10);
 
   using DirectionType = TransformType::DirectionType;
   DirectionType direction;
@@ -50,7 +47,7 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
   /**
    * Instantiate a transform
    */
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   transform->SetTransformDomainOrigin(origin);
   transform->SetTransformDomainPhysicalDimensions(dimensions);
   transform->SetTransformDomainMeshSize(meshSize);
@@ -60,9 +57,9 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
    * Allocate memory for the parameters
    */
   using ParametersType = TransformType::ParametersType;
-  unsigned long  numberOfParameters = transform->GetNumberOfParameters();
-  ParametersType parameters(numberOfParameters);
-  parameters.Fill(itk::NumericTraits<ParametersType::ValueType>::ZeroValue());
+  const unsigned long numberOfParameters = transform->GetNumberOfParameters();
+  ParametersType      parameters(numberOfParameters);
+  parameters.Fill(ParametersType::ValueType{});
 
   /**
    * Set the parameters in the transform
@@ -70,14 +67,12 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
   transform->SetParameters(parameters);
 
   using CoefficientImageType = TransformType::ImageType;
-  CoefficientImageType::IndexType index;
-  index.Fill(5);
+  auto index = CoefficientImageType::IndexType::Filled(5);
   transform->GetCoefficientImages()[0]->SetPixel(index, 5.0);
 
-  TransformType::InputPointType point;
-  point.Fill(50.0);
+  auto point = itk::MakeFilled<TransformType::InputPointType>(50.0);
 
-  TransformType::OutputPointType outputPointBeforeAdapt = transform->TransformPoint(point);
+  const TransformType::OutputPointType outputPointBeforeAdapt = transform->TransformPoint(point);
 
 
   /**
@@ -87,15 +82,16 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
    */
 
   TransformType::MeshSizeType requiredMeshSize;
-  for (unsigned int d = 0; d < SpaceDimension; d++)
+  for (unsigned int d = 0; d < SpaceDimension; ++d)
   {
     requiredMeshSize[d] = (d + 1) * meshSize[d];
   }
 
-  TransformType::SizeType gridSizeBefore = transform->GetCoefficientImages()[0]->GetLargestPossibleRegion().GetSize();
+  const TransformType::SizeType gridSizeBefore =
+    transform->GetCoefficientImages()[0]->GetLargestPossibleRegion().GetSize();
 
   using AdaptorType = itk::BSplineTransformParametersAdaptor<TransformType>;
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
   adaptor->SetTransform(transform);
   adaptor->SetRequiredTransformDomainMeshSize(requiredMeshSize);
   adaptor->SetRequiredTransformDomainOrigin(transform->GetTransformDomainOrigin());
@@ -111,7 +107,7 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  ParametersType fixedParameters = adaptor->GetRequiredFixedParameters();
+  const ParametersType fixedParameters = adaptor->GetRequiredFixedParameters();
   std::cout << "Fixed parameters: " << fixedParameters << std::endl;
   adaptor->SetRequiredFixedParameters(fixedParameters);
 
@@ -136,9 +132,10 @@ itkBSplineTransformParametersAdaptorTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  TransformType::SizeType gridSizeAfter = transform->GetCoefficientImages()[0]->GetLargestPossibleRegion().GetSize();
+  const TransformType::SizeType gridSizeAfter =
+    transform->GetCoefficientImages()[0]->GetLargestPossibleRegion().GetSize();
 
-  TransformType::OutputPointType outputPointAfterAdapt = transform->TransformPoint(point);
+  const TransformType::OutputPointType outputPointAfterAdapt = transform->TransformPoint(point);
 
   std::cout << "Grid size before: " << gridSizeBefore << std::endl;
   std::cout << "Grid size after: " << gridSizeAfter << std::endl;

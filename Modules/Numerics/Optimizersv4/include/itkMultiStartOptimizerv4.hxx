@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,45 +18,57 @@
 #ifndef itkMultiStartOptimizerv4_hxx
 #define itkMultiStartOptimizerv4_hxx
 
-#include "itkMultiStartOptimizerv4.h"
+#include "itkPrintHelper.h"
+
 
 namespace itk
 {
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 MultiStartOptimizerv4Template<TInternalComputationValueType>::MultiStartOptimizerv4Template()
-
+  : m_StopCondition(StopConditionObjectToObjectOptimizerEnum::MAXIMUM_NUMBER_OF_ITERATIONS)
+  , m_MaximumMetricValue(NumericTraits<MeasureType>::max())
+  , m_BestParametersIndex(static_cast<ParameterListSizeType>(0))
+  , m_LocalOptimizer(nullptr)
 {
   this->m_NumberOfIterations = static_cast<SizeValueType>(0);
-  this->m_StopCondition = StopConditionObjectToObjectOptimizerEnum::MAXIMUM_NUMBER_OF_ITERATIONS;
   this->m_StopConditionDescription << this->GetNameOfClass() << ": ";
-
-  this->m_BestParametersIndex = static_cast<ParameterListSizeType>(0);
-  this->m_MaximumMetricValue = NumericTraits<MeasureType>::max();
   this->m_MinimumMetricValue = this->m_MaximumMetricValue;
-  m_LocalOptimizer = nullptr;
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
-  os << indent << "Stop condition:" << this->m_StopCondition << std::endl;
-  os << indent << "Stop condition description: " << this->m_StopConditionDescription.str() << std::endl;
+
+  os << indent << "StopCondition: " << m_StopCondition << std::endl;
+  os << indent << "StopConditionDescription: " << m_StopConditionDescription.str() << std::endl;
+
+  os << indent << "ParametersList: " << m_ParametersList << std::endl;
+  os << indent << "MetricValuesList: " << m_MetricValuesList << std::endl;
+
+  os << indent
+     << "MinimumMetricValue: " << static_cast<typename NumericTraits<MeasureType>::PrintType>(m_MinimumMetricValue)
+     << std::endl;
+  os << indent
+     << "MaximumMetricValue: " << static_cast<typename NumericTraits<MeasureType>::PrintType>(m_MaximumMetricValue)
+     << std::endl;
+  os << indent << "BestParametersIndex: "
+     << static_cast<typename NumericTraits<ParameterListSizeType>::PrintType>(m_BestParametersIndex) << std::endl;
+
+  itkPrintSelfObjectMacro(LocalOptimizer);
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
-typename MultiStartOptimizerv4Template<TInternalComputationValueType>::ParametersListType &
-MultiStartOptimizerv4Template<TInternalComputationValueType>::GetParametersList()
+auto
+MultiStartOptimizerv4Template<TInternalComputationValueType>::GetParametersList() -> ParametersListType &
 {
   return this->m_ParametersList;
 }
 
-/** Set the list of parameters over which to search */
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::SetParametersList(
@@ -69,43 +81,39 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::SetParametersList(
   }
 }
 
-/** Get the list of metric values that we produced after the multi-start search.  */
 template <typename TInternalComputationValueType>
-const typename MultiStartOptimizerv4Template<TInternalComputationValueType>::MetricValuesListType &
+auto
 MultiStartOptimizerv4Template<TInternalComputationValueType>::GetMetricValuesList() const
+  -> const MetricValuesListType &
 {
   return this->m_MetricValuesList;
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
-typename MultiStartOptimizerv4Template<TInternalComputationValueType>::ParametersType
-MultiStartOptimizerv4Template<TInternalComputationValueType>::GetBestParameters()
+auto
+MultiStartOptimizerv4Template<TInternalComputationValueType>::GetBestParameters() -> ParametersType
 {
   return this->m_ParametersList[m_BestParametersIndex];
 }
 
-
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::InstantiateLocalOptimizer()
 {
-  LocalOptimizerPointer optimizer = LocalOptimizerType::New();
+  const LocalOptimizerPointer optimizer = LocalOptimizerType::New();
   optimizer->SetLearningRate(static_cast<TInternalComputationValueType>(1.e-1));
   optimizer->SetNumberOfIterations(25);
   this->m_LocalOptimizer = optimizer;
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
-const typename MultiStartOptimizerv4Template<TInternalComputationValueType>::StopConditionReturnStringType
+auto
 MultiStartOptimizerv4Template<TInternalComputationValueType>::GetStopConditionDescription() const
+  -> StopConditionReturnStringType
 {
   return this->m_StopConditionDescription.str();
 }
 
-//-------------------------------------------------------------------
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::StopOptimization()
@@ -118,9 +126,6 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::StopOptimization()
   this->InvokeEvent(EndEvent());
 }
 
-/**
- * Start and run the optimization
- */
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::StartOptimization(bool doOnlyInitialization)
@@ -132,7 +137,7 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::StartOptimization(
   this->m_BestParametersIndex = static_cast<ParameterListSizeType>(0);
   this->m_MinimumMetricValue = this->m_MaximumMetricValue;
 
-  /* Must call the superclass version for basic validation and setup */
+  // Must call the superclass version for basic validation and setup.
   if (this->m_NumberOfIterations > static_cast<SizeValueType>(0))
   {
     Superclass::StartOptimization(doOnlyInitialization);
@@ -149,9 +154,6 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::StartOptimization(
   }
 }
 
-/**
- * Resume optimization.
- */
 template <typename TInternalComputationValueType>
 void
 MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization()
@@ -163,7 +165,7 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization
   this->m_Stop = false;
   while (!this->m_Stop)
   {
-    /* Compute metric value */
+    // Compute metric value
     try
     {
       this->m_Metric->SetParameters(this->m_ParametersList[this->m_CurrentIteration]);
@@ -176,11 +178,10 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization
       this->m_CurrentMetricValue = this->m_Metric->GetValue();
       this->m_MetricValuesList.push_back(this->m_CurrentMetricValue);
     }
-    catch (ExceptionObject &)
+    catch (const ExceptionObject &)
     {
-      /** We simply ignore this exception because it may just be a bad starting point.
-       *  We hope that other start points are better.
-       */
+      // We simply ignore this exception because it may just be a bad starting point.
+      // We hope that other start points are better.
       itkWarningMacro("An exception occurred in sub-optimization number "
                       << this->m_CurrentIteration
                       << ".  If too many of these occur, you may need to set a different set of initial parameters.");
@@ -191,8 +192,8 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization
       this->m_MinimumMetricValue = this->m_CurrentMetricValue;
       this->m_BestParametersIndex = this->m_CurrentIteration;
     }
-    /* Check if optimization has been stopped externally.
-     * (Presumably this could happen from a multi-threaded client app?) */
+    // Check if optimization has been stopped externally.
+    // (Presumably this could happen from a multi-threaded client app?)
     if (this->m_Stop)
     {
       this->m_StopConditionDescription << "StopOptimization() called";
@@ -201,7 +202,7 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization
 
     this->InvokeEvent(IterationEvent());
 
-    /* Update and check iteration count */
+    // Update and check iteration count
     this->m_CurrentIteration++;
     if (this->m_CurrentIteration >= this->m_NumberOfIterations)
     {
@@ -211,7 +212,7 @@ MultiStartOptimizerv4Template<TInternalComputationValueType>::ResumeOptimization
       this->StopOptimization();
       break;
     }
-  } // while (!m_Stop)
+  }
 }
 
 } // namespace itk

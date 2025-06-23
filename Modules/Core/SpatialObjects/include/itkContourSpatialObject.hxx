@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,12 @@
 #ifndef itkContourSpatialObject_hxx
 #define itkContourSpatialObject_hxx
 
-#include "itkContourSpatialObject.h"
 #include "itkNumericTraits.h"
+#include <algorithm> // For min and max.
 
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TDimension>
 ContourSpatialObject<TDimension>::ContourSpatialObject()
 {
@@ -80,21 +80,15 @@ ContourSpatialObject<TDimension>::GetOrientationInObjectSpace() const
   while (it != itend)
   {
     PointType curpoint = it->GetPositionInObjectSpace();
-    for (unsigned int i = 0; i < TDimension; i++)
+    for (unsigned int i = 0; i < TDimension; ++i)
     {
-      if (minPnt[i] > curpoint[i])
-      {
-        minPnt[i] = curpoint[i];
-      }
-      if (maxPnt[i] < curpoint[i])
-      {
-        maxPnt[i] = curpoint[i];
-      }
+      minPnt[i] = std::min(minPnt[i], curpoint[i]);
+      maxPnt[i] = std::max(maxPnt[i], curpoint[i]);
     }
-    it++;
+    ++it;
   }
   m_OrientationInObjectSpace = -1;
-  for (unsigned int i = 0; i < TDimension; i++)
+  for (unsigned int i = 0; i < TDimension; ++i)
   {
     if (Math::ExactlyEquals(minPnt[i], maxPnt[i]))
     {
@@ -105,25 +99,22 @@ ContourSpatialObject<TDimension>::GetOrientationInObjectSpace() const
   return m_OrientationInObjectSpace;
 }
 
-/** Set the control points which are defining the contour */
 template <unsigned int TDimension>
 void
 ContourSpatialObject<TDimension>::SetControlPoints(const ContourPointListType & points)
 {
   m_ControlPoints.clear();
 
-  typename ContourPointListType::const_iterator it;
-  it = points.begin();
+  auto it = points.begin();
   while (it != points.end())
   {
     m_ControlPoints.push_back(*it);
     m_ControlPoints.back().SetSpatialObject(this);
-    it++;
+    ++it;
   }
   this->Modified();
 }
 
-/** Add a control point which is defining the contour */
 template <unsigned int TDimension>
 void
 ContourSpatialObject<TDimension>::AddControlPoint(const ContourPointType & point)
@@ -133,7 +124,6 @@ ContourSpatialObject<TDimension>::AddControlPoint(const ContourPointType & point
   this->Modified();
 }
 
-/** InternalClone */
 template <unsigned int TDimension>
 typename LightObject::Pointer
 ContourSpatialObject<TDimension>::InternalClone() const
@@ -142,10 +132,10 @@ ContourSpatialObject<TDimension>::InternalClone() const
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
   rval->SetInterpolationMethod(this->GetInterpolationMethod());
   rval->SetInterpolationFactor(this->GetInterpolationFactor());
@@ -157,23 +147,23 @@ ContourSpatialObject<TDimension>::InternalClone() const
   return loPtr;
 }
 
-/** Print the contour spatial object */
 template <unsigned int TDimension>
 void
 ContourSpatialObject<TDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  os << indent << "ContourSpatialObject(" << this << ")" << std::endl;
-  os << indent << "#Control Points: " << static_cast<SizeValueType>(m_ControlPoints.size()) << std::endl;
-  os << indent << "Interpolation type: " << m_InterpolationMethod << std::endl;
-  os << indent << "Contour closed: " << m_IsClosed << std::endl;
-  os << indent << "Orientation In Object Space: " << m_OrientationInObjectSpace << std::endl;
-  os << indent << "Orientation time: " << m_OrientationInObjectSpaceMTime << std::endl;
-  os << indent << "Pin to slice : " << m_AttachedToSlice << std::endl;
   Superclass::PrintSelf(os, indent);
+
+  // ToDo
+  // os << indent << "ControlPoints: " << m_ControlPoints << std::endl;
+  os << indent << "InterpolationMethod: " << m_InterpolationMethod << std::endl;
+  os << indent << "InterpolationFactor: " << m_InterpolationFactor << std::endl;
+  itkPrintSelfBooleanMacro(IsClosed);
+  os << indent << "OrientationInObjectSpace: " << m_OrientationInObjectSpace << std::endl;
+  os << indent << "OrientationInObjectSpaceMTime: "
+     << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(m_OrientationInObjectSpaceMTime) << std::endl;
+  os << indent << "AttachedToSlice: " << m_AttachedToSlice << std::endl;
 }
 
-
-/** Print the contour spatial object */
 template <unsigned int TDimension>
 void
 ContourSpatialObject<TDimension>::Update()
@@ -188,7 +178,7 @@ ContourSpatialObject<TDimension>::Update()
     case InterpolationMethodEnum::BEZIER_INTERPOLATION:
       // TODO: Implement bezier interpolation
       {
-        itkExceptionMacro(<< "Bezier interpolation type not yet defined.");
+        itkExceptionMacro("Bezier interpolation type not yet defined.");
       }
       break;
     case InterpolationMethodEnum::LINEAR_INTERPOLATION:
@@ -215,17 +205,20 @@ ContourSpatialObject<TDimension>::Update()
         {
           step[d] = (pnt2[d] - pnt[d]) / m_InterpolationFactor;
         }
-        PointType newPoint;
-        newPoint.Fill(NumericTraits<double>::max());
+
+        // TODO There is an issue regarding this code, from 24 February 2022:
+        // "`ContourSpatialObject<TDimension>::Update()` LINEAR_INTERPOLATION case may need some adjustment"
+        // https://github.com/InsightSoftwareConsortium/ITK/issues/3222
+
+        auto newPoint = MakeFilled<PointType>(NumericTraits<double>::max());
         for (unsigned int i = 0; i < m_InterpolationFactor; ++i)
         {
           for (unsigned int d = 0; d < TDimension; ++d)
           {
-            newPoint = pnt[d] + i * step[d];
+            newPoint[d] = pnt[d] + i * step[d];
           }
         }
-        typename Superclass::SpatialObjectPointType newSOPoint;
-        newSOPoint = (*it);
+        typename Superclass::SpatialObjectPointType newSOPoint = (*it);
         newSOPoint.SetSpatialObject(this);
         newSOPoint.SetPositionInObjectSpace(newPoint);
         this->m_Points.push_back(newSOPoint);

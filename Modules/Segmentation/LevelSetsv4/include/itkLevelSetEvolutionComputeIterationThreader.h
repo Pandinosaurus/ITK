@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
 {
 
 /**
- *\class LevelSetEvolutionComputeIterationThreader
+ * \class LevelSetEvolutionComputeIterationThreader
  * \brief Thread the ComputeIteration method.
  *
  * Thread the \c ComputeIteration method of the LevelSetEvolution class
@@ -37,8 +37,7 @@ namespace itk
  * \ingroup ITKLevelSetsv4
  */
 template <typename TLevelSet, typename TDomainPartitioner, typename TLevelSetEvolution>
-class ITK_TEMPLATE_EXPORT LevelSetEvolutionComputeIterationThreader
-{};
+class ITK_TEMPLATE_EXPORT LevelSetEvolutionComputeIterationThreader{};
 
 // For dense image level set split by putting part of the level set region in
 // each thread.
@@ -58,15 +57,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run time type information. */
-  itkTypeMacro(LevelSetEvolutionComputeIterationThreader, DomainThreader);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionComputeIterationThreader);
 
   /** Standard New macro. */
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   /** Types of the associate class. */
   using LevelSetEvolutionType = TLevelSetEvolution;
@@ -115,15 +114,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run time type information. */
-  itkTypeMacro(LevelSetEvolutionComputeIterationThreader, DomainThreader);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionComputeIterationThreader);
 
   /** Standard New macro. */
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   /** Types of the associate class. */
   using LevelSetEvolutionType = TLevelSetEvolution;
@@ -170,15 +169,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run time type information. */
-  itkTypeMacro(LevelSetEvolutionComputeIterationThreader, DomainThreader);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionComputeIterationThreader);
 
   /** Standard New macro. */
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   /** Types of the associate class. */
   using LevelSetEvolutionType = TLevelSetEvolution;
@@ -207,7 +206,7 @@ protected:
   AfterThreadedExecution() override;
 
   using NodePairsPerThreadType = std::vector<std::vector<NodePairType>>;
-  NodePairsPerThreadType m_NodePairsPerThread;
+  NodePairsPerThreadType m_NodePairsPerThread{};
 };
 
 } // namespace itk

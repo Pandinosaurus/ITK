@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,5 +28,5 @@ elif argv[1] == "Box":
     print("Box")
     strel = itk.FlatStructuringElement[2].Box(int(argv[2]))
 else:
-    print("invalid arguement: " + argv[1])
+    print("invalid argument: " + argv[1])
     exit(1)

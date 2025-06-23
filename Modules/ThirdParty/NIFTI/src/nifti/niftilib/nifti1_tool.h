@@ -1,5 +1,5 @@
-#ifndef _NIFTI_TOOL_H_
-#define _NIFTI_TOOL_H_
+#ifndef NIFTI1_TOOL_H
+#define NIFTI1_TOOL_H
 
 #define NT_CMD_LEN 2048
 
@@ -85,13 +85,10 @@ typedef struct {
    char name[NT_FIELD_NAME_LEN]; /* actual structure name used          */
 } field_s;
 
-/* for computing the offset from the start of the struct */
-#define NT_OFF(str,field) ((int)( ((char *)&str.field) - ((char *)&str) ))
-
 /* call fill_field() for a single type, name and number of elements */
 /* nstr is the base struct, and fldp is a field pointer */
-#define NT_SFILL(nstr,fldp,type,name,num,rv) do{                   \
-           rv=fill_field(fldp,type,NT_OFF(nstr,name),num,#name);   \
+#define NT_FILL(nstr,fldp,type,name,num,rv) do{                      \
+           rv=fill_field(fldp,type,offsetof(nstr,name),num,#name);   \
            fldp++; } while (0)
 
 #define NT_MAKE_IM_NAME "MAKE_IM"
@@ -133,8 +130,8 @@ int add_string       (str_list * slist, const char * str);
 int check_total_size ( const char *mesg, field_s *fields, int nfields, int tot_size);
 int clear_float_zeros( char * str );
 int diff_field       (field_s *fieldp, void * str0, void * str1, int nfields);
-int disp_nifti1_extension( const char *mesg, nifti1_extension * ext, int maxlen);
-int disp_field       ( const char *mesg,field_s *fp,void *str,int nfields,int header);
+int disp_nifti1_extension( const char *mesg, const nifti1_extension * ext, int maxlen);
+int disp_field       ( const char *mesg,field_s *fieldp,void *str,int nfields,int header);
 int disp_field_s_list( const char *mesg, field_s *, int nfields);
 int disp_nt_opts     ( const char *mesg, nt_opts * opts);
 int disp_raw_data    (void * data, int type, int nvals, char space,int newline);
@@ -160,4 +157,4 @@ nifti_1_header * nt_read_header(nt_opts * opts, const char * fname, int * swappe
                                 int check);
 
 
-#endif  /* _NIFTI_TOOL_H_ */
+#endif  /* NIFTI1_TOOL_H */

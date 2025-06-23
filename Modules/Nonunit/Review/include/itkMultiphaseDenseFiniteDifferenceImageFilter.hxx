@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMultiphaseDenseFiniteDifferenceImageFilter_hxx
 #define itkMultiphaseDenseFiniteDifferenceImageFilter_hxx
 
-#include "itkMultiphaseDenseFiniteDifferenceImageFilter.h"
 
 namespace itk
 {
@@ -30,7 +29,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "m_ReinitializeCounter: " << m_ReinitializeCounter << std::endl;
+  os << indent << "ReinitializeCounter: " << m_ReinitializeCounter << std::endl;
 }
 
 template <typename TInputImage, typename TFeatureImage, typename TOutputImage, typename TFunction, typename TIdCell>
@@ -42,7 +41,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
   output->FillBuffer(0);
 
-  for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     const InputImagePointer input = this->m_LevelSet[i];
     const InputPointType    origin = input->GetOrigin();
@@ -50,8 +49,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
     // Find the index of the target image where this Level Set
     // should be pasted.
-    OutputIndexType start;
-    output->TransformPhysicalPointToIndex(origin, start);
+    const OutputIndexType start = output->TransformPhysicalPointToIndex(origin);
 
     OutputRegionType region;
     region.SetSize(size);
@@ -59,7 +57,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
     if (!input || !output)
     {
-      itkExceptionMacro(<< "Either input and/or output is nullptr.");
+      itkExceptionMacro("Either input and/or output is nullptr.");
     }
 
     ImageRegionConstIterator<InputImageType> in(input, input->GetBufferedRegion());
@@ -88,7 +86,7 @@ void
 MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, TFunction, TIdCell>::
   AllocateUpdateBuffer()
 {
-  for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     InputImagePointer input = this->m_LevelSet[i];
     InputRegionType   region = input->GetLargestPossibleRegion();
@@ -107,7 +105,7 @@ typename MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, 
 {
   TimeStepType timeStep = NumericTraits<TimeStepType>::max();
 
-  for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     InputImagePointer levelset = this->m_LevelSet[i];
 
@@ -122,17 +120,14 @@ typename MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, 
     FaceCalculatorType faceCalculator;
     FaceListType       faceList = faceCalculator(levelset, levelset->GetLargestPossibleRegion(), radius);
 
-    void * globalData;
-
     // Ask the function object for a pointer to a data structure it
     // will use to manage any global values it needs.  We'll pass this
     // back to the function object at each calculation and then
     // again so that the function object can use it to determine a
     // time step for this iteration.
-    globalData = df->GetGlobalDataPointer();
+    void * globalData = df->GetGlobalDataPointer();
 
-    typename FaceListType::iterator fIt;
-    for (fIt = faceList.begin(); fIt != faceList.end(); ++fIt)
+    for (auto fIt = faceList.begin(); fIt != faceList.end(); ++fIt)
     {
       // Process the non-boundary region.
       NeighborhoodIteratorType            nD(radius, levelset, *fIt);
@@ -176,7 +171,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
   this->m_UpdateBuffers.resize(n, nullptr);
 
-  for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     this->m_UpdateBuffers[i] = InputImageType::New();
   }
@@ -187,12 +182,10 @@ void
 MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, TFunction, TIdCell>::ApplyUpdate(
   TimeStepType dt)
 {
-  double         rms_change_accumulator = 0;
-  double         den = 0;
-  IdCellType     i;
-  InputPixelType val;
+  double rms_change_accumulator = 0;
+  double den = 0;
 
-  for (i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     const double img_size = this->m_LevelSet[i]->GetLargestPossibleRegion().GetNumberOfPixels();
     den += img_size;
@@ -205,7 +198,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
   }
 
   // Updating the output image
-  for (i = 0; i < this->m_FunctionCount; i++)
+  for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
   {
     // NOTE: here this->m_LevelSet[i]->GetRequestedRegion() is used and
     // previously
@@ -220,7 +213,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
     while (!u.IsAtEnd())
     {
-      val = static_cast<InputPixelType>(dt) * u.Get();
+      InputPixelType val = static_cast<InputPixelType>(dt) * u.Get();
       o.Set(o.Value() + val);
       rms_change_accumulator += static_cast<double>(itk::Math::sqr(val));
       ++u;
@@ -253,7 +246,7 @@ MultiphaseDenseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputIm
 
       while (!o.IsAtEnd())
       {
-        val = it.Value();
+        InputPixelType val = it.Value();
         rms_change_accumulator += static_cast<double>(itk::Math::sqr(o.Value() - val));
         o.Set(val);
         ++o;

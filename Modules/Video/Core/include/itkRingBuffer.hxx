@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,12 @@
 #ifndef itkRingBuffer_hxx
 #define itkRingBuffer_hxx
 
-#include "itkRingBuffer.h"
 #include "itkMath.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
 
-//-CONSTRUCTOR DESTRUCTOR PRINT------------------------------------------------
-
-//
-// Constructor
-//
 template <typename TElement>
 RingBuffer<TElement>::RingBuffer()
   : m_PointerVector()
@@ -37,25 +32,17 @@ RingBuffer<TElement>::RingBuffer()
   this->SetNumberOfBuffers(3);
 }
 
-//
-// PrintSelf
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
-  os << indent << "RingBuffer:" << std::endl;
-  os << indent << "NumberOfBuffers: " << this->m_PointerVector.size() << std::endl;
+
+  os << indent << "PointerVector: " << m_PointerVector << std::endl;
 }
 
-
-//-PUBLIC METHODS--------------------------------------------------------------
-
-
-//
-// MoveHead
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::MoveHead(OffsetValueType offset)
@@ -67,10 +54,6 @@ RingBuffer<TElement>::MoveHead(OffsetValueType offset)
   this->Modified();
 }
 
-
-//
-// MoveHeadForward
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::MoveHeadForward()
@@ -78,10 +61,6 @@ RingBuffer<TElement>::MoveHeadForward()
   this->MoveHead(1);
 }
 
-
-//
-// MoveHeadBackward
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::MoveHeadBackward()
@@ -89,10 +68,6 @@ RingBuffer<TElement>::MoveHeadBackward()
   this->MoveHead(-1);
 }
 
-
-//
-// BufferIsFull
-//
 template <typename TElement>
 bool
 RingBuffer<TElement>::BufferIsFull(OffsetValueType offset)
@@ -102,9 +77,6 @@ RingBuffer<TElement>::BufferIsFull(OffsetValueType offset)
   return !(this->m_PointerVector[bufferIndex].IsNull());
 }
 
-//
-// GetBufferContents
-//
 template <typename TElement>
 typename TElement::Pointer
 RingBuffer<TElement>::GetBufferContents(OffsetValueType offset)
@@ -116,10 +88,6 @@ RingBuffer<TElement>::GetBufferContents(OffsetValueType offset)
   return this->m_PointerVector[bufferIndex];
 }
 
-
-//
-// SetBufferContents
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::SetBufferContents(OffsetValueType offset, ElementPointer element)
@@ -134,33 +102,25 @@ RingBuffer<TElement>::SetBufferContents(OffsetValueType offset, ElementPointer e
   this->Modified();
 }
 
-
-//
-// GetNumberOfBuffers
-//
 template <typename TElement>
-typename RingBuffer<TElement>::SizeValueType
-RingBuffer<TElement>::GetNumberOfBuffers()
+auto
+RingBuffer<TElement>::GetNumberOfBuffers() -> SizeValueType
 {
   return static_cast<typename RingBuffer<TElement>::SizeValueType>(this->m_PointerVector.size());
 }
 
-
-//
-// SetNumberOfBuffers
-//
 template <typename TElement>
 void
 RingBuffer<TElement>::SetNumberOfBuffers(SizeValueType n)
 {
-  size_t currentSize = this->m_PointerVector.size();
+  const size_t currentSize = this->m_PointerVector.size();
 
   // If larger than current size, insert difference after tail
   if (n > currentSize)
   {
     for (size_t i = 0; i < n - currentSize; ++i)
     {
-      ElementPointer newPointer = nullptr;
+      const ElementPointer newPointer = nullptr;
       this->m_PointerVector.insert(this->m_PointerVector.begin() + this->m_HeadIndex, newPointer);
 
       // Increment head index if this wasn't the first one added
@@ -190,26 +150,18 @@ RingBuffer<TElement>::SetNumberOfBuffers(SizeValueType n)
   this->Modified();
 }
 
-
-//-PROTECTED METHODS-----------------------------------------------------------
-
-//
-// GetOffsetBufferIndex
-//
 template <typename TElement>
-typename RingBuffer<TElement>::OffsetValueType
-RingBuffer<TElement>::GetOffsetBufferIndex(OffsetValueType offset)
+auto
+RingBuffer<TElement>::GetOffsetBufferIndex(OffsetValueType offset) -> OffsetValueType
 {
-  OffsetValueType moddedOffset = itk::Math::abs(offset) % this->GetNumberOfBuffers();
-  auto            signedHeadIndex = static_cast<OffsetValueType>(m_HeadIndex);
+  const OffsetValueType moddedOffset = itk::Math::abs(offset) % this->GetNumberOfBuffers();
+  auto                  signedHeadIndex = static_cast<OffsetValueType>(m_HeadIndex);
   if (offset >= 0)
   {
     return (signedHeadIndex + moddedOffset) % this->GetNumberOfBuffers();
   }
-  else
-  {
-    return (signedHeadIndex + (this->GetNumberOfBuffers() - moddedOffset)) % this->GetNumberOfBuffers();
-  }
+
+  return (signedHeadIndex + (this->GetNumberOfBuffers() - moddedOffset)) % this->GetNumberOfBuffers();
 }
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,15 +22,13 @@
 #include "itkKLMSegmentationRegion.h"
 #include "itkMacro.h"
 #include "ITKKLMRegionGrowingExport.h"
-
 #include "itkMath.h"
 #include "vnl/vnl_vector.h"
-#include "itkMath.h"
 
 namespace itk
 {
 /**
- *\class KLMDynamicBorderArray
+ * \class KLMDynamicBorderArray
  * \brief  Object maintaining a reference to a list of borders associated
  * with a region.
  *
@@ -61,22 +59,20 @@ public:
       {
         return (m_Pointer > rhs.m_Pointer);
       }
-      else
-      {
-        // The purpose of this comparison is to not let any one region
-        // get more borders than another region.  In the degenerate
-        // case of an image where the Lambdas are always equal to some
-        // constant C, allowing a single region to be repeatedly
-        // merged so that it gains many borders will result in
-        // pathologically slow behavior.
-        double v1 = std::max(static_cast<double>(m_Pointer->GetRegion1()->GetRegionBorderSize()),
-                             static_cast<double>(m_Pointer->GetRegion2()->GetRegionBorderSize()));
 
-        double v2 = std::max(static_cast<double>(rhs.m_Pointer->GetRegion1()->GetRegionBorderSize()),
-                             static_cast<double>(rhs.m_Pointer->GetRegion2()->GetRegionBorderSize()));
+      // The purpose of this comparison is to not let any one region
+      // get more borders than another region.  In the degenerate
+      // case of an image where the Lambdas are always equal to some
+      // constant C, allowing a single region to be repeatedly
+      // merged so that it gains many borders will result in
+      // pathologically slow behavior.
+      const double v1 = std::max(static_cast<double>(m_Pointer->GetRegion1()->GetRegionBorderSize()),
+                                 static_cast<double>(m_Pointer->GetRegion2()->GetRegionBorderSize()));
 
-        return (v1 > v2);
-      }
+      const double v2 = std::max(static_cast<double>(rhs.m_Pointer->GetRegion1()->GetRegionBorderSize()),
+                                 static_cast<double>(rhs.m_Pointer->GetRegion2()->GetRegionBorderSize()));
+
+      return (v1 > v2);
     }
     return (m_Pointer->GetLambda() > rhs.m_Pointer->GetLambda());
   }
@@ -90,22 +86,20 @@ public:
       {
         return (m_Pointer > rhs->m_Pointer);
       }
-      else
-      {
-        // The purpose of this comparison is to not let any one region
-        // get more borders than another region.  In the degenerate
-        // case of an image where the Lambdas are always equal to some
-        // constant C, allowing a single region to be repeatedly
-        // merged so that it gains many borders will result in
-        // pathologically slow behavior.
-        double v1 = std::max(static_cast<double>(m_Pointer->GetRegion1()->GetRegionBorderSize()),
-                             static_cast<double>(m_Pointer->GetRegion2()->GetRegionBorderSize()));
 
-        double v2 = std::max(static_cast<double>(rhs->m_Pointer->GetRegion1()->GetRegionBorderSize()),
-                             static_cast<double>(rhs->m_Pointer->GetRegion2()->GetRegionBorderSize()));
+      // The purpose of this comparison is to not let any one region
+      // get more borders than another region.  In the degenerate
+      // case of an image where the Lambdas are always equal to some
+      // constant C, allowing a single region to be repeatedly
+      // merged so that it gains many borders will result in
+      // pathologically slow behavior.
+      double v1 = std::max(static_cast<double>(m_Pointer->GetRegion1()->GetRegionBorderSize()),
+                           static_cast<double>(m_Pointer->GetRegion2()->GetRegionBorderSize()));
 
-        return (v1 > v2);
-      }
+      double v2 = std::max(static_cast<double>(rhs->m_Pointer->GetRegion1()->GetRegionBorderSize()),
+                           static_cast<double>(rhs->m_Pointer->GetRegion2()->GetRegionBorderSize()));
+
+      return (v1 > v2);
     }
     return (m_Pointer->GetLambda() > rhs->m_Pointer->GetLambda());
   }
@@ -114,7 +108,7 @@ public:
 };
 
 /**
- *\class KLMSegmentationBorder
+ * \class KLMSegmentationBorder
  * \brief Base class for KLMSegmentationBorder object
  *
  * itkKLMSegmentationBorder is the base class for the KLMSegmentationBorder
@@ -150,8 +144,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KLMSegmentationBorder, SegmentationBorder);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KLMSegmentationBorder);
 
   /** Set the region 1 associated with the border */
   void
@@ -171,9 +165,10 @@ public:
 
   /** Set/Get the Lambda parameter associate with the borders
    * in the KLM algorithm */
+  /** @ITKStartGrouping */
   itkSetMacro(Lambda, double);
   itkGetConstReferenceMacro(Lambda, double);
-
+  /** @ITKEndGrouping */
   /** Evaluate the Lambda for a given border. */
   void
   EvaluateLambda();
@@ -194,9 +189,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double                  m_Lambda;
-  KLMSegmentationRegion * m_Region1;
-  KLMSegmentationRegion * m_Region2;
+  double                  m_Lambda{};
+  KLMSegmentationRegion * m_Region1{};
+  KLMSegmentationRegion * m_Region2{};
 };
 } // end namespace itk
 

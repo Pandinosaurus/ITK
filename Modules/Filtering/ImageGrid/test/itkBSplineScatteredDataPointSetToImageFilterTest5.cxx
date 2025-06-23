@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,58 @@
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkTestingMacros.h"
+#include "itkImageRegionIterator.h"
+
+
+/**
+ * Function to convert image of double precision vector pixels to a
+ * representation of scalar values that are easy to view and test.
+ * NOTE: Similar function in itkSymmetricEigenAnalysisImageFilterTest.cxx
+ */
+template <typename InternalImageType>
+static void
+makeTestableScalarImage(typename InternalImageType::Pointer internalImage, std::string outputFilename)
+{ // using OutputPixelType = unsigned char;
+  using OutputPixelType = uint8_t;
+  using OutputImageType = itk::Image<OutputPixelType, 2>;
+
+  const OutputImageType::Pointer outputImage = OutputImageType::New();
+  outputImage->CopyInformation(internalImage);
+  outputImage->SetRegions(internalImage->GetBufferedRegion());
+  outputImage->AllocateInitialized();
+
+  auto myiterator = itk::ImageRegionConstIterator<InternalImageType>(internalImage, internalImage->GetBufferedRegion());
+  auto myOutiterator = itk::ImageRegionIterator<OutputImageType>(outputImage, outputImage->GetBufferedRegion());
+
+  // Convert vector image to magnitude and scale to use range of png values
+  float max_magnitude_value = 0.0;
+  while (!myiterator.IsAtEnd())
+  {
+    const auto arr = myiterator.Get();
+    const auto magvalue = std::sqrt(arr[0] * arr[0] + arr[1] * arr[1] + arr[2] * arr[2]);
+    max_magnitude_value = std::max<float>(max_magnitude_value, magvalue);
+    ++myiterator;
+  }
+  const float scale_factor = 255.0 / ceil(max_magnitude_value);
+  myOutiterator.GoToBegin();
+  myiterator.GoToBegin();
+  while (!myOutiterator.IsAtEnd())
+  {
+    // Convert vector image to magnitude and scale to use range of png values
+    const auto arr = myiterator.Get();
+    const auto magvalue = std::sqrt(arr[0] * arr[0] + arr[1] * arr[1] + arr[2] * arr[2]);
+    myOutiterator.Set(magvalue * scale_factor);
+    ++myiterator;
+    ++myOutiterator;
+  }
+
+  // Write the result image
+  using WriterType = itk::ImageFileWriter<OutputImageType>;
+  auto writer = WriterType::New();
+  writer->SetFileName(outputFilename);
+  writer->SetInput(outputImage);
+  writer->Update();
+}
 
 
 /**
@@ -35,9 +87,9 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << "outputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << "outputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -45,15 +97,13 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
   constexpr unsigned int DataDimension = 3;
 
   using RealType = double;
-  using OutputPixelType = unsigned char;
+
   using VectorType = itk::Vector<RealType, DataDimension>;
-  using OutputVectorType = itk::Vector<OutputPixelType, DataDimension>;
   using ImageType = itk::Image<VectorType, ParametricDimension>;
-  using OutputImageType = itk::Image<OutputVectorType, ParametricDimension>;
 
   using PointSetType = itk::PointSet<VectorType, ParametricDimension>;
 
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
 
   // Sample the trefoil knot.
   // The first parametric dimension, u,  is doing the knot part
@@ -65,7 +115,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
       PointSetType::PointType point;
       point[0] = (u + 2.0 * itk::Math::pi) / (4.0 * itk::Math::pi);
       point[1] = (v + itk::Math::pi) / (2.0 * itk::Math::pi);
-      unsigned long i = pointSet->GetNumberOfPoints();
+      const unsigned long i = pointSet->GetNumberOfPoints();
       pointSet->SetPoint(i, point);
 
       VectorType V;
@@ -80,7 +130,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
   // Instantiate the filter and set the parameters
   using FilterType = itk::BSplineScatteredDataPointSetToImageFilter<PointSetType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineScatteredDataPointSetToImageFilter, PointSetToImageFilter);
 
@@ -94,8 +144,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
   size[0] = 1000;
   size[1] = 100;
 
-  ImageType::PointType origin;
-  origin.Fill(0.0);
+  constexpr ImageType::PointType origin{};
 
   filter->SetSize(size);
   filter->SetOrigin(origin);
@@ -111,25 +160,14 @@ itkBSplineScatteredDataPointSetToImageFilterTest5(int argc, char * argv[])
   filter->SetNumberOfLevels(4);
   filter->SetGenerateOutputImage(false);
 
-  FilterType::ArrayType close;
-  close.Fill(1);
+  auto close = itk::MakeFilled<FilterType::ArrayType>(1);
   filter->SetCloseDimension(close);
-
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  // Cast the PhiLattice
-  using CastImageFilterType = itk::CastImageFilter<FilterType::PointDataImageType, OutputImageType>;
-  CastImageFilterType::Pointer caster = CastImageFilterType::New();
-  caster->SetInput(filter->GetPhiLattice());
-
-  // Write the PhiLattice
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[1]);
-  writer->SetInput(caster->GetOutput());
-
-  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+  const std::string outputFilename = argv[1];
+  auto              phiLatticeImage = filter->GetPhiLattice();
+  ITK_TRY_EXPECT_NO_EXCEPTION(makeTestableScalarImage<FilterType::PointDataImageType>(phiLatticeImage, outputFilename));
 
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLevelSetEvolutionUpdateLevelSetsThreader_hxx
 #define itkLevelSetEvolutionUpdateLevelSetsThreader_hxx
 
-#include "itkLevelSetEvolutionUpdateLevelSetsThreader.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -53,11 +52,11 @@ LevelSetEvolutionUpdateLevelSetsThreader<LevelSetDenseImage<TImage>,
 
   // This is for single level set analysis, so we only process the first level
   // set.
-  typename LevelSetType::Pointer levelSet = levelSetContainerIt->GetLevelSet();
-  typename LevelSetType::Pointer levelSetUpdate = levelSetUpdateContainerIt->GetLevelSet();
+  const typename LevelSetType::Pointer levelSet = levelSetContainerIt->GetLevelSet();
+  const typename LevelSetType::Pointer levelSetUpdate = levelSetUpdateContainerIt->GetLevelSet();
 
-  typename LevelSetImageType::Pointer      levelSetImage = levelSet->GetModifiableImage();
-  typename LevelSetImageType::ConstPointer levelSetUpdateImage = levelSetUpdate->GetImage();
+  const typename LevelSetImageType::Pointer      levelSetImage = levelSet->GetModifiableImage();
+  const typename LevelSetImageType::ConstPointer levelSetUpdateImage = levelSetUpdate->GetImage();
 
   ImageRegionIterator<LevelSetImageType>      levelSetImageIt(levelSetImage, imageSubRegion);
   ImageRegionConstIterator<LevelSetImageType> levelSetUpdateImageIt(levelSetUpdateImage, imageSubRegion);

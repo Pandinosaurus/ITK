@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,16 +45,13 @@ main(int, char *[])
   // First we define some type definitions and we create the tube.
   //
   // Software Guide : EndLatex
-
-  unsigned int i;
-
   // Software Guide : BeginCodeSnippet
   using VesselTubeType = itk::TubeSpatialObject<3>;
   using VesselTubePointType = VesselTubeType::TubePointType;
 
   using PointType = VesselTubeType::PointType;
 
-  VesselTubeType::Pointer vesselTube = VesselTubeType::New();
+  auto vesselTube = VesselTubeType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -80,7 +77,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   VesselTubeType::TubePointListType list;
-  for (i = 0; i < 5; ++i)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     VesselTubePointType p;
     PointType           pnt;
@@ -123,7 +120,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  VesselTubeType::TubePointListType pointList = vesselTube->GetPoints();
+  const VesselTubeType::TubePointListType pointList = vesselTube->GetPoints();
   std::cout << "Number of points representing the blood vessel: ";
   std::cout << pointList.size() << std::endl;
   // Software Guide : EndCodeSnippet
@@ -138,25 +135,27 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  VesselTubeType::TubePointListType::const_iterator it =
-    vesselTube->GetPoints().begin();
-  i = 0;
-  while (it != vesselTube->GetPoints().end())
   {
-    std::cout << std::endl;
-    std::cout << "Point #" << i << std::endl;
-    std::cout << "Position: " << (*it).GetPositionInObjectSpace()
-              << std::endl;
-    std::cout << "Radius: " << (*it).GetRadiusInObjectSpace() << std::endl;
-    std::cout << "Medialness: " << (*it).GetMedialness() << std::endl;
-    std::cout << "Ridgeness: " << (*it).GetRidgeness() << std::endl;
-    std::cout << "Branchness: " << (*it).GetBranchness() << std::endl;
-    std::cout << "Alpha1: " << (*it).GetAlpha1() << std::endl;
-    std::cout << "Alpha2: " << (*it).GetAlpha2() << std::endl;
-    std::cout << "Alpha3: " << (*it).GetAlpha3() << std::endl;
-    std::cout << "Color = " << (*it).GetColor() << std::endl;
-    ++it;
-    ++i;
+    unsigned int i = 0;
+    for (auto & currentPoint : vesselTube->GetPoints())
+    {
+      std::cout << std::endl;
+      std::cout << "Point #" << i << std::endl;
+      std::cout << "Position: " << currentPoint.GetPositionInObjectSpace()
+                << std::endl;
+      std::cout << "Radius: " << currentPoint.GetRadiusInObjectSpace()
+                << std::endl;
+      std::cout << "Medialness: " << currentPoint.GetMedialness()
+                << std::endl;
+      std::cout << "Ridgeness: " << currentPoint.GetRidgeness() << std::endl;
+      std::cout << "Branchness: " << currentPoint.GetBranchness()
+                << std::endl;
+      std::cout << "Alpha1: " << currentPoint.GetAlpha1() << std::endl;
+      std::cout << "Alpha2: " << currentPoint.GetAlpha2() << std::endl;
+      std::cout << "Alpha3: " << currentPoint.GetAlpha3() << std::endl;
+      std::cout << "Color = " << currentPoint.GetColor() << std::endl;
+      ++i;
+    }
   }
   // Software Guide : EndCodeSnippet
 

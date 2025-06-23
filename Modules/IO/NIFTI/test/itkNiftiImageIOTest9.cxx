@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 // Specific ImageIO test
 
 int
-itkNiftiImageIOTest9(int ac, char * av[])
+itkNiftiImageIOTest9(int argc, char * argv[])
 {
-  return RGBTest<itk::RGBPixel<unsigned char>>(ac, av);
+  return RGBTest<itk::RGBPixel<unsigned char>>(argc, argv);
 }

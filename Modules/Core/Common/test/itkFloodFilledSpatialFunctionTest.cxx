@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ itkFloodFilledSpatialFunctionTest(int, char *[])
   PointValueType   sourceImageOrigin[] = { 0, 0 };
 
   // Creates the sourceImage (but doesn't set the size or allocate memory)
-  ImageType::Pointer sourceImage = ImageType::New();
+  auto sourceImage = ImageType::New();
   sourceImage->SetOrigin(sourceImageOrigin);
   sourceImage->SetSpacing(sourceImageSpacing);
 
@@ -60,14 +60,9 @@ itkFloodFilledSpatialFunctionTest(int, char *[])
   // Resize the region
   largestPossibleRegion.SetSize(sourceImageSizeObject);
 
-  // Set the largest legal region size (i.e. the size of the whole sourceImage) to what we just defined
-  sourceImage->SetLargestPossibleRegion(largestPossibleRegion);
-
-  // Set the buffered region
-  sourceImage->SetBufferedRegion(largestPossibleRegion);
-
-  // Set the requested region
-  sourceImage->SetRequestedRegion(largestPossibleRegion);
+  // Set the largest legal region size (i.e. the size of the whole sourceImage), the buffered, and
+  // the requested region to what we just defined.
+  sourceImage->SetRegions(largestPossibleRegion);
 
   // Now allocate memory for the sourceImage
   sourceImage->Allocate();
@@ -76,7 +71,7 @@ itkFloodFilledSpatialFunctionTest(int, char *[])
   for (int strat = 0; strat < 4; ++strat)
   {
     // Initialize the image to hold all 0's
-    itk::ImageRegionIterator<ImageType> it = itk::ImageRegionIterator<ImageType>(sourceImage, largestPossibleRegion);
+    itk::ImageRegionIterator<ImageType> it(sourceImage, largestPossibleRegion);
 
     for (it.GoToBegin(); !it.IsAtEnd(); ++it)
     {
@@ -87,7 +82,7 @@ itkFloodFilledSpatialFunctionTest(int, char *[])
     using FunctionType = itk::SphereSpatialFunction<dim>;
     using FunctionPositionType = FunctionType::InputType;
 
-    FunctionType::Pointer spatialFunc = FunctionType::New();
+    auto spatialFunc = FunctionType::New();
     spatialFunc->SetRadius(1.0);
 
     FunctionPositionType center;
@@ -96,13 +91,13 @@ itkFloodFilledSpatialFunctionTest(int, char *[])
     spatialFunc->SetCenter(center);
 
     // Create and initialize a spatial function iterator
-    ImageType::IndexType            seedPos;
-    const ImageType::IndexValueType pos[] = { 2, 2 };
+    ImageType::IndexType                seedPos;
+    constexpr ImageType::IndexValueType pos[] = { 2, 2 };
     seedPos.SetIndex(pos);
 
     using ItType = itk::FloodFilledSpatialFunctionConditionalIterator<ImageType, FunctionType>;
 
-    ItType sfi = ItType(sourceImage, spatialFunc, seedPos);
+    ItType sfi(sourceImage, spatialFunc, seedPos);
 
     switch (strat)
     {

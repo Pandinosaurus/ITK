@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,37 +20,31 @@
 #include "itkFixedArray.h"
 #include <ctime>
 #include <cstring>
-#include <cstring>
 
 int
 itkFixedArrayTest2(int, char *[])
 {
   // Define the number of elements in the array
-  const unsigned int nelements = 10000000L;
+  constexpr unsigned int nelements = 10000000L;
 
   // Define the number of runs used for timing
   constexpr unsigned int nrun = 10;
 
   // Declare a simple timer
-  clock_t t;
 
   using ArrayType = itk::FixedArray<double, 2>;
 
   // Declare an array of nelements FixedArray
   // and add a small margin to play with pointers
   // but not map outside the allocated memory
-  auto * vec = new ArrayType[nelements + 8];
-
-  // Fill it up with zeros
-  memset(vec, 0, (nelements + 8) * sizeof(ArrayType));
-
+  auto * vec = new ArrayType[nelements + 8]();
 
   // Display the alignment of the array
-  std::cout << "Initial alignment: " << (((size_t)vec) & 7) << "\n";
+  std::cout << "Initial alignment: " << (((size_t)vec) & 7) << '\n';
 
   // Start a simple experiment
-  t = clock();
-  double acc1 = 0.0;
+  clock_t t = clock();
+  double  acc1 = 0.0;
 
   for (unsigned int i = 0; i < nrun; ++i)
   {
@@ -84,7 +78,7 @@ itkFixedArrayTest2(int, char *[])
 
   // Make sure the new pointer is well aligned by
   // displaying the alignment
-  std::cout << "New alignment: " << (((size_t)vec2) & 7) << "\n";
+  std::cout << "New alignment: " << (((size_t)vec2) & 7) << '\n';
 
   // Start the simple experiment on the 8 byte aligned array
   t = clock();
@@ -113,11 +107,15 @@ itkFixedArrayTest2(int, char *[])
 
   const bool sameptr = (vec == vec2);
   if (sameptr)
+  {
     std::cout << "Same pointers: true" << std::endl;
+  }
   else
+  {
     std::cout << "Same pointers: false" << std::endl;
+  }
 
-  std::cout << "Performance ratio = " << ratio << "%" << std::endl;
+  std::cout << "Performance ratio = " << ratio << '%' << std::endl;
 
   if (!sameptr && ratio > 20.0) // tolerates only 20%
   {

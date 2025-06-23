@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,7 @@
 #include <utility>
 #include "itkMacro.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class FEMP
@@ -96,7 +94,7 @@ public:
   ~FEMP() { m_Data = nullptr; }
 
   /**
-   * Asignment operator
+   * Assignment operator
    */
   const FEMP<T> &
   operator=(const FEMP<T> & rhs);
@@ -104,7 +102,11 @@ public:
   /**
    * Easy access to members of stored object
    */
-  typename T::Pointer operator->() const { return m_Data; }
+  typename T::Pointer
+  operator->() const
+  {
+    return m_Data;
+  }
 
   /**
    * Dereferencing operator provides automatic conversion from
@@ -116,7 +118,7 @@ public:
    * Return true if special pointer actually points
    * to a valid object and false otherwise.
    */
-  bool
+  [[nodiscard]] bool
   IsNULL() const
   {
     return m_Data == 0;
@@ -161,7 +163,6 @@ FEMP<T>::operator=(const FEMP<T> & rhs)
   return *this;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMP_h

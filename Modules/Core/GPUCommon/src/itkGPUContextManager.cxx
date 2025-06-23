@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ GPUContextManager::GPUContextManager()
 
   // create command queues
   m_CommandQueue = (cl_command_queue *)malloc(m_NumberOfDevices * sizeof(cl_command_queue));
-  for (unsigned int i = 0; i < m_NumberOfDevices; i++)
+  for (unsigned int i = 0; i < m_NumberOfDevices; ++i)
   {
     m_CommandQueue[i] = clCreateCommandQueue(m_Context, m_Devices[i], 0, &errid);
 
@@ -82,7 +82,7 @@ GPUContextManager::GPUContextManager()
 GPUContextManager::~GPUContextManager()
 {
   cl_int errid;
-  for (unsigned int i = 0; i < m_NumberOfDevices; i++)
+  for (unsigned int i = 0; i < m_NumberOfDevices; ++i)
   {
     errid = clReleaseCommandQueue(m_CommandQueue[i]);
     OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
@@ -99,7 +99,7 @@ GPUContextManager::~GPUContextManager()
 cl_command_queue
 GPUContextManager::GetCommandQueue(int i)
 {
-  if (i < 0 || i >= (int)m_NumberOfDevices)
+  if (i < 0 || i >= static_cast<int>(m_NumberOfDevices))
   {
     printf("Error: requested queue id is not available. Default queue will be used (queue id = 0)\n");
     return m_CommandQueue[0];
@@ -113,7 +113,7 @@ GPUContextManager::GetCommandQueue(int i)
 cl_device_id
 GPUContextManager::GetDeviceId(int i)
 {
-  if (i < 0 || i >= (int)m_NumberOfDevices)
+  if (i < 0 || i >= static_cast<int>(m_NumberOfDevices))
   {
     printf("Error: requested queue id is not available. Default queue will be used (queue id = 0)\n");
     return m_Devices[0];

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   constexpr unsigned int ImageDimension = 3;
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::IndexType start;
   ImageType::SizeType  size;
@@ -40,8 +40,8 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   start.Fill(0);
   size.Fill(10);
 
-  unsigned long         totalSize = size[0] * size[1] * size[2];
-  ImageType::RegionType region(start, size);
+  const unsigned long         totalSize = size[0] * size[1] * size[2];
+  const ImageType::RegionType region(start, size);
   image->SetRegions(region);
   image->Allocate();
 
@@ -54,7 +54,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   while (!it.IsAtEnd())
   {
     PixelType value;
-    for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+    for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
     {
       value[i] = i + it.GetIndex()[0];
     }
@@ -64,15 +64,13 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
 
   // define an adaptor type
   using JointDomainImageToListSampleAdaptorType = itk::Statistics::JointDomainImageToListSampleAdaptor<ImageType>;
-  JointDomainImageToListSampleAdaptorType::Pointer adaptor = JointDomainImageToListSampleAdaptorType::New();
+  auto adaptor = JointDomainImageToListSampleAdaptorType::New();
   // Test if the methods throw exceptions if invoked before setting the image
   try
   {
     // calling Size() method prematurely in order to trigger an exception.
     adaptor->Size();
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet"
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the input image is not set yet" << std::endl;
   }
   catch (const itk::ExceptionObject & excp)
   {
@@ -82,9 +80,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   {
     // calling GetTotalFrequency() method prematurely in order to trigger an exception.
     adaptor->GetTotalFrequency();
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet"
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the input image is not set yet" << std::endl;
   }
   catch (const itk::ExceptionObject & excp)
   {
@@ -95,9 +91,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   {
     // calling GetMeasurementVector() method prematurely in order to trigger an exception.
     adaptor->GetMeasurementVector(0);
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet"
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the input image is not set yet" << std::endl;
   }
   catch (const itk::ExceptionObject & excp)
   {
@@ -108,9 +102,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   {
     // calling GetImage() method prematurely in order to trigger an exception.
     adaptor->GetImage();
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet"
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the input image is not set yet" << std::endl;
   }
   catch (const itk::ExceptionObject & excp)
   {
@@ -121,9 +113,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   {
     // calling GetFrequency() method prematurely in order to trigger an exception.
     adaptor->GetFrequency(0);
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet"
-              << std::endl;
+    std::cerr << "Exception should have been thrown since the input image is not set yet" << std::endl;
   }
   catch (const itk::ExceptionObject & excp)
   {
@@ -151,28 +141,25 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   adaptor->Print(std::cout);
 
   ImageType::IndexType index;
-  ImageType::PixelType pixel;
 
-  JointDomainImageToListSampleAdaptorType::InstanceIdentifier iid;
   using MeasurementVectorType = JointDomainImageToListSampleAdaptorType::MeasurementVectorType;
-  JointDomainImageToListSampleAdaptorType::PointType tempPoint;
-
 
   MeasurementVectorType measurementVector;
 
-  for (unsigned int i = 0; i < size[2]; i++)
+  for (unsigned int i = 0; i < size[2]; ++i)
   {
-    for (unsigned int j = 0; j < size[1]; j++)
+    for (unsigned int j = 0; j < size[1]; ++j)
     {
-      for (unsigned int k = 0; k < size[0]; k++)
+      for (unsigned int k = 0; k < size[0]; ++k)
       {
         index[0] = k;
         index[1] = j;
         index[2] = i;
 
+        JointDomainImageToListSampleAdaptorType::PointType tempPoint;
         adaptor->GetImage()->TransformIndexToPhysicalPoint(index, tempPoint);
 
-        pixel = adaptor->GetImage()->GetPixel(index);
+        ImageType::PixelType pixel = adaptor->GetImage()->GetPixel(index);
 
         measurementVector[0] = tempPoint[0];
         measurementVector[1] = tempPoint[1];
@@ -181,10 +168,10 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
         measurementVector[4] = pixel[1];
         measurementVector[5] = pixel[2];
 
-        iid = adaptor->GetImage()->ComputeOffset(index);
+        JointDomainImageToListSampleAdaptorType::InstanceIdentifier iid = adaptor->GetImage()->ComputeOffset(index);
 
         MeasurementVectorType measurementVectorFromAdaptor = adaptor->GetMeasurementVector(iid);
-        for (unsigned int m = 0; m < 5; m++)
+        for (unsigned int m = 0; m < 5; ++m)
         {
           if (!itk::Math::FloatAlmostEqual(measurementVectorFromAdaptor[m], measurementVector[m], 4, 1.0E-6))
           {
@@ -219,15 +206,13 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
   adaptor->UsePixelContainerOff();
   JointDomainImageToListSampleAdaptorType::MeasurementVectorType v2 = adaptor->GetMeasurementVector(4);
 
-  const double epsilon = 1e-3;
+  constexpr double epsilon = 1e-3;
 
-  for (unsigned int m = 0; m < 5; m++)
+  for (unsigned int m = 0; m < 5; ++m)
   {
     if (!itk::Math::FloatAlmostEqual(v1[m], v2[m], 4, epsilon))
     {
-      std::cerr << "Accessing the measurement vector using the two method produced different \
-                  result "
-                << std::endl;
+      std::cerr << "Accessing the measurement vector using the two method produced different result " << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -249,7 +234,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
     IteratorType s_iter = adaptor->Begin();
 
     // copy constructor
-    IteratorType bs_iter(s_iter);
+    const IteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor failed" << std::endl;
@@ -309,7 +294,7 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
     ConstIteratorType s_iter = adaptor->Begin();
 
     // copy constructor
-    ConstIteratorType bs_iter(s_iter);
+    const ConstIteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor (from const) failed" << std::endl;
@@ -326,8 +311,8 @@ itkJointDomainImageToListSampleAdaptorTest(int, char *[])
     }
 
     // copy from non-const iterator
-    JointDomainImageToListSampleAdaptorType::Iterator      nonconst_iter = adaptor->Begin();
-    JointDomainImageToListSampleAdaptorType::ConstIterator s2_iter(nonconst_iter);
+    const JointDomainImageToListSampleAdaptorType::Iterator nonconst_iter = adaptor->Begin();
+    JointDomainImageToListSampleAdaptorType::ConstIterator  s2_iter(nonconst_iter);
     if (s2_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor (from non-const) failed" << std::endl;

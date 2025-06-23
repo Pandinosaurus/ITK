@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ namespace itk
  *
  *
  *  This implementation was taken from the Insight Journal paper:
- *  https://www.insight-journal.org/browse/publication/202
+ *  https://doi.org/10.54294/8ga88z
  *
  * \ingroup ITKQuadEdgeMeshFiltering
  *
@@ -69,7 +69,11 @@ public:
   using InputMeshType = TInputMesh;
   using InputMeshPointer = typename InputMeshType::Pointer;
   using InputMeshConstPointer = typename InputMeshType::ConstPointer;
-  using InputCoordRepType = typename InputMeshType::CoordRepType;
+  using InputCoordinateType = typename InputMeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using InputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `InputCoordRepType`. Please use `InputCoordinateType` instead!") = InputCoordinateType;
+#endif
   using InputPointType = typename InputMeshType::PointType;
   using InputPointVectorType = typename InputPointType::VectorType;
   using InputPointIdentifier = typename InputMeshType::PointIdentifier;
@@ -98,7 +102,11 @@ public:
   using OutputMeshType = TOutputMesh;
   using OutputMeshPointer = typename OutputMeshType::Pointer;
   using OutputMeshConstPointer = typename OutputMeshType::ConstPointer;
-  using OutputCoordRepType = typename OutputMeshType::CoordRepType;
+  using OutputCoordinateType = typename OutputMeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using OutputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `OutputCoordRepType`. Please use `OutputCoordinateType` instead!") = OutputCoordinateType;
+#endif
   using OutputPointType = typename OutputMeshType::PointType;
   using OutputPointIdentifier = typename OutputMeshType::PointIdentifier;
   using OutputQEType = typename OutputMeshType::QEType;
@@ -126,7 +134,7 @@ public:
   }
 
   itkNewMacro(Self);
-  itkTypeMacro(ParameterizationQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  itkOverrideGetNameOfClassMacro(ParameterizationQuadEdgeMeshFilter);
 
   itkSetObjectMacro(BorderTransform, MeshBorderTransform);
   itkGetModifiableObjectMacro(BorderTransform, MeshBorderTransform);
@@ -137,19 +145,19 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  CoefficientsComputation * m_CoefficientsMethod;
+  CoefficientsComputation * m_CoefficientsMethod{};
 
-  MeshBorderTransformPointer m_BorderTransform;
+  MeshBorderTransformPointer m_BorderTransform{};
 
   // first is the id of the input mesh and second is the corresponding id
   // in m_BoundaryPtMap
-  InputMapPointIdentifier m_BoundaryPtMap;
+  InputMapPointIdentifier m_BoundaryPtMap{};
 
   // first is the id of the input mesh and second is the corresponding id
   // in m_InternalPtList
-  InputMapPointIdentifier m_InternalPtMap;
+  InputMapPointIdentifier m_InternalPtMap{};
 
-  std::vector<OutputPointType> m_Border;
+  std::vector<OutputPointType> m_Border{};
 
   void
   CopyToOutputBorder();
@@ -177,7 +185,7 @@ protected:
   FillMatrix(MatrixType & iM, VectorType & ioBx, VectorType & ioBy);
 
   /**
-   *  \brief Solve linears systems : \f$ iM \cdot oX = iBx \f$ and
+   *  \brief Solve linear systems : \f$ iM \cdot oX = iBx \f$ and
    * \f$ iM \cdot oY = iBy \f$
    *
    *  \param[in] iM

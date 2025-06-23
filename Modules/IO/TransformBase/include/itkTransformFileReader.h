@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,6 +41,7 @@ public:
 
   /** SmartPointer type alias support */
   using Self = TransformFileReaderTemplate;
+  using Superclass = LightProcessObject;
   using Pointer = SmartPointer<Self>;
   using TransformType = TransformBaseTemplate<TParametersValueType>;
 
@@ -56,9 +57,8 @@ public:
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  using Superclass = Object;
-  itkTypeMacro(TransformFileReaderTemplate, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TransformFileReaderTemplate);
 
   /** Set the filename  */
   itkSetStringMacro(FileName);
@@ -79,12 +79,14 @@ public:
   {
     return &m_TransformList;
   }
+
 #else
   const TransformListType *
   GetTransformList()
   {
     return &m_TransformList;
   }
+
 #endif
   TransformListType *
   GetModifiableTransformList()
@@ -93,9 +95,10 @@ public:
   }
 
   /** Set/Get the TransformIO class used internally to read to transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(TransformIO, TransformIOType);
   itkGetConstObjectMacro(TransformIO, TransformIOType);
-
+  /** @ITKEndGrouping */
 protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -103,9 +106,9 @@ protected:
   TransformFileReaderTemplate();
   ~TransformFileReaderTemplate() override;
 
-  TransformListType                 m_TransformList;
-  typename TransformIOType::Pointer m_TransformIO;
-  std::string                       m_FileName;
+  TransformListType                 m_TransformList{};
+  typename TransformIOType::Pointer m_TransformIO{};
+  std::string                       m_FileName{};
 };
 
 /** This helps to meet backward compatibility */
@@ -113,13 +116,13 @@ using TransformFileReader = itk::TransformFileReaderTemplate<double>;
 
 } // namespace itk
 
-#ifdef ITK_IO_FACTORY_REGISTER_MANAGER
+#if defined ITK_TRANSFORMIO_FACTORY_REGISTER_MANAGER || defined ITK_IO_FACTORY_REGISTER_MANAGER
 #  include "itkTransformIOFactoryRegisterManager.h"
 #endif
 
 // Note: Explicit instantiation is done in itkTransformFileReader.cxx
 
-#endif // itkTransformFileReade_h
+#endif // itkTransformFileReader_h
 
 /** Explicit instantiations */
 #ifndef ITK_TEMPLATE_EXPLICIT_TransformFileReader

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,15 @@
 #ifndef itkScalarRegionBasedLevelSetFunction_hxx
 #define itkScalarRegionBasedLevelSetFunction_hxx
 
-#include "itkScalarRegionBasedLevelSetFunction.h"
 
 namespace itk
 {
-// Computes the overlap multiplicative factors for the penalty term (sum) and
-// the background intensity fitting terms in multiphase level-sets
+
 template <typename TInputImage, typename TFeatureImage, typename TSharedData>
-typename ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::ScalarValueType
+auto
 ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::ComputeOverlapParameters(
   const FeatureIndexType & globalIndex,
-  ScalarValueType &        product)
+  ScalarValueType &        product) -> ScalarValueType
 {
   // This conditional statement computes the amount of overlap s
   // and the presence of background pr
@@ -39,8 +37,7 @@ ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::Comp
 
   product = 1.;
 
-  ListPixelType L;
-  L = this->m_SharedData->m_NearestNeighborListImage->GetPixel(globalIndex);
+  ListPixelType L = this->m_SharedData->m_NearestNeighborListImage->GetPixel(globalIndex);
 
   InputPixelType hVal;
   InputIndexType otherIndex;
@@ -61,15 +58,10 @@ ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::Comp
   return sum;
 }
 
-/* Performs the narrow-band update of the Heaviside function for each voxel. The
-characteristic function of each region is recomputed (note the shared
-data which contains information from the other level sets). Using the
-new H values, the previous c_i are updated. Used by only the sparse image
-filter */
 template <typename TInputImage, typename TFeatureImage, typename TSharedData>
 void
 ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::UpdatePixel(
-  const unsigned int &                idx,
+  const unsigned int                  idx,
   NeighborhoodIterator<TInputImage> & iterator,
   InputPixelType &                    newValue,
   bool &                              itkNotUsed(status))
@@ -91,17 +83,17 @@ ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::Upda
   UpdateSharedDataInsideParameters(fId, featureVal, change);
 
   // Compute the product factor
-  ListPixelType   L = this->m_SharedData->m_NearestNeighborListImage->GetPixel(globalIndex);
+  ListPixelType   pixelList = this->m_SharedData->m_NearestNeighborListImage->GetPixel(globalIndex);
   InputIndexType  itInputIndex;
   ScalarValueType hVal;
 
   InputPixelType product = 1;
-  for (ListPixelType::const_iterator it = L.begin(); it != L.end(); ++it)
+  for (unsigned int & pixel : pixelList)
   {
-    if (*it != fId)
+    if (pixel != fId)
     {
-      itInputIndex = this->m_SharedData->m_LevelSetDataPointerVector[*it]->GetIndex(globalIndex);
-      hVal = this->m_SharedData->m_LevelSetDataPointerVector[*it]->m_HeavisideFunctionOfLevelSetImage->GetPixel(
+      itInputIndex = this->m_SharedData->m_LevelSetDataPointerVector[pixel]->GetIndex(globalIndex);
+      hVal = this->m_SharedData->m_LevelSetDataPointerVector[pixel]->m_HeavisideFunctionOfLevelSetImage->GetPixel(
         itInputIndex);
       product *= (1 - hVal);
     }
@@ -110,9 +102,9 @@ ScalarRegionBasedLevelSetFunction<TInputImage, TFeatureImage, TSharedData>::Upda
   ScalarValueType productChange = -(product * change);
 
   // update the background constant of all level-set functions
-  for (ListPixelType::const_iterator it = L.begin(); it != L.end(); ++it)
+  for (unsigned int & pixel : pixelList)
   {
-    UpdateSharedDataOutsideParameters(*it, featureVal, productChange);
+    UpdateSharedDataOutsideParameters(pixel, featureVal, productChange);
   }
 
   this->m_SharedData->m_LevelSetDataPointerVector[fId]->m_HeavisideFunctionOfLevelSetImage->SetPixel(inputIndex, newH);

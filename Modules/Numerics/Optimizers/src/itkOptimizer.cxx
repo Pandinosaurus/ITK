@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkOptimizer.h"
+#include "itkNumericTraits.h"
 
 namespace itk
 {
@@ -45,7 +46,7 @@ Optimizer::SetScales(const ScalesType & scales)
     {
       itkExceptionMacro("ERROR: Scales must have value greater than epsilon! Scale[" << i << "] = " << m_Scales[i]);
     }
-    m_InverseScales[i] = NumericTraits<double>::OneValue() / m_Scales[i];
+    m_InverseScales[i] = 1.0 / m_Scales[i];
   }
   m_ScalesInitialized = true;
   this->Modified();
@@ -71,7 +72,7 @@ Optimizer::SetCurrentPosition(const ParametersType & param)
   this->Modified();
 }
 
-const std::string
+std::string
 Optimizer::GetStopConditionDescription() const
 {
   std::ostringstream description;

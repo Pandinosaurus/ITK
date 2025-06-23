@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -120,40 +120,37 @@ public:
   static constexpr unsigned int ImageIteratorDimension = Superclass::ImageIteratorDimension;
 
   /**
-   * Index type alias support While these were already typdef'ed in the superclass,
+   * Index type alias support While these were already typedef'ed in the superclass,
    * they need to be redone here for this subclass to compile properly with gcc.
    */
-  /** Types inherited from the Superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageRegionConstIterator, ImageConstIterator);
+  /** Types inherited from the Superclass */
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
+
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageRegionConstIterator);
 
   /** Default constructor. Needed since we provide a cast constructor. */
   ImageRegionConstIterator()
     : ImageConstIterator<TImage>()
-  {
-    m_SpanBeginOffset = 0;
-    m_SpanEndOffset = 0;
-  }
+  {}
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageRegionConstIterator(const ImageType * ptr, const RegionType & region)
     : ImageConstIterator<TImage>(ptr, region)
-  {
-    m_SpanBeginOffset = this->m_BeginOffset;
-    m_SpanEndOffset = this->m_BeginOffset + static_cast<OffsetValueType>(this->m_Region.GetSize()[0]);
-  }
+    , m_SpanBeginOffset(this->m_BeginOffset)
+    , m_SpanEndOffset(this->m_BeginOffset + static_cast<OffsetValueType>(this->m_Region.GetSize()[0]))
+  {}
 
   /** Constructor that can be used to cast from an ImageIterator to an
    * ImageRegionConstIterator. Many routines return an ImageIterator, but for a
@@ -258,9 +255,9 @@ public:
   }
 
 protected:
-  OffsetValueType m_SpanBeginOffset; // one pixel before the beginning of the span
-                                     // (row)
-  OffsetValueType m_SpanEndOffset;   // one pixel past the end of the span (row)
+  OffsetValueType m_SpanBeginOffset{}; // one pixel before the beginning of the span
+                                       // (row)
+  OffsetValueType m_SpanEndOffset{};   // one pixel past the end of the span (row)
 
 private:
   void

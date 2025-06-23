@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkRandomImageSource_hxx
 #define itkRandomImageSource_hxx
 
-#include "itkRandomImageSource.h"
 #include "itkImageRegionIterator.h"
 #include "itkObjectFactory.h"
 #include "itkTotalProgressReporter.h"
@@ -41,7 +40,7 @@ RandomImageSource<TOutputImage>::RandomImageSource()
 {
 
   // Default image is 64 wide in each direction.
-  for (unsigned int i = 0; i < TOutputImage::GetImageDimension(); i++)
+  for (unsigned int i = 0; i < TOutputImage::GetImageDimension(); ++i)
   {
     m_Size[i] = 64;
     m_Spacing[i] = 1.0;
@@ -59,29 +58,15 @@ template <typename TOutputImage>
 void
 RandomImageSource<TOutputImage>::SetSize(SizeValueArrayType sizeArray)
 {
-  const unsigned int count = TOutputImage::ImageDimension;
-  unsigned int       i;
-
-  for (i = 0; i < count; i++)
-  {
-    if (sizeArray[i] != this->m_Size[i])
-    {
-      break;
-    }
-  }
-  if (i < count)
+  if (ContainerCopyWithCheck(m_Size, sizeArray, TOutputImage::ImageDimension))
   {
     this->Modified();
-    for (i = 0; i < count; i++)
-    {
-      this->m_Size[i] = sizeArray[i];
-    }
   }
 }
 
 template <typename TOutputImage>
-const typename RandomImageSource<TOutputImage>::SizeValueType *
-RandomImageSource<TOutputImage>::GetSize() const
+auto
+RandomImageSource<TOutputImage>::GetSize() const -> const SizeValueType *
 {
   return this->m_Size.GetSize();
 }
@@ -90,23 +75,9 @@ template <typename TOutputImage>
 void
 RandomImageSource<TOutputImage>::SetSpacing(SpacingValueArrayType spacingArray)
 {
-  const unsigned int count = TOutputImage::ImageDimension;
-  unsigned int       i;
-
-  for (i = 0; i < count; i++)
-  {
-    if (Math::NotExactlyEquals(spacingArray[i], this->m_Spacing[i]))
-    {
-      break;
-    }
-  }
-  if (i < count)
+  if (ContainerCopyWithCheck(m_Spacing, spacingArray, TOutputImage::ImageDimension))
   {
     this->Modified();
-    for (i = 0; i < count; i++)
-    {
-      this->m_Spacing[i] = spacingArray[i];
-    }
   }
 }
 
@@ -114,31 +85,17 @@ template <typename TOutputImage>
 void
 RandomImageSource<TOutputImage>::SetOrigin(PointValueArrayType originArray)
 {
-  const unsigned int count = TOutputImage::ImageDimension;
-  unsigned int       i;
-
-  for (i = 0; i < count; i++)
-  {
-    if (Math::NotExactlyEquals(originArray[i], this->m_Origin[i]))
-    {
-      break;
-    }
-  }
-  if (i < count)
+  if (ContainerCopyWithCheck(m_Origin, originArray, TOutputImage::ImageDimension))
   {
     this->Modified();
-    for (i = 0; i < count; i++)
-    {
-      this->m_Origin[i] = originArray[i];
-    }
   }
 }
 
 template <typename TOutputImage>
-const typename RandomImageSource<TOutputImage>::PointValueType *
-RandomImageSource<TOutputImage>::GetOrigin() const
+auto
+RandomImageSource<TOutputImage>::GetOrigin() const -> const PointValueType *
 {
-  for (unsigned int i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     this->m_OriginArray[i] = this->m_Origin[i];
   }
@@ -146,10 +103,10 @@ RandomImageSource<TOutputImage>::GetOrigin() const
 }
 
 template <typename TOutputImage>
-const typename RandomImageSource<TOutputImage>::SpacingValueType *
-RandomImageSource<TOutputImage>::GetSpacing() const
+auto
+RandomImageSource<TOutputImage>::GetSpacing() const -> const SpacingValueType *
 {
-  for (unsigned int i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     this->m_SpacingArray[i] = this->m_Spacing[i];
   }
@@ -172,7 +129,7 @@ RandomImageSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) con
     os << m_Origin[ii] << ", ";
     ++ii;
   }
-  os << m_Origin[ii] << "]" << std::endl;
+  os << m_Origin[ii] << ']' << std::endl;
 
   os << indent << "Spacing: [";
   ii = 0;
@@ -181,7 +138,7 @@ RandomImageSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) con
     os << m_Spacing[ii] << ", ";
     ++ii;
   }
-  os << m_Spacing[ii] << "]" << std::endl;
+  os << m_Spacing[ii] << ']' << std::endl;
 
   os << indent << "Size: [";
   ii = 0;
@@ -190,7 +147,7 @@ RandomImageSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) con
     os << m_Size[ii] << ", ";
     ++ii;
   }
-  os << m_Size[ii] << "]" << std::endl;
+  os << m_Size[ii] << ']' << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -198,16 +155,9 @@ template <typename TOutputImage>
 void
 RandomImageSource<TOutputImage>::GenerateOutputInformation()
 {
-  TOutputImage * output;
-  IndexType      index;
+  TOutputImage * output = this->GetOutput(0);
 
-  index.Fill(0);
-
-  output = this->GetOutput(0);
-
-  typename TOutputImage::RegionType largestPossibleRegion;
-  largestPossibleRegion.SetSize(this->m_Size);
-  largestPossibleRegion.SetIndex(index);
+  const typename TOutputImage::RegionType largestPossibleRegion(this->m_Size);
   output->SetLargestPossibleRegion(largestPossibleRegion);
 
   output->SetSpacing(m_Spacing);
@@ -220,35 +170,31 @@ template <typename TOutputImage>
 void
 RandomImageSource<TOutputImage>::DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread)
 {
-  itkDebugMacro(<< "Generating a random image of scalars");
+  itkDebugMacro("Generating a random image of scalars");
 
 
   using scalarType = typename TOutputImage::PixelType;
-  typename TOutputImage::Pointer image = this->GetOutput(0);
-
-  ImageRegionIterator<TOutputImage> it(image, outputRegionForThread);
+  const typename TOutputImage::Pointer image = this->GetOutput(0);
 
   TotalProgressReporter progress(this, image->GetRequestedRegion().GetNumberOfPixels());
 
   IndexValueType indSeed = outputRegionForThread.GetIndex(0);
-  for (unsigned d = 1; d < OutputImageDimension; d++)
+  for (unsigned int d = 1; d < OutputImageDimension; ++d)
   {
     indSeed += outputRegionForThread.GetIndex(d);
   }
 
   // Random number seed
   unsigned int sample_seed = 12345 + indSeed;
-  double       u;
-  double       rnd;
 
-  auto dMin = static_cast<double>(m_Min);
-  auto dMax = static_cast<double>(m_Max);
+  const auto dMin = static_cast<double>(m_Min);
+  const auto dMax = static_cast<double>(m_Max);
 
-  for (; !it.IsAtEnd(); ++it)
+  for (ImageRegionIterator<TOutputImage> it(image, outputRegionForThread); !it.IsAtEnd(); ++it)
   {
     sample_seed = (sample_seed * 16807) % 2147483647L;
-    u = static_cast<double>(sample_seed) / 2147483711UL;
-    rnd = (1.0 - u) * dMin + u * dMax;
+    const double u = static_cast<double>(sample_seed) / 2147483711UL;
+    const double rnd = (1.0 - u) * dMin + u * dMax;
 
     it.Set((scalarType)rnd);
     progress.CompletedPixel();

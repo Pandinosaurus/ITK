@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,8 +60,8 @@ public:
   /** Method of creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TriangleMeshToSimplexMeshFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TriangleMeshToSimplexMeshFilter);
 
   using InputMeshType = TInputMesh;
   using InputMeshPointer = typename TInputMesh::Pointer;
@@ -179,7 +179,7 @@ protected:
   /**
    * \brief stores all faces (triangles) of the input mesh
    */
-  IndexSetType * m_FaceSet;
+  IndexSetType * m_FaceSet{};
 
   /**
    * \brief stores all edges of the input mesh.
@@ -187,52 +187,52 @@ protected:
    * the key is the index of the edge cell, and the element is the
    * index pair of the two points of the edge.
    */
-  EdgeMapPointer m_Edges;
+  EdgeMapPointer m_Edges{};
 
   /**
    * \brief stores the two neighboring cells (faces) of an edge
    */
-  typename EdgeNeighborListType::Pointer m_EdgeNeighborList;
+  typename EdgeNeighborListType::Pointer m_EdgeNeighborList{};
 
   /**
    * \brief stores all edges starting from a vertex
    */
-  typename VertexNeighborListType::Pointer m_VertexNeighborList;
+  typename VertexNeighborListType::Pointer m_VertexNeighborList{};
 
   /**
    * stores line indices for conversion algorithm
    */
-  typename LineCellIndexType::Pointer m_LineCellIndices;
+  typename LineCellIndexType::Pointer m_LineCellIndices{};
 
   /**
    * offset for ids of new simplex polygon cells
    */
-  CellIdentifier m_CellIdxOffset;
+  CellIdentifier m_CellIdxOffset{};
 
   /**
    * offset for point ids
    */
-  PointIdentifier m_IdOffset;
+  PointIdentifier m_IdOffset{};
 
   /**
    * offset for edge cell ids
    */
-  CellIdentifier m_EdgeCellId;
+  CellIdentifier m_EdgeCellId{};
 
   /**
    * stores algorithmic data
    */
-  IdVectorPointer m_HandledEdgeIds;
+  IdVectorPointer m_HandledEdgeIds{};
 
   /**
    * autopointer definition for creation of new cells in the input mesh
    */
-  InputCellAutoPointer m_NewInputMeshCellPointer;
+  InputCellAutoPointer m_NewInputMeshCellPointer{};
 
   /**
    * autopointer definition for creation of new simplex cells
    */
-  OutputCellAutoPointer m_NewSimplexCellPointer;
+  OutputCellAutoPointer m_NewSimplexCellPointer{};
 };
 } // namespace itk
 

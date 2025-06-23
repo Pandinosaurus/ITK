@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkInteriorExteriorMeshFilter.h"
 #include "itkMesh.h"
 #include "itkSphereSpatialFunction.h"
+#include "itkTestingMacros.h"
 
 int
 itkInteriorExteriorMeshFilterTest(int, char *[])
@@ -31,8 +32,8 @@ itkInteriorExteriorMeshFilterTest(int, char *[])
 
   // Declare the types of the Mesh
   // By default it is a 3D mesh using itk::Point<float,3>
-  // on the vertices, and an itk::VectorContainter
-  // as containter for points
+  // on the vertices, and an itk::VectorContainer
+  // as container for points
   using MeshType = itk::Mesh<PixelType>;
 
   // Declare the type for PointsContainer
@@ -44,20 +45,20 @@ itkInteriorExteriorMeshFilterTest(int, char *[])
   using PointType = MeshType::PointType;
 
   // Create an input Mesh
-  MeshType::Pointer inputMesh = MeshType::New();
+  auto inputMesh = MeshType::New();
 
   // Insert data on the Mesh
-  PointsContainerPointer points = inputMesh->GetPoints();
+  const PointsContainerPointer points = inputMesh->GetPoints();
 
   // Fill a cube with points , just to get some data
-  int                                    n = 3;     // let's start with a few of them
+  constexpr int                          n = 3;     // let's start with a few of them
   PointsContainerType::ElementIdentifier count = 0; // count them
 
-  for (int x = -n; x <= n; x++)
+  for (int x = -n; x <= n; ++x)
   {
-    for (int y = -n; y <= n; y++)
+    for (int y = -n; y <= n; ++y)
     {
-      for (int z = -n; z <= n; z++)
+      for (int z = -n; z <= n; ++z)
       {
         PointType p;
         p[0] = x;
@@ -79,40 +80,48 @@ itkInteriorExteriorMeshFilterTest(int, char *[])
 
 
   // Create a Filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, InteriorExteriorMeshFilter, MeshToMeshFilter);
+
+
+  // Test exceptions
+  ITK_TRY_EXPECT_EXCEPTION(filter->Update());
 
   // Create the Spatial Function
-  SpatialFunctionType::Pointer spatialFunction = SpatialFunctionType::New();
+  auto spatialFunction = SpatialFunctionType::New();
 
   SpatialFunctionType::InputType center;
   center[0] = 0;
   center[1] = 0;
   center[2] = 2; // Here we are assuming 3D !!!
 
-  const double radius = 1.1f;
+  constexpr double radius = 1.1f;
 
   spatialFunction->SetCenter(center);
   spatialFunction->SetRadius(radius);
 
+  filter->SetSpatialFunction(spatialFunction);
+  ITK_TEST_SET_GET_VALUE(spatialFunction, filter->GetSpatialFunction());
+
   // Connect the inputs
   filter->SetInput(inputMesh);
-  filter->SetSpatialFunction(spatialFunction);
 
   // Execute the filter
   filter->Update();
 
   // Get the Smart Pointer to the Filter Output
-  MeshType::Pointer outputMesh = filter->GetOutput();
+  const MeshType::Pointer outputMesh = filter->GetOutput();
 
 
-  // Get the the point container
-  MeshType::PointsContainerPointer transformedPoints = outputMesh->GetPoints();
+  // Get the point container
+  const MeshType::PointsContainerPointer transformedPoints = outputMesh->GetPoints();
 
 
   PointsContainerType::ConstIterator it = transformedPoints->Begin();
   while (it != transformedPoints->End())
   {
-    PointType p = it.Value();
+    const PointType p = it.Value();
 
     const double distance = p.EuclideanDistanceTo(center);
     if (distance > radius)

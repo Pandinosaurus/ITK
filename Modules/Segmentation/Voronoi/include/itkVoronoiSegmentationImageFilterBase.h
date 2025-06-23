@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,13 +44,10 @@ namespace itk
  * of all the "internal" region. Or a binary boundary delineate, which is defined as
  * the connected lines between seed points of "boundary" region.
  * This class is a base class for voronoi segmentation, single channel or multiple channel
- * image segmentation can be implemented by deriving imagefilters from this class, by
+ * image segmentation can be implemented by deriving image filters from this class, by
  * implementing the virtual methods
  *
- * Detailed information about this algorithm can be found in:
- *  " Semi-automated color segmentation of anatomical tissue,"
- *   C. Imelinska, M. Downes, and W. Yuan
- *  Computerized Medical Imaging and Graphics, Vor.24, pp 173-180, 2000.
+ * Detailed information about this algorithm can be found in \cite imelinska2000.
  *
  * \ingroup HybridSegmentation
  * \ingroup ITKVoronoi
@@ -70,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VoronoiSegmentationImageFilterBase, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VoronoiSegmentationImageFilterBase);
 
   /** Get the image dimension from the template parameter. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -111,17 +108,23 @@ public:
   using VDImagePointer = typename VDImage::Pointer;
 
   /** Set/Get the initial number of seeds for VD. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfSeeds, int);
   itkGetConstMacro(NumberOfSeeds, int);
+  /** @ITKEndGrouping */
 
   /** Set/Get the smallest region to be divided. */
+  /** @ITKStartGrouping */
   itkSetMacro(MinRegion, SizeValueType);
   itkGetConstMacro(MinRegion, SizeValueType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the number of iterations to run (if set to 0: the classification
    * run process runs until no more cells can be divided). */
+  /** @ITKStartGrouping */
   itkSetMacro(Steps, int);
   itkGetConstMacro(Steps, int);
+  /** @ITKEndGrouping */
 
   /** Get the number of seeds before adding new ones. */
   itkGetConstMacro(LastStepSeeds, int);
@@ -130,26 +133,36 @@ public:
   itkGetConstMacro(NumberOfSeedsToAdded, int);
 
   /**  */
+  /** @ITKStartGrouping */
   itkSetMacro(UseBackgroundInAPrior, bool);
   itkGetConstMacro(UseBackgroundInAPrior, bool);
+  /** @ITKEndGrouping */
 
   /** Enable the generation of the output boundary. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputBoundary, bool);
   itkGetConstMacro(OutputBoundary, bool);
+  /** @ITKEndGrouping */
 
   /** Output the segmentation on every iteration.  Useful for interactive
       sessions. The setting of OutputBoundary determines the type of output. */
+  /** @ITKStartGrouping */
   itkSetMacro(InteractiveSegmentation, bool);
   itkGetConstMacro(InteractiveSegmentation, bool);
   itkBooleanMacro(InteractiveSegmentation);
+  /** @ITKEndGrouping */
 
   /** Set/Get the mean deviation. */
+  /** @ITKStartGrouping */
   itkSetMacro(MeanDeviation, double);
   itkGetConstMacro(MeanDeviation, double);
+  /** @ITKEndGrouping */
 
   /** Set/Get the region size. */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
+  /** @ITKEndGrouping */
 
   /** Take a prior from other segmentation node. This should be a
    * binary object. */
@@ -172,7 +185,7 @@ public:
   virtual void
   MakeSegmentObject();
 
-  /** Return the Voroni Diagram structure. */
+  /** Return the Voronoi Diagram structure. */
   VoronoiPointer
   GetVoronoiDiagram()
   {
@@ -190,7 +203,6 @@ public:
     m_NumberOfSeeds = num;
     m_WorkingVD->SetSeeds(num, begin);
   }
-
 #endif
 
   /** Seeds positions are randomly set.
@@ -237,7 +249,7 @@ protected:
   void
   GenerateData() override; // general pipeline function.
 
-  SizeType      m_Size;
+  SizeType      m_Size{};
   int           m_NumberOfSeeds{ 200 };
   SizeValueType m_MinRegion{ 20 };
   int           m_Steps{ 0 };
@@ -245,8 +257,8 @@ protected:
   int           m_NumberOfSeedsToAdded{ 0 };
   int           m_NumberOfBoundary{ 0 };
 
-  std::vector<SizeValueType> m_NumberOfPixels;
-  std::vector<unsigned char> m_Label;
+  std::vector<SizeValueType> m_NumberOfPixels{};
+  std::vector<unsigned char> m_Label{};
 
   double m_MeanDeviation{ 0.8 };
   bool   m_UseBackgroundInAPrior{ false };
@@ -254,11 +266,11 @@ protected:
                                     // output the object.
   bool m_InteractiveSegmentation{ false };
 
-  typename VoronoiDiagram::Pointer m_WorkingVD;
+  typename VoronoiDiagram::Pointer m_WorkingVD{};
 
-  typename VoronoiDiagramGenerator::Pointer m_VDGenerator;
+  typename VoronoiDiagramGenerator::Pointer m_VDGenerator{};
 
-  std::vector<PointType> m_SeedsToAdded;
+  std::vector<PointType> m_SeedsToAdded{};
 
   // private methods:
   // Classify all the voronoi cells as interior , exterior or boundary.
@@ -286,7 +298,7 @@ protected:
   void
   drawLine(PointType p1, PointType p2);
 
-  // Draw the intermedia Voronoi Diagram structure.
+  // Draw the intermediate Voronoi Diagram structure.
   void
   drawVDline(VDImagePointer result, PointType p1, PointType p2, unsigned char color);
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(EigenAnalysis2DImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(EigenAnalysis2DImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -63,7 +63,7 @@ public:
   using VectorComponentType = typename EigenVectorType::ValueType;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Some convenient type alias. */
   using EigenValueImageType = TEigenValueImage;
@@ -79,46 +79,55 @@ public:
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Connect the image containing the elements [0,0]
-   * of the input 2D matrix */
+   * of the input 2D matrix. */
   void
   SetInput1(TInputImage * image);
 
   /** Connect the image containing the elements [0,1]
    * of the input 2D matrix. This is the same [1,0]
    * element given that the input matrix is expected
-   * to be symmetric */
+   * to be symmetric. */
   void
   SetInput2(TInputImage * image);
 
   /** Connect the image containing the elements [1,1]
-   * of the input 2D matrix */
+   * of the input 2D matrix. */
   void
   SetInput3(TInputImage * image);
 
-  /** Get the Output image with the greatest eigenvalue */
+  /** Get the output image with the largest eigenvalue.
+   *
+   * The sign is taken into account in the computation.
+   */
   EigenValueImageType *
   GetMaxEigenValue();
 
-  /** Get the Output image with the smallest eigenvalue */
+  /** Get the output image with the smallest eigenvalue.
+   *
+   * The sign is taken into account in the computation.
+   */
   EigenValueImageType *
   GetMinEigenValue();
 
-  /** Get the Output image with the eigen vector associated with
-   * the greatest eigen value */
+  /** Get the output image with the eigenvector associated with
+   * the greatest eigenvalue
+   *
+   * The sign is taken into account in the computation.
+   */
   EigenVectorImageType *
   GetMaxEigenVector();
 
-  /**  Create the Output */
+  /**  Create the output.
+   *
+   * \todo Verify that MakeOutput is creating the right type of objects
+   * this could be the cause of the reinterpret_cast bug in this class.
+   */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   DataObject::Pointer
   MakeOutput(DataObjectPointerArraySizeType idx) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(VectorComponentHasNumericTraitsCheck, (Concept::HasNumericTraits<VectorComponentType>));
-  // End concept checking
-#endif
 
 protected:
   EigenAnalysis2DImageFilter();

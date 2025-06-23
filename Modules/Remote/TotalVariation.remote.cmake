@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,8 +41,9 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-itk_fetch_module(TotalVariation
-"An ITK-based implementation of fast total variation methods used for image denoising,
+itk_fetch_module(
+  TotalVariation
+  "An ITK-based implementation of fast total variation methods used for image denoising,
 image deconvolution, and other applications.
 
 The class itkProxTVImageFilter wraps the third party library proxTV for 2D and 3D images.
@@ -50,6 +51,6 @@ Please refer to the documentation upstream for a detailed description:
 https://github.com/albarji/proxTV
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKTotalVariation.git
-  GIT_TAG 87faf119dc7ef85508651be064c47f9a578a8280
-)
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKTotalVariation.git
+  GIT_TAG 38c25ae8167df32f32fe7d52cb66445bbc10c471
+  )

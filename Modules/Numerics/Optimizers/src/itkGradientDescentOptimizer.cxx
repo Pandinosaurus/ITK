@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,15 +23,9 @@ namespace itk
 /**
  * Constructor
  */
-GradientDescentOptimizer::GradientDescentOptimizer()
+GradientDescentOptimizer::GradientDescentOptimizer() { m_StopConditionDescription << this->GetNameOfClass() << ": "; }
 
-{
-  itkDebugMacro("Constructor");
-
-  m_StopConditionDescription << this->GetNameOfClass() << ": ";
-}
-
-const std::string
+std::string
 GradientDescentOptimizer::GetStopConditionDescription() const
 {
   return m_StopConditionDescription.str();
@@ -47,13 +41,7 @@ GradientDescentOptimizer::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Maximize: " << m_Maximize << std::endl;
   os << indent << "CurrentIteration: " << m_CurrentIteration;
   os << indent << "Value: " << m_Value;
-  if (m_CostFunction)
-  {
-    os << indent << "CostFunction: " << m_CostFunction;
-  }
   os << indent << "StopCondition: " << m_StopCondition;
-  os << std::endl;
-  os << indent << "Gradient: " << m_Gradient;
   os << std::endl;
 }
 
@@ -90,7 +78,7 @@ GradientDescentOptimizer::ResumeOptimization()
     {
       m_CostFunction->GetValueAndDerivative(this->GetCurrentPosition(), m_Value, m_Gradient);
     }
-    catch (ExceptionObject & err)
+    catch (const ExceptionObject &)
     {
       // An exception has occurred.
       // Terminate immediately.
@@ -99,7 +87,7 @@ GradientDescentOptimizer::ResumeOptimization()
       StopOptimization();
 
       // Pass exception to caller
-      throw err;
+      throw;
     }
 
     if (m_Stop)
@@ -110,7 +98,7 @@ GradientDescentOptimizer::ResumeOptimization()
 
     AdvanceOneStep();
 
-    m_CurrentIteration++;
+    ++m_CurrentIteration;
 
     if (m_CurrentIteration >= m_NumberOfIterations)
     {
@@ -142,14 +130,10 @@ GradientDescentOptimizer::AdvanceOneStep()
 {
   itkDebugMacro("AdvanceOneStep");
 
-  double direction;
+  double direction = -1.0;
   if (this->m_Maximize)
   {
     direction = 1.0;
-  }
-  else
-  {
-    direction = -1.0;
   }
 
   const unsigned int spaceDimension = m_CostFunction->GetNumberOfParameters();
@@ -161,19 +145,20 @@ GradientDescentOptimizer::AdvanceOneStep()
   // Make sure the scales have been set properly
   if (scales.size() != spaceDimension)
   {
-    itkExceptionMacro(<< "The size of Scales is " << scales.size()
-                      << ", but the NumberOfParameters for the CostFunction is " << spaceDimension << ".");
+    itkExceptionMacro("The size of Scales is "
+                      << scales.size() << ", but the NumberOfParameters for the CostFunction is " << spaceDimension
+                      << '.');
   }
 
   DerivativeType transformedGradient(spaceDimension);
 
-  for (unsigned int j = 0; j < spaceDimension; j++)
+  for (unsigned int j = 0; j < spaceDimension; ++j)
   {
     transformedGradient[j] = m_Gradient[j] / scales[j];
   }
 
   ParametersType newPosition(spaceDimension);
-  for (unsigned int j = 0; j < spaceDimension; j++)
+  for (unsigned int j = 0; j < spaceDimension; ++j)
   {
     newPosition[j] = currentPosition[j] + direction * m_LearningRate * transformedGradient[j];
   }

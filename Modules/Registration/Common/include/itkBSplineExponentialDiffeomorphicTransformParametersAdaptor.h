@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,9 +45,8 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineExponentialDiffeomorphicTransformParametersAdaptor,
-               BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineExponentialDiffeomorphicTransformParametersAdaptor);
 
   using TransformType = TTransform;
   using ScalarType = typename TransformType::ScalarType;
@@ -127,11 +126,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ArrayType        m_NumberOfControlPointsForTheConstantVelocityField;
-  ModifiedTimeType m_NumberOfControlPointsForTheConstantVelocityFieldSetTime;
+  ArrayType        m_NumberOfControlPointsForTheConstantVelocityField{};
+  ModifiedTimeType m_NumberOfControlPointsForTheConstantVelocityFieldSetTime{};
 
-  ArrayType        m_NumberOfControlPointsForTheUpdateField;
-  ModifiedTimeType m_NumberOfControlPointsForTheUpdateFieldSetTime;
+  ArrayType        m_NumberOfControlPointsForTheUpdateField{};
+  ModifiedTimeType m_NumberOfControlPointsForTheUpdateFieldSetTime{};
 
 }; // class BSplineExponentialDiffeomorphicTransformParametersAdaptor
 } // namespace itk

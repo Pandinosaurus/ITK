@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,31 +17,27 @@
  *=========================================================================*/
 #ifndef itkNeighborhoodInnerProduct_hxx
 #define itkNeighborhoodInnerProduct_hxx
-#include "itkNeighborhoodInnerProduct.h"
 
 #include "itkNumericTraits.h"
 
 namespace itk
 {
 template <typename TImage, typename TOperator, typename TComputation>
-typename NeighborhoodInnerProduct<TImage, TOperator, TComputation>::OutputPixelType
+auto
 NeighborhoodInnerProduct<TImage, TOperator, TComputation>::Compute(const ConstNeighborhoodIterator<TImage> & it,
                                                                    const OperatorType &                      op,
-                                                                   const unsigned                            start,
-                                                                   const unsigned                            stride)
+                                                                   const unsigned int                        start,
+                                                                   const unsigned int stride) -> OutputPixelType
 {
-  typename OperatorType::ConstIterator o_it;
-
   using InputPixelType = typename TImage::PixelType;
   using InputPixelRealType = typename NumericTraits<InputPixelType>::RealType;
   using AccumulateRealType = typename NumericTraits<InputPixelRealType>::AccumulateType;
 
-  AccumulateRealType sum = NumericTraits<AccumulateRealType>::ZeroValue();
-
   using OutputPixelValueType = typename NumericTraits<OutputPixelType>::ValueType;
 
-  o_it = op.Begin();
   const typename OperatorType::ConstIterator op_end = op.End();
+  typename OperatorType::ConstIterator       o_it = op.Begin();
+  AccumulateRealType                         sum{};
 
   for (unsigned int i = start; o_it < op_end; i += stride, ++o_it)
   {
@@ -53,13 +49,13 @@ NeighborhoodInnerProduct<TImage, TOperator, TComputation>::Compute(const ConstNe
 }
 
 template <typename TImage, typename TOperator, typename TComputation>
-typename NeighborhoodInnerProduct<TImage, TOperator, TComputation>::OutputPixelType
+auto
 NeighborhoodInnerProduct<TImage, TOperator, TComputation>::Compute(
   /*           const ImageBoundaryCondition<TImage> *,*/
   const NeighborhoodType & N,
   const OperatorType &     op,
-  const unsigned           start,
-  const unsigned           stride)
+  const unsigned int       start,
+  const unsigned int       stride) -> OutputPixelType
 {
   typename OperatorType::ConstIterator o_it;
 
@@ -67,7 +63,7 @@ NeighborhoodInnerProduct<TImage, TOperator, TComputation>::Compute(
   using InputPixelRealType = typename NumericTraits<InputPixelType>::RealType;
   using AccumulateRealType = typename NumericTraits<InputPixelRealType>::AccumulateType;
 
-  AccumulateRealType sum = NumericTraits<AccumulateRealType>::ZeroValue();
+  AccumulateRealType sum{};
 
   using OutputPixelValueType = typename NumericTraits<OutputPixelType>::ValueType;
 

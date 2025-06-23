@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class PathToPathFilter
+ * \class PathToPathFilter
  * \brief Base class for filters that take a path as input and produce a path as output.
  *
  * PathToPathFilter is the base class for all process objects that output
@@ -49,8 +49,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PathToPathFilter, PathSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PathToPathFilter);
 
   /** Some convenient type alias. */
   using InputPathType = TInputPath;
@@ -72,9 +72,8 @@ public:
   GetInput(unsigned int idx);
 
 protected:
-  PathToPathFilter();
+  PathToPathFilter() = default;
   ~PathToPathFilter() override = default;
-
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 

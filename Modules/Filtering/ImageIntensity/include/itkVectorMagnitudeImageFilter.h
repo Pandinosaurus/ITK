@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class VectorMagnitudeImageFilter
+ * \class VectorMagnitudeImageFilter
  *
  * \brief Take an image of vectors as input and produce an image with the
  *  magnitude of those vectors.
@@ -48,20 +48,13 @@ template <typename TInput, typename TOutput>
 class VectorMagnitude
 {
 public:
-  VectorMagnitude() = default;
-  ~VectorMagnitude() = default;
-
   bool
-  operator!=(const VectorMagnitude &) const
+  operator==(const VectorMagnitude &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const VectorMagnitude & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(VectorMagnitude);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -72,7 +65,7 @@ public:
 } // namespace Functor
 
 template <typename TInputImage, typename TOutputImage>
-class VectorMagnitudeImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT VectorMagnitudeImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VectorMagnitudeImageFilter);
@@ -87,14 +80,10 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(VectorMagnitudeImageFilter, UnaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorMagnitudeImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   VectorMagnitudeImageFilter()

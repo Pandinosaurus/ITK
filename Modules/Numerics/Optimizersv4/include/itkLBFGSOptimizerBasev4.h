@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
 {
 /* Necessary forward declaration see below for definition */
 /**
- *\class LBFGSOptimizerBaseHelperv4
+ * \class LBFGSOptimizerBaseHelperv4
  * \brief Wrapper helper around vnl optimizer.
  *
  * This class is used to translate iteration events, etc, from
@@ -41,7 +41,7 @@ template <typename TInternalVnlOptimizerType>
 class ITK_TEMPLATE_EXPORT LBFGSOptimizerBaseHelperv4;
 
 /**
- *\class LBFGSOptimizerBasev4
+ * \class LBFGSOptimizerBasev4
  * \brief Abstract base for vnl lbfgs algorithm optimizers in ITKv4 registration framework.
  *
  * \note The StopConditionDescription returned by this class is directly from the vnl
@@ -84,8 +84,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LBFGSOptimizerBasev4, SingleValuedNonLinearVnlOptimizerv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LBFGSOptimizerBasev4);
 
   using MetricType = Superclass::MetricType;
   using ParametersType = Superclass::ParametersType;
@@ -138,7 +138,7 @@ public:
   itkGetConstMacro(GradientConvergenceTolerance, double);
 
   /** Get the reason for termination */
-  const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override;
 
 protected:
@@ -152,9 +152,9 @@ protected:
   bool m_OptimizerInitialized{ false };
 
   using InternalOptimizerAutoPointer = std::unique_ptr<InternalOptimizerType>;
-  InternalOptimizerAutoPointer m_VnlOptimizer;
+  InternalOptimizerAutoPointer m_VnlOptimizer{};
 
-  mutable std::ostringstream m_StopConditionDescription;
+  mutable std::ostringstream m_StopConditionDescription{};
 
   bool         m_Trace{ false };
   unsigned int m_MaximumNumberOfFunctionEvaluations{ 2000 };
@@ -167,10 +167,66 @@ protected:
   friend class LBFGSOptimizerBaseHelperv4<TInternalVnlOptimizerType>;
   friend class LBFGSBOptimizerHelperv4;
 };
+
+template <typename TInternalVnlOptimizerType>
+class ITK_TEMPLATE_EXPORT LBFGSOptimizerBaseHelperv4 : public TInternalVnlOptimizerType
+{
+public:
+  using Self = LBFGSOptimizerBaseHelperv4;
+  using Superclass = TInternalVnlOptimizerType;
+
+  LBFGSOptimizerBaseHelperv4(vnl_cost_function & f, LBFGSOptimizerBasev4<TInternalVnlOptimizerType> * itkObj)
+    : TInternalVnlOptimizerType(f)
+    , m_ItkObj(itkObj)
+  {}
+
+protected:
+  LBFGSOptimizerBasev4<TInternalVnlOptimizerType> * m_ItkObj;
+
+  /** Handle new iteration event */
+  bool
+  report_iter() override;
+};
+
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkLBFGSOptimizerBasev4.hxx"
 #endif
 
+#endif
+
+/** Explicit instantiations */
+#ifndef ITK_TEMPLATE_EXPLICIT_LBFGSOptimizerBasev4
+// Explicit instantiation is required to ensure correct dynamic_cast
+// behavior across shared libraries.
+//
+// IMPORTANT: Since within the same compilation unit,
+//            ITK_TEMPLATE_EXPLICIT_<classname> defined and undefined states
+//            need to be considered. This code *MUST* be *OUTSIDE* the header
+//            guards.
+//
+#if defined(ITKOptimizersv4_EXPORTS)
+//   We are building this library
+#  define ITKOptimizersv4_EXPORT_EXPLICIT ITK_FORWARD_EXPORT
+#else
+//   We are using this library
+#  define ITKOptimizersv4_EXPORT_EXPLICIT ITKOptimizersv4_EXPORT
+#endif
+namespace itk
+{
+
+ITK_GCC_PRAGMA_DIAG_PUSH()
+ITK_GCC_PRAGMA_DIAG(ignored "-Wattributes")
+
+#if defined(_MSC_VER)
+#  pragma warning(disable : 4661) // no suitable definition provided for explicit template instantiation request
+#endif
+extern template class ITKOptimizersv4_EXPORT_EXPLICIT LBFGSOptimizerBasev4<vnl_lbfgs>;
+extern template class ITKOptimizersv4_EXPORT_EXPLICIT LBFGSOptimizerBasev4<vnl_lbfgsb>;
+
+ITK_GCC_PRAGMA_DIAG_POP()
+
+} // end namespace itk
+#undef ITKOptimizersv4_EXPORT_EXPLICIT
 #endif

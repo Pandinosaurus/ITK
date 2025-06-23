@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class SimpleContourExtractorImageFilter
+ * \class SimpleContourExtractorImageFilter
  * \brief Computes an image of contours which will be the contour
  * of the first image.
  *
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimpleContourExtractorImageFilter, BoxImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimpleContourExtractorImageFilter);
 
   /** Image type alias support */
   using InputPixelType = typename InputImageType::PixelType;
@@ -117,12 +117,8 @@ public:
    * pixel in the output image. */
   itkGetConstReferenceMacro(OutputBackgroundValue, OutputPixelType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   SimpleContourExtractorImageFilter();
@@ -147,10 +143,10 @@ protected:
 
 
 private:
-  InputPixelType  m_InputForegroundValue;
-  InputPixelType  m_InputBackgroundValue;
-  OutputPixelType m_OutputForegroundValue;
-  OutputPixelType m_OutputBackgroundValue;
+  InputPixelType  m_InputForegroundValue{};
+  InputPixelType  m_InputBackgroundValue{};
+  OutputPixelType m_OutputForegroundValue{};
+  OutputPixelType m_OutputBackgroundValue{};
 };
 } // end namespace itk
 

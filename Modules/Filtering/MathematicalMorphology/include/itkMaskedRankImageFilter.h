@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
  * cropped at the boundary, and is therefore smaller.
  *
  * This filter uses a recursive implementation - essentially the one
- * by Huang 1979, I believe, to compute the rank,
+ * by Huang \cite huang1979, I believe, to compute the rank,
  * and is therefore usually a lot faster than the direct
  * implementation. The extensions to Huang are support for arbitrary
  * pixel types (using c++ maps) and arbitrary neighborhoods. I presume
@@ -54,7 +54,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "Efficient implementation of kernel filtering"
  * by Beare R., Lehmann G
- * https://www.insight-journal.org/browse/publication/160
+ * https://doi.org/10.54294/igq8fn
  *
  * \author Richard Beare
  * \ingroup ITKMathematicalMorphology
@@ -88,8 +88,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MaskedRankImageFilter, MovingHistogramImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskedRankImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -99,11 +99,11 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelType = typename TInputImage::PixelType;
 
-  using HistogramType = typename Superclass::HistogramType;
+  using typename Superclass::HistogramType;
 
   /** Image related type alias. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -120,7 +120,7 @@ public:
   itkSetClampMacro(Rank, float, 0.0, 1.0);
   itkGetConstMacro(Rank, float);
 
-  bool
+  [[nodiscard]] bool
   GetUseVectorBasedAlgorithm() const
   {
     return HistogramType::UseVectorBasedAlgorithm();
@@ -137,7 +137,7 @@ protected:
   ConfigureHistogram(HistogramType & histogram) override;
 
 private:
-  float m_Rank;
+  float m_Rank{};
 }; // end of class
 } // end namespace itk
 

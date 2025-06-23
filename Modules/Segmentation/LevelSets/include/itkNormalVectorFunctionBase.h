@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ namespace itk
  *
  * \par PARAMETERS
  * This function class has a time step parameter which is returned by the
- * ComputeGloablTimeStep method. Unlike other finite difference function
+ * ComputeGlobalTimeStep method. Unlike other finite difference function
  * classes, this class does not use the maximum change magnitude to compute the
  * time step, it returns this predetermined time step.
  * \ingroup ITKLevelSets
@@ -60,19 +60,19 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(NormalVectorFunctionBase, FiniteDifferenceSparseImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalVectorFunctionBase);
 
   /** Image dimension derived from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Typedefs from the superclass. */
-  using TimeStepType = typename Superclass::TimeStepType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using IndexType = typename Superclass::IndexType;
-  using SparseImageType = typename Superclass::SparseImageType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SparseImageType;
 
   /** The node type for the sparse image. */
   using NodeType = typename SparseImageType::NodeType;
@@ -83,8 +83,9 @@ public:
   /** The vector type for the normals. */
   using NormalVectorType = typename NodeType::NodeDataType;
 
-  /** Globaldata methods are not needed in this class. */
-  void *
+  /** GlobalData methods are not needed in this class. */
+  /** @ITKStartGrouping */
+  [[nodiscard]] void *
   GetGlobalDataPointer() const override
   {
     return nullptr;
@@ -92,7 +93,7 @@ public:
   void
   ReleaseGlobalDataPointer(void *) const override
   {}
-
+  /** @ITKEndGrouping */
   /** For the global time step, we return the time step parameter. */
   TimeStepType
   ComputeGlobalTimeStep(void *) const override
@@ -122,7 +123,7 @@ protected:
 
 private:
   /** The time step for normal vector finite difference computations. */
-  TimeStepType m_TimeStep;
+  TimeStepType m_TimeStep{};
 };
 } // end namespace itk
 

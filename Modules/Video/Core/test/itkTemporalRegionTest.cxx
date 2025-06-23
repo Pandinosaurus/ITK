@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,26 +24,26 @@ int
 itkTemporalRegionTest(int, char *[])
 {
 
-#define CHECK_FOR_VALUE(a, b)                                                                                          \
-  {                                                                                                                    \
-    if (a != b)                                                                                                        \
-    {                                                                                                                  \
-      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl;                               \
-      return EXIT_FAILURE;                                                                                             \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define CHECK_FOR_VALUE(a, b)                                                            \
+  {                                                                                      \
+    if (a != b)                                                                          \
+    {                                                                                    \
+      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl; \
+      return EXIT_FAILURE;                                                               \
+    }                                                                                    \
+  }                                                                                      \
   ITK_MACROEND_NOOP_STATEMENT
 
   // Test arrays for frame durations
-  itk::SizeValueType testFrameStart = 0;
-  itk::SizeValueType testFrameDuration = 20;
+  constexpr itk::SizeValueType testFrameStart = 0;
+  constexpr itk::SizeValueType testFrameDuration = 20;
 
   // Test time stamps and intervals
-  itk::RealTimeStamp    stamp0;
-  itk::RealTimeStamp    stamp1 = stamp0;
-  itk::RealTimeInterval oneSecond(1, 0);
-  itk::RealTimeInterval tenSeconds(10, 0);
-  for (unsigned int i = 0; i < 1000000L; i++)
+  const itk::RealTimeStamp    stamp0;
+  itk::RealTimeStamp          stamp1 = stamp0;
+  const itk::RealTimeInterval oneSecond(1, 0);
+  const itk::RealTimeInterval tenSeconds(10, 0);
+  for (unsigned int i = 0; i < 1000000L; ++i)
   {
     stamp1 += oneSecond;
   }
@@ -53,10 +53,10 @@ itkTemporalRegionTest(int, char *[])
   itk::TemporalRegion regionB;
 
   // Check value of regions at init
-  bool shouldBeTrue = regionA == regionB;
+  const bool shouldBeTrue = regionA == regionB;
   CHECK_FOR_VALUE(shouldBeTrue, true);
 
-  bool shouldBeFalse = regionA != regionB;
+  const bool shouldBeFalse = regionA != regionB;
   CHECK_FOR_VALUE(shouldBeFalse, false);
 
   // Set new start times

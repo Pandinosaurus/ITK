@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNarrowBandImageFilterBase_hxx
 #define itkNarrowBandImageFilterBase_hxx
 
-#include "itkNarrowBandImageFilterBase.h"
 #include "itkShiftScaleImageFilter.h"
 
 namespace itk
@@ -36,7 +35,7 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::CopyInputToOutput()
 {
   //   First need to subtract the iso-surface value from the input image.
   using ShiftScaleFilterType = ShiftScaleImageFilter<InputImageType, OutputImageType>;
-  typename ShiftScaleFilterType::Pointer shiftScaleFilter = ShiftScaleFilterType::New();
+  auto shiftScaleFilter = ShiftScaleFilterType::New();
   shiftScaleFilter->SetInput(this->GetInput());
   shiftScaleFilter->SetShift(-m_IsoSurfaceValue);
   shiftScaleFilter->Update();
@@ -54,7 +53,7 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::GenerateData()
   if (!this->m_IsInitialized)
   {
     // Allocate the output image
-    typename TOutputImage::Pointer output = this->GetOutput();
+    const typename TOutputImage::Pointer output = this->GetOutput();
     output->SetBufferedRegion(output->GetRequestedRegion());
     output->Allocate();
 
@@ -86,8 +85,8 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::GenerateData()
   wui.ThreadFunction = nullptr;
 
   TimeStepType              timeStep;
-  std::vector<TimeStepType> timeStepList(numberOfWorkUnits, NumericTraits<TimeStepType>::ZeroValue());
-  std::vector<bool>         validTimeStepList(numberOfWorkUnits, true);
+  std::vector<TimeStepType> timeStepList(numberOfWorkUnits, TimeStepType{});
+  BooleanStdVectorType      validTimeStepList(numberOfWorkUnits, true);
 
   // Implement iterative loop in thread function
   // ThreadedApplyUpdate and ThreadedCalculateChanged
@@ -198,7 +197,7 @@ void
 NarrowBandImageFilterBase<TInputImage, TOutputImage>::InitializeIteration()
 {
   // Set m_Touched flag from threads information
-  for (ThreadIdType i = 0; i < this->GetNumberOfWorkUnits(); i++)
+  for (ThreadIdType i = 0; i < this->GetNumberOfWorkUnits(); ++i)
   {
     m_Touched = (m_Touched || m_TouchedForThread[i]);
     m_TouchedForThread[i] = false;
@@ -223,17 +222,14 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::ThreadedApplyUpdate(const 
                                                                           const ThreadRegionType & regionToProcess,
                                                                           ThreadIdType             threadId)
 {
-  // const int INNER_MASK = 2;
+  // constexpr int INNER_MASK = 2;
   constexpr signed char INNER_MASK = 2;
 
-  typename NarrowBandType::ConstIterator it;
-  typename OutputImageType::Pointer      image = this->GetOutput();
-  typename OutputImageType::PixelType    oldvalue;
-  typename OutputImageType::PixelType    newvalue;
-  for (it = regionToProcess.first; it != regionToProcess.last; ++it)
+  const typename OutputImageType::Pointer image = this->GetOutput();
+  for (auto it = regionToProcess.first; it != regionToProcess.last; ++it)
   {
-    oldvalue = image->GetPixel(it->m_Index);
-    newvalue = oldvalue + dt * it->m_Data;
+    typename OutputImageType::PixelType oldvalue = image->GetPixel(it->m_Index);
+    typename OutputImageType::PixelType newvalue = oldvalue + dt * it->m_Data;
     // Check whether solution is out the inner band or not
     m_TouchedForThread[threadId] =
       (m_TouchedForThread[threadId] || (!(it->m_NodeState & INNER_MASK) && ((oldvalue > 0) != (newvalue > 0))));
@@ -242,16 +238,15 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::ThreadedApplyUpdate(const 
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename NarrowBandImageFilterBase<TInputImage, TOutputImage>::TimeStepType
+auto
 NarrowBandImageFilterBase<TInputImage, TOutputImage>::ThreadedCalculateChange(const ThreadRegionType & regionToProcess)
+  -> TimeStepType
 {
   using OutputSizeType = typename OutputImageType::SizeType;
 
   using NeighborhoodIteratorType = typename FiniteDifferenceFunctionType::NeighborhoodType;
 
-  typename OutputImageType::Pointer output = this->GetOutput();
-  TimeStepType                      timeStep;
-  void *                            globalData;
+  const typename OutputImageType::Pointer output = this->GetOutput();
 
   // Get the FiniteDifferenceFunction to use in calculations.
   const typename FiniteDifferenceFunctionType::Pointer df = this->GetDifferenceFunction();
@@ -261,7 +256,7 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::ThreadedCalculateChange(co
   // manage any global values it needs.  We'll pass this back to the function
   // object at each calculation so that the function object can use it to
   // determine a time step for this iteration.
-  globalData = df->GetGlobalDataPointer();
+  void * globalData = df->GetGlobalDataPointer();
 
   typename NarrowBandType::Iterator bandIt;
   NeighborhoodIteratorType          outputIt(radius, output, output->GetRequestedRegion());
@@ -275,16 +270,11 @@ NarrowBandImageFilterBase<TInputImage, TOutputImage>::ThreadedCalculateChange(co
   // Ask the finite difference function to compute the time step for
   // this iteration.  We give it the global data pointer to use, then
   // ask it to free the global data memory.
-  timeStep = df->ComputeGlobalTimeStep(globalData);
+  TimeStepType timeStep = df->ComputeGlobalTimeStep(globalData);
   df->ReleaseGlobalDataPointer(globalData);
 
   return timeStep;
 }
-
-template <typename TInputImage, typename TOutputImage>
-void
-NarrowBandImageFilterBase<TInputImage, TOutputImage>::PostProcessOutput()
-{}
 
 template <typename TInputImage, typename TOutputImage>
 void

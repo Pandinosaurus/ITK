@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,11 +24,11 @@
 namespace itk
 {
 /**
- * \class MeshFunctionBase
+ * \class QuadEdgeMeshFunctionBase
  * \ingroup QEMeshModifierFunctions
  * \brief Base class for mesh function object modifiers.
  *
- * MeshFunctionBase is the base class for itkQE function objects specialised
+ * QuadEdgeMeshFunctionBase is the base class for itkQE function objects specialised
  * in Mesh "small" (reduced in range) modification.
  * Subclasses of itk::FunctionBase cannot modify their InputType since
  * the signature of their Evaluate( const InputType& ) method guarantees it.
@@ -39,8 +39,8 @@ namespace itk
  * But for small modifications (think of the Euler operators) that an
  * algorithm needs to apply many times, this systematic duplication can
  * be daunting.
- * MeshFunctionBase thus offers a lightweight alternative to itk Filter.
- * Subclasses of MeshFunctionBase, which should override Evaluate(), are
+ * QuadEdgeMeshFunctionBase thus offers a lightweight alternative to itk Filter.
+ * Subclasses of QuadEdgeMeshFunctionBase, which should override Evaluate(), are
  * function objects that apply reduced and localised modifications
  * (geometry, or connectivity) on the InputType mesh.
  *
@@ -63,8 +63,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(QuadEdgeMeshFunctionBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshFunctionBase);
 
   /** Mesh type that must be modified */
   using MeshType = TMesh;
@@ -87,14 +87,16 @@ public:
   //  }
 
 protected:
-  QuadEdgeMeshFunctionBase() { m_Mesh = (MeshType *)nullptr; }
+  QuadEdgeMeshFunctionBase()
+    : m_Mesh((MeshType *)nullptr)
+  {}
 
   ~QuadEdgeMeshFunctionBase() override = default;
 
 private:
 protected:
   /** Mesh on which to apply the modification */
-  MeshType * m_Mesh;
+  MeshType * m_Mesh{};
 };
 } // end namespace itk
 

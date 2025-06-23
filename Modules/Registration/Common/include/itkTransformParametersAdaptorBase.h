@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TransformParametersAdaptorBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TransformParametersAdaptorBase);
 
   /** Typedefs associated with the transform */
   using TransformBaseType = TTransform;
@@ -100,7 +100,7 @@ protected:
     os << "Fixed parameters" << this->m_RequiredFixedParameters << std::endl;
   }
 
-  FixedParametersType m_RequiredFixedParameters;
+  FixedParametersType m_RequiredFixedParameters{};
 }; // class TransformParametersAdaptorBase
 } // namespace itk
 

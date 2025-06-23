@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,10 +24,12 @@
 #include "itkSingleValuedVnlCostFunctionAdaptorv4.h"
 #include "itkCommand.h"
 
+#include <memory> // For unique_ptr.
+
 namespace itk
 {
 /**
- *\class SingleValuedNonLinearVnlOptimizerv4
+ * \class SingleValuedNonLinearVnlOptimizerv4
  * \brief This is a base for the ITKv4 Optimization methods using
  * the vnl library.
  *
@@ -46,8 +48,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SingleValuedNonLinearVnlOptimizerv4, ObjectToObjectOptimizerBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SingleValuedNonLinearVnlOptimizerv4);
 
   /** Command observer that will interact with the ITKVNL cost-function
    * adaptor in order to generate iteration events. This will allow to overcome
@@ -83,11 +85,12 @@ public:
    * a value that may not be the one corresponding to the current parameters. For
    * GUI update purposes, this method is a good option.
    * \note The metric value is cached in the base class, retrieved via GetValue(). */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CachedDerivative, DerivativeType);
   itkGetConstReferenceMacro(CachedCurrentPosition, ParametersType);
-
+  /** @ITKEndGrouping */
   /** Get the reason for termination */
-  const StopConditionReturnStringType
+  StopConditionReturnStringType
   GetStopConditionDescription() const override = 0;
 
 protected:
@@ -124,12 +127,12 @@ private:
   void
   IterationReport(const EventObject & event);
 
-  CostFunctionAdaptorType * m_CostFunctionAdaptor;
+  std::unique_ptr<CostFunctionAdaptorType> m_CostFunctionAdaptor;
 
-  CommandType::Pointer m_Command;
+  CommandType::Pointer m_Command{};
 
-  mutable ParametersType m_CachedCurrentPosition;
-  mutable DerivativeType m_CachedDerivative;
+  mutable ParametersType m_CachedCurrentPosition{};
+  mutable DerivativeType m_CachedDerivative{};
 };
 } // end namespace itk
 

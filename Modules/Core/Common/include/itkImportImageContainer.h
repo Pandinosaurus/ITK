@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
  *  \brief Defines an itk::Image front-end to a standard C-array.
  *
  * Defines an itk::Image front-end to a standard C-array. This container
- * conforms to the ImageContainerInterface. This is a full-fleged Object,
+ * conforms to the ImageContainerInterface. This is a full-fledged Object,
  * so there is modification time, debug, and reference count information.
  *
  * \tparam TElementIdentifier An INTEGRAL type for use in indexing the
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(ImportImageContainer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImportImageContainer);
 
   /** Get the pointer from which the image data is imported. */
   TElement *
@@ -80,10 +80,18 @@ public:
   SetImportPointer(TElement * ptr, TElementIdentifier num, bool LetContainerManageMemory = false);
 
   /** Index operator. This version can be an lvalue. */
-  TElement & operator[](const ElementIdentifier id) { return m_ImportPointer[id]; }
+  TElement &
+  operator[](const ElementIdentifier id)
+  {
+    return m_ImportPointer[id];
+  }
 
   /** Index operator. This version can only be an rvalue */
-  const TElement & operator[](const ElementIdentifier id) const { return m_ImportPointer[id]; }
+  const TElement &
+  operator[](const ElementIdentifier id) const
+  {
+    return m_ImportPointer[id];
+  }
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
@@ -118,12 +126,12 @@ public:
    * container. However, in this particular case, Reserve as a Resize
    * semantics that is kept for backward compatibility reasons.
    *
-   * If UseDefaultConstructor is true, then * the default constructor is used
-   * to initialize each element.  POD date types initialize to zero.
+   * If UseValueInitialization is true, then POD types will be
+   * zero-initialized.
    *
    * \sa SetImportPointer() */
   void
-  Reserve(ElementIdentifier size, const bool UseDefaultConstructor = false);
+  Reserve(ElementIdentifier size, const bool UseValueInitialization = false);
 
   /** Tell the container to try to minimize its memory usage for
    * storage of the current number of elements.  If new memory is
@@ -147,12 +155,13 @@ public:
    *  Note that the normal logic of this class set the value of the boolean
    *  flag. This may override your setting if you call this methods prematurely.
    *  \warning Improper use of these methods will result in memory leaks */
+  /** @ITKStartGrouping */
   itkSetMacro(ContainerManageMemory, bool);
   itkGetConstMacro(ContainerManageMemory, bool);
   itkBooleanMacro(ContainerManageMemory);
-
+  /** @ITKEndGrouping */
 protected:
-  ImportImageContainer();
+  ImportImageContainer() = default;
   ~ImportImageContainer() override;
 
   /** PrintSelf routine. Normally this is a protected internal method. It is
@@ -162,12 +171,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /**
-   * Allocates elements of the array.  If UseDefaultConstructor is true, then
-   * the default constructor is used to initialize each element.  POD date types
-   * initialize to zero.
+   * Allocates elements of the array.  If UseValueInitialization is true, then
+   * POD types will be zero-initialized.
    */
   virtual TElement *
-  AllocateElements(ElementIdentifier size, bool UseDefaultConstructor = false) const;
+  AllocateElements(ElementIdentifier size, bool UseValueInitialization = false) const;
 
   virtual void
   DeallocateManagedMemory();
@@ -199,10 +207,10 @@ protected:
   }
 
 private:
-  TElement *         m_ImportPointer;
-  TElementIdentifier m_Size;
-  TElementIdentifier m_Capacity;
-  bool               m_ContainerManageMemory;
+  TElement *         m_ImportPointer{};
+  TElementIdentifier m_Size{};
+  TElementIdentifier m_Capacity{};
+  bool               m_ContainerManageMemory{ true };
 };
 } // end namespace itk
 

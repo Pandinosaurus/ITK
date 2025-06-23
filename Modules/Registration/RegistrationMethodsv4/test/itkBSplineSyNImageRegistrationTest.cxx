@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,8 +58,8 @@ public:
       return;
     }
 
-    unsigned int                                             currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
+    const unsigned int                                             currentLevel = filter->GetCurrentLevel();
+    const typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
       filter->GetShrinkFactorsPerDimension(currentLevel);
     typename TFilter::SmoothingSigmasArrayType                 smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
@@ -75,8 +75,9 @@ public:
 
 template <unsigned int TDimension>
 int
-PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
+PerformBSplineSyNImageRegistration(int argc, char * argv[])
 {
+  ITK_TEST_EXPECT_TRUE(argc == 4);
   const unsigned int ImageDimension = TDimension;
 
   using PixelType = double;
@@ -85,23 +86,23 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
 
   using ImageReaderType = itk::ImageFileReader<FixedImageType>;
 
-  typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName(argv[2]);
   fixedImageReader->Update();
-  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   fixedImage->Update();
   fixedImage->DisconnectPipeline();
 
-  typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
   movingImageReader->SetFileName(argv[3]);
   movingImageReader->Update();
-  typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
   movingImage->Update();
   movingImage->DisconnectPipeline();
 
   using AffineTransformType = itk::AffineTransform<double, ImageDimension>;
   using AffineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, AffineTransformType>;
-  typename AffineRegistrationType::Pointer affineSimple = AffineRegistrationType::New();
+  auto affineSimple = AffineRegistrationType::New();
   affineSimple->SetFixedImage(fixedImage);
   affineSimple->SetMovingImage(movingImage);
 
@@ -125,19 +126,11 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
 #endif
 
   using AffineCommandType = CommandIterationUpdate<AffineRegistrationType>;
-  typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
+  auto affineObserver = AffineCommandType::New();
   affineSimple->AddObserver(itk::IterationEvent(), affineObserver);
 
-  try
-  {
-    std::cout << "Affine transform" << std::endl;
-    affineSimple->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(affineSimple->Update());
+
 
   //
   // Now do the b-spline syn displacement field transform
@@ -146,11 +139,11 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   using RealType = typename AffineRegistrationType::RealType;
 
   using CompositeTransformType = itk::CompositeTransform<RealType, ImageDimension>;
-  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+  auto compositeTransform = CompositeTransformType::New();
   compositeTransform->AddTransform(affineSimple->GetModifiableTransform());
 
   using AffineResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename AffineResampleFilterType::Pointer affineResampler = AffineResampleFilterType::New();
+  auto affineResampler = AffineResampleFilterType::New();
   affineResampler->SetTransform(compositeTransform);
   affineResampler->SetInput(movingImage);
   affineResampler->SetSize(fixedImage->GetBufferedRegion().GetSize());
@@ -160,35 +153,40 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   affineResampler->SetDefaultPixelValue(0);
   affineResampler->Update();
 
-  std::string affineMovingImageFileName = std::string(argv[4]) + std::string("MovingImageAfterAffineTransform.nii.gz");
+  const std::string affineMovingImageFileName =
+    std::string(argv[4]) + std::string("MovingImageAfterAffineTransform.nii.gz");
 
   using AffineWriterType = itk::ImageFileWriter<FixedImageType>;
-  typename AffineWriterType::Pointer affineWriter = AffineWriterType::New();
+  auto affineWriter = AffineWriterType::New();
   affineWriter->SetFileName(affineMovingImageFileName.c_str());
   affineWriter->SetInput(affineResampler->GetOutput());
   affineWriter->Update();
 
   using VectorType = itk::Vector<RealType, ImageDimension>;
-  VectorType zeroVector(0.0);
+  constexpr VectorType zeroVector{};
 
   // Create the SyN deformable registration method
 
   using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
-  typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
+  auto displacementField = DisplacementFieldType::New();
   displacementField->CopyInformation(fixedImage);
   displacementField->SetRegions(fixedImage->GetBufferedRegion());
   displacementField->Allocate();
   displacementField->FillBuffer(zeroVector);
 
-  typename DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
+  auto inverseDisplacementField = DisplacementFieldType::New();
   inverseDisplacementField->CopyInformation(fixedImage);
   inverseDisplacementField->SetRegions(fixedImage->GetBufferedRegion());
   inverseDisplacementField->Allocate();
   inverseDisplacementField->FillBuffer(zeroVector);
 
   using DisplacementFieldRegistrationType = itk::BSplineSyNImageRegistrationMethod<FixedImageType, MovingImageType>;
-  typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
+  const typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
     DisplacementFieldRegistrationType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    displacementFieldRegistration, BSplineSyNImageRegistrationMethod, SyNImageRegistrationMethod);
+
 
   typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights;
   optimizerWeights.SetSize(TDimension);
@@ -197,7 +195,7 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   displacementFieldRegistration->SetOptimizerWeights(optimizerWeights);
 
   using OutputTransformType = typename DisplacementFieldRegistrationType::OutputTransformType;
-  typename OutputTransformType::Pointer outputTransform = OutputTransformType::New();
+  auto outputTransform = OutputTransformType::New();
   outputTransform->SetDisplacementField(displacementField);
   outputTransform->SetInverseDisplacementField(inverseDisplacementField);
 
@@ -213,7 +211,7 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   // if the user wishes to add that option, they can use the class
   // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
 
-  unsigned int numberOfLevels = 3;
+  constexpr unsigned int numberOfLevels = 3;
 
   typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
   numberOfIterationsPerLevel.SetSize(3);
@@ -240,25 +238,25 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
 
   typename OutputTransformType::ArrayType updateMeshSize;
   typename OutputTransformType::ArrayType totalMeshSize;
-  for (unsigned int d = 0; d < ImageDimension; d++)
+  for (unsigned int d = 0; d < ImageDimension; ++d)
   {
     updateMeshSize[d] = 10;
     totalMeshSize[d] = 0;
   }
 
-  for (unsigned int level = 0; level < numberOfLevels; level++)
+  for (unsigned int level = 0; level < numberOfLevels; ++level)
   {
     // We use the shrink image filter to calculate the fixed parameters of the virtual
     // domain at each level.  To speed up calculation and avoid unnecessary memory
     // usage, we could calculate these fixed parameters directly.
 
     using ShrinkFilterType = itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType>;
-    typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(displacementField);
     shrinkFilter->Update();
 
-    typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
+    const typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
       DisplacementFieldTransformAdaptorType::New();
     fieldTransformAdaptor->SetRequiredSpacing(shrinkFilter->GetOutput()->GetSpacing());
     fieldTransformAdaptor->SetRequiredSize(shrinkFilter->GetOutput()->GetBufferedRegion().GetSize());
@@ -269,7 +267,7 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
     // A good heuristic is to double the b-spline mesh resolution at each level
     typename OutputTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
     typename OutputTransformType::ArrayType newTotalMeshSize = totalMeshSize;
-    for (unsigned int d = 0; d < ImageDimension; d++)
+    for (unsigned int d = 0; d < ImageDimension; ++d)
     {
       newUpdateMeshSize[d] = newUpdateMeshSize[d] << (level);
       newTotalMeshSize[d] = newTotalMeshSize[d] << (level);
@@ -281,9 +279,8 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   }
 
   using CorrelationMetricType = itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType>;
-  typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-  typename CorrelationMetricType::RadiusType radius;
-  radius.Fill(4);
+  auto correlationMetric = CorrelationMetricType::New();
+  auto radius = itk::MakeFilled<typename CorrelationMetricType::RadiusType>(4);
   correlationMetric->SetRadius(radius);
   correlationMetric->SetUseMovingImageGradientFilter(false);
   correlationMetric->SetUseFixedImageGradientFilter(false);
@@ -306,21 +303,13 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   displacementFieldRegistration->SetInitialTransform(outputTransform);
   displacementFieldRegistration->InPlaceOn();
 
-  try
-  {
-    std::cout << "BSpline SyN registration" << std::endl;
-    displacementFieldRegistration->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(displacementFieldRegistration->Update());
+
 
   compositeTransform->AddTransform(outputTransform);
 
   using ResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
   resampler->SetTransform(compositeTransform);
   resampler->SetInput(movingImage);
   resampler->SetSize(fixedImage->GetBufferedRegion().GetSize());
@@ -330,16 +319,16 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   resampler->SetDefaultPixelValue(0);
   resampler->Update();
 
-  std::string warpedMovingImageFileName = std::string(argv[4]) + std::string("MovingImageAfterSyN.nii.gz");
+  const std::string warpedMovingImageFileName = std::string(argv[4]) + std::string("MovingImageAfterSyN.nii.gz");
 
   using WriterType = itk::ImageFileWriter<FixedImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(warpedMovingImageFileName.c_str());
   writer->SetInput(resampler->GetOutput());
   writer->Update();
 
   using InverseResampleFilterType = itk::ResampleImageFilter<FixedImageType, MovingImageType>;
-  typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
+  const typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
   inverseResampler->SetTransform(compositeTransform->GetInverseTransform());
   inverseResampler->SetInput(fixedImage);
   inverseResampler->SetSize(movingImage->GetBufferedRegion().GetSize());
@@ -349,18 +338,19 @@ PerformBSplineSyNImageRegistration(int itkNotUsed(argc), char * argv[])
   inverseResampler->SetDefaultPixelValue(0);
   inverseResampler->Update();
 
-  std::string inverseWarpedFixedImageFileName = std::string(argv[4]) + std::string("InverseWarpedFixedImage.nii.gz");
+  const std::string inverseWarpedFixedImageFileName =
+    std::string(argv[4]) + std::string("InverseWarpedFixedImage.nii.gz");
 
   using InverseWriterType = itk::ImageFileWriter<MovingImageType>;
-  typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+  auto inverseWriter = InverseWriterType::New();
   inverseWriter->SetFileName(inverseWarpedFixedImageFileName.c_str());
   inverseWriter->SetInput(inverseResampler->GetOutput());
   inverseWriter->Update();
 
-  std::string displacementFieldFileName = std::string(argv[4]) + std::string("DisplacementField.nii.gz");
+  const std::string displacementFieldFileName = std::string(argv[4]) + std::string("DisplacementField.nii.gz");
 
   using DisplacementFieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
-  typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+  auto displacementFieldWriter = DisplacementFieldWriterType::New();
   displacementFieldWriter->SetFileName(displacementFieldFileName.c_str());
   displacementFieldWriter->SetInput(outputTransform->GetDisplacementField());
   displacementFieldWriter->Update();
@@ -373,10 +363,11 @@ itkBSplineSyNImageRegistrationTest(int argc, char * argv[])
 {
   if (argc < 5)
   {
-    std::cout << itkNameOfTestExecutableMacro(argv)
-              << " imageDimension fixedImage movingImage outputPrefix numberOfDeformableIterations learningRate"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " imageDimension fixedImage movingImage outputPrefix numberOfDeformableIterations learningRate"
               << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   switch (std::stoi(argv[1]))
@@ -389,7 +380,7 @@ itkBSplineSyNImageRegistrationTest(int argc, char * argv[])
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

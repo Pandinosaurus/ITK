@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include "itkSimpleFilterWatcher.h"
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkScalarToRGBPixelFunctor.h"
+#include "itkTestingMacros.h"
 
 int
 itkVoronoiPartitioningImageFilterTest(int argc, char * argv[])
@@ -31,21 +32,19 @@ itkVoronoiPartitioningImageFilterTest(int argc, char * argv[])
 
   if (argc != 4)
   {
-    std::cout << "Usage: itkVoronoiPartitioningImageFilterTest input output show_boundaries" << std::endl;
+    std::cerr << "Missing Parameters " << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cout << " input output showBoundaries" << std::endl;
     return EXIT_FAILURE;
   }
 
 
-  /* ------------------------------------------------
-   * Load an image
-   */
-  itk::ImageFileReader<FloatImage>::Pointer original = itk::ImageFileReader<FloatImage>::New();
+  // Load an image
+  const itk::ImageFileReader<FloatImage>::Pointer original = itk::ImageFileReader<FloatImage>::New();
   original->SetFileName(argv[1]);
 
-  /* -------------------------------------------------
-   * Preprocess the image
-   */
-  itk::DiscreteGaussianImageFilter<FloatImage, FloatImage>::Pointer gaussian3 =
+  // Preprocess the image
+  const itk::DiscreteGaussianImageFilter<FloatImage, FloatImage>::Pointer gaussian3 =
     itk::DiscreteGaussianImageFilter<FloatImage, FloatImage>::New();
   // itk::SimpleFilterWatcher gaussian3Watcher(gaussian3);
   gaussian3->SetInput(original->GetOutput());
@@ -56,16 +55,24 @@ itkVoronoiPartitioningImageFilterTest(int argc, char * argv[])
   //
   using VoronoiSegmentationType = itk::VoronoiPartitioningImageFilter<FloatImage, FloatImage>;
 
-  VoronoiSegmentationType::Pointer voronoi = VoronoiSegmentationType::New();
+  auto voronoi = VoronoiSegmentationType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(voronoi, VoronoiPartitioningImageFilter, VoronoiSegmentationImageFilterBase);
+
+
   voronoi->SetInput(gaussian3->GetOutput());
   voronoi->SetNumberOfSeeds(6);
   voronoi->SetOutputBoundary(std::stoi(argv[3]) == 1);
   voronoi->SetSteps(7);
-  voronoi->SetSigmaThreshold(4.0);
+
+  constexpr double sigmaThreshold = 4.0;
+  voronoi->SetSigmaThreshold(sigmaThreshold);
+  ITK_TEST_SET_GET_VALUE(sigmaThreshold, voronoi->GetSigmaThreshold());
+
   voronoi->SetMinRegion(10);
   voronoi->InteractiveSegmentationOn();
 
-  itk::SimpleFilterWatcher voronoiWatcher(voronoi);
+  const itk::SimpleFilterWatcher voronoiWatcher(voronoi);
 
   // Write out an image of the voronoi diagram
   using RGBPixelType = itk::RGBPixel<unsigned char>;
@@ -74,22 +81,15 @@ itkVoronoiPartitioningImageFilterTest(int argc, char * argv[])
   using ColormapFilterType = itk::UnaryFunctorImageFilter<FloatImage, RGBImageType, ColormapFunctorType>;
   using WriterType = itk::ImageFileWriter<RGBImageType>;
 
-  WriterType::Pointer         writer = WriterType::New();
-  ColormapFilterType::Pointer colormapper = ColormapFilterType::New();
+  auto writer = WriterType::New();
+  auto colormapper = ColormapFilterType::New();
+  colormapper->SetInput(voronoi->GetOutput());
+  writer->SetInput(colormapper->GetOutput());
+  writer->SetFileName(argv[2]);
 
-  try
-  {
-    colormapper->SetInput(voronoi->GetOutput());
-    writer->SetInput(colormapper->GetOutput());
-    writer->SetFileName(argv[2]);
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excep)
-  {
-    std::cerr << "Exception caught !" << std::endl;
-    std::cerr << excep << std::endl;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-  //
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

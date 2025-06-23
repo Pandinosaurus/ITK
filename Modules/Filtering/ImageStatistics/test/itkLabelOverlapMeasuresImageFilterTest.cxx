@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,13 +30,17 @@ LabelOverlapMeasures(int, char * argv[])
   using ImageType = itk::Image<PixelType, VImageDimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  typename ReaderType::Pointer reader1 = ReaderType::New();
+  auto reader1 = ReaderType::New();
   reader1->SetFileName(argv[2]);
-  typename ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[3]);
 
   using FilterType = itk::LabelOverlapMeasuresImageFilter<ImageType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, LabelOverlapMeasuresImageFilter, ImageToImageFilter);
+
+
   filter->SetSourceImage(reader1->GetOutput());
   filter->SetTargetImage(reader2->GetOutput());
   filter->Update();
@@ -44,7 +48,7 @@ LabelOverlapMeasures(int, char * argv[])
   std::cout << "All Labels" << std::endl;
   std::cout << std::setw(10) << "   " << std::setw(17) << "Total" << std::setw(17) << "Union (jaccard)" << std::setw(17)
             << "Mean (dice)" << std::setw(17) << "Volume sim." << std::setw(17) << "False negative" << std::setw(17)
-            << "False positive" << std::endl;
+            << "False positive" << std::setw(17) << "False discovery" << std::endl;
   std::cout << std::setw(10) << "   ";
   std::cout << std::setw(17) << filter->GetTotalOverlap();
   std::cout << std::setw(17) << filter->GetUnionOverlap();
@@ -52,24 +56,25 @@ LabelOverlapMeasures(int, char * argv[])
   std::cout << std::setw(17) << filter->GetVolumeSimilarity();
   std::cout << std::setw(17) << filter->GetFalseNegativeError();
   std::cout << std::setw(17) << filter->GetFalsePositiveError();
+  std::cout << std::setw(17) << filter->GetFalseDiscoveryRate();
   std::cout << std::endl;
 
   std::cout << "Individual Labels" << std::endl;
   std::cout << std::setw(10) << "Label" << std::setw(17) << "Target" << std::setw(17) << "Union (jaccard)"
             << std::setw(17) << "Mean (dice)" << std::setw(17) << "Volume sim." << std::setw(17) << "False negative"
-            << std::setw(17) << "False positive" << std::endl;
+            << std::setw(17) << "False positive" << std::setw(17) << "False discovery" << std::endl;
 
   typename FilterType::MapType                 labelMap = filter->GetLabelSetMeasures();
   typename FilterType::MapType::const_iterator it;
   int                                          label = 0;
   for (it = labelMap.begin(); it != labelMap.end(); ++it)
   {
-    if ((*it).first == 0)
+    if (it->first == 0)
     {
       continue;
     }
 
-    label = (*it).first;
+    label = it->first;
 
     std::cout << std::setw(10) << label;
     std::cout << std::setw(17) << filter->GetTargetOverlap(label);
@@ -78,6 +83,7 @@ LabelOverlapMeasures(int, char * argv[])
     std::cout << std::setw(17) << filter->GetVolumeSimilarity(label);
     std::cout << std::setw(17) << filter->GetFalseNegativeError(label);
     std::cout << std::setw(17) << filter->GetFalsePositiveError(label);
+    std::cout << std::setw(17) << filter->GetFalseDiscoveryRate(label);
     std::cout << std::endl;
   }
 
@@ -88,8 +94,8 @@ LabelOverlapMeasures(int, char * argv[])
   // Assume that no such label exists
   label = itk::NumericTraits<PixelType>::max();
 
-  typename FilterType::RealType expectedValue = 0.0;
-  typename FilterType::RealType result = filter->GetTargetOverlap(label);
+  const typename FilterType::RealType expectedValue = 0.0;
+  typename FilterType::RealType       result = filter->GetTargetOverlap(label);
   if (itk::Math::NotAlmostEquals(expectedValue, result))
   {
     std::cout << "Error in label " << static_cast<itk::NumericTraits<PixelType>::PrintType>(label) << ": ";
@@ -134,6 +140,15 @@ LabelOverlapMeasures(int, char * argv[])
     return EXIT_FAILURE;
   }
 
+  result = filter->GetFalseDiscoveryRate(label);
+  if (itk::Math::NotAlmostEquals(expectedValue, result))
+  {
+    std::cout << "Error in label " << static_cast<itk::NumericTraits<PixelType>::PrintType>(label) << ": ";
+    std::cout << "Expected false discovery rate: " << expectedValue << ", but got " << result << std::endl;
+    std::cout << "Test failed" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
 
@@ -154,14 +169,13 @@ itkLabelOverlapMeasuresImageFilterTest(int argc, char * argv[])
 
   using LabelOverlapMeasuresImageFilterType = itk::LabelOverlapMeasuresImageFilter<ImageType>;
 
-  LabelOverlapMeasuresImageFilterType::Pointer labelOverlapMeasuresImageFilter =
+  const LabelOverlapMeasuresImageFilterType::Pointer labelOverlapMeasuresImageFilter =
     LabelOverlapMeasuresImageFilterType::New();
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited
   // when calling overloaded base class functions.
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(
-    labelOverlapMeasuresImageFilter, LabelOverlapMeasuresImageFilter, ImageToImageFilter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(labelOverlapMeasuresImageFilter, LabelOverlapMeasuresImageFilter, ImageSink);
 
 
   switch (std::stoi(argv[1]))

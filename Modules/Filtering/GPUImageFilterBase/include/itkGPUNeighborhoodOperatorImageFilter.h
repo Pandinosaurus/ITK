@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUNeighborhoodOperatorImageFilter, GPUImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUNeighborhoodOperatorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -135,7 +135,6 @@ public:
    * \sa ProcessObject::GenerateInputRequestedRegion()
   virtual void GenerateInputRequestedRegion();*/
 
-#ifdef ITK_USE_CONCEPT_CHECKING
   // Begin concept checking
   // itkConceptMacro( SameDimensionCheck,
   //                  ( Concept::SameDimension< InputImageDimension, ImageDimension > ) );
@@ -148,7 +147,6 @@ public:
   // itkConceptMacro( OperatorAdditiveOperatorsCheck,
   //                  ( Concept::AdditiveOperators< OperatorValueType > ) );
   // End concept checking
-#endif
 
 protected:
   GPUNeighborhoodOperatorImageFilter();
@@ -188,9 +186,9 @@ private:
   /** Default boundary condition
   DefaultBoundaryCondition m_DefaultBoundaryCondition;*/
 
-  int m_NeighborhoodOperatorFilterGPUKernelHandle;
+  int m_NeighborhoodOperatorFilterGPUKernelHandle{};
 
-  typename NeighborhoodGPUBufferType::Pointer m_NeighborhoodGPUBuffer;
+  typename NeighborhoodGPUBufferType::Pointer m_NeighborhoodGPUBuffer{};
 };
 } // end namespace itk
 

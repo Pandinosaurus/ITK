@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,11 +45,13 @@ printnb(const TIteratorType & nb, bool full)
 
     while (it != nb.End())
     {
-      std::cout << **it << " ";
+      std::cout << **it << ' ';
       if ((count % sz) == 0)
+      {
         std::cout << std::endl;
+      }
       ++it;
-      count++;
+      ++count;
     }
   }
   else
@@ -58,31 +60,31 @@ printnb(const TIteratorType & nb, bool full)
   }
 }
 
-template <unsigned int N>
+template <unsigned int VDimension>
 void
-FillImage(itk::Image<itk::Index<N>, N> * img)
+FillImage(itk::Image<itk::Index<VDimension>, VDimension> * img)
 {
-  using IndexType = itk::Index<N>;
-  using ImageType = itk::Image<IndexType, N>;
-  const itk::Size<N> size = img->GetRequestedRegion().GetSize();
+  using IndexType = itk::Index<VDimension>;
+  using ImageType = itk::Image<IndexType, VDimension>;
+  const itk::Size<VDimension> size = img->GetRequestedRegion().GetSize();
 
-  unsigned int i;
-  IndexType    loop;
-  loop.Fill(0);
+  IndexType                           loop{};
   itk::ImageRegionIterator<ImageType> it(img, img->GetRequestedRegion());
 
   while (!it.IsAtEnd())
   {
     it.Value() = loop;
-    for (i = 0; i < N; ++i)
+    for (unsigned int i = 0; i < VDimension; ++i)
     {
       loop[i]++;
-      if ((unsigned int)(loop[i]) == size[i])
+      if (static_cast<unsigned int>(loop[i]) == size[i])
       {
         loop[i] = 0;
       }
       else
+      {
         break;
+      }
     }
     ++it;
   }

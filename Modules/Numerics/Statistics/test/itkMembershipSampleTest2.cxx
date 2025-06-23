@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,10 +35,10 @@ itkMembershipSampleTest2(int, char *[])
 
   using MembershipSampleType = itk::Statistics::MembershipSample<SampleType>;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(MeasurementVectorSize);
 
-  MembershipSampleType::Pointer membershipSample = MembershipSampleType::New();
+  auto membershipSample = MembershipSampleType::New();
 
   membershipSample->SetSample(sample);
 
@@ -59,16 +59,16 @@ itkMembershipSampleTest2(int, char *[])
   membershipSample->Print(std::cout);
 
   // Add measurement vectors to the list sample
-  unsigned int          sampleSize = 10;
-  MeasurementVectorType mv;
+  constexpr unsigned int sampleSize = 10;
+  MeasurementVectorType  mv;
   itk::NumericTraits<MeasurementVectorType>::SetLength(mv, MeasurementVectorSize);
 
   std::cout << "Sample length = " << sample->GetMeasurementVectorSize() << std::endl;
   std::cout << "Vector length = " << itk::NumericTraits<MeasurementVectorType>::GetLength(mv) << std::endl;
 
-  for (unsigned int i = 0; i < sampleSize; i++)
+  for (unsigned int i = 0; i < sampleSize; ++i)
   {
-    for (unsigned int j = 0; j < MeasurementVectorSize; j++)
+    for (unsigned int j = 0; j < MeasurementVectorSize; ++j)
     {
       mv[j] = rand() / (RAND_MAX + 1.0);
     }
@@ -76,8 +76,8 @@ itkMembershipSampleTest2(int, char *[])
   }
 
   // Add instances to the membership sample
-  SampleType::ConstIterator begin = sample->Begin();
-  SampleType::ConstIterator end = sample->End();
+  const SampleType::ConstIterator begin = sample->Begin();
+  const SampleType::ConstIterator end = sample->End();
 
   SampleType::ConstIterator iter = begin;
 
@@ -91,7 +91,7 @@ itkMembershipSampleTest2(int, char *[])
     {
       classLabel = 1;
     }
-    SampleType::InstanceIdentifier id = iter.GetInstanceIdentifier();
+    const SampleType::InstanceIdentifier id = iter.GetInstanceIdentifier();
     membershipSample->AddInstance(classLabel, id);
     ++iter;
     ++sampleCounter;
@@ -107,7 +107,7 @@ itkMembershipSampleTest2(int, char *[])
 
     IteratorType s_iter = membershipSample->Begin();
 
-    IteratorType bs_iter(s_iter);
+    const IteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor failed" << std::endl;
@@ -182,7 +182,7 @@ itkMembershipSampleTest2(int, char *[])
     ConstIteratorType s_iter = membershipSample->Begin();
 
     // copy constructor
-    ConstIteratorType bs_iter(s_iter);
+    const ConstIteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor (from const) failed" << std::endl;
@@ -199,8 +199,8 @@ itkMembershipSampleTest2(int, char *[])
     }
 
     // copy from non-const iterator
-    MembershipSampleType::Iterator      nonconst_iter = membershipSample->Begin();
-    MembershipSampleType::ConstIterator s2_iter(nonconst_iter);
+    const MembershipSampleType::Iterator nonconst_iter = membershipSample->Begin();
+    MembershipSampleType::ConstIterator  s2_iter(nonconst_iter);
     if (s2_iter != s_iter)
     {
       std::cerr << "Iterator::Copy Constructor (from non-const) failed" << std::endl;

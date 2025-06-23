@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkVarianceImageFunctionTest(int, char *[])
   using FunctionType = itk::VarianceImageFunction<ImageType>;
 
   // Create and allocate the image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::SizeType   size;
   ImageType::IndexType  start;
   ImageType::RegionType region;
@@ -51,7 +51,7 @@ itkVarianceImageFunctionTest(int, char *[])
 
   image->FillBuffer(27);
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
 
   function->SetInputImage(image);
 
@@ -63,17 +63,14 @@ itkVarianceImageFunctionTest(int, char *[])
   index[1] = 25;
   index[2] = 25;
 
-  FunctionType::OutputType variance;
-
-  variance = function->EvaluateAtIndex(index);
+  const FunctionType::OutputType variance = function->EvaluateAtIndex(index);
 
   // Test Evaluate
   FunctionType::PointType point;
   point[0] = 25;
   point[1] = 25;
   point[2] = 25;
-  FunctionType::OutputType variance2;
-  variance2 = function->Evaluate(point);
+  const FunctionType::OutputType variance2 = function->Evaluate(point);
   std::cout << "function->Evaluate(point): "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(variance2) << std::endl;
 
@@ -82,8 +79,7 @@ itkVarianceImageFunctionTest(int, char *[])
   cindex[0] = 25;
   cindex[1] = 25;
   cindex[2] = 25;
-  FunctionType::OutputType variance3;
-  variance3 = function->EvaluateAtContinuousIndex(cindex);
+  const FunctionType::OutputType variance3 = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "function->EvaluateAtContinuousIndex(cindex): "
             << static_cast<itk::NumericTraits<FunctionType::OutputType>::PrintType>(variance3) << std::endl;
 

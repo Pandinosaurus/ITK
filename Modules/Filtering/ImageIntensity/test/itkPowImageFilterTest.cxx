@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,13 +43,13 @@ itkPowImageFilterTest(int, char *[])
   using SizeType = itk::Size<1>;
   using IndexType = itk::Index<1>;
 
-  ImageType::Pointer inputImageA = ImageType::New();
-  ImageType::Pointer inputImageB = ImageType::New();
+  auto inputImageA = ImageType::New();
+  auto inputImageB = ImageType::New();
 
   SizeType size;
   size[0] = 2;
 
-  ImageType::RegionType region(size);
+  const ImageType::RegionType region(size);
 
   // Initialize Image A
   inputImageA->SetRegions(region);
@@ -69,7 +69,7 @@ itkPowImageFilterTest(int, char *[])
   }
 
   // Create a PowFilter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, PowImageFilter, BinaryGeneratorImageFilter);
 
@@ -81,7 +81,7 @@ itkPowImageFilterTest(int, char *[])
   filter->SetInput2(inputImageB);
 
   // Get the Smart Pointer to the Filter Output
-  ImageType::Pointer outputImage = filter->GetOutput();
+  const ImageType::Pointer outputImage = filter->GetOutput();
 
   // Execute the filter
   filter->Update();
@@ -114,7 +114,7 @@ itkPowImageFilterTest(int, char *[])
   {
     using complexFloatFilterType =
       itk::PowImageFilter<itk::Image<float>, itk::Image<std::complex<float>>, itk::Image<std::complex<float>>>;
-    complexFloatFilterType::Pointer tFilter = complexFloatFilterType::New();
+    auto tFilter = complexFloatFilterType::New();
     ITK_TEST_EXPECT_TRUE(!tFilter.IsNull());
   }
 

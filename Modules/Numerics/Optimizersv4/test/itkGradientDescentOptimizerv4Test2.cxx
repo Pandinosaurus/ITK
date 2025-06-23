@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(GradientDescentOptimizerv4Test2Metric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(GradientDescentOptimizerv4Test2Metric);
 
   enum
   {
@@ -65,7 +65,7 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    MeasureType value;
+    MeasureType value = NAN;
     GetValueAndDerivative(value, derivative);
   }
 
@@ -73,11 +73,13 @@ public:
   GetValueAndDerivative(MeasureType & value, DerivativeType & derivative) const override
   {
     if (derivative.Size() != this->GetNumberOfParameters())
+    {
       derivative.SetSize(this->GetNumberOfParameters());
+    }
 
     value = 0.0;
 
-    for (NumberOfParametersType i = 0; i < this->GetNumberOfParameters(); i++)
+    for (NumberOfParametersType i = 0; i < this->GetNumberOfParameters(); ++i)
     {
       derivative[i] = i;
     }
@@ -144,11 +146,11 @@ itkGradientDescentOptimizerv4Test2(int, char *[])
 
   using ScalesType = OptimizerType::ScalesType;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
 
   // Declaration of the Metric
-  GradientDescentOptimizerv4Test2Metric::Pointer metric = GradientDescentOptimizerv4Test2Metric::New();
+  auto metric = GradientDescentOptimizerv4Test2Metric::New();
 
   itkOptimizer->SetMetric(metric);
 
@@ -163,20 +165,20 @@ itkGradientDescentOptimizerv4Test2(int, char *[])
   itkOptimizer->SetNumberOfIterations(1);
 
   ScalesType scales(metric->GetNumberOfLocalParameters());
-  for (NumberOfParametersType i = 0; i < metric->GetNumberOfLocalParameters(); i++)
+  for (NumberOfParametersType i = 0; i < metric->GetNumberOfLocalParameters(); ++i)
   {
     scales[i] = i + 2;
   }
   itkOptimizer->SetScales(scales);
 
-  ParametersType         truth(metric->GetNumberOfParameters());
-  NumberOfParametersType numLocal = metric->GetNumberOfLocalParameters();
-  NumberOfParametersType numLoops = metric->GetNumberOfParameters() / numLocal;
-  for (NumberOfParametersType i = 0; i < numLoops; i++)
+  ParametersType               truth(metric->GetNumberOfParameters());
+  const NumberOfParametersType numLocal = metric->GetNumberOfLocalParameters();
+  const NumberOfParametersType numLoops = metric->GetNumberOfParameters() / numLocal;
+  for (NumberOfParametersType i = 0; i < numLoops; ++i)
   {
-    for (NumberOfParametersType j = 0; j < numLocal; j++)
+    for (NumberOfParametersType j = 0; j < numLocal; ++j)
     {
-      NumberOfParametersType ind = i * numLocal + j;
+      const NumberOfParametersType ind = i * numLocal + j;
       truth[ind] = initialPosition[ind] + (ind) / scales[j];
     }
   }
@@ -201,7 +203,7 @@ itkGradientDescentOptimizerv4Test2(int, char *[])
   //
   // check results to see if it is within range
   //
-  for (NumberOfParametersType j = 0; j < metric->GetNumberOfParameters(); j++)
+  for (NumberOfParametersType j = 0; j < metric->GetNumberOfParameters(); ++j)
   {
     if (itk::Math::abs(finalPosition[j] - truth[j]) > 0.000001)
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "Robust Automatic Threshold Selection"
  * by Lehmann G.
- * https://hdl.handle.net/1926/370
- * http://www.insight-journal.org/browse/publication/134
+ * https://doi.org/10.54294/7w23qz
  *
  *
  * \ingroup Operators
@@ -52,8 +51,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RobustAutomaticThresholdCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RobustAutomaticThresholdCalculator);
 
   /** Extract the dimension of the image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -116,10 +115,10 @@ protected:
 private:
   bool           m_Valid{ false }; // Have moments been computed yet?
   double         m_Pow{ 1 };
-  InputPixelType m_Output;
+  InputPixelType m_Output{};
 
-  InputImageConstPointer    m_Input;
-  GradientImageConstPointer m_Gradient;
+  InputImageConstPointer    m_Input{};
+  GradientImageConstPointer m_Gradient{};
 };
 } // end namespace itk
 

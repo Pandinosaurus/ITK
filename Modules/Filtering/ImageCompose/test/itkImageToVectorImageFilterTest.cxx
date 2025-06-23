@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,13 @@
 int
 itkImageToVectorImageFilterTest(int argc, char * argv[])
 {
+  if (argc < 3)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << "  input1 input2 ... inputn output" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   using PixelType = unsigned char;
 
@@ -36,37 +43,24 @@ itkImageToVectorImageFilterTest(int argc, char * argv[])
 
   using FilterType = itk::ComposeImageFilter<ScalarImageType>;
 
-  if (argc < 3)
+  auto filter = FilterType::New();
+  int  f = 0;
+  for (int i = 1; i < argc - 1; ++i)
   {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << itkNameOfTestExecutableMacro(argv) << "  input1 input2 ... inputn output" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  FilterType::Pointer filter = FilterType::New();
-  int                 f = 0;
-  for (int i = 1; i < argc - 1; i++)
-  {
-    ReaderType::Pointer reader = ReaderType::New();
+    auto reader = ReaderType::New();
     reader->SetFileName(argv[i]);
     reader->Update();
     filter->SetInput(f++, reader->GetOutput());
   }
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[argc - 1]);
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  try
-  {
-    writer->SetInput(filter->GetOutput());
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Error while writing the file" << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-  std::cout << "Test passed." << std::endl;
+  auto writer = WriterType::New();
+  writer->SetFileName(argv[argc - 1]);
+  writer->SetInput(filter->GetOutput());
+  writer->Update();
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

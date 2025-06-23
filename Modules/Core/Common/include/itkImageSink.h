@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSink, StreamingProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSink);
 
   /** Smart Pointer type to a DataObject. */
   using DataObjectPointer = DataObject::Pointer;
@@ -79,10 +79,10 @@ public:
   using SplitterType = ImageRegionSplitterBase;
   using RegionSplitterPointer = typename SplitterType::Pointer;
 
-  using DataObjectIdentifierType = typename Superclass::DataObjectIdentifierType;
+  using typename Superclass::DataObjectIdentifierType;
 
   /** Dimension of input images. */
-  itkStaticConstMacro(InputImageDimension, unsigned int, InputImageType::ImageDimension);
+  static constexpr unsigned int InputImageDimension = InputImageType::ImageDimension;
 
 
   using Superclass::SetInput;
@@ -110,17 +110,19 @@ public:
    *  by the input images.  ITK has a requirement that multiple input
    *  images be congruent in space by default.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(CoordinateTolerance, double);
   itkGetConstMacro(CoordinateTolerance, double);
-
+  /** @ITKEndGrouping */
   /** get/set the direction tolerance
    *  This tolerance is used to make sure that all input
    *  images are oriented the same before performing the filter's
    *  transformations.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(DirectionTolerance, double);
   itkGetConstMacro(DirectionTolerance, double);
-
+  /** @ITKEndGrouping */
   /** get/set the global default direction tolerance
    *
    * This value is used to initialize the DirectionTolerance upon
@@ -158,7 +160,7 @@ protected:
   {}
 
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
   void
   BeforeStreamedGenerateData() override
@@ -183,21 +185,24 @@ protected:
 
   /** Set/Get Helper class for dividing the input into regions for
    * streaming */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(RegionSplitter, SplitterType);
   itkGetModifiableObjectMacro(RegionSplitter, SplitterType);
-
+  /** @ITKEndGrouping */
 
 private:
   unsigned int          m_NumberOfStreamDivisions{ 1 };
-  RegionSplitterPointer m_RegionSplitter;
-  InputImageRegionType  m_CurrentInputRegion;
+  RegionSplitterPointer m_RegionSplitter{};
+  InputImageRegionType  m_CurrentInputRegion{};
 
   /**
    *  Tolerances for checking whether input images are defined to
    *  occupy the same physical space.
    */
+  /** @ITKStartGrouping */
   double m_CoordinateTolerance{ Self::GetGlobalDefaultCoordinateTolerance() };
   double m_DirectionTolerance{ Self::GetGlobalDefaultDirectionTolerance() };
+  /** @ITKEndGrouping */
 };
 
 } // namespace itk

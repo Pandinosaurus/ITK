@@ -1,17 +1,21 @@
-set(DOCUMENTATION "This module contains classes for reading and writing
-Meshes in the OBJ file format.")
-itk_module(ITKIOMeshOBJ
+set(
+  DOCUMENTATION
+  "This module contains classes for reading and writing
+Meshes in the OBJ file format."
+)
+itk_module(
+  ITKIOMeshOBJ
   ENABLE_SHARED
   DEPENDS
-    ITKCommon
-    ITKIOMeshBase
+  ITKCommon
+  ITKIOMeshBase
   COMPILE_DEPENDS
-    ITKMesh
+  ITKMesh
   TEST_DEPENDS
-    ITKTestKernel
-    ITKQuadEdgeMesh
+  ITKTestKernel
+  ITKQuadEdgeMesh
   FACTORY_NAMES
-    MeshIO::OBJ
+  MeshIO::OBJ
   DESCRIPTION
-    "${DOCUMENTATION}"
+  "${DOCUMENTATION}"
 )

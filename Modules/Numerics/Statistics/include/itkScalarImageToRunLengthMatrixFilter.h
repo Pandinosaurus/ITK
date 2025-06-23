@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,30 +24,18 @@
 #include "itkVectorContainer.h"
 #include "itkProcessObject.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 /**
- *\class ScalarImageToRunLengthMatrixFilter
+ * \class ScalarImageToRunLengthMatrixFilter
  *  \brief This class computes a run length matrix (histogram) from
  *  a given image and a mask image if provided. Run length matrices are
  *  used for image texture description.
  *
  * This filters creates a grey-level run length matrix from a N-D scalar
- * image. This is another possible texture description.  See the following
- * references.
- * M. M. Galloway. Texture analysis using gray level run lengths. Computer
- * Graphics and Image Processing, 4:172-179, 1975.
- *
- * A. Chu, C. M. Sehgal, and J. F. Greenleaf. Use of gray value distribution of
- * run lengths for texture analysis.  Pattern Recognition Letters, 11:415-420,
- * 1990.
- *
- * B. R. Dasarathy and E. B. Holder. Image characterizations based on joint
- * gray-level run-length distributions. Pattern Recognition Letters, 12:490-502,
- * 1991.
+ * image. This is another possible texture description.
+ * See \cite galloway1975, \cite chu1990 and \cite dasarathy1991.
  *
  * The basic idea is as follows:
  * Given an image and an offset (e.g. (1, -1) for a 2-d image), each element
@@ -59,7 +47,7 @@ namespace Statistics
  * bin as the original voxel.  The distance component is given by the distance
  * from the original to the final voxel satisfying our jumping criteria.
  *
- * The offset (or offsets) along which the co-occurences are calculated can be
+ * The offset (or offsets) along which the co-occurrences are calculated can be
  * set by the user. Traditionally, only one offset is used per histogram, and
  * offset components in the range [-1, 1] are used. For rotation-invariant
  * features averages of features computed over several histograms with different
@@ -93,10 +81,9 @@ namespace Statistics
  * NumericTraits class is the same, and thus cannot hold any larger values,
  * this would cause a float overflow.
  *
- * IJ article: https://www.insight-journal.org/browse/publication/231
+ * IJ article: https://doi.org/10.54294/ex0itu
  *
  * \sa ScalarImageToRunLengthFeaturesFilter
- * \sa ScalarImageToRunLengthMatrixFilter
  * \sa HistogramToRunLengthFeaturesFilter
  *
  * \author: Nick Tustison
@@ -113,8 +100,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageToRunLengthMatrixFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarImageToRunLengthMatrixFilter);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -234,9 +221,10 @@ public:
    * Set the pixel value of the mask that should be considered "inside" the
    * object. Defaults to 1.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InsidePixelValue, PixelType);
   itkGetConstMacro(InsidePixelValue, PixelType);
-
+  /** @ITKEndGrouping */
 protected:
   ScalarImageToRunLengthMatrixFilter();
   ~ScalarImageToRunLengthMatrixFilter() override = default;
@@ -257,7 +245,7 @@ protected:
 
   /**
    * Normalize the direction of the offset before it is applied.
-   * The last non-zero dimension of the offest has to be positive in order
+   * The last non-zero dimension of the offset has to be positive in order
    * to match to scanning order of the iterator. Only the sign is changed.
    * For example, the input offset (-1, 0) will be normalized as
    * (1, 0).
@@ -266,19 +254,18 @@ protected:
   NormalizeOffsetDirection(OffsetType & offset);
 
 private:
-  unsigned int m_NumberOfBinsPerAxis;
-  PixelType    m_Min;
-  PixelType    m_Max;
-  RealType     m_MinDistance;
-  RealType     m_MaxDistance;
-  PixelType    m_InsidePixelValue;
+  unsigned int m_NumberOfBinsPerAxis{};
+  PixelType    m_Min{};
+  PixelType    m_Max{};
+  RealType     m_MinDistance{};
+  RealType     m_MaxDistance{};
+  PixelType    m_InsidePixelValue{};
 
-  MeasurementVectorType m_LowerBound;
-  MeasurementVectorType m_UpperBound;
-  OffsetVectorPointer   m_Offsets;
+  MeasurementVectorType m_LowerBound{};
+  MeasurementVectorType m_UpperBound{};
+  OffsetVectorPointer   m_Offsets{};
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkScalarImageToRunLengthMatrixFilter.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkGradientDescentOptimizer.h"
 
 #include "itkImageRegistrationMethodImageSource.h"
+#include "itkTestingMacros.h"
 
 /**
  *  This program tests one instantiation of the itk::ImageRegistrationMethod class
@@ -35,13 +36,14 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
 
   bool pass = true;
 
-  constexpr unsigned int dimension = 2;
+  constexpr unsigned int Dimension = 2;
+  using PixelType = float;
 
   // Fixed Image Type
-  using FixedImageType = itk::Image<float, dimension>;
+  using FixedImageType = itk::Image<PixelType, Dimension>;
 
   // Moving Image Type
-  using MovingImageType = itk::Image<float, dimension>;
+  using MovingImageType = itk::Image<PixelType, Dimension>;
 
   // Size Type
   using SizeType = MovingImageType::SizeType;
@@ -49,9 +51,9 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
 
   // ImageSource
   using ImageSourceType = itk::testhelper::
-    ImageRegistrationMethodImageSource<FixedImageType::PixelType, MovingImageType::PixelType, dimension>;
+    ImageRegistrationMethodImageSource<FixedImageType::PixelType, MovingImageType::PixelType, Dimension>;
   // Transform Type
-  using TransformType = itk::AffineTransform<double, dimension>;
+  using TransformType = itk::AffineTransform<double, Dimension>;
   using ParametersType = TransformType::ParametersType;
 
   // Optimizer Type
@@ -69,13 +71,16 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
   using CommandIterationType = itk::CommandIterationUpdate<OptimizerType>;
 
 
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
-  ImageSourceType::Pointer imageSource = ImageSourceType::New();
+  auto imageSource = ImageSourceType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(imageSource, ImageRegistrationMethodImageSource, Object);
+
 
   SizeType size;
   size[0] = 100;
@@ -83,8 +88,8 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
 
   imageSource->GenerateImages(size);
 
-  FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
-  MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
+  const FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
+  const MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
 
   //
   // Connect all the components required for Registratio
@@ -102,7 +107,7 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
   metric->SetFixedImageRegion(fixedImage->GetBufferedRegion());
 
   // Instantiate an Observer to report the progress of the Optimization
-  CommandIterationType::Pointer iterationCommand = CommandIterationType::New();
+  auto iterationCommand = CommandIterationType::New();
   iterationCommand->SetOptimizer(optimizer);
 
   // Scale the translation components of the Transform in the Optimizer
@@ -130,9 +135,9 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
     std::cout << "learningRate = " << learningRate << std::endl;
   }
 
-  for (unsigned int i = 0; i < dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
-    scales[i + dimension * dimension] = translationScale;
+    scales[i + Dimension * Dimension] = translationScale;
   }
 
   optimizer->SetScales(scales);
@@ -168,7 +173,7 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
 
   constexpr double tolerance = 1.0; // equivalent to 1 pixel.
 
-  for (unsigned int i = 0; i < numbeOfParameters; i++)
+  for (unsigned int i = 0; i < numbeOfParameters; ++i)
   {
     // the parameters are negated in order to get the inverse transformation.
     // this only works for comparing translation parameters....
@@ -183,9 +188,9 @@ itkImageRegistrationMethodTest_1(int argc, char * argv[])
   //
   //  Get the transform as the Output of the Registration filter
   //
-  RegistrationType::TransformOutputConstPointer transformDecorator = registration->GetOutput();
+  const RegistrationType::TransformOutputConstPointer transformDecorator = registration->GetOutput();
 
-  TransformType::ConstPointer finalTransform = static_cast<const TransformType *>(transformDecorator->Get());
+  const TransformType::ConstPointer finalTransform = static_cast<const TransformType *>(transformDecorator->Get());
 
 
   if (!pass)

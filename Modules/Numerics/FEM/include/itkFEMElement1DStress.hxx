@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,9 @@
 #ifndef itkFEMElement1DStress_hxx
 #define itkFEMElement1DStress_hxx
 
-#include "itkFEMElement1DStress.h"
 #include "itkFEMMaterialLinearElasticity.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 template <typename TBaseClass>
 Element1DStress<TBaseClass>::Element1DStress()
@@ -76,9 +73,9 @@ Element1DStress<TBaseClass>::GetStiffnessMatrix(MatrixType & Ke) const
 
   VectorType d = this->GetNodeCoordinates(1) - this->GetNodeCoordinates(0);
   d = d / d.magnitude();
-  for (unsigned int i = 0; i < Ndims; i++)
+  for (unsigned int i = 0; i < Ndims; ++i)
   {
-    for (unsigned int n = 0; n < Nn; n++)
+    for (unsigned int n = 0; n < Nn; ++n)
     {
       T[n][n * Ndims + i] = d[i];
     }
@@ -98,7 +95,6 @@ Element1DStress<TBaseClass>::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Young Modulus: " << this->m_mat << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

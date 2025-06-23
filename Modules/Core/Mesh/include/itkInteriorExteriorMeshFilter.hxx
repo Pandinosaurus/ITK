@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkInteriorExteriorMeshFilter_hxx
 #define itkInteriorExteriorMeshFilter_hxx
 
-#include "itkInteriorExteriorMeshFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 
@@ -29,9 +28,9 @@ namespace itk
  */
 template <typename TInputMesh, typename TOutputMesh, typename TSpatialFunction>
 InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::InteriorExteriorMeshFilter()
+  : m_SpatialFunction(SpatialFunctionType::New())
 {
-  m_SpatialFunction = SpatialFunctionType::New();
-  SpatialFunctionDataObjectPointer spatialFunctionObject = SpatialFunctionDataObjectType::New();
+  const SpatialFunctionDataObjectPointer spatialFunctionObject = SpatialFunctionDataObjectType::New();
   spatialFunctionObject->Set(m_SpatialFunction);
   this->ProcessObject::SetNthInput(1, spatialFunctionObject);
 }
@@ -62,8 +61,8 @@ InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::GenerateD
 
   using InputPointDataContainerConstPointer = typename TInputMesh::PointDataContainerConstPointer;
 
-  const InputMeshType * inputMesh = this->GetInput();
-  OutputMeshPointer     outputMesh = this->GetOutput();
+  const InputMeshType *   inputMesh = this->GetInput();
+  const OutputMeshPointer outputMesh = this->GetOutput();
 
   if (!inputMesh)
   {
@@ -83,8 +82,8 @@ InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::GenerateD
 
   outputMesh->SetBufferedRegion(outputMesh->GetRequestedRegion());
 
-  InputPointsContainerConstPointer    inPoints = inputMesh->GetPoints();
-  InputPointDataContainerConstPointer inData = inputMesh->GetPointData();
+  const InputPointsContainerConstPointer    inPoints = inputMesh->GetPoints();
+  const InputPointDataContainerConstPointer inData = inputMesh->GetPointData();
 
   typename InputPointsContainer::ConstIterator    inputPoint = inPoints->Begin();
   typename InputPointDataContainer::ConstIterator inputData;
@@ -106,11 +105,11 @@ InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::GenerateD
   using ValueType = typename TSpatialFunction::OutputType;
 
   using PointIdType = typename TOutputMesh::PointIdentifier;
-  PointIdType pointId = NumericTraits<PointIdType>::ZeroValue();
+  PointIdType pointId{};
 
   while (inputPoint != inPoints->End())
   {
-    ValueType value = m_SpatialFunction->Evaluate(inputPoint.Value());
+    const ValueType value = m_SpatialFunction->Evaluate(inputPoint.Value());
 
     if (value) // Assumes return type is "bool"
     {
@@ -119,7 +118,7 @@ InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::GenerateD
       {
         outputMesh->SetPointData(pointId, inputData.Value());
       }
-      pointId++;
+      ++pointId;
     }
 
     ++inputPoint;
@@ -135,9 +134,9 @@ InteriorExteriorMeshFilter<TInputMesh, TOutputMesh, TSpatialFunction>::GenerateD
   this->CopyInputMeshToOutputMeshCells();
   this->CopyInputMeshToOutputMeshCellData();
 
-  unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
+  const unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
-  for (unsigned int dim = 0; dim < maxDimension; dim++)
+  for (unsigned int dim = 0; dim < maxDimension; ++dim)
   {
     outputMesh->SetBoundaryAssignments(dim, inputMesh->GetBoundaryAssignments(dim));
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +15,11 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageRegion.h>
-#include <itkRGBPixel.h>
-#include <itkTestingMacros.h>
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageRegion.h"
+#include "itkRGBPixel.h"
+#include "itkTestingMacros.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -29,7 +29,7 @@ namespace
 bool
 WriteSmallBmp(const std::string & filename)
 {
-  const char bmp_raw[] = {
+  constexpr char bmp_raw[] = {
     66, 77, 30, 0, 0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 12, 0, 0, 0, 1, 0, 1, 0, 1, 0, 24, 0, 0, 0, static_cast<char>(-1), 0
   };
 
@@ -71,7 +71,7 @@ itkBMPImageIOTestExtension(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
   const itk::ImageRegion<2> expected_region{ itk::Size<2>{ { 1, 1 } } };
-  const ComponentType       expected_rgb[] = { 255, 0, 0 };
+  constexpr ComponentType   expected_rgb[] = { 255, 0, 0 };
   const PixelType           expected_pixel{ expected_rgb };
   // check that data has been actually read
   auto image = reader->GetOutput();

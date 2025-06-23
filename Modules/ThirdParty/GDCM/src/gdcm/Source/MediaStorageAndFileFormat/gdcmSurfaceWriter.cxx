@@ -359,7 +359,6 @@ bool SurfaceWriter::PrepareWrite()
         DataElement vectorCoordDataDE( Tag(0x0066, 0x0021) );
         vectorCoordDataDE.SetVR( VR::OF );
         const Value & vectorCoordinateDataValue = surface->GetVectorCoordinateData().GetValue();
-        assert( &vectorCoordinateDataValue );
         vectorCoordDataDE.SetValue( vectorCoordinateDataValue );
 
         const ByteValue *bv = vectorCoordDataDE.GetByteValue();
@@ -381,7 +380,7 @@ bool SurfaceWriter::PrepareWrite()
       }
 
       //******    Surface Mesh Primitives    *****//
-      //        Two exemples :
+      //        Two examples :
       //        (0066,0013) SQ (Sequence with undefined length #=1)     # u/l, 1 Surface Mesh Primitives Sequence
       //          (fffe,e000) na (Item with undefined length #=1)         # u/l, 1 Item
       //            (0066,0042) OL                                         #  0, 1 Long Edge Point Index List
@@ -537,7 +536,6 @@ bool SurfaceWriter::PrepareWrite()
             DataElement typedPointIndexListDE( typedPrimitiveTag );
 
             const Value & pointIndexListValue = it->GetValue();
-            assert( &pointIndexListValue );
             typedPointIndexListDE.SetValue( pointIndexListValue );
 
             const ByteValue * pointIndexListBV = typedPointIndexListDE.GetByteValue();
@@ -566,7 +564,6 @@ bool SurfaceWriter::PrepareWrite()
           DataElement   typedPointIndexListDE( typedPrimitiveTag );
 
           const Value & pointIndexListValue = meshPrimitive->GetPrimitiveData().GetValue();
-          assert( &pointIndexListValue );
           typedPointIndexListDE.SetValue( pointIndexListValue );
 
           const ByteValue * pointIndexListBV = typedPointIndexListDE.GetByteValue();
@@ -874,7 +871,6 @@ bool SurfaceWriter::PrepareWritePointMacro(SmartPointer< Surface > surface,
     // Point Coordinates Data
     DataElement pointCoordDataDE( Tag(0x0066, 0x0016) );
     const Value & pointCoordinateDataValue = surface->GetPointCoordinatesData().GetValue();
-    assert( &pointCoordinateDataValue );
     pointCoordDataDE.SetValue( pointCoordinateDataValue );
 
     const ByteValue *bv = pointCoordDataDE.GetByteValue();

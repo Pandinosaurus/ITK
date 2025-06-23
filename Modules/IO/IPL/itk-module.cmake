@@ -1,12 +1,16 @@
-set(DOCUMENTATION "This module contains code common to both the GE and Siemens
-IO modules.")
+set(
+  DOCUMENTATION
+  "This module contains code common to both the GE and Siemens
+IO modules."
+)
 
-itk_module(ITKIOIPL
+itk_module(
+  ITKIOIPL
   ENABLE_SHARED
   DEPENDS
-    ITKIOImageBase
+  ITKIOImageBase
   TEST_DEPENDS
-    ITKTestKernel
+  ITKTestKernel
   DESCRIPTION
-    "${DOCUMENTATION}"
+  "${DOCUMENTATION}"
 )

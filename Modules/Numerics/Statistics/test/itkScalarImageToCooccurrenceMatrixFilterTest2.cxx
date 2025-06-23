@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,15 +40,14 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
 
 
-  InputImageType::Pointer image = InputImageType::New();
-  InputImageType::Pointer mask = InputImageType::New();
+  auto image = InputImageType::New();
+  auto mask = InputImageType::New();
 
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
-  InputImageType::IndexType index;
-  index.Fill(0);
-  InputImageType::RegionType region;
+  constexpr InputImageType::IndexType index{};
+  InputImageType::RegionType          region;
 
   region.SetSize(inputImageSize);
   region.SetIndex(index);
@@ -70,7 +69,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
 
   imageIt.GoToBegin();
 
-  for (unsigned int i = 0; i < 5; i++)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     for (unsigned int j = 0; j < 5; j++, ++imageIt)
     {
@@ -93,7 +92,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
   // setup the iterator
   InputImageIterator maskIt(mask, mask->GetBufferedRegion());
   maskIt.GoToBegin();
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 5; ++i)
     for (int j = 0; j < 5; j++, ++maskIt)
     {
       if (j == 2 && i > 0 && i < 4)
@@ -125,13 +124,13 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
 
     using FilterType = itk::Statistics::ScalarImageToCooccurrenceMatrixFilter<InputImageType>;
 
-    FilterType::Pointer filter = FilterType::New();
+    auto filter = FilterType::New();
 
     filter->SetInput(image);
 
-    InputImageType::OffsetType      offset1 = { { 0, 1 } };
-    InputImageType::OffsetType      offset2 = { { 1, 0 } };
-    FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
+    constexpr InputImageType::OffsetType  offset1 = { { 0, 1 } };
+    constexpr InputImageType::OffsetType  offset2 = { { 1, 0 } };
+    const FilterType::OffsetVectorPointer offsetV = FilterType::OffsetVector::New();
     offsetV->push_back(offset1);
     offsetV->push_back(offset2);
 
@@ -163,12 +162,11 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
     two_two[0] = 2;
     two_two[1] = 2;
 
-    float ooF, otF, toF, ttF, totalF;
-    ooF = hist->GetFrequency(one_one);
-    otF = hist->GetFrequency(one_two);
-    toF = hist->GetFrequency(two_one);
-    ttF = hist->GetFrequency(two_two);
-    totalF = hist->GetTotalFrequency();
+    float ooF = hist->GetFrequency(one_one);
+    float otF = hist->GetFrequency(one_two);
+    float toF = hist->GetFrequency(two_one);
+    float ttF = hist->GetFrequency(two_two);
+    float totalF = hist->GetTotalFrequency();
 
     if (itk::Math::NotAlmostEquals(ooF, 4.0f) || itk::Math::NotAlmostEquals(ttF, 0.0f) ||
         itk::Math::NotAlmostEquals(otF, 0.0f) || itk::Math::NotAlmostEquals(toF, 0.0f) ||
@@ -271,7 +269,7 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
       passed = false;
     }
 
-    FilterType::Pointer filter2 = FilterType::New();
+    auto filter2 = FilterType::New();
 
     filter2->SetInput(image);
     filter2->SetMaskImage(mask);
@@ -328,11 +326,9 @@ itkScalarImageToCooccurrenceMatrixFilterTest2(int, char *[])
       std::cerr << "Test failed" << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cerr << "Test succeeded" << std::endl;
-      return EXIT_SUCCESS;
-    }
+
+    std::cerr << "Test succeeded" << std::endl;
+    return EXIT_SUCCESS;
   }
   catch (const itk::ExceptionObject & err)
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@
 namespace itk
 {
 /**
- *\class GradientRecursiveGaussianImageFilter
+ * \class GradientRecursiveGaussianImageFilter
  * \brief Computes the gradient of an image by convolution
  *        with the first derivative of a Gaussian.
  *
@@ -126,27 +126,31 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GradientRecursiveGaussianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientRecursiveGaussianImageFilter);
 
-  /** Set Sigma value. Sigma is measured in the units of image spacing. */
+  /** Set/Get the Sigma value. Sigma is measured in the units of image spacing. */
+  /** @ITKStartGrouping */
   void
   SetSigmaArray(const SigmaArrayType & sigma);
   void
   SetSigma(ScalarRealType sigma);
-
+  /** @ITKEndGrouping */
   SigmaArrayType
   GetSigmaArray() const;
+
+  /** Get the value of Sigma along the first dimension. */
   ScalarRealType
   GetSigma() const;
 
   /** Define which normalization factor will be used for the Gaussian
    *  \sa  RecursiveGaussianImageFilter::SetNormalizeAcrossScale
    */
+  /** @ITKStartGrouping */
   void
   SetNormalizeAcrossScale(bool normalize);
   itkGetConstMacro(NormalizeAcrossScale, bool);
-
+  /** @ITKEndGrouping */
   /** GradientRecursiveGaussianImageFilter needs all of the input to produce an
    * output. Therefore, GradientRecursiveGaussianImageFilter needs to provide
    * an implementation for GenerateInputRequestedRegion in order to inform
@@ -165,17 +169,14 @@ public:
    * flag is OFF.
    * The default value of this flag is On.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageDirection, bool);
   itkGetConstMacro(UseImageDirection, bool);
   itkBooleanMacro(UseImageDirection);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   // Does not seem to work with wrappings, disabled
   // itkConceptMacro( InputHasNumericTraitsCheck,
   //                 ( Concept::HasNumericTraits< PixelType > ) );
-  // End concept checking
-#endif
 
 protected:
   GradientRecursiveGaussianImageFilter();
@@ -200,7 +201,7 @@ private:
   TransformOutputPixel(ImageRegionIterator<VectorImage<TValue, ImageDimension>> & it)
   {
     // To transform Variable length vector we need to convert to and
-    // fro the CovariantVectorType
+    // from the CovariantVectorType
     const CovariantVectorType gradient(it.Get().GetDataPointer());
     CovariantVectorType       physicalGradient;
     it.GetImage()->TransformLocalVectorToPhysicalVector(gradient, physicalGradient);
@@ -211,22 +212,22 @@ private:
   void
   TransformOutputPixel(ImageRegionIterator<T> & it)
   {
-    OutputPixelType         correctedGradient;
+    OutputPixelType         correctedGradient{};
     const OutputPixelType & gradient = it.Get();
 
     const unsigned int nComponents = NumericTraits<OutputPixelType>::GetLength(gradient) / ImageDimension;
 
-    for (unsigned int nc = 0; nc < nComponents; nc++)
+    for (unsigned int nc = 0; nc < nComponents; ++nc)
     {
       GradientVectorType componentGradient;
       GradientVectorType correctedComponentGradient;
-      for (unsigned int dim = 0; dim < ImageDimension; dim++)
+      for (unsigned int dim = 0; dim < ImageDimension; ++dim)
       {
         componentGradient[dim] =
           DefaultConvertPixelTraits<OutputPixelType>::GetNthComponent(nc * ImageDimension + dim, gradient);
       }
       it.GetImage()->TransformLocalVectorToPhysicalVector(componentGradient, correctedComponentGradient);
-      for (unsigned int dim = 0; dim < ImageDimension; dim++)
+      for (unsigned int dim = 0; dim < ImageDimension; ++dim)
       {
         DefaultConvertPixelTraits<OutputPixelType>::SetNthComponent(
           nc * ImageDimension + dim, correctedGradient, correctedComponentGradient[dim]);
@@ -235,9 +236,9 @@ private:
     it.Set(correctedGradient);
   }
 
-  template <template <typename, unsigned int> class P, class T, unsigned int N>
+  template <template <typename, unsigned int> class P, class T, unsigned int VDimension>
   void
-  TransformOutputPixel(ImageRegionIterator<Image<P<T, N>, N>> & it)
+  TransformOutputPixel(ImageRegionIterator<Image<P<T, VDimension>, VDimension>> & it)
   {
     const OutputPixelType gradient = it.Get();
     // This uses the more efficient set by reference method
@@ -245,18 +246,18 @@ private:
   }
 
 
-  std::vector<GaussianFilterPointer> m_SmoothingFilters;
-  DerivativeFilterPointer            m_DerivativeFilter;
-  OutputImageAdaptorPointer          m_ImageAdaptor;
+  std::vector<GaussianFilterPointer> m_SmoothingFilters{};
+  DerivativeFilterPointer            m_DerivativeFilter{};
+  OutputImageAdaptorPointer          m_ImageAdaptor{};
 
   /** Normalize the image across scale space */
-  bool m_NormalizeAcrossScale;
+  bool m_NormalizeAcrossScale{};
 
   /** Take into account image orientation when computing the Gradient */
-  bool m_UseImageDirection;
+  bool m_UseImageDirection{ true };
 
   /** Standard deviation of the gaussian */
-  SigmaArrayType m_Sigma;
+  SigmaArrayType m_Sigma{};
 };
 } // end namespace itk
 

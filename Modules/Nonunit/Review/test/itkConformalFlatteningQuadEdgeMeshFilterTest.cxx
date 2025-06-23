@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ itkConformalFlatteningQuadEdgeMeshFilterTest(int argc, char * argv[])
 
   std::cout << "Read " << argv[1] << std::endl;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   try
@@ -68,7 +68,7 @@ itkConformalFlatteningQuadEdgeMeshFilterTest(int argc, char * argv[])
   // Test itkConformalFlatteningMeshFilter
   //
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // Connect the input
   filter->SetInput(mesh);
@@ -114,7 +114,7 @@ itkConformalFlatteningQuadEdgeMeshFilterTest(int argc, char * argv[])
 
   std::cout << "Write " << argv[2] << std::endl;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(newMesh);
   writer->SetFileName(argv[2]);
 

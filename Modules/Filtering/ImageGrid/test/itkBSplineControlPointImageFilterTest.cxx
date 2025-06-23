@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ BSpline(int argc, char * argv[])
   using ScalarFieldType = itk::Image<ScalarPixelType, ImageDimension>;
 
   using ReaderType = itk::ImageFileReader<ScalarFieldType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   if (argc > 2)
   {
     reader->SetFileName(argv[2]);
@@ -46,33 +46,26 @@ BSpline(int argc, char * argv[])
   }
 
   // Reconstruction of the scalar field from the control points
-
-  typename ScalarFieldType::PointType origin;
-  origin.Fill(0);
-  typename ScalarFieldType::SizeType size;
-  size.Fill(100);
-  typename ScalarFieldType::SpacingType spacing;
-  spacing.Fill(1.0);
+  auto size = ScalarFieldType::SizeType::Filled(100);
 
   using BSplinerType = itk::BSplineControlPointImageFilter<ScalarFieldType, ScalarFieldType>;
-  typename BSplinerType::Pointer bspliner = BSplinerType::New();
+  auto bspliner = BSplinerType::New();
 
   bspliner->SetInput(reader->GetOutput());
 
-  typename BSplinerType::ArrayType splineOrder = 3;
-  bspliner->SetSplineOrder(3);
+  const typename BSplinerType::ArrayType::ValueType closeDimensionVal = 0;
+  auto closeDimension = itk::MakeFilled<typename BSplinerType::ArrayType>(closeDimensionVal);
+  bspliner->SetCloseDimension(closeDimension);
+  ITK_TEST_SET_GET_VALUE(closeDimension, bspliner->GetCloseDimension());
+
+  const typename BSplinerType::ArrayType splineOrder(3);
+  bspliner->SetSplineOrder(splineOrder);
   ITK_TEST_SET_GET_VALUE(splineOrder, bspliner->GetSplineOrder());
 
   bspliner->SetSize(size);
   ITK_TEST_SET_GET_VALUE(size, bspliner->GetSize());
 
-  bspliner->SetOrigin(origin);
-  ITK_TEST_SET_GET_VALUE(origin, bspliner->GetOrigin());
-
-  bspliner->SetSpacing(spacing);
-  ITK_TEST_SET_GET_VALUE(spacing, bspliner->GetSpacing());
-
-  typename BSplinerType::DirectionType direction = reader->GetOutput()->GetDirection();
+  const typename BSplinerType::DirectionType direction = reader->GetOutput()->GetDirection();
   bspliner->SetDirection(direction);
   ITK_TEST_SET_GET_VALUE(direction, bspliner->GetDirection());
 
@@ -88,7 +81,7 @@ BSpline(int argc, char * argv[])
   }
 
   using WriterType = itk::ImageFileWriter<ScalarFieldType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(bspliner->GetOutput());
   writer->Update();
@@ -98,18 +91,15 @@ BSpline(int argc, char * argv[])
   // and seeing if the output is the same. In this example we double the
   // resolution twice as the refinement is doubled at every level.
   //
-  typename BSplinerType::ArrayType numberOfRefinementLevels;
-  numberOfRefinementLevels.Fill(3);
+  auto numberOfRefinementLevels = itk::MakeFilled<typename BSplinerType::ArrayType>(3);
 
-  typename BSplinerType::ControlPointLatticeType::Pointer refinedControlPointLattice =
+  const typename BSplinerType::ControlPointLatticeType::Pointer refinedControlPointLattice =
     bspliner->RefineControlPointLattice(numberOfRefinementLevels);
 
-  typename BSplinerType::Pointer bspliner2 = BSplinerType::New();
+  auto bspliner2 = BSplinerType::New();
   bspliner2->SetInput(refinedControlPointLattice);
   bspliner2->SetSplineOrder(3);
   bspliner2->SetSize(size);
-  bspliner2->SetOrigin(origin);
-  bspliner2->SetSpacing(spacing);
   bspliner2->SetDirection(reader->GetOutput()->GetDirection());
 
   try
@@ -123,10 +113,19 @@ BSpline(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  typename WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetFileName(argv[4]);
   writer2->SetInput(bspliner2->GetOutput());
   writer2->Update();
+
+  // Test non-default value setting
+  const auto originNonDefault = itk::MakeFilled<typename ScalarFieldType::PointType>(1234.0);
+  bspliner->SetOrigin(originNonDefault);
+  ITK_TEST_SET_GET_VALUE(originNonDefault, bspliner->GetOrigin());
+
+  auto spacingNonDefault = itk::MakeFilled<typename ScalarFieldType::SpacingType>(9875.0);
+  bspliner->SetSpacing(spacingNonDefault);
+  ITK_TEST_SET_GET_VALUE(spacingNonDefault, bspliner->GetSpacing());
 
   return EXIT_SUCCESS;
 }
@@ -148,7 +147,7 @@ itkBSplineControlPointImageFilterTest(int argc, char * argv[])
   using ScalarFieldType = itk::Image<ScalarPixelType, Dimension>;
 
   using BSplinerType = itk::BSplineControlPointImageFilter<ScalarFieldType, ScalarFieldType>;
-  BSplinerType::Pointer bspliner = BSplinerType::New();
+  auto bspliner = BSplinerType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(bspliner, BSplineControlPointImageFilter, ImageToImageFilter);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,42 +35,40 @@ itkIntensityWindowingImageFilterTest(int, char *[])
 
   TestInputImage::RegionType region;
 
-  TestInputImage::SizeType size;
-  size.Fill(64);
+  auto size = TestInputImage::SizeType::Filled(64);
 
-  TestInputImage::IndexType index;
-  index.Fill(0);
+  constexpr TestInputImage::IndexType index{};
 
   region.SetIndex(index);
   region.SetSize(size);
 
 
   using FilterType = itk::IntensityWindowingImageFilter<TestInputImage, TestOutputImage>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, IntensityWindowingImageFilter, UnaryFunctorImageFilter);
 
   // Generate a real image
   using SourceType = itk::RandomImageSource<TestInputImage>;
-  SourceType::Pointer           source = SourceType::New();
+  auto                          source = SourceType::New();
   TestInputImage::SizeValueType randomSize[3] = { 17, 8, 20 };
 
   // Set up source
   source->SetSize(randomSize);
 
-  double minValue = -128.0;
-  double maxValue = 127.0;
+  constexpr double minValue = -128.0;
+  constexpr double maxValue = 127.0;
 
   source->SetMin(static_cast<TestInputImage::PixelType>(minValue));
   source->SetMax(static_cast<TestInputImage::PixelType>(maxValue));
 
   filter->SetInput(source->GetOutput());
 
-  const double     desiredMinimum = -1.0;
+  constexpr double desiredMinimum = -1.0;
   constexpr double desiredMaximum = 1.0;
 
-  const float windowMinimum = -50.0f;
-  const float windowMaximum = 50.0f;
+  constexpr float windowMinimum = -50.0f;
+  constexpr float windowMaximum = 50.0f;
 
   filter->SetOutputMinimum(desiredMinimum);
   ITK_TEST_SET_GET_VALUE(desiredMinimum, filter->GetOutputMinimum());
@@ -84,8 +82,8 @@ itkIntensityWindowingImageFilterTest(int, char *[])
   filter->SetWindowMaximum(windowMaximum);
   ITK_TEST_SET_GET_VALUE(windowMaximum, filter->GetWindowMaximum());
 
-  std::cout << "Window minimum:maximum = " << windowMinimum << ":" << windowMaximum << ", equivalent window:level = "
-            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindow()) << ":"
+  std::cout << "Window minimum:maximum = " << windowMinimum << ':' << windowMaximum << ", equivalent window:level = "
+            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindow()) << ':'
             << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetLevel()) << std::endl;
 
   std::cout << "Gray level linear transformation scale = "
@@ -98,13 +96,13 @@ itkIntensityWindowingImageFilterTest(int, char *[])
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->SetFunctor(filter->GetFunctor()));
 
   using CalculatorType = itk::MinimumMaximumImageCalculator<TestOutputImage>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
 
   calculator->SetImage(filter->GetOutput());
 
   calculator->Compute();
 
-  const double tolerance = 1e-7;
+  constexpr double tolerance = 1e-7;
 
   const double obtainedMinimum = calculator->GetMinimum();
   const double obtainedMaximum = calculator->GetMaximum();
@@ -127,16 +125,16 @@ itkIntensityWindowingImageFilterTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  const float window = 50.0f;
-  const float level = 50.0f;
+  constexpr float window = 50.0f;
+  constexpr float level = 50.0f;
 
   filter->SetWindowLevel(window, level);
 
   std::cout << "Window:level = "
-            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindow()) << ":"
+            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindow()) << ':'
             << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetLevel())
             << ", equivalent window minimum:maximum = "
-            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindowMinimum()) << ":"
+            << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindowMinimum()) << ':'
             << static_cast<itk::NumericTraits<FilterType::InputPixelType>::PrintType>(filter->GetWindowMaximum())
             << std::endl;
 

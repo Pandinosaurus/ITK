@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,13 @@
 #ifndef itkMahalanobisDistanceMetric_hxx
 #define itkMahalanobisDistanceMetric_hxx
 
-#include "itkMahalanobisDistanceMetric.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TVector>
 MahalanobisDistanceMetric<TVector>::MahalanobisDistanceMetric()
 
 {
-  MeasurementVectorSizeType size;
-
-  size = this->GetMeasurementVectorSize();
+  const MeasurementVectorSizeType size = this->GetMeasurementVectorSize();
 
   this->m_Covariance.set_size(size, size);
   this->m_InverseCovariance.set_size(size, size);
@@ -47,8 +41,8 @@ MahalanobisDistanceMetric<TVector>::SetMean(const MeanVectorType & mean)
 }
 
 template <typename TVector>
-const typename MahalanobisDistanceMetric<TVector>::MeanVectorType &
-MahalanobisDistanceMetric<TVector>::GetMean() const
+auto
+MahalanobisDistanceMetric<TVector>::GetMean() const -> const MeanVectorType &
 {
   return Superclass::GetOrigin();
 }
@@ -74,8 +68,7 @@ MahalanobisDistanceMetric<TVector>::SetCovariance(const CovarianceMatrixType & c
   {
     if (cov.rows() != this->GetMeasurementVectorSize() || cov.cols() != this->GetMeasurementVectorSize())
     {
-      itkExceptionMacro(<< "Size of the covariance matrix must be same as the length of"
-                        << " the measurement vector.");
+      itkExceptionMacro("Size of the covariance matrix must be same as the length of the measurement vector.");
     }
   }
 
@@ -91,8 +84,7 @@ MahalanobisDistanceMetric<TVector>::SetInverseCovariance(const CovarianceMatrixT
   {
     if (invcov.rows() != this->GetMeasurementVectorSize() || invcov.cols() != this->GetMeasurementVectorSize())
     {
-      itkExceptionMacro(<< "Size of the covariance matrix xcmust be same as the length of"
-                        << " each measurement vector.");
+      itkExceptionMacro("Size of the covariance matrix xcmust be same as the length of each measurement vector.");
     }
   }
 
@@ -110,9 +102,9 @@ MahalanobisDistanceMetric<TVector>::CalculateInverseCovariance()
   // pack the cov matrix from in_model to tmp_cov_mat
   double cov_sum = 0;
 
-  for (unsigned int band_x = 0; band_x < m_Covariance.cols(); band_x++)
+  for (unsigned int band_x = 0; band_x < m_Covariance.cols(); ++band_x)
   {
-    for (unsigned int band_y = 0; band_y < m_Covariance.rows(); band_y++)
+    for (unsigned int band_y = 0; band_y < m_Covariance.rows(); ++band_y)
     {
       cov_sum += itk::Math::abs(m_Covariance[band_x][band_y]);
     }
@@ -152,7 +144,7 @@ MahalanobisDistanceMetric<TVector>::Evaluate(const MeasurementVectorType & measu
   tempMat.set_size(1, this->GetMeasurementVectorSize());
 
   // Compute |y - mean |
-  for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
+  for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); ++i)
   {
     tempVec[0][i] = measurement[i] - this->GetOrigin()[i];
   }
@@ -161,8 +153,7 @@ MahalanobisDistanceMetric<TVector>::Evaluate(const MeasurementVectorType & measu
   tempMat = tempVec * m_InverseCovariance;
 
   // Compute |y - mean | * inverse(cov) * |y - mean|^T
-  double temp;
-  temp = std::sqrt(dot_product(tempMat.as_ref(), tempVec.as_ref()));
+  const double temp = std::sqrt(dot_product(tempMat.as_ref(), tempVec.as_ref()));
 
   return temp;
 }
@@ -174,7 +165,7 @@ MahalanobisDistanceMetric<TVector>::Evaluate(const MeasurementVectorType & x1, c
   if (NumericTraits<MeasurementVectorType>::GetLength(x1) != this->GetMeasurementVectorSize() ||
       NumericTraits<MeasurementVectorType>::GetLength(x2) != this->GetMeasurementVectorSize())
   {
-    itkExceptionMacro(<< "Size of the measurement vectors is not the same as the length of"
+    itkExceptionMacro("Size of the measurement vectors is not the same as the length of"
                       << " the measurement vector set in the distance metric.");
   }
 
@@ -185,7 +176,7 @@ MahalanobisDistanceMetric<TVector>::Evaluate(const MeasurementVectorType & x1, c
   tempMat.set_size(1, this->GetMeasurementVectorSize());
 
   // Compute |x1 - x2 |
-  for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
+  for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); ++i)
   {
     tempVec[0][i] = x1[i] - x2[i];
   }
@@ -194,8 +185,7 @@ MahalanobisDistanceMetric<TVector>::Evaluate(const MeasurementVectorType & x1, c
   tempMat = tempVec * m_InverseCovariance;
 
   // Compute |x1 - x2 | * inverse(cov) * |x1 - x2|^T
-  double temp;
-  temp = std::sqrt(dot_product(tempMat.as_ref(), tempVec.as_ref()));
+  const double temp = std::sqrt(dot_product(tempMat.as_ref(), tempVec.as_ref()));
 
   return temp;
 }
@@ -217,7 +207,6 @@ MahalanobisDistanceMetric<TVector>::PrintSelf(std::ostream & os, Indent indent) 
   os << indent << "Double max:        " << std::endl;
   os << this->GetDoubleMax() << std::endl;
 }
-} // end namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

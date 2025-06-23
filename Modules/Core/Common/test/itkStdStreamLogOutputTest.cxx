@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ itkStdStreamLogOutputTest(int argc, char * argv[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   try
   {
@@ -40,7 +40,7 @@ itkStdStreamLogOutputTest(int argc, char * argv[])
     }
 
     // Create an ITK StdStreamLogOutput
-    itk::StdStreamLogOutput::Pointer output = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer output = itk::StdStreamLogOutput::New();
 
     std::cout << "Testing itk::StdStreamLogOutput" << std::endl;
 

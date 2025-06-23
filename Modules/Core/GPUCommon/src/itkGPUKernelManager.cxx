@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,7 +85,9 @@ GPUKernelManager::LoadProgramFromFile(const char * filename, const char * cPream
   // allocate a buffer for the source code string and read it in
   char * cSourceString = (char *)malloc(szSourceLength + szPreambleLength + 1000);
   if (szPreambleLength > 0)
+  {
     memcpy(cSourceString, cPreamble, szPreambleLength);
+  }
   if (fread((cSourceString) + szPreambleLength, szSourceLength, 1, pFileStream) != 1)
   {
     fclose(pFileStream);
@@ -128,8 +130,7 @@ GPUKernelManager::LoadProgramFromFile(const char * filename, const char * cPream
     // get error message size
     clGetProgramBuildInfo(m_Program, m_Manager->GetDeviceId(0), CL_PROGRAM_BUILD_LOG, 0, nullptr, &paramValueSize);
 
-    char * paramValue;
-    paramValue = (char *)malloc(paramValueSize);
+    char * paramValue = (char *)malloc(paramValueSize);
 
     // get error message
     clGetProgramBuildInfo(
@@ -137,11 +138,11 @@ GPUKernelManager::LoadProgramFromFile(const char * filename, const char * cPream
 
     /*
     std::ostringstream itkmsg;
-    itkmsg << "ERROR: In " __FILE__ ", line " << __LINE__ << "\n"
+    itkmsg << "ERROR: In " __FILE__ ", line " << __LINE__ << '\n'
            << this->GetNameOfClass() << " (" << this << "): "
            << "OpenCL program build error:" << paramValue
            << "\n\n";
-    ::itk::OutputWindowDisplayErrorText( itkmsg.str().c_str() );
+    itk::OutputWindowDisplayErrorText( itkmsg.str().c_str() );
     */
 
     std::cerr << paramValue << std::endl;
@@ -170,7 +171,9 @@ GPUKernelManager::LoadProgramFromString(const char * cSource, const char * cPrea
   // allocate a buffer for the source code string and read it in
   char * cSourceString = (char *)malloc(szFinalLength + 1);
   if (szPreambleLength > 0)
+  {
     memcpy(cSourceString, cPreamble, szPreambleLength);
+  }
 
   memcpy(cSourceString + szPreambleLength, cSource, szSourceLength);
 
@@ -204,8 +207,7 @@ GPUKernelManager::LoadProgramFromString(const char * cSource, const char * cPrea
     // get error message size
     clGetProgramBuildInfo(m_Program, m_Manager->GetDeviceId(0), CL_PROGRAM_BUILD_LOG, 0, nullptr, &paramValueSize);
 
-    char * paramValue;
-    paramValue = (char *)malloc(paramValueSize);
+    char * paramValue = (char *)malloc(paramValueSize);
 
     // get error message
     clGetProgramBuildInfo(
@@ -213,11 +215,11 @@ GPUKernelManager::LoadProgramFromString(const char * cSource, const char * cPrea
 
     /*
     std::ostringstream itkmsg;
-    itkmsg << "ERROR: In " __FILE__ ", line " << __LINE__ << "\n"
+    itkmsg << "ERROR: In " __FILE__ ", line " << __LINE__ << '\n'
            << this->GetNameOfClass() << " (" << this << "): "
            << "OpenCL program build error:" << paramValue
            << "\n\n";
-    ::itk::OutputWindowDisplayErrorText( itkmsg.str().c_str() );
+    itk::OutputWindowDisplayErrorText( itkmsg.str().c_str() );
     */
 
     std::cerr << paramValue << std::endl;
@@ -256,9 +258,9 @@ GPUKernelManager::CreateKernel(const char * kernelName)
   errid = clGetKernelInfo(newKernel, CL_KERNEL_NUM_ARGS, sizeof(cl_uint), &nArg, nullptr);
   (m_KernelArgumentReady.back()).resize(nArg);
 
-  ResetArguments((int)m_KernelContainer.size() - 1);
+  ResetArguments(static_cast<int>(m_KernelContainer.size()) - 1);
 
-  return (int)m_KernelContainer.size() - 1;
+  return static_cast<int>(m_KernelContainer.size()) - 1;
 }
 
 cl_int
@@ -278,7 +280,7 @@ GPUKernelManager::GetKernelWorkGroupInfo(int kernelIdx, cl_kernel_work_group_inf
       valueSize = sizeof(cl_ulong);
       break;
     default:
-      itkGenericExceptionMacro(<< "Unknown type of work goup information");
+      itkGenericExceptionMacro("Unknown type of work group information");
   }
 
   cl_int errid = clGetKernelWorkGroupInfo(
@@ -300,7 +302,7 @@ GPUKernelManager::GetDeviceInfo(cl_kernel_work_group_info paramName, size_t argS
       errid = clGetDeviceInfo(m_Manager->GetDeviceId(0), CL_DEVICE_MAX_WORK_ITEM_SIZES, argSize, argValue, nullptr);
       break;
     default:
-      itkGenericExceptionMacro(<< "Unknown type of device info");
+      itkGenericExceptionMacro("Unknown type of device info");
   }
   OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
@@ -310,12 +312,12 @@ GPUKernelManager::GetDeviceInfo(cl_kernel_work_group_info paramName, size_t argS
 bool
 GPUKernelManager::SetKernelArg(int kernelIdx, cl_uint argIdx, size_t argSize, const void * argVal)
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
-  cl_int errid;
-
-  errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, argSize, argVal);
+  cl_int errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, argSize, argVal);
   OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
   m_KernelArgumentReady[kernelIdx][argIdx].m_IsReady = true;
@@ -404,12 +406,12 @@ GPUKernelManager::SetKernelArgWithDouble(int kernelIdx, cl_uint argIdx, double a
 bool
 GPUKernelManager::SetKernelArgWithImage(int kernelIdx, cl_uint argIdx, GPUDataManager * manager)
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
-  cl_int errid;
-
-  errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, sizeof(cl_mem), manager->GetGPUBufferPointer());
+  cl_int errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, sizeof(cl_mem), manager->GetGPUBufferPointer());
   OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
   m_KernelArgumentReady[kernelIdx][argIdx].m_IsReady = true;
@@ -424,10 +426,12 @@ GPUKernelManager::CheckArgumentReady(int kernelIdx)
 {
   int nArg = m_KernelArgumentReady[kernelIdx].size();
 
-  for (int i = 0; i < nArg; i++)
+  for (int i = 0; i < nArg; ++i)
   {
     if (!(m_KernelArgumentReady[kernelIdx][i].m_IsReady))
+    {
       return false;
+    }
 
     // automatic synchronization before kernel launch
     if (m_KernelArgumentReady[kernelIdx][i].m_GPUDataManager != (GPUDataManager::Pointer) nullptr)
@@ -443,7 +447,7 @@ GPUKernelManager::ResetArguments(int kernelIdx)
 {
   int nArg = m_KernelArgumentReady[kernelIdx].size();
 
-  for (int i = 0; i < nArg; i++)
+  for (int i = 0; i < nArg; ++i)
   {
     m_KernelArgumentReady[kernelIdx][i].m_IsReady = false;
     m_KernelArgumentReady[kernelIdx][i].m_GPUDataManager = (GPUDataManager::Pointer) nullptr;
@@ -453,8 +457,10 @@ GPUKernelManager::ResetArguments(int kernelIdx)
 bool
 GPUKernelManager::LaunchKernel1D(int kernelIdx, size_t globalWorkSize, size_t itkNotUsed(localWorkSize))
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
   if (!CheckArgumentReady(kernelIdx))
   {
@@ -494,8 +500,10 @@ GPUKernelManager::LaunchKernel2D(int    kernelIdx,
                                  size_t itkNotUsed(localWorkSizeX),
                                  size_t itkNotUsed(localWorkSizeY))
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
   if (!CheckArgumentReady(kernelIdx))
   {
@@ -545,8 +553,10 @@ GPUKernelManager::LaunchKernel3D(int    kernelIdx,
                                  size_t itkNotUsed(localWorkSizeY),
                                  size_t itkNotUsed(localWorkSizeZ))
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
   if (!CheckArgumentReady(kernelIdx))
   {
@@ -592,8 +602,10 @@ GPUKernelManager::LaunchKernel3D(int    kernelIdx,
 bool
 GPUKernelManager::LaunchKernel(int kernelIdx, int dim, size_t * globalWorkSize, size_t * localWorkSize)
 {
-  if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+  if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+  {
     return false;
+  }
 
   if (!CheckArgumentReady(kernelIdx))
   {
@@ -608,16 +620,15 @@ GPUKernelManager::LaunchKernel(int kernelIdx, int dim, size_t * globalWorkSize, 
   // localWorkSize[0] = localWorkSize[1] = localWorkSize[2] = 1;
   //
 
-  cl_int errid;
-  errid = clEnqueueNDRangeKernel(m_Manager->GetCommandQueue(m_CommandQueueId),
-                                 m_KernelContainer[kernelIdx],
-                                 (cl_uint)dim,
-                                 nullptr,
-                                 globalWorkSize,
-                                 localWorkSize,
-                                 0,
-                                 nullptr,
-                                 nullptr);
+  cl_int errid = clEnqueueNDRangeKernel(m_Manager->GetCommandQueue(m_CommandQueueId),
+                                        m_KernelContainer[kernelIdx],
+                                        (cl_uint)dim,
+                                        nullptr,
+                                        globalWorkSize,
+                                        localWorkSize,
+                                        0,
+                                        nullptr,
+                                        nullptr);
   OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
   /*
@@ -647,7 +658,7 @@ GPUKernelManager::LaunchKernel(int kernelIdx, int dim, size_t * globalWorkSize, 
 void
 GPUKernelManager::SetCurrentCommandQueue(int queueid)
 {
-  if (queueid >= 0 && queueid < (int)m_Manager->GetNumberOfCommandQueues())
+  if (queueid >= 0 && queueid < static_cast<int>(m_Manager->GetNumberOfCommandQueues()))
   {
     // Assumption: different command queue is assigned to different device
     m_CommandQueueId = queueid;

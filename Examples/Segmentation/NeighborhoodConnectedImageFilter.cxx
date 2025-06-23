@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,20 +96,13 @@ main(int argc, char * argv[])
 
   using CastingFilterType =
     itk::CastImageFilter<InternalImageType, OutputImageType>;
-  CastingFilterType::Pointer caster = CastingFilterType::New();
+  auto caster = CastingFilterType::New();
 
 
   // We instantiate reader and writer types
   //
-  using ReaderType = itk::ImageFileReader<InternalImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
-
+  const auto input = itk::ReadImage<InternalImageType>(argv[1]);
 
   //  Software Guide : BeginLatex
   //
@@ -132,8 +125,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  CurvatureFlowImageFilterType::Pointer smoothing =
-    CurvatureFlowImageFilterType::New();
+  auto smoothing = CurvatureFlowImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -157,8 +149,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ConnectedFilterType::Pointer neighborhoodConnected =
-    ConnectedFilterType::New();
+  auto neighborhoodConnected = ConnectedFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -173,10 +164,9 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  smoothing->SetInput(reader->GetOutput());
+  smoothing->SetInput(input);
   neighborhoodConnected->SetInput(smoothing->GetOutput());
   caster->SetInput(neighborhoodConnected->GetOutput());
-  writer->SetInput(caster->GetOutput());
   // Software Guide : EndCodeSnippet
 
 
@@ -205,7 +195,7 @@ main(int argc, char * argv[])
   //  result in a region that engulfs the image.
   //
   //  \index{itk::NeighborhoodConnectedImageFilter!SetLower()}
-  //  \index{itk::NeighborhoodConnectedImageFilter!SetUppder()}
+  //  \index{itk::NeighborhoodConnectedImageFilter!SetUpper()}
   //
   //  Software Guide : EndLatex
 
@@ -272,7 +262,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   try
   {
-    writer->Update();
+    itk::WriteImage(caster->GetOutput(), argv[2]);
   }
   catch (const itk::ExceptionObject & excep)
   {
@@ -314,7 +304,7 @@ main(int argc, char * argv[])
   // \end{figure}
   //
   //  As with the \code{ConnectedThresholdImageFilter} example, several seeds
-  //  could be provided to the filter by repetedly calling the
+  //  could be provided to the filter by repeatedly calling the
   //  \code{AddSeed()} method with different indices.  Compare Figures
   //  \ref{fig:NeighborhoodConnectedImageFilterOutput} and
   //  \ref{fig:ConnectedThresholdOutput}, demonstrating the outputs of

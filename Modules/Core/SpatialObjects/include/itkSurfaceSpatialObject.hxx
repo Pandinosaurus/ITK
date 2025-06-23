@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,13 +20,12 @@
 
 
 #include "itkMath.h"
-#include "itkSurfaceSpatialObject.h"
 
 namespace itk
 {
-/** Constructor */
-template <unsigned int TDimension>
-SurfaceSpatialObject<TDimension>::SurfaceSpatialObject()
+
+template <unsigned int TDimension, typename TSurfacePointType>
+SurfaceSpatialObject<TDimension, TSurfacePointType>::SurfaceSpatialObject()
 {
   this->SetTypeName("SurfaceSpatialObject");
 
@@ -35,9 +34,9 @@ SurfaceSpatialObject<TDimension>::SurfaceSpatialObject()
   this->Update();
 }
 
-template <unsigned int TDimension>
+template <unsigned int TDimension, typename TSurfacePointType>
 void
-SurfaceSpatialObject<TDimension>::Clear()
+SurfaceSpatialObject<TDimension, TSurfacePointType>::Clear()
 {
   Superclass::Clear();
 
@@ -49,56 +48,49 @@ SurfaceSpatialObject<TDimension>::Clear()
   this->Modified();
 }
 
-/** InternalClone */
-template <unsigned int TDimension>
+template <unsigned int TDimension, typename TSurfacePointType>
 typename LightObject::Pointer
-SurfaceSpatialObject<TDimension>::InternalClone() const
+SurfaceSpatialObject<TDimension, TSurfacePointType>::InternalClone() const
 {
   // Default implementation just copies the parameters from
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   return loPtr;
 }
 
-/** Print the surface object */
-template <unsigned int TDimension>
-void
-SurfaceSpatialObject<TDimension>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  os << indent << "SurfaceSpatialObject(" << this << ")" << std::endl;
-  Superclass::PrintSelf(os, indent);
-}
-
-/** Approximate the normals of the surface */
-template <unsigned int TDimension>
+#if !defined(ITK_LEGACY_REMOVE)
+template <unsigned int TDimension, typename TSurfacePointType>
 bool
-SurfaceSpatialObject<TDimension>::Approximate3DNormals()
+SurfaceSpatialObject<TDimension, TSurfacePointType>::Approximate3DNormals()
 {
-  if (TDimension != 3)
-  {
-    itkExceptionMacro("Approximate3DNormals works only in 3D");
-  }
+  return ComputeNormals;
+}
+#endif // LEGACY
 
+template <unsigned int TDimension, typename TSurfacePointType>
+bool
+SurfaceSpatialObject<TDimension, TSurfacePointType>::ComputeNormals()
+{
   if (this->m_Points.size() < 3)
   {
-    itkExceptionMacro("Approximate3DNormals requires at least 3 points");
+    itkExceptionMacro("ComputeNormals requires at least 3 points");
   }
 
-  typename SurfacePointListType::iterator it = this->m_Points.begin();
-  typename SurfacePointListType::iterator itEnd = this->m_Points.end();
+  typename SurfacePointListType::iterator       it = this->m_Points.begin();
+  const typename SurfacePointListType::iterator itEnd = this->m_Points.end();
 
   while (it != itEnd)
   {
     // Try to find 3 points close to the corresponding point
-    SurfacePointType pt = *it;
-    PointType        pos = (*it).GetPositionInObjectSpace();
+    const SurfacePointType pt = *it;
+    const PointType        pos = it->GetPositionInObjectSpace();
 
     std::list<int> badId;
     unsigned int   identifier[3];
@@ -121,13 +113,13 @@ SurfaceSpatialObject<TDimension>::Approximate3DNormals()
       {
         if (it2 == it)
         {
-          i++;
-          it2++;
+          ++i;
+          ++it2;
           continue;
         }
 
-        bool                           badPoint = false;
-        std::list<int>::const_iterator itBadId = badId.begin();
+        bool badPoint = false;
+        auto itBadId = badId.begin();
         while (itBadId != badId.end())
         {
           if (*itBadId == i)
@@ -135,25 +127,25 @@ SurfaceSpatialObject<TDimension>::Approximate3DNormals()
             badPoint = true;
             break;
           }
-          itBadId++;
+          ++itBadId;
         }
 
         if (badPoint)
         {
-          i++;
-          it2++;
+          ++i;
+          ++it2;
           continue;
         }
 
-        PointType pos2 = (*it2).GetPositionInObjectSpace();
-        float     distance = pos2.EuclideanDistanceTo(pos);
+        const PointType pos2 = it2->GetPositionInObjectSpace();
+        const float     distance = pos2.EuclideanDistanceTo(pos);
 
         // Check that the point is not the same as some previously defined
         bool valid = true;
         for (auto & j : identifier)
         {
-          PointType p = this->m_Points[j].GetPositionInObjectSpace();
-          float     d = pos2.EuclideanDistanceTo(p);
+          const PointType p = this->m_Points[j].GetPositionInObjectSpace();
+          const float     d = pos2.EuclideanDistanceTo(p);
           if (Math::AlmostEquals(d, 0.0f))
           {
             valid = false;
@@ -163,8 +155,8 @@ SurfaceSpatialObject<TDimension>::Approximate3DNormals()
 
         if (Math::AlmostEquals(distance, 0.0f) || !valid)
         {
-          i++;
-          it2++;
+          ++i;
+          ++it2;
           continue;
         }
 
@@ -186,15 +178,15 @@ SurfaceSpatialObject<TDimension>::Approximate3DNormals()
           max[2] = distance;
           identifier[2] = i;
         }
-        i++;
-        it2++;
+        ++i;
+        ++it2;
       }
 
       if ((identifier[0] == identifier[1]) || (identifier[1] == identifier[2]) || (identifier[0] == identifier[2]))
       {
-        std::cout << "Cannot find 3 distinct points!" << std::endl;
-        std::cout << identifier[0] << " : " << identifier[1] << " : " << identifier[2] << std::endl;
-        std::cout << max[0] << " : " << max[1] << " : " << max[2] << std::endl;
+        std::cout << "Cannot find 3 distinct points!" << std::endl
+                  << identifier[0] << " : " << identifier[1] << " : " << identifier[2] << std::endl
+                  << max[0] << " : " << max[1] << " : " << max[2] << std::endl;
         return false;
       }
 
@@ -202,35 +194,57 @@ SurfaceSpatialObject<TDimension>::Approximate3DNormals()
       PointType v2 = this->m_Points[identifier[1]].GetPositionInObjectSpace();
       PointType v3 = this->m_Points[identifier[2]].GetPositionInObjectSpace();
 
-      double coa = -(v1[1] * (v2[2] - v3[2]) + v2[1] * (v3[2] - v1[2]) + v3[1] * (v1[2] - v2[2]));
-      double cob = -(v1[2] * (v2[0] - v3[0]) + v2[2] * (v3[0] - v1[0]) + v3[2] * (v1[0] - v2[0]));
-      double coc = -(v1[0] * (v2[1] - v3[1]) + v2[0] * (v3[1] - v1[1]) + v3[0] * (v1[1] - v2[1]));
-
-      absvec = -std::sqrt((double)((coa * coa) + (cob * cob) + (coc * coc)));
-
-      if (Math::AlmostEquals(absvec, 0.0))
+      if constexpr (TDimension == 3)
       {
-        badId.push_back(identifier[2]);
+        const double coa = -(v1[1] * (v2[2] - v3[2]) + v2[1] * (v3[2] - v1[2]) + v3[1] * (v1[2] - v2[2]));
+        const double cob = -(v1[2] * (v2[0] - v3[0]) + v2[2] * (v3[0] - v1[0]) + v3[2] * (v1[0] - v2[0]));
+        const double coc = -(v1[0] * (v2[1] - v3[1]) + v2[0] * (v3[1] - v1[1]) + v3[0] * (v1[1] - v2[1]));
+
+        absvec = -std::sqrt(((coa * coa) + (cob * cob) + (coc * coc)));
+
+        if (Math::AlmostEquals(absvec, 0.0))
+        {
+          badId.push_back(identifier[2]);
+        }
+        else
+        {
+          CovariantVectorType normal;
+          normal[0] = coa / absvec;
+          normal[1] = cob / absvec;
+          normal[2] = coc / absvec;
+          it->SetNormalInObjectSpace(normal);
+        }
       }
       else
       {
-        CovariantVectorType normal;
-        normal[0] = coa / absvec;
-        normal[1] = cob / absvec;
-        normal[2] = coc / absvec;
-        (*it).SetNormalInObjectSpace(normal);
+        const double coa = -(v1[1] * (v2[0] - v3[0]) + v2[1] * (v3[0] - v1[0]) + v3[1] * (v1[0] - v2[0]));
+        const double cob = -(v1[0] * (v2[1] - v3[1]) + v2[0] * (v3[1] - v1[1]) + v3[0] * (v1[1] - v2[1]));
+
+        absvec = -std::sqrt(((coa * coa) + (cob * cob)));
+
+        if (Math::AlmostEquals(absvec, 0.0))
+        {
+          badId.push_back(identifier[2]);
+        }
+        else
+        {
+          CovariantVectorType normal;
+          normal[0] = coa / absvec;
+          normal[1] = cob / absvec;
+          it->SetNormalInObjectSpace(normal);
+        }
       }
     } while ((Math::AlmostEquals(absvec, 0.0)) && (badId.size() < this->m_Points.size() - 1));
 
     if (Math::AlmostEquals(absvec, 0.0))
     {
-      std::cout << "Approximate3DNormals Failed!" << std::endl;
-      std::cout << identifier[0] << " : " << identifier[1] << " : " << identifier[2] << std::endl;
-      std::cout << badId.size() << " : " << this->m_Points.size() - 1 << std::endl;
+      std::cout << "ComputeNormals Failed!" << std::endl
+                << identifier[0] << " : " << identifier[1] << " : " << identifier[2] << std::endl
+                << badId.size() << " : " << this->m_Points.size() - 1 << std::endl;
       return false;
     }
 
-    it++;
+    ++it;
   }
 
   return true;

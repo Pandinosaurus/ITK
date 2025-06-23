@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,7 +75,7 @@ itkGeometricalQuadEdgeTest1(int, char *[])
 
   PrimalQuadEdgeType * qe = HelperType::MakeQuadEdges();
   // this will only call the method
-  // a more rigorous test woul dbe needed
+  // a more rigorous test would be needed
   qe->SetRight(1);
   qe->GetSym();
   qe->GetOprev();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,9 @@ namespace itk
  * \brief TODO
  * \ingroup ITKIOSpatialObjects
  */
-template <unsigned int NDimensions = 3,
+template <unsigned int VDimension = 3,
           typename PixelType = unsigned char,
-          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, NDimensions, NDimensions>>
+          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, VDimension, VDimension>>
 class ITK_TEMPLATE_EXPORT SpatialObjectWriter : public Object
 {
 public:
@@ -44,20 +44,21 @@ public:
   /** Run-time type information (and related methods). */
   using Superclass = Object;
 
-  using SpatialObjectType = SpatialObject<NDimensions>;
+  using SpatialObjectType = SpatialObject<VDimension>;
   using SpatialObjectPointer = typename SpatialObjectType::Pointer;
+  using SpatialObjectConstPointer = typename SpatialObjectType::ConstPointer;
 
-  /** base type for MetaConverters -- bidirections conversion btw
+  /** base type for MetaConverters -- bidirectional conversion btw
    *  SpatialObject & MetaObject
    */
-  using MetaConverterBaseType = MetaConverterBase<NDimensions>;
+  using MetaConverterBaseType = MetaConverterBase<VDimension>;
 
-  using MetaSceneConverterType = MetaSceneConverter<NDimensions, PixelType, TMeshTraits>;
+  using MetaSceneConverterType = MetaSceneConverter<VDimension, PixelType, TMeshTraits>;
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  itkTypeMacro(SpatialObjectWriter, Object);
+  itkOverrideGetNameOfClassMacro(SpatialObjectWriter);
 
   /** Load a tube file. */
   void
@@ -71,13 +72,24 @@ public:
 
   /** Set the Input  */
   void
-  SetInput(SpatialObjectType * input)
+  SetInput(const SpatialObjectType * input)
   {
     m_SpatialObject = input;
   }
 
   itkSetMacro(BinaryPoints, bool);
   itkGetConstMacro(BinaryPoints, bool);
+  itkBooleanMacro(BinaryPoints);
+
+  /** Set the version of MetaIO to use.
+   *    Version 0 cannot accurately represented ImageSpatialObjects.
+   *    Version 1 fixes bugs in Version 0, but introduces new tag-value
+   *      pairs that might throw warnings on older readers. */
+
+  void
+  SetMetaIOVersion(unsigned int ver);
+  unsigned int
+  GetMetaIOVersion() const;
 
   void
   SetTransformPrecision(unsigned int precision);
@@ -86,9 +98,11 @@ public:
   GetTransformPrecision();
 
   /** Set/Get if the images should be written in a different file */
+  /** @ITKStartGrouping */
   itkSetMacro(WriteImagesInSeparateFile, bool);
   itkGetConstMacro(WriteImagesInSeparateFile, bool);
-
+  itkBooleanMacro(WriteImagesInSeparateFile);
+  /** @ITKEndGrouping */
   /** Add a converter for a new MetaObject/SpatialObject type */
   void
   RegisterMetaConverter(const char *            metaTypeName,
@@ -96,17 +110,17 @@ public:
                         MetaConverterBaseType * converter);
 
 protected:
-  std::string m_FileName;
-  bool        m_BinaryPoints;
-  bool        m_WriteImagesInSeparateFile;
+  std::string m_FileName{};
+  bool        m_BinaryPoints{};
+  bool        m_WriteImagesInSeparateFile{};
 
   SpatialObjectWriter();
   ~SpatialObjectWriter() override = default;
 
 private:
-  SpatialObjectPointer m_SpatialObject;
+  SpatialObjectConstPointer m_SpatialObject{};
 
-  typename MetaSceneConverterType::Pointer m_MetaToSpatialConverter;
+  typename MetaSceneConverterType::Pointer m_MetaToSpatialConverter{};
 };
 } // namespace itk
 

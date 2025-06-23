@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,8 +20,7 @@
 
 #include "itkImageToImageFilter.h"
 #include <vector>
-
-#define PAMI
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -30,29 +29,19 @@ namespace itk
  * \brief Morphological opening by attributes
  *
  * This is the base class for morphology attribute
- * operations. Attribute openings remove blobs according to criteria
- * such as area. When applied to grayscale images it has the effect of
- * trimming peaks based on area while leaving the rest of the image
- * unchanged. It is possible to use attributes besides area, but no
- * others are implemented yet. This filter uses some dodgy coding
- * practices - most notably copying the image data to a linear buffer
- * to allow direct implementation of the published algorithm. It
- * should therefore be quite a good candidate to carry out tests of
- * itk iterator performance with randomish access patterns.
+ * operations. Attribute operations remove blobs according to criteria
+ * such as area. Attribute openings remove bright regions that meet the
+ * attribute criteria (i.e. regions less than a user specified area or
+ * volume) while attribute closings fill dark regions that meet the
+ * attribute criteria.
  *
- * This filter is implemented using the method of Wilkinson, "A
- * comparison of algorithms for Connected set openings and Closings",
- * A. Meijster and M. H. Wilkinson, PAMI, vol 24, no. 4, April 2002.
- * Attempts at implementing the method from ISMM 2000 are also
- * included, but operation appears incorrect. Check the ifdefs if you
- * are interested.
+ * This filter is implemented using the method describe in \cite meijster2002.
  *
  * This code was contributed in the Insight Journal paper
  *
  * "Grayscale morphological attribute operations"
  * by Beare R.
- * https://hdl.handle.net/1926/1316
- * http://www.insight-journal.org/browse/publication/203
+ * https://doi.org/10.54294/ifvjls
  *
  * \author Richard Beare. Department of Medicine, Monash University, Melbourne, Australia.
  *
@@ -72,7 +61,7 @@ public:
   /**
    * Types from the Superclass
    */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /**
    * Extract some information from the image types.  Dimensionality
@@ -108,7 +97,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(AttributeMorphologyBaseImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AttributeMorphologyBaseImageFilter);
 
   /**
    * Method for creation through the object factory.
@@ -135,11 +124,9 @@ public:
 
 protected:
   AttributeMorphologyBaseImageFilter()
-  {
-    m_FullyConnected = false;
-    m_AttributeValuePerPixel = 1;
-    m_Lambda = 0;
-  }
+    : m_AttributeValuePerPixel(1)
+    , m_Lambda(0)
+  {}
 
   ~AttributeMorphologyBaseImageFilter() override = default;
   AttributeMorphologyBaseImageFilter(const Self &) {}
@@ -165,19 +152,18 @@ protected:
   void
   EnlargeOutputRequestedRegion(DataObject * itkNotUsed(output)) override;
 
-  AttributeType m_AttributeValuePerPixel;
+  AttributeType m_AttributeValuePerPixel{};
 
 private:
-  bool          m_FullyConnected;
-  AttributeType m_Lambda;
+  bool          m_FullyConnected{};
+  AttributeType m_Lambda{};
 
   // some constants used several times in the code
   static constexpr OffsetValueType INACTIVE = -1;
   static constexpr OffsetValueType ACTIVE = -2;
-  static constexpr OffsetValueType ROOT = -3;
 
   // Just used for area/volume openings at the moment
-  AttributeType * m_AuxData;
+  std::unique_ptr<AttributeType[]> m_AuxData;
 
   using OffsetVecType = std::vector<OffsetType>;
   // offset in the linear array.
@@ -186,41 +172,33 @@ private:
   void
   SetupOffsetVec(OffsetDirectVecType & PosOffsets, OffsetVecType & Offsets);
 
-  class GreyAndPos
-  {
-  public:
-    InputPixelType  Val;
-    OffsetValueType Pos;
-  };
+  // m_SortPixels contains offsets into the raw image
+  // it is sorted with a stable sort by grey level as the
+  // first step in the algorithm. The sorting step avoids
+  // the need to explicitly locate regional extrema.
+  std::unique_ptr<OffsetValueType[]> m_SortPixels;
+  std::unique_ptr<OffsetValueType[]> m_Parent;
 
-  GreyAndPos *      m_SortPixels;
-  OffsetValueType * m_Parent;
-#ifndef PAMI
-  bool * m_Processed;
-#endif
   // This is a bit ugly, but I can't see an easy way around
-  InputPixelType * m_Raw;
+  std::unique_ptr<InputPixelType[]> m_Raw;
 
-  class ComparePixStruct
+  class CompareOffsetType
   {
   public:
     TFunction m_TFunction;
+    // buf contains the raw data, which is what
+    // we want to sort by. i.e. the first value in
+    // the sorted buffer will be the location of the
+    // largest or smallest pixel.
+    InputPixelType * buf;
     bool
-    operator()(GreyAndPos const & l, GreyAndPos const & r) const
+    operator()(const OffsetValueType & l, const OffsetValueType & r) const
     {
-      if (m_TFunction(l.Val, r.Val))
-      {
-        return true;
-      }
-      if (l.Val == r.Val)
-      {
-        return (l.Pos < r.Pos);
-      }
-      return false;
+      return (m_TFunction(buf[l], buf[r]));
     }
   };
 
-#ifdef PAMI
+  CompareOffsetType m_CompareOffset{};
   // version from PAMI. Note - using the AuxData array rather than the
   // parent array to store area
   void
@@ -268,77 +246,6 @@ private:
       }
     }
   }
-
-#else
-  // version from ISMM paper
-  void
-  MakeSet(OffsetValueType x)
-  {
-    m_Parent[x] = ACTIVE;
-    m_AuxData[x] = m_AttributeValuePerPixel;
-  }
-
-  void
-  Link(OffsetValueType x, OffsetValueType y)
-  {
-    if ((m_Parent[y] == ACTIVE) && (m_Parent[x] == ACTIVE))
-    {
-      // should be a call to MergeAuxData
-      m_AuxData[y] = m_AuxData[x] + m_AuxData[y];
-      m_AuxData[x] = -m_AttributeValuePerPixel;
-    }
-    else if (m_Parent[x] == ACTIVE)
-    {
-      m_AuxData[x] = -m_AttributeValuePerPixel;
-    }
-    else
-    {
-      m_AuxData[y] = -m_AttributeValuePerPixel;
-      m_Parent[y] = INACTIVE;
-    }
-    m_Parent[x] = y;
-  }
-
-  OffsetValueType
-  FindRoot(OffsetValueType x)
-  {
-    if (m_Parent[x] >= 0)
-    {
-      m_Parent[x] = FindRoot(m_Parent[x]);
-      return (m_Parent[x]);
-    }
-    else
-    {
-      return (x);
-    }
-  }
-
-  bool
-  Equiv(OffsetValueType x, OffsetValueType y)
-  {
-    return ((m_Raw[x] == m_Raw[y]) || (m_Parent[x] == ACTIVE));
-  }
-
-  void
-  Union(OffsetValueType n, OffsetValueType p)
-  {
-    OffsetValueType r = FindRoot(n);
-
-    if (r != p)
-    {
-      if (Equiv(r, p))
-      {
-        Link(r, p);
-      }
-      else if (m_Parent[p] == ACTIVE)
-      {
-        m_Parent[p] = INACTIVE;
-        m_AuxData[p] = -m_AttributeValuePerPixel;
-      }
-    }
-  }
-
-#endif
 };
 } // end namespace itk
 

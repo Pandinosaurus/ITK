@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkSampleToHistogramFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkImageFileReader.h"
+#include "itkTestingMacros.h"
 
 int
 itkSampleToHistogramFilterTest5(int argc, char * argv[])
@@ -29,9 +30,9 @@ itkSampleToHistogramFilterTest5(int argc, char * argv[])
 
   if (argc < 2)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFilename " << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << "  inputImageFilename " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -66,11 +67,11 @@ itkSampleToHistogramFilterTest5(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
-  ImageToListSampleFilterType::Pointer imageToSampleFilter = ImageToListSampleFilterType::New();
+  auto imageToSampleFilter = ImageToListSampleFilterType::New();
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   reader->SetFileName(argv[1]);
 
@@ -80,17 +81,7 @@ itkSampleToHistogramFilterTest5(int argc, char * argv[])
 
   // Test exception when calling Update() without having
   // defined the size of the histogram in the filter.
-  try
-  {
-    filter->Update();
-    std::cerr << "Failure to throw expected exception due to lack";
-    std::cerr << " of calling SetHistogramSize() in the filter ";
-    return EXIT_FAILURE;
-  }
-  catch (itk::ExceptionObject &)
-  {
-    std::cout << "Expected exception received" << std::endl;
-  }
+  ITK_TRY_EXPECT_EXCEPTION(filter->Update());
 
 
   const HistogramType * histogram = filter->GetOutput();
@@ -109,15 +100,8 @@ itkSampleToHistogramFilterTest5(int argc, char * argv[])
 
   filter->SetHistogramSize(histogramSize);
 
-  try
-  {
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
 
   const unsigned int expectedHistogramSize = histogramSize[0] * histogramSize[1] * histogramSize[2];
 
@@ -129,8 +113,8 @@ itkSampleToHistogramFilterTest5(int argc, char * argv[])
   }
 
 
-  HistogramType::ConstIterator histogramItr = histogram->Begin();
-  HistogramType::ConstIterator histogramEnd = histogram->End();
+  HistogramType::ConstIterator       histogramItr = histogram->Begin();
+  const HistogramType::ConstIterator histogramEnd = histogram->End();
 
   using PrintType = itk::NumericTraits<VMeasurementType>::PrintType;
 

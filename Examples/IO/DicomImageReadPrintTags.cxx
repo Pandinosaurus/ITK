@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +74,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 2;
 
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -100,7 +100,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -112,7 +112,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ImageIOType = itk::GDCMImageIO;
-  ImageIOType::Pointer dicomIO = ImageIOType::New();
+  auto dicomIO = ImageIOType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -198,9 +198,9 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   while (itr != end)
   {
-    itk::MetaDataObjectBase::Pointer entry = itr->second;
+    const itk::MetaDataObjectBase::Pointer entry = itr->second;
 
-    MetaDataStringType::Pointer entryvalue =
+    const MetaDataStringType::Pointer entryvalue =
       dynamic_cast<MetaDataStringType *>(entry.GetPointer());
     // Software Guide : EndCodeSnippet
 
@@ -221,9 +221,9 @@ main(int argc, char * argv[])
     // Software Guide : BeginCodeSnippet
     if (entryvalue)
     {
-      std::string tagkey = itr->first;
-      std::string labelId;
-      bool        found = itk::GDCMImageIO::GetLabelFromTag(tagkey, labelId);
+      const std::string tagkey = itr->first;
+      std::string       labelId;
+      const bool found = itk::GDCMImageIO::GetLabelFromTag(tagkey, labelId);
       // Software Guide : EndCodeSnippet
 
       // Software Guide : BeginLatex
@@ -236,7 +236,7 @@ main(int argc, char * argv[])
       // Software Guide : EndLatex
 
       // Software Guide : BeginCodeSnippet
-      std::string tagvalue = entryvalue->GetMetaDataObjectValue();
+      const std::string tagvalue = entryvalue->GetMetaDataObjectValue();
       // Software Guide : EndCodeSnippet
 
       // Software Guide : BeginLatex
@@ -281,8 +281,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  std::string entryId = "0010|0010";
-  auto        tagItr = dictionary.Find(entryId);
+  const std::string entryId = "0010|0010";
+  auto              tagItr = dictionary.Find(entryId);
   // Software Guide : EndCodeSnippet
   // Software Guide : BeginLatex
   //
@@ -294,7 +294,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   if (tagItr != end)
   {
-    MetaDataStringType::ConstPointer entryvalue =
+    const MetaDataStringType::ConstPointer entryvalue =
       dynamic_cast<const MetaDataStringType *>(tagItr->second.GetPointer());
     // Software Guide : EndCodeSnippet
 
@@ -309,7 +309,7 @@ main(int argc, char * argv[])
     // Software Guide : BeginCodeSnippet
     if (entryvalue)
     {
-      std::string tagvalue = entryvalue->GetMetaDataObjectValue();
+      const std::string tagvalue = entryvalue->GetMetaDataObjectValue();
       std::cout << "Patient's Name (" << entryId << ") ";
       std::cout << " is: " << tagvalue.c_str() << std::endl;
     }
@@ -319,14 +319,14 @@ main(int argc, char * argv[])
   // Software Guide : BeginLatex
   //
   //  Another way to read a specific tag is to use the encapsulation above
-  //  MetaDataDictionary. Note that this is stricly equivalent to the above
+  //  MetaDataDictionary. Note that this is strictly equivalent to the above
   //  code.
   //
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  std::string tagkey = "0008|1050";
-  std::string labelId;
+  const std::string tagkey = "0008|1050";
+  std::string       labelId;
   if (itk::GDCMImageIO::GetLabelFromTag(tagkey, labelId))
   {
     std::string value;
@@ -343,7 +343,7 @@ main(int argc, char * argv[])
   }
   else
   {
-    std::cerr << "Trying to access inexistant DICOM tag." << std::endl;
+    std::cerr << "Trying to access inexistent DICOM tag." << std::endl;
   }
   // Software Guide : EndCodeSnippet
 
@@ -365,14 +365,13 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  itk::IOPixelEnum     pixelType = reader->GetImageIO()->GetPixelType();
-  itk::IOComponentEnum componentType =
+  const itk::IOPixelEnum     pixelType = reader->GetImageIO()->GetPixelType();
+  const itk::IOComponentEnum componentType =
     reader->GetImageIO()->GetComponentType();
   std::cout << "PixelType: "
-            << reader->GetImageIO()->GetPixelTypeAsString(pixelType)
-            << std::endl;
+            << itk::ImageIOBase::GetPixelTypeAsString(pixelType) << std::endl;
   std::cout << "Component Type: "
-            << reader->GetImageIO()->GetComponentTypeAsString(componentType)
+            << itk::ImageIOBase::GetComponentTypeAsString(componentType)
             << std::endl;
   // Software Guide : EndCodeSnippet
 

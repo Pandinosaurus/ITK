@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkImageFileReader.h"
 #include "itkDCMTKImageIO.h"
 #include "itkVersor.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
@@ -26,12 +27,13 @@
  *  computed in itkDCMTKImageIO are orthogonal
  */
 int
-itkDCMTKImageIOOrthoDirTest(int ac, char * av[])
+itkDCMTKImageIOOrthoDirTest(int argc, char * argv[])
 {
 
-  if (ac < 2)
+  if (argc < 2)
   {
-    std::cerr << "Usage: " << av[0] << " DicomImage\n";
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " DicomImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -40,22 +42,14 @@ itkDCMTKImageIOOrthoDirTest(int ac, char * av[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using ImageIOType = itk::DCMTKImageIO;
 
-  ImageIOType::Pointer dcmImageIO = ImageIOType::New();
+  auto dcmImageIO = ImageIOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->SetImageIO(dcmImageIO);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   InputImageType::DirectionType directionCosines;
   directionCosines = reader->GetOutput()->GetDirection();
@@ -64,16 +58,9 @@ itkDCMTKImageIOOrthoDirTest(int ac, char * av[])
 
   itk::Versor<itk::SpacePrecisionType> rotation;
 
-  try
-  {
-    rotation.Set(directionCosines);
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception setting matrix" << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(rotation.Set(directionCosines));
 
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

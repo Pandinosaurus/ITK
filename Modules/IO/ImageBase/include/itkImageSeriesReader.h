@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSeriesReader, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageSeriesReader);
 
   /** The size of the output image. */
   using SizeType = typename TOutputImage::SizeType;
@@ -78,8 +78,9 @@ public:
 
   using FileNamesContainer = std::vector<std::string>;
 
-  /** Set the vector of strings that contains the file names. Files
+  /** Set/Get the vector of strings that contains the file names. Files
    * are processed in sequential order. */
+  /** @ITKStartGrouping */
   void
   SetFileNames(const FileNamesContainer & name)
   {
@@ -90,16 +91,17 @@ public:
     }
   }
 
-  const FileNamesContainer &
+  [[nodiscard]] const FileNamesContainer &
   GetFileNames() const
   {
     return m_FileNames;
   }
+  /** @ITKEndGrouping */
 
   /** Set the first file name to be processed. This deletes previous
    * filenames. */
   void
-  SetFileName(std::string const & name)
+  SetFileName(const std::string & name)
   {
     m_FileNames.clear();
     m_FileNames.push_back(name);
@@ -108,37 +110,43 @@ public:
 
   /** Add a single filename to the list of files. */
   void
-  AddFileName(std::string const & name)
+  AddFileName(const std::string & name)
   {
     m_FileNames.push_back(name);
     this->Modified();
   }
 
-  /** ReverseOrderOn changes the order of travesal of the file names
+  /** ReverseOrderOn changes the order of traversal of the file names
    * from last to first */
+  /** @ITKStartGrouping */
   itkSetMacro(ReverseOrder, bool);
   itkGetConstMacro(ReverseOrder, bool);
   itkBooleanMacro(ReverseOrder);
+  /** @ITKEndGrouping */
 
   /** Do we want to force orthogonal direction cosines? On by default.
    * Turning it off enables proper reading of DICOM series with gantry tilt. */
+  /** @ITKStartGrouping */
   itkSetMacro(ForceOrthogonalDirection, bool);
   itkGetConstMacro(ForceOrthogonalDirection, bool);
   itkBooleanMacro(ForceOrthogonalDirection);
+  /** @ITKEndGrouping */
 
   /** Set/Get the ImageIO helper class. By default, the
    * ImageSeriesReader uses the factory mechanism of the
    * ImageFileReader to determine the file type. This method can be
    * used to specify which IO to use. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(ImageIO, ImageIOBase);
   itkGetModifiableObjectMacro(ImageIO, ImageIOBase);
+  /** @ITKEndGrouping */
 
   /** \brief Set/Get MetaDataDictionaryArrayUpdate enables the updating of
    * the MetaDataDictionaryArray.
    *
    * By default this is enabled. It may be advantageous to disable
    * this feature when streaming, if this array is not need, as it may
-   * redure the number of times each file is read.
+   * reduce the number of times each file is read.
    *
    * /sa GetMetaDataDictionaryArray()
    */
@@ -161,24 +169,27 @@ public:
 
   /** Get access to the Array of MetaDataDictionaries which are
    * updated in the GenerateData methods */
-  DictionaryArrayRawPointer
+  [[nodiscard]] DictionaryArrayRawPointer
   GetMetaDataDictionaryArray() const;
 
   /** Set the stream On or Off */
+  /** @ITKStartGrouping */
   itkSetMacro(UseStreaming, bool);
   itkGetConstReferenceMacro(UseStreaming, bool);
   itkBooleanMacro(UseStreaming);
+  /** @ITKEndGrouping */
 
   /** Set the relative threshold for issuing warnings about non-uniform sampling */
+  /** @ITKStartGrouping */
   itkSetMacro(SpacingWarningRelThreshold, double);
   itkGetConstMacro(SpacingWarningRelThreshold, double);
-
+  /** @ITKEndGrouping */
 protected:
   ImageSeriesReader()
     : m_ImageIO(nullptr)
 
   {}
-  ~ImageSeriesReader() override;
+  ~ImageSeriesReader() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -187,7 +198,7 @@ protected:
   GenerateData() override;
 
   /** The image format, 0 will use the factory mechanism. */
-  ImageIOBase::Pointer m_ImageIO;
+  ImageIOBase::Pointer m_ImageIO{};
 
   /** Select the traversal order. */
   bool m_ReverseOrder{ false };
@@ -196,7 +207,7 @@ protected:
   bool m_ForceOrthogonalDirection{ true };
 
   /** A list of filenames to be processed. */
-  FileNamesContainer m_FileNames;
+  FileNamesContainer m_FileNames{};
 
   /** The number of independent variables in the images that comprise
    *  the series. This is also used as the slice moving dimension
@@ -204,10 +215,6 @@ protected:
    *  images into  a 3D image, the moving dimension index is 2.
    */
   unsigned int m_NumberOfDimensionsInImage{ 0 };
-
-  /** Array of MetaDataDictionaries. This allows to hold information from the
-   * ImageIO objects after reading every sub image in the series */
-  DictionaryArrayType m_MetaDataDictionaryArray;
 
   bool m_UseStreaming{ true };
 
@@ -221,8 +228,15 @@ private:
   int
   ComputeMovingDimensionIndex(ReaderType * reader);
 
+  /** Array of MetaDataDictionaries. This allows to hold information from the
+   * ImageIO objects after reading every sub image in the series */
+  DictionaryArrayType m_MetaDataDictionaryArray{};
+
+  /** The internal storage of MetaDataDictionaries. */
+  std::vector<MetaDataDictionary> m_InternalMetaDataDictionaries{};
+
   /** Modified time of the MetaDataDictionaryArray */
-  TimeStamp m_MetaDataDictionaryArrayMTime;
+  TimeStamp m_MetaDataDictionaryArrayMTime{};
 
   /** Indicated if the MMDA should be updated */
   bool m_MetaDataDictionaryArrayUpdate{ true };

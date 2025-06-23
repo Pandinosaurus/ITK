@@ -35,7 +35,7 @@ compression ratio at given image quality. A JFIF header would contain that
 information, but the JFIF header is neither required nor recommended in the
 DICOM JPEG bitstream. In the absence of that information, and with a JPEG
 compressed DICOM file where Photometric Interpretation is "RGB", the parser
-needs to decide whether the encoder did something unsual but legal and
+needs to decide whether the encoder did something unusual but legal and
 decompress the JPEG bitstream as RGB, or whether the encoder just failed to
 correctly encode the color model of the JPEG bitstream (which in my experience
 is in most cases the correct assumption) and ignore Photometric Interpretation
@@ -107,11 +107,13 @@ bool ImageChangePhotometricInterpretation::ChangeYBR2RGB()
     return true;
   }
 
+  // Note: allocate with malloc because it guarantees to align suitable for any type, unlike new.
   unsigned long len = image.GetBufferLength();
-  char *p8 = new char[len];
-  image.GetBuffer( p8 );
+  void *p8 = malloc (len);
+  image.GetBuffer( (char *)p8 );
 
   const PixelFormat &pf = image.GetPixelFormat();
+  if( image.GetPlanarConfiguration() != 0 ) return false;
   if( pf.GetSamplesPerPixel() != 3 || pf.GetPixelRepresentation() != 0 ) return false;
   if( pf.GetBitsAllocated() == 16 )
   {
@@ -145,7 +147,7 @@ bool ImageChangePhotometricInterpretation::ChangeYBR2RGB()
   }
 
   DataElement &de = Output->GetDataElement();
-  de.SetByteValue( p8, len);
+  de.SetByteValue( (char *)p8, len);
   //Output->GetLUT().Clear();
   Output->SetPhotometricInterpretation( PI );
   //Output->GetPixelFormat().SetSamplesPerPixel( 3 );
@@ -164,7 +166,7 @@ bool ImageChangePhotometricInterpretation::ChangeYBR2RGB()
 
 
   bool success = true;
-  delete[] p8;
+  free(p8);
   return success;
 }
 
@@ -182,11 +184,13 @@ bool ImageChangePhotometricInterpretation::ChangeRGB2YBR()
     return true;
   }
 
+  // Note: allocate with malloc because it guarantees to align suitable for any type, unlike new.
   unsigned long len = image.GetBufferLength();
-  char *p8 = new char[len];
-  image.GetBuffer( p8 );
+  void *p8 = malloc(len);
+  image.GetBuffer( (char *)p8 );
 
   const PixelFormat &pf = image.GetPixelFormat();
+  if( image.GetPlanarConfiguration() != 0 ) return false;
   if( pf.GetSamplesPerPixel() != 3 || pf.GetPixelRepresentation() != 0 ) return false;
   if( pf.GetBitsAllocated() == 16 )
   {
@@ -220,7 +224,7 @@ bool ImageChangePhotometricInterpretation::ChangeRGB2YBR()
   }
 
   DataElement &de = Output->GetDataElement();
-  de.SetByteValue( p8, len);
+  de.SetByteValue( (char *)p8, len);
   //Output->GetLUT().Clear();
   Output->SetPhotometricInterpretation( PI );
   //Output->GetPixelFormat().SetSamplesPerPixel( 3 );
@@ -239,7 +243,7 @@ bool ImageChangePhotometricInterpretation::ChangeRGB2YBR()
 
 
   bool success = true;
-  delete[] p8;
+  free(p8);
   return success;
 }
 

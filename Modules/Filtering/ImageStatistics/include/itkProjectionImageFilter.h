@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,9 +41,8 @@ namespace itk
  * This class is parameterized over the type of the input image and
  * the type of the output image.
  *
- * This class was contributed to the Insight Journal by Emilian Beronich and
- * Gaetan Lehmann. The original paper can be found at
- * https://www.insight-journal.org/browse/publication/71
+ * This class was contributed to the Insight Journal by Emiliano Beronich and
+ * Gaetan Lehmann \cite Lehmann_2006_a.
  *
  * \author Emiliano Beronich
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
@@ -68,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ProjectionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ProjectionImageFilter);
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -89,18 +88,15 @@ public:
 
   /** Input and output images must be the same dimension, or the output's
       dimension must be one less than that of the input. */
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(ImageDimensionCheck,
                   (Concept::SameDimensionOrMinusOne<Self::InputImageDimension, Self::OutputImageDimension>));
-  // End concept checking
-#endif
 
   /** Set/Get the direction in which to accumulate the data.  It must be set
    * before the update of the filter. Defaults to the last dimension. */
+  /** @ITKStartGrouping */
   itkSetMacro(ProjectionDimension, unsigned int);
   itkGetConstReferenceMacro(ProjectionDimension, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   ProjectionImageFilter();
   ~ProjectionImageFilter() override = default;
@@ -122,7 +118,7 @@ protected:
   virtual AccumulatorType NewAccumulator(SizeValueType) const;
 
 private:
-  unsigned int m_ProjectionDimension;
+  unsigned int m_ProjectionDimension{};
 };
 } // end namespace itk
 

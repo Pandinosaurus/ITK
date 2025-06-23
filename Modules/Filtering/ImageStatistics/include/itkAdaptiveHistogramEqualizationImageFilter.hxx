@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,6 @@
 #include <set>
 #include "itkMath.h"
 
-#include "itkAdaptiveHistogramEqualizationImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkConstNeighborhoodIterator.h"
@@ -37,14 +36,14 @@ template <typename TImageType, typename TKernel>
 void
 AdaptiveHistogramEqualizationImageFilter<TImageType, TKernel>::BeforeThreadedGenerateData()
 {
-  typename ImageType::Pointer input = ImageType::New();
+  auto input = ImageType::New();
   input->Graft(const_cast<ImageType *>(this->GetInput()));
 
   // Calculate min and max gray level of an input image
   // NOTE: This computation of min/max means that this filter should
   // not be able to stream.
   using MinMaxFilter = MinimumMaximumImageFilter<ImageType>;
-  typename MinMaxFilter::Pointer minmax = MinMaxFilter::New();
+  auto minmax = MinMaxFilter::New();
 
   minmax->SetInput(input);
   minmax->Update();
@@ -59,13 +58,15 @@ AdaptiveHistogramEqualizationImageFilter<TImageType, TKernel>::PrintSelf(std::os
 {
   Superclass::PrintSelf(os, indent);
 
-  os << "Alpha: " << m_Alpha << std::endl;
-  os << "Beta: " << m_Beta << std::endl;
+  os << indent << "Alpha: " << m_Alpha << std::endl;
+  os << indent << "Beta: " << m_Beta << std::endl;
 
-  os << "InputMinimum: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_InputMinimum) << std::endl;
-  os << "InputMaximum: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_InputMaximum) << std::endl;
+  os << indent << "InputMinimum: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_InputMinimum)
+     << std::endl;
+  os << indent << "InputMaximum: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_InputMaximum)
+     << std::endl;
 
-  os << "UseLookupTable: " << (m_UseLookupTable ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(UseLookupTable);
 }
 } // namespace itk
 

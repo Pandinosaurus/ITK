@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,10 +21,7 @@
 #include "itkImageFileReader.h"
 #include "itkTestingMacros.h"
 
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 
 /**
@@ -47,7 +44,7 @@ public:
   using RGBPixelType = TRGBPixel;
   using RealType = typename NumericTraits<ScalarType>::RealType;
 
-  itkTypeMacro(CustomColormapFunctionHelper, CustomColormapFunction);
+  itkOverrideGetNameOfClassMacro(CustomColormapFunctionHelper);
 
   itkNewMacro(Self);
 
@@ -60,7 +57,7 @@ public:
 
     using ColormapType = itk::Function::CustomColormapFunction<ScalarType, RGBPixelType>;
 
-    typename ColormapType::Pointer colormap = ColormapType::New();
+    auto colormap = ColormapType::New();
 
     // Set the RGB channels
     colormap->SetRedChannel(redChannel);
@@ -88,8 +85,9 @@ public:
     // Map the scalar value into an RGB colormap value
     RGBPixelType pixel = colormap->operator()(val);
 
-    std::cout << "RGB colormap for value " << (int)val << std::endl;
-    std::cout << "R: " << (int)pixel[0] << "; G: " << (int)pixel[1] << "; B: " << (int)pixel[2] << std::endl;
+    std::cout << "RGB colormap for value " << static_cast<int>(val) << std::endl;
+    std::cout << "R: " << static_cast<int>(pixel[0]) << "; G: " << static_cast<int>(pixel[1])
+              << "; B: " << static_cast<int>(pixel[2]) << std::endl;
 
     std::cout << "Test succeeded." << std::endl;
     return EXIT_SUCCESS;
@@ -98,8 +96,7 @@ public:
 protected:
 };
 
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 
 int
@@ -114,21 +111,23 @@ itkCustomColormapFunctionTest(int argc, char * argv[])
 
   using RGBPixelType = itk::RGBPixel<unsigned char>;
 
-  double              value;
-  std::vector<double> redChannel, greenChannel, blueChannel;
-
   std::ifstream str(argv[1]);
-  std::string   line;
 
   // Get red values
+  std::string line;
   std::getline(str, line);
   std::istringstream issr(line);
+
+  double value = NAN;
+
+  std::vector<double> redChannel;
   while (issr >> value)
   {
     redChannel.push_back(value);
   }
 
   // Get green values
+  std::vector<double> greenChannel;
   std::getline(str, line);
   std::istringstream issg(line);
   while (issg >> value)
@@ -137,6 +136,7 @@ itkCustomColormapFunctionTest(int argc, char * argv[])
   }
 
   // Get blue values
+  std::vector<double> blueChannel;
   std::getline(str, line);
   std::istringstream issb(line);
   while (issb >> value)
@@ -145,7 +145,7 @@ itkCustomColormapFunctionTest(int argc, char * argv[])
   }
 
   // The scalar valur to be mapped into an RGB colormap value
-  int scalarValue = std::stoi(argv[2]);
+  const int scalarValue = std::stoi(argv[2]);
 
   // Test for all possible scalar pixel types
   itk::Function::CustomColormapFunctionHelper<unsigned char, RGBPixelType>::Exercise(

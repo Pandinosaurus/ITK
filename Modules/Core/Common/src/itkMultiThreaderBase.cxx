@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,10 +39,16 @@
 #include "itkImageSourceCommon.h"
 #include "itkSingleton.h"
 #include "itkProcessObject.h"
+
+#include <algorithm> // For clamp.
 #include <iostream>
 #include <string>
-#include <algorithm>
 #include <cctype>
+#include <utility> // For move.
+
+#if defined(ITK_HAS_SCHED_GETAFFINITY)
+#  include <sched.h>
+#endif
 
 #if defined(ITK_USE_TBB)
 #  include "itkTBBMultiThreader.h"
@@ -57,14 +63,15 @@ struct MultiThreaderBaseGlobals
 {
   // Initialize static members.
   MultiThreaderBaseGlobals() = default;
+
   // GlobalDefaultThreaderTypeIsInitialized is used only in this
   // file to ensure that the ITK_GLOBAL_DEFAULT_THREADER or
   // ITK_USE_THREADPOOL environmenal variables are
-  // only used as a fall back option.  If the SetGlobalDefaultThreaderType
+  // only used as a fall back option.  If the SetGlobalDefaultThreader
   // API is ever used by the developer, the developers choice is
   // respected over the environmental variable.
   bool       GlobalDefaultThreaderTypeIsInitialized{ false };
-  std::mutex globalDefaultInitializerLock;
+  std::mutex globalDefaultInitializerMutex;
 
   // Global value to control which threader to be used by default. First it is initialized with the default preprocessor
   // definition from CMake configuration value, for compile time control of default. This initial value can be
@@ -109,67 +116,79 @@ MultiThreaderBase::GetGlobalDefaultUseThreadPool()
 #endif
 
 void
-MultiThreaderBase::SetGlobalDefaultThreader(ThreaderEnum threaderType)
+MultiThreaderBase::SetGlobalDefaultThreaderPrivate(ThreaderEnum threaderType)
 {
-  itkInitGlobalsMacro(PimplGlobals);
+  // m_PimplGlobals->globalDefaultInitializerMutex must be already held here!
 
   m_PimplGlobals->m_GlobalDefaultThreader = threaderType;
   m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized = true;
 }
 
-MultiThreaderBase::ThreaderEnum
-MultiThreaderBase::GetGlobalDefaultThreader()
+void
+MultiThreaderBase::SetGlobalDefaultThreader(ThreaderEnum threaderType)
 {
-  // This method must be concurrent thread safe
   itkInitGlobalsMacro(PimplGlobals);
+
+  // Acquire mutex then call private method to do the real work.
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->globalDefaultInitializerMutex);
+
+  MultiThreaderBase::SetGlobalDefaultThreaderPrivate(threaderType);
+}
+
+MultiThreaderBase::ThreaderEnum
+MultiThreaderBase::GetGlobalDefaultThreaderPrivate()
+{
+  // m_PimplGlobals->globalDefaultInitializerMutex must be already held here!
 
   if (!m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized)
   {
-    std::lock_guard<std::mutex> lock(m_PimplGlobals->globalDefaultInitializerLock);
-
-    // After we have the lock, double check the initialization
-    // flag to ensure it hasn't been changed by another thread.
-    if (!m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized)
+    std::string envVar;
+    // first check ITK_GLOBAL_DEFAULT_THREADER
+    if (itksys::SystemTools::GetEnv("ITK_GLOBAL_DEFAULT_THREADER", envVar))
     {
-      std::string envVar;
-      // first check ITK_GLOBAL_DEFAULT_THREADER
-      if (itksys::SystemTools::GetEnv("ITK_GLOBAL_DEFAULT_THREADER", envVar))
+      envVar = itksys::SystemTools::UpperCase(envVar);
+      const ThreaderEnum threaderT = ThreaderTypeFromString(envVar);
+      if (threaderT != ThreaderEnum::Unknown)
       {
-        envVar = itksys::SystemTools::UpperCase(envVar);
-        ThreaderEnum threaderT = ThreaderTypeFromString(envVar);
-        if (threaderT != ThreaderEnum::Unknown)
-        {
-          MultiThreaderBase::SetGlobalDefaultThreader(threaderT);
-        }
+        MultiThreaderBase::SetGlobalDefaultThreaderPrivate(threaderT);
       }
-      // if that was not set check ITK_USE_THREADPOOL (deprecated)
-      else if (!m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized &&
-               itksys::SystemTools::GetEnv("ITK_USE_THREADPOOL", envVar))
-      {
-        envVar = itksys::SystemTools::UpperCase(envVar);
-        itkGenericOutputMacro("Warning: ITK_USE_THREADPOOL \
-has been deprecated since ITK v5.0. \
-You should now use ITK_GLOBAL_DEFAULT_THREADER\
-\nFor example ITK_GLOBAL_DEFAULT_THREADER=Pool");
-        if (envVar != "NO" && envVar != "OFF" && envVar != "FALSE")
-        {
-#ifdef __EMSCRIPTEN__
-          MultiThreaderBase::SetGlobalDefaultThreader(ThreaderEnum::Platform);
-#else
-          MultiThreaderBase::SetGlobalDefaultThreader(ThreaderEnum::Pool);
-#endif
-        }
-        else
-        {
-          MultiThreaderBase::SetGlobalDefaultThreader(ThreaderEnum::Platform);
-        }
-      }
-
-      // always set that we are initialized
-      m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized = true;
     }
+    // if that was not set check ITK_USE_THREADPOOL (deprecated)
+    else if (!m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized &&
+             itksys::SystemTools::GetEnv("ITK_USE_THREADPOOL", envVar))
+    {
+      envVar = itksys::SystemTools::UpperCase(envVar);
+      itkGenericOutputMacro("Warning: ITK_USE_THREADPOOL has been deprecated since ITK v5.0. You should now use "
+                            "ITK_GLOBAL_DEFAULT_THREADER\nFor example ITK_GLOBAL_DEFAULT_THREADER=Pool");
+      if (envVar != "NO" && envVar != "OFF" && envVar != "FALSE")
+      {
+#ifdef __EMSCRIPTEN__
+        MultiThreaderBase::SetGlobalDefaultThreaderPrivate(ThreaderEnum::Platform);
+#else
+        MultiThreaderBase::SetGlobalDefaultThreaderPrivate(ThreaderEnum::Pool);
+#endif
+      }
+      else
+      {
+        MultiThreaderBase::SetGlobalDefaultThreaderPrivate(ThreaderEnum::Platform);
+      }
+    }
+
+    // always set that we are initialized
+    m_PimplGlobals->GlobalDefaultThreaderTypeIsInitialized = true;
   }
   return m_PimplGlobals->m_GlobalDefaultThreader;
+}
+
+MultiThreaderBase::ThreaderEnum
+MultiThreaderBase::GetGlobalDefaultThreader()
+{
+  itkInitGlobalsMacro(PimplGlobals);
+
+  // Acquire mutex then call private method to do the real work.
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->globalDefaultInitializerMutex);
+
+  return MultiThreaderBase::GetGlobalDefaultThreaderPrivate();
 }
 
 MultiThreaderBase::ThreaderEnum
@@ -180,7 +199,7 @@ MultiThreaderBase::ThreaderTypeFromString(std::string threaderString)
   {
     return ThreaderEnum::Platform;
   }
-  else if (threaderString == "POOL")
+  if (threaderString == "POOL")
   {
     return ThreaderEnum::Pool;
   }
@@ -199,17 +218,11 @@ MultiThreaderBase::SetGlobalMaximumNumberOfThreads(ThreadIdType val)
 {
   itkInitGlobalsMacro(PimplGlobals);
 
-  m_PimplGlobals->m_GlobalMaximumNumberOfThreads = val;
-
-  // clamp between 1 and ITK_MAX_THREADS
-  m_PimplGlobals->m_GlobalMaximumNumberOfThreads =
-    std::min(m_PimplGlobals->m_GlobalMaximumNumberOfThreads, (ThreadIdType)ITK_MAX_THREADS);
-  m_PimplGlobals->m_GlobalMaximumNumberOfThreads =
-    std::max(m_PimplGlobals->m_GlobalMaximumNumberOfThreads, NumericTraits<ThreadIdType>::OneValue());
+  m_PimplGlobals->m_GlobalMaximumNumberOfThreads = std::clamp<ThreadIdType>(val, 1, ITK_MAX_THREADS);
 
   // If necessary reset the default to be used from now on.
-  m_PimplGlobals->m_GlobalDefaultNumberOfThreads =
-    std::min(m_PimplGlobals->m_GlobalDefaultNumberOfThreads, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
+  MultiThreaderBase::SetGlobalDefaultNumberOfThreads(
+    std::min(Self::GetGlobalDefaultNumberOfThreads(), Self::GetGlobalMaximumNumberOfThreads()));
 }
 
 ThreadIdType
@@ -224,43 +237,23 @@ MultiThreaderBase::SetGlobalDefaultNumberOfThreads(ThreadIdType val)
 {
   itkInitGlobalsMacro(PimplGlobals);
 
-  m_PimplGlobals->m_GlobalDefaultNumberOfThreads = val;
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->globalDefaultInitializerMutex);
 
-  // clamp between 1 and m_PimplGlobals->m_GlobalMaximumNumberOfThreads
   m_PimplGlobals->m_GlobalDefaultNumberOfThreads =
-    std::min(m_PimplGlobals->m_GlobalDefaultNumberOfThreads, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
-  m_PimplGlobals->m_GlobalDefaultNumberOfThreads =
-    std::max(m_PimplGlobals->m_GlobalDefaultNumberOfThreads, NumericTraits<ThreadIdType>::OneValue());
+    std::clamp<ThreadIdType>(val, 1, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
 }
 
 void
 MultiThreaderBase::SetMaximumNumberOfThreads(ThreadIdType numberOfThreads)
 {
-  if (m_MaximumNumberOfThreads == numberOfThreads && numberOfThreads <= m_PimplGlobals->m_GlobalMaximumNumberOfThreads)
-  {
-    return;
-  }
-
-  m_MaximumNumberOfThreads = numberOfThreads;
-
-  // clamp between 1 and m_MultiThreaderBaseGlobals->m_GlobalMaximumNumberOfThreads
-  m_MaximumNumberOfThreads = std::min(m_MaximumNumberOfThreads, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
-  m_MaximumNumberOfThreads = std::max(m_MaximumNumberOfThreads, NumericTraits<ThreadIdType>::OneValue());
+  m_MaximumNumberOfThreads =
+    std::clamp<ThreadIdType>(numberOfThreads, 1, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
 }
 
 void
 MultiThreaderBase::SetNumberOfWorkUnits(ThreadIdType numberOfWorkUnits)
 {
-  if (m_NumberOfWorkUnits == numberOfWorkUnits && numberOfWorkUnits <= m_PimplGlobals->m_GlobalMaximumNumberOfThreads)
-  {
-    return;
-  }
-
-  m_NumberOfWorkUnits = numberOfWorkUnits;
-
-  // clamp between 1 and m_MultiThreaderBaseGlobals->m_GlobalMaximumNumberOfThreads
-  m_NumberOfWorkUnits = std::min(m_NumberOfWorkUnits, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
-  m_NumberOfWorkUnits = std::max(m_NumberOfWorkUnits, NumericTraits<ThreadIdType>::OneValue());
+  m_NumberOfWorkUnits = std::clamp<ThreadIdType>(numberOfWorkUnits, 1, m_PimplGlobals->m_GlobalMaximumNumberOfThreads);
 }
 
 void
@@ -274,12 +267,14 @@ MultiThreaderBase::GetGlobalDefaultNumberOfThreads()
 {
   itkInitGlobalsMacro(PimplGlobals);
 
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->globalDefaultInitializerMutex);
+
   if (m_PimplGlobals->m_GlobalDefaultNumberOfThreads == 0) // need to initialize
   {
     ThreadIdType threadCount = 0;
     /* The ITK_NUMBER_OF_THREADS_ENV_LIST contains is an
      * environmental variable that holds a ':' separated
-     * list of environmental variables that whould be
+     * list of environmental variables that would be
      * queried in order for setting the m_GlobalMaximumNumberOfThreads.
      *
      * This is intended to be a mechanism suitable to easy
@@ -332,10 +327,8 @@ MultiThreaderBase::GetGlobalDefaultNumberOfThreads()
     }
 
     // limit the number of threads to m_GlobalMaximumNumberOfThreads
-    threadCount = std::min(threadCount, ThreadIdType(ITK_MAX_THREADS));
-
     // verify that the default number of threads is larger than zero
-    threadCount = std::max(threadCount, NumericTraits<ThreadIdType>::OneValue());
+    threadCount = std::clamp(threadCount, ThreadIdType{ 1 }, ThreadIdType{ ITK_MAX_THREADS });
 
     m_PimplGlobals->m_GlobalDefaultNumberOfThreads = threadCount;
   }
@@ -345,29 +338,33 @@ MultiThreaderBase::GetGlobalDefaultNumberOfThreads()
 ThreadIdType
 MultiThreaderBase::GetGlobalDefaultNumberOfThreadsByPlatform()
 {
+#if defined(ITK_HAS_SCHED_GETAFFINITY)
+  cpu_set_t mask;
+  if (sched_getaffinity(0, sizeof(cpu_set_t), &mask) != -1)
+  {
+    return static_cast<ThreadIdType>(CPU_COUNT(&mask));
+  }
+#endif
+
 #if defined(ITK_LEGACY_REMOVE)
   return std::thread::hardware_concurrency();
 #endif
 
 #if defined(ITK_USE_PTHREADS)
-  ThreadIdType num;
 
-  // Default the number of threads to be the number of available
-  // processors if we are using pthreads()
+// Default the number of threads to be the number of available
+// processors if we are using pthreads()
 #  ifdef _SC_NPROCESSORS_ONLN
-  num = static_cast<ThreadIdType>(sysconf(_SC_NPROCESSORS_ONLN));
+  auto num = static_cast<ThreadIdType>(sysconf(_SC_NPROCESSORS_ONLN));
 #  elif defined(_SC_NPROC_ONLN)
-  num = static_cast<ThreadIdType>(sysconf(_SC_NPROC_ONLN));
+  ThreadIdType num = static_cast<ThreadIdType>(sysconf(_SC_NPROC_ONLN));
 #  else
-  num = 1;
-#  endif
-#  if defined(__SVR4) && defined(sun) && defined(PTHREAD_MUTEX_NORMAL)
-  pthread_setconcurrency(num);
+  ThreadIdType num = 1;
 #  endif
 
   itksys::SystemInformation mySys;
   mySys.RunCPUCheck();
-  int result = mySys.GetNumberOfPhysicalCPU(); // Avoid using hyperthreading cores.
+  const int result = mySys.GetNumberOfPhysicalCPU(); // Avoid using hyperthreading cores.
   if (result == -1)
   {
     num = 1;
@@ -382,15 +379,15 @@ MultiThreaderBase::GetGlobalDefaultNumberOfThreadsByPlatform()
 #else
   return 1;
 #endif
-}
+} // namespace itk
 
 MultiThreaderBase::Pointer
 MultiThreaderBase::New()
 {
-  Pointer smartPtr = ::itk::ObjectFactory<MultiThreaderBase>::Create();
+  Pointer smartPtr = itk::ObjectFactory<MultiThreaderBase>::Create();
   if (smartPtr == nullptr)
   {
-    ThreaderEnum threaderType = GetGlobalDefaultThreader();
+    const ThreaderEnum threaderType = GetGlobalDefaultThreader();
     switch (threaderType)
     {
       case ThreaderEnum::Platform:
@@ -417,8 +414,8 @@ MultiThreaderBase::New()
 
 
 MultiThreaderBase::MultiThreaderBase()
+  : m_MaximumNumberOfThreads(MultiThreaderBase::GetGlobalDefaultNumberOfThreads())
 {
-  m_MaximumNumberOfThreads = MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
   m_NumberOfWorkUnits = m_MaximumNumberOfThreads;
 }
 
@@ -428,33 +425,42 @@ ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 MultiThreaderBase::SingleMethodProxy(void * arg)
 {
   // grab the WorkUnitInfo originally prescribed
-  auto * threadInfoStruct = static_cast<MultiThreaderBase::WorkUnitInfo *>(arg);
+  auto * workUnitInfoStruct = static_cast<MultiThreaderBase::WorkUnitInfo *>(arg);
 
   // execute the user specified threader callback, catching any exceptions
   try
   {
-    (*threadInfoStruct->ThreadFunction)(arg);
-    threadInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::SUCCESS;
+    (*workUnitInfoStruct->ThreadFunction)(arg);
+    workUnitInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::SUCCESS;
   }
-  catch (ProcessAborted &)
+  catch (const ProcessAborted &)
   {
-    threadInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::ITK_PROCESS_ABORTED_EXCEPTION;
+    workUnitInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::ITK_PROCESS_ABORTED_EXCEPTION;
   }
-  catch (ExceptionObject &)
+  catch (const ExceptionObject &)
   {
-    threadInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::ITK_EXCEPTION;
+    workUnitInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::ITK_EXCEPTION;
   }
-  catch (std::exception &)
+  catch (const std::exception &)
   {
-    threadInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::STD_EXCEPTION;
+    workUnitInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::STD_EXCEPTION;
   }
   catch (...)
   {
-    threadInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::UNKNOWN;
+    workUnitInfoStruct->ThreadExitCode = WorkUnitInfo::ThreadExitCodeEnum::UNKNOWN;
   }
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
+
+
+void
+MultiThreaderBase::SetSingleMethodAndExecute(ThreadFunctionType func, void * data)
+{
+  this->SetSingleMethod(std::move(func), data);
+  this->SingleMethodExecute();
+}
+
 
 void
 MultiThreaderBase::ParallelizeArray(SizeValueType             firstIndex,
@@ -470,16 +476,12 @@ MultiThreaderBase::ParallelizeArray(SizeValueType             firstIndex,
     filter = nullptr;
   }
   // Upon destruction, progress will be set to 1.0
-  ProgressReporter progress(filter, 0, 1);
+  const ProgressReporter progress(filter, 0, 1);
 
   if (firstIndex + 1 < lastIndexPlus1)
   {
-    struct ArrayCallback acParams
-    {
-      aFunc, firstIndex, lastIndexPlus1, filter
-    };
-    this->SetSingleMethod(&MultiThreaderBase::ParallelizeArrayHelper, &acParams);
-    this->SingleMethodExecute();
+    struct ArrayCallback acParams{ aFunc, firstIndex, lastIndexPlus1, filter };
+    this->SetSingleMethodAndExecute(&MultiThreaderBase::ParallelizeArrayHelper, &acParams);
   }
   else if (firstIndex + 1 == lastIndexPlus1)
   {
@@ -491,17 +493,16 @@ MultiThreaderBase::ParallelizeArray(SizeValueType             firstIndex,
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 MultiThreaderBase::ParallelizeArrayHelper(void * arg)
 {
-  using ThreadInfo = MultiThreaderBase::WorkUnitInfo;
-  auto *       threadInfo = static_cast<ThreadInfo *>(arg);
-  ThreadIdType threadId = threadInfo->WorkUnitID;
-  ThreadIdType threadCount = threadInfo->NumberOfWorkUnits;
-  auto *       acParams = static_cast<struct ArrayCallback *>(threadInfo->UserData);
+  auto *             workUnitInfo = static_cast<MultiThreaderBase::WorkUnitInfo *>(arg);
+  const ThreadIdType workUnitID = workUnitInfo->WorkUnitID;
+  const ThreadIdType workUnitCount = workUnitInfo->NumberOfWorkUnits;
+  auto *             acParams = static_cast<struct ArrayCallback *>(workUnitInfo->UserData);
 
-  SizeValueType range = acParams->lastIndexPlus1 - acParams->firstIndex;
-  double        fraction = double(range) / threadCount;
-  SizeValueType first = acParams->firstIndex + fraction * threadId;
-  SizeValueType afterLast = acParams->firstIndex + fraction * (threadId + 1);
-  if (threadId == threadCount - 1) // last thread
+  const SizeValueType range = acParams->lastIndexPlus1 - acParams->firstIndex;
+  const double        fraction = static_cast<double>(range) / workUnitCount;
+  const SizeValueType first = acParams->firstIndex + fraction * workUnitID;
+  SizeValueType       afterLast = acParams->firstIndex + fraction * (workUnitID + 1);
+  if (workUnitID == workUnitCount - 1) // last thread
   {
     // Avoid possible problems due to floating point arithmetic
     afterLast = acParams->lastIndexPlus1;
@@ -533,42 +534,32 @@ MultiThreaderBase::ParallelizeImageRegion(unsigned int                          
   {
     filter = nullptr;
   }
-  ProgressReporter progress(filter, 0, 1);
+  const ProgressReporter progress(filter, 0, 1);
 
-  SizeValueType pixelCount = 1;
-  for (unsigned d = 0; d < dimension; ++d)
-  {
-    pixelCount *= size[d];
-  }
-  struct RegionAndCallback rnc
-  {
-    funcP, dimension, index, size, 0, filter
-  };
-  this->SetSingleMethod(&MultiThreaderBase::ParallelizeImageRegionHelper, &rnc);
-  this->SingleMethodExecute();
+  struct RegionAndCallback rnc{ funcP, dimension, index, size, filter };
+  this->SetSingleMethodAndExecute(&MultiThreaderBase::ParallelizeImageRegionHelper, &rnc);
 }
 
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 MultiThreaderBase::ParallelizeImageRegionHelper(void * arg)
 {
-  using ThreadInfo = MultiThreaderBase::WorkUnitInfo;
-  auto *       threadInfo = static_cast<ThreadInfo *>(arg);
-  ThreadIdType threadId = threadInfo->WorkUnitID;
-  ThreadIdType threadCount = threadInfo->NumberOfWorkUnits;
-  auto *       rnc = static_cast<struct RegionAndCallback *>(threadInfo->UserData);
+  auto *             workUnitInfo = static_cast<MultiThreaderBase::WorkUnitInfo *>(arg);
+  const ThreadIdType workUnitID = workUnitInfo->WorkUnitID;
+  const ThreadIdType workUnitCount = workUnitInfo->NumberOfWorkUnits;
+  auto *             rnc = static_cast<struct RegionAndCallback *>(workUnitInfo->UserData);
 
   const ImageRegionSplitterBase * splitter = ImageSourceCommon::GetGlobalDefaultSplitter();
   ImageIORegion                   region(rnc->dimension);
-  for (unsigned d = 0; d < rnc->dimension; ++d)
+  for (unsigned int d = 0; d < rnc->dimension; ++d)
   {
     region.SetIndex(d, rnc->index[d]);
     region.SetSize(d, rnc->size[d]);
   }
-  ThreadIdType total = splitter->GetSplit(threadId, threadCount, region);
+  const ThreadIdType total = splitter->GetSplit(workUnitID, workUnitCount, region);
 
-  TotalProgressReporter reporter(rnc->filter, rnc->pixelCount);
+  TotalProgressReporter reporter(rnc->filter, 0);
 
-  if (threadId < total)
+  if (workUnitID < total)
   {
     rnc->functor(&region.GetIndex()[0], &region.GetSize()[0]);
 
@@ -584,8 +575,8 @@ MultiThreaderBase::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Number of Work Units: " << m_NumberOfWorkUnits << "\n";
-  os << indent << "Number of Threads: " << m_MaximumNumberOfThreads << "\n";
+  os << indent << "Number of Work Units: " << m_NumberOfWorkUnits << '\n';
+  os << indent << "Number of Threads: " << m_MaximumNumberOfThreads << '\n';
   os << indent << "Global Maximum Number Of Threads: " << m_PimplGlobals->m_GlobalMaximumNumberOfThreads << std::endl;
   os << indent << "Global Default Number Of Threads: " << m_PimplGlobals->m_GlobalDefaultNumberOfThreads << std::endl;
   os << indent << "Global Default Threader Type: " << m_PimplGlobals->m_GlobalDefaultThreader << std::endl;

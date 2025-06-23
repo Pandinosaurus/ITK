@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,9 +38,8 @@ using SizeValueType = itk::SizeValueType;
 /**
  * Helper function
  */
-namespace itk
-{
-namespace FrameAverageVideoFilterTest
+
+namespace itk::FrameAverageVideoFilterTest
 {
 
 /**
@@ -49,12 +48,11 @@ namespace FrameAverageVideoFilterTest
 InputFrameType::Pointer
 CreateInputFrame(InputPixelType val)
 {
-  InputFrameType::Pointer out = InputFrameType::New();
+  auto out = InputFrameType::New();
 
-  InputFrameType::RegionType largestRegion;
-  InputFrameType::SizeType   sizeLR;
-  InputFrameType::IndexType  startLR;
-  startLR.Fill(0);
+  InputFrameType::RegionType          largestRegion;
+  InputFrameType::SizeType            sizeLR;
+  constexpr InputFrameType::IndexType startLR{};
   sizeLR[0] = 50;
   sizeLR[1] = 40;
   largestRegion.SetSize(sizeLR);
@@ -74,8 +72,7 @@ CreateInputFrame(InputPixelType val)
   return out;
 }
 
-} // end namespace FrameAverageVideoFilterTest
-} // end namespace itk
+} // namespace itk::FrameAverageVideoFilterTest
 
 
 /**
@@ -97,11 +94,14 @@ itkFrameAverageVideoFilterTest(int argc, char * argv[])
 
   // Instantiate the filter
   using FilterType = itk::FrameAverageVideoFilter<InputVideoType, OutputVideoType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, FrameAverageVideoFilter, VideoToVideoFilter);
+
 
   // Set up an input VideoStream
-  InputVideoType::Pointer inputVideo = InputVideoType::New();
-  SizeValueType           numInputFrames = 50;
+  auto                    inputVideo = InputVideoType::New();
+  constexpr SizeValueType numInputFrames = 50;
   inputVideo->SetNumberOfBuffers(numInputFrames);
   itk::TemporalRegion inputTempRegion;
   inputTempRegion.SetFrameStart(0);
@@ -153,9 +153,9 @@ itkFrameAverageVideoFilterTest(int argc, char * argv[])
     filter->Update();
 
     // Check the results
-    OutputPixelType expectedVal = (OutputPixelType)(i + (i + 1)) / 2.0;
-    OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
-    double          eps = 0.00001;
+    const OutputPixelType expectedVal = static_cast<OutputPixelType>(i + (i + 1)) / 2.0;
+    const OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
+    constexpr double      eps = 0.00001;
     if (expectedVal < actualVal - eps || expectedVal > actualVal + eps)
     {
       std::cerr << "Filter failed to compute frame " << i << " correctly over 2 frames." << std::endl;
@@ -196,9 +196,9 @@ itkFrameAverageVideoFilterTest(int argc, char * argv[])
   filter->Update();
   for (unsigned int i = outputStart; i < outputStart + outputDuration; ++i)
   {
-    OutputPixelType expectedVal = (OutputPixelType)(i + (i + 1) + (i + 2)) / 3.0;
-    OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
-    double          eps = 0.00001;
+    const OutputPixelType expectedVal = static_cast<OutputPixelType>(i + (i + 1) + (i + 2)) / 3.0;
+    const OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
+    constexpr double      eps = 0.00001;
     if (expectedVal < actualVal - eps || expectedVal > actualVal + eps)
     {
       std::cerr << "Filter failed to compute frame " << i << " correctly over 3 frames." << std::endl;
@@ -213,21 +213,21 @@ itkFrameAverageVideoFilterTest(int argc, char * argv[])
   // Now test with reading from a file
   //////
 
-  // Register FileListIO with the factory -- shouldn't have to do this. Needs fixing
+  // Register FileListVideoIO with the factory -- shouldn't have to do this. Needs fixing
   itk::ObjectFactoryBase::RegisterFactory(itk::FileListVideoIOFactory::New());
 
   // Set up reader and writer
   using VideoReaderType = itk::VideoFileReader<InputVideoType>;
   using VideoWriterType = itk::VideoFileWriter<InputVideoType>;
-  VideoReaderType::Pointer reader = VideoReaderType::New();
-  VideoWriterType::Pointer writer = VideoWriterType::New();
+  auto reader = VideoReaderType::New();
+  auto writer = VideoWriterType::New();
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   // Set up pipeline with 2 average filters each over 2 frames
   using FilterType2 = itk::FrameAverageVideoFilter<InputVideoType, InputVideoType>;
-  FilterType2::Pointer avg1 = FilterType2::New();
-  FilterType2::Pointer avg2 = FilterType2::New();
+  auto avg1 = FilterType2::New();
+  auto avg2 = FilterType2::New();
   avg1->SetNumberOfFrames(2);
   avg2->SetNumberOfFrames(2);
 

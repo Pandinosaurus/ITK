@@ -133,7 +133,7 @@ fill_input_buffer (j_decompress_ptr cinfo)
   assert(gcount < INT_MAX);
   nbytes = (size_t)gcount;
 
-  if (nbytes <= 0) {
+  if (gcount <= 0) {
     if (src->start_of_file)  /* Treat empty input file as fatal error */
       ERREXIT(cinfo, JERR_INPUT_EMPTY);
     WARNMS(cinfo, JWRN_JPEG_EOF);
@@ -272,7 +272,7 @@ typedef struct my_error_mgr* my_error_ptr;
 class JPEGInternals
 {
 public:
-  JPEGInternals():cinfo(),jerr(),StateSuspension(0),SampBuffer(nullptr) {}
+  JPEGInternals():cinfo(),cinfo_comp(),jerr(),StateSuspension(0),SampBuffer(nullptr) {}
   jpeg_decompress_struct cinfo;
   jpeg_compress_struct cinfo_comp;
   my_error_mgr jerr;
@@ -477,9 +477,9 @@ bool JPEGBITSCodec::GetHeaderInfo(std::istream &is, TransferSyntax &ts)
     else if( cinfo.jpeg_color_space == JCS_YCCK )
       {
       assert( cinfo.num_components == 4 );
-      PI = PhotometricInterpretation::YBR_FULL_422; // 4th plane ??
+      gdcmWarningMacro( "JCS_YCCK is not handled. Setting to CMYK for now." );
+      PI = PhotometricInterpretation::CMYK; // non-sense...oh well
       this->PF.SetSamplesPerPixel( 4 );
-      assert( 0 ); //TODO
       }
     else
       {
@@ -835,6 +835,7 @@ bool JPEGBITSCodec::DecodeByStreams(std::istream &is, std::ostream &os)
       break;
     case JCS_YCbCr:
       if( GetPhotometricInterpretation() != PhotometricInterpretation::YBR_FULL &&
+          GetPhotometricInterpretation() != PhotometricInterpretation::YBR_PARTIAL_422 &&
           GetPhotometricInterpretation() != PhotometricInterpretation::YBR_FULL_422 )
         {
         // DermaColorLossLess.dcm (lossless)
@@ -856,6 +857,7 @@ bool JPEGBITSCodec::DecodeByStreams(std::istream &is, std::ostream &os)
         //cinfo.out_color_space = JCS_UNKNOWN;
         }
       if( GetPhotometricInterpretation() == PhotometricInterpretation::YBR_FULL
+      || GetPhotometricInterpretation() == PhotometricInterpretation::YBR_PARTIAL_422
       || GetPhotometricInterpretation() == PhotometricInterpretation::YBR_FULL_422 )
         {
         cinfo.jpeg_color_space = JCS_UNKNOWN;
@@ -1181,7 +1183,7 @@ bool JPEGBITSCodec::InternalCode(const char* input, unsigned long len, std::ostr
    * Note that this struct must live as long as the main JPEG parameter
    * struct, to avoid dangling-pointer problems.
    */
-  struct jpeg_error_mgr jerr;
+  struct my_error_mgr jerr;
   /* More stuff */
   //FILE * outfile;    /* target file */
   std::ostream * outfile = &os;
@@ -1195,7 +1197,15 @@ bool JPEGBITSCodec::InternalCode(const char* input, unsigned long len, std::ostr
    * This routine fills in the contents of struct jerr, and returns jerr's
    * address which we place into the link field in cinfo.
    */
-  cinfo.err = jpeg_std_error(&jerr);
+  cinfo.err = jpeg_std_error(&jerr.pub);
+  jerr.pub.error_exit = my_error_exit;
+    // Establish the setjmp return context for my_error_exit to use.
+    if (setjmp(jerr.setjmp_buffer))
+      {
+      jpeg_destroy_compress(&cinfo);
+      return false;
+      }
+
   /* Now we can initialize the JPEG compression object. */
   jpeg_create_compress(&cinfo);
 
@@ -1266,7 +1276,7 @@ bool JPEGBITSCodec::InternalCode(const char* input, unsigned long len, std::ostr
    * predictor = 1
    * point_transform = 0
    * => lossless transformation.
-   * Basicaly you need to have point_transform = 0, but you can pick whichever predictor [1...7] you want
+   * Basically you need to have point_transform = 0, but you can pick whichever predictor [1...7] you want
    * TODO: is there a way to pick the right predictor (best compression/fastest ?)
    */
   if( !LossyFlag )
@@ -1400,6 +1410,14 @@ bool JPEGBITSCodec::EncodeBuffer(std::ostream &os, const char *data, size_t data
      * address which we place into the link field in cinfo.
      */
     cinfo.err = jpeg_std_error(&jerr.pub);
+    jerr.pub.error_exit = my_error_exit;
+    // Establish the setjmp return context for my_error_exit to use.
+    if (setjmp(jerr.setjmp_buffer))
+      {
+      jpeg_destroy_compress(&cinfo);
+      return false;
+      }
+
     /* Now we can initialize the JPEG compression object. */
     jpeg_create_compress(&cinfo);
 
@@ -1483,7 +1501,7 @@ bool JPEGBITSCodec::EncodeBuffer(std::ostream &os, const char *data, size_t data
    * predictor = 1
    * point_transform = 0
    * => lossless transformation.
-   * Basicaly you need to have point_transform = 0, but you can pick whichever predictor [1...7] you want
+   * Basically you need to have point_transform = 0, but you can pick whichever predictor [1...7] you want
    * TODO: is there a way to pick the right predictor (best compression/fastest ?)
    */
   if( Internals->StateSuspension == 0 )

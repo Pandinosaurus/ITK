@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkVideoFileReader.h"
 #include "itkVideoFileWriter.h"
 #include "itkFileListVideoIOFactory.h"
+#include "itkTestingMacros.h"
 
 
 // Set up type alias for test
@@ -37,9 +38,8 @@ using SizeValueType = itk::SizeValueType;
 /**
  * Helper function
  */
-namespace itk
-{
-namespace FrameDifferenceVideoFilterTest
+
+namespace itk::FrameDifferenceVideoFilterTest
 {
 
 /**
@@ -48,12 +48,11 @@ namespace FrameDifferenceVideoFilterTest
 InputFrameType::Pointer
 CreateInputFrame(InputPixelType val)
 {
-  InputFrameType::Pointer out = InputFrameType::New();
+  auto out = InputFrameType::New();
 
-  InputFrameType::RegionType largestRegion;
-  InputFrameType::SizeType   sizeLR;
-  InputFrameType::IndexType  startLR;
-  startLR.Fill(0);
+  InputFrameType::RegionType          largestRegion;
+  InputFrameType::SizeType            sizeLR;
+  constexpr InputFrameType::IndexType startLR{};
   sizeLR[0] = 50;
   sizeLR[1] = 40;
   largestRegion.SetSize(sizeLR);
@@ -73,8 +72,7 @@ CreateInputFrame(InputPixelType val)
   return out;
 }
 
-} // end namespace FrameDifferenceVideoFilterTest
-} // end namespace itk
+} // namespace itk::FrameDifferenceVideoFilterTest
 
 
 /**
@@ -85,12 +83,14 @@ itkFrameDifferenceVideoFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[
 {
   // Instantiate the filter
   using FilterType = itk::FrameDifferenceVideoFilter<InputVideoType, OutputVideoType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, FrameDifferenceVideoFilter, VideoToVideoFilter);
 
 
   // Set up an input VideoStream
-  InputVideoType::Pointer inputVideo = InputVideoType::New();
-  SizeValueType           numInputFrames = 50;
+  auto                    inputVideo = InputVideoType::New();
+  constexpr SizeValueType numInputFrames = 50;
   inputVideo->SetNumberOfBuffers(numInputFrames);
   itk::TemporalRegion inputTempRegion;
   inputTempRegion.SetFrameStart(0);
@@ -141,8 +141,8 @@ itkFrameDifferenceVideoFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[
     filter->Update();
 
     // Check the results
-    OutputPixelType expectedVal = 1;
-    OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
+    constexpr OutputPixelType expectedVal = 1;
+    const OutputPixelType     actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
     if (expectedVal != actualVal)
     {
       std::cerr << "Filter failed to compute frame " << i << " correctly for adjacent frames." << std::endl;
@@ -183,8 +183,8 @@ itkFrameDifferenceVideoFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[
   filter->Update();
   for (unsigned int i = outputStart; i < outputStart + outputDuration; ++i)
   {
-    OutputPixelType expectedVal = 4; // Difference of 2 squared
-    OutputPixelType actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
+    constexpr OutputPixelType expectedVal = 4; // Difference of 2 squared
+    const OutputPixelType     actualVal = filter->GetOutput()->GetFrame(i)->GetPixel(checkPx);
     if (expectedVal != actualVal)
     {
       std::cerr << "Filter failed to compute frame " << i << " correctly with offset of 2." << std::endl;

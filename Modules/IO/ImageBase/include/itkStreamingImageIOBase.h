@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,8 +42,8 @@ namespace itk
  * a file.
  * \sa StreamReadBufferAsBinary StreamWriteBufferAsBinary
  *
- * This implementation was taken fron the Insight Joural:
- * https://www.insight-journal.org/browse/publication/729
+ * This implementation was taken from the Insight Journal:
+ * https://doi.org/10.54294/ufs19w
  *
  * \sa itk::ImageFileReader itk::ImageFileWriter
  * \ingroup IOFilters
@@ -59,8 +59,8 @@ public:
   using Superclass = ImageIOBase;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(StreamingImageIOBase, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StreamingImageIOBase);
 
   // see super class for documentation
   //
@@ -96,17 +96,17 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** \brief Returns true if GetIORegion is not the same size as the
-   * largest region give by GetNumberOfDimensions.
+  /** \brief Returns true if GetIORegion() is not the same size as the
+   * largest region give by GetNumberOfDimensions().
    *
    * This compares the IORegion to the size of the image in the
-   * file. With out regaurd to the dimensions of either, if the
+   * file. With out regard to the dimensions of either, if the
    * images represent the same region then false is returned.
    */
   virtual bool
   RequestedToStream() const;
 
-  /** \brief Reimplemented from super class to get around 2GB
+  /** \brief Reimplemented from superclass to get around 2GB
    * read/write limitation
    *
    * \todo Move this method to itk::ImageIOBase
@@ -124,18 +124,18 @@ protected:
 
   /** \brief Reads the set IORegion from os into buffer
    *
-   * \param os is an istream presumed to be opened for reading in binary
+   * \param file is an istream presumed to be opened for reading in binary
    * mode
-   * \param buffer is pointer to an allocated block of memory
+   * \param _buffer is pointer to an allocated block of memory
    * suitable to hold the IORegion of the pixel type
    *
-   * This methods relies on GetDataPosition to determin where the
-   * data is located in the file. It uses m_IORegion to determin the
+   * This methods relies on GetDataPosition() to determine where the
+   * data is located in the file. It uses ImageIOBase#m_IORegion to determine the
    * requested region to read.
    *
    * The files data is assumed to be unpadded and continuous in the
    * file for the size of the image in the dimensions of the
-   * m_IORegion. This means that the image file could be broken into
+   * ImageIOBase#m_IORegion. This means that the image file could be broken into
    * slices, but not blocks for this methods to be used.
    */
   virtual bool
@@ -143,13 +143,13 @@ protected:
 
   /** \brief Writes the set IORegion from buffer into os
    *
-   * \param os is an ostream presumed to be opened for writing and
+   * \param file is an ostream presumed to be opened for writing and
    * reading
-   * \param buffer is a pointer to the data in a continuous block
+   * \param _buffer is a pointer to the data in a continuous block
    * for the region
    *
-   * This methods relies on GetDataPosition to determin where the data
-   * is located in the file. It usesy m_IORegion determin the requested
+   * This methods relies on GetDataPosition() to determine where the data
+   * is located in the file. It uses ImageIOBase#m_IORegion determine the requested
    * region to written.
    */
   virtual bool

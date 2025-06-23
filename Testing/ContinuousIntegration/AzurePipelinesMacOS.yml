@@ -3,16 +3,36 @@ name: ITK.macOS
 trigger:
   branches:
     include:
-    - master
+    - main
     - release*
+  paths:
+    exclude:
+    - '*.md'
+    - LICENSE
+    - NOTICE
+    - Documentation/*
+    - Utilities/Debugger/*
+    - Utilities/ITKv5Preparation/*
+    - Utilities/Maintenance/*
+pr:
+  paths:
+    exclude:
+    - '*.md'
+    - LICENSE
+    - NOTICE
+    - Documentation/*
+    - Utilities/Debugger/*
+    - Utilities/ITKv5Preparation/*
+    - Utilities/Maintenance/*
 variables:
-  ExternalDataVersion: 5.1.0
+  ExternalDataVersion: 5.4.3
 jobs:
 - job: macOS
   timeoutInMinutes: 0
   cancelTimeoutInMinutes: 300
   pool:
-    vmImage: macOS-10.15
+    # https://github.com/actions/runner-images?tab=readme-ov-file#available-images
+    vmImage: macos-13
   steps:
     - checkout: self
       clean: true
@@ -23,6 +43,11 @@ jobs:
           git checkout $(System.PullRequest.SourceCommitId)
         fi
       displayName: Checkout pull request HEAD
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.9'
+        architecture: 'x64'
 
     - bash: |
         set -x
@@ -38,7 +63,7 @@ jobs:
 
         curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v$(ExternalDataVersion)/InsightData-$(ExternalDataVersion).tar.gz -O
         cmake -E tar xfz InsightData-$(ExternalDataVersion).tar.gz
-        cmake -E rename InsightToolkit-$(ExternalDataVersion)/.ExternalData/MD5 $(Build.SourcesDirectory)/.ExternalData/MD5
+        cmake -E rename InsightToolkit-$(ExternalDataVersion)/.ExternalData/CID $(Build.SourcesDirectory)/.ExternalData/CID
       workingDirectory: $(Agent.BuildDirectory)
       displayName: 'Download dashboard script and testing data'
 

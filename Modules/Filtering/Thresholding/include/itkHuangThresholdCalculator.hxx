@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,10 +19,8 @@
 #ifndef itkHuangThresholdCalculator_hxx
 #define itkHuangThresholdCalculator_hxx
 
-#include "itkHuangThresholdCalculator.h"
 #include "itkMath.h"
 #include "itkProgressReporter.h"
-#include "itkMath.h"
 
 namespace itk
 {
@@ -33,13 +31,13 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
 {
   const HistogramType * histogram = this->GetInput();
 
-  TotalAbsoluteFrequencyType total = histogram->GetTotalFrequency();
-  if (total == NumericTraits<TotalAbsoluteFrequencyType>::ZeroValue())
+  const TotalAbsoluteFrequencyType total = histogram->GetTotalFrequency();
+  if (total == TotalAbsoluteFrequencyType{})
   {
-    itkExceptionMacro(<< "Histogram is empty");
+    itkExceptionMacro("Histogram is empty");
   }
   m_Size = histogram->GetSize(0);
-  ProgressReporter progress(this, 0, m_Size);
+  const ProgressReporter progress(this, 0, m_Size);
   if (m_Size == 1)
   {
     this->GetOutput()->Set(static_cast<OutputType>(histogram->GetMeasurement(0, 0)));
@@ -54,7 +52,7 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
   }
   if (m_FirstBin == m_Size)
   {
-    itkWarningMacro(<< "No data in histogram");
+    itkWarningMacro("No data in histogram");
     return;
   }
   m_LastBin = m_Size - 1;
@@ -69,7 +67,7 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
 
   S[0] = histogram->GetFrequency(0, 0);
 
-  for (InstanceIdentifier i = std::max(NumericTraits<InstanceIdentifier>::OneValue(), m_FirstBin); i <= m_LastBin; i++)
+  for (InstanceIdentifier i = std::max(NumericTraits<InstanceIdentifier>::OneValue(), m_FirstBin); i <= m_LastBin; ++i)
   {
     S[i] = S[i - 1] + histogram->GetFrequency(i, 0);
     W[i] = W[i - 1] + histogram->GetMeasurement(i, 0) * histogram->GetFrequency(i, 0);
@@ -79,9 +77,9 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
   auto                C = static_cast<double>(m_LastBin - m_FirstBin);
   std::vector<double> Smu(m_LastBin + 1 - m_FirstBin, 0);
 
-  for (size_t i = 1; i < Smu.size(); i++)
+  for (size_t i = 1; i < Smu.size(); ++i)
   {
-    double mu = 1. / (1. + static_cast<double>(i) / C);
+    const double mu = 1. / (1. + static_cast<double>(i) / C);
     Smu[i] = -mu * std::log(mu) - (1. - mu) * std::log(1. - mu);
   }
 
@@ -100,7 +98,7 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
   InstanceIdentifier bestThreshold = 0;
   double             bestEntropy = itk::NumericTraits<double>::max();
 
-  for (InstanceIdentifier threshold = m_FirstBin; threshold < m_LastBin; threshold++)
+  for (InstanceIdentifier threshold = m_FirstBin; threshold < m_LastBin; ++threshold)
   {
     double entropy = 0.;
     auto   mu = Math::Round<MeasurementType>(W[threshold] / S[threshold]);
@@ -114,7 +112,7 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
     if (histogram->GetIndex(v, muFullIdx))
     {
       muIdx = muFullIdx[0];
-      for (InstanceIdentifier i = m_FirstBin; i <= threshold; i++)
+      for (InstanceIdentifier i = m_FirstBin; i <= threshold; ++i)
       {
         const typename HistogramType::IndexValueType signedDiff =
           static_cast<typename HistogramType::IndexValueType>(i) - muIdx;
@@ -126,13 +124,13 @@ HuangThresholdCalculator<THistogram, TOutput>::GenerateData()
       mu = Math::Round<MeasurementType>((W[m_LastBin] - W[threshold]) / (S[m_LastBin] - S[threshold]));
       v[0] = mu;
 
-      bool status = histogram->GetIndex(v, muFullIdx);
+      const bool status = histogram->GetIndex(v, muFullIdx);
       if (!status)
       {
         itkExceptionMacro("Failed looking up histogram");
       }
       muIdx = muFullIdx[0];
-      for (InstanceIdentifier i = threshold + 1; i <= m_LastBin; i++)
+      for (InstanceIdentifier i = threshold + 1; i <= m_LastBin; ++i)
       {
         const typename HistogramType::IndexValueType signedDiff =
           static_cast<typename HistogramType::IndexValueType>(i) - muIdx;

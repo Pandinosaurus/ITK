@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,105 @@
 #include "dcmtk/dcmimgle/dcmimage.h"
 #include "dcmtk/dcmjpeg/djdecode.h"
 #include "dcmtk/dcmjpls/djdecode.h"
+#include "dcmtk/dcmdata/dcmetinf.h"
 #include "dcmtk/dcmdata/dcrledrg.h"
 #include "dcmtk/oflog/oflog.h"
+
+namespace
+{
+
+/**
+ * Helper function to test if the file is in standard DICOM file format
+ * (128-byte dicom preamble followed by "DICM" magic word).
+ * @param file A stream to test if the file is dicom like
+ * @return true if the stream has a dicom preamble
+ */
+bool
+isPreambleDicom(std::ifstream & file)
+{
+  file.seekg(0, std::ios::beg);
+  std::vector<char> buffer(DCM_PreambleLen + DCM_MagicLen);
+  file.read(&buffer[0], buffer.size());
+  if (!file)
+  {
+    return false;
+  }
+  const char * magicReadFromFile = &buffer[DCM_PreambleLen];
+  return strncmp(magicReadFromFile, DCM_Magic, DCM_MagicLen) == 0;
+}
+
+/**
+ * Helper function to test for old non-standard DICOM file format
+ * (that does not have preamble).
+ * @param file A stream to test if the file is dicom like
+ * @return true if the structure of the file is dicom like
+ */
+bool
+isNoPreambleDicom(std::ifstream & file) // NOTE: Similar function is in itkGDCMImageIO.cxx
+{
+  file.seekg(0, std::ios::beg);
+
+  // Adapted from https://stackoverflow.com/questions/2381983/c-how-to-read-parts-of-a-file-dicom
+  /* This heuristic tries to determine if the file follows the basic structure of a dicom file organization.
+   * Any file that begins with the a byte sequence
+   * where groupNo matches below will be then read several SOP Instance sections.
+   */
+
+  unsigned short groupNo = 0xFFFF;
+  unsigned short tagElementNo = 0xFFFF;
+  do
+  {
+    file.read(reinterpret_cast<char *>(&groupNo), sizeof(unsigned short));
+    itk::ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&groupNo);
+    file.read(reinterpret_cast<char *>(&tagElementNo), sizeof(unsigned short));
+    itk::ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&tagElementNo);
+
+    if (groupNo != 0x0002 && groupNo != 0x0008) // Only groupNo 2 & 8 are supported without preambles
+    {
+      return false;
+    }
+
+    char vrcode[3] = { '\0', '\0', '\0' };
+    file.read(vrcode, 2);
+
+    long              length = std::numeric_limits<long>::max();
+    const std::string vr{ vrcode };
+    if (vr == "AE" || vr == "AS" || vr == "AT" || vr == "CS" || vr == "DA" || vr == "DS" || vr == "DT" || vr == "FL" ||
+        vr == "FD" || vr == "IS" || vr == "LO" || vr == "PN" || vr == "SH" || vr == "SL" || vr == "SS" || vr == "ST" ||
+        vr == "TM" || vr == "UI" || vr == "UL" || vr == "US")
+    {
+      // Explicit VR (value representation stored in the file)
+      unsigned short uslength = 0;
+      file.read(reinterpret_cast<char *>(&uslength), sizeof(unsigned short));
+      itk::ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&uslength);
+      length = uslength;
+    }
+    else
+    {
+      // Implicit VR (value representation not stored in the file)
+      char lengthChars[4] = { vrcode[0], vrcode[1], '\0', '\0' };
+      file.read(lengthChars + 2, 2);
+
+      auto * uilength = reinterpret_cast<unsigned int *>(lengthChars);
+      itk::ByteSwapper<unsigned int>::SwapFromSystemToLittleEndian(uilength);
+
+      length = (*uilength);
+    }
+    if (length <= 0)
+    {
+      return false;
+    }
+    file.ignore(length);
+    if (file.eof())
+    {
+      return false;
+    }
+  } while (groupNo == 2);
+
+  return true;
+}
+
+} // end anonymous namespace
 
 namespace itk
 {
@@ -65,7 +162,7 @@ DCMTKImageIO::DCMTKImageIO()
 }
 
 void
-DCMTKImageIO ::SetLogLevel(LogLevelEnum level)
+DCMTKImageIO::SetLogLevel(LogLevelEnum level)
 {
   switch (level)
   {
@@ -91,12 +188,12 @@ DCMTKImageIO ::SetLogLevel(LogLevelEnum level)
       OFLog::configure(OFLogger::OFF_LOG_LEVEL);
       break;
     default:
-      itkExceptionMacro(<< "Unknown DCMTK Logging constant " << static_cast<int>(level));
+      itkExceptionMacro("Unknown DCMTK Logging constant " << static_cast<int>(level));
   }
 }
 
 DCMTKImageIO::LogLevelEnum
-DCMTKImageIO ::GetLogLevel() const
+DCMTKImageIO::GetLogLevel() const
 {
   dcmtk::log4cplus::Logger rootLogger = dcmtk::log4cplus::Logger::getRoot();
   switch (rootLogger.getLogLevel())
@@ -131,81 +228,6 @@ DCMTKImageIO::~DCMTKImageIO()
   DcmRLEDecoderRegistration::cleanup();
 }
 
-/**
- * Helper function to test for some dicom like formatting.
- * @param file A stream to test if the file is dicom like
- * @return true if the structure of the file is dicom like
- */
-static bool
-readNoPreambleDicom(std::ifstream & file) // NOTE: This file is duplicated in itkGDCMImageIO.cxx
-{
-  // Adapted from https://stackoverflow.com/questions/2381983/c-how-to-read-parts-of-a-file-dicom
-  /* This heuristic tries to determine if the file follows the basic structure of a dicom file organization.
-   * Any file that begins with the a byte sequence
-   * where groupNo matches below will be then read several SOP Instance sections.
-   */
-
-  unsigned short groupNo = 0xFFFF;
-  unsigned short tagElementNo = 0xFFFF;
-  do
-  {
-    file.read(reinterpret_cast<char *>(&groupNo), sizeof(unsigned short));
-    ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&groupNo);
-    file.read(reinterpret_cast<char *>(&tagElementNo), sizeof(unsigned short));
-    ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&tagElementNo);
-
-    if (groupNo != 0x0002 && groupNo != 0x0008) // Only groupNo 2 & 8 are supported without preambles
-    {
-      return false;
-    }
-
-    char vrcode[3] = { '\0', '\0', '\0' };
-    file.read(vrcode, 2);
-
-    long              length = std::numeric_limits<long>::max();
-    const std::string vr{ vrcode };
-    if (vr == "AE" || vr == "AS" || vr == "AT" || vr == "CS" || vr == "DA" || vr == "DS" || vr == "DT" || vr == "FL" ||
-        vr == "FD" || vr == "IS" || vr == "LO" || vr == "PN" || vr == "SH" || vr == "SL" || vr == "SS" || vr == "ST" ||
-        vr == "TM" || vr == "UI" || vr == "UL" || vr == "US")
-    {
-      // Explicit VR (value representation stored in the file)
-      unsigned short uslength = 0;
-      file.read(reinterpret_cast<char *>(&uslength), sizeof(unsigned short));
-      ByteSwapper<unsigned short>::SwapFromSystemToLittleEndian(&uslength);
-      length = uslength;
-    }
-    else
-    {
-      // Implicit VR (value representation not stored in the file)
-      char lengthChars[4] = { vrcode[0], vrcode[1], '\0', '\0' };
-      file.read(lengthChars + 2, 2);
-
-      auto * uilength = reinterpret_cast<unsigned int *>(lengthChars);
-      ByteSwapper<unsigned int>::SwapFromSystemToLittleEndian(uilength);
-
-      length = (*uilength);
-    }
-    if (length <= 0)
-    {
-      return false;
-    }
-    file.ignore(length);
-    if (file.eof())
-    {
-      return false;
-    }
-  } while (groupNo == 2);
-
-#if defined(NDEBUG)
-  std::ostringstream itkmsg;
-  itkmsg << "No DICOM magic number found, but the file appears to be DICOM without a preamble.\n"
-         << "Proceeding without caution.";
-  ::itk::OutputWindowDisplayDebugText(itkmsg.str().c_str());
-#endif
-  return true;
-}
-
-
 bool
 DCMTKImageIO::CanReadFile(const char * filename)
 {
@@ -214,23 +236,26 @@ DCMTKImageIO::CanReadFile(const char * filename)
 
   if (fname.empty())
   {
-    itkDebugMacro(<< "No filename specified.");
+    itkDebugMacro("No filename specified.");
   }
 
 #if !defined(__EMSCRIPTEN__)
   {
     std::ifstream file;
+
     try
     {
       this->OpenFileForReading(file, filename);
     }
-    catch (ExceptionObject &)
+    catch (const ExceptionObject &)
     {
       return false;
     }
-    const bool hasdicomsig = readNoPreambleDicom(file);
+    // check if standard DICOM file (with preamble)
+    // or non-standard DICOM file (without preamble)
+    const bool isDICOM = isPreambleDicom(file) || isNoPreambleDicom(file);
     file.close();
-    if (!hasdicomsig)
+    if (!isDICOM)
     {
       return false;
     }
@@ -247,7 +272,7 @@ DCMTKImageIO::CanWriteFile(const char * itkNotUsed(name))
 }
 
 void
-DCMTKImageIO ::OpenDicomImage()
+DCMTKImageIO::OpenDicomImage()
 {
   if (this->m_DImage != nullptr)
   {
@@ -264,30 +289,30 @@ DCMTKImageIO ::OpenDicomImage()
   }
   if (this->m_DImage == nullptr)
   {
-    itkExceptionMacro(<< "Can't create DicomImage for " << this->m_FileName);
+    itkExceptionMacro("Can't create DicomImage for " << this->m_FileName);
   }
 }
 
 
 //------------------------------------------------------------------------------
 void
-DCMTKImageIO ::Read(void * buffer)
+DCMTKImageIO::Read(void * buffer)
 {
   this->OpenDicomImage();
   if (m_DImage->getStatus() != EIS_Normal)
   {
-    itkExceptionMacro(<< "Error: cannot load DICOM image (" << DicomImage::getString(m_DImage->getStatus()) << ")");
+    itkExceptionMacro("Error: cannot load DICOM image (" << DicomImage::getString(m_DImage->getStatus()) << ')');
   }
 
-  m_Dimensions[0] = (unsigned int)(m_DImage->getWidth());
-  m_Dimensions[1] = (unsigned int)(m_DImage->getHeight());
+  m_Dimensions[0] = static_cast<unsigned int>(m_DImage->getWidth());
+  m_Dimensions[1] = static_cast<unsigned int>(m_DImage->getHeight());
 
   switch (this->m_ComponentType)
   {
     case IOComponentEnum::UNKNOWNCOMPONENTTYPE:
     case IOComponentEnum::FLOAT:
     case IOComponentEnum::DOUBLE:
-      itkExceptionMacro(<< "Bad component type" << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType));
+      itkExceptionMacro("Bad component type" << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType));
       break;
     default: // scalarSize already set
       break;
@@ -307,13 +332,13 @@ DCMTKImageIO ::Read(void * buffer)
 }
 
 void
-DCMTKImageIO ::ReorderRGBValues(void * buffer, const void * data, size_t count, unsigned int voxel_size)
+DCMTKImageIO::ReorderRGBValues(void * buffer, const void * data, size_t count, unsigned int voxel_size)
 {
   switch (this->m_ComponentType)
   {
     // DCMTK only supports unsigned integer types for RGB(A) images.
     // see DCMTK file dcmimage/libsrc/dicoimg.cc (function const void *DiColorImage::getData(...) )
-    // DCMTK only supports uint8, uint16, and uint32, but we leave LONG (at least 32bits but
+    // DCMTK only supports uint8_t, uint16_t, and uint32_t, but we leave LONG (at least 32bits but
     // could be 64bits) for future support.
     case IOComponentEnum::UCHAR:
       ReorderRGBValues<unsigned char>(buffer, data, count, voxel_size);
@@ -328,7 +353,7 @@ DCMTKImageIO ::ReorderRGBValues(void * buffer, const void * data, size_t count, 
       ReorderRGBValues<unsigned long>(buffer, data, count, voxel_size);
       break;
     default:
-      itkExceptionMacro(<< "Only unsigned integer pixel types are supported. Bad component type for color image"
+      itkExceptionMacro("Only unsigned integer pixel types are supported. Bad component type for color image"
                         << ImageIOBase::GetComponentTypeAsString(this->m_ComponentType));
       break;
   }
@@ -356,8 +381,8 @@ DCMTKImageIO::ReadImageInformation()
   }
 
   // check for multiframe > 3D
-  ::itk::int32_t numPhases;
-  unsigned       numDim(3);
+  itk::int32_t numPhases;
+  unsigned int numDim(3);
 
   if (reader.GetElementSL(0x2001, 0x1017, numPhases, false) != EXIT_SUCCESS)
   {
@@ -411,7 +436,7 @@ DCMTKImageIO::ReadImageInformation()
   else
   {
     vnl_vector<double> rowDirection4(4), columnDirection4(4), sliceDirection4(4), phaseDirection4(4);
-    for (unsigned i = 0; i < 3; ++i)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       rowDirection4[i] = rowDirection[i];
       columnDirection4[i] = columnDirection[i];
@@ -437,7 +462,7 @@ DCMTKImageIO::ReadImageInformation()
   reader.GetOrigin(origin);
   this->m_Origin.resize(numDim);
 
-  for (unsigned i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     this->m_Origin[i] = origin[i];
   }
@@ -459,7 +484,7 @@ DCMTKImageIO::ReadImageInformation()
 
   if (interData == nullptr)
   {
-    itkExceptionMacro(<< "Missing Image Data in " << this->m_FileName);
+    itkExceptionMacro("Missing Image Data in " << this->m_FileName);
   }
 
   EP_Representation pixelRep = this->m_DImage->getInterData()->getRepresentation();
@@ -510,12 +535,12 @@ DCMTKImageIO::ReadImageInformation()
 }
 
 void
-DCMTKImageIO ::WriteImageInformation()
+DCMTKImageIO::WriteImageInformation()
 {}
 
 /** */
 void
-DCMTKImageIO ::Write(const void * buffer)
+DCMTKImageIO::Write(const void * buffer)
 {
   (void)(buffer);
 }

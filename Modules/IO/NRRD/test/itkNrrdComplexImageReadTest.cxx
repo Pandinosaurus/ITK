@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,15 +19,16 @@
 #include <fstream>
 #include "itkImageFileReader.h"
 #include "itkNrrdImageIO.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
 int
-itkNrrdComplexImageReadTest(int ac, char * av[])
+itkNrrdComplexImageReadTest(int argc, char * argv[])
 {
-  if (ac < 1)
+  if (argc < 1)
   {
-    std::cerr << "Usage: " << av[0] << " Input\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Input\n";
     return EXIT_FAILURE;
   }
 
@@ -36,11 +37,11 @@ itkNrrdComplexImageReadTest(int ac, char * av[])
 
   using ReaderType = itk::ImageFileReader<myImage>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetImageIO(itk::NrrdImageIO::New());
 
-  reader->SetFileName(av[1]);
+  reader->SetFileName(argv[1]);
 
   try
   {
@@ -53,7 +54,7 @@ itkNrrdComplexImageReadTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  myImage::Pointer image = reader->GetOutput();
+  const myImage::Pointer image = reader->GetOutput();
 
   // Pick off some pixels in the test image (the first, the last, and
   // a few in between) and make sure that the values are very close to
@@ -63,57 +64,54 @@ itkNrrdComplexImageReadTest(int ac, char * av[])
 
   float              err = 0;
   myImage::IndexType coord;
-  PixelType          sample;
   coord[0] = 0;
   coord[1] = 0;
-  sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - 27.985973);
-  err += std::fabs(sample.imag() - 0.0);
+  PixelType sample = image->GetPixel(coord);
+  err += itk::Math::abs(sample.real() - 27.985973);
+  err += itk::Math::abs(sample.imag() - 0.0);
 
   coord[0] = 53;
   coord[1] = 43;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - -0.94961888);
-  err += std::fabs(sample.imag() - 0.409872);
+  err += itk::Math::abs(sample.real() - -0.94961888);
+  err += itk::Math::abs(sample.imag() - 0.409872);
 
   coord[0] = 10;
   coord[1] = 43;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - -0.096564025);
-  err += std::fabs(sample.imag() - 0.0094992276);
+  err += itk::Math::abs(sample.real() - -0.096564025);
+  err += itk::Math::abs(sample.imag() - 0.0094992276);
 
   coord[0] = 10;
   coord[1] = 0;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - 0.036231704);
-  err += std::fabs(sample.imag() - -0.016659589);
+  err += itk::Math::abs(sample.real() - 0.036231704);
+  err += itk::Math::abs(sample.imag() - -0.016659589);
 
   coord[0] = 42;
   coord[1] = 42;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - -0.027012844);
-  err += std::fabs(sample.imag() - -0.012217643);
+  err += itk::Math::abs(sample.real() - -0.027012844);
+  err += itk::Math::abs(sample.imag() - -0.012217643);
 
   coord[0] = 50;
   coord[1] = 40;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - 0.44949868);
-  err += std::fabs(sample.imag() - -0.033380687);
+  err += itk::Math::abs(sample.real() - 0.44949868);
+  err += itk::Math::abs(sample.imag() - -0.033380687);
 
   coord[0] = 8;
   coord[1] = 9;
   sample = image->GetPixel(coord);
-  err += std::fabs(sample.real() - -0.036674671);
-  err += std::fabs(sample.imag() - -0.0061681992);
+  err += itk::Math::abs(sample.real() - -0.036674671);
+  err += itk::Math::abs(sample.imag() - -0.0061681992);
 
-  double thresh = 0.00000038;
+  constexpr double thresh = 0.00000038;
   if (err > thresh)
   {
     std::cout << "failure because err == " << err << "> " << thresh << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    return EXIT_SUCCESS;
-  }
+
+  return EXIT_SUCCESS;
 }

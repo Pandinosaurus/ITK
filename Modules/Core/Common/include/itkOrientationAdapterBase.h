@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,9 @@
  *=========================================================================*/
 #ifndef itkOrientationAdapterBase_h
 #define itkOrientationAdapterBase_h
-#include "itkImageBase.h"
+
+#if !defined(ITK_LEGACY_REMOVE)
+#  include "itkImageBase.h"
 
 namespace itk
 {
@@ -41,7 +43,7 @@ namespace itk
  * \ingroup ITKCommon
  */
 template <typename OrientationType, unsigned int Dimension = 3>
-class ITK_TEMPLATE_EXPORT OrientationAdapterBase
+class ITK_TEMPLATE_EXPORT [[deprecated("Since ITK 5.3 use SpatialOrientationAdapter.")]] OrientationAdapterBase
 {
 public:
   /** type alias for matching ImageBase */
@@ -61,7 +63,13 @@ public:
 protected:
   /** destructor, to silence "virtual class has non-virtual destructor()"
     warnings */
+  /** @ITKStartGrouping */
   virtual ~OrientationAdapterBase() = default;
+  /** @ITKEndGrouping */
 };
 } // namespace itk
+#else // ITK_LEGACY_REMOVE
+#  error itkOrientationAdapterBase.h is a legacy file since ITK 5.3 and will be removed in the future.
+#endif // ITK_LEGACY_REMOVE
+
 #endif // itkOrientationAdapterBase_h

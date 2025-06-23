@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,15 +26,13 @@ namespace itk
  * \brief Enhance pixels associated with a dark object (identified by
  * a seed pixel) where the dark object is surrounded by a brighter object.
  *
- * GrayscaleConnectedClosingImagefilter is useful for enhancing dark
+ * GrayscaleConnectedClosingImageFilter is useful for enhancing dark
  * objects that are surrounded by bright borders. This filter makes it
  * easier to threshold the image and extract just the object of
  * interest.
  *
  * Geodesic morphology and the connected closing algorithm are
- * described in Chapter 6 of Pierre Soille's book "Morphological Image
- * Analysis: Principles and Applications", Second Edition, Springer,
- * 2003.
+ * described in \cite soille2004.
  *
  * \sa GrayscaleGeodesicDilateImageFilter
  * \sa MorphologyImageFilter, GrayscaleDilateImageFilter, GrayscaleFunctionDilateImageFilter, BinaryDilateImageFilter
@@ -73,30 +71,28 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GrayscaleConnectedClosingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GrayscaleConnectedClosingImageFilter);
 
   /** Set/Get the seed pixel for the segmentation */
+  /** @ITKStartGrouping */
   itkSetMacro(Seed, InputImageIndexType);
   itkGetConstMacro(Seed, InputImageIndexType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get whether the connected components are defined strictly by
    * face connectivity or by face+edge+vertex connectivity.  Default is
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   GrayscaleConnectedClosingImageFilter();
@@ -121,9 +117,9 @@ protected:
 
 private:
   unsigned long       m_NumberOfIterationsUsed{ 1 };
-  InputImageIndexType m_Seed;
+  InputImageIndexType m_Seed{};
 
-  bool m_FullyConnected;
+  bool m_FullyConnected{};
 }; // end of class
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 #include "ITKVtkGlueExport.h"
 
 /**
- *\class ImageInfo
+ * \class ImageInfo
  * \brief A container for an image and its description
  * \ingroup ITKVtkGlue
  */
@@ -49,7 +49,7 @@ public:
 };
 
 /**
- *\class RGBImageInfo
+ * \class RGBImageInfo
  * \brief A container for an rgb image and its description
  * \ingroup ITKVtkGlue
  */
@@ -68,7 +68,7 @@ public:
 };
 
 /**
- *\class QuickView
+ * \class QuickView
  * \brief A convenient class to render itk images with vtk
  *
  * This class presents a convenient and efficient mechanism to display
@@ -79,7 +79,7 @@ public:
  * be flipped about the vertical axis. An optional description will be
  * displayed at the bottom of each render window.
  *
- * If m_ShareCamera is true, a single <a href="http://www.vtk.org/doc/nightly/html/classvtkCamera.html">vtkCamera</a>
+ * If m_ShareCamera is true, a single <a href="https://www.vtk.org/doc/nightly/html/classvtkCamera.html">vtkCamera</a>
  * will be used for each render window (default is false).
  *
  * Each image is rescaled to have a range between 0 and 255. Currently, the size
@@ -87,7 +87,7 @@ public:
  * is fixed at 10.
  *
  * The Visualize method displays the render windows and starts a
- * <a href="http://www.vtk.org/doc/nightly/html/classvtkInteractorStyleImage.html">vtkInteractorStyleImage</a>.
+ * <a href="https://www.vtk.org/doc/nightly/html/classvtkInteractorStyleImage.html">vtkInteractorStyleImage</a>.
  * The layout and background color of each render window is fixed. The optional
  * boolean for the constructor, if false, bypasses the interactor. This is useful
  * for running tests.
@@ -132,7 +132,7 @@ public:
   void
   AddRGBImage(TImage *, bool FlipVertical = true, std::string Description = "");
 
-  /** Render the images. If interact is tru, start a vtk
+  /** Render the images. If interact is true, start a vtk
    * Interactor. If false, return after one render.
    */
   void
@@ -167,14 +167,14 @@ public:
     m_Interpolate = true;
   }
 
-  /** Each render window will take a snaphot */
+  /** Each render window will take a snapshot */
   void
   SnapshotOn()
   {
     m_Snapshot = true;
   }
 
-  /** Each render window will take a snaphot */
+  /** Each render window will take a snapshot */
   void
   SnapshotOff()
   {

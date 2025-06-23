@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,54 +25,49 @@ int
 itkTemporalDataObjectTest(int, char *[])
 {
 
-#define CHECK_FOR_VALUE(a, b)                                                                                          \
-  {                                                                                                                    \
-    if (a != b)                                                                                                        \
-    {                                                                                                                  \
-      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl;                               \
-      return EXIT_FAILURE;                                                                                             \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define CHECK_FOR_VALUE(a, b)                                                            \
+  {                                                                                      \
+    if (a != b)                                                                          \
+    {                                                                                    \
+      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl; \
+      return EXIT_FAILURE;                                                               \
+    }                                                                                    \
+  }                                                                                      \
   ITK_MACROEND_NOOP_STATEMENT
 
-#define ITK_CHECK_FOR_VALUE(a, b)                                                                                      \
-  {                                                                                                                    \
-    if (a != b)                                                                                                        \
-    {                                                                                                                  \
-      std::cerr << "Error in " #a << std::endl;                                                                        \
-      a.Print(std::cerr);                                                                                              \
-      std::cerr << " != " << std::endl;                                                                                \
-      b.Print(std::cerr);                                                                                              \
-      return EXIT_FAILURE;                                                                                             \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define ITK_CHECK_FOR_VALUE(a, b)               \
+  {                                             \
+    if (a != b)                                 \
+    {                                           \
+      std::cerr << "Error in " #a << std::endl; \
+      a.Print(std::cerr);                       \
+      std::cerr << " != " << std::endl;         \
+      b.Print(std::cerr);                       \
+      return EXIT_FAILURE;                      \
+    }                                           \
+  }                                             \
   ITK_MACROEND_NOOP_STATEMENT
 
   // TODO HACK FIXME
   // This should be also verify that the temporal region functions handle
   // RealTime in a proper way.
 
-  // Create TemporalRegions
-  itk::TemporalRegion              regionLarge;
-  itk::TemporalRegion              regionRequested;
-  itk::TemporalRegion              regionBuffered;
-  itk::TemporalDataObject::Pointer tdo;
-  itk::TemporalDataObject::Pointer tdo2;
-  itk::TemporalDataObject::Pointer tdo3;
-  itk::TemporalDataObject::Pointer tdo4;
-  itk::DataObject::Pointer         notTemporal;
 
   // Instantiate a TemporalDataObject
-  tdo = itk::TemporalDataObject::New();
-  tdo2 = itk::TemporalDataObject::New();
-  tdo3 = itk::TemporalDataObject::New();
-  tdo4 = itk::TemporalDataObject::New();
+  const itk::TemporalDataObject::Pointer tdo = itk::TemporalDataObject::New();
+  const itk::TemporalDataObject::Pointer tdo2 = itk::TemporalDataObject::New();
+  const itk::TemporalDataObject::Pointer tdo3 = itk::TemporalDataObject::New();
+  const itk::TemporalDataObject::Pointer tdo4 = itk::TemporalDataObject::New();
 
+  // Create TemporalRegions
   // Setup regions
+  itk::TemporalRegion regionLarge;
   regionLarge.SetFrameStart(0);
   regionLarge.SetFrameDuration(20);
+  itk::TemporalRegion regionRequested;
   regionRequested.SetFrameStart(2);
   regionRequested.SetFrameDuration(10);
+  itk::TemporalRegion regionBuffered;
   regionBuffered.SetFrameStart(1);
   regionBuffered.SetFrameDuration(15);
 

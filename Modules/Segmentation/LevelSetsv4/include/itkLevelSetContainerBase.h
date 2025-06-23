@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,8 +49,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = Object;
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetContainerBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetContainerBase);
 
   /** type alias related to the type of level set*/
   using LevelSetType = TLevelSet;
@@ -95,7 +95,7 @@ public:
   friend class Iterator;
 
   /**
-   *\class ConstIterator
+   * \class ConstIterator
     \ingroup ITKLevelSetsv4
     */
   class ConstIterator
@@ -110,8 +110,16 @@ public:
       : m_Iterator(it.m_Iterator)
     {}
 
-    ConstIterator & operator*() { return *this; }
-    ConstIterator * operator->() { return this; }
+    ConstIterator &
+    operator*()
+    {
+      return *this;
+    }
+    ConstIterator *
+    operator->()
+    {
+      return this;
+    }
     ConstIterator &
     operator++()
     {
@@ -143,29 +151,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
 
-    LevelSetIdentifierType
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] LevelSetIdentifierType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    LevelSetType *
+    [[nodiscard]] LevelSetType *
     GetLevelSet() const
     {
       return m_Iterator->second;
@@ -177,7 +180,7 @@ public:
   };
 
   /**
-   *\class Iterator
+   * \class Iterator
     \ingroup ITKLevelSetsv4 */
   class Iterator
   {
@@ -191,8 +194,16 @@ public:
     {}
     ~Iterator() = default;
 
-    Iterator & operator*() { return *this; }
-    Iterator * operator->() { return this; }
+    Iterator &
+    operator*()
+    {
+      return *this;
+    }
+    Iterator *
+    operator->()
+    {
+      return this;
+    }
     Iterator &
     operator++()
     {
@@ -224,29 +235,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
 
-    LevelSetIdentifierType
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] LevelSetIdentifierType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    LevelSetType *
+    [[nodiscard]] LevelSetType *
     GetLevelSet() const
     {
       return m_Iterator->second;
@@ -299,13 +305,15 @@ public:
   RemoveLevelSet(const LevelSetIdentifierType & iId);
 
   /** \todo add documentation */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Heaviside, HeavisideType);
   itkGetConstObjectMacro(Heaviside, HeavisideType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the domain map image filter. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(DomainMapFilter, DomainMapImageFilterType);
   itkGetModifiableObjectMacro(DomainMapFilter, DomainMapImageFilterType);
-
+  /** @ITKEndGrouping */
   /** Does the level set container have a domain map? */
   bool
   HasDomainMap() const;
@@ -323,9 +331,9 @@ protected:
   SetContainer(const LevelSetContainerType & iContainer);
 
 private:
-  HeavisideConstPointer       m_Heaviside;
-  DomainMapImageFilterPointer m_DomainMapFilter;
-  LevelSetContainerType       m_Container;
+  HeavisideConstPointer       m_Heaviside{};
+  DomainMapImageFilterPointer m_DomainMapFilter{};
+  LevelSetContainerType       m_Container{};
 };
 } // namespace itk
 

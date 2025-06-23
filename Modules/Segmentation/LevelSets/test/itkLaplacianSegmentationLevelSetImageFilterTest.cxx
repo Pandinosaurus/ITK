@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkLaplacianSegmentationLevelSetImageFilter.h"
+#include "itkTestingMacros.h"
 
 
 namespace LSIFTN
@@ -32,20 +33,20 @@ constexpr int V_DEPTH = 64;
 float
 sphere(float x, float y, float z)
 {
-  float dis;
-  dis = (x - (float)V_WIDTH / 2.0) * (x - (float)V_WIDTH / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
-        (y - (float)V_HEIGHT / 2.0) * (y - (float)V_HEIGHT / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
-        (z - (float)V_DEPTH / 2.0) * (z - (float)V_DEPTH / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
+  const float dis =
+    (x - float{ V_WIDTH } / 2.0) * (x - float{ V_WIDTH } / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
+    (y - float{ V_HEIGHT } / 2.0) * (y - float{ V_HEIGHT } / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
+    (z - float{ V_DEPTH } / 2.0) * (z - float{ V_DEPTH } / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
   return (1.0f - dis);
 }
 
 float
 sphere2(float x, float y, float z)
 {
-  float dis;
-  dis = (x - (float)V_WIDTH / 2.1) * (x - (float)V_WIDTH / 2.1) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
-        (y - (float)V_HEIGHT / 2.0) * (y - (float)V_HEIGHT / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
-        (z - (float)V_DEPTH / 2.0) * (z - (float)V_DEPTH / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
+  const float dis =
+    (x - float{ V_WIDTH } / 2.1) * (x - float{ V_WIDTH } / 2.1) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
+    (y - float{ V_HEIGHT } / 2.0) * (y - float{ V_HEIGHT } / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
+    (z - float{ V_DEPTH } / 2.0) * (z - float{ V_DEPTH } / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
   return (1.0f - dis);
 }
 
@@ -63,8 +64,8 @@ evaluate_float_function(itk::Image<float, 3> * im, float (*f)(float, float, floa
       for (int x = 0; x < V_WIDTH; ++x)
       {
         idx[0] = x;
-        float val = f((float)x, (float)y, (float)z);
-        // im->SetPixel(idx, -1.0 * f((float)x,(float)y,(float)z));
+        const float val = f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+        // im->SetPixel(idx, -1.0 * f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)));
         if (val >= 0.0)
         {
           im->SetPixel(idx, (64 - val));
@@ -92,7 +93,7 @@ evaluate_function(itk::Image<char, 3> * im, float (*f)(float, float, float))
       for (int x = 0; x < V_WIDTH; ++x)
       {
         idx[0] = x;
-        if (f((float)x, (float)y, (float)z) >= 0.0)
+        if (f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)) >= 0.0)
         {
           im->SetPixel(idx, 1);
         }
@@ -119,7 +120,7 @@ public:
   using Superclass = Command;
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
-  itkTypeMacro(RMSCommand, Command);
+  itkOverrideGetNameOfClassMacro(RMSCommand);
   itkNewMacro(Self);
 
   /** Standard Command virtual methods */
@@ -151,7 +152,6 @@ protected:
 int
 itkLaplacianSegmentationLevelSetImageFilterTest(int, char *[])
 {
-  std::cout << "Last modified 11/08/02" << std::endl;
 
   LSIFTN::ImageType::RegionType            reg;
   LSIFTN::ImageType::RegionType::SizeType  sz;
@@ -161,8 +161,8 @@ itkLaplacianSegmentationLevelSetImageFilterTest(int, char *[])
   reg.SetSize(sz);
   reg.SetIndex(idx);
 
-  LSIFTN::ImageType::Pointer     inputImage = LSIFTN::ImageType::New();
-  LSIFTN::SeedImageType::Pointer seedImage = LSIFTN::SeedImageType::New();
+  const LSIFTN::ImageType::Pointer     inputImage = LSIFTN::ImageType::New();
+  const LSIFTN::SeedImageType::Pointer seedImage = LSIFTN::SeedImageType::New();
   inputImage->SetRegions(reg);
   seedImage->SetRegions(reg);
   inputImage->Allocate();
@@ -178,8 +178,12 @@ itkLaplacianSegmentationLevelSetImageFilterTest(int, char *[])
   LSIFTN::evaluate_float_function(inputImage, LSIFTN::sphere2);
 
 
-  itk::LaplacianSegmentationLevelSetImageFilter<::LSIFTN::SeedImageType, ::LSIFTN::ImageType>::Pointer filter =
+  const itk::LaplacianSegmentationLevelSetImageFilter<::LSIFTN::SeedImageType, ::LSIFTN::ImageType>::Pointer filter =
     itk::LaplacianSegmentationLevelSetImageFilter<::LSIFTN::SeedImageType, ::LSIFTN::ImageType>::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, LaplacianSegmentationLevelSetImageFilter, SegmentationLevelSetImageFilter);
+
+
   filter->SetInput(seedImage);
   filter->SetFeatureImage(inputImage);
 
@@ -189,7 +193,7 @@ itkLaplacianSegmentationLevelSetImageFilterTest(int, char *[])
   // function so that negative values result in
   // surface growth.
 
-  itk::RMSCommand::Pointer c = itk::RMSCommand::New();
+  const itk::RMSCommand::Pointer c = itk::RMSCommand::New();
   filter->AddObserver(itk::IterationEvent(), c);
   filter->SetIsoSurfaceValue(0.5); //<--- IMPORTANT!  Default is zero.
   filter->SetFeatureScaling(100.0);

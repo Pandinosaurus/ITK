@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 #define itkInPlaceImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkIsSame.h"
+#include <type_traits>
 
 namespace itk
 {
@@ -85,14 +85,14 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InPlaceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InPlaceImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -110,10 +110,11 @@ public:
    * will be effective only if CanRunInPlace also returns true.
    * By default CanRunInPlace checks whether the input and output
    * image type match. */
+  /** @ITKStartGrouping */
   itkSetMacro(InPlace, bool);
   itkGetConstMacro(InPlace, bool);
   itkBooleanMacro(InPlace);
-
+  /** @ITKEndGrouping */
   /** Can the filter run in place? To do so, the filter's first input
    * and output must have the same dimension and pixel type. This
    * method can be used in conjunction with the InPlace ivar to
@@ -122,7 +123,7 @@ public:
    * operation if the InPlace is true and CanRunInPlace is true.
    * CanRunInPlace may also be overridden by InPlaceImageFilter
    * subclasses to fine tune its behavior. */
-  virtual bool
+  [[nodiscard]] virtual bool
   CanRunInPlace() const;
 
 protected:
@@ -147,7 +148,15 @@ protected:
   void
   AllocateOutputs() override
   {
-    this->InternalAllocateOutputs(IsSame<TInputImage, TOutputImage>());
+    if (std::is_same_v<TInputImage, TOutputImage>)
+    {
+      this->InternalAllocateOutputs();
+    }
+    else // the type are different we can't run in place
+    {
+      this->m_RunningInPlace = false;
+      this->Superclass::AllocateOutputs();
+    }
   }
 
   /** InPlaceImageFilter may transfer ownership of the input bulk data
@@ -169,16 +178,8 @@ protected:
   itkGetConstMacro(RunningInPlace, bool);
 
 private:
-  // the type are different we can't run in place
   void
-  InternalAllocateOutputs(const FalseType &)
-  {
-    this->m_RunningInPlace = false;
-    this->Superclass::AllocateOutputs();
-  }
-
-  void
-  InternalAllocateOutputs(const TrueType &);
+  InternalAllocateOutputs();
 
   bool m_InPlace{ true }; // enable the possibility of in-place
   bool m_RunningInPlace{ false };

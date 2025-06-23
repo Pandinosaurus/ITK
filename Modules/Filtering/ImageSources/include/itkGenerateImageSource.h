@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class GenerateImageSource
+ * \class GenerateImageSource
  * \brief a Base class for image sources which need to have image
  * size, and other meta-data set.
  *
@@ -67,8 +67,8 @@ public:
   /** Dimensionality of the output image */
   static constexpr unsigned int NDimensions = TOutputImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GenerateImageSource, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GenerateImageSource);
 
   itkSetMacro(UseReferenceImage, bool);
   itkBooleanMacro(UseReferenceImage);
@@ -77,39 +77,44 @@ public:
   /**
    * Set/Get the size of the output image
    **/
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstReferenceMacro(Size, SizeType);
   itkSetVectorMacro(Size, SizeValueType, NDimensions);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the output image spacing. This parameter defaults to all ones.
    **/
+  /** @ITKStartGrouping */
   itkSetMacro(Spacing, SpacingType);
   itkGetConstReferenceMacro(Spacing, SpacingType);
   itkSetVectorMacro(Spacing, const float, NDimensions);
-
+  /** @ITKEndGrouping */
 
   /**
    * Set/Get the output image origin. This parameter defaults to all zeros.
    **/
+  /** @ITKStartGrouping */
   itkSetMacro(Origin, PointType);
   itkGetConstReferenceMacro(Origin, PointType);
   itkSetVectorMacro(Origin, const float, NDimensions);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the output image direction cosine. This parameter
    * defaults to the identity matrix.
    **/
+  /** @ITKStartGrouping */
   itkSetMacro(Direction, DirectionType);
   itkGetConstReferenceMacro(Direction, DirectionType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the output image direction cosine. This parameter
    * defaults to the identity matrix.
    **/
+  /** @ITKStartGrouping */
   itkSetMacro(StartIndex, IndexType);
   itkGetConstReferenceMacro(StartIndex, IndexType);
-
+  /** @ITKEndGrouping */
   /** Helper method to set the output parameters based on an image. */
   void
   SetOutputParametersFromImage(const ReferenceImageBaseType * image);
@@ -121,6 +126,7 @@ public:
    *  copy the information. UseReferenceImageOn must be set to utilize the
    *  reference image. */
   itkSetInputMacro(ReferenceImage, ReferenceImageBaseType);
+
   /** Get the reference image that is defining the output information. */
   itkGetInputMacro(ReferenceImage, ReferenceImageBaseType);
 
@@ -134,11 +140,11 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  SizeType      m_Size; // size of the output image
-  SpacingType   m_Spacing;
-  PointType     m_Origin;
-  DirectionType m_Direction;
-  IndexType     m_StartIndex;
+  SizeType      m_Size{}; // size of the output image
+  SpacingType   m_Spacing{};
+  PointType     m_Origin{};
+  DirectionType m_Direction{};
+  IndexType     m_StartIndex{};
   bool          m_UseReferenceImage{ false };
 };
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,12 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#include <itkMetaImageIO.h>
+#include "itkMetaImageIO.h"
 
 int
 itkMetaTestLongFilename(int, char *[])
 {
-  itk::MetaImageIO::Pointer metaImageIO = itk::MetaImageIO::New();
+  const itk::MetaImageIO::Pointer metaImageIO = itk::MetaImageIO::New();
   // test if a very long filename
   // crashes in the metaIO library
   const char * doublePlusLongFilename = "01234597890123459789012345978901234597890123459789"

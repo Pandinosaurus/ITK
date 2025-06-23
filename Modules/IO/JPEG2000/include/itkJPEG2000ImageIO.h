@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ namespace itk
 
 class JPEG2000ImageIOInternal;
 class JPEG2000ImageIOInternalEnums;
-/**\class JPEG2000ImageIOInternalEnums
+/** \class JPEG2000ImageIOInternalEnums
  * \brief This class contains all enum classes used by JPEG2000ImageIOInternal class.
  * \ingroup ITKIOJPEG2000
  */
@@ -48,7 +48,8 @@ public:
     JPT_CFMT = 2,
     MJ2_CFMT = 3
   };
-  /**\class DFMFormat
+
+  /** \class DFMFormat
    * \ingroup ITKIOJPEG2000
    * */
   enum class DFMFormat : uint8_t
@@ -66,7 +67,7 @@ extern ITKIOJPEG2000_EXPORT std::ostream &
                             operator<<(std::ostream & out, const JPEG2000ImageIOInternalEnums::DFMFormat value);
 
 /**
- *\class JPEG2000ImageIO
+ * \class JPEG2000ImageIO
  *
  * \brief Supports for the JPEG2000 file format based on openjpeg
  *
@@ -77,7 +78,7 @@ extern ITKIOJPEG2000_EXPORT std::ostream &
  * This code was contributed in the Insight Journal paper:
  * "Support for Streaming the JPEG2000 File Format"
  * by Mosaliganti K., Ibanez L., Megason S
- * https://www.insight-journal.org/browse/publication/741
+ * https://doi.org/10.54294/bo53br
  *
  *
  *  \ingroup IOFilters
@@ -96,8 +97,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(JPEG2000ImageIO, StreamingImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JPEG2000ImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFEMSolverCrankNicolson_hxx
 #define itkFEMSolverCrankNicolson_hxx
 
-#include "itkFEMSolverCrankNicolson.h"
 
 #include "itkFEMLoadNode.h"
 #include "itkFEMLoadElementBase.h"
@@ -27,33 +26,37 @@
 #include "itkFEMLoadLandmark.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 #define TOTE
 
 
 template <unsigned int VDimension>
 SolverCrankNicolson<VDimension>::SolverCrankNicolson()
+  : m_TimeStep(0.5)
+  , m_Rho(1.)
+  , m_Alpha(0.5)
+  , m_CurrentMaxSolution(1.0)
+  , m_UseMassMatrix(true)
+  , m_ForceTotalIndex(5)
+  , m_ForceTMinus1Index(2)
+  , m_SolutionTMinus1Index(2)
+  , m_SolutionVectorTMinus1Index(3)
+  , m_TotalSolutionIndex(1)
+  , m_DifferenceMatrixIndex(1)
+  , m_DiffMatrixBySolutionTMinus1Index(4)
 {
-  m_TimeStep = 0.5;
-  m_Rho = 1.;
-  m_Alpha = 0.5;
   // BUG FIXME NOT SURE IF SOLVER IS USING VECTOR INDEX 1 FOR BCs
-  m_ForceTIndex = 0;                      // vector
-  m_ForceTMinus1Index = 2;                // vector
-  m_SolutionVectorTMinus1Index = 3;       // vector
-  m_DiffMatrixBySolutionTMinus1Index = 4; // vector
-  m_ForceTotalIndex = 5;                  // vector
-  m_SolutionTIndex = 0;                   // solution
-  m_TotalSolutionIndex = 1;               // solution
-  m_SolutionTMinus1Index = 2;             // solution
-  m_SumMatrixIndex = 0;                   // matrix
-  m_DifferenceMatrixIndex = 1;            // matrix
-  m_CurrentMaxSolution = 1.0;
-  m_UseMassMatrix = true;
-  m_Iterations = 0;
+  // vector
+  // vector
+  // vector
+  // vector
+  // vector
+  // solution
+  // solution
+  // solution
+  // matrix
+  // matrix
 }
 
 template <unsigned int VDimension>
@@ -101,7 +104,7 @@ SolverCrankNicolson<VDimension>::AssembleKandM()
   mfcLoads.clear();
 
   int numLoads = this->m_FEMObject->GetLoadContainer()->Size();
-  for (int l = 0; l < numLoads; l++)
+  for (int l = 0; l < numLoads; ++l)
   {
     if (LoadBCMFC::Pointer l1 = dynamic_cast<LoadBCMFC *>(this->m_FEMObject->GetLoad(l).GetPointer()))
     {
@@ -122,7 +125,7 @@ SolverCrankNicolson<VDimension>::AssembleKandM()
   // Step over all elements
   //
   int numElements = this->m_FEMObject->GetElementContainer()->Size();
-  for (int e = 0; e < numElements; e++)
+  for (int e = 0; e < numElements; ++e)
   {
     vnl_matrix<Float> Ke;
     // Copy the element stiffness matrix for faster access.
@@ -135,10 +138,10 @@ SolverCrankNicolson<VDimension>::AssembleKandM()
 
     Me = Me * m_Rho;
     // Step over all rows in in element matrix
-    for (int j = 0; j < Ne; j++)
+    for (int j = 0; j < Ne; ++j)
     {
       // Step over all columns in in element matrix
-      for (int k = 0; k < Ne; k++)
+      for (int k = 0; k < Ne; ++k)
       {
         // Error checking. all GFN should be =>0 and <NGFN
         if (this->m_FEMObject->GetElement(e)->GetDegreeOfFreedom(j) >= this->m_NGFN ||
@@ -175,7 +178,7 @@ SolverCrankNicolson<VDimension>::AssembleKandM()
   // appropriate place in the stiffness matrix
   //
   // int numLoads = m_FEMObject->GetLoadContainer()->Size();
-  for (int l2 = 0; l2 < numLoads; l2++)
+  for (int l2 = 0; l2 < numLoads; ++l2)
   {
     if (LoadLandmark::Pointer l3 = dynamic_cast<LoadLandmark *>(this->m_FEMObject->GetLoad(l2).GetPointer()))
     {
@@ -184,10 +187,10 @@ SolverCrankNicolson<VDimension>::AssembleKandM()
       ep->GetLandmarkContributionMatrix(l3->GetEta(), Le);
       int Ne = ep->GetNumberOfDegreesOfFreedom();
       // Step over all rows in element matrix
-      for (int j = 0; j < Ne; j++)
+      for (int j = 0; j < Ne; ++j)
       {
         // Step over all columns in element matrix
-        for (int k = 0; k < Ne; k++)
+        for (int k = 0; k < Ne; ++k)
         {
           // error checking, all GFN should be >=0 and < NGFN
           if (ep->GetDegreeOfFreedom(j) >= this->m_NGFN || ep->GetDegreeOfFreedom(k) >= this->m_NGFN)
@@ -227,13 +230,13 @@ SolverCrankNicolson<VDimension>::AssembleFforTimeStep(int dim)
     return;
   }
 
-  this->AssembleF(dim); // assuming assemblef uses index 0 in vector!
+  this->AssembleF(dim); // assuming AssembleF uses index 0 in vector!
 
   using BCTermType = std::map<Element::DegreeOfFreedomIDType, Float>;
   BCTermType bcterm;
 
   int numLoads = this->m_FEMObject->GetLoadContainer()->Size();
-  for (int l2 = 0; l2 < numLoads; l2++)
+  for (int l2 = 0; l2 < numLoads; ++l2)
   {
     if (LoadBC::Pointer l1 = dynamic_cast<LoadBC *>(this->m_FEMObject->GetLoad(l2).GetPointer()))
     {
@@ -250,7 +253,7 @@ SolverCrankNicolson<VDimension>::AssembleFforTimeStep(int dim)
 
   this->m_LinearSystem->MultiplyMatrixVector(
     m_DiffMatrixBySolutionTMinus1Index, m_DifferenceMatrixIndex, m_SolutionVectorTMinus1Index);
-  for (unsigned int index = 0; index < this->m_NGFN; index++)
+  for (unsigned int index = 0; index < this->m_NGFN; ++index)
   {
     RecomputeForceVector(index);
   }
@@ -313,7 +316,7 @@ SolverCrankNicolson<VDimension>::RunSolver()
   this->m_LinearSystem->InitializeSolution(m_SolutionTIndex);
   this->m_LinearSystem->Solve();
 
-  m_Iterations++;
+  ++m_Iterations;
   // call this externally    AddToDisplacements();
 }
 
@@ -333,8 +336,8 @@ SolverCrankNicolson<VDimension>::FindBracketingTriplet(Float * a, Float * b, Flo
   ax = 0.0;
   bx = 1.;
   Float fc;
-  Float fa = std::fabs(EvaluateResidual(ax));
-  Float fb = std::fabs(EvaluateResidual(bx));
+  Float fa = itk::Math::abs(EvaluateResidual(ax));
+  Float fb = itk::Math::abs(EvaluateResidual(bx));
 
   Float ulim, u, r, q, fu, dum;
 
@@ -350,19 +353,19 @@ SolverCrankNicolson<VDimension>::FindBracketingTriplet(Float * a, Float * b, Flo
 
   cx = bx + Gold * (bx - ax); // first guess for c - the 3rd pt needed to
                               // bracket the min
-  fc = std::fabs(EvaluateResidual(cx));
+  fc = itk::Math::abs(EvaluateResidual(cx));
 
-  while( fb > fc /*&& std::fabs(ax) < 3. && std::fabs(bx) < 3. && std::fabs(cx) <
+  while( fb > fc /*&& itk::Math::abs(ax) < 3. && itk::Math::abs(bx) < 3. && itk::Math::abs(cx) <
                     3.*/)
   {
     r = (bx - ax) * (fb - fc);
     q = (bx - cx) * (fb - fa);
-    Float denom = (2.0 * GSSign(GSMax(std::fabs(q - r), Tiny), q - r));
+    Float denom = (2.0 * GSSign(GSMax(itk::Math::abs(q - r), Tiny), q - r));
     u = (bx) - ((bx - cx) * q - (bx - ax) * r) / denom;
     ulim = bx + Glimit * (cx - bx);
     if ((bx - u) * (u - cx) > 0.0)
     {
-      fu = std::fabs(EvaluateResidual(u));
+      fu = itk::Math::abs(EvaluateResidual(u));
       if (fu < fc)
       {
         ax = bx;
@@ -382,11 +385,11 @@ SolverCrankNicolson<VDimension>::FindBracketingTriplet(Float * a, Float * b, Flo
       }
 
       u = cx + Gold * (cx - bx);
-      fu = std::fabs(EvaluateResidual(u));
+      fu = itk::Math::abs(EvaluateResidual(u));
     }
     else if ((cx - u) * (u - ulim) > 0.0)
     {
-      fu = std::fabs(EvaluateResidual(u));
+      fu = itk::Math::abs(EvaluateResidual(u));
       if (fu < fc)
       {
         bx = cx;
@@ -394,18 +397,18 @@ SolverCrankNicolson<VDimension>::FindBracketingTriplet(Float * a, Float * b, Flo
         u = cx + Gold * (cx - bx);
         fb = fc;
         fc = fu;
-        fu = std::fabs(EvaluateResidual(u));
+        fu = itk::Math::abs(EvaluateResidual(u));
       }
     }
     else if ((u - ulim) * (ulim - cx) >= 0.0)
     {
       u = ulim;
-      fu = std::fabs(EvaluateResidual(u));
+      fu = itk::Math::abs(EvaluateResidual(u));
     }
     else
     {
       u = cx + Gold * (cx - bx);
-      fu = std::fabs(EvaluateResidual(u));
+      fu = itk::Math::abs(EvaluateResidual(u));
     }
 
     ax = bx;
@@ -416,7 +419,7 @@ SolverCrankNicolson<VDimension>::FindBracketingTriplet(Float * a, Float * b, Flo
     fc = fu;
   }
 
-  if (std::fabs(ax) > 1.e3 || std::fabs(bx) > 1.e3 || std::fabs(cx) > 1.e3)
+  if (itk::Math::abs(ax) > 1.e3 || itk::Math::abs(bx) > 1.e3 || itk::Math::abs(cx) > 1.e3)
   {
     ax = -2.0;
     bx = 1.0;
@@ -454,19 +457,19 @@ SolverCrankNicolson<VDimension>::BrentsMethod(Float tol, unsigned int MaxIters)
   b = ((ax > cx) ? ax : cx);
 
   x = w = v = bx;
-  fw = fv = fx = std::fabs(EvaluateResidual(x));
-  for (iter = 1; iter <= MaxIters; iter++)
+  fw = fv = fx = itk::Math::abs(EvaluateResidual(x));
+  for (iter = 1; iter <= MaxIters; ++iter)
   {
     xm = 0.5 * (a + b);
-    tol2 = 2.0 * (tol1 = tol * std::fabs(x) + ZEPS);
-    if (std::fabs(x - xm) <= (tol2 - 0.5 * (b - a)))
+    tol2 = 2.0 * (tol1 = tol * itk::Math::abs(x) + ZEPS);
+    if (itk::Math::abs(x - xm) <= (tol2 - 0.5 * (b - a)))
     {
       xmin = x;
       SetEnergyToMin(xmin);
       return fx;
     }
 
-    if (std::fabs(e) > tol1)
+    if (itk::Math::abs(e) > tol1)
     {
       r = (x - w) * (fx - fv);
       q = (x - v) * (fx - fw);
@@ -476,10 +479,10 @@ SolverCrankNicolson<VDimension>::BrentsMethod(Float tol, unsigned int MaxIters)
       {
         p = -1. * p;
       }
-      q = std::fabs(q);
+      q = itk::Math::abs(q);
       etemp = e;
       e = d;
-      if (std::fabs(p) >= std::fabs(0.5 * q * etemp) || p <= q * (a - x) || p >= q * (b - x))
+      if (itk::Math::abs(p) >= itk::Math::abs(0.5 * q * etemp) || p <= q * (a - x) || p >= q * (b - x))
       {
         d = CGOLD * (e = (x >= xm ? a - x : b - x));
       }
@@ -502,8 +505,8 @@ SolverCrankNicolson<VDimension>::BrentsMethod(Float tol, unsigned int MaxIters)
       d = CGOLD * (e = (x >= xm ? a - x : b - x));
     }
 
-    u = (std::fabs(d) >= tol1 ? x + d : x + GSSign(tol1, d));
-    fu = std::fabs(EvaluateResidual(u));
+    u = (itk::Math::abs(d) >= tol1 ? x + d : x + GSSign(tol1, d));
+    fu = itk::Math::abs(EvaluateResidual(u));
     if (fu <= fx)
     {
       if (u >= x)
@@ -569,7 +572,7 @@ SolverCrankNicolson<VDimension>::GoldenSection(Float tol, unsigned int MaxIters)
 
   x0 = ax;
   x3 = cx;
-  if (std::fabs(cx - bx) > std::fabs(bx - ax))
+  if (itk::Math::abs(cx - bx) > itk::Math::abs(bx - ax))
   {
     x1 = bx;
     x2 = bx + C * (cx - bx);
@@ -579,19 +582,19 @@ SolverCrankNicolson<VDimension>::GoldenSection(Float tol, unsigned int MaxIters)
     x2 = bx;
     x1 = bx - C * (bx - ax);
   }
-  f1 = std::fabs(EvaluateResidual(x1));
-  f2 = std::fabs(EvaluateResidual(x2));
+  f1 = itk::Math::abs(EvaluateResidual(x1));
+  f2 = itk::Math::abs(EvaluateResidual(x2));
   unsigned int iters = 0;
-  while (std::fabs(x3 - x0) > tol * (std::fabs(x1) + std::fabs(x2)) && iters < MaxIters)
+  while (itk::Math::abs(x3 - x0) > tol * (itk::Math::abs(x1) + itk::Math::abs(x2)) && iters < MaxIters)
   {
-    iters++;
+    ++iters;
     if (f2 < f1)
     {
       x0 = x1;
       x1 = x2;
       x2 = R * x1 + C * x3;
       f1 = f2;
-      f2 = std::fabs(EvaluateResidual(x2));
+      f2 = itk::Math::abs(EvaluateResidual(x2));
     }
     else
     {
@@ -599,7 +602,7 @@ SolverCrankNicolson<VDimension>::GoldenSection(Float tol, unsigned int MaxIters)
       x2 = x1;
       x1 = R * x2 + C * x0;
       f2 = f1;
-      f1 = std::fabs(EvaluateResidual(x1));
+      f1 = itk::Math::abs(EvaluateResidual(x1));
     }
   }
 
@@ -622,7 +625,7 @@ template <unsigned int VDimension>
 void
 SolverCrankNicolson<VDimension>::SetEnergyToMin(Float xmin)
 {
-  for (unsigned int j = 0; j < this->m_NGFN; j++)
+  for (unsigned int j = 0; j < this->m_NGFN; ++j)
   {
     Float SolVal;
     Float FVal;
@@ -648,7 +651,7 @@ SolverCrankNicolson<VDimension>::GetDeformationEnergy(Float t)
 {
   Float DeformationEnergy = 0.0;
   Float iSolVal, jSolVal;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
 // forming  U^T F
 #ifdef LOCE
@@ -660,7 +663,7 @@ SolverCrankNicolson<VDimension>::GetDeformationEnergy(Float t)
 #endif
     // forming U^T K U
     Float TempRowVal = 0.0;
-    for (unsigned int j = 0; j < this->m_NGFN; j++)
+    for (unsigned int j = 0; j < this->m_NGFN; ++j)
     {
 #ifdef LOCE
       jSolVal = t * (this->m_LinearSystem->GetSolutionValue(j, m_SolutionTIndex)) +
@@ -684,7 +687,7 @@ SolverCrankNicolson<VDimension>::EvaluateResidual(Float t)
   Float ForceEnergy = 0.0, FVal = 0.0;
   Float DeformationEnergy = 0.0;
   Float iSolVal, jSolVal;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
 // forming  U^T F
 #ifdef LOCE
@@ -707,7 +710,7 @@ SolverCrankNicolson<VDimension>::EvaluateResidual(Float t)
 #endif
     // forming U^T K U
     Float TempRowVal = 0.0;
-    for (unsigned int j = 0; j < this->m_NGFN; j++)
+    for (unsigned int j = 0; j < this->m_NGFN; ++j)
     {
 #ifdef LOCE
       jSolVal = t * (this->m_LinearSystem->GetSolutionValue(j, m_SolutionTIndex)) +
@@ -721,7 +724,7 @@ SolverCrankNicolson<VDimension>::EvaluateResidual(Float t)
     }
     DeformationEnergy += iSolVal * TempRowVal;
   }
-  auto Energy = (Float)std::fabs(DeformationEnergy - ForceEnergy);
+  auto Energy = (Float)itk::Math::abs(DeformationEnergy - ForceEnergy);
   return Energy;
 }
 
@@ -736,7 +739,7 @@ SolverCrankNicolson<VDimension>::AddToDisplacements(Float optimum)
   Float maxs = 0.0, CurrentTotSolution, CurrentSolution, CurrentForce;
   Float mins2 = 0.0, maxs2 = 0.0;
   Float absmax = 0.0;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
 #ifdef TOTE
     CurrentSolution = this->m_LinearSystem->GetSolutionValue(i, m_SolutionTIndex);
@@ -749,9 +752,9 @@ SolverCrankNicolson<VDimension>::AddToDisplacements(Float optimum)
     {
       maxs2 = CurrentSolution;
     }
-    if (std::fabs(CurrentSolution) > absmax)
+    if (itk::Math::abs(CurrentSolution) > absmax)
     {
-      absmax = std::fabs(CurrentSolution);
+      absmax = itk::Math::abs(CurrentSolution);
     }
 
 //  note: set rather than add - i.e. last solution of system not total solution
@@ -783,9 +786,9 @@ SolverCrankNicolson<VDimension>::AddToDisplacements(Float optimum)
     this->m_LinearSystem->AddVectorValue(i, CurrentForce, m_ForceTotalIndex);
     CurrentTotSolution = this->m_LinearSystem->GetSolutionValue(i, m_TotalSolutionIndex);
 
-    if (std::fabs(CurrentTotSolution) > maxs)
+    if (itk::Math::abs(CurrentTotSolution) > maxs)
     {
-      maxs = std::fabs(CurrentTotSolution);
+      maxs = itk::Math::abs(CurrentTotSolution);
     }
   }
 
@@ -802,7 +805,7 @@ SolverCrankNicolson<VDimension>::PrintMinMaxOfSolution()
   //
   Float mins = 0.0, maxs = 0.0;
   Float mins2 = 0.0, maxs2 = 0.0;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
     Float CurrentSolution = this->m_LinearSystem->GetSolutionValue(i, m_SolutionTIndex);
     if (CurrentSolution < mins2)
@@ -830,7 +833,7 @@ void
 SolverCrankNicolson<VDimension>::AverageLastTwoDisplacements(Float t)
 {
   Float maxs = 0.0;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
     Float temp = this->m_LinearSystem->GetSolutionValue(i, m_SolutionTIndex);
     Float temp2 = this->m_LinearSystem->GetSolutionValue(i, m_SolutionTMinus1Index);
@@ -849,7 +852,7 @@ template <unsigned int VDimension>
 void
 SolverCrankNicolson<VDimension>::ZeroVector(int which)
 {
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
     this->m_LinearSystem->SetVectorValue(i, 0.0, which);
   }
@@ -860,7 +863,7 @@ void
 SolverCrankNicolson<VDimension>::PrintDisplacements()
 {
   std::cout << " printing current displacements " << std::endl;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
     std::cout << this->m_LinearSystem->GetSolutionValue(i, m_TotalSolutionIndex) << std::endl;
   }
@@ -871,13 +874,12 @@ void
 SolverCrankNicolson<VDimension>::PrintForce()
 {
   std::cout << " printing current forces " << std::endl;
-  for (unsigned int i = 0; i < this->m_NGFN; i++)
+  for (unsigned int i = 0; i < this->m_NGFN; ++i)
   {
     std::cout << this->m_LinearSystem->GetVectorValue(i, m_ForceTIndex) << std::endl;
   }
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

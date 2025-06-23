@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,10 +40,10 @@ TestDisplacementJacobianDeterminantValue()
   VectorImageType::RegionType region;
   // NOTE:  Making the image size much larger than necessary in order to get
   //       some meaningful time measurements.  Simulate a 256x256x256 image.
-  VectorImageType::SizeType size = { { 4096, 4096 } };
+  constexpr VectorImageType::SizeType size = { { 4096, 4096 } };
   region.SetSize(size);
 
-  VectorImageType::Pointer dispacementfield = VectorImageType::New();
+  auto dispacementfield = VectorImageType::New();
   dispacementfield->SetLargestPossibleRegion(region);
   dispacementfield->SetBufferedRegion(region);
   dispacementfield->Allocate();
@@ -73,15 +73,15 @@ TestDisplacementJacobianDeterminantValue()
   //
   // J(1,1) = [ (.625-.125)/2 (.5-.25)/2; (.375-.125)/2 (.75-0.0)/2] =[ .25  .125; .125 .375]
   // det((J+I)(1,1))=((.25+1.0)*(.375+1.0))-(.125*.125) = 1.703125;
-  const float expectedJacobianDeterminant = (((.25 + 1.0) * (.375 + 1.0)) - (.125 * .125));
+  constexpr float expectedJacobianDeterminant = (((.25 + 1.0) * (.375 + 1.0)) - (.125 * .125));
 
   using FilterType = itk::DisplacementFieldJacobianDeterminantFilter<VectorImageType, float>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DisplacementFieldJacobianDeterminantFilter, ImageToImageFilter);
 
 
-  bool useImageSpacing = true;
+  constexpr bool useImageSpacing = true;
 #if !defined(ITK_FUTURE_LEGACY_REMOVE)
   if (useImageSpacing)
   {
@@ -98,16 +98,17 @@ TestDisplacementJacobianDeterminantValue()
   filter->Update();
 
 
-  itk::Image<float, 2>::Pointer output = filter->GetOutput();
+  const itk::Image<float, 2>::Pointer output = filter->GetOutput();
 
   VectorImageType::IndexType index;
   index[0] = 1;
   index[1] = 1;
-  float jacobianDeterminant = output->GetPixel(index);
+  const float jacobianDeterminant = output->GetPixel(index);
   // std::cout << "Output "  << output->GetPixel(index) << std::endl;
-  double epsilon = 1e-13;
-  if (std::abs(jacobianDeterminant - expectedJacobianDeterminant) > epsilon)
+  constexpr double epsilon = 1e-13;
+  if (itk::Math::abs(jacobianDeterminant - expectedJacobianDeterminant) > epsilon)
   {
+    std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
     std::cerr << "Test failed!" << std::endl;
     std::cerr << "Error in pixel value at index [" << index << "]" << std::endl;
     std::cerr << "Expected value " << jacobianDeterminant << std::endl;
@@ -129,9 +130,9 @@ itkDisplacementFieldJacobianDeterminantFilterTest(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
-  bool ValueTestPassed = TestDisplacementJacobianDeterminantValue();
+  const bool ValueTestPassed = TestDisplacementJacobianDeterminantValue();
   try
   {
     using VectorType = itk::Vector<float, 3>;
@@ -141,7 +142,7 @@ itkDisplacementFieldJacobianDeterminantFilterTest(int, char *[])
     // Set up filter
 
     using FilterType = itk::DisplacementFieldJacobianDeterminantFilter<VectorImageType, float>;
-    FilterType::Pointer filter = FilterType::New();
+    auto filter = FilterType::New();
 
     ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DisplacementFieldJacobianDeterminantFilter, ImageToImageFilter);
 
@@ -158,7 +159,7 @@ itkDisplacementFieldJacobianDeterminantFilterTest(int, char *[])
     filter->Print(std::cout);
 
     // Run the test again with ImageSpacingOn
-    bool useImageSpacing = true;
+    constexpr bool useImageSpacing = true;
     ITK_TEST_SET_GET_BOOLEAN(filter, UseImageSpacing, useImageSpacing);
 
 
@@ -166,8 +167,10 @@ itkDisplacementFieldJacobianDeterminantFilterTest(int, char *[])
     filter->Print(std::cout);
 
     // Run the test again with specified weights
-    float weights[3] = { 1.0, 2.0, 3.0 };
+    const typename FilterType::WeightsType weights{ { { 1.0, 2.0, 3.0 } } };
     filter->SetDerivativeWeights(weights);
+    ITK_TEST_SET_GET_VALUE(weights, filter->GetDerivativeWeights());
+
     test1.Execute();
     filter->Print(std::cout);
   }

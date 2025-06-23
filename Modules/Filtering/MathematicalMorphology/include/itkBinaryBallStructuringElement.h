@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,13 +82,13 @@ public:
   using ConstIterator = typename AllocatorType::const_iterator;
 
   /** Size and value type alias support */
-  using SizeType = typename Superclass::SizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
+  using typename Superclass::SizeType;
+  using typename Superclass::SizeValueType;
 
   /** Radius type alias support */
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::RadiusType;
 
-  /** External slice iterator type type alias support */
+  /** External slice iterator type alias support */
   using SliceIteratorType = SliceIterator<TPixel, Self>;
 
   /** Default constructor. */

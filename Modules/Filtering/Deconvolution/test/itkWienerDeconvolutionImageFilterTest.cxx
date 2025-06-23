@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,14 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTestingMacros.h"
+
+#include "itkObjectFactoryBase.h"
+#include "itkVnlRealToHalfHermitianForwardFFTImageFilter.h"
+#include "itkVnlHalfHermitianToRealInverseFFTImageFilter.h"
+#if defined(ITK_USE_FFTWD) || defined(ITK_USE_FFTWF)
+#  include "itkFFTWRealToHalfHermitianForwardFFTImageFilter.h"
+#  include "itkFFTWHalfHermitianToRealInverseFFTImageFilter.h"
+#endif
 
 int
 itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
@@ -39,11 +47,11 @@ itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
+  auto reader1 = ReaderType::New();
   reader1->SetFileName(argv[1]);
   reader1->Update();
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
   reader2->Update();
 
@@ -51,7 +59,7 @@ itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
   cbc.SetConstant(0.0);
 
   using ConvolutionFilterType = itk::FFTConvolutionImageFilter<ImageType>;
-  ConvolutionFilterType::Pointer convolutionFilter = ConvolutionFilterType::New();
+  auto convolutionFilter = ConvolutionFilterType::New();
   convolutionFilter->SetInput(reader1->GetOutput());
   convolutionFilter->SetKernelImage(reader2->GetOutput());
   convolutionFilter->SetBoundaryCondition(&cbc);
@@ -68,7 +76,7 @@ itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
   convolutionFilter->SetNormalize(normalize);
 
   using DeconvolutionFilterType = itk::WienerDeconvolutionImageFilter<ImageType>;
-  DeconvolutionFilterType::Pointer deconvolutionFilter = DeconvolutionFilterType::New();
+  auto deconvolutionFilter = DeconvolutionFilterType::New();
 
   deconvolutionFilter->SetInput(convolutionFilter->GetOutput());
   deconvolutionFilter->SetKernelImage(reader2->GetOutput());
@@ -78,12 +86,12 @@ itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
 
   // Check default NoiseVariance value
   ITK_TEST_SET_GET_VALUE(0.0, deconvolutionFilter->GetNoiseVariance());
-  double noiseVariance = 1.0;
+  constexpr double noiseVariance = 1.0;
   deconvolutionFilter->SetNoiseVariance(noiseVariance);
   ITK_TEST_SET_GET_VALUE(noiseVariance, deconvolutionFilter->GetNoiseVariance());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(deconvolutionFilter->GetOutput());
 
@@ -105,7 +113,7 @@ itkWienerDeconvolutionImageFilterTest(int argc, char * argv[])
   using IntImageType = itk::Image<int, ImageDimension>;
 
   using FilterType = itk::WienerDeconvolutionImageFilter<FloatImageType, DoubleImageType, IntImageType, float>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->Print(std::cout);
 
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,33 +18,24 @@
 #ifndef itkNormalizedCorrelationImageToImageMetric_hxx
 #define itkNormalizedCorrelationImageToImageMetric_hxx
 
-#include "itkNormalizedCorrelationImageToImageMetric.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TFixedImage, typename TMovingImage>
-NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::NormalizedCorrelationImageToImageMetric()
-{
-  m_SubtractMean = false;
-}
 
-/**
- * Get the match Measure
- */
 template <typename TFixedImage, typename TMovingImage>
-typename NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::MeasureType
+NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::NormalizedCorrelationImageToImageMetric() = default;
+
+template <typename TFixedImage, typename TMovingImage>
+auto
 NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValue(
-  const TransformParametersType & parameters) const
+  const TransformParametersType & parameters) const -> MeasureType
 {
-  FixedImageConstPointer fixedImage = this->m_FixedImage;
+  const FixedImageConstPointer fixedImage = this->m_FixedImage;
 
   if (!fixedImage)
   {
-    itkExceptionMacro(<< "Fixed image has not been assigned");
+    itkExceptionMacro("Fixed image has not been assigned");
   }
 
   using FixedIteratorType = itk::ImageRegionConstIteratorWithIndex<FixedImageType>;
@@ -61,11 +52,11 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValue(
 
   using AccumulateType = typename NumericTraits<MeasureType>::AccumulateType;
 
-  AccumulateType sff = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType smm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sfm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sf = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sm = NumericTraits<AccumulateType>::ZeroValue();
+  AccumulateType sff{};
+  AccumulateType smm{};
+  AccumulateType sfm{};
+  AccumulateType sf{};
+  AccumulateType sm{};
 
   while (!ti.IsAtEnd())
   {
@@ -80,7 +71,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValue(
       continue;
     }
 
-    OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     if (this->m_MovingImageMask && !this->m_MovingImageMask->IsInsideInWorldSpace(transformedPoint))
     {
@@ -121,15 +112,12 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValue(
   }
   else
   {
-    measure = NumericTraits<MeasureType>::ZeroValue();
+    measure = MeasureType{};
   }
 
   return measure;
 }
 
-/**
- * Get the Derivative Measure
- */
 template <typename TFixedImage, typename TMovingImage>
 void
 NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivative(
@@ -138,14 +126,14 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
 {
   if (!this->GetGradientImage())
   {
-    itkExceptionMacro(<< "The gradient image is null, maybe you forgot to call Initialize()");
+    itkExceptionMacro("The gradient image is null, maybe you forgot to call Initialize()");
   }
 
-  FixedImageConstPointer fixedImage = this->m_FixedImage;
+  const FixedImageConstPointer fixedImage = this->m_FixedImage;
 
   if (!fixedImage)
   {
-    itkExceptionMacro(<< "Fixed image has not been assigned");
+    itkExceptionMacro("Fixed image has not been assigned");
   }
 
   const unsigned int dimension = FixedImageType::ImageDimension;
@@ -162,21 +150,21 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
 
   using AccumulateType = typename NumericTraits<MeasureType>::AccumulateType;
 
-  AccumulateType sff = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType smm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sfm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sf = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sm = NumericTraits<AccumulateType>::ZeroValue();
+  AccumulateType sff{};
+  AccumulateType smm{};
+  AccumulateType sfm{};
+  AccumulateType sf{};
+  AccumulateType sm{};
 
   const unsigned int ParametersDimension = this->GetNumberOfParameters();
   derivative = DerivativeType(ParametersDimension);
-  derivative.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  derivative.Fill(typename DerivativeType::ValueType{});
 
-  DerivativeType derivativeF = DerivativeType(ParametersDimension);
-  derivativeF.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  DerivativeType derivativeF(ParametersDimension);
+  derivativeF.Fill(typename DerivativeType::ValueType{});
 
-  DerivativeType derivativeM = DerivativeType(ParametersDimension);
-  derivativeM.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  DerivativeType derivativeM(ParametersDimension);
+  derivativeM.Fill(typename DerivativeType::ValueType{});
 
   ti.GoToBegin();
   // First compute the sums
@@ -193,7 +181,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
       continue;
     }
 
-    OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     if (this->m_MovingImageMask && !this->m_MovingImageMask->IsInsideInWorldSpace(transformedPoint))
     {
@@ -237,7 +225,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
       continue;
     }
 
-    OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     if (this->m_MovingImageMask && !this->m_MovingImageMask->IsInsideInWorldSpace(transformedPoint))
     {
@@ -252,23 +240,23 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
 
       this->m_Transform->ComputeJacobianWithRespectToParametersCachedTemporaries(inputPoint, jacobian, jacobianCache);
 
-      // Get the gradient by NearestNeighboorInterpolation:
+      // Get the gradient by NearestNeighborInterpolation:
       // which is equivalent to round up the point components.
-      using CoordRepType = typename OutputPointType::CoordRepType;
-      using MovingImageContinuousIndexType = ContinuousIndex<CoordRepType, MovingImageType::ImageDimension>;
+      using CoordinateType = typename OutputPointType::CoordinateType;
+      using MovingImageContinuousIndexType = ContinuousIndex<CoordinateType, MovingImageType::ImageDimension>;
 
-      MovingImageContinuousIndexType tempIndex;
-      this->m_MovingImage->TransformPhysicalPointToContinuousIndex(transformedPoint, tempIndex);
+      const MovingImageContinuousIndexType tempIndex =
+        this->m_MovingImage->template TransformPhysicalPointToContinuousIndex<CoordinateType>(transformedPoint);
 
       typename MovingImageType::IndexType mappedIndex;
       mappedIndex.CopyWithRound(tempIndex);
 
       const GradientPixelType gradient = this->GetGradientImage()->GetPixel(mappedIndex);
-      for (unsigned int par = 0; par < ParametersDimension; par++)
+      for (unsigned int par = 0; par < ParametersDimension; ++par)
       {
-        RealType sumF = NumericTraits<RealType>::ZeroValue();
-        RealType sumM = NumericTraits<RealType>::ZeroValue();
-        for (unsigned int dim = 0; dim < dimension; dim++)
+        RealType sumF{};
+        RealType sumM{};
+        for (unsigned int dim = 0; dim < dimension; ++dim)
         {
           const RealType differential = jacobian(dim, par) * gradient[dim];
           sumF += fixedValue * differential;
@@ -298,23 +286,20 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetDerivativ
 
   if (this->m_NumberOfPixelsCounted > 0 && denom != 0.0)
   {
-    for (unsigned int i = 0; i < ParametersDimension; i++)
+    for (unsigned int i = 0; i < ParametersDimension; ++i)
     {
       derivative[i] = (derivativeF[i] - (sfm / smm) * derivativeM[i]) / denom;
     }
   }
   else
   {
-    for (unsigned int i = 0; i < ParametersDimension; i++)
+    for (unsigned int i = 0; i < ParametersDimension; ++i)
     {
-      derivative[i] = NumericTraits<MeasureType>::ZeroValue();
+      derivative[i] = MeasureType{};
     }
   }
 }
 
-/*
- * Get both the match Measure and theDerivative Measure
- */
 template <typename TFixedImage, typename TMovingImage>
 void
 NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndDerivative(
@@ -324,14 +309,14 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
 {
   if (!this->GetGradientImage())
   {
-    itkExceptionMacro(<< "The gradient image is null, maybe you forgot to call Initialize()");
+    itkExceptionMacro("The gradient image is null, maybe you forgot to call Initialize()");
   }
 
-  FixedImageConstPointer fixedImage = this->m_FixedImage;
+  const FixedImageConstPointer fixedImage = this->m_FixedImage;
 
   if (!fixedImage)
   {
-    itkExceptionMacro(<< "Fixed image has not been assigned");
+    itkExceptionMacro("Fixed image has not been assigned");
   }
 
   const unsigned int dimension = FixedImageType::ImageDimension;
@@ -348,24 +333,24 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
 
   using AccumulateType = typename NumericTraits<MeasureType>::AccumulateType;
 
-  AccumulateType sff = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType smm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sfm = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sf = NumericTraits<AccumulateType>::ZeroValue();
-  AccumulateType sm = NumericTraits<AccumulateType>::ZeroValue();
+  AccumulateType sff{};
+  AccumulateType smm{};
+  AccumulateType sfm{};
+  AccumulateType sf{};
+  AccumulateType sm{};
 
   const unsigned int ParametersDimension = this->GetNumberOfParameters();
   derivative = DerivativeType(ParametersDimension);
-  derivative.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  derivative.Fill(typename DerivativeType::ValueType{});
 
-  DerivativeType derivativeF = DerivativeType(ParametersDimension);
-  derivativeF.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  DerivativeType derivativeF(ParametersDimension);
+  derivativeF.Fill(typename DerivativeType::ValueType{});
 
-  DerivativeType derivativeM = DerivativeType(ParametersDimension);
-  derivativeM.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  DerivativeType derivativeM(ParametersDimension);
+  derivativeM.Fill(typename DerivativeType::ValueType{});
 
-  DerivativeType derivativeM1 = DerivativeType(ParametersDimension);
-  derivativeM1.Fill(NumericTraits<typename DerivativeType::ValueType>::ZeroValue());
+  DerivativeType derivativeM1(ParametersDimension);
+  derivativeM1.Fill(typename DerivativeType::ValueType{});
 
   ti.GoToBegin();
   // First compute the sums
@@ -382,7 +367,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
       continue;
     }
 
-    OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     if (this->m_MovingImageMask && !this->m_MovingImageMask->IsInsideInWorldSpace(transformedPoint))
     {
@@ -425,7 +410,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
       continue;
     }
 
-    OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     if (this->m_MovingImageMask && !this->m_MovingImageMask->IsInsideInWorldSpace(transformedPoint))
     {
@@ -440,23 +425,23 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
 
       this->m_Transform->ComputeJacobianWithRespectToParametersCachedTemporaries(inputPoint, jacobian, jacobianCache);
 
-      // Get the gradient by NearestNeighboorInterpolation:
+      // Get the gradient by NearestNeighborInterpolation:
       // which is equivalent to round up the point components.
-      using CoordRepType = typename OutputPointType::CoordRepType;
-      using MovingImageContinuousIndexType = ContinuousIndex<CoordRepType, MovingImageType::ImageDimension>;
+      using CoordinateType = typename OutputPointType::CoordinateType;
+      using MovingImageContinuousIndexType = ContinuousIndex<CoordinateType, MovingImageType::ImageDimension>;
 
-      MovingImageContinuousIndexType tempIndex;
-      this->m_MovingImage->TransformPhysicalPointToContinuousIndex(transformedPoint, tempIndex);
+      const MovingImageContinuousIndexType tempIndex =
+        this->m_MovingImage->template TransformPhysicalPointToContinuousIndex<CoordinateType>(transformedPoint);
 
       typename MovingImageType::IndexType mappedIndex;
       mappedIndex.CopyWithRound(tempIndex);
 
       const GradientPixelType gradient = this->GetGradientImage()->GetPixel(mappedIndex);
-      for (unsigned int par = 0; par < ParametersDimension; par++)
+      for (unsigned int par = 0; par < ParametersDimension; ++par)
       {
-        RealType sumF = NumericTraits<RealType>::ZeroValue();
-        RealType sumM = NumericTraits<RealType>::ZeroValue();
-        for (unsigned int dim = 0; dim < dimension; dim++)
+        RealType sumF{};
+        RealType sumM{};
+        for (unsigned int dim = 0; dim < dimension; ++dim)
         {
           const RealType differential = jacobian(dim, par) * gradient[dim];
           sumF += fixedValue * differential;
@@ -485,7 +470,7 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
 
   if (this->m_NumberOfPixelsCounted > 0 && denom != 0.0)
   {
-    for (unsigned int i = 0; i < ParametersDimension; i++)
+    for (unsigned int i = 0; i < ParametersDimension; ++i)
     {
       derivative[i] = (derivativeF[i] - (sfm / smm) * derivativeM[i]) / denom;
     }
@@ -493,11 +478,11 @@ NormalizedCorrelationImageToImageMetric<TFixedImage, TMovingImage>::GetValueAndD
   }
   else
   {
-    for (unsigned int i = 0; i < ParametersDimension; i++)
+    for (unsigned int i = 0; i < ParametersDimension; ++i)
     {
-      derivative[i] = NumericTraits<MeasureType>::ZeroValue();
+      derivative[i] = MeasureType{};
     }
-    value = NumericTraits<MeasureType>::ZeroValue();
+    value = MeasureType{};
   }
 }
 

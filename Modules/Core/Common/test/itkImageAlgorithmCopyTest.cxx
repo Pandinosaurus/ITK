@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,17 +32,16 @@ AverageTestCopy(typename TImage::SizeType & size)
   typename ImageType::RegionType region;
 
 
-  typename ImageType::IndexType index;
-  index.Fill(0);
+  const typename ImageType::IndexType index{};
   region.SetSize(size);
   region.SetIndex(index);
 
-  typename ImageType::Pointer inImage = ImageType::New();
+  auto inImage = ImageType::New();
   inImage->SetRegions(region);
   inImage->Allocate();
   inImage->FillBuffer(12);
 
-  typename ImageType::Pointer outImage = ImageType::New();
+  auto outImage = ImageType::New();
   outImage->SetRegions(region);
   outImage->Allocate();
   outImage->FillBuffer(12);
@@ -120,9 +119,7 @@ int
 itkImageAlgorithmCopyTest(int, char *[])
 {
   using ImageType3D = itk::Image<char, 3>;
-  ImageType3D::SizeType size3d;
-
-  size3d.Fill(16);
+  auto size3d = ImageType3D::SizeType::Filled(16);
   AverageTestCopy<ImageType3D>(size3d);
 
   size3d.Fill(32);
@@ -135,9 +132,7 @@ itkImageAlgorithmCopyTest(int, char *[])
   AverageTestCopy<ImageType3D>(size3d);
 
   using ImageType2D = itk::Image<char, 2>;
-  ImageType2D::SizeType size2d;
-
-  size2d.Fill(16);
+  auto size2d = ImageType2D::SizeType::Filled(16);
   AverageTestCopy<ImageType2D>(size2d);
 
   size2d.Fill(32);

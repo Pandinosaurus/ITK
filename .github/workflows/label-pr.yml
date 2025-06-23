@@ -6,8 +6,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
-    - uses: srvaroa/labeler@master
+    - uses: srvaroa/labeler@v0.8
       env:
             GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

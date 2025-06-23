@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,10 @@
 #ifndef itkMaskedImageToHistogramFilter_hxx
 #define itkMaskedImageToHistogramFilter_hxx
 
-#include "itkMaskedImageToHistogramFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionConstIterator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TImage, typename TMaskImage>
 MaskedImageToHistogramFilter<TImage, TMaskImage>::MaskedImageToHistogramFilter()
@@ -38,11 +35,11 @@ void
 MaskedImageToHistogramFilter<TImage, TMaskImage>::ThreadedComputeMinimumAndMaximum(
   const RegionType & inputRegionForThread)
 {
-  unsigned int                   nbOfComponents = this->GetInput()->GetNumberOfComponentsPerPixel();
+  const unsigned int             nbOfComponents = this->GetInput()->GetNumberOfComponentsPerPixel();
   HistogramMeasurementVectorType min(nbOfComponents);
   HistogramMeasurementVectorType max(nbOfComponents);
 
-  MaskPixelType maskValue = this->GetMaskValue();
+  const MaskPixelType maskValue = this->GetMaskValue();
 
   ImageRegionConstIterator<TImage>     inputIt(this->GetInput(), inputRegionForThread);
   ImageRegionConstIterator<TMaskImage> maskIt(this->GetMaskImage(), inputRegionForThread);
@@ -58,7 +55,7 @@ MaskedImageToHistogramFilter<TImage, TMaskImage>::ThreadedComputeMinimumAndMaxim
     {
       const PixelType & p = inputIt.Get();
       NumericTraits<PixelType>::AssignToArray(p, m);
-      for (unsigned int i = 0; i < nbOfComponents; i++)
+      for (unsigned int i = 0; i < nbOfComponents; ++i)
       {
         min[i] = std::min(m[i], min[i]);
         max[i] = std::max(m[i], max[i]);
@@ -67,8 +64,8 @@ MaskedImageToHistogramFilter<TImage, TMaskImage>::ThreadedComputeMinimumAndMaxim
     ++inputIt;
     ++maskIt;
   }
-  std::lock_guard<std::mutex> mutexHolder(this->m_Mutex);
-  for (unsigned int i = 0; i < nbOfComponents; i++)
+  const std::lock_guard<std::mutex> lockGuard(this->m_Mutex);
+  for (unsigned int i = 0; i < nbOfComponents; ++i)
   {
     this->m_Minimum[i] = std::min(this->m_Minimum[i], min[i]);
     this->m_Maximum[i] = std::max(this->m_Maximum[i], max[i]);
@@ -92,7 +89,7 @@ MaskedImageToHistogramFilter<TImage, TMaskImage>::ThreadedStreamedGenerateData(c
   inputIt.GoToBegin();
   maskIt.GoToBegin();
   HistogramMeasurementVectorType m(nbOfComponents);
-  MaskPixelType                  maskValue = this->GetMaskValue();
+  const MaskPixelType            maskValue = this->GetMaskValue();
 
   typename HistogramType::IndexType index;
   while (!inputIt.IsAtEnd())
@@ -112,7 +109,6 @@ MaskedImageToHistogramFilter<TImage, TMaskImage>::ThreadedStreamedGenerateData(c
   this->ThreadedMergeHistogram(std::move(histogram));
 }
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

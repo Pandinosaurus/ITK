@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,18 +32,18 @@ namespace
 int
 TestUnknowMetaDataBug(const std::string & fname)
 {
-  std::cout << "Testing for unknow meta data entry bug." << std::endl;
+  std::cout << "Testing for unknown meta data entry bug." << std::endl;
 
   try
   {
     using PixelType = unsigned short;
     using ImageType = itk::Image<PixelType, 2>;
 
-    ImageType::RegionType region;
-    ImageType::SizeType   size = { { 32, 32 } };
+    ImageType::RegionType         region;
+    constexpr ImageType::SizeType size = { { 32, 32 } };
     region.SetSize(size);
 
-    ImageType::Pointer image = ImageType::New();
+    auto image = ImageType::New();
     image->SetRegions(region);
     image->Allocate();
     image->FillBuffer(0);
@@ -55,35 +55,33 @@ TestUnknowMetaDataBug(const std::string & fname)
       dict, "AnUnsuportedComplexInitalized", std::complex<float>(1.234560F));
 
     using Hasher = itk::Testing::HashImageFilter<ImageType>;
-    Hasher::Pointer hasher = Hasher::New();
+    auto hasher = Hasher::New();
     hasher->SetInput(image);
     hasher->InPlaceOff();
     hasher->Update();
 
-    std::string originalHash = hasher->GetHash();
+    const std::string originalHash = hasher->GetHash();
     std::cout << "\tOriginal image hash: " << originalHash << std::endl;
 
 
     // Write image out
-    itk::ImageFileWriter<ImageType>::Pointer writer;
-    writer = itk::ImageFileWriter<ImageType>::New();
+    const itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
     writer->SetInput(image);
     writer->SetFileName(fname);
     writer->Update();
 
-    itk::ImageFileReader<ImageType>::Pointer reader;
-    reader = itk::ImageFileReader<ImageType>::New();
+    const itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
     reader->SetFileName(fname);
 
     hasher->SetInput(reader->GetOutput());
     hasher->Update();
 
-    std::string readHash = hasher->GetHash();
+    const std::string readHash = hasher->GetHash();
     std::cout << "\tRead hash: " << readHash << std::endl;
 
     ITK_TEST_EXPECT_EQUAL(originalHash, readHash);
   }
-  catch (std::exception & e)
+  catch (const std::exception & e)
   {
     std::cerr << "Exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
@@ -98,7 +96,8 @@ itkMetaImageIOTest2(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cerr << "Usage: " << argv[0] << " Output\n";
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " outputFileName" << std::endl;
     return EXIT_FAILURE;
   }
 

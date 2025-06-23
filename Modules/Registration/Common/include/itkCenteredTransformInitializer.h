@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,8 +72,8 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CenteredTransformInitializer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CenteredTransformInitializer);
 
   /** Type of the transform to initialize */
   using TransformType = TTransform;
@@ -121,6 +121,7 @@ public:
 
   /** Select between using the geometrical center of the images or
       using the center of mass given by the image intensities. */
+  /** @ITKStartGrouping */
   void
   GeometryOn()
   {
@@ -131,13 +132,14 @@ public:
   {
     m_UseMoments = true;
   }
-
+  /** @ITKEndGrouping */
   /** Get() access to the moments calculators */
+  /** @ITKStartGrouping */
   itkGetModifiableObjectMacro(FixedCalculator, FixedImageCalculatorType);
   itkGetModifiableObjectMacro(MovingCalculator, MovingImageCalculatorType);
-
+  /** @ITKEndGrouping */
 protected:
-  CenteredTransformInitializer();
+  CenteredTransformInitializer() = default;
   ~CenteredTransformInitializer() override = default;
 
   void
@@ -146,16 +148,16 @@ protected:
   itkGetModifiableObjectMacro(Transform, TransformType);
 
 private:
-  TransformPointer m_Transform;
+  TransformPointer m_Transform{};
 
-  FixedImagePointer m_FixedImage;
+  FixedImagePointer m_FixedImage{};
 
-  MovingImagePointer m_MovingImage;
+  MovingImagePointer m_MovingImage{};
 
-  bool m_UseMoments;
+  bool m_UseMoments{ false };
 
-  FixedImageCalculatorPointer  m_FixedCalculator;
-  MovingImageCalculatorPointer m_MovingCalculator;
+  const FixedImageCalculatorPointer  m_FixedCalculator{ FixedImageCalculatorType::New() };
+  const MovingImageCalculatorPointer m_MovingCalculator{ MovingImageCalculatorType::New() };
 }; // class CenteredTransformInitializer
 } // namespace itk
 

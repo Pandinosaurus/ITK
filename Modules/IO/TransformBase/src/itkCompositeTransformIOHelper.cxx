@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -103,8 +103,9 @@ ITK_GCC_PRAGMA_DIAG_POP()
 } // namespace
 
 template <typename TParametersValueType>
-typename CompositeTransformIOHelperTemplate<TParametersValueType>::ConstTransformListType &
+auto
 CompositeTransformIOHelperTemplate<TParametersValueType>::GetTransformList(const TransformType * transform)
+  -> ConstTransformListType &
 {
   this->m_TransformList.clear();
 
@@ -115,7 +116,7 @@ CompositeTransformIOHelperTemplate<TParametersValueType>::GetTransformList(const
       this->BuildTransformList<6>(transform) == 0 && this->BuildTransformList<7>(transform) == 0 &&
       this->BuildTransformList<8>(transform) == 0 && this->BuildTransformList<9>(transform) == 0)
   {
-    itkGenericExceptionMacro(<< "Unsupported Composite Transform Type " << transform->GetTransformTypeAsString());
+    itkGenericExceptionMacro("Unsupported Composite Transform Type " << transform->GetTransformTypeAsString());
   }
   return m_TransformList;
 }
@@ -136,7 +137,7 @@ CompositeTransformIOHelperTemplate<TParametersValueType>::SetTransformList(Trans
       this->InternalSetTransformList<8>(transform, transformList) == 0 &&
       this->InternalSetTransformList<9>(transform, transformList) == 0)
   {
-    itkGenericExceptionMacro(<< "Unsupported Composite Transform Type " << transform->GetTransformTypeAsString());
+    itkGenericExceptionMacro("Unsupported Composite Transform Type " << transform->GetTransformTypeAsString());
   }
 }
 
@@ -165,8 +166,8 @@ CompositeTransformIOHelperTemplate<TParametersValueType>::BuildTransformList(con
   const typename CompositeType::TransformQueueType & transforms = composite->GetTransformQueue();
   for (auto it = transforms.begin(); it != transforms.end(); ++it)
   {
-    const auto *          curTransform = static_cast<const TransformType *>((*it).GetPointer());
-    ConstTransformPointer curPtr = curTransform;
+    const auto *                curTransform = static_cast<const TransformType *>(it->GetPointer());
+    const ConstTransformPointer curPtr = curTransform;
     this->m_TransformList.push_back(curPtr);
   }
   return 1;
@@ -201,7 +202,7 @@ CompositeTransformIOHelperTemplate<TParametersValueType>::InternalSetTransformLi
   ++it; // skip the composite transform
   for (; it != transformList.end(); ++it)
   {
-    auto * component = static_cast<ComponentTransformType *>((*it).GetPointer());
+    auto * component = static_cast<ComponentTransformType *>(it->GetPointer());
     composite->AddTransform(component);
   }
   return 1;

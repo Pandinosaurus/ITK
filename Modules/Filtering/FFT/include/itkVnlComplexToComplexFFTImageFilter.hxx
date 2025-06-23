@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVnlComplexToComplexFFTImageFilter_hxx
 #define itkVnlComplexToComplexFFTImageFilter_hxx
 
-#include "itkVnlComplexToComplexFFTImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkVnlFFTCommon.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -28,16 +27,16 @@
 namespace itk
 {
 
-template <typename TImage>
-VnlComplexToComplexFFTImageFilter<TImage>::VnlComplexToComplexFFTImageFilter()
+template <typename TInputImage, typename TOutputImage>
+VnlComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::VnlComplexToComplexFFTImageFilter()
 {
   this->DynamicMultiThreadingOn();
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-VnlComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
+VnlComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
   const ImageType * input = this->GetInput();
   ImageType *       output = this->GetOutput();
@@ -49,10 +48,10 @@ VnlComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
   {
     if (!VnlFFTCommon::IsDimensionSizeLegal(imageSize[ii]))
     {
-      itkExceptionMacro(<< "Cannot compute FFT of image with size " << imageSize
-                        << ". VnlComplexToComplexFFTImageFilter operates "
-                        << "only on images whose size in each dimension has"
-                        << "only a combination of 2,3, and 5 as prime factors.");
+      itkExceptionMacro("Cannot compute FFT of image with size "
+                        << imageSize
+                        << ". VnlComplexToComplexFFTImageFilter operates only on images whose size in each dimension "
+                           "has only a combination of 2,3, and 5 as prime factors.");
     }
   }
 
@@ -75,17 +74,17 @@ VnlComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-VnlComplexToComplexFFTImageFilter<TImage>::DynamicThreadedGenerateData(
+VnlComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
   // Normalize the output if backward transform
   if (this->GetTransformDirection() == Superclass::TransformDirectionEnum::INVERSE)
   {
     using IteratorType = ImageRegionIterator<OutputImageType>;
-    SizeValueType totalOutputSize = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
-    IteratorType  it(this->GetOutput(), outputRegionForThread);
+    const SizeValueType totalOutputSize = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
+    IteratorType        it(this->GetOutput(), outputRegionForThread);
     while (!it.IsAtEnd())
     {
       PixelType val = it.Value();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGrayscaleDilateImageFilter_hxx
 #define itkGrayscaleDilateImageFilter_hxx
 
-#include "itkGrayscaleDilateImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressAccumulator.h"
 #include <string>
@@ -27,13 +26,12 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 GrayscaleDilateImageFilter<TInputImage, TOutputImage, TKernel>::GrayscaleDilateImageFilter()
+  : m_HistogramFilter(HistogramFilterType::New())
+  , m_BasicFilter(BasicFilterType::New())
+  , m_AnchorFilter(AnchorFilterType::New())
+  , m_VHGWFilter(VHGWFilterType::New())
+  , m_Algorithm(AlgorithmEnum::HISTO)
 {
-  m_BasicFilter = BasicFilterType::New();
-  m_HistogramFilter = HistogramFilterType::New();
-  m_AnchorFilter = AnchorFilterType::New();
-  m_VHGWFilter = VHGWFilterType::New();
-  m_Algorithm = AlgorithmEnum::HISTO;
-
   this->SetBoundary(NumericTraits<PixelType>::NonpositiveMin());
 }
 
@@ -129,7 +127,7 @@ GrayscaleDilateImageFilter<TInputImage, TOutputImage, TKernel>::SetAlgorithm(Alg
     }
     else
     {
-      itkExceptionMacro(<< "Invalid algorithm");
+      itkExceptionMacro("Invalid algorithm");
     }
 
     m_Algorithm = algo;
@@ -142,7 +140,7 @@ void
 GrayscaleDilateImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
@@ -176,7 +174,7 @@ GrayscaleDilateImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
     m_AnchorFilter->SetInput(this->GetInput());
     progress->RegisterInternalFilter(m_AnchorFilter, 0.9f);
 
-    typename CastFilterType::Pointer cast = CastFilterType::New();
+    auto cast = CastFilterType::New();
     cast->SetInput(m_AnchorFilter->GetOutput());
     progress->RegisterInternalFilter(cast, 0.1f);
 
@@ -190,7 +188,7 @@ GrayscaleDilateImageFilter<TInputImage, TOutputImage, TKernel>::GenerateData()
     m_VHGWFilter->SetInput(this->GetInput());
     progress->RegisterInternalFilter(m_VHGWFilter, 0.9f);
 
-    typename CastFilterType::Pointer cast = CastFilterType::New();
+    auto cast = CastFilterType::New();
     cast->SetInput(m_VHGWFilter->GetOutput());
     progress->RegisterInternalFilter(cast, 0.1f);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCropImageFilter_hxx
 #define itkCropImageFilter_hxx
 
-#include "itkCropImageFilter.h"
 
 namespace itk
 {
@@ -34,9 +33,8 @@ CropImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   }
 
   // Compute the new region size
-  OutputImageRegionType croppedRegion;
-  SizeType              sz;
-  OutputImageIndexType  idx;
+  SizeType             sz;
+  OutputImageIndexType idx;
 
   InputImageSizeType  input_sz = inputPtr->GetLargestPossibleRegion().GetSize();
   InputImageIndexType input_idx = inputPtr->GetLargestPossibleRegion().GetIndex();
@@ -49,8 +47,7 @@ CropImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
     sz[i] = input_sz[i] - (m_UpperBoundaryCropSize[i] + m_LowerBoundaryCropSize[i]);
   }
 
-  croppedRegion.SetSize(sz);
-  croppedRegion.SetIndex(idx);
+  const OutputImageRegionType croppedRegion(idx, sz);
 
   // Set extraction region in the superclass
   this->SetExtractionRegion(croppedRegion);
@@ -61,7 +58,7 @@ CropImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
 template <typename TInputImage, typename TOutputImage>
 void
-CropImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CONST
+CropImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 

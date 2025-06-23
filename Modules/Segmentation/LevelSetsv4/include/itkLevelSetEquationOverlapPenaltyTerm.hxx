@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,32 +19,18 @@
 #ifndef itkLevelSetEquationOverlapPenaltyTerm_hxx
 #define itkLevelSetEquationOverlapPenaltyTerm_hxx
 
-#include "itkLevelSetEquationOverlapPenaltyTerm.h"
 
 namespace itk
 {
 
 template <typename TInput, typename TLevelSetContainer>
 LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::LevelSetEquationOverlapPenaltyTerm()
+  : m_DomainMapImageFilter(nullptr)
+  , m_CacheImage(nullptr)
 {
   this->m_TermName = "Overlap term";
   this->m_RequiredData.insert("");
-  this->m_DomainMapImageFilter = nullptr;
-  this->m_CacheImage = nullptr;
 }
-
-template <typename TInput, typename TLevelSetContainer>
-void
-LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::Update()
-{}
-
-template <typename TInput, typename TLevelSetContainer>
-void
-LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::UpdatePixel(
-  const LevelSetInputIndexType & itkNotUsed(index),
-  const LevelSetOutputRealType & itkNotUsed(oldValue),
-  const LevelSetOutputRealType & itkNotUsed(newValue))
-{}
 
 template <typename TInput, typename TLevelSetContainer>
 void
@@ -55,26 +41,22 @@ LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::InitializeParame
 
 
 template <typename TInput, typename TLevelSetContainer>
-void
-LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::Initialize(
-  const LevelSetInputIndexType & itkNotUsed(index))
-{}
-
-template <typename TInput, typename TLevelSetContainer>
-typename LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::LevelSetOutputRealType
+auto
 LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::Value(const LevelSetInputIndexType & index)
+  -> LevelSetOutputRealType
 {
-  LevelSetOutputRealType value = NumericTraits<LevelSetOutputRealType>::ZeroValue();
+  LevelSetOutputRealType value{};
   this->ComputeSumTerm(index, value);
   return -value;
 }
 
 template <typename TInput, typename TLevelSetContainer>
-typename LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::LevelSetOutputRealType
+auto
 LevelSetEquationOverlapPenaltyTerm<TInput, TLevelSetContainer>::Value(const LevelSetInputIndexType & index,
                                                                       const LevelSetDataType &       itkNotUsed(data))
+  -> LevelSetOutputRealType
 {
-  LevelSetOutputRealType value = NumericTraits<LevelSetOutputRealType>::ZeroValue();
+  LevelSetOutputRealType value{};
   this->ComputeSumTerm(index, value);
   return -value;
 }

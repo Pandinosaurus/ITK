@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,24 +26,12 @@
 namespace itk
 {
 // Default constructor
-GEAdwImageIO::GEAdwImageIO()
-{
-  // Purposefully left blank
-}
-
-GEAdwImageIO::~GEAdwImageIO()
-{
-  // Purposefully left blank
-}
+GEAdwImageIO::GEAdwImageIO() = default;
+GEAdwImageIO::~GEAdwImageIO() = default;
 
 bool
 GEAdwImageIO::CanReadFile(const char * FileNameToRead)
 {
-  size_t imageSize;
-  short  matrixX;
-  short  matrixY;
-  int    varHdrSize;
-
   //
   // Can you open it?
   std::ifstream f;
@@ -51,7 +39,7 @@ GEAdwImageIO::CanReadFile(const char * FileNameToRead)
   {
     this->OpenFileForReading(f, FileNameToRead);
   }
-  catch (ExceptionObject &)
+  catch (const ExceptionObject &)
   {
     return false;
   }
@@ -62,25 +50,26 @@ GEAdwImageIO::CanReadFile(const char * FileNameToRead)
   // the size the file should be and compares it with the actual size.
   // if it's not reading a GEAdw file, chances are overwhelmingly good
   // that this operation will fail somewhere along the line.
+  short matrixX = 0;
   if (this->GetShortAt(f, GE_ADW_IM_IMATRIX_X, &matrixX, false) != 0)
   {
     f.close();
     return false;
   }
-
+  short matrixY = 0;
   if (this->GetShortAt(f, GE_ADW_IM_IMATRIX_Y, &matrixY, false) != 0)
   {
     f.close();
     return false;
   }
-
+  int varHdrSize = 0;
   if (this->GetIntAt(f, GE_ADW_VARIABLE_HDR_LENGTH, &varHdrSize, false) != 0)
   {
     f.close();
     return false;
   }
 
-  imageSize = varHdrSize + GE_ADW_FIXED_HDR_LENGTH + (matrixX * matrixY * sizeof(short));
+  const size_t imageSize = varHdrSize + GE_ADW_FIXED_HDR_LENGTH + (matrixX * matrixY * sizeof(short));
 
   if (imageSize != itksys::SystemTools::FileLength(FileNameToRead))
   {
@@ -101,16 +90,12 @@ GEAdwImageIO::ReadHeader(const char * FileNameToRead)
     RAISE_EXCEPTION();
   }
   auto * hdr = new GEImageHeader;
-  if (hdr == nullptr)
-  {
-    RAISE_EXCEPTION();
-  }
   //
   // Next, can you open it?
   std::ifstream f;
   this->OpenFileForReading(f, FileNameToRead);
 
-  sprintf(hdr->scanner, "GE-ADW");
+  snprintf(hdr->scanner, sizeof(hdr->scanner), "GE-ADW");
   this->GetStringAt(f, GE_ADW_EX_PATID, tmpbuf, 12);
   tmpbuf[12] = '\0';
   hdr->patientId[0] = '\0';
@@ -128,7 +113,7 @@ GEAdwImageIO::ReadHeader(const char * FileNameToRead)
   this->GetStringAt(f, GE_ADW_EX_HOSPNAME, hdr->hospital, 34);
   hdr->hospital[33] = '\0';
 
-  int timeStamp;
+  int timeStamp = 0;
   this->GetIntAt(f, GE_ADW_EX_DATETIME, &timeStamp);
   this->statTimeToAscii(&timeStamp, hdr->date, sizeof(hdr->date));
 
@@ -160,54 +145,51 @@ GEAdwImageIO::ReadHeader(const char * FileNameToRead)
 
   this->GetFloatAt(f, GE_ADW_IM_PIXSIZE_Y, &hdr->imageYres);
 
-  short tmpShort;
+  short tmpShort = 0;
   this->GetShortAt(f, GE_ADW_IM_PLANE, &tmpShort);
   switch (tmpShort)
   {
     case GE_CORONAL:
-      // hdr->imagePlane = itk::IOCommon::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-      // hdr->origin = itk::IOCommon::ITK_ORIGIN_SLA;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+      hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                         AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
       break;
     case GE_SAGITTAL:
-      // hdr->imagePlane =
-      // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
-      // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SLA;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR;
+      hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                                         AnatomicalOrientation::CoordinateEnum::RightToLeft);
       break;
     case GE_AXIAL:
-      // hdr->imagePlane =
-      // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
-      // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SLA;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+      hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                         AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                                         AnatomicalOrientation::CoordinateEnum::InferiorToSuperior);
       break;
     default:
-      // hdr->imagePlane =
-      // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-      // hdr->origin = itk::SpatialOrientation::ITK_ORIGIN_SLA;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+      hdr->coordinateOrientation = AnatomicalOrientation(AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                                         AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                                         AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior);
       break;
   }
   this->GetFloatAt(f, GE_ADW_IM_LOC, &(hdr->sliceLocation));
 
-  int tmpInt;
+  int tmpInt = 0;
   this->GetIntAt(f, GE_ADW_IM_TR, &tmpInt);
-  hdr->TR = (float)tmpInt / 1000.0f;
+  hdr->TR = static_cast<float>(tmpInt) / 1000.0f;
 
   this->GetIntAt(f, GE_ADW_IM_TI, &tmpInt);
-  hdr->TI = (float)tmpInt / 1000.0f;
+  hdr->TI = static_cast<float>(tmpInt) / 1000.0f;
 
   this->GetIntAt(f, GE_ADW_IM_TE, &tmpInt);
-  hdr->TE = (float)tmpInt / 1000.0f;
+  hdr->TE = static_cast<float>(tmpInt) / 1000.0f;
 
   this->GetShortAt(f, GE_ADW_IM_NUMECHO, &(hdr->numberOfEchoes));
 
   this->GetShortAt(f, GE_ADW_IM_ECHONUM, &(hdr->echoNumber));
 
-  float tmpFloat;
+  float tmpFloat = NAN;
   this->GetFloatAt(f, GE_ADW_IM_NEX, &tmpFloat);
 
-  hdr->NEX = (int)tmpFloat;
+  hdr->NEX = static_cast<int>(tmpFloat);
 
   this->GetShortAt(f, GE_ADW_IM_MR_FLIP, &hdr->flipAngle);
 

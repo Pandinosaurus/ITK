@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class GradientDescentOptimizerv4Template
+ * \class GradientDescentOptimizerv4Template
  *  \brief Gradient descent optimizer.
  *
  * GradientDescentOptimizer implements a simple gradient descent optimizer.
@@ -41,7 +41,7 @@ namespace itk
  *
  * Gradient scales can be manually set or automatically estimated,
  * as documented in the base class.
- * The learing rate defaults to 1.0, and can be set in two ways:
+ * The learning rate defaults to 1.0, and can be set in two ways:
  * 1) manually, via \c SetLearningRate().
  * Or,
  * 2) automatically, either at each iteration or only at the first iteration,
@@ -87,8 +87,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GradientDescentOptimizerv4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientDescentOptimizerv4Template);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
@@ -98,30 +98,32 @@ public:
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Metric type over which this class is templated */
-  using MeasureType = typename Superclass::MeasureType;
-  using IndexRangeType = typename Superclass::IndexRangeType;
-  using ScalesType = typename Superclass::ScalesType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::IndexRangeType;
+  using typename Superclass::ScalesType;
+  using typename Superclass::ParametersType;
 
   /**
    * Set/Get the learning rate to apply. It is overridden by
    *  automatic learning rate estimation if enabled. See main documentation.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(LearningRate, TInternalComputationValueType);
   itkGetConstReferenceMacro(LearningRate, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the maximum step size, in physical space units.
    *
    *  Only relevant when m_ScalesEstimator is set by user,
    *  and automatic learning rate estimation is enabled.
    *  See main documentation.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumStepSizeInPhysicalUnits, TInternalComputationValueType);
   itkGetConstReferenceMacro(MaximumStepSizeInPhysicalUnits, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Option to use ScalesEstimator for learning rate estimation at
    * *each* iteration. The estimation overrides the learning rate
    * set by SetLearningRate(). Default is false.
@@ -129,10 +131,11 @@ public:
    * \sa SetDoEstimateLearningRateOnce()
    * \sa SetScalesEstimator()
    */
+  /** @ITKStartGrouping */
   itkSetMacro(DoEstimateLearningRateAtEachIteration, bool);
   itkGetConstReferenceMacro(DoEstimateLearningRateAtEachIteration, bool);
   itkBooleanMacro(DoEstimateLearningRateAtEachIteration);
-
+  /** @ITKEndGrouping */
   /** Option to use ScalesEstimator for learning rate estimation
    * only *once*, during first iteration. The estimation overrides the
    * learning rate set by SetLearningRate(). Default is true.
@@ -140,10 +143,11 @@ public:
    * \sa SetDoEstimateLearningRateAtEachIteration()
    * \sa SetScalesEstimator()
    */
+  /** @ITKStartGrouping */
   itkSetMacro(DoEstimateLearningRateOnce, bool);
   itkGetConstReferenceMacro(DoEstimateLearningRateOnce, bool);
   itkBooleanMacro(DoEstimateLearningRateOnce);
-
+  /** @ITKEndGrouping */
   /** Minimum convergence value for convergence checking.
    *  The convergence checker calculates convergence value by fitting to
    *  a window of the energy profile. When the convergence value reaches
@@ -181,10 +185,11 @@ public:
    *  parameters, which can be large when working with high-dimensional
    *  transforms such as DisplacementFieldTransform.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ReturnBestParametersAndValue, bool);
   itkGetConstReferenceMacro(ReturnBestParametersAndValue, bool);
   itkBooleanMacro(ReturnBestParametersAndValue);
-
+  /** @ITKEndGrouping */
   /** Start and run the optimization. */
   void
   StartOptimization(bool doOnlyInitialization = false) override;
@@ -225,13 +230,13 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 
-  TInternalComputationValueType m_LearningRate;
-  TInternalComputationValueType m_MinimumConvergenceValue;
-  TInternalComputationValueType m_ConvergenceValue;
+  TInternalComputationValueType m_LearningRate{};
+  TInternalComputationValueType m_MinimumConvergenceValue{};
+  TInternalComputationValueType m_ConvergenceValue{};
 
   /** Store the best value and related parameters. */
-  MeasureType    m_CurrentBestValue;
-  ParametersType m_BestParameters;
+  MeasureType    m_CurrentBestValue{};
+  ParametersType m_BestParameters{};
 
   bool m_ReturnBestParametersAndValue{ false };
 
@@ -240,7 +245,7 @@ protected:
    * This is needed by the regular step gradient descent and
    * Quasi Newton optimizers.
    */
-  DerivativeType m_PreviousGradient;
+  DerivativeType m_PreviousGradient{};
 
 private:
 };

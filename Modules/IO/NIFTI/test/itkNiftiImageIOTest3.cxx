@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,12 @@
  *=========================================================================*/
 
 #include "itkNiftiImageIOTest.h"
-#include "itkEnableIf.h"
+#include <type_traits> // for enable_if
 #include <limits>
-/* VS 2015 has a bug when building release with the heavily nested for
- * loops iterating too many times.  This turns off optimization to
- * allow the tests to pass.
- */
-#if defined(_MSC_VER) && (_MSC_VER == 1900)
-#  pragma optimize("", off)
-#endif
 
 template <typename ScalarType>
 void
-Decrement(ScalarType & value,
-          typename itk::DisableIfC<std::numeric_limits<ScalarType>::is_signed, ScalarType>::Type * = nullptr)
+Decrement(ScalarType & value, std::enable_if_t<!std::numeric_limits<ScalarType>::is_signed, ScalarType> * = nullptr)
 {
   if (value > 1)
   {
@@ -40,8 +32,7 @@ Decrement(ScalarType & value,
 
 template <typename ScalarType>
 void
-Decrement(ScalarType & value,
-          typename itk::EnableIfC<std::numeric_limits<ScalarType>::is_signed, ScalarType>::Type * = nullptr)
+Decrement(ScalarType & value, std::enable_if_t<std::numeric_limits<ScalarType>::is_signed, ScalarType> * = nullptr)
 {
   if (value > -std::numeric_limits<ScalarType>::max() + 1)
   {
@@ -49,9 +40,9 @@ Decrement(ScalarType & value,
   }
 }
 
-template <typename ScalarType, unsigned TVecLength, unsigned TDimension>
+template <typename ScalarType, unsigned int TVecLength, unsigned int TDimension>
 int
-TestImageOfVectors(const std::string & fname)
+TestImageOfVectors(const std::string & fname, const std::string & intentCode = "")
 {
   constexpr int dimsize = 2;
   /** Deformation field pixel type. */
@@ -62,11 +53,6 @@ TestImageOfVectors(const std::string & fname)
 
   //
   // swizzle up a random vector image.
-  typename VectorImageType::RegionType  imageRegion;
-  typename VectorImageType::SizeType    size;
-  typename VectorImageType::IndexType   index;
-  typename VectorImageType::SpacingType spacing;
-  typename VectorImageType::PointType   origin;
   // original test case was destined for failure.  NIfTI always writes out 3D
   // orientation.  The only sensible matrices you could pass in would be of the form
   // A B C 0
@@ -79,68 +65,61 @@ TestImageOfVectors(const std::string & fname)
   //      direction matrix.
   const typename VectorImageType::DirectionType myDirection = PreFillDirection<TDimension>();
 
-  std::cout << " === Testing VectorLength: " << TVecLength << " Image Dimension " << static_cast<int>(TDimension)
-            << std::endl;
+  std::cout << " === Testing VectorLength: " << TVecLength << " Image Dimension " << int{ TDimension } << std::endl;
   std::cout << "======================== Initialized Direction" << std::endl;
   std::cout << myDirection << std::endl;
 
-  for (unsigned i = 0; i < TDimension; i++)
-  {
-    size[i] = dimsize;
-    index[i] = 0;
-    spacing[i] = 1.0;
-    origin[i] = 0;
-  }
+  typename VectorImageType::IndexType        index{};
+  auto                                       size = itk::MakeFilled<typename VectorImageType::SizeType>(dimsize);
+  const typename VectorImageType::RegionType imageRegion{ index, size };
+  auto                                       spacing = itk::MakeFilled<typename VectorImageType::SpacingType>(1.0);
 
-  imageRegion.SetSize(size);
-  imageRegion.SetIndex(index);
-  typename VectorImageType::Pointer vi =
+  const typename VectorImageType::Pointer vi =
     itk::IOTestHelper::AllocateImageFromRegionAndSpacing<VectorImageType>(imageRegion, spacing);
-  vi->SetOrigin(origin);
   vi->SetDirection(myDirection);
 
   size_t dims[7];
-  size_t _index[7];
-  for (unsigned i = 0; i < TDimension; i++)
+  for (unsigned int i = 0; i < TDimension; ++i)
   {
     dims[i] = size[i];
   }
-  for (unsigned i = TDimension; i < 7; i++)
+  for (unsigned int i = TDimension; i < 7; ++i)
   {
     dims[i] = 1;
   }
 
   ScalarType value = std::numeric_limits<ScalarType>::max();
   //  for(fillIt.GoToBegin(); !fillIt.IsAtEnd(); ++fillIt)
-  for (size_t l = 0; l < dims[6]; l++)
+  size_t _index[7];
+  for (size_t l = 0; l < dims[6]; ++l)
   {
     _index[6] = l;
-    for (size_t m = 0; m < dims[5]; m++)
+    for (size_t m = 0; m < dims[5]; ++m)
     {
       _index[5] = m;
-      for (size_t n = 0; n < dims[4]; n++)
+      for (size_t n = 0; n < dims[4]; ++n)
       {
         _index[4] = n;
-        for (size_t p = 0; p < dims[3]; p++)
+        for (size_t p = 0; p < dims[3]; ++p)
         {
           _index[3] = p;
-          for (size_t i = 0; i < dims[2]; i++)
+          for (size_t i = 0; i < dims[2]; ++i)
           {
             _index[2] = i;
-            for (size_t j = 0; j < dims[1]; j++)
+            for (size_t j = 0; j < dims[1]; ++j)
             {
               _index[1] = j;
-              for (size_t k = 0; k < dims[0]; k++)
+              for (size_t k = 0; k < dims[0]; ++k)
               {
                 _index[0] = k;
                 FieldPixelType pixel;
-                for (size_t q = 0; q < TVecLength; q++)
+                for (size_t q = 0; q < TVecLength; ++q)
                 {
                   // pixel[q] = randgen.drand32(lowrange,highrange);
                   Decrement(value);
                   pixel[q] = value;
                 }
-                for (size_t q = 0; q < TDimension; q++)
+                for (size_t q = 0; q < TDimension; ++q)
                 {
                   index[q] = _index[q];
                 }
@@ -152,14 +131,20 @@ TestImageOfVectors(const std::string & fname)
       }
     }
   }
+  if (!intentCode.empty())
+  {
+    itk::MetaDataDictionary & dictionary = vi->GetMetaDataDictionary();
+    itk::EncapsulateMetaData<std::string>(dictionary, "intent_code", intentCode);
+  }
+  const std::string description("text description of file content");
+  itk::EncapsulateMetaData<std::string>(vi->GetMetaDataDictionary(), "ITK_FileNotes", description);
   try
   {
     itk::IOTestHelper::WriteImage<VectorImageType, itk::NiftiImageIO>(vi, fname);
   }
   catch (const itk::ExceptionObject & ex)
   {
-    std::string message;
-    message = "Problem found while writing image ";
+    std::string message = "Problem found while writing image ";
     message += fname;
     message += "\n";
     message += ex.GetLocation();
@@ -178,8 +163,7 @@ TestImageOfVectors(const std::string & fname)
   }
   catch (const itk::ExceptionObject & ex)
   {
-    std::string message;
-    message = "Problem found while reading image ";
+    std::string message = "Problem found while reading image ";
     message += fname;
     message += "\n";
     message += ex.GetLocation();
@@ -190,6 +174,38 @@ TestImageOfVectors(const std::string & fname)
     return EXIT_FAILURE;
   }
   bool same = true;
+  if (!intentCode.empty())
+  {
+    const itk::MetaDataDictionary & dictionary = readback->GetMetaDataDictionary();
+    std::string                     readIntentCode;
+    if (itk::ExposeMetaData<std::string>(dictionary, "intent_code", readIntentCode))
+    {
+      if (readIntentCode != intentCode)
+      {
+        std::cout << "intent_code is different: " << readIntentCode << " != " << intentCode << std::endl;
+        same = false;
+      }
+    }
+    else
+    {
+      std::cout << "The read image should have an intent_code in its dictionary" << std::endl;
+      same = false;
+    }
+    std::string readDescription;
+    if (itk::ExposeMetaData<std::string>(dictionary, "ITK_FileNotes", readDescription))
+    {
+      if (readDescription != description)
+      {
+        std::cout << "ITK_FileNotes is different: " << readDescription << " != " << description << std::endl;
+        same = false;
+      }
+    }
+    else
+    {
+      std::cout << "The read image should have a ITK_FileNotes (nifti descrip field) in its dictionary" << std::endl;
+      same = false;
+    }
+  }
   if (readback->GetOrigin() != vi->GetOrigin())
   {
     std::cout << "Origin is different: " << readback->GetOrigin() << " != " << vi->GetOrigin() << std::endl;
@@ -200,11 +216,11 @@ TestImageOfVectors(const std::string & fname)
     std::cout << "Spacing is different: " << readback->GetSpacing() << " != " << vi->GetSpacing() << std::endl;
     same = false;
   }
-  for (unsigned int r = 0; r < TDimension; r++)
+  for (unsigned int r = 0; r < TDimension; ++r)
   {
-    for (unsigned int c = 0; c < TDimension; c++)
+    for (unsigned int c = 0; c < TDimension; ++c)
     {
-      if (std::abs(readback->GetDirection()[r][c] - vi->GetDirection()[r][c]) > 1e-7)
+      if (itk::Math::abs(readback->GetDirection()[r][c] - vi->GetDirection()[r][c]) > 1e-7)
       {
         std::cout << "Direction is different:\n " << readback->GetDirection() << "\n != \n"
                   << vi->GetDirection() << std::endl;
@@ -214,34 +230,33 @@ TestImageOfVectors(const std::string & fname)
     }
   }
   std::cout << "Original vector Image  ?=   vector Image read from disk " << std::endl;
-  for (size_t l = 0; l < dims[6]; l++)
+  for (size_t l = 0; l < dims[6]; ++l)
   {
     _index[6] = l;
-    for (size_t m = 0; m < dims[5]; m++)
+    for (size_t m = 0; m < dims[5]; ++m)
     {
       _index[5] = m;
-      for (size_t n = 0; n < dims[4]; n++)
+      for (size_t n = 0; n < dims[4]; ++n)
       {
         _index[4] = n;
-        for (size_t p = 0; p < dims[3]; p++)
+        for (size_t p = 0; p < dims[3]; ++p)
         {
           _index[3] = p;
-          for (size_t i = 0; i < dims[2]; i++)
+          for (size_t i = 0; i < dims[2]; ++i)
           {
             _index[2] = i;
-            for (size_t j = 0; j < dims[1]; j++)
+            for (size_t j = 0; j < dims[1]; ++j)
             {
               _index[1] = j;
-              for (size_t k = 0; k < dims[0]; k++)
+              for (size_t k = 0; k < dims[0]; ++k)
               {
                 _index[0] = k;
-                FieldPixelType p1, p2;
-                for (size_t q = 0; q < TDimension; q++)
+                for (size_t q = 0; q < TDimension; ++q)
                 {
                   index[q] = _index[q];
                 }
-                p1 = vi->GetPixel(index);
-                p2 = readback->GetPixel(index);
+                const FieldPixelType p1 = vi->GetPixel(index);
+                const FieldPixelType p2 = readback->GetPixel(index);
                 if (p1 != p2)
                 {
                   same = false;
@@ -272,13 +287,13 @@ TestImageOfVectors(const std::string & fname)
 /** Test writing and reading a Vector Image
  */
 int
-itkNiftiImageIOTest3(int ac, char * av[])
+itkNiftiImageIOTest3(int argc, char * argv[])
 {
   //
   // first argument is passing in the writable directory to do all testing
-  if (ac > 1)
+  if (argc > 1)
   {
-    char * testdir = *++av;
+    char * testdir = *++argv;
     itksys::SystemTools::ChangeDirectory(testdir);
   }
   else
@@ -303,6 +318,10 @@ itkNiftiImageIOTest3(int ac, char * av[])
   success |= TestImageOfVectors<float, 4, 3>(std::string("testVectorImage_float_4_3.nii.gz"));
   success |= TestImageOfVectors<float, 4, 4>(std::string("testVectorImage_float_4_4.nii.gz"));
   success |= TestImageOfVectors<double, 3, 3>(std::string("testVectorImage_double_3_3.nii.gz"));
+
+  // Test reading/writing as displacement field (NIFTI intent code = 1006)
+  success |= TestImageOfVectors<double, 3, 1>(std::string("testDispacementImage_double.nii.gz"), std::string("1006"));
+  success |= TestImageOfVectors<float, 3, 1>(std::string("testDisplacementImage_float.nii.gz"), std::string("1006"));
 
   return success;
 }

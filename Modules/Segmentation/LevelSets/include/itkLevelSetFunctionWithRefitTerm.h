@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,20 +60,20 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(LevelSetFunctionWithRefitTerm, LevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetFunctionWithRefitTerm);
 
   /** Standard New macro. */
   itkNewMacro(Self);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::ImageType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::GlobalDataStruct;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::TimeStepType;
 
   using NeighborhoodSizeValueType = typename NeighborhoodType::SizeValueType;
 
@@ -128,11 +128,11 @@ public:
 
 protected:
   /** The weight for the refitting term. */
-  ScalarValueType m_RefitWeight;
+  ScalarValueType m_RefitWeight{};
 
   /** The weight for other scalar propagation terms that can be defined by
       classes derived from this class. */
-  ScalarValueType m_OtherPropagationWeight;
+  ScalarValueType m_OtherPropagationWeight{};
 
   LevelSetFunctionWithRefitTerm();
   void
@@ -155,15 +155,15 @@ protected:
   virtual ScalarValueType
   OtherPropagationSpeed(const NeighborhoodType &, const FloatOffsetType &, GlobalDataStruct * = 0) const
   {
-    return NumericTraits<ScalarValueType>::ZeroValue();
+    return ScalarValueType{};
   }
 
 private:
   /** The sparse image that contains the target curvature information. */
-  typename SparseImageType::Pointer m_SparseTargetImage;
+  typename SparseImageType::Pointer m_SparseTargetImage{};
 
   /** The minimum vector norm parameter. */
-  ScalarValueType m_MinVectorNorm;
+  ScalarValueType m_MinVectorNorm{};
 
   /** Constants used in computations. */
   static const NeighborhoodSizeValueType m_NumVertex;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class TileImageFilter
+ * \class TileImageFilter
  * \brief Tile multiple input images into a single output image.
  *
  * This filter will tile multiple images using a user-specified
@@ -63,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(TileImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TileImageFilter);
 
   /** Image pixel value type alias. */
   using InputPixelType = typename TInputImage::PixelType;
@@ -86,8 +86,9 @@ public:
   /** Image related type alias. */
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
+
   /**
-   *\class TileInfo
+   * \class TileInfo
    * Define a tile structure
    * \ingroup ITKImageGrid
    */
@@ -107,9 +108,10 @@ public:
   /** Set/Get the layout of the tiles. If the last Layout value is 0,
    * the filter will compute a value that will accommodate all of the
    * images. */
+  /** @ITKStartGrouping */
   itkSetMacro(Layout, LayoutArrayType);
   itkGetConstMacro(Layout, LayoutArrayType);
-
+  /** @ITKEndGrouping */
   /** Set the pixel value for locations that are not covered by an
    * input image. The default default pixel value is Zero. */
   itkSetMacro(DefaultPixelValue, OutputPixelType);
@@ -118,13 +120,9 @@ public:
    * input image. */
   itkGetConstMacro(DefaultPixelValue, OutputPixelType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(SameTypeCheck, (Concept::SameType<InputPixelType, OutputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   TileImageFilter();
@@ -148,14 +146,14 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
 private:
-  typename TileImageType::Pointer m_TileImage;
+  typename TileImageType::Pointer m_TileImage{};
 
-  OutputPixelType m_DefaultPixelValue;
+  OutputPixelType m_DefaultPixelValue{};
 
-  LayoutArrayType m_Layout;
+  LayoutArrayType m_Layout{};
 }; // end of class
 } // end namespace itk
 

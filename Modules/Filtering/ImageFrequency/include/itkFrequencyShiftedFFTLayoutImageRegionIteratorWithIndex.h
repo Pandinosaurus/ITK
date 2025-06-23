@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class FrequencyShiftedFFTLayoutImageRegionIteratorWithIndex
+ * \class FrequencyShiftedFFTLayoutImageRegionIteratorWithIndex
 
  * Iterator providing method GetFrequency() to retrieve the frequency associated to an index.
  * This value is related to the specific layout of frequencies from an image in the dual (frequency) space.
@@ -67,19 +67,19 @@ class FrequencyShiftedFFTLayoutImageRegionIteratorWithIndex
 public:
   /** Standard class type alias. */
   using Self = FrequencyShiftedFFTLayoutImageRegionIteratorWithIndex;
-  using Superclass = ImageRegionIteratorWithIndex<TImage>;
+  using Superclass = FrequencyShiftedFFTLayoutImageRegionConstIteratorWithIndex<TImage>;
 
   /** Types inherited from the Superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
 
   using FrequencyType = typename ImageType::SpacingType;
   using FrequencyValueType = typename ImageType::SpacingValueType;
@@ -88,8 +88,8 @@ public:
     : FrequencyShiftedFFTLayoutImageRegionConstIteratorWithIndex<TImage>()
   {}
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   FrequencyShiftedFFTLayoutImageRegionIteratorWithIndex(TImage * ptr, const RegionType & region)
     : FrequencyShiftedFFTLayoutImageRegionConstIteratorWithIndex<TImage>(ptr, region)
   {}

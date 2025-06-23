@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class IntermodesThresholdImageFilter
+ * \class IntermodesThresholdImageFilter
  * \brief Threshold an image using the Intermodes Threshold
  *
  * This filter creates a binary thresholded image that separates an
@@ -40,7 +40,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \sa HistogramThresholdImageFilter
  *
@@ -49,7 +49,8 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage, typename TMaskImage = TOutputImage>
-class IntermodesThresholdImageFilter : public HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>
+class ITK_TEMPLATE_EXPORT IntermodesThresholdImageFilter
+  : public HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(IntermodesThresholdImageFilter);
@@ -63,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(IntermodesThresholdImageFilter, HistogramThresholdImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IntermodesThresholdImageFilter);
 
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
@@ -89,7 +90,7 @@ public:
   using MaskIndexType = typename MaskImageType::IndexType;
   using MaskImageRegionType = typename MaskImageType::RegionType;
 
-  using HistogramType = typename Superclass::HistogramType;
+  using typename Superclass::HistogramType;
   using CalculatorType = IntermodesThresholdCalculator<HistogramType, InputPixelType>;
 
 
@@ -98,10 +99,11 @@ public:
 
   /** Select whether midpoint (intermode=true) or minimum between
      peaks is used. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseInterMode, bool);
   itkGetConstReferenceMacro(UseInterMode, bool);
   itkBooleanMacro(UseInterMode);
-
+  /** @ITKEndGrouping */
   /** Image related type alias. */
   static constexpr unsigned int InputImageDimension = InputImageType::ImageDimension;
   static constexpr unsigned int OutputImageDimension = OutputImageType::ImageDimension;
@@ -117,12 +119,12 @@ protected:
   ~IntermodesThresholdImageFilter() override = default;
 
   void
-  VerifyPreconditions() ITKv5_CONST override
+  VerifyPreconditions() const override
   {
     Superclass::VerifyPreconditions();
     if (dynamic_cast<const CalculatorType *>(Superclass::GetCalculator()) == nullptr)
     {
-      itkExceptionMacro(<< "Invalid IntermodesCalculator.");
+      itkExceptionMacro("Invalid IntermodesCalculator.");
     }
   }
 

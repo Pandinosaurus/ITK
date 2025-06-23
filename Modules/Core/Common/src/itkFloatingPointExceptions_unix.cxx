@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,10 +59,27 @@ http://graphviz.sourcearchive.com/documentation/2.16/gvrender__pango_8c-source.h
 #  define ITK_FEENABLEEXCEPT_NOOP
 #endif
 
+// We do not have ITK_HAS_FEENABLEEXCEPT, and we do not have a workaround
+// implemented, e.g. ARMv8 with MUSL
+#if !defined(ITK_HAS_FEENABLEEXCEPT) && !defined(__ppc__) && !defined(__ppc64__) && !defined(__i386__) && \
+  !defined(__x86_64__)
+#  define ITK_FEENABLEEXCEPT_NOOP
+#endif
+
 #if defined(__APPLE__)
 #  include "TargetConditionals.h"
 #  if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR || TARGET_CPU_ARM64
 #    define ITK_FEENABLEEXCEPT_NOOP
+#  endif
+#endif
+
+// Define used macros with defaults if not available
+#if defined(ITK_FEENABLEEXCEPT_NOOP)
+#  if !defined(FE_DIVBYZERO)
+#    define FE_DIVBYZERO 4
+#  endif
+#  if !defined(FE_INVALID)
+#    define FE_INVALID 1
 #  endif
 #endif
 
@@ -140,15 +157,13 @@ FloatingPointExceptions::Enable()
   itk_feenableexcept(FE_DIVBYZERO);
   itk_feenableexcept(FE_INVALID);
 #  if defined(ITK_FPE_USE_SIGNAL_HANDLER)
-  struct sigaction act;
-  memset(&act, 0, sizeof(struct sigaction));
+  struct sigaction act{};
   act.sa_sigaction = fhdl;
   sigemptyset(&act.sa_mask);
   act.sa_flags = SA_SIGINFO;
   sigaction(SIGFPE, &act, nullptr);
 #  endif
   FloatingPointExceptions::m_PimplGlobals->m_Enabled = true;
-  (void)itkFloatingPointExceptionsNotSupported; // avoid unused-function warning
 #else
   itkFloatingPointExceptionsNotSupported();
 #endif
@@ -159,8 +174,7 @@ FloatingPointExceptions::Disable()
 {
   itkInitGlobalsMacro(PimplGlobals);
 #if defined(ITK_HAS_FPE_CAPABILITY)
-  itk_fedisableexcept(FE_DIVBYZERO);
-  itk_fedisableexcept(FE_INVALID);
+  itk_fedisableexcept(FE_ALL_EXCEPT);
   FloatingPointExceptions::m_PimplGlobals->m_Enabled = false;
 #else
   itkFloatingPointExceptionsNotSupported();

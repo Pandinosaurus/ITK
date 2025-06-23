@@ -9,6 +9,11 @@
         i.e. k,j,i versus i,j,k. However C-order indexing is expected by most
         algorithms in NumPy / SciPy.
         """
+        import itk
+
+        if image.GetBufferPointer() is None:
+            return None
+
         if update:
             # Ensure the image regions and image pixel buffer have been updated
             # correctly
@@ -16,11 +21,11 @@
             if source:
                 source.UpdateLargestPossibleRegion()
 
-        itksize = image.GetLargestPossibleRegion().GetSize()
+        itksize = image.GetBufferedRegion().GetSize()
         dim     = len(itksize)
         shape   = [int(itksize[idx]) for idx in range(dim)]
 
-        if(image.GetNumberOfComponentsPerPixel() > 1):
+        if image.GetNumberOfComponentsPerPixel() > 1 or isinstance(image, itk.VectorImage):
             shape = [image.GetNumberOfComponentsPerPixel(), ] + shape
 
         if keep_axes == False:
@@ -46,6 +51,8 @@
 
         This is a deep copy of the image buffer and is completely safe and without potential side effects.
         """
+        if image.GetBufferPointer() is None:
+            return None
 
         arrayView = itkPyBuffer@PyBufferTypes@.GetArrayViewFromImage(image, keep_axes, update)
 
@@ -57,7 +64,7 @@
 
     GetArrayFromImage = staticmethod(GetArrayFromImage)
 
-    def GetImageViewFromArray(ndarr, is_vector=False):
+    def GetImageViewFromArray(ndarr, is_vector=False, need_contiguous=True):
         """Get an ITK Image view of a NumPy array.
 
         If is_vector is True, then a 3D array will be treated as a 2D vector image,
@@ -72,20 +79,31 @@
         inverts the indexing scheme, the Image representation will be the
         same for an array and its transpose. If flipping is desired, see
         *np.reshape*.
+
+        By default, a warning is issued if this function is called on a non-contiguous
+        array, since a copy is performed and care must be taken to keep a reference
+        to the copied array. This warning can be suppressed with need_contiguous=False
         """
 
         assert ndarr.ndim in (1, 2, 3, 4, 5), \
             "Only arrays of 1, 2, 3, 4 or 5 dimensions are supported."
         if not ndarr.flags['C_CONTIGUOUS'] and not ndarr.flags['F_CONTIGUOUS']:
             ndarr = np.ascontiguousarray(ndarr)
+            if need_contiguous:
+                import warnings
+                msg = """Because the input array was not contiguous, the returned
+                image is not a view of the array passed to this function. Instead,
+                it is a view of the member "base" of the returned image! If that
+                member is ever garbage collected, this view becomes invalid."""
+                warnings.warn(msg)
 
         if is_vector:
             if ndarr.flags['C_CONTIGUOUS']:
-                imgview = itkPyBuffer@PyBufferTypes@._GetImageViewFromArray(ndarr, ndarr.shape[-2::-1], ndarr.shape[-1])
+                imgview = itkPyBuffer@PyBufferTypes@._get_image_view_from_contiguous_array(ndarr, ndarr.shape[-2::-1], ndarr.shape[-1])
             else:
-                imgview = itkPyBuffer@PyBufferTypes@._GetImageViewFromArray(ndarr, ndarr.shape[-1:0:-1], ndarr.shape[0])
+                imgview = itkPyBuffer@PyBufferTypes@._get_image_view_from_contiguous_array(ndarr, ndarr.shape[-1:0:-1], ndarr.shape[0])
         else:
-            imgview = itkPyBuffer@PyBufferTypes@._GetImageViewFromArray(ndarr, ndarr.shape[::-1], 1)
+            imgview = itkPyBuffer@PyBufferTypes@._get_image_view_from_contiguous_array(ndarr, ndarr.shape[::-1], 1)
 
         # Keep a reference
         imgview._SetBase(ndarr)
@@ -115,7 +133,7 @@
         """
 
         # Create a temporary image view of the array
-        imageView = itkPyBuffer@PyBufferTypes@.GetImageViewFromArray(ndarr, is_vector)
+        imageView = itkPyBuffer@PyBufferTypes@.GetImageViewFromArray(ndarr, is_vector, need_contiguous=False)
 
         # Duplicate the image to let it manage its own memory buffer
         import itk

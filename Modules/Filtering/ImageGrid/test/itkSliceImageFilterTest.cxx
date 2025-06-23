@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include <itkSliceImageFilter.h>
+#include "itkSliceImageFilter.h"
 
 #include "itkGTest.h"
 #include "itkPhysicalPointImageSource.h"
@@ -69,7 +69,7 @@ RunFilter(const TImageType *             img,
           int                            step[TImageType::ImageDimension])
 {
   using FilterType = itk::SliceImageFilter<TImageType, TImageType>;
-  typename FilterType::Pointer sliceFilter = FilterType::New();
+  auto sliceFilter = FilterType::New();
 
   sliceFilter->SetInput(img);
   sliceFilter->SetStart(start);
@@ -90,7 +90,7 @@ TEST(SliceImageFilterTests, PhysicalPoint1)
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   using SourceType = itk::PhysicalPointImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
 
   // these size are chosen as a power of two and a prime number.
@@ -118,7 +118,7 @@ TEST(SliceImageFilterTests, PhysicalPoint1)
           img = RunFilter<ImageType>(source->GetOutput(), start, stop, step);
 
           EXPECT_TRUE(CheckValueIsPhysicalPoint(img.GetPointer()))
-            << "== Failed - step:" << step[0] << " " << step[1] << " start: " << start[0] << " " << start[1]
+            << "== Failed - step:" << step[0] << ' ' << step[1] << " start: " << start[0] << ' ' << start[1]
             << std::endl;
         }
 }
@@ -130,7 +130,7 @@ TEST(SliceImageFilterTests, PhysicalPoint2)
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   using SourceType = itk::PhysicalPointImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
 
   // these size are chosen as a power of two and a prime number.
@@ -150,8 +150,8 @@ TEST(SliceImageFilterTests, PhysicalPoint2)
 
   for (start[0] = 0; start[0] < 10; ++start[0])
     for (start[1] = 0; start[1] < 10; ++start[1])
-      for (stop[0] = size[0]; stop[0] > (ImageType::IndexValueType)(size[0] - 10); --stop[0])
-        for (stop[1] = size[1]; stop[1] > (ImageType::IndexValueType)(size[1] - 10); --stop[1])
+      for (stop[0] = size[0]; stop[0] > static_cast<ImageType::IndexValueType>(size[0] - 10); --stop[0])
+        for (stop[1] = size[1]; stop[1] > static_cast<ImageType::IndexValueType>(size[1] - 10); --stop[1])
         {
 
           ImageType::Pointer img;
@@ -159,8 +159,8 @@ TEST(SliceImageFilterTests, PhysicalPoint2)
           img = RunFilter<ImageType>(source->GetOutput(), start, stop, step);
 
           EXPECT_TRUE(CheckValueIsPhysicalPoint(img.GetPointer()))
-            << "== Failed - step:" << step[0] << " " << step[1] << " start: " << start[0] << " " << start[1]
-            << " stop: " << stop[0] << " " << stop[1] << std::endl;
+            << "== Failed - step:" << step[0] << ' ' << step[1] << " start: " << start[0] << ' ' << start[1]
+            << " stop: " << stop[0] << ' ' << stop[1] << std::endl;
         }
 }
 
@@ -172,7 +172,7 @@ TEST(SliceImageFilterTests, PhysicalPoint3)
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   using SourceType = itk::PhysicalPointImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
 
   // these size are chosen as a power of two and a prime number.
@@ -197,8 +197,8 @@ TEST(SliceImageFilterTests, PhysicalPoint3)
           img = RunFilter<ImageType>(source->GetOutput(), start, stop, step);
 
           EXPECT_TRUE(CheckValueIsPhysicalPoint(img.GetPointer()))
-            << "== Failed - step:" << step[0] << " " << step[1] << " start: " << start[0] << " " << start[1]
-            << " stop: " << stop[0] << " " << stop[1] << std::endl;
+            << "== Failed - step:" << step[0] << ' ' << step[1] << " start: " << start[0] << ' ' << start[1]
+            << " stop: " << stop[0] << ' ' << stop[1] << std::endl;
         }
 }
 
@@ -210,23 +210,19 @@ TEST(SliceImageFilterTests, Empty)
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   using SourceType = itk::PhysicalPointImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
 
   // these size are chosen as a power of two and a prime number.
   SourceType::SizeValueType size[] = { 32, 32 };
   source->SetSize(size);
 
-  int                  step[ImageDimension] = { 1, 1 };
-  ImageType::IndexType start;
-  start.Fill(10);
-  ImageType::IndexType stop;
-  stop.Fill(10);
+  int  step[ImageDimension] = { 1, 1 };
+  auto start = ImageType::IndexType::Filled(10);
+  auto stop = ImageType::IndexType::Filled(10);
 
 
-  ImageType::Pointer img;
-
-  img = RunFilter<ImageType>(source->GetOutput(), start, stop, step);
+  ImageType::Pointer img = RunFilter<ImageType>(source->GetOutput(), start, stop, step);
   std::cout << img;
 
   for (unsigned int i = 0; i < ImageDimension; ++i)
@@ -252,11 +248,10 @@ TEST(SliceImageFilterTests, Coverage)
 
   using FilterType = itk::SliceImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   std::cout << filter;
 
-  FilterType::IndexType idx;
-  idx.Fill(10);
+  auto idx = FilterType::IndexType::Filled(10);
 
   filter->SetStart(idx);
   EXPECT_EQ(idx, filter->GetStart());
@@ -273,8 +268,7 @@ TEST(SliceImageFilterTests, Coverage)
   filter->SetStop(13);
   EXPECT_EQ(idx, filter->GetStop());
 
-  FilterType::ArrayType a;
-  a.Fill(14);
+  auto a = itk::MakeFilled<FilterType::ArrayType>(14);
   filter->SetStep(a);
   EXPECT_EQ(a, filter->GetStep());
 
@@ -289,15 +283,15 @@ TEST(SliceImageFilterTests, Sizes)
   using ImageType = itk::Image<float, ImageDimension>;
 
   using SourceType = itk::GaussianImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
-  SourceType::SizeType size = { { 64, 64, 64 } };
+  constexpr SourceType::SizeType size = { { 64, 64, 64 } };
   source->SetSize(size);
   source->ReleaseDataFlagOn();
 
   using FilterType = itk::SliceImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(source->GetOutput());
   // check with default start, stop, step
   EXPECT_NO_THROW(filter->Update());
@@ -314,7 +308,7 @@ TEST(SliceImageFilterTests, Sizes)
 
   using namespace itk::GTest::TypedefsAndConstructors::Dimension3;
 
-  source->SetSize(MakeSize(19, 17, 11));
+  source->SetSize(itk::MakeSize(19, 17, 11));
 
   filter = FilterType::New();
   filter->SetInput(source->GetOutput());
@@ -324,7 +318,7 @@ TEST(SliceImageFilterTests, Sizes)
   EXPECT_EQ(9, filter->GetOutput()->GetLargestPossibleRegion().GetSize(1));
   EXPECT_EQ(6, filter->GetOutput()->GetLargestPossibleRegion().GetSize(2));
 
-  source->SetSize(MakeSize(5, 2, 3));
+  source->SetSize(itk::MakeSize(5, 2, 3));
 
   std::cout << "CHECK" << std::endl;
 
@@ -343,12 +337,12 @@ TEST(SliceImageFilterTests, ExceptionalCases)
   using ImageType = itk::Image<float, ImageDimension>;
 
   using SourceType = itk::GaussianImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
 
   using FilterType = itk::SliceImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(source->GetOutput());
 
   filter->SetStep(0);

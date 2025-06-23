@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,11 @@
 #include "itkConstNeighborhoodIterator.h"
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkInterpolateImageFunction.h"
+#include "itkMath.h"
 
 namespace itk
 {
+// clang-format off
 namespace Function
 {
 /**
@@ -40,12 +42,11 @@ public:
   inline TOutput
   operator()(const TInput & A) const
   {
-    return static_cast<TOutput>(std::cos(A * m_Factor));
-  }
 
-private:
-  /** Equal to \f$ \frac{\pi}{2 m} \f$ */
-  static const double m_Factor;
+    /** Equal to \f$ \frac{\pi}{2 m} \f$ */
+    static constexpr double factor = Math::pi / (2 * VRadius);
+    return static_cast<TOutput>(std::cos(A * factor));
+  }
 };
 
 /**
@@ -62,12 +63,11 @@ public:
   inline TOutput
   operator()(const TInput & A) const
   {
-    return static_cast<TOutput>(0.54 + 0.46 * std::cos(A * m_Factor));
-  }
 
-private:
-  /** Equal to \f$ \frac{\pi}{m} \f$ */
-  static const double m_Factor;
+    /** Equal to \f$ \frac{\pi}{m} \f$ */
+    static constexpr double factor = Math::pi / VRadius;
+    return static_cast<TOutput>(0.54 + 0.46 * std::cos(A * factor));
+  }
 };
 
 /**
@@ -81,15 +81,14 @@ template <unsigned int VRadius, typename TInput = double, typename TOutput = dou
 class ITK_TEMPLATE_EXPORT WelchWindowFunction
 {
 public:
+  /** Equal to \f$ \frac{1}{m^2} \f$ */
   inline TOutput
   operator()(const TInput & A) const
   {
-    return static_cast<TOutput>(1.0 - A * m_Factor * A);
-  }
 
-private:
-  /** Equal to \f$ \frac{1}{m^2} \f$ */
-  static const double m_Factor;
+    static constexpr double factor = 1.0 / (VRadius * VRadius);
+    return static_cast<TOutput>(1.0 - A * factor * A);
+  }
 };
 
 /**
@@ -111,14 +110,13 @@ public:
     if (A == 0.0)
     {
       return static_cast<TOutput>(1.0);
-    }
-    double z = m_Factor * A;
-    return static_cast<TOutput>(std::sin(z) / z);
-  }
+    } // namespace Function
 
-private:
-  /** Equal to \f$ \frac{\pi}{m} \f$ */
-  static const double m_Factor;
+    /** Equal to \f$ \frac{\pi}{m} \f$ */
+    static constexpr double factor = Math::pi / VRadius;
+    const double z = factor * A;
+    return static_cast<TOutput>(std::sin(z) / z);
+  } // namespace itk
 };
 
 /**
@@ -135,17 +133,17 @@ public:
   inline TOutput
   operator()(const TInput & A) const
   {
-    return static_cast<TOutput>(0.42 + 0.5 * std::cos(A * m_Factor1) + 0.08 * std::cos(A * m_Factor2));
+
+    /** Equal to \f$ \frac{\pi}{m} \f$ */
+    static constexpr double factor1 = Math::pi / VRadius;
+
+    /** Equal to \f$ \frac{2 \pi}{m} \f$  */
+    static constexpr double factor2 = 2.0 * Math::pi / VRadius;
+    return static_cast<TOutput>(0.42 + 0.5 * std::cos(A * factor1) + 0.08 * std::cos(A * factor2));
   }
-
-private:
-  /** Equal to \f$ \frac{\pi}{m} \f$ */
-  static const double m_Factor1;
-
-  /** Equal to \f$ \frac{2 \pi}{m} \f$  */
-  static const double m_Factor2;
 };
 } // namespace Function
+// clang-format on
 
 /**
  * \class WindowedSincInterpolateImageFunction
@@ -162,12 +160,7 @@ private:
  * approximated using a limited support 'windowed' sinc filter.
  *
  * \par
- * This function is based on the following publication:
- *
- * \par
- * Erik H. W. Meijering, Wiro J. Niessen, Josien P. W. Pluim,
- * Max A. Viergever: Quantitative Comparison of Sinc-Approximating
- * Kernels for Medical Image Interpolation. MICCAI 1999, pp. 210-217
+ * This function is based on \cite meijering1999.
  *
  * \par
  * In this work, several 'windows' are estimated. In two dimensions, the
@@ -223,11 +216,11 @@ private:
  * \par
  * The fourth (TBoundaryCondition) is the boundary condition class used
  * to determine the values of pixels that fall off the image boundary.
- * This class has the same meaning here as in the NeighborhoodItetator
+ * This class has the same meaning here as in the NeighborhoodIterator
  * classes.
  *
  * \par
- * The fifth (TCoordRep) is again standard for interpolating functions,
+ * The fifth (TCoordinate) is again standard for interpolating functions,
  * and should be float or double.
  *
  * \par CAVEATS
@@ -261,49 +254,50 @@ template <typename TInputImage,
           unsigned int VRadius,
           typename TWindowFunction = Function::HammingWindowFunction<VRadius>,
           class TBoundaryCondition = ZeroFluxNeumannBoundaryCondition<TInputImage, TInputImage>,
-          class TCoordRep = double>
-class WindowedSincInterpolateImageFunction : public InterpolateImageFunction<TInputImage, TCoordRep>
+          class TCoordinate = double>
+class ITK_TEMPLATE_EXPORT WindowedSincInterpolateImageFunction
+  : public InterpolateImageFunction<TInputImage, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(WindowedSincInterpolateImageFunction);
 
   /** Standard class type aliases. */
   using Self = WindowedSincInterpolateImageFunction;
-  using Superclass = InterpolateImageFunction<TInputImage, TCoordRep>;
+  using Superclass = InterpolateImageFunction<TInputImage, TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(WindowedSincInterpolateImageFunction, InterpolateImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WindowedSincInterpolateImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** RealType type alias support */
-  using RealType = typename Superclass::RealType;
+  using typename Superclass::RealType;
 
   /** Dimension underlying input image. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
 
   /** Size type alias support */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** Image type definition */
   using ImageType = TInputImage;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   void
   SetInputImage(const ImageType * image) override;
@@ -320,14 +314,13 @@ public:
   SizeType
   GetRadius() const override
   {
-    SizeType radius;
-    radius.Fill(VRadius);
+    constexpr auto radius = SizeType::Filled(VRadius);
     return radius;
   }
 
 protected:
-  WindowedSincInterpolateImageFunction();
-  ~WindowedSincInterpolateImageFunction() override;
+  WindowedSincInterpolateImageFunction() = default;
+  ~WindowedSincInterpolateImageFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -336,27 +329,26 @@ private:
   using IteratorType = ConstNeighborhoodIterator<ImageType, TBoundaryCondition>;
 
   // Constant to store twice the radius
-  static const unsigned int m_WindowSize;
+  static constexpr unsigned int m_WindowSize{ 2 * VRadius };
 
   /** The function object, used to compute window */
-  TWindowFunction m_WindowFunction;
-
-  /** The offset array, used to keep a list of relevant
-   * offsets in the neihborhoodIterator */
-  unsigned int * m_OffsetTable;
+  TWindowFunction m_WindowFunction{};
 
   /** Size of the offset table */
-  unsigned int m_OffsetTableSize;
+  static constexpr unsigned int m_OffsetTableSize = Math::UnsignedPower(m_WindowSize, ImageDimension);
+
+  /** The offset array, used to keep a list of relevant
+   * offsets in the neighborhoodIterator */
+  unsigned int m_OffsetTable[m_OffsetTableSize]{};
 
   /** Index into the weights array for each offset */
-  unsigned int ** m_WeightOffsetTable;
+  unsigned int m_WeightOffsetTable[m_OffsetTableSize][ImageDimension]{};
 
   /** The sinc function */
-  inline double
-  Sinc(double x) const
+  static double
+  Sinc(const double x)
   {
-    const double px = itk::Math::pi * x;
-
+    const double px = Math::pi * x;
     return (x == 0.0) ? 1.0 : std::sin(px) / px;
   }
 };

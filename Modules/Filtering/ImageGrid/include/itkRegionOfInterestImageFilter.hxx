@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkRegionOfInterestImageFilter_hxx
 #define itkRegionOfInterestImageFilter_hxx
 
-#include "itkRegionOfInterestImageFilter.h"
 #include "itkImageAlgorithm.h"
 #include "itkObjectFactory.h"
 #include "itkTotalProgressReporter.h"
@@ -42,7 +41,7 @@ RegionOfInterestImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRe
   Superclass::GenerateInputRequestedRegion();
 
   // Get pointer to the input
-  typename Superclass::InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const typename Superclass::InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
 
   if (inputPtr)
   {
@@ -70,8 +69,8 @@ RegionOfInterestImageFilter<TInputImage, TOutputImage>::GenerateOutputInformatio
   // this filter allows the input the output to be of different dimensions
 
   // Get pointers to the input and output
-  typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
-  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
+  const typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
+  const typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
 
   if (!outputPtr || !inputPtr)
   {
@@ -79,12 +78,7 @@ RegionOfInterestImageFilter<TInputImage, TOutputImage>::GenerateOutputInformatio
   }
 
   // Set the output image size to the same value as the region of interest.
-  RegionType region;
-  IndexType  start;
-  start.Fill(0);
-
-  region.SetSize(m_RegionOfInterest.GetSize());
-  region.SetIndex(start);
+  const RegionType region(m_RegionOfInterest.GetSize());
 
   // Copy Information without modification.
   outputPtr->CopyInformation(inputPtr);
@@ -93,7 +87,7 @@ RegionOfInterestImageFilter<TInputImage, TOutputImage>::GenerateOutputInformatio
   outputPtr->SetLargestPossibleRegion(region);
 
   // Correct origin of the extracted region.
-  IndexType                                       roiStart(m_RegionOfInterest.GetIndex());
+  const IndexType                                 roiStart(m_RegionOfInterest.GetIndex());
   typename Superclass::OutputImageType::PointType outputOrigin;
   inputPtr->TransformIndexToPhysicalPoint(roiStart, outputOrigin);
   outputPtr->SetOrigin(outputOrigin);

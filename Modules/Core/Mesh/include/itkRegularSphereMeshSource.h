@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegularSphereMeshSource, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegularSphereMeshSource);
 
   /** Hold on to the type information specified by the template parameters. */
   using OutputMeshType = TOutputMesh;
@@ -79,19 +79,22 @@ public:
 
   /** Set the resolution level to be used for generating cells in the Sphere.
    *  High values of this parameter will produce sphere with more triangles. */
+  /** @ITKStartGrouping */
   itkSetMacro(Resolution, unsigned int);
   itkGetConstMacro(Resolution, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get Coordinates of the Sphere center. */
+  /** @ITKStartGrouping */
   itkSetMacro(Center, PointType);
   itkGetConstMacro(Center, PointType);
-
+  /** @ITKEndGrouping */
   /** Set/Get scales of the Sphere. This is a vector of values that can
    * actually be used for generating ellipsoids aligned with the coordinate
    * axis. */
+  /** @ITKStartGrouping */
   itkSetMacro(Scale, VectorType);
   itkGetConstMacro(Scale, VectorType);
-
+  /** @ITKEndGrouping */
 protected:
   RegularSphereMeshSource();
   ~RegularSphereMeshSource() override = default;
@@ -108,13 +111,13 @@ protected:
   AddCell(OutputMeshType * mesh, const typename OutputMeshType::PointIdentifier * pointIds, IdentifierType idx);
 
   /** model center */
-  PointType m_Center;
+  PointType m_Center{};
 
   /** models resolution */
-  unsigned int m_Resolution;
+  unsigned int m_Resolution{};
 
   /** model scales */
-  VectorType m_Scale;
+  VectorType m_Scale{};
 };
 } // end namespace itk
 

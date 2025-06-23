@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace itk
 {
 
 /**
- *\class ObjectByObjectLabelMapFilter
+ * \class ObjectByObjectLabelMapFilter
  * \brief ObjectByObjectLabelMapFilter applies an image pipeline to all the objects of a label map and produce a new
  * label map
  *
@@ -67,7 +67,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
  * \ingroup ITKLabelMap
@@ -130,8 +130,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ObjectByObjectLabelMapFilter, LabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectByObjectLabelMapFilter);
 
   void
   SetFilter(InputFilterType * filter);
@@ -162,40 +162,45 @@ public:
    * If KeepLabels is false, no care is made of the input labels, and a new label is produced
    * for all the objects using LabelMap::PushLabelObject().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(KeepLabels, bool);
   itkGetMacro(KeepLabels, bool);
   itkBooleanMacro(KeepLabels);
-
+  /** @ITKEndGrouping */
   /** If PadSize is not zero, the image produce for each object will be padded.
    * The default value is 1 on all the dimensions.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(PadSize, SizeType);
   itkGetMacro(PadSize, SizeType);
-
+  /** @ITKEndGrouping */
   /** Padding by PadSize will be constrained to the input image region if
    * ConstrainPaddingToImage is true, and won't be constrained if it is set to false.
    * Default value is true.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ConstrainPaddingToImage, bool);
   itkGetMacro(ConstrainPaddingToImage, bool);
   itkBooleanMacro(ConstrainPaddingToImage);
-
+  /** @ITKEndGrouping */
   /** Set/Get whether the internal image produced by OutputFilter should be interpreted
    * as a binary image in which the filter have to search for connected components. If
    * set to false, the filter consider the image as a label image.
    * Default is false.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BinaryInternalOutput, bool);
   itkGetMacro(BinaryInternalOutput, bool);
   itkBooleanMacro(BinaryInternalOutput);
-
+  /** @ITKEndGrouping */
   /** The foreground value used internally to represent the object in the image passed to
    * InputFilter, and to read the data produced by OutputFilter, if BinaryInternalOutput
    * is true
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InternalForegroundValue, InternalOutputPixelType);
   itkGetMacro(InternalForegroundValue, InternalOutputPixelType);
-
+  /** @ITKEndGrouping */
   /** The label of the object currently processed by the filter. This is intended to be
    * used with the IterationEvent sent before the processing of each object. It contains
    * a relevant value only during the filter update.
@@ -212,37 +217,37 @@ protected:
   GenerateData() override;
 
 private:
-  bool     m_ConstrainPaddingToImage;
-  SizeType m_PadSize;
-  bool     m_BinaryInternalOutput;
+  bool     m_ConstrainPaddingToImage{};
+  SizeType m_PadSize{};
+  bool     m_BinaryInternalOutput{};
 
-  bool m_KeepLabels;
+  bool m_KeepLabels{};
 
-  InternalOutputPixelType m_InternalForegroundValue;
+  InternalOutputPixelType m_InternalForegroundValue{};
 
   using SelectType = itk::LabelSelectionLabelMapFilter<LabelMapType>;
-  typename SelectType::Pointer m_Select;
+  typename SelectType::Pointer m_Select{};
 
   using CropType = itk::AutoCropLabelMapFilter<LabelMapType>;
-  typename CropType::Pointer m_Crop;
+  typename CropType::Pointer m_Crop{};
 
   using PadType = itk::PadLabelMapFilter<LabelMapType>;
-  typename PadType::Pointer m_Pad;
+  typename PadType::Pointer m_Pad{};
 
   using LM2BIType = itk::LabelMapToBinaryImageFilter<LabelMapType, InternalInputImageType>;
-  typename LM2BIType::Pointer m_LM2BI;
+  typename LM2BIType::Pointer m_LM2BI{};
 
   using LI2LMType = itk::LabelImageToLabelMapFilter<InternalOutputImageType, LabelMapType>;
-  typename LI2LMType::Pointer m_LI2LM;
+  typename LI2LMType::Pointer m_LI2LM{};
 
   using BI2LMType = itk::BinaryImageToLabelMapFilter<InternalOutputImageType, LabelMapType>;
-  typename BI2LMType::Pointer m_BI2LM;
+  typename BI2LMType::Pointer m_BI2LM{};
 
-  typename InputFilterType::Pointer  m_InputFilter;
-  typename OutputFilterType::Pointer m_OutputFilter;
+  typename InputFilterType::Pointer  m_InputFilter{};
+  typename OutputFilterType::Pointer m_OutputFilter{};
 
 
-  InputImagePixelType m_Label;
+  InputImagePixelType m_Label{};
 
 }; // end of class
 

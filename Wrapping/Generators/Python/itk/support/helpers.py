@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,23 +16,41 @@
 #
 # ==========================================================================*/
 
+import importlib
+from importlib.metadata import metadata
+import os
 import re
 import functools
 
+import numpy as np
+
 _HAVE_XARRAY = False
 try:
-    import xarray as xr
+    metadata("xarray")
 
     _HAVE_XARRAY = True
 except ImportError:
     pass
 _HAVE_TORCH = False
 try:
-    import torch
+    metadata("torch")
 
     _HAVE_TORCH = True
-except ImportError:
+except importlib.metadata.PackageNotFoundError:
     pass
+
+
+def snake_to_camel_case(keyword: str):
+    # Helpers for set_inputs snake case to CamelCase keyword argument conversion
+    _snake_underscore_re = re.compile("(_)([a-z0-9A-Z])")
+
+    def _underscore_upper(match_obj):
+        return match_obj.group(2).upper()
+
+    camel = keyword[0].upper()
+    if _snake_underscore_re.search(keyword[1:]):
+        return camel + _snake_underscore_re.sub(_underscore_upper, keyword[1:])
+    return camel + keyword[1:]
 
 
 def camel_to_snake_case(name):
@@ -78,9 +96,15 @@ def accept_array_like_xarray_torch(image_filter):
 
     If a NumPy array-like is passed as an input, output itk.Image's are converted to numpy.ndarray's.
     If a torch.Tensor is passed as an input, output itk.Image's are converted to torch.Tensors.
-    If a xarray DataArray is passed as an input, output itk.Image's are converted to xarray.DataArray's."""
+    If a xarray DataArray is passed as an input, output itk.Image's are converted to xarray.DataArray's.
+    """
     import numpy as np
     import itk
+
+    if _HAVE_XARRAY:
+        import xarray as xr
+    if _HAVE_TORCH:
+        import torch
 
     @functools.wraps(image_filter)
     def image_filter_wrapper(*args, **kwargs):
@@ -173,3 +197,229 @@ def accept_array_like_xarray_torch(image_filter):
             return image_filter(*args, **kwargs)
 
     return image_filter_wrapper
+
+
+def python_to_js(name):
+    import itk
+
+    def _long_type():
+        if os.name == "nt":
+            return "int32"
+        else:
+            return "int64"
+
+    _python_to_js = {
+        itk.SC: "int8",
+        itk.UC: "uint8",
+        itk.SS: "int16",
+        itk.US: "uint16",
+        itk.SI: "int32",
+        itk.UI: "uint32",
+        itk.F: "float32",
+        itk.D: "float64",
+        itk.B: "uint8",
+        itk.SL: _long_type(),
+        itk.UL: "u" + _long_type(),
+        itk.SLL: "int64",
+        itk.ULL: "uint64",
+    }
+
+    return _python_to_js[name]
+
+
+def js_to_python(name):
+    def _long_type():
+        if os.name == "nt":
+            return "LL"
+        else:
+            return "L"
+
+    _js_to_python = {
+        "int8": "SC",
+        "uint8": "UC",
+        "int16": "SS",
+        "uint16": "US",
+        "int32": "SI",
+        "uint32": "UI",
+        "int64": "S" + _long_type(),
+        "uint64": "U" + _long_type(),
+        "float32": "F",
+        "float64": "D",
+    }
+
+    return _js_to_python[name]
+
+
+def pixelType_to_prefix(name):
+    _pixelType_to_prefix = {
+        "Scalar": "",
+        "RGB": "RGB",
+        "RGBA": "RGBA",
+        "Offset": "O",
+        "Vector": "V",
+        "CovariantVector": "CV",
+        "SymmetricSecondRankTensor": "SSRT",
+        "FixedArray": "FA",
+        "Array": "A",
+        "VariableLengthVector": "VLV",
+    }
+
+    return _pixelType_to_prefix[name]
+
+
+def wasm_type_from_image_type(itkimage):  # noqa: C901
+    import itk
+
+    component = itk.template(itkimage)[1][0]
+    componentType = None
+    pixelType = "Scalar"
+    if component in (
+        itk.SC,
+        itk.UC,
+        itk.SS,
+        itk.US,
+        itk.SI,
+        itk.UI,
+        itk.F,
+        itk.D,
+        itk.B,
+        itk.SL,
+        itk.SLL,
+        itk.UL,
+        itk.ULL,
+    ):
+        componentType = python_to_js(component)
+    elif component in [i[1] for i in itk.Vector.items()]:
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "Vector"
+    elif component == itk.complex[itk.F]:
+        componentType = "float32"
+        pixelType = "Complex"
+    elif component == itk.complex[itk.D]:
+        componentType = "float64"
+        pixelType = "Complex"
+    elif component in [i[1] for i in itk.CovariantVector.items()]:
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "CovariantVector"
+    elif component in [i[1] for i in itk.Offset.items()]:
+        componentType = "int64"
+        pixelType = "Offset"
+    elif component in [i[1] for i in itk.FixedArray.items()]:
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "FixedArray"
+    elif component in [i[1] for i in itk.RGBAPixel.items()]:
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "RGBA"
+    elif component in [i[1] for i in itk.RGBPixel.items()]:
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "RGB"
+    elif component in [i[1] for i in itk.SymmetricSecondRankTensor.items()]:
+        # SymmetricSecondRankTensor
+        componentType = python_to_js(itk.template(component)[1][0])
+        pixelType = "SymmetrySecondRankTensor"
+    else:
+        raise RuntimeError(f"Unrecognized component type: {str(component)}")
+
+    if isinstance(itkimage, itk.VectorImage):
+        pixelType = "VariableLengthVector"
+
+    imageType = dict(
+        dimension=itkimage.GetImageDimension(),
+        componentType=componentType,
+        pixelType=pixelType,
+        components=itkimage.GetNumberOfComponentsPerPixel(),
+    )
+    return imageType
+
+
+def image_type_from_wasm_type(jstype):
+    import itk
+
+    pixelType = jstype["pixelType"]
+    dimension = jstype["dimension"]
+    if pixelType == "Complex":
+        if jstype["componentType"] == "float32":
+            return itk.Image[itk.complex, itk.F], np.float32
+        else:
+            return itk.Image[itk.complex, itk.D], np.float64
+
+    postfix = ""
+    if pixelType != "Offset":
+        postfix += js_to_python(jstype["componentType"])
+    if pixelType not in ("Scalar", "RGB", "RGBA", "Complex", "VariableLengthVector"):
+        postfix += str(dimension)
+    postfix += str(dimension)
+
+    if pixelType == "VariableLengthVector":
+        return getattr(itk.VectorImage, postfix)
+    else:
+        prefix = pixelType_to_prefix(pixelType)
+        return getattr(itk.Image, f"{prefix}{postfix}")
+
+
+def wasm_type_from_mesh_type(itkmesh):
+    import itk
+
+    component = itk.template(itkmesh)[1][0]
+    mangle = None
+    pixelType = "Scalar"
+    pixel_type_components = 1
+
+    if component in (itk.F, itk.D):
+        mangle = component
+    elif component in [i[1] for i in itk.Array.items()]:
+        mangle = itk.template(component)[1][0]
+        pixelType = "Array"
+
+    return pixelType, python_to_js(mangle), pixel_type_components
+
+
+def mesh_type_from_wasm_type(jstype):
+    import itk
+
+    pixelType = jstype["pointPixelType"]
+    dimension = jstype["dimension"]
+    pointPixelComponentType = jstype["pointPixelComponentType"]
+
+    prefix = pixelType_to_prefix(pixelType)
+    if pixelType == "Array":
+        prefix += "D"
+    else:
+        prefix = prefix + js_to_python(pointPixelComponentType)
+
+    prefix += str(dimension)
+    return getattr(itk.Mesh, prefix)
+
+
+def wasm_type_from_pointset_type(itkpointset):
+    import itk
+
+    component = itk.template(itkpointset)[1][0]
+    mangle = None
+    pixelType = "Scalar"
+    pixel_type_components = 1
+
+    if component in (itk.F, itk.D):
+        mangle = component
+    elif component in [i[1] for i in itk.Array.items()]:
+        mangle = itk.template(component)[1][0]
+        pixelType = "Array"
+
+    return pixelType, python_to_js(mangle), pixel_type_components
+
+
+def pointset_type_from_wasm_type(jstype):
+    import itk
+
+    pixelType = jstype["pointPixelType"]
+    dimension = jstype["dimension"]
+    pointPixelComponentType = jstype["pointPixelComponentType"]
+
+    prefix = pixelType_to_prefix(pixelType)
+    if pixelType == "Array":
+        prefix += "D"
+    else:
+        prefix = prefix + js_to_python(pointPixelComponentType)
+
+    prefix += str(dimension)
+    return getattr(itk.PointSet, prefix)

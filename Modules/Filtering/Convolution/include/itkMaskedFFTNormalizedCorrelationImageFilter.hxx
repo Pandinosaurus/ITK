@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMaskedFFTNormalizedCorrelationImageFilter_hxx
 #define itkMaskedFFTNormalizedCorrelationImageFilter_hxx
 
-#include "itkMaskedFFTNormalizedCorrelationImageFilter.h"
 #include "itkFlipImageFilter.h"
 #include "itkForwardFFTImageFilter.h"
 #include "itkInverseFFTImageFilter.h"
@@ -54,7 +53,7 @@ template <typename TImage>
 class PostProcessCorrelation
 {
 public:
-  PostProcessCorrelation() { m_RequiredNumberOfOverlappingPixels = 0; }
+  PostProcessCorrelation() = default;
   ~PostProcessCorrelation() = default;
 
   void
@@ -70,16 +69,12 @@ public:
   }
 
   bool
-  operator!=(const PostProcessCorrelation &) const
+  operator==(const PostProcessCorrelation &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const PostProcessCorrelation & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(PostProcessCorrelation);
 
   inline TImage
   operator()(const TImage & NCC, const TImage & denominator, const TImage & numberOfOverlapPixels) const
@@ -106,7 +101,7 @@ public:
   }
 
 private:
-  SizeValueType m_RequiredNumberOfOverlappingPixels;
+  SizeValueType m_RequiredNumberOfOverlappingPixels{ 0 };
   double        m_PrecisionTolerance;
 };
 } // namespace Functor
@@ -137,7 +132,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   }
 
   this->UpdateProgress(m_AccumulatedProgress);
-  OutputImagePointer outputImage = this->GetOutput();
+  const OutputImagePointer outputImage = this->GetOutput();
 
   fixedMask = this->PreProcessMask(fixedImage, fixedMask);
   movingMask = this->PreProcessMask(movingImage, movingMask);
@@ -158,7 +153,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // The FFTImageSize is the closest valid dimension each dimension.
   // The dimension must be divisible by a combination of 2, 3, and 5.
   InputSizeType FFTImageSize;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     combinedImageSize[i] = fixedImage->GetLargestPossibleRegion().GetSize()[i] +
                            rotatedMovingImage->GetLargestPossibleRegion().GetSize()[i] - 1;
@@ -235,23 +230,23 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   rotatedMovingDenom = this->ElementPositive<RealImageType>(rotatedMovingDenom);
 
   using SqrtType = itk::SqrtImageFilter<RealImageType, RealImageType>;
-  typename SqrtType::Pointer sqrtFilter = SqrtType::New();
+  auto sqrtFilter = SqrtType::New();
   sqrtFilter->SetInput(this->ElementProduct<RealImageType, RealImageType>(fixedDenom, rotatedMovingDenom));
   sqrtFilter->Update();
-  RealImagePointer denominator = sqrtFilter->GetOutput();
+  const RealImagePointer denominator = sqrtFilter->GetOutput();
   fixedDenom = nullptr;         // No longer needed
   rotatedMovingDenom = nullptr; // No longer needed
 
   // Determine a tolerance on the precision of the denominator values.
   const double precisionTolerance = CalculatePrecisionTolerance<RealImageType>(denominator);
 
-  RealImagePointer NCC = this->ElementQuotient<RealImageType>(numerator, denominator);
+  const RealImagePointer NCC = this->ElementQuotient<RealImageType>(numerator, denominator);
   numerator = nullptr; // No longer needed
 
   // Given the numberOfOverlapPixels, we can check that the m_RequiredNumberOfOverlappingPixels is not set higher than
   // the actual maximum overlap voxels.  If it is, we set m_RequiredNumberOfOverlappingPixels to be this maximum.
   using CalculatorType = itk::MinimumMaximumImageCalculator<RealImageType>;
-  typename CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
   calculator->SetImage(numberOfOverlapPixels);
   calculator->ComputeMaximum();
   m_MaximumNumberOfOverlappingPixels = static_cast<SizeValueType>(calculator->GetMaximum());
@@ -264,7 +259,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // pixels (or both). Here, we calculate the number of required pixels resulting from both of these methods and choose
   // the one that gives the largest number of pixels. These both default to 0 so that if a user only sets one, the other
   // is ignored.
-  SizeValueType requiredNumberOfOverlappingPixels =
+  const SizeValueType requiredNumberOfOverlappingPixels =
     std::max((SizeValueType)(m_RequiredFractionOfOverlappingPixels * m_MaximumNumberOfOverlappingPixels),
              m_RequiredNumberOfOverlappingPixels);
 
@@ -274,7 +269,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // and set to zero all values outside of this range.
   // Also, zero-out the correlation values that arise from too few voxels since they are statistically unreliable.
   using PostProcessType = itk::TernaryGeneratorImageFilter<RealImageType, RealImageType, RealImageType, RealImageType>;
-  typename PostProcessType::Pointer postProcessor = PostProcessType::New();
+  auto postProcessor = PostProcessType::New();
 
   auto functor = Functor::PostProcessCorrelation<RealPixelType>();
   functor.SetRequiredNumberOfOverlappingPixels(requiredNumberOfOverlappingPixels);
@@ -288,7 +283,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   postProcessor->Update();
 
   // Store the output origin computed in GenerateOutputInformation so that it can be reset after the Graft.
-  RealPointType outputOrigin = this->GetOutput()->GetOrigin();
+  const RealPointType outputOrigin = this->GetOutput()->GetOrigin();
   outputImage->Graft(postProcessor->GetOutput());
   outputImage->SetOrigin(outputOrigin);
 }
@@ -300,13 +295,12 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage)
 {
   // Store the original origin of the image.
-  typename LocalInputImageType::PointType inputOrigin = inputImage->GetOrigin();
+  const typename LocalInputImageType::PointType inputOrigin = inputImage->GetOrigin();
 
   // Flip the moving images along all dimensions so that the correlation can be more easily handled.
   using FlipperType = itk::FlipImageFilter<LocalInputImageType>;
-  typename FlipperType::FlipAxesArrayType flipAxes;
-  flipAxes.Fill(true);
-  typename FlipperType::Pointer rotater = FlipperType::New();
+  constexpr auto flipAxes = MakeFilled<typename FlipperType::FlipAxesArrayType>(true);
+  auto           rotater = FlipperType::New();
   rotater->SetFlipAxes(flipAxes);
   rotater->SetInput(inputImage);
   rotater->Update();
@@ -330,7 +324,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
     // The mask must have only 0 and 1 values.
     // Threshold the mask.  All voxels less than or equal to 0 are set to 0, and all others are set to 1.
     using ThresholdType = itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType>;
-    typename ThresholdType::Pointer thresholder = ThresholdType::New();
+    auto thresholder = ThresholdType::New();
     thresholder->SetInput(inputMask);
     thresholder->SetUpperThreshold(0);
     thresholder->SetInsideValue(0);
@@ -365,7 +359,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // We achieve this by multiplying the image with the mask, since the mask now contains
   // only values 0 and 1.
   using MultiplyType = itk::MultiplyImageFilter<InputImageType, MaskImageType, InputImageType>;
-  typename MultiplyType::Pointer multiplier = MultiplyType::New();
+  auto multiplier = MultiplyType::New();
   multiplier->SetInput1(inputImage);
   multiplier->SetInput2(inputMask);
   multiplier->Update();
@@ -382,19 +376,19 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage,
   InputSizeType &       FFTImageSize)
 {
-  typename LocalInputImageType::PixelType constantPixel = 0;
-  typename LocalInputImageType::SizeType  upperPad;
-  upperPad = FFTImageSize - inputImage->GetLargestPossibleRegion().GetSize();
+  const typename LocalInputImageType::PixelType constantPixel = 0;
+  const typename LocalInputImageType::SizeType  upperPad =
+    FFTImageSize - inputImage->GetLargestPossibleRegion().GetSize();
 
   using PadType = itk::ConstantPadImageFilter<LocalInputImageType, RealImageType>;
-  typename PadType::Pointer padder = PadType::New();
+  auto padder = PadType::New();
   padder->SetInput(inputImage);
   padder->SetConstant(constantPixel);
   padder->SetPadUpperBound(upperPad);
 
   // The input type must be real or else the code will not compile.
   using FFTFilterType = itk::ForwardFFTImageFilter<RealImageType, LocalOutputImageType>;
-  typename FFTFilterType::Pointer FFTFilter = FFTFilterType::New();
+  auto FFTFilter = FFTFilterType::New();
   FFTFilter->SetInput(padder->GetOutput());
   FFTFilter->Update();
 
@@ -419,19 +413,15 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // It also converts the image from complex (with small imaginary values since
   // the input to the original FFTs was real) to real.
   using FFTFilterType = itk::InverseFFTImageFilter<LocalInputImageType, LocalOutputImageType>;
-  typename FFTFilterType::Pointer FFTFilter = FFTFilterType::New();
+  auto FFTFilter = FFTFilterType::New();
   FFTFilter->SetInput(inputImage);
 
   // Extract the relevant part out of the image.
   // The input FFT image may be bigger than the desired output image
   // because specific sizes are required for the FFT calculation.
-  typename LocalOutputImageType::RegionType imageRegion;
-  typename LocalOutputImageType::IndexType  imageIndex;
-  imageIndex.Fill(0);
-  imageRegion.SetIndex(imageIndex);
-  imageRegion.SetSize(combinedImageSize);
+  const typename LocalOutputImageType::RegionType imageRegion(combinedImageSize);
   using ExtractType = itk::RegionOfInterestImageFilter<LocalOutputImageType, LocalOutputImageType>;
-  typename ExtractType::Pointer extracter = ExtractType::New();
+  auto extracter = ExtractType::New();
   extracter->SetInput(FFTFilter->GetOutput());
   extracter->SetRegionOfInterest(imageRegion);
   extracter->Update();
@@ -454,7 +444,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage2)
 {
   using MultiplyType = itk::MultiplyImageFilter<LocalInputImageType, LocalInputImageType, LocalOutputImageType>;
-  typename MultiplyType::Pointer multiplier = MultiplyType::New();
+  auto multiplier = MultiplyType::New();
   multiplier->SetInput1(inputImage1);
   multiplier->SetInput2(inputImage2);
   multiplier->Update();
@@ -471,7 +461,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage2)
 {
   using DivideType = itk::DivideImageFilter<LocalInputImageType, LocalInputImageType, LocalInputImageType>;
-  typename DivideType::Pointer divider = DivideType::New();
+  auto divider = DivideType::New();
   divider->SetInput1(inputImage1);
   divider->SetInput2(inputImage2);
   divider->Update();
@@ -488,7 +478,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage2)
 {
   using SubtractType = itk::SubtractImageFilter<LocalInputImageType, LocalInputImageType, LocalInputImageType>;
-  typename SubtractType::Pointer subtracter = SubtractType::New();
+  auto subtracter = SubtractType::New();
   subtracter->SetInput1(inputImage1);
   subtracter->SetInput2(inputImage2);
   subtracter->Update();
@@ -505,7 +495,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
   // Set all negative values to 0.
   using ThresholdType = itk::ThresholdImageFilter<LocalInputImageType>;
-  typename ThresholdType::Pointer thresholder = ThresholdType::New();
+  auto thresholder = ThresholdType::New();
   thresholder->SetInput(inputImage);
   thresholder->ThresholdBelow(0);
   thresholder->SetOutsideValue(0);
@@ -522,7 +512,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   LocalInputImageType * inputImage)
 {
   using RoundType = itk::RoundImageFilter<LocalInputImageType, LocalOutputImageType>;
-  typename RoundType::Pointer rounder = RoundType::New();
+  auto rounder = RoundType::New();
   rounder->SetInput(inputImage);
   rounder->Update();
   typename LocalOutputImageType::Pointer outputImage = rounder->GetOutput();
@@ -541,7 +531,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // This loop is just a convenient way of ensuring that ifac assumes
   // values of 2, 3, and 5 and then quits.  These are the only factors
   // that are valid for the FFT calculation.
-  for (int offset = 1; offset <= 3; offset++)
+  for (int offset = 1; offset <= 3; ++offset)
   {
     // Using the given factor, factor the image continuously until it
     // can no longer be factored with this value.
@@ -582,12 +572,11 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
   // First find the maximum of the inputImage.
   using CalculatorType = itk::MinimumMaximumImageCalculator<LocalInputImageType>;
-  typename CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
   calculator->SetImage(inputImage);
   calculator->ComputeMaximum();
 
-  typename LocalInputImageType::IndexType index;
-  index.Fill(0);
+  constexpr typename LocalInputImageType::IndexType index = { { 0 } };
 
   double precisionTolerance = 0.0F;
   if (typeid(inputImage->GetPixel(index)) == typeid(double))
@@ -602,7 +591,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   }
   else
   {
-    itkExceptionMacro(<< "Precision tolerance not defined for the input image pixel type.");
+    itkExceptionMacro("Precision tolerance not defined for the input image pixel type.");
   }
 
   return precisionTolerance;
@@ -610,7 +599,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
 
 template <typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>::VerifyInputInformation() ITKv5_CONST
+MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>::VerifyInputInformation() const
 {
   // Call the superclass' implementation of this method.
   Superclass::VerifyInputInformation();
@@ -619,10 +608,10 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // We need a few additional checks.
   // Check that the image sizes are the same as their corresponding
   // masks.
-  std::ostringstream fixedSizeString, movingSizeString;
   if (this->GetFixedImageMask() && this->GetFixedImage()->GetLargestPossibleRegion().GetSize() !=
                                      this->GetFixedImageMask()->GetLargestPossibleRegion().GetSize())
   {
+    std::ostringstream fixedSizeString;
     fixedSizeString << std::endl
                     << "The fixed image must be the same size as the fixed mask.  " << std::endl
                     << "FixedImage Size: " << this->GetFixedImage()->GetLargestPossibleRegion().GetSize()
@@ -633,6 +622,7 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   if (this->GetMovingImageMask() && this->GetMovingImage()->GetLargestPossibleRegion().GetSize() !=
                                       this->GetMovingImageMask()->GetLargestPossibleRegion().GetSize())
   {
+    std::ostringstream movingSizeString;
     movingSizeString << std::endl
                      << "The moving image must be the same size as the moving mask.  " << std::endl
                      << "MovingImage Size: " << this->GetMovingImage()->GetLargestPossibleRegion().GetSize()
@@ -658,16 +648,13 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // is bigger than our input.
 
   // Cast away the constness so we can set the requested region.
-  InputRegionType   inputRegion;
-  InputImagePointer inputPtr;
-  inputPtr = const_cast<InputImageType *>(this->GetFixedImage());
+  InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetFixedImage());
   inputPtr->SetRequestedRegion(this->GetFixedImage()->GetLargestPossibleRegion());
 
   inputPtr = const_cast<InputImageType *>(this->GetMovingImage());
   inputPtr->SetRequestedRegion(this->GetMovingImage()->GetLargestPossibleRegion());
 
-  MaskImagePointer maskPtr;
-  maskPtr = const_cast<MaskImageType *>(this->GetFixedImageMask());
+  MaskImagePointer maskPtr = const_cast<MaskImageType *>(this->GetFixedImageMask());
   if (maskPtr)
   {
     maskPtr->SetRequestedRegion(this->GetFixedImageMask()->GetLargestPossibleRegion());
@@ -688,20 +675,18 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  InputImageConstPointer fixedImage = this->GetFixedImage();
-  InputImageConstPointer movingImage = this->GetMovingImage();
-  OutputImagePointer     output = this->GetOutput();
+  const InputImageConstPointer fixedImage = this->GetFixedImage();
+  const InputImageConstPointer movingImage = this->GetMovingImage();
+  const OutputImagePointer     output = this->GetOutput();
 
   // Compute the size of the output image.
-  typename OutputImageType::RegionType region;
-  typename OutputImageType::SizeType   size;
+  typename OutputImageType::SizeType size;
   for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     size[i] =
       fixedImage->GetLargestPossibleRegion().GetSize()[i] + movingImage->GetLargestPossibleRegion().GetSize()[i] - 1;
   }
-  region.SetSize(size);
-  region.SetIndex(fixedImage->GetLargestPossibleRegion().GetIndex());
+  const typename OutputImageType::RegionType region(fixedImage->GetLargestPossibleRegion().GetIndex(), size);
 
   output->SetLargestPossibleRegion(region);
 
@@ -713,9 +698,9 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   // location.
   itk::ContinuousIndex<typename RealPointType::ValueType, ImageDimension> movingImageOffset;
   RealPointType                                                           outputOrigin;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
-    movingImageOffset[i] = -(float)(movingImage->GetLargestPossibleRegion().GetSize()[i] - 1) / 2.0;
+    movingImageOffset[i] = -static_cast<float>(movingImage->GetLargestPossibleRegion().GetSize()[i] - 1) / 2.0;
   }
   fixedImage->TransformContinuousIndexToPhysicalPoint(movingImageOffset, outputOrigin);
   output->SetOrigin(outputOrigin);
@@ -731,19 +716,17 @@ MaskedFFTNormalizedCorrelationImageFilter<TInputImage, TOutputImage, TMaskImage>
   Superclass::EnlargeOutputRequestedRegion(output);
 
   // get pointers to the input and output
-  InputImageConstPointer fixedImage = this->GetFixedImage();
-  InputImageConstPointer movingImage = this->GetMovingImage();
+  const InputImageConstPointer fixedImage = this->GetFixedImage();
+  const InputImageConstPointer movingImage = this->GetMovingImage();
 
   // Compute the size of the output image.
-  typename OutputImageType::RegionType region;
-  typename OutputImageType::SizeType   size;
+  typename OutputImageType::SizeType size;
   for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     size[i] =
       fixedImage->GetLargestPossibleRegion().GetSize()[i] + movingImage->GetLargestPossibleRegion().GetSize()[i] - 1;
   }
-  region.SetSize(size);
-  region.SetIndex(fixedImage->GetLargestPossibleRegion().GetIndex());
+  const typename OutputImageType::RegionType region(fixedImage->GetLargestPossibleRegion().GetIndex(), size);
 
   auto * optr = dynamic_cast<OutputImageType *>(output);
   if (optr)

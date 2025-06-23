@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkGaborImageSource_hxx
 
 #include "itkGaborKernelFunction.h"
-#include "itkGaborImageSource.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressReporter.h"
 #include "itkObjectFactory.h"
@@ -49,21 +48,19 @@ GaborImageSource<TOutputImage>::GenerateData()
 
   // Create and initialize a new Gaussian function
   using KernelFunctionType = GaborKernelFunction<double>;
-  typename KernelFunctionType::Pointer gabor = KernelFunctionType::New();
+  auto gabor = KernelFunctionType::New();
 
   gabor->SetSigma(this->m_Sigma[0]);
   gabor->SetFrequency(this->m_Frequency);
   gabor->SetPhaseOffset(this->m_PhaseOffset);
   gabor->SetCalculateImaginaryPart(this->m_CalculateImaginaryPart);
 
-  // Create an iterator that will walk the output region
-  ImageRegionIteratorWithIndex<OutputImageType> outIt(outputPtr, outputPtr->GetRequestedRegion());
-
-
   ProgressReporter progress(this, 0, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
   // Walk the output image, evaluating the spatial function at each pixel
-  for (outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt)
+  for (ImageRegionIteratorWithIndex<OutputImageType> outIt(outputPtr, outputPtr->GetRequestedRegion());
+       !outIt.IsAtEnd();
+       ++outIt)
   {
     const typename OutputImageType::IndexType index = outIt.GetIndex();
     // The position at which the function is evaluated
@@ -88,16 +85,9 @@ GaborImageSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) cons
 {
   Superclass::PrintSelf(os, indent);
 
-  if (this->GetCalculateImaginaryPart())
-  {
-    os << indent << "Calculate complex part: true " << std::endl;
-  }
-  else
-  {
-    os << indent << "Calculate complex part: false " << std::endl;
-  }
+  itkPrintSelfBooleanMacro(CalculateImaginaryPart);
   os << indent << "Frequency: " << this->GetFrequency() << std::endl;
-  os << indent << "Phase offset: " << m_PhaseOffset << std::endl;
+  os << indent << "PhaseOffset: " << m_PhaseOffset << std::endl;
   os << indent << "Sigma: " << this->GetSigma() << std::endl;
   os << indent << "Mean: " << this->GetMean() << std::endl;
 }

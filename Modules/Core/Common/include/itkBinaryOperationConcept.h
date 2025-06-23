@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,11 +22,8 @@
 #include "itkPromoteType.h"
 
 /// \cond HIDE_META_PROGRAMMING
-namespace itk
-{
-namespace Details
-{
-namespace op
+
+namespace itk::Details::op
 {
 /** Root Binary Operation Concept.
  * All binary operations are expected to inherit from this type.
@@ -99,9 +96,7 @@ struct Div : BinaryOperationConcept
   }
 };
 
-} // namespace op
-} // namespace Details
-} // namespace itk
+} // namespace itk::Details::op
 /// \endcond
 
 #endif // itkBinaryOperationConcept_h

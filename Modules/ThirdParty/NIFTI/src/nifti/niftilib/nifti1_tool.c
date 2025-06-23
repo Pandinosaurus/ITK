@@ -77,7 +77,7 @@ static const char * g_history[] =
   "\n",
   "1.1  14 January 2005 [rickr]\n"
   "   - changed all non-error/non-debug output from stderr to stdout\n"
-  "       note: creates a mis-match between normal output and debug messages\n"
+  "       note: creates a mismatch between normal output and debug messages\n"
   "   - modified act_diff_hdrs and act_diff_nims to do the processing in\n"
   "       lower-level functions\n",
   "   - added functions diff_hdrs, diff_hdrs_list, diff_nims, diff_nims_list\n"
@@ -129,7 +129,7 @@ static const char * g_history[] =
   "   - added -keep_hist option, to store the command as a COMMENT extension\n",
   "     (includes fill_cmd_string() and add_int(), is done for all actions)\n"
   "   - added remove_ext_list(), for removing a list of extensions by indices\n"
-  "   - added -strip action, to strip all extensions and descrip fields\n"
+  "   - added -strip_extras action, to strip all exts and descrip fields\n"
   "\n",
   "1.9  25 Aug 2005 [rickr] - const/string cleanup for warnings\n",
   "1.10 18 Nov 2005 [rickr] - added check_hdr and check_nim actions\n",
@@ -162,7 +162,11 @@ static const char * g_history[] =
 static char g_version[] = "version 1.24 (September 26, 2012)";
 static int  g_debug = 1;
 
-#define _NIFTI_TOOL_C_
+#include <limits.h>
+#include <string.h>
+#include <stdint.h>
+#include <stddef.h>
+
 #include "nifti1_io.h"
 #include "nifti1_tool.h"
 
@@ -174,14 +178,14 @@ static char * read_file_text(const char * filename, int * length);
 #define NTL_FERR(func,msg,file)                                      \
             fprintf(stderr,"** ERROR (%s): %s '%s'\n",func,msg,file)
 
-/* val may be a function call, so evalulate first, and return result */
+/* val may be a function call, so evaluate first, and return result */
 #define FREE_RETURN(val) \
         do{ int tval=(val); free_opts_mem(&opts); return tval; } while(0)
 
 /* these are effectively constant, and are built only for verification */
-field_s g_hdr_fields[NT_HDR_NUM_FIELDS];    /* nifti_1_header fields */
-field_s g_ana_fields[NT_ANA_NUM_FIELDS];    /* nifti_analyze75       */
-field_s g_nim_fields[NT_NIM_NUM_FIELDS];    /* nifti_image fields    */
+static field_s g_hdr_fields[NT_HDR_NUM_FIELDS];    /* nifti_1_header fields */
+static field_s g_ana_fields[NT_ANA_NUM_FIELDS];    /* nifti_analyze75       */
+static field_s g_nim_fields[NT_NIM_NUM_FIELDS];    /* nifti_image fields    */
 
 int main( int argc, char * argv[] )
 {
@@ -229,7 +233,7 @@ int main( int argc, char * argv[] )
    if((opts.swap_hdr  || opts.swap_ana || opts.swap_old )
                       && ((rv = act_swap_hdrs (&opts)) != 0) ) FREE_RETURN(rv);
 
-   /* if a diff, return wither a difference exists (like the UNIX command) */
+   /* if a diff, return whether, a difference exists (like the UNIX command) */
    if( opts.diff_hdr  && ((rv = act_diff_hdrs(&opts)) != 0) ) FREE_RETURN(rv);
    if( opts.diff_nim  && ((rv = act_diff_nims(&opts)) != 0) ) FREE_RETURN(rv);
 
@@ -341,8 +345,8 @@ int process_opts( int argc, char * argv[], nt_opts * opts )
          for( index = 1; index < 8; index++ )
          {
             ac++;
-            CHECK_NEXT_OPT_MSG(ac,argc,"-cci","7 dimension values are requred");
-            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") ){
+            CHECK_NEXT_OPT_MSG(ac,argc,"-cci","7 dimension values are required");
+            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") != 0 ){
                fprintf(stderr,"** -cci param %d (= '%s') is not a valid\n"
                        "   consider: 'nifti_tool -help'\n",index,argv[ac]);
                return -1;
@@ -385,8 +389,8 @@ int process_opts( int argc, char * argv[], nt_opts * opts )
          {
             ac++;
             CHECK_NEXT_OPT_MSG(ac,argc,"-disp_ci",
-                               "7 dimension values are requred");
-            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") ){
+                               "7 dimension values are required");
+            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") != 0 ){
                fprintf(stderr,"** -disp_ci param %d (= '%s') is not a valid\n"
                        "   consider: 'nifti_tool -help'\n",index,argv[ac]);
                return -1;
@@ -404,7 +408,7 @@ int process_opts( int argc, char * argv[], nt_opts * opts )
          for( index = 1; index <= 3; index++ )
          {
             ac++;
-            CHECK_NEXT_OPT_MSG(ac,argc,"-dts","i,j,k indices are requied\n");
+            CHECK_NEXT_OPT_MSG(ac,argc,"-dts","i,j,k indices are required\n");
             if( ! isdigit(argv[ac][0]) ){
                fprintf(stderr,"** -dts param %d (= '%s') is not a number\n"
                        "   consider: 'nifti_tool -help'\n",index,argv[ac]);
@@ -460,8 +464,8 @@ int process_opts( int argc, char * argv[], nt_opts * opts )
          for( index = 0; index < 8; index++ )
          {
             ac++;
-            CHECK_NEXT_OPT_MSG(ac,argc,"-new_dim","8 dim values are requred");
-            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") ){
+            CHECK_NEXT_OPT_MSG(ac,argc,"-new_dim","8 dim values are required");
+            if( ! isdigit(argv[ac][0]) && strcmp(argv[ac],"-1") != 0 ){
                fprintf(stderr,"** -new_dim param %d (= '%s') is not a valid\n"
                        "   consider: 'nifti_tool -help'\n",index,argv[ac]);
                return -1;
@@ -686,13 +690,18 @@ int verify_opts( nt_opts * opts, char * prog )
 int fill_cmd_string( nt_opts * opts, int argc, char * argv[])
 {
    char * cp;
-   int    len, remain = NT_CMD_LEN;  /* NT_CMD_LEN is max command len */
-   int    c, ac;
+   size_t len, c, remain = sizeof(opts->command);  /* max command len */
+   int    ac;
    int    has_space;  /* arguments containing space must be quoted */
    int    skip = 0;   /* counter to skip some of the arguments     */
 
    /* get the first argument separately */
-   len = sprintf( opts->command, "\n  command: %s", argv[0] );
+   len = snprintf( opts->command, sizeof(opts->command),
+                   "\n  command: %s", argv[0] );
+   if( len >= sizeof(opts->command) ) {
+      fprintf(stderr,"FCS: no space remaining for command, continuing...\n");
+      return 1;
+   }
    cp = opts->command + len;
    remain -= len;
 
@@ -712,8 +721,8 @@ int fill_cmd_string( nt_opts * opts, int argc, char * argv[])
       has_space = 0;
       for( c = 0; c < len-1; c++ )
          if( isspace(argv[ac][c]) ){ has_space = 1; break; }
-      if( has_space ) len = sprintf(cp, " '%s'", argv[ac]);
-      else            len = sprintf(cp, " %s",   argv[ac]);
+      if( has_space ) len = snprintf(cp, remain, " '%s'", argv[ac]);
+      else            len = snprintf(cp, remain, " %s",   argv[ac]);
 
       remain -= len;
 
@@ -1029,7 +1038,7 @@ int use_full(const char * prog )
    "       (in example #3, the extension is copied from a text file)\n"
    "\n"
    "\n"
-   "      1. nifti_tool -strip -overwrite -infiles *.nii\n"
+   "      1. nifti_tool -strip_extras -overwrite -infiles *.nii\n"
    "      2. nifti_tool -add_comment 'converted from MY_AFNI_DSET+orig' \\\n"
    "                    -prefix dnew -infiles dset0.nii\n"
    );
@@ -1061,7 +1070,7 @@ int use_full(const char * prog )
    "       nifti_tool -check_hdr -infiles dset0.nii dset1.nii\n"
    "       nifti_tool -check_hdr -infiles *.nii *.hdr\n"
    "       \n"
-   "       e.g. add the -quiet option, so that only errros are reported\n"
+   "       e.g. add the -quiet option, so that only errors are reported\n"
    "       nifti_tool -check_hdr -quiet -infiles *.nii *.hdr\n"
    "\n");
    printf(
@@ -1390,7 +1399,7 @@ int use_full(const char * prog )
    "\n");
    printf(
    "       e.g. to strip all *.nii datasets in this directory:\n"
-   "       nifti_tool -strip -overwrite -infiles *.nii\n"
+   "       nifti_tool -strip_extras -overwrite -infiles *.nii\n"
    "\n");
    printf(
    "    -swap_as_nifti    : swap the header according to nifti_1_header\n"
@@ -1727,9 +1736,8 @@ int use_full(const char * prog )
    "  ------------------------------\n"
    "\n"
    "  R. Reynolds\n"
-   "  compiled: %s\n"
    "  %s\n\n",
-   __DATE__, g_version );
+   g_version );
 
    return 1;
 }
@@ -1842,7 +1850,7 @@ int act_add_exts( nt_opts * opts )
 
       for( ec = 0; ec < opts->elist.len; ec++ ){
          ext = opts->elist.list[ec];
-         elen = strlen(ext);
+         elen = (int)strlen(ext);
          if( !strncmp(ext,"file:",5) ){
             edata = read_file_text(ext+5, &elen);
             if( !edata || elen <= 0 ) {
@@ -1859,11 +1867,12 @@ int act_add_exts( nt_opts * opts )
          }
 
          /* if extension came from file, free the data */
-         if( edata ){ free(edata); edata = NULL; }
+         free(edata);
+         edata = NULL;
       }
 
       if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                             strlen(opts->command), NIFTI_ECODE_COMMENT) )
+                             (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
          fprintf(stderr,"** failed to add command to image as extension\n");
 
       if( opts->prefix &&
@@ -1877,7 +1886,13 @@ int act_add_exts( nt_opts * opts )
          fprintf(stderr,"+d writing %s with %d new extension(s)\n",
                  opts->infiles.list[fc], opts->elist.len);
 
-      nifti_image_write(nim);
+      if( nifti_image_write_status(nim) ) {
+         fprintf(stderr,"** failed to write image %s\n",
+                 opts->infiles.list[fc]);
+         nifti_image_free(nim);
+         return 1;
+      }
+
       nifti_image_free(nim);
    }
 
@@ -1895,7 +1910,8 @@ static char * read_file_text(const char * filename, int * length)
 {
    FILE * fp;
    char * text;
-   int    len, bytes;
+   int    len;
+   size_t bytes;
 
    if( !filename || !length ) {
       fprintf(stderr,"** bad params to read_file_text\n");
@@ -1926,8 +1942,8 @@ static char * read_file_text(const char * filename, int * length)
    bytes = fread(text, sizeof(char), len, fp);
    fclose(fp); /* in any case */
 
-   if( bytes != len ) {
-      fprintf(stderr,"** RFT: read only %d of %d bytes from %s\n",
+   if( bytes != (size_t)len ) {
+      fprintf(stderr,"** RFT: read only %zu of %d bytes from %s\n",
                      bytes, len, filename);
       free(text);
       return NULL;
@@ -1990,6 +2006,11 @@ int act_strip( nt_opts * opts )
                  nim->fname);
 
       nifti_image_write(nim);
+      if( nifti_image_write_status(nim) ) {
+         fprintf(stderr,"** failed to write image %s\n", nim->fname);
+         nifti_image_free(nim);
+         return 1;
+      }
 
       if( g_debug > 3 ) nifti_image_infodump(nim);
       nifti_image_free(nim);
@@ -2024,7 +2045,7 @@ int act_rm_ext( nt_opts * opts )
       return 1;
    }
    else if( opts->overwrite && opts->infiles.len != 1 &&
-            strcmp(opts->elist.list[0], "-1") ) {
+            strcmp(opts->elist.list[0], "-1") != 0 ) {
       fprintf(stderr,"** error: for multiple files, can only delete ALL\n");
       return 1;
    }
@@ -2050,7 +2071,7 @@ int act_rm_ext( nt_opts * opts )
          return 1;
 
       if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                             strlen(opts->command), NIFTI_ECODE_COMMENT) )
+                             (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
          fprintf(stderr,"** failed to add command to image as extension\n");
 
       if( opts->prefix &&
@@ -2063,7 +2084,12 @@ int act_rm_ext( nt_opts * opts )
          fprintf(stderr,"+d writing %s with %d fewer extension(s)\n",
                  nim->fname, ext_ind == -1 ? num_ext : opts->elist.len);
 
-      nifti_image_write(nim);
+      if( nifti_image_write_status(nim) ) {
+         fprintf(stderr,"** failed to write image %s\n", nim->fname);
+         nifti_image_free(nim);
+         return 1;
+      }
+
       nifti_image_free(nim);
    }
 
@@ -2144,7 +2170,7 @@ int remove_ext_list( nifti_image * nim, const char ** elist, int len )
          disp_nifti1_extension("+d removing ext: ",nim->ext_list+ec,-1);
 
       /* delete this data, and shift the list down (yeah, inefficient) */
-      if( nim->ext_list[ec].edata ) free( nim->ext_list[ec].edata );
+      free( nim->ext_list[ec].edata );
 
       /* move anything above down one */
       for( c = ec+1; c < nim->num_ext; c++ )
@@ -2357,7 +2383,7 @@ int act_disp_exts( nt_opts * opts )
                  nim->fname, nim->num_ext);
       for( ec = 0; ec < nim->num_ext; ec++ )
       {
-         sprintf(mesg, "    ext #%d : ", ec);
+         snprintf(mesg, sizeof(mesg), "    ext #%d : ", ec);
          disp_nifti1_extension(mesg, nim->ext_list + ec, -1);
       }
 
@@ -2530,7 +2556,7 @@ int act_mod_hdrs( nt_opts * opts )
 {
    nifti_1_header * nhdr;
    nifti_image    * nim;         /* for reading/writing entire datasets */
-   int              filec, swap;
+   int              filec, swap=0;
    const char     * fname;
    char           * dupname;
    char             func[] = { "act_mod_hdrs" };
@@ -2580,8 +2606,8 @@ int act_mod_hdrs( nt_opts * opts )
             return 1;
          }
          if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                                strlen(opts->command), NIFTI_ECODE_COMMENT) )
-               fprintf(stderr,"** failed to add command to image as exten\n");
+                                (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
+               fprintf(stderr,"** failed to add command to image as extension\n");
          if( nifti_set_filenames(nim, opts->prefix, 1, 1) )
          {
             NTL_FERR(func,"failed to set prefix for new file: ",opts->prefix);
@@ -2590,7 +2616,13 @@ int act_mod_hdrs( nt_opts * opts )
          }
          dupname = nifti_strdup(nim->fname);  /* so we know to free it */
          fname = dupname;
-         nifti_image_write(nim);  /* create the duplicate file */
+         /* create the duplicate file */
+         if( nifti_image_write_status(nim) ) {
+            fprintf(stderr,"** failed to write image %s\n", nim->fname);
+            nifti_image_free(nim);
+            return 1;
+         }
+
          /* if we added a history note, get the new offset into the header */
          /* mod: if the new offset is valid, use it    31 Jan 2006 [rickr] */
          if( nim->iname_offset >= 348 ) nhdr->vox_offset = nim->iname_offset;
@@ -2602,7 +2634,7 @@ int act_mod_hdrs( nt_opts * opts )
       /* if all is well, overwrite header in fname dataset */
       (void)write_hdr_to_file(nhdr, fname); /* errors printed in function */
 
-      if( dupname ) free(dupname);
+      free(dupname);
       free(nhdr);
    }
 
@@ -2695,8 +2727,8 @@ int act_swap_hdrs( nt_opts * opts )
             return 1;
          }
          if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                                strlen(opts->command), NIFTI_ECODE_COMMENT) )
-               fprintf(stderr,"** failed to add command to image as exten\n");
+                                (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
+               fprintf(stderr,"** failed to add command to image as extension\n");
          if( nifti_set_filenames(nim, opts->prefix, 1, 1) )
          {
             NTL_FERR(func,"failed to set prefix for new file: ",opts->prefix);
@@ -2705,7 +2737,13 @@ int act_swap_hdrs( nt_opts * opts )
          }
          dupname = nifti_strdup(nim->fname);  /* so we know to free it */
          fname = dupname;
-         nifti_image_write(nim);  /* create the duplicate file */
+         /* create the duplicate file */
+         if( nifti_image_write_status(nim) ) {
+            fprintf(stderr,"** failed to write image %s\n", nim->fname);
+            nifti_image_free(nim);
+            return 1;
+         }
+
          /* if we added a history note, get the new offset into the header */
          /* mod: if the new offset is valid, use it    31 Jan 2006 [rickr] */
          if( nim->iname_offset >= 348 ) nhdr->vox_offset = nim->iname_offset;
@@ -2715,7 +2753,7 @@ int act_swap_hdrs( nt_opts * opts )
       /* if all is well, overwrite header in fname dataset */
       (void)write_hdr_to_file(nhdr, fname); /* errors printed in function */
 
-      if( dupname ) free(dupname);
+      free(dupname);
       free(nhdr);
    }
 
@@ -2754,7 +2792,7 @@ int act_mod_nims( nt_opts * opts )
 
       /* add command as COMMENT extension */
       if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                             strlen(opts->command), NIFTI_ECODE_COMMENT) )
+                             (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
          fprintf(stderr,"** failed to add command to image as extension\n");
 
       /* possibly duplicate the current dataset before writing new header */
@@ -2766,7 +2804,13 @@ int act_mod_nims( nt_opts * opts )
             return 1;
          }
 
-      nifti_image_write(nim);  /* and write it out, piece of cake :) */
+      /* and write it out, piece of cake :) */
+      if( nifti_image_write_status(nim) ) {
+         fprintf(stderr,"** failed to write image %s\n", nim->fname);
+         nifti_image_free(nim);
+         return 1;
+      }
+
       nifti_image_free(nim);
    }
 
@@ -2854,11 +2898,13 @@ int modify_field(void * basep, field_s * field, const char * data)
    float         fval;
    const char  * posn = data;
    int           val, max, fc, nchars;
+   size_t        dataLength;
 
    if( g_debug > 1 )
       fprintf(stderr,"+d modifying field '%s' with '%s'\n", field->name, data);
 
-   if( !data || strlen(data) == 0 )
+   dataLength = data ? strlen(data) : 0;
+   if( dataLength == 0 )
    {
       fprintf(stderr,"** no data for '%s' field modification\n",field->name);
       return 1;
@@ -2973,7 +3019,7 @@ int modify_field(void * basep, field_s * field, const char * data)
          case NT_DT_STRING:
          {
             char * dest = (char *)basep + field->offset;
-            nchars = strlen(data);
+            nchars = dataLength;
             strncpy(dest, data, field->len);
             if( nchars < field->len )  /* clear the rest */
                memset(dest+nchars, '\0', field->len-nchars);
@@ -2990,7 +3036,6 @@ int modify_field(void * basep, field_s * field, const char * data)
  *----------------------------------------------------------------------*/
 int fill_hdr_field_array( field_s * nh_fields )
 {
-   nifti_1_header   nhdr;
    field_s        * nhf = nh_fields;
    int              rv, errs;
 
@@ -3001,55 +3046,55 @@ int fill_hdr_field_array( field_s * nh_fields )
          nhf++;
    */
    errs = 0;
-   NT_SFILL(nhdr, nhf, DT_INT32,     sizeof_hdr,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, data_type,     10, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, db_name,       18, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT32,     extents,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     session_error,  1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, regular,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT8,      dim_info,       1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT32,     sizeof_hdr,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, data_type,     10, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, db_name,       18, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT32,     extents,        1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     session_error,  1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, regular,        1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT8,      dim_info,       1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, DT_INT16,     dim,            8, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   intent_p1,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   intent_p2,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   intent_p3,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     intent_code,    1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     dim,            8, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   intent_p1,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   intent_p2,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   intent_p3,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     intent_code,    1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, DT_INT16,     datatype,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     bitpix,         1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     slice_start,    1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   pixdim,         8, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   vox_offset,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   scl_slope,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   scl_inter,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     slice_end,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     datatype,       1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     bitpix,         1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     slice_start,    1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   pixdim,         8, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   vox_offset,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   scl_slope,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   scl_inter,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     slice_end,      1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, DT_INT8,      slice_code,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT8,      xyzt_units,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   cal_max,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   cal_min,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   slice_duration, 1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   toffset,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT32,     glmax,          1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT32,     glmin,          1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT8,      slice_code,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT8,      xyzt_units,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   cal_max,        1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   cal_min,        1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   slice_duration, 1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   toffset,        1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT32,     glmax,          1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT32,     glmin,          1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, descrip,       80, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, aux_file,      24, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     qform_code,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_INT16,     sform_code,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, descrip,       80, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, aux_file,      24, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     qform_code,     1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_INT16,     sform_code,     1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   quatern_b,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   quatern_c,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   quatern_d,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   qoffset_x,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   qoffset_y,      1, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   qoffset_z,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   quatern_b,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   quatern_c,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   quatern_d,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   qoffset_x,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   qoffset_y,      1, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   qoffset_z,      1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   srow_x,         4, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   srow_y,         4, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, DT_FLOAT32,   srow_z,         4, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, intent_name,   16, rv);  errs += rv;
-   NT_SFILL(nhdr, nhf, NT_DT_STRING, magic,          4, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   srow_x,         4, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   srow_y,         4, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, DT_FLOAT32,   srow_z,         4, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, intent_name,   16, rv);  errs += rv;
+   NT_FILL(nifti_1_header, nhf, NT_DT_STRING, magic,          4, rv);  errs += rv;
 
    if( errs > 0 ){
       fprintf(stderr, "** %d fill_fields errors!\n", errs);
@@ -3058,7 +3103,7 @@ int fill_hdr_field_array( field_s * nh_fields )
 
    /* failure here is a serious problem */
    if( check_total_size("nifti_1_header test: ", nh_fields,
-                        NT_HDR_NUM_FIELDS, sizeof(nhdr)) )
+                        NT_HDR_NUM_FIELDS, sizeof(nifti_1_header)) )
       return 1;
 
    if( g_debug > 3 )
@@ -3073,7 +3118,6 @@ int fill_hdr_field_array( field_s * nh_fields )
  *----------------------------------------------------------------------*/
 int fill_nim_field_array( field_s * nim_fields )
 {
-   nifti_image   nim;
    field_s     * nif = nim_fields;
    int           rv, errs;
 
@@ -3081,69 +3125,69 @@ int fill_nim_field_array( field_s * nim_fields )
 
    errs = 0;
 
-   NT_SFILL(nim, nif, DT_INT32,             ndim,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nx,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               ny,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nz,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nt,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nu,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nv,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,               nw,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,              dim,  8, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,             nvox,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,           nbyper,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,         datatype,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dx,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dy,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dz,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dt,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             du,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dv,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,             dw,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,         pixdim,  8, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      scl_slope,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      scl_inter,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        cal_min,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        cal_max,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,       qform_code,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,       sform_code,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,         freq_dim,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,        phase_dim,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,        slice_dim,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,       slice_code,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,      slice_start,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,        slice_end,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32, slice_duration,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      quatern_b,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      quatern_c,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      quatern_d,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      qoffset_x,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      qoffset_y,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      qoffset_z,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,           qfac,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        qto_xyz, 16, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        qto_ijk, 16, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        sto_xyz, 16, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        sto_ijk, 16, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,        toffset,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,        xyz_units,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,       time_units,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,       nifti_type,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,      intent_code,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      intent_p1,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      intent_p2,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_FLOAT32,      intent_p3,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_STRING,  intent_name, 16, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_STRING,      descrip, 80, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_STRING,     aux_file, 24, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_CHAR_PTR,      fname,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_CHAR_PTR,      iname,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,     iname_offset,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,         swapsize,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,        byteorder,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_POINTER,        data,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, DT_INT32,          num_ext,  1, rv);  errs += rv;
-   NT_SFILL(nim, nif, NT_DT_EXT_PTR,    ext_list,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,             ndim,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nx,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               ny,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nz,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nt,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nu,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nv,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,               nw,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,              dim,  8, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,             nvox,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,           nbyper,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,         datatype,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dx,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dy,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dz,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dt,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             du,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dv,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,             dw,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,         pixdim,  8, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      scl_slope,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      scl_inter,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        cal_min,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        cal_max,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,       qform_code,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,       sform_code,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,         freq_dim,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,        phase_dim,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,        slice_dim,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,       slice_code,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,      slice_start,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,        slice_end,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32, slice_duration,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      quatern_b,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      quatern_c,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      quatern_d,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      qoffset_x,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      qoffset_y,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      qoffset_z,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,           qfac,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        qto_xyz, 16, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        qto_ijk, 16, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        sto_xyz, 16, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        sto_ijk, 16, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,        toffset,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,        xyz_units,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,       time_units,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,       nifti_type,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,      intent_code,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      intent_p1,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      intent_p2,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_FLOAT32,      intent_p3,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_STRING,  intent_name, 16, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_STRING,      descrip, 80, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_STRING,     aux_file, 24, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_CHAR_PTR,      fname,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_CHAR_PTR,      iname,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,     iname_offset,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,         swapsize,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,        byteorder,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_POINTER,        data,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, DT_INT32,          num_ext,  1, rv);  errs += rv;
+   NT_FILL(nifti_image, nif, NT_DT_EXT_PTR,    ext_list,  1, rv);  errs += rv;
 
    if( errs > 0 ){
       fprintf(stderr, "** %d fill_fields errors "
@@ -3153,7 +3197,7 @@ int fill_nim_field_array( field_s * nim_fields )
 
    if( g_debug > 3 )  /* failure here is not an error condition */
        check_total_size("nifti_image test: ", nim_fields,
-                        NT_NIM_NUM_FIELDS, sizeof(nim));
+                        NT_NIM_NUM_FIELDS, sizeof(nifti_image));
 
    if( g_debug > 3 )
       disp_field_s_list("nim_fields: ", nim_fields, NT_NIM_NUM_FIELDS);
@@ -3167,7 +3211,6 @@ int fill_nim_field_array( field_s * nim_fields )
  *----------------------------------------------------------------------*/
 int fill_ana_field_array( field_s * ah_fields )
 {
-   nifti_analyze75   nhdr;
    field_s         * ahf = ah_fields;
    int               rv, errs;
 
@@ -3178,62 +3221,62 @@ int fill_ana_field_array( field_s * ah_fields )
          nhf++;
    */
    errs = 0;
-   NT_SFILL(nhdr, ahf, DT_INT32,     sizeof_hdr,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, data_type,     10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, db_name,       18, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     extents,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     session_error,  1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, regular,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT8,      hkey_un0,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     sizeof_hdr,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, data_type,     10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, db_name,       18, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     extents,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     session_error,  1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, regular,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT8,      hkey_un0,       1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_INT16,     dim,            8, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused8,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused9,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused10,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused11,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused12,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused13,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     unused14,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     dim,            8, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused8,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused9,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused10,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused11,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused12,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused13,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     unused14,       1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_INT16,     datatype,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     bitpix,         1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT16,     dim_un0,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     datatype,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     bitpix,         1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     dim_un0,        1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   pixdim,         8, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   vox_offset,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   funused1,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   funused2,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   funused3,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   pixdim,         8, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   vox_offset,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   funused1,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   funused2,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   funused3,       1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   cal_max,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   cal_min,        1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   compressed,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_FLOAT32,   verified,       1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     glmax,          1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     glmin,          1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   cal_max,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   cal_min,        1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   compressed,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_FLOAT32,   verified,       1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     glmax,          1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     glmin,          1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, descrip,       80, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, aux_file,      24, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, descrip,       80, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, aux_file,      24, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_INT8,      orient,         1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT8,      orient,         1, rv);  errs += rv;
    /* originator is 5 (3) shorts, not 10 chars        26 Sep 2012 [rickr] */
-   NT_SFILL(nhdr, ahf, DT_INT16,     originator,     5, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, generated,     10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, scannum,       10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, patient_id,    10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, exp_date,      10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, exp_time,      10, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, NT_DT_STRING, hist_un0,       3, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT16,     originator,     5, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, generated,     10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, scannum,       10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, patient_id,    10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, exp_date,      10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, exp_time,      10, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, NT_DT_STRING, hist_un0,       3, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_INT32,     views     ,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     vols_added,     1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     start_field,    1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     field_skip,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     views     ,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     vols_added,     1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     start_field,    1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     field_skip,     1, rv);  errs += rv;
 
-   NT_SFILL(nhdr, ahf, DT_INT32,     omax,           1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     omin,           1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     smax,           1, rv);  errs += rv;
-   NT_SFILL(nhdr, ahf, DT_INT32,     smin,           1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     omax,           1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     omin,           1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     smax,           1, rv);  errs += rv;
+   NT_FILL(nifti_analyze75, ahf, DT_INT32,     smin,           1, rv);  errs += rv;
 
    if( errs > 0 ){
       fprintf(stderr, "** %d ana fill_fields errors!\n", errs);
@@ -3242,7 +3285,7 @@ int fill_ana_field_array( field_s * ah_fields )
 
    /* failure here is a serious problem */
    if( check_total_size("nifti_analyze75 test: ", ah_fields, NT_ANA_NUM_FIELDS,
-                        sizeof(nhdr)) )
+                        sizeof(nifti_analyze75)) )
       return 1;
 
    if( g_debug > 3 )
@@ -3301,7 +3344,8 @@ int fill_field( field_s * fp, int type, int offset, int num, const char * name )
    fp->size   = 1;     /* init before check */
    fp->len    = num;
 
-   strncpy(fp->name, name, NT_FIELD_NAME_LEN-1);
+   strncpy(fp->name, name, sizeof(fp->name));
+   fp->name[sizeof(fp->name) - 1] = 0;
 
    switch( type ){
       case DT_UNKNOWN:
@@ -3350,8 +3394,6 @@ const char * field_type_str( int type )
 
    return "DT_UNKNOWN";  /* for DT_UNKNOWN, or as an else */
 }
-
-#define NT_MAX_DT_STR_LEN 14
 
 /*----------------------------------------------------------------------
  * display the contents of all of the field structures
@@ -3511,8 +3553,7 @@ int diff_field(field_s *fieldp, void * str0, void * str1, int nfields)
 
             if( ! ext0 && ! ext1 ) break;     /* continue on */
 
-            if( ext0 && ! ext1 )   return 1;  /* pointer diff is diff */
-            if( ! ext0 && ext1 )   return 1;
+            if( !(ext0 && ext1) )   return 1;  /* pointer diff is diff */
 
             /* just check size and type for a single extension */
             if( ext0->esize != ext1->esize ) return 1;
@@ -3530,7 +3571,7 @@ int diff_field(field_s *fieldp, void * str0, void * str1, int nfields)
 /*----------------------------------------------------------------------
  * display a single extension
  *----------------------------------------------------------------------*/
-int disp_nifti1_extension( const char *mesg, nifti1_extension * ext, int maxlen)
+int disp_nifti1_extension( const char *mesg, const nifti1_extension * ext, int maxlen)
 {
    int len;
    if( mesg ) fputs(mesg, stdout);
@@ -3563,7 +3604,7 @@ int disp_nifti1_extension( const char *mesg, nifti1_extension * ext, int maxlen)
 
 
 /*----------------------------------------------------------------------
- * return the appropritate pointer into the g_hdr_fields struct
+ * return the appropriate pointer into the g_hdr_fields struct
  *----------------------------------------------------------------------*/
 field_s * get_hdr_field( const char * fname, int show_fail )
 {
@@ -3588,7 +3629,7 @@ field_s * get_hdr_field( const char * fname, int show_fail )
 
 
 /*----------------------------------------------------------------------
- * return the appropritate pointer into the g_hdr_fields struct
+ * return the appropriate pointer into the g_hdr_fields struct
  *----------------------------------------------------------------------*/
 field_s * get_nim_field( const char * fname, int show_fail )
 {
@@ -3623,8 +3664,11 @@ int diff_hdrs( nifti_1_header * s0, nifti_1_header * s1, int display )
    for( c = 0; c < NT_HDR_NUM_FIELDS; c++, fp++ )
       if( diff_field(fp, s0, s1, 1) )
       {
-         if( display ) disp_field(NULL, fp, s0, 1, ndiff == 0);
-         if( display ) disp_field(NULL, fp, s1, 1, 0);
+         if( display )
+         {
+            disp_field(NULL, fp, s0, 1, ndiff == 0);
+            disp_field(NULL, fp, s1, 1, 0);
+         }
          ndiff++;
       }
 
@@ -3643,8 +3687,11 @@ int diff_nims( nifti_image * s0, nifti_image * s1, int display )
    for( c = 0; c < NT_NIM_NUM_FIELDS; c++, fp++ )
       if( diff_field(fp, s0, s1, 1) )
       {
-         if( display ) disp_field(NULL, fp, s0, 1, ndiff == 0);
-         if( display ) disp_field(NULL, fp, s1, 1, 0);
+         if( display )
+         {
+            disp_field(NULL, fp, s0, 1, ndiff == 0);
+            disp_field(NULL, fp, s1, 1, 0);
+         }
          ndiff++;
       }
 
@@ -3668,8 +3715,11 @@ int diff_hdrs_list( nifti_1_header * s0, nifti_1_header * s1, str_list * slist,
       fp = get_hdr_field(*sptr, 1);    /* "not found" displayed in func */
       if( fp && diff_field(fp, s0, s1, 1) )
       {
-         if( display ) disp_field(NULL, fp, s0, 1, ndiff == 0);
-         if( display ) disp_field(NULL, fp, s1, 1, 0);
+         if( display )
+         {
+            disp_field(NULL, fp, s0, 1, ndiff == 0);
+            disp_field(NULL, fp, s1, 1, 0);
+         }
          ndiff++;
       }
       sptr++;
@@ -3695,8 +3745,11 @@ int diff_nims_list( nifti_image * s0, nifti_image * s1, str_list * slist,
       fp = get_nim_field(*sptr, 1);    /* "not found" displayed in func */
       if( fp && diff_field(fp, s0, s1, 1) )
       {
-         if( display ) disp_field(NULL, fp, s0, 1, ndiff == 0);
-         if( display ) disp_field(NULL, fp, s1, 1, 0);
+         if( display )
+         {
+            disp_field(NULL, fp, s0, 1, ndiff == 0);
+            disp_field(NULL, fp, s1, 1, 0);
+         }
          ndiff++;
       }
       sptr++;
@@ -3765,7 +3818,8 @@ int act_disp_ci( nt_opts * opts )
       if( len < 0 || !data )
       {
          fprintf(stderr,"** FAILURE for dataset '%s'\n", nim->fname);
-         if( data ) free(data);
+         free(data);
+         data = NULL;
          err++;
       }
 
@@ -3787,15 +3841,15 @@ int act_disp_ci( nt_opts * opts )
       nifti_image_free(nim);
    }
 
-   if( data ) free(data);
+   free(data);
 
    return 0;
 }
 
-
+#define NT_LOC_MAX_FLOAT_BUF 32
 int disp_raw_data( void * data, int type, int nvals, char space, int newline )
 {
-   char * dp, fbuf[32];
+   char * dp, fbuf[NT_LOC_MAX_FLOAT_BUF];
    int    c, size;
 
    nifti_datatype_sizes( type, &size, NULL );   /* get nbyper */
@@ -3808,30 +3862,54 @@ int disp_raw_data( void * data, int type, int nvals, char space, int newline )
                printf("%d", *(char *)dp);
                break;
          case DT_INT16:
-               printf("%d", *(short *)dp);
+         {
+               short temp;
+               memcpy(&temp, dp, sizeof(temp));
+               printf("%d", temp);
                break;
+         }
          case DT_INT32:
-               printf("%d", *(int *)dp);
+         {
+               int temp;
+               memcpy(&temp, dp, sizeof(temp));
+               printf("%d", temp);
                break;
+         }
          case DT_UINT8:
-               printf("%u", *(unsigned char *)dp);
+         {
+               unsigned char temp;
+               memcpy(&temp, dp, sizeof(temp));
+               printf("%u", temp);
                break;
+         }
          case DT_UINT16:
-               printf("%u", *(unsigned short *)dp);
+         {
+               unsigned short temp;
+               memcpy(&temp, dp, sizeof(temp));
+               printf("%u", temp);
                break;
+         }
          case DT_UINT32:
-               printf("%u", *(unsigned int *)dp);
+         {
+               unsigned int temp;
+               memcpy(&temp, dp, sizeof(temp));
+               printf("%u", temp);
                break;
+         }
          case DT_FLOAT32:
          {
-               sprintf(fbuf,"%f", *(float *)dp);
+               float temp;
+               memcpy(&temp, dp, sizeof(temp));
+               snprintf(fbuf, NT_LOC_MAX_FLOAT_BUF,"%f", temp);
                clear_float_zeros(fbuf);
                printf("%s", fbuf);
                break;
          }
          case DT_FLOAT64:
          {
-               sprintf(fbuf,"%f", *(double *)dp);
+               double temp;
+               memcpy(&temp, dp, sizeof(temp));
+               snprintf(fbuf, NT_LOC_MAX_FLOAT_BUF,"%f", temp);
                clear_float_zeros(fbuf);
                printf("%s", fbuf);
                break;
@@ -3850,13 +3928,14 @@ int disp_raw_data( void * data, int type, int nvals, char space, int newline )
 
 /*----------------------------------------------------------------------
  * remove trailing zeros from string of printed float
+ * (of a max NT_LOC_MAX_FLOAT_BUF (32) string)
  * return  1 if something was cleared
  *         0 if not
  *----------------------------------------------------------------------*/
 int clear_float_zeros( char * str )
 {
-   char * dp  = strchr(str, '.'), * valp;
-   int    len;
+   char   * dp  = strchr(str, '.'), * valp;
+   size_t   len;
 
    if( !dp ) return 0;      /* nothing to clear */
 
@@ -3943,7 +4022,7 @@ int act_cbl( nt_opts * opts )
 
    /* add command as COMMENT extension */
    if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                          strlen(opts->command), NIFTI_ECODE_COMMENT) )
+                          (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
       fprintf(stderr,"** failed to add command to image as extension\n");
 
    /* replace filenames using prefix */
@@ -4001,7 +4080,7 @@ int act_cci( nt_opts * opts )
 
    /* add command as COMMENT extension */
    if( opts->keep_hist && nifti_add_extension(nim, opts->command,
-                          strlen(opts->command), NIFTI_ECODE_COMMENT) )
+                          (int)strlen(opts->command), NIFTI_ECODE_COMMENT) )
       fprintf(stderr,"** failed to add command to image as extension\n");
 
    /* replace filenames using prefix */
@@ -4020,7 +4099,13 @@ int act_cci( nt_opts * opts )
    if(g_debug>2) disp_field("new nim:\n",g_nim_fields,nim,NT_NIM_NUM_FIELDS,1);
 
    /* and finally, write out results */
-   if( nifti_nim_is_valid(nim, g_debug) ) nifti_image_write(nim);
+   if( nifti_nim_is_valid(nim, g_debug) ) {
+      if( nifti_image_write_status(nim) ) {
+         fprintf(stderr,"** failed to write image %s\n", nim->fname);
+         nifti_image_free(nim);
+         return 1;
+      }
+   }
 
    nifti_image_free(nim);
 
@@ -4036,11 +4121,11 @@ static int free_opts_mem( nt_opts * nopt )
 {
     if( !nopt ) return 1;
 
-    if( nopt->elist.list   ) free(nopt->elist.list);
-    if( nopt->etypes.list  ) free(nopt->etypes.list);
-    if( nopt->flist.list   ) free(nopt->flist.list);
-    if( nopt->vlist.list   ) free(nopt->vlist.list);
-    if( nopt->infiles.list ) free(nopt->infiles.list);
+    free(nopt->elist.list);
+    free(nopt->etypes.list);
+    free(nopt->flist.list);
+    free(nopt->vlist.list);
+    free(nopt->infiles.list);
 
     return 0;
 }
@@ -4049,25 +4134,25 @@ static int free_opts_mem( nt_opts * nopt )
 /*----------------------------------------------------------------------
  * wrapper for nifti_image_read
  *
- * this adds the option to generage an empty image, if the
+ * this adds the option to generate an empty image, if the
  * filename starts with "MAKE_IM"
  *----------------------------------------------------------------------*/
 nifti_image * nt_image_read( nt_opts * opts, const char * fname, int doread )
 {
     if( !opts || !fname  ) {
         fprintf(stderr,"** nt_image_read: bad params (%p,%p)\n",
-                (void *)opts, (void *)fname);
+                (void *)opts, (const void *)fname);
         return NULL;
     }
 
     /* if the user does not want an empty image, do normal image_read */
-    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) ) {
+    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) != 0 ) {
         if(g_debug > 1)
             fprintf(stderr,"-d calling nifti_image_read(%s,%d)\n",fname,doread);
         return nifti_image_read(fname, doread);
     }
 
-    /* so generate an emtpy image */
+    /* so generate an empty image */
     if(g_debug > 1) {
         fprintf(stderr,"+d NT_IR: generating EMPTY IMAGE from %s...\n",fname);
         if(g_debug > 2) {
@@ -4086,7 +4171,7 @@ nifti_image * nt_image_read( nt_opts * opts, const char * fname, int doread )
 /*----------------------------------------------------------------------
  * wrapper for nifti_read_header
  *
- * this adds the option to generage an empty image, if the
+ * this adds the option to generate an empty image, if the
  * filename starts with "MAKE_IM"
  *----------------------------------------------------------------------*/
 nifti_1_header * nt_read_header(nt_opts * opts, const char * fname, int * swapped,
@@ -4095,18 +4180,18 @@ nifti_1_header * nt_read_header(nt_opts * opts, const char * fname, int * swappe
     /* swapped is not necessary */
     if( !opts || !fname ) {
         fprintf(stderr,"** nt_read_header: bad params (%p,%p)\n",
-                (void *)opts,(void *)fname);
+                (void *)opts,(const void *)fname);
         return NULL;
     }
 
     /* if the user does not want an empty image, do normal image_read */
-    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) ) {
+    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) != 0 ) {
         if(g_debug > 1)
             fprintf(stderr,"-d calling nifti_read_header(%s,...)\n", fname);
         return nifti_read_header(fname, swapped, check);
     }
 
-    /* so generate an emtpy image */
+    /* so generate an empty image */
     if(g_debug > 1) {
         fprintf(stderr,"+d NT_RH: generating EMPTY IMAGE from %s...\n",fname);
         if(g_debug > 2) {
@@ -4126,7 +4211,7 @@ nifti_1_header * nt_read_header(nt_opts * opts, const char * fname, int * swappe
 /*----------------------------------------------------------------------
  * wrapper for nifti_read_header
  *
- * this adds the option to generage an empty image, if the
+ * this adds the option to generate an empty image, if the
  * filename starts with "MAKE_IM"
  *----------------------------------------------------------------------*/
 nifti_image * nt_read_bricks(nt_opts * opts, const char * fname, int len, int * list,
@@ -4138,18 +4223,18 @@ nifti_image * nt_read_bricks(nt_opts * opts, const char * fname, int len, int * 
     /* swapped is not necessary */
     if( !opts || !fname || !NBL ) {
         fprintf(stderr,"** nt_read_bricks: bad params (%p,%p,%p)\n",
-                (void *)opts, (void *)fname, (void *)NBL);
+                (void *)opts, (const void *)fname, (void *)NBL);
         return NULL;
     }
 
     /* if the user does not want an empty image, do normal read_bricks */
-    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) ) {
+    if( strncmp(fname,NT_MAKE_IM_NAME,strlen(NT_MAKE_IM_NAME)) != 0 ) {
         if(g_debug > 1)
            fprintf(stderr,"-d calling nifti_image_read_bricks(%s,...)\n",fname);
         return nifti_image_read_bricks(fname, len, list, NBL);
     }
 
-    /* so generate an emtpy image */
+    /* so generate an empty image */
     if(g_debug > 1) {
         fprintf(stderr,"+d NT_RB: generating EMPTY IMAGE from %s...\n",fname);
         if(g_debug > 2) {

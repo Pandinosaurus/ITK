@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,6 +66,7 @@ public:
   using RealType = typename NumericTraits<OutputPixelType>::RealType;
   using InputPixelType = typename TInputImage::PixelType;
   using InputInternalPixelType = typename TInputImage::InternalPixelType;
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Image type alias support */
@@ -77,37 +78,31 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods)  */
-  itkTypeMacro(LaplacianSharpeningImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LaplacianSharpeningImageFilter);
 
   /** Method for creation through the object factory.  */
   itkNewMacro(Self);
 
-  /** LaplacianSharpeningImageFilter needs a larger input requested
-   * region than the output requested region (larger in the direction
-   * of the derivative).  As such, LaplacianSharpeningImageFilter
-   * needs to provide an implementation for
-   * GenerateInputRequestedRegion() in order to inform the pipeline
-   * execution model.
-   *
-   * \sa ImageToImageFilter::GenerateInputRequestedRegion()  */
-  void
-  GenerateInputRequestedRegion() override;
-
-  /** Enable/Disable using the image spacing information in
-   *  calculations. Use this option if you  want derivatives in
-   *  physical space. Default  is UseImageSpacingOn. */
+  /** Set/Get whether or not the filter will use the spacing information of the input image in its calculations. Use
+   * this option if derivatives are required in physical space. */
+  /** @ITKStartGrouping */
   itkBooleanMacro(UseImageSpacing);
-
-  /** Set/Get whether or not the filter will use the spacing of the input
-      image in its calculations */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
+  /** @ITKEndGrouping */
+  itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
 
 protected:
-  LaplacianSharpeningImageFilter() { m_UseImageSpacing = true; }
+  LaplacianSharpeningImageFilter()
+    : m_UseImageSpacing(true)
+  {}
 
   ~LaplacianSharpeningImageFilter() override = default;
+
+  /** This filter must produce all of its output at once. */
+  void
+  EnlargeOutputRequestedRegion(DataObject * output) override;
 
   /** Standard pipeline method. While this class does not implement a
    * ThreadedGenerateData(), its GenerateData() delegates all
@@ -121,7 +116,7 @@ protected:
   PrintSelf(std::ostream &, Indent) const override;
 
 private:
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{};
 };
 } // end namespace itk
 

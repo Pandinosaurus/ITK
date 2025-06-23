@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,8 @@
 //====================================================================
 //
 //
-//   WARNING WARNING WARNIG WARNING WARNING WARNIG !!!!
-//   WARNING WARNING WARNIG WARNING WARNING WARNIG !!!!
+//   WARNING WARNING WARNING WARNING WARNING WARNING !!!!
+//   WARNING WARNING WARNING WARNING WARNING WARNING !!!!
 //
 //
 //
@@ -33,8 +33,8 @@
 //
 //
 //
-//   WARNING WARNING WARNIG WARNING WARNING WARNIG !!!!
-//   WARNING WARNING WARNIG WARNING WARNING WARNIG !!!!
+//   WARNING WARNING WARNING WARNING WARNING WARNING !!!!
+//   WARNING WARNING WARNING WARNING WARNING WARNING !!!!
 //
 //
 //====================================================================
@@ -44,7 +44,7 @@
 //  Probably the most common representation of datasets in clinical
 //  applications is the one that uses sets of DICOM slices in order to compose
 //  tridimensional images. This is the case for CT, MRI and PET scanners. It
-//  is very common therefore for image analysists to have to process
+//  is very common therefore for image analysts to have to process
 //  volumetric images that are stored in the form of a set of DICOM files
 //  belonging to a common DICOM series.
 //
@@ -74,11 +74,10 @@ main(int argc, char * argv[])
   using ImageType = itk::Image<short, 3>;
   using ReaderType = itk::ImageSeriesReader<ImageType>;
 
-  itk::DICOMImageIO2::Pointer dicomIO = itk::DICOMImageIO2::New();
+  auto dicomIO = itk::DICOMImageIO2::New();
 
   // Get the DICOM filenames from the directory
-  itk::DICOMSeriesFileNames::Pointer nameGenerator =
-    itk::DICOMSeriesFileNames::New();
+  auto nameGenerator = itk::DICOMSeriesFileNames::New();
   nameGenerator->SetDirectory(argv[1]);
 
 
@@ -119,7 +118,7 @@ main(int argc, char * argv[])
     }
     std::cout << std::endl << std::endl;
 
-    ReaderType::Pointer reader = ReaderType::New();
+    auto reader = ReaderType::New();
     reader->SetFileNames(fileNames);
     reader->SetImageIO(dicomIO);
 
@@ -134,7 +133,7 @@ main(int argc, char * argv[])
     }
 
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     std::cout << "Writing the image as " << std::endl << std::endl;
     std::cout << argv[2] << std::endl << std::endl;

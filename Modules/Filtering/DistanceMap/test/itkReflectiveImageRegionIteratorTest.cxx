@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,27 +33,20 @@ itkReflectiveImageRegionIteratorTest(int, char *[])
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
   using IteratorVisitsType = itk::ImageRegionIteratorWithIndex<ImageVisitsType>;
 
-  ImageType::Pointer myImage = ImageType::New();
+  auto myImage = ImageType::New();
 
-  ImageType::SizeType size = { { 4, 4, 4, 4 } };
+  constexpr ImageType::SizeType size = { { 4, 4, 4, 4 } };
 
-  ImageType::IndexType start;
-  start.Fill(0);
+  constexpr ImageType::IndexType start{};
 
-  ImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const ImageType::RegionType region{ start, size };
 
-  myImage->SetLargestPossibleRegion(region);
-  myImage->SetBufferedRegion(region);
-  myImage->SetRequestedRegion(region);
+  myImage->SetRegions(region);
   myImage->Allocate();
 
-  ImageVisitsType::Pointer visitImage = ImageVisitsType::New();
+  auto visitImage = ImageVisitsType::New();
 
-  visitImage->SetLargestPossibleRegion(region);
-  visitImage->SetRequestedRegion(region);
-  visitImage->SetBufferedRegion(region);
+  visitImage->SetRegions(region);
   visitImage->Allocate();
 
   IteratorType       nit(myImage, region);
@@ -68,7 +61,7 @@ itkReflectiveImageRegionIteratorTest(int, char *[])
     // set the pixel index as value
     nit.Set(nit.GetIndex());
     // Set the number of visits to zero
-    vit.Set(itk::NumericTraits<ImageVisitsType::PixelType>::ZeroValue());
+    vit.Set(ImageVisitsType::PixelType{});
     ++nit;
     ++vit;
   }
@@ -88,8 +81,8 @@ itkReflectiveImageRegionIteratorTest(int, char *[])
   rvt.GoToBegin();
   while (!rit.IsAtEnd())
   {
-    PixelType            value = rit.Get();
-    ImageType::IndexType index = rit.GetIndex();
+    const PixelType            value = rit.Get();
+    const ImageType::IndexType index = rit.GetIndex();
     rvt.Set(rvt.Get() + 1);
     if (value != index)
     {
@@ -103,8 +96,8 @@ itkReflectiveImageRegionIteratorTest(int, char *[])
 
   // Each element should be visited 2 ^ # of dimensions
   // each left shift = multiply by 2
-  int visits = (1 << (ImageType::ImageDimension));
-  int failed = 0;
+  constexpr int visits = (1 << (ImageType::ImageDimension));
+  int           failed = 0;
 
   // Verify the number of visits
   vit.GoToBegin();
@@ -124,7 +117,7 @@ itkReflectiveImageRegionIteratorTest(int, char *[])
   // to by the iterator.  These should obviously always be the same.
   // But this test exposes a bug in the code that has been fixed.
   ImageType::OffsetType voffset;
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     if (region.GetSize()[dim] > 1)
     {

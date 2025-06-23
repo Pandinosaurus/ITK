@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,9 @@
 #ifndef itkRegularizedHeavisideStepFunction_hxx
 #define itkRegularizedHeavisideStepFunction_hxx
 
-#include "itkRegularizedHeavisideStepFunction.h"
 
 namespace itk
 {
-template <typename TInput, typename TOutput>
-RegularizedHeavisideStepFunction<TInput, TOutput>::RegularizedHeavisideStepFunction()
-  : Superclass()
-  , m_Epsilon(NumericTraits<RealType>::OneValue())
-  , m_OneOverEpsilon(NumericTraits<RealType>::OneValue())
-{}
-
 template <typename TInput, typename TOutput>
 void
 RegularizedHeavisideStepFunction<TInput, TOutput>::SetEpsilon(const RealType & ieps)

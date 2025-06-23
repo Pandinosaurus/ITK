@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,28 +59,28 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEquationPropagationTerm, LevelSetEquationTermBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEquationPropagationTerm);
 
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using InputPixelRealType = typename Superclass::InputPixelRealType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::InputPixelRealType;
 
-  using LevelSetContainerType = typename Superclass::LevelSetContainerType;
-  using LevelSetContainerPointer = typename Superclass::LevelSetContainerPointer;
-  using LevelSetType = typename Superclass::LevelSetType;
-  using LevelSetPointer = typename Superclass::LevelSetPointer;
-  using LevelSetOutputPixelType = typename Superclass::LevelSetOutputPixelType;
-  using LevelSetOutputRealType = typename Superclass::LevelSetOutputRealType;
-  using LevelSetInputIndexType = typename Superclass::LevelSetInputIndexType;
-  using LevelSetGradientType = typename Superclass::LevelSetGradientType;
-  using LevelSetHessianType = typename Superclass::LevelSetHessianType;
-  using LevelSetIdentifierType = typename Superclass::LevelSetIdentifierType;
-  using LevelSetDataType = typename Superclass::LevelSetDataType;
+  using typename Superclass::LevelSetContainerType;
+  using typename Superclass::LevelSetContainerPointer;
+  using typename Superclass::LevelSetType;
+  using typename Superclass::LevelSetPointer;
+  using typename Superclass::LevelSetOutputPixelType;
+  using typename Superclass::LevelSetOutputRealType;
+  using typename Superclass::LevelSetInputIndexType;
+  using typename Superclass::LevelSetGradientType;
+  using typename Superclass::LevelSetHessianType;
+  using typename Superclass::LevelSetIdentifierType;
+  using typename Superclass::LevelSetDataType;
 
-  using HeavisideType = typename Superclass::HeavisideType;
-  using HeavisideConstPointer = typename Superclass::HeavisideConstPointer;
+  using typename Superclass::HeavisideType;
+  using typename Superclass::HeavisideConstPointer;
 
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
 
@@ -97,12 +97,14 @@ public:
   /** Set/Get the propagation image. By default, if no PropagationImage has
   been set, it casts the input image and uses it in the term contribution
   calculation. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(PropagationImage, PropagationImageType);
   itkGetModifiableObjectMacro(PropagationImage, PropagationImageType);
-
+  /** @ITKEndGrouping */
   /** \todo to be documented. */
   void
-  Update() override;
+  Update() override
+  {}
 
   /** Initialize the parameters in the terms prior to an iteration */
   void
@@ -110,20 +112,22 @@ public:
 
   /** \todo to be documented. */
   void
-  Initialize(const LevelSetInputIndexType &) override;
+  Initialize(const LevelSetInputIndexType &) override
+  {}
 
   /** Supply updates at pixels to keep the term parameters always updated */
   void
-  UpdatePixel(const LevelSetInputIndexType & iP,
-              const LevelSetOutputRealType & oldValue,
-              const LevelSetOutputRealType & newValue) override;
+  UpdatePixel(const LevelSetInputIndexType & itkNotUsed(iP),
+              const LevelSetOutputRealType & itkNotUsed(oldValue),
+              const LevelSetOutputRealType & itkNotUsed(newValue)) override
+  {}
 
 protected:
   LevelSetEquationPropagationTerm();
 
   ~LevelSetEquationPropagationTerm() override = default;
 
-  PropagationImagePointer m_PropagationImage;
+  PropagationImagePointer m_PropagationImage{};
 
   /** Return the spatial speed dependence a given pixel location
    * Usually, it is constant across the image domain */
@@ -132,10 +136,12 @@ protected:
 
   /** Returns the term contribution for a given location iP, i.e.
    *  \f$ \omega_i( p ) \f$. */
+  /** @ITKStartGrouping */
   LevelSetOutputRealType
   Value(const LevelSetInputIndexType & iP) override;
   LevelSetOutputRealType
   Value(const LevelSetInputIndexType & iP, const LevelSetDataType & iData) override;
+  /** @ITKEndGrouping */
 };
 
 } // namespace itk

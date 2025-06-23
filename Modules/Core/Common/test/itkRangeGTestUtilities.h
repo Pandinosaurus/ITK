@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -103,6 +103,79 @@ public:
     ExpectRangesHaveEqualBeginAndEnd(moveAssignedRange, originalRangeBeforeMove);
   }
 
+
+  template <typename TRange>
+  static void
+  ExpectIteratorIsDefaultConstructible()
+  {
+    using IteratorType = typename TRange::iterator;
+    constexpr IteratorType defaultConstructedIterator{};
+
+    // Test that a default-constructed iterator behaves according to C++ proposal
+    // N3644, "Null Forward Iterators" by Alan Talbot, which is accepted with
+    // C++14: "value-initialized iterators may be compared and shall compare
+    // equal to other value-initialized iterators of the same type."
+    // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3644.pdf
+
+    ExpectIteratorEqualsItself(defaultConstructedIterator);
+    EXPECT_EQ(defaultConstructedIterator, IteratorType());
+  }
+
+
+  // Checks the `constexpr` member functions begin() and end() of a container like FixedArray, Index, Offset and Size.
+  template <typename TContainer>
+  static constexpr bool
+  CheckConstexprBeginAndEndOfContainer()
+  {
+    using ConstContainerType = const TContainer;
+    using ValueType = std::remove_reference_t<decltype(*(TContainer().begin()))>;
+
+    static_assert(std::is_same_v<decltype(*(TContainer().begin())), ValueType &>,
+                  "For a non-const container, begin() should return a non-const reference");
+    static_assert(std::is_same_v<decltype(*(ConstContainerType().begin())), const ValueType &>,
+                  "For a const container, begin() should return a const reference");
+    static_assert(std::is_same_v<decltype(*(TContainer().cbegin())), const ValueType &> &&
+                    std::is_same_v<decltype(*(ConstContainerType().cbegin())), const ValueType &>,
+                  "For any container, cbegin() should return a const reference");
+
+    static_assert(std::is_same_v<decltype(*(TContainer().end())), ValueType &>,
+                  "For a non-const container, end() should return a non-const reference");
+    static_assert(std::is_same_v<decltype(*(ConstContainerType().end())), const ValueType &>,
+                  "For a const container, end() should return a const reference");
+    static_assert(std::is_same_v<decltype(*(TContainer().cend())), const ValueType &> &&
+                    std::is_same_v<decltype(*(ConstContainerType().cend())), const ValueType &>,
+                  "For any container, cend() should return a const reference");
+
+    constexpr TContainer container{};
+
+    static_assert(container.cbegin() == container.begin(), "cbegin() should return the same iterator as begin().");
+    static_assert(container.cend() == container.end(), "cend() should return the same iterator as end().");
+
+    // Just return true to ease calling this function inside a static_assert.
+    return true;
+  }
+
+
+  // Tells if `distance(&front, &back) + 1` is equal to `size`, for the specified container.
+  template <typename TContainer>
+  static constexpr bool
+  IsDistanceFromFrontToBackPlusOneEqualToSize(const TContainer & container)
+  {
+    return std::distance(&container.front(), &container.back()) + 1 == container.size();
+  }
+
+
+  // Checks that each element of the specified range is zero.
+  template <typename TRange>
+  static void
+  ExpectEachElementIsZero(const TRange & range)
+  {
+    for (const auto & element : range)
+    {
+      EXPECT_EQ(element, 0);
+    }
+  }
+
 private:
   template <typename TRange>
   static void
@@ -110,6 +183,27 @@ private:
   {
     EXPECT_EQ(std::begin(range1), std::begin(range2));
     EXPECT_EQ(std::end(range1), std::end(range2));
+  }
+
+  template <typename TIterator>
+  static void
+  ExpectIteratorEqualsItself(const TIterator & it)
+  {
+    static_assert(!std::is_pointer_v<TIterator>,
+                  "There should be a specific `ExpectIteratorEqualsItself` overload for a pointer as argument");
+
+    // Checks the (typically) user-defined `operator==` and `operator!=` of TIterator.
+    EXPECT_TRUE(it == it);
+    EXPECT_FALSE(it != it);
+  }
+
+  template <typename TValue>
+  static void
+  ExpectIteratorEqualsItself(TValue *)
+  {
+    // Overload for the use of a pointer type as iterator. Intentionally does "nothing", as a pointer always
+    // equals itself, by definition. Aims to avoid "warning: self-comparison always evaluates to false/true
+    // [-Wtautological-compare]", as produced by clang 13.0.1 on Ubuntu 20.04.
   }
 };
 

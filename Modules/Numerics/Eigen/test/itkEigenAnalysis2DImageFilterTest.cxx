@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,22 +54,16 @@ class EigenAnalysis2DImageFilterTester
   InitializeImage(myImageType * image, double value)
   {
 
-    typename myImageType::Pointer inputImage(image);
+    const typename myImageType::Pointer inputImage(image);
 
     // Define their size, and start index
-    mySizeType size;
-    size.Fill(2);
+    auto size = mySizeType::Filled(2);
 
-    myIndexType start;
-    start.Fill(0);
+    constexpr myIndexType start{};
 
-    myRegionType region;
-    region.SetIndex(start);
-    region.SetSize(size);
+    const myRegionType region{ start, size };
 
-    inputImage->SetLargestPossibleRegion(region);
-    inputImage->SetBufferedRegion(region);
-    inputImage->SetRequestedRegion(region);
+    inputImage->SetRegions(region);
     inputImage->Allocate();
 
     myIteratorType it(inputImage, inputImage->GetRequestedRegion());
@@ -87,14 +81,14 @@ class EigenAnalysis2DImageFilterTester
   PrintImage(myImageType * image, const char * text)
   {
 
-    typename myImageType::Pointer imagePtr(image);
+    const typename myImageType::Pointer imagePtr(image);
 
     // Create an iterator for going through the image
     myIteratorType it(imagePtr, imagePtr->GetRequestedRegion());
 
     it.GoToBegin();
 
-    //  Print the content of the image
+    // Print the content of the image
     std::cout << text << std::endl;
     while (!it.IsAtEnd())
     {
@@ -109,14 +103,14 @@ class EigenAnalysis2DImageFilterTester
   PrintImage(myVectorImageType * image, const char * text)
   {
 
-    typename myVectorImageType::Pointer imagePtr(image);
+    const typename myVectorImageType::Pointer imagePtr(image);
 
     // Create an iterator for going through the image
     myVectorIteratorType it(imagePtr, imagePtr->GetRequestedRegion());
 
     it.GoToBegin();
 
-    //  Print the content of the image
+    // Print the content of the image
     std::cout << text << std::endl;
     while (!it.IsAtEnd())
     {
@@ -130,9 +124,9 @@ public:
   Run()
   {
     // Create the images
-    typename myImageType::Pointer inputImageXX = myImageType::New();
-    typename myImageType::Pointer inputImageXY = myImageType::New();
-    typename myImageType::Pointer inputImageYY = myImageType::New();
+    auto inputImageXX = myImageType::New();
+    auto inputImageXY = myImageType::New();
+    auto inputImageYY = myImageType::New();
 
 
     InitializeImage(inputImageXX, std::cos(itk::Math::pi / 6.0));
@@ -141,8 +135,8 @@ public:
 
 
     // Create a  Filter
-    typename myFilterType::Pointer filter = myFilterType::New();
-    itk::SimpleFilterWatcher       watcher(filter);
+    auto                           filter = myFilterType::New();
+    const itk::SimpleFilterWatcher watcher(filter);
 
     // Connect the input images
     filter->SetInput1(inputImageXX);
@@ -154,10 +148,10 @@ public:
     filter->Update();
 
     // Get
-    typename myImageType::Pointer maxEigenValue = filter->GetMaxEigenValue();
-    typename myImageType::Pointer minEigenValue = filter->GetMinEigenValue();
+    const typename myImageType::Pointer maxEigenValue = filter->GetMaxEigenValue();
+    const typename myImageType::Pointer minEigenValue = filter->GetMinEigenValue();
 
-    typename myVectorImageType::Pointer maxEigenVector = filter->GetMaxEigenVector();
+    const typename myVectorImageType::Pointer maxEigenVector = filter->GetMaxEigenVector();
 
     PrintImage(maxEigenValue, "Max Eigen Value");
     PrintImage(minEigenValue, "Min Eigen Value");

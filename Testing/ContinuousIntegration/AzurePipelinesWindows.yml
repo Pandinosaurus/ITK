@@ -3,16 +3,35 @@ name: ITK.Windows
 trigger:
   branches:
     include:
-    - master
+    - main
     - release*
+  paths:
+    exclude:
+    - '*.md'
+    - LICENSE
+    - NOTICE
+    - Documentation/*
+    - Utilities/Debugger/*
+    - Utilities/ITKv5Preparation/*
+    - Utilities/Maintenance/*
+pr:
+  paths:
+    exclude:
+    - '*.md'
+    - LICENSE
+    - NOTICE
+    - Documentation/*
+    - Utilities/Debugger/*
+    - Utilities/ITKv5Preparation/*
+    - Utilities/Maintenance/*
 variables:
-  ExternalDataVersion: 5.1.0
+  ExternalDataVersion: 5.4.3
 jobs:
 - job: Windows
   timeoutInMinutes: 0
   cancelTimeoutInMinutes: 300
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-2022'
   steps:
     - checkout: self
       clean: true
@@ -22,10 +41,15 @@ jobs:
         if DEFINED SYSTEM_PULLREQUEST_SOURCECOMMITID git checkout $(System.PullRequest.SourceCommitId)
       displayName: Checkout pull request HEAD
 
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.9'
+        architecture: 'x64'
+
     - script: |
         pip3 install ninja
         pip3 install --upgrade setuptools
-        pip3 install scikit-ci-addons
+        pip3 install scikit-ci-addons lxml
       displayName: 'Install dependencies'
 
     - script: |
@@ -33,7 +57,7 @@ jobs:
 
         curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v$(ExternalDataVersion)/InsightData-$(ExternalDataVersion).tar.gz -O
         cmake -E tar xfz InsightData-$(ExternalDataVersion).tar.gz
-        cmake -E rename InsightToolkit-$(ExternalDataVersion)/.ExternalData/MD5 $(Build.SourcesDirectory)/.ExternalData/MD5
+        cmake -E rename InsightToolkit-$(ExternalDataVersion)/.ExternalData/CID $(Build.SourcesDirectory)/.ExternalData/CID
       workingDirectory: $(Agent.BuildDirectory)
       displayName: 'Download dashboard script and testing data'
 
@@ -56,7 +80,7 @@ jobs:
 
     - script: |
         cmake --version
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         ctest -S $(Agent.BuildDirectory)/ITK-dashboard/dashboard.cmake -VV -j 4
       displayName: 'Build and test'
       env:

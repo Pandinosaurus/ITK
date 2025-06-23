@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,7 +96,7 @@
 int
 main(int argc, char * argv[])
 {
-  if (argc < 4)
+  if (argc < 3)
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << "  inputImageFile  outputImageFile";
@@ -130,8 +130,8 @@ main(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -151,7 +151,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using FilterType =
     itk::ResampleImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -182,7 +182,7 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   filter->SetTransform(transform);
   // Software Guide : EndCodeSnippet
 
@@ -213,7 +213,7 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   filter->SetInterpolator(interpolator);
   // Software Guide : EndCodeSnippet
 
@@ -246,11 +246,11 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   // pixel spacing in millimeters along X and Y
-  const double spacing[Dimension] = { 1.0, 1.0 };
+  constexpr double spacing[Dimension] = { 1.0, 1.0 };
   filter->SetOutputSpacing(spacing);
 
   // Physical space coordinate of origin for X and Y
-  const double origin[Dimension] = { 0.0, 0.0 };
+  constexpr double origin[Dimension] = { 0.0, 0.0 };
   filter->SetOutputOrigin(origin);
   // Software Guide : EndCodeSnippet
 

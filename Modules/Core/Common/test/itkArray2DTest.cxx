@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ itkArray2DTest(int, char *[])
     }
   }
 
-  const double tolerance = 1e-6;
+  constexpr double tolerance = 1e-6;
 
   // test copy constructor
   ArrayType b(a);
@@ -81,9 +81,8 @@ itkArray2DTest(int, char *[])
   }
 
   // test for assignment from Array2D
-  ArrayType e;
 
-  e = a;
+  ArrayType e = a;
 
   for (unsigned int r = 0; r < rows; ++r)
   {
@@ -100,9 +99,8 @@ itkArray2DTest(int, char *[])
   }
 
   // test for assignment from vnl_matrix
-  ArrayType f;
 
-  f = vm;
+  ArrayType f = vm;
 
   for (unsigned int r = 0; r < rows; ++r)
   {

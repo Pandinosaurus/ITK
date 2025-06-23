@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,15 +58,9 @@ HDF5TransformIOFactory::GetDescription() const
 
 // Undocumented API used to register during static initialization.
 // DO NOT CALL DIRECTLY.
-static bool HDF5TransformIOFactoryHasBeenRegistered;
-
 void ITKIOTransformHDF5_EXPORT
-     HDF5TransformIOFactoryRegister__Private()
+HDF5TransformIOFactoryRegister__Private()
 {
-  if (!HDF5TransformIOFactoryHasBeenRegistered)
-  {
-    HDF5TransformIOFactoryHasBeenRegistered = true;
-    HDF5TransformIOFactory::RegisterOneFactory();
-  }
+  ObjectFactoryBase::RegisterInternalFactoryOnce<HDF5TransformIOFactory>();
 }
 } // end namespace itk

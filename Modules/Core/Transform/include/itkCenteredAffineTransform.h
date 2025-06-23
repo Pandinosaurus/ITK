@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,51 +30,51 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType = double, unsigned int NDimensions = 3>
-class ITK_TEMPLATE_EXPORT CenteredAffineTransform : public AffineTransform<TParametersValueType, NDimensions>
+template <typename TParametersValueType = double, unsigned int VDimension = 3>
+class ITK_TEMPLATE_EXPORT CenteredAffineTransform : public AffineTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(CenteredAffineTransform);
 
   /** Standard type alias   */
   using Self = CenteredAffineTransform;
-  using Superclass = AffineTransform<TParametersValueType, NDimensions>;
+  using Superclass = AffineTransform<TParametersValueType, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(CenteredAffineTransform, AffineTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CenteredAffineTransform);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int SpaceDimension = NDimensions;
-  static constexpr unsigned int ParametersDimension = NDimensions * (NDimensions + 2);
+  static constexpr unsigned int SpaceDimension = VDimension;
+  static constexpr unsigned int ParametersDimension = VDimension * (VDimension + 2);
 
   /** Types taken from the Superclass */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
-  using ScalarType = typename Superclass::ScalarType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
 
-  using InputVnlVectorType = typename Superclass::InputVnlVectorType;
-  using OutputVnlVectorType = typename Superclass::OutputVnlVectorType;
-  using InputPointType = typename Superclass::InputPointType;
-  using InputPointValueType = typename Superclass::InputPointValueType;
-  using OutputVectorValueType = typename Superclass::OutputVectorValueType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using MatrixType = typename Superclass::MatrixType;
-  using MatrixValueType = typename Superclass::MatrixValueType;
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::InputVnlVectorType;
+  using typename Superclass::OutputVnlVectorType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::InputPointValueType;
+  using typename Superclass::OutputVectorValueType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::MatrixType;
+  using typename Superclass::MatrixValueType;
+  using typename Superclass::OffsetType;
 
   /** Base inverse transform type. This type should not be changed to the
    * concrete inverse transform type or inheritance would be lost. */
@@ -82,7 +82,7 @@ public:
   using InverseTransformBasePointer = typename InverseTransformBaseType::Pointer;
 
   /** Set/Get the transformation from a container of parameters.
-   * The first (NDimension x NDimension) parameters define the
+   * The first (VDimension x VDimension) parameters define the
    * matrix, the next N parameters define the center of rotation
    * and the last N parameters define the translation to be applied
    * after the coordinate system has been restored to the rotation center.

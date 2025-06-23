@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,10 +21,10 @@
 //  The following example illustrates how to use the
 //  \doxygen{WindowedSincInterpolateImageFunction} for resampling an image.
 //  This interpolator is in theory the best possible interpolator for
-//  reconstructing the continous values of a discrete image. In the spectral
+//  reconstructing the continuous values of a discrete image. In the spectral
 //  domain, this interpolator is performing the task of masking the central
 //  part of the spectrum of the sampled image, that in principle corresponds
-//  to the spectrumn of the continuous image before it was sampled into a
+//  to the spectrum of the continuous image before it was sampled into a
 //  discrete one. In this particular case an \doxygen{AffineTransform} is used
 //  to map the input space into the output space.
 //
@@ -73,8 +73,8 @@ main(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -93,11 +93,11 @@ main(int argc, char * argv[])
   using FilterType =
     itk::ResampleImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   using TransformType = itk::AffineTransform<double, Dimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   filter->SetTransform(transform);
   // Software Guide : EndCodeSnippet
@@ -109,9 +109,9 @@ main(int argc, char * argv[])
   //  \emph{sinc} function in order to interpolate the resampled image.
   //
   //  There is a close relationship between operations performed in the
-  //  spatial domain and those applied in the spectral doman. For example, the
-  //  action of truncating the \emph{sinc} function with a box function in the
-  //  spatial domain will correspond to convolving its spectrum with the
+  //  spatial domain and those applied in the spectral domain. For example,
+  //  the action of truncating the \emph{sinc} function with a box function in
+  //  the spatial domain will correspond to convolving its spectrum with the
   //  spectrum of a box function. Since the box function spectrum has an
   //  infinite support on the spectral domain, the result of the convolution
   //  will also have an infinite support on the spectral domain. Due to this
@@ -143,7 +143,7 @@ main(int argc, char * argv[])
                                               BoundaryConditionType,
                                               double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   filter->SetInterpolator(interpolator);
 
@@ -217,7 +217,7 @@ main(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
   // Software Guide : EndCodeSnippet

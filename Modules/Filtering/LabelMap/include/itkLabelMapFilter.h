@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@
 namespace itk
 {
 /**
- *\class LabelMapFilter
+ * \class LabelMapFilter
  * \brief Base class for filters that take an image as input and overwrite that image as the output
  *
  * LabelMapFilter is the base class for all process objects whose
@@ -46,7 +46,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa LabelMapToBinaryImageFilter, LabelMapToLabelImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
@@ -65,18 +65,18 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LabelMapFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelMapFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Some convenient type alias. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using InputImageRegionType = typename Superclass::InputImageRegionType;
-  using InputImagePixelType = typename Superclass::InputImagePixelType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputImageRegionType;
+  using typename Superclass::InputImagePixelType;
   using LabelObjectType = typename InputImageType::LabelObjectType;
 
   using OutputImageType = TOutputImage;
@@ -132,10 +132,10 @@ protected:
     return static_cast<InputImageType *>(const_cast<DataObject *>(this->ProcessObject::GetInput(0)));
   }
 
-  std::mutex m_LabelObjectContainerLock;
+  std::mutex m_LabelObjectContainerLock{};
 
 private:
-  typename InputImageType::Iterator m_LabelObjectIterator;
+  typename InputImageType::Iterator m_LabelObjectIterator{};
 };
 } // end namespace itk
 

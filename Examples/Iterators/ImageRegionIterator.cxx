@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,9 +81,6 @@ main(int argc, char * argv[])
   using IteratorType = itk::ImageRegionIterator<ImageType>;
   // Software Guide : EndCodeSnippet
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
-  using WriterType = itk::ImageFileWriter<ImageType>;
-
   // Software Guide : BeginLatex
   //
   // Information about the subregion to copy is read from the command line.
@@ -98,16 +95,15 @@ main(int argc, char * argv[])
   ImageType::RegionType::IndexType inputStart;
   ImageType::RegionType::SizeType  size;
 
-  inputStart[0] = ::std::stoi(argv[3]);
-  inputStart[1] = ::std::stoi(argv[4]);
+  inputStart[0] = std::stoi(argv[3]);
+  inputStart[1] = std::stoi(argv[4]);
 
-  size[0] = ::std::stoi(argv[5]);
-  size[1] = ::std::stoi(argv[6]);
+  size[0] = std::stoi(argv[5]);
+  size[1] = std::stoi(argv[6]);
 
   inputRegion.SetSize(size);
   inputRegion.SetIndex(inputStart);
   // Software Guide : EndCodeSnippet
-
 
   // Software Guide : BeginLatex
   //
@@ -129,12 +125,10 @@ main(int argc, char * argv[])
   outputRegion.SetIndex(outputStart);
   // Software Guide : EndCodeSnippet
 
-
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
+  ImageType::ConstPointer inputImage;
   try
   {
-    reader->Update();
+    inputImage = itk::ReadImage<ImageType>(argv[1]);
   }
   catch (const itk::ExceptionObject & err)
   {
@@ -144,12 +138,12 @@ main(int argc, char * argv[])
   }
 
   // Check that the region is contained within the input image.
-  if (!reader->GetOutput()->GetRequestedRegion().IsInside(inputRegion))
+  if (!inputImage->GetRequestedRegion().IsInside(inputRegion))
   {
     std::cerr << "Error" << std::endl;
     std::cerr << "The region " << inputRegion
               << "is not contained within the input image region "
-              << reader->GetOutput()->GetRequestedRegion() << std::endl;
+              << inputImage->GetRequestedRegion() << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -168,13 +162,13 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ImageType::Pointer outputImage = ImageType::New();
+  auto outputImage = ImageType::New();
   outputImage->SetRegions(outputRegion);
-  const ImageType::SpacingType & spacing = reader->GetOutput()->GetSpacing();
-  const ImageType::PointType & inputOrigin = reader->GetOutput()->GetOrigin();
-  double                       outputOrigin[Dimension];
+  const ImageType::SpacingType & spacing = inputImage->GetSpacing();
+  const ImageType::PointType &   inputOrigin = inputImage->GetOrigin();
+  double                         outputOrigin[Dimension];
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     outputOrigin[i] = inputOrigin[i] + spacing[i] * inputStart[i];
   }
@@ -183,7 +177,6 @@ main(int argc, char * argv[])
   outputImage->SetOrigin(outputOrigin);
   outputImage->Allocate();
   // Software Guide : EndCodeSnippet
-
 
   // Software Guide : BeginLatex
   //
@@ -199,7 +192,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ConstIteratorType inputIt(reader->GetOutput(), inputRegion);
+  ConstIteratorType inputIt(inputImage, inputRegion);
   IteratorType      outputIt(outputImage, outputRegion);
 
   inputIt.GoToBegin();
@@ -213,7 +206,6 @@ main(int argc, char * argv[])
   }
   // Software Guide : EndCodeSnippet
 
-
   // Software Guide : BeginLatex
   //
   // \index{Iterators!image dimensionality}
@@ -225,13 +217,9 @@ main(int argc, char * argv[])
   //
   // Software Guide : EndLatex
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[2]);
-  writer->SetInput(outputImage);
-
   try
   {
-    writer->Update();
+    itk::WriteImage(outputImage, argv[2]);
   }
   catch (const itk::ExceptionObject & err)
   {

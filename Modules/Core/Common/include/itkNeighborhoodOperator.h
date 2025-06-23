@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,14 +72,14 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator = Neighb
 class ITK_TEMPLATE_EXPORT NeighborhoodOperator : public Neighborhood<TPixel, VDimension, TAllocator>
 {
 public:
-  /**  Standard class type aliases. */
+  /** Standard class type aliases. */
   using Self = NeighborhoodOperator;
   using Superclass = Neighborhood<TPixel, VDimension, TAllocator>;
 
-  itkTypeMacro(NeighborhoodOperator, NeighborhoodOperator);
+  itkOverrideGetNameOfClassMacro(NeighborhoodOperator);
 
   /** Size object type alias support */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
 
   /** External support for pixel type */
   using PixelType = TPixel;
@@ -87,15 +87,22 @@ public:
   /** Slice iterator type alias support */
   using SliceIteratorType = SliceIterator<TPixel, Self>;
 
+  using PixelRealType = typename NumericTraits<TPixel>::RealType;
+
   /** Sets the dimensional direction of a directional operator. */
   void
-  SetDirection(const unsigned long & direction)
+  SetDirection(const unsigned int direction)
   {
+    if (direction >= VDimension)
+    {
+      itkExceptionMacro(<< " Can not set direction " << direction << " greater than dimensionality of neighborhood "
+                        << VDimension);
+    }
     m_Direction = direction;
   }
 
   /** Returns the direction (dimension number) of a directional operator. */
-  unsigned long
+  [[nodiscard]] unsigned int
   GetDirection() const
   {
     return m_Direction;
@@ -127,24 +134,22 @@ public:
   virtual void
   FlipAxes();
 
-  /** Prints some debugging information. */
   void
-  PrintSelf(std::ostream & os, Indent i) const override
+  PrintSelf(std::ostream & os, Indent indent) const override
   {
-    os << i << "NeighborhoodOperator { this=" << this << " Direction = " << m_Direction << " }" << std::endl;
-    Superclass::PrintSelf(os, i.GetNextIndent());
-  }
+    Superclass::PrintSelf(os, indent);
 
-  using PixelRealType = typename NumericTraits<TPixel>::RealType;
+    os << indent << "Direction: " << m_Direction << std::endl;
+  }
 
   /** Multiplies all of the coefficients of the kernel by a single scalar value.
    */
   void ScaleCoefficients(PixelRealType);
 
 protected:
-  /** Typedef support  for coefficient vector type.  Necessary
+  /** Type alias support for coefficient vector type. Necessary
    * to fix bug in the microsoft VC++ compiler. */
-  using CoefficientVector = std::vector<PixelRealType>;
+  using CoefficientVector = typename std::vector<PixelRealType>;
 
   /** A subclass-specific algorithm that computes the coefficients
    * of the operator. */
@@ -170,13 +175,13 @@ protected:
   {
     for (unsigned int i = 0; i < this->Size(); ++i)
     {
-      this->operator[](i) = NumericTraits<PixelType>::ZeroValue();
+      this->operator[](i) = PixelType{};
     }
   }
 
 private:
   /** Direction (dimension number) of the derivative. */
-  unsigned long m_Direction{ 0 };
+  unsigned int m_Direction{ 0 };
 };
 } // namespace itk
 

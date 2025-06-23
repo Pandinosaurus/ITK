@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,7 +83,7 @@ main(int argc, char ** argv)
   using NeighborhoodIteratorType = itk::ConstNeighborhoodIterator<ImageType>;
   using IteratorType = itk::ImageRegionIterator<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   try
   {
@@ -96,11 +96,11 @@ main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  ImageType::Pointer output = ImageType::New();
+  auto output = ImageType::New();
   output->SetRegions(reader->GetOutput()->GetRequestedRegion());
   output->Allocate();
 
-  itk::NeighborhoodInnerProduct<ImageType> innerProduct;
+  const itk::NeighborhoodInnerProduct<ImageType> innerProduct;
 
   using FaceCalculatorType =
     itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>;
@@ -124,7 +124,7 @@ main(int argc, char ** argv)
 
   // Software Guide : BeginCodeSnippet
   itk::GaussianOperator<PixelType, 2> gaussianOperator;
-  gaussianOperator.SetVariance(::std::stod(argv[3]) * ::std::stod(argv[3]));
+  gaussianOperator.SetVariance(std::stod(argv[3]) * std::stod(argv[3]));
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -170,7 +170,7 @@ main(int argc, char ** argv)
     // Swap the input and output buffers
     if (i != ImageType::ImageDimension - 1)
     {
-      ImageType::Pointer tmp = input;
+      const ImageType::Pointer tmp = input;
       input = output;
       output = tmp;
     }
@@ -209,13 +209,13 @@ main(int argc, char ** argv)
   using RescaleFilterType =
     itk::RescaleIntensityImageFilter<ImageType, WriteImageType>;
 
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
 
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
   rescaler->SetInput(output);
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(rescaler->GetOutput());
   try

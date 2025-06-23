@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,13 +35,14 @@ class ITKWatersheds_EXPORT WatershedMiniPipelineProgressCommand : public Command
 {
 public:
   /** Smart pointer declaration methods */
+  /** @ITKStartGrouping */
   using Self = WatershedMiniPipelineProgressCommand;
   using Superclass = Command;
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
-  itkTypeMacro(WatershedMiniPipelineProgressCommand, Command);
+  itkOverrideGetNameOfClassMacro(WatershedMiniPipelineProgressCommand);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Standard Command virtual methods */
   void
   Execute(Object * caller, const EventObject & event) override;
@@ -51,6 +52,7 @@ public:
 
   /** Set/Get the filter whose UpdateProgress will be set by this
    * command object */
+  /** @ITKStartGrouping */
   void
   SetFilter(ProcessObject * p)
   {
@@ -61,16 +63,18 @@ public:
   {
     return m_Filter;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the base count for stepping through filter progress values */
+  /** @ITKStartGrouping */
   itkSetMacro(Count, double);
   itkGetConstMacro(Count, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of filters that this command will expect to be
    * observing */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfFilters, unsigned int);
   itkGetConstMacro(NumberOfFilters, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   WatershedMiniPipelineProgressCommand() = default;
   ~WatershedMiniPipelineProgressCommand() override = default;

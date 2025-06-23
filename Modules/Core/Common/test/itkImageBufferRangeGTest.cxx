@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ DoesImageBufferRangeIteratorDereferenceOperatorReturnReference()
 {
   using IteratorType = typename ImageBufferRange<TImage>::iterator;
 
-  return std::is_reference<decltype(*std::declval<IteratorType>())>::value;
+  return std::is_reference_v<decltype(*std::declval<IteratorType>())>;
 }
 
 
@@ -75,7 +75,7 @@ IsIteratorTypeTheSameAsConstIteratorType()
 {
   using RangeType = ImageBufferRange<TImage>;
 
-  return std::is_same<typename RangeType::iterator, typename RangeType::const_iterator>::value;
+  return std::is_same_v<typename RangeType::iterator, typename RangeType::const_iterator>;
 }
 
 
@@ -88,7 +88,7 @@ static_assert(IsIteratorTypeTheSameAsConstIteratorType<const itk::Image<int>>() 
 
 template <typename TImage>
 typename TImage::Pointer
-CreateImage(const unsigned sizeX, const unsigned sizeY)
+CreateImage(const unsigned int sizeX, const unsigned int sizeY)
 {
   const auto                      image = TImage::New();
   const typename TImage::SizeType imageSize = { { sizeX, sizeY } };
@@ -101,16 +101,16 @@ CreateImage(const unsigned sizeX, const unsigned sizeY)
 // Creates a test image, filled with a sequence of natural numbers, 1, 2, 3, ..., N.
 template <typename TImage>
 typename TImage::Pointer
-CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned sizeX, const unsigned sizeY)
+CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned int sizeX, const unsigned int sizeY)
 {
   using PixelType = typename TImage::PixelType;
   const auto image = CreateImage<TImage>(sizeX, sizeY);
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  const unsigned int numberOfPixels = sizeX * sizeY;
 
   PixelType * const bufferPointer = image->GetBufferPointer();
 
-  for (unsigned i = 0; i < numberOfPixels; ++i)
+  for (unsigned int i = 0; i < numberOfPixels; ++i)
   {
     bufferPointer[i] = static_cast<typename TImage::PixelType>(i + 1);
   }
@@ -118,18 +118,18 @@ CreateImageFilledWithSequenceOfNaturalNumbers(const unsigned sizeX, const unsign
 }
 
 
-template <typename TPixel, unsigned VImageDimension>
+template <typename TPixel, unsigned int VImageDimension>
 void
-SetVectorLengthIfImageIsVectorImage(itk::VectorImage<TPixel, VImageDimension> & image, const unsigned vectorLength)
+SetVectorLengthIfImageIsVectorImage(itk::VectorImage<TPixel, VImageDimension> & image, const unsigned int vectorLength)
 {
   image.SetVectorLength(vectorLength);
 }
 
 
-template <typename TPixel, unsigned VImageDimension>
+template <typename TPixel, unsigned int VImageDimension>
 void
 SetVectorLengthIfImageIsVectorImage(itk::Image<TPixel, VImageDimension> & itkNotUsed(image),
-                                    const unsigned                        itkNotUsed(vectorLength))
+                                    const unsigned int                    itkNotUsed(vectorLength))
 {
   // Do not set the VectorLength. The specified image is not a VectorImage.
 }
@@ -139,12 +139,11 @@ template <typename TImage>
 typename TImage::Pointer
 CreateSmallImage()
 {
-  const auto                image = TImage::New();
-  typename TImage::SizeType imageSize;
-  imageSize.Fill(0);
+  const auto                      image = TImage::New();
+  const typename TImage::SizeType imageSize{};
   image->SetRegions(imageSize);
   SetVectorLengthIfImageIsVectorImage(*image, 1);
-  image->Allocate(true);
+  image->AllocateInitialized();
   return image;
 }
 
@@ -154,9 +153,8 @@ void
 ExpectRangeIsNotEmptyForNonEmptyImage()
 {
   // First create a non-empty image:
-  const auto                image = TImage::New();
-  typename TImage::SizeType imageSize;
-  imageSize.Fill(1);
+  const auto image = TImage::New();
+  auto       imageSize = TImage::SizeType::Filled(1);
   image->SetRegions(imageSize);
   SetVectorLengthIfImageIsVectorImage(*image, 1);
   image->Allocate();
@@ -179,9 +177,8 @@ void
 ExpectMakeImageBufferRangeReturnsCorrectRangeForNonEmptyImage()
 {
   // First create a non-empty image:
-  const auto                image = TImage::New();
-  typename TImage::SizeType imageSize;
-  imageSize.Fill(1);
+  const auto image = TImage::New();
+  auto       imageSize = TImage::SizeType::Filled(1);
   image->SetRegions(imageSize);
   SetVectorLengthIfImageIsVectorImage(*image, 1);
   image->Allocate();
@@ -249,7 +246,7 @@ TEST(ImageBufferRange, EquivalentBeginOrEndIteratorsCompareEqual)
 
   const auto image = CreateImage<ImageType>(2, 3);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   const ImageBufferRange<ImageType>::iterator       begin = range.begin();
   const ImageBufferRange<ImageType>::iterator       end = range.end();
@@ -282,7 +279,7 @@ TEST(ImageBufferRange, BeginAndEndDoNotCompareEqual)
 
   const auto image = CreateImage<ImageType>(2, 3);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   EXPECT_FALSE(range.begin() == range.end());
   EXPECT_NE(range.begin(), range.end());
@@ -296,7 +293,7 @@ TEST(ImageBufferRange, IteratorConvertsToConstIterator)
 
   const auto image = CreateImage<ImageType>(2, 3);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   const ImageBufferRange<ImageType>::iterator       begin = range.begin();
   const ImageBufferRange<ImageType>::const_iterator const_begin_from_begin = begin;
@@ -320,7 +317,7 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdVectorConstructor)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   // Easily store all pixels of the ImageBufferRange in an std::vector:
   const std::vector<PixelType> stdVector(range.begin(), range.end());
@@ -342,9 +339,9 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdReverseCopy)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  constexpr unsigned int numberOfPixels = sizeX * sizeY;
 
   const std::vector<PixelType> stdVector(range.begin(), range.end());
   std::vector<PixelType>       reversedStdVector1(numberOfPixels);
@@ -380,7 +377,7 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdInnerProduct)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   const double innerProduct = std::inner_product(range.begin(), range.end(), range.begin(), 0.0);
 
@@ -401,7 +398,7 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdForEach)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   std::for_each(range.begin(), range.end(), [](const PixelType pixel) { EXPECT_TRUE(pixel > 0); });
 }
@@ -454,17 +451,17 @@ TEST(ImageBufferRange, DistanceBetweenIteratorsCanBeObtainedBySubtraction)
   };
   const auto image = CreateImage<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   ImageBufferRange<ImageType>::iterator it1 = range.begin();
 
-  const std::size_t numberOfPixels = range.size();
+  const size_t numberOfPixels = range.size();
 
-  for (std::size_t i1 = 0; i1 < numberOfPixels; ++i1, ++it1)
+  for (size_t i1 = 0; i1 < numberOfPixels; ++i1, ++it1)
   {
     ImageBufferRange<ImageType>::iterator it2 = it1;
 
-    for (std::size_t i2 = 0; i2 < numberOfPixels; ++i2, ++it2)
+    for (size_t i2 = 0; i2 < numberOfPixels; ++i2, ++it2)
     {
       EXPECT_EQ(it2 - it1, std::distance(it1, it2));
     }
@@ -486,7 +483,7 @@ TEST(ImageBufferRange, IteratorReferenceActsLikeARealReference)
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
   using RangeType = ImageBufferRange<ImageType>;
 
-  RangeType           range{ *image };
+  const RangeType     range{ *image };
   RangeType::iterator it = range.begin();
 
   std::iterator_traits<RangeType::iterator>::reference       reference1 = *it;
@@ -534,19 +531,19 @@ TEST(ImageBufferRange, SupportsVectorImage)
     sizeY = 2,
     sizeZ = 2
   };
-  const auto                         image = ImageType::New();
-  const typename ImageType::SizeType imageSize = { { sizeX, sizeY, sizeZ } };
+  const auto                             image = ImageType::New();
+  constexpr typename ImageType::SizeType imageSize = { { sizeX, sizeY, sizeZ } };
   image->SetRegions(imageSize);
   image->SetVectorLength(vectorLength);
-  image->Allocate(true);
+  image->AllocateInitialized();
   PixelType fillPixelValue(vectorLength);
   fillPixelValue.Fill(42);
   image->FillBuffer(fillPixelValue);
 
   using RangeType = ImageBufferRange<ImageType>;
-  RangeType range{ *image };
+  const RangeType range{ *image };
 
-  for (PixelType pixelValue : range)
+  for (const PixelType pixelValue : range)
   {
     EXPECT_EQ(pixelValue, fillPixelValue);
   }
@@ -575,7 +572,7 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdSort)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   // Initial order: (1, 2, 3, ..., 9).
   const std::vector<PixelType> initiallyOrderedPixels(range.cbegin(), range.cend());
@@ -606,7 +603,7 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdNthElement)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  ImageBufferRange<ImageType> range{ *image };
+  const ImageBufferRange<ImageType> range{ *image };
 
   std::reverse(range.begin(), range.end());
 
@@ -629,19 +626,8 @@ TEST(ImageBufferRange, IteratorsCanBePassedToStdNthElement)
 
 TEST(ImageBufferRange, IteratorIsDefaultConstructible)
 {
-  using RangeType = ImageBufferRange<itk::Image<int>>;
-
-  RangeType::iterator defaultConstructedIterator{};
-
-  // Test that a default-constructed iterator behaves according to C++ proposal
-  // N3644, "Null Forward Iterators" by Alan Talbot, which is accepted with
-  // C++14: "value-initialized iterators may be compared and shall compare
-  // equal to other value-initialized iterators of the same type."
-  // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3644.pdf
-
-  EXPECT_TRUE(defaultConstructedIterator == defaultConstructedIterator);
-  EXPECT_FALSE(defaultConstructedIterator != defaultConstructedIterator);
-  EXPECT_EQ(defaultConstructedIterator, RangeType::iterator{});
+  RangeGTestUtilities::ExpectIteratorIsDefaultConstructible<ImageBufferRange<itk::Image<int>>>();
+  RangeGTestUtilities::ExpectIteratorIsDefaultConstructible<ImageBufferRange<itk::VectorImage<int>>>();
 }
 
 
@@ -657,7 +643,7 @@ TEST(ImageBufferRange, IteratorsSupportRandomAccess)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  RangeType range{ *image };
+  const RangeType range{ *image };
 
   // Testing expressions from Table 111 "Random access iterator requirements
   // (in addition to bidirectional iterator)", C++11 Standard, section 24.2.7
@@ -678,12 +664,12 @@ TEST(ImageBufferRange, IteratorsSupportRandomAccess)
 
   {
     // Expression to be tested: 'r += n'
-    difference_type n = 3;
+    constexpr difference_type n = 3;
 
     r = initialIterator;
-    const auto expectedResult = [&r, n] {
+    const auto expectedResult = [&r](const difference_type nn) {
       // Operational semantics, as specified by the C++11 Standard:
-      difference_type m = n;
+      difference_type m = nn;
       if (m >= 0)
         while (m--)
           ++r;
@@ -691,77 +677,77 @@ TEST(ImageBufferRange, IteratorsSupportRandomAccess)
         while (m++)
           --r;
       return r;
-    }();
+    }(n);
     r = initialIterator;
     auto && actualResult = r += n;
     EXPECT_EQ(actualResult, expectedResult);
-    static_assert(std::is_same<decltype(actualResult), X &>::value, "Type of result 'r += n' tested");
+    static_assert(std::is_same_v<decltype(actualResult), X &>, "Type of result 'r += n' tested");
   }
   {
     // Expressions to be tested: 'a + n' and 'n + a'
-    difference_type n = 3;
+    constexpr difference_type n = 3;
 
-    static_assert(std::is_same<decltype(a + n), X>::value, "Return type tested");
-    static_assert(std::is_same<decltype(n + a), X>::value, "Return type tested");
+    static_assert(std::is_same_v<decltype(a + n), X>, "Return type tested");
+    static_assert(std::is_same_v<decltype(n + a), X>, "Return type tested");
 
-    const auto expectedResult = [a, n] {
+    const auto expectedResult = [a](const difference_type nn) {
       // Operational semantics, as specified by the C++11 Standard:
       X tmp = a;
-      return tmp += n;
-    }();
+      return tmp += nn;
+    }(n);
 
     EXPECT_EQ(a + n, expectedResult);
     EXPECT_TRUE(a + n == n + a);
   }
   {
     // Expression to be tested: 'r -= n'
-    difference_type n = 3;
+    constexpr difference_type n = 3;
 
     r = initialIterator;
-    const auto expectedResult = [&r, n] {
+    const auto expectedResult = [&r](const difference_type nn) {
       // Operational semantics, as specified by the C++11 Standard:
-      return r += -n;
-    }();
+      return r += -nn;
+    }(n);
     r = initialIterator;
     auto && actualResult = r -= n;
     EXPECT_EQ(actualResult, expectedResult);
-    static_assert(std::is_same<decltype(actualResult), X &>::value, "Type of result 'r -= n' tested");
+    static_assert(std::is_same_v<decltype(actualResult), X &>, "Type of result 'r -= n' tested");
   }
   {
     // Expression to be tested: 'a - n'
-    difference_type n = -3;
+    constexpr difference_type n = -3;
 
-    static_assert(std::is_same<decltype(a - n), X>::value, "Return type tested");
+    static_assert(std::is_same_v<decltype(a - n), X>, "Return type tested");
 
-    const auto expectedResult = [a, n] {
+    const auto expectedResult = [a](const difference_type nn) {
       // Operational semantics, as specified by the C++11 Standard:
       X tmp = a;
-      return tmp -= n;
-    }();
+      return tmp -= nn;
+    }(n);
 
     EXPECT_EQ(a - n, expectedResult);
   }
   {
     // Expression to be tested: 'b - a'
-    static_assert(std::is_same<decltype(b - a), difference_type>::value, "Return type tested");
+    static_assert(std::is_same_v<decltype(b - a), difference_type>, "Return type tested");
 
-    difference_type n = b - a;
+    const difference_type n = b - a;
     EXPECT_TRUE(a + n == b);
     EXPECT_TRUE(b == a + (b - a));
   }
   {
     // Expression to be tested: 'a[n]'
-    difference_type n = 3;
-    static_assert(std::is_convertible<decltype(a[n]), reference>::value, "Return type tested");
+    constexpr difference_type n = 3;
+    static_assert(std::is_convertible_v<decltype(a[n]), reference>, "Return type tested");
     EXPECT_EQ(a[n], *(a + n));
   }
   {
     // Expressions to be tested: 'a < b', 'a > b', 'a >= b', and 'a <= b':
-    static_assert(std::is_convertible<decltype(a < b), bool>::value, "Return type tested");
-    static_assert(std::is_convertible<decltype(a > b), bool>::value, "Return type tested");
-    static_assert(std::is_convertible<decltype(a >= b), bool>::value, "Return type tested");
-    static_assert(std::is_convertible<decltype(a <= b), bool>::value, "Return type tested");
-    EXPECT_EQ(a<b, b - a> 0);
+    static_assert(std::is_convertible_v<decltype(a < b), bool>, "Return type tested");
+    static_assert(std::is_convertible_v<decltype(a > b), bool>, "Return type tested");
+    static_assert(std::is_convertible_v<decltype(a >= b), bool>, "Return type tested");
+    static_assert(std::is_convertible_v<decltype(a <= b), bool>, "Return type tested");
+    EXPECT_EQ(a < b, b - a > 0);
     EXPECT_EQ(a > b, b < a);
     EXPECT_EQ(a >= b, !(a < b));
     EXPECT_EQ(a <= b, !(b < a));
@@ -782,15 +768,15 @@ TEST(ImageBufferRange, SupportsSubscript)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  RangeType range{ *image };
+  const RangeType range{ *image };
 
-  const std::size_t numberOfNeighbors = range.size();
+  const size_t numberOfNeighbors = range.size();
 
   RangeType::iterator it = range.begin();
 
-  for (std::size_t i = 0; i < numberOfNeighbors; ++i)
+  for (size_t i = 0; i < numberOfNeighbors; ++i)
   {
-    std::iterator_traits<RangeType::iterator>::reference neighbor = range[i];
+    std::iterator_traits<RangeType::iterator>::reference neighbor = range[i]; // NOLINT
     EXPECT_EQ(neighbor, *it);
     ++it;
   }
@@ -809,9 +795,9 @@ TEST(ImageBufferRange, ProvidesReverseIterators)
   };
   const auto image = CreateImageFilledWithSequenceOfNaturalNumbers<ImageType>(sizeX, sizeY);
 
-  RangeType range{ *image };
+  const RangeType range{ *image };
 
-  const unsigned numberOfPixels = sizeX * sizeY;
+  constexpr unsigned int numberOfPixels = sizeX * sizeY;
 
   const std::vector<PixelType> stdVector(range.begin(), range.end());
   std::vector<PixelType>       reversedStdVector1(numberOfPixels);

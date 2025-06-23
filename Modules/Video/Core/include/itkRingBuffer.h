@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class RingBuffer
+ * \class RingBuffer
  *  \brief Templated ring buffer for holding anything
  *
  * This ring buffer can hold any type of itk class that supports smart
@@ -54,14 +54,14 @@ public:
   using ElementType = TElement;
   using ElementPointer = typename ElementType::Pointer;
 
-  using SizeValueType = ::itk::SizeValueType;
-  using OffsetValueType = ::itk::OffsetValueType;
+  using SizeValueType = itk::SizeValueType;
+  using OffsetValueType = itk::OffsetValueType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RingBuffer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RingBuffer);
 
   /** Set the number of buffers
    * WARNING: If the size is set smaller than the current buffer size, the tail
@@ -78,11 +78,12 @@ public:
   MoveHead(OffsetValueType offset);
 
   /** Convenience methods for moving Head +/- 1 */
+  /** @ITKStartGrouping */
   void
   MoveHeadForward();
   void
   MoveHeadBackward();
-
+  /** @ITKEndGrouping */
   /** Report whether or not the indicated buffer is full */
   bool
   BufferIsFull(OffsetValueType offset);
@@ -104,11 +105,12 @@ public:
 
 protected:
   /**-PROTECTED METHODS------------------------------------------------------*/
+  /** @ITKStartGrouping */
   RingBuffer();
   ~RingBuffer() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
-
+  /** @ITKEndGrouping */
   /** Get the proper buffer index from an offset */
   OffsetValueType
   GetOffsetBufferIndex(OffsetValueType offset);
@@ -119,7 +121,7 @@ protected:
   SizeValueType m_HeadIndex{ 0 };
 
   /** Vector of pointers to elements */
-  std::vector<ElementPointer> m_PointerVector;
+  std::vector<ElementPointer> m_PointerVector{};
 }; // end RingBuffer class
 
 } // end namespace itk

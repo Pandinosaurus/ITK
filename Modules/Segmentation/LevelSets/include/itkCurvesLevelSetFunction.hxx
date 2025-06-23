@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkCurvesLevelSetFunction_hxx
 
 #include "itkMath.h"
-#include "itkCurvesLevelSetFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkGradientImageFilter.h"
@@ -58,11 +57,11 @@ CurvesLevelSetFunction<TImageType, TFeatureImageType>::CalculateAdvectionImage()
 
   typename VectorImageType::Pointer gradientImage;
 
-  if (Math::NotAlmostEquals(m_DerivativeSigma, NumericTraits<float>::ZeroValue()))
+  if (Math::NotAlmostEquals(m_DerivativeSigma, 0.0f))
   {
     using DerivativeFilterType = GradientRecursiveGaussianImageFilter<FeatureImageType, VectorImageType>;
 
-    typename DerivativeFilterType::Pointer derivative = DerivativeFilterType::New();
+    auto derivative = DerivativeFilterType::New();
     derivative->SetInput(this->GetFeatureImage());
     derivative->SetSigma(m_DerivativeSigma);
     derivative->Update();
@@ -73,7 +72,7 @@ CurvesLevelSetFunction<TImageType, TFeatureImageType>::CalculateAdvectionImage()
   {
     using DerivativeFilterType = GradientImageFilter<FeatureImageType>;
 
-    typename DerivativeFilterType::Pointer derivative = DerivativeFilterType::New();
+    auto derivative = DerivativeFilterType::New();
     derivative->SetInput(this->GetFeatureImage());
     derivative->UseImageSpacingOn();
     derivative->Update();
@@ -81,7 +80,7 @@ CurvesLevelSetFunction<TImageType, TFeatureImageType>::CalculateAdvectionImage()
     using DerivativeOutputImageType = typename DerivativeFilterType::OutputImageType;
     using GradientCasterType = CastImageFilter<DerivativeOutputImageType, VectorImageType>;
 
-    typename GradientCasterType::Pointer caster = GradientCasterType::New();
+    auto caster = GradientCasterType::New();
     caster->SetInput(derivative->GetOutput());
     caster->Update();
 
@@ -95,7 +94,7 @@ CurvesLevelSetFunction<TImageType, TFeatureImageType>::CalculateAdvectionImage()
   for (dit.GoToBegin(), ait.GoToBegin(); !dit.IsAtEnd(); ++dit, ++ait)
   {
     typename VectorImageType::PixelType v = dit.Get();
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       v[j] *= -1.0L;
     }

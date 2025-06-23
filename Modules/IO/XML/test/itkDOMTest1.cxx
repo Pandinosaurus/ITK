@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,11 +21,8 @@ This program tests operations on a DOM node.
 */
 
 #include "itkDOMNode.h"
-#include "itkDOMNodeXMLReader.h"
-#include "itkDOMNodeXMLWriter.h"
 
 #include <iostream>
-#include "itkMacro.h"
 
 int
 itkDOMTest1(int, char *[])
@@ -33,7 +30,7 @@ itkDOMTest1(int, char *[])
   try
   {
     // create a DOM object
-    itk::DOMNode::Pointer dom = itk::DOMNode::New();
+    const itk::DOMNode::Pointer dom = itk::DOMNode::New();
     dom->SetName("SimpleTestObject");
 
     // add some attributes
@@ -42,18 +39,18 @@ itkDOMTest1(int, char *[])
 
     // add some children
     // 1st child
-    itk::DOMNode::Pointer child1 = itk::DOMNode::New();
+    const itk::DOMNode::Pointer child1 = itk::DOMNode::New();
     child1->SetName("city");
     child1->SetAttribute("name", "New York");
     dom->AddChild(child1);
     // 2nd child
-    itk::DOMNode::Pointer child2 = itk::DOMNode::New();
+    const itk::DOMNode::Pointer child2 = itk::DOMNode::New();
     child2->SetName("city");
     child2->SetAttribute("id", "dc");
     child2->SetAttribute("name", "District of Columbia");
     dom->AddChild(child2);
     // 3rd child
-    itk::DOMNode::Pointer child3 = itk::DOMNode::New();
+    const itk::DOMNode::Pointer child3 = itk::DOMNode::New();
     child3->SetName("country");
     child3->SetAttribute("id", "usa");
     child3->AddTextChild("United States of America");

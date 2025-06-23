@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -132,20 +132,10 @@ main(int argc, char * argv[])
 
   using CastingFilterType =
     itk::CastImageFilter<InternalImageType, OutputImageType>;
-  CastingFilterType::Pointer caster = CastingFilterType::New();
+  auto caster = CastingFilterType::New();
 
-
-  // We instantiate reader and writer types
-  //
-  using ReaderType = itk::ImageFileReader<InternalImageType>;
-  using WriterType = itk::ImageFileWriter<OutputImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
-
+  // Read the input image
+  const auto input = itk::ReadImage<InternalImageType>(argv[1]);
 
   //  Software Guide : BeginLatex
   //
@@ -168,8 +158,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  CurvatureFlowImageFilterType::Pointer smoothing =
-    CurvatureFlowImageFilterType::New();
+  auto smoothing = CurvatureFlowImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -193,15 +182,14 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ConnectedFilterType::Pointer confidenceConnected =
-    ConnectedFilterType::New();
+  auto confidenceConnected = ConnectedFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
   //  Software Guide : BeginLatex
   //
   //  Now it is time to create a simple, linear pipeline. A file reader is
-  //  added at the beginning of the pipeline and a cast filter and writer are
+  //  added at the beginning of the pipeline and a cast filter is
   //  added at the end. The cast filter is required here to convert
   //  \code{float} pixel types to integer types since only a few image file
   //  formats support \code{float} types.
@@ -209,10 +197,9 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  smoothing->SetInput(reader->GetOutput());
+  smoothing->SetInput(input);
   confidenceConnected->SetInput(smoothing->GetOutput());
   caster->SetInput(confidenceConnected->GetOutput());
-  writer->SetInput(caster->GetOutput());
   // Software Guide : EndCodeSnippet
 
 
@@ -332,8 +319,8 @@ main(int argc, char * argv[])
 
   //  Software Guide : BeginLatex
   //
-  //  The invocation of the \code{Update()} method on the writer triggers the
-  //  execution of the pipeline.  It is recommended to place update calls in a
+  //  The invocation of \code{WriteImage} triggers the
+  //  execution of the pipeline.  It is recommended to place write calls in a
   //  \code{try/catch} block in case errors occur and exceptions are thrown.
   //
   //  Software Guide : EndLatex
@@ -341,7 +328,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   try
   {
-    writer->Update();
+    itk::WriteImage(caster->GetOutput(), argv[2]);
   }
   catch (const itk::ExceptionObject & excep)
   {

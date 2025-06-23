@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +17,17 @@
  *=========================================================================*/
 #include "itkSingleton.h"
 
+#include <mutex>
 
 namespace
 {
+std::once_flag globalSingletonOnceFlag;
+
 // This ensures that m_GlobalSingletonIndex has been initialized once the library
 // has been loaded. In some cases, this call will perform the initialization.
 // In other cases, static initializers like the IO factory initialization code
 // will have done the initialization.
-::itk::SingletonIndex * initializedGlobalSingletonIndex = ::itk::SingletonIndex::GetInstance();
+[[maybe_unused]] itk::SingletonIndex * volatile initializedGlobalSingletonIndex = itk::SingletonIndex::GetInstance();
 
 /** \class GlobalSingletonIndexInitializer
  *
@@ -35,7 +38,7 @@ class GlobalSingletonIndexInitializer
 {
 public:
   using Self = GlobalSingletonIndexInitializer;
-  using SingletonIndex = ::itk::SingletonIndex;
+  using SingletonIndex = itk::SingletonIndex;
 
   GlobalSingletonIndexInitializer() = default;
 
@@ -50,13 +53,8 @@ public:
   static SingletonIndex *
   GetGlobalSingletonIndex()
   {
-    if (m_GlobalSingletonIndex == nullptr)
-    {
-      m_GlobalSingletonIndex = new SingletonIndex;
-      // To avoid being optimized out. The compiler does not like this
-      // statement at a higher scope.
-      Unused(initializedGlobalSingletonIndex);
-    }
+    std::call_once(globalSingletonOnceFlag, []() { m_GlobalSingletonIndex = new SingletonIndex; });
+
     return m_GlobalSingletonIndex;
   }
 
@@ -83,26 +81,20 @@ namespace itk
 void *
 SingletonIndex::GetGlobalInstancePrivate(const char * globalName)
 {
-  SingletonData::iterator it;
-  it = m_GlobalObjects.find(globalName);
+  const auto it = m_GlobalObjects.find(globalName);
   if (it == m_GlobalObjects.end())
   {
     return nullptr;
   }
-  return std::get<0>(it->second);
+  return it->second.Instance;
 }
 
-// If globalName is already registered remove it from map,
+// If globalName is already registered, set its global as specified,
 // otherwise global is added to the singleton index under globalName
-bool
-SingletonIndex::SetGlobalInstancePrivate(const char *                globalName,
-                                         void *                      global,
-                                         std::function<void(void *)> func,
-                                         std::function<void(void)>   deleteFunc)
+void
+SingletonIndex::SetGlobalInstancePrivate(const char * globalName, GlobalObject globalObject)
 {
-  m_GlobalObjects.erase(globalName);
-  m_GlobalObjects.insert(std::make_pair(globalName, std::make_tuple(global, func, deleteFunc)));
-  return true;
+  m_GlobalObjects.insert_or_assign(globalName, std::move(globalObject));
 }
 
 SingletonIndex *
@@ -126,7 +118,7 @@ SingletonIndex::~SingletonIndex()
 {
   for (auto & pair : m_GlobalObjects)
   {
-    std::get<2>(pair.second)();
+    pair.second.DeleteFunc();
   }
 }
 

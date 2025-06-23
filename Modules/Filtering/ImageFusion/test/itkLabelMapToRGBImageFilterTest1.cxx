@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,10 @@ itkLabelMapToRGBImageFilterTest1(int argc, char * argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "usage: " << argv[0] << " input output" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output" << std::endl;
+    return EXIT_FAILURE;
   }
 
   constexpr int dim = 2;
@@ -39,24 +40,24 @@ itkLabelMapToRGBImageFilterTest1(int argc, char * argv[])
   using IType = itk::Image<unsigned char, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using ConverterType = itk::LabelImageToLabelMapFilter<IType>;
-  ConverterType::Pointer converter = ConverterType::New();
+  auto converter = ConverterType::New();
   converter->SetInput(reader->GetOutput());
 
   //  using RGBPixelType = itk::RGBPixel< unsigned char >;
   //  using RGBImageType = itk::Image< RGBPixelType, dim >;
 
   using ColorizerType = itk::LabelMapToRGBImageFilter<ConverterType::OutputImageType>;
-  ColorizerType::Pointer colorizer = ColorizerType::New();
+  auto colorizer = ColorizerType::New();
   colorizer->SetInput(converter->GetOutput());
 
-  itk::SimpleFilterWatcher watcher(colorizer, "filter");
+  const itk::SimpleFilterWatcher watcher(colorizer, "filter");
 
   using WriterType = itk::ImageFileWriter<ColorizerType::OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(colorizer->GetOutput());
   writer->SetFileName(argv[2]);
   writer->Update();
@@ -71,5 +72,5 @@ itkLabelMapToRGBImageFilterTest1(int argc, char * argv[])
   colorizer->GetFunctor().AddColor(0, 255, 0);
   ITK_TEST_EXPECT_TRUE(colorizer->GetFunctor() != functor);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

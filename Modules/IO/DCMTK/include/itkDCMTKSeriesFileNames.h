@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,12 @@
 namespace itk
 {
 /**
- *\class DCMTKSeriesFileNames
+ * \class DCMTKSeriesFileNames
  * \brief Generate a sequence of filenames from a DICOM series.
  *
  * This class generate a sequence of files whose filenames points to
  * a DICOM file. The ordering is based on the following strategy:
- * Read all images in the directory (assuming there is only one study/serie)
+ * Read all images in the directory (assuming there is only one study/series)
  *
  *   1. Extract Image Orientation & Image Position from DICOM images, and then
  *      calculate the ordering based on the 3D coordinate of the slice
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DCMTKSeriesFileNames, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DCMTKSeriesFileNames);
 
   /* -------- Define the API for DCMTKSeriesFileNames ----------- */
 
@@ -83,11 +83,11 @@ public:
 
   /** Set the directory that contains the DICOM series. */
   void
-  SetInputDirectory(std::string const & name);
+  SetInputDirectory(const std::string & name);
 
   /** Set the directory that contains the DICOM series. */
   void
-  SetDirectory(std::string const & name)
+  SetDirectory(const std::string & name)
   {
     SetInputDirectory(name);
   }
@@ -98,9 +98,9 @@ public:
   const FileNamesContainerType &
   GetInputFileNames();
 
-  /** Set the directory where the output DICOM serie should be written. */
+  /** Set the directory where the output DICOM series should be written. */
   void
-  SetOutputDirectory(std::string const & name)
+  SetOutputDirectory(const std::string & name)
   {
     m_OutputDirectory = name;
     this->Modified();
@@ -153,16 +153,16 @@ public:
     return m_UseSeriesDetails;
   }
 
-  /** Add more restriction on the selection of a Series. This follow the same
-   * approach as SetUseSeriesDetails, but allow a user to add even more DICOM
+  /** Add more restriction on the selection of a Series. This follows the same
+   * approach as SetUseSeriesDetails, but allows a user to add even more DICOM
    * tags to take into account for subrefining a set of DICOM files into multiple
-   * series. Format for tag is "group|element" of a DICOM tag.
-   * \warning User need to set SetUseSeriesDetails(true)
+   * series. The tag format is "group|element" of a DICOM tag.
+   * \warning UseSeriesDetails needs to be set to true.
    */
   void
   AddSeriesRestriction(const std::string & /* tag */)
   {
-    // m_SerieHelper->AddRestriction(tag);
+    // m_SeriesHelper->AddRestriction(tag);
   }
 
   /** Parse any sequences in the DICOM file. Defaults to false
@@ -191,25 +191,25 @@ private:
   /** internal method for reading out filenames and UID lists */
   void
   GetDicomData(const std::string & series, bool saveFileNames);
-  /** Contains the input directory where the DICOM serie is found */
-  std::string m_InputDirectory;
+  /** Contains the input directory where the DICOM series is found */
+  std::string m_InputDirectory{};
 
-  /** Contains the output directory where the DICOM serie should be written */
-  std::string m_OutputDirectory;
+  /** Contains the output directory where the DICOM series should be written */
+  std::string m_OutputDirectory{};
 
   /** Internal structure to keep the list of input/output filenames */
-  FileNamesContainerType m_InputFileNames;
-  FileNamesContainerType m_OutputFileNames;
+  FileNamesContainerType m_InputFileNames{};
+  FileNamesContainerType m_OutputFileNames{};
 
-  /** Internal structure to order serie from one directory */
+  /** Internal structure to order series from one directory */
 
   /** Internal structure to keep the list of series UIDs */
-  SeriesUIDContainerType m_SeriesUIDs;
+  SeriesUIDContainerType m_SeriesUIDs{};
 
-  bool m_UseSeriesDetails;
-  bool m_Recursive;
-  bool m_LoadSequences;
-  bool m_LoadPrivateTags;
+  bool m_UseSeriesDetails{};
+  bool m_Recursive{};
+  bool m_LoadSequences{};
+  bool m_LoadPrivateTags{};
 };
 } // namespace itk
 

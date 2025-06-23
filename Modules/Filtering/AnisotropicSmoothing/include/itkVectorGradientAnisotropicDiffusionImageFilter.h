@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +58,8 @@ namespace itk
  * \endsphinx
  */
 template <typename TInputImage, typename TOutputImage>
-class VectorGradientAnisotropicDiffusionImageFilter : public AnisotropicDiffusionImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT VectorGradientAnisotropicDiffusionImageFilter
+  : public AnisotropicDiffusionImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VectorGradientAnisotropicDiffusionImageFilter);
@@ -72,28 +73,23 @@ public:
   /** Instantiation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information. */
-  itkTypeMacro(VectorGradientAnisotropicDiffusionImageFilter, AnisotropicDiffusionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorGradientAnisotropicDiffusionImageFilter);
 
   /** Extract information from the superclass. */
-  using UpdateBufferType = typename Superclass::UpdateBufferType;
+  using typename Superclass::UpdateBufferType;
 
   /** Determine the image dimension from the  superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType::ValueType>));
   itkConceptMacro(OutputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TOutputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   VectorGradientAnisotropicDiffusionImageFilter()
   {
-    typename VectorGradientNDAnisotropicDiffusionFunction<UpdateBufferType>::Pointer p =
-      VectorGradientNDAnisotropicDiffusionFunction<UpdateBufferType>::New();
+    auto p = VectorGradientNDAnisotropicDiffusionFunction<UpdateBufferType>::New();
     this->SetDifferenceFunction(p);
   }
 

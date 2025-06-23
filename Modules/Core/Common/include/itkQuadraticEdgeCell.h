@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,16 +19,14 @@
 #define itkQuadraticEdgeCell_h
 
 #include "itkVertexCell.h"
+#include "itkMakeFilled.h"
+
+#include <array>
 
 namespace itk
 {
 /** \class QuadraticEdgeCell
  *  \brief Represents a second order line segment for a Mesh.
- *
- * \tparam TPixelType The type associated with a point, cell, or boundary
- * for use in storing its data.
- *
- * \tparam TCellTraits Type information of mesh containing cell.
  *
  * \ingroup MeshObjects
  * \ingroup ITKCommon
@@ -40,11 +38,12 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(QuadraticEdgeCell);
 
   /** Standard class type aliases. */
+  /** @ITKStartGrouping */
   itkCellCommonTypedefs(QuadraticEdgeCell);
   itkCellInheritedTypedefs(TCellInterface);
-
-  /** Standard part of every itk Object. */
-  itkTypeMacro(QuadraticEdgeCell, CellInterface);
+  /** @ITKEndGrouping */
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadraticEdgeCell);
 
   /** The type of boundary for this lines's vertices. */
   using VertexType = VertexCell<TCellInterface>;
@@ -56,18 +55,19 @@ public:
   static constexpr unsigned int CellDimension = 1;
 
   /** Implement the standard CellInterface. */
-  CellGeometryEnum
+  /** @ITKStartGrouping */
+  [[nodiscard]] CellGeometryEnum
   GetType() const override
   {
     return CellGeometryEnum::QUADRATIC_EDGE_CELL;
   }
   void
   MakeCopy(CellAutoPointer &) const override;
-
-  unsigned int
+  /** @ITKEndGrouping */
+  [[nodiscard]] unsigned int
   GetDimension() const override;
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfPoints() const override;
 
   CellFeatureCount
@@ -105,13 +105,7 @@ public:
   /** Visitor interface */
   itkCellVisitMacro(CellGeometryEnum::QUADRATIC_EDGE_CELL);
 
-  QuadraticEdgeCell()
-  {
-    for (PointIdentifier i = 0; i < Self::NumberOfPoints; ++i)
-    {
-      m_PointIds[i] = NumericTraits<PointIdentifier>::max();
-    }
-  }
+  QuadraticEdgeCell() = default;
 
   ~QuadraticEdgeCell() override = default;
 
@@ -123,7 +117,8 @@ public:
 
 protected:
   /** Store number of points needed for a line segment. */
-  PointIdentifier m_PointIds[NumberOfPoints];
+  std::array<PointIdentifier, NumberOfPoints> m_PointIds{ MakeFilled<std::array<PointIdentifier, NumberOfPoints>>(
+    NumericTraits<PointIdentifier>::max()) };
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,9 +37,9 @@ itkSTLContainerAdaptorTest(int, char *[])
 
     std::cout << "Testing the VectorContainer " << std::endl;
 
-    using VectorContainerType = itk::VectorContainer<IndexType, ElementType>;
+    using VectorContainerType = itk::VectorContainer<ElementType>;
 
-    VectorContainerType::Pointer vectorContainer = VectorContainerType::New();
+    auto vectorContainer = VectorContainerType::New();
 
     using STLVectorType = std::vector<ElementType>;
 
@@ -68,7 +68,7 @@ itkSTLContainerAdaptorTest(int, char *[])
       targetRef.reserve(vectorSource.size());
       targetRef.assign(vectorSource.begin(), vectorSource.end());
 
-      STLVectorType::const_iterator      it = vectorSource.begin();
+      auto                               it = vectorSource.begin();
       VectorContainerType::ConstIterator cIter = vectorContainer->Begin();
       while (it != vectorSource.end() && cIter != vectorContainer->End())
       {
@@ -116,7 +116,7 @@ itkSTLContainerAdaptorTest(int, char *[])
       std::cout << "Testing reading assignment... ";
       destination.assign(constTargetRef.begin(), constTargetRef.end());
 
-      STLVectorType::const_iterator      it = destination.begin();
+      auto                               it = destination.begin();
       VectorContainerType::ConstIterator cIter = vectorContainer->Begin();
       while (it != destination.end() && cIter != vectorContainer->End())
       {
@@ -162,7 +162,7 @@ itkSTLContainerAdaptorTest(int, char *[])
 
     std::cout << "Testing the MapContainer " << std::endl;
 
-    MapContainerType::Pointer mapContainer = MapContainerType::New();
+    auto mapContainer = MapContainerType::New();
 
     using STLMapType = std::map<int, ElementType>;
     STLMapType mapSource;
@@ -193,7 +193,7 @@ itkSTLContainerAdaptorTest(int, char *[])
         targetRef[i] = mapSource[i];
       }
 
-      STLMapType::const_iterator      it = mapSource.begin();
+      auto                            it = mapSource.begin();
       MapContainerType::ConstIterator cIter = mapContainer->Begin();
       while (it != mapSource.end() && cIter != mapContainer->End())
       {
@@ -244,7 +244,7 @@ itkSTLContainerAdaptorTest(int, char *[])
         destination[i] = constTargetRef.find(i)->second;
       }
 
-      STLMapType::const_iterator      it = destination.begin();
+      auto                            it = destination.begin();
       MapContainerType::ConstIterator cIter = mapContainer->Begin();
       while (it != destination.end() && cIter != mapContainer->End())
       {

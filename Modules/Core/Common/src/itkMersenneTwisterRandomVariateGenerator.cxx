@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,20 +21,54 @@
 
 #include <atomic>
 
-namespace itk
+namespace itk::Statistics
 {
-namespace Statistics
+namespace
 {
+using IntegerType = MersenneTwisterRandomVariateGenerator::IntegerType;
+
+IntegerType
+hiBit(const IntegerType u)
+{
+  return u & 0x80000000;
+}
+
+IntegerType
+loBit(const IntegerType u)
+{
+  return u & 0x00000001;
+}
+
+IntegerType
+loBits(const IntegerType u)
+{
+  return u & 0x7fffffff;
+}
+IntegerType
+mixBits(const IntegerType u, const IntegerType v)
+{
+  return hiBit(u) | loBits(v);
+}
+
+IntegerType
+twist(const IntegerType m, const IntegerType s0, const IntegerType s1)
+{
+  return m ^ (mixBits(s0, s1) >> 1) ^ (-static_cast<int32_t>(loBit(s1)) & 0x9908b0df);
+}
+} // namespace
+
 
 /** Private nested class to easily synchronize global variables across static libraries.*/
 struct MersenneTwisterGlobals
 {
-  MersenneTwisterGlobals()
-    : m_StaticInstance(nullptr)
-    , m_StaticDiffer(0){};
-  MersenneTwisterRandomVariateGenerator::Pointer                  m_StaticInstance;
-  std::recursive_mutex                                            m_StaticInstanceLock;
-  std::atomic<MersenneTwisterRandomVariateGenerator::IntegerType> m_StaticDiffer;
+  ITK_DISALLOW_COPY_AND_MOVE(MersenneTwisterGlobals);
+
+  MersenneTwisterGlobals() = default;
+  ~MersenneTwisterGlobals() = default;
+
+  MersenneTwisterRandomVariateGenerator::Pointer m_StaticInstance{};
+  std::mutex                                     m_StaticInstanceMutex{};
+  std::atomic<IntegerType>                       m_StaticDiffer{};
 };
 
 itkGetGlobalSimpleMacro(MersenneTwisterRandomVariateGenerator, MersenneTwisterGlobals, PimplGlobals);
@@ -45,7 +79,7 @@ MersenneTwisterRandomVariateGenerator::Pointer
 MersenneTwisterRandomVariateGenerator::CreateInstance()
 {
   // Try the factory first
-  MersenneTwisterRandomVariateGenerator::Pointer obj = ObjectFactory<Self>::Create();
+  Pointer obj = ObjectFactory<Self>::Create();
   // If the factory did not provide one, then create it here
   if (!obj)
   {
@@ -60,9 +94,9 @@ MersenneTwisterRandomVariateGenerator::CreateInstance()
 MersenneTwisterRandomVariateGenerator::Pointer
 MersenneTwisterRandomVariateGenerator::New()
 {
-  MersenneTwisterRandomVariateGenerator::Pointer obj = MersenneTwisterRandomVariateGenerator::CreateInstance();
+  Pointer obj = Self::CreateInstance();
 
-  obj->SetSeed(MersenneTwisterRandomVariateGenerator::GetNextSeed());
+  obj->InitializeWithoutMutexLocking(Self::GetNextSeed());
   return obj;
 }
 
@@ -70,63 +104,164 @@ MersenneTwisterRandomVariateGenerator::Pointer
 MersenneTwisterRandomVariateGenerator::GetInstance()
 {
   itkInitGlobalsMacro(PimplGlobals);
-  std::lock_guard<std::recursive_mutex> mutexHolder(m_PimplGlobals->m_StaticInstanceLock);
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->m_StaticInstanceMutex);
 
   if (!m_PimplGlobals->m_StaticInstance)
   {
-    m_PimplGlobals->m_StaticInstance = MersenneTwisterRandomVariateGenerator::CreateInstance();
-    m_PimplGlobals->m_StaticInstance->SetSeed();
+    m_PimplGlobals->m_StaticInstance = Self::CreateInstance();
+    m_PimplGlobals->m_StaticInstance->InitializeWithoutMutexLocking(Self::CreateRandomSeed());
   }
 
   return m_PimplGlobals->m_StaticInstance;
 }
 
+
+void
+MersenneTwisterRandomVariateGenerator::ResetNextSeed()
+{
+  itkInitGlobalsMacro(PimplGlobals);
+  m_PimplGlobals->m_StaticDiffer = 0;
+}
+
+
 MersenneTwisterRandomVariateGenerator::MersenneTwisterRandomVariateGenerator()
 {
-  SetSeed(121212);
+  this->InitializeWithoutMutexLocking(DefaultSeed);
 }
 
 MersenneTwisterRandomVariateGenerator::~MersenneTwisterRandomVariateGenerator() = default;
 
-MersenneTwisterRandomVariateGenerator::IntegerType
-MersenneTwisterRandomVariateGenerator ::hash(time_t t, clock_t c)
+IntegerType
+MersenneTwisterRandomVariateGenerator::hash(const time_t t, const clock_t c)
 {
   itkInitGlobalsMacro(PimplGlobals);
   // Get an IntegerType from t and c
   // Better than IntegerType(x) in case x is floating point in [0,1]
   // Based on code by Lawrence Kirby: fred at genesis dot demon dot co dot uk
 
-  IntegerType h1 = 0;
-  auto *      p = (unsigned char *)&t;
+  const auto convert = [](const auto arg) {
+    IntegerType        h{ 0 };
+    const auto * const p = reinterpret_cast<const unsigned char *>(&arg);
 
-  const auto sizeOfT = static_cast<unsigned int>(sizeof(t));
-  for (unsigned int i = 0; i < sizeOfT; ++i)
-  {
-    h1 *= UCHAR_MAX + 2U;
-    h1 += p[i];
-  }
-  IntegerType h2 = 0;
-  p = (unsigned char *)&c;
+    for (size_t i = 0; i < sizeof(arg); ++i)
+    {
+      h *= UCHAR_MAX + 2U;
+      h += p[i];
+    }
+    return h;
+  };
 
-  const auto sizeOfC = static_cast<unsigned int>(sizeof(c));
-  for (unsigned int j = 0; j < sizeOfC; ++j)
-  {
-    h2 *= UCHAR_MAX + 2U;
-    h2 += p[j];
-  }
+  const IntegerType h1 = convert(t);
+  const IntegerType h2 = convert(c);
   return (h1 + m_PimplGlobals->m_StaticDiffer++) ^ h2;
 }
 
-MersenneTwisterRandomVariateGenerator::IntegerType
+IntegerType
 MersenneTwisterRandomVariateGenerator::GetNextSeed()
 {
   itkInitGlobalsMacro(PimplGlobals);
-  IntegerType newSeed = GetInstance()->GetSeed();
-  {
-    newSeed += m_PimplGlobals->m_StaticDiffer++;
-  }
-  return newSeed;
+  return Self::GetInstance()->m_Seed + m_PimplGlobals->m_StaticDiffer++;
 }
+
+
+void
+MersenneTwisterRandomVariateGenerator::SetSeed(const IntegerType seed)
+{
+  // This is a public member function, so it must lock the mutex of the instance.
+  const std::lock_guard<std::mutex> lockGuard(m_InstanceMutex);
+  this->InitializeWithoutMutexLocking(seed);
+}
+
+void
+MersenneTwisterRandomVariateGenerator::InitializeWithoutMutexLocking(const IntegerType seed)
+{
+  m_Seed = seed;
+  // Initialize generator state with seed
+  // See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
+  // In previous versions, most significant bits (MSBs) of the seed affect
+  // only MSBs of the state array.  Modified 9 Jan 2002 by Makoto Matsumoto.
+  IntegerType *       s = m_State;
+  const IntegerType * r = m_State;
+
+  *s++ = seed;
+  for (IntegerType i = 1; i < StateVectorLength; ++i)
+  {
+    *s++ = uint32_t{ (uint32_t{ 1812433253 } * (*r ^ (*r >> 30)) + i) };
+    ++r;
+  }
+  reload();
+}
+
+void
+MersenneTwisterRandomVariateGenerator::reload()
+{
+  // Generate N new values in state
+  // Made clearer and faster by Matthew Bellew
+  // matthew dot bellew at home dot com
+
+  // Period parameter
+  static constexpr unsigned int M = 397;
+
+  // get rid of VS warning
+  constexpr auto index = int{ M } - int{ StateVectorLength };
+
+  IntegerType * p = m_State;
+
+  for (int i = StateVectorLength - M; i--; ++p)
+  {
+    *p = twist(p[M], p[0], p[1]);
+  }
+  for (int i = M; --i; ++p)
+  {
+    *p = twist(p[index], p[0], p[1]);
+  }
+  *p = twist(p[index], p[0], m_State[0]);
+
+  m_Left = StateVectorLength;
+  m_PNext = m_State;
+}
+
+
+/** Get an integer variate in [0, 2^32-1] */
+IntegerType
+MersenneTwisterRandomVariateGenerator::GetIntegerVariate()
+{
+  if (m_Left == 0)
+  {
+    reload();
+  }
+  --m_Left;
+
+  IntegerType s1 = *m_PNext++;
+  s1 ^= (s1 >> 11);
+  s1 ^= (s1 << 7) & 0x9d2c5680;
+  s1 ^= (s1 << 15) & 0xefc60000;
+  return (s1 ^ (s1 >> 18));
+}
+
+
+IntegerType
+MersenneTwisterRandomVariateGenerator::GetIntegerVariate(const IntegerType n)
+{
+  // Find which bits are used in n
+  IntegerType used = n;
+
+  used |= used >> 1;
+  used |= used >> 2;
+  used |= used >> 4;
+  used |= used >> 8;
+  used |= used >> 16;
+
+  // Draw numbers until one is found in [0,n]
+  IntegerType i = 0;
+  do
+  {
+    i = GetIntegerVariate() & used; // toss unused bits to shorten search
+  } while (i > n);
+
+  return i;
+}
+
 
 void
 MersenneTwisterRandomVariateGenerator::PrintSelf(std::ostream & os, Indent indent) const
@@ -134,12 +269,11 @@ MersenneTwisterRandomVariateGenerator::PrintSelf(std::ostream & os, Indent inden
   Superclass::PrintSelf(os, indent);
 
   // Print state vector contents
-  os << indent << "State vector: " << state << std::endl;
+  os << indent << "State vector: " << m_State << std::endl;
   os << indent;
-  const IntegerType * s = state;
-  int                 i = StateVectorLength;
-  for (; i--; os << *s++ << "\t")
+  for (const IntegerType stateValue : m_State)
   {
+    os << stateValue << '\t';
   }
   os << std::endl;
 
@@ -150,5 +284,4 @@ MersenneTwisterRandomVariateGenerator::PrintSelf(std::ostream & os, Indent inden
   os << indent << "Values left before next reload: " << m_Left << std::endl;
 }
 
-} // end namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +18,8 @@
 #ifndef itkEuclideanDistancePointMetric_hxx
 #define itkEuclideanDistancePointMetric_hxx
 
-#include "itkEuclideanDistancePointMetric.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include <cmath> // For abs.
 
 namespace itk
 {
@@ -33,37 +33,37 @@ template <typename TFixedPointSet, typename TMovingPointSet, typename TDistanceM
 unsigned int
 EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::GetNumberOfValues() const
 {
-  MovingPointSetConstPointer movingPointSet = this->GetMovingPointSet();
+  const MovingPointSetConstPointer movingPointSet = this->GetMovingPointSet();
 
   if (!movingPointSet)
   {
-    itkExceptionMacro(<< "Moving point set has not been assigned");
+    itkExceptionMacro("Moving point set has not been assigned");
   }
 
   return movingPointSet->GetPoints()->Size();
 }
 
 template <typename TFixedPointSet, typename TMovingPointSet, typename TDistanceMap>
-typename EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::MeasureType
+auto
 EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::GetValue(
-  const TransformParametersType & parameters) const
+  const TransformParametersType & parameters) const -> MeasureType
 {
-  FixedPointSetConstPointer fixedPointSet = this->GetFixedPointSet();
+  const FixedPointSetConstPointer fixedPointSet = this->GetFixedPointSet();
 
   if (!fixedPointSet)
   {
-    itkExceptionMacro(<< "Fixed point set has not been assigned");
+    itkExceptionMacro("Fixed point set has not been assigned");
   }
 
-  MovingPointSetConstPointer movingPointSet = this->GetMovingPointSet();
+  const MovingPointSetConstPointer movingPointSet = this->GetMovingPointSet();
 
   if (!movingPointSet)
   {
-    itkExceptionMacro(<< "Moving point set has not been assigned");
+    itkExceptionMacro("Moving point set has not been assigned");
   }
 
-  MovingPointIterator pointItr = movingPointSet->GetPoints()->Begin();
-  MovingPointIterator pointEnd = movingPointSet->GetPoints()->End();
+  MovingPointIterator       pointItr = movingPointSet->GetPoints()->Begin();
+  const MovingPointIterator pointEnd = movingPointSet->GetPoints()->End();
 
   MeasureType measure;
   measure.set_size(movingPointSet->GetPoints()->Size());
@@ -75,7 +75,7 @@ EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::Get
   {
     typename Superclass::InputPointType inputPoint;
     inputPoint.CastFrom(pointItr.Value());
-    typename Superclass::OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
+    const typename Superclass::OutputPointType transformedPoint = this->m_Transform->TransformPoint(inputPoint);
 
     double minimumDistance = NumericTraits<double>::max();
     bool   closestPoint = false;
@@ -90,10 +90,7 @@ EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::Get
         minimumDistance = m_DistanceMap->GetPixel(index);
         // In case the provided distance map was signed,
         // we correct here the distance to take its absolute value.
-        if (minimumDistance < 0.0)
-        {
-          minimumDistance = -minimumDistance;
-        }
+        minimumDistance = std::abs(minimumDistance);
         closestPoint = true;
       }
     }
@@ -102,8 +99,8 @@ EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::Get
     // points and find the closest distance
     if (!closestPoint)
     {
-      FixedPointIterator pointItr2 = fixedPointSet->GetPoints()->Begin();
-      FixedPointIterator pointEnd2 = fixedPointSet->GetPoints()->End();
+      FixedPointIterator       pointItr2 = fixedPointSet->GetPoints()->Begin();
+      const FixedPointIterator pointEnd2 = fixedPointSet->GetPoints()->End();
 
       while (pointItr2 != pointEnd2)
       {
@@ -133,13 +130,6 @@ EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::Get
 
 template <typename TFixedPointSet, typename TMovingPointSet, typename TDistanceMap>
 void
-EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::GetDerivative(
-  const TransformParametersType & itkNotUsed(parameters),
-  DerivativeType &                itkNotUsed(derivative)) const
-{}
-
-template <typename TFixedPointSet, typename TMovingPointSet, typename TDistanceMap>
-void
 EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::GetValueAndDerivative(
   const TransformParametersType & parameters,
   MeasureType &                   value,
@@ -155,15 +145,10 @@ EuclideanDistancePointMetric<TFixedPointSet, TMovingPointSet, TDistanceMap>::Pri
                                                                                        Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "DistanceMap: " << m_DistanceMap << std::endl;
-  if (m_ComputeSquaredDistance)
-  {
-    os << indent << "m_ComputeSquaredDistance: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "m_ComputeSquaredDistance: False" << std::endl;
-  }
+
+  itkPrintSelfObjectMacro(DistanceMap);
+
+  itkPrintSelfBooleanMacro(ComputeSquaredDistance);
 }
 } // end namespace itk
 

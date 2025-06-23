@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include <unordered_map>
 #include "itkSubsample.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class MembershipSample
+ * \class MembershipSample
  * \brief Container for storing the instance-identifiers of other sample with
  * their associated class labels.
  *
@@ -65,10 +63,11 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(MembershipSample, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(MembershipSample);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Typedefs for Measurement vector, measurement, Instance Identifier,
    * frequency, size, size element value from the template argument TSample */
   using SampleType = TSample;
@@ -96,9 +95,10 @@ public:
   using ClassSampleConstPointer = typename ClassSampleType::ConstPointer;
 
   /** Set/Get the actual sample data */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Sample, SampleType);
   itkGetConstObjectMacro(Sample, SampleType);
-
+  /** @ITKEndGrouping */
   /** Sets the number of classes (class labels) */
   void
   SetNumberOfClasses(unsigned int numberOfClasses);
@@ -136,7 +136,7 @@ public:
   /** returns the measurement element which is the 'n'-th element
    * in the 'd' dimension of the measurement vector */
   MeasurementType
-  GetMeasurement(const InstanceIdentifier & id, const unsigned int & dimension);
+  GetMeasurement(const InstanceIdentifier & id, const unsigned int dimension);
 
   /** returns the frequency of the instance which is identified by the 'id' */
   AbsoluteFrequencyType
@@ -160,32 +160,21 @@ public:
     ConstIterator(const Self * sample) { *this = sample->Begin(); }
 
     ConstIterator(const ConstIterator & iter)
-    {
-      m_Sample = iter.m_Sample;
-      m_MembershipSample = iter.m_MembershipSample;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-    }
+      : m_Sample(iter.m_Sample)
+      , m_MembershipSample(iter.m_MembershipSample)
+      , m_InstanceIdentifier(iter.m_InstanceIdentifier)
+    {}
 
     ConstIterator &
-    operator=(const ConstIterator & iter)
-    {
-      m_Sample = iter.m_Sample;
-      m_MembershipSample = iter.m_MembershipSample;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      return *this;
-    }
-
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_InstanceIdentifier != it.m_InstanceIdentifier);
-    }
+    operator=(const ConstIterator & iter) = default;
 
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_InstanceIdentifier == it.m_InstanceIdentifier);
     }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
     ConstIterator &
     operator++()
@@ -194,25 +183,25 @@ public:
       return *this;
     }
 
-    AbsoluteFrequencyType
+    [[nodiscard]] AbsoluteFrequencyType
     GetFrequency() const
     {
       return m_Sample->GetFrequency(m_InstanceIdentifier);
     }
 
-    const MeasurementVectorType &
+    [[nodiscard]] const MeasurementVectorType &
     GetMeasurementVector() const
     {
       return m_Sample->GetMeasurementVector(m_InstanceIdentifier);
     }
 
-    InstanceIdentifier
+    [[nodiscard]] InstanceIdentifier
     GetInstanceIdentifier() const
     {
       return m_InstanceIdentifier;
     }
 
-    unsigned int
+    [[nodiscard]] unsigned int
     GetClassLabel() const
     {
       return m_MembershipSample->GetClassLabel(m_InstanceIdentifier);
@@ -257,7 +246,7 @@ public:
 
   protected:
     // To ensure const-correctness these method must not be in the public API.
-    // The are purposly not implemented, since they should never be called.
+    // The are purposely not implemented, since they should never be called.
     Iterator();
     Iterator(const Self * sample);
     Iterator(const ConstIterator & it);
@@ -277,7 +266,7 @@ public:
   Iterator
   Begin()
   {
-    Iterator iter(this, 0);
+    const Iterator iter(this, 0);
 
     return iter;
   }
@@ -287,7 +276,7 @@ public:
   Iterator
   End()
   {
-    Iterator iter(this, m_Sample->Size());
+    const Iterator iter(this, m_Sample->Size());
 
     return iter;
   }
@@ -295,7 +284,7 @@ public:
   ConstIterator
   Begin() const
   {
-    ConstIterator iter(this, 0);
+    const ConstIterator iter(this, 0);
 
     return iter;
   }
@@ -303,7 +292,7 @@ public:
   ConstIterator
   End() const
   {
-    ConstIterator iter(this, m_Sample->Size());
+    const ConstIterator iter(this, m_Sample->Size());
 
     return iter;
   }
@@ -320,14 +309,13 @@ private:
   int
   GetInternalClassLabel(const ClassLabelType classLabel) const;
 
-  UniqueClassLabelsType           m_UniqueClassLabels;
-  ClassLabelHolderType            m_ClassLabelHolder;
-  std::vector<ClassSamplePointer> m_ClassSamples;
-  SampleConstPointer              m_Sample;
-  unsigned int                    m_NumberOfClasses;
+  UniqueClassLabelsType           m_UniqueClassLabels{};
+  ClassLabelHolderType            m_ClassLabelHolder{};
+  std::vector<ClassSamplePointer> m_ClassSamples{};
+  SampleConstPointer              m_Sample{};
+  unsigned int                    m_NumberOfClasses{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMembershipSample.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,8 +73,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MinimumMaximumImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MinimumMaximumImageFilter);
 
   /** Image type alias support */
   using InputImageType = TInputImage;
@@ -103,19 +103,15 @@ public:
   {
     Superclass::SetNumberOfStreamDivisions(n);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfStreamDivisions() const override
   {
     return Superclass::GetNumberOfStreamDivisions();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(LessThanComparableCheck, (Concept::LessThanComparable<PixelType>));
   itkConceptMacro(GreaterThanComparableCheck, (Concept::GreaterThanComparable<PixelType>));
   itkConceptMacro(OStreamWritableCheck, (Concept::OStreamWritable<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   MinimumMaximumImageFilter();
@@ -140,10 +136,10 @@ protected:
   itkSetDecoratedOutputMacro(Maximum, PixelType);
 
 private:
-  PixelType m_ThreadMin;
-  PixelType m_ThreadMax;
+  PixelType m_ThreadMin{};
+  PixelType m_ThreadMax{};
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 };
 } // end namespace itk
 

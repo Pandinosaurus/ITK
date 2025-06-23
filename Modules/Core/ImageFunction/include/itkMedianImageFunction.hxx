@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMedianImageFunction_hxx
 #define itkMedianImageFunction_hxx
 
-#include "itkMedianImageFunction.h"
 #include "itkImage.h"
 #include "itkShapedImageNeighborhoodRange.h"
 
@@ -27,15 +26,13 @@
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TInputImage, typename TCoordRep>
-MedianImageFunction<TInputImage, TCoordRep>::MedianImageFunction() = default;
 
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
+MedianImageFunction<TInputImage, TCoordinate>::MedianImageFunction() = default;
+
+template <typename TInputImage, typename TCoordinate>
 void
-MedianImageFunction<TInputImage, TCoordRep>::SetNeighborhoodRadius(const unsigned int radius)
+MedianImageFunction<TInputImage, TCoordinate>::SetNeighborhoodRadius(const unsigned int radius)
 {
   if (m_NeighborhoodRadius != radius)
   {
@@ -45,24 +42,17 @@ MedianImageFunction<TInputImage, TCoordRep>::SetNeighborhoodRadius(const unsigne
   }
 }
 
-
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-MedianImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+MedianImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "NeighborhoodRadius: " << m_NeighborhoodRadius << std::endl;
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
-typename MedianImageFunction<TInputImage, TCoordRep>::OutputType
-MedianImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+MedianImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> OutputType
 {
   const InputImageType * const image = this->GetInputImage();
 

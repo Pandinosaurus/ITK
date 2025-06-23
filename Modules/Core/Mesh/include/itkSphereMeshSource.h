@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SphereMeshSource, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SphereMeshSource);
 
   /** Hold on to the type information specified by the template parameters. */
   using OutputMeshType = TOutputMesh;
@@ -76,9 +76,10 @@ public:
 
   /** All these parameter setting function are public temporarily to make the
    * test easier */
+  /** @ITKStartGrouping */
   itkSetMacro(ResolutionX, unsigned int);
   itkSetMacro(ResolutionY, unsigned int);
-
+  /** @ITKEndGrouping */
   itkSetMacro(Center, OPointType);
   itkSetMacro(Scale, OPointType);
 
@@ -95,18 +96,18 @@ protected:
   GenerateData() override;
 
   /** model center */
-  OPointType m_Center;
+  OPointType m_Center{};
 
   /** model resolutions */
-  unsigned int m_ResolutionX;
-  unsigned int m_ResolutionY;
+  unsigned int m_ResolutionX{};
+  unsigned int m_ResolutionY{};
 
   /** model scales */
-  OPointType m_Scale;
+  OPointType m_Scale{};
 
   /** model squareness */
-  double m_Squareness1;
-  double m_Squareness2;
+  double m_Squareness1{};
+  double m_Squareness2{};
 };
 } // end namespace itk
 #ifndef ITK_MANUAL_INSTANTIATION

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 
 namespace itk
 {
-DCMTKSeriesFileNames ::DCMTKSeriesFileNames()
+DCMTKSeriesFileNames::DCMTKSeriesFileNames()
 {
   m_InputDirectory = "";
   m_OutputDirectory = "";
@@ -43,19 +43,19 @@ DCMTKSeriesFileNames::SetInputDirectory(const char * name)
 {
   if (!name)
   {
-    itkExceptionMacro(<< "SetInputDirectory() received a nullptr string");
+    itkExceptionMacro("SetInputDirectory() received a nullptr string");
   }
   std::string fname = name;
   this->SetInputDirectory(fname);
 }
 
 void
-DCMTKSeriesFileNames::SetInputDirectory(std::string const & name)
+DCMTKSeriesFileNames::SetInputDirectory(const std::string & name)
 {
   if (name.empty())
   {
-    itkWarningMacro(<< "You need to specify a directory where "
-                       "the DICOM files are located");
+    itkWarningMacro("You need to specify a directory where "
+                    "the DICOM files are located");
     return;
   }
   if (m_InputDirectory == name)
@@ -97,7 +97,7 @@ DCMTKSeriesFileNames::GetDicomData(const std::string & series, bool saveFileName
 
   std::vector<DCMTKFileReader *> allHeaders;
 
-  for (unsigned int i = 0; i < numFiles; i++)
+  for (unsigned int i = 0; i < numFiles; ++i)
   {
     std::string curFile = directory.GetFile(i);
     if (curFile == "." || curFile == "..")
@@ -195,56 +195,25 @@ DCMTKSeriesFileNames::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "InputDirectory: " << m_InputDirectory << std::endl;
   os << indent << "OutputDirectory: " << m_OutputDirectory << std::endl;
 
-  for (unsigned int i = 0; i < m_InputFileNames.size(); i++)
+  for (unsigned int i = 0; i < m_InputFileNames.size(); ++i)
   {
     os << indent << "InputFileNames[" << i << "]: " << m_InputFileNames[i] << std::endl;
   }
 
-  for (unsigned int i = 0; i < m_OutputFileNames.size(); i++)
+  for (unsigned int i = 0; i < m_OutputFileNames.size(); ++i)
   {
     os << indent << "OutputFileNames[" << i << "]: " << m_OutputFileNames[i] << std::endl;
   }
 
-  for (unsigned int i = 0; i < m_SeriesUIDs.size(); i++)
+  for (unsigned int i = 0; i < m_SeriesUIDs.size(); ++i)
   {
     os << indent << "SeriesUIDs[" << i << "]: " << m_SeriesUIDs[i] << std::endl;
   }
 
-  if (m_UseSeriesDetails)
-  {
-    os << indent << "UseSeriesDetails: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "UseSeriesDetails: False" << std::endl;
-  }
-
-  if (m_Recursive)
-  {
-    os << indent << "Recursive: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "Recursive: False" << std::endl;
-  }
-
-  if (m_LoadSequences)
-  {
-    os << indent << "LoadSequences: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "LoadSequences: False" << std::endl;
-  }
-
-  if (m_LoadPrivateTags)
-  {
-    os << indent << "LoadPrivateTags: True" << std::endl;
-  }
-  else
-  {
-    os << indent << "LoadPrivateTags: False" << std::endl;
-  }
+  itkPrintSelfBooleanMacro(UseSeriesDetails);
+  itkPrintSelfBooleanMacro(Recursive);
+  itkPrintSelfBooleanMacro(LoadSequences);
+  itkPrintSelfBooleanMacro(LoadPrivateTags);
 }
 
 void

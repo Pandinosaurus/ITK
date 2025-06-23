@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkImageFileWriter.h"
 #include "itkJoinImageFilter.h"
 #include "itkHistogramToProbabilityImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
@@ -29,8 +30,9 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0] << " inputScalarImageFileName outputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputScalarImageFileName outputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -41,8 +43,8 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
   using ScalarImageType = itk::Image<PixelComponentType, Dimension>;
   using ReaderType = itk::ImageFileReader<ScalarImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader1 = ReaderType::New();
+  auto reader2 = ReaderType::New();
 
   reader1->SetFileName(argv[1]);
   reader2->SetFileName(argv[2]);
@@ -54,14 +56,14 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excp)
   {
-    std::cerr << "Problem encoutered while reading image file : " << argv[1] << std::endl;
+    std::cerr << "Problem encountered while reading image file : " << argv[1] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
   }
 
   using JoinFilterType = itk::JoinImageFilter<ScalarImageType, ScalarImageType>;
 
-  JoinFilterType::Pointer joinFilter = JoinFilterType::New();
+  auto joinFilter = JoinFilterType::New();
 
   using ArrayImageType = JoinFilterType::OutputImageType;
 
@@ -74,7 +76,7 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
 
   constexpr unsigned int NumberOfComponents = 2;
 
-  itk::MinimumMaximumImageFilter<ScalarImageType>::Pointer minmaxFilter =
+  const itk::MinimumMaximumImageFilter<ScalarImageType>::Pointer minmaxFilter =
     itk::MinimumMaximumImageFilter<ScalarImageType>::New();
 
   HistogramMeasurementVectorType imageMin(NumberOfComponents);
@@ -93,7 +95,7 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
   imageMax[1] = minmaxFilter->GetMaximum();
 
 
-  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+  auto histogramFilter = HistogramFilterType::New();
 
   histogramFilter->SetInput(joinFilter->GetOutput());
 
@@ -116,28 +118,21 @@ itkHistogramToProbabilityImageFilterTest2(int argc, char * argv[])
   const HistogramType * histogram = histogramFilter->GetOutput();
 
   using HistogramToImageFilterType = itk::HistogramToProbabilityImageFilter<HistogramType>;
-  HistogramToImageFilterType::Pointer histogramToImageFilter = HistogramToImageFilterType::New();
+  auto histogramToImageFilter = HistogramToImageFilterType::New();
 
   histogramToImageFilter->SetInput(histogram);
 
   using OutputImageType = HistogramToImageFilterType::OutputImageType;
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[3]);
 
   writer->SetInput(histogramToImageFilter->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

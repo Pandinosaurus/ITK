@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,16 +42,17 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Pablo Hernandez-Cerdan <pablo.hernandez.cerdan@outlook.com>
-itk_fetch_module(IsotropicWavelets
-"An ITK-based implementation of steerable isotropic wavelet transforms for multiscale phase analysis.
+itk_fetch_module(
+  IsotropicWavelets
+  "An ITK-based implementation of steerable isotropic wavelet transforms for multiscale phase analysis.
 A more detailed description can be found in the Insight Journal article::
 
 Cerdan, P.H. \"Steerable Isotropic Wavelets for Multiscale and Phase Analysis\".
-  https://www.insight-journal.org/browse/publication/986
+  https://doi.org/10.54294/0e1c0748fe24
   November, 2016.
 "
-  # Upstream repository was transfered from phcerdan to InsightSoftwareConsortium
+  # Upstream repository was transferred from phcerdan to InsightSoftwareConsortium
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKIsotropicWavelets.git
-  GIT_TAG fc383d811f1bac4401657ca1ff870ac5677f7925
-)
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKIsotropicWavelets.git
+  GIT_TAG c16ece28e818f5d1a95d0c9cb1dbecbce1051be9
+  )

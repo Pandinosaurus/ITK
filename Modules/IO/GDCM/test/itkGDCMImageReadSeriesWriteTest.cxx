@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,6 @@
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkTestingMacros.h"
 #include "itkGDCMImageIO.h"
-#include "itkGDCMSeriesFileNames.h"
 
 int
 itkGDCMImageReadSeriesWriteTest(int argc, char * argv[])
@@ -39,13 +38,13 @@ itkGDCMImageReadSeriesWriteTest(int argc, char * argv[])
   const char * outputDirectory = argv[2];
   const char * singleOutputImage = argv[3];
 
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(inputImage);
 
@@ -54,22 +53,21 @@ itkGDCMImageReadSeriesWriteTest(int argc, char * argv[])
   using ImageIOType = itk::GDCMImageIO;
   using NamesGeneratorType = itk::NumericSeriesFileNames;
 
-  ImageIOType::Pointer gdcmIO = ImageIOType::New();
+  auto gdcmIO = ImageIOType::New();
 
   itksys::SystemTools::MakeDirectory(outputDirectory);
 
-  using OutputPixelType = signed short;
+  using OutputPixelType = short;
   constexpr unsigned int OutputDimension = 2;
 
   using Image2DType = itk::Image<OutputPixelType, OutputDimension>;
   using SeriesWriterType = itk::ImageSeriesWriter<ImageType, Image2DType>;
 
-  NamesGeneratorType::Pointer namesGenerator = NamesGeneratorType::New();
+  auto namesGenerator = NamesGeneratorType::New();
 
   itk::MetaDataDictionary & dict = gdcmIO->GetMetaDataDictionary();
-  std::string               tagkey, value;
-  tagkey = "0008|0060"; // Modality
-  value = "MR";
+  std::string               tagkey = "0008|0060"; // Modality
+  std::string               value = "MR";
   itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
   tagkey = "0008|0008"; // Image Type
   value = "DERIVED\\SECONDARY";
@@ -79,13 +77,14 @@ itkGDCMImageReadSeriesWriteTest(int argc, char * argv[])
   itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
 
 
-  SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New();
+  auto seriesWriter = SeriesWriterType::New();
   seriesWriter->SetInput(reader->GetOutput());
   seriesWriter->SetImageIO(gdcmIO);
+  ITK_TEST_SET_GET_VALUE(gdcmIO, seriesWriter->GetImageIO());
 
-  ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
-  ImageType::IndexType  start = region.GetIndex();
-  ImageType::SizeType   size = region.GetSize();
+  const ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
+  ImageType::IndexType        start = region.GetIndex();
+  ImageType::SizeType         size = region.GetSize();
 
 
   std::string format = outputDirectory;
@@ -103,11 +102,11 @@ itkGDCMImageReadSeriesWriteTest(int argc, char * argv[])
 
   // Now read back in and write out as 3D image for comparison with the input.
   using SeriesReaderType = itk::ImageSeriesReader<ImageType>;
-  SeriesReaderType::Pointer seriesReader = SeriesReaderType::New();
+  auto seriesReader = SeriesReaderType::New();
   seriesReader->SetFileNames(namesGenerator->GetFileNames());
 
   using SingleWriterType = itk::ImageFileWriter<ImageType>;
-  SingleWriterType::Pointer singleWriter = SingleWriterType::New();
+  auto singleWriter = SingleWriterType::New();
   singleWriter->SetInput(seriesReader->GetOutput());
   singleWriter->SetFileName(singleOutputImage);
 

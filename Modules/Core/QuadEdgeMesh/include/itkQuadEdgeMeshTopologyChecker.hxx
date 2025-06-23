@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,18 @@
 #ifndef itkQuadEdgeMeshTopologyChecker_hxx
 #define itkQuadEdgeMeshTopologyChecker_hxx
 
-#include "itkQuadEdgeMeshTopologyChecker.h"
 
 namespace itk
 {
 template <typename TMesh>
 QuadEdgeMeshTopologyChecker<TMesh>::QuadEdgeMeshTopologyChecker()
-{
-  m_ExpectedNumberOfPoints = NumericTraits<PointIdentifier>::ZeroValue();
-  m_ExpectedNumberOfEdges = NumericTraits<CellIdentifier>::ZeroValue();
-  m_ExpectedNumberOfFaces = NumericTraits<CellIdentifier>::ZeroValue();
-  m_ExpectedNumberOfBoundaries = NumericTraits<CellIdentifier>::ZeroValue();
-  m_ExpectedGenus = NumericTraits<OffsetValueType>::ZeroValue();
-  m_Mesh = nullptr;
-}
+  : m_Mesh(nullptr)
+  , m_ExpectedNumberOfPoints(PointIdentifier{})
+  , m_ExpectedNumberOfEdges(CellIdentifier{})
+  , m_ExpectedNumberOfFaces(CellIdentifier{})
+  , m_ExpectedNumberOfBoundaries(CellIdentifier{})
+  , m_ExpectedGenus(OffsetValueType{})
+{}
 
 template <typename TMesh>
 bool
@@ -42,14 +40,14 @@ QuadEdgeMeshTopologyChecker<TMesh>::ValidateEulerCharacteristic() const
     return (false);
   }
 
-  typename BoundaryEdges::Pointer boundaryEdges = BoundaryEdges::New();
+  auto boundaryEdges = BoundaryEdges::New();
 
   // Number of USED points
-  PointIdentifier numPoints = m_Mesh->ComputeNumberOfPoints();
+  const PointIdentifier numPoints = m_Mesh->ComputeNumberOfPoints();
   // Number of USED edges
-  CellIdentifier numEdges = m_Mesh->ComputeNumberOfEdges();
+  const CellIdentifier numEdges = m_Mesh->ComputeNumberOfEdges();
   // Number of USED faces
-  CellIdentifier numFaces = m_Mesh->ComputeNumberOfFaces();
+  const CellIdentifier numFaces = m_Mesh->ComputeNumberOfFaces();
   // Number of Boundaries
   typename BoundaryEdges::OutputType listOfBoundaries = boundaryEdges->Evaluate((*m_Mesh));
   auto                               numBounds = static_cast<CellIdentifier>(listOfBoundaries->size());
@@ -79,8 +77,8 @@ QuadEdgeMeshTopologyChecker<TMesh>::ValidateEulerCharacteristic() const
   // hence ( 2 - numBounds - numFaces + numEdges - numPoints ) must
   // be an odd number. Let's check it out:
   // Note that genus can take a negative value...
-  OffsetValueType twiceGenus = OffsetValueType(2) - OffsetValueType(numBounds) - OffsetValueType(numFaces) +
-                               OffsetValueType(numEdges) - OffsetValueType(numPoints);
+  const OffsetValueType twiceGenus = static_cast<OffsetValueType>(2) - OffsetValueType(numBounds) -
+                                     OffsetValueType(numFaces) + OffsetValueType(numEdges) - OffsetValueType(numPoints);
 
   if (twiceGenus % 2)
   {
@@ -88,8 +86,8 @@ QuadEdgeMeshTopologyChecker<TMesh>::ValidateEulerCharacteristic() const
   }
 
   // Look is they are isolated edges
-  CellsContainerConstIterator cellIterator = m_Mesh->GetCells()->Begin();
-  CellsContainerConstIterator cellEnd = m_Mesh->GetCells()->End();
+  CellsContainerConstIterator       cellIterator = m_Mesh->GetCells()->Begin();
+  const CellsContainerConstIterator cellEnd = m_Mesh->GetCells()->End();
   while (cellIterator != cellEnd)
   {
     // Is the cell an Edge ?
@@ -107,14 +105,14 @@ QuadEdgeMeshTopologyChecker<TMesh>::ValidateEulerCharacteristic() const
           }
         }
       }
-      else // cell->GetQEGEom( ) == nullptr
+      else // cell->GetQEGeom( ) == nullptr
       {
-        // supposely impossible, throw exception
+        // supposedly impossible, throw exception
       }
     }
 
     ++cellIterator;
-  } // endof while
+  } // end of while
 
   return (true);
 }

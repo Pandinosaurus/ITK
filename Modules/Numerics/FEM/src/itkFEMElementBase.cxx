@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,9 +19,7 @@
 #include "itkFEMElementBase.h"
 #include "vnl/algo/vnl_qr.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 // ////////////////////////////////////////////////////////////////////////
@@ -77,7 +75,7 @@ Element::GetStiffnessMatrix(MatrixType & Ke) const
   Ke = detJ * w * B.transpose() * D * B; // FIXME: write a more efficient way of
                                          // computing this.
   // Add contributions of other int. points to the Ke
-  for (unsigned int i = 1; i < Nip; i++)
+  for (unsigned int i = 1; i < Nip; ++i)
   {
     this->GetIntegrationPointAndWeight(i, ip, w);
     this->ShapeFunctionDerivatives(ip, shapeD);
@@ -145,16 +143,16 @@ Element::GetLandmarkContributionMatrix(float eta, MatrixType & Le) const
 
   Float      w;
   VectorType ip, shape;
-  for (unsigned int i = 0; i < Nip; i++)
+  for (unsigned int i = 0; i < Nip; ++i)
   {
     this->GetIntegrationPointAndWeight(i, ip, w, 0);
     shape = this->ShapeFunctions(ip);
-    for (unsigned int ni = 0; ni < Nnodes; ni++)
+    for (unsigned int ni = 0; ni < Nnodes; ++ni)
     {
-      for (unsigned int nj = 0; nj < Nnodes; nj++)
+      for (unsigned int nj = 0; nj < Nnodes; ++nj)
       {
         Float m = w * shape[ni] * shape[nj];
-        for (unsigned int d = 0; d < NnDOF; d++)
+        for (unsigned int d = 0; d < NnDOF; ++d)
         {
           Le[ni * NnDOF + d][nj * NnDOF + d] += m;
         }
@@ -183,10 +181,10 @@ void
 Element::GetMassMatrix(MatrixType & Me) const
 {
   /*
-   * If the function is not overriden, we compute consistent mass matrix
+   * If the function is not overridden, we compute consistent mass matrix
    * by integrating the shape functions over the element domain. The element
    * density is assumed one. If this is not the case, the GetMassMatrix in a
-   * derived class must be overriden and the Me matrix corrected accordingly.
+   * derived class must be overridden and the Me matrix corrected accordingly.
    */
   Me = MatrixType(this->GetNumberOfDegreesOfFreedom(), this->GetNumberOfDegreesOfFreedom(), 0.0);
 
@@ -201,19 +199,19 @@ Element::GetMassMatrix(MatrixType & Me) const
   Float      w;
   VectorType ip, shape;
   MatrixType J, shapeD;
-  for (unsigned int i = 0; i < Nip; i++)
+  for (unsigned int i = 0; i < Nip; ++i)
   {
     this->GetIntegrationPointAndWeight(i, ip, w, 0);
     shape = this->ShapeFunctions(ip);
     this->ShapeFunctionDerivatives(ip, shapeD);
     this->Jacobian(ip, J, &shapeD);
     Float detJ = this->JacobianDeterminant(ip, &J);
-    for (unsigned int ni = 0; ni < Nnodes; ni++)
+    for (unsigned int ni = 0; ni < Nnodes; ++ni)
     {
-      for (unsigned int nj = 0; nj < Nnodes; nj++)
+      for (unsigned int nj = 0; nj < Nnodes; ++nj)
       {
         Float m = detJ * w * shape[ni] * shape[nj];
-        for (unsigned int d = 0; d < NnDOF; d++)
+        for (unsigned int d = 0; d < NnDOF; ++d)
         {
           Me[ni * NnDOF + d][nj * NnDOF + d] += m;
         }
@@ -231,10 +229,10 @@ Element::InterpolateSolution(const VectorType & pt, const Solution & sol, unsign
 
   const unsigned int Nnodes = this->GetNumberOfNodes();
   const unsigned int Ndofs_per_node = this->GetNumberOfDegreesOfFreedomPerNode();
-  for (unsigned int f = 0; f < Ndofs_per_node; f++)
+  for (unsigned int f = 0; f < Ndofs_per_node; ++f)
   {
     value = 0.0;
-    for (unsigned int n = 0; n < Nnodes; n++)
+    for (unsigned int n = 0; n < Nnodes; ++n)
     {
       value += shapef[n] * sol.GetSolutionValue(this->GetNode(n)->GetDegreeOfFreedom(f), solutionIndex);
     }
@@ -255,7 +253,7 @@ Element::InterpolateSolutionN(const VectorType & pt,
 
   VectorType   shapef = this->ShapeFunctions(pt);
   unsigned int Nnodes = this->GetNumberOfNodes();
-  for (unsigned int n = 0; n < Nnodes; n++)
+  for (unsigned int n = 0; n < Nnodes; ++n)
   {
     value += shapef[n] * sol.GetSolutionValue(this->GetNode(n)->GetDegreeOfFreedom(f), solutionIndex);
   }
@@ -270,52 +268,44 @@ Element::InterpolateSolutionN(const VectorType & pt,
 void
 Element::Jacobian(const VectorType & pt, MatrixType & J, const MatrixType * pshapeD) const
 {
-  MatrixType * pshapeDlocal = nullptr;
+  MatrixType shapeDlocal{};
 
   // If derivatives of shape functions were not provided, we
   // need to compute them here
   if (pshapeD == nullptr)
   {
-    pshapeDlocal = new MatrixType();
-    this->ShapeFunctionDerivatives(pt, *pshapeDlocal);
-    pshapeD = pshapeDlocal;
+    this->ShapeFunctionDerivatives(pt, shapeDlocal);
+    pshapeD = &shapeDlocal;
   }
 
   const unsigned int Nn = pshapeD->columns();
   const unsigned int Ndims = this->GetNumberOfSpatialDimensions();
 
   MatrixType coords(Nn, Ndims);
-  for (unsigned int n = 0; n < Nn; n++)
+  for (unsigned int n = 0; n < Nn; ++n)
   {
     VectorType p = this->GetNodeCoordinates(n);
     coords.set_row(n, p);
   }
 
   J = (*pshapeD) * coords;
-
-  // Destroy local copy of derivatives of shape functions, if
-  // they were computed.
-  delete pshapeDlocal;
 }
 
 Element::Float
 Element::JacobianDeterminant(const VectorType & pt, const MatrixType * pJ) const
 {
-  MatrixType * pJlocal = nullptr;
+  MatrixType jlocal{};
 
   // If Jacobian was not provided, we
   // need to compute it here
   if (pJ == nullptr)
   {
-    pJlocal = new MatrixType();
-    this->Jacobian(pt, *pJlocal);
-    pJ = pJlocal;
+    this->Jacobian(pt, jlocal);
+    pJ = &jlocal;
   }
 
   //  Float det=vnl_svd<Float>(*pJ).determinant_magnitude();
   Float det = vnl_qr<Float>(*pJ).determinant();
-
-  delete pJlocal;
 
   return det;
 }
@@ -323,21 +313,18 @@ Element::JacobianDeterminant(const VectorType & pt, const MatrixType * pJ) const
 void
 Element::JacobianInverse(const VectorType & pt, MatrixType & invJ, const MatrixType * pJ) const
 {
-  MatrixType * pJlocal = nullptr;
+  MatrixType jlocal{};
 
   // If Jacobian was not provided, we
   // need to compute it here
   if (pJ == nullptr)
   {
-    pJlocal = new MatrixType();
-    this->Jacobian(pt, *pJlocal);
-    pJ = pJlocal;
+    this->Jacobian(pt, jlocal);
+    pJ = &jlocal;
   }
 
   //  invJ=vnl_svd_inverse<Float>(*pJ);
   invJ = vnl_qr<Float>(*pJ).inverse();
-
-  delete pJlocal;
 }
 
 void
@@ -346,34 +333,29 @@ Element::ShapeFunctionGlobalDerivatives(const VectorType & pt,
                                         const MatrixType * pJ,
                                         const MatrixType * pshapeD) const
 {
-  MatrixType * pshapeDlocal = nullptr;
-  MatrixType * pJlocal = nullptr;
+  MatrixType shapeDlocal{};
+  MatrixType jlocal{};
 
   // If derivatives of shape functions were not provided, we
   // need to compute them here
   if (pshapeD == nullptr)
   {
-    pshapeDlocal = new MatrixType();
-    this->ShapeFunctionDerivatives(pt, *pshapeDlocal);
-    pshapeD = pshapeDlocal;
+    this->ShapeFunctionDerivatives(pt, shapeDlocal);
+    pshapeD = &shapeDlocal;
   }
 
   // If Jacobian was not provided, we
   // need to compute it here
   if (pJ == nullptr)
   {
-    pJlocal = new MatrixType();
-    this->Jacobian(pt, *pJlocal, pshapeD);
-    pJ = pJlocal;
+    this->Jacobian(pt, jlocal, pshapeD);
+    pJ = &jlocal;
   }
 
   MatrixType invJ;
   this->JacobianInverse(pt, invJ, pJ);
 
   shapeDgl = invJ * (*pshapeD);
-
-  delete pJlocal;
-  delete pshapeDlocal;
 }
 
 Element::VectorType
@@ -381,7 +363,7 @@ Element::GetGlobalFromLocalCoordinates(const VectorType & pt) const
 {
   unsigned int Nnodes = this->GetNumberOfNodes();
   MatrixType   nc(this->GetNumberOfSpatialDimensions(), Nnodes);
-  for (unsigned int n = 0; n < Nnodes; n++)
+  for (unsigned int n = 0; n < Nnodes; ++n)
   {
     nc.set_column(n, this->GetNodeCoordinates(n));
   }
@@ -490,18 +472,18 @@ Element::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "#IDs: " << this->m_EdgeIds.size() << std::endl;
-  for (unsigned int i = 0; i < this->m_EdgeIds.size(); i++)
+  for (unsigned int i = 0; i < this->m_EdgeIds.size(); ++i)
   {
     os << indent << "Edge Ids (" << i << "): " << this->m_EdgeIds[i][0];
-    os << " " << this->m_EdgeIds[i][1] << std::endl;
+    os << ' ' << this->m_EdgeIds[i][1] << std::endl;
   }
 }
 
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 Element::Node::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   copyPtr->m_coordinates = this->m_coordinates;
   copyPtr->m_dof = this->m_dof;
@@ -534,7 +516,9 @@ Element::GetMaterial() const
   return nullptr;
 }
 
-void Element::SetMaterial(Material::ConstPointer) {}
+void
+Element::SetMaterial(Material::ConstPointer)
+{}
 
 void
 Element::SetNode(unsigned int n, Node::Pointer node)
@@ -554,5 +538,4 @@ Element::GetEdgeIds() const
   return this->m_EdgeIds;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

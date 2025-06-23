@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ itkImageFromBuffer(itk::OpenCVVideoIO::Pointer opencvIO, void * buffer, size_t b
   space.Fill(1.0); // May need fixing
 
   // Use itkImportImageFilter to create an ITK image
-  ImportFilterType::Pointer importFilter = ImportFilterType::New();
+  auto importFilter = ImportFilterType::New();
   importFilter->SetRegion(region);
   importFilter->SetOrigin(origin);
   importFilter->SetSpacing(space);
@@ -74,7 +74,7 @@ readCorrectly(itk::OpenCVVideoIO::Pointer opencvIO, CvCapture * capture, FrameOf
 {
   bool ret = true;
   // Check meta data
-  for (unsigned int i = 0; i < ImageType::ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageType::ImageDimension; ++i)
   {
     if (opencvIO->GetSpacing(i) != 1.0)
     {
@@ -107,7 +107,7 @@ readCorrectly(itk::OpenCVVideoIO::Pointer opencvIO, CvCapture * capture, FrameOf
   cvCvtColor(cvFrameBGR, cvFrameRGB, CV_BGR2RGB);
 
   // Make sure buffers are same sized
-  if (cvFrameRGB->imageSize != (int)bufferSize)
+  if (cvFrameRGB->imageSize != static_cast<int>(bufferSize))
   {
     std::cerr << "Frame buffer sizes don't match. Got: " << bufferSize << ", Expected: " << cvFrameRGB->imageSize
               << std::endl;
@@ -230,14 +230,14 @@ test_OpenCVVideoIO(char *          input,
   std::string nonExistantFile = "Bad/Path/To/Nothing";
   if (opencvIO->CanReadFile(nonExistantFile.c_str()))
   {
-    std::cerr << "Should have failed to open \"" << nonExistantFile << "\"" << std::endl;
+    std::cerr << "Should have failed to open \"" << nonExistantFile << '"' << std::endl;
     ret = EXIT_FAILURE;
   }
 
   // Test CanReadFile on non-video file
   if (opencvIO->CanReadFile(nonVideoInput))
   {
-    std::cerr << "Should have failed to open \"" << nonVideoInput << "\"" << std::endl;
+    std::cerr << "Should have failed to open \"" << nonVideoInput << '"' << std::endl;
     ret = EXIT_FAILURE;
   }
 
@@ -289,7 +289,7 @@ test_OpenCVVideoIO(char *          input,
   // Set up OpenCV capture
   CvCapture * capture = cvCaptureFromFile(opencvIO->GetFileName());
   // Loop through all frames
-  for (FrameOffsetType i = 0; i * opencvIO->GetIFrameInterval() < opencvIO->GetFrameTotal(); i++)
+  for (FrameOffsetType i = 0; i * opencvIO->GetIFrameInterval() < opencvIO->GetFrameTotal(); ++i)
   {
     if (!readCorrectly(opencvIO, capture, i * opencvIO->GetIFrameInterval()))
     {
@@ -416,7 +416,7 @@ test_OpenCVVideoIO(char *          input,
     delete[] camBuffer;
 
     // Write out the ITK image -- DEBUG
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetFileName(cameraOutput);
     writer->SetInput(cameraFrame);
     writer->Update();
@@ -450,7 +450,7 @@ test_OpenCVVideoIO(char *          input,
   if (opencvIO->GetFramesPerSecond() != fps || opencvIO->GetDimensions(0) != width ||
       opencvIO->GetDimensions(1) != height || opencvIO->GetNumberOfComponents() != nChannels)
   {
-    std::cerr << "Didn't set writer parmeters correctly" << std::endl;
+    std::cerr << "Didn't set writer parameters correctly" << std::endl;
     ret = EXIT_FAILURE;
   }
 
@@ -486,7 +486,7 @@ test_OpenCVVideoIO(char *          input,
   opencvIO2->SetFileName(input);
   opencvIO2->ReadImageInformation();
   // Loop through all frames to read with opencvIO2 and write with opencvIO
-  for (unsigned int i = 0; i * opencvIO2->GetIFrameInterval() < inNumFrames; i++)
+  for (unsigned int i = 0; i * opencvIO2->GetIFrameInterval() < inNumFrames; ++i)
   {
     // Set up a buffer to read to
     itk::SizeValueType bufferSizeT = opencvIO2->GetImageSizeInBytes();

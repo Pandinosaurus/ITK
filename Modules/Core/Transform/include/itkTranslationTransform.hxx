@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,15 @@
 #ifndef itkTranslationTransform_hxx
 #define itkTranslationTransform_hxx
 
-#include "itkTranslationTransform.h"
-#include "itkMath.h"
 #include "itkMath.h"
 
 namespace itk
 {
 
-template <typename TParametersValueType, unsigned int NDimensions>
-TranslationTransform<TParametersValueType, NDimensions>::TranslationTransform()
+template <typename TParametersValueType, unsigned int VDimension>
+TranslationTransform<TParametersValueType, VDimension>::TranslationTransform()
   : Superclass(ParametersDimension)
-  , m_IdentityJacobian(NDimensions, NDimensions)
+  , m_IdentityJacobian(VDimension, VDimension)
 {
   m_Offset.Fill(0);
 
@@ -36,20 +34,20 @@ TranslationTransform<TParametersValueType, NDimensions>::TranslationTransform()
   // Therefore the m_IdentityJacobian variable can be
   // initialized here and be shared among all the threads.
   this->m_IdentityJacobian.Fill(0.0);
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     this->m_IdentityJacobian(i, i) = 1.0;
   }
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::SetParameters(const ParametersType & parameters)
+TranslationTransform<TParametersValueType, VDimension>::SetParameters(const ParametersType & parameters)
 {
   if (parameters.Size() < SpaceDimension)
   {
-    itkExceptionMacro(<< "Error setting parameters: parameters array size (" << parameters.Size()
-                      << ") is less than expected (SpaceDimension = " << SpaceDimension << ")");
+    itkExceptionMacro("Error setting parameters: parameters array size ("
+                      << parameters.Size() << ") is less than expected (SpaceDimension = " << SpaceDimension << ')');
   }
 
   // Save parameters. Needed for proper operation of TransformUpdateParameters.
@@ -59,7 +57,7 @@ TranslationTransform<TParametersValueType, NDimensions>::SetParameters(const Par
   }
 
   bool modified = false;
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     if (Math::NotExactlyEquals(m_Offset[i], parameters[i]))
     {
@@ -74,11 +72,11 @@ TranslationTransform<TParametersValueType, NDimensions>::SetParameters(const Par
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-const typename TranslationTransform<TParametersValueType, NDimensions>::ParametersType &
-TranslationTransform<TParametersValueType, NDimensions>::GetParameters() const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::GetParameters() const -> const ParametersType &
 {
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     this->m_Parameters[i] = this->m_Offset[i];
   }
@@ -86,9 +84,9 @@ TranslationTransform<TParametersValueType, NDimensions>::GetParameters() const
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::PrintSelf(std::ostream & os, Indent indent) const
+TranslationTransform<TParametersValueType, VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
@@ -96,21 +94,21 @@ TranslationTransform<TParametersValueType, NDimensions>::PrintSelf(std::ostream 
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::Compose(const Self * other, bool)
+TranslationTransform<TParametersValueType, VDimension>::Compose(const Self * other, bool)
 {
   this->Translate(other->m_Offset);
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::Translate(const OutputVectorType & offset, bool)
+TranslationTransform<TParametersValueType, VDimension>::Translate(const OutputVectorType & offset, bool)
 {
   ParametersType newOffset(SpaceDimension);
 
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     newOffset[i] = m_Offset[i] + offset[i];
   }
@@ -118,42 +116,45 @@ TranslationTransform<TParametersValueType, NDimensions>::Translate(const OutputV
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-typename TranslationTransform<TParametersValueType, NDimensions>::OutputPointType
-TranslationTransform<TParametersValueType, NDimensions>::TransformPoint(const InputPointType & point) const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::TransformPoint(const InputPointType & point) const
+  -> OutputPointType
 {
   return point + m_Offset;
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-typename TranslationTransform<TParametersValueType, NDimensions>::OutputVectorType
-TranslationTransform<TParametersValueType, NDimensions>::TransformVector(const InputVectorType & vect) const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::TransformVector(const InputVectorType & vect) const
+  -> OutputVectorType
 {
   return vect;
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-typename TranslationTransform<TParametersValueType, NDimensions>::OutputVnlVectorType
-TranslationTransform<TParametersValueType, NDimensions>::TransformVector(const InputVnlVectorType & vect) const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::TransformVector(const InputVnlVectorType & vect) const
+  -> OutputVnlVectorType
 {
   return vect;
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-typename TranslationTransform<TParametersValueType, NDimensions>::OutputCovariantVectorType
-TranslationTransform<TParametersValueType, NDimensions>::TransformCovariantVector(
-  const InputCovariantVectorType & vect) const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::TransformCovariantVector(
+  const InputCovariantVectorType & vect) const -> OutputCovariantVectorType
 {
   return vect;
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 bool
-TranslationTransform<TParametersValueType, NDimensions>::GetInverse(Self * inverse) const
+TranslationTransform<TParametersValueType, VDimension>::GetInverse(Self * inverse) const
 {
   if (!inverse)
   {
@@ -166,19 +167,17 @@ TranslationTransform<TParametersValueType, NDimensions>::GetInverse(Self * inver
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
-typename TranslationTransform<TParametersValueType, NDimensions>::InverseTransformBasePointer
-TranslationTransform<TParametersValueType, NDimensions>::GetInverseTransform() const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+TranslationTransform<TParametersValueType, VDimension>::GetInverseTransform() const -> InverseTransformBasePointer
 {
-  Pointer inv = New();
-
-  return GetInverse(inv) ? inv.GetPointer() : nullptr;
+  return Superclass::InvertTransform(*this);
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::ComputeJacobianWithRespectToParameters(
+TranslationTransform<TParametersValueType, VDimension>::ComputeJacobianWithRespectToParameters(
   const InputPointType &,
   JacobianType & jacobian) const
 {
@@ -188,9 +187,9 @@ TranslationTransform<TParametersValueType, NDimensions>::ComputeJacobianWithResp
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::ComputeJacobianWithRespectToPosition(
+TranslationTransform<TParametersValueType, VDimension>::ComputeJacobianWithRespectToPosition(
   const InputPointType &,
   JacobianPositionType & jac) const
 {
@@ -198,9 +197,9 @@ TranslationTransform<TParametersValueType, NDimensions>::ComputeJacobianWithResp
 }
 
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-TranslationTransform<TParametersValueType, NDimensions>::SetIdentity()
+TranslationTransform<TParametersValueType, VDimension>::SetIdentity()
 {
   m_Offset.Fill(0.0);
 }

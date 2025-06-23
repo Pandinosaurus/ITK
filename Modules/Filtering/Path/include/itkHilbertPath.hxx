@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,12 @@
 #ifndef itkHilbertPath_hxx
 #define itkHilbertPath_hxx
 
-#include "itkHilbertPath.h"
+#include "itkPrintHelper.h"
+
 
 namespace itk
 {
 
-/** Constructor */
 template <typename TIndexValue, unsigned int VDimension>
 HilbertPath<TIndexValue, VDimension>::HilbertPath()
 
@@ -47,23 +47,22 @@ HilbertPath<TIndexValue, VDimension>::ConstructHilbertPath()
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::IndexType
-HilbertPath<TIndexValue, VDimension>::TransformPathIndexToMultiDimensionalIndex(const PathIndexType id)
+auto
+HilbertPath<TIndexValue, VDimension>::TransformPathIndexToMultiDimensionalIndex(const PathIndexType id) -> IndexType
 {
   PathIndexType d = 0;
   PathIndexType e = 0;
 
-  IndexType index;
-  index.Fill(0);
+  IndexType index{};
 
   for (PathIndexType i = 0; i < this->m_HilbertOrder; ++i)
   {
-    PathIndexType w = this->GetBitRange(id, Dimension * this->m_HilbertOrder, i * Dimension, (i + 1) * Dimension);
-    PathIndexType l = this->GetGrayCode(w);
+    const PathIndexType w = this->GetBitRange(id, Dimension * this->m_HilbertOrder, i * Dimension, (i + 1) * Dimension);
+    PathIndexType       l = this->GetGrayCode(w);
     l = this->GetInverseTransform(e, d, Dimension, l);
     for (PathIndexType j = 0; j < Dimension; ++j)
     {
-      PathIndexType b = this->GetBitRange(l, Dimension, j, j + 1);
+      const PathIndexType b = this->GetBitRange(l, Dimension, j, j + 1);
       index[j] = this->SetBit(index[j], this->m_HilbertOrder, i, b);
     }
     e ^= this->GetLeftBitRotation(this->GetEntry(w), d + 1, Dimension);
@@ -73,8 +72,9 @@ HilbertPath<TIndexValue, VDimension>::TransformPathIndexToMultiDimensionalIndex(
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::TransformMultiDimensionalIndexToPathIndex(const IndexType & index)
+  -> PathIndexType
 {
   PathIndexType id = 0;
 
@@ -86,11 +86,11 @@ HilbertPath<TIndexValue, VDimension>::TransformMultiDimensionalIndexToPathIndex(
     PathIndexType l = 0;
     for (PathIndexType j = 0; j < Dimension; ++j)
     {
-      PathIndexType b = this->GetBitRange(index[Dimension - j - 1], this->m_HilbertOrder, i, i + 1);
+      const PathIndexType b = this->GetBitRange(index[Dimension - j - 1], this->m_HilbertOrder, i, i + 1);
       l |= b << j;
     }
     l = this->GetTransform(e, d, Dimension, l);
-    PathIndexType w = this->GetInverseGrayCode(l);
+    const PathIndexType w = this->GetInverseGrayCode(l);
     e ^= this->GetLeftBitRotation(this->GetEntry(w), d + 1, Dimension);
     d = (d + this->GetDirection(w, Dimension) + 1) % Dimension;
     id = (id << Dimension) | w;
@@ -99,83 +99,83 @@ HilbertPath<TIndexValue, VDimension>::TransformMultiDimensionalIndexToPathIndex(
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetTransform(const PathIndexType entry,
                                                    const PathIndexType direction,
                                                    const PathIndexType width,
-                                                   const PathIndexType x)
+                                                   const PathIndexType x) -> PathIndexType
 {
   return (this->GetRightBitRotation(x ^ entry, direction + 1, width));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetInverseTransform(const PathIndexType entry,
                                                           const PathIndexType direction,
                                                           const PathIndexType width,
-                                                          const PathIndexType x)
+                                                          const PathIndexType x) -> PathIndexType
 {
   return (this->GetLeftBitRotation(x, direction + 1, width) ^ entry);
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetBitRange(const PathIndexType x,
                                                   const PathIndexType width,
                                                   const PathIndexType start,
-                                                  const PathIndexType end)
+                                                  const PathIndexType end) -> PathIndexType
 {
   return (x >> (width - end) & ((1 << (end - start)) - 1));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetLeftBitRotation(PathIndexType x, PathIndexType i, const PathIndexType width)
+  -> PathIndexType
 {
   return (((x << (i % width)) | (x >> (width - (i % width)))) & ((1 << width) - 1));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetRightBitRotation(PathIndexType x, PathIndexType i, const PathIndexType width)
+  -> PathIndexType
 {
   return (((x >> (i % width)) | (x << (width - (i % width)))) & ((1 << width) - 1));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::SetBit(const PathIndexType x,
                                              const PathIndexType width,
                                              const PathIndexType i,
-                                             const PathIndexType b)
+                                             const PathIndexType b) -> PathIndexType
 {
   if (b != 0)
   {
     return (x | (1 << (width - i - 1)));
   }
-  else
-  {
-    return (x & ~(1 << (width - i - 1)));
-  }
+
+  return (x & ~(1 << (width - i - 1)));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
-HilbertPath<TIndexValue, VDimension>::GetGrayCode(const PathIndexType x)
+auto
+HilbertPath<TIndexValue, VDimension>::GetGrayCode(const PathIndexType x) -> PathIndexType
 {
   return (x ^ (x >> 1));
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
-HilbertPath<TIndexValue, VDimension>::GetInverseGrayCode(const PathIndexType x)
+auto
+HilbertPath<TIndexValue, VDimension>::GetInverseGrayCode(const PathIndexType x) -> PathIndexType
 {
   if (x == 0)
   {
     return x;
   }
 
-  PathIndexType m = static_cast<PathIndexType>(std::ceil(std::log(static_cast<double>(x)) / std::log(2.0))) + 1;
+  const PathIndexType m = static_cast<PathIndexType>(std::ceil(std::log(static_cast<double>(x)) / std::log(2.0))) + 1;
 
   PathIndexType i = x;
   PathIndexType j = 1;
@@ -190,8 +190,9 @@ HilbertPath<TIndexValue, VDimension>::GetInverseGrayCode(const PathIndexType x)
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
+auto
 HilbertPath<TIndexValue, VDimension>::GetTrailingSetBits(const PathIndexType x, const PathIndexType width)
+  -> PathIndexType
 {
   PathIndexType i = 0;
   PathIndexType y = x;
@@ -205,14 +206,14 @@ HilbertPath<TIndexValue, VDimension>::GetTrailingSetBits(const PathIndexType x, 
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
-HilbertPath<TIndexValue, VDimension>::GetDirection(const PathIndexType x, const PathIndexType n)
+auto
+HilbertPath<TIndexValue, VDimension>::GetDirection(const PathIndexType x, const PathIndexType n) -> PathIndexType
 {
   if (x == 0)
   {
     return 0;
   }
-  else if (x % 2 == 0)
+  if (x % 2 == 0)
   {
     return (this->GetTrailingSetBits(x - 1, n) % n);
   }
@@ -223,27 +224,28 @@ HilbertPath<TIndexValue, VDimension>::GetDirection(const PathIndexType x, const 
 }
 
 template <typename TIndexValue, unsigned int VDimension>
-typename HilbertPath<TIndexValue, VDimension>::PathIndexType
-HilbertPath<TIndexValue, VDimension>::GetEntry(const PathIndexType x)
+auto
+HilbertPath<TIndexValue, VDimension>::GetEntry(const PathIndexType x) -> PathIndexType
 {
   if (x == 0)
   {
     return 0;
   }
-  else
-  {
-    return (this->GetGrayCode(2 * static_cast<PathIndexType>((x - 1) / 2)));
-  }
+
+  return (this->GetGrayCode(2 * static_cast<PathIndexType>((x - 1) / 2)));
 }
 
-/** Standard "PrintSelf" method */
 template <typename TIndexValue, unsigned int VDimension>
 void
 HilbertPath<TIndexValue, VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
 
-  std::cout << "Hilbert order: " << this->m_HilbertOrder << std::endl;
+  os << "HilbertOrder: " << static_cast<typename NumericTraits<HilbertOrderType>::PrintType>(m_HilbertOrder)
+     << std::endl;
+  os << "HilbertPath: " << m_HilbertPath << std::endl;
 }
 } // end namespace itk
 

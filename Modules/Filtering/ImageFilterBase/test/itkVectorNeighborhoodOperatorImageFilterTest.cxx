@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 #include "itkDerivativeOperator.h"
 #include "itkNullImageToImageFilterDriver.hxx"
+#include "itkTestingMacros.h"
 
 int
 itkVectorNeighborhoodOperatorImageFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
@@ -36,8 +37,12 @@ itkVectorNeighborhoodOperatorImageFilterTest(int itkNotUsed(argc), char * itkNot
     oper.CreateDirectional();
 
     // Set up filter
-    itk::VectorNeighborhoodOperatorImageFilter<ImageType, ImageType>::Pointer filter =
+    const itk::VectorNeighborhoodOperatorImageFilter<ImageType, ImageType>::Pointer filter =
       itk::VectorNeighborhoodOperatorImageFilter<ImageType, ImageType>::New();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, VectorNeighborhoodOperatorImageFilter, ImageToImageFilter);
+
+
     filter->SetOperator(oper);
 
     // Run Test
@@ -52,7 +57,7 @@ itkVectorNeighborhoodOperatorImageFilterTest(int itkNotUsed(argc), char * itkNot
   }
   catch (const itk::ExceptionObject & err)
   {
-    (&err)->Print(std::cerr);
+    err.Print(std::cerr);
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

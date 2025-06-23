@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkMinimumMaximumImageFilter_hxx
 #define itkMinimumMaximumImageFilter_hxx
-#include "itkMinimumMaximumImageFilter.h"
 
 
 #include "itkImageScanlineIterator.h"
@@ -77,7 +76,7 @@ MinimumMaximumImageFilter<TInputImage>::ThreadedStreamedGenerateData(const Regio
   PixelType localMin = NumericTraits<PixelType>::max();
   PixelType localMax = NumericTraits<PixelType>::NonpositiveMin();
 
-  ImageScanlineConstIterator<TInputImage> it(this->GetInput(), regionForThread);
+  ImageScanlineConstIterator it(this->GetInput(), regionForThread);
 
 
   // do the work
@@ -113,7 +112,7 @@ MinimumMaximumImageFilter<TInputImage>::ThreadedStreamedGenerateData(const Regio
     it.NextLine();
   }
 
-  std::lock_guard<std::mutex> mutexHolder(m_Mutex);
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   m_ThreadMin = std::min(localMin, m_ThreadMin);
   m_ThreadMax = std::max(localMax, m_ThreadMax);
 }

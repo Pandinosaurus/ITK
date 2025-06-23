@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkKdTree.h"
 #include "itkStatisticsAlgorithm.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class KdTreeGenerator
+ * \class KdTreeGenerator
  *  \brief This class generates a KdTree object without centroid information.
  *
  * The KdTree object stores measurement vectors in a k-d tree structure
@@ -79,8 +77,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(KdTreeGenerator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KdTreeGenerator);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -110,15 +108,19 @@ public:
   /** Typedef for the smart pointer to the Subsample */
   using SubsamplePointer = typename SubsampleType::Pointer;
 
-  /** Sets the input sample that provides the measurement vectors. */
+  /** Set/Get the input sample that provides the measurement vectors. */
+  /** @ITKStartGrouping */
   void
   SetSample(TSample * sample);
-
+  itkGetConstMacro(SourceSample, TSample *);
+  /** @ITKEndGrouping */
   /** Sets the number of measurement vectors that can be stored in a
    * terminal node. */
+  /** @ITKStartGrouping */
   void
   SetBucketSize(unsigned int size);
-
+  itkGetConstMacro(BucketSize, unsigned int);
+  /** @ITKEndGrouping */
   /** Returns the pointer to the generated k-d tree. */
   OutputPointer
   GetOutput()
@@ -176,34 +178,33 @@ protected:
 
 private:
   /** Pointer to the input (source) sample */
-  TSample * m_SourceSample;
+  TSample * m_SourceSample{};
 
   /** Smart pointer to the internal Subsample object. This class needs
    * a Subsample object because the partitioning process involves sorting
    * and selection. */
-  SubsamplePointer m_Subsample;
+  SubsamplePointer m_Subsample{};
 
   /** The number of measurement vectors that can be stored in a terminal
    * node. */
-  unsigned int m_BucketSize;
+  unsigned int m_BucketSize{};
 
   /** Pointer to the resulting k-d tree. */
-  OutputPointer m_Tree;
+  OutputPointer m_Tree{};
 
   /** Temporary lower bound for the TreeGenerationLoop */
-  MeasurementVectorType m_TempLowerBound;
+  MeasurementVectorType m_TempLowerBound{};
 
   /** Temporary upper bound for the TreeGenerationLoop */
-  MeasurementVectorType m_TempUpperBound;
+  MeasurementVectorType m_TempUpperBound{};
 
   /** Temporary mean for the TreeGenerationLoop */
-  MeasurementVectorType m_TempMean;
+  MeasurementVectorType m_TempMean{};
 
   /** Length of a measurement vector */
-  MeasurementVectorSizeType m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkKdTreeGenerator.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,7 +96,7 @@ public:
     itk::TimeProbe timeProbe;
 
     // Walk around the parameter value at parameterIdx
-    for (unsigned int parameterIdx = 0; parameterIdx < parameters.GetSize(); parameterIdx++)
+    for (unsigned int parameterIdx = 0; parameterIdx < parameters.GetSize(); ++parameterIdx)
     {
       std::cout << "Param[" << parameterIdx << "]\tValue\tDerivative " << std::endl;
       double startVal = parameters[parameterIdx];
@@ -117,7 +117,7 @@ public:
         metric->GetValueAndDerivative(parameters, value, derivative);
         timeProbe.Stop();
 
-        std::cout << pval << "\t" << value << "\t" << derivative << std::endl;
+        std::cout << pval << '\t' << value << '\t' << derivative << std::endl;
       }
     }
 
@@ -137,7 +137,9 @@ public:
   using MetricType = itk::MeanSquaresImageToImageMetric<FixedImageType, MovingImageType>;
 
 
-  MeanSquaresMetricInitializer(MetricType * metric) { m_Metric = metric; }
+  MeanSquaresMetricInitializer(MetricType * metric)
+    : m_Metric(metric)
+  {}
 
   void
   Initialize()
@@ -157,7 +159,9 @@ public:
   using MetricType = itk::MattesMutualInformationImageToImageMetric<FixedImageType, MovingImageType>;
 
 
-  MattesMIMetricInitializer(MetricType * metric) { m_Metric = metric; }
+  MattesMIMetricInitializer(MetricType * metric)
+    : m_Metric(metric)
+  {}
 
   void
   Initialize()
@@ -178,7 +182,9 @@ public:
   using MetricType = itk::MutualInformationImageToImageMetric<FixedImageType, MovingImageType>;
 
 
-  MIMetricInitializer(MetricType * metric) { m_Metric = metric; }
+  MIMetricInitializer(MetricType * metric)
+    : m_Metric(metric)
+  {}
 
   void
   Initialize()
@@ -212,14 +218,14 @@ BasicTest(FixedImageReaderType *  fixedImageReader,
 
   // Mean squares
   using MetricType = itk::MeanSquaresImageToImageMetric<FixedImageType, MovingImageType>;
-  typename MetricType::Pointer                                  msMetric = MetricType::New();
+  auto                                                          msMetric = MetricType::New();
   MeanSquaresMetricInitializer<FixedImageType, MovingImageType> msMetricInitializer(msMetric);
 
   TestAMetric(fixedImageReader, movingImageReader, interpolator, transform, msMetric.GetPointer(), msMetricInitializer);
 
   // Mattes MI
   using MattesMetricType = itk::MattesMutualInformationImageToImageMetric<FixedImageType, MovingImageType>;
-  typename MattesMetricType::Pointer                         mattesMetric = MattesMetricType::New();
+  auto                                                       mattesMetric = MattesMetricType::New();
   MattesMIMetricInitializer<FixedImageType, MovingImageType> mattesMetricInitializer(mattesMetric);
 
   TestAMetric(
@@ -265,8 +271,8 @@ AffineLinearTest(FixedImageReaderType * fixedImageReader, MovingImageReaderType 
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
   using TransformType = itk::AffineTransform<double, 2>;
 
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  TransformType::Pointer             transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
+  auto transform = TransformType::New();
 
   BasicTest(fixedImageReader, movingImageReader, interpolator.GetPointer(), transform.GetPointer());
 }
@@ -280,8 +286,8 @@ RigidLinearTest(FixedImageReaderType * fixedImageReader, MovingImageReaderType *
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
   using TransformType = itk::Rigid2DTransform<double>;
 
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  TransformType::Pointer             transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
+  auto transform = TransformType::New();
 
   BasicTest(fixedImageReader, movingImageReader, interpolator.GetPointer(), transform.GetPointer());
 }
@@ -295,8 +301,8 @@ TranslationLinearTest(FixedImageReaderType * fixedImageReader, MovingImageReader
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
   using TransformType = itk::TranslationTransform<double, 2>;
 
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  TransformType::Pointer             transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
+  auto transform = TransformType::New();
 
   BasicTest(fixedImageReader, movingImageReader, interpolator.GetPointer(), transform.GetPointer());
 }
@@ -311,8 +317,8 @@ DoDebugTest(FixedImageReaderType * fixedImageReader, MovingImageReaderType * mov
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
   using TransformType = itk::Rigid2DTransform<double>;
 
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  TransformType::Pointer             transform = TransformType::New();
+  auto interpolator = InterpolatorType::New();
+  auto transform = TransformType::New();
 
   using FixedImageType = typename FixedImageReaderType::OutputImageType;
   using MovingImageType = typename MovingImageReaderType::OutputImageType;
@@ -325,7 +331,7 @@ DoDebugTest(FixedImageReaderType * fixedImageReader, MovingImageReaderType * mov
 
   // Mean squares
   using MetricType = itk::MeanSquaresImageToImageMetric<FixedImageType, MovingImageType>;
-  typename MetricType::Pointer                                  metric = MetricType::New();
+  auto                                                          metric = MetricType::New();
   MeanSquaresMetricInitializer<FixedImageType, MovingImageType> metricInitializer(metric);
 
   metric->SetFixedImageRegion(fixedImageReader->GetOutput()->GetBufferedRegion());

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ public:
   using ConstPointer = itk::SmartPointer<const Self>;
 
   /** Standard macros. */
-  itkTypeMacro(ExampleWeightFunction, FunctionBase);
+  itkOverrideGetNameOfClassMacro(ExampleWeightFunction);
   itkNewMacro(Self);
 
   /** Input type */
@@ -84,10 +84,8 @@ public:
     {
       return 0.5;
     }
-    else
-    {
-      return 0.01;
-    }
+
+    return 0.01;
   }
 
 protected:
@@ -108,7 +106,7 @@ main()
 
   // Software Guide : BeginCodeSnippet
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(3);
   MeasurementVectorType mv;
   mv[0] = 1.0;
@@ -161,8 +159,7 @@ main()
   weightArray[2] = 0.01;
   weightArray[4] = 0.01;
 
-  WeightedMeanAlgorithmType::Pointer weightedMeanAlgorithm =
-    WeightedMeanAlgorithmType::New();
+  auto weightedMeanAlgorithm = WeightedMeanAlgorithmType::New();
 
   weightedMeanAlgorithm->SetInput(sample);
   weightedMeanAlgorithm->SetWeights(weightArray);
@@ -174,8 +171,7 @@ main()
   using WeightedCovarianceAlgorithmType =
     itk::Statistics::WeightedCovarianceSampleFilter<SampleType>;
 
-  WeightedCovarianceAlgorithmType::Pointer weightedCovarianceAlgorithm =
-    WeightedCovarianceAlgorithmType::New();
+  auto weightedCovarianceAlgorithm = WeightedCovarianceAlgorithmType::New();
 
   weightedCovarianceAlgorithm->SetInput(sample);
   weightedCovarianceAlgorithm->SetWeights(weightArray);
@@ -198,8 +194,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ExampleWeightFunction::Pointer weightFunction =
-    ExampleWeightFunction::New();
+  auto weightFunction = ExampleWeightFunction::New();
 
   weightedMeanAlgorithm->SetWeightingFunction(weightFunction);
   weightedMeanAlgorithm->Update();

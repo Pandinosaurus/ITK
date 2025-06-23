@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,9 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-
-#define ITK_LEGACY_TEST // so deprecation warnings are not triggered by this test
+#ifndef ITK_LEGACY_REMOVE
+#  define ITK_LEGACY_TEST // so deprecation warnings are not triggered by this test
+#endif
 #include "itkPlatformMultiThreader.h"
 
 namespace itkSTLThreadTestImpl
@@ -35,20 +36,20 @@ int
 itkSTLThreadTest(int argc, char * argv[])
 {
   // Choose a number of threads.
-  std::size_t numThreads = 10;
+  size_t numWorkUnits = 10;
   if (argc > 1)
   {
-    int nt = std::stoi(argv[1]);
+    const int nt = std::stoi(argv[1]);
     if (nt > 1)
     {
-      numThreads = nt;
+      numWorkUnits = nt;
     }
   }
 
   // Choose a number of iterations (0 is infinite).
   if (argc > 2)
   {
-    int ni = std::stoi(argv[2]);
+    const int ni = std::stoi(argv[2]);
     if (ni >= 0)
     {
       itkSTLThreadTestImpl::numberOfIterations = ni;
@@ -56,13 +57,13 @@ itkSTLThreadTest(int argc, char * argv[])
   }
 
   // Enforce limit on number of threads.
-  if (numThreads > itk::ITK_MAX_THREADS)
+  if (numWorkUnits > itk::ITK_MAX_THREADS)
   {
-    numThreads = itk::ITK_MAX_THREADS;
+    numWorkUnits = itk::ITK_MAX_THREADS;
   }
 
   // Report what we'll do.
-  std::cout << "Using " << numThreads << " threads.\n";
+  std::cout << "Using " << numWorkUnits << " work units.\n";
   if (itkSTLThreadTestImpl::numberOfIterations)
   {
     std::cout << "Using " << itkSTLThreadTestImpl::numberOfIterations << " iterations.\n";
@@ -73,25 +74,25 @@ itkSTLThreadTest(int argc, char * argv[])
   }
 
   // Create result array.  Assume failure.
-  auto * results = new int[numThreads];
-  for (std::size_t i = 0; i < numThreads; ++i)
+  auto * results = new int[numWorkUnits];
+  for (size_t i = 0; i < numWorkUnits; ++i)
   {
     results[i] = 0;
   }
 
   // Create and execute the threads.
-  itk::PlatformMultiThreader::Pointer threader = itk::PlatformMultiThreader::New();
+  const itk::PlatformMultiThreader::Pointer threader = itk::PlatformMultiThreader::New();
   threader->SetSingleMethod(itkSTLThreadTestImpl::Runner, results);
-  threader->SetNumberOfWorkUnits(numThreads);
+  threader->SetNumberOfWorkUnits(numWorkUnits);
   threader->SingleMethodExecute();
 
   // Report results.
   int result = 0;
-  for (std::size_t i = 0; i < numThreads; ++i)
+  for (size_t i = 0; i < numWorkUnits; ++i)
   {
     if (!results[i])
     {
-      std::cerr << "Thread " << i << " failed." << std::endl;
+      std::cerr << "Work unit " << i << " failed." << std::endl;
       result = 1;
     }
   }
@@ -107,10 +108,14 @@ itkSTLThreadTest(int argc, char * argv[])
 
 #if !defined(ITK_LEGACY_REMOVE)
   // test deprecated methods too!
-  itk::ThreadIdType threadId = threader->SpawnThread(itkSTLThreadTestImpl::Runner, nullptr);
+  const itk::ThreadIdType threadId = threader->SpawnThread(itkSTLThreadTestImpl::Runner, nullptr);
+  itkSTLThreadTestImpl::threadMutex.lock();
   std::cout << "SpawnThread(itkSTLThreadTestImpl::Runner, results): " << threadId << std::endl;
+  itkSTLThreadTestImpl::threadMutex.unlock();
   threader->TerminateThread(threadId);
+  itkSTLThreadTestImpl::threadMutex.lock();
   std::cout << "Spawned thread terminated." << std::endl;
+  itkSTLThreadTestImpl::threadMutex.unlock();
 #endif
 
   return result;
@@ -122,11 +127,10 @@ namespace itkSTLThreadTestImpl
 static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 Runner(void * infoIn)
 {
-  // Get the thread id and result pointer and run the method for this
-  // thread.
-  auto *            info = static_cast<itk::PlatformMultiThreader::WorkUnitInfo *>(infoIn);
-  itk::ThreadIdType tnum = info->WorkUnitID;
-  auto *            results = static_cast<int *>(info->UserData);
+  // Get the work unit id and result pointer and run the method for this work unit.
+  auto *                  info = static_cast<itk::PlatformMultiThreader::WorkUnitInfo *>(infoIn);
+  const itk::ThreadIdType tnum = info->WorkUnitID;
+  auto *                  results = static_cast<int *>(info->UserData);
   if (results)
   {
     results[tnum] = itkSTLThreadTestImpl::Thread(tnum);
@@ -144,26 +148,26 @@ Thread(int tnum)
   // Implementation in individual thread.  We don't care about
   // mutexing the output because it doesn't matter for the test.
   threadMutex.lock();
-  std::cout << "Starting " << tnum << "\n";
+  std::cout << "Starting " << tnum << '\n';
   threadMutex.unlock();
 
   // Create a list with which to play.
   std::list<int> l;
 
   // Choose a size for each iteration for this thread.
-  int count = 10000 + 100 * tnum;
+  const int count = 10000 + 100 * tnum;
 
   int iteration = 0;
   while (!done && !(numberOfIterations && (iteration >= numberOfIterations)))
   {
     // Output progress of this thread.
     threadMutex.lock();
-    std::cout << tnum << ": " << iteration << "\n";
+    std::cout << tnum << ": " << iteration << '\n';
     threadMutex.unlock();
 
     // Fill the list.
-    int j;
-    for (j = 0; j < count; ++j)
+
+    for (int j = 0; j < count; ++j)
     {
       l.push_back(j);
     }
@@ -171,7 +175,7 @@ Thread(int tnum)
     // Empty the list while making sure values match.  Threading
     // errors can cause mismatches here, which is the purpose of the
     // test.
-    for (j = 0; j < count; ++j)
+    for (int j = 0; j < count; ++j)
     {
       if (l.front() != j)
       {
@@ -192,11 +196,9 @@ Thread(int tnum)
     // Success.
     return EXIT_FAILURE;
   }
-  else
-  {
-    // Failure.
-    return EXIT_SUCCESS;
-  }
+
+  // Failure.
+  return EXIT_SUCCESS;
 }
 
 } // namespace itkSTLThreadTestImpl

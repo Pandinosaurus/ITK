@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,41 +68,45 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LevelSetMotionRegistrationFunction, PDEDeformableRegistrationFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetMotionRegistrationFunction);
 
   /** MovingImage image type. */
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointer = typename Superclass::MovingImagePointer;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointer;
   using MovingSpacingType = typename MovingImageType::SpacingType;
 
   /** FixedImage image type. */
-  using FixedImageType = typename Superclass::FixedImageType;
-  using FixedImagePointer = typename Superclass::FixedImagePointer;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::FixedImagePointer;
   using IndexType = typename FixedImageType::IndexType;
   using SizeType = typename FixedImageType::SizeType;
   using SpacingType = typename FixedImageType::SpacingType;
 
   /** Deformation field type. */
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
-  using DisplacementFieldTypePointer = typename Superclass::DisplacementFieldTypePointer;
+  using typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
-  using PixelType = typename Superclass::PixelType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::PixelType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::TimeStepType;
 
   /** Interpolator type. */
-  using CoordRepType = double;
-  using InterpolatorType = InterpolateImageFunction<MovingImageType, CoordRepType>;
+  using CoordinateType = double;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
+  using InterpolatorType = InterpolateImageFunction<MovingImageType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
   using PointType = typename InterpolatorType::PointType;
-  using DefaultInterpolatorType = LinearInterpolateImageFunction<MovingImageType, CoordRepType>;
+  using DefaultInterpolatorType = LinearInterpolateImageFunction<MovingImageType, CoordinateType>;
 
   /** Vector types. */
   using VectorType = Vector<double, Self::ImageDimension>;
@@ -126,8 +130,10 @@ public:
     return m_MovingImageInterpolator;
   }
 
-  /** Compute the time step that can taken for this iterations.  In
-   * this context, the timestep is a function of the maximum gradients. */
+  /** Compute the time global step that for this iteration.
+   *
+   * In this context, the timestep is a function of the maximum gradients.
+   */
   TimeStepType
   ComputeGlobalTimeStep(void * GlobalData) const override;
 
@@ -145,7 +151,10 @@ public:
     return global;
   }
 
-  /** Release memory for global data structure. */
+  /** Release memory for global data structure.
+   *
+   * Updates the metric and releases the per-thread-global data.
+   */
   void
   ReleaseGlobalDataPointer(void * gd) const override;
 
@@ -153,14 +162,16 @@ public:
   void
   InitializeIteration() override;
 
-  /** This method is called by a finite difference solver image filter at
-   * each pixel that does not lie on a data set boundary */
+  /** Compute update at the specified neighbourhood.
+   *
+   * Called by a finite difference solver image filter at each pixel that does not lie on a data set boundary.
+   */
   PixelType
   ComputeUpdate(const NeighborhoodType & it, void * gd, const FloatOffsetType & offset = FloatOffsetType(0.0)) override;
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
-   * computed over the the overlapping region between the two images. */
+   * computed over the overlapping region between the two images. */
   virtual double
   GetMetric() const
   {
@@ -242,42 +253,42 @@ protected:
 
 private:
   /** Cache fixed image information. */
-  SpacingType m_FixedImageSpacing;
-  PointType   m_FixedImageOrigin;
+  SpacingType m_FixedImageSpacing{};
+  PointType   m_FixedImageOrigin{};
 
   /** Function to compute derivatives of the moving image. */
-  MovingImageSmoothingFilterPointer m_MovingImageSmoothingFilter;
+  MovingImageSmoothingFilterPointer m_MovingImageSmoothingFilter{};
 
   /** Function to interpolate the moving image. */
-  InterpolatorPointer m_MovingImageInterpolator;
-  InterpolatorPointer m_SmoothMovingImageInterpolator;
+  InterpolatorPointer m_MovingImageInterpolator{};
+  InterpolatorPointer m_SmoothMovingImageInterpolator{};
 
   /** Stabilization factor for normalizing gradients to protect
    * against small gradient magnitudes */
-  double m_Alpha;
+  double m_Alpha{};
 
   /** Threshold below which the gradient is considered zero. */
-  double m_GradientMagnitudeThreshold;
+  double m_GradientMagnitudeThreshold{};
 
   /** Threshold below which two intensity value are assumed to match. */
-  double m_IntensityDifferenceThreshold;
+  double m_IntensityDifferenceThreshold{};
 
   /** Smoothing parameter for gradient calculation */
-  double m_GradientSmoothingStandardDeviations;
+  double m_GradientSmoothingStandardDeviations{};
 
   /** The metric value is the mean square difference in intensity between
    * the fixed image and transforming moving image computed over the
    * the overlapping region between the two images. */
-  mutable double        m_Metric;
-  mutable double        m_SumOfSquaredDifference;
-  mutable SizeValueType m_NumberOfPixelsProcessed;
-  mutable double        m_RMSChange;
-  mutable double        m_SumOfSquaredChange;
+  mutable double        m_Metric{};
+  mutable double        m_SumOfSquaredDifference{};
+  mutable SizeValueType m_NumberOfPixelsProcessed{};
+  mutable double        m_RMSChange{};
+  mutable double        m_SumOfSquaredChange{};
 
   /** Mutex lock to protect modification to metric. */
-  mutable std::mutex m_MetricCalculationLock;
+  mutable std::mutex m_MetricCalculationMutex{};
 
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{ true };
 };
 } // end namespace itk
 

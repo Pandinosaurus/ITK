@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,12 +28,10 @@
 
 #include "itkDistanceMetric.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class MahalanobisDistanceMetric
+ * \class MahalanobisDistanceMetric
  * \brief MahalanobisDistanceMetric class computes a Mahalanobis
  *  distance given a mean and covariance.
  *
@@ -53,15 +51,16 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Strandard macros */
-  itkTypeMacro(MahalanobisDistanceMetric, DistanceMetric);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(MahalanobisDistanceMetric);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Typedef to represent the measurement vector type */
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementVectorType;
 
   /** Typedef to represent the length of measurement vectors */
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MeasurementVectorSizeType;
 
   /** Type used for representing the mean vector */
   using MeanVectorType = typename Superclass::OriginType;
@@ -109,9 +108,10 @@ public:
   Evaluate(const MeasurementVectorType & x1, const MeasurementVectorType & x2) const override;
 
   /** Set/Get tolerance values */
+  /** @ITKStartGrouping */
   itkSetMacro(Epsilon, double);
   itkGetConstMacro(Epsilon, double);
-
+  /** @ITKEndGrouping */
   itkSetMacro(DoubleMax, double);
   itkGetConstMacro(DoubleMax, double);
 
@@ -122,12 +122,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MeanVectorType       m_Mean;       // mean
-  CovarianceMatrixType m_Covariance; // covariance matrix
+  MeanVectorType       m_Mean{};       // mean
+  CovarianceMatrixType m_Covariance{}; // covariance matrix
 
   // inverse covariance matrix which is automatically calculated
-  // when covariance matirx is set.  This speed up the GetProbability()
-  CovarianceMatrixType m_InverseCovariance;
+  // when covariance matrix is set.  This speeds up the GetProbability()
+  CovarianceMatrixType m_InverseCovariance{};
 
   double m_Epsilon{ 1e-100 };
   double m_DoubleMax{ 1e+20 };
@@ -135,8 +135,7 @@ private:
   void
   CalculateInverseCovariance();
 };
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMahalanobisDistanceMetric.hxx"

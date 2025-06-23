@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class MRCImageIO
+ * \class MRCImageIO
  *
  *  \brief An ImageIO class to read the MRC file format.
  * The MRC file format frequently has the extension ".mrc" or
@@ -50,7 +50,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "A Streaming IO Base Class and Support for Streaming the MRC and VTK File Format"
  * by Lowekamp B., Chen D.
- * https://www.insight-journal.org/browse/publication/729
+ * https://doi.org/10.54294/ufs19w
  *
  * \sa ImageFileWriter ImageFileReader ImageIOBase
  * \ingroup ITKIOMRC
@@ -68,8 +68,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MRCImageIO, StreamingImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MRCImageIO);
 
   // we don't use this method
   void
@@ -146,7 +146,7 @@ private:
   virtual void
   WriteImageInformation(const void * buffer);
 
-  MRCHeaderObject::Pointer m_MRCHeader;
+  MRCHeaderObject::Pointer m_MRCHeader{};
 };
 } // namespace itk
 

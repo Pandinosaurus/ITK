@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,29 +18,28 @@
 #ifndef itkMetaGroupConverter_hxx
 #define itkMetaGroupConverter_hxx
 
-#include "itkMetaGroupConverter.h"
 
 namespace itk
 {
-template <unsigned int NDimensions>
-typename MetaGroupConverter<NDimensions>::MetaObjectType *
-MetaGroupConverter<NDimensions>::CreateMetaObject()
+template <unsigned int VDimension>
+auto
+MetaGroupConverter<VDimension>::CreateMetaObject() -> MetaObjectType *
 {
   return dynamic_cast<MetaObjectType *>(new GroupMetaObjectType);
 }
 
 /** Convert a metaGroup into an group SpatialObject  */
-template <unsigned int NDimensions>
-typename MetaGroupConverter<NDimensions>::SpatialObjectPointer
-MetaGroupConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+template <unsigned int VDimension>
+auto
+MetaGroupConverter<VDimension>::MetaObjectToSpatialObject(const MetaObjectType * mo) -> SpatialObjectPointer
 {
   const auto * group = dynamic_cast<const GroupMetaObjectType *>(mo);
   if (group == nullptr)
   {
-    itkExceptionMacro(<< "Can't convert MetaObject to MetaGroup");
+    itkExceptionMacro("Can't convert MetaObject to MetaGroup");
   }
 
-  GroupSpatialObjectPointer groupSO = GroupSpatialObjectType::New();
+  const GroupSpatialObjectPointer groupSO = GroupSpatialObjectType::New();
 
   groupSO->GetProperty().SetName(group->Name());
   groupSO->GetProperty().SetRed(group->Color()[0]);
@@ -53,21 +52,21 @@ MetaGroupConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectType 
 }
 
 /** Convert a group SpatialObject into a metaGroup */
-template <unsigned int NDimensions>
-typename MetaGroupConverter<NDimensions>::MetaObjectType *
-MetaGroupConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+template <unsigned int VDimension>
+auto
+MetaGroupConverter<VDimension>::SpatialObjectToMetaObject(const SpatialObjectType * so) -> MetaObjectType *
 {
-  GroupSpatialObjectConstPointer groupSO = dynamic_cast<const GroupSpatialObjectType *>(so);
+  const GroupSpatialObjectConstPointer groupSO = dynamic_cast<const GroupSpatialObjectType *>(so);
   if (groupSO.IsNull())
   {
-    itkExceptionMacro(<< "Can't downcast SpatialObject to GroupSpatialObject");
+    itkExceptionMacro("Can't downcast SpatialObject to GroupSpatialObject");
   }
 
-  auto * group = new GroupMetaObjectType(NDimensions);
+  auto * group = new GroupMetaObjectType(VDimension);
 
   float color[4];
 
-  for (unsigned int i = 0; i < 4; i++)
+  for (unsigned int i = 0; i < 4; ++i)
   {
     color[i] = groupSO->GetProperty().GetColor()[i];
   }

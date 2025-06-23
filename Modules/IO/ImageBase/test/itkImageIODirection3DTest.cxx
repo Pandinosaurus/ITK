@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,17 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
 int
-itkImageIODirection3DTest(int ac, char * av[])
+itkImageIODirection3DTest(int argc, char * argv[])
 {
 
-  if (ac < 11)
+  if (argc < 11)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage  (9 direction cosines terms) "
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage  (9 direction cosines terms) "
               << "[outputImage]" << std::endl;
     return EXIT_FAILURE;
   }
@@ -38,9 +39,9 @@ itkImageIODirection3DTest(int ac, char * av[])
   using ImageType = itk::Image<PixelType, Dimension>;
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
-  reader->SetFileName(av[1]);
+  reader->SetFileName(argv[1]);
 
   try
   {
@@ -52,20 +53,20 @@ itkImageIODirection3DTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  ImageType::ConstPointer image = reader->GetOutput();
+  const ImageType::ConstPointer image = reader->GetOutput();
 
   ImageType::DirectionType directionCosines = image->GetDirection();
 
   std::cout << directionCosines << std::endl;
 
-  unsigned int element = 2;
-  const double tolerance = 1e-5;
+  unsigned int     element = 2;
+  constexpr double tolerance = 1e-5;
 
   for (unsigned int row = 0; row < Dimension; ++row)
   {
     for (unsigned int col = 0; col < Dimension; ++col)
     {
-      const double expectedValue = std::stod(av[element++]);
+      const double expectedValue = std::stod(argv[element++]);
       const double currentValue = directionCosines[row][col];
       const double difference = currentValue - expectedValue;
       if (itk::Math::abs(difference) > tolerance)
@@ -79,11 +80,11 @@ itkImageIODirection3DTest(int ac, char * av[])
   }
 
 
-  if (ac > 11)
+  if (argc > 11)
   {
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName(av[11]);
+    auto writer = WriterType::New();
+    writer->SetFileName(argv[11]);
     writer->SetInput(reader->GetOutput());
 
     try

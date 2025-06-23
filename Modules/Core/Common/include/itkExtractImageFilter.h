@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
 class ExtractImageFilterEnums
 {
 public:
-  /** \class DirectionCollapseStrategy
+  /**
    * \ingroup ITKCommon
    * Strategy to be used to collapse physical space dimensions
    */
@@ -47,6 +47,7 @@ public:
     DIRECTIONCOLLAPSETOGUESS = 3
   };
 };
+
 /** Define how to print enumerations */
 extern ITKCommon_EXPORT std::ostream &
                         operator<<(std::ostream & out, const ExtractImageFilterEnums::DirectionCollapseStrategy value);
@@ -79,7 +80,7 @@ extern ITKCommon_EXPORT std::ostream &
  * starting index value provided in the ExtractRegion parameter.  If you are
  * looking for a filter that will re-compute the origin of the output image,
  * and provide an output image region whose index is set to zeros, then you may
- * want to use the RegionOfInterestImageFilter.  The output spacing is is
+ * want to use the RegionOfInterestImageFilter.  The output spacing is
  * simply the collapsed version of the input spacing.
  *
  * Determining the direction of the collapsed output image from an larger
@@ -129,8 +130,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExtractImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExtractImageFilter);
 
   /** Image type information. */
   using InputImageType = TInputImage;
@@ -201,7 +202,7 @@ public:
         break;
       case DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOUNKOWN:
       default:
-        itkExceptionMacro(<< "Invalid Strategy Chosen for itk::ExtractImageFilter");
+        itkExceptionMacro("Invalid Strategy Chosen for itk::ExtractImageFilter");
     }
 
     this->m_DirectionCollapseStrategy = choosenStrategy;
@@ -216,7 +217,7 @@ public:
   /**
    * Get the currently set strategy for collapsing directions of physical space.
    */
-  DirectionCollapseStrategyEnum
+  [[nodiscard]] DirectionCollapseStrategyEnum
   GetDirectionCollapseToStrategy() const
   {
     return this->m_DirectionCollapseStrategy;
@@ -256,15 +257,12 @@ public:
    *  we have to collapse dimension dim.  This means the output image will have
    *  'c' dimensions less than the input image, where c = number of
    *  ExtractionRegion.Size = 0. */
+  /** @ITKStartGrouping */
   void
   SetExtractionRegion(InputImageRegionType extractRegion);
   itkGetConstMacro(ExtractionRegion, InputImageRegionType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputCovertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
+  /** @ITKEndGrouping */
 
 protected:
   ExtractImageFilter();
@@ -314,9 +312,9 @@ protected:
   void
   GenerateData() override;
 
-  InputImageRegionType m_ExtractionRegion;
+  InputImageRegionType m_ExtractionRegion{};
 
-  OutputImageRegionType m_OutputImageRegion;
+  OutputImageRegionType m_OutputImageRegion{};
 
 private:
   DirectionCollapseStrategyEnum m_DirectionCollapseStrategy{ DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOUNKOWN };

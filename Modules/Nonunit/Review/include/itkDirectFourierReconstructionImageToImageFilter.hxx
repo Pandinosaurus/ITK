@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,59 +18,46 @@
 #ifndef itkDirectFourierReconstructionImageToImageFilter_hxx
 #define itkDirectFourierReconstructionImageToImageFilter_hxx
 
-#include "itkDirectFourierReconstructionImageToImageFilter.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace itk
 {
-/**
- * Initialize member variables with meaningful values.
- */
+
 template <typename TInputImage, typename TOutputImage>
 DirectFourierReconstructionImageToImageFilter<TInputImage,
                                               TOutputImage>::DirectFourierReconstructionImageToImageFilter()
   : Superclass()
+  , m_ZeroPadding(2)
+  , m_OverSampling(2)
+  , m_Cutoff(1.0)
+  , m_AlphaRange(180)
+  , m_ZDirection(1)
+  , m_AlphaDirection(2)
+  , m_RadialSplineOrder(3)
 {
   constexpr double RADIANS = 1.0;
-
-  m_ZeroPadding = 2;
-  m_OverSampling = 2;
-  m_Cutoff = 1.0;
-  m_AlphaRange = 180;
-
-  m_ZDirection = 1;
-  m_RDirection = 0;
-  m_AlphaDirection = 2;
-
-  m_RadialSplineOrder = 3;
-
   m_PI = 4 * std::atan(RADIANS);
 }
 
-/**
- * Print out class state (member variables)
- */
 template <typename TInputImage, typename TOutputImage>
 void
 DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os,
                                                                                     Indent         indent) const
 {
-  // call the superclass' implementation of this method
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Zero Padding Factor: " << this->GetZeroPadding() << std::endl;
-  os << indent << "Fourier Oversampling Factor: " << this->GetOverSampling() << std::endl;
-  os << indent << "Radial Spline Order: " << this->GetRadialSplineOrder() << std::endl;
-  os << indent << "Fourier Radial Cutoff Frequency: " << this->GetCutoff() << std::endl;
-  os << indent << "Alpha Range: " << this->GetAlphaRange() << std::endl;
-  os << indent << "Z Direction: " << this->GetZDirection() << std::endl;
-  os << indent << "Alpha Direction: " << this->GetAlphaDirection() << std::endl;
-  os << indent << "Radial Direction: " << this->GetRDirection() << std::endl;
-  os << indent << "Input Requested Region: " << m_InputRequestedRegion << std::endl;
+  os << indent << "ZeroPaddingFactor: " << m_ZeroPadding << std::endl;
+  os << indent << "OverSampling: " << m_OverSampling << std::endl;
+  os << indent << "Cutoff: " << m_Cutoff << std::endl;
+  os << indent << "AlphaRange: " << m_AlphaRange << std::endl;
+  os << indent << "ZDirection: " << m_ZDirection << std::endl;
+  os << indent << "AlphaDirection: " << m_AlphaDirection << std::endl;
+  os << indent << "RDirection: " << m_RDirection << std::endl;
+  os << indent << "RadialSplineOrder: " << m_RadialSplineOrder << std::endl;
+  os << indent << "PI: " << m_PI << std::endl;
+  os << indent << "InputRequestedRegion: " << m_InputRequestedRegion << std::endl;
 }
 
-/**
- * Calculate image boundaries and define output regions, spacing, origin etc.
- */
 template <typename TInputImage, typename TOutputImage>
 void
 DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
@@ -123,9 +110,6 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
   outputImage->SetSpacing(outputSpacing);
 }
 
-/**
- * Calculate necessary input image boundaries
- */
 template <typename TInputImage, typename TOutputImage>
 void
 DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
@@ -156,9 +140,6 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
   inputImage->SetRequestedRegion(m_InputRequestedRegion);
 }
 
-/**
- * Actual computation
- */
 template <typename TInputImage, typename TOutputImage>
 void
 DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::GenerateData()
@@ -191,11 +172,11 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
   InputSliceIteratorType inputIt(inputImage, inputROI);
   inputIt.SetFirstDirection(m_RDirection);      // Iterate first along r
   inputIt.SetSecondDirection(m_AlphaDirection); // then alpha (slice), and
-                                                // finally z (stack)
+  // finally z (stack)
   inputIt.GoToBegin();
 
   // Setup projection line
-  ProjectionLineType::Pointer    projectionLine = ProjectionLineType::New();
+  auto                           projectionLine = ProjectionLineType::New();
   ProjectionLineType::RegionType pRegion;
   ProjectionLineType::SizeType   pSize;
   ProjectionLineType::IndexType  pStart;
@@ -204,19 +185,18 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
   pRegion.SetSize(pSize);
   pRegion.SetIndex(pStart);
   projectionLine->SetRegions(pRegion);
-  projectionLine->Allocate(true); // initialize
-                                  // buffer to zero
+  projectionLine->AllocateInitialized();
 
   ProjectionLineType::IndexType pIdx;
   const unsigned int            pLineHalfShift = pSize[0] - inputROISize[m_RDirection] / 2;
 
   // Setup 1D FFT Filter
-  FFTLineFilterType::Pointer FFT = FFTLineFilterType::New();
+  auto FFT = FFTLineFilterType::New();
   FFT->SetInput(projectionLine);
 
   // Setup FFT Line interpolator stack
-  auto * FFTLineInterpolator = new FFTLineInterpolatorType::Pointer[alpha_size];
-  for (unsigned int alpha = 0; alpha < alpha_size; alpha++)
+  const auto FFTLineInterpolator = make_unique_for_overwrite<FFTLineInterpolatorType::Pointer[]>(alpha_size);
+  for (unsigned int alpha = 0; alpha < alpha_size; ++alpha)
   {
     FFTLineInterpolator[alpha] = FFTLineInterpolatorType::New();
     FFTLineInterpolator[alpha]->SetSplineOrder(m_RadialSplineOrder);
@@ -232,10 +212,9 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
   FFTSliceRegion.SetSize(FFTSliceSize);
   FFTSliceRegion.SetIndex(FFTSliceStart);
 
-  FFTSliceType::Pointer FFTSlice = FFTSliceType::New();
+  auto FFTSlice = FFTSliceType::New();
   FFTSlice->SetRegions(FFTSliceRegion);
-  FFTSlice->Allocate(true); // initialize
-                            // buffer to zero
+  FFTSlice->AllocateInitialized();
 
   FFTSliceIteratorType    FFTSliceIt(FFTSlice, FFTSliceRegion);
   FFTSliceType::IndexType sIdx;
@@ -297,22 +276,17 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
       inputIt.NextLine();
     } // while ( !inputIt.IsAtEndOfSlice() )
 
-    double       u, v;
-    double       theta, r;
-    double       alpha;
-    unsigned int a_lo;
-
     // Resample the cartesian FFT Slice from polar lines
     for (FFTSliceIt.GoToBegin(); !FFTSliceIt.IsAtEnd(); ++FFTSliceIt)
     {
       sIdx = FFTSliceIt.GetIndex();
 
       // center on DC
-      u = static_cast<double>(sIdx[0]) - static_cast<double>(FFTSliceSize[0]) / 2;
-      v = static_cast<double>(sIdx[1]) - static_cast<double>(FFTSliceSize[1]) / 2;
+      double u = static_cast<double>(sIdx[0]) - static_cast<double>(FFTSliceSize[0]) / 2;
+      double v = static_cast<double>(sIdx[1]) - static_cast<double>(FFTSliceSize[1]) / 2;
 
       // Calculate polar radius
-      r = sqrt(u * u + v * v) / m_OverSampling;
+      double r = sqrt(u * u + v * v) / m_OverSampling;
 
       // Radial cutoff frequency
       if (r >= r_max)
@@ -321,32 +295,29 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
       }
 
       // Get polar angle - and map into [0 PI]
-      if (u == 0.0 && v == 0.0)
-      {
-        theta = 0.0;
-      }
-      else
+      double theta = 0.0;
+      if (!(u == 0.0 && v == 0.0))
       {
         theta = std::atan2(v, u);
       }
       if (theta < 0)
       {
         theta += m_PI;
-        r = -r;
+        r *= -1;
       }
 
       // Convert into alpha-image indices
-      alpha = theta * alpha_size / m_PI;
+      double alpha = theta * alpha_size / m_PI;
       if (alpha >= alpha_size)
       {
         alpha -= alpha_size;
-        r = -r;
+        r *= -1;
       }
 
       FFTLineType::PixelType out;
 
       // radial BSpline / linear angle interpolation
-      a_lo = Math::Floor<unsigned int>(alpha);
+      auto a_lo = Math::Floor<unsigned int>(alpha);
 
       if (a_lo < alpha_size - 1) // no date-line crossing
       {
@@ -382,7 +353,7 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
     } // for FFTSliceIt
 
     // Setup inverse 2D FFT Filter
-    IFFTSliceFilterType::Pointer IFFT = IFFTSliceFilterType::New();
+    auto IFFT = IFFTSliceFilterType::New();
     IFFT->SetInput(FFTSlice);
 
     // Calculate the inverse 2D FFT of the slice
@@ -414,8 +385,6 @@ DirectFourierReconstructionImageToImageFilter<TInputImage, TOutputImage>::Genera
 
     inputIt.NextSlice();
   } // while ( !inputIt.IsAtEnd() )
-
-  delete[] FFTLineInterpolator;
 }
 } // namespace itk
 

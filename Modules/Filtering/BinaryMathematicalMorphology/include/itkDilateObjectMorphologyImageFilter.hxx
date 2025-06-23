@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDilateObjectMorphologyImageFilter_hxx
 #define itkDilateObjectMorphologyImageFilter_hxx
 
-#include "itkDilateObjectMorphologyImageFilter.h"
 
 namespace itk
 {
@@ -34,17 +33,16 @@ void
 DilateObjectMorphologyImageFilter<TInputImage, TOutputImage, TKernel>::Evaluate(OutputNeighborhoodIteratorType & nit,
                                                                                 const KernelType &               kernel)
 {
-  unsigned int             i;
-  KernelIteratorType       kernel_it;
-  const KernelIteratorType kernelEnd = kernel.End();
-
   bool valid = true;
-
-  for (i = 0, kernel_it = kernel.Begin(); kernel_it < kernelEnd; ++kernel_it, ++i)
   {
-    if (*kernel_it)
+    KernelIteratorType       kernel_it = kernel.Begin();
+    const KernelIteratorType kernelEnd = kernel.End();
+    for (unsigned int i = 0; kernel_it < kernelEnd; ++kernel_it, ++i)
     {
-      nit.SetPixel(i, this->GetObjectValue(), valid);
+      if (*kernel_it)
+      {
+        nit.SetPixel(i, this->GetObjectValue(), valid);
+      }
     }
   }
 }

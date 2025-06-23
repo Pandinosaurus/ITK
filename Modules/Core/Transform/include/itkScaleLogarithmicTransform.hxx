@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,17 @@
 #ifndef itkScaleLogarithmicTransform_hxx
 #define itkScaleLogarithmicTransform_hxx
 
-#include "itkScaleLogarithmicTransform.h"
 
 namespace itk
 {
 // Set the parameters
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScaleLogarithmicTransform<TParametersValueType, NDimensions>::SetParameters(const ParametersType & parameters)
+ScaleLogarithmicTransform<TParametersValueType, VDimension>::SetParameters(const ParametersType & parameters)
 {
   ScaleType scales;
 
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     scales[i] = std::exp(parameters[i]);
   }
@@ -46,35 +45,35 @@ ScaleLogarithmicTransform<TParametersValueType, NDimensions>::SetParameters(cons
 }
 
 // Get Parameters
-template <typename TParametersValueType, unsigned int NDimensions>
-const typename ScaleLogarithmicTransform<TParametersValueType, NDimensions>::ParametersType &
-ScaleLogarithmicTransform<TParametersValueType, NDimensions>::GetParameters() const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+ScaleLogarithmicTransform<TParametersValueType, VDimension>::GetParameters() const -> const ParametersType &
 {
-  itkDebugMacro(<< "Getting parameters ");
+  itkDebugMacro("Getting parameters ");
 
   const ScaleType & scales = this->GetScale();
   // Transfer the translation part
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     this->m_Parameters[i] = std::log(scales[i]);
   }
 
-  itkDebugMacro(<< "After getting parameters " << this->m_Parameters);
+  itkDebugMacro("After getting parameters " << this->m_Parameters);
 
   return this->m_Parameters;
 }
 
 // Print self
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScaleLogarithmicTransform<TParametersValueType, NDimensions>::PrintSelf(std::ostream & os, Indent indent) const
+ScaleLogarithmicTransform<TParametersValueType, VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScaleLogarithmicTransform<TParametersValueType, NDimensions>::ComputeJacobianWithRespectToParameters(
+ScaleLogarithmicTransform<TParametersValueType, VDimension>::ComputeJacobianWithRespectToParameters(
   const InputPointType & p,
   JacobianType &         jacobian) const
 {
@@ -82,7 +81,7 @@ ScaleLogarithmicTransform<TParametersValueType, NDimensions>::ComputeJacobianWit
 
   jacobian.SetSize(SpaceDimension, this->GetNumberOfLocalParameters());
   jacobian.Fill(0);
-  for (unsigned int dim = 0; dim < SpaceDimension; dim++)
+  for (unsigned int dim = 0; dim < SpaceDimension; ++dim)
   {
     // the derivative with respect to Log(scale) = scale * derivative with
     // respect to scale.

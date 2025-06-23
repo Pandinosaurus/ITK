@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 namespace itk
 {
 /**
- *\class RawImageIO
+ * \class RawImageIO
  *
  * \brief Read and write raw binary images.
  *
@@ -59,8 +59,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RawImageIO, ImageIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RawImageIO);
 
   /** Pixel type alias support Used to declare pixel type in filters
    * or other operations. */
@@ -86,9 +86,10 @@ public:
   /** The number of dimensions stored in a file. Defaults to two. If two,
    * each file contains one "slice". If three, each file will contain one
    * "volume". */
+  /** @ITKStartGrouping */
   itkSetMacro(FileDimensionality, unsigned long);
   itkGetConstMacro(FileDimensionality, unsigned long);
-
+  /** @ITKEndGrouping */
   /** The different types of ImageIO's can support data of varying
    * dimensionality. For example, some file formats are strictly 2D
    * while others can support 2D, 3D, or even n-D. This method returns
@@ -124,6 +125,7 @@ public:
   Read(void * buffer) override;
 
   /** Set/Get the Data mask. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(ImageMask, unsigned short);
   void
   SetImageMask(unsigned long val)
@@ -132,10 +134,10 @@ public:
     {
       return;
     }
-    m_ImageMask = ((unsigned short)(val));
+    m_ImageMask = (static_cast<unsigned short>(val));
     this->Modified();
   }
-
+  /** @ITKEndGrouping */
   /** Read a file's header to determine image dimensions, etc. */
   virtual void
   ReadHeader(const std::string = std::string())
@@ -169,12 +171,12 @@ protected:
   // void ComputeInternalFileName(unsigned long slice);
 
 private:
-  std::string m_InternalFileName;
+  std::string m_InternalFileName{};
 
-  unsigned long  m_FileDimensionality;
-  bool           m_ManualHeaderSize;
-  SizeValueType  m_HeaderSize;
-  unsigned short m_ImageMask;
+  unsigned long  m_FileDimensionality{};
+  bool           m_ManualHeaderSize{};
+  SizeValueType  m_HeaderSize{};
+  unsigned short m_ImageMask{};
 };
 
 template <typename TPixel, unsigned int VImageDimension>
@@ -205,8 +207,8 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RawImageIOFactory, ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RawImageIOFactory);
 
   /** Register one factory of this type  */
   static void

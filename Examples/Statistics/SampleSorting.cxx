@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -140,7 +140,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
   MeasurementVectorType mv;
   for (unsigned int i = 5; i > 0; --i)
@@ -163,7 +163,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  SubsampleType::Pointer subsample = SubsampleType::New();
+  auto subsample = SubsampleType::New();
   subsample->SetSample(sample);
   initializeSubsample(subsample, sample);
   printSubsample(subsample, "Unsorted");
@@ -190,7 +190,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  int activeDimension = 0;
+  constexpr int activeDimension = 0;
   itk::Statistics::Algorithm::InsertSort<SubsampleType>(
     subsample, activeDimension, 0, subsample->Size());
   printSubsample(subsample, "InsertSort");
@@ -243,7 +243,7 @@ main()
 
   // Software Guide : BeginCodeSnippet
   initializeSubsample(subsample, sample);
-  SubsampleType::MeasurementType median =
+  const SubsampleType::MeasurementType median =
     itk::Statistics::Algorithm::QuickSelect<SubsampleType>(subsample,
                                                            activeDimension,
                                                            0,

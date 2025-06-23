@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkMeshFileReadWriteTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  bool isBinary = (argc > 3);
+  const bool isBinary = (argc > 3);
 
   constexpr unsigned int dimension = 3;
   using PixelType = float;
@@ -55,7 +55,7 @@ itkMeshFileReadWriteTest(int argc, char * argv[])
 
 
   // Exercise other methods to improve coverage
-  itk::BYUMeshIO::Pointer byuMeshIO = itk::BYUMeshIO::New();
+  const itk::BYUMeshIO::Pointer byuMeshIO = itk::BYUMeshIO::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(byuMeshIO, BYUMeshIO, MeshIOBase);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,7 +52,7 @@ itkVideoStreamTest(int, char *[])
   //////
 
   // Instantiate a new VideoStream
-  VideoType::Pointer video1 = VideoType::New();
+  auto video1 = VideoType::New();
 
   // Check dimension
   if (video1->GetFrameDimension() != Dimension)
@@ -60,14 +60,14 @@ itkVideoStreamTest(int, char *[])
     std::cerr << "GetFrameDimesion failed" << std::endl;
     return EXIT_FAILURE;
   }
-  if (VideoType::FrameDimension != Dimension)
+  if constexpr (VideoType::FrameDimension != Dimension)
   {
     std::cerr << "VideoType::FrameDimension failed" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Create a second VideoStream
-  VideoType::Pointer video2 = VideoType::New();
+  auto video2 = VideoType::New();
 
   // Use GetFrameBuffer and SetFrameBuffer to make video1 point to the same
   // buffer as video2
@@ -108,20 +108,20 @@ itkVideoStreamTest(int, char *[])
   }
 
   // Test appending frames to video2
-  FrameType::Pointer frame1 = FrameType::New();
-  FrameType::Pointer frame2 = FrameType::New();
-  FrameType::Pointer frame3 = FrameType::New();
+  auto frame1 = FrameType::New();
+  auto frame2 = FrameType::New();
+  auto frame3 = FrameType::New();
   video2->SetFrame(0, frame1);
   video2->SetFrame(1, frame2);
   video2->SetFrame(2, frame3);
 
-  // Test retreiving frames
-  FrameType::Pointer outFrame1 = video2->GetFrame(0);
-  FrameType::Pointer outFrame2 = video2->GetFrame(1);
-  FrameType::Pointer outFrame3 = video2->GetFrame(2);
+  // Test retrieving frames
+  const FrameType::Pointer outFrame1 = video2->GetFrame(0);
+  const FrameType::Pointer outFrame2 = video2->GetFrame(1);
+  const FrameType::Pointer outFrame3 = video2->GetFrame(2);
   if (outFrame3 != frame3 || outFrame2 != frame2 || outFrame1 != frame1)
   {
-    std::cerr << "Frames not retreived correctly" << std::endl;
+    std::cerr << "Frames not retrieved correctly" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -163,8 +163,8 @@ itkVideoStreamTest(int, char *[])
 
   // Set the buffered temporal region
   VideoType::TemporalRegionType temporalRegion;
-  SizeValueType                 startFrame = 0;
-  SizeValueType                 numFrames = 5;
+  constexpr SizeValueType       startFrame = 0;
+  constexpr SizeValueType       numFrames = 5;
   temporalRegion.SetFrameStart(startFrame);
   temporalRegion.SetFrameDuration(numFrames);
   video1->SetLargestPossibleTemporalRegion(temporalRegion);
@@ -175,9 +175,9 @@ itkVideoStreamTest(int, char *[])
   video1->InitializeEmptyFrames();
 
   // Set the buffered spatial region for each frame
-  FrameType::RegionType largestSpatialRegion = SetUpSpatialRegion(100, 100);
-  FrameType::RegionType requestedSpatialRegion = SetUpSpatialRegion(40, 40);
-  FrameType::RegionType bufferedSpatialRegion = SetUpSpatialRegion(50, 40);
+  const FrameType::RegionType largestSpatialRegion = SetUpSpatialRegion(100, 100);
+  const FrameType::RegionType requestedSpatialRegion = SetUpSpatialRegion(40, 40);
+  const FrameType::RegionType bufferedSpatialRegion = SetUpSpatialRegion(50, 40);
   video1->SetAllLargestPossibleSpatialRegions(largestSpatialRegion);
   video1->SetAllRequestedSpatialRegions(requestedSpatialRegion);
   video1->SetAllBufferedSpatialRegions(bufferedSpatialRegion);

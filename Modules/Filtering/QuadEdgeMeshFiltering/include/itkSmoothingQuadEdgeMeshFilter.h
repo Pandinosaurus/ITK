@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,8 @@ namespace itk
  *
  * For one iteration the location of one vertex is computed as follows:
  * \f[
- * \boldsymbol{ v' }_i = v_i + m_RelaxationFactor \cdot \frac{ \sum_j w_{ij} ( \boldsymbol{ v_j } - \boldsymbol{ v_i } )
+ * \boldsymbol{ v' }_i = v_i + m_{RelaxationFactor} \cdot \frac{ \sum_j w_{ij} ( \boldsymbol{ v_j } - \boldsymbol{ v_i }
+ * )
  * }{ \sum_j w_{ij} } \f]
  *
  * where \f$ w_{ij} \f$ is computed by the means of the set functor
@@ -65,8 +66,9 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(SmoothingQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SmoothingQuadEdgeMeshFilter);
+
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
@@ -81,7 +83,7 @@ public:
   using OutputPointIdentifier = typename OutputMeshType::PointIdentifier;
   using OutputPointType = typename OutputMeshType::PointType;
   using OutputVectorType = typename OutputPointType::VectorType;
-  using OutputCoordType = typename OutputPointType::CoordRepType;
+  using OutputCoordType = typename OutputPointType::CoordinateType;
   using OutputPointsContainer = typename OutputMeshType::PointsContainer;
   using OutputPointsContainerPointer = typename OutputMeshType::PointsContainerPointer;
   using OutputPointsContainerIterator = typename OutputMeshType::PointsContainerIterator;
@@ -96,41 +98,44 @@ public:
   SetCoefficientsMethod(CoefficientsComputation * iMethod);
 
   /** Set/Get the number of iterations */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, unsigned int);
   itkGetConstMacro(NumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get if DelaunayConformingQuadEdgeMeshFilter is used at the end of each iterations */
+  /** @ITKStartGrouping */
   itkBooleanMacro(DelaunayConforming);
   itkSetMacro(DelaunayConforming, bool);
   itkGetConstMacro(DelaunayConforming, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get relaxation factor applied for each iteration */
+  /** @ITKStartGrouping */
   itkSetMacro(RelaxationFactor, OutputCoordType);
   itkGetConstMacro(RelaxationFactor, OutputCoordType);
-
+  /** @ITKEndGrouping */
 protected:
   SmoothingQuadEdgeMeshFilter();
   ~SmoothingQuadEdgeMeshFilter() override;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  CoefficientsComputation * m_CoefficientsMethod;
+  CoefficientsComputation * m_CoefficientsMethod{};
 
   using InputOutputDelaunayConformingType = DelaunayConformingQuadEdgeMeshFilter<InputMeshType, OutputMeshType>;
   using InputOutputDelaunayConformingPointer = typename InputOutputDelaunayConformingType::Pointer;
 
-  InputOutputDelaunayConformingPointer m_InputDelaunayFilter;
+  InputOutputDelaunayConformingPointer m_InputDelaunayFilter{};
 
   using OutputDelaunayConformingType = DelaunayConformingQuadEdgeMeshFilter<OutputMeshType, OutputMeshType>;
   using OutputDelaunayConformingPointer = typename OutputDelaunayConformingType::Pointer;
 
-  OutputDelaunayConformingPointer m_OutputDelaunayFilter;
+  OutputDelaunayConformingPointer m_OutputDelaunayFilter{};
 
-  bool m_DelaunayConforming;
+  bool m_DelaunayConforming{};
 
-  unsigned int m_NumberOfIterations;
+  unsigned int m_NumberOfIterations{};
 
-  OutputCoordType m_RelaxationFactor;
+  OutputCoordType m_RelaxationFactor{};
 
   void
   GenerateData() override;

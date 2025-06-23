@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ static void
 itkXMLParserStartElement(void * parser, const char * name, const char ** atts)
 {
   // Begin element handler that is registered with the XML_Parser.
-  // This just casts the user data to a itkXMLParser and calls
+  // This just casts the user data to an itkXMLParser and calls
   // StartElement.
   static_cast<DOMNodeXMLReader *>(parser)->StartElement(name, atts);
 }
@@ -42,7 +42,7 @@ static void
 itkXMLParserEndElement(void * parser, const char * name)
 {
   // End element handler that is registered with the XML_Parser.  This
-  // just casts the user data to a itkXMLParser and calls EndElement.
+  // just casts the user data to an itkXMLParser and calls EndElement.
   static_cast<DOMNodeXMLReader *>(parser)->EndElement(name);
 }
 
@@ -50,7 +50,7 @@ static void
 itkXMLParserCharacterDataHandler(void * parser, const char * data, int length)
 {
   // Character data handler that is registered with the XML_Parser.
-  // This just casts the user data to a itkXMLParser and calls
+  // This just casts the user data to an itkXMLParser and calls
   // CharacterDataHandler.
   static_cast<DOMNodeXMLReader *>(parser)->CharacterDataHandler(data, length);
 }
@@ -66,7 +66,7 @@ DOMNodeXMLReader::Update(std::istream & is)
 {
   if (m_DOMNodeXML.IsNull())
   {
-    OutputType::Pointer temp = OutputType::New();
+    auto temp = OutputType::New();
     this->SetDOMNodeXML(temp);
   }
   m_DOMNodeXML->RemoveAllAttributesAndChildren();
@@ -90,11 +90,11 @@ DOMNodeXMLReader::Update(std::istream & is)
   XML_SetCharacterDataHandler(parser, &itkXMLParserCharacterDataHandler);
   XML_SetUserData(parser, this);
 
-  bool ok = XML_Parse(parser, s.data(), static_cast<int>(s.size()), false);
+  const bool ok = XML_Parse(parser, s.data(), static_cast<int>(s.size()), false);
   if (!ok)
   {
-    ExceptionObject e(__FILE__, __LINE__);
-    std::string     message(XML_ErrorString(XML_GetErrorCode(parser)));
+    ExceptionObject   e(__FILE__, __LINE__);
+    const std::string message(XML_ErrorString(XML_GetErrorCode(parser)));
     e.SetDescription(message.c_str());
     throw e;
   }
@@ -111,7 +111,7 @@ DOMNodeXMLReader::Update()
   std::ifstream is(this->m_FileName.c_str());
   if (!is.is_open())
   {
-    itkExceptionMacro("failed openning the input XML file");
+    itkExceptionMacro("failed opening the input XML file");
   }
 
   this->Update(is);
@@ -128,7 +128,7 @@ DOMNodeXMLReader::StartElement(const char * name, const char ** atts)
   OutputType * node = nullptr;
   if (this->m_Context)
   {
-    OutputPointer node1 = OutputType::New();
+    const OutputPointer node1 = OutputType::New();
     node = (OutputType *)node1;
     this->m_Context->AddChildAtEnd(node);
   }
@@ -142,8 +142,8 @@ DOMNodeXMLReader::StartElement(const char * name, const char ** atts)
   size_t i = 0;
   while (atts[i])
   {
-    std::string key(atts[i++]);
-    std::string value(atts[i++]);
+    const std::string key(atts[i++]);
+    const std::string value(atts[i++]);
     if (StringTools::MatchWith(key, "id"))
     {
       node->SetID(value);

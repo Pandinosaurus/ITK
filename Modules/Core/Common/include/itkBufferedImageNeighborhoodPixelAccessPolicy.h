@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,7 +78,7 @@ private:
 #endif
                            ,
                            const OffsetType & offsetTable,
-                           const IndexType &  pixelIndex) ITK_NOEXCEPT
+                           const IndexType &  pixelIndex) noexcept
   {
     IndexValueType result = 0;
 
@@ -99,14 +99,14 @@ public:
 
   // Explicitly-defaulted functions:
   ~BufferedImageNeighborhoodPixelAccessPolicy() = default;
-  BufferedImageNeighborhoodPixelAccessPolicy(const BufferedImageNeighborhoodPixelAccessPolicy &) ITK_NOEXCEPT = default;
+  BufferedImageNeighborhoodPixelAccessPolicy(const BufferedImageNeighborhoodPixelAccessPolicy &) noexcept = default;
 
   /** Constructor called directly by the pixel proxy of ShapedImageNeighborhoodRange.
    * \note The parameter `pixelIndex` is assumed to be in the buffered region. */
   BufferedImageNeighborhoodPixelAccessPolicy(const ImageSizeType &                   imageSize,
                                              const OffsetType &                      offsetTable,
                                              const NeighborhoodAccessorFunctorType & neighborhoodAccessor,
-                                             const IndexType &                       pixelIndex) ITK_NOEXCEPT
+                                             const IndexType &                       pixelIndex) noexcept
     : m_PixelIndexValue{ CalculatePixelIndexValue(imageSize, offsetTable, pixelIndex) }
     , m_NeighborhoodAccessor(neighborhoodAccessor)
   {}
@@ -114,7 +114,7 @@ public:
   /** Retrieves the pixel value from the image buffer, at the current
    * index value.  */
   PixelType
-  GetPixelValue(const InternalPixelType * const imageBufferPointer) const ITK_NOEXCEPT
+  GetPixelValue(const InternalPixelType * const imageBufferPointer) const noexcept
   {
     return m_NeighborhoodAccessor.Get(imageBufferPointer + m_PixelIndexValue);
   }
@@ -122,7 +122,7 @@ public:
   /** Sets the value of the image buffer at the current index value to the
    * specified value.  */
   void
-  SetPixelValue(InternalPixelType * const imageBufferPointer, const PixelType & pixelValue) const ITK_NOEXCEPT
+  SetPixelValue(InternalPixelType * const imageBufferPointer, const PixelType & pixelValue) const noexcept
   {
     m_NeighborhoodAccessor.Set(imageBufferPointer + m_PixelIndexValue, pixelValue);
   }

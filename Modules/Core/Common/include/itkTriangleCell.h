@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,8 +20,9 @@
 
 #include "itkLineCell.h"
 #include "itkTriangleCellTopology.h"
+#include "itkMakeFilled.h"
 
-#include <vector>
+#include <array>
 
 namespace itk
 {
@@ -50,11 +51,12 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(TriangleCell);
 
   /** Standard class type aliases. */
+  /** @ITKStartGrouping */
   itkCellCommonTypedefs(TriangleCell);
   itkCellInheritedTypedefs(TCellInterface);
-
-  /** Standard part of every itk Object. */
-  itkTypeMacro(TriangleCell, CellInterface);
+  /** @ITKEndGrouping */
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TriangleCell);
 
   /** The type of boundary for this triangle's vertices. */
   using VertexType = VertexCell<TCellInterface>;
@@ -70,75 +72,109 @@ public:
   static constexpr unsigned int NumberOfEdges = 3;
   static constexpr unsigned int CellDimension = 2;
 
+  // Standard CellInterface
+
   /** Implement the standard CellInterface. */
-  CellGeometryEnum
+  /** @ITKStartGrouping */
+  [[nodiscard]] CellGeometryEnum
   GetType() const override
   {
     return CellGeometryEnum::TRIANGLE_CELL;
   }
   void
   MakeCopy(CellAutoPointer &) const override;
-
-  unsigned int
+  /** @ITKEndGrouping */
+  /** Get the topological dimension of this cell. */
+  [[nodiscard]] unsigned int
   GetDimension() const override;
 
-  unsigned int
+  /** Get the number of points required to define the cell. */
+  [[nodiscard]] unsigned int
   GetNumberOfPoints() const override;
 
+  /** Get the number of boundary features of the given dimension. */
   CellFeatureCount
   GetNumberOfBoundaryFeatures(int dimension) const override;
 
+  /** Get the boundary feature of the given dimension specified by the given cell feature Id.
+   * The Id can range from 0 to GetNumberOfBoundaryFeatures(dimension)-1.
+   */
   bool
   GetBoundaryFeature(int dimension, CellFeatureIdentifier, CellAutoPointer &) override;
+
+  /** Set the point id list used by the cell.  It is assumed that the given iterator can be incremented and safely
+   * de-referenced enough times to get all the point ids needed by the cell.
+   */
   void
   SetPointIds(PointIdConstIterator first) override;
 
+  /** Set the point id list used by the cell.  It is assumed that the range of iterators [first, last) contains the
+   * correct number of points needed to define the cell.  The position *last is NOT referenced, so it can safely be
+   * one beyond the end of an array or other container.
+   */
   void
   SetPointIds(PointIdConstIterator first, PointIdConstIterator last) override;
 
+  /** Set an individual point identifier in the cell. */
   void
   SetPointId(int localId, PointIdentifier) override;
+
+  /** Get a begin iterator to the list of point identifiers used by the cell. */
   PointIdIterator
   PointIdsBegin() override;
 
+  /** Get a const begin iterator to the list of point identifiers used by the cell. */
   PointIdConstIterator
   PointIdsBegin() const override;
 
+  /** Get an end iterator to the list of point identifiers used by the cell. */
   PointIdIterator
   PointIdsEnd() override;
 
+  /** Get a const end iterator to the list of point identifiers used by the cell. */
   PointIdConstIterator
   PointIdsEnd() const override;
 
-  /** Triangle-specific interface. */
+  // Triangle-specific interface
+
+  /** Get the number of vertices defining the triangle. */
   virtual CellFeatureCount
   GetNumberOfVertices() const;
 
+  /** Get the number of edges defined for the triangle. */
   virtual CellFeatureCount
   GetNumberOfEdges() const;
 
+  /** Get the vertex specified by the given cell feature Id.
+   * The Id can range from 0 to GetNumberOfVertices()-1.
+   */
   virtual bool
   GetVertex(CellFeatureIdentifier, VertexAutoPointer &);
+
+  /** Get the edge specified by the given cell feature Id.
+   * The Id can range from 0 to GetNumberOfEdges()-1.
+   */
   virtual bool
   GetEdge(CellFeatureIdentifier, EdgeAutoPointer &);
 
+  /** Evaluate the position of a given point inside the cell */
   bool
-  EvaluatePosition(CoordRepType *,
+  EvaluatePosition(CoordinateType *,
                    PointsContainer *,
-                   CoordRepType *,
-                   CoordRepType[],
+                   CoordinateType *,
+                   CoordinateType[],
                    double *,
                    InterpolationWeightType *) override;
 
   /** Cell visitor interface. */
   itkCellVisitMacro(CellGeometryEnum::TRIANGLE_CELL);
 
-  /** \brief Compute Area to a TriangleCell given a PointsContainer.  */
-  CoordRepType
+  /** Compute Area to a TriangleCell given a PointsContainer. */
+  CoordinateType
   ComputeArea(PointsContainer *);
 
   PointType
-  ComputeBarycenter(CoordRepType *, PointsContainer *);
+  ComputeBarycenter(CoordinateType *, PointsContainer *);
 
   PointType
   ComputeCenterOfGravity(PointsContainer *);
@@ -147,29 +183,19 @@ public:
   ComputeCircumCenter(PointsContainer *);
 
 public:
-  TriangleCell()
-    : m_PointIds(NumberOfPoints, NumericTraits<PointIdentifier>::max())
-  {}
-#if defined(__GNUC__)
-  // A bug in some versions of the GCC and Clang compilers
-  // result in an ICE or linker error when "= default" is requested.
-  // This was observed in at least gcc 4.8 and 5.4.0, and
-  // AppleClang 7.0.2 and 8.0.0. Probably others too.
-  // "= default" doesn't gain us much, so just don't use it here.
-  ~TriangleCell() override{};
-#else
+  TriangleCell() = default;
   ~TriangleCell() override = default;
-#endif
 
 protected:
   /** Store the number of points needed for a triangle. */
-  std::vector<PointIdentifier> m_PointIds;
+  std::array<PointIdentifier, NumberOfPoints> m_PointIds{ MakeFilled<std::array<PointIdentifier, NumberOfPoints>>(
+    NumericTraits<PointIdentifier>::max()) };
 
 private:
-  /** Computes the SQUARED distance between a point and a line segment defined
-   * by two other points */
+  /** Compute the squared distance between a point and a line segment defined by two other points. Returns the
+   * parametric coordinate t and point location on line. */
   double
-  DistanceToLine(PointType x, PointType p1, PointType p2, double & t, CoordRepType * closestPoint);
+  DistanceToLine(PointType x, PointType p1, PointType p2, double & t, CoordinateType * closestPoint);
 
   double
   DistanceToLine(PointType x, PointType p1, PointType p2, double & t, PointType & closestPoint);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,12 +35,12 @@ namespace itk
  * \brief Implementation of the N4  bias field correction algorithm.
  *
  * The nonparametric nonuniform intensity normalization (N3) algorithm, as
- * introduced by Sled et al. in 1998 is a method for correcting nonuniformity
+ * introduced by Sled et al. in 1998 \cite sled1998 is a method for correcting nonuniformity
  * associated with MR images. The algorithm assumes a simple parametric model
  * (Gaussian) for the bias field and does not require tissue class segmentation.
  * In addition, there are only a couple of parameters to tune with the default
  * values performing quite well. N3 has been publicly available as a set of
- * perl scripts (http://www.bic.mni.mcgill.ca/ServicesSoftwareAdvancedImageProcessingTools/HomePage)
+ * perl scripts (https://www.bic.mni.mcgill.ca/ServicesSoftwareAdvancedImageProcessingTools/HomePage)
  *
  * The N4 algorithm, encapsulated with this class, is a variation of the original
  * N3 algorithm with the additional benefits of an improved B-spline fitting
@@ -65,7 +65,7 @@ namespace itk
  *  4. The filter returns the corrected image.  If the bias field is wanted, one
  *     can reconstruct it using the class itkBSplineControlPointImageFilter.
  *     See the IJ article and the test file for an example.
- *  5. The 'Z' parameter in Sled's 1998 paper is the square root
+ *  5. The 'Z' parameter in Sled's 1998 paper \cite sled1998 is the square root
  *     of the class variable 'm_WienerFilterNoise'.
  *
  * The basic algorithm iterates between sharpening the intensity histogram of
@@ -75,17 +75,9 @@ namespace itk
  * \author Nicholas J. Tustison
  *
  * Contributed by Nicholas J. Tustison, James C. Gee in the Insight Journal
- * paper: https://www.insight-journal.org/browse/publication/640
+ * paper: https://doi.org/10.54294/jculxw
  *
- * \par REFERENCE
- *
- * J.G. Sled, A.P. Zijdenbos and A.C. Evans.  "A Nonparametric Method for
- * Automatic Correction of Intensity Nonuniformity in  Data"
- * IEEE Transactions on Medical Imaging, Vol 17, No 1. Feb 1998.
- *
- * N.J. Tustison, B.B. Avants, P.A. Cook, Y. Zheng, A. Egan, P.A. Yushkevich,
- * and J.C. Gee. "N4ITK:  Improved N3 Bias Correction"
- * IEEE Transactions on Medical Imaging, 29(6):1310-1320, June 2010.
+ * Algorithmic details can be found in \cite sled1998 and \cite tustison2010.
  *
  * \ingroup ITKBiasCorrection
  */
@@ -93,7 +85,7 @@ namespace itk
 template <typename TInputImage,
           typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension>,
           class TOutputImage = TInputImage>
-class N4BiasFieldCorrectionImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT N4BiasFieldCorrectionImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(N4BiasFieldCorrectionImageFilter);
@@ -104,8 +96,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Runtime information support. */
-  itkTypeMacro(N4BiasFieldCorrectionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(N4BiasFieldCorrectionImageFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);
@@ -154,12 +146,14 @@ public:
    * those input image voxels inside the mask image values are used in
    * estimating the bias field.
    */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, MaskImageType);
   void
   SetInput2(const MaskImageType * mask)
   {
     this->SetMaskImage(mask);
   }
+  /** @ITKEndGrouping */
 
   /**
    * Get mask image function.  If a binary mask image is specified, only
@@ -176,15 +170,19 @@ public:
    * input image voxels corresponding to non-zero voxels in the MaskImage
    * are used in estimating the bias field. Default = 1.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskLabel, MaskPixelType);
   itkGetConstMacro(MaskLabel, MaskPixelType);
+  /** @ITKEndGrouping */
 
   /**
    * Use a mask label for identifying mask functionality. See SetMaskLabel.
    * Defaults to false. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseMaskLabel, bool);
   itkGetConstMacro(UseMaskLabel, bool);
   itkBooleanMacro(UseMaskLabel);
+  /** @ITKEndGrouping */
 
   /**
    * Set confidence image function.  If a confidence image is specified,
@@ -196,12 +194,14 @@ public:
    * been done in the literature) as an alternative strategy to estimating the
    * bias field.
    */
+  /** @ITKStartGrouping */
   itkSetInputMacro(ConfidenceImage, RealImageType);
   void
   SetInput3(const RealImageType * image)
   {
     this->SetConfidenceImage(image);
   }
+  /** @ITKEndGrouping */
 
   /**
    * Get confidence image function.  If a confidence image is specified,
@@ -301,9 +301,7 @@ public:
   void
   SetNumberOfFittingLevels(unsigned int n)
   {
-    ArrayType nlevels;
-
-    nlevels.Fill(n);
+    auto nlevels = MakeFilled<ArrayType>(n);
     this->SetNumberOfFittingLevels(nlevels);
   }
 
@@ -412,7 +410,7 @@ private:
    * bias field estimate.
    */
   RealImagePointer
-  UpdateBiasFieldEstimate(RealImageType *, std::size_t);
+  UpdateBiasFieldEstimate(RealImageType *, size_t);
 
   /**
    * Convergence is determined by the coefficient of variation of the difference
@@ -421,7 +419,7 @@ private:
   RealType
   CalculateConvergenceMeasurement(const RealImageType *, const RealImageType *) const;
 
-  MaskPixelType m_MaskLabel;
+  MaskPixelType m_MaskLabel{};
   bool          m_UseMaskLabel{ false };
 
   // Parameters for deconvolution with Wiener filter
@@ -432,19 +430,19 @@ private:
 
   // Convergence parameters
 
-  VariableSizeArrayType m_MaximumNumberOfIterations;
+  VariableSizeArrayType m_MaximumNumberOfIterations{};
   unsigned int          m_ElapsedIterations{ 0 };
   RealType              m_ConvergenceThreshold{ static_cast<RealType>(0.001) };
-  RealType              m_CurrentConvergenceMeasurement;
+  RealType              m_CurrentConvergenceMeasurement{};
   unsigned int          m_CurrentLevel{ 0 };
 
   // B-spline fitting parameters
 
-  typename BiasFieldControlPointLatticeType::Pointer m_LogBiasFieldControlPointLattice;
+  typename BiasFieldControlPointLatticeType::Pointer m_LogBiasFieldControlPointLattice{};
 
   unsigned int m_SplineOrder{ 3 };
-  ArrayType    m_NumberOfControlPoints;
-  ArrayType    m_NumberOfFittingLevels;
+  ArrayType    m_NumberOfControlPoints{};
+  ArrayType    m_NumberOfFittingLevels{};
 };
 
 } // end namespace itk

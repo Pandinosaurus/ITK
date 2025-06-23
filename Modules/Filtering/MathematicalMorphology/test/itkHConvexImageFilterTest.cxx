@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ itkHConvexImageFilterTest(int argc, char * argv[])
 
   // Read the input image
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
@@ -60,11 +60,11 @@ itkHConvexImageFilterTest(int argc, char * argv[])
   using HConvexFilterType = itk::HConvexImageFilter<InputImageType, OutputImageType>;
 
   // Create the filter
-  HConvexFilterType::Pointer hConvexFilter = HConvexFilterType::New();
+  auto hConvexFilter = HConvexFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(hConvexFilter, HConvexImageFilter, ImageToImageFilter);
 
-  itk::SimpleFilterWatcher watchConvex(hConvexFilter, "HConvexImageFilter");
+  const itk::SimpleFilterWatcher watchConvex(hConvexFilter, "HConvexImageFilter");
 
   // Set up the filter
   auto height = static_cast<HConvexFilterType::InputImagePixelType>(std::stod(argv[3]));
@@ -84,7 +84,7 @@ itkHConvexImageFilterTest(int argc, char * argv[])
 
   // Write the output
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(hConvexFilter->GetOutput());
 

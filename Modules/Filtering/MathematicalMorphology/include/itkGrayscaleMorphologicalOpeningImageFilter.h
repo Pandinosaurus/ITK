@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GrayscaleMorphologicalOpeningImageFilter, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GrayscaleMorphologicalOpeningImageFilter);
 
   /** Image related type alias. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -77,7 +77,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   using FlatKernelType = FlatStructuringElement<(Self::ImageDimension)>;
   using HistogramDilateFilterType = MovingHistogramDilateImageFilter<TInputImage, TOutputImage, TKernel>;
@@ -112,10 +112,11 @@ public:
   SetKernel(const KernelType & kernel) override;
 
   /** Set/Get the backend filter class. */
+  /** @ITKStartGrouping */
   void
   SetAlgorithm(AlgorithmEnum algo);
   itkGetConstMacro(Algorithm, AlgorithmEnum);
-
+  /** @ITKEndGrouping */
   /** GrayscaleMorphologicalOpeningImageFilter need to set its internal filters
     as modified */
   void
@@ -123,10 +124,11 @@ public:
 
   /** A safe border is added to input image to avoid borders effects
    * and remove it once the closing is done */
+  /** @ITKStartGrouping */
   itkSetMacro(SafeBorder, bool);
   itkGetConstReferenceMacro(SafeBorder, bool);
   itkBooleanMacro(SafeBorder);
-
+  /** @ITKEndGrouping */
 protected:
   GrayscaleMorphologicalOpeningImageFilter();
   ~GrayscaleMorphologicalOpeningImageFilter() override = default;
@@ -138,19 +140,19 @@ protected:
 
 private:
   // the filters used internally
-  typename HistogramDilateFilterType::Pointer m_HistogramDilateFilter;
+  typename HistogramDilateFilterType::Pointer m_HistogramDilateFilter{};
 
-  typename HistogramErodeFilterType::Pointer m_HistogramErodeFilter;
+  typename HistogramErodeFilterType::Pointer m_HistogramErodeFilter{};
 
-  typename BasicDilateFilterType::Pointer m_BasicDilateFilter;
+  typename BasicDilateFilterType::Pointer m_BasicDilateFilter{};
 
-  typename BasicErodeFilterType::Pointer m_BasicErodeFilter;
+  typename BasicErodeFilterType::Pointer m_BasicErodeFilter{};
 
-  typename VanHerkGilWermanDilateFilterType::Pointer m_VanHerkGilWermanDilateFilter;
+  typename VanHerkGilWermanDilateFilterType::Pointer m_VanHerkGilWermanDilateFilter{};
 
-  typename VanHerkGilWermanErodeFilterType::Pointer m_VanHerkGilWermanErodeFilter;
+  typename VanHerkGilWermanErodeFilterType::Pointer m_VanHerkGilWermanErodeFilter{};
 
-  typename AnchorFilterType::Pointer m_AnchorFilter;
+  typename AnchorFilterType::Pointer m_AnchorFilter{};
 
   // and the name of the filter
   AlgorithmEnum m_Algorithm{ AlgorithmEnum::HISTO };

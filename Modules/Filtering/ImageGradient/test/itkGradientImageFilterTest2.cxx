@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,17 +36,17 @@ DoIt(const std::string & infname, const std::string & outfname)
   using InputPixelType = typename InputImageType::PixelType;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(infname);
 
   using FilterType = itk::GradientImageFilter<InputImageType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(reader->GetOutput());
 
   using OutputImageType = typename FilterType::OutputImageType;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(outfname);
   writer->SetNumberOfStreamDivisions(5);
@@ -57,7 +57,7 @@ DoIt(const std::string & infname, const std::string & outfname)
   using VectorImageType = itk::VectorImage<InputPixelType, ImageDimension>;
 
   using VectorFilterType = itk::GradientImageFilter<InputImageType, float, float, VectorImageType>;
-  typename VectorFilterType::Pointer vectorFilter = VectorFilterType::New();
+  auto vectorFilter = VectorFilterType::New();
   vectorFilter->SetInput(reader->GetOutput());
   vectorFilter->Update();
 
@@ -100,33 +100,36 @@ itkGradientImageFilterTest2(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage: " << argv[0] << " Inputimage OutputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " Inputimage OutputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
   const std::string infname = argv[1];
   const std::string outfname = argv[2];
 
-  itk::ImageIOBase::Pointer iobase =
+  const itk::ImageIOBase::Pointer iobase =
     itk::ImageIOFactory::CreateImageIO(infname.c_str(), itk::ImageIOFactory::IOFileModeEnum::ReadMode);
 
   if (iobase.IsNull())
   {
-    itkGenericExceptionMacro("Unable to determine ImageIO reader for \"" << infname << "\"");
+    itkGenericExceptionMacro("Unable to determine ImageIO reader for \"" << infname << '"');
   }
 
   using TestImageType = itk::Image<short, 3>;
   using FilterType = itk::GradientImageFilter<TestImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GradientImageFilter, ImageToImageFilter);
 
   const unsigned int dimension = iobase->GetNumberOfDimensions();
 
   if (dimension == 2)
+  {
     return DoIt<itk::Image<float, 2>>(infname, outfname);
-  else if (dimension == 3)
+  }
+  if (dimension == 3)
     return DoIt<itk::Image<float, 3>>(infname, outfname);
 
   return EXIT_FAILURE;

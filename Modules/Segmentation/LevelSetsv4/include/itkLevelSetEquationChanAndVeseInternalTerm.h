@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,32 +59,32 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEquationChanAndVeseInternalTerm, LevelSetEquationTermBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEquationChanAndVeseInternalTerm);
 
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using InputPixelRealType = typename Superclass::InputPixelRealType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::InputPixelRealType;
 
-  using LevelSetContainerType = typename Superclass::LevelSetContainerType;
-  using LevelSetContainerPointer = typename Superclass::LevelSetContainerPointer;
-  using LevelSetType = typename Superclass::LevelSetType;
-  using LevelSetPointer = typename Superclass::LevelSetPointer;
-  using LevelSetOutputPixelType = typename Superclass::LevelSetOutputPixelType;
-  using LevelSetOutputRealType = typename Superclass::LevelSetOutputRealType;
-  using LevelSetInputIndexType = typename Superclass::LevelSetInputIndexType;
-  using LevelSetGradientType = typename Superclass::LevelSetGradientType;
-  using LevelSetHessianType = typename Superclass::LevelSetHessianType;
-  using LevelSetIdentifierType = typename Superclass::LevelSetIdentifierType;
+  using typename Superclass::LevelSetContainerType;
+  using typename Superclass::LevelSetContainerPointer;
+  using typename Superclass::LevelSetType;
+  using typename Superclass::LevelSetPointer;
+  using typename Superclass::LevelSetOutputPixelType;
+  using typename Superclass::LevelSetOutputRealType;
+  using typename Superclass::LevelSetInputIndexType;
+  using typename Superclass::LevelSetGradientType;
+  using typename Superclass::LevelSetHessianType;
+  using typename Superclass::LevelSetIdentifierType;
 
-  using HeavisideType = typename Superclass::HeavisideType;
-  using HeavisideConstPointer = typename Superclass::HeavisideConstPointer;
+  using typename Superclass::HeavisideType;
+  using typename Superclass::HeavisideConstPointer;
 
-  using LevelSetDataType = typename Superclass::LevelSetDataType;
+  using typename Superclass::LevelSetDataType;
 
-  using DomainMapImageFilterType = typename Superclass::DomainMapImageFilterType;
-  using CacheImageType = typename Superclass::CacheImageType;
+  using typename Superclass::DomainMapImageFilterType;
+  using typename Superclass::CacheImageType;
 
   itkSetMacro(Mean, InputPixelRealType);
   itkGetMacro(Mean, InputPixelRealType);
@@ -136,9 +136,9 @@ protected:
   void
   Accumulate(const InputPixelType & inputPixel, const LevelSetOutputRealType & heavisideValue);
 
-  InputPixelRealType     m_Mean;
-  InputPixelRealType     m_TotalValue;
-  LevelSetOutputRealType m_TotalH;
+  InputPixelRealType     m_Mean{};
+  InputPixelRealType     m_TotalValue{};
+  LevelSetOutputRealType m_TotalH{};
 };
 
 } // namespace itk

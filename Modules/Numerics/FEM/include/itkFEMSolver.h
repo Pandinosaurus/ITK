@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +27,7 @@
 
 #include "itkImage.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class Solver
@@ -50,10 +48,10 @@ namespace fem
  *
    \code
          using FEMObjectType = itk::fem::FEMObject<3>;
-         FEMObjectObjectType::Pointer fem = FEMObjectObjectType::New();
+         auto fem = FEMObjectObjectType::New();
          ...
          using FEMSolverType = itk::fem::Solver<3>;
-         FEMSolverType::Pointer solver = FEMSolverType::New();
+         auto solver = FEMSolverType::New();
 
          solver->SetInput( fem );
          solver->Update();
@@ -83,8 +81,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Solver, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Solver);
 
   static constexpr unsigned int FEMDimension = VDimension;
   static constexpr unsigned int MaxDimensions = 3;
@@ -141,7 +139,8 @@ public:
    * \param dt New time step.
    */
   virtual void
-  SetTimeStep(Float dt);
+  SetTimeStep(Float itkNotUsed(dt))
+  {}
 
   /** Returns the Solution for the specified nodal point. */
   Float
@@ -228,12 +227,10 @@ public:
   void
   InitializeInterpolationGrid(const InterpolationGridSizeType & size)
   {
-    InterpolationGridPointType bb1;
-
-    bb1.Fill(0.0);
+    InterpolationGridPointType bb1{};
 
     InterpolationGridPointType bb2;
-    for (unsigned int i = 0; i < FEMDimension; i++)
+    for (unsigned int i = 0; i < FEMDimension; ++i)
     {
       bb2[i] = size[i] - 1.0;
     }
@@ -252,7 +249,7 @@ public:
    * Returns pointer to interpolation grid, which is an itk::Image of pointers
    * to Element objects. Normally you would use physical coordinates to get
    * specific points (pointers to elements) from the image. You can then
-   * use the Elemenet::InterpolateSolution member function on the returned
+   * use the Element::InterpolateSolution member function on the returned
    * element to obtain the solution at this point.
    *
    * \note Physical coordinates in an image correspond to the global
@@ -341,7 +338,7 @@ protected:
    * Copy the element stiffness matrix into the correct position in the
    * master stiffness matrix. Since more complex Solver classes may need to
    * assemble many matrices and may also do some funky stuff to them, this
-   * function is and can be overriden in a derived solver class.
+   * function is and can be overridden in a derived solver class.
    */
   virtual void
   AssembleElementMatrix(Element::Pointer e);
@@ -351,7 +348,7 @@ protected:
    * correct position in the master stiffness matrix. Since more
    * complex Solver classes may need to assemble many matrices and may
    * also do some funky stuff to them, this function is virtual and
-   * can be overriden in a derived solver class.
+   * can be overridden in a derived solver class.
    */
   virtual void
   AssembleLandmarkContribution(Element::ConstPointer e, float);
@@ -384,9 +381,10 @@ protected:
 
   /** Decompose matrix using svd, qr, etc. if needed. */
   void
-  DecomposeK();
+  DecomposeK()
+  {}
 
-  /** Solve for the displacement vector u. May be overriden in derived
+  /** Solve for the displacement vector u. May be overridden in derived
    * classes. */
   virtual void
   RunSolver();
@@ -410,38 +408,37 @@ protected:
   InitializeLinearSystemWrapper();
 
   /** Number of global degrees of freedom in a system. */
-  unsigned int m_NGFN;
+  unsigned int m_NGFN{};
 
   /**
    * Number of multi freedom constraints in a system.
    * This member is set in a AssembleK function.
    */
-  unsigned int m_NMFC;
+  unsigned int m_NMFC{};
 
   /** Pointer to LinearSystemWrapper object. */
-  LinearSystemWrapper::Pointer m_LinearSystem;
+  LinearSystemWrapper::Pointer m_LinearSystem{};
 
   /** LinearSystemWrapperVNL object that is used by default in Solver class. */
-  LinearSystemWrapperVNL m_LinearSystemVNL;
+  LinearSystemWrapperVNL m_LinearSystemVNL{};
 
   /**
    * An Image of pointers to Element objects that represents a grid used
    * for interpolation of solution. Each Pixel in an image is a pointer to
    * an Element object in which that pixel is located.
    */
-  InterpolationGridPointerType m_InterpolationGrid;
+  InterpolationGridPointerType m_InterpolationGrid{};
 
-  FEMObjectPointer m_FEMObject;
+  FEMObjectPointer m_FEMObject{};
 
 private:
   /** Properties of the interpolation grid. */
-  InterpolationGridRegionType    m_Region;
-  InterpolationGridPointType     m_Origin;
-  InterpolationGridSpacingType   m_Spacing;
-  InterpolationGridDirectionType m_Direction;
+  InterpolationGridRegionType    m_Region{};
+  InterpolationGridPointType     m_Origin{};
+  InterpolationGridSpacingType   m_Spacing{};
+  InterpolationGridDirectionType m_Direction{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMSolver.hxx"

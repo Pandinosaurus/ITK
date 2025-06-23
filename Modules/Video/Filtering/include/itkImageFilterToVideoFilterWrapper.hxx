@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,10 @@
 #ifndef itkImageFilterToVideoFilterWrapper_hxx
 #define itkImageFilterToVideoFilterWrapper_hxx
 
-#include "itkImageFilterToVideoFilterWrapper.h"
 
 namespace itk
 {
 
-//
-// Constructor
-//
 template <typename TImageToImageFilter>
 ImageFilterToVideoFilterWrapper<TImageToImageFilter>::ImageFilterToVideoFilterWrapper()
 {
@@ -39,28 +35,15 @@ ImageFilterToVideoFilterWrapper<TImageToImageFilter>::ImageFilterToVideoFilterWr
   m_ImageFilter = nullptr;
 }
 
-//
-// PrintSelf
-//
 template <typename TImageToImageFilter>
 void
 ImageFilterToVideoFilterWrapper<TImageToImageFilter>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  if (m_ImageFilter)
-  {
-    os << indent << "ImageFilter:" << std::endl;
-    m_ImageFilter->Print(os, indent.GetNextIndent());
-  }
-  else
-  {
-    os << indent << "ImageFilterType: " << typeid(ImageFilterType).name() << std::endl;
-  }
+
+  itkPrintSelfObjectMacro(ImageFilter);
 }
 
-//
-// TemporalStreamingGenerateData
-//
 template <typename TImageToImageFilter>
 void
 ImageFilterToVideoFilterWrapper<TImageToImageFilter>::TemporalStreamingGenerateData()
@@ -76,11 +59,11 @@ ImageFilterToVideoFilterWrapper<TImageToImageFilter>::TemporalStreamingGenerateD
   OutputVideoStreamType *      output = this->GetOutput();
 
   // Get input and output frame numbers
-  typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
-  SizeValueType                                      outFrameNum = outReqTempRegion.GetFrameStart();
+  const typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
+  const SizeValueType                                      outFrameNum = outReqTempRegion.GetFrameStart();
 
-  typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
-  SizeValueType                                     inFrameNum = inReqTempRegion.GetFrameStart();
+  const typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
+  const SizeValueType                                     inFrameNum = inReqTempRegion.GetFrameStart();
 
   // Set up the internal image pipeline
   m_ImageFilter->SetInput(input->GetFrame(inFrameNum));

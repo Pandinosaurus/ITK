@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 // Datatype[z][y][x][c])
 //
 // The example also optionally takes in two more arguments, as a convenience
-// to the user. These arguements extract the specified component 'c' from the
+// to the user. These arguments extract the specified component 'c' from the
 // membership image and rescale, so the user can fire up a typical image
 // viewer and see the relative pixel memberships to class 'c'.
 //
@@ -58,9 +58,10 @@
 #include "itkImageFileWriter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkImageRegionConstIterator.h"
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   constexpr unsigned int Dimension = 2;
@@ -80,67 +81,29 @@ main(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
+
   using ImageType = itk::Image<unsigned char, Dimension>;
   using BayesianInitializerType =
     itk::BayesianClassifierInitializationImageFilter<ImageType>;
-  BayesianInitializerType::Pointer bayesianInitializer =
-    BayesianInitializerType::New();
+  auto bayesianInitializer = BayesianInitializerType::New();
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
+  auto input = itk::ReadImage<ImageType>(argv[1]);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  bayesianInitializer->SetInput(reader->GetOutput());
+  bayesianInitializer->SetInput(input);
   bayesianInitializer->SetNumberOfClasses(std::stoi(argv[3]));
 
   // TODO add test where we specify membership functions
 
-  using WriterType =
-    itk::ImageFileWriter<BayesianInitializerType::OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetInput(bayesianInitializer->GetOutput());
-  writer->SetFileName(argv[2]);
+  bayesianInitializer->Update();
 
-  try
-  {
-    bayesianInitializer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  itk::WriteImage(bayesianInitializer->GetOutput(), argv[2]);
 
   if (argv[4] && argv[5])
   {
     using MembershipImageType = BayesianInitializerType::OutputImageType;
     using ExtractedComponentImageType =
       itk::Image<MembershipImageType::InternalPixelType, Dimension>;
-    ExtractedComponentImageType::Pointer extractedComponentImage =
-      ExtractedComponentImageType::New();
+    auto extractedComponentImage = ExtractedComponentImageType::New();
     extractedComponentImage->CopyInformation(
       bayesianInitializer->GetOutput());
     extractedComponentImage->SetBufferedRegion(
@@ -173,18 +136,35 @@ main(int argc, char * argv[])
     using RescalerType =
       itk::RescaleIntensityImageFilter<ExtractedComponentImageType,
                                        OutputImageType>;
-    RescalerType::Pointer rescaler = RescalerType::New();
+    auto rescaler = RescalerType::New();
     rescaler->SetInput(extractedComponentImage);
     rescaler->SetOutputMinimum(0);
     rescaler->SetOutputMaximum(255);
-    using ExtractedComponentWriterType =
-      itk::ImageFileWriter<OutputImageType>;
-    ExtractedComponentWriterType::Pointer rescaledImageWriter =
-      ExtractedComponentWriterType::New();
-    rescaledImageWriter->SetInput(rescaler->GetOutput());
-    rescaledImageWriter->SetFileName(argv[5]);
-    rescaledImageWriter->Update();
+    itk::WriteImage(rescaler->GetOutput(), argv[5]);
   }
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

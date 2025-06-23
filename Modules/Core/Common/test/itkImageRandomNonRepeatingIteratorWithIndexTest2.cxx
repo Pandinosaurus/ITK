@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,19 +34,13 @@ itkImageRandomNonRepeatingIteratorWithIndexTest2(int, char *[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   using RandomConstIteratorType = itk::ImageRandomNonRepeatingConstIteratorWithIndex<ImageType>;
-  constexpr unsigned long N = 10;
-  constexpr int           Seed = 42;
-  ImageType::SizeType     size;
-  size.Fill(N);
-  ImageType::IndexType start;
-  start.Fill(0);
-  ImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
-  ImageType::Pointer myImage = ImageType::New();
-  myImage->SetLargestPossibleRegion(region);
-  myImage->SetBufferedRegion(region);
-  myImage->SetRequestedRegion(region);
+  constexpr unsigned long        N = 10;
+  constexpr int                  Seed = 42;
+  auto                           size = ImageType::SizeType::Filled(N);
+  constexpr ImageType::IndexType start{};
+  const ImageType::RegionType    region{ start, size };
+  auto                           myImage = ImageType::New();
+  myImage->SetRegions(region);
   myImage->Allocate();
   using WalkType = std::vector<ImageType::IndexType>;
   using WalkIteratorType = WalkType::iterator;
@@ -66,8 +60,8 @@ itkImageRandomNonRepeatingIteratorWithIndexTest2(int, char *[])
   {
     secondWalk.push_back(secondIt.GetIndex());
   }
-  std::pair<WalkIteratorType, WalkIteratorType> mismatchTest;
-  mismatchTest = std::mismatch(firstWalk.begin(), firstWalk.end(), secondWalk.begin());
+  const std::pair<WalkIteratorType, WalkIteratorType> mismatchTest =
+    std::mismatch(firstWalk.begin(), firstWalk.end(), secondWalk.begin());
   if (mismatchTest.first != firstWalk.end())
   {
     std::cerr << "Two iterations with the same seed do not"

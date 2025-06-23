@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,31 +18,25 @@
 #ifndef itkParametricPath_hxx
 #define itkParametricPath_hxx
 
-#include "itkParametricPath.h"
 #include "itkMath.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <unsigned int VDimension>
 ParametricPath<VDimension>::ParametricPath()
-{
-  m_DefaultInputStepSize = 0.3;
-}
+  : m_DefaultInputStepSize(0.3)
+{}
 
 template <unsigned int VDimension>
-typename ParametricPath<VDimension>::IndexType
-ParametricPath<VDimension>::EvaluateToIndex(const InputType & input) const
+auto
+ParametricPath<VDimension>::EvaluateToIndex(const InputType & input) const -> IndexType
 {
-  ContinuousIndexType continuousIndex;
-  IndexType           index;
+  IndexType index;
 
-  continuousIndex = this->Evaluate(input);
-
+  const ContinuousIndexType continuousIndex = this->Evaluate(input);
   // Round each coordinate to the nearest integer value
-  for (unsigned int i = 0; i < VDimension; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     index[i] = static_cast<IndexValueType>(continuousIndex[i] + 0.5);
   }
@@ -51,41 +45,33 @@ ParametricPath<VDimension>::EvaluateToIndex(const InputType & input) const
 }
 
 template <unsigned int VDimension>
-typename ParametricPath<VDimension>::OffsetType
-ParametricPath<VDimension>::IncrementInput(InputType & input) const
+auto
+ParametricPath<VDimension>::IncrementInput(InputType & input) const -> OffsetType
 {
-  int        iterationCount;
-  bool       tooSmall;
-  bool       tooBig;
-  InputType  inputStepSize;
-  InputType  finalInputValue;
-  OffsetType offset;
-  IndexType  currentImageIndex;
-  IndexType  nextImageIndex;
-  IndexType  finalImageIndex;
-
-  iterationCount = 0;
-  inputStepSize = m_DefaultInputStepSize;
+  int       iterationCount = 0;
+  InputType inputStepSize = m_DefaultInputStepSize;
 
   // Are we already at (or past) the end of the input?
-  finalInputValue = this->EndOfInput();
-  currentImageIndex = this->EvaluateToIndex(input);
-  finalImageIndex = this->EvaluateToIndex(finalInputValue);
-  offset = finalImageIndex - currentImageIndex;
+  InputType  finalInputValue = this->EndOfInput();
+  IndexType  currentImageIndex = this->EvaluateToIndex(input);
+  IndexType  finalImageIndex = this->EvaluateToIndex(finalInputValue);
+  OffsetType offset = finalImageIndex - currentImageIndex;
   if ((offset == this->GetZeroOffset() && Math::NotExactlyEquals(input, this->StartOfInput())) ||
       (input >= finalInputValue))
   {
     return this->GetZeroOffset();
   }
 
+  bool tooSmall = false;
+  bool tooBig = false;
   do
   {
     if (iterationCount++ > 10000)
     {
-      itkExceptionMacro(<< "Too many iterations");
+      itkExceptionMacro("Too many iterations");
     }
 
-    nextImageIndex = this->EvaluateToIndex(input + inputStepSize);
+    IndexType nextImageIndex = this->EvaluateToIndex(input + inputStepSize);
     offset = nextImageIndex - currentImageIndex;
 
     tooBig = false;
@@ -102,7 +88,7 @@ ParametricPath<VDimension>::IncrementInput(InputType & input) const
     else
     {
       // Search for an offset dimension that is too big
-      for (unsigned int i = 0; i < VDimension && !tooBig; i++)
+      for (unsigned int i = 0; i < VDimension && !tooBig; ++i)
       {
         tooBig = (offset[i] >= 2 || offset[i] <= -2);
       }
@@ -119,12 +105,10 @@ ParametricPath<VDimension>::IncrementInput(InputType & input) const
 }
 
 template <unsigned int VDimension>
-typename ParametricPath<VDimension>::VectorType
-ParametricPath<VDimension>::EvaluateDerivative(const InputType & input) const
+auto
+ParametricPath<VDimension>::EvaluateDerivative(const InputType & input) const -> VectorType
 {
-  InputType inputStepSize;
-
-  inputStepSize = m_DefaultInputStepSize;
+  InputType inputStepSize = m_DefaultInputStepSize;
   if ((input + inputStepSize) >= this->EndOfInput())
   {
     inputStepSize = this->EndOfInput() - input;
@@ -138,7 +122,10 @@ void
 ParametricPath<VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "DefaultInputSize: " << m_DefaultInputStepSize << std::endl;
+
+  os << indent
+     << "DefaultInputStepSize: " << static_cast<typename NumericTraits<InputType>::PrintType>(m_DefaultInputStepSize)
+     << std::endl;
 }
 } // namespace itk
 

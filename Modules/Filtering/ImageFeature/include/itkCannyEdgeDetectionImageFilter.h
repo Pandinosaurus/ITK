@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,13 +40,11 @@ public:
 };
 
 /**
- *\class CannyEdgeDetectionImageFilter
+ * \class CannyEdgeDetectionImageFilter
  * \brief This filter is an implementation of a Canny edge detector for
  * scalar-valued images.
  *
- *  Based on John Canny's paper "A Computational Approach
- * to Edge Detection"(IEEE Transactions on Pattern Analysis and Machine
- * Intelligence, Vol. PAMI-8, No.6, November 1986),  there are four major steps
+ * Based on John Canny's paper \cite canny1986 there are four major steps
  * used in the edge-detection scheme:
  * (1) Smooth the input image with Gaussian filter.
  * (2) Calculate the second directional derivatives of the smoothed image.
@@ -106,7 +104,7 @@ public:
   using InputImagePixelType = typename TInputImage::PixelType;
   using OutputImagePixelType = typename TOutputImage::PixelType;
   using IndexType = typename TInputImage::IndexType;
-  using SizeValueType = typename TInputImage::SizeValueType;
+  using SizeValueType = itk::SizeValueType;
 
   /** The default boundary condition is used unless overridden
    *in the Evaluate() method. */
@@ -129,8 +127,8 @@ public:
   using OutputImageRegionType = typename TOutputImage::RegionType;
   using InputImageRegionType = typename TInputImage::RegionType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CannyEdgeDetectionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CannyEdgeDetectionImageFilter);
 
   /** ImageDimension constant. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -140,19 +138,23 @@ public:
   using ArrayType = FixedArray<double, Self::ImageDimension>;
 
   /** Set/Get the variance of the Gaussian smoothing filter. */
+  /** @ITKStartGrouping */
   itkSetMacro(Variance, ArrayType);
   itkGetConstMacro(Variance, const ArrayType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the maximum error of the Gaussian smoothing kernel in each dimensional
    *  direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumError, ArrayType);
   itkGetConstMacro(MaximumError, const ArrayType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the variance of the Gaussian smoothing filter. */
   void
   SetVariance(const typename ArrayType::ValueType v)
   {
-    for (unsigned int i = 0; i < TInputImage::ImageDimension; i++)
+    for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
     {
       if (Math::NotExactlyEquals(m_Variance[i], v))
       {
@@ -168,7 +170,7 @@ public:
   void
   SetMaximumError(const typename ArrayType::ValueType v)
   {
-    for (unsigned int i = 0; i < TInputImage::ImageDimension; i++)
+    for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
     {
       if (Math::NotExactlyEquals(m_MaximumError[i], v))
       {
@@ -179,19 +181,13 @@ public:
     }
   }
 
-  /** \brief Set the Threshold value for detected edges.
-   *
-   * TODO:  Document in the ITKv4 migration guide that
-   * the SetThreshold member function was removed from
-   * the CannyEdgeDetectionImageFilter, and that both
-   * UpperThreshold and LowerThreshold need to be set.
-   * To get the same results as with the SetThreshold method
-   * change "myfilter->SetThrehsold" to "myfilter->SetUpperThreshold",
-   * and add "myfilter->SetLowerThreshold(GetUpperThreshold()/2.0)"
+  /** \brief Set the upper threshold value for detected edges.
    */
   itkSetMacro(UpperThreshold, OutputImagePixelType);
   itkGetConstMacro(UpperThreshold, OutputImagePixelType);
 
+  /** \brief Set the lower threshold value for detected edges.
+   */
   itkSetMacro(LowerThreshold, OutputImagePixelType);
   itkGetConstMacro(LowerThreshold, OutputImagePixelType);
 
@@ -201,15 +197,11 @@ public:
     return this->m_MultiplyImageFilter->GetOutput();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputImagePixelType>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputImagePixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputIsFloatingPointCheck, (Concept::IsFloatingPoint<InputImagePixelType>));
   itkConceptMacro(OutputIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   CannyEdgeDetectionImageFilter();
@@ -254,35 +246,35 @@ private:
   void
   ThreadedCompute2ndDerivativePos(const OutputImageRegionType & outputRegionForThread);
 
-  ArrayType m_Variance;
-  ArrayType m_MaximumError;
+  ArrayType m_Variance{};
+  ArrayType m_MaximumError{};
 
-  OutputImagePixelType m_UpperThreshold; // should be float here?
-  OutputImagePixelType m_LowerThreshold; // should be float here?
+  OutputImagePixelType m_UpperThreshold{}; // should be float here?
+  OutputImagePixelType m_LowerThreshold{}; // should be float here?
 
-  typename OutputImageType::Pointer m_UpdateBuffer1;
+  typename OutputImageType::Pointer m_UpdateBuffer1{};
 
   /** Gaussian filter to smooth the input image. */
-  typename GaussianImageFilterType::Pointer m_GaussianFilter;
+  typename GaussianImageFilterType::Pointer m_GaussianFilter{};
 
   /** Multiply image filter to multiply with the zero crossings of the second
    *  derivative. */
-  typename MultiplyImageFilterType::Pointer m_MultiplyImageFilter;
+  typename MultiplyImageFilterType::Pointer m_MultiplyImageFilter{};
 
-  /** Function objects that are used in the inner loops of derivatiVex
+  /** Function objects that are used in the inner loops of derivative
    *  calculations. */
-  DerivativeOperator<OutputImagePixelType, Self::ImageDimension> m_ComputeCannyEdge1stDerivativeOper;
-  DerivativeOperator<OutputImagePixelType, Self::ImageDimension> m_ComputeCannyEdge2ndDerivativeOper;
+  DerivativeOperator<OutputImagePixelType, Self::ImageDimension> m_ComputeCannyEdge1stDerivativeOper{};
+  DerivativeOperator<OutputImagePixelType, Self::ImageDimension> m_ComputeCannyEdge2ndDerivativeOper{};
 
-  std::slice m_ComputeCannyEdgeSlice[ImageDimension];
+  std::slice m_ComputeCannyEdgeSlice[ImageDimension]{};
 
-  SizeValueType m_Stride[ImageDimension];
-  SizeValueType m_Center;
+  SizeValueType m_Stride[ImageDimension]{};
+  SizeValueType m_Center{};
 
-  typename ListNodeStorageType::Pointer m_NodeStore;
-  ListPointerType                       m_NodeList;
+  typename ListNodeStorageType::Pointer m_NodeStore{};
+  ListPointerType                       m_NodeList{};
 
-  OutputImageType * m_OutputImage;
+  OutputImageType * m_OutputImage{};
 };
 } // end of namespace itk
 

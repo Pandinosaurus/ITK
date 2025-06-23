@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,7 @@
 #include <iostream>
 #include "itkMembershipFunctionBase.h"
 
-namespace itk
-{
-namespace Statistics
-{
-namespace MembershipFunctionBaseTest
+namespace itk::Statistics::MembershipFunctionBaseTest
 {
 
 template <typename TMeasurementVector>
@@ -39,8 +35,8 @@ public:
 
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(MyMembershipFunctionBase, MembershipFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MyMembershipFunctionBase);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -49,15 +45,13 @@ public:
   double
   Evaluate(const TMeasurementVector &) const override
   {
-    double score;
-    score = 1;
+    constexpr double score = 1;
     return score;
   }
 };
 
-} // namespace MembershipFunctionBaseTest
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics::MembershipFunctionBaseTest
+
 
 /* Test MembershipFunctionBase using a resizable vector type */
 int
@@ -71,7 +65,7 @@ itkMembershipFunctionBaseTest2(int, char *[])
   using MembershipFunctionBaseType =
     itk::Statistics::MembershipFunctionBaseTest::MyMembershipFunctionBase<MeasurementVectorType>;
 
-  MembershipFunctionBaseType::Pointer function = MembershipFunctionBaseType::New();
+  auto function = MembershipFunctionBaseType::New();
 
   std::cout << function->GetNameOfClass() << std::endl;
   std::cout << function->MembershipFunctionBaseType::Superclass::GetNameOfClass() << std::endl;
@@ -94,7 +88,7 @@ itkMembershipFunctionBaseTest2(int, char *[])
   }
 
   // test if it is possible to change the measurement vector size
-  MembershipFunctionBaseType::MeasurementVectorSizeType newSize = 5;
+  constexpr MembershipFunctionBaseType::MeasurementVectorSizeType newSize = 5;
   function->SetMeasurementVectorSize(newSize); // for code coverage
 
   if (function->GetMeasurementVectorSize() != newSize)

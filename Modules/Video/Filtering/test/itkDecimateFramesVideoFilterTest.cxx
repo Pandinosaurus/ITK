@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,9 +35,7 @@ using FilterType = itk::DecimateFramesVideoFilter<VideoType>;
 using ReaderType = itk::VideoFileReader<VideoType>;
 using WriterType = itk::VideoFileWriter<VideoType>;
 
-namespace itk
-{
-namespace DecimateFramesVideoFilterTest
+namespace itk::DecimateFramesVideoFilterTest
 {
 
 /**
@@ -63,8 +61,7 @@ FramesAreEqual(const FrameType * f1, const FrameType * f2)
   return true;
 }
 
-} // namespace DecimateFramesVideoFilterTest
-} // namespace itk
+} // namespace itk::DecimateFramesVideoFilterTest
 
 
 /**
@@ -89,9 +86,12 @@ itkDecimateFramesVideoFilterTest(int argc, char * argv[])
   //////
 
   // Instantiate reader, writer, and filter
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-  FilterType::Pointer filter = FilterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DecimateFramesVideoFilter, VideoToVideoFilter);
+
 
   // Connect the pipeline
   filter->SetInput(reader->GetOutput());
@@ -109,7 +109,7 @@ itkDecimateFramesVideoFilterTest(int argc, char * argv[])
   // Run the pipeline
   //////
 
-  // Register FileListIO with the factory -- shouldn't have to do this. Needs fixing
+  // Register FileListVideoIO with the factory -- shouldn't have to do this. Needs fixing
   itk::ObjectFactoryBase::RegisterFactory(itk::FileListVideoIOFactory::New());
 
   // For the sake of debugging output, just use one thread
@@ -130,8 +130,8 @@ itkDecimateFramesVideoFilterTest(int argc, char * argv[])
   // Set up two readers to read in the frames that should have been written and
   // compare against those that actually were
   using FrameReaderType = itk::ImageFileReader<FrameType>;
-  FrameReaderType::Pointer inputFrameReader = FrameReaderType::New();
-  FrameReaderType::Pointer outputFrameReader = FrameReaderType::New();
+  auto inputFrameReader = FrameReaderType::New();
+  auto outputFrameReader = FrameReaderType::New();
 
   // Compare input frame 0 and output frame 0
   inputFrameReader->SetFileName(inputFiles[0]);

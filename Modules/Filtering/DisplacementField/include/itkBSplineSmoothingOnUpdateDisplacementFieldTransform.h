@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,49 +36,44 @@ namespace itk
  *
  * This class takes as input a displacement field, smooths it on demand using
  * the specified B-spline parameters.  This represents an alternative approach
- * to B-spline (FFD) registration and is explained more in detail in the
- * reference given below.
+ * to B-spline (FFD) registration and is explained more in detail in
+ * \cite tustison2009.
  *
  * \author Nicholas J. Tustison
  *
- * \par REFERENCE
- * NJ Tustison, BB Avants, JC Gee, "Directly Manipulated Free-Form Deformation
- * Image Registration", IEEE Transactions on Image Processing, 18(3):624-635,
- * 2009.
- *
  * \ingroup ITKDisplacementField
  */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 class ITK_TEMPLATE_EXPORT BSplineSmoothingOnUpdateDisplacementFieldTransform
-  : public DisplacementFieldTransform<TParametersValueType, NDimensions>
+  : public DisplacementFieldTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BSplineSmoothingOnUpdateDisplacementFieldTransform);
 
   /** Standard class type aliases. */
   using Self = BSplineSmoothingOnUpdateDisplacementFieldTransform;
-  using Superclass = DisplacementFieldTransform<TParametersValueType, NDimensions>;
+  using Superclass = DisplacementFieldTransform<TParametersValueType, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineSmoothingOnUpdateDisplacementFieldTransform, DisplacementFieldTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineSmoothingOnUpdateDisplacementFieldTransform);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** Dimension of the domain spaces. */
-  static constexpr unsigned int Dimension = NDimensions;
+  static constexpr unsigned int Dimension = VDimension;
 
   /** Types from superclass */
-  using ScalarType = typename Superclass::ScalarType;
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::DerivativeType;
   using DerivativeValueType = typename DerivativeType::ValueType;
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
-  using DisplacementFieldPointer = typename Superclass::DisplacementFieldPointer;
-  using DisplacementFieldConstPointer = typename Superclass::DisplacementFieldConstPointer;
+  using typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldPointer;
+  using typename Superclass::DisplacementFieldConstPointer;
 
-  using TransformPointer = typename Transform<TParametersValueType, NDimensions, NDimensions>::Pointer;
+  using TransformPointer = typename Transform<TParametersValueType, VDimension, VDimension>::Pointer;
 
   /**
    * type alias for projecting the input displacement field onto a
@@ -173,10 +168,11 @@ public:
   /**
    * Enforce stationary boundaries.  Important for diffeomorphic transforms.
    */
+  /** @ITKStartGrouping */
   itkBooleanMacro(EnforceStationaryBoundary);
   itkSetMacro(EnforceStationaryBoundary, bool);
   itkGetConstMacro(EnforceStationaryBoundary, bool);
-
+  /** @ITKEndGrouping */
 protected:
   BSplineSmoothingOnUpdateDisplacementFieldTransform();
   ~BSplineSmoothingOnUpdateDisplacementFieldTransform() override = default;
@@ -185,11 +181,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Clone the current transform */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
-  /**
-   * Smooth the displacement field using B-splines.
+  /** Smooth the displacement field using B-splines.
+   *
+   * Sets displacement field and projects it onto the space of B-spline transforms.
    */
   DisplacementFieldPointer
   BSplineSmoothDisplacementField(const DisplacementFieldType *, const ArrayType &);
@@ -197,8 +194,8 @@ protected:
 private:
   SplineOrderType m_SplineOrder{ 3 };
   bool            m_EnforceStationaryBoundary{ true };
-  ArrayType       m_NumberOfControlPointsForTheUpdateField;
-  ArrayType       m_NumberOfControlPointsForTheTotalField;
+  ArrayType       m_NumberOfControlPointsForTheUpdateField{};
+  ArrayType       m_NumberOfControlPointsForTheTotalField{};
 };
 
 } // end namespace itk

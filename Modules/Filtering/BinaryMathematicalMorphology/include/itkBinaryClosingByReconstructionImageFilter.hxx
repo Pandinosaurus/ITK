@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBinaryClosingByReconstructionImageFilter_hxx
 #define itkBinaryClosingByReconstructionImageFilter_hxx
 
-#include "itkBinaryClosingByReconstructionImageFilter.h"
 #include "itkBinaryReconstructionByErosionImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkProgressAccumulator.h"
@@ -32,10 +31,9 @@ namespace itk
 
 template <typename TInputImage, typename TKernel>
 BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::BinaryClosingByReconstructionImageFilter()
-{
-  m_ForegroundValue = NumericTraits<InputPixelType>::max();
-  m_FullyConnected = false;
-}
+  : m_ForegroundValue(NumericTraits<InputPixelType>::max())
+
+{}
 
 template <typename TInputImage, typename TKernel>
 void
@@ -45,7 +43,7 @@ BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::GenerateInputReq
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -62,7 +60,7 @@ BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::GenerateData()
   // let choose a background value. Background value should not be given by user
   // because closing is extensive so no background pixels will be added
   // it is just needed for internal erosion filter and constant padder
-  InputPixelType backgroundValue = NumericTraits<InputPixelType>::ZeroValue();
+  InputPixelType backgroundValue{};
   if (m_ForegroundValue == backgroundValue)
   {
     // current background value is already used for foreground value
@@ -71,11 +69,9 @@ BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::GenerateData()
   }
 
   /** set up erosion and dilation methods */
-  typename BinaryDilateImageFilter<TInputImage, TInputImage, TKernel>::Pointer dilate =
-    BinaryDilateImageFilter<TInputImage, TInputImage, TKernel>::New();
+  auto dilate = BinaryDilateImageFilter<TInputImage, TInputImage, TKernel>::New();
 
-  typename BinaryReconstructionByErosionImageFilter<OutputImageType>::Pointer erode =
-    BinaryReconstructionByErosionImageFilter<OutputImageType>::New();
+  auto erode = BinaryReconstructionByErosionImageFilter<OutputImageType>::New();
 
   // create the pipeline without input and output image
   dilate->ReleaseDataFlagOn();
@@ -95,7 +91,7 @@ BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::GenerateData()
 
 
   /** set up the minipipeline */
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(erode, .8f);
   progress->RegisterInternalFilter(dilate, .2f);
@@ -115,7 +111,7 @@ BinaryClosingByReconstructionImageFilter<TInputImage, TKernel>::PrintSelf(std::o
   os << indent
      << "ForegroundValue: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_ForegroundValue)
      << std::endl;
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
 }
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,11 +27,12 @@ namespace itk
 // Helper macro for initializing the Zero and One static member of the
 // NumericTraits<>.
 //
-#define RGBPIXELSTATICTRAITSMACRO(T)                                                                                   \
-  template <>                                                                                                          \
-  ITKCommon_EXPORT const RGBPixel<T> NumericTraits<RGBPixel<T>>::Zero = RGBPixel<T>(NumericTraits<T>::Zero);           \
-  template <>                                                                                                          \
-  ITKCommon_EXPORT const RGBPixel<T> NumericTraits<RGBPixel<T>>::One = RGBPixel<T>(NumericTraits<T>::One);
+#define RGBPIXELSTATICTRAITSMACRO(T)                                                               \
+  template <>                                                                                      \
+  ITKCommon_EXPORT const RGBPixel<T> NumericTraits<RGBPixel<T>>::Zero{};                           \
+  template <>                                                                                      \
+  ITKCommon_EXPORT const RGBPixel<T> NumericTraits<RGBPixel<T>>::One = MakeFilled<RGBPixel<T>>(1); \
+  ITK_MACROEND_NOOP_STATEMENT
 
 //
 // List here the specializations of the Traits:

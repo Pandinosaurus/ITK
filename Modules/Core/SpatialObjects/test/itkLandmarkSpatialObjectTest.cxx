@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,8 +34,7 @@ itkLandmarkSpatialObjectTest(int, char *[])
 
   LandmarkType::LandmarkPointListType list;
 
-  unsigned int i;
-  for (i = 0; i < 10; i++)
+  for (unsigned int i = 0; i < 10; ++i)
   {
     LandmarkPointType p;
     PointType         pnt;
@@ -52,7 +51,7 @@ itkLandmarkSpatialObjectTest(int, char *[])
   }
 
   // Create a Landmark Spatial Object
-  LandmarkPointer landmark = LandmarkType::New();
+  const LandmarkPointer landmark = LandmarkType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(landmark, LandmarkSpatialObject, PointBasedSpatialObject);
 
@@ -72,22 +71,21 @@ itkLandmarkSpatialObjectTest(int, char *[])
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "[PASSED]" << std::endl;
-  }
+
+  std::cout << "[PASSED]" << std::endl;
+
 
   // Point consistency
   std::cout << "Point consistency: ";
 
-  LandmarkType::LandmarkPointListType::const_iterator it = landmark->GetPoints().begin();
+  auto it = landmark->GetPoints().begin();
 
-  i = 0;
+  unsigned int i = 0;
   while (it != landmark->GetPoints().end())
   {
-    for (unsigned int d = 0; d < 3; d++)
+    for (unsigned int d = 0; d < 3; ++d)
     {
-      if (itk::Math::NotExactlyEquals((*it).GetPositionInObjectSpace()[d], i + d))
+      if (itk::Math::NotExactlyEquals(it->GetPositionInObjectSpace()[d], i + d))
       {
         std::cout << "[FAILED]" << std::endl;
         return EXIT_FAILURE;
@@ -131,26 +129,26 @@ itkLandmarkSpatialObjectTest(int, char *[])
   i = 0;
   while (it != landmark->GetPoints().end())
   {
-    for (unsigned int d = 0; d < 3; d++)
+    for (unsigned int d = 0; d < 3; ++d)
     {
-      if (itk::Math::NotExactlyEquals((*it).GetBlue(), i))
+      if (itk::Math::NotExactlyEquals(it->GetBlue(), i))
       {
         std::cout << "[FAILED]" << std::endl;
         return EXIT_FAILURE;
       }
-      if (itk::Math::NotExactlyEquals((*it).GetGreen(), i + 1))
-      {
-        std::cout << "[FAILED]" << std::endl;
-        return EXIT_FAILURE;
-      }
-
-      if (itk::Math::NotExactlyEquals((*it).GetRed(), i + 2))
+      if (itk::Math::NotExactlyEquals(it->GetGreen(), i + 1))
       {
         std::cout << "[FAILED]" << std::endl;
         return EXIT_FAILURE;
       }
 
-      if (itk::Math::NotExactlyEquals((*it).GetAlpha(), i + 3))
+      if (itk::Math::NotExactlyEquals(it->GetRed(), i + 2))
+      {
+        std::cout << "[FAILED]" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      if (itk::Math::NotExactlyEquals(it->GetAlpha(), i + 3))
       {
         std::cout << "[FAILED]" << std::endl;
         return EXIT_FAILURE;

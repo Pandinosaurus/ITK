@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,14 +36,13 @@ itkMeshSpatialObjectTest(int, char *[])
   using CellAutoPointer = CellType::CellAutoPointer;
 
   // Create an itkMesh
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
-  MeshType::CoordRepType testPointCoords[4][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 9, 0 }, { 0, 0, 9 } };
+  constexpr MeshType::CoordinateType testPointCoords[4][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 9, 0 }, { 0, 0, 9 } };
 
   MeshType::PointIdentifier tetraPoints[4] = { 0, 1, 2, 3 };
 
-  int i;
-  for (i = 0; i < 4; ++i)
+  for (int i = 0; i < 4; ++i)
   {
     mesh->SetPoint(i, PointType(testPointCoords[i]));
   }
@@ -56,10 +55,14 @@ itkMeshSpatialObjectTest(int, char *[])
 
   // Create the mesh Spatial Object
 
-  MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+  auto meshSO = MeshSpatialObjectType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(meshSO, MeshSpatialObject, SpatialObject);
 
+
+  constexpr double isInsidePrecisionInObjectSpace = 1;
+  meshSO->SetIsInsidePrecisionInObjectSpace(isInsidePrecisionInObjectSpace);
+  ITK_TEST_SET_GET_VALUE(isInsidePrecisionInObjectSpace, meshSO->GetIsInsidePrecisionInObjectSpace());
 
   meshSO->SetMesh(mesh);
   ITK_TEST_SET_GET_VALUE(mesh, meshSO->GetMesh());
@@ -112,7 +115,7 @@ itkMeshSpatialObjectTest(int, char *[])
 
   // Testing is valueAt
   std::cout << "Testing ValueAt: ";
-  double value;
+  double value = NAN;
   meshSO->ValueAtInWorldSpace(inside, value);
   if (!value)
   {
@@ -135,15 +138,15 @@ itkMeshSpatialObjectTest(int, char *[])
   using TriangleCellType = itk::TriangleCell<CellInterfaceType>;
 
   // Create an itkMesh
-  MeshType::Pointer meshTriangle = MeshType::New();
+  auto meshTriangle = MeshType::New();
 
-  MeshType::CoordRepType testTrianglePointCoords[4][3] = {
+  constexpr MeshType::CoordinateType testTrianglePointCoords[4][3] = {
     { 50, 50, 64 }, { 50, 100, 64 }, { 100, 50, 64 }, { 100, 100, 64 }
   };
 
   MeshType::PointIdentifier trianglePoint1[3] = { 0, 1, 2 };
 
-  for (i = 0; i < 4; ++i)
+  for (int i = 0; i < 4; ++i)
   {
     meshTriangle->SetPoint(i, PointType(testTrianglePointCoords[i]));
   }
@@ -163,7 +166,7 @@ itkMeshSpatialObjectTest(int, char *[])
   meshTriangle->SetCell(1, testCell4);
 
   // Create the mesh Spatial Object
-  MeshSpatialObjectType::Pointer meshTriangleSO = MeshSpatialObjectType::New();
+  auto meshTriangleSO = MeshSpatialObjectType::New();
   meshTriangleSO->SetMesh(meshTriangle);
   meshTriangleSO->Update();
 

@@ -1,4 +1,4 @@
-![ITK - The Insight Toolkit](Documentation/Art/itkBannerSmall.png)
+![ITK - The Insight Toolkit](https://raw.githubusercontent.com/InsightSoftwareConsortium/ITK/801370c025c7d296783481779a41c6d559c992c5/Documentation/Art/itkBannerSmall.png)
 
 ITK: The Insight Toolkit
 ========================
@@ -6,28 +6,35 @@ ITK: The Insight Toolkit
 [![GitHub release](https://img.shields.io/github/release/InsightSoftwareConsortium/ITK.svg)](https://github.com/InsightSoftwareConsortium/ITK/releases/latest)
 [![PyPI](https://img.shields.io/pypi/v/itk.svg)](https://pypi.python.org/pypi/itk)
 [![Wheels](https://img.shields.io/pypi/wheel/itk.svg)](https://pypi.org/project/itk)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/InsightSoftwareConsortium/ITK/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/InsightSoftwareConsortium/ITK/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/800928.svg)](https://zenodo.org/badge/latestdoi/800928)
-[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org)
+[![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
 
-| | C++ | Python |
-|:------:|:--------:|:--------:|
-| Linux | [![Build Status](https://dev.azure.com/itkrobotlinux/ITK.Linux/_apis/build/status/ITK.Linux?branchName=master)](https://dev.azure.com/itkrobotlinux/ITK.Linux/_build/latest?definitionId=2&branchName=master) | [![Build Status](https://dev.azure.com/itkrobotlinuxpython/ITK.Linux.Python/_apis/build/status/ITK.Linux.Python?branchName=master)](https://dev.azure.com/itkrobotlinuxpython/ITK.Linux.Python/_build/latest?definitionId=3&branchName=master) |
-| macOS | [![Build Status](https://dev.azure.com/itkrobotmacos/ITK.macOS/_apis/build/status/ITK.macOS?branchName=master)](https://dev.azure.com/itkrobotmacos/ITK.macOS/_build/latest?definitionId=2&branchName=master) | [![Build Status](https://dev.azure.com/itkrobotmacospython/ITK.macOS.Python/_apis/build/status/ITK.macOS.Python?branchName=master)](https://dev.azure.com/itkrobotmacospython/ITK.macOS.Python/_build/latest?definitionId=2&branchName=master) |
-| Windows | [![Build Status](https://dev.azure.com/itkrobotwindow/ITK.Windows/_apis/build/status/ITK.Windows?branchName=master)](https://dev.azure.com/itkrobotwindow/ITK.Windows/_build/latest?definitionId=2&branchName=master) | [![Build Status](https://dev.azure.com/itkrobotwindowpython/ITK.Windows.Python/_apis/build/status/ITK.Windows.Python?branchName=master)](https://dev.azure.com/itkrobotwindowpython/ITK.Windows.Python/_build/latest?definitionId=1) |
-| Linux (Code coverage)| [![Build Status](https://dev.azure.com/itkrobotbatch/ITK.Coverage/_apis/build/status/ITK.Coverage?branchName=master)](https://dev.azure.com/itkrobotbatch/ITK.Coverage/_build/latest?definitionId=3&branchName=master) | |
+| | | C++ | Python |
+|:------:|:------:|:--------:|:--------:|
+| Azure Pipelines | Linux | [![Build Status](https://dev.azure.com/itkrobotlinux/ITK.Linux/_apis/build/status/ITK.Linux?branchName=main)](https://dev.azure.com/itkrobotlinux/ITK.Linux/_build/latest?definitionId=2&branchName=main) | [![Build Status](https://dev.azure.com/itkrobotlinuxpython/ITK.Linux.Python/_apis/build/status/ITK.Linux.Python?branchName=main)](https://dev.azure.com/itkrobotlinuxpython/ITK.Linux.Python/_build/latest?definitionId=3&branchName=main) |
+| Azure Pipelines | Windows | [![Build Status](https://dev.azure.com/itkrobotwindow/ITK.Windows/_apis/build/status/ITK.Windows?branchName=main)](https://dev.azure.com/itkrobotwindow/ITK.Windows/_build/latest?definitionId=2&branchName=main) | [![Build Status](https://dev.azure.com/itkrobotwindowpython/ITK.Windows.Python/_apis/build/status/ITK.Windows.Python?branchName=main)](https://dev.azure.com/itkrobotwindowpython/ITK.Windows.Python/_build/latest?definitionId=1) |
+| Azure Pipelines | macOS | [![Build Status](https://dev.azure.com/itkrobotmacos/ITK.macOS/_apis/build/status/ITK.macOS?branchName=main)](https://dev.azure.com/itkrobotmacos/ITK.macOS/_build/latest?definitionId=2&branchName=main) | [![Build Status](https://dev.azure.com/itkrobotmacospython/ITK.macOS.Python/_apis/build/status/ITK.macOS.Python?branchName=main)](https://dev.azure.com/itkrobotmacospython/ITK.macOS.Python/_build/latest?definitionId=2&branchName=main) |
+| GitHub Actions | Linux, Windows, macOS | [![ITK.Pixi](https://github.com/InsightSoftwareConsortium/ITK/actions/workflows/pixi.yml/badge.svg)](https://github.com/InsightSoftwareConsortium/ITK/actions/workflows/pixi.yml) | |
+| GitHub Actions | macOS (Apple Silicon)|  [![ITK.macOS.Arm64](https://github.com/InsightSoftwareConsortium/ITK/actions/workflows/macos-arm.yml/badge.svg)](https://github.com/InsightSoftwareConsortium/ITK/actions/workflows/macos-arm.yml)| |
+| Azure Pipelines | Linux (Code coverage)| [![Build Status](https://dev.azure.com/itkrobotbatch/ITK.Coverage/_apis/build/status/ITK.Coverage?branchName=main)](https://dev.azure.com/itkrobotbatch/ITK.Coverage/_build/latest?definitionId=3&branchName=main) | |
 
 Links
 -----
 
 * [Homepage](https://itk.org)
-* [Download](https://itk.org/download/)
+* [Download](https://docs.itk.org/en/latest/download.html)
+* [Documentation](https://docs.itk.org/)
 * [Discussion](https://discourse.itk.org/)
 * [Software Guide](https://itk.org/ItkSoftwareGuide.pdf)
-* [Help](https://itk.org/resources/)
-* [Examples](https://itk.org/ITKExamples/)
+* [Examples](https://examples.itk.org/)
 * [Issue tracking](https://github.com/InsightSoftwareConsortium/ITK/issues)
 * [Submit a patch](CONTRIBUTING.md)
+
+*Note*: For questions related to ITK, please use the official [Discussion](https://discourse.itk.org/)
+space: the [issue tracker](https://github.com/InsightSoftwareConsortium/ITK/issues)
+is reserved to track different aspects of the software development process, as
+highlighted by the available templates.
 
 
 About
@@ -46,13 +53,13 @@ MRI scan in order to combine the information contained in both.
 
 The ITK project uses an [open governance model](./GOVERNANCE.md)
 and is fiscally sponsored by [NumFOCUS](https://numfocus.org/). Consider making
-a [tax-deductible donation](https://numfocus.org/donate-to-itk) to help the project
+a [tax-deductible donation](https://opencollective.com/itk) to help the project
 pay for developer time, professional services, travel, workshops, and a variety of other needs.
 
 <div align="center">
   <a href="https://numfocus.org/project/itk">
     <img height="60px"
-         src="https://raw.githubusercontent.com/numfocus/templates/master/images/numfocus-logo.png"
+         src="https://raw.githubusercontent.com/numfocus/templates/main/images/numfocus-logo.png"
          align="center">
   </a>
 </div>
@@ -60,19 +67,18 @@ pay for developer time, professional services, travel, workshops, and a variety 
 
 ITK is distributed in binary Python packages. To install:
 
-```
+```bash
 pip install itk
 ```
 
 or
 
-```
+```bash
 conda install -c conda-forge itk
 ```
 
 The cross-platform, C++ core of the toolkit may be built from source using
 [CMake](https://cmake.org).
-
 
 Copyright
 ---------
@@ -81,16 +87,16 @@ Copyright
 NumFOCUS is a non-profit entity that promotes the use of open source
 scientific software for educational and research purposes.  NumFOCUS delegates
 project governance to the [Insight Software
-Consortium](http://www.insightsoftwareconsortium.org) Council, an educational
+Consortium](https://www.insightsoftwareconsortium.org) Council, an educational
 consortium dedicated to promoting and maintaining open-source, freely
 available software for medical image analysis. This includes promoting such
 software in teaching, research, and commercial applications, and maintaining
 webpages and user and developer communities.  ITK is distributed under a
 license that enables use for both non-commercial and commercial applications.
 See
-[LICENSE](https://github.com/InsightSoftwareConsortium/ITK/blob/master/LICENSE)
+[LICENSE](https://github.com/InsightSoftwareConsortium/ITK/blob/main/LICENSE)
 and
-[NOTICE](https://github.com/InsightSoftwareConsortium/ITK/blob/master/NOTICE)
+[NOTICE](https://github.com/InsightSoftwareConsortium/ITK/blob/main/NOTICE)
 files for details.
 
 Supporting ITK
@@ -100,12 +106,19 @@ ITK is a fiscally sponsored project of [NumFOCUS](https://numfocus.org/), a non-
 to supporting the open source scientific computing community. If you want to
 support ITK's mission to develop and maintain open-source, reproducible
 scientific image analysis software for education and research, please consider
-making a [donation](https://numfocus.org/donate-to-itk) to support our efforts.
+making a [donation](https://opencollective.com/itk) to support our efforts.
 
 NumFOCUS is 501(c)(3) non-profit charity in the United States; as such,
 donations to NumFOCUS are tax-deductible as allowed by law. As with any
 donation, you should consult with your personal tax adviser or the IRS about
 your particular tax situation.
+
+Professional Services
+---------------------
+
+[Kitware](https://www.kitware.com/) provides professional services for ITK,
+including custom solution creation, collaborative research and development,
+development support, and training.
 
 Citation
 --------
@@ -130,5 +143,7 @@ To cite ITK, please reference, as appropriate:
 
 Once your work has been published, please create a pull request to add
 the publication to the
-[ITKBibliography.bib](https://github.com/InsightSoftwareConsortium/insightsoftwareconsortium.org/blob/master/static/citations-visualization/ITKBibliography.bib)
+[ITKBibliography.bib](https://github.com/InsightSoftwareConsortium/insightsoftwareconsortium.org/blob/main/static/citations-visualization/ITKBibliography.bib)
 file.
+
+[![Alt](https://repobeats.axiom.co/api/embed/e2194d411e086b1a9a9db4336692fdb302612295.svg "Repobeats analytics image")](https://github.com/InsightSoftwareConsortium/ITK/pulse/monthly)

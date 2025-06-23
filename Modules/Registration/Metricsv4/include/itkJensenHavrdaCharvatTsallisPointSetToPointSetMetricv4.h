@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,10 +48,9 @@ namespace itk
  * is transform each point (with the specified transform) and construct the
  * k-d tree from the transformed points.
  *
- * Contributed by Nicholas J. Tustison, James C. Gee in the Insight Journal
- * paper: https://www.insight-journal.org/browse/publication/317
+ * Contributed by Nicholas J. Tustison, James C. Gee in \cite tustison2010a.
  *
- * \note The original work reported in Tustison et al. 2011 optionally employed
+ * \note The original work reported in \cite tustison2011 optionally employed
  * a regularization term to prevent the moving point set(s) from coalescing
  * to a single point location. However, within the registration framework,
  * this term is of limited utility as such regularization is dictated by the
@@ -60,11 +59,6 @@ namespace itk
  * be considered "moving" but this is also not applicable for this particular
  * implementation.
  *
- * \par REFERENCE
- *
- * N.J. Tustison, S. P. Awate, G. Song, T. S. Cook, and J. C. Gee.
- * "Point set registration using Havrda-Charvat-Tsallis entropy measures"
- * IEEE Transactions on Medical Imaging, 30(2):451-60, 2011.
  * \ingroup ITKMetricsv4
  */
 
@@ -84,8 +78,8 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4, PointSetToPointSetMetricv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4);
 
   using PointSetType = TPointSet;
   using PointsContainer = typename PointSetType::PointsContainer;
@@ -94,20 +88,20 @@ public:
   static constexpr unsigned int PointDimension = TPointSet::PointDimension;
 
   /** Types transferred from the base class */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
-  using LocalDerivativeType = typename Superclass::LocalDerivativeType;
-  using PointType = typename Superclass::PointType;
-  using PixelType = typename Superclass::PixelType;
-  using CoordRepType = typename Superclass::CoordRepType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
-  using NeighborsIdentifierType = typename Superclass::NeighborsIdentifierType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeValueType;
+  using typename Superclass::LocalDerivativeType;
+  using typename Superclass::PointType;
+  using typename Superclass::PixelType;
+  using typename Superclass::CoordinateType;
+  using typename Superclass::PointIdentifier;
+  using typename Superclass::NeighborsIdentifierType;
+  using typename Superclass::NumberOfParametersType;
 
-  using JacobianType = typename Superclass::JacobianType;
-  using FixedTransformJacobianType = typename Superclass::FixedTransformJacobianType;
-  using MovingTransformJacobianType = typename Superclass::MovingTransformJacobianType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::FixedTransformJacobianType;
+  using typename Superclass::MovingTransformJacobianType;
 
   using RealType = MeasureType;
 
@@ -118,8 +112,7 @@ public:
   using GaussianType = typename DensityFunctionType::GaussianType;
   using DensityFunctionPointer = typename DensityFunctionType::Pointer;
 
-  /** Initialize the Metric by making sure that all the components
-   *  are present and plugged together correctly     */
+  /** Initialize the Metric by making sure that all the components are present and plugged together correctly. */
   void
   Initialize() override;
 
@@ -208,6 +201,7 @@ public:
   MeasureType
   GetLocalNeighborhoodValue(const PointType & point, const PixelType & pixel = 0) const override;
 
+  /** Get the local measure and the derivative values. */
   void
   GetLocalNeighborhoodValueAndDerivative(const PointType &,
                                          MeasureType &,
@@ -246,21 +240,21 @@ protected:
   }
 
 private:
-  DensityFunctionPointer m_MovingDensityFunction;
+  DensityFunctionPointer m_MovingDensityFunction{};
 
   bool m_UseAnisotropicCovariances{ false };
 
-  RealType     m_PointSetSigma;
-  RealType     m_KernelSigma;
-  unsigned int m_CovarianceKNeighborhood;
-  unsigned int m_EvaluationKNeighborhood;
+  RealType     m_PointSetSigma{};
+  RealType     m_KernelSigma{};
+  unsigned int m_CovarianceKNeighborhood{};
+  unsigned int m_EvaluationKNeighborhood{};
 
-  RealType m_Alpha;
+  RealType m_Alpha{};
 
   /** Precomputed cached values */
-  mutable RealType m_TotalNumberOfPoints;
-  mutable RealType m_Prefactor0;
-  mutable RealType m_Prefactor1;
+  mutable RealType m_TotalNumberOfPoints{};
+  mutable RealType m_Prefactor0{};
+  mutable RealType m_Prefactor1{};
 };
 
 

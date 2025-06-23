@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,14 +37,17 @@ itkLoggerTest(int argc, char * argv[])
     }
 
     // Create an ITK StdStreamLogOutputs
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
     coutput->SetStream(std::cout);
     std::ofstream fout(argv[1]);
     foutput->SetStream(fout);
 
     // Create an ITK Logger
-    itk::Logger::Pointer logger = itk::Logger::New();
+    const itk::Logger::Pointer logger = itk::Logger::New();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(logger, Logger, LoggerBase);
+
 
     std::cout << "Testing itk::Logger" << std::endl;
 
@@ -81,7 +84,8 @@ itkLoggerTest(int argc, char * argv[])
     logger->Write(itk::LoggerBase::PriorityLevelEnum::MUSTFLUSH, "This is the MUSTFLUSH message.\n");
     logger->Flush();
 
-    itk::LoggerBase::TimeStampFormatEnum timeStampFormat = itk::LoggerBase::TimeStampFormatEnum::HUMANREADABLE;
+    constexpr itk::LoggerBase::TimeStampFormatEnum timeStampFormat =
+      itk::LoggerBase::TimeStampFormatEnum::HUMANREADABLE;
     logger->SetTimeStampFormat(timeStampFormat);
 
     if (logger->GetTimeStampFormat() != timeStampFormat)
@@ -101,7 +105,7 @@ itkLoggerTest(int argc, char * argv[])
     logger->Flush();
 
 
-    std::string humanReadableFormat = "%b %d, %Y, %H:%M:%S";
+    const std::string humanReadableFormat = "%b %d, %Y, %H:%M:%S";
     logger->SetHumanReadableFormat(humanReadableFormat);
 
     if (logger->GetHumanReadableFormat() != humanReadableFormat)
@@ -121,7 +125,7 @@ itkLoggerTest(int argc, char * argv[])
   }
   catch (...)
   {
-    std::cerr << "Exception catched !!" << std::endl;
+    std::cerr << "Exception caught !!" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -201,7 +205,8 @@ itkLoggerTest(int argc, char * argv[])
     itk::CellGeometryEnum::TRIANGLE_CELL,   itk::CellGeometryEnum::QUADRILATERAL_CELL,
     itk::CellGeometryEnum::POLYGON_CELL,    itk::CellGeometryEnum::TETRAHEDRON_CELL,
     itk::CellGeometryEnum::HEXAHEDRON_CELL, itk::CellGeometryEnum::QUADRATIC_TRIANGLE_CELL,
-    itk::CellGeometryEnum::LAST_ITK_CELL,   itk::CellGeometryEnum::MAX_ITK_CELLS
+    itk::CellGeometryEnum::LAST_ITK_CELL,   itk::CellGeometryEnum::POLYLINE_CELL,
+    itk::CellGeometryEnum::MAX_ITK_CELLS
   };
   for (const auto & ee : allCellGeometryEnum)
   {

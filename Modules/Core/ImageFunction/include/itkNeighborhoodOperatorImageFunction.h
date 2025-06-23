@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,11 +57,11 @@ public:
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
   using InputPixelType = typename InputImageType::PixelType;
-  using IndexType = typename Superclass::IndexType;
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::IndexType;
+  using typename Superclass::ContinuousIndexType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NeighborhoodOperatorImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NeighborhoodOperatorImageFunction);
 
   /** Dimension of the underlying image. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
@@ -69,7 +69,7 @@ public:
   using NeighborhoodType = Neighborhood<TOutput, Self::ImageDimension>;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Set the input image. */
   // virtual void SetInputImage( InputImageType * ptr );
@@ -84,14 +84,13 @@ public:
     this->Modified();
   }
 
-  /** Evalutate the  in the given dimension at specified point
+  /** Evaluate the function in the given dimension at specified point
    *  Subclasses should override this method. */
   TOutput
   Evaluate(const PointType &) const override
   {
     std::cout << "NeighborhoodOperatorImageFunction::Evaluate(): Not implemented!" << std::endl;
-    TOutput out;
-    out = 0;
+    TOutput out = 0;
     return out;
   }
 
@@ -105,8 +104,7 @@ public:
   EvaluateAtContinuousIndex(const ContinuousIndexType &) const override
   {
     std::cout << "NeighborhoodOperatorImageFunction::EvaluateAtContinuousIndex():Not implemented!" << std::endl;
-    TOutput out;
-    out = 0;
+    TOutput out = 0;
     return out;
   }
 
@@ -123,7 +121,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  mutable NeighborhoodType m_Operator;
+  mutable NeighborhoodType m_Operator{};
 };
 } // end namespace itk
 

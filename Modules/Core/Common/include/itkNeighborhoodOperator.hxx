@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNeighborhoodOperator_hxx
 #define itkNeighborhoodOperator_hxx
 
-#include "itkNeighborhoodOperator.h"
 #include "itkIntTypes.h"
 
 namespace itk
@@ -27,7 +26,7 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator>
 void
 NeighborhoodOperator<TPixel, VDimension, TAllocator>::ScaleCoefficients(PixelRealType s)
 {
-  for (unsigned i = 0; i < this->Size(); ++i)
+  for (unsigned int i = 0; i < this->Size(); ++i)
   {
     this->operator[](i) = static_cast<TPixel>(this->operator[](i) * s);
   }
@@ -39,13 +38,12 @@ NeighborhoodOperator<TPixel, VDimension, TAllocator>::FlipAxes()
 {
   // To flip the operator across all of its axes, all we have to do is reverse
   // the order of all coefficients.
-  const unsigned size = this->Size();
-  PixelType      temp;
+  const unsigned int size = this->Size();
 
-  for (unsigned i = 0; i < size / 2; ++i)
+  for (unsigned int i = 0; i < size / 2; ++i)
   {
-    unsigned     swap_with = size - 1 - i;
-    temp = this->operator[](i);
+    const unsigned int swap_with = size - 1 - i;
+    const PixelType    temp{ this->operator[](i) };
 
     this->operator[](i) = this->operator[](swap_with);
 
@@ -57,10 +55,8 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator>
 void
 NeighborhoodOperator<TPixel, VDimension, TAllocator>::CreateDirectional()
 {
-  SizeValueType     k[VDimension];
-  CoefficientVector coefficients;
-
-  coefficients = this->GenerateCoefficients();
+  SizeValueType           k[VDimension];
+  const CoefficientVector coefficients{ this->GenerateCoefficients() };
   for (unsigned int i = 0; i < VDimension; ++i)
   {
     if (i == this->GetDirection())
@@ -80,9 +76,7 @@ template <typename TPixel, unsigned int VDimension, typename TAllocator>
 void
 NeighborhoodOperator<TPixel, VDimension, TAllocator>::CreateToRadius(const SizeType & sz)
 {
-  CoefficientVector coefficients;
-
-  coefficients = this->GenerateCoefficients();
+  const CoefficientVector coefficients{ this->GenerateCoefficients() };
   this->SetRadius(sz);
   this->Fill(coefficients);
 }
@@ -120,24 +114,24 @@ NeighborhoodOperator<TPixel, VDimension, TAllocator>::FillCenteredDirectional(co
   }
 
   // Compare the neighborhood size with the coefficient array size..
-  const int sizediff = ((int)size - (int)coeff.size()) >> 1;
+  const int sizediff = (static_cast<int>(size) - static_cast<int>(coeff.size())) >> 1;
 
   // Create a slice iterator centered in the neighborhood.
-  std::slice *                               temp_slice;
+  std::slice                                 temp_slice;
   typename CoefficientVector::const_iterator it;
   if (sizediff >= 0)
   {
-    temp_slice = new std::slice(start + sizediff * stride, coeff.size(), stride);
+    temp_slice = std::slice(start + sizediff * stride, coeff.size(), stride);
     it = coeff.begin();
   }
   else
   {
-    temp_slice = new std::slice(start, size, stride);
+    temp_slice = std::slice(start, size, stride);
     it = coeff.begin() - sizediff;
   }
 
-  SliceIteratorType data(this, *temp_slice);
-  delete temp_slice;
+
+  SliceIteratorType data(this, temp_slice);
 
   // Copy the coefficients into the neighborhood, truncating them if there
   // are too many.

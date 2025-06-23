@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ class SerieHelper;
 namespace itk
 {
 /**
- *\class GDCMSeriesFileNames
+ * \class GDCMSeriesFileNames
  * \brief Generate a sequence of filenames from a DICOM series.
  *
  * This class generates a sequence of files whose filenames point to
@@ -55,6 +55,7 @@ namespace itk
  *
  * \ingroup ITKIOGDCM
  */
+
 /** \todo: remove these from the itk:: namespace */
 using FilenamesContainer = std::vector<std::string>;
 using SerieUIDContainer = std::vector<std::string>;
@@ -78,8 +79,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GDCMSeriesFileNames, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GDCMSeriesFileNames);
 
   /* -------- Define the API for GDCMSeriesFileNames ----------- */
 
@@ -89,11 +90,11 @@ public:
 
   /** Set the directory that contains the DICOM series. */
   void
-  SetInputDirectory(std::string const & name);
+  SetInputDirectory(const std::string & name);
 
   /** Set the directory that contains the DICOM series. */
   void
-  SetDirectory(std::string const & name)
+  SetDirectory(const std::string & name)
   {
     SetInputDirectory(name);
   }
@@ -104,9 +105,9 @@ public:
   const FileNamesContainerType &
   GetInputFileNames();
 
-  /** Set the directory where the output DICOM serie should be written. */
+  /** Set the directory where the output DICOM series should be written. */
   void
-  SetOutputDirectory(std::string const & name)
+  SetOutputDirectory(const std::string & name)
   {
     m_OutputDirectory = name;
     this->Modified();
@@ -130,7 +131,7 @@ public:
   GetFileNames(const std::string serie);
 
   /** Returns a vector containing all the UIDs found when parsing the
-   * direcory specified via SetDirectory. If no direcory is specified
+   * directory specified via SetDirectory. If no directory is specified
    * return an empty vector.  An extended UID may be returned/used if
    * SetUseSeriesDetails(true) has been called.
    */
@@ -139,9 +140,11 @@ public:
 
   /** Recursively parse the input directory.
    * Must be set before the call to SetInputDirectory(). */
+  /** @ITKStartGrouping */
   itkSetMacro(Recursive, bool);
   itkGetConstMacro(Recursive, bool);
   itkBooleanMacro(Recursive);
+  /** @ITKEndGrouping */
 
   /** Use additional series information such as ProtocolName
    *   and SeriesName to identify when a single SeriesUID contains
@@ -160,11 +163,11 @@ public:
     return m_UseSeriesDetails;
   }
 
-  /** Add more restriction on the selection of a Series. This follow the same
-   * approach as SetUseSeriesDetails, but allow a user to add even more DICOM
+  /** Add more restriction on the selection of a Series. This follows the same
+   * approach as SetUseSeriesDetails, but allows a user to add even more DICOM
    * tags to take into account for subrefining a set of DICOM files into multiple
-   * series. Format for tag is "group|element" of a DICOM tag.
-   * \warning User need to set SetUseSeriesDetails(true)
+   * series. The tag format is "group|element" of a DICOM tag.
+   * \warning UseSeriesDetails needs to be set to true.
    */
   void
   AddSeriesRestriction(const std::string & tag);
@@ -173,18 +176,21 @@ public:
    *  to skip sequences. This makes loading DICOM files faster when
    *  sequences are not needed.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(LoadSequences, bool);
   itkGetConstMacro(LoadSequences, bool);
   itkBooleanMacro(LoadSequences);
+  /** @ITKEndGrouping */
 
   /** Parse any private tags in the DICOM file. Defaults to false
    * to skip private tags. This makes loading DICOM files faster when
    * private tags are not needed.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(LoadPrivateTags, bool);
   itkGetConstMacro(LoadPrivateTags, bool);
   itkBooleanMacro(LoadPrivateTags);
-
+  /** @ITKEndGrouping */
 protected:
   GDCMSeriesFileNames();
   ~GDCMSeriesFileNames() override;
@@ -192,21 +198,21 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  /** Contains the input directory where the DICOM serie is found */
+  /** Contains the input directory where the DICOM series is found */
   std::string m_InputDirectory = "";
 
-  /** Contains the output directory where the DICOM serie should be written */
+  /** Contains the output directory where the DICOM series should be written */
   std::string m_OutputDirectory = "";
 
   /** Internal structure to keep the list of input/output filenames */
-  FileNamesContainerType m_InputFileNames;
-  FileNamesContainerType m_OutputFileNames;
+  FileNamesContainerType m_InputFileNames{};
+  FileNamesContainerType m_OutputFileNames{};
 
-  /** Internal structure to order serie from one directory */
+  /** Internal structure to order series from one directory */
   std::unique_ptr<gdcm::SerieHelper> m_SerieHelper;
 
   /** Internal structure to keep the list of series UIDs */
-  SeriesUIDContainerType m_SeriesUIDs;
+  SeriesUIDContainerType m_SeriesUIDs{};
 
   bool m_UseSeriesDetails = true;
   bool m_Recursive = false;

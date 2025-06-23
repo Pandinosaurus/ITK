@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,12 +47,11 @@ template <typename TPoint>
 double
 SimpleSignedDistance(const TPoint & p)
 {
-  TPoint center;
-  center.Fill(50);
-  double radius = 19.5;
+  auto             center = itk::MakeFilled<TPoint>(50);
+  constexpr double radius = 19.5;
 
   double accum = 0.0;
-  for (unsigned int j = 0; j < TPoint::PointDimension; j++)
+  for (unsigned int j = 0; j < TPoint::PointDimension; ++j)
   {
     accum += itk::Math::sqr(p[j] - center[j]);
   }
@@ -65,12 +64,11 @@ template <typename TPoint>
 double
 SimpleVelocity(const TPoint & p)
 {
-  TPoint center;
-  center.Fill(50);
+  auto center = itk::MakeFilled<TPoint>(50);
 
-  double value;
-  double x = p[0] - center[0];
-  double y = p[1] - center[1];
+  double       value = 0.0;
+  const double x = p[0] - center[0];
+  const double y = p[1] - center[1];
 
   if (y == 0.0)
   {
@@ -125,10 +123,9 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
   using PointType = itk::Point<double, ImageDimension>;
 
   // Fill an input image with simple signed distance function
-  ImageType::Pointer  image = ImageType::New();
-  ImageType::SizeType size;
-  size.Fill(128);
-  ImageType::RegionType region(size);
+  auto                        image = ImageType::New();
+  auto                        size = ImageType::SizeType::Filled(128);
+  const ImageType::RegionType region(size);
 
   image->SetRegions(region);
   image->Allocate();
@@ -145,20 +142,20 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
     ++iter;
   }
 
-  // Squash up the level sets by mulitplying with a scalar
+  // Squash up the level sets by multiplying with a scalar
   using MultiplierType = itk::ShiftScaleImageFilter<ImageType, ImageType>;
-  MultiplierType::Pointer multiplier = MultiplierType::New();
+  auto multiplier = MultiplierType::New();
   multiplier->SetInput(image);
   multiplier->SetScale(0.5);
 
   // Set up auxiliary variables
-  ImageType::Pointer aux1 = ImageType::New();
+  auto aux1 = ImageType::New();
   aux1->SetRegions(region);
   aux1->Allocate();
 
   aux1->FillBuffer(1.0);
 
-  ImageType::Pointer aux2 = ImageType::New();
+  auto aux2 = ImageType::New();
   aux2->SetRegions(region);
   aux2->Allocate();
 
@@ -176,7 +173,7 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
     {
     // For debugging
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetInput( aux2 );
     writer->SetFileName( "input.mhd" );
     writer->Write();
@@ -186,14 +183,14 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
   // Set up reinitialize level set image filter
   constexpr unsigned int AuxDimension = 2;
   using ReinitializerType = itk::ExtensionVelocitiesImageFilter<ImageType, float, AuxDimension>;
-  ReinitializerType::Pointer reinitializer = ReinitializerType::New();
+  auto reinitializer = ReinitializerType::New();
   reinitializer->SetInput(multiplier->GetOutput());
   reinitializer->SetInputVelocityImage(aux1, 0);
   reinitializer->SetInputVelocityImage(aux2, 1);
 
-  ShowProgressObject                                    progressWatch(reinitializer);
-  itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
-  command = itk::SimpleMemberCommand<ShowProgressObject>::New();
+  ShowProgressObject                                          progressWatch(reinitializer);
+  const itk::SimpleMemberCommand<ShowProgressObject>::Pointer command =
+    itk::SimpleMemberCommand<ShowProgressObject>::New();
   command->SetCallbackFunction(&progressWatch, &ShowProgressObject::ShowProgress);
   reinitializer->AddObserver(itk::ProgressEvent(), command);
 
@@ -201,7 +198,7 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
     {
     // For debugging
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetInput( reinitializer->GetOutputVelocityImage( 1 ) );
     writer->SetFileName( "output.mhd" );
     writer->Write();
@@ -210,19 +207,15 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
 
   // Check the output
   using DifferenceType = itk::Testing::ComparisonImageFilter<ImageType, ImageType>;
-  DifferenceType::Pointer difference = DifferenceType::New();
+  auto difference = DifferenceType::New();
   difference->SetTestInput(aux2);
   difference->SetValidInput(reinitializer->GetOutputVelocityImage(1));
   difference->Update();
 
   // mask out the peak at near the center point
-  ImageType::IndexType centerIndex;
-  centerIndex.Fill(50 - 8);
-  ImageType::SizeType centerSize;
-  centerSize.Fill(17);
-  ImageType::RegionType centerRegion;
-  centerRegion.SetIndex(centerIndex);
-  centerRegion.SetSize(centerSize);
+  auto                        centerIndex = ImageType::IndexType::Filled(50 - 8);
+  auto                        centerSize = ImageType::SizeType::Filled(17);
+  const ImageType::RegionType centerRegion{ centerIndex, centerSize };
 
   iter = Iterator(difference->GetOutput(), centerRegion);
   iter.GoToBegin();
@@ -234,12 +227,12 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
   }
 
   using CalculatorType = itk::MinimumMaximumImageCalculator<ImageType>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
   calculator->SetImage(difference->GetOutput());
   calculator->Compute();
 
-  double    maxAbsDifference = calculator->GetMaximum();
-  IndexType maxAbsDifferenceIndex = calculator->GetIndexOfMaximum();
+  const double    maxAbsDifference = calculator->GetMaximum();
+  const IndexType maxAbsDifferenceIndex = calculator->GetIndexOfMaximum();
 
   std::cout << "Max. abs. difference = " << maxAbsDifference;
   std::cout << " at " << maxAbsDifferenceIndex << std::endl;
@@ -270,14 +263,14 @@ itkExtensionVelocitiesImageFilterTest(int, char *[])
   using NodeContainerType = ReinitializerType::NodeContainer;
   using ContainerIterator = NodeContainerType::ConstIterator;
 
-  NodeContainerPointer nodes = reinitializer->GetOutputNarrowBand();
-  ContainerIterator    nodeIter = nodes->Begin();
-  ContainerIterator    nodeEnd = nodes->End();
+  const NodeContainerPointer nodes = reinitializer->GetOutputNarrowBand();
+  ContainerIterator          nodeIter = nodes->Begin();
+  const ContainerIterator    nodeEnd = nodes->End();
 
   while (nodeIter != nodeEnd)
   {
-    ImageType::IndexType nodeIndex = nodeIter.Value().GetIndex();
-    double               absDiff =
+    const ImageType::IndexType nodeIndex = nodeIter.Value().GetIndex();
+    const double               absDiff =
       itk::Math::abs(aux2->GetPixel(nodeIndex) - reinitializer->GetOutputVelocityImage(1)->GetPixel(nodeIndex));
     if (absDiff > 0.6)
     {

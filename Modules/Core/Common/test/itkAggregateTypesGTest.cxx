@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,8 +85,8 @@ IO  const Self & operator-=(const OffsetType & offset)
 IO  const Self operator-(const OffsetType & off) const
 
 IO  const OffsetType operator-(const Self & vec) const
-IO  inline void CopyWithRound(const FixedArray<TCoordRep, VDimension> & point)
-IO  inline void CopyWithCast(const FixedArray<TCoordRep, VDimension> & point)
+IO  inline void CopyWithRound(const FixedArray<TCoordinate, VDimension> & point)
+IO  inline void CopyWithCast(const FixedArray<TCoordinate, VDimension> & point)
 
 Index
 I  void SetIndex(const IndexValueType val[VDimension])
@@ -133,7 +133,7 @@ public:
     const AggregateType knownAll7s{ { 7, 7, 7, 7 } };
     const AggregateType knownAll6s{ { 6, 6, 6, 6 } };
 
-    EXPECT_EQ(std::is_pod<AggregateType>::value, true);
+    EXPECT_EQ(std::is_pod_v<AggregateType>, true);
     EXPECT_EQ(AggregateType::Dimension, 4);
 
     AggregateType index1 = { { 10, 20, 30, 40 } };
@@ -288,12 +288,9 @@ public:
     //============ Test Copy with Round/Cast Type ====================================
     {
       AggregateType known3s{ { 3, 3, 3, 3 } };
-      AggregateType threes;
-
-      threes.Fill(0);
-      AggregateType         known4s{ { 4, 4, 4, 4 } };
-      itk::Point<double, 4> p1;
-      p1.Fill(3.5);
+      AggregateType threes{};
+      AggregateType known4s{ { 4, 4, 4, 4 } };
+      auto          p1 = itk::MakeFilled<itk::Point<double, 4>>(3.5);
       threes.CopyWithRound(p1);
       ITK_EXPECT_VECTOR_NEAR(threes, known4s, 0);
 
@@ -327,21 +324,21 @@ TEST(Specialized, IndexOffset)
 
 TEST(Specialized, Index)
 {
-  EXPECT_EQ(std::is_pod<itk::Index<13>>::value, true);
+  EXPECT_EQ(std::is_pod_v<itk::Index<13>>, true);
   EXPECT_EQ(itk::Index<2>::GetIndexDimension(), 2);
 
   using IndexType = itk::Index<4>;
 
-  const IndexType zeroBasis = { { 1, 0, 0, 0 } };
-  const IndexType oneBasis = { { 0, 1, 0, 0 } };
-  const IndexType twoBasis = { { 0, 0, 1, 0 } };
-  const IndexType threeBasis = { { 0, 0, 0, 1 } };
+  constexpr IndexType zeroBasis = { { 1, 0, 0, 0 } };
+  constexpr IndexType oneBasis = { { 0, 1, 0, 0 } };
+  constexpr IndexType twoBasis = { { 0, 0, 1, 0 } };
+  constexpr IndexType threeBasis = { { 0, 0, 0, 1 } };
   ITK_EXPECT_VECTOR_NEAR(IndexType::GetBasisIndex(0), zeroBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(IndexType::GetBasisIndex(1), oneBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(IndexType::GetBasisIndex(2), twoBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(IndexType::GetBasisIndex(3), threeBasis, 0);
 
-  IndexType                 known3s{ { 3, 3, 3, 3 } };
+  constexpr IndexType       known3s{ { 3, 3, 3, 3 } };
   IndexType                 threes;
   IndexType::IndexValueType raw3s[4] = { 3, 3, 3, 3 };
   threes.SetIndex(raw3s);
@@ -351,36 +348,36 @@ TEST(Specialized, Index)
 TEST(Specialized, Offset)
 {
 
-  EXPECT_EQ(std::is_pod<itk::Offset<13>>::value, true);
+  EXPECT_EQ(std::is_pod_v<itk::Offset<13>>, true);
   EXPECT_EQ(itk::Offset<13>::GetOffsetDimension(), 13);
 
   using OffsetType = itk::Offset<4>;
 
-  const OffsetType zeroBasis = { { 1, 0, 0, 0 } };
-  const OffsetType oneBasis = { { 0, 1, 0, 0 } };
-  const OffsetType twoBasis = { { 0, 0, 1, 0 } };
-  const OffsetType threeBasis = { { 0, 0, 0, 1 } };
+  constexpr OffsetType zeroBasis = { { 1, 0, 0, 0 } };
+  constexpr OffsetType oneBasis = { { 0, 1, 0, 0 } };
+  constexpr OffsetType twoBasis = { { 0, 0, 1, 0 } };
+  constexpr OffsetType threeBasis = { { 0, 0, 0, 1 } };
   ITK_EXPECT_VECTOR_NEAR(OffsetType::GetBasisOffset(0), zeroBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(OffsetType::GetBasisOffset(1), oneBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(OffsetType::GetBasisOffset(2), twoBasis, 0);
   ITK_EXPECT_VECTOR_NEAR(OffsetType::GetBasisOffset(3), threeBasis, 0);
 
-  OffsetType                  known3s{ { 3, 3, 3, 3 } };
-  OffsetType                  threes;
-  OffsetType::OffsetValueType raw3s[4] = { 3, 3, 3, 3 };
+  constexpr OffsetType                  known3s{ { 3, 3, 3, 3 } };
+  OffsetType                            threes;
+  constexpr OffsetType::OffsetValueType raw3s[4] = { 3, 3, 3, 3 };
   threes.SetOffset(raw3s);
   ITK_EXPECT_VECTOR_NEAR(threes, known3s, 0);
 }
 
 TEST(Specialized, Size)
 {
-  EXPECT_EQ(std::is_pod<itk::Size<13>>::value, true);
+  EXPECT_EQ(std::is_pod_v<itk::Size<13>>, true);
   EXPECT_EQ(itk::Size<7>::GetSizeDimension(), 7);
 
   using SizeType = itk::Size<4>;
-  SizeType                known3s{ { 3, 3, 3, 3 } };
-  SizeType                threes;
-  SizeType::SizeValueType raw3s[4] = { 3, 3, 3, 3 };
+  constexpr SizeType                known3s{ { 3, 3, 3, 3 } };
+  SizeType                          threes;
+  constexpr SizeType::SizeValueType raw3s[4] = { 3, 3, 3, 3 };
   threes.SetSize(raw3s);
   ITK_EXPECT_VECTOR_NEAR(threes, known3s, 0);
 }

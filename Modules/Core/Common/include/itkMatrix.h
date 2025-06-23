@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,11 +28,12 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/algo/vnl_determinant.h"
 #include "itkMath.h"
+#include <type_traits> // For is_same.
 
 namespace itk
 {
 /**
- *\class Matrix
+ * \class Matrix
  * \brief A templated class holding a M x N size Matrix.
  *
  * This class contains a vnl_matrix_fixed in order
@@ -47,7 +48,7 @@ namespace itk
  * \endsphinx
  */
 
-template <typename T, unsigned int NRows = 3, unsigned int NColumns = 3>
+template <typename T, unsigned int VRows = 3, unsigned int VColumns = 3>
 class ITK_TEMPLATE_EXPORT Matrix
 {
 public:
@@ -58,37 +59,61 @@ public:
   using ValueType = T;
   using ComponentType = T;
 
+  /** A pointer to the ValueType. */
+  using pointer = ValueType *;
+
+  /** A const pointer to the ValueType. */
+  using const_pointer = const ValueType *;
+
+  /** A reference to the ValueType. */
+  using reference = ValueType &;
+
+  /** A const reference to the ValueType. */
+  using const_reference = const ValueType &;
+
+  /** The return type of the non-const overloads of begin() and end(). */
+  using iterator = ValueType *;
+
+  /** The return type of cbegin() and cend(), and the const overloads of begin() and end(). */
+  using const_iterator = const ValueType *;
+
   /** Number Of Columns and Rows. */
-  static constexpr unsigned int RowDimensions = NRows;
-  static constexpr unsigned int ColumnDimensions = NColumns;
+  static constexpr unsigned int RowDimensions = VRows;
+  static constexpr unsigned int ColumnDimensions = VColumns;
 
   /** Internal matrix type */
-  using InternalMatrixType = vnl_matrix_fixed<T, NRows, NColumns>;
+  using InternalMatrixType = vnl_matrix_fixed<T, VRows, VColumns>;
 
   /** Compatible square matrix. This is currently used by operator* to help
    * with wrapping.  \todo In the future, the method should be templated to allow
-   * multiplication by NColumns by XRows.*/
-  using CompatibleSquareMatrixType = Matrix<T, NColumns, NColumns>;
+   * multiplication by VColumns by XRows.*/
+  using CompatibleSquareMatrixType = Matrix<T, VColumns, VColumns>;
 
   /** Matrix by Vector multiplication.  */
-  Vector<T, NRows> operator*(const Vector<T, NColumns> & vect) const;
+  Vector<T, VRows>
+  operator*(const Vector<T, VColumns> & vect) const;
 
   /** Matrix by Point multiplication.  */
-  Point<T, NRows> operator*(const Point<T, NColumns> & pnt) const;
+  Point<T, VRows>
+  operator*(const Point<T, VColumns> & pnt) const;
 
   /** Matrix by CovariantVector multiplication.  */
-  CovariantVector<T, NRows> operator*(const CovariantVector<T, NColumns> & covect) const;
+  CovariantVector<T, VRows>
+  operator*(const CovariantVector<T, VColumns> & covect) const;
 
   /** Matrix by vnl_vector_fixed multiplication.  */
-  vnl_vector_fixed<T, NRows> operator*(const vnl_vector_fixed<T, NColumns> & inVNLvect) const;
+  vnl_vector_fixed<T, VRows>
+  operator*(const vnl_vector_fixed<T, VColumns> & inVNLvect) const;
 
   /** Matrix by Matrix multiplication.  */
-  Self operator*(const CompatibleSquareMatrixType & matrix) const;
+  Self
+  operator*(const CompatibleSquareMatrixType & matrix) const;
 
   template <unsigned int OuterDim>
-  Matrix<T, NRows, OuterDim> operator*(const vnl_matrix_fixed<T, NRows, OuterDim> & matrix) const
+  Matrix<T, VRows, OuterDim>
+  operator*(const vnl_matrix_fixed<T, VRows, OuterDim> & matrix) const
   {
-    const Matrix<T, NRows, OuterDim> result(m_Matrix * matrix);
+    const Matrix<T, VRows, OuterDim> result(m_Matrix * matrix);
     return result;
   }
 
@@ -107,7 +132,8 @@ public:
   operator-=(const Self & matrix);
 
   /** Matrix by vnl_matrix multiplication.  */
-  vnl_matrix<T> operator*(const vnl_matrix<T> & matrix) const;
+  vnl_matrix<T>
+  operator*(const vnl_matrix<T> & matrix) const;
 
   /** Matrix by Matrix multiplication.  */
   void
@@ -118,7 +144,8 @@ public:
   operator*=(const vnl_matrix<T> & matrix);
 
   /** Matrix by vnl_vector multiplication.  */
-  vnl_vector<T> operator*(const vnl_vector<T> & vc) const;
+  vnl_vector<T>
+  operator*(const vnl_vector<T> & vc) const;
 
   /** Matrix by scalar multiplication. */
   void
@@ -128,7 +155,8 @@ public:
   }
 
   /** Matrix by scalar multiplication.  */
-  Self operator*(const T & value) const
+  Self
+  operator*(const T & value) const
   {
     Self result(*this);
 
@@ -168,10 +196,18 @@ public:
   }
 
   /** Return a row of the matrix. */
-  inline T * operator[](unsigned int i) { return m_Matrix[i]; }
+  inline T *
+  operator[](unsigned int i)
+  {
+    return m_Matrix[i];
+  }
 
   /** Return a row of the matrix. */
-  inline const T * operator[](unsigned int i) const { return m_Matrix[i]; }
+  inline const T *
+  operator[](unsigned int i) const
+  {
+    return m_Matrix[i];
+  }
 
   /** Return the matrix. */
   inline InternalMatrixType &
@@ -181,7 +217,7 @@ public:
   }
 
   /** Return the matrix. */
-  inline const InternalMatrixType &
+  [[nodiscard]] inline const InternalMatrixType &
   GetVnlMatrix() const
   {
     return m_Matrix;
@@ -211,17 +247,30 @@ public:
   }
 
   /** Assignment operator. */
-  inline const Self &
+  inline Self &
   operator=(const vnl_matrix<T> & matrix)
   {
     m_Matrix = matrix;
     return *this;
   }
 
-  /**For every operator=, there should be an equivalent copy constructor. */
-  inline Matrix(const vnl_matrix<T> & matrix)
+  /** Explicit constructor. Copies the elements from the specified
+   *  `vnl_matrix` (assuming it has the same dimensions). */
+  inline explicit Matrix(const vnl_matrix<T> & matrix)
     : m_Matrix(matrix)
   {}
+
+  /** Explicit constructor template. Copies the elements from the specified C-style array of rows.
+   * \note It might have been clearer to just declare a `Matrix(const T (&)[VRows][VColumns])` constructor, but SWIG did
+   * not like that, saying: "Wrapping/Typedefs/itkMatrix.i:76: Error: Syntax error in input(3)."
+   */
+  template <typename TElement>
+  explicit Matrix(const TElement (&elements)[VRows][VColumns])
+    : m_Matrix(&elements[0][0])
+  {
+    static_assert(std::is_same_v<TElement, T>,
+                  "The type of an element should correspond with this itk::Matrix instantiation.");
+  }
 
   /** Comparison operators. */
   inline bool
@@ -229,9 +278,9 @@ public:
   {
     bool equal = true;
 
-    for (unsigned int r = 0; r < NRows; ++r)
+    for (unsigned int r = 0; r < VRows; ++r)
     {
-      for (unsigned int c = 0; c < NColumns; ++c)
+      for (unsigned int c = 0; c < VColumns; ++c)
       {
         if (Math::NotExactlyEquals(m_Matrix(r, c), matrix.m_Matrix(r, c)))
         {
@@ -243,41 +292,38 @@ public:
     return equal;
   }
 
-  inline bool
-  operator!=(const Self & matrix) const
-  {
-    return !this->operator==(matrix);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
-  inline const Self &
+
+  inline Self &
   operator=(const InternalMatrixType & matrix)
   {
     this->m_Matrix = matrix;
     return *this;
   }
 
-  /**For every operator=, there should be an equivalent copy constructor. */
-  inline explicit Matrix(const InternalMatrixType & matrix)
+  /** Converting constructor (implicit). */
+  inline Matrix(const InternalMatrixType & matrix)
     : m_Matrix(matrix)
   {}
 
   /** Return the inverse matrix. */
-  inline vnl_matrix_fixed<T, NColumns, NRows>
+  [[nodiscard]] inline vnl_matrix_fixed<T, VColumns, VRows>
   GetInverse() const
   {
-    if (vnl_determinant(m_Matrix) == NumericTraits<T>::ZeroValue())
+    if (vnl_determinant(m_Matrix) == T{})
     {
-      itkGenericExceptionMacro(<< "Singular matrix. Determinant is 0.");
+      itkGenericExceptionMacro("Singular matrix. Determinant is 0.");
     }
-    vnl_matrix_inverse<T> inverse(m_Matrix.as_ref());
-    return vnl_matrix_fixed<T, NColumns, NRows>{ inverse.as_matrix() };
+    const vnl_matrix_inverse<T> inverse(m_Matrix.as_ref());
+    return vnl_matrix_fixed<T, VColumns, VRows>{ inverse.as_matrix() };
   }
 
   /** Return the transposed matrix. */
-  inline vnl_matrix_fixed<T, NColumns, NRows>
+  [[nodiscard]] inline vnl_matrix_fixed<T, VColumns, VRows>
   GetTranspose() const
   {
-    return vnl_matrix_fixed<T, NColumns, NRows>{ m_Matrix.transpose().as_matrix() };
+    return vnl_matrix_fixed<T, VColumns, VRows>{ m_Matrix.transpose().as_matrix() };
   }
 
   /** Defaulted default-constructor. Zero-initializes all of its elements.
@@ -287,30 +333,94 @@ public:
    */
   Matrix() = default;
 
+  /** Returns the number of elements. */
+  [[nodiscard]] constexpr unsigned int
+  size() const
+  {
+    return m_Matrix.size();
+  }
+
+  /** Returns an iterator to the first element. */
+  iterator
+  begin()
+  {
+    return m_Matrix.begin();
+  }
+
+  /** Returns an iterator just beyond the last element. */
+  iterator
+  end()
+  {
+    return m_Matrix.end();
+  }
+
+  /** Returns a const iterator to the first element. */
+  [[nodiscard]] const_iterator
+  begin() const
+  {
+    return m_Matrix.begin();
+  }
+
+  /** Returns a const iterator just beyond the last element. */
+  [[nodiscard]] const_iterator
+  end() const
+  {
+    return m_Matrix.end();
+  }
+
+  /** Returns a const iterator to the first element. */
+  [[nodiscard]] const_iterator
+  cbegin() const
+  {
+    return m_Matrix.begin();
+  }
+
+  /** Returns a const iterator just beyond the last element. */
+  [[nodiscard]] const_iterator
+  cend() const
+  {
+    return m_Matrix.end();
+  }
+
   void
-  swap(Self & other)
+  swap(Self & other) noexcept
   {
     // allow for augment dependent look up
     using std::swap;
     swap(this->m_Matrix, other.m_Matrix);
   }
 
+  inline void
+  PrintSelf(std::ostream & os, Indent indent) const
+  {
+    os << indent << "Matrix (" << VRows << "x" << VColumns << ")\n";
+    for (unsigned int r = 0; r < VRows; ++r)
+    {
+      os << indent << "  ";
+      for (unsigned int c = 0; c < VColumns; ++c)
+      {
+        os << m_Matrix(r, c) << " ";
+      }
+      os << "\n";
+    }
+  }
+
 private:
   InternalMatrixType m_Matrix{};
 };
 
-template <typename T, unsigned int NRows, unsigned int NColumns>
+template <typename T, unsigned int VRows, unsigned int VColumns>
 std::ostream &
-operator<<(std::ostream & os, const Matrix<T, NRows, NColumns> & v)
+operator<<(std::ostream & os, const Matrix<T, VRows, VColumns> & v)
 {
   os << v.GetVnlMatrix();
   return os;
 }
 
 
-template <typename T, unsigned int NRows, unsigned int NColumns>
+template <typename T, unsigned int VRows, unsigned int VColumns>
 inline void
-swap(const Matrix<T, NRows, NColumns> & a, const Matrix<T, NRows, NColumns> & b)
+swap(const Matrix<T, VRows, VColumns> & a, const Matrix<T, VRows, VColumns> & b) noexcept
 {
   a.swap(b);
 }

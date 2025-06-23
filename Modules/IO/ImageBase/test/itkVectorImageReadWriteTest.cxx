@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
 
   if (argc < 2)
   {
-    itkGenericOutputMacro(<< "Need a file to process");
+    itkGenericOutputMacro("Need a file to process");
     return EXIT_FAILURE;
   }
 
@@ -41,17 +41,17 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ImageType::Pointer  inputImage = ImageType::New();
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto inputImage = ImageType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   // In this test, we will create a 9x9 image of vectors with pixels (4,4)
   // and (1,6) set to 'vector1'. We will filter it using
   // RecursiveGaussianImageFilter and compare a few filtered pixels.
   //
   // Create ON and OFF vectors
-  PixelType vector0(0.0);
-  PixelType vector1;
+  constexpr PixelType vector0{};
+  PixelType           vector1;
   vector1[0] = 1.0;
   vector1[1] = 2.0;
   vector1[2] = 3.0;
@@ -60,16 +60,10 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
   using ConstIteratorType = itk::ImageLinearConstIteratorWithIndex<ImageType>;
 
   // Create the 9x9 input image
-  ImageType::SizeType size;
-  size.Fill(9);
-  ImageType::IndexType index;
-  index.Fill(0);
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  auto                        size = ImageType::SizeType::Filled(9);
+  ImageType::IndexType        index{};
+  const ImageType::RegionType region{ index, size };
+  inputImage->SetRegions(region);
   inputImage->Allocate();
   inputImage->FillBuffer(vector0);
 
@@ -91,7 +85,7 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
 
   reader->SetFileName(argv[1]);
   reader->Update();
-  ImageType::Pointer outputImage = reader->GetOutput();
+  const ImageType::Pointer outputImage = reader->GetOutput();
 
   ConstIteratorType cit(outputImage, outputImage->GetLargestPossibleRegion());
   index[0] = 4;
@@ -111,11 +105,12 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  itk::ImageIOBase::Pointer io = reader->GetModifiableImageIO();
+  const itk::ImageIOBase::Pointer io = reader->GetModifiableImageIO();
 
 
-  std::cout << "ImageIO Pixel Information: " << io->GetPixelTypeAsString(io->GetPixelType()) << " "
-            << io->GetComponentTypeAsString(io->GetComponentType()) << " " << io->GetNumberOfComponents() << std::endl;
+  std::cout << "ImageIO Pixel Information: " << itk::ImageIOBase::GetPixelTypeAsString(io->GetPixelType()) << ' '
+            << itk::ImageIOBase::GetComponentTypeAsString(io->GetComponentType()) << ' ' << io->GetNumberOfComponents()
+            << std::endl;
   if (io->GetNumberOfComponents() != 4 || io->GetComponentType() != itk::IOComponentEnum::DOUBLE ||
       io->GetPixelType() != itk::IOPixelEnum::VECTOR)
   {
@@ -127,8 +122,7 @@ itkVectorImageReadWriteTest(int argc, char * argv[])
   std::cout << "Image of vector pixels write-read [PASSED]" << std::endl;
 
   std::cout << "Test << operator:: Vector1 = " << vector1 << "[PASSED]" << std::endl;
-  std::cout << "Test NumericTraits<Vector<double,4>>::ZeroValue() " << itk::NumericTraits<PixelType>::ZeroValue()
-            << std::endl;
+  std::cout << "Test NumericTraits<Vector<double,4>>::ZeroValue() " << PixelType{} << std::endl;
   std::cout << "Test NumericTraits <Vector <double,4 > >::OneValue() " << itk::NumericTraits<PixelType>::OneValue()
             << std::endl;
 

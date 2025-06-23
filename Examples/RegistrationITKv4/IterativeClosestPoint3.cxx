@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,15 +70,15 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using PointSetType = itk::PointSet<float, Dimension>;
 
-  PointSetType::Pointer fixedPointSet = PointSetType::New();
-  PointSetType::Pointer movingPointSet = PointSetType::New();
+  auto fixedPointSet = PointSetType::New();
+  auto movingPointSet = PointSetType::New();
 
   using PointType = PointSetType::PointType;
 
   using PointsContainer = PointSetType::PointsContainer;
 
-  PointsContainer::Pointer fixedPointContainer = PointsContainer::New();
-  PointsContainer::Pointer movingPointContainer = PointsContainer::New();
+  auto fixedPointContainer = PointsContainer::New();
+  auto movingPointContainer = PointsContainer::New();
 
   PointType fixedPoint;
   PointType movingPoint;
@@ -138,7 +138,7 @@ main(int argc, char * argv[])
   using MetricType =
     itk::EuclideanDistancePointMetric<PointSetType, PointSetType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   //-----------------------------------------------------------
   // Set up a Transform
@@ -146,28 +146,28 @@ main(int argc, char * argv[])
 
   using TransformType = itk::TranslationTransform<double, Dimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   // Optimizer Type
   using OptimizerType = itk::LevenbergMarquardtOptimizer;
 
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetUseCostFunctionGradient(false);
 
   // Registration Method
   using RegistrationType =
     itk::PointSetToPointSetRegistrationMethod<PointSetType, PointSetType>;
 
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   // Scale the translation components of the Transform in the Optimizer
   OptimizerType::ScalesType scales(transform->GetNumberOfParameters());
   scales.Fill(0.01);
 
   constexpr unsigned long numberOfIterations = 100;
-  const double            gradientTolerance = 1e-5; // convergence criterion
-  const double            valueTolerance = 1e-5;    // convergence criterion
-  const double            epsilonFunction = 1e-6;   // convergence criterion
+  constexpr double        gradientTolerance = 1e-5; // convergence criterion
+  constexpr double        valueTolerance = 1e-5;    // convergence criterion
+  constexpr double        epsilonFunction = 1e-6;   // convergence criterion
 
   optimizer->SetScales(scales);
   optimizer->SetNumberOfIterations(numberOfIterations);
@@ -213,16 +213,9 @@ main(int argc, char * argv[])
   using PointsToImageFilterType =
     itk::PointSetToImageFilter<PointSetType, BinaryImageType>;
 
-  PointsToImageFilterType::Pointer pointsToImageFilter =
-    PointsToImageFilterType::New();
+  auto pointsToImageFilter = PointsToImageFilterType::New();
 
   pointsToImageFilter->SetInput(fixedPointSet);
-
-  BinaryImageType::SpacingType spacing;
-  spacing.Fill(1.0);
-
-  BinaryImageType::PointType origin;
-  origin.Fill(0.0);
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -233,16 +226,15 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  pointsToImageFilter->SetSpacing(spacing);
-  pointsToImageFilter->SetOrigin(origin);
   pointsToImageFilter->Update();
-  BinaryImageType::Pointer binaryImage = pointsToImageFilter->GetOutput();
+  const BinaryImageType::Pointer binaryImage =
+    pointsToImageFilter->GetOutput();
 
   using DistanceImageType = itk::Image<unsigned short, Dimension>;
   using DistanceFilterType =
     itk::DanielssonDistanceMapImageFilter<BinaryImageType, DistanceImageType>;
 
-  DistanceFilterType::Pointer distanceFilter = DistanceFilterType::New();
+  auto distanceFilter = DistanceFilterType::New();
   distanceFilter->SetInput(binaryImage);
   distanceFilter->Update();
   metric->SetDistanceMap(distanceFilter->GetOutput());

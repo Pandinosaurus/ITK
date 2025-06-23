@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,30 +26,28 @@
 
 enum
 {
-  NDimensions = 3
+  VDimension = 3
 };
 
 using PixelType = float;
 using InputImageType = itk::PhasedArray3DSpecialCoordinatesImage<PixelType>;
-using ImageType = itk::Image<PixelType, NDimensions>;
+using ImageType = itk::Image<PixelType, VDimension>;
 using InputImagePointerType = InputImageType::Pointer;
 using ImagePointerType = ImageType::Pointer;
 using ImageRegionType = ImageType::RegionType;
 using ImageSizeType = ImageType::SizeType;
 using ImageIndexType = ImageType::IndexType;
-using CoordRepType = double;
+using CoordinateType = double;
 
 
 int
 itkResamplePhasedArray3DSpecialCoordinatesImageTest(int, char *[])
 {
   // Create and configure an image
-  InputImagePointerType image = InputImageType::New();
-  ImageIndexType        index = { { 0, 0, 0 } };
-  ImageSizeType         size = { { 13, 13, 9 } };
-  ImageRegionType       region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const InputImagePointerType image = InputImageType::New();
+  ImageIndexType              index = { { 0, 0, 0 } };
+  ImageSizeType               size = { { 13, 13, 9 } };
+  const ImageRegionType       region{ index, size };
   image->SetLargestPossibleRegion(region);
   image->SetBufferedRegion(region);
   image->SetAzimuthAngularSeparation(5.0 * 2.0 * itk::Math::pi / 360.0);
@@ -60,19 +58,17 @@ itkResamplePhasedArray3DSpecialCoordinatesImageTest(int, char *[])
 
   // Fill image with isoshells
   std::cout << "\nOriginal 3D Phased Array Data" << std::endl;
-  itk::ImageRegionIteratorWithIndex<InputImageType> iter(image, region);
-  PixelType                                         value;
-  for (; !iter.IsAtEnd(); ++iter)
+  for (itk::ImageRegionIteratorWithIndex<InputImageType> iter(image, region); !iter.IsAtEnd(); ++iter)
   {
     index = iter.GetIndex();
     // value = index[0] + index[1] + index[2];
-    value = index[2];
+    PixelType value = index[2];
     iter.Set(value);
     // display one slice of the volume
-    if (index[0] == int(size[0] - 1) / 2)
+    if (index[0] == static_cast<int>(size[0] - 1) / 2)
     {
       std::cout << std::setw(14) << value;
-      if (int(index[1]) == int(size[1] - 1))
+      if (static_cast<int>(index[1]) == static_cast<int>(size[1] - 1))
       {
         std::cout << std::endl;
       }
@@ -84,8 +80,7 @@ itkResamplePhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   resample = itk::ResampleImageFilter<InputImageType, ImageType>::New();
   resample->SetInput(image);
 
-  ImageSizeType cubeSize;
-  cubeSize.Fill(7);
+  auto cubeSize = ImageSizeType::Filled(7);
   resample->SetSize(cubeSize);
 
   //  ImageType::SpacingType spacing;
@@ -109,35 +104,38 @@ itkResamplePhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   std::cout << "\nData resampled onto a translated Cartesian image grid." << std::endl;
   ImageType::RegionType region2;
   region2 = resample->GetOutput()->GetRequestedRegion();
-  itk::ImageRegionIteratorWithIndex<ImageType> iter2(resample->GetOutput(), region2);
-  for (; !iter2.IsAtEnd(); ++iter2)
+  for (itk::ImageRegionIteratorWithIndex<ImageType> iter2(resample->GetOutput(), region2); !iter2.IsAtEnd(); ++iter2)
   {
     index = iter2.GetIndex();
-    value = iter2.Get();
+    PixelType value = iter2.Get();
     // display one slice of the volume
-    if (index[0] == int(cubeSize[0] - 1) / 2)
+    if (index[0] == static_cast<int>(cubeSize[0] - 1) / 2)
     {
       std::cout << std::setw(14) << value;
-      if (int(index[1]) == int(cubeSize[1] - 1))
+      if (static_cast<int>(index[1]) == static_cast<int>(cubeSize[1] - 1))
       {
         std::cout << std::endl;
       }
       // check the values down a portion of the z-axis
-      if (index[1] == int(cubeSize[1] - 1) / 2 && 2 <= index[2] && index[2] <= 5)
+      if (index[1] == static_cast<int>(cubeSize[1] - 1) / 2 && 2 <= index[2] && index[2] <= 5)
       {
         if (itk::Math::NotAlmostEquals(value, (index[2] - 1) * 2))
         {
           std::cout << " (Error in resampled image: Pixel " << index << " = " << value << ", expecting "
-                    << (index[2] - 1) * 2 << ")" << std::endl;
+                    << (index[2] - 1) * 2 << ')' << std::endl;
           passed = false;
         }
       }
     }
   }
   if (!passed)
+  {
     std::cout << "Forward Sampling Failed!!!\n\n" << std::endl;
+  }
   else
+  {
     std::cout << "Forward Sampling Passed\n" << std::endl;
+  }
 
   // Create and configure an image to be a restored "copy" of the input
   InputImagePointerType image2;
@@ -158,35 +156,39 @@ itkResamplePhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   backResample->Update();
   // Check how close we were to the original image
   std::cout << "\nResampled recovery of 3D Phased Array Data from Cartesian space" << std::endl;
-  itk::ImageRegionIteratorWithIndex<InputImageType> iter3(backResample->GetOutput(), region);
-  for (; !iter3.IsAtEnd(); ++iter3)
+  for (itk::ImageRegionIteratorWithIndex<InputImageType> iter3(backResample->GetOutput(), region); !iter3.IsAtEnd();
+       ++iter3)
   {
     index = iter3.GetIndex();
-    value = iter3.Get();
+    PixelType value = iter3.Get();
     // display one slice of the volume
-    if (index[0] == int(size[0] - 1) / 2)
+    if (index[0] == static_cast<int>(size[0] - 1) / 2)
     {
       std::cout << std::setw(14) << value;
-      if (int(index[1]) == int(size[1] - 1))
+      if (static_cast<int>(index[1]) == static_cast<int>(size[1] - 1))
       {
         std::cout << std::endl;
       }
       // check the values down the z-axis
-      if (index[1] == int(size[1] - 1) / 2)
+      if (index[1] == static_cast<int>(size[1] - 1) / 2)
       {
         if (itk::Math::NotAlmostEquals(value, index[2]))
         {
           std::cout << " (Error in resampled image: Pixel " << index << " = " << value << ", expecting " << index[2]
-                    << ")" << std::endl;
+                    << ')' << std::endl;
           passed = false;
         }
       }
     }
   }
   if (!passed)
+  {
     std::cout << "Resampling back to Phased Array coordinates Failed!!!\n\n" << std::endl;
+  }
   else
+  {
     std::cout << "Resampling back to Phased Array coordinates Passed\n" << std::endl;
+  }
 
   if (!passed)
   {

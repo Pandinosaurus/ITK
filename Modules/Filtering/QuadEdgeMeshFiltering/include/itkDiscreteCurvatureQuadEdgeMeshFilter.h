@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,8 @@ namespace itk
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 template <typename TInputMesh, typename TOutputMesh = TInputMesh>
-class DiscreteCurvatureQuadEdgeMeshFilter : public QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
+class ITK_TEMPLATE_EXPORT DiscreteCurvatureQuadEdgeMeshFilter
+  : public QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(DiscreteCurvatureQuadEdgeMeshFilter);
@@ -50,7 +51,7 @@ public:
   using OutputPointsContainerPointer = typename OutputMeshType::PointsContainerPointer;
   using OutputPointsContainerIterator = typename OutputMeshType::PointsContainerIterator;
   using OutputPointType = typename OutputMeshType::PointType;
-  using OutputCoordType = typename OutputPointType::CoordRepType;
+  using OutputCoordType = typename OutputPointType::CoordinateType;
   using OutputPointIdentifier = typename OutputMeshType::PointIdentifier;
   using OutputCellIdentifier = typename OutputMeshType::CellIdentifier;
   using OutputQEType = typename OutputMeshType::QEType;
@@ -59,14 +60,10 @@ public:
 
   using TriangleType = TriangleHelper<OutputPointType>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(DiscreteCurvatureQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DiscreteCurvatureQuadEdgeMeshFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputCurvatureType>));
-  // End concept checking
-#endif
 
 protected:
   DiscreteCurvatureQuadEdgeMeshFilter()
@@ -89,7 +86,7 @@ protected:
 
     OutputPointType p[3];
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; ++i)
     {
       p[i] = this->m_OutputMesh->GetPoint(id[i]);
     }
@@ -102,10 +99,10 @@ protected:
   {
     this->CopyInputMeshToOutputMesh();
 
-    OutputMeshPointer output = this->GetOutput();
+    const OutputMeshPointer output = this->GetOutput();
 
-    OutputPointsContainerPointer  points = output->GetPoints();
-    OutputPointsContainerIterator p_it = points->Begin();
+    const OutputPointsContainerPointer points = output->GetPoints();
+    OutputPointsContainerIterator      p_it = points->Begin();
 
     OutputCurvatureType curvature;
 
@@ -120,7 +117,7 @@ protected:
 
 private:
   /** Cache output pointer to avoid calls in inner loop to GetOutput() */
-  OutputMeshType * m_OutputMesh;
+  OutputMeshType * m_OutputMesh{};
 };
 } // end namespace itk
 

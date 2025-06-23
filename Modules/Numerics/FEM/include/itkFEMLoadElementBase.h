@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,7 @@
 #include "itkFEMLoadBase.h"
 #include "ITKFEMExport.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class LoadElement
@@ -38,7 +36,7 @@ namespace fem
  *
  * Ultimately, when assembling the right hand side of the master equation (master force vector)
  * the Element's Fe() member function is called with the pointer to the LoadElement class that is
- * prescribed on that element. Fe() function shuld dynamically cast this pointer to specific
+ * prescribed on that element. Fe() function should dynamically cast this pointer to specific
  * load class, which it can handle and return the element's force vector.
  * \ingroup ITKFEM
  */
@@ -54,12 +52,12 @@ public:
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoadElement, Load);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoadElement);
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
   /**
@@ -116,10 +114,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
   void
                             AddNextElementInternal(const Element * e);
-  ElementPointersVectorType m_Element; /** pointers to element objects on which the
+  ElementPointersVectorType m_Element{}; /** pointers to element objects on which the
                                   load acts */
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLoadElementBase_h

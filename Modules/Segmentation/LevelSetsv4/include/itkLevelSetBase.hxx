@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkLevelSetBase_hxx
 #define itkLevelSetBase_hxx
 
-#include "itkLevelSetBase.h"
 #include "itkProcessObject.h"
 
 #define UNDEFINED_REGION NumericTraits<RegionType>::OneValue()
@@ -37,7 +36,7 @@ template <typename TInput, unsigned int VDimension, typename TOutput, typename T
 bool
 LevelSetBase<TInput, VDimension, TOutput, TDomain>::IsInside(const InputType & iP) const
 {
-  return (this->Evaluate(iP) <= NumericTraits<OutputType>::ZeroValue());
+  return (this->Evaluate(iP) <= OutputType{});
 }
 
 // ----------------------------------------------------------------------------
@@ -68,26 +67,26 @@ LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateGradientNorm(const I
 
 // ----------------------------------------------------------------------------
 template <typename TInput, unsigned int VDimension, typename TOutput, typename TDomain>
-typename LevelSetBase<TInput, VDimension, TOutput, TDomain>::OutputRealType
-LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateGradientNorm(const InputType & iP) const
+auto
+LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateGradientNorm(const InputType & iP) const -> OutputRealType
 {
-  GradientType grad = this->EvaluateGradient(iP);
+  const GradientType grad = this->EvaluateGradient(iP);
   return grad.GetNorm();
 }
 
 // ----------------------------------------------------------------------------
 template <typename TInput, unsigned int VDimension, typename TOutput, typename TDomain>
-typename LevelSetBase<TInput, VDimension, TOutput, TDomain>::OutputRealType
-LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateMeanCurvature(const InputType & iP) const
+auto
+LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateMeanCurvature(const InputType & iP) const -> OutputRealType
 {
-  OutputRealType oValue = NumericTraits<OutputRealType>::ZeroValue();
+  OutputRealType oValue{};
 
   HessianType  hessian = this->EvaluateHessian(iP);
   GradientType grad = this->EvaluateGradient(iP);
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
       if (j != i)
       {
@@ -135,11 +134,11 @@ LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateMeanCurvature(const 
     }
 
     ioData.MeanCurvature.m_Computed = true;
-    ioData.MeanCurvature.m_Value = NumericTraits<OutputRealType>::ZeroValue();
+    ioData.MeanCurvature.m_Value = OutputRealType{};
 
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
-      for (unsigned int j = 0; j < Dimension; j++)
+      for (unsigned int j = 0; j < Dimension; ++j)
       {
         if (j != i)
         {
@@ -151,7 +150,7 @@ LevelSetBase<TInput, VDimension, TOutput, TDomain>::EvaluateMeanCurvature(const 
       }
     }
 
-    OutputRealType temp = ioData.GradientNorm.m_Value;
+    const OutputRealType temp = ioData.GradientNorm.m_Value;
 
     if (temp > itk::Math::eps)
     {
@@ -169,10 +168,7 @@ template <typename TInput, unsigned int VDimension, typename TOutput, typename T
 void
 LevelSetBase<TInput, VDimension, TOutput, TDomain>::UpdateOutputInformation()
 {
-  if (this->GetSource())
-  {
-    this->GetSource()->UpdateOutputInformation();
-  }
+  this->Superclass::UpdateOutputInformation();
 
   // Now we should know what our largest possible region is. If our
   // requested region was not set yet, (or has been set to something
@@ -190,7 +186,7 @@ void
 LevelSetBase<TInput, VDimension, TOutput, TDomain>::SetRequestedRegionToLargestPossibleRegion()
 {
   m_RequestedNumberOfRegions = NumericTraits<RegionType>::OneValue();
-  m_RequestedRegion = NumericTraits<RegionType>::ZeroValue();
+  m_RequestedRegion = RegionType{};
 }
 
 // ----------------------------------------------------------------------------
@@ -203,8 +199,8 @@ LevelSetBase<TInput, VDimension, TOutput, TDomain>::CopyInformation(const DataOb
   if (!levelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::LevelSetBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(LevelSetBase *).name());
+    itkExceptionMacro("itk::LevelSetBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                          << typeid(LevelSetBase *).name());
   }
 
   m_MaximumNumberOfRegions = levelSet->GetMaximumNumberOfRegions();
@@ -228,8 +224,8 @@ LevelSetBase<TInput, VDimension, TOutput, TDomain>::Graft(const DataObject * dat
   if (!levelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::LevelSetBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::LevelSetBase::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                          << typeid(Self *).name());
   }
 }
 
@@ -251,19 +247,19 @@ template <typename TInput, unsigned int VDimension, typename TOutput, typename T
 bool
 LevelSetBase<TInput, VDimension, TOutput, TDomain>::VerifyRequestedRegion()
 {
-  bool retval = true;
+  const bool retval = true;
 
   // Are we asking for more regions than we can get?
   if (m_RequestedNumberOfRegions > m_MaximumNumberOfRegions)
   {
-    itkExceptionMacro(<< "Cannot break object into " << m_RequestedNumberOfRegions << ". The limit is "
-                      << m_MaximumNumberOfRegions);
+    itkExceptionMacro("Cannot break object into " << m_RequestedNumberOfRegions << ". The limit is "
+                                                  << m_MaximumNumberOfRegions);
   }
 
   if (m_RequestedRegion >= m_RequestedNumberOfRegions)
   {
-    itkExceptionMacro(<< "Invalid update region " << m_RequestedRegion << ". Must be between 0 and "
-                      << m_RequestedNumberOfRegions - 1);
+    itkExceptionMacro("Invalid update region " << m_RequestedRegion << ". Must be between 0 and "
+                                               << m_RequestedNumberOfRegions - 1);
   }
 
   return retval;

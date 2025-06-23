@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,8 @@
  *=========================================================================*/
 #ifndef itkQuadraticEdgeCell_hxx
 #define itkQuadraticEdgeCell_hxx
-#include "itkQuadraticEdgeCell.h"
+
+#include <algorithm> // For copy_n.
 
 namespace itk
 {
@@ -59,8 +60,8 @@ QuadraticEdgeCell<TCellInterface>::GetNumberOfPoints() const
  * Get the number of boundary entities of the given dimension.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::CellFeatureCount
-QuadraticEdgeCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const
+auto
+QuadraticEdgeCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const -> CellFeatureCount
 {
   switch (dimension)
   {
@@ -112,12 +113,7 @@ template <typename TCellInterface>
 void
 QuadraticEdgeCell<TCellInterface>::SetPointIds(PointIdConstIterator first)
 {
-  PointIdConstIterator ii(first);
-
-  for (unsigned int i = 0; i < Self::NumberOfPoints; ++i)
-  {
-    m_PointIds[i] = *ii++;
-  }
+  std::copy_n(first, Self::NumberOfPoints, m_PointIds.begin());
 }
 
 /**
@@ -156,8 +152,8 @@ QuadraticEdgeCell<TCellInterface>::SetPointId(int localId, PointIdentifier ptId)
  * Get a begin iterator to the list of point identifiers used by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::PointIdIterator
-QuadraticEdgeCell<TCellInterface>::PointIdsBegin()
+auto
+QuadraticEdgeCell<TCellInterface>::PointIdsBegin() -> PointIdIterator
 {
   return &m_PointIds[0];
 }
@@ -168,8 +164,8 @@ QuadraticEdgeCell<TCellInterface>::PointIdsBegin()
  * by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::PointIdConstIterator
-QuadraticEdgeCell<TCellInterface>::PointIdsBegin() const
+auto
+QuadraticEdgeCell<TCellInterface>::PointIdsBegin() const -> PointIdConstIterator
 {
   return &m_PointIds[0];
 }
@@ -179,8 +175,8 @@ QuadraticEdgeCell<TCellInterface>::PointIdsBegin() const
  * Get an end iterator to the list of point identifiers used by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::PointIdIterator
-QuadraticEdgeCell<TCellInterface>::PointIdsEnd()
+auto
+QuadraticEdgeCell<TCellInterface>::PointIdsEnd() -> PointIdIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
@@ -191,8 +187,8 @@ QuadraticEdgeCell<TCellInterface>::PointIdsEnd()
  * by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::PointIdConstIterator
-QuadraticEdgeCell<TCellInterface>::PointIdsEnd() const
+auto
+QuadraticEdgeCell<TCellInterface>::PointIdsEnd() const -> PointIdConstIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
@@ -202,8 +198,8 @@ QuadraticEdgeCell<TCellInterface>::PointIdsEnd() const
  * Get the number of vertices for this line.
  */
 template <typename TCellInterface>
-typename QuadraticEdgeCell<TCellInterface>::CellFeatureCount
-QuadraticEdgeCell<TCellInterface>::GetNumberOfVertices() const
+auto
+QuadraticEdgeCell<TCellInterface>::GetNumberOfVertices() const -> CellFeatureCount
 {
   return Self::NumberOfVertices;
 }
@@ -229,7 +225,7 @@ void
 QuadraticEdgeCell<TCellInterface>::EvaluateShapeFunctions(const ParametricCoordArrayType & parametricCoordinates,
                                                           ShapeFunctionsArrayType &        weights) const
 {
-  CoordRepType x = parametricCoordinates[0]; // one-dimensional cell
+  const CoordinateType x = parametricCoordinates[0]; // one-dimensional cell
 
   if (weights.Size() != this->GetNumberOfPoints())
   {

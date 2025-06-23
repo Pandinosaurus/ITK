@@ -24,7 +24,6 @@ namespace METAIO_NAMESPACE
 // MedImage Constructors
 //
 MetaGaussian::MetaGaussian()
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGaussian()" );
   MetaGaussian::Clear();
@@ -32,7 +31,6 @@ MetaGaussian::MetaGaussian()
 
 //
 MetaGaussian::MetaGaussian(const char * _headerName)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGaussian()" );
   MetaGaussian::Clear();
@@ -41,7 +39,6 @@ MetaGaussian::MetaGaussian(const char * _headerName)
 
 //
 MetaGaussian::MetaGaussian(const MetaGaussian * _gaussian)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGaussian()" );
   MetaGaussian::Clear();
@@ -68,7 +65,7 @@ MetaGaussian::PrintInfo() const
   MetaObject::PrintInfo();
   std::cout << "\n"
             << "Maximum = " << m_Maximum << "\n"
-            << "Radius = " << m_Radius << "Sigma = " << m_Sigma << std::endl;
+            << "Radius = " << m_Radius << "Sigma = " << m_Sigma << '\n';
 }
 
 void
@@ -145,7 +142,7 @@ MetaGaussian::M_Read()
 
   if (!MetaObject::M_Read())
   {
-    std::cout << "MetaGaussian: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaGaussian: M_Read: Error parsing file" << '\n';
     return false;
   }
 

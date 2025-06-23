@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDisplacementFieldTransformParametersAdaptor_hxx
 #define itkDisplacementFieldTransformParametersAdaptor_hxx
 
-#include "itkDisplacementFieldTransformParametersAdaptor.h"
 
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
@@ -40,7 +39,7 @@ void
 DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredSize(const SizeType & size)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[d], size[d]))
     {
@@ -57,11 +56,11 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredSize(const S
 }
 
 template <typename TTransform>
-const typename DisplacementFieldTransformParametersAdaptor<TTransform>::SizeType
-DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredSize() const
+auto
+DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredSize() const -> const SizeType
 {
   SizeType size;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     size[d] = static_cast<SizeValueType>(this->m_RequiredFixedParameters[d]);
   }
@@ -73,7 +72,7 @@ void
 DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredOrigin(const PointType & origin)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[SpaceDimension + d], origin[d]))
     {
@@ -90,11 +89,11 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredOrigin(const
 }
 
 template <typename TTransform>
-const typename DisplacementFieldTransformParametersAdaptor<TTransform>::PointType
-DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredOrigin() const
+auto
+DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredOrigin() const -> const PointType
 {
   PointType origin;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     origin[d] = this->m_RequiredFixedParameters[SpaceDimension + d];
   }
@@ -106,7 +105,7 @@ void
 DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredSpacing(const SpacingType & spacing)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[2 * SpaceDimension + d], spacing[d]))
     {
@@ -123,11 +122,11 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredSpacing(cons
 }
 
 template <typename TTransform>
-const typename DisplacementFieldTransformParametersAdaptor<TTransform>::SpacingType
-DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredSpacing() const
+auto
+DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredSpacing() const -> const SpacingType
 {
   SpacingType spacing;
-  for (SizeValueType d = 0; d < SpaceDimension; d++)
+  for (SizeValueType d = 0; d < SpaceDimension; ++d)
   {
     spacing[d] = this->m_RequiredFixedParameters[2 * SpaceDimension + d];
   }
@@ -139,9 +138,9 @@ void
 DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredDirection(const DirectionType & direction)
 {
   bool isModified = false;
-  for (SizeValueType di = 0; di < SpaceDimension; di++)
+  for (SizeValueType di = 0; di < SpaceDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < SpaceDimension; dj++)
+    for (SizeValueType dj = 0; dj < SpaceDimension; ++dj)
     {
       if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[3 * SpaceDimension + (di * SpaceDimension + dj)],
                                  direction[di][dj]))
@@ -160,13 +159,13 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::SetRequiredDirection(co
 }
 
 template <typename TTransform>
-const typename DisplacementFieldTransformParametersAdaptor<TTransform>::DirectionType
-DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredDirection() const
+auto
+DisplacementFieldTransformParametersAdaptor<TTransform>::GetRequiredDirection() const -> const DirectionType
 {
   DirectionType direction;
-  for (SizeValueType di = 0; di < SpaceDimension; di++)
+  for (SizeValueType di = 0; di < SpaceDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < SpaceDimension; dj++)
+    for (SizeValueType dj = 0; dj < SpaceDimension; ++dj)
     {
       direction[di][dj] = this->m_RequiredFixedParameters[3 * SpaceDimension + (di * SpaceDimension + dj)];
     }
@@ -181,7 +180,6 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::AdaptTransformParameter
   if (!this->m_Transform)
   {
     itkExceptionMacro("Transform has not been set.");
-    return;
   }
 
   if (this->m_RequiredFixedParameters == this->m_Transform->GetFixedParameters())
@@ -195,15 +193,15 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::AdaptTransformParameter
   const DirectionType newFieldDirection = this->GetRequiredDirection();
 
   using IdentityTransformType = IdentityTransform<ParametersValueType, SpaceDimension>;
-  typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+  auto identityTransform = IdentityTransformType::New();
   identityTransform->SetIdentity();
 
   using LinearInterpolatorType = LinearInterpolateImageFunction<DisplacementFieldType, ParametersValueType>;
-  typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
+  auto interpolator = LinearInterpolatorType::New();
   interpolator->SetInputImage(this->m_Transform->GetDisplacementField());
 
   using ResamplerType = ResampleImageFilter<DisplacementFieldType, DisplacementFieldType, ParametersValueType>;
-  typename ResamplerType::Pointer resampler = ResamplerType::New();
+  auto resampler = ResamplerType::New();
   resampler->SetInput(this->m_Transform->GetDisplacementField());
   resampler->SetOutputDirection(newFieldDirection);
   resampler->SetOutputOrigin(newFieldOrigin);
@@ -212,17 +210,17 @@ DisplacementFieldTransformParametersAdaptor<TTransform>::AdaptTransformParameter
   resampler->SetTransform(identityTransform);
   resampler->SetInterpolator(interpolator);
 
-  typename DisplacementFieldType::Pointer newDisplacementField = resampler->GetOutput();
+  const typename DisplacementFieldType::Pointer newDisplacementField = resampler->GetOutput();
   newDisplacementField->Update();
   newDisplacementField->DisconnectPipeline();
 
   typename DisplacementFieldType::Pointer newInverseDisplacementField = nullptr;
   if (this->m_Transform->GetInverseDisplacementField())
   {
-    typename LinearInterpolatorType::Pointer inverseInterpolator = LinearInterpolatorType::New();
+    auto inverseInterpolator = LinearInterpolatorType::New();
     inverseInterpolator->SetInputImage(this->m_Transform->GetInverseDisplacementField());
 
-    typename ResamplerType::Pointer inverseResampler = ResamplerType::New();
+    auto inverseResampler = ResamplerType::New();
     inverseResampler->SetInput(this->m_Transform->GetInverseDisplacementField());
     inverseResampler->SetOutputDirection(newFieldDirection);
     inverseResampler->SetOutputOrigin(newFieldOrigin);

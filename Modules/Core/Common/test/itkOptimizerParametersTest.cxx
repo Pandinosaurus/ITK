@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,12 +35,12 @@ runTestByType()
   /* Test different ctors */
 
   // Construct by size
-  itk::SizeValueType               dim = 20;
-  itk::OptimizerParameters<TValue> paramsSize(dim);
+  constexpr itk::SizeValueType           dim = 20;
+  const itk::OptimizerParameters<TValue> paramsSize(dim);
   if (paramsSize.GetSize() != dim)
   {
     std::cerr << "Constructor with dimension failed. Expected size of " << dim << ", but got " << paramsSize.GetSize()
-              << "." << std::endl;
+              << '.' << std::endl;
     passed = false;
   }
 
@@ -122,7 +122,7 @@ runTestByType()
   }
 
   /* Test SetParametersObject. Should throw exception with default helper. */
-  typename itk::LightObject::Pointer dummyObj = itk::LightObject::New();
+  const typename itk::LightObject::Pointer dummyObj = itk::LightObject::New();
   ITK_TRY_EXPECT_EXCEPTION(params.SetParametersObject(dummyObj));
 
   /* Test with null helper and expect exception */

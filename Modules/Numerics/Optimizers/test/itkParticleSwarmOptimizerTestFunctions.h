@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(ParticleSwarmTestF1, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(ParticleSwarmTestF1);
 
   using ParametersType = Superclass::ParametersType;
   using MeasureType = Superclass::MeasureType;
@@ -52,16 +52,9 @@ public:
   double
   GetValue(const ParametersType & parameters) const override
   {
-    double val;
+    const double val = (parameters[0] < 0) ? parameters[0] * parameters[0] + 4 * parameters[0]
+                                           : 2 * parameters[0] * parameters[0] - 8 * parameters[0];
 
-    if (parameters[0] < 0)
-    {
-      val = parameters[0] * parameters[0] + 4 * parameters[0];
-    }
-    else
-    {
-      val = 2 * parameters[0] * parameters[0] - 8 * parameters[0];
-    }
     return val;
   }
 
@@ -98,7 +91,7 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(ParticleSwarmTestF2, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(ParticleSwarmTestF2);
 
   using ParametersType = Superclass::ParametersType;
   using DerivativeType = Superclass::DerivativeType;
@@ -141,8 +134,8 @@ public:
   }
 
 private:
-  MatrixType m_A;
-  VectorType m_Intercept;
+  MatrixType m_A{};
+  VectorType m_Intercept{};
 };
 
 /**
@@ -158,7 +151,7 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(ParticleSwarmTestF3, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(ParticleSwarmTestF3);
 
   using ParametersType = Superclass::ParametersType;
   using MeasureType = Superclass::MeasureType;
@@ -219,22 +212,18 @@ public:
       std::cout << "f(x): " << optimizer->GetValue() << std::endl;
       if (m_PrintOptimizer)
       {
-        ParticleSwarmOptimizerBase::Pointer optimizerPtr = const_cast<ParticleSwarmOptimizerBase *>(optimizer);
+        const ParticleSwarmOptimizerBase::Pointer optimizerPtr = const_cast<ParticleSwarmOptimizerBase *>(optimizer);
         std::cout << optimizerPtr;
       }
     }
   }
 
 protected:
-  CommandIterationUpdateParticleSwarm()
-  {
-    m_IterationNumber = 0;
-    m_PrintOptimizer = false;
-  }
+  CommandIterationUpdateParticleSwarm() {}
 
 private:
-  unsigned long m_IterationNumber;
-  bool          m_PrintOptimizer;
+  unsigned long m_IterationNumber{};
+  bool          m_PrintOptimizer{};
 };
 
 } // namespace itk

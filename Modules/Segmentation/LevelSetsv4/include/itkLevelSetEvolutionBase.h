@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +50,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = Object;
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEvolutionBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEvolutionBase);
 
   using EquationContainerType = TEquationContainer;
   using EquationContainerPointer = typename EquationContainerType::Pointer;
@@ -94,21 +94,24 @@ public:
   itkGetModifiableObjectMacro(LevelSetContainer, LevelSetContainerType);
 
   /** Set/Get the value of alpha for computing the time-step using CFL conditions */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha, LevelSetOutputRealType);
   itkGetMacro(Alpha, LevelSetOutputRealType);
-
+  /** @ITKEndGrouping */
   /** Set a user-specified value of the time-step */
   void
   SetTimeStep(const LevelSetOutputRealType & iDt);
 
   /** Set/Get the equation container for updating all the level sets */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(EquationContainer, EquationContainerType);
   itkGetModifiableObjectMacro(EquationContainer, EquationContainerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Stopping Criterion */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(StoppingCriterion, StoppingCriterionType);
   itkGetModifiableObjectMacro(StoppingCriterion, StoppingCriterionType);
-
+  /** @ITKEndGrouping */
   /** Get the number of iterations that have occurred. */
   itkGetConstMacro(NumberOfIterations, IdentifierType);
 
@@ -140,16 +143,19 @@ protected:
   /** Initialize the update buffers for all level sets to hold the updates of
    *  equations in each iteration. No-op by default. */
   virtual void
-  AllocateUpdateBuffer();
+  AllocateUpdateBuffer()
+  {}
 
   /** Computer the update at each pixel and store in the update buffer. No-op by
    * default. */
   virtual void
-  ComputeIteration();
+  ComputeIteration()
+  {}
 
   /** Compute the time-step for the next iteration. No-op by default. */
   virtual void
-  ComputeTimeStepForNextIteration();
+  ComputeTimeStepForNextIteration()
+  {}
 
   virtual void
   UpdateLevelSets() = 0;
@@ -157,20 +163,20 @@ protected:
   virtual void
   UpdateEquations() = 0;
 
-  StoppingCriterionPointer m_StoppingCriterion;
+  StoppingCriterionPointer m_StoppingCriterion{};
 
-  EquationContainerPointer                m_EquationContainer;
-  typename LevelSetContainerType::Pointer m_LevelSetContainer;
+  EquationContainerPointer                m_EquationContainer{};
+  typename LevelSetContainerType::Pointer m_LevelSetContainer{};
 
-  LevelSetOutputRealType m_Alpha;
-  LevelSetOutputRealType m_Dt;
-  LevelSetOutputRealType m_RMSChangeAccumulator;
-  bool                   m_UserGloballyDefinedTimeStep;
-  IdentifierType         m_NumberOfIterations;
+  LevelSetOutputRealType m_Alpha{};
+  LevelSetOutputRealType m_Dt{};
+  LevelSetOutputRealType m_RMSChangeAccumulator{};
+  bool                   m_UserGloballyDefinedTimeStep{};
+  IdentifierType         m_NumberOfIterations{};
 
   /** Helper members for threading. */
-  typename LevelSetContainerType::Iterator m_LevelSetContainerIteratorToProcessWhenThreading;
-  typename LevelSetContainerType::Iterator m_LevelSetUpdateContainerIteratorToProcessWhenThreading;
+  typename LevelSetContainerType::Iterator m_LevelSetContainerIteratorToProcessWhenThreading{};
+  typename LevelSetContainerType::Iterator m_LevelSetUpdateContainerIteratorToProcessWhenThreading{};
 };
 } // namespace itk
 

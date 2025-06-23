@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  *         The Pennsylvania State University 2005
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://hdl.handle.net/1926/1381
+ * https://doi.org/10.54294/o8w4c0
  *
  */
 
@@ -64,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PhilipsRECImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PhilipsRECImageIO);
 
   /** Special types used for Philips PAR meta data. */
   using EchoTimesContainerType = VectorContainer<unsigned int, double>;
@@ -158,8 +158,8 @@ private:
   IndexValueType
   GetSliceIndex(IndexValueType index) const;
 
-  SliceIndexType * m_SliceIndex;
-  IOByteOrderEnum  m_MachineByteOrder;
+  SliceIndexType * m_SliceIndex{};
+  IOByteOrderEnum  m_MachineByteOrder{};
 };
 } // end namespace itk
 

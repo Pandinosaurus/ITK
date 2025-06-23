@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkTestingComparisonImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkPipelineMonitorImageFilter.h"
+#include "itkTestingMacros.h"
 
 
 constexpr unsigned int VDimension = 3;
@@ -37,21 +38,21 @@ namespace
 bool
 SameImage(ImagePointer testImage, ImagePointer baselineImage)
 {
-  PixelType     intensityTolerance = 5; // need this for compression
-  int           radiusTolerance = 0;
-  unsigned long numberOfPixelTolerance = 0;
+  constexpr PixelType     intensityTolerance = 5; // need this for compression
+  constexpr int           radiusTolerance = 0;
+  constexpr unsigned long numberOfPixelTolerance = 0;
 
   // NOTE ALEX: it look slike this filter does not take the spacing
   // into account, to check later.
   using DiffType = itk::Testing::ComparisonImageFilter<ImageType, ImageType>;
-  DiffType::Pointer diff = DiffType::New();
+  auto diff = DiffType::New();
   diff->SetValidInput(baselineImage);
   diff->SetTestInput(testImage);
   diff->SetDifferenceThreshold(intensityTolerance);
   diff->SetToleranceRadius(radiusTolerance);
   diff->UpdateLargestPossibleRegion();
 
-  unsigned long status = diff->GetNumberOfPixelsWithDifferences();
+  const unsigned long status = diff->GetNumberOfPixelsWithDifferences();
 
   if (status > numberOfPixelTolerance)
   {
@@ -61,7 +62,7 @@ SameImage(ImagePointer testImage, ImagePointer baselineImage)
   SpacingType testImageSpacing = testImage->GetSpacing();
   SpacingType baselineImageSpacing = baselineImage->GetSpacing();
   // compare spacing
-  for (unsigned int i = 0; i < VDimension; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     if (itk::Math::NotAlmostEquals(testImageSpacing[i], baselineImageSpacing[i]))
     {
@@ -77,7 +78,7 @@ bool
 SameImage(std::string testImageFileName, ImagePointer baselineImage)
 {
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer readerTestImage = ReaderType::New();
+  auto readerTestImage = ReaderType::New();
   readerTestImage->SetFileName(testImageFileName);
 
   // NOTE ALEX: here we suppose the reading went well
@@ -86,31 +87,31 @@ SameImage(std::string testImageFileName, ImagePointer baselineImage)
 }
 
 bool
-ActualTest(std::string inputFileName,
-           std::string outputFileNameBase,
-           std::string outputFileNameExtension,
-           bool        streamWriting,
-           bool        pasteWriting,
-           bool        compressWriting,
-           int         expectException = -1)
+ActualTest(const std::string & inputFileName,
+           const std::string & outputFileNameBase,
+           const std::string & outputFileNameExtension,
+           bool                streamWriting,
+           bool                pasteWriting,
+           bool                compressWriting,
+           int                 expectException = -1)
 {
 
   std::cout << "Writing Combination: ";
-  std::cout << streamWriting << " ";
-  std::cout << pasteWriting << " " << compressWriting << std::endl;
+  std::cout << streamWriting << ' ';
+  std::cout << pasteWriting << ' ' << compressWriting << std::endl;
 
   std::ostringstream outputFileNameStream;
   outputFileNameStream << outputFileNameBase << streamWriting;
   outputFileNameStream << pasteWriting << compressWriting;
-  outputFileNameStream << "." << outputFileNameExtension;
-  std::string outputFileName = outputFileNameStream.str();
+  outputFileNameStream << '.' << outputFileNameExtension;
+  const std::string outputFileName = outputFileNameStream.str();
 
   std::cout << "Writing to File: " << outputFileName << std::endl;
-  unsigned int m_NumberOfPieces = 10;
+  constexpr unsigned int numberOfPieces = 10;
 
   // We remove the output file
   // NOTE ALEX: should we check it exists first?
-  itksys::SystemTools::RemoveFile(outputFileName.c_str());
+  itksys::SystemTools::RemoveFile(outputFileName);
 
   using PixelType = unsigned char;
   using ImageType = itk::Image<PixelType, 3>;
@@ -118,7 +119,7 @@ ActualTest(std::string inputFileName,
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputFileName.c_str());
   reader->SetUseStreaming(true);
 
@@ -136,27 +137,27 @@ ActualTest(std::string inputFileName,
   pasteSize[0] = largestRegion.GetSize()[0] / 3;
   pasteSize[1] = largestRegion.GetSize()[1] / 3;
   pasteSize[2] = 1;
-  ImageType::RegionType pasteRegion(pasteIndex, pasteSize);
+  const ImageType::RegionType pasteRegion(pasteIndex, pasteSize);
 
   // TODO: drew, check and save the spacing of the input image here
 
   // ??
   using MonitorFilter = itk::PipelineMonitorImageFilter<ImageType>;
-  MonitorFilter::Pointer monitor = MonitorFilter::New();
+  auto monitor = MonitorFilter::New();
   monitor->SetInput(reader->GetOutput());
 
   // Setup the writer
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputFileName);
   writer->SetInput(monitor->GetOutput());
 
-  // create a vaild region from the largest
+  // create a valid region from the largest
   itk::ImageIORegion ioregion(3);
   itk::ImageIORegionAdaptor<3>::Convert(pasteRegion, ioregion, largestRegion.GetIndex());
 
   if (streamWriting)
   {
-    writer->SetNumberOfStreamDivisions(m_NumberOfPieces);
+    writer->SetNumberOfStreamDivisions(numberOfPieces);
   }
 
   if (pasteWriting)
@@ -180,13 +181,11 @@ ActualTest(std::string inputFileName,
       std::cout << "TEST PASSED" << std::endl;
       return EXIT_SUCCESS;
     }
-    else
-    {
-      std::cout << "UnExpected ExceptionObject caught !" << std::endl;
-      std::cout << err << std::endl;
-      std::cout << "TEST FAILED" << std::endl;
-      return EXIT_FAILURE;
-    }
+
+    std::cout << "UnExpected ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
+    std::cout << "TEST FAILED" << std::endl;
+    return EXIT_FAILURE;
   }
 
   if (expectException == 1)
@@ -202,14 +201,14 @@ ActualTest(std::string inputFileName,
   if (pasteWriting)
   {
     using ExtractImageFilterType = itk::ExtractImageFilter<ImageType, ImageType>;
-    ExtractImageFilterType::Pointer extractBaselineImage = ExtractImageFilterType::New();
+    auto extractBaselineImage = ExtractImageFilterType::New();
     extractBaselineImage->SetDirectionCollapseToSubmatrix();
     extractBaselineImage->SetInput(reader->GetOutput());
     extractBaselineImage->SetExtractionRegion(pasteRegion);
 
-    ReaderType::Pointer readerTestImage = ReaderType::New();
+    auto readerTestImage = ReaderType::New();
     readerTestImage->SetFileName(outputFileName);
-    ExtractImageFilterType::Pointer extractTestImage = ExtractImageFilterType::New();
+    auto extractTestImage = ExtractImageFilterType::New();
     extractTestImage->SetDirectionCollapseToSubmatrix();
     extractTestImage->SetInput(readerTestImage->GetOutput());
     extractTestImage->SetExtractionRegion(pasteRegion);
@@ -240,26 +239,31 @@ itkImageFileWriterStreamingPastingCompressingTest1(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Usage: " << argv[0] << " input outputBase outputExtension [expect exception (0|1)] ..." << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input outputBase outputExtension [expect exception (0|1)] ..." << std::endl;
     return EXIT_FAILURE;
   }
 
   int           expectException[8];
   constexpr int expectedExceptionOffset = 4;
-  int           i;
-  for (i = 0; i < 8; ++i)
+  for (int i = 0; i < 8; ++i)
   {
     if (argc > i + expectedExceptionOffset)
     {
       expectException[i] = 0;
       if (std::stoi(argv[i + expectedExceptionOffset]) == 1)
+      {
         expectException[i] = 1;
+      }
     }
     else
+    {
       expectException[i] = -1;
+    }
   }
 
-  i = 0;
+  int i = 0;
 
   int retValue = ActualTest(argv[1], argv[2], argv[3], false, false, false, expectException[i++]);
   retValue = (retValue == EXIT_FAILURE)

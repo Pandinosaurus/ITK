@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,18 +28,18 @@ CheckFileNameParsing(const std::string & fileName,
 {
   // the current kwsys way...
   std::cout << "(kwsys) Extracting...file name...";
-  char * nameOnly;
+  char * nameOnly = nullptr;
   {
-    std::string fileNameString =
+    const std::string fileNameString =
       itksys::SystemTools::GetFilenameWithoutLastExtension(itksys::SystemTools::GetFilenameName(fileName));
     nameOnly = new char[fileNameString.size() + 1];
     std::strncpy(nameOnly, fileNameString.c_str(), fileNameString.size() + 1);
   }
 
   std::cout << "extension...";
-  char * extension;
+  char * extension = nullptr;
   {
-    std::string extensionString = itksys::SystemTools::GetFilenameLastExtension(fileName);
+    const std::string extensionString = itksys::SystemTools::GetFilenameLastExtension(fileName);
     // NB: remove the period (kwsys leaves it on, ITK precedent was to
     // remove it)
     extension = new char[extensionString.size() + 1];
@@ -54,11 +54,11 @@ CheckFileNameParsing(const std::string & fileName,
   }
 
   std::cout << "path...";
-  char * path;
+  char * path = nullptr;
   {
     std::string pathString = itksys::SystemTools::GetFilenamePath(fileName);
 #ifdef _WIN32
-    for (size_t i = 0; i < pathString.size(); i++)
+    for (size_t i = 0; i < pathString.size(); ++i)
     {
       if (pathString[i] == '/')
       {
@@ -83,7 +83,7 @@ CheckFileNameParsing(const std::string & fileName,
   std::cout << "DONE" << std::endl;
 
   std::cout << "Comparing...file name...";
-  bool nameMatches;
+  bool nameMatches = false;
   if (strlen(nameOnly) == 0)
   {
     nameMatches = correctNameOnly.empty();
@@ -94,7 +94,7 @@ CheckFileNameParsing(const std::string & fileName,
   }
 
   std::cout << "extension...";
-  bool extensionMatches;
+  bool extensionMatches = false;
   if (strlen(extension) == 0)
   {
     extensionMatches = correctExtension.empty();
@@ -105,7 +105,7 @@ CheckFileNameParsing(const std::string & fileName,
   }
 
   std::cout << "path...";
-  bool pathMatches;
+  bool pathMatches = false;
   if (strlen(path) == 0)
   {
     pathMatches = correctPath.empty();
@@ -116,17 +116,15 @@ CheckFileNameParsing(const std::string & fileName,
   }
   std::cout << "DONE" << std::endl;
 
-  std::cout << "FullFileName: \"" << fileName << "\"" << std::endl;
+  std::cout << "FullFileName: \"" << fileName << '"' << std::endl;
   std::cout << "FileName: (expected) \"" << correctNameOnly << "\" (actual) \"" << static_cast<const char *>(nameOnly)
-            << "\""
-            << " (correct) " << nameMatches << std::endl;
+            << '"' << " (correct) " << nameMatches << std::endl;
   std::cout << "Extension: (expected) \"" << correctExtension << "\" (actual) \""
-            << static_cast<const char *>(extension) << "\""
-            << " (correct) " << extensionMatches << std::endl;
-  std::cout << "Path: (expected) \"" << correctPath << "\" (actual) \"" << static_cast<const char *>(path) << "\""
+            << static_cast<const char *>(extension) << '"' << " (correct) " << extensionMatches << std::endl;
+  std::cout << "Path: (expected) \"" << correctPath << "\" (actual) \"" << static_cast<const char *>(path) << '"'
             << " (correct) " << pathMatches << std::endl;
 
-  bool correctParse = nameMatches && extensionMatches && pathMatches;
+  const bool correctParse = nameMatches && extensionMatches && pathMatches;
   std::cout << "Parsing is " << (correctParse ? "correct" : "incorrect") << std::endl;
 
   // clean up

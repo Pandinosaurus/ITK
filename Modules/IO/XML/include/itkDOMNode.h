@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DOMNode, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DOMNode);
 
   /** Container to return all or a subset of the children of a DOM node. */
   using ChildrenListType = std::vector<DOMNode *>;
@@ -80,35 +80,41 @@ public:
   /** Container to return the attributes of a DOM node. */
   using AttributesListType = std::list<AttributeItemType>;
 
-  using SizeType = std::size_t;
+  using SizeType = size_t;
   using IdentifierType = int;
   using OffsetType = int;
 
   /** Retrieve the parent node. */
+  /** @ITKStartGrouping */
   virtual void
   SetParent(DOMNode * node);
   DOMNode *
   GetParent();
   const DOMNode *
   GetParent() const;
-
+  /** @ITKEndGrouping */
   /** Retrieve the tag name of this node. */
-  itkSetMacro(Name, std::string &);
+  /** @ITKStartGrouping */
+  itkSetMacro(Name, const std::string &);
   itkGetConstReferenceMacro(Name, std::string);
-
+  /** @ITKEndGrouping */
   /** Retrieve the special attribute "id" of this node. */
-  itkSetMacro(ID, std::string &);
+  /** @ITKStartGrouping */
+  itkSetMacro(ID, const std::string &);
   itkGetConstReferenceMacro(ID, std::string);
-
+  /** @ITKEndGrouping */
   /** Retrieve an attribute by key (return an empty string if not found). */
   virtual std::string
   GetAttribute(const std::string & key) const;
+
   /** Check whether has an attribute. */
   virtual bool
   HasAttribute(const std::string & key) const;
+
   /** Add or replace an attribute. */
   virtual void
   SetAttribute(const std::string & key, const std::string & value);
+
   /** Remove an attribute by key (throw exception if not found). */
   virtual void
   RemoveAttribute(const std::string & key);
@@ -119,6 +125,7 @@ public:
    */
   virtual void
   GetAllAttributes(AttributesListType & output, bool keepOriginalOrder = true) const;
+
   /** Remove all attributes. */
   virtual void
   RemoveAllAttributes();
@@ -130,6 +137,7 @@ public:
   /** Return all children. */
   virtual void
   GetAllChildren(ChildrenListType & output);
+
   /** Return all children for read-only access. */
   virtual void
   GetAllChildren(ConstChildrenListType & output) const;
@@ -137,6 +145,7 @@ public:
   /** Return all children of a same tag name. */
   virtual void
   GetChildren(const std::string & tag, ChildrenListType & output);
+
   /** Return all children of a same tag name for read-only access. */
   virtual void
   GetChildren(const std::string & tag, ConstChildrenListType & output) const;
@@ -148,9 +157,11 @@ public:
   /** Add a child in front of another child (throw exception if not able to add). */
   virtual void
   AddChild(DOMNode * node, IdentifierType i = 0);
+
   /** Add a child in front of the children list (throw exception if not able to add). */
   virtual void
   AddChildAtBegin(DOMNode * node);
+
   /** Add a child at the end of the children list (throw exception if not able to add). */
   virtual void
   AddChildAtEnd(DOMNode * node);
@@ -168,36 +179,41 @@ public:
   RemoveAllAttributesAndChildren();
 
   /** Retrieve a child by index (return nullptr if i is out of range). */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   GetChild(IdentifierType i = 0);
   virtual const DOMNode *
   GetChild(IdentifierType i = 0) const;
-
+  /** @ITKEndGrouping */
   /** Retrieve a child by tag name and an index (multiple children can have a same tag name, return nullptr if no such
    * child). */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   GetChild(const std::string & tag, IdentifierType i = 0);
   virtual const DOMNode *
   GetChild(const std::string & tag, IdentifierType i = 0) const;
-
+  /** @ITKEndGrouping */
   /** Retrieve a child by its unique "id" attribute value (return nullptr if not found). */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   GetChildByID(const std::string & value);
   virtual const DOMNode *
   GetChildByID(const std::string & value) const;
-
+  /** @ITKEndGrouping */
   /** Retrieve an older or younger sibling by distance (return nullptr if no such sibling). */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   GetSibling(OffsetType i);
   virtual const DOMNode *
   GetSibling(OffsetType i) const;
-
+  /** @ITKEndGrouping */
   /** Return the root node. */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   GetRoot();
   virtual const DOMNode *
   GetRoot() const;
-
+  /** @ITKEndGrouping */
   /** Test whether the input node and this node share the same root. */
   virtual bool
   ShareRoot(const DOMNode * node) const;
@@ -219,27 +235,31 @@ public:
    *
    * The method returns nullptr if queried node does not exist.
    */
+  /** @ITKStartGrouping */
   virtual DOMNode *
   Find(const std::string & path);
   virtual const DOMNode *
   Find(const std::string & path) const;
-
+  /** @ITKEndGrouping */
   /** Return the path of this node within its root, in the form of a query string that uses only indices. */
   virtual std::string
   GetPath() const;
 
   /** Get a child and cast it to a text node (return nullptr if out of range or not a text node). */
+  /** @ITKStartGrouping */
   virtual DOMTextNode *
   GetTextChild(IdentifierType i = 0);
   virtual const DOMTextNode *
   GetTextChild(IdentifierType i = 0) const;
-
+  /** @ITKEndGrouping */
   /** Generate a text node from a string and add/insert it as a child (see AddChild(node,i)). */
   virtual void
   AddTextChild(const std::string & text, IdentifierType i = 0);
+
   /** Generate a text node from a string and add/insert in front of all children. */
   virtual void
   AddTextChildAtBegin(const std::string & text);
+
   /** Generate a text node from a string and add/insert at the end of all children. */
   virtual void
   AddTextChildAtEnd(const std::string & text);
@@ -256,22 +276,22 @@ private:
   DOMNode * m_Parent{ nullptr };
 
   /** The XML tag of this node. */
-  std::string m_Name;
+  std::string m_Name{};
 
   /** The special attribute "id" of this node. */
-  std::string m_ID;
+  std::string m_ID{};
 
   /** Internally the children are stored in a vector. */
   using ChildrenContainer = std::vector<Pointer>;
-  ChildrenContainer m_Children;
+  ChildrenContainer m_Children{};
 
   /** Internally the attributes are stored in a map. */
   using AttributesContainer = std::map<AttributeKeyType, AttributeValueType>;
-  AttributesContainer m_Attributes;
+  AttributesContainer m_Attributes{};
 
   /** Container to keep the inserting orders of the attributes. */
   using OrderedAttributesContainer = std::list<AttributeItemType *>;
-  OrderedAttributesContainer m_OrderedAttributes;
+  OrderedAttributesContainer m_OrderedAttributes{};
 };
 
 } // namespace itk

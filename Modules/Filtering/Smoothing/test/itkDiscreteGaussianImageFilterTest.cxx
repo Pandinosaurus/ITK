@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@
 #include "itkSimpleFilterWatcher.h"
 #include "itkTestingMacros.h"
 #include "itkConstantBoundaryCondition.h"
+
+/** Check basic image filter parameters and operations */
 
 int
 itkDiscreteGaussianImageFilterTest(int argc, char * argv[])
@@ -43,12 +45,12 @@ itkDiscreteGaussianImageFilterTest(int argc, char * argv[])
   using FilterType = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
   using ArrayType = FilterType::ArrayType;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, DiscreteGaussianImageFilter, ImageToImageFilter);
 
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
   // Test other set/get functions
   ArrayType array;
@@ -60,13 +62,15 @@ itkDiscreteGaussianImageFilterTest(int argc, char * argv[])
   array.Fill(0.04);
   filter->SetMaximumError(array.GetDataPointer());
 
-  // Set the value ofthe standard deviation of the Gaussian used for smoothing
-  FilterType::SigmaArrayType::ValueType sigmaValue = 1.0;
-  FilterType::SigmaArrayType            sigma;
-  sigma.Fill(sigmaValue);
+  // Set the value of the standard deviation of the Gaussian used for smoothing
+  constexpr FilterType::SigmaArrayType::ValueType sigmaValue = 1.0;
+  auto                                            sigma = itk::MakeFilled<FilterType::SigmaArrayType>(sigmaValue);
 
   filter->SetSigma(sigmaValue);
   ITK_TEST_SET_GET_VALUE(sigmaValue, filter->GetSigma());
+
+  filter->SetSigma(sigma);
+  ITK_TEST_SET_GET_VALUE(sigma, filter->GetSigmaArray());
 
   filter->SetSigmaArray(sigma);
   ITK_TEST_SET_GET_VALUE(sigma, filter->GetSigmaArray());
@@ -80,24 +84,41 @@ itkDiscreteGaussianImageFilterTest(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(&constantBoundaryCondition, filter->GetRealBoundaryCondition());
 
   // Set other filter properties
-  FilterType::ArrayType::ValueType varianceValue = 1.0;
-  FilterType::ArrayType            variance;
-  variance.Fill(varianceValue);
+  constexpr FilterType::ArrayType::ValueType varianceValue = 1.0;
+  auto                                       variance = itk::MakeFilled<FilterType::ArrayType>(varianceValue);
   filter->SetVariance(variance);
   ITK_TEST_SET_GET_VALUE(variance, filter->GetVariance());
 
-  FilterType::ArrayType::ValueType maximumErrorValue = 0.01;
-  FilterType::ArrayType            maximumError;
-  maximumError.Fill(maximumErrorValue);
+  constexpr FilterType::ArrayType::ValueType maximumErrorValue = 0.01;
+  auto                                       maximumError = itk::MakeFilled<FilterType::ArrayType>(maximumErrorValue);
   filter->SetMaximumError(maximumError);
   ITK_TEST_SET_GET_VALUE(maximumError, filter->GetMaximumError());
 
-  int maximumKernelWidth = 32;
+  constexpr unsigned int maximumKernelWidth = 32;
   filter->SetMaximumKernelWidth(maximumKernelWidth);
   ITK_TEST_SET_GET_VALUE(maximumKernelWidth, filter->GetMaximumKernelWidth());
 
   filter->SetFilterDimensionality(Dimension);
   ITK_TEST_SET_GET_VALUE(Dimension, filter->GetFilterDimensionality());
+
+  // Verify kernel radius matches expectations for test parameters
+  filter->UseImageSpacingOff();
+  constexpr unsigned int EXPECTED_RADIUS = 3;
+  auto                   radius = filter->GetKernelRadius();
+  auto                   kernelSize = filter->GetKernelSize();
+  for (unsigned int idx = 0; idx < Dimension; ++idx)
+  {
+    ITK_TEST_EXPECT_EQUAL(radius[idx], EXPECTED_RADIUS);
+    ITK_TEST_EXPECT_EQUAL(filter->GetKernelRadius(idx), EXPECTED_RADIUS);
+    ITK_TEST_EXPECT_EQUAL(kernelSize[idx], EXPECTED_RADIUS * 2 + 1);
+  }
+
+  // Verify filter throws exception when trying to get kernel information
+  // if UseImageSpacing is ON and an input image is not set
+  filter->UseImageSpacingOn();
+  ITK_TRY_EXPECT_EXCEPTION(filter->GetKernelRadius());
+  ITK_TRY_EXPECT_EXCEPTION([[maybe_unused]] auto val = filter->GetKernelRadius(0));
+  ITK_TRY_EXPECT_EXCEPTION(filter->GetKernelSize());
 
   auto useImageSpacing = static_cast<bool>(std::stoi(argv[1]));
 #if !defined(ITK_FUTURE_LEGACY_REMOVE)
@@ -123,7 +144,6 @@ itkDiscreteGaussianImageFilterTest(int argc, char * argv[])
   test1.SetFilter(filter);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(test1.Execute());
-
 
   std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;

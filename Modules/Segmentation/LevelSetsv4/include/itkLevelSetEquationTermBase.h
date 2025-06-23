@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = Object;
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEquationTermBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEquationTermBase);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -85,9 +85,10 @@ public:
   using HeavisideConstPointer = typename HeavisideType::ConstPointer;
 
   /** Set/Get the image to be segmented */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Input, InputImageType);
   itkGetModifiableObjectMacro(Input, InputImageType);
-
+  /** @ITKEndGrouping */
   itkSetMacro(Coefficient, LevelSetOutputRealType);
   itkGetMacro(Coefficient, LevelSetOutputRealType);
 
@@ -127,9 +128,10 @@ public:
   itkGetConstMacro(CFLContribution, LevelSetOutputRealType);
 
   /** Set/Get the term name */
+  /** @ITKStartGrouping */
   itkSetStringMacro(TermName);
   itkGetStringMacro(TermName);
-
+  /** @ITKEndGrouping */
   /** Update the term parameter values at end of iteration */
   virtual void
   Update() = 0;
@@ -160,35 +162,35 @@ protected:
   Value(const LevelSetInputIndexType & iP, const LevelSetDataType & iData) = 0;
 
   /** Input image */
-  InputImagePointer m_Input;
+  InputImagePointer m_Input{};
 
   /** Container of level-set function */
-  LevelSetContainerPointer m_LevelSetContainer;
+  LevelSetContainerPointer m_LevelSetContainer{};
 
   /** Id of the current level-set function */
-  LevelSetIdentifierType m_CurrentLevelSetId;
+  LevelSetIdentifierType m_CurrentLevelSetId{};
 
-  LevelSetPointer m_CurrentLevelSetPointer;
+  LevelSetPointer m_CurrentLevelSetPointer{};
 
   /** Coefficient \f$ \alpha_i \f$ */
-  LevelSetOutputRealType m_Coefficient;
+  LevelSetOutputRealType m_Coefficient{};
 
   /** Contribution to the CFL condition (which will be used to compute the
    *  the time step at the next iteration
    */
-  LevelSetOutputRealType m_CFLContribution;
+  LevelSetOutputRealType m_CFLContribution{};
 
   /** Heaviside function to be used. Depending on the term expression,
    *  this one may need to be provided
    */
-  HeavisideConstPointer m_Heaviside;
+  HeavisideConstPointer m_Heaviside{};
 
   /** Name to be given to the term. Note by default, one name is provided,
    *  but end-users may rename differently each term.
    */
-  std::string m_TermName;
+  std::string m_TermName{};
 
-  RequiredDataType m_RequiredData;
+  RequiredDataType m_RequiredData{};
 };
 } // namespace itk
 

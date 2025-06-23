@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class ContourDirectedMeanDistanceImageFilter
+ * \class ContourDirectedMeanDistanceImageFilter
  * \brief Computes the directed Mean distance between the boundaries of
  * non-zero pixel regions of two images.
  *
@@ -75,8 +75,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ContourDirectedMeanDistanceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ContourDirectedMeanDistanceImageFilter);
 
   /** Image related type alias. */
   using InputImage1Type = TInputImage1;
@@ -119,15 +119,12 @@ public:
   itkGetConstMacro(ContourDirectedMeanDistance, RealType);
 
   /** Set/Get if image spacing should be used in computing distances. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputImage1PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ContourDirectedMeanDistanceImageFilter();
@@ -170,13 +167,13 @@ protected:
 private:
   using DistanceMapType = Image<RealType, Self::ImageDimension>;
 
-  typename DistanceMapType::Pointer m_DistanceMap;
+  typename DistanceMapType::Pointer m_DistanceMap{};
 
-  Array<RealType>       m_MeanDistance;
-  Array<IdentifierType> m_Count;
-  RealType              m_ContourDirectedMeanDistance;
-  bool                  m_UseImageSpacing;
-}; // end of class
+  Array<RealType>       m_MeanDistance{};
+  Array<IdentifierType> m_Count{};
+  RealType              m_ContourDirectedMeanDistance{};
+  bool                  m_UseImageSpacing{ true };
+};
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

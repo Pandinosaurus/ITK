@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@
 namespace itk
 {
 /**
- *\class MultiLabelSTAPLEImageFilter
+ * \class MultiLabelSTAPLEImageFilter
  *
  * \brief This filter performs a pixelwise combination of an arbitrary number
  * of input images, where each of them represents a segmentation of the same
@@ -45,19 +45,10 @@ namespace itk
  * this estimated ground truth.
  *
  * The algorithm is based on the binary STAPLE algorithm by Warfield et al. as
- * published originally in
- *
- * S. Warfield, K. Zou, W. Wells, "Validation of image segmentation and expert
- * quality with an expectation-maximization algorithm" in MICCAI 2002: Fifth
- * International Conference on Medical Image Computing and Computer-Assisted
- * Intervention, Springer-Verlag, Heidelberg, Germany, 2002, pp. 298-306
+ * published originally in \cite warfield2002.
  *
  * The multi-label algorithm implemented here is described in detail in
- *
- * T. Rohlfing, D. B. Russakoff, and C. R. Maurer, Jr., "Performance-based
- * classifier combination in atlas-based image segmentation using
- * expectation-maximization parameter estimation," IEEE Transactions on
- * Medical Imaging, vol. 23, pp. 983-994, Aug. 2004.
+ * \cite rohlfing2004.
  *
  * \par INPUTS
  * All input volumes to this filter must be segmentations of an image,
@@ -130,8 +121,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MultiLabelSTAPLEImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiLabelSTAPLEImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -149,7 +140,7 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Iterator types. */
   using InputConstIteratorType = ImageRegionConstIterator<TInputImage>;
@@ -165,6 +156,7 @@ public:
 
   /** Set maximum number of iterations.
    */
+  /** @ITKStartGrouping */
   void
   SetMaximumNumberOfIterations(const unsigned int mit)
   {
@@ -173,6 +165,7 @@ public:
     this->Modified();
   }
   itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
+  /** @ITKEndGrouping */
 
   /** True if the MaximumNumberOfIterations has been manually set. **/
   itkGetConstMacro(HasMaximumNumberOfIterations, bool);
@@ -191,8 +184,10 @@ public:
 
   /** Set termination threshold based on confusion matrix parameter updates.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(TerminationUpdateThreshold, TWeights);
   itkGetConstMacro(TerminationUpdateThreshold, TWeights);
+  /** @ITKEndGrouping */
 
   /** Set label value for undecided pixels.
    */
@@ -276,7 +271,7 @@ public:
 
 protected:
   MultiLabelSTAPLEImageFilter()
-    : m_LabelForUndecidedPixels(NumericTraits<OutputPixelType>::ZeroValue())
+    : m_LabelForUndecidedPixels(OutputPixelType{})
     , m_TerminationUpdateThreshold(1e-5)
   {}
   ~MultiLabelSTAPLEImageFilter() override = default;
@@ -302,17 +297,17 @@ protected:
 private:
   size_t m_TotalLabelCount{ 0 };
 
-  OutputPixelType m_LabelForUndecidedPixels;
+  OutputPixelType m_LabelForUndecidedPixels{};
   bool            m_HasLabelForUndecidedPixels{ false };
 
   bool                   m_HasPriorProbabilities{ false };
-  PriorProbabilitiesType m_PriorProbabilities;
+  PriorProbabilitiesType m_PriorProbabilities{};
 
   void
   InitializePriorProbabilities();
 
-  std::vector<ConfusionMatrixType> m_ConfusionMatrixArray;
-  std::vector<ConfusionMatrixType> m_UpdatedConfusionMatrixArray;
+  std::vector<ConfusionMatrixType> m_ConfusionMatrixArray{};
+  std::vector<ConfusionMatrixType> m_UpdatedConfusionMatrixArray{};
 
   void
   AllocateConfusionMatrixArray();
@@ -323,7 +318,7 @@ private:
   unsigned int m_MaximumNumberOfIterations{ 0 };
   unsigned int m_ElapsedNumberOfIterations{ 0u };
 
-  TWeights m_TerminationUpdateThreshold;
+  TWeights m_TerminationUpdateThreshold{};
 };
 
 } // end namespace itk

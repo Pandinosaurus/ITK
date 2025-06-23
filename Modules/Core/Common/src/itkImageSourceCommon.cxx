@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,34 +15,27 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-
 #include "itkImageRegionSplitterSlowDimension.h"
 #include "itkImageSourceCommon.h"
+#include "itkSingleton.h"
 #include <mutex>
 
 namespace itk
 {
 
-namespace
+struct ImageSourceCommonGlobals
 {
-std::mutex                       globalDefaultSplitterLock;
-ImageRegionSplitterBase::Pointer globalDefaultSplitter;
-} // namespace
+  ImageRegionSplitterBase::Pointer m_GlobalDefaultSplitter{ ImageRegionSplitterSlowDimension::New().GetPointer() };
+};
+
+itkGetGlobalSimpleMacro(ImageSourceCommon, ImageSourceCommonGlobals, PimplGlobals);
+ImageSourceCommonGlobals * ImageSourceCommon::m_PimplGlobals;
 
 const ImageRegionSplitterBase *
 ImageSourceCommon::GetGlobalDefaultSplitter()
 {
-  if (globalDefaultSplitter.IsNull())
-  {
-    // thread safe lazy initialization, prevent race condition on
-    // setting, with an atomic set if null.
-    std::lock_guard<std::mutex> lock(globalDefaultSplitterLock);
-    if (globalDefaultSplitter.IsNull())
-    {
-      globalDefaultSplitter = ImageRegionSplitterSlowDimension::New().GetPointer();
-    }
-  }
-  return globalDefaultSplitter;
+  itkInitGlobalsMacro(PimplGlobals);
+  return m_PimplGlobals->m_GlobalDefaultSplitter;
 }
 
 

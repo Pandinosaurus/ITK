@@ -21,8 +21,8 @@
 #include "gdcmJPEG12Codec.h"
 #include "gdcmJPEG16Codec.h"
 
+#include <cstring>
 #include <numeric>
-#include <string.h>
 
 namespace gdcm
 {
@@ -92,7 +92,7 @@ void JPEGCodec::SetPixelFormat(PixelFormat const &pt)
 
   // We have the choice to decide to use Bits Stored or Bits Allocated, however in the case of
   // such an image as: gdcmData/MR16BitsAllocated_8BitsStored.dcm we are required to use
-  // bits allocated to deal with the logic to decide withe the encoder
+  // bits allocated to deal with the logic to decide with the encoder
   SetBitSample( pt.GetBitsAllocated() );
   //SetBitSample( pt.GetBitsStored() );
 }
@@ -101,7 +101,6 @@ void JPEGCodec::SetupJPEGBitCodec(int bit)
 {
   BitSample = bit;
   delete Internal; Internal = nullptr;
-  assert( Internal == nullptr );
   // what should I do with those single bit images ?
   if ( BitSample <= 8 )
     {
@@ -122,9 +121,6 @@ void JPEGCodec::SetupJPEGBitCodec(int bit)
     {
     // gdcmNonImageData/RT/RTDOSE.dcm
     gdcmWarningMacro( "Cannot instantiate JPEG codec for bit sample: " << bit );
-    // Clearly make sure Internal will not be used
-    delete Internal;
-    Internal = nullptr;
     }
 }
 
@@ -184,10 +180,9 @@ bool JPEGCodec::Decode(DataElement const &in, DataElement &out)
         // Ok so we are decoding a multiple frame jpeg DICOM file:
         // if we are lucky, we might be trying to decode some sort of broken multi-frame
         // DICOM file. In this case check that we have read all Fragment properly:
-        if( i >= this->GetDimensions()[2] )
+        if( i >= this->GetDimensions()[2] && nfrags == this->GetNumberOfDimensions() )
           {
           // JPEGInvalidSecondFrag.dcm
-          assert( nfrags == this->GetNumberOfDimensions() ); (void)nfrags; // sentinel
           gdcmWarningMacro( "Invalid JPEG Fragment found at pos #" << i + 1 << ". Skipping it" );
           }
         else
@@ -278,7 +273,7 @@ bool JPEGCodec::GetHeaderInfo( std::istream & is, TransferSyntax &ts )
       SetupJPEGBitCodec( Internal->BitSample );
       if( Internal && Internal->GetHeaderInfo(is, ts) )
         {
-        // Foward everything back to meta jpeg codec:
+        // Forward everything back to meta jpeg codec:
         this->SetLossyFlag( Internal->GetLossyFlag() );
         this->SetDimensions( Internal->GetDimensions() );
         this->SetPhotometricInterpretation( Internal->GetPhotometricInterpretation() );
@@ -297,7 +292,7 @@ bool JPEGCodec::GetHeaderInfo( std::istream & is, TransferSyntax &ts )
     return false;
     }
   // else
-  // Foward everything back to meta jpeg codec:
+  // Forward everything back to meta jpeg codec:
   this->SetLossyFlag( Internal->GetLossyFlag() );
   this->SetDimensions( Internal->GetDimensions() );
   this->SetPhotometricInterpretation( Internal->GetPhotometricInterpretation() );
@@ -346,11 +341,11 @@ bool JPEGCodec::Code(DataElement const &in, DataElement &out)
       }
 
     std::string str = os.str();
-    assert( str.size() );
+    assert( !str.empty() );
     Fragment frag;
     //frag.SetTag( itemStart );
     VL::Type strSize = (VL::Type)str.size();
-    frag.SetByteValue( &str[0], strSize );
+    frag.SetByteValue( str.data(), strSize );
     sq->AddFragment( frag );
 
     }
@@ -532,7 +527,7 @@ bool JPEGCodec::DecodeExtent(
     assert( zmin == 0 );
 
     std::stringstream iis;
-    iis.write( &vdummybuffer[0], vdummybuffer.size() );
+    iis.write( vdummybuffer.data(), vdummybuffer.size() );
     std::stringstream os;
     bool b = DecodeByStreams(iis,os);
     if(!b) return false;
@@ -546,7 +541,7 @@ bool JPEGCodec::DecodeExtent(
     std::istream *theStream = &os;
     std::vector<char> buffer1;
     buffer1.resize( rowsize*bytesPerPixel );
-    char *tmpBuffer1 = &buffer1[0];
+    char *tmpBuffer1 = buffer1.data();
     unsigned int y, z;
     std::streamoff theOffset;
     for (z = zmin; z <= zmax; ++z)
@@ -613,7 +608,7 @@ bool JPEGCodec::DecodeExtent(
 
       std::vector<char> buffer1;
       buffer1.resize( rowsize*bytesPerPixel );
-      char *tmpBuffer1 = &buffer1[0];
+      char *tmpBuffer1 = buffer1.data();
       unsigned int y;
       std::streamoff theOffset;
       for (y = ymin; y <= ymax; ++y)

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,9 +46,10 @@
 // Software Guide : EndCodeSnippet
 
 #include "itkImageFileReader.h"
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
 
   if (argc < 2)
@@ -74,23 +75,9 @@ main(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, Dimension>;
   // Software Guide : EndCodeSnippet
 
+  ImageType::Pointer input;
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
-
-  ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName(argv[1]);
-
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Problem reading image file : " << argv[1] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  input = itk::ReadImage<ImageType>(argv[1]);
 
 
   // Software Guide : BeginLatex
@@ -107,8 +94,7 @@ main(int argc, char * argv[])
   using HistogramGeneratorType =
     itk::Statistics::ScalarImageToHistogramGenerator<ImageType>;
 
-  HistogramGeneratorType::Pointer histogramGenerator =
-    HistogramGeneratorType::New();
+  auto histogramGenerator = HistogramGeneratorType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -120,7 +106,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  histogramGenerator->SetInput(reader->GetOutput());
+  histogramGenerator->SetInput(input);
   // Software Guide : EndCodeSnippet
 
 
@@ -177,7 +163,7 @@ main(int argc, char * argv[])
   std::cout << "Histogram size " << histogramSize << std::endl;
 
   unsigned int bin;
-  for (bin = 0; bin < histogramSize; bin++)
+  for (bin = 0; bin < histogramSize; ++bin)
   {
     std::cout << "bin = " << bin << " frequency = ";
     std::cout << histogram->GetFrequency(bin, 0) << std::endl;
@@ -194,8 +180,8 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  HistogramType::ConstIterator itr = histogram->Begin();
-  HistogramType::ConstIterator end = histogram->End();
+  HistogramType::ConstIterator       itr = histogram->Begin();
+  const HistogramType::ConstIterator end = histogram->End();
 
   unsigned int binNumber = 0;
   while (itr != end)
@@ -209,4 +195,27 @@ main(int argc, char * argv[])
 
 
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+main(int argc, char * argv[])
+{
+  try
+  {
+    return ExampleMain(argc, argv);
+  }
+  catch (const itk::ExceptionObject & exceptionObject)
+  {
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
+  }
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

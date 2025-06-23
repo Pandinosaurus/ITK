@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,12 +99,13 @@ public:
   }
 
   /** Get/Set level set value. */
+  /** @ITKStartGrouping */
   PixelType &
   GetValue()
   {
     return m_Value;
   }
-  const PixelType &
+  [[nodiscard]] const PixelType &
   GetValue() const
   {
     return m_Value;
@@ -114,14 +115,16 @@ public:
   {
     m_Value = input;
   }
+  /** @ITKEndGrouping */
 
   /** Get/Set index. */
+  /** @ITKStartGrouping */
   IndexType &
   GetIndex()
   {
     return m_Index;
   }
-  const IndexType &
+  [[nodiscard]] const IndexType &
   GetIndex() const
   {
     return m_Index;
@@ -131,10 +134,11 @@ public:
   {
     m_Index = input;
   }
+  /** @ITKEndGrouping */
 
   /** Default constructor */
   LevelSetNode()
-    : m_Value(NumericTraits<PixelType>::ZeroValue())
+    : m_Value(PixelType{})
   {
     m_Index.Fill(0);
   }

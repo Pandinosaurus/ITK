@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ namespace itk
  * This class was contributed to the Insight Journal by author Gaetan Lehmann.
  * Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas,
  * France. The paper can be found at
- * https://www.insight-journal.org/browse/publication/65
+ * https://doi.org/10.54294/hva3gz
  *
  * \sa ValuedRegionalMaximaImageFilter
  * \sa HConvexImageFilter
@@ -81,8 +81,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(RegionalMaximaImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionalMaximaImageFilter);
 
   /**
    * Set/Get whether the connected components are defined strictly by
@@ -90,38 +90,38 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the value in the output image to consider as "foreground".
    * Defaults to maximum value of PixelType.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ForegroundValue, OutputImagePixelType);
   itkGetConstMacro(ForegroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get whether a flat image must be considered as a maxima or not.
    * Defaults to true.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FlatIsMaxima, bool);
   itkGetConstMacro(FlatIsMaxima, bool);
   itkBooleanMacro(FlatIsMaxima);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputHasPixelTraitsCheck, (Concept::HasPixelTraits<InputImagePixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   RegionalMaximaImageFilter();
@@ -147,8 +147,8 @@ protected:
 private:
   bool                 m_FullyConnected{ false };
   bool                 m_FlatIsMaxima{ true };
-  OutputImagePixelType m_ForegroundValue;
-  OutputImagePixelType m_BackgroundValue;
+  OutputImagePixelType m_ForegroundValue{};
+  OutputImagePixelType m_BackgroundValue{};
 }; // end of class
 } // end namespace itk
 

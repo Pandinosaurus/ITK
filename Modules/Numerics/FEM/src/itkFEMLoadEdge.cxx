@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,15 @@
 
 #include "itkFEMLoadEdge.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 // Overload the CreateAnother() method.
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 LoadEdge::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   copyPtr->m_Edge = this->m_Edge;
 
@@ -99,10 +97,10 @@ LoadEdge::ApplyLoad(Element::ConstPointer element, Element::VectorType & Fe)
   auto NEdgePts = static_cast<unsigned int>((EdgeIds[0]).size());
   int  EdgePt;
   // access the edge points.
-  for (unsigned int i = 0; i < NEdgePts; i++)
+  for (unsigned int i = 0; i < NEdgePts; ++i)
   {
     EdgePt = (EdgeIds[EdgeNum])[i];
-    for (unsigned int j = 0; j < NnDOF; j++)
+    for (unsigned int j = 0; j < NnDOF; ++j)
     {
       Fe[NnDOF * EdgePt + j] = Fe[NnDOF * EdgePt + j] + Force[i][j];
     }
@@ -117,5 +115,4 @@ LoadEdge::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Force: " << this->m_Force << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

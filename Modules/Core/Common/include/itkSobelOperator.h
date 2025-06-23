@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,8 +35,7 @@ namespace itk
  * 1) Set the direction by calling  \code SetDirection \endcode
  * 2) call
    \code
-   itk::Size<2> radius;
-   radius.Fill(1);
+   constexpr auto radius = itk::Size<2>::Filled(1);
    sobelOperator.CreateToRadius(radius);
    \endcode
  * 3) You may optionally scale the coefficients of this operator using the
@@ -62,9 +61,7 @@ namespace itk
  * The current implementation of the Sobel operator is for 2 and 3 dimensions only.
  * The ND version is planned for future releases.
  *
- * The extension to 3D is from the publication
- *  "Irwin Sobel. An Isotropic 3x3x3 Volume Gradient Operator.
- * Technical report, Hewlett-Packard Laboratories, April 1995."
+ * The extension to 3D was described in \cite sobel1995.
  *
  * The Sobel operator in 3D has the kernel
  *
@@ -98,14 +95,13 @@ template <typename TPixel, unsigned int VDimension = 2, typename TAllocator = Ne
 class ITK_TEMPLATE_EXPORT SobelOperator : public NeighborhoodOperator<TPixel, VDimension, TAllocator>
 {
 public:
-  /** Standard type alias */
+  /** Standard class type aliases. */
   using Self = SobelOperator;
   using Superclass = NeighborhoodOperator<TPixel, VDimension, TAllocator>;
 
-  itkTypeMacro(SobelOperator, NeighborhoodOperator);
+  itkOverrideGetNameOfClassMacro(SobelOperator);
 
-  /** Creates the operator with length only in the specified direction.  For
-   * the Sobel operator, this
+  /** Creates the operator with length only in the specified direction.
    * The radius of the operator will be 0 except along the axis on which
    * the operator will work.
    * \sa CreateToRadius \sa FillCenteredDirectional \sa SetDirection() \sa GetDirection() */
@@ -121,34 +117,17 @@ public:
    * \sa CreateDirectional \sa Fill */
   // virtual void CreateToRadius(const unsigned long);
 
-
-  /**
-   * Prints some debugging information
-   */
-  void
-  PrintSelf(std::ostream & os, Indent i) const override
-  {
-    os << i << "SobelOperator { this=" << this << "}" << std::endl;
-    Superclass::PrintSelf(os, i.GetNextIndent());
-  }
-
 protected:
-  /**
-   * Typedef support for coefficient vector type.  Necessary to
-   * work around compiler bug on VC++.
-   */
-  using CoefficientVector = typename Superclass::CoefficientVector;
-  using PixelType = typename Superclass::PixelType;
+  itkConceptMacro(SignedOutputPixelType, (Concept::Signed<typename NumericTraits<TPixel>::ValueType>));
 
-  /**
-   * Calculates operator coefficients.
-   */
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
+
+  /** Calculates operator coefficients. */
   CoefficientVector
   GenerateCoefficients() override;
 
-  /**
-   * Arranges coefficients spatially in the memory buffer.
-   */
+  /** Arranges coefficients spatially in the memory buffer. */
   void
   Fill(const CoefficientVector & coeff) override;
 };

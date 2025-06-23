@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,12 @@
 #define itkForwardFFTImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "itkMacro.h"
 
 namespace itk
 {
 /**
- *\class ForwardFFTImageFilter
+ * \class ForwardFFTImageFilter
  *
  * \brief Base class for forward Fast Fourier Transform.
  *
@@ -50,7 +51,9 @@ namespace itk
  *
  * \ingroup FourierTransform
  *
- * \sa InverseFFTImageFilter, FFTComplexToComplexImageFilter
+ * \sa Forward1DFFTImageFilter
+ * \sa InverseFFTImageFilter
+ * \sa ComplexToComplexFFTImageFilter
  * \ingroup ITKFFT
  *
  * \sphinx
@@ -79,18 +82,20 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ForwardFFTImageFilter);
+
   /** Customized object creation methods that support configuration-based
    * selection of FFT implementation.
    *
    * Default implementation is VnlFFT. */
-  static Pointer
-  New();
+  itkFactoryOnlyNewMacro(Self);
 
   /* Return the preferred greatest prime factor supported for the input image
    * size. Defaults to 2 as many implementations work only for sizes that are
    * power of 2.
    */
-  virtual SizeValueType
+  [[nodiscard]] virtual SizeValueType
   GetSizeGreatestPrimeFactor() const;
 
 protected:
@@ -109,6 +114,10 @@ protected:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkForwardFFTImageFilter.hxx"
+#endif
+
+#ifdef ITK_FFTIMAGEFILTERINIT_FACTORY_REGISTER_MANAGER
+#  include "itkFFTImageFilterInitFactoryRegisterManager.h"
 #endif
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class ParametricBlindLeastSquaresDeconvolutionImageFilter
+ * \class ParametricBlindLeastSquaresDeconvolutionImageFilter
  *
  * \brief Least-squares blind deconvolution filter that also estimates
  * the parameters of a user-supplied parametric point-spread function.
@@ -74,11 +74,11 @@ public:
   using OutputImageType = TOutputImage;
 
   /** Internal types used by the FFT filters. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
   /** Type for the parametric kernel source. */
   using KernelSourceType = TKernelSource;
@@ -87,24 +87,27 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ParametricBlindLeastSquaresDeconvolutionImageFilter, IterativeDeconvolutionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ParametricBlindLeastSquaresDeconvolutionImageFilter);
 
   /** Set/get the parametric kernel source. */
+  /** @ITKStartGrouping */
   void
   SetKernelSource(KernelSourceType * kernelSource);
   itkGetModifiableObjectMacro(KernelSource, KernelSourceType);
-
+  /** @ITKEndGrouping */
   /** Set/get the scale factor (also known as learning rate) for the
    * image intensity gradient descent. */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha, double);
   itkGetMacro(Alpha, double);
-
+  /** @ITKEndGrouping */
   /** Set/get the scale factor (also known as learning rate) for the
    * parameter gradient descent. */
+  /** @ITKStartGrouping */
   itkSetMacro(Beta, double);
   itkGetMacro(Beta, double);
-
+  /** @ITKEndGrouping */
 protected:
   ParametricBlindLeastSquaresDeconvolutionImageFilter();
   ~ParametricBlindLeastSquaresDeconvolutionImageFilter() override = default;
@@ -122,17 +125,17 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  KernelSourcePointer m_KernelSource;
+  KernelSourcePointer m_KernelSource{};
 
   /** Step sizes for the gradient descent of the image and the
    * kernel parameters. These are very different spaces, so they
    * deserve different step size parameters. */
-  double m_Alpha;
-  double m_Beta;
+  double m_Alpha{};
+  double m_Beta{};
 
   /** Temporary images. */
-  InternalComplexImagePointerType m_TransformedInput;
-  InternalComplexImagePointerType m_TransformedCurrentEstimate;
+  InternalComplexImagePointerType m_TransformedInput{};
+  InternalComplexImagePointerType m_TransformedCurrentEstimate{};
 
   /** These are the internal filters that perform the updating of the
    * image estimate. */
@@ -140,13 +143,13 @@ private:
                                                            InternalComplexImageType,
                                                            InternalComplexImageType,
                                                            InternalComplexImageType>;
-  typename DifferenceFilterType::Pointer m_DifferenceFilter;
+  typename DifferenceFilterType::Pointer m_DifferenceFilter{};
 
   using ImageUpdateFilterType = TernaryGeneratorImageFilter<InternalComplexImageType,
                                                             InternalComplexImageType,
                                                             InternalComplexImageType,
                                                             InternalComplexImageType>;
-  typename ImageUpdateFilterType::Pointer m_ImageUpdateFilter;
+  typename ImageUpdateFilterType::Pointer m_ImageUpdateFilter{};
 };
 
 } // end namespace itk

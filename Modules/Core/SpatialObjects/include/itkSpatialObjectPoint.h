@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@
 namespace itk
 {
 /**
- *\class SpatialObjectPoint
- * \brief Point used for spatial objets
+ * \class SpatialObjectPoint
+ * \brief Point used for spatial objects
  *
  * This class contains all the functions necessary to define a point
  *
@@ -44,6 +44,8 @@ template <unsigned int TPointDimension = 3>
 class ITK_TEMPLATE_EXPORT SpatialObjectPoint
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(SpatialObjectPoint);
+
   using PointDimensionType = unsigned int;
 
   static constexpr PointDimensionType PointDimension = TPointDimension;
@@ -51,17 +53,11 @@ public:
   /** Constructor. */
   SpatialObjectPoint();
 
-  /** Copy Constructor. */
-  SpatialObjectPoint(const SpatialObjectPoint & other);
-
   /** Default destructor. */
   virtual ~SpatialObjectPoint() = default;
 
-  virtual const char *
-  GetNameOfClass() const
-  {
-    return "SpatialObjectPoint";
-  };
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(SpatialObjectPoint);
 
   using Self = SpatialObjectPoint;
 
@@ -79,7 +75,7 @@ public:
   }
 
   /** Get the SpatialObjectPoint Id. */
-  int
+  [[nodiscard]] int
   GetId() const
   {
     return m_Id;
@@ -103,7 +99,7 @@ public:
   }
 
   /** Return a pointer to the point object. */
-  const PointType &
+  [[nodiscard]] const PointType &
   GetPositionInObjectSpace() const
   {
     return m_PositionInObjectSpace;
@@ -115,7 +111,7 @@ public:
     m_SpatialObject = so;
   }
 
-  SpatialObjectType *
+  [[nodiscard]] SpatialObjectType *
   GetSpatialObject() const
   {
     return m_SpatialObject;
@@ -128,12 +124,8 @@ public:
 
   /** Returns the position in world coordinates, using the
    *    spatialObject's objectToWorld transform */
-  PointType
+  [[nodiscard]] PointType
   GetPositionInWorldSpace() const;
-
-  /** Copy one SpatialObjectPoint to another */
-  Self &
-  operator=(const SpatialObjectPoint & rhs);
 
   /** Set/Get color of the point */
   void
@@ -142,24 +134,24 @@ public:
     m_Color = color;
   }
 
-  ColorType
+  [[nodiscard]] ColorType
   GetColor() const
   {
     return m_Color;
   }
 
-  /** Set the color */
+  /** Set the color of the point. */
   void
   SetColor(double r, double g, double b, double a = 1);
 
-  /** Set/Get red color of the point */
+  /** Set/Get red color of the point. */
   void
   SetRed(double r)
   {
     m_Color.SetRed(r);
   }
 
-  double
+  [[nodiscard]] double
   GetRed() const
   {
     return m_Color.GetRed();
@@ -172,7 +164,7 @@ public:
     m_Color.SetGreen(g);
   }
 
-  double
+  [[nodiscard]] double
   GetGreen() const
   {
     return m_Color.GetGreen();
@@ -185,7 +177,7 @@ public:
     m_Color.SetBlue(b);
   }
 
-  double
+  [[nodiscard]] double
   GetBlue() const
   {
     return m_Color.GetBlue();
@@ -198,7 +190,7 @@ public:
     m_Color.SetAlpha(a);
   }
 
-  double
+  [[nodiscard]] double
   GetAlpha() const
   {
     return m_Color.GetAlpha();
@@ -210,13 +202,13 @@ public:
   bool
   GetTagScalarValue(const std::string & tag, double & value) const;
 
-  double
+  [[nodiscard]] double
   GetTagScalarValue(const std::string & tag) const;
 
   std::map<std::string, double> &
   GetTagScalarDictionary();
 
-  const std::map<std::string, double> &
+  [[nodiscard]] const std::map<std::string, double> &
   GetTagScalarDictionary() const;
 
   void
@@ -235,22 +227,22 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const;
 
   /** A unique ID assigned to this SpatialObjectPoint */
-  int m_Id;
+  int m_Id{};
 
   /** Position of the point */
-  PointType m_PositionInObjectSpace;
+  PointType m_PositionInObjectSpace{};
 
   /** Color of the point */
-  ColorType m_Color;
+  ColorType m_Color{};
 
   /** Additional scalar properties of the point */
-  std::map<std::string, double> m_ScalarDictionary;
+  std::map<std::string, double> m_ScalarDictionary{};
 
 
   // The SpatialObjectPoint keeps a reference to its owning parent
   // spatial object for its spatial context. A WeakPointer is used to
   // avoid a memory leak.
-  WeakPointer<SpatialObjectType> m_SpatialObject;
+  WeakPointer<SpatialObjectType> m_SpatialObject{};
 };
 
 } // end of namespace itk

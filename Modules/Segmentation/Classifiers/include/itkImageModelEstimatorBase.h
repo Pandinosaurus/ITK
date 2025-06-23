@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class ImageModelEstimatorBase
+ * \class ImageModelEstimatorBase
  * \brief Base class for model estimation from images used for classification.
  *
  * itkImageModelEstimatorBase is the base class for the ImageModelEstimator
@@ -72,8 +72,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageModelEstimatorBase, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageModelEstimatorBase);
 
   /** Set the number of classes. */
   itkSetMacro(NumberOfModels, unsigned int);
@@ -94,9 +94,10 @@ public:
   // using TrainingImagePointer = typename TTrainingImage::Pointer;
 
   /** Get/Set the input image. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(InputImage, InputImageType);
   itkGetModifiableObjectMacro(InputImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set the classified image. */
   void
   SetMembershipFunctions(MembershipFunctionPointerVector membershipFunctions)
@@ -125,7 +126,10 @@ public:
     m_MembershipFunctions.resize(0);
   }
 
-  /** Stores a MembershipCalculator of a class in its internal vector */
+  /** Add a membership function corresponding to the class index.
+   *
+   * Stores a MembershipCalculator of a class in its internal vector.
+   */
   unsigned int
   AddMembershipFunction(MembershipFunctionPointer function);
 
@@ -147,12 +151,12 @@ private:
   unsigned int m_NumberOfModels{ 0 };
 
   /** Container to hold the membership functions */
-  MembershipFunctionPointerVector m_MembershipFunctions;
+  MembershipFunctionPointerVector m_MembershipFunctions{};
 
   /**Container for holding the training image */
-  InputImagePointer m_InputImage;
+  InputImagePointer m_InputImage{};
 
-  /** The core virtual function to perform modelling of the input data */
+  /** The core virtual function to perform modeling of the input data */
   virtual void
   EstimateModels() = 0;
 }; // class ImageModelEstimator

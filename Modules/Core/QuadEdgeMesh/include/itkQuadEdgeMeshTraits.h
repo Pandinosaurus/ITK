@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class QuadEdgeMeshTraits
+ * \class QuadEdgeMeshTraits
  *  \brief Class holding the traits of the QuadEdgeMesh.
  *
  *  This class is a variant of the MeshTraits that adds the traits
@@ -34,7 +34,7 @@ namespace itk
  * \author Alexandre Gouaillard, Leonardo Florez-Valencia, Eric Boix
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/122
+ * https://doi.org/10.54294/4mx7kk
  *
  *  \sa DefaultDynamicMeshTraits
  *  \sa DefaultStaticMeshTraits
@@ -44,7 +44,7 @@ template <typename TPixel,
           unsigned int VPointDimension,
           typename TPData,
           typename TDData,
-          typename TCoordRep = float,
+          typename TCoordinate = float,
           typename TInterpolationWeight = float>
 class QuadEdgeMeshTraits
 {
@@ -53,14 +53,18 @@ public:
   using Self = QuadEdgeMeshTraits;
   using PixelType = TPixel;
   using CellPixelType = TPixel;
-  using CoordRepType = TCoordRep;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using InterpolationWeightType = TInterpolationWeight;
 
   static constexpr unsigned int PointDimension = VPointDimension;
   static constexpr unsigned int MaxTopologicalDimension = VPointDimension;
 
-  using PointIdentifier = ::itk::IdentifierType;
-  using CellIdentifier = ::itk::IdentifierType;
+  using PointIdentifier = itk::IdentifierType;
+  using CellIdentifier = itk::IdentifierType;
 
   using CellFeatureIdentifier = unsigned char; // made small in purpose
 
@@ -80,15 +84,15 @@ public:
 
   /** The type of point used for hashing.  This should never change from
    * this setting, regardless of the mesh type. */
-  using PointHashType = Point<CoordRepType, VPointDimension>;
+  using PointHashType = Point<CoordinateType, VPointDimension>;
 
   /** Points have an entry in the Onext ring */
-  using PointType = QuadEdgeMeshPoint<CoordRepType, VPointDimension, QEPrimal>;
+  using PointType = QuadEdgeMeshPoint<CoordinateType, VPointDimension, QEPrimal>;
   using PointsContainer = MapContainer<PointIdentifier, PointType>;
 
   /** Standard cell interface. */
   using CellTraits = QuadEdgeMeshCellTraitsInfo<VPointDimension,
-                                                CoordRepType,
+                                                CoordinateType,
                                                 InterpolationWeightType,
                                                 PointIdentifier,
                                                 CellIdentifier,

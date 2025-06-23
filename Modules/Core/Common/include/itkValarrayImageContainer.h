@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ namespace itk
  *  \brief Defines a front-end to the std\\::\<valarray\> container that conforms to the
  *         ImageContainerInterface.
  *
- * This is a full-fleged Object, so
+ * This is a full-fledged Object, so
  * there is modification time, debug, and reference count information.
  *
  * \tparam TElementIdentifier
@@ -69,6 +69,7 @@ protected:
    * valarray constructors.  These are for internal use only since
    * this is also an Object which must be constructed through the
    * "New()" routine. */
+  /** @ITKStartGrouping */
   ValarrayImageContainer()
     : ValarrayType()
   {}
@@ -81,19 +82,27 @@ protected:
   ValarrayImageContainer(const Self & r)
     : ValarrayType(r)
   {}
-
+  /** @ITKEndGrouping */
 public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(ValarrayImageContainer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ValarrayImageContainer);
 
   /** Index operator. This version can be an lvalue. */
-  TElement & operator[](const ElementIdentifier id) { return this->ValarrayType::operator[](id); }
+  TElement &
+  operator[](const ElementIdentifier id)
+  {
+    return this->ValarrayType::operator[](id);
+  }
 
   /** Index operator. This version can only be an rvalue */
-  const TElement & operator[](const ElementIdentifier id) const { return this->ValarrayType::operator[](id); }
+  const TElement &
+  operator[](const ElementIdentifier id) const
+  {
+    return this->ValarrayType::operator[](id);
+  }
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
@@ -104,10 +113,8 @@ public:
     {
       return &(this->ValarrayType::operator[](0));
     }
-    else
-    {
-      return nullptr;
-    }
+
+    return nullptr;
   }
 
   /** Get the number of elements currently stored in the container. */

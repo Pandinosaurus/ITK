@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -146,11 +146,11 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using FilterType =
     itk::BilateralImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
 
@@ -184,8 +184,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const unsigned int Dimension = InputImageType::ImageDimension;
-  double             domainSigmas[Dimension];
+  constexpr unsigned int Dimension = InputImageType::ImageDimension;
+  double                 domainSigmas[Dimension];
   for (double & domainSigma : domainSigmas)
   {
     domainSigma = std::stod(argv[3]);
@@ -215,7 +215,7 @@ main(int argc, char * argv[])
 
   //  Software Guide : BeginLatex
   //
-  //  The output of the filter is connected here to a intensity rescaler
+  //  The output of the filter is connected here to an intensity rescaler
   //  filter and then to a writer. Invoking \code{Update()} on the writer
   //  triggers the execution of both filters.
   //
@@ -225,12 +225,12 @@ main(int argc, char * argv[])
   using WriteImageType = itk::Image<WritePixelType, 2>;
   using RescaleFilterType =
     itk::RescaleIntensityImageFilter<OutputImageType, WriteImageType>;
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
 
   using WriterType = itk::ImageFileWriter<WriteImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
 
   // Software Guide : BeginCodeSnippet

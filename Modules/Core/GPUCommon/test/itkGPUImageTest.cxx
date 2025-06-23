@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
  * Test program for itkGPUImage class.
  * This program shows how to use GPU image and GPU program.
  */
-//#include "pathToOpenCLSourceCode.h"
+// #include "pathToOpenCLSourceCode.h"
 #include "itkGPUImage.h"
 #include "itkGPUKernelManager.h"
 #include "itkGPUContextManager.h"
@@ -55,9 +55,7 @@ itkGPUImageTest(int argc, char * argv[])
   ItkImage1f::SizeType size;
   size[0] = width;
   size[1] = height;
-  ItkImage1f::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  ItkImage1f::RegionType region{ start, size };
 
   // create
   srcA = ItkImage1f::New();
@@ -72,7 +70,7 @@ itkGPUImageTest(int argc, char * argv[])
 
   dest = ItkImage1f::New();
   dest->SetRegions(region);
-  dest->Allocate(true); // initialize buffer to zero
+  dest->AllocateInitialized();
 
   // check pixel value
   ItkImage1f::IndexType idx;

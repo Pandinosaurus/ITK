@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,8 +43,8 @@ itkMaskImageFilterTest(int, char *[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create two images
-  myImageType1::Pointer inputImageA = myImageType1::New();
-  myImageType2::Pointer inputImageB = myImageType2::New();
+  auto inputImageA = myImageType1::New();
+  auto inputImageB = myImageType2::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -57,20 +57,14 @@ itkMaskImageFilterTest(int, char *[])
   start[1] = 0;
   start[2] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
 
@@ -98,7 +92,9 @@ itkMaskImageFilterTest(int, char *[])
   // Set to mask first 2 pixels and last 2 pixels and leave the rest as is
   std::cout << "Second operand " << std::endl;
   for (unsigned int i = 0; i < 2; ++i, ++it2)
+  {
     it2.Set(0);
+  }
 
   while (!it2.IsAtEnd())
   {
@@ -107,7 +103,9 @@ itkMaskImageFilterTest(int, char *[])
   }
 
   for (unsigned int i = 0; i < 3; ++i, --it2)
+  {
     it2.Set(0);
+  }
 
   it2.GoToBegin();
   while (!it2.IsAtEnd())
@@ -121,7 +119,7 @@ itkMaskImageFilterTest(int, char *[])
 
 
   // Create a mask  Filter
-  myFilterType::Pointer filter = myFilterType::New();
+  auto filter = myFilterType::New();
 
 
   // Connect the input images
@@ -130,7 +128,7 @@ itkMaskImageFilterTest(int, char *[])
   filter->SetOutsideValue(50);
 
   // Get the Smart Pointer to the Filter Output
-  myImageType3::Pointer outputImage = filter->GetOutput();
+  const myImageType3::Pointer outputImage = filter->GetOutput();
 
 
   // Execute the filter
@@ -139,7 +137,7 @@ itkMaskImageFilterTest(int, char *[])
   // Create an iterator for going through the image output
   myIteratorType3 it3(outputImage, outputImage->GetBufferedRegion());
 
-  //  Print the content of the result image
+  // Print the content of the result image
   std::cout << " Result " << std::endl;
   while (!it3.IsAtEnd())
   {
@@ -153,16 +151,14 @@ itkMaskImageFilterTest(int, char *[])
   // Vector image tests
   using myVectorImageType = itk::VectorImage<float, myDimension>;
 
-  myVectorImageType::Pointer inputVectorImage = myVectorImageType::New();
-  inputVectorImage->SetLargestPossibleRegion(region);
-  inputVectorImage->SetBufferedRegion(region);
-  inputVectorImage->SetRequestedRegion(region);
+  auto inputVectorImage = myVectorImageType::New();
+  inputVectorImage->SetRegions(region);
   inputVectorImage->SetNumberOfComponentsPerPixel(3);
   inputVectorImage->Allocate();
 
   using myVectorFilterType = itk::MaskImageFilter<myVectorImageType, myImageType2, myVectorImageType>;
 
-  myVectorFilterType::Pointer vectorFilter = myVectorFilterType::New();
+  auto vectorFilter = myVectorFilterType::New();
   vectorFilter->SetInput1(inputVectorImage);
   vectorFilter->SetMaskImage(inputImageB);
 
@@ -185,8 +181,8 @@ itkMaskImageFilterTest(int, char *[])
   }
 
   // Check that the outside value consists of three zeros.
-  myVectorImageType::PixelType outsideValue3 = vectorFilter->GetOutsideValue();
-  myVectorImageType::PixelType threeZeros(3);
+  const myVectorImageType::PixelType outsideValue3 = vectorFilter->GetOutsideValue();
+  myVectorImageType::PixelType       threeZeros(3);
   threeZeros.Fill(0.0f);
   if (outsideValue3 != threeZeros)
   {
@@ -215,9 +211,7 @@ itkMaskImageFilterTest(int, char *[])
 
   // Add components to image
   inputVectorImage->Initialize();
-  inputVectorImage->SetLargestPossibleRegion(region);
-  inputVectorImage->SetBufferedRegion(region);
-  inputVectorImage->SetRequestedRegion(region);
+  inputVectorImage->SetRegions(region);
   inputVectorImage->SetNumberOfComponentsPerPixel(5);
   inputVectorImage->Allocate();
 
@@ -251,8 +245,8 @@ itkMaskImageFilterTest(int, char *[])
   }
 
   // Check updated outside value.
-  myVectorImageType::PixelType outsideValue5 = vectorFilter->GetOutsideValue();
-  myVectorImageType::PixelType fiveZeros(5);
+  const myVectorImageType::PixelType outsideValue5 = vectorFilter->GetOutsideValue();
+  myVectorImageType::PixelType       fiveZeros(5);
   fiveZeros.Fill(0.0f);
   if (outsideValue5 != fiveZeros)
   {

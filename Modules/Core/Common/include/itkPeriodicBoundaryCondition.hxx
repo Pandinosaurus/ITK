@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,34 +19,31 @@
 #define itkPeriodicBoundaryCondition_hxx
 
 #include "itkConstNeighborhoodIterator.h"
-#include "itkPeriodicBoundaryCondition.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-typename PeriodicBoundaryCondition<TInputImage, TOutputImage>::OutputPixelType
+auto
 PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(const OffsetType &       point_index,
                                                                  const OffsetType &       boundary_offset,
-                                                                 const NeighborhoodType * data) const
+                                                                 const NeighborhoodType * data) const -> OutputPixelType
 {
   // This is guaranteed to be called with an object that is using
   // PeriodicBoundaryCondition
   const auto * iterator = reinterpret_cast<const ConstNeighborhoodIterator<TInputImage, Self> *>(data);
-  typename TInputImage::PixelType * ptr;
-  int                               linear_index = 0;
-  unsigned int                      i;
+  int          linear_index = 0;
 
   // Find the pointer of the closest boundary pixel
 
   // Return the value of the pixel at the closest boundary point.
-  for (i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     linear_index += (point_index[i] + boundary_offset[i]) * data->GetStride(i);
   }
   // (data->operator[](linear_index)) is guaranteed to be a pointer to
   // TInputImage::PixelType except for VectorImage, in which case, it will be a
   // pointer to TInputImage::InternalPixelType.
-  ptr = reinterpret_cast<PixelType *>((data->operator[](linear_index)));
+  auto * ptr = reinterpret_cast<PixelType *>((data->operator[](linear_index)));
 
   // Wrap the pointer around the image in the necessary dimensions.  If we have
   // reached this point, we can assume that we are on the edge of the BUFFERED
@@ -56,7 +53,7 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(const OffsetTyp
   // These are the step sizes for increments in each dimension of the image.
   const typename TInputImage::OffsetValueType * offset_table = iterator->GetImagePointer()->GetOffsetTable();
 
-  for (i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     if (boundary_offset[i] != 0)
     { // If the neighborhood overlaps on the low edge, then wrap from the
@@ -78,30 +75,28 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(const OffsetTyp
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename PeriodicBoundaryCondition<TInputImage, TOutputImage>::OutputPixelType
+auto
 PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(
   const OffsetType &                      point_index,
   const OffsetType &                      boundary_offset,
   const NeighborhoodType *                data,
-  const NeighborhoodAccessorFunctorType & neighborhoodAccessorFunctor) const
+  const NeighborhoodAccessorFunctorType & neighborhoodAccessorFunctor) const -> OutputPixelType
 {
   // This is guaranteed to be called with an object that is using
   // PeriodicBoundaryCondition
   const auto * iterator = reinterpret_cast<const ConstNeighborhoodIterator<TInputImage, Self> *>(data);
-  typename TInputImage::InternalPixelType * ptr;
-  int                                       linear_index = 0;
-  unsigned int                              i;
+  int          linear_index = 0;
 
   // Find the pointer of the closest boundary pixel
   //  std::cout << "Boundary offset = " << boundary_offset << std::endl;
   // std::cout << "point index = " << point_index << std::endl;
 
   // Return the value of the pixel at the closest boundary point.
-  for (i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     linear_index += (point_index[i] + boundary_offset[i]) * data->GetStride(i);
   }
-  ptr = data->operator[](linear_index);
+  typename TInputImage::InternalPixelType * ptr = data->operator[](linear_index);
 
   // Wrap the pointer around the image in the necessary dimensions.  If we have
   // reached this point, we can assume that we are on the edge of the BUFFERED
@@ -111,7 +106,7 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(
   // These are the step sizes for increments in each dimension of the image.
   const typename TInputImage::OffsetValueType * offset_table = iterator->GetImagePointer()->GetOffsetTable();
 
-  for (i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     if (boundary_offset[i] != 0)
     { // If the neighborhood overlaps on the low edge, then wrap from the
@@ -134,10 +129,10 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::operator()(
 
 
 template <typename TInputImage, typename TOutputImage>
-typename PeriodicBoundaryCondition<TInputImage, TOutputImage>::RegionType
+auto
 PeriodicBoundaryCondition<TInputImage, TOutputImage>::GetInputRequestedRegion(
   const RegionType & inputLargestPossibleRegion,
-  const RegionType & outputRequestedRegion) const
+  const RegionType & outputRequestedRegion) const -> RegionType
 {
   IndexType imageIndex = inputLargestPossibleRegion.GetIndex();
   SizeType  imageSize = inputLargestPossibleRegion.GetSize();
@@ -156,9 +151,9 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::GetInputRequestedRegion(
     {
       lowIndex += static_cast<IndexValueType>(imageSize[i]);
     }
-    IndexValueType highIndex = lowIndex + static_cast<IndexValueType>(outputSize[i]);
+    const IndexValueType highIndex = lowIndex + static_cast<IndexValueType>(outputSize[i]);
 
-    bool overlap = (highIndex >= static_cast<IndexValueType>(imageSize[i]));
+    const bool overlap = (highIndex >= static_cast<IndexValueType>(imageSize[i]));
 
     if (overlap)
     {
@@ -173,19 +168,20 @@ PeriodicBoundaryCondition<TInputImage, TOutputImage>::GetInputRequestedRegion(
       inputRequestedSize[i] = outputSize[i];
     }
   }
-  RegionType inputRequestedRegion(inputRequestedIndex, inputRequestedSize);
+  const RegionType inputRequestedRegion(inputRequestedIndex, inputRequestedSize);
 
   return inputRequestedRegion;
 }
 
 
 template <typename TInputImage, typename TOutputImage>
-typename PeriodicBoundaryCondition<TInputImage, TOutputImage>::OutputPixelType
+auto
 PeriodicBoundaryCondition<TInputImage, TOutputImage>::GetPixel(const IndexType & index, const TInputImage * image) const
+  -> OutputPixelType
 {
-  RegionType imageRegion = image->GetLargestPossibleRegion();
-  IndexType  imageIndex = imageRegion.GetIndex();
-  SizeType   imageSize = imageRegion.GetSize();
+  const RegionType imageRegion = image->GetLargestPossibleRegion();
+  IndexType        imageIndex = imageRegion.GetIndex();
+  SizeType         imageSize = imageRegion.GetSize();
 
   IndexType lookupIndex;
 

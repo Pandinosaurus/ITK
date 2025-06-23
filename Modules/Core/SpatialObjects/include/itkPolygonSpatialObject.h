@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class PolygonSpatialObject
+ * \class PolygonSpatialObject
  *
  * \brief TODO
  * \ingroup ITKSpatialObjects
@@ -43,9 +43,9 @@ public:
   using PolygonPointType = SpatialObjectPoint<TDimension>;
   using PolygonPointListType = std::vector<PolygonPointType>;
 
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using SpatialObjectPointType = typename Superclass::SpatialObjectPointType;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::SpatialObjectPointType;
 
   using ObjectDimensionType = unsigned int;
   static constexpr ObjectDimensionType ObjectDimension = TDimension;
@@ -53,8 +53,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(PolygonSpatialObject, PointBasedSpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolygonSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -109,10 +109,10 @@ protected:
   InternalClone() const override;
 
 private:
-  mutable bool             m_IsClosed;
-  mutable int              m_OrientationInObjectSpace;
-  mutable ModifiedTimeType m_OrientationInObjectSpaceMTime;
-  double                   m_ThicknessInObjectSpace;
+  mutable bool             m_IsClosed{};
+  mutable int              m_OrientationInObjectSpace{};
+  mutable ModifiedTimeType m_OrientationInObjectSpaceMTime{};
+  double                   m_ThicknessInObjectSpace{};
 };
 
 } // namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,8 @@ itkSampleToHistogramFilterTest2(int, char *[])
   using HistogramSizeType = FilterType::HistogramSizeType;
   using HistogramMeasurementVectorType = FilterType::HistogramMeasurementVectorType;
 
-  FilterType::Pointer filter = FilterType::New();
-  SampleType::Pointer sample = SampleType::New();
+  auto filter = FilterType::New();
+  auto sample = SampleType::New();
 
   HistogramMeasurementVectorType minimum(numberOfComponents);
   HistogramMeasurementVectorType maximum(numberOfComponents);
@@ -62,13 +62,13 @@ itkSampleToHistogramFilterTest2(int, char *[])
   sample->SetMeasurementVectorSize(numberOfComponents);
 
   // Populate the Sample
-  for (unsigned int i = 0; i < histogramSize[0]; i++)
+  for (unsigned int i = 0; i < histogramSize[0]; ++i)
   {
     measure[0] = minimum[0] + 0.5 + i;
-    for (unsigned int j = 0; j < histogramSize[1]; j++)
+    for (unsigned int j = 0; j < histogramSize[1]; ++j)
     {
       measure[1] = minimum[1] + 0.5 + j;
-      for (unsigned int k = 0; k < histogramSize[2]; k++)
+      for (unsigned int k = 0; k < histogramSize[2]; ++k)
       {
         measure[2] = minimum[2] + 0.5 + k;
         sample->PushBack(measure);
@@ -89,7 +89,7 @@ itkSampleToHistogramFilterTest2(int, char *[])
     std::cerr << " of calling SetHistogramSize() in the filter ";
     return EXIT_FAILURE;
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cout << "Expected exception received" << std::endl;
   }

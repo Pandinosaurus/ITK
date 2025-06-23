@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(KernelImageFilter, BoxImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KernelImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -102,7 +102,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** kernel or structuring element to use. */
-  KernelType m_Kernel;
+  KernelType m_Kernel{};
 
 private:
   template <typename T>
@@ -110,7 +110,7 @@ private:
   MakeKernel(const RadiusType & radius, T & kernel)
   {
     kernel.SetRadius(radius);
-    for (typename T::Iterator kit = kernel.Begin(); kit != kernel.End(); kit++)
+    for (typename T::Iterator kit = kernel.Begin(); kit != kernel.End(); ++kit)
     {
       *kit = 1;
     }

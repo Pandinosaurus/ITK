@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,7 @@
 #include "itkComposeImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
 itkMaskedImageToHistogramFilterTest1(int argc, char * argv[])
@@ -32,9 +33,9 @@ itkMaskedImageToHistogramFilterTest1(int argc, char * argv[])
 
   if (argc < 6)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  " << argv[0]
-              << " inputImageFileName inputImageFileName maskImage maskValue outputHistogramFile" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputImageFileName inputImageFileName maskImage maskValue outputHistogramFile" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -47,22 +48,22 @@ itkMaskedImageToHistogramFilterTest1(int argc, char * argv[])
   using VectorImageType = itk::Image<VectorPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
-  ReaderType::Pointer reader3 = ReaderType::New();
+  auto reader3 = ReaderType::New();
   reader3->SetFileName(argv[3]);
 
   using ComposeType = itk::ComposeImageFilter<ImageType, VectorImageType>;
-  ComposeType::Pointer compose = ComposeType::New();
+  auto compose = ComposeType::New();
   compose->SetInput1(reader->GetOutput());
   compose->SetInput2(reader2->GetOutput());
 
   using HistogramFilterType = itk::Statistics::MaskedImageToHistogramFilter<VectorImageType, ImageType>;
-  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+  auto histogramFilter = HistogramFilterType::New();
   histogramFilter->SetInput(compose->GetOutput());
   histogramFilter->SetMaskImage(reader3->GetOutput());
   histogramFilter->SetMaskValue(std::stoi(argv[4]));
@@ -88,44 +89,32 @@ itkMaskedImageToHistogramFilterTest1(int argc, char * argv[])
   //   histogramFilter->SetHistogramSize( size );
 
   // TODO: this Update() shouldn't be needed - remove it.
-  try
-  {
-    histogramFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(histogramFilter->Update());
+
 
   // use a 3D image to check the behavior of HistogramToImageFilter when the image
   // is of greater dimension than the histogram
   using FloatImageType = itk::Image<float, 3>;
   using ImageFilterType = itk::HistogramToLogProbabilityImageFilter<HistogramType, FloatImageType>;
-  ImageFilterType::Pointer imageFilter = ImageFilterType::New();
+  auto imageFilter = ImageFilterType::New();
   imageFilter->SetInput(histogramFilter->GetOutput());
 
   using RescaleType = itk::RescaleIntensityImageFilter<FloatImageType, ImageType>;
-  RescaleType::Pointer rescale = RescaleType::New();
+  auto rescale = RescaleType::New();
   rescale->SetInput(imageFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(rescale->GetOutput());
   writer->SetFileName(argv[5]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   // print the image produced by HistogramToLogProbabilityImageFilter for visual inspection
   imageFilter->GetOutput()->Print(std::cout);
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

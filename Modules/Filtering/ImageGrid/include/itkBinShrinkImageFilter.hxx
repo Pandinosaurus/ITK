@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,10 @@
 #ifndef itkBinShrinkImageFilter_hxx
 #define itkBinShrinkImageFilter_hxx
 
-#include "itkBinShrinkImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
+#include "itkMakeUniqueForOverwrite.h"
+
 #include <numeric>
 #include <functional>
 
@@ -30,7 +31,7 @@ namespace itk
 template <class TInputImage, class TOutputImage>
 BinShrinkImageFilter<TInputImage, TOutputImage>::BinShrinkImageFilter()
 {
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     m_ShrinkFactors[j] = 1;
   }
@@ -45,9 +46,9 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, In
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Shrink Factor: ";
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
-    os << m_ShrinkFactors[j] << " ";
+    os << m_ShrinkFactors[j] << ' ';
   }
   os << std::endl;
 }
@@ -56,9 +57,8 @@ template <class TInputImage, class TOutputImage>
 void
 BinShrinkImageFilter<TInputImage, TOutputImage>::SetShrinkFactors(unsigned int factor)
 {
-  unsigned int j;
-
-  for (j = 0; j < ImageDimension; j++)
+  unsigned int j = 0;
+  for (; j < ImageDimension; ++j)
   {
     if (factor != m_ShrinkFactors[j])
     {
@@ -68,7 +68,7 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::SetShrinkFactors(unsigned int f
   if (j < ImageDimension)
   {
     this->Modified();
-    for (j = 0; j < ImageDimension; j++)
+    for (j = 0; j < ImageDimension; ++j)
     {
       m_ShrinkFactors[j] = factor;
       if (m_ShrinkFactors[j] < 1)
@@ -97,7 +97,7 @@ void
 BinShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  itkDebugMacro(<< "BinShrinkImageFilter executing on region:" << outputRegionForThread);
+  itkDebugMacro("BinShrinkImageFilter executing on region:" << outputRegionForThread);
 
   const InputImageType * inputPtr = this->GetInput();
   OutputImageType *      outputPtr = this->GetOutput();
@@ -106,16 +106,12 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   using OutputPixelType = typename OutputImageType::PixelType;
   using AccumulatePixelType = typename NumericTraits<InputPixelType>::RealType;
 
-  using InputConstIteratorType = ImageScanlineConstIterator<InputImageType>;
-  using OutputIteratorType = ImageScanlineIterator<OutputImageType>;
-
-  InputConstIteratorType inputIterator(inputPtr, inputPtr->GetRequestedRegion());
-  OutputIteratorType     outputIterator(outputPtr, outputRegionForThread);
+  ImageScanlineConstIterator inputIterator(inputPtr, inputPtr->GetRequestedRegion());
 
   // Set up shaped neighbor hood by defining the offsets
-  OutputOffsetType negativeOffset, positiveOffset, iOffset;
-
+  OutputOffsetType negativeOffset;
   negativeOffset[0] = 0;
+  OutputOffsetType positiveOffset;
   positiveOffset[0] = 0;
   for (unsigned int i = 1; i < TInputImage::ImageDimension; ++i)
   {
@@ -124,7 +120,7 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   }
 
   std::vector<OutputOffsetType> offsets;
-  iOffset = negativeOffset;
+  OutputOffsetType              iOffset = negativeOffset;
   while (iOffset[TInputImage::ImageDimension - 1] <= positiveOffset[TInputImage::ImageDimension - 1])
   {
     offsets.push_back(iOffset);
@@ -140,85 +136,75 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   }
 
   // allocate accumulate line
-  const size_t          ln = outputRegionForThread.GetSize(0);
-  AccumulatePixelType * accBuffer = nullptr;
-  accBuffer = new AccumulatePixelType[ln];
+  const size_t ln = outputRegionForThread.GetSize(0);
+  const auto   accBuffer = make_unique_for_overwrite<AccumulatePixelType[]>(ln);
 
-  try
+  // convert the shrink factor for convenient multiplication
+  typename TOutputImage::SizeType factorSize;
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
-    // convert the shrink factor for convenient multiplication
-    typename TOutputImage::SizeType factorSize;
-    for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
+    factorSize[i] = this->GetShrinkFactors()[i];
+  }
+
+  const size_t numSamples = std::accumulate(
+    this->GetShrinkFactors().cbegin(), this->GetShrinkFactors().cend(), size_t{ 1 }, std::multiplies<size_t>());
+  const double inumSamples = 1.0 / static_cast<double>(numSamples);
+
+  TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
+
+  for (ImageScanlineIterator outputIterator(outputPtr, outputRegionForThread); !outputIterator.IsAtEnd();
+       outputIterator.NextLine())
+  {
+    const OutputIndexType outputIndex = outputIterator.GetIndex();
+
+    auto                 offset = offsets.begin();
+    const InputIndexType startInputIndex = outputIndex * factorSize;
+
+    inputIterator.SetIndex(startInputIndex + *offset);
+    for (size_t i = 0; i < ln; ++i)
     {
-      factorSize[i] = this->GetShrinkFactors()[i];
+      accBuffer[i] = inputIterator.Get();
+      ++inputIterator;
+
+      for (size_t j = 1; j < factorSize[0]; ++j)
+      {
+        assert(!inputIterator.IsAtEndOfLine());
+        accBuffer[i] += inputIterator.Get();
+        ++inputIterator;
+      }
     }
 
-    const size_t numSamples = std::accumulate(
-      this->GetShrinkFactors().cbegin(), this->GetShrinkFactors().cend(), size_t(1), std::multiplies<size_t>());
-    const double inumSamples = 1.0 / (double)numSamples;
-
-    TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
-
-    while (!outputIterator.IsAtEnd())
+    while (++offset != offsets.end())
     {
-      const OutputIndexType outputIndex = outputIterator.GetIndex();
-
-      typename std::vector<OutputOffsetType>::const_iterator offset = offsets.begin();
-      const InputIndexType                                   startInputIndex = outputIndex * factorSize;
-
       inputIterator.SetIndex(startInputIndex + *offset);
+      // Note: If the output image is small then we might not split
+      // the fastest direction. So we may not actually be at the start
+      // of the line...
+      // inputIterator.GoToBeginOfLine();
+
       for (size_t i = 0; i < ln; ++i)
       {
-        accBuffer[i] = inputIterator.Get();
-        ++inputIterator;
-
-        for (size_t j = 1; j < factorSize[0]; ++j)
+        for (size_t j = 0; j < factorSize[0]; ++j)
         {
           assert(!inputIterator.IsAtEndOfLine());
           accBuffer[i] += inputIterator.Get();
           ++inputIterator;
         }
       }
-
-      while (++offset != offsets.end())
-      {
-        inputIterator.SetIndex(startInputIndex + *offset);
-        // Note: If the output image is small then we might not split
-        // the fastest direction. So we may not actually be at the start
-        // of the line...
-        // inputIterator.GoToBeginOfLine();
-
-        for (size_t i = 0; i < ln; ++i)
-        {
-          for (size_t j = 0; j < factorSize[0]; ++j)
-          {
-            assert(!inputIterator.IsAtEndOfLine());
-            accBuffer[i] += inputIterator.Get();
-            ++inputIterator;
-          }
-        }
-      }
-
-      for (size_t j = 0; j < ln; ++j)
-      {
-        assert(!outputIterator.IsAtEndOfLine());
-        // this statement is made to work with RGB pixel types
-        accBuffer[j] = accBuffer[j] * inumSamples;
-
-        outputIterator.Set(RoundIfInteger<OutputPixelType>(accBuffer[j]));
-        ++outputIterator;
-      }
-
-      outputIterator.NextLine();
-      progress.Completed(outputRegionForThread.GetSize()[0]);
     }
+
+    for (size_t j = 0; j < ln; ++j)
+    {
+      assert(!outputIterator.IsAtEndOfLine());
+      // this statement is made to work with RGB pixel types
+      accBuffer[j] = accBuffer[j] * inumSamples;
+
+      outputIterator.Set(RoundIfInteger<OutputPixelType>(accBuffer[j]));
+      ++outputIterator;
+    }
+
+    progress.Completed(outputRegionForThread.GetSize()[0]);
   }
-  catch (...)
-  {
-    delete[] accBuffer;
-    throw;
-  }
-  delete[] accBuffer;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -243,16 +229,13 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 
   typename TInputImage::IndexType inputIndex0;
   typename TInputImage::SizeType  inputSize;
-
   for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     inputIndex0[i] = outputRequestedRegionStartIndex[i] * m_ShrinkFactors[i];
     inputSize[i] = outputRequestedRegionSize[i] * m_ShrinkFactors[i];
   }
 
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion.SetIndex(inputIndex0);
-  inputRequestedRegion.SetSize(inputSize);
+  const typename TInputImage::RegionType inputRequestedRegion(inputIndex0, inputSize);
 
   // actually if we need to crop an exceptions should be thrown!
   // inputRequestedRegion.Crop( inputPtr->GetLargestPossibleRegion() );
@@ -294,7 +277,7 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   typename TOutputImage::PointType   outputOrigin;
   typename TOutputImage::IndexType   outputStartIndex;
 
-  for (unsigned int i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     outputSpacing[i] *= m_ShrinkFactors[i];
 
@@ -304,8 +287,8 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
     // Round down so that all output pixels fit input input region
     outputSize[i] = Math::Floor<SizeValueType>(
-      (double)(inputSize[i] - outputStartIndex[i] * m_ShrinkFactors[i] + inputStartIndex[i]) /
-      (double)m_ShrinkFactors[i]);
+      static_cast<double>(inputSize[i] - outputStartIndex[i] * m_ShrinkFactors[i] + inputStartIndex[i]) /
+      static_cast<double>(m_ShrinkFactors[i]));
 
     if (outputSize[i] < 1)
     {
@@ -319,9 +302,7 @@ BinShrinkImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   outputPtr->SetOrigin(outputOrigin);
 
   // Set region
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }

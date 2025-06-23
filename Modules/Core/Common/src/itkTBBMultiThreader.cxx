@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ get_default_num_threads()
 #if __TBB_MIC_OFFLOAD
 #  pragma offload target(mic) out(default_num_threads)
 #endif // __TBB_MIC_OFFLOAD
-  static const size_t default_num_threads =
+  const static size_t default_num_threads =
     tbb::global_control::active_value(tbb::global_control::max_allowed_parallelism);
   return static_cast<int>(default_num_threads);
 }
@@ -47,14 +47,10 @@ namespace itk
 TBBMultiThreader::TBBMultiThreader()
 {
   ThreadIdType defaultThreads = std::max(1u, GetGlobalDefaultNumberOfThreads());
-#if defined(ITKV4_COMPATIBILITY)
-  m_NumberOfWorkUnits = defaultThreads;
-#else
   if (defaultThreads > 1) // one work unit for only one thread
   {
     m_NumberOfWorkUnits = 16 * defaultThreads;
   }
-#endif
 }
 
 TBBMultiThreader::~TBBMultiThreader() = default;
@@ -62,7 +58,7 @@ TBBMultiThreader::~TBBMultiThreader() = default;
 void
 TBBMultiThreader::SetSingleMethod(ThreadFunctionType f, void * data)
 {
-  m_SingleMethod = f;
+  m_SingleMethod = std::move(f);
   m_SingleData = data;
 }
 
@@ -71,7 +67,7 @@ TBBMultiThreader::SingleMethodExecute()
 {
   if (!m_SingleMethod)
   {
-    itkExceptionMacro(<< "No single method set!");
+    itkExceptionMacro("No single method set!");
   }
 
   // Construct TBB static context with only m_MaximumNumberOfThreads threads
@@ -83,7 +79,7 @@ TBBMultiThreader::SingleMethodExecute()
   //   value onto active head of the FIFO stack for 'max_allowed_parallelism'
   //   type, and destruction of the "global_control" object pops
   //   the 'max_allowed_parallelism' type and returns the active value
-  //   to it's original state.
+  //   to its original state.
   tbb::global_control l_SingleMethodExecute_tbb_global_context(
     tbb::global_control::max_allowed_parallelism,
     std::min<int>(tbb_utility::get_default_num_threads(), m_MaximumNumberOfThreads));
@@ -131,7 +127,7 @@ TBBMultiThreader::ParallelizeArray(SizeValueType             firstIndex,
 
   if (firstIndex + 1 < lastIndexPlus1)
   {
-    const unsigned      count = lastIndexPlus1 - firstIndex;
+    const unsigned int  count = lastIndexPlus1 - firstIndex;
     tbb::global_control l_ParallelizeArray_tbb_global_context(
       tbb::global_control::max_allowed_parallelism,
       std::min<int>(tbb_utility::get_default_num_threads(), m_MaximumNumberOfThreads));
@@ -182,10 +178,11 @@ struct TBBImageRegionSplitter : public itk::ImageIORegion
   {
     // The following if statement is primarily used to ensure use of
     // is_splittable_in_proportion to avoid unused variable warning.
-    if (TBBImageRegionSplitter::is_splittable_in_proportion == true)
+    if (TBBImageRegionSplitter::is_splittable_in_proportion)
     {
-      *this = region;                                               // most things will be the same
-      for (int d = int(this->GetImageDimension()) - 1; d >= 0; d--) // prefer to split along highest dimension
+      *this = region; // most things will be the same
+      for (int d = static_cast<int>(this->GetImageDimension()) - 1; d >= 0;
+           d--) // prefer to split along highest dimension
       {
         if (this->GetSize(d) > 1) // split along this dimension
         {
@@ -208,10 +205,10 @@ struct TBBImageRegionSplitter : public itk::ImageIORegion
     itkGenericExceptionMacro("An ImageIORegion could not be split. Region: " << region);
   }
 
-  bool
+  [[nodiscard]] bool
   empty() const
   {
-    for (unsigned d = 0; d < this->GetImageDimension(); ++d)
+    for (unsigned int d = 0; d < this->GetImageDimension(); ++d)
     {
       if (this->GetSize(d) == 0)
       {
@@ -221,10 +218,10 @@ struct TBBImageRegionSplitter : public itk::ImageIORegion
     return false;
   }
 
-  bool
+  [[nodiscard]] bool
   is_divisible() const
   {
-    for (unsigned d = 0; d < this->GetImageDimension(); ++d)
+    for (unsigned int d = 0; d < this->GetImageDimension(); ++d)
     {
       if (this->GetSize(d) > 1)
       {
@@ -259,7 +256,7 @@ TBBMultiThreader::ParallelizeImageRegion(unsigned int         dimension,
   else
   {
     ImageIORegion region(dimension);
-    for (unsigned d = 0; d < dimension; ++d)
+    for (unsigned int d = 0; d < dimension; ++d)
     {
       region.SetIndex(d, index[d]);
       region.SetSize(d, size[d]);

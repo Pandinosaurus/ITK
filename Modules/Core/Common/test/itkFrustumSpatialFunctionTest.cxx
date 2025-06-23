@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkFrustumSpatialFunction.h"
 #include "itkTestingMacros.h"
+#include <set>
 
 
 int
@@ -28,22 +29,21 @@ itkFrustumSpatialFunctionTest(int, char *[])
   constexpr unsigned int PointDimension = 3;
 
   // Define the point coordinate representation type
-  using PointCoordRepType = float;
+  using PointCoordinateType = float;
 
   // Define the point type
-  using PointType = itk::Point<PointCoordRepType, PointDimension>;
+  using PointType = itk::Point<PointCoordinateType, PointDimension>;
 
   // Define the type for the frustum spatial function
   using FrustumSpatialFunctionType = itk::FrustumSpatialFunction<PointDimension, PointType>;
 
   // Create the frustum spatial function
-  FrustumSpatialFunctionType::Pointer frustrumSpatialFunction = FrustumSpatialFunctionType::New();
+  auto frustrumSpatialFunction = FrustumSpatialFunctionType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(frustrumSpatialFunction, FrustumSpatialFunction, InteriorExteriorSpatialFunction);
 
   // Set the frustum properties
-  FrustumSpatialFunctionType::InputType apex;
-  apex.Fill(1.1);
+  auto apex = itk::MakeFilled<FrustumSpatialFunctionType::InputType>(1.1);
 
   frustrumSpatialFunction->SetApex(apex);
   ITK_TEST_SET_GET_VALUE(apex, frustrumSpatialFunction->GetApex());
@@ -56,15 +56,15 @@ itkFrustumSpatialFunctionTest(int, char *[])
   frustrumSpatialFunction->SetBottomPlane(bottomPlane);
   ITK_TEST_SET_GET_VALUE(bottomPlane, frustrumSpatialFunction->GetBottomPlane());
 
-  double angleZ = 36;
+  constexpr double angleZ = 36;
   frustrumSpatialFunction->SetAngleZ(angleZ);
   ITK_TEST_SET_GET_VALUE(angleZ, frustrumSpatialFunction->GetAngleZ());
 
-  double apertureAngleX = 54;
+  constexpr double apertureAngleX = 54;
   frustrumSpatialFunction->SetApertureAngleX(apertureAngleX);
   ITK_TEST_SET_GET_VALUE(apertureAngleX, frustrumSpatialFunction->GetApertureAngleX());
 
-  double apertureAngleY = 120;
+  constexpr double apertureAngleY = 120;
   frustrumSpatialFunction->SetApertureAngleY(apertureAngleY);
   ITK_TEST_SET_GET_VALUE(apertureAngleY, frustrumSpatialFunction->GetApertureAngleY());
 
@@ -200,6 +200,16 @@ itkFrustumSpatialFunctionTest(int, char *[])
     std::cerr << " is inside frustum" << std::endl;
     std::cerr << "Test FAILED ! " << std::endl;
     testStatus = EXIT_FAILURE;
+  }
+
+  // Test streaming enumeration for FrustumSpatialFunctionEnums elements
+  const std::set<itk::FrustumSpatialFunctionEnums::RotationPlane> allRotationPlanes{
+    itk::FrustumSpatialFunctionEnums::RotationPlane::RotateInXZPlane,
+    itk::FrustumSpatialFunctionEnums::RotationPlane::RotateInYZPlane
+  };
+  for (const auto & ee : allRotationPlanes)
+  {
+    std::cout << "STREAMED ENUM VALUE itk::FrustumSpatialFunctionEnums::RotationPlane: " << ee << std::endl;
   }
 
   return testStatus;

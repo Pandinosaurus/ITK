@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ImageToPathFilter
+ * \class ImageToPathFilter
  * \brief Base class for filters that take an image as input and produce an path as output.
  *
  * ImageToPathFilter is the base class for all process objects that output
@@ -34,7 +34,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "ContourExtractor2DImageFilter: A subpixel-precision image isocontour extraction filter."
  * by Pincus Z.
- * https://www.insight-journal.org/browse/publication/72
+ * https://doi.org/10.54294/olkmog
  *
  * \ingroup ImageFilters
  * \ingroup ITKPath
@@ -51,8 +51,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToPathFilter, PathSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToPathFilter);
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;

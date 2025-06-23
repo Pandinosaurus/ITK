@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkExpandImageFilter_hxx
 #define itkExpandImageFilter_hxx
 
-#include "itkExpandImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
@@ -29,13 +28,13 @@ template <typename TInputImage, typename TOutputImage>
 ExpandImageFilter<TInputImage, TOutputImage>::ExpandImageFilter()
 {
   // Set default factors to 1
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     m_ExpandFactors[j] = 1;
   }
 
   // Setup the default interpolator
-  typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
+  auto interp = DefaultInterpolatorType::New();
   m_Interpolator = static_cast<InterpolatorType *>(interp.GetPointer());
 
   this->DynamicMultiThreadingOn();
@@ -48,14 +47,15 @@ ExpandImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inden
 {
   Superclass::PrintSelf(os, indent);
 
-  unsigned int j;
   os << indent << "ExpandFactors: [";
-  for (j = 0; j < ImageDimension - 1; j++)
   {
-    os << m_ExpandFactors[j] << ", ";
+    unsigned int j = 0;
+    for (; j < ImageDimension - 1; ++j)
+    {
+      os << m_ExpandFactors[j] << ", ";
+    }
+    os << m_ExpandFactors[j] << ']' << std::endl;
   }
-  os << m_ExpandFactors[j] << "]" << std::endl;
-
   os << indent << "Interpolator: ";
   os << m_Interpolator.GetPointer() << std::endl;
 }
@@ -67,26 +67,16 @@ template <typename TInputImage, typename TOutputImage>
 void
 ExpandImageFilter<TInputImage, TOutputImage>::SetExpandFactors(const unsigned int factor)
 {
-  unsigned int j;
-
-  for (j = 0; j < ImageDimension; j++)
+  if (ContainerFillWithCheck(m_ExpandFactors, factor, Self::ImageDimension))
   {
-    if (factor != m_ExpandFactors[j])
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
-      break;
-    }
-  }
-  if (j < ImageDimension)
-  {
-    this->Modified();
-    for (j = 0; j < ImageDimension; j++)
-    {
-      m_ExpandFactors[j] = factor;
       if (m_ExpandFactors[j] < 1)
       {
         m_ExpandFactors[j] = 1;
       }
     }
+    this->Modified();
   }
 }
 
@@ -97,7 +87,7 @@ ExpandImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
   if (!m_Interpolator || !this->GetInput())
   {
-    itkExceptionMacro(<< "Interpolator and/or Input not set");
+    itkExceptionMacro("Interpolator and/or Input not set");
   }
 
   // Connect input image to interpolator
@@ -111,12 +101,7 @@ ExpandImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
   // Get the input and output pointers
-  OutputImagePointer outputPtr = this->GetOutput();
-
-  // Iterator for walking the output
-  using OutputIterator = ImageScanlineIterator<TOutputImage>;
-
-  OutputIterator outIt(outputPtr, outputRegionForThread);
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   // Report progress on a per scanline basis
   const SizeValueType ln = outputRegionForThread.GetSize(0);
@@ -126,7 +111,7 @@ ExpandImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   }
 
   // Walk the output region, and interpolate the input image
-  while (!outIt.IsAtEnd())
+  for (ImageScanlineIterator outIt(outputPtr, outputRegionForThread); !outIt.IsAtEnd(); outIt.NextLine())
   {
     const typename OutputImageType::IndexType outputIndex = outIt.GetIndex();
 
@@ -137,12 +122,12 @@ ExpandImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
     // Don't need to check for division by zero because the factors are
     // clamped to be minimum for 1.
     typename InterpolatorType::ContinuousIndexType inputIndex;
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
-      inputIndex[j] = ((double)outputIndex[j] + 0.5) / (double)m_ExpandFactors[j] - 0.5;
+      inputIndex[j] = (static_cast<double>(outputIndex[j]) + 0.5) / static_cast<double>(m_ExpandFactors[j]) - 0.5;
     }
 
-    const double lineDelta = (double)1.0 / (double)m_ExpandFactors[0];
+    const double lineDelta = 1.0 / static_cast<double>(m_ExpandFactors[0]);
 
     for (size_t i = 0; i < ln; ++i)
     {
@@ -157,8 +142,6 @@ ExpandImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
       // scanline.
       inputIndex[0] += lineDelta;
     }
-
-    outIt.NextLine();
   }
 }
 
@@ -178,7 +161,6 @@ ExpandImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   itkAssertInDebugAndIgnoreInReleaseMacro(outputPtr);
 
   // We need to compute the input requested region (size and start index)
-  unsigned int                             i;
   const typename TOutputImage::SizeType &  outputRequestedRegionSize = outputPtr->GetRequestedRegion().GetSize();
   const typename TOutputImage::IndexType & outputRequestedRegionStartIndex = outputPtr->GetRequestedRegion().GetIndex();
 
@@ -189,13 +171,14 @@ ExpandImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
    * inputRequestedSize = (outputRequestedSize / ExpandFactor) + 1)
    * The extra 1 above is to take care of edge effects when streaming.
    */
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
-    inputRequestedRegionSize[i] =
-      (SizeValueType)std::ceil((double)outputRequestedRegionSize[i] / (double)m_ExpandFactors[i]) + 1;
+    inputRequestedRegionSize[i] = (SizeValueType)std::ceil(static_cast<double>(outputRequestedRegionSize[i]) /
+                                                           static_cast<double>(m_ExpandFactors[i])) +
+                                  1;
 
-    inputRequestedRegionStartIndex[i] =
-      (SizeValueType)std::floor((double)outputRequestedRegionStartIndex[i] / (double)m_ExpandFactors[i]);
+    inputRequestedRegionStartIndex[i] = (SizeValueType)std::floor(
+      static_cast<double>(outputRequestedRegionStartIndex[i]) / static_cast<double>(m_ExpandFactors[i]));
   }
 
   typename TInputImage::RegionType inputRequestedRegion;
@@ -238,12 +221,12 @@ ExpandImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
   typename TInputImage::SpacingType inputOriginShift;
 
-  for (unsigned int i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
-    outputSpacing[i] = inputSpacing[i] / (float)m_ExpandFactors[i];
+    outputSpacing[i] = inputSpacing[i] / static_cast<float>(m_ExpandFactors[i]);
     outputSize[i] = inputSize[i] * (SizeValueType)m_ExpandFactors[i];
     outputStartIndex[i] = inputStartIndex[i] * (IndexValueType)m_ExpandFactors[i];
-    const double fraction = (double)(m_ExpandFactors[i] - 1) / (double)m_ExpandFactors[i];
+    const double fraction = static_cast<double>(m_ExpandFactors[i] - 1) / static_cast<double>(m_ExpandFactors[i]);
     inputOriginShift[i] = -(inputSpacing[i] / 2.0) * fraction;
   }
 
@@ -255,9 +238,7 @@ ExpandImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   outputPtr->SetSpacing(outputSpacing);
   outputPtr->SetOrigin(outputOrigin);
 
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }

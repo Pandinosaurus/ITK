@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,11 +27,12 @@
 int
 itkTestingComparisonImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 7)
+  if (argc < 12)
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << itkNameOfTestExecutableMacro(argv);
-    std::cerr << "  inputImageFile1 inputImageFile2 outputImage threshold radius numberOfPixelsWithDifferences"
+    std::cerr << "  inputImageFile1 inputImageFile2 outputImage ignoreBoundaryPixels threshold radius "
+                 "numberOfPixelsWithDifferences minimumDifference maximumDifference meanDifference totalDifference"
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -39,7 +40,7 @@ itkTestingComparisonImageFilterTest(int argc, char * argv[])
 
   // Test using an unsigned integral pixel type and generate a signed
   // integral pixel type
-  using InputPixelType = signed short;
+  using InputPixelType = short;
   using OutputPixelType = unsigned short;
 
   constexpr unsigned int Dimension = 2;
@@ -50,8 +51,8 @@ itkTestingComparisonImageFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader1 = ReaderType::New();
+  auto reader2 = ReaderType::New();
 
   reader1->SetFileName(argv[1]);
   reader2->SetFileName(argv[2]);
@@ -59,13 +60,24 @@ itkTestingComparisonImageFilterTest(int argc, char * argv[])
   // Define the filter
   using FilterType = itk::Testing::ComparisonImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ComparisonImageFilter, ImageToImageFilter);
+
 
   // setup the filter
-  filter->SetDifferenceThreshold(std::stoi(argv[4]));
-  filter->SetToleranceRadius(std::stoi(argv[5]));
+  auto ignoreBoundaryPixels = static_cast<bool>(std::stoi(argv[4]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, IgnoreBoundaryPixels, ignoreBoundaryPixels);
 
-  itk::SimpleFilterWatcher watcher(filter, "Difference");
+  auto differenceThreshold = static_cast<typename FilterType::OutputPixelType>(std::stoi(argv[5]));
+  filter->SetDifferenceThreshold(differenceThreshold);
+  ITK_TEST_SET_GET_VALUE(differenceThreshold, filter->GetDifferenceThreshold());
+
+  const int toleranceRadius = std::stoi(argv[6]);
+  filter->SetToleranceRadius(toleranceRadius);
+  ITK_TEST_SET_GET_VALUE(toleranceRadius, filter->GetToleranceRadius());
+
+  const itk::SimpleFilterWatcher watcher(filter, "Difference");
 
   // wire the pipeline
   filter->SetValidInput(reader1->GetOutput());
@@ -74,7 +86,7 @@ itkTestingComparisonImageFilterTest(int argc, char * argv[])
   // Write the output
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(filter->GetOutput());
 
@@ -82,10 +94,34 @@ itkTestingComparisonImageFilterTest(int argc, char * argv[])
 
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-  unsigned long numberOfPixelsWithDifferences = filter->GetNumberOfPixelsWithDifferences();
+  const unsigned long numberOfPixelsWithDifferences = filter->GetNumberOfPixelsWithDifferences();
 
-  char * end;
-  ITK_TEST_EXPECT_EQUAL(numberOfPixelsWithDifferences, std::strtoul(argv[6], &end, 10));
+  char * end = nullptr;
+  ITK_TEST_EXPECT_EQUAL(numberOfPixelsWithDifferences, std::strtoul(argv[7], &end, 10));
+
+  auto minimumDifference = static_cast<typename FilterType::OutputPixelType>(std::stod(argv[8]));
+  ITK_TEST_EXPECT_EQUAL(minimumDifference, filter->GetMinimumDifference());
+
+  auto maximumDifference = static_cast<typename FilterType::OutputPixelType>(std::stod(argv[9]));
+  ITK_TEST_EXPECT_EQUAL(maximumDifference, filter->GetMaximumDifference());
+
+  auto meanDifference = static_cast<typename FilterType::RealType>(std::stod(argv[10]));
+
+  constexpr double epsilon = 1e-4;
+  std::cout.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+  if (!itk::Math::FloatAlmostEqual(meanDifference, filter->GetMeanDifference(), 10, epsilon))
+  {
+    std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in GetMeanDifference" << std::endl;
+    std::cerr << "Expected value " << meanDifference << std::endl;
+    std::cerr << " differs from " << filter->GetMeanDifference();
+    std::cerr << " by more than " << epsilon << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  auto totalDifference = static_cast<typename FilterType::AccumulateType>(std::stod(argv[11]));
+  ITK_TEST_EXPECT_EQUAL(totalDifference, filter->GetTotalDifference());
 
   // Change test input spacing to test that comparison filter fails if spacings are different
   InputImageType::SpacingType spacing;

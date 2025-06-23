@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,27 +21,30 @@
 #include "itkConfigure.h"
 #include <mutex>
 
+namespace
+{
 std::shared_ptr<std::mutex> sharedMutex;
 bool                        debugPrint = false;
+} // namespace
 
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 execute(void * ptr)
 {
   // Here - get any args from ptr.
-  auto * threadInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(ptr);
+  auto * workUnitInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(ptr);
 
-  auto * data = static_cast<int *>(threadInfo->UserData);
+  auto * data = static_cast<int *>(workUnitInfo->UserData);
 
   sharedMutex->lock();
   if (debugPrint)
   {
-    std::cout << "Pointer:" << ptr << "  Value: " << *data << "  WUID: " << threadInfo->WorkUnitID << std::endl;
+    std::cout << "Pointer:" << ptr << "  Value: " << *data << "  WUID: " << workUnitInfo->WorkUnitID << std::endl;
   }
   sharedMutex->unlock();
 
-  int    n = 10;
-  int    m = *data;
-  double sum = 1.0;
+  constexpr int n = 10;
+  const int     m = *data;
+  double        sum = 1.0;
 
   for (int j = 0; j < m; ++j)
   {
@@ -74,20 +77,20 @@ itkMultithreadingTest(int argc, char * argv[])
     debugPrint = std::stoi(argv[2]);
   }
 
-  itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+  const itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
   if (threader.IsNull())
   {
     return EXIT_FAILURE;
   }
-  itk::TimeProbe                timeProbe;
-  itk::TimeProbe::TimeStampType startTime = timeProbe.GetInstantValue();
-  int                           data = 123;
+  const itk::TimeProbe                timeProbe;
+  const itk::TimeProbe::TimeStampType startTime = timeProbe.GetInstantValue();
+  int                                 data = 123;
   for (int i = 0; i < count; ++i)
   {
     threader->SetSingleMethod(&execute, &data);
     threader->SingleMethodExecute();
   }
-  itk::TimeProbe::TimeStampType elapsed = timeProbe.GetInstantValue() - startTime;
+  const itk::TimeProbe::TimeStampType elapsed = timeProbe.GetInstantValue() - startTime;
   std::cout << std::endl << " Thread pool test : Time elapsed : " << elapsed << std::endl;
 
   return EXIT_SUCCESS;

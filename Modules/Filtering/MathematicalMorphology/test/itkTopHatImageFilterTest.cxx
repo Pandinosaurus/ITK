@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,10 +38,10 @@ itkTopHatImageFilterTestHelper(TKernelImageFilter *                             
 {
   // Declare the reader and writer
   using ReaderType = itk::ImageFileReader<typename TKernelImageFilter::InputImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputFileName);
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   ITK_TEST_SET_GET_BOOLEAN(filter, SafeBorder, safeBorder);
 
@@ -61,7 +61,7 @@ itkTopHatImageFilterTestHelper(TKernelImageFilter *                             
 
   // Write output
   using WriterType = itk::ImageFileWriter<typename TKernelImageFilter::OutputImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputFileName);
   writer->SetInput(filter->GetOutput());
 
@@ -125,7 +125,7 @@ itkTopHatImageFilterTest(int argc, char * argv[])
     {
       // Create the filter
       using BlackFilterType = itk::BlackTopHatImageFilter<ImageType, ImageType, KernelType>;
-      BlackFilterType::Pointer filter = BlackFilterType::New();
+      auto filter = BlackFilterType::New();
 
       ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BlackTopHatImageFilter, KernelImageFilter);
 
@@ -140,7 +140,7 @@ itkTopHatImageFilterTest(int argc, char * argv[])
     {
       // Create the filter
       using WhiteFilterType = itk::WhiteTopHatImageFilter<ImageType, ImageType, KernelType>;
-      WhiteFilterType::Pointer filter = WhiteFilterType::New();
+      auto filter = WhiteFilterType::New();
 
       ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, WhiteTopHatImageFilter, KernelImageFilter);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class PNGImageIOFactory
+ * \class PNGImageIOFactory
  * \brief Create instances of PNGImageIO objects using an object factory.
  * \ingroup ITKIOPNG
  */
@@ -55,14 +55,14 @@ public:
   {
     return new PNGImageIOFactory;
   }
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PNGImageIOFactory, ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PNGImageIOFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    PNGImageIOFactory::Pointer pngFactory = PNGImageIOFactory::New();
+    auto pngFactory = PNGImageIOFactory::New();
 
     ObjectFactoryBase::RegisterFactoryInternal(pngFactory);
   }

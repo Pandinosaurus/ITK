@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,11 +37,10 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   using ImageType = itk::Image<MeasurementVectorType, MeasurementVectorSize>;
   using MaskImageType = itk::Image<unsigned char, MeasurementVectorSize>;
 
-  ImageType::Pointer    image = ImageType::New();
-  ImageType::RegionType region;
-  ImageType::SizeType   size;
-  ImageType::IndexType  index;
-  index.Fill(0);
+  auto                           image = ImageType::New();
+  ImageType::RegionType          region;
+  ImageType::SizeType            size;
+  constexpr ImageType::IndexType index{};
   size.Fill(5);
   region.SetIndex(index);
   region.SetSize(size);
@@ -54,8 +53,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   ImageIterator iter(image, region);
 
   unsigned int          count = 0;
-  MeasurementVectorType temp;
-  temp.Fill(0);
+  MeasurementVectorType temp{};
 
   // fill the image
   while (!iter.IsAtEnd())
@@ -71,7 +69,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   // creates an ImageToListSampleAdaptor object
   using ImageToListSampleFilterType = itk::Statistics::ImageToListSampleFilter<ImageType, MaskImageType>;
 
-  ImageToListSampleFilterType::Pointer sampleGeneratingFilter = ImageToListSampleFilterType::New();
+  auto sampleGeneratingFilter = ImageToListSampleFilterType::New();
 
   sampleGeneratingFilter->SetInput(image);
 
@@ -89,7 +87,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   using StandardDeviationPerComponentSampleFilterType =
     itk::Statistics::StandardDeviationPerComponentSampleFilter<ListSampleType>;
 
-  StandardDeviationPerComponentSampleFilterType::Pointer standardDeviationFilter =
+  const StandardDeviationPerComponentSampleFilterType::Pointer standardDeviationFilter =
     StandardDeviationPerComponentSampleFilterType::New();
 
   std::cout << standardDeviationFilter->GetNameOfClass() << std::endl;
@@ -98,9 +96,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   try
   {
     standardDeviationFilter->Update();
-    std::cerr << "Exception should have been thrown since \
-                 Update() is invoked without setting an input "
-              << std::endl;
+    std::cerr << "Exception should have been thrown since Update() is invoked without setting an input " << std::endl;
     return EXIT_FAILURE;
   }
   catch (const itk::ExceptionObject & excp)
@@ -112,9 +108,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
 
   if (standardDeviationFilter->GetInput() != nullptr)
   {
-    std::cerr << "GetInput() should return nullptr if the input \
-                     has not been set"
-              << std::endl;
+    std::cerr << "GetInput() should return nullptr if the input has not been set" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -131,7 +125,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
 
   standardDeviationFilter->Print(std::cout);
 
-  const double epsilon = 1e-6;
+  constexpr double epsilon = 1e-6;
 
   // CHECK THE RESULTS
   using MeasurementVectorRealType = StandardDeviationPerComponentSampleFilterType::MeasurementVectorRealType;
@@ -155,15 +149,14 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
       (itk::Math::abs(standardDeviation[1] - standardDeviation2[1]) > epsilon) ||
       (itk::Math::abs(standardDeviation[2] - standardDeviation2[2]) > epsilon))
   {
-    std::cerr << "Standard Deviation value retrieved using Get() and the decorator\
-                  are not the same:: "
-              << standardDeviation << "," << standardDeviation2 << std::endl;
+    std::cerr << "Standard Deviation value retrieved using Get() and the decorator are not the same:: "
+              << standardDeviation << ',' << standardDeviation2 << std::endl;
     return EXIT_FAILURE;
   }
 
 
   using CovarianceSampleFilterType = itk::Statistics::CovarianceSampleFilter<ListSampleType>;
-  CovarianceSampleFilterType::Pointer covarianceFilter = CovarianceSampleFilterType::New();
+  auto covarianceFilter = CovarianceSampleFilterType::New();
   covarianceFilter->SetInput(sampleGeneratingFilter->GetOutput());
 
   try
@@ -182,8 +175,8 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
       (itk::Math::abs(meanCalculatedUsingCovarianceSampleFilter[1] - mean[1]) > epsilon) ||
       (itk::Math::abs(meanCalculatedUsingCovarianceSampleFilter[2] - mean[2]) > epsilon))
   {
-    std::cerr << "Mean calculated using the CovarianceSampleFilter is different from\
-                 the one calculated using the StandardDeviationPerComponentSampleFilter "
+    std::cerr << "Mean calculated using the CovarianceSampleFilter is different from the one calculated using the "
+                 "StandardDeviationPerComponentSampleFilter "
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -191,7 +184,7 @@ itkStandardDeviationPerComponentSampleFilterTest(int, char *[])
   CovarianceSampleFilterType::MatrixType covarianceCalculatedUsingCovarianceSampleFilter =
     covarianceFilter->GetCovarianceMatrix();
 
-  for (unsigned int k = 0; k < MeasurementVectorSize; k++)
+  for (unsigned int k = 0; k < MeasurementVectorSize; ++k)
   {
     const double variance = covarianceCalculatedUsingCovarianceSampleFilter(k, k);
     const double standardDeviationValue = std::sqrt(variance);

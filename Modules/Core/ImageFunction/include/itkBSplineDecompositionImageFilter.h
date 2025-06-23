@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,24 +38,12 @@
 namespace itk
 {
 /**
- *\class BSplineDecompositionImageFilter
+ * \class BSplineDecompositionImageFilter
  * \brief Calculates the B-Spline coefficients of an image. Spline order may be from 0 to 5.
  *
  * This class defines N-Dimension B-Spline transformation.
- * It is based on:
- *    [1] M. Unser,
- *       "Splines: A Perfect Fit for Signal and Image Processing,"
- *        IEEE Signal Processing Magazine, vol. 16, no. 6, pp. 22-38,
- *        November 1999.
- *    [2] M. Unser, A. Aldroubi and M. Eden,
- *        "B-Spline Signal Processing: Part I--Theory,"
- *        IEEE Transactions on Signal Processing, vol. 41, no. 2, pp. 821-832,
- *        February 1993.
- *    [3] M. Unser, A. Aldroubi and M. Eden,
- *        "B-Spline Signal Processing: Part II--Efficient Design and Applications,"
- *        IEEE Transactions on Signal Processing, vol. 41, no. 2, pp. 834-848,
- *        February 1993.
- * And code obtained from bigwww.epfl.ch by Philippe Thevenaz
+ * It is based on \cite unser1999, \cite unser1993 and \cite unser1993a.
+ * Code obtained from bigwww.epfl.ch by Philippe Thevenaz
  *
  * Limitations:  Spline order must be between 0 and 5.
  *               Spline order must be set before setting the image.
@@ -82,17 +70,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineDecompositionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineDecompositionImageFilter);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** Inherit input and output image types from Superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::OutputImagePointer;
 
   using CoeffType = typename itk::NumericTraits<typename TOutputImage::PixelType>::RealType;
 
@@ -110,23 +98,19 @@ public:
   void
   SetSplineOrder(unsigned int SplineOrder);
 
-  itkGetConstMacro(SplineOrder, int);
+  itkGetConstMacro(SplineOrder, unsigned int);
 
   /** Get the poles calculated for a given spline order. */
   itkGetConstMacro(SplinePoles, SplinePolesVectorType);
 
   /** Get the number of poles. */
-  itkGetConstMacro(NumberOfPoles, int);
+  itkGetConstMacro(NumberOfPoles, unsigned int);
 
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(DimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   BSplineDecompositionImageFilter();
@@ -188,17 +172,17 @@ private:
   // Variables needed by the smoothing spline routine.
 
   /** Temporary storage for processing of Coefficients. */
-  CoefficientsVectorType m_Scratch;
+  CoefficientsVectorType m_Scratch{};
 
   /** Image size. */
-  typename TInputImage::SizeType m_DataLength;
+  typename TInputImage::SizeType m_DataLength{};
 
   /** User specified spline order (3rd or cubic is the default). */
   unsigned int m_SplineOrder{ 0 };
 
-  SplinePolesVectorType m_SplinePoles;
+  SplinePolesVectorType m_SplinePoles{};
 
-  int m_NumberOfPoles;
+  unsigned int m_NumberOfPoles{};
 
   /** Tolerance used for determining initial causal coefficient. Default is 1e-10.*/
   double m_Tolerance{ 1e-10 };

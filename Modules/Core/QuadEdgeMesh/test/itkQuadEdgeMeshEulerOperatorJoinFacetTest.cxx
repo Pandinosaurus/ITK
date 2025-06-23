@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,11 @@
 
 #include "itkQuadEdgeMeshEulerOperatorJoinFacetFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkTestingMacros.h"
 
 int
-itkQuadEdgeMeshEulerOperatorJoinFacetTest(int argc, char * argv[])
+itkQuadEdgeMeshEulerOperatorJoinFacetTest(int, char *[])
 {
-  (void)argc;
-  (void)argv;
 
   using MeshType = itk::QuadEdgeMesh<double, 3>;
   using MeshPointer = MeshType::Pointer;
@@ -32,7 +31,7 @@ itkQuadEdgeMeshEulerOperatorJoinFacetTest(int argc, char * argv[])
   using JoinFacet = itk::QuadEdgeMeshEulerOperatorJoinFacetFunction<MeshType, QEType>;
 
   // EULER OPERATOR TESTS
-  MeshPointer mesh = MeshType::New();
+  const MeshPointer mesh = MeshType::New();
   CreateSquareTriangularMesh<MeshType>(mesh);
 
   // The initial configuration and numbering of simpleSquare.vtk:
@@ -68,7 +67,11 @@ itkQuadEdgeMeshEulerOperatorJoinFacetTest(int argc, char * argv[])
 
   std::cout << "Checking JointFacet." << std::endl;
 
-  JoinFacet::Pointer joinFacet = JoinFacet::New();
+  auto joinFacet = JoinFacet::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(joinFacet, QuadEdgeMeshEulerOperatorJoinFacetFunction, QuadEdgeMeshFunctionBase);
+
+
 #ifndef NDEBUG
   std::cout << "     "
             << "Test No Mesh Input";
@@ -80,14 +83,15 @@ itkQuadEdgeMeshEulerOperatorJoinFacetTest(int argc, char * argv[])
   std::cout << "OK" << std::endl;
 #endif
 
-  (void)joinFacet->GetNameOfClass();
+  ITK_TEST_EXPECT_EQUAL(std::string_view("QuadEdgeMeshEulerOperatorJoinFacetFunction"),
+                        std::string_view(joinFacet->GetNameOfClass()));
 
   joinFacet->SetInput(mesh);
 
 #ifndef NDEBUG
   std::cout << "     "
             << "Test QE Input not internal";
-  QEType * dummy = new QEType;
+  auto * dummy = new QEType;
   if (joinFacet->Evaluate(dummy))
   {
     std::cout << "FAILED." << std::endl;

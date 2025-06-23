@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,26 +17,34 @@
  *=========================================================================*/
 
 #include "itkFastMarchingThresholdStoppingCriterion.h"
+#include "itkTestingMacros.h"
 
 int
 itkFastMarchingThresholdStoppingCriterionTest(int, char *[])
 {
-  using ImageType = itk::Image<float, 2>;
+  using PixelType = float;
+  constexpr unsigned int Dimension2D = 2;
+
+  using ImageType = itk::Image<PixelType, Dimension2D>;
 
   using ImageStoppingCriterionType = itk::FastMarchingThresholdStoppingCriterion<ImageType, ImageType>;
 
-  ImageStoppingCriterionType::Pointer image_criterion = ImageStoppingCriterionType::New();
-  if (image_criterion.IsNull())
-  {
-    return EXIT_FAILURE;
-  }
+  auto imageCriterion = ImageStoppingCriterionType::New();
 
-  using MeshType = itk::QuadEdgeMesh<float, 3>;
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    imageCriterion, FastMarchingThresholdStoppingCriterion, FastMarchingStoppingCriterionBase);
+
+
+  std::cout << "Description: " << imageCriterion->GetDescription() << std::endl;
+
+  constexpr unsigned int Dimension3D = 3;
+  using MeshType = itk::QuadEdgeMesh<PixelType, Dimension3D>;
 
   using MeshStoppingCriterionType = itk::FastMarchingThresholdStoppingCriterion<MeshType, MeshType>;
 
-  MeshStoppingCriterionType::Pointer mesh_criterion = MeshStoppingCriterionType::New();
-  if (mesh_criterion.IsNull())
+  auto meshCriterion = MeshStoppingCriterionType::New();
+
+  if (meshCriterion.IsNull())
   {
     return EXIT_FAILURE;
   }

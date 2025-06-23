@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,15 +21,9 @@
 namespace itk
 {
 
-OpenCVVideoIO::OpenCVVideoIO()
-{
-  this->ResetMembers();
-}
+OpenCVVideoIO::OpenCVVideoIO() { this->ResetMembers(); }
 
-OpenCVVideoIO::~OpenCVVideoIO()
-{
-  this->FinishReadingOrWriting();
-}
+OpenCVVideoIO::~OpenCVVideoIO() { this->FinishReadingOrWriting(); }
 
 void
 OpenCVVideoIO::FinishReadingOrWriting()
@@ -137,7 +131,7 @@ OpenCVVideoIO::CanReadFile(const char * filename)
   std::string fname = filename;
   if (fname == "")
   {
-    itkDebugMacro(<< "NoFilename specified");
+    itkDebugMacro("NoFilename specified");
     return false;
   }
 
@@ -159,7 +153,7 @@ OpenCVVideoIO::CanReadFile(const char * filename)
   }
   if (!extensionFound)
   {
-    itkDebugMacro(<< "Unrecognized file extension");
+    itkDebugMacro("Unrecognized file extension");
     return false;
   }
 
@@ -206,7 +200,7 @@ OpenCVVideoIO::ReadImageInformation()
     std::string filename = this->GetFileName();
     if (!this->CanReadFile(filename.c_str()))
     {
-      itkExceptionMacro(<< "Cannot read file: " << filename);
+      itkExceptionMacro("Cannot read file: " << filename);
     }
 
     // Open the video file
@@ -218,7 +212,7 @@ OpenCVVideoIO::ReadImageInformation()
       static_cast<OpenCVVideoIO::FrameOffsetType>(cvGetCaptureProperty(localCapture, CV_CAP_PROP_FRAME_COUNT));
 
     // Try to figure out if there are I-Frame issues we need to worry about
-    // and compensate accrodingly
+    // and compensate accordingly
     if (this->m_FrameTotal > 0)
     {
       // Try setting frame to 1 and see what actually gets set
@@ -229,17 +223,18 @@ OpenCVVideoIO::ReadImageInformation()
 
       if (this->m_IFrameInterval == 0)
       {
-        itkExceptionMacro(<< " I-Frame spacing for this video is zero! Please check input data.");
+        itkExceptionMacro(" I-Frame spacing for this video is zero! Please check input data.");
       }
 
-      this->m_LastIFrame = (OpenCVVideoIO::FrameOffsetType)((float)this->m_FrameTotal / (float)this->m_IFrameInterval) *
+      this->m_LastIFrame = (OpenCVVideoIO::FrameOffsetType)(static_cast<float>(this->m_FrameTotal) /
+                                                            static_cast<float>(this->m_IFrameInterval)) *
                              this->m_IFrameInterval -
                            1; // Frame index should be 0-based index
 
       // If the I-Frame spacing is not 1, warn the user
       if (this->m_IFrameInterval != 1)
       {
-        itkWarningMacro(<< "OpenCV can only seek to I-Frames. I-Frame spacing for this video is "
+        itkWarningMacro("OpenCV can only seek to I-Frames. I-Frame spacing for this video is "
                         << this->m_IFrameInterval << ". Last I-Frame is " << this->m_LastIFrame);
       }
     }
@@ -255,7 +250,7 @@ OpenCVVideoIO::ReadImageInformation()
     // Make sure it opened right
     if (!localCapture)
     {
-      itkExceptionMacro(<< "Cannot read from camera " << this->m_CameraIndex);
+      itkExceptionMacro("Cannot read from camera " << this->m_CameraIndex);
     }
 
     // Query the frame
@@ -265,7 +260,7 @@ OpenCVVideoIO::ReadImageInformation()
     if (!tempImage)
     {
       cvReleaseCapture(&localCapture);
-      itkExceptionMacro(<< "Empty image got from camera " << this->m_CameraIndex);
+      itkExceptionMacro("Empty image got from camera " << this->m_CameraIndex);
     }
 
     // Set the frame total to 1
@@ -275,7 +270,7 @@ OpenCVVideoIO::ReadImageInformation()
   // Should never get here
   else
   {
-    itkExceptionMacro(<< "Invalid Read Type... How did we get here?");
+    itkExceptionMacro("Invalid Read Type... How did we get here?");
   }
 
   // Populate member variables
@@ -316,7 +311,7 @@ OpenCVVideoIO::Read(void * buffer)
   // Make sure we've already called ReadImageInformation (dimensions are non-zero)
   if (this->m_Dimensions[0] == 0 || this->m_Dimensions[1] == 0)
   {
-    itkExceptionMacro(<< "Cannot read frame with zero dimension. May need to call ReadImageInformation");
+    itkExceptionMacro("Cannot read frame with zero dimension. May need to call ReadImageInformation");
   }
 
   // If video is not already open, open it and keep it open
@@ -334,7 +329,7 @@ OpenCVVideoIO::Read(void * buffer)
   IplImage * tempIm = cvQueryFrame(this->m_Capture);
   if (tempIm == nullptr)
   {
-    itkExceptionMacro(<< "Error reading frame " << this->m_CurrentFrame << ". May be out of bounds");
+    itkExceptionMacro("Error reading frame " << this->m_CurrentFrame << ". May be out of bounds");
   }
 
   // Convert to RGB rather than BGR
@@ -349,7 +344,7 @@ OpenCVVideoIO::Read(void * buffer)
   this->UpdateReaderProperties();
 
   // Put the frame's buffer into the supplied output buffer
-  void * tempBuffer = reinterpret_cast<void *>(this->m_CVImage->imageData);
+  auto * tempBuffer = reinterpret_cast<void *>(this->m_CVImage->imageData);
   size_t bufferSize = this->m_CVImage->imageSize;
   memcpy(buffer, tempBuffer, bufferSize);
 }
@@ -366,7 +361,7 @@ OpenCVVideoIO::SetNextFrameToRead(OpenCVVideoIO::FrameOffsetType frameNumber)
   // Make sure we're not setting past the end
   if (frameNumber > this->m_LastIFrame)
   {
-    itkDebugMacro(<< "Warning: Trying to seek past end of video (past last I-Frame)");
+    itkDebugMacro("Warning: Trying to seek past end of video (past last I-Frame)");
     return false;
   }
 
@@ -388,7 +383,7 @@ OpenCVVideoIO::CanWriteFile(const char * filename)
   // Make sure reader is closed
   if (this->m_ReaderOpen)
   {
-    itkWarningMacro(<< "Can't write anything if reader is open");
+    itkWarningMacro("Can't write anything if reader is open");
     return false;
   }
 
@@ -396,7 +391,7 @@ OpenCVVideoIO::CanWriteFile(const char * filename)
   std::string fname = filename;
   if (fname == "")
   {
-    itkWarningMacro(<< "No Filename specified");
+    itkWarningMacro("No Filename specified");
     return false;
   }
 
@@ -418,7 +413,7 @@ OpenCVVideoIO::CanWriteFile(const char * filename)
   }
   if (!extensionFound)
   {
-    itkWarningMacro(<< "Unrecognized file extension " << fname);
+    itkWarningMacro("Unrecognized file extension " << fname);
     return false;
   }
 
@@ -436,7 +431,7 @@ OpenCVVideoIO::SetWriterParameters(TemporalRatioType                  fps,
                                    const std::vector<SizeValueType> & dim,
                                    const char *                       fourCC,
                                    unsigned int                       nChannels,
-                                   IOComponentType                    componentType)
+                                   IOComponentEnum                    componentType)
 {
   if (this->m_ReaderOpen || this->m_WriterOpen)
   {
@@ -444,7 +439,7 @@ OpenCVVideoIO::SetWriterParameters(TemporalRatioType                  fps,
   }
 
   // Make sure componentType is acceptable (right now we only support char)
-  if (componentType != UCHAR)
+  if (componentType != IOComponentEnum::UCHAR)
   {
     itkExceptionMacro("OpenCV IO only supports writing video with pixels of UCHAR");
   }
@@ -642,7 +637,7 @@ OpenCVVideoIO::PrintSelf(std::ostream & os, Indent indent) const
 
   if (this->m_CVImage != nullptr)
   {
-    os << indent << "Image dimensions : [" << this->m_CVImage->width << "," << this->m_CVImage->height << "]"
+    os << indent << "Image dimensions : [" << this->m_CVImage->width << ',' << this->m_CVImage->height << ']'
        << std::endl;
     os << indent << "Origin : " << this->m_CVImage->origin << std::endl;
     os << indent << "Image spacing (in bits) : " << this->m_CVImage->depth << std::endl;

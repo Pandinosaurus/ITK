@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class PadImageFilter
+ * \class PadImageFilter
  * \brief Increase the image size by padding. Superclass for filters that fill
  * in extra pixels.
  *
@@ -73,27 +73,27 @@ public:
   using OutputImageSizeType = typename TOutputImage::SizeType;
   using InputImageSizeType = typename TInputImage::SizeType;
   using SizeType = typename TInputImage::SizeType;
-  using SizeValueType = typename TInputImage::SizeValueType;
+  using SizeValueType = itk::SizeValueType;
 
   /** Typedef to describe the boundary condition. */
   using BoundaryConditionType = ImageBoundaryCondition<TInputImage, TOutputImage>;
-  using BoundaryConditionPointerType = BoundaryConditionType *;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PadImageFilter, PadImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PadImageFilter);
 
   /** ImageDimension enumeration. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Set/Get the output image padding.  Default is no padding
    *  (same as input). */
+  /** @ITKStartGrouping */
   itkSetMacro(PadLowerBound, SizeType);
   itkSetMacro(PadUpperBound, SizeType);
   itkGetConstReferenceMacro(PadLowerBound, SizeType);
   itkGetConstReferenceMacro(PadUpperBound, SizeType);
   itkSetVectorMacro(PadLowerBound, const SizeValueType, ImageDimension);
   itkSetVectorMacro(PadUpperBound, const SizeValueType, ImageDimension);
-
+  /** @ITKEndGrouping */
   void
   SetPadBound(const InputImageSizeType & bound)
   {
@@ -117,8 +117,8 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  SizeType m_PadLowerBound;
-  SizeType m_PadUpperBound;
+  SizeType m_PadLowerBound{};
+  SizeType m_PadUpperBound{};
 };
 } // end namespace itk
 

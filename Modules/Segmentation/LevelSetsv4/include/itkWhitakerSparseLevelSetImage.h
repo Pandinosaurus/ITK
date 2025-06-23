@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,49 +51,43 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(WhitakerSparseLevelSetImage, LevelSetSparseImage);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WhitakerSparseLevelSetImage);
 
   static constexpr unsigned int Dimension = VDimension;
 
-  using InputType = typename Superclass::InputType;
-  using OutputType = typename Superclass::OutputType;
-  using OutputRealType = typename Superclass::OutputRealType;
-  using GradientType = typename Superclass::GradientType;
-  using HessianType = typename Superclass::HessianType;
-  using LevelSetDataType = typename Superclass::LevelSetDataType;
+  using typename Superclass::InputType;
+  using typename Superclass::OutputType;
+  using typename Superclass::OutputRealType;
+  using typename Superclass::GradientType;
+  using typename Superclass::HessianType;
+  using typename Superclass::LevelSetDataType;
 
-  using LayerIdType = typename Superclass::LayerIdType;
-  using LabelObjectType = typename Superclass::LabelObjectType;
-  using LabelObjectPointer = typename Superclass::LabelObjectPointer;
-  using LabelObjectLengthType = typename Superclass::LabelObjectLengthType;
-  using LabelObjectLineType = typename Superclass::LabelObjectLineType;
+  using typename Superclass::LayerIdType;
+  using typename Superclass::LabelObjectType;
+  using typename Superclass::LabelObjectPointer;
+  using typename Superclass::LabelObjectLengthType;
+  using typename Superclass::LabelObjectLineType;
 
-  using LabelMapType = typename Superclass::LabelMapType;
-  using LabelMapPointer = typename Superclass::LabelMapPointer;
-  using LabelMapConstPointer = typename Superclass::LabelMapConstPointer;
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::LabelMapType;
+  using typename Superclass::LabelMapPointer;
+  using typename Superclass::LabelMapConstPointer;
+  using typename Superclass::RegionType;
 
-  using LayerType = typename Superclass::LayerType;
-  using LayerIterator = typename Superclass::LayerIterator;
-  using LayerConstIterator = typename Superclass::LayerConstIterator;
+  using typename Superclass::LayerType;
+  using typename Superclass::LayerIterator;
+  using typename Superclass::LayerConstIterator;
 
-  using LayerMapType = typename Superclass::LayerMapType;
-  using LayerMapIterator = typename Superclass::LayerMapIterator;
-  using LayerMapConstIterator = typename Superclass::LayerMapConstIterator;
+  using typename Superclass::LayerMapType;
+  using typename Superclass::LayerMapIterator;
+  using typename Superclass::LayerMapConstIterator;
 
   /** Returns the value of the level set function at a given location iP */
   using Superclass::Evaluate;
   OutputType
   Evaluate(const InputType & inputIndex) const override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-
   itkConceptMacro(DoubleConvertible, (Concept::Convertible<OutputRealType, OutputType>));
-
-  // End concept checking
-#endif // ITK_USE_CONCEPT_CHECKING
 
   static inline LayerIdType
   MinusThreeLayer()
@@ -137,11 +131,11 @@ public:
   GetAsLabelObject()
   {
     using OutputLabelObjectType = LabelObject<TLabel, Dimension>;
-    typename OutputLabelObjectType::Pointer object = OutputLabelObjectType::New();
+    auto object = OutputLabelObjectType::New();
 
     for (LayerIdType status = this->MinusThreeLayer(); status < this->PlusOneLayer(); ++status)
     {
-      LabelObjectPointer labelObject = this->m_LabelMap->GetLabelObject(status);
+      const LabelObjectPointer labelObject = this->m_LabelMap->GetLabelObject(status);
 
       for (SizeValueType i = 0; i < labelObject->GetNumberOfLines(); ++i)
       {

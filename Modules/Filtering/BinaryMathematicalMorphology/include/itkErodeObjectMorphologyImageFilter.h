@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class ErodeObjectMorphologyImageFilter
+ * \class ErodeObjectMorphologyImageFilter
  * \brief Erosion of an object in an image
  *
  * Erosion of an image using binary morphology.
@@ -59,11 +59,11 @@ public:
   /** Standard New method */
   itkNewMacro(Self);
 
-  /** Runtime information support */
-  itkTypeMacro(ErodeObjectMorphologyImageFilter, ObjectMorphologyImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ErodeObjectMorphologyImageFilter);
 
   /** Declaration of Pixel Type */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** Kernel type alias */
   using KernelType = TKernel;
@@ -74,7 +74,7 @@ public:
   using OutputNeighborhoodIteratorType = NeighborhoodIterator<TOutputImage>;
 
   /** Default boundary condition type */
-  using DefaultBoundaryConditionType = typename Superclass::DefaultBoundaryConditionType;
+  using typename Superclass::DefaultBoundaryConditionType;
 
   /** Set the object's value. Added for API consistency with itkBinaryErode
     filter */
@@ -101,11 +101,7 @@ public:
   /** Type of the pixels in the Kernel. */
   using KernelPixelType = typename TKernel::PixelType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(KernelGreaterThanComparableCheck, (Concept::GreaterThanComparable<KernelPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ErodeObjectMorphologyImageFilter();
@@ -121,11 +117,11 @@ protected:
   Evaluate(OutputNeighborhoodIteratorType & nit, const KernelType & kernel) override;
 
 private:
-  PixelType m_BackgroundValue;
+  PixelType m_BackgroundValue{};
 
   // Default boundary condition for erosion filter, defaults to
   // NumericTraits<PixelType>::max()
-  DefaultBoundaryConditionType m_ErodeBoundaryCondition;
+  DefaultBoundaryConditionType m_ErodeBoundaryCondition{};
 }; // end of class
 } // end namespace itk
 

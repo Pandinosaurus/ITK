@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class BinaryImageToLevelSetImageAdaptorBase
+ * \class BinaryImageToLevelSetImageAdaptorBase
  *  \ingroup ITKLevelSetsv4
  */
 template <typename TInputImage, typename TLevelSet>
@@ -39,8 +39,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = Object;
 
-  /** Run-time type information */
-  itkTypeMacro(BinaryImageToLevelSetImageAdaptorBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryImageToLevelSetImageAdaptorBase);
 
   using InputImageType = TInputImage;
   using InputImagePixelType = typename InputImageType::PixelType;
@@ -60,22 +60,25 @@ public:
   virtual void
   Initialize() = 0;
 
-  /** Get the sparse levet set function */
+  /** Get the sparse level set function */
   itkGetModifiableObjectMacro(LevelSet, LevelSetType);
 
   /** Set/Get the input image*/
+  /** @ITKStartGrouping */
   itkSetObjectMacro(InputImage, InputImageType);
   itkGetModifiableObjectMacro(InputImage, InputImageType);
-
+  /** @ITKEndGrouping */
 protected:
   /** Constructor */
-  BinaryImageToLevelSetImageAdaptorBase() { this->m_LevelSet = LevelSetType::New(); }
+  BinaryImageToLevelSetImageAdaptorBase()
+    : m_LevelSet(LevelSetType::New())
+  {}
 
   /** Destructor */
   ~BinaryImageToLevelSetImageAdaptorBase() override = default;
 
-  InputImagePointer m_InputImage;
-  LevelSetPointer   m_LevelSet;
+  InputImagePointer m_InputImage{};
+  LevelSetPointer   m_LevelSet{};
 };
 } // namespace itk
 

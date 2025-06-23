@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 #include <map>
 #include <vector>
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 
 /* \class RankHistogram
@@ -43,7 +41,7 @@ namespace Function
  * This code was contributed in the Insight Journal paper:
  * "Efficient implementation of kernel filtering"
  * by Beare R., Lehmann G
- * https://www.insight-journal.org/browse/publication/160
+ * https://doi.org/10.54294/igq8fn
  *
  * /sa VectorRankHistogram
  */
@@ -54,11 +52,10 @@ public:
   using Compare = std::less<TInputPixel>;
 
   RankHistogram()
+
   {
-    m_Rank = 0.5;
     m_Below = m_Entries = 0;
     // can't set m_RankIt until something has been put in the histogram
-    m_Initialized = false;
     if (m_Compare(NumericTraits<TInputPixel>::max(), NumericTraits<TInputPixel>::NonpositiveMin()))
     {
       m_InitVal = NumericTraits<TInputPixel>::max();
@@ -140,8 +137,8 @@ public:
   GetValueBruteForce()
   {
     SizeValueType count = 0;
-    SizeValueType target = (int)(m_Rank * (m_Entries - 1)) + 1;
-    for (typename MapType::iterator it = m_Map.begin(); it != m_Map.end(); it++)
+    SizeValueType target = static_cast<int>(m_Rank * (m_Entries - 1)) + 1;
+    for (typename MapType::iterator it = m_Map.begin(); it != m_Map.end(); ++it)
     {
       count += it->second;
       if (count >= target)
@@ -155,10 +152,10 @@ public:
   TInputPixel
   GetValue(const TInputPixel &)
   {
-    SizeValueType target = (SizeValueType)(m_Rank * (m_Entries - 1)) + 1;
-    SizeValueType total = m_Below;
-    SizeValueType ThisBin;
-    bool          eraseFlag = false;
+    const SizeValueType target = (SizeValueType)(m_Rank * (m_Entries - 1)) + 1;
+    SizeValueType       total = m_Below;
+
+    bool eraseFlag = false;
 
     if (total < target)
     {
@@ -171,7 +168,7 @@ public:
         // the loop. Currently makes sure that the search iterator is
         // incremented before deleting
         ++searchIt;
-        ThisBin = searchIt->second;
+        SizeValueType ThisBin = searchIt->second;
         total += ThisBin;
         if (eraseFlag)
         {
@@ -202,8 +199,8 @@ public:
 
       while (searchIt != m_Map.begin())
       {
-        ThisBin = searchIt->second;
-        unsigned int tbelow = total - ThisBin;
+        SizeValueType      ThisBin = searchIt->second;
+        const unsigned int tbelow = total - ThisBin;
         if (tbelow < target) // we've overshot
         {
           break;
@@ -252,7 +249,7 @@ public:
   }
 
 protected:
-  float m_Rank;
+  float m_Rank{ 0.5 };
 
 private:
   using MapType = typename std::map<TInputPixel, SizeValueType, Compare>;
@@ -263,7 +260,7 @@ private:
   TInputPixel   m_RankValue;
   TInputPixel   m_InitVal;
   Compare       m_Compare;
-  bool          m_Initialized;
+  bool          m_Initialized{ false };
 
   // This iterator will point at the desired rank value
   typename MapType::iterator m_RankIt;
@@ -277,9 +274,9 @@ public:
   using Compare = std::less<TInputPixel>;
 
   VectorRankHistogram()
+    : m_Size((OffsetValueType)NumericTraits<TInputPixel>::max() -
+             (OffsetValueType)NumericTraits<TInputPixel>::NonpositiveMin() + 1)
   {
-    m_Size = (OffsetValueType)NumericTraits<TInputPixel>::max() -
-             (OffsetValueType)NumericTraits<TInputPixel>::NonpositiveMin() + 1;
     m_Vec.resize(m_Size, 0);
     if (m_Compare(NumericTraits<TInputPixel>::max(), NumericTraits<TInputPixel>::NonpositiveMin()))
     {
@@ -305,9 +302,9 @@ public:
   TInputPixel
   GetValueBruteForce()
   {
-    SizeValueType count = 0;
-    SizeValueType target = (SizeValueType)(m_Rank * (m_Entries - 1)) + 1;
-    for (SizeValueType i = 0; i < m_Size; i++)
+    SizeValueType       count = 0;
+    const SizeValueType target = (SizeValueType)(m_Rank * (m_Entries - 1)) + 1;
+    for (SizeValueType i = 0; i < m_Size; ++i)
     {
       count += m_Vec[i];
       if (count >= target)
@@ -327,7 +324,7 @@ public:
   void
   AddPixel(const TInputPixel & p)
   {
-    OffsetValueType q = (OffsetValueType)p - NumericTraits<TInputPixel>::NonpositiveMin();
+    const OffsetValueType q = (OffsetValueType)p - NumericTraits<TInputPixel>::NonpositiveMin();
 
     m_Vec[q]++;
     if (m_Compare(p, m_RankValue) || p == m_RankValue)
@@ -343,7 +340,7 @@ public:
     const OffsetValueType q = (OffsetValueType)p - NumericTraits<TInputPixel>::NonpositiveMin();
 
     itkAssertInDebugAndIgnoreInReleaseMacro(q >= 0);
-    itkAssertInDebugAndIgnoreInReleaseMacro(q < (int)m_Vec.size());
+    itkAssertInDebugAndIgnoreInReleaseMacro(q < static_cast<int>(m_Vec.size()));
     itkAssertInDebugAndIgnoreInReleaseMacro(m_Entries >= 1);
     itkAssertInDebugAndIgnoreInReleaseMacro(m_Vec[q] > 0);
 
@@ -405,11 +402,10 @@ class RankHistogram<signed char> : public VectorRankHistogram<signed char>
 {};
 
 template <>
-class RankHistogram<bool> : public VectorRankHistogram<bool>
+class ITK_TEMPLATE_EXPORT RankHistogram<bool> : public VectorRankHistogram<bool>
 {};
 
 /// \endcond
 
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 #endif

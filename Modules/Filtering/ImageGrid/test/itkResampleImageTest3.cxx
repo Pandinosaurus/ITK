@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,34 +37,35 @@ itkResampleImageTest3(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputImage resampledImage" << std::endl;
     return EXIT_FAILURE;
   }
 
-  constexpr unsigned int NDimensions = 2;
+  constexpr unsigned int VDimension = 2;
 
   using PixelType = unsigned char;
-  using ImageType = itk::Image<PixelType, NDimensions>;
-  using CoordRepType = double;
+  using ImageType = itk::Image<PixelType, VDimension>;
+  using CoordinateType = double;
 
-  using TransformType = itk::IdentityTransform<CoordRepType, NDimensions>;
-  using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, CoordRepType>;
+  using TransformType = itk::IdentityTransform<CoordinateType, VDimension>;
+  using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, CoordinateType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
   using ChangeInfoType = itk::ChangeInformationImageFilter<ImageType>;
   using ResampleFilterType = itk::ResampleImageFilter<ImageType, ImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
+  auto reader1 = ReaderType::New();
   reader1->SetFileName(argv[1]);
   reader1->Update();
 
   // Create an identity transformation
-  TransformType::Pointer identityTransform = TransformType::New();
+  auto identityTransform = TransformType::New();
 
   // Create a linear interpolation image function
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   // Create an image with flipped directions
   ImageType::DirectionType direction;
@@ -72,12 +73,12 @@ itkResampleImageTest3(int argc, char * argv[])
   direction[0][1] = 0.0;
   direction[1][0] = 0.0;
   direction[1][1] = -1.0;
-  ImageType::RegionType inputRegion = reader1->GetOutput()->GetLargestPossibleRegion();
-  ImageType::PointType  origin;
+  const ImageType::RegionType inputRegion = reader1->GetOutput()->GetLargestPossibleRegion();
+  ImageType::PointType        origin;
   origin[0] = inputRegion.GetSize()[0];
   origin[1] = inputRegion.GetSize()[1];
 
-  ChangeInfoType::Pointer changeInfo = ChangeInfoType::New();
+  auto changeInfo = ChangeInfoType::New();
   changeInfo->ChangeDirectionOn();
   changeInfo->SetOutputDirection(direction);
   changeInfo->ChangeOriginOn();
@@ -85,7 +86,7 @@ itkResampleImageTest3(int argc, char * argv[])
   changeInfo->SetInput(reader1->GetOutput());
 
   // Create and configure a resampling filter
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(resample, ResampleImageFilter, ImageToImageFilter);
 
@@ -104,20 +105,12 @@ itkResampleImageTest3(int argc, char * argv[])
   resample->SetInterpolator(interpolator);
   ITK_TEST_SET_GET_VALUE(interpolator, resample->GetInterpolator());
 
-  WriterType::Pointer writer1 = WriterType::New();
+  auto writer1 = WriterType::New();
   writer1->SetFileName(argv[2]);
   writer1->SetInput(resample->GetOutput());
 
-  // Run the resampling filter
-  try
-  {
-    writer1->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer1->Update());
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageKernelOperator_hxx
 #define itkImageKernelOperator_hxx
 
-#include "itkImageKernelOperator.h"
 
 #include "itkImageBufferRange.h"
 #include "itkImageRegionConstIterator.h"
@@ -29,7 +28,7 @@
  *
  * "Image Kernel Convolution"
  * by Tustison N., Gee J.
- * https://www.insight-journal.org/browse/publication/208
+ * https://doi.org/10.54294/e292kx
  *
  */
 
@@ -44,20 +43,21 @@ ImageKernelOperator<TPixel, VDimension, TAllocator>::SetImageKernel(const ImageT
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-const typename ImageKernelOperator<TPixel, VDimension, TAllocator>::ImageType *
-ImageKernelOperator<TPixel, VDimension, TAllocator>::GetImageKernel() const
+auto
+ImageKernelOperator<TPixel, VDimension, TAllocator>::GetImageKernel() const -> const ImageType *
 {
   return m_ImageKernel;
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-typename ImageKernelOperator<TPixel, VDimension, TAllocator>::CoefficientVector
-ImageKernelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
+auto
+ImageKernelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients() -> CoefficientVector
 {
   // Check that the input image is fully buffered.
   if (m_ImageKernel->GetBufferedRegion() != m_ImageKernel->GetLargestPossibleRegion())
   {
-    itkExceptionMacro(<< "ImageKernel is not fully buffered. " << std::endl
+    itkExceptionMacro("ImageKernel is not fully buffered. "
+                      << std::endl
                       << "Buffered region: " << m_ImageKernel->GetBufferedRegion() << std::endl
                       << "Largest possible region: " << m_ImageKernel->GetLargestPossibleRegion() << std::endl
                       << "You should call UpdateLargestPossibleRegion() on "
@@ -70,7 +70,7 @@ ImageKernelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
   {
     if (m_ImageKernel->GetLargestPossibleRegion().GetSize()[i] % 2 == 0)
     {
-      itkExceptionMacro(<< "ImageKernelOperator requires an input image "
+      itkExceptionMacro("ImageKernelOperator requires an input image "
                         << "whose size is odd in all dimensions. The provided "
                         << "image has size " << m_ImageKernel->GetLargestPossibleRegion().GetSize());
     }
@@ -88,14 +88,12 @@ ImageKernelOperator<TPixel, VDimension, TAllocator>::Fill(const CoefficientVecto
   // Initialize all coefficients to zero
   this->InitializeToZero();
 
-  std::slice *                               temp_slice;
   typename CoefficientVector::const_iterator it;
 
-  temp_slice = new std::slice(0, coeff.size(), 1);
+  const std::slice temp_slice(0, coeff.size(), 1);
   it = coeff.begin();
 
-  typename Superclass::SliceIteratorType data(this, *temp_slice);
-  delete temp_slice;
+  typename Superclass::SliceIteratorType data(this, temp_slice);
 
   // Copy the coefficients into the neighborhood, truncating them if there
   // are too many.

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ namespace itk
  *  \f$ U \f$ and lower threshold \f$ L \f$ according to the following formula.
  *
  * \par
- *  \f$  f(x) = \left\{ \begin{array}{ll} g(x) - L & \mbox{if $(g)x < (U-L)/2 + L$} \\ U - g(x) & \mbox{otherwise}
+ *  \f$  f(x) = \left\{ \begin{array}{ll} g(x) - L & \mbox{if g(x) < (U-L)/2 + L} \\ U - g(x) & \mbox{otherwise}
  * \end{array} \right. \f$
  *
  * \sa SegmentationLevelSetImageFunction
@@ -70,19 +70,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ThresholdSegmentationLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThresholdSegmentationLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::ImageType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Set/Get threshold values */
+  /** @ITKStartGrouping */
   void
   SetUpperThreshold(FeatureScalarType f)
   {
@@ -103,7 +104,7 @@ public:
   {
     return m_LowerThreshold;
   }
-
+  /** @ITKEndGrouping */
   void
   CalculateSpeedImage() override;
 
@@ -112,7 +113,7 @@ public:
   {
     Superclass::Initialize(r);
 
-    this->SetAdvectionWeight(NumericTraits<ScalarValueType>::ZeroValue());
+    this->SetAdvectionWeight(ScalarValueType{});
     this->SetPropagationWeight(-1.0 * NumericTraits<ScalarValueType>::OneValue());
     this->SetCurvatureWeight(NumericTraits<ScalarValueType>::OneValue());
   }
@@ -155,7 +156,7 @@ public:
     m_SmoothingIterations = p;
   }
 
-  int
+  [[nodiscard]] int
   GetSmoothingIterations() const
   {
     return m_SmoothingIterations;
@@ -178,9 +179,9 @@ public:
 
 protected:
   ThresholdSegmentationLevelSetFunction()
+    : m_UpperThreshold(NumericTraits<FeatureScalarType>::max())
+    , m_LowerThreshold(NumericTraits<FeatureScalarType>::NonpositiveMin())
   {
-    m_UpperThreshold = NumericTraits<FeatureScalarType>::max();
-    m_LowerThreshold = NumericTraits<FeatureScalarType>::NonpositiveMin();
     this->SetAdvectionWeight(0.0);
     this->SetPropagationWeight(1.0);
     this->SetCurvatureWeight(1.0);
@@ -204,12 +205,12 @@ protected:
     os << indent << "SmoothingConductance: " << m_SmoothingConductance << std::endl;
   }
 
-  FeatureScalarType m_UpperThreshold;
-  FeatureScalarType m_LowerThreshold;
-  ScalarValueType   m_EdgeWeight;
-  ScalarValueType   m_SmoothingConductance;
-  int               m_SmoothingIterations;
-  ScalarValueType   m_SmoothingTimeStep;
+  FeatureScalarType m_UpperThreshold{};
+  FeatureScalarType m_LowerThreshold{};
+  ScalarValueType   m_EdgeWeight{};
+  ScalarValueType   m_SmoothingConductance{};
+  int               m_SmoothingIterations{};
+  ScalarValueType   m_SmoothingTimeStep{};
 };
 } // end namespace itk
 

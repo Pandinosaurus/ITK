@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 #include "itkNeighborhoodInnerProduct.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkDerivativeOperator.h"
-#include "itkGPUScalarAnisotropicDiffusionFunction.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace itk
 {
@@ -36,12 +36,12 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUScalarAnisotropicDiffusionFunc
   // load GPU kernel
   std::ostringstream defines;
 
-  if (ImageDimension > 3 || ImageDimension < 1)
+  if constexpr (ImageDimension > 3 || ImageDimension < 1)
   {
     itkExceptionMacro("GPUScalarAnisotropicDiffusionFunction supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << ImageDimension << "\n";
+  defines << "#define DIM_" << ImageDimension << '\n';
 
   defines << "#define PIXELTYPE ";
 
@@ -70,7 +70,7 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUCalculateAverageGradientMagnit
   imgSize[0] = imgSize[1] = imgSize[2] = 1;
   float imgScale[3];
   imgScale[0] = imgScale[1] = imgScale[2] = 1.0f;
-  int ImageDim = (int)TImage::ImageDimension;
+  int ImageDim = static_cast<int>(TImage::ImageDimension);
 
   size_t localSize[3], globalSize[3];
   localSize[0] = localSize[1] = localSize[2] = 1;
@@ -79,16 +79,14 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUCalculateAverageGradientMagnit
 
   unsigned int numPixel = 1;
   unsigned int bufferSize = 1;
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     imgSize[i] = outSize[i];
     imgScale[i] = this->m_ScaleCoefficients[i];
     localSize[i] = (blockSize <= outSize[i]) ? blockSize : 1;
-    globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); //
-                                                                                                // total
-                                                                                                // #
-                                                                                                // of
-                                                                                                // threads
+    // total # of threads
+    globalSize[i] =
+      localSize[i] * static_cast<unsigned int>(ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i])));
     bufferSize *= globalSize[i] / localSize[i];
     numPixel *= imgSize[i];
   }
@@ -135,13 +133,13 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUCalculateAverageGradientMagnit
   }
 
   // Set filter scale parameter
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     kernelManager->SetKernelArg(kernelHandle, argidx++, sizeof(float), &(imgScale[i]));
   }
 
   // Set image size
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     kernelManager->SetKernelArg(kernelHandle, argidx++, sizeof(int), &(imgSize[i]));
   }
@@ -150,10 +148,10 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUCalculateAverageGradientMagnit
   kernelManager->LaunchKernel(kernelHandle, ImageDim, globalSize, localSize);
 
   // Read back intermediate sums from GPU and compute final value
-  double sum = 0;
-  auto * intermSum = new float[bufferSize];
+  double     sum = 0;
+  const auto intermSum = make_unique_for_overwrite<float[]>(bufferSize);
 
-  this->m_AnisotropicDiffusionFunctionGPUBuffer->SetCPUBufferPointer(intermSum);
+  this->m_AnisotropicDiffusionFunctionGPUBuffer->SetCPUBufferPointer(intermSum.get());
   this->m_AnisotropicDiffusionFunctionGPUBuffer->SetCPUDirtyFlag(true); //
                                                                         // CPU
                                                                         // is
@@ -163,14 +161,12 @@ GPUScalarAnisotropicDiffusionFunction<TImage>::GPUCalculateAverageGradientMagnit
                                                                     // Copy
                                                                     // GPU->CPU
 
-  for (int i = 0; i < (int)bufferSize; i++)
+  for (int i = 0; i < static_cast<int>(bufferSize); ++i)
   {
-    sum += (double)intermSum[i];
+    sum += static_cast<double>(intermSum[i]);
   }
 
-  this->SetAverageGradientMagnitudeSquared((double)(sum / (double)numPixel));
-
-  delete[] intermSum;
+  this->SetAverageGradientMagnitudeSquared(static_cast<double>(sum / static_cast<double>(numPixel)));
 }
 
 } // end namespace itk

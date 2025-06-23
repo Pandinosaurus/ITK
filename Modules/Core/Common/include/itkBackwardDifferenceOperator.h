@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,12 +52,15 @@ public:
   using Self = BackwardDifferenceOperator;
   using Superclass = NeighborhoodOperator<TPixel, TDimension, TAllocator>;
 
-  /** From Superclass */
-  using PixelType = typename Superclass::PixelType;
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BackwardDifferenceOperator);
+
+  /** Type alias support for pixel type. */
+  using PixelType = TPixel;
 
 protected:
-  /** Necessary to work around a compiler bug in VC++. */
-  using CoefficientVector = typename Superclass::CoefficientVector;
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
 
   /** Calculates operator coefficients. */
   CoefficientVector
@@ -70,6 +73,7 @@ protected:
     this->FillCenteredDirectional(coeff);
   }
 };
+
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

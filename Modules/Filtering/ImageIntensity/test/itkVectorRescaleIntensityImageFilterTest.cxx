@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ itkVectorRescaleIntensityImageFilterTest(int, char *[])
   using InputImageType = itk::Image<InputPixelType, ImageDimension>;
   using OutputImageType = itk::Image<OutputPixelType, ImageDimension>;
 
-  InputImageType::Pointer    inputImage = InputImageType::New();
+  auto                       inputImage = InputImageType::New();
   InputImageType::RegionType region;
   InputImageType::SizeType   size;
   InputImageType::IndexType  index;
@@ -58,13 +58,18 @@ itkVectorRescaleIntensityImageFilterTest(int, char *[])
 
   using FilterType = itk::VectorRescaleIntensityImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, VectorRescaleIntensityImageFilter, UnaryFunctorImageFilter);
 
   filter->SetInput(inputImage);
 
-  constexpr double desiredMaximum = 2.0;
+  // Test exceptions
+  double desiredMaximum = -1.0;
+  filter->SetOutputMaximumMagnitude(desiredMaximum);
+  ITK_TRY_EXPECT_EXCEPTION(filter->Update());
+
+  desiredMaximum = 2.0;
   filter->SetOutputMaximumMagnitude(desiredMaximum);
   ITK_TEST_SET_GET_VALUE(desiredMaximum, filter->GetOutputMaximumMagnitude());
 
@@ -72,20 +77,20 @@ itkVectorRescaleIntensityImageFilterTest(int, char *[])
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  FilterType::InputRealType scale = filter->GetScale();
+  const FilterType::InputRealType scale = filter->GetScale();
   std::cout << "Input scale value: " << static_cast<itk::NumericTraits<FilterType::InputRealType>::PrintType>(scale)
             << std::endl;
 
-  FilterType::InputRealType shift = filter->GetShift();
+  const FilterType::InputRealType shift = filter->GetShift();
   std::cout << "Input scale value: " << static_cast<itk::NumericTraits<FilterType::InputRealType>::PrintType>(shift)
             << std::endl;
 
-  FilterType::InputRealType inputMaximumMagnitude = filter->GetInputMaximumMagnitude();
+  const FilterType::InputRealType inputMaximumMagnitude = filter->GetInputMaximumMagnitude();
   std::cout << "Input maximum magnitude: "
             << static_cast<itk::NumericTraits<FilterType::InputRealType>::PrintType>(inputMaximumMagnitude)
             << std::endl;
 
-  OutputImageType::ConstPointer outputImage = filter->GetOutput();
+  const OutputImageType::ConstPointer outputImage = filter->GetOutput();
 
   using IteratorType = itk::ImageRegionConstIterator<OutputImageType>;
 
@@ -93,17 +98,16 @@ itkVectorRescaleIntensityImageFilterTest(int, char *[])
 
   ot.GoToBegin();
 
-  const double tolerance = 1e-3;
+  constexpr double tolerance = 1e-3;
 
   const double factor = desiredMaximum / static_cast<double>(pixelValue.GetNorm());
 
   while (!ot.IsAtEnd())
   {
     const OutputPixelType outputValue = ot.Get();
-    for (unsigned int k = 0; k < VectorDimension; k++)
+    for (unsigned int k = 0; k < VectorDimension; ++k)
     {
-      if (itk::Math::NotAlmostEquals(outputValue[k],
-                                     itk::NumericTraits<itk::NumericTraits<OutputPixelType>::ValueType>::ZeroValue()))
+      if (itk::Math::NotAlmostEquals(outputValue[k], itk::NumericTraits<OutputPixelType>::ValueType{}))
       {
         if (!itk::Math::FloatAlmostEqual(
               static_cast<double>(outputValue[k]), static_cast<double>(pixelValue[k] * factor), 10, tolerance))

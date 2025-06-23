@@ -956,7 +956,7 @@ double fProduct;
         if ((*pMarkowitzRow > LARGEST_SHORT_INTEGER AND *pMarkowitzCol != 0) OR
             (*pMarkowitzCol > LARGEST_SHORT_INTEGER AND *pMarkowitzRow != 0))
         {   fProduct = (double)(*pMarkowitzRow++) * (double)(*pMarkowitzCol++);
-            if (fProduct >= LARGEST_LONG_INTEGER)
+            if (fProduct >= LARGEST_LONG_INTEGER_AS_DOUBLE)
                 *pMarkowitzProduct++ = LARGEST_LONG_INTEGER;
             else
                 *pMarkowitzProduct++ = (long)fProduct;
@@ -1541,7 +1541,7 @@ register  ElementPtr  pDiag;
 int  I;
 ElementPtr  ChosenPivot, pOtherInRow, pOtherInCol;
 RealNumber  Magnitude, LargestInCol, LargestOffDiagonal;
-RealNumber  FindBiggestInColExclude();
+RealNumber  FindBiggestInColExclude(MatrixPtr, ElementPtr, int);
 
 /* Begin `QuicklySearchDiagonal'. */
     ChosenPivot = NULL;
@@ -1708,7 +1708,7 @@ register  ElementPtr  pDiag;
 int  NumberOfTies=0, Size = Matrix->Size;
 ElementPtr  ChosenPivot=0;
 RealNumber  Magnitude=0, Ratio=0, RatioOfAccepted =0, LargestInCol=0;
-RealNumber  FindBiggestInColExclude();
+RealNumber  FindBiggestInColExclude(MatrixPtr, ElementPtr, int);
 
 /* Begin `SearchDiagonal'. */
     ChosenPivot = NULL;
@@ -1837,7 +1837,7 @@ long  Product=0, MinMarkowitzProduct=0;
 ElementPtr  ChosenPivot=0, pLargestElement=0;
 RealNumber  Magnitude=0, LargestElementMag=0,
  Ratio=0, RatioOfAccepted=0, LargestInCol=0;
-RealNumber  FindLargestInCol();
+RealNumber  FindLargestInCol(ElementPtr);
 
 /* Begin `SearchEntireMatrix'. */
     ChosenPivot = NULL;
@@ -2905,7 +2905,7 @@ double Product;
         if ((MarkoRow[Row] > LARGEST_SHORT_INTEGER AND MarkoCol[Row] != 0) OR
             (MarkoCol[Row] > LARGEST_SHORT_INTEGER AND MarkoRow[Row] != 0))
         {   Product = (double)MarkoCol[Row] * (double)MarkoRow[Row];
-            if (Product >= LARGEST_LONG_INTEGER)
+            if (Product >= LARGEST_LONG_INTEGER_AS_DOUBLE)
                 Matrix->MarkowitzProd[Row] = LARGEST_LONG_INTEGER;
             else
                 Matrix->MarkowitzProd[Row] = (long)Product;
@@ -2923,7 +2923,7 @@ double Product;
         if ((MarkoRow[Col] > LARGEST_SHORT_INTEGER AND MarkoCol[Col] != 0) OR
             (MarkoCol[Col] > LARGEST_SHORT_INTEGER AND MarkoRow[Col] != 0))
         {   Product = (double)MarkoCol[Col] * (double)MarkoRow[Col];
-            if (Product >= LARGEST_LONG_INTEGER)
+            if (Product >= LARGEST_LONG_INTEGER_AS_DOUBLE)
                 Matrix->MarkowitzProd[Col] = LARGEST_LONG_INTEGER;
             else
                 Matrix->MarkowitzProd[Col] = (long)Product;

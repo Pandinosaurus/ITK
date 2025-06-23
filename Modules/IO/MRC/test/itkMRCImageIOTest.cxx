@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,9 +51,8 @@ MRCImageIOTester<TImageType>::Write(const std::string & filePrefix, std::string 
     using PixelType = typename ImageType::PixelType;
 
     // allocate an 10x10x10 image
-    typename ImageType::Pointer  image = ImageType::New();
-    typename ImageType::SizeType m_ImageSize;
-    m_ImageSize.Fill(10);
+    auto image = ImageType::New();
+    auto m_ImageSize = ImageType::SizeType::Filled(10);
     image->SetRegions(m_ImageSize);
     image->Allocate();
 
@@ -66,7 +65,7 @@ MRCImageIOTester<TImageType>::Write(const std::string & filePrefix, std::string 
       switch (cnt % 4)
       {
         case 0:
-          i.Set(itk::NumericTraits<PixelType>::ZeroValue());
+          i.Set(PixelType{});
           break;
         case 1:
           i.Set(itk::NumericTraits<PixelType>::OneValue());
@@ -82,16 +81,16 @@ MRCImageIOTester<TImageType>::Write(const std::string & filePrefix, std::string 
     }
 
     using ImageFileWriterType = itk::ImageFileWriter<ImageType>;
-    typename ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
+    auto writer = ImageFileWriterType::New();
     writer->SetInput(image);
 
     // force use of MRCImageIO
     using IOType = itk::MRCImageIO;
-    IOType::Pointer mrcIO = IOType::New();
+    auto mrcIO = IOType::New();
     writer->SetImageIO(mrcIO);
 
     std::ostringstream m_NameWithIndex;
-    m_NameWithIndex << filePrefix << "_" << m_CallNumber << ".mrc";
+    m_NameWithIndex << filePrefix << '_' << m_CallNumber << ".mrc";
 
     std::ostringstream m_OutputFileName;
 
@@ -103,7 +102,7 @@ MRCImageIOTester<TImageType>::Write(const std::string & filePrefix, std::string 
     }
     else
     {
-      m_OutputFileName << outputPath << "\\" << m_NameWithIndex.str();
+      m_OutputFileName << outputPath << '\\' << m_NameWithIndex.str();
     }
 
 #else /// POSIX UNIX
@@ -116,7 +115,7 @@ MRCImageIOTester<TImageType>::Write(const std::string & filePrefix, std::string 
     // otherwise, add / and the name
     else
     {
-      m_OutputFileName << outputPath << "/" << m_NameWithIndex.str();
+      m_OutputFileName << outputPath << '/' << m_NameWithIndex.str();
     }
 #endif
 
@@ -149,16 +148,16 @@ MRCImageIOTester<TImageType>::Read(const std::string & filePrefix, std::string &
     using PixelType = typename ImageType::PixelType;
 
     using ImageFileReaderType = itk::ImageFileReader<ImageType>;
-    typename ImageFileReaderType::Pointer reader = ImageFileReaderType::New();
+    auto reader = ImageFileReaderType::New();
 
     // force use of MRCImageIO
     using IOType = itk::MRCImageIO;
-    IOType::Pointer mrcIO = IOType::New();
+    auto mrcIO = IOType::New();
     reader->SetImageIO(mrcIO);
 
     // construct the image filename
     std::ostringstream m_NameWithIndex;
-    m_NameWithIndex << filePrefix << "_" << index << ".mrc";
+    m_NameWithIndex << filePrefix << '_' << index << ".mrc";
 
     std::ostringstream m_OutputFileName;
 
@@ -170,7 +169,7 @@ MRCImageIOTester<TImageType>::Read(const std::string & filePrefix, std::string &
     }
     else
     {
-      m_OutputFileName << outputPath << "\\" << m_NameWithIndex.str();
+      m_OutputFileName << outputPath << '\\' << m_NameWithIndex.str();
     }
 
 #else /// POSIX UNIX
@@ -183,13 +182,13 @@ MRCImageIOTester<TImageType>::Read(const std::string & filePrefix, std::string &
     // otherwise, add / and the name
     else
     {
-      m_OutputFileName << outputPath << "/" << m_NameWithIndex.str();
+      m_OutputFileName << outputPath << '/' << m_NameWithIndex.str();
     }
 #endif
     reader->SetFileName(m_OutputFileName.str());
 
     // read the image
-    typename ImageType::Pointer image = reader->GetOutput();
+    const typename ImageType::Pointer image = reader->GetOutput();
     reader->Update();
 
     // test the CanReadFile function after the fact (should always be true at
@@ -200,10 +199,10 @@ MRCImageIOTester<TImageType>::Read(const std::string & filePrefix, std::string &
     }
 
     // check the size
-    typename ImageType::RegionType region = image->GetLargestPossibleRegion();
-    typename ImageType::SizeType   size = region.GetSize();
-    bool                           sizeGood = true;
-    for (unsigned int i = 0; i < ImageType::GetImageDimension(); i++)
+    const typename ImageType::RegionType region = image->GetLargestPossibleRegion();
+    typename ImageType::SizeType         size = region.GetSize();
+    bool                                 sizeGood = true;
+    for (unsigned int i = 0; i < ImageType::GetImageDimension(); ++i)
     {
       if (size[i] != 10)
       {
@@ -228,7 +227,7 @@ MRCImageIOTester<TImageType>::Read(const std::string & filePrefix, std::string &
       switch (cnt % 4)
       {
         case 0:
-          if (itk::Math::NotExactlyEquals(iter.Get(), itk::NumericTraits<PixelType>::ZeroValue()))
+          if (itk::Math::NotExactlyEquals(iter.Get(), PixelType{}))
           {
             pixelsGood = false;
           }
@@ -278,12 +277,13 @@ itkMRCImageIOTest(int argc, char * argv[])
 
   if (argc < 2)
   {
+    std::cerr << "Missing Parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " outputPath" << std::endl;
     return EXIT_FAILURE;
   }
 
-  std::string outputPath = argv[1];
-  std::string filePrefix = argv[0];
+  std::string       outputPath = argv[1];
+  const std::string filePrefix = argv[0];
 
   //
   // test all usable pixeltypes
@@ -461,16 +461,17 @@ itkMRCImageIOTest(int argc, char * argv[])
   }
   std::cout << "[PASSED] threw exception (5D)" << std::endl;
 
-  //
-  // use print methods
-  //
+
+  // Exercise other methods to improve coverage
   using IOType = itk::MRCImageIO;
-  IOType::Pointer mrcIO = IOType::New();
+  auto mrcIO = IOType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(mrcIO, MRCImageIO, StreamingImageIOBase);
 
-  //
-  // All tests succeeded
-  //
+
+  // Not used; empty method body; called for coverage purposes
+  mrcIO->WriteImageInformation();
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

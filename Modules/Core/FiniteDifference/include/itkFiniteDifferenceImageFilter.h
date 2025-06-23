@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkFiniteDifferenceImageFilter_h
 #define itkFiniteDifferenceImageFilter_h
 
+#include "itkBooleanStdVector.h"
 #include "itkInPlaceImageFilter.h"
 #include "itkFiniteDifferenceFunction.h"
 
@@ -140,8 +141,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(FiniteDifferenceImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FiniteDifferenceImageFilter);
 
   /** Input and output image types. */
   using InputImageType = TInputImage;
@@ -177,36 +178,40 @@ public:
   itkGetConstReferenceObjectMacro(DifferenceFunction, FiniteDifferenceFunctionType);
 
   /** This method sets the pointer to a FiniteDifferenceFunction object that
-   * will be used by the filter to calculate updates at image pixels.
-   * \returns A FiniteDifferenceObject pointer. */
+   * will be used by the filter to calculate updates at image pixels. */
   itkSetObjectMacro(DifferenceFunction, FiniteDifferenceFunctionType);
 
   /** Set/Get the number of iterations that the filter will run. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, IdentifierType);
   itkGetConstReferenceMacro(NumberOfIterations, IdentifierType);
-
+  /** @ITKEndGrouping */
   /** Use the image spacing information in calculations. Use this option if you
    *  want derivatives in physical space. Default is UseImageSpacingOn. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
   itkGetConstReferenceMacro(UseImageSpacing, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get the maximum error allowed in the solution.  This may not be
       defined for all solvers and its meaning may change with the application. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumRMSError, double);
   itkGetConstReferenceMacro(MaximumRMSError, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the root mean squared change of the previous iteration. May not
       be used by all solvers. */
+  /** @ITKStartGrouping */
   itkSetMacro(RMSChange, double);
   itkGetConstReferenceMacro(RMSChange, double);
-
+  /** @ITKEndGrouping */
   /** Require the filter to be manually reinitialized (by calling
       SetStateToUninitialized() */
+  /** @ITKStartGrouping */
   itkSetMacro(ManualReinitialization, bool);
   itkGetConstReferenceMacro(ManualReinitialization, bool);
   itkBooleanMacro(ManualReinitialization);
-
+  /** @ITKEndGrouping */
   itkSetMacro(IsInitialized, bool);
   itkGetMacro(IsInitialized, bool);
 
@@ -221,18 +226,14 @@ public:
     this->SetIsInitialized(true);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputPixelIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputPixelValueType>));
-  // End concept checking
-#endif
 
 protected:
   FiniteDifferenceImageFilter();
   ~FiniteDifferenceImageFilter() override = default;
 
   /** State that the filter is in, i.e. UNINITIALIZED or INITIALIZED */
-  bool m_IsInitialized;
+  bool m_IsInitialized{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -330,12 +331,12 @@ protected:
    *
    * \param timeStepList The set of time changes compiled from all the threaded calls
    * to ThreadedGenerateData.
-   * \param valid The set of flags indicating which of "list" elements are
-   *  valid
+   * \param valid The set of flags indicating which of "timeStepList" elements are
+   *  valid.
    *
    * The default is to return the minimum value in the list. */
   virtual TimeStepType
-  ResolveTimeStep(const std::vector<TimeStepType> & timeStepList, const std::vector<bool> & valid) const;
+  ResolveTimeStep(const std::vector<TimeStepType> & timeStepList, const BooleanStdVectorType & valid) const;
 
   /** Set the number of elapsed iterations of the filter. */
   itkSetMacro(ElapsedIterations, IdentifierType);
@@ -347,18 +348,18 @@ protected:
   {}
 
   /** The maximum number of iterations this filter will run */
-  IdentifierType m_NumberOfIterations;
+  IdentifierType m_NumberOfIterations{};
 
   /** A counter for keeping track of the number of elapsed
       iterations during filtering. */
-  IdentifierType m_ElapsedIterations;
+  IdentifierType m_ElapsedIterations{};
 
   /** Indicates whether the filter automatically resets to UNINITIALIZED state
       after completing, or whether filter must be manually reset */
-  bool m_ManualReinitialization;
+  bool m_ManualReinitialization{};
 
-  double m_RMSChange;
-  double m_MaximumRMSError;
+  double m_RMSChange{};
+  double m_MaximumRMSError{};
 
 private:
   /** Initialize the values of the Function coefficients. This function will
@@ -369,10 +370,10 @@ private:
 
   /** Control whether derivatives use spacing of the input image in
       its calculation. */
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{ true };
 
   /** The function that will be used in calculating updates for each pixel. */
-  typename FiniteDifferenceFunctionType::Pointer m_DifferenceFunction;
+  typename FiniteDifferenceFunctionType::Pointer m_DifferenceFunction{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ itkQuadEdgeMeshIteratorTest(int, char *[])
   using MeshType = itk::QuadEdgeMesh<double, 3>;
   using IteratorGeom = MeshType::QEPrimal::IteratorGeom;
 
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
 //
 //                    p2--------------p1               //
@@ -49,26 +49,26 @@ itkQuadEdgeMeshIteratorTest(int, char *[])
 #define NumPoints 6
 #define NumEdges 6
   MeshType::PixelType       a = std::sqrt(3.0) / 2.0;
-  MeshType::PixelType       points[NumPoints][3] = { { 1.0, 0.0, 0.0 },  { 0.5, a, 0.0 },   { -0.5, a, 0.0 },
-                                               { -1.0, 0.0, 0.0 }, { -0.5, -a, 0.0 }, { 0.5, -a, 0.0 } };
+  const MeshType::PixelType points[NumPoints][3] = { { 1.0, 0.0, 0.0 },  { 0.5, a, 0.0 },   { -0.5, a, 0.0 },
+                                                     { -1.0, 0.0, 0.0 }, { -0.5, -a, 0.0 }, { 0.5, -a, 0.0 } };
   MeshType::PointType       pnts[NumPoints];
   MeshType::PointIdentifier pids[NumPoints];
-  for (int i = 0; i < NumPoints; i++)
+  for (int i = 0; i < NumPoints; ++i)
   {
-    for (int j = 0; j < 3; j++)
+    for (int j = 0; j < 3; ++j)
     {
       pnts[i][j] = points[i][j];
     }
     pids[i] = mesh->AddPoint(pnts[i]);
   }
 
-  for (int i = 0; i < NumPoints; i++)
+  for (int i = 0; i < NumPoints; ++i)
   {
     mesh->AddEdge(pids[i], pids[(i + 1) % NumPoints]);
   }
 
   MeshType::QEPrimal * foundEdges[NumEdges];
-  for (int i = 0; i < NumPoints; i++)
+  for (int i = 0; i < NumPoints; ++i)
   {
     foundEdges[i] = mesh->FindEdge(pids[i], pids[(i + 1) % NumEdges]);
     if (!foundEdges[i])
@@ -135,15 +135,12 @@ itkQuadEdgeMeshIteratorTest(int, char *[])
   for (IteratorGeom itDnext = foundEdges[0]->BeginGeomDnext(); itDnext != foundEdges[0]->EndGeomDnext();
        itDnext++, edgeNumber++)
   {
-    MeshType::QEPrimal * expectedEdge;
+    MeshType::QEPrimal * expectedEdge = foundEdges[edgeNumber];
     if (edgeNumber)
     {
       expectedEdge = foundEdges[edgeNumber]->GetSym();
     }
-    else
-    {
-      expectedEdge = foundEdges[edgeNumber];
-    }
+
     MeshType::QEPrimal * currentEdge = itDnext.Value();
     if (currentEdge != expectedEdge)
     {

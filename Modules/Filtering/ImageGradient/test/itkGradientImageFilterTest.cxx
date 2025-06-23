@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 inline std::ostream &
 operator<<(std::ostream & o, const itk::CovariantVector<float, 3> & v)
 {
-  o << "[" << v[0] << " " << v[1] << " " << v[2] << "]";
+  o << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ']';
   return o;
 }
 
@@ -47,7 +47,7 @@ itkGradientImageFilterTest(int argc, char * argv[])
 
 
   // Set up filter
-  FilterType1::Pointer filter1 = FilterType1::New();
+  auto filter1 = FilterType1::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter1, GradientImageFilter, ImageToImageFilter);
 
@@ -85,7 +85,7 @@ itkGradientImageFilterTest(int argc, char * argv[])
 
   using FilterType2 = itk::GradientImageFilter<InputImageType2, float, float, OutputImageType2>;
 
-  FilterType2::Pointer filter2 = FilterType2::New();
+  auto filter2 = FilterType2::New();
 
   using PeriodicBoundaryType = itk::PeriodicBoundaryCondition<InputImageType2>;
   // Test the OverrideBoundaryCondition setting;

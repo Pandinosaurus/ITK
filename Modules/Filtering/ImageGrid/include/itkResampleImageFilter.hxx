@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkResampleImageFilter_hxx
 #define itkResampleImageFilter_hxx
 
-#include "itkResampleImageFilter.h"
 #include "itkObjectFactory.h"
 #include "itkIdentityTransform.h"
 #include "itkTotalProgressReporter.h"
@@ -28,6 +27,7 @@
 #include "itkDefaultConvertPixelTraits.h"
 #include "itkImageAlgorithm.h"
 
+#include <algorithm>   // For max.
 #include <type_traits> // For is_same.
 
 namespace itk
@@ -39,12 +39,11 @@ template <typename TInputImage,
           typename TTransformPrecisionType>
 ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTransformPrecisionType>::
   ResampleImageFilter()
-  : m_Extrapolator(nullptr)
-  , m_OutputSpacing(1.0)
-  , m_OutputOrigin(0.0)
-
+  : m_Interpolator(dynamic_cast<InterpolatorType *>(LinearInterpolatorType::New().GetPointer()))
+  , m_Extrapolator(nullptr)
+  , m_OutputSpacing(MakeFilled<SpacingType>(1.0))
+  , m_OutputOrigin()
 {
-
   m_Size.Fill(0);
   m_OutputStartIndex.Fill(0);
 
@@ -58,12 +57,9 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   // #1 "ReferenceImage" optional
   Self::AddRequiredInputName("ReferenceImage", 1);
   Self::RemoveRequiredInputName("ReferenceImage");
-
   // "Transform" required ( not numbered )
   Self::AddRequiredInputName("Transform");
   this->InitializeTransform();
-
-  m_Interpolator = dynamic_cast<InterpolatorType *>(LinearInterpolatorType::New().GetPointer());
 
   m_DefaultPixelValue = NumericTraits<PixelType>::ZeroValue(m_DefaultPixelValue);
   this->DynamicMultiThreadingOn();
@@ -79,12 +75,12 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 {
   using IdentityTransformType =
     Transform<TTransformPrecisionType, Self::OutputImageDimension, Self::OutputImageDimension>;
-  typename IdentityTransformType::Pointer defaultTransform =
+  const typename IdentityTransformType::Pointer defaultTransform =
     IdentityTransform<TTransformPrecisionType, OutputImageDimension>::New();
-  if (InputImageDimension == OutputImageDimension)
+  if constexpr (InputImageDimension == OutputImageDimension)
   {
     using DecoratorType = DataObjectDecorator<IdentityTransformType>;
-    typename DecoratorType::Pointer decoratedInput = DecoratorType::New();
+    auto decoratedInput = DecoratorType::New();
     decoratedInput->Set(defaultTransform);
     this->ProcessObject::SetInput(
       "Transform", const_cast<DataObjectDecorator<IdentityTransformType> *>(decoratedInput.GetPointer()));
@@ -102,14 +98,14 @@ template <typename TInputImage,
           typename TTransformPrecisionType>
 void
 ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTransformPrecisionType>::
-  VerifyPreconditions() ITKv5_CONST
+  VerifyPreconditions() const
 {
   this->Superclass::VerifyPreconditions();
   const ReferenceImageBaseType * const referenceImage = this->GetReferenceImage();
   if (this->m_Size[0] == 0 && referenceImage && !m_UseReferenceImage)
   {
-    itkExceptionMacro("Output image size is zero in all dimensions.  Consider using SetUseReferenceImageOn()."
-                      "to define the resample output from the ReferenceImage.");
+    itkExceptionMacro("Output image size is zero in all dimensions.  Consider using UseReferenceImageOn()."
+                      "or SetUseReferenceImage(true) to define the resample output from the ReferenceImage.");
   }
 }
 
@@ -175,11 +171,11 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 
   if (nComponents == 0)
   {
-    PixelComponentType tempZeroComponents{ 0 };
-    PixelComponentType zeroComponent = NumericTraits<PixelComponentType>::ZeroValue(tempZeroComponents);
+    const PixelComponentType tempZeroComponents{ 0 };
+    const PixelComponentType zeroComponent = NumericTraits<PixelComponentType>::ZeroValue(tempZeroComponents);
     nComponents = this->GetInput()->GetNumberOfComponentsPerPixel();
     NumericTraits<PixelType>::SetLength(m_DefaultPixelValue, nComponents);
-    for (unsigned int n = 0; n < nComponents; n++)
+    for (unsigned int n = 0; n < nComponents; ++n)
     {
       PixelConvertType::SetNthComponent(n, m_DefaultPixelValue, zeroComponent);
     }
@@ -259,9 +255,9 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 
   NumericTraits<PixelType>::SetLength(outputValue, nComponents);
 
-  for (unsigned int n = 0; n < nComponents; n++)
+  for (unsigned int n = 0; n < nComponents; ++n)
   {
-    ComponentType component = InterpolatorConvertType::GetNthComponent(n, value);
+    const ComponentType component = InterpolatorConvertType::GetNthComponent(n, value);
 
     if (component < minComponent)
     {
@@ -304,9 +300,8 @@ auto
 ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTransformPrecisionType>::
   CastComponentWithBoundsChecking(const TComponent value) -> PixelComponentType
 {
-  static_assert(std::is_same<TComponent, ComponentType>::value,
-                "TComponent should just be the same as the ComponentType!");
-  static_assert(!std::is_same<TComponent, PixelComponentType>::value,
+  static_assert(std::is_same_v<TComponent, ComponentType>, "TComponent should just be the same as the ComponentType!");
+  static_assert(!std::is_same_v<TComponent, PixelComponentType>,
                 "For PixelComponentType there is a more appropriate overload, that should be called instead!");
 
   // Retrieve minimum and maximum values at compile-time:
@@ -316,8 +311,9 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   constexpr auto maxComponent = static_cast<ComponentType>(maxPixelComponent);
 
   // Clamp the value between minPixelComponent and maxPixelComponent:
-  return (value <= minComponent) ? minPixelComponent
-                                 : (value >= maxComponent) ? maxPixelComponent : static_cast<PixelComponentType>(value);
+  return (value <= minComponent)   ? minPixelComponent
+         : (value >= maxComponent) ? maxPixelComponent
+                                   : static_cast<PixelComponentType>(value);
 }
 
 
@@ -342,9 +338,9 @@ auto
 ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTransformPrecisionType>::
   CastPixelWithBoundsChecking(const TPixel value) -> PixelType
 {
-  static_assert(std::is_same<TPixel, InterpolatorOutputType>::value,
+  static_assert(std::is_same_v<TPixel, InterpolatorOutputType>,
                 "TPixel should just be the same as the InterpolatorOutputType!");
-  static_assert(!std::is_same<TPixel, ComponentType>::value,
+  static_assert(!std::is_same_v<TPixel, ComponentType>,
                 "For ComponentType there is a more efficient overload, that should be called instead!");
 
   const unsigned int nComponents = InterpolatorConvertType::GetNumberOfComponents(value);
@@ -384,28 +380,22 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 
   // Create an iterator that will walk the output region for this thread.
   using OutputIterator = ImageRegionIteratorWithIndex<TOutputImage>;
-  OutputIterator outIt(outputPtr, outputRegionForThread);
-
-  // Define a few indices that will be used to translate from an input pixel
-  // to an output pixel
-  OutputPointType outputPoint; // Coordinates of current output pixel
-  InputPointType  inputPoint;  // Coordinates of current input pixel
-
-  ContinuousInputIndexType inputIndex;
 
   using OutputType = typename InterpolatorType::OutputType;
 
   // Walk the output region
-  outIt.GoToBegin();
-
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(outputPtr, outputRegionForThread); !outIt.IsAtEnd(); ++outIt)
   {
     // Determine the index of the current output pixel
+
+    OutputPointType outputPoint; // Coordinates of current output pixel
     outputPtr->TransformIndexToPhysicalPoint(outIt.GetIndex(), outputPoint);
 
     // Compute corresponding input pixel position
-    inputPoint = transformPtr->TransformPoint(outputPoint);
-    const bool isInsideInput = inputPtr->TransformPhysicalPointToContinuousIndex(inputPoint, inputIndex);
+    const InputPointType inputPoint = transformPtr->TransformPoint(outputPoint);
+
+    ContinuousInputIndexType inputIndex;
+    const bool               isInsideInput = inputPtr->TransformPhysicalPointToContinuousIndex(inputPoint, inputIndex);
 
     OutputType value;
     // Evaluate input at right position and copy to the output
@@ -427,7 +417,6 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
       }
     }
     progress.CompletedPixel();
-    ++outIt;
   }
 }
 
@@ -443,10 +432,6 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   const InputImageType * inputPtr = this->GetInput();
   const TransformType *  transformPtr = this->GetTransform();
 
-  // Create an iterator that will walk the output region for this thread.
-  using OutputIterator = ImageScanlineIterator<TOutputImage>;
-  OutputIterator outIt(outputPtr, outputRegionForThread);
-
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
   const OutputImageRegionType & largestPossibleRegion = outputPtr->GetLargestPossibleRegion();
@@ -455,7 +440,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   const auto firstSizeValueOfLargestPossibleRegion = static_cast<double>(largestPossibleRegion.GetSize(0));
 
   // Cache information from the superclass
-  PixelType defaultValue = this->GetDefaultPixelValue();
+  const PixelType defaultValue = this->GetDefaultPixelValue();
 
   // As we walk across a scan line in the output image, we trace
   // an oriented/scaled/translated line in the input image. Each scan
@@ -475,7 +460,8 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
       transformPtr->TransformPoint(outputPtr->template TransformIndexToPhysicalPoint<double>(index)));
   };
 
-  while (!outIt.IsAtEnd())
+  // Create an iterator that will walk the output region for this thread.
+  for (ImageScanlineIterator outIt(outputPtr, outputRegionForThread); !outIt.IsAtEnd(); outIt.NextLine())
   {
     // Determine the continuous index of the first and end pixel of output
     // scan line when mapped to the input coordinate frame.
@@ -523,7 +509,6 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
       ++outIt;
       ++scanlineIndex;
     }
-    outIt.NextLine();
     progress.Completed(outputRegionForThread.GetSize()[0]);
   }
 }
@@ -538,7 +523,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 {
   if (!m_Interpolator)
   {
-    itkExceptionMacro(<< "Interpolator not set");
+    itkExceptionMacro("Interpolator not set");
   }
 
   // Get pointers to the input and output
@@ -566,8 +551,8 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   // to the IsLinear() call.
   if (!isSpecialCoordinatesImage && transform->GetTransformCategory() == TransformType::TransformCategoryEnum::Linear)
   {
-    typename TInputImage::RegionType inputRequestedRegion;
-    inputRequestedRegion = ImageAlgorithm::EnlargeRegionOverBox(output->GetRequestedRegion(), output, input, transform);
+    typename TInputImage::RegionType inputRequestedRegion =
+      ImageAlgorithm::EnlargeRegionOverBox(output->GetRequestedRegion(), output, input, transform);
 
     const typename TInputImage::RegionType inputLargestRegion(input->GetLargestPossibleRegion());
     if (inputLargestRegion.IsInside(inputRequestedRegion.GetIndex()) ||
@@ -609,7 +594,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   GenerateOutputInformation()
 {
   // Call the superclass' implementation of this method
-  if (InputImageDimension == OutputImageDimension)
+  if constexpr (InputImageDimension == OutputImageDimension)
   {
     Superclass::GenerateOutputInformation();
   }
@@ -625,9 +610,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   }
   else
   {
-    typename TOutputImage::RegionType outputLargestPossibleRegion;
-    outputLargestPossibleRegion.SetSize(m_Size);
-    outputLargestPossibleRegion.SetIndex(m_OutputStartIndex);
+    const typename TOutputImage::RegionType outputLargestPossibleRegion(m_OutputStartIndex, m_Size);
     outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
   }
 
@@ -657,10 +640,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
 
   if (m_Interpolator)
   {
-    if (latestTime < m_Interpolator->GetMTime())
-    {
-      latestTime = m_Interpolator->GetMTime();
-    }
+    latestTime = std::max(latestTime, m_Interpolator->GetMTime());
   }
 
   return latestTime;
@@ -688,7 +668,7 @@ ResampleImageFilter<TInputImage, TOutputImage, TInterpolatorPrecisionType, TTran
   os << indent << "Transform: " << this->GetTransform() << std::endl;
   os << indent << "Interpolator: " << m_Interpolator.GetPointer() << std::endl;
   os << indent << "Extrapolator: " << m_Extrapolator.GetPointer() << std::endl;
-  os << indent << "UseReferenceImage: " << (m_UseReferenceImage ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(UseReferenceImage);
 }
 } // end namespace itk
 

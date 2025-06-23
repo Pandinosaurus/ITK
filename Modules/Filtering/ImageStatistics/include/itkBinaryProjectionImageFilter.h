@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +26,8 @@ namespace itk
 /** \class BinaryProjectionImageFilter
  * \brief Binary projection
  *
- * This class was contributed to the Insight Journal by Gaetan Lehmann.
- * The original paper can be found at
- * https://www.insight-journal.org/browse/publication/71
+ * This class was contributed to the Insight Journal by Gaetan Lehmann
+ * \cite Lehmann_2006_a.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
  *  INRA de Jouy-en-Josas, France.
@@ -75,10 +74,8 @@ public:
     {
       return (TOutputPixel)m_ForegroundValue;
     }
-    else
-    {
-      return m_BackgroundValue;
-    }
+
+    return m_BackgroundValue;
   }
 
   bool m_IsForeground;
@@ -108,8 +105,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Runtime information support. */
-  itkTypeMacro(BinaryProjectionImageFilter, ProjectionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryProjectionImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -122,7 +119,7 @@ public:
   using InputPixelType = typename InputImageType::PixelType;
   using OutputPixelType = typename OutputImageType::PixelType;
 
-  using AccumulatorType = typename Superclass::AccumulatorType;
+  using typename Superclass::AccumulatorType;
 
   /** Set the value in the image to consider as "foreground". Defaults to
    * maximum value of PixelType. Subclasses may alias this to
@@ -145,19 +142,14 @@ public:
    * NumericTraits<PixelType>::NonpositiveMin(). */
   itkGetConstMacro(BackgroundValue, OutputPixelType);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputPixelTypeGreaterThanComparable, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   BinaryProjectionImageFilter()
-  {
-    m_ForegroundValue = NumericTraits<InputPixelType>::max();
-    m_BackgroundValue = NumericTraits<OutputPixelType>::NonpositiveMin();
-  }
+    : m_ForegroundValue(NumericTraits<InputPixelType>::max())
+    , m_BackgroundValue(NumericTraits<OutputPixelType>::NonpositiveMin())
+  {}
 
   ~BinaryProjectionImageFilter() override = default;
 
@@ -186,10 +178,10 @@ protected:
   }
 
   /** Pixel value to dilate */
-  InputPixelType m_ForegroundValue;
+  InputPixelType m_ForegroundValue{};
 
   /** Pixel value for background */
-  OutputPixelType m_BackgroundValue;
+  OutputPixelType m_BackgroundValue{};
 }; // end BinaryProjectionImageFilter
 } // end namespace itk
 

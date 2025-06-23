@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,16 +44,16 @@ public:
   ElementWrapperInterface() = default;
   virtual ~ElementWrapperInterface() = default;
 
-  virtual ElementIdentifierType
+  [[nodiscard]] virtual ElementIdentifierType
   GetLocation(const ElementType & element) const = 0;
 
   virtual void
   SetLocation(ElementType & element, const ElementIdentifierType & identifier) = 0;
 
-  virtual bool
+  [[nodiscard]] virtual bool
   is_less(const ElementType & element1, const ElementType & element2) const = 0;
 
-  virtual bool
+  [[nodiscard]] virtual bool
   is_greater(const ElementType & element1, const ElementType & element2) const = 0;
 };
 // ------------------------------------------------------------------------
@@ -111,11 +111,11 @@ public:
   using ElementPriorityType = TElementPriority;
   using ElementIdentifierType = TElementIdentifier;
 
-  ElementType           m_Element;
-  ElementPriorityType   m_Priority;
-  ElementIdentifierType m_Location;
+  ElementType           m_Element{};
+  ElementPriorityType   m_Priority{};
+  ElementIdentifierType m_Location{ Superclass::m_ElementNotFound };
 
-  MinPriorityQueueElementWrapper();
+  MinPriorityQueueElementWrapper() = default;
 
   MinPriorityQueueElementWrapper(ElementType element, ElementPriorityType priority);
 
@@ -162,7 +162,7 @@ public:
   using ElementIdentifierType = TElementIdentifier;
 
   using Superclass = MinPriorityQueueElementWrapper<ElementType, ElementPriorityType, ElementIdentifierType>;
-  MaxPriorityQueueElementWrapper();
+  MaxPriorityQueueElementWrapper() = default;
 
   MaxPriorityQueueElementWrapper(ElementType element, ElementPriorityType priority);
 
@@ -205,7 +205,7 @@ public:
   static const ElementIdentifierType m_ElementNotFound;
 
 public:
-  PriorityQueueContainer();
+  PriorityQueueContainer() = default;
   ~PriorityQueueContainer() override = default;
 
   template <typename TInputIterator>
@@ -222,14 +222,14 @@ public:
 
 public:
   itkNewMacro(Self);
-  itkTypeMacro(PriorityQueueContainer, VectorContainer);
+  itkOverrideGetNameOfClassMacro(PriorityQueueContainer);
 
   // void Reserve( ElementIdentifier NbOfElementsToStore )
   //{ this->Superclass->Reserve( NbOfElementsToStore ); }
   // void Squeeze( ) { this->Superclass->Squeeze( ); }
   void
   Clear();
-  bool
+  [[nodiscard]] bool
   Empty() const;
   void
   Push(ElementWrapperType element);
@@ -254,7 +254,7 @@ public:
 
 protected:
   // One instance of the interface to deal with the functions calls
-  ElementInterfaceType m_Interface;
+  ElementInterfaceType m_Interface{};
 
   inline ElementWrapperType &
   GetElementAtLocation(const ElementIdentifierType & identifier)

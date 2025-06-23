@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,12 +38,12 @@ TestPrintNeighborhood(IteratorType & p, VectorIteratorType & v)
 
   std::cout << "Output from operator()(const OffsetType &, const OffsetType &, const NeighborhoodType *) const"
             << std::endl;
-  unsigned x, y, i = 0;
-  for (y = 0; y < p.GetSize()[1]; ++y)
+  unsigned int i = 0;
+  for (unsigned int y = 0; y < p.GetSize()[1]; ++y)
   {
-    for (x = 0; x < p.GetSize()[0]; ++x, ++i)
+    for (unsigned int x = 0; x < p.GetSize()[0]; ++x, ++i)
     {
-      std::cout << p.GetPixel(i) << " ";
+      std::cout << p.GetPixel(i) << ' ';
     }
     std::cout << std::endl;
   }
@@ -52,33 +52,33 @@ TestPrintNeighborhood(IteratorType & p, VectorIteratorType & v)
             << "const NeighborhoodAccessorFunctorType &) const" << std::endl;
 
   i = 0;
-  for (y = 0; y < v.GetSize()[1]; ++y)
+  for (unsigned int y = 0; y < v.GetSize()[1]; ++y)
   {
-    for (x = 0; x < v.GetSize()[0]; ++x, ++i)
+    for (unsigned int x = 0; x < v.GetSize()[0]; ++x, ++i)
     {
-      std::cout << v.GetPixel(i)[0] << " ";
+      std::cout << v.GetPixel(i)[0] << ' ';
     }
     std::cout << std::endl;
   }
 
-  std::cout << "Ouptut from GetPixel( const IndexType & index, const TImage * image ) const" << std::endl;
+  std::cout << "Output from GetPixel( const IndexType & index, const TImage * image ) const" << std::endl;
 
   i = 0;
-  for (y = 0; y < p.GetSize()[1]; ++y)
+  for (unsigned int y = 0; y < p.GetSize()[1]; ++y)
   {
     itk::Index<2> index;
     index[1] = p.GetIndex()[1] - p.GetRadius()[1] + y;
-    for (x = 0; x < p.GetSize()[0]; ++x, ++i)
+    for (unsigned int x = 0; x < p.GetSize()[0]; ++x, ++i)
     {
       index[0] = p.GetIndex()[0] - p.GetRadius()[0] + x;
 
       // Access the pixel value through three different methods in the
       // boundary condition.
-      int pixel1 = p.GetBoundaryCondition()->GetPixel(index, p.GetImagePointer());
-      int pixel2 = p.GetPixel(i);
-      int pixel3 = v.GetPixel(i)[0];
+      const int pixel1 = p.GetBoundaryCondition()->GetPixel(index, p.GetImagePointer());
+      const int pixel2 = p.GetPixel(i);
+      const int pixel3 = v.GetPixel(i)[0];
 
-      std::cout << pixel1 << " ";
+      std::cout << pixel1 << ' ';
 
       // Check agreement of output from three three methods of accessing pixel values.
       if (pixel1 != pixel2 || pixel2 != pixel3)
@@ -122,17 +122,16 @@ int
 itkZeroFluxBoundaryConditionTest(int, char *[])
 {
   // Test an image to cover one operator() method.
-  ImageType::Pointer image = ImageType::New();
-  RegionType         imageRegion;
-  SizeType           imageSize = { { 5, 5 } };
-  IndexType          imageIndex = { { 0, 0 } };
-  imageRegion.SetSize(imageSize);
-  imageRegion.SetIndex(imageIndex);
+  auto image = ImageType::New();
+
+  constexpr SizeType  imageSize = { { 5, 5 } };
+  constexpr IndexType imageIndex = { { 0, 0 } };
+  const RegionType    imageRegion{ imageIndex, imageSize };
   image->SetRegions(imageRegion);
   image->Allocate();
 
   // Test a vector image to cover the other operator() method.
-  VectorImageType::Pointer vectorImage = VectorImageType::New();
+  auto vectorImage = VectorImageType::New();
   vectorImage->SetRegions(imageRegion);
   vectorImage->SetNumberOfComponentsPerPixel(1);
   vectorImage->Allocate();
@@ -146,13 +145,12 @@ itkZeroFluxBoundaryConditionTest(int, char *[])
       VectorImageType::PixelType vectorPixel(1);
       vectorPixel[0] = image->GetPixel(pos);
       vectorImage->SetPixel(pos, vectorPixel);
-      std::cout << image->GetPixel(pos) << " ";
+      std::cout << image->GetPixel(pos) << ' ';
     }
     std::cout << std::endl;
   }
 
   RadiusType radius;
-  RadiusType radiusTwo;
   radius[0] = radius[1] = 1;
   IteratorType       it(radius, image, image->GetRequestedRegion());
   VectorIteratorType vit(radius, vectorImage, vectorImage->GetRequestedRegion());
@@ -170,13 +168,14 @@ itkZeroFluxBoundaryConditionTest(int, char *[])
   for (it.GoToBegin(), vit.GoToBegin(); !it.IsAtEnd(); ++it, ++vit)
   {
     std::cout << "Index: " << it.GetIndex() << std::endl;
-    bool success = TestPrintNeighborhood(it, vit);
+    const bool success = TestPrintNeighborhood(it, vit);
     if (!success)
     {
       return EXIT_FAILURE;
     }
   }
 
+  RadiusType radiusTwo;
   radiusTwo[0] = radiusTwo[1] = 2;
   IteratorType       it2(radiusTwo, image, image->GetRequestedRegion());
   VectorIteratorType vit2(radiusTwo, vectorImage, vectorImage->GetRequestedRegion());
@@ -191,7 +190,7 @@ itkZeroFluxBoundaryConditionTest(int, char *[])
   for (it2.GoToBegin(), vit2.GoToBegin(); !it2.IsAtEnd(); ++it2, ++vit2)
   {
     std::cout << "Index: " << it2.GetIndex() << std::endl;
-    bool success = TestPrintNeighborhood(it2, vit2);
+    const bool success = TestPrintNeighborhood(it2, vit2);
     if (!success)
     {
       return EXIT_FAILURE;
@@ -199,26 +198,15 @@ itkZeroFluxBoundaryConditionTest(int, char *[])
   }
 
   // Now test the input region calculation
-  IndexType  requestIndex;
-  SizeType   requestSize;
-  RegionType requestRegion;
-
-  IndexType  expectedIndex;
-  SizeType   expectedSize;
-  RegionType expectedRegion;
-
-  RegionType inputRegion;
-
   // Test 1
   std::cout << "GetInputRequestedRegion() Test 1" << std::endl;
-  requestIndex.Fill(0);
-  requestSize.Fill(2);
-  requestRegion.SetIndex(requestIndex);
-  requestRegion.SetSize(requestSize);
+  IndexType  requestIndex{};
+  auto       requestSize = itk::MakeFilled<SizeType>(2);
+  RegionType requestRegion{ requestIndex, requestSize };
 
-  expectedRegion = requestRegion;
+  RegionType expectedRegion = requestRegion;
 
-  inputRegion = bc.GetInputRequestedRegion(imageRegion, requestRegion);
+  RegionType inputRegion = bc.GetInputRequestedRegion(imageRegion, requestRegion);
   if (!CheckInputRequestedRegion(imageRegion, inputRegion, expectedRegion))
   {
     std::cerr << "[FAILED]" << std::endl;
@@ -235,8 +223,10 @@ itkZeroFluxBoundaryConditionTest(int, char *[])
   requestRegion.SetIndex(requestIndex);
   requestRegion.SetSize(requestSize);
 
+  IndexType expectedIndex;
   expectedIndex[0] = 0;
   expectedIndex[1] = 0;
+  SizeType expectedSize;
   expectedSize[0] = 1;
   expectedSize[1] = 2;
   expectedRegion.SetIndex(expectedIndex);

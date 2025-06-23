@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,10 @@
 
 #include "itkNumericTraits.h"
 
-namespace itk
-{
-namespace Accessor
+namespace itk::Accessor
 {
 /**
- *\class AddPixelAccessor
+ * \class AddPixelAccessor
  * \brief Simulates the effect of adding a constant value to all pixels
  *
  * This class is intended to be used as parameter of
@@ -64,7 +62,7 @@ public:
   }
 
   /** Read access to the pixel */
-  inline ExternalType
+  [[nodiscard]] inline ExternalType
   Get(const InternalType & input) const
   {
     return static_cast<ExternalType>(input + m_Value);
@@ -78,7 +76,7 @@ public:
   }
 
   /** Get the value to be added to pixels */
-  TPixel
+  [[nodiscard]] TPixel
   GetValue() const
   {
     return m_Value;
@@ -86,24 +84,20 @@ public:
 
   /** Assignment Operator */
   Self &
-  operator=(const Self & apa)
-  {
-    this->m_Value = apa.m_Value;
-    return *this;
-  }
+  operator=(const Self & apa) = default;
 
   /** Constructors */
+  /** @ITKStartGrouping */
   AddPixelAccessor()
-    : m_Value(NumericTraits<TPixel>::ZeroValue())
+    : m_Value(TPixel{})
   {}
   AddPixelAccessor(const Self & apa)
     : m_Value(apa.m_Value)
   {}
-
+  /** @ITKEndGrouping */
 private:
   TPixel m_Value;
 };
-} // end namespace Accessor
-} // end namespace itk
+} // namespace itk::Accessor
 
 #endif

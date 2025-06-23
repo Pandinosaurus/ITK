@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +26,11 @@
 int
 itkGrayscaleMorphologicalClosingImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 3)
+  if (argc < 4)
   {
     std::cerr << "Missing arguments." << std::endl;
     std::cerr << "Usage: " << std::endl;
-    std::cerr << itkNameOfTestExecutableMacro(argv) << "  inputImage outputImage " << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << "  inputImage outputImage safeBorder" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -55,18 +55,21 @@ itkGrayscaleMorphologicalClosingImageFilterTest(int argc, char * argv[])
   using FilterType = itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, KernelType>;
 
   // Create the reader and writer
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GrayscaleMorphologicalClosingImageFilter, KernelImageFilter);
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
+
+  auto safeBorder = static_cast<bool>(std::stoi(argv[3]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, SafeBorder, safeBorder);
 
   // Connect the pipeline
   filter->SetInput(reader->GetOutput());

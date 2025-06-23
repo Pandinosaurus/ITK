@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,10 +28,10 @@
 
 //  Example taken from 'Fundamentals of the Finite ELement Method' - Grandin
 int
-itkFEMElement2DC0LinearQuadrilateralStressTestFEMObjectReader(int argc, char * argv[])
+itkFEMElement2DC0LinearQuadrilateralStressTestFEMObjectReader(int, char *[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -42,19 +42,18 @@ itkFEMElement2DC0LinearQuadrilateralStressTestFEMObjectReader(int argc, char * a
 
   using FEMSpatialObjectReaderType = itk::FEMSpatialObjectReader<2>;
   using FEMSpatialObjectReaderPointer = FEMSpatialObjectReaderType::Pointer;
-  FEMSpatialObjectReaderPointer SpatialReader = FEMSpatialObjectReaderType::New();
-  // SpatialReader->SetFileName("C:/Research/ITKGit/ITK/Testing/Data/Input/FEM/SpatialObjects.meta");
-  SpatialReader->SetFileName("C:/Research/ITKGit/ITK/Testing/Data/Input/FEM/Trial.meta");
-  SpatialReader->Update();
+  FEMSpatialObjectReaderPointer spatialReader = FEMSpatialObjectReaderType::New();
+  spatialReader->SetFileName("C:/Research/ITKGit/ITK/Testing/Data/Input/FEM/Trial.meta");
+  spatialReader->Update();
 
   using FEMSpatialObjectWriterType = itk::FEMSpatialObjectWriter<2>;
   using FEMSpatialObjectWriterPointer = FEMSpatialObjectWriterType::Pointer;
-  FEMSpatialObjectWriterPointer SpatialWriter = FEMSpatialObjectWriterType::New();
-  SpatialWriter->SetInput(SpatialReader->GetScene());
-  SpatialWriter->SetFileName("C:/Research/ITKGit/ITK/Testing/Data/Input/FEM/TrialWrite.meta");
-  SpatialWriter->Update();
+  FEMSpatialObjectWriterPointer spatialWriter = FEMSpatialObjectWriterType::New();
+  spatialWriter->SetInput(spatialReader->GetScene());
+  spatialWriter->SetFileName("C:/Research/ITKGit/ITK/Testing/Data/Input/FEM/TrialWrite.meta");
+  spatialWriter->Update();
 
-  FEMSpatialObjectReaderType::ScenePointer myScene = SpatialReader->GetScene();
+  FEMSpatialObjectReaderType::ScenePointer myScene = spatialReader->GetScene();
   if (!myScene)
   {
     std::cout << "No Scene : [FAILED]" << std::endl;
@@ -66,7 +65,7 @@ itkFEMElement2DC0LinearQuadrilateralStressTestFEMObjectReader(int argc, char * a
   using FEMObjectSpatialObjectType = itk::FEMObjectSpatialObject<2>;
   using FEMObjectSpatialObjectPointer = FEMObjectSpatialObjectType::Pointer;
 
-  FEMObjectSpatialObjectType::ChildrenListType * children = SpatialReader->GetGroup()->GetChildren();
+  FEMObjectSpatialObjectType::ChildrenListType * children = spatialReader->GetGroup()->GetChildren();
   if (strcmp((*(children->begin()))->GetTypeName(), "FEMObjectSpatialObject"))
   {
     std::cout << " [FAILED]" << std::endl;
@@ -85,7 +84,7 @@ itkFEMElement2DC0LinearQuadrilateralStressTestFEMObjectReader(int argc, char * a
   femSO->GetFEMObject()->Solve();
 
   float soln[8];
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     soln[i] = femSO->GetFEMObject()->GetSolution(i);
     std::cout << "Solution[" << i << "]:" << soln[i] << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkGrayscaleConnectedOpeningImageFilter_hxx
 
 #include "itkImageRegionIterator.h"
-#include "itkGrayscaleConnectedOpeningImageFilter.h"
 #include "itkReconstructionByDilationImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkProgressAccumulator.h"
@@ -30,8 +29,7 @@ template <typename TInputImage, typename TOutputImage>
 GrayscaleConnectedOpeningImageFilter<TInputImage, TOutputImage>::GrayscaleConnectedOpeningImageFilter()
 
 {
-  m_Seed.Fill(NumericTraits<typename InputImageIndexType::OffsetValueType>::ZeroValue());
-  m_FullyConnected = false;
+  m_Seed.Fill(typename InputImageIndexType::OffsetValueType{});
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -42,7 +40,7 @@ GrayscaleConnectedOpeningImageFilter<TInputImage, TOutputImage>::GenerateInputRe
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -74,28 +72,25 @@ GrayscaleConnectedOpeningImageFilter<TInputImage, TOutputImage>::GenerateData()
   //
 
   // compute the minimum pixel value in the input
-  typename MinimumMaximumImageCalculator<TInputImage>::Pointer calculator =
-    MinimumMaximumImageCalculator<TInputImage>::New();
+  auto calculator = MinimumMaximumImageCalculator<TInputImage>::New();
   calculator->SetImage(inputImage);
   calculator->ComputeMinimum();
 
-  InputImagePixelType minValue;
-  minValue = calculator->GetMinimum();
+  const InputImagePixelType minValue = calculator->GetMinimum();
 
   // compare this minimum value to the value at the seed pixel.
-  InputImagePixelType seedValue;
-  seedValue = inputImage->GetPixel(m_Seed);
+  const InputImagePixelType seedValue = inputImage->GetPixel(m_Seed);
 
   if (minValue == seedValue)
   {
-    itkWarningMacro(<< "GrayscaleConnectedClosingImageFilter: pixel value at seed point matches minimum value in "
-                       "image.  Resulting image will have a constant value.");
+    itkWarningMacro("GrayscaleConnectedClosingImageFilter: pixel value at seed point matches minimum value in "
+                    "image.  Resulting image will have a constant value.");
     outputImage->FillBuffer(minValue);
     return;
   }
 
   // allocate a marker image
-  InputImagePointer markerPtr = InputImageType::New();
+  const InputImagePointer markerPtr = InputImageType::New();
   markerPtr->SetRegions(inputImage->GetRequestedRegion());
   markerPtr->CopyInformation(inputImage);
   markerPtr->Allocate();
@@ -109,11 +104,10 @@ GrayscaleConnectedOpeningImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Delegate to a geodesic dilation filter.
   //
   //
-  typename ReconstructionByDilationImageFilter<TInputImage, TInputImage>::Pointer dilate =
-    ReconstructionByDilationImageFilter<TInputImage, TInputImage>::New();
+  auto dilate = ReconstructionByDilationImageFilter<TInputImage, TInputImage>::New();
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(dilate, 1.0f);
 
@@ -144,7 +138,7 @@ GrayscaleConnectedOpeningImageFilter<TInputImage, TOutputImage>::PrintSelf(std::
 
   os << indent << "Seed point: " << m_Seed << std::endl;
   os << indent << "Number of iterations used to produce current output: " << m_NumberOfIterationsUsed << std::endl;
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
 }
 } // end namespace itk
 #endif

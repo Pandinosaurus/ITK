@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCastImageFilter_hxx
 #define itkCastImageFilter_hxx
 
-#include "itkCastImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageAlgorithm.h"
 
@@ -43,7 +42,7 @@ CastImageFilter<TInputImage, TOutputImage>::GenerateData()
     // nothing to do, so avoid iterating over all the pixels
     // for nothing! Allocate the output, generate a fake progress and exit
     this->AllocateOutputs();
-    ProgressReporter progress(this, 0, 1);
+    const ProgressReporter progress(this, 0, 1);
     return;
   }
   // else do normal Before+Threaded+After
@@ -73,7 +72,8 @@ CastImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion, inputPtr->GetLargestPossibleRegion());
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 
-  ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension, Superclass::InputImageDimension>
+  const ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension,
+                                                         Superclass::InputImageDimension>
     informationCopier;
   informationCopier(outputPtr, inputPtr);
 }
@@ -90,7 +90,7 @@ CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
 template <typename TInputImage, typename TOutputImage>
 template <typename TInputPixelType,
           typename TOutputPixelType,
-          typename std::enable_if<mpl::is_static_castable<TInputPixelType, TOutputPixelType>::value, int>::type>
+          std::enable_if_t<mpl::is_static_castable<TInputPixelType, TOutputPixelType>::value, int>>
 void
 CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDataDispatched(
   const OutputImageRegionType & outputRegionForThread)
@@ -112,7 +112,7 @@ CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDataDispatche
 template <typename TInputImage, typename TOutputImage>
 template <typename TInputPixelType,
           typename TOutputPixelType,
-          typename std::enable_if<!mpl::is_static_castable<TInputPixelType, TOutputPixelType>::value, int>::type>
+          std::enable_if_t<!mpl::is_static_castable<TInputPixelType, TOutputPixelType>::value, int>>
 void
 CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDataDispatched(
   const OutputImageRegionType & outputRegionForThread)
@@ -120,7 +120,7 @@ CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDataDispatche
   // Implementation for non-implicit convertible pixels which are
   // itk-array-like.
 
-  static_assert(std::is_convertible<typename InputPixelType::ValueType, typename OutputPixelType::ValueType>::value,
+  static_assert(std::is_convertible_v<typename InputPixelType::ValueType, typename OutputPixelType::ValueType>,
                 "Component types are required to be convertible.");
 
   const typename OutputImageRegionType::SizeType & regionSize = outputRegionForThread.GetSize();
@@ -142,18 +142,16 @@ CastImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDataDispatche
   const unsigned int componentsPerPixel = outputPtr->GetNumberOfComponentsPerPixel();
 
   // Define the iterators
-  ImageScanlineConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
-  ImageScanlineIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
+  ImageScanlineConstIterator inputIt(inputPtr, inputRegionForThread);
+  ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
   OutputPixelType value{ outputIt.Get() };
   while (!inputIt.IsAtEnd())
   {
     while (!inputIt.IsAtEndOfLine())
     {
       const InputPixelType & inputPixel = inputIt.Get();
-      for (unsigned int k = 0; k < componentsPerPixel; k++)
+      for (unsigned int k = 0; k < componentsPerPixel; ++k)
       {
         value[k] = static_cast<typename OutputPixelType::ValueType>(inputPixel[k]);
       }

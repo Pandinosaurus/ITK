@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DOMNodeXMLWriter, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DOMNodeXMLWriter);
 
   using InputType = DOMNode;
   using ConstInputPointer = InputType::ConstPointer;
@@ -85,9 +85,10 @@ public:
   itkGetStringMacro(FileName);
 
   /** Get/Set the input DOM object to be written. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Input, InputType);
   itkGetConstObjectMacro(Input, InputType);
-
+  /** @ITKEndGrouping */
   /**
    * Function called by Update() or end-users to write the input DOM object
    * to an output stream such as file, string, console, etc.
@@ -106,13 +107,13 @@ protected:
 
 private:
   /** Variable to hold the output XML file name. */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** Variable to hold the input DOM object. */
-  ConstInputPointer m_Input;
+  ConstInputPointer m_Input{};
 
   /** Variable to hold the indentation (i.e. number of white spaces) for a child node w.r.t. its parent. */
-  std::string m_IndentStep;
+  std::string m_IndentStep{};
 };
 
 } // namespace itk
@@ -121,10 +122,9 @@ private:
 inline std::ostream &
 operator<<(std::ostream & os, const itk::DOMNode & object)
 {
-  itk::DOMNodeXMLWriter::Pointer writer = itk::DOMNodeXMLWriter::New();
+  auto writer = itk::DOMNodeXMLWriter::New();
   writer->SetInput(&object);
   writer->Update(os);
   return os;
 }
-
 #endif // itkDOMNodeXMLWriter_h

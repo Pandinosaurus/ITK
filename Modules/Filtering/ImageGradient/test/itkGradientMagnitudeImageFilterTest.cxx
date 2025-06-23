@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 inline std::ostream &
 operator<<(std::ostream & o, const itk::Vector<float, 3> & v)
 {
-  o << "[" << v[0] << " " << v[1] << " " << v[2] << "]";
+  o << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ']';
   return o;
 }
 
@@ -46,7 +46,7 @@ itkGradientMagnitudeImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, Dimension>;
 
   // Set up filter
-  itk::GradientMagnitudeImageFilter<ImageType, ImageType>::Pointer filter =
+  const itk::GradientMagnitudeImageFilter<ImageType, ImageType>::Pointer filter =
     itk::GradientMagnitudeImageFilter<ImageType, ImageType>::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GradientMagnitudeImageFilter, ImageToImageFilter);

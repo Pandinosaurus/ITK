@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,22 +26,22 @@ itkHeavisideStepFunctionTest1(int, char *[])
 
   using HeavisideFunctionBaseType = itk::HeavisideStepFunction<InputType, OutputType>;
 
-  HeavisideFunctionBaseType::Pointer functionBase0 = HeavisideFunctionBaseType::New();
+  auto functionBase0 = HeavisideFunctionBaseType::New();
 
   std::cout << "GetNameOfClass() = " << functionBase0->GetNameOfClass() << std::endl;
   functionBase0->Print(std::cout);
 
-  const signed int     minValue = -20;
-  constexpr signed int maxValue = 20;
+  constexpr int minValue = -20;
+  constexpr int maxValue = 20;
 
   constexpr InputType incValue = 0.1;
 
-  for (signed int x = minValue; x < maxValue; ++x)
+  for (int x = minValue; x < maxValue; ++x)
   {
-    const InputType ix = x * incValue;
-    OutputType      f = functionBase0->Evaluate(ix);
-    OutputType      df = functionBase0->EvaluateDerivative(ix);
-    std::cout << ix << " " << f << " " << df << std::endl;
+    const InputType  ix = x * incValue;
+    const OutputType f = functionBase0->Evaluate(ix);
+    const OutputType df = functionBase0->EvaluateDerivative(ix);
+    std::cout << ix << ' ' << f << ' ' << df << std::endl;
   }
 
   return EXIT_SUCCESS;

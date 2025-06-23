@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,8 @@ itkRobustAutomaticThresholdCalculatorTest(int argc, char * argv[])
   if (argc != 4)
   {
     std::cerr << "Missing parameters." << std::endl;
-    std::cerr << "Usage: " << argv[0] << " inputImage pow expectedOutput" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputImage pow expectedOutput" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -43,17 +44,17 @@ itkRobustAutomaticThresholdCalculatorTest(int argc, char * argv[])
   using RealImageType = itk::Image<RealPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using GradientType = itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, RealImageType>;
-  GradientType::Pointer gradient = GradientType::New();
+  auto gradient = GradientType::New();
   gradient->SetInput(reader->GetOutput());
   gradient->SetSigma(10);
   gradient->Update();
 
   using CalculatorType = itk::RobustAutomaticThresholdCalculator<ImageType, RealImageType>;
-  CalculatorType::Pointer calculator = CalculatorType::New();
+  auto calculator = CalculatorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(calculator, RobustAutomaticThresholdCalculator, Object);
 
@@ -81,11 +82,12 @@ itkRobustAutomaticThresholdCalculatorTest(int argc, char * argv[])
   CalculatorType::InputPixelType computedOutput = calculator->GetOutput();
   if (itk::Math::NotAlmostEquals(expectedOutput, computedOutput))
   {
-    std::cout << "Test failed!" << std::endl;
-    std::cout << "Error in GetOutput()" << std::endl;
-    std::cout << "Expected: "
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::RobustAutomaticThresholdCalculator::GetOutput" << std::endl;
+    std::cerr << "Expected: "
               << static_cast<itk::NumericTraits<CalculatorType::InputPixelType>::PrintType>(expectedOutput)
-              << ", but got: "
+              << std::endl;
+    std::cerr << ", but got: "
               << static_cast<itk::NumericTraits<CalculatorType::InputPixelType>::PrintType>(computedOutput)
               << std::endl;
     return EXIT_FAILURE;

@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,18 +40,21 @@ def wrongClassName(cl, name):
 # a list of classes to exclude. Typically, the classes with a custom New()
 # method, which return a subclass of the current class
 exclude = [
-    "ForwardFFTImageFilter",
-    "InverseFFTImageFilter",
     "OutputWindow",
     "MultiThreaderBase",
-    "FFTComplexToComplexImageFilter",
-    "ComplexToComplexFFTImageFilter",
     "templated_class",
-    "HalfHermitianToRealInverseFFTImageFilter",
-    "RealToHalfHermitianForwardFFTImageFilter",
     "CustomColormapFunction",
     "ScanlineFilterCommon",  # Segfault
     "cvar",
+    # FFT classes rely on object factory backend overrides
+    "ForwardFFTImageFilter",
+    "Forward1DFFTImageFilter",
+    "InverseFFTImageFilter",
+    "Inverse1DFFTImageFilter",
+    "ComplexToComplexFFTImageFilter",
+    "ComplexToComplex1DFFTImageFilter",
+    "HalfHermitianToRealInverseFFTImageFilter",
+    "RealToHalfHermitianForwardFFTImageFilter",
 ]
 
 wrongName = 0

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkListSample.h"
 #include "itkKdTreeGenerator.h"
+#include "itkTestingMacros.h"
 #include <fstream>
 
 int
@@ -27,24 +28,24 @@ itkKdTreeTest1(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "Missing parameters" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " numberOfDataPoints numberOfTestPoints bucketSize [graphvizDotOutputFile]" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " numberOfDataPoints numberOfTestPoints bucketSize [graphvizDotOutputFile]" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Random number generator
   using NumberGeneratorType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
 
-  NumberGeneratorType::Pointer randomNumberGenerator = NumberGeneratorType::GetInstance();
-  randomNumberGenerator->Initialize();
+  const NumberGeneratorType::Pointer randomNumberGenerator = NumberGeneratorType::GetInstance();
+  randomNumberGenerator->SetSeed();
 
   using MeasurementVectorType = itk::Array<double>;
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
 
   constexpr SampleType::MeasurementVectorSizeType measurementVectorSize = 2;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(measurementVectorSize);
 
   //
@@ -61,21 +62,22 @@ itkKdTreeTest1(int argc, char * argv[])
   }
 
   using TreeGeneratorType = itk::Statistics::KdTreeGenerator<SampleType>;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
 
   const unsigned int bucketSize = std::stoi(argv[3]);
 
   treeGenerator->SetSample(sample);
+
   treeGenerator->SetBucketSize(bucketSize);
   treeGenerator->Update();
 
   using TreeType = TreeGeneratorType::KdTreeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput();
+  const TreeType::Pointer tree = treeGenerator->GetOutput();
 
   MeasurementVectorType queryPoint(measurementVectorSize);
 
-  unsigned int                           numberOfNeighbors = 1;
+  constexpr unsigned int                 numberOfNeighbors = 1;
   TreeType::InstanceIdentifierVectorType neighbors;
 
   MeasurementVectorType result(measurementVectorSize);
@@ -93,10 +95,10 @@ itkKdTreeTest1(int argc, char * argv[])
 
   using OriginType = DistanceMetricType::OriginType;
 
-  DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
+  auto distanceMetric = DistanceMetricType::New();
 
   OriginType origin(measurementVectorSize);
-  for (unsigned int k = 0; k < sample->Size(); k++)
+  for (unsigned int k = 0; k < sample->Size(); ++k)
   {
 
     queryPoint = sample->GetMeasurementVector(k);
@@ -123,10 +125,10 @@ itkKdTreeTest1(int argc, char * argv[])
           itk::Math::NotAlmostEquals(distanceFromMetric, searchDistance[i]))
       {
         std::cerr << "kd-tree knn search result:" << std::endl
-                  << "query point = [" << queryPoint << "]" << std::endl
+                  << "query point = [" << queryPoint << ']' << std::endl
                   << "k = " << numberOfNeighbors << std::endl;
         std::cerr << "measurement vector : distance_by_distMetric : distance_by_tree" << std::endl;
-        std::cerr << "[" << tree->GetMeasurementVector(neighbors[i]) << "] : " << distanceFromMetric << " : "
+        std::cerr << '[' << tree->GetMeasurementVector(neighbors[i]) << "] : " << distanceFromMetric << " : "
                   << searchDistance[i] << std::endl;
         numberOfFailedPoints1++;
       }
@@ -157,8 +159,8 @@ itkKdTreeTest1(int argc, char * argv[])
     //
     // Compute the distance to the "presumed" nearest neighbor
     //
-    double result_dist = std::sqrt((result[0] - queryPoint[0]) * (result[0] - queryPoint[0]) +
-                                   (result[1] - queryPoint[1]) * (result[1] - queryPoint[1]));
+    const double result_dist = std::sqrt((result[0] - queryPoint[0]) * (result[0] - queryPoint[0]) +
+                                         (result[1] - queryPoint[1]) * (result[1] - queryPoint[1]));
 
     //
     // Compute the distance to all other points, to verify
@@ -178,7 +180,7 @@ itkKdTreeTest1(int argc, char * argv[])
       }
     }
 
-    if (std::fabs(min_dist - result_dist) > 10.0 * itk::NumericTraits<double>::epsilon() * min_dist)
+    if (itk::Math::abs(min_dist - result_dist) > 10.0 * itk::NumericTraits<double>::epsilon() * min_dist)
     {
       std::cerr << "Problem found " << std::endl;
       std::cerr << "Query point " << queryPoint << std::endl;

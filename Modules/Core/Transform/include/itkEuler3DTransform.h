@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,8 +38,9 @@ namespace itk
  * the X, Y and Z axis. The last 3 parameters defines the translation in each
  * dimension.
  *
- * The serialization of the fixed parameters is an array of 3 elements defining
- * the center of rotation.
+ * The serialization of the fixed parameters is an array of 4 elements.
+ * The first 3 elements define the center of rotation.  The final
+ * element indicates the status of ComputeZYX (i.e. 1.0 if true, 0.0 if false).
  *
  * \ingroup ITKTransform
  */
@@ -58,8 +59,8 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Euler3DTransform, Rigid3DTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Euler3DTransform);
 
   /** Dimension of the space. */
   static constexpr unsigned int SpaceDimension = 3;
@@ -67,27 +68,27 @@ public:
   static constexpr unsigned int OutputSpaceDimension = 3;
   static constexpr unsigned int ParametersDimension = 6;
 
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
-  using ScalarType = typename Superclass::ScalarType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
-  using InputVnlVectorType = typename Superclass::InputVnlVectorType;
-  using OutputVnlVectorType = typename Superclass::OutputVnlVectorType;
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using MatrixType = typename Superclass::MatrixType;
-  using InverseMatrixType = typename Superclass::InverseMatrixType;
-  using CenterType = typename Superclass::CenterType;
-  using TranslationType = typename Superclass::TranslationType;
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::InputVnlVectorType;
+  using typename Superclass::OutputVnlVectorType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::MatrixType;
+  using typename Superclass::InverseMatrixType;
+  using typename Superclass::CenterType;
+  using typename Superclass::TranslationType;
+  using typename Superclass::OffsetType;
   using AngleType = typename Superclass::ScalarType;
 
   /** Set/Get the transformation from a container of parameters
@@ -127,10 +128,15 @@ public:
    * default is ZXY. These functions set and get the value which
    * indicates whether the rotation is ZYX or ZXY.
    */
+  /** @ITKStartGrouping */
   virtual void
   SetComputeZYX(const bool flag);
   itkGetConstMacro(ComputeZYX, bool);
-
+  /** @ITKEndGrouping */
+  /** Set the state to the identity.
+   *
+   * Sets the angles to a 0 value.
+   */
   void
   SetIdentity() override;
 
@@ -152,14 +158,15 @@ protected:
   void
   ComputeMatrix() override;
 
+  /** Compute angles from the rotation matrix. */
   void
   ComputeMatrixParameters() override;
 
 private:
-  ScalarType m_AngleX;
-  ScalarType m_AngleY;
-  ScalarType m_AngleZ;
-  bool       m_ComputeZYX;
+  ScalarType m_AngleX{};
+  ScalarType m_AngleY{};
+  ScalarType m_AngleZ{};
+  bool       m_ComputeZYX{};
 }; // class Euler3DTransform
 } // namespace itk
 

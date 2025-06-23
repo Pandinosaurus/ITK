@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,8 @@
  *=========================================================================*/
 #ifndef itkQuadraticTriangleCell_hxx
 #define itkQuadraticTriangleCell_hxx
-#include "itkQuadraticTriangleCell.h"
+
+#include <algorithm> // For copy_n.
 
 namespace itk
 {
@@ -59,8 +60,8 @@ QuadraticTriangleCell<TCellInterface>::GetNumberOfPoints() const
  * Get the number of boundary features of the given dimension.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::CellFeatureCount
-QuadraticTriangleCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const
+auto
+QuadraticTriangleCell<TCellInterface>::GetNumberOfBoundaryFeatures(int dimension) const -> CellFeatureCount
 {
   switch (dimension)
   {
@@ -124,12 +125,7 @@ template <typename TCellInterface>
 void
 QuadraticTriangleCell<TCellInterface>::SetPointIds(PointIdConstIterator first)
 {
-  PointIdConstIterator ii(first);
-
-  for (unsigned int i = 0; i < Self::NumberOfPoints; ++i)
-  {
-    m_PointIds[i] = *ii++;
-  }
+  std::copy_n(first, Self::NumberOfPoints, m_PointIds.begin());
 }
 
 /**
@@ -168,8 +164,8 @@ QuadraticTriangleCell<TCellInterface>::SetPointId(int localId, PointIdentifier p
  * Get a begin iterator to the list of point identifiers used by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::PointIdIterator
-QuadraticTriangleCell<TCellInterface>::PointIdsBegin()
+auto
+QuadraticTriangleCell<TCellInterface>::PointIdsBegin() -> PointIdIterator
 {
   return &m_PointIds[0];
 }
@@ -180,8 +176,8 @@ QuadraticTriangleCell<TCellInterface>::PointIdsBegin()
  * by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::PointIdConstIterator
-QuadraticTriangleCell<TCellInterface>::PointIdsBegin() const
+auto
+QuadraticTriangleCell<TCellInterface>::PointIdsBegin() const -> PointIdConstIterator
 {
   return &m_PointIds[0];
 }
@@ -191,8 +187,8 @@ QuadraticTriangleCell<TCellInterface>::PointIdsBegin() const
  * Get an end iterator to the list of point identifiers used by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::PointIdIterator
-QuadraticTriangleCell<TCellInterface>::PointIdsEnd()
+auto
+QuadraticTriangleCell<TCellInterface>::PointIdsEnd() -> PointIdIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
@@ -203,8 +199,8 @@ QuadraticTriangleCell<TCellInterface>::PointIdsEnd()
  * by the cell.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::PointIdConstIterator
-QuadraticTriangleCell<TCellInterface>::PointIdsEnd() const
+auto
+QuadraticTriangleCell<TCellInterface>::PointIdsEnd() const -> PointIdConstIterator
 {
   return &m_PointIds[Self::NumberOfPoints - 1] + 1;
 }
@@ -214,8 +210,8 @@ QuadraticTriangleCell<TCellInterface>::PointIdsEnd() const
  * Get the number of vertices defining the triangle.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::CellFeatureCount
-QuadraticTriangleCell<TCellInterface>::GetNumberOfVertices() const
+auto
+QuadraticTriangleCell<TCellInterface>::GetNumberOfVertices() const -> CellFeatureCount
 {
   return Self::NumberOfVertices;
 }
@@ -225,8 +221,8 @@ QuadraticTriangleCell<TCellInterface>::GetNumberOfVertices() const
  * Get the number of edges defined for the triangle.
  */
 template <typename TCellInterface>
-typename QuadraticTriangleCell<TCellInterface>::CellFeatureCount
-QuadraticTriangleCell<TCellInterface>::GetNumberOfEdges() const
+auto
+QuadraticTriangleCell<TCellInterface>::GetNumberOfEdges() const -> CellFeatureCount
 {
   return Self::NumberOfEdges;
 }
@@ -276,7 +272,7 @@ QuadraticTriangleCell<TCellInterface>::EvaluateShapeFunctions(const ParametricCo
 {
   if (parametricCoordinates.size() != 3)
   {
-    itkGenericExceptionMacro(<< "QuadraticTriangleCell expect three coordinates");
+    itkGenericExceptionMacro("QuadraticTriangleCell expect three coordinates");
   }
 
   const double L1 = parametricCoordinates[0];

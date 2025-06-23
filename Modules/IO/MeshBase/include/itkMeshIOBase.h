@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,7 @@
 #include "itkVector.h"
 #include "itkNumberToString.h"
 #include "itkCommonEnums.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 #include <string>
 #include <complex>
@@ -42,7 +43,7 @@
 namespace itk
 {
 /**
- *\class MeshIOBase
+ * \class MeshIOBase
  * \brief Abstract superclass defines mesh IO interface.
  *
  * MeshIOBase is a class that reads and/or writes Mesh / QuadEdgeMesh data
@@ -58,7 +59,7 @@ namespace itk
  * to be registered (even at run time) without having to modify the
  * code in this class.
  *
- * \author Wanlin Zhu. Uviversity of New South Wales, Australia.
+ * \author Wanlin Zhu. University of New South Wales, Australia.
  *
  * \sa MeshFileWriter
  * \sa MeshFileReader
@@ -95,13 +96,14 @@ public:
   class UnknownType
   {};
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeshIOBase, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshIOBase);
 
   /** Set/Get the name of the file to be read. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   /**Exposes enums values for backwards compatibility*/
   static constexpr IOPixelEnum UNKNOWNPIXELTYPE = IOPixelEnum::UNKNOWNPIXELTYPE;
@@ -180,22 +182,24 @@ public:
    * SCALAR, RGB, RGBA, VECTOR, COVARIANTVECTOR, POINT, INDEX. If
    * the PIXELTYPE is SCALAR, then the NumberOfComponents should be 1.
    * Any other of PIXELTYPE will have more than one component. */
-  itkSetEnumMacro(PointPixelType, ::itk::CommonEnums::IOPixel);
-  itkGetEnumMacro(PointPixelType, ::itk::CommonEnums::IOPixel);
-  itkSetEnumMacro(CellPixelType, ::itk::CommonEnums::IOPixel);
-  itkGetEnumMacro(CellPixelType, ::itk::CommonEnums::IOPixel);
-
+  /** @ITKStartGrouping */
+  itkSetEnumMacro(PointPixelType, itk::CommonEnums::IOPixel);
+  itkGetEnumMacro(PointPixelType, itk::CommonEnums::IOPixel);
+  itkSetEnumMacro(CellPixelType, itk::CommonEnums::IOPixel);
+  itkGetEnumMacro(CellPixelType, itk::CommonEnums::IOPixel);
+  /** @ITKEndGrouping */
   /** Set/Get the component type of the point, cell, point data and cell data.
     This is always a native type. */
-  itkSetEnumMacro(PointComponentType, ::itk::CommonEnums::IOComponent);
-  itkGetEnumMacro(PointComponentType, ::itk::CommonEnums::IOComponent);
-  itkSetEnumMacro(CellComponentType, ::itk::CommonEnums::IOComponent);
-  itkGetEnumMacro(CellComponentType, ::itk::CommonEnums::IOComponent);
-  itkSetEnumMacro(PointPixelComponentType, ::itk::CommonEnums::IOComponent);
-  itkGetEnumMacro(PointPixelComponentType, ::itk::CommonEnums::IOComponent);
-  itkSetEnumMacro(CellPixelComponentType, ::itk::CommonEnums::IOComponent);
-  itkGetEnumMacro(CellPixelComponentType, ::itk::CommonEnums::IOComponent);
-
+  /** @ITKStartGrouping */
+  itkSetEnumMacro(PointComponentType, itk::CommonEnums::IOComponent);
+  itkGetEnumMacro(PointComponentType, itk::CommonEnums::IOComponent);
+  itkSetEnumMacro(CellComponentType, itk::CommonEnums::IOComponent);
+  itkGetEnumMacro(CellComponentType, itk::CommonEnums::IOComponent);
+  itkSetEnumMacro(PointPixelComponentType, itk::CommonEnums::IOComponent);
+  itkGetEnumMacro(PointPixelComponentType, itk::CommonEnums::IOComponent);
+  itkSetEnumMacro(CellPixelComponentType, itk::CommonEnums::IOComponent);
+  itkGetEnumMacro(CellPixelComponentType, itk::CommonEnums::IOComponent);
+  /** @ITKEndGrouping */
   template <typename T>
   struct MapComponentType
   {
@@ -204,9 +208,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const T & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const T & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(1);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -222,9 +226,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const RGBPixel<T> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const RGBPixel<T> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(3);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -240,9 +244,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const RGBAPixel<T> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const RGBAPixel<T> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(4);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -258,9 +262,9 @@ public:
 
   template <typename T, unsigned int VLength>
   void
-  SetPixelType(const Vector<T, VLength> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const Vector<T, VLength> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(VLength);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -276,9 +280,9 @@ public:
 
   template <typename T, unsigned int VLength>
   void
-  SetPixelType(const CovariantVector<T, VLength> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const CovariantVector<T, VLength> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(VLength);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -294,9 +298,9 @@ public:
 
   template <typename T, unsigned int VLength>
   void
-  SetPixelType(const FixedArray<T, VLength> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const FixedArray<T, VLength> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(VLength);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -312,9 +316,9 @@ public:
 
   template <typename T, unsigned int VLength>
   void
-  SetPixelType(const SymmetricSecondRankTensor<T, VLength> itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const SymmetricSecondRankTensor<T, VLength> itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(VLength * (VLength + 1) / 2);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -330,9 +334,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const DiffusionTensor3D<T> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const DiffusionTensor3D<T> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(6);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -346,19 +350,19 @@ public:
     }
   }
 
-  template <typename T, unsigned int NR, unsigned int NC>
+  template <typename T, unsigned int VRows, unsigned int VColumns>
   void
-  SetPixelType(const Matrix<T, NR, NC> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const Matrix<T, VRows, VColumns> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
-      SetNumberOfPointPixelComponents(NR * NC);
+      SetNumberOfPointPixelComponents(VRows * VColumns);
       SetPointPixelComponentType(MapComponentType<T>::CType);
       SetPointPixelType(IOPixelEnum::MATRIX);
     }
     else
     {
-      SetNumberOfCellPixelComponents(NR * NC);
+      SetNumberOfCellPixelComponents(VRows * VColumns);
       SetCellPixelComponentType(MapComponentType<T>::CType);
       SetCellPixelType(IOPixelEnum::MATRIX);
     }
@@ -366,9 +370,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const std::complex<T> & itkNotUsed(dummy), bool UsePointPixel = true)
+  SetPixelType(const std::complex<T> & itkNotUsed(dummy), bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(2);
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -384,9 +388,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const Array<T> & array, bool UsePointPixel = true)
+  SetPixelType(const Array<T> & array, bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(array.Size());
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -402,9 +406,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const VariableLengthVector<T> & vector, bool UsePointPixel = true)
+  SetPixelType(const VariableLengthVector<T> & vector, bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(vector.Size());
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -420,9 +424,9 @@ public:
 
   template <typename T>
   void
-  SetPixelType(const VariableSizeMatrix<T> & matrix, bool UsePointPixel = true)
+  SetPixelType(const VariableSizeMatrix<T> & matrix, bool usePointPixel = true)
   {
-    if (UsePointPixel)
+    if (usePointPixel)
     {
       SetNumberOfPointPixelComponents(matrix.Rows() * matrix.Cols());
       SetPointPixelComponentType(MapComponentType<T>::CType);
@@ -440,6 +444,7 @@ public:
    * be set by the reading process. For SCALAR pixel types,
    * NumberOfComponents will be 1.  For other pixel types,
    * NumberOfComponents will be greater than or equal to one. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfPointPixelComponents, unsigned int);
   itkGetConstMacro(NumberOfPointPixelComponents, unsigned int);
   itkSetMacro(NumberOfCellPixelComponents, unsigned int);
@@ -458,29 +463,34 @@ public:
   itkGetConstMacro(CellBufferSize, SizeValueType);
   itkSetMacro(UpdatePoints, bool);
   itkGetConstMacro(UpdatePoints, bool);
+  itkBooleanMacro(UpdatePoints);
   itkSetMacro(UpdateCells, bool);
   itkGetConstMacro(UpdateCells, bool);
+  itkBooleanMacro(UpdateCells);
   itkSetMacro(UpdatePointData, bool);
   itkGetConstMacro(UpdatePointData, bool);
+  itkBooleanMacro(UpdatePointData);
   itkSetMacro(UpdateCellData, bool);
   itkGetConstMacro(UpdateCellData, bool);
-
+  itkBooleanMacro(UpdateCellData);
+  /** @ITKEndGrouping */
   unsigned int
   GetComponentSize(IOComponentEnum componentType) const;
 
   /** Convenience method returns the IOComponentEnum as a string. This can be
    * used for writing output files. */
-  std::string GetComponentTypeAsString(IOComponentEnum) const;
+  static std::string GetComponentTypeAsString(IOComponentEnum);
 
   /** Convenience method returns the IOPixelEnum as a string. This can be
    * used for writing output files. */
-  std::string GetPixelTypeAsString(IOPixelEnum) const;
+  static std::string GetPixelTypeAsString(IOPixelEnum);
 
   /** These methods control whether the file is written binary or ASCII.
    * Many file formats (i.e., subclasses) ignore this flag. */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(FileType, IOFileEnum);
   itkGetEnumMacro(FileType, IOFileEnum);
-
+  /** @ITKEndGrouping */
   void
   SetFileTypeToASCII()
   {
@@ -504,9 +514,10 @@ public:
    * a VAX or PC, SetByteOrderToLittleEndian() otherwise
    * SetByteOrderToBigEndian().  Some MeshIOBase subclasses
    * ignore these methods. */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(ByteOrder, IOByteOrderEnum);
   itkGetEnumMacro(ByteOrder, IOByteOrderEnum);
-
+  /** @ITKEndGrouping */
   void
   SetByteOrderToBigEndian()
   {
@@ -520,10 +531,11 @@ public:
   }
 
   /** Set/Get a boolean to use the compression or not. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseCompression, bool);
   itkGetConstMacro(UseCompression, bool);
   itkBooleanMacro(UseCompression);
-
+  /** @ITKEndGrouping */
   /** Convenience method returns the IOFileEnum as a string. This can be
    * used for writing output files. */
   std::string GetFileTypeAsString(IOFileEnum) const;
@@ -538,7 +550,7 @@ public:
   virtual bool
   CanReadFile(const char *) = 0;
 
-  /** Determin the required information and whether need to ReadPoints,
+  /** Determine the required information and whether need to ReadPoints,
     ReadCells, ReadPointData and ReadCellData */
   virtual void
   ReadMeshInformation() = 0;
@@ -615,7 +627,7 @@ protected:
   void
   ReadBufferAsAscii(T * buffer, std::ifstream & inputFile, SizeValueType numberOfComponents)
   {
-    for (SizeValueType i = 0; i < numberOfComponents; i++)
+    for (SizeValueType i = 0; i < numberOfComponents; ++i)
     {
       inputFile >> buffer[i];
     }
@@ -630,14 +642,14 @@ protected:
 
     if (m_ByteOrder == IOByteOrderEnum::BigEndian)
     {
-      if (itk::ByteSwapper<T>::SystemIsLittleEndian())
+      if constexpr (itk::ByteSwapper<T>::SystemIsLittleEndian())
       {
         itk::ByteSwapper<T>::SwapRangeFromSystemToBigEndian(buffer, numberOfComponents);
       }
     }
     else if (m_ByteOrder == IOByteOrderEnum::LittleEndian)
     {
-      if (itk::ByteSwapper<T>::SystemIsBigEndian())
+      if constexpr (itk::ByteSwapper<T>::SystemIsBigEndian())
       {
         itk::ByteSwapper<T>::SwapRangeFromSystemToLittleEndian(buffer, numberOfComponents);
       }
@@ -652,12 +664,11 @@ protected:
                      SizeValueType   numberOfLines,
                      SizeValueType   numberOfComponents)
   {
-    NumberToString<T> convert;
-    for (SizeValueType ii = 0; ii < numberOfLines; ii++)
+    for (SizeValueType ii = 0; ii < numberOfLines; ++ii)
     {
-      for (SizeValueType jj = 0; jj < numberOfComponents; jj++)
+      for (SizeValueType jj = 0; jj < numberOfComponents; ++jj)
       {
-        outputFile << convert(buffer[ii * numberOfComponents + jj]) << "  ";
+        outputFile << ConvertNumberToString(buffer[ii * numberOfComponents + jj]) << "  ";
       }
       outputFile << '\n';
     }
@@ -683,27 +694,26 @@ protected:
     }
     else
     {
-      auto * data = new TOutput[numberOfComponents];
-      for (SizeValueType ii = 0; ii < numberOfComponents; ii++)
+      const auto data = make_unique_for_overwrite<TOutput[]>(numberOfComponents);
+      for (SizeValueType ii = 0; ii < numberOfComponents; ++ii)
       {
         data[ii] = static_cast<TOutput>(buffer[ii]);
       }
 
       if (m_ByteOrder == IOByteOrderEnum::BigEndian && itk::ByteSwapper<TOutput>::SystemIsLittleEndian())
       {
-        itk::ByteSwapper<TOutput>::SwapRangeFromSystemToBigEndian(data, numberOfComponents);
+        itk::ByteSwapper<TOutput>::SwapRangeFromSystemToBigEndian(data.get(), numberOfComponents);
       }
       else if (m_ByteOrder == IOByteOrderEnum::LittleEndian && itk::ByteSwapper<TOutput>::SystemIsBigEndian())
       {
-        itk::ByteSwapper<TOutput>::SwapRangeFromSystemToLittleEndian(data, numberOfComponents);
+        itk::ByteSwapper<TOutput>::SwapRangeFromSystemToLittleEndian(data.get(), numberOfComponents);
       }
 
-      outputFile.write(reinterpret_cast<char *>(data), numberOfComponents);
-      delete[] data;
+      outputFile.write(reinterpret_cast<char *>(data.get()), numberOfComponents);
     }
   }
 
-  /** Read cells from a data buffer, used when writting cells. This function
+  /** Read cells from a data buffer, used when writing cells. This function
     write all kind of cells as it is stored in cells container. It is used when
     cells container have only one kind of cells */
   template <typename TInput, typename TOutput>
@@ -712,13 +722,13 @@ protected:
   {
     if (input && output)
     {
-      SizeValueType inputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      SizeValueType outputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      for (SizeValueType ii = 0; ii < m_NumberOfCells; ii++)
+      SizeValueType inputIndex{};
+      SizeValueType outputIndex{};
+      for (SizeValueType ii = 0; ii < m_NumberOfCells; ++ii)
       {
-        inputIndex++; // ignore the cell type
+        ++inputIndex; // ignore the cell type
         auto numberOfPoints = static_cast<unsigned int>(input[inputIndex++]);
-        for (unsigned int jj = 0; jj < numberOfPoints; jj++)
+        for (unsigned int jj = 0; jj < numberOfPoints; ++jj)
         {
           output[outputIndex++] = static_cast<TOutput>(input[inputIndex++]);
         }
@@ -726,7 +736,7 @@ protected:
     }
   }
 
-  /** Read cells from input buffer, used when Writting cells. This function only
+  /** Read cells from input buffer, used when Writing cells. This function only
     write specified type of cells(used when input cells container composes
     multiple type of cells and only want to write a specified cell type */
   template <typename TInput, typename TOutput>
@@ -735,17 +745,17 @@ protected:
   {
     if (input && output)
     {
-      SizeValueType inputIndex = itk::NumericTraits<SizeValueType>::ZeroValue();
-      SizeValueType outputIndex = itk::NumericTraits<SizeValueType>::ZeroValue();
+      SizeValueType inputIndex{};
+      SizeValueType outputIndex{};
 
-      for (SizeValueType ii = 0; ii < m_NumberOfCells; ii++)
+      for (SizeValueType ii = 0; ii < m_NumberOfCells; ++ii)
       {
         auto cellType = static_cast<CellGeometryEnum>(input[inputIndex++]);
         auto nn = static_cast<unsigned int>(input[inputIndex++]);
         if (cellType == type)
         {
           output[outputIndex++] = nn;
-          for (unsigned int jj = 0; jj < nn; jj++)
+          for (unsigned int jj = 0; jj < nn; ++jj)
           {
             output[outputIndex++] = static_cast<TOutput>(input[inputIndex++]);
           }
@@ -758,7 +768,7 @@ protected:
     }
   }
 
-  /** Write cells to a data buffer, used when readding mesh, used for cellType
+  /** Write cells to a data buffer, used when reading a mesh. Used for cellType
     with constant number of points */
   template <typename TInput, typename TOutput>
   void
@@ -770,13 +780,13 @@ protected:
   {
     if (input && output)
     {
-      SizeValueType inputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      SizeValueType outputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      for (SizeValueType ii = 0; ii < numberOfCells; ii++)
+      SizeValueType inputIndex{};
+      SizeValueType outputIndex{};
+      for (SizeValueType ii = 0; ii < numberOfCells; ++ii)
       {
         output[outputIndex++] = static_cast<TOutput>(cellType);
         output[outputIndex++] = static_cast<TOutput>(numberOfPoints);
-        for (unsigned int jj = 0; jj < numberOfPoints; jj++)
+        for (unsigned int jj = 0; jj < numberOfPoints; ++jj)
         {
           output[outputIndex++] = static_cast<TOutput>(input[inputIndex++]);
         }
@@ -784,7 +794,7 @@ protected:
     }
   }
 
-  /** Write cells to a data buffer, used when readding mesh, used for cellType
+  /** Write cells to a data buffer, used when reading mesh, used for cellType
     with non-constant number of points */
   template <typename TInput, typename TOutput>
   void
@@ -792,14 +802,22 @@ protected:
   {
     if (input && output)
     {
-      SizeValueType inputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      SizeValueType outputIndex = NumericTraits<SizeValueType>::ZeroValue();
-      for (SizeValueType ii = 0; ii < numberOfCells; ii++)
+      SizeValueType inputIndex{};
+      SizeValueType outputIndex{};
+      for (SizeValueType ii = 0; ii < numberOfCells; ++ii)
       {
         auto numberOfPoints = static_cast<unsigned int>(input[inputIndex++]);
-        output[outputIndex++] = static_cast<TOutput>(cellType);
+        if (numberOfPoints > 2 && cellType == CellGeometryEnum::LINE_CELL)
+        {
+          output[outputIndex++] = static_cast<TOutput>(CellGeometryEnum::POLYLINE_CELL);
+        }
+        else
+        {
+          output[outputIndex++] = static_cast<TOutput>(cellType);
+        }
         output[outputIndex++] = static_cast<TOutput>(numberOfPoints);
-        for (unsigned int jj = 0; jj < numberOfPoints; jj++)
+
+        for (unsigned int jj = 0; jj < numberOfPoints; ++jj)
         {
           output[outputIndex++] = static_cast<TOutput>(input[inputIndex++]);
         }
@@ -813,7 +831,7 @@ protected:
   IOFileEnum      m_FileType{ IOFileEnum::ASCII };
 
   /** Filename to read */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** Should we compress the data? */
   bool m_UseCompression{ false };
@@ -837,13 +855,13 @@ protected:
   unsigned int m_PointDimension{ 3 };
 
   /** The number of points and cells */
-  SizeValueType m_NumberOfPoints;
-  SizeValueType m_NumberOfCells;
-  SizeValueType m_NumberOfPointPixels;
-  SizeValueType m_NumberOfCellPixels;
+  SizeValueType m_NumberOfPoints{};
+  SizeValueType m_NumberOfCells{};
+  SizeValueType m_NumberOfPointPixels{};
+  SizeValueType m_NumberOfCellPixels{};
 
   /** The buffer size of cells */
-  SizeValueType m_CellBufferSize;
+  SizeValueType m_CellBufferSize{};
 
   /** Flags indicate whether read or write points, cells, point data and cell
     data */
@@ -853,14 +871,14 @@ protected:
   bool m_UpdateCellData{ false };
 
 private:
-  ArrayOfExtensionsType m_SupportedReadExtensions;
-  ArrayOfExtensionsType m_SupportedWriteExtensions;
+  ArrayOfExtensionsType m_SupportedReadExtensions{};
+  ArrayOfExtensionsType m_SupportedWriteExtensions{};
 };
-#define MESHIOBASE_TYPEMAP(type, ctype)                                                                                \
-  template <>                                                                                                          \
-  struct MeshIOBase::MapComponentType<type>                                                                            \
-  {                                                                                                                    \
-    static constexpr IOComponentEnum CType = ctype;                                                                    \
+#define MESHIOBASE_TYPEMAP(type, ctype)             \
+  template <>                                       \
+  struct MeshIOBase::MapComponentType<type>         \
+  {                                                 \
+    static constexpr IOComponentEnum CType = ctype; \
   }
 
 MESHIOBASE_TYPEMAP(unsigned char, IOComponentEnum::UCHAR);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkVideoFileWriter_hxx
 #define itkVideoFileWriter_hxx
 
-#include "itkVideoFileWriter.h"
 
 #include "itkNumericTraits.h"
 #include "itkTemporalDataObject.h"
@@ -56,8 +55,8 @@ VideoFileWriter<TInputVideoStream>::SetInput(const VideoStreamType * input)
 }
 
 template <typename TInputVideoStream>
-const typename VideoFileWriter<TInputVideoStream>::VideoStreamType *
-VideoFileWriter<TInputVideoStream>::GetInput()
+auto
+VideoFileWriter<TInputVideoStream>::GetInput() -> const VideoStreamType *
 {
   if (this->GetNumberOfInputs() < 1)
   {
@@ -96,7 +95,7 @@ VideoFileWriter<TInputVideoStream>::Write()
   }
 
   // Make sure FramesPerSecond and FourCC have been set
-  if (Math::ExactlyEquals(m_FramesPerSecond, NumericTraits<TemporalRatioType>::ZeroValue()) || m_FourCC.length() == 0)
+  if (Math::ExactlyEquals(m_FramesPerSecond, TemporalRatioType{}) || m_FourCC.empty())
   {
     itkExceptionMacro("Cannot write with FramesPerSecond or FourCC unset");
   }
@@ -143,8 +142,8 @@ VideoFileWriter<TInputVideoStream>::Write()
 
   // FIXME: For now we will always request the entire spatial region of each
   // frame as output
-  SizeValueType frameStart = m_OutputTemporalRegion.GetFrameStart();
-  SizeValueType numFrames = m_OutputTemporalRegion.GetFrameDuration();
+  const SizeValueType frameStart = m_OutputTemporalRegion.GetFrameStart();
+  const SizeValueType numFrames = m_OutputTemporalRegion.GetFrameDuration();
   for (SizeValueType i = frameStart; i < frameStart + numFrames; ++i)
   {
     nonConstInput->SetFrameRequestedSpatialRegion(i, input->GetFrameLargestPossibleSpatialRegion(i));
@@ -158,7 +157,7 @@ VideoFileWriter<TInputVideoStream>::Write()
   // temporal streaming in TemporalProcessObject's GenerateData. We set the
   // buffered region to an empty region so that the entire requested region is
   // unbuffered and gets written.
-  TemporalDataObject::Pointer output = TemporalDataObject::New();
+  auto output = TemporalDataObject::New();
   output->SetLargestPossibleTemporalRegion(m_OutputTemporalRegion);
   output->SetRequestedTemporalRegion(m_OutputTemporalRegion);
   output->SetBufferedTemporalRegion(TemporalRegion());
@@ -225,8 +224,8 @@ VideoFileWriter<TInputVideoStream>::TemporalStreamingGenerateData()
   }
 
   // Get the frame we're going to write
-  SizeValueType     frameNum = output->GetRequestedTemporalRegion().GetFrameStart();
-  const FrameType * frame = input->GetFrame(frameNum);
+  const SizeValueType frameNum = output->GetRequestedTemporalRegion().GetFrameStart();
+  const FrameType *   frame = input->GetFrame(frameNum);
   if (!frame)
   {
     itkExceptionMacro("Could not get input frame " << frameNum << " for writing");
@@ -247,7 +246,7 @@ VideoFileWriter<TInputVideoStream>::InitializeOutputParameters()
   }
 
   // Get the frame number for the current frame
-  SizeValueType frameNum = this->GetInput()->GetRequestedTemporalRegion().GetFrameStart();
+  const SizeValueType frameNum = this->GetInput()->GetRequestedTemporalRegion().GetFrameStart();
 
   // Get a non-const pointer so we can get spatial regions (VideoStream isn't const correct)
   const VideoStreamType * input = this->GetInput();
@@ -271,7 +270,7 @@ template <typename TInputVideoStream>
 bool
 VideoFileWriter<TInputVideoStream>::InitializeVideoIO()
 {
-  if (m_FileName.length() != 0)
+  if (!m_FileName.empty())
   {
     m_VideoIO = itk::VideoIOFactory::CreateVideoIO(itk::VideoIOFactory::IOModeEnum::WriteMode, m_FileName.c_str());
 
@@ -283,10 +282,8 @@ VideoFileWriter<TInputVideoStream>::InitializeVideoIO()
 
       return true;
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
   else
   {
@@ -298,14 +295,25 @@ template <typename TInputVideoStream>
 void
 VideoFileWriter<TInputVideoStream>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FileName: " << this->m_FileName << std::endl;
-  if (!m_VideoIO.IsNull())
-  {
-    os << indent << "VideoIO:" << std::endl;
-    this->m_VideoIO->Print(os, indent.GetNextIndent());
-  }
+  os << indent << "FileName: " << m_FileName << std::endl;
+
+  itkPrintSelfObjectMacro(VideoIO);
+
+  os << indent << "OutputTemporalRegion: " << m_OutputTemporalRegion << std::endl;
+
+  os << indent
+     << "FramesPerSecond: " << static_cast<typename NumericTraits<TemporalRatioType>::PrintType>(m_FramesPerSecond)
+     << std::endl;
+  os << indent << "FourCC: " << m_FourCC << std::endl;
+  os << indent << "Dimensions: " << m_Dimensions << std::endl;
+  os << indent
+     << "NumberOfComponents: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumberOfComponents)
+     << std::endl;
+  os << indent << "ComponentType: " << m_ComponentType << std::endl;
 }
 
 } // end namespace itk

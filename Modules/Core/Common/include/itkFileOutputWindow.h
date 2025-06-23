@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FileOutputWindow, OutputWindow);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FileOutputWindow);
 
   /** Send a string to display. */
   void
@@ -67,18 +67,20 @@ public:
   itkGetStringMacro(FileName);
 
   /** Set/Get the buffer flushing mode */
+  /** @ITKStartGrouping */
   itkSetMacro(Flush, bool);
   itkGetConstMacro(Flush, bool);
   itkBooleanMacro(Flush);
-
+  /** @ITKEndGrouping */
   /** Setting append will cause the log file to be
    * opened in append mode.  Otherwise, if the log file exists,
    * it will be overwritten each time the FileOutputWindow
    * is created. */
+  /** @ITKStartGrouping */
   itkSetMacro(Append, bool);
   itkGetConstMacro(Append, bool);
   itkBooleanMacro(Append);
-
+  /** @ITKEndGrouping */
 protected:
   FileOutputWindow();
   ~FileOutputWindow() override;
@@ -88,12 +90,12 @@ protected:
   void
   Initialize();
 
-  std::ofstream * m_Stream;
+  std::ofstream * m_Stream{};
 
-  std::string m_FileName;
+  std::string m_FileName{};
 
-  bool m_Flush;
-  bool m_Append;
+  bool m_Flush{};
+  bool m_Append{};
 };
 } // end namespace itk
 

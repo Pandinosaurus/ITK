@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef __LittleEndian_img_h
-#define __LittleEndian_img_h
+#ifndef LittleEndian_img_h
+#define LittleEndian_img_h
 
 const unsigned char LittleEndian_img[] = {
   0, 0, 16,  67, 0, 0, 16,  67, 0, 0, 16,  67, 0, 0, 128, 65, 0, 0, 128, 65, 0, 0, 128, 65, 0, 0, 16,  67,

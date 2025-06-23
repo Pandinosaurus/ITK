@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class DCMTKImageIOFactory
+ * \class DCMTKImageIOFactory
  * \brief Create instances of DCMTKImageIO objects using an object factory.
  * \ingroup ITKIODCMTK
  */
@@ -50,14 +50,14 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DCMTKImageIOFactory, ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DCMTKImageIOFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    DCMTKImageIOFactory::Pointer DCMTKFactory = DCMTKImageIOFactory::New();
+    auto DCMTKFactory = DCMTKImageIOFactory::New();
 
     ObjectFactoryBase::RegisterFactoryInternal(DCMTKFactory);
   }

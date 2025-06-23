@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 
 #include <set>
 #include <vector>
-#include <ITKDeformableMeshExport.h>
+#include "ITKDeformableMeshExport.h"
 
 namespace itk
 {
@@ -45,6 +45,9 @@ public:
 
   ImageVoxel() = default;
   ImageVoxel(const int * pos, const double * subpos, double val, double dist, unsigned int ind)
+    : m_Value(val)
+    , m_Distance(dist)
+    , m_Index(ind)
   {
     this->m_Vpos[0] = pos[0];
     this->m_Vpos[1] = pos[1];
@@ -52,37 +55,34 @@ public:
     this->m_Spos[0] = subpos[0];
     this->m_Spos[1] = subpos[1];
     this->m_Spos[2] = subpos[2];
-    this->m_Value = val;
-    this->m_Distance = dist;
-    this->m_Index = ind;
   }
 
   /// returns voxel X coordinate (voxel column)
-  unsigned int
+  [[nodiscard]] unsigned int
   GetX() const
   {
     return m_Vpos[0];
   }
   /// returns voxel Y coordinate (voxel row)
-  unsigned int
+  [[nodiscard]] unsigned int
   GetY() const
   {
     return m_Vpos[1];
   }
   /// returns voxel Z coordinate (voxel plane)
-  unsigned int
+  [[nodiscard]] unsigned int
   GetZ() const
   {
     return m_Vpos[2];
   }
   /// returns voxel distance to origin
-  double
+  [[nodiscard]] double
   GetDistance() const
   {
     return m_Distance;
   }
   /// returns voxel value
-  double
+  [[nodiscard]] double
   GetValue() const
   {
     return m_Value;
@@ -95,8 +95,20 @@ public:
   {
     m_Value = val;
   }
+
+  friend inline std::ostream &
+  operator<<(std::ostream & os, const ImageVoxel & val)
+  {
+    os << "Vpos: " << val.m_Vpos << std::endl;
+    os << "Spos: " << val.m_Spos << std::endl;
+    os << "Value: " << val.m_Value << std::endl;
+    os << "Distance: " << val.m_Distance << std::endl;
+    os << "Index: " << val.m_Index << std::endl;
+
+    return os;
+  }
 };
-/**\class DeformableSimplexMesh3DGradientConstraintForceFilterEnums
+/** \class DeformableSimplexMesh3DGradientConstraintForceFilterEnums
  * \brief Contains all enum classes used by the DeformableSimplexMesh3DGradientConstraintForceFilter class.
  * \ingroup ITKDeformableMesh
  */
@@ -119,11 +131,12 @@ public:
 };
 // Define how to print enumeration
 extern ITKDeformableMesh_EXPORT std::ostream &
-                                operator<<(std::ostream & out, const DeformableSimplexMesh3DGradientConstraintForceFilterEnums::SIDE value);
+operator<<(std::ostream & out, const DeformableSimplexMesh3DGradientConstraintForceFilterEnums::SIDE value);
+
 /**
- *\class DeformableSimplexMesh3DGradientConstraintForceFilter
+ * \class DeformableSimplexMesh3DGradientConstraintForceFilter
  * \brief
- * Additional to its superclass this class reimplements the external forces methos
+ * Additional to its superclass this class reimplements the external forces methods
  * in which the scan line algorithm is used to find highest gradient is found in
  * the direction of the normal to each vertex within a specified range.
  *
@@ -150,18 +163,18 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DeformableSimplexMesh3DGradientConstraintForceFilter, DeformableSimplexMesh3DFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DeformableSimplexMesh3DGradientConstraintForceFilter);
 
   /** Some type alias. */
   using InputMeshType = TInputMesh;
   using OutputMeshType = TOutputMesh;
 
-  using PointType = typename Superclass::PointType;
-  using GradientIndexType = typename Superclass::GradientIndexType;
-  using GradientIndexValueType = typename Superclass::GradientIndexValueType;
-  using GradientType = typename Superclass::GradientType;
-  using GradientImageType = typename Superclass::GradientImageType;
+  using typename Superclass::PointType;
+  using typename Superclass::GradientIndexType;
+  using typename Superclass::GradientIndexValueType;
+  using typename Superclass::GradientType;
+  using typename Superclass::GradientImageType;
 
   /* Mesh pointer definition. */
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -178,9 +191,10 @@ public:
   using OriginalImagePointer = typename OriginalImageType::ConstPointer;
 
   /** control the range of search for Bresenham at normal line */
+  /** @ITKStartGrouping */
   itkSetMacro(Range, int);
   itkGetConstMacro(Range, int);
-
+  /** @ITKEndGrouping */
   using SIDEEnum = DeformableSimplexMesh3DGradientConstraintForceFilterEnums::SIDE;
 #if !defined(ITK_LEGACY_REMOVE)
   /**Exposes enums values for backwards compatibility*/
@@ -213,7 +227,7 @@ protected:
   /**
    * Range of search for Bresenham algorithm (normal line at each vertex)
    */
-  int m_Range;
+  int m_Range{};
 
 private:
   double
@@ -226,13 +240,13 @@ private:
   Clear();
 
   // line starting voxel
-  ImageVoxel * m_StartVoxel;
+  ImageVoxel * m_StartVoxel{};
   // line voxels in direction
-  std::vector<ImageVoxel *> m_Positive;
+  std::vector<ImageVoxel *> m_Positive{};
   // line voxels in -direction
-  std::vector<ImageVoxel *> m_Negative;
+  std::vector<ImageVoxel *> m_Negative{};
 
-  OriginalImagePointer m_Image;
+  OriginalImagePointer m_Image{};
 }; // end of class
 } // namespace itk
 

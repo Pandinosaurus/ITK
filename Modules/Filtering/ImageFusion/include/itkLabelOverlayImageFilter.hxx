@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,15 @@
 #ifndef itkLabelOverlayImageFilter_hxx
 #define itkLabelOverlayImageFilter_hxx
 
-#include "itkLabelOverlayImageFilter.h"
 
 namespace itk
 {
-/**
- * Constructor method
- */
+
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::LabelOverlayImageFilter()
-{
-  m_Opacity = 0.5;
-  m_BackgroundValue = NumericTraits<LabelPixelType>::ZeroValue();
-}
+  : m_Opacity(0.5)
+  , m_BackgroundValue(LabelPixelType{})
+{}
 
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
@@ -52,10 +48,6 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::GenerateOutputI
   }
 }
 
-
-/**
- * Destructor method
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::BeforeThreadedGenerateData()
@@ -65,9 +57,6 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::BeforeThreadedG
   this->SetFunctor(this->GetFunctor());
 }
 
-/**
- * Set Label Image
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::SetLabelImage(const TLabelImage * input)
@@ -75,19 +64,13 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::SetLabelImage(c
   this->SetInput2(input);
 }
 
-/**
- * Get Label Image
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
-const typename LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::LabelImageType *
-LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::GetLabelImage() const
+auto
+LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::GetLabelImage() const -> const LabelImageType *
 {
   return itkDynamicCastInDebugMode<LabelImageType *>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
 }
 
-/**
- * Get number of colors in the LUT container
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 unsigned int
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::GetNumberOfColors() const
@@ -95,9 +78,6 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::GetNumberOfColo
   return this->GetFunctor().GetNumberOfColors();
 }
 
-/**
- * Empty the color LUT container
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::ResetColors()
@@ -105,9 +85,6 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::ResetColors()
   this->GetFunctor().ResetColors();
 }
 
-/**
- * Add a color to the LUT container
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::AddColor(ComponentType r,
@@ -117,9 +94,6 @@ LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::AddColor(Compon
   this->GetFunctor().AddColor(r, g, b);
 }
 
-/**
- * Standard PrintSelf method
- */
 template <typename TInputImage, typename TLabelImage, typename TOutputImage>
 void
 LabelOverlayImageFilter<TInputImage, TLabelImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const

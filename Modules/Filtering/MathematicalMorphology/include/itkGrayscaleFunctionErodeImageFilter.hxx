@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGrayscaleFunctionErodeImageFilter_hxx
 #define itkGrayscaleFunctionErodeImageFilter_hxx
 
-#include "itkGrayscaleFunctionErodeImageFilter.h"
 
 namespace itk
 {
@@ -30,28 +29,26 @@ GrayscaleFunctionErodeImageFilter<TInputImage, TOutputImage, TKernel>::Grayscale
 }
 
 template <typename TInputImage, typename TOutputImage, typename TKernel>
-typename GrayscaleFunctionErodeImageFilter<TInputImage, TOutputImage, TKernel>::PixelType
+auto
 GrayscaleFunctionErodeImageFilter<TInputImage, TOutputImage, TKernel>::Evaluate(const NeighborhoodIteratorType & nit,
                                                                                 const KernelIteratorType kernelBegin,
                                                                                 const KernelIteratorType kernelEnd)
+  -> PixelType
 {
-  unsigned int i;
-  PixelType    min = NumericTraits<PixelType>::max();
-  PixelType    temp;
+  PixelType min = NumericTraits<PixelType>::max();
 
-  KernelIteratorType kernel_it;
+  KernelIteratorType kernel_it = kernelBegin;
 
-  for (i = 0, kernel_it = kernelBegin; kernel_it < kernelEnd; ++kernel_it, ++i)
+  for (unsigned int i = 0; kernel_it < kernelEnd; ++kernel_it, ++i)
   {
     // if structuring element is positive, use the pixel under that element
     // in the image minus the structuring element value
-    if (*kernel_it > NumericTraits<KernelPixelType>::ZeroValue())
+    if (*kernel_it > KernelPixelType{})
     {
       // subtract the structuring element value to the pixel value,
       // note we use GetPixel() on SmartNeighborhoodIterator to respect
       // boundary condition
-      temp = nit.GetPixel(i) - (PixelType)*kernel_it;
-
+      const PixelType temp = nit.GetPixel(i) - (PixelType)*kernel_it;
       if (temp < min)
       {
         min = temp;

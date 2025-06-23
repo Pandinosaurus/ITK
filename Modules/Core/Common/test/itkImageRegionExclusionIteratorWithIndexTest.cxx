@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,18 +34,14 @@ RunTest(const TRegion & region, const TRegion & exclusionRegion)
   using IndexImageType = itk::Image<IndexPixelType, ImageDimension>;
   using ValueImageType = itk::Image<ValuePixelType, ImageDimension>;
 
-  typename IndexImageType::Pointer myIndexImage = IndexImageType::New();
+  auto myIndexImage = IndexImageType::New();
 
-  myIndexImage->SetLargestPossibleRegion(region);
-  myIndexImage->SetBufferedRegion(region);
-  myIndexImage->SetRequestedRegion(region);
+  myIndexImage->SetRegions(region);
   myIndexImage->Allocate();
 
-  typename ValueImageType::Pointer myValueImage = ValueImageType::New();
+  auto myValueImage = ValueImageType::New();
 
-  myValueImage->SetLargestPossibleRegion(region);
-  myValueImage->SetBufferedRegion(region);
-  myValueImage->SetRequestedRegion(region);
+  myValueImage->SetRegions(region);
   myValueImage->Allocate();
 
   using ValueIteratorType = itk::ImageRegionIteratorWithIndex<ValueImageType>;
@@ -75,7 +71,7 @@ RunTest(const TRegion & region, const TRegion & exclusionRegion)
   {
     // Exclusion region is completely outside the region. Set it to
     // have size 0.
-    typename TRegion::IndexType exclusionStart = region.GetIndex();
+    const typename TRegion::IndexType exclusionStart = region.GetIndex();
     croppedExclusionRegion.SetIndex(exclusionStart);
 
     typename TRegion::SizeType exclusionSize = croppedExclusionRegion.GetSize();
@@ -261,20 +257,13 @@ itkImageRegionExclusionIteratorWithIndexTest(int, char *[])
   using IndexType = itk::Index<Dimension>;
   using RegionType = itk::ImageRegion<Dimension>;
 
-  SizeType   regionSize;
-  IndexType  regionStart;
-  RegionType region;
+  constexpr IndexType regionStart{};
+  auto                regionSize = itk::MakeFilled<SizeType>(7);
+  const RegionType    region{ regionStart, regionSize };
 
-  regionStart.Fill(0);
-  regionSize.Fill(7);
+  constexpr SizeType::SizeValueType size[2] = { 4, 7 };
 
-  region.SetIndex(regionStart);
-  region.SetSize(regionSize);
-
-  SizeType::SizeValueType size[2] = { 4, 7 };
-
-  unsigned int count = 0;
-  for (SizeType::SizeValueType s : size)
+  for (const SizeType::SizeValueType s : size)
   {
     for (IndexType::IndexValueType k = -2; k < 6; ++k)
     {
@@ -287,12 +276,9 @@ itkImageRegionExclusionIteratorWithIndexTest(int, char *[])
           exclusionStart[1] = j;
           exclusionStart[2] = k;
 
-          SizeType exclusionSize;
-          exclusionSize.Fill(s);
+          auto exclusionSize = SizeType::Filled(s);
 
-          RegionType exclusionRegion(exclusionStart, exclusionSize);
-
-          count++;
+          const RegionType exclusionRegion(exclusionStart, exclusionSize);
 
           if (!RunTest(region, exclusionRegion))
           {
@@ -305,11 +291,9 @@ itkImageRegionExclusionIteratorWithIndexTest(int, char *[])
   }
 
   // Test exclusion region completely outside the region.
-  IndexType exclusionStart;
-  exclusionStart.Fill(-3);
-  SizeType exclusionSize;
-  exclusionSize.Fill(2);
-  RegionType exclusionRegion(exclusionStart, exclusionSize);
+  auto             exclusionStart = IndexType::Filled(-3);
+  auto             exclusionSize = SizeType::Filled(2);
+  const RegionType exclusionRegion(exclusionStart, exclusionSize);
 
   if (!RunTest(region, exclusionRegion))
   {

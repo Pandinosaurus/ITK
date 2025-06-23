@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
  * Urish KL, August J, Huard J. "Unsupervised segmentation for myofiber
  * counting in immunoflourescent microscopy images". Insight Journal.
  * ISC/NA-MIC/MICCAI Workshop on Open-Source Software (2005)
- * http://insight-journal.org/browse/publication/40
+ * https://doi.org/10.54294/h1vbsl
  */
 
 
@@ -54,13 +54,13 @@ itkThresholdMaximumConnectedComponentsImageFilterTest(int argc, char * argv[])
   using InputImageType = itk::Image<InputPixelType, Dimension>;
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
-  InputPixelType maxLabel = itk::NumericTraits<InputPixelType>::max();
-  InputPixelType minLabel = itk::NumericTraits<InputPixelType>::NonpositiveMin();
+  constexpr InputPixelType maxLabel = itk::NumericTraits<InputPixelType>::max();
+  constexpr InputPixelType minLabel = itk::NumericTraits<InputPixelType>::NonpositiveMin();
 
   const unsigned int minimumPixelArea = std::stoi(argv[3]);
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
@@ -73,11 +73,8 @@ itkThresholdMaximumConnectedComponentsImageFilterTest(int argc, char * argv[])
   // the number of light objects. If the reverse, it will count the number of
   // dark objects.
 
-  unsigned int numberOfObjects;
-  unsigned int thresholdValue;
-
   using ThresholdType = itk::ThresholdMaximumConnectedComponentsImageFilter<InputImageType>;
-  ThresholdType::Pointer automaticThreshold = ThresholdType::New();
+  auto automaticThreshold = ThresholdType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(
     automaticThreshold, ThresholdMaximumConnectedComponentsImageFilter, ImageToImageFilter);
@@ -96,15 +93,15 @@ itkThresholdMaximumConnectedComponentsImageFilterTest(int argc, char * argv[])
   automaticThreshold->SetOutsideValue(maxLabel);
   ITK_TEST_SET_GET_VALUE(maxLabel, automaticThreshold->GetOutsideValue());
 
-  typename ThresholdType::PixelType upperBoundary = itk::NumericTraits<ThresholdType::PixelType>::max();
+  constexpr typename ThresholdType::PixelType upperBoundary = itk::NumericTraits<ThresholdType::PixelType>::max();
   automaticThreshold->SetUpperBoundary(upperBoundary);
   ITK_TEST_SET_GET_VALUE(upperBoundary, automaticThreshold->GetUpperBoundary());
 
   ITK_TRY_EXPECT_NO_EXCEPTION(automaticThreshold->Update());
 
 
-  numberOfObjects = automaticThreshold->GetNumberOfObjects();
-  thresholdValue = automaticThreshold->GetThresholdValue();
+  const unsigned int numberOfObjects = automaticThreshold->GetNumberOfObjects();
+  const unsigned int thresholdValue = automaticThreshold->GetThresholdValue();
 
   std::cout << "Number of Objects = " << numberOfObjects << std::endl;
   std::cout << "Threshold Value   = " << thresholdValue << std::endl;
@@ -112,7 +109,7 @@ itkThresholdMaximumConnectedComponentsImageFilterTest(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(automaticThreshold->GetOutput());
   writer->SetFileName(argv[2]);
 

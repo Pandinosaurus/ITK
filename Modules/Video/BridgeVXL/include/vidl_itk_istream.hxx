@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +15,10 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef __vidl_itk_istream_hxx
-#define __vidl_itk_istream_hxx
+#ifndef vidl_itk_istream_hxx
+#define vidl_itk_istream_hxx
 
 #include "itkNumericTraits.h"
-#include "vidl_itk_istream.h"
 
 namespace itk
 {
@@ -176,7 +175,7 @@ vidl_itk_istream<TVideoStream>::format() const
   // We need to know about the primitive type used for the pixel
   using PixelValueType = typename itk::NumericTraits<PixelType>::ValueType;
 
-  // Get the number of challenls for the pixel
+  // Get the number of channels for the pixel
   unsigned int channels = itk::NumericTraits<PixelType>::MeasurementVectorType::Dimension;
 
   //

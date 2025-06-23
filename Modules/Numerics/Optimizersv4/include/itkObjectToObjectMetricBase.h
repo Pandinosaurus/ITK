@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 
 namespace itk
 {
-/**\class ObjectToObjectMetricBaseTemplateEnums
+/** \class ObjectToObjectMetricBaseTemplateEnums
  *\brief This class contains all the enum classes used by the ObjectToObjectMetricBaseTemplate class.
  * \ingroup ITKOptimizersv4
  */
@@ -32,7 +32,7 @@ class ObjectToObjectMetricBaseTemplateEnums
 {
 public:
   /**
-   *\class GradientSource
+   * \class GradientSource
    * \ingroup ITKOptimizersv4
    * Source of the gradient(s) used by the metric
    * (e.g. image gradients, in the case of
@@ -45,7 +45,7 @@ public:
   };
 
   /**
-   *\class MetricCategory
+   * \class MetricCategory
    * \ingroup ITKOptimizersv4
    */
   enum class MetricCategory : uint8_t
@@ -59,11 +59,12 @@ public:
 };
 // Define how to print enumeration
 extern ITKOptimizersv4_EXPORT std::ostream &
-                              operator<<(std::ostream & out, const ObjectToObjectMetricBaseTemplateEnums::GradientSource value);
+operator<<(std::ostream & out, const ObjectToObjectMetricBaseTemplateEnums::GradientSource value);
 extern ITKOptimizersv4_EXPORT std::ostream &
-                              operator<<(std::ostream & out, const ObjectToObjectMetricBaseTemplateEnums::MetricCategory value);
+operator<<(std::ostream & out, const ObjectToObjectMetricBaseTemplateEnums::MetricCategory value);
+
 /**
- *\class ObjectToObjectMetricBaseTemplate
+ * \class ObjectToObjectMetricBaseTemplate
  * \brief Base class for all object-to-object similarity metrics added in ITKv4.
  *
  * This is the abstract base class for a hierarchy of similarity metrics
@@ -98,21 +99,21 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectToObjectMetricBaseTemplate, SingleValuedCostFunctionv4Template);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectToObjectMetricBaseTemplate);
 
   /** Type used for representing object components  */
   using CoordinateRepresentationType = TInternalComputationValueType;
 
   /**  Type of the measure. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /**  Type of the derivative. */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
   using DerivativeValueType = typename DerivativeType::ValueType;
 
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
   using ParametersValueType = TInternalComputationValueType;
 
   /**  Type of object. */
@@ -120,13 +121,15 @@ public:
   using ObjectConstPointer = typename ObjectType::ConstPointer;
 
   /** Get/Set the Fixed Object.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedObject, ObjectType);
   itkGetConstObjectMacro(FixedObject, ObjectType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the Moving Object.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingObject, ObjectType);
   itkGetConstObjectMacro(MovingObject, ObjectType);
-
+  /** @ITKEndGrouping */
   using GradientSourceEnum = itk::ObjectToObjectMetricBaseTemplateEnums::GradientSource;
 #if !defined(ITK_LEGACY_REMOVE)
   /** Enables backwards compatibility for enum values */
@@ -192,11 +195,12 @@ public:
   /** Methods for working with the metric's 'active' transform, e.g. the
    * transform being optimized in the case of registration. Some of these are
    * used in non-metric classes, e.g. optimizers. */
+  /** @ITKStartGrouping */
   NumberOfParametersType
   GetNumberOfParameters() const override = 0;
   virtual NumberOfParametersType
   GetNumberOfLocalParameters() const = 0;
-
+  /** @ITKEndGrouping */
   /** Set the active transform's parameters by value*/
   virtual void
   SetParameters(ParametersType & params) = 0;
@@ -253,13 +257,13 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Fixed and Moving Objects */
-  ObjectConstPointer m_FixedObject;
-  ObjectConstPointer m_MovingObject;
+  ObjectConstPointer m_FixedObject{};
+  ObjectConstPointer m_MovingObject{};
 
-  GradientSourceEnum m_GradientSource;
+  GradientSourceEnum m_GradientSource{};
 
   /** Metric value, stored after evaluating */
-  mutable MeasureType m_Value;
+  mutable MeasureType m_Value{};
 };
 
 /** This helps to meet backward compatibility */

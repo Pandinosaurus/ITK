@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,15 +34,14 @@ itkInterpolateImageFilterTest(int, char *[])
 
   // fill images
   using SizeType = InputImageType::SizeType;
-  SizeType size;
-  size.Fill(5);
+  auto size = SizeType::Filled(5);
 
-  InputImageType::Pointer image1 = InputImageType::New();
+  auto image1 = InputImageType::New();
   image1->SetRegions(size);
   image1->Allocate();
   image1->FillBuffer(100);
 
-  InputImageType::Pointer image2 = InputImageType::New();
+  auto image2 = InputImageType::New();
   image2->SetRegions(size);
   image2->Allocate();
 
@@ -58,7 +57,7 @@ itkInterpolateImageFilterTest(int, char *[])
   }
 
   using FilterType = itk::InterpolateImageFilter<InputImageType, OutputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput1(image1);
   filter->SetInput2(image2);
@@ -86,7 +85,7 @@ itkInterpolateImageFilterTest(int, char *[])
   while (!inIter1.IsAtEnd())
   {
 
-    std::cout << " " << inIter1.Get() << " " << inIter2.Get() << " " << outIter.Get() << std::endl;
+    std::cout << ' ' << inIter1.Get() << ' ' << inIter2.Get() << ' ' << outIter.Get() << std::endl;
 
     if (outIter.Get() != temp)
     {
@@ -101,7 +100,7 @@ itkInterpolateImageFilterTest(int, char *[])
     ++outIter;
   }
 
-  // excerise other methods
+  // exercise other methods
   filter->GetInput1();
   filter->GetInput2();
   filter->GetInterpolator();

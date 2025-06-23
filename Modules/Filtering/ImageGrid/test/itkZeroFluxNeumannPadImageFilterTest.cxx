@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,8 @@
 #include "itkMath.h"
 #include "itkZeroFluxNeumannPadImageFilter.h"
 #include "itkStreamingImageFilter.h"
+#include "itkTestingMacros.h"
+#include <algorithm> // For clamp.
 
 using ShortImage = itk::Image<short, 2>;
 using FloatImage = itk::Image<float, 2>;
@@ -31,17 +33,17 @@ using FilterType = itk::ZeroFluxNeumannPadImageFilter<ShortImage, FloatImage>;
 static bool
 VerifyFilterOutput(const ShortImage * inputImage, const FloatImage * outputImage)
 {
-  ShortImage::RegionType inputRegion = inputImage->GetLargestPossibleRegion();
-  ShortImage::IndexType  inputIndex = inputRegion.GetIndex();
-  ShortImage::SizeType   inputSize = inputRegion.GetSize();
+  const ShortImage::RegionType inputRegion = inputImage->GetLargestPossibleRegion();
+  ShortImage::IndexType        inputIndex = inputRegion.GetIndex();
+  ShortImage::SizeType         inputSize = inputRegion.GetSize();
 
-  ShortImage::RegionType                             outputRegion = outputImage->GetLargestPossibleRegion();
+  const ShortImage::RegionType                       outputRegion = outputImage->GetLargestPossibleRegion();
   itk::ImageRegionConstIteratorWithIndex<FloatImage> outputIterator(outputImage, outputRegion);
 
   // Check pixel values
   for (; !outputIterator.IsAtEnd(); ++outputIterator)
   {
-    ShortImage::IndexType idx = outputIterator.GetIndex();
+    const ShortImage::IndexType idx = outputIterator.GetIndex();
     if (inputRegion.IsInside(idx))
     {
       if (itk::Math::NotAlmostEquals(outputIterator.Get(), inputImage->GetPixel(idx)))
@@ -54,16 +56,10 @@ VerifyFilterOutput(const ShortImage * inputImage, const FloatImage * outputImage
     else
     {
       ShortImage::IndexType borderIdx = idx;
-      for (unsigned int i = 0; i < ShortImage::ImageDimension; i++)
+      for (unsigned int i = 0; i < ShortImage::ImageDimension; ++i)
       {
-        if (borderIdx[i] < inputIndex[i])
-        {
-          borderIdx[i] = inputIndex[i];
-        }
-        else if (borderIdx[i] > inputIndex[i] + static_cast<ShortImage::IndexValueType>(inputSize[i]) - 1)
-        {
-          borderIdx[i] = inputIndex[i] + inputSize[i] - 1;
-        }
+        borderIdx[i] = std::clamp(
+          borderIdx[i], inputIndex[i], inputIndex[i] + static_cast<ShortImage::IndexValueType>(inputSize[i]) - 1);
       }
 
       if (itk::Math::NotAlmostEquals(outputIterator.Get(), inputImage->GetPixel(borderIdx)))
@@ -104,13 +100,13 @@ VerifyFilter(const ShortImage *    inputImage,
     return false;
   }
 
-  ShortImage::RegionType outputRegion = padFilter->GetOutput()->GetLargestPossibleRegion();
-  ShortImage::IndexType  outputIndex = outputRegion.GetIndex();
-  ShortImage::SizeType   outputSize = outputRegion.GetSize();
+  const ShortImage::RegionType outputRegion = padFilter->GetOutput()->GetLargestPossibleRegion();
+  const ShortImage::IndexType  outputIndex = outputRegion.GetIndex();
+  const ShortImage::SizeType   outputSize = outputRegion.GetSize();
 
-  ShortImage::RegionType inputRegion = inputImage->GetLargestPossibleRegion();
-  ShortImage::IndexType  inputIndex = inputRegion.GetIndex();
-  ShortImage::SizeType   inputSize = inputRegion.GetSize();
+  const ShortImage::RegionType inputRegion = inputImage->GetLargestPossibleRegion();
+  ShortImage::IndexType        inputIndex = inputRegion.GetIndex();
+  ShortImage::SizeType         inputSize = inputRegion.GetSize();
 
   ShortImage::IndexType expectedIndex;
   ShortImage::SizeType  expectedSize;
@@ -149,7 +145,7 @@ VerifyFilter(const ShortImage *    inputImage,
 
   // Create a streaming filter
   using StreamingFilter = itk::StreamingImageFilter<FloatImage, FloatImage>;
-  StreamingFilter::Pointer stream = StreamingFilter::New();
+  auto stream = StreamingFilter::New();
   stream->SetInput(padFilter->GetOutput());
   stream->SetNumberOfStreamDivisions(3);
   stream->UpdateLargestPossibleRegion();
@@ -171,14 +167,12 @@ int
 itkZeroFluxNeumannPadImageFilterTest(int, char *[])
 {
   // Test the creation of an image with native type
-  ShortImage::Pointer inputImage = ShortImage::New();
+  auto inputImage = ShortImage::New();
 
   // Fill in a test image
-  ShortImage::IndexType  inputIndex = { { 0, 0 } };
-  ShortImage::SizeType   inputSize = { { 8, 12 } };
-  ShortImage::RegionType inputRegion;
-  inputRegion.SetSize(inputSize);
-  inputRegion.SetIndex(inputIndex);
+  constexpr ShortImage::IndexType inputIndex = { { 0, 0 } };
+  constexpr ShortImage::SizeType  inputSize = { { 8, 12 } };
+  const ShortImage::RegionType    inputRegion{ inputIndex, inputSize };
   inputImage->SetLargestPossibleRegion(inputRegion);
   inputImage->SetBufferedRegion(inputRegion);
   inputImage->Allocate();
@@ -192,7 +186,11 @@ itkZeroFluxNeumannPadImageFilterTest(int, char *[])
   }
 
   // Create a filter
-  FilterType::Pointer padFilter = FilterType::New();
+  auto padFilter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(padFilter, ZeroFluxNeumannPadImageFilter, PadImageFilter);
+
+
   padFilter->SetInput(inputImage);
 
   // itk::SimpleFilterWatcher watcher( padFilter );

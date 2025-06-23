@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -94,7 +94,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
   //
   // Software Guide : BeginCodeSnippet
-  ImportFilterType::Pointer importFilter = ImportFilterType::New();
+  auto importFilter = ImportFilterType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -117,8 +117,7 @@ main(int argc, char * argv[])
   size[1] = 200; // size along Y
   size[2] = 200; // size along Z
 
-  ImportFilterType::IndexType start;
-  start.Fill(0);
+  constexpr ImportFilterType::IndexType start{};
 
   ImportFilterType::RegionType region;
   region.SetIndex(start);
@@ -135,7 +134,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const itk::SpacePrecisionType origin[Dimension] = { 0.0, 0.0, 0.0 };
+  constexpr itk::SpacePrecisionType origin[Dimension] = { 0.0, 0.0, 0.0 };
   importFilter->SetOrigin(origin);
   // Software Guide : EndCodeSnippet
 
@@ -147,7 +146,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   // spacing isotropic volumes to 1.0
-  const itk::SpacePrecisionType spacing[Dimension] = { 1.0, 1.0, 1.0 };
+  constexpr itk::SpacePrecisionType spacing[Dimension] = { 1.0, 1.0, 1.0 };
   importFilter->SetSpacing(spacing);
   // Software Guide : EndCodeSnippet
 
@@ -184,15 +183,15 @@ main(int argc, char * argv[])
   constexpr double radius2 = radius * radius;
   PixelType *      it = localBuffer;
 
-  for (unsigned int z = 0; z < size[2]; z++)
+  for (unsigned int z = 0; z < size[2]; ++z)
   {
     const double dz =
       static_cast<double>(z) - static_cast<double>(size[2]) / 2.0;
-    for (unsigned int y = 0; y < size[1]; y++)
+    for (unsigned int y = 0; y < size[1]; ++y)
     {
       const double dy =
         static_cast<double>(y) - static_cast<double>(size[1]) / 2.0;
-      for (unsigned int x = 0; x < size[0]; x++)
+      for (unsigned int x = 0; x < size[0]; ++x)
       {
         const double dx =
           static_cast<double>(x) - static_cast<double>(size[0]) / 2.0;
@@ -226,7 +225,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const bool importImageFilterWillOwnTheBuffer = true;
+  constexpr bool importImageFilterWillOwnTheBuffer = true;
   importFilter->SetImportPointer(
     localBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer);
   // Software Guide : EndCodeSnippet
@@ -241,7 +240,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
   writer->SetInput(importFilter->GetOutput());

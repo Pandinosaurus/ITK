@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,16 @@
 #ifndef itkBinaryShapeOpeningImageFilter_hxx
 #define itkBinaryShapeOpeningImageFilter_hxx
 
-#include "itkBinaryShapeOpeningImageFilter.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
 template <typename TInputImage>
 BinaryShapeOpeningImageFilter<TInputImage>::BinaryShapeOpeningImageFilter()
-{
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  m_ForegroundValue = NumericTraits<OutputImagePixelType>::max();
-  m_FullyConnected = false;
-  m_ReverseOrdering = false;
-  m_Lambda = 0.0;
-  m_Attribute = LabelObjectType::NUMBER_OF_PIXELS;
-}
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_ForegroundValue(NumericTraits<OutputImagePixelType>::max())
+  , m_Attribute(LabelObjectType::NUMBER_OF_PIXELS)
+{}
 
 template <typename TInputImage>
 void
@@ -42,7 +37,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -61,14 +56,14 @@ void
 BinaryShapeOpeningImageFilter<TInputImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
   // Allocate the output
   this->AllocateOutputs();
 
-  typename LabelizerType::Pointer labelizer = LabelizerType::New();
+  auto labelizer = LabelizerType::New();
   labelizer->SetInput(this->GetInput());
   labelizer->SetInputForegroundValue(m_ForegroundValue);
   labelizer->SetOutputBackgroundValue(m_BackgroundValue);
@@ -76,7 +71,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::GenerateData()
   labelizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(labelizer, .3f);
 
-  typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
+  auto valuator = LabelObjectValuatorType::New();
   valuator->SetInput(labelizer->GetOutput());
   valuator->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   if (m_Attribute != LabelObjectType::PERIMETER && m_Attribute != LabelObjectType::ROUNDNESS)
@@ -89,7 +84,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::GenerateData()
   }
   progress->RegisterInternalFilter(valuator, .3f);
 
-  typename OpeningType::Pointer opening = OpeningType::New();
+  auto opening = OpeningType::New();
   opening->SetInput(valuator->GetOutput());
   opening->SetLambda(m_Lambda);
   opening->SetReverseOrdering(m_ReverseOrdering);
@@ -97,7 +92,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::GenerateData()
   opening->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(opening, .2f);
 
-  typename BinarizerType::Pointer binarizer = BinarizerType::New();
+  auto binarizer = BinarizerType::New();
   binarizer->SetInput(opening->GetOutput());
   binarizer->SetForegroundValue(m_ForegroundValue);
   binarizer->SetBackgroundValue(m_BackgroundValue);
@@ -116,7 +111,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::PrintSelf(std::ostream & os, Indent 
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent
      << "BackgroundValue: " << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(m_BackgroundValue)
      << std::endl;
@@ -125,7 +120,7 @@ BinaryShapeOpeningImageFilter<TInputImage>::PrintSelf(std::ostream & os, Indent 
      << std::endl;
   os << indent << "Lambda: " << m_Lambda << std::endl;
   os << indent << "ReverseOrdering: " << m_ReverseOrdering << std::endl;
-  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")"
+  os << indent << "Attribute: " << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ')'
      << std::endl;
 }
 } // end namespace itk

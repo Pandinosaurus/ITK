@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,8 @@ namespace itk
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 template <typename TInputMesh, typename TOutputMesh = TInputMesh>
-class DiscreteMeanCurvatureQuadEdgeMeshFilter : public DiscreteCurvatureQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
+class ITK_TEMPLATE_EXPORT DiscreteMeanCurvatureQuadEdgeMeshFilter
+  : public DiscreteCurvatureQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(DiscreteMeanCurvatureQuadEdgeMeshFilter);
@@ -43,37 +44,33 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = DiscreteCurvatureQuadEdgeMeshFilter<TInputMesh, TOutputMesh>;
 
-  using InputMeshType = typename Superclass::InputMeshType;
-  using InputMeshPointer = typename Superclass::InputMeshPointer;
+  using typename Superclass::InputMeshType;
+  using typename Superclass::InputMeshPointer;
 
-  using OutputMeshType = typename Superclass::OutputMeshType;
-  using OutputMeshPointer = typename Superclass::OutputMeshPointer;
-  using OutputPointsContainerPointer = typename Superclass::OutputPointsContainerPointer;
-  using OutputPointsContainerIterator = typename Superclass::OutputPointsContainerIterator;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using OutputCoordType = typename Superclass::OutputCoordType;
-  using OutputPointIdentifier = typename Superclass::OutputPointIdentifier;
-  using OutputCellIdentifier = typename Superclass::OutputCellIdentifier;
-  using OutputQEType = typename Superclass::OutputQEType;
-  using OutputMeshTraits = typename Superclass::OutputMeshTraits;
-  using OutputCurvatureType = typename Superclass::OutputCurvatureType;
+  using typename Superclass::OutputMeshType;
+  using typename Superclass::OutputMeshPointer;
+  using typename Superclass::OutputPointsContainerPointer;
+  using typename Superclass::OutputPointsContainerIterator;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::OutputCoordType;
+  using typename Superclass::OutputPointIdentifier;
+  using typename Superclass::OutputCellIdentifier;
+  using typename Superclass::OutputQEType;
+  using typename Superclass::OutputMeshTraits;
+  using typename Superclass::OutputCurvatureType;
 
-  using TriangleType = typename Superclass::TriangleType;
+  using typename Superclass::TriangleType;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(DiscreteMeanCurvatureQuadEdgeMeshFilter, DiscreteCurvatureQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DiscreteMeanCurvatureQuadEdgeMeshFilter);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
   using CoefficientType = ConformalMatrixCoefficients<OutputMeshType>;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputCurvatureType>));
-  // End concept checking
-#endif
 
 protected:
   DiscreteMeanCurvatureQuadEdgeMeshFilter() = default;
@@ -82,48 +79,38 @@ protected:
   OutputCurvatureType
   EstimateCurvature(const OutputPointType & iP) override
   {
-    OutputMeshPointer output = this->GetOutput();
+    const OutputMeshPointer output = this->GetOutput();
 
     OutputQEType * qe = iP.GetEdge();
 
     OutputCurvatureType oH(0.);
 
-    OutputVectorType Laplace;
-
-    Laplace.Fill(0.);
+    OutputVectorType Laplace{};
 
     OutputCurvatureType area(0.);
-    OutputVectorType    normal;
-    normal.Fill(0.);
+    OutputVectorType    normal{};
 
     if (qe != nullptr)
     {
       if (qe != qe->GetOnext())
       {
-        CoefficientType coefficent;
+        const CoefficientType coefficent;
 
         OutputQEType * qe_it = qe;
-        OutputQEType * qe_it2;
-
-        OutputCurvatureType temp_area;
-        OutputCoordType     temp_coeff;
-
-        OutputPointType  q0, q1;
-        OutputVectorType face_normal;
 
         do
         {
-          qe_it2 = qe_it->GetOnext();
-          q0 = output->GetPoint(qe_it->GetDestination());
-          q1 = output->GetPoint(qe_it2->GetDestination());
+          OutputQEType *        qe_it2 = qe_it->GetOnext();
+          const OutputPointType q0 = output->GetPoint(qe_it->GetDestination());
+          const OutputPointType q1 = output->GetPoint(qe_it2->GetDestination());
 
-          temp_coeff = coefficent(output, qe_it);
+          const OutputCoordType temp_coeff = coefficent(output, qe_it);
           Laplace += temp_coeff * (iP - q0);
 
-          temp_area = this->ComputeMixedArea(qe_it, qe_it2);
+          const OutputCurvatureType temp_area = this->ComputeMixedArea(qe_it, qe_it2);
           area += temp_area;
 
-          face_normal = TriangleType::ComputeNormal(q0, iP, q1);
+          const OutputVectorType face_normal = TriangleType::ComputeNormal(q0, iP, q1);
           normal += face_normal;
 
           qe_it = qe_it2;

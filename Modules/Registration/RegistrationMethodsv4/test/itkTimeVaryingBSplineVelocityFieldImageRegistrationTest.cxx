@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,8 +57,8 @@ public:
       return;
     }
 
-    unsigned int                                             currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
+    const unsigned int                                             currentLevel = filter->GetCurrentLevel();
+    const typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
       filter->GetShrinkFactorsPerDimension(currentLevel);
     typename TFilter::SmoothingSigmasArrayType                 smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
@@ -77,11 +77,12 @@ int
 PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 {
 
-  int  numberOfAffineIterations = 100;
-  int  numberOfDeformableIterationsLevel0 = 10;
-  int  numberOfDeformableIterationsLevel1 = 20;
-  int  numberOfDeformableIterationsLevel2 = 11;
-  auto learningRate = static_cast<double>(0.5);
+  int    numberOfAffineIterations = 100;
+  int    numberOfDeformableIterationsLevel0 = 10;
+  int    numberOfDeformableIterationsLevel1 = 20;
+  int    numberOfDeformableIterationsLevel2 = 11;
+  double learningRate = 0.5;
+  auto   convergenceWindowSize = 10U;
 
   if (argc >= 6)
   {
@@ -103,6 +104,10 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   {
     learningRate = std::stod(argv[9]);
   }
+  if (argc >= 12)
+  {
+    convergenceWindowSize = std::stoul(argv[11]);
+  }
 
   const unsigned int ImageDimension = TDimension;
 
@@ -112,23 +117,23 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 
   using ImageReaderType = itk::ImageFileReader<FixedImageType>;
 
-  typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName(argv[2]);
   fixedImageReader->Update();
-  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   fixedImage->Update();
   fixedImage->DisconnectPipeline();
 
-  typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
   movingImageReader->SetFileName(argv[3]);
   movingImageReader->Update();
-  typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
   movingImage->Update();
   movingImage->DisconnectPipeline();
 
   using AffineTransformType = itk::AffineTransform<double, ImageDimension>;
   using AffineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, AffineTransformType>;
-  typename AffineRegistrationType::Pointer affineSimple = AffineRegistrationType::New();
+  auto affineSimple = AffineRegistrationType::New();
   affineSimple->SetFixedImage(fixedImage);
   affineSimple->SetMovingImage(movingImage);
 
@@ -149,19 +154,11 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   std::cout << "number of affine iterations: " << numberOfAffineIterations << std::endl;
 
   using AffineCommandType = CommandIterationUpdate<AffineRegistrationType>;
-  typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
+  auto affineObserver = AffineCommandType::New();
   affineSimple->AddObserver(itk::IterationEvent(), affineObserver);
 
-  try
-  {
-    std::cout << "Affine transform" << std::endl;
-    affineSimple->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(affineSimple->Update());
+
 
   //
   // Now do the displacement field transform with gaussian smoothing using
@@ -171,11 +168,11 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   using RealType = typename AffineRegistrationType::RealType;
 
   using CompositeTransformType = itk::CompositeTransform<RealType, ImageDimension>;
-  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+  auto compositeTransform = CompositeTransformType::New();
   compositeTransform->AddTransform(affineSimple->GetModifiableTransform());
 
   using AffineResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename AffineResampleFilterType::Pointer affineResampler = AffineResampleFilterType::New();
+  auto affineResampler = AffineResampleFilterType::New();
   affineResampler->SetTransform(compositeTransform);
   affineResampler->SetInput(movingImage);
   affineResampler->SetSize(fixedImage->GetBufferedRegion().GetSize());
@@ -185,28 +182,40 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   affineResampler->SetDefaultPixelValue(0);
   affineResampler->Update();
 
-  std::string affineMovingImageFileName = std::string(argv[4]) + std::string("MovingImageAfterAffineTransform.nii.gz");
+  const std::string affineMovingImageFileName =
+    std::string(argv[4]) + std::string("MovingImageAfterAffineTransform.nii.gz");
 
   using AffineWriterType = itk::ImageFileWriter<FixedImageType>;
-  typename AffineWriterType::Pointer affineWriter = AffineWriterType::New();
+  auto affineWriter = AffineWriterType::New();
   affineWriter->SetFileName(affineMovingImageFileName.c_str());
   affineWriter->SetInput(affineResampler->GetOutput());
   affineWriter->Update();
 
   using CorrelationMetricType = itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType>;
-  typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-  typename CorrelationMetricType::RadiusType radius;
-  radius.Fill(4);
+  auto correlationMetric = CorrelationMetricType::New();
+  auto radius = itk::MakeFilled<typename CorrelationMetricType::RadiusType>(4);
   correlationMetric->SetRadius(radius);
   correlationMetric->SetUseMovingImageGradientFilter(false);
   correlationMetric->SetUseFixedImageGradientFilter(false);
 
   using VelocityFieldRegistrationType =
     itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<FixedImageType, MovingImageType>;
-  typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration = VelocityFieldRegistrationType::New();
+  auto velocityFieldRegistration = VelocityFieldRegistrationType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    velocityFieldRegistration, TimeVaryingBSplineVelocityFieldImageRegistrationMethod, ImageRegistrationMethodv4);
+
+  // For coverage purposes
+  velocityFieldRegistration->DebugOn();
+
+  auto convergenceThreshold = static_cast<typename VelocityFieldRegistrationType::RealType>(1.0e-7);
+  if (argc >= 11)
+  {
+    convergenceThreshold = static_cast<typename VelocityFieldRegistrationType::RealType>(std::stod(argv[10]));
+  }
 
   using OutputTransformType = typename VelocityFieldRegistrationType::OutputTransformType;
-  typename OutputTransformType::Pointer outputTransform = OutputTransformType::New();
+  auto outputTransform = OutputTransformType::New();
   velocityFieldRegistration->SetInitialTransform(outputTransform);
   velocityFieldRegistration->InPlaceOn();
 
@@ -216,7 +225,8 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   velocityFieldRegistration->SetMovingInitialTransform(compositeTransform);
   velocityFieldRegistration->SetMetric(correlationMetric);
   velocityFieldRegistration->SetLearningRate(learningRate);
-  std::cout << "learningRate: " << learningRate << std::endl;
+  ITK_TEST_SET_GET_VALUE(learningRate, velocityFieldRegistration->GetLearningRate());
+
   outputTransform->SetSplineOrder(3);
   outputTransform->SetLowerTimeBound(0.0);
   outputTransform->SetUpperTimeBound(1.0);
@@ -227,8 +237,13 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   numberOfIterationsPerLevel[1] = numberOfDeformableIterationsLevel1;
   numberOfIterationsPerLevel[2] = numberOfDeformableIterationsLevel2;
   velocityFieldRegistration->SetNumberOfIterationsPerLevel(numberOfIterationsPerLevel);
-  std::cout << "iterations per level: " << numberOfIterationsPerLevel[0] << ", " << numberOfIterationsPerLevel[1]
-            << ", " << numberOfIterationsPerLevel[2] << std::endl;
+  ITK_TEST_SET_GET_VALUE(numberOfIterationsPerLevel, velocityFieldRegistration->GetNumberOfIterationsPerLevel());
+
+  velocityFieldRegistration->SetConvergenceThreshold(convergenceThreshold);
+  ITK_TEST_SET_GET_VALUE(convergenceThreshold, velocityFieldRegistration->GetConvergenceThreshold());
+
+  velocityFieldRegistration->SetConvergenceWindowSize(convergenceWindowSize);
+  ITK_TEST_SET_GET_VALUE(convergenceWindowSize, velocityFieldRegistration->GetConvergenceWindowSize());
 
   typename VelocityFieldRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
   shrinkFactorsPerLevel.SetSize(3);
@@ -246,7 +261,7 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 
   using VectorType = itk::Vector<RealType, ImageDimension>;
   using TimeVaryingVelocityFieldControlPointLatticeType = itk::Image<VectorType, ImageDimension + 1>;
-  typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
+  const typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
     TimeVaryingVelocityFieldControlPointLatticeType::New();
 
   // Determine the parameters (size, spacing, etc) for the time-varying velocity field
@@ -268,13 +283,13 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   transformDomainSpacing.Fill(1.0);
   transformDomainSize.Fill(10);
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     transformDomainOrigin[i] = fixedImageOrigin[i];
     transformDomainMeshSize[i] = 3;
     transformDomainSpacing[i] = fixedImageSpacing[i];
     transformDomainSize[i] = fixedImageSize[i];
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       transformDomainDirection[i][j] = fixedImageDirection[i][j];
     }
@@ -284,16 +299,32 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 
   using VelocityFieldTransformAdaptorType =
     itk::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TransformType>;
-  typename VelocityFieldTransformAdaptorType::Pointer initialFieldTransformAdaptor =
+  const typename VelocityFieldTransformAdaptorType::Pointer initialFieldTransformAdaptor =
     VelocityFieldTransformAdaptorType::New();
-  initialFieldTransformAdaptor->SetSplineOrder(outputTransform->GetSplineOrder());
-  initialFieldTransformAdaptor->SetRequiredTransformDomainOrigin(transformDomainOrigin);
-  initialFieldTransformAdaptor->SetRequiredTransformDomainSpacing(transformDomainSpacing);
-  initialFieldTransformAdaptor->SetRequiredTransformDomainSize(transformDomainSize);
-  initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize(transformDomainMeshSize);
-  initialFieldTransformAdaptor->SetRequiredTransformDomainDirection(transformDomainDirection);
 
-  VectorType zeroVector(0.0);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(initialFieldTransformAdaptor,
+                                    TimeVaryingBSplineVelocityFieldTransformParametersAdaptor,
+                                    TransformParametersAdaptor);
+
+  initialFieldTransformAdaptor->SetSplineOrder(outputTransform->GetSplineOrder());
+  ITK_TEST_SET_GET_VALUE(outputTransform->GetSplineOrder(), initialFieldTransformAdaptor->GetSplineOrder());
+
+  initialFieldTransformAdaptor->SetRequiredTransformDomainOrigin(transformDomainOrigin);
+  ITK_TEST_SET_GET_VALUE(transformDomainOrigin, initialFieldTransformAdaptor->GetRequiredTransformDomainOrigin());
+
+  initialFieldTransformAdaptor->SetRequiredTransformDomainSpacing(transformDomainSpacing);
+  ITK_TEST_SET_GET_VALUE(transformDomainSpacing, initialFieldTransformAdaptor->GetRequiredTransformDomainSpacing());
+
+  initialFieldTransformAdaptor->SetRequiredTransformDomainSize(transformDomainSize);
+  ITK_TEST_SET_GET_VALUE(transformDomainSize, initialFieldTransformAdaptor->GetRequiredTransformDomainSize());
+
+  initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize(transformDomainMeshSize);
+  ITK_TEST_SET_GET_VALUE(transformDomainMeshSize, initialFieldTransformAdaptor->GetRequiredTransformDomainMeshSize());
+
+  initialFieldTransformAdaptor->SetRequiredTransformDomainDirection(transformDomainDirection);
+  ITK_TEST_SET_GET_VALUE(transformDomainDirection, initialFieldTransformAdaptor->GetRequiredTransformDomainDirection());
+
+  constexpr VectorType zeroVector{};
 
   velocityFieldLattice->SetOrigin(initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin());
   velocityFieldLattice->SetSpacing(initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing());
@@ -312,12 +343,12 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   velocityFieldSize.Fill(velocityFieldRegistration->GetNumberOfTimePointSamples());
   velocityFieldDirection.SetIdentity();
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     velocityFieldOrigin[i] = fixedImage->GetOrigin()[i];
     velocityFieldSpacing[i] = fixedImage->GetSpacing()[i];
     velocityFieldSize[i] = fixedImage->GetRequestedRegion().GetSize()[i];
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       velocityFieldDirection[i][j] = fixedImage->GetDirection()[i][j];
     }
@@ -332,10 +363,10 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 
   typename VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
-  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++)
+  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); ++level)
   {
     using ShrinkFilterType = itk::ShrinkImageFilter<FixedImageType, FixedImageType>;
-    typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(fixedImage);
     shrinkFilter->Update();
@@ -353,7 +384,7 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
     fixedImageSpacing = shrinkFilter->GetOutput()->GetSpacing();
     fixedImageDirection = shrinkFilter->GetOutput()->GetDirection();
 
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       velocityFieldSize[i] = fixedImageSize[i];
       velocityFieldOrigin[i] = fixedImageOrigin[i];
@@ -361,13 +392,13 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
 
       transformDomainMeshSize[i] <<= 1;
 
-      for (unsigned int j = 0; j < ImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; ++j)
       {
         velocityFieldDirection[i][j] = fixedImageDirection[i][j];
       }
     }
 
-    typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
+    const typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
       VelocityFieldTransformAdaptorType::New();
     fieldTransformAdaptor->SetSplineOrder(outputTransform->GetSplineOrder());
     fieldTransformAdaptor->SetRequiredTransformDomainSpacing(velocityFieldSpacing);
@@ -381,25 +412,17 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   velocityFieldRegistration->SetTransformParametersAdaptorsPerLevel(adaptors);
 
   using VelocityFieldRegistrationCommandType = CommandIterationUpdate<VelocityFieldRegistrationType>;
-  typename VelocityFieldRegistrationCommandType::Pointer displacementFieldObserver =
+  const typename VelocityFieldRegistrationCommandType::Pointer displacementFieldObserver =
     VelocityFieldRegistrationCommandType::New();
   velocityFieldRegistration->AddObserver(itk::IterationEvent(), displacementFieldObserver);
 
-  try
-  {
-    std::cout << "Time-varying B-spline velocity field transform" << std::endl;
-    velocityFieldRegistration->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(velocityFieldRegistration->Update());
+
 
   compositeTransform->AddTransform(outputTransform);
 
   using ResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
   resampler->SetTransform(compositeTransform);
   resampler->SetInput(movingImage);
   resampler->SetSize(fixedImage->GetBufferedRegion().GetSize());
@@ -409,17 +432,17 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   resampler->SetDefaultPixelValue(0);
   resampler->Update();
 
-  std::string warpedMovingImageFileName =
+  const std::string warpedMovingImageFileName =
     std::string(argv[4]) + std::string("MovingImageAfterVelocityFieldTransform.nii.gz");
 
   using WriterType = itk::ImageFileWriter<FixedImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(warpedMovingImageFileName.c_str());
   writer->SetInput(resampler->GetOutput());
   writer->Update();
 
   using InverseResampleFilterType = itk::ResampleImageFilter<FixedImageType, MovingImageType>;
-  typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
+  const typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
   inverseResampler->SetTransform(compositeTransform->GetInverseTransform());
   inverseResampler->SetInput(fixedImage);
   inverseResampler->SetSize(movingImage->GetBufferedRegion().GetSize());
@@ -429,19 +452,20 @@ PerformTimeVaryingBSplineVelocityFieldImageRegistration(int argc, char * argv[])
   inverseResampler->SetDefaultPixelValue(0);
   inverseResampler->Update();
 
-  std::string inverseWarpedFixedImageFileName = std::string(argv[4]) + std::string("InverseWarpedFixedImage.nii.gz");
+  const std::string inverseWarpedFixedImageFileName =
+    std::string(argv[4]) + std::string("InverseWarpedFixedImage.nii.gz");
 
   using InverseWriterType = itk::ImageFileWriter<MovingImageType>;
-  typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+  auto inverseWriter = InverseWriterType::New();
   inverseWriter->SetFileName(inverseWarpedFixedImageFileName.c_str());
   inverseWriter->SetInput(inverseResampler->GetOutput());
   inverseWriter->Update();
 
-  std::string velocityFieldLatticeFileName =
+  const std::string velocityFieldLatticeFileName =
     std::string(argv[4]) + std::string("VelocityFieldControlPointLattice.nii.gz");
 
   using VelocityFieldWriterType = itk::ImageFileWriter<TimeVaryingVelocityFieldControlPointLatticeType>;
-  typename VelocityFieldWriterType::Pointer velocityFieldLatticeWriter = VelocityFieldWriterType::New();
+  auto velocityFieldLatticeWriter = VelocityFieldWriterType::New();
   velocityFieldLatticeWriter->SetFileName(velocityFieldLatticeFileName.c_str());
   velocityFieldLatticeWriter->SetInput(outputTransform->GetTimeVaryingVelocityFieldControlPointLattice());
   velocityFieldLatticeWriter->Update();
@@ -454,12 +478,14 @@ itkTimeVaryingBSplineVelocityFieldImageRegistrationTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cout << itkNameOfTestExecutableMacro(argv)
-              << " imageDimension fixedImage movingImage outputPrefix [numberOfAffineIterations = 100] "
-              << "[numberOfDeformableIterationsLevel0 = 10] [numberOfDeformableIterationsLevel1 = 20] "
-                 "[numberOfDeformableIterationsLevel2 = 11 ] [learningRate = 0.5]"
-              << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr
+      << " imageDimension fixedImage movingImage outputPrefix [numberOfAffineIterations = 100] "
+      << "[numberOfDeformableIterationsLevel0 = 10] [numberOfDeformableIterationsLevel1 = 20] "
+         "[numberOfDeformableIterationsLevel2 = 11 ] [learningRate = 0.5] convergenceThreshold convergenceWindowSize "
+      << std::endl;
+    return EXIT_FAILURE;
   }
 
   switch (std::stoi(argv[1]))
@@ -472,7 +498,7 @@ itkTimeVaryingBSplineVelocityFieldImageRegistrationTest(int argc, char * argv[])
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

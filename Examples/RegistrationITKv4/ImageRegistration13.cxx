@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -124,10 +124,10 @@ main(int argc, char * argv[])
                                                      MovingImageType>;
   // Software Guide : EndCodeSnippet
 
-  TransformType::Pointer    transform = TransformType::New();
-  MetricType::Pointer       metric = MetricType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto transform = TransformType::New();
+  auto metric = MetricType::New();
+  auto optimizer = OptimizerType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetOptimizer(optimizer);
   registration->SetMetric(metric);
@@ -139,10 +139,10 @@ main(int argc, char * argv[])
   metric->SetNumberOfHistogramBins(20);
 
 
-  double samplingPercentage = 0.20;
+  constexpr double samplingPercentage = 0.20;
   registration->SetMetricSamplingPercentage(samplingPercentage);
 
-  RegistrationType::MetricSamplingStrategyEnum samplingStrategy =
+  constexpr RegistrationType::MetricSamplingStrategyEnum samplingStrategy =
     RegistrationType::MetricSamplingStrategyEnum::RANDOM;
   registration->SetMetricSamplingStrategy(samplingStrategy);
   // Software Guide : EndCodeSnippet
@@ -151,10 +151,8 @@ main(int argc, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -189,8 +187,7 @@ main(int argc, char * argv[])
     itk::CenteredTransformInitializer<TransformType,
                                       FixedImageType,
                                       MovingImageType>;
-  TransformInitializerType::Pointer initializer =
-    TransformInitializerType::New();
+  auto initializer = TransformInitializerType::New();
   initializer->SetTransform(transform);
 
   initializer->SetFixedImage(fixedImageReader->GetOutput());
@@ -217,7 +214,7 @@ main(int argc, char * argv[])
   using OptimizerScalesType = OptimizerType::ScalesType;
   OptimizerScalesType optimizerScales(transform->GetNumberOfParameters());
 
-  const double translationScale = 1.0 / 128.0;
+  constexpr double translationScale = 1.0 / 128.0;
 
   optimizerScales[0] = 1.0;
   optimizerScales[1] = translationScale;
@@ -248,7 +245,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
 
@@ -278,9 +275,9 @@ main(int argc, char * argv[])
   const double rotationCenterY =
     registration->GetOutput()->Get()->GetFixedParameters()[1];
 
-  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
 
-  double bestValue = optimizer->GetValue();
+  const double bestValue = optimizer->GetValue();
 
   // Print out results
   //
@@ -301,12 +298,12 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(transform);
   resample->SetInput(movingImageReader->GetOutput());
 
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   resample->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
   resample->SetOutputOrigin(fixedImage->GetOrigin());
@@ -323,8 +320,8 @@ main(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
   writer->SetFileName(argv[3]);
 

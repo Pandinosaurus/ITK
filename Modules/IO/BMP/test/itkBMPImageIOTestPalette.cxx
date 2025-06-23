@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,9 @@ itkBMPImageIOTestPalette(int argc, char * argv[])
 {
   if (argc != 5)
   {
-    std::cerr << "Usage: " << argv[0] << " input"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input"
               << " output"
               << " expandRGBPalette"
               << " isPaletteImage" << std::endl;
@@ -46,10 +48,10 @@ itkBMPImageIOTestPalette(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<ScalarImageType>;
   using IOType = itk::BMPImageIO;
 
-  IOType::Pointer io = IOType::New();
+  auto io = IOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(io, BMPImageIO, ImageIOBase);
 
@@ -58,7 +60,7 @@ itkBMPImageIOTestPalette(int argc, char * argv[])
   ITK_TEST_SET_GET_BOOLEAN(io, ExpandRGBPalette, expandRGBPalette);
 
   // Exercise exception cases
-  size_t sizeOfActualIORegion =
+  const size_t sizeOfActualIORegion =
     io->GetIORegion().GetNumberOfPixels() * (io->GetComponentSize() * io->GetNumberOfComponents());
   auto * loadBuffer = new char[sizeOfActualIORegion];
 
@@ -137,7 +139,7 @@ itkBMPImageIOTestPalette(int argc, char * argv[])
       std::cout << "Palette: " << std::endl;
       for (unsigned int i = 0; i < palette.size(); ++i)
       {
-        std::cout << "[" << i << "]:" << palette[i] << std::endl;
+        std::cout << '[' << i << "]:" << palette[i] << std::endl;
       }
     }
     else
@@ -161,8 +163,9 @@ itkBMPImageIOTestPalette(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
   // Exercise other methods
-  itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
-  std::cout << "PixelStride: " << itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType(pixelStride) << std::endl;
+  const itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
+  std::cout << "PixelStride: " << static_cast<itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType>(pixelStride)
+            << std::endl;
 
   // ToDo
   // When the palette has made into the Metadata Dictionary (as opposed to the ImageIO):

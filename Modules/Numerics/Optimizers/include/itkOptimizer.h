@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,8 +49,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Optimizer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Optimizer);
 
   /**  Parameters type.
    *  It defines a position in the optimization search space. */
@@ -76,9 +76,10 @@ public:
   SetScales(const ScalesType & scales);
 
   /** Get current parameters scaling. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Scales, ScalesType);
   itkGetConstReferenceMacro(InverseScales, ScalesType);
-
+  /** @ITKEndGrouping */
   /** Get current position of the optimization. */
   itkGetConstReferenceMacro(CurrentPosition, ParametersType);
 
@@ -88,7 +89,7 @@ public:
   {}
 
   /** Get the reason for termination */
-  virtual const std::string
+  virtual std::string
   GetStopConditionDescription() const;
 
 protected:
@@ -106,12 +107,12 @@ protected:
   // Keep m_CurrentPosition as a protected var so that subclasses can
   // have fast access.  This is important when optimizing high-dimensional
   // spaces, e.g. bspline transforms.
-  ParametersType m_CurrentPosition;
+  ParametersType m_CurrentPosition{};
 
 private:
-  ParametersType m_InitialPosition;
-  ScalesType     m_Scales;
-  ScalesType     m_InverseScales;
+  ParametersType m_InitialPosition{};
+  ScalesType     m_Scales{};
+  ScalesType     m_InverseScales{};
 };
 } // end namespace itk
 

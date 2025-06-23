@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkMapContainer_hxx
 #define itkMapContainer_hxx
-#include "itkMapContainer.h"
 
 namespace itk
 {
@@ -29,8 +28,8 @@ namespace itk
  * reference.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::Element &
-MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id)
+auto
+MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id) -> Element &
 {
   this->Modified();
   return this->MapType::operator[](id);
@@ -41,8 +40,8 @@ MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id)
  *
  */
 template <typename TElementIdentifier, typename TElement>
-const typename MapContainer<TElementIdentifier, TElement>::Element &
-MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id) const
+auto
+MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id) const -> const Element &
 {
   return this->MapType::find(id)->second;
 }
@@ -55,8 +54,8 @@ MapContainer<TElementIdentifier, TElement>::ElementAt(ElementIdentifier id) cons
  * reference.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::Element &
-MapContainer<TElementIdentifier, TElement>::CreateElementAt(ElementIdentifier id)
+auto
+MapContainer<TElementIdentifier, TElement>::CreateElementAt(ElementIdentifier id) -> Element &
 {
   this->Modified();
   return this->MapType::operator[](id);
@@ -67,8 +66,8 @@ MapContainer<TElementIdentifier, TElement>::CreateElementAt(ElementIdentifier id
  * existence performed.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::Element
-MapContainer<TElementIdentifier, TElement>::GetElement(ElementIdentifier id) const
+auto
+MapContainer<TElementIdentifier, TElement>::GetElement(ElementIdentifier id) const -> Element
 {
   return this->MapType::find(id)->second;
 }
@@ -158,8 +157,8 @@ MapContainer<TElementIdentifier, TElement>::DeleteIndex(ElementIdentifier id)
  * Get a begin const iterator for the map.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::ConstIterator
-MapContainer<TElementIdentifier, TElement>::Begin() const
+auto
+MapContainer<TElementIdentifier, TElement>::Begin() const -> ConstIterator
 {
   return ConstIterator(this->MapType::begin());
 }
@@ -168,8 +167,8 @@ MapContainer<TElementIdentifier, TElement>::Begin() const
  * Get an end const iterator for the map.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::ConstIterator
-MapContainer<TElementIdentifier, TElement>::End() const
+auto
+MapContainer<TElementIdentifier, TElement>::End() const -> ConstIterator
 {
   return ConstIterator(this->MapType::end());
 }
@@ -178,8 +177,8 @@ MapContainer<TElementIdentifier, TElement>::End() const
  * Get a begin const iterator for the map.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::Iterator
-MapContainer<TElementIdentifier, TElement>::Begin()
+auto
+MapContainer<TElementIdentifier, TElement>::Begin() -> Iterator
 {
   return Iterator(this->MapType::begin());
 }
@@ -188,8 +187,8 @@ MapContainer<TElementIdentifier, TElement>::Begin()
  * Get an end const iterator for the map.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::Iterator
-MapContainer<TElementIdentifier, TElement>::End()
+auto
+MapContainer<TElementIdentifier, TElement>::End() -> Iterator
 {
   return Iterator(this->MapType::end());
 }
@@ -198,8 +197,8 @@ MapContainer<TElementIdentifier, TElement>::End()
  * Get the number of elements currently stored in the map.
  */
 template <typename TElementIdentifier, typename TElement>
-typename MapContainer<TElementIdentifier, TElement>::ElementIdentifier
-MapContainer<TElementIdentifier, TElement>::Size() const
+auto
+MapContainer<TElementIdentifier, TElement>::Size() const -> ElementIdentifier
 {
   return static_cast<ElementIdentifier>(this->MapType::size());
 }
@@ -226,16 +225,6 @@ MapContainer<TElementIdentifier, TElement>::Reserve(ElementIdentifier sz)
     curSize = this->Size();
   }
 }
-
-/**
- * Tell the container to try to minimize its memory usage for storage of
- * the current number of elements.  This is NOT guaranteed to decrease
- * memory usage.
- */
-template <typename TElementIdentifier, typename TElement>
-void
-MapContainer<TElementIdentifier, TElement>::Squeeze()
-{}
 
 /**
  * Tell the container to release any memory it may have allocated and

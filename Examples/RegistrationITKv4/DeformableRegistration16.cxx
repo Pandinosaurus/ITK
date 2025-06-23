@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ this list of conditions and the following disclaimer.
    * Redistributions in binary form must reproduce the above copyright notice,
      this list of conditions and the following disclaimer in the documentation
      and/or other materials provided with the distribution.
-   * Neither the name of Virgina Tech nor the names of its contributors may
+   * Neither the name of Virginia Tech nor the names of its contributors may
      be used to endorse or promote products derived from this software without
      specific prior written permission.
 
@@ -71,7 +71,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //       Vidya Rajagopalan, Bioimaging Systems Lab, Virginia Tech
 //
 //   The example was improved during the NAMIC programming week on July 2008
-//   http://wiki.na-mic.org/Wiki/index.php/2008_Summer_Project_Week
+//   https://wiki.na-mic.org/Wiki/index.php/2008_Summer_Project_Week
 //
 //   National Alliance for Medical Image Computing (NAMIC),
 //   funded by the National Institutes of Health
@@ -218,18 +218,18 @@ main(int argc, char * argv[])
 
   // setup input file readers
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer targetReader = ReaderType::New();
+  auto targetReader = ReaderType::New();
   targetReader->SetFileName(argv[1]);
   targetReader->Update();
 
-  ReaderType::Pointer sourceReader = ReaderType::New();
+  auto sourceReader = ReaderType::New();
   sourceReader->SetFileName(argv[2]);
   sourceReader->Update();
 
 
   // cast target and source to float
-  ImageCasterType::Pointer targetImageCaster = ImageCasterType::New();
-  ImageCasterType::Pointer sourceImageCaster = ImageCasterType::New();
+  auto targetImageCaster = ImageCasterType::New();
+  auto sourceImageCaster = ImageCasterType::New();
   targetImageCaster->SetInput(targetReader->GetOutput());
   sourceImageCaster->SetInput(sourceReader->GetOutput());
 
@@ -237,7 +237,7 @@ main(int argc, char * argv[])
   using MatchingFilterType =
     itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType>;
 
-  MatchingFilterType::Pointer matcher = MatchingFilterType::New();
+  auto matcher = MatchingFilterType::New();
 
   matcher->SetInput(sourceImageCaster->GetOutput());
   matcher->SetReferenceImage(targetImageCaster->GetOutput());
@@ -255,14 +255,14 @@ main(int argc, char * argv[])
                                   InternalImageType,
                                   DisplacementFieldType>;
 
-  RegistrationFilterType::Pointer filter = RegistrationFilterType::New();
+  auto filter = RegistrationFilterType::New();
 
   filter->SetStandardDeviations(1.0);
 
   //
   // Create the Command observer and register it with the registration filter.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   filter->AddObserver(itk::IterationEvent(), observer);
 
 
@@ -272,8 +272,7 @@ main(int argc, char * argv[])
                                                   InternalImageType,
                                                   DisplacementFieldType>;
 
-  MultiResRegistrationFilterType::Pointer multires =
-    MultiResRegistrationFilterType::New();
+  auto multires = MultiResRegistrationFilterType::New();
 
   multires->SetRegistrationFilter(filter);
   multires->SetNumberOfLevels(4);
@@ -285,8 +284,7 @@ main(int argc, char * argv[])
   //
   // Create the Command observer and register it with the registration filter.
   //
-  CommandResolutionLevelUpdate::Pointer levelobserver =
-    CommandResolutionLevelUpdate::New();
+  auto levelobserver = CommandResolutionLevelUpdate::New();
   multires->AddObserver(itk::IterationEvent(), levelobserver);
 
   // apply the registration filter
@@ -314,11 +312,11 @@ main(int argc, char * argv[])
   using InterpolatorType =
     itk::LinearInterpolateImageFunction<ImageType, InterpolatorPrecisionType>;
 
-  WarperType::Pointer warper = WarperType::New();
+  auto warper = WarperType::New();
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
-  ImageType::Pointer targetImage = targetReader->GetOutput();
+  const ImageType::Pointer targetImage = targetReader->GetOutput();
   warper->SetInput(sourceReader->GetOutput());
   warper->SetInterpolator(interpolator);
   warper->SetOutputSpacing(targetImage->GetSpacing());
@@ -327,7 +325,7 @@ main(int argc, char * argv[])
   warper->SetTransform(displacementTransform);
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(warper->GetOutput());
 
@@ -343,7 +341,7 @@ main(int argc, char * argv[])
 
   // write the deformation field
   using DeformationWriterType = itk::ImageFileWriter<DisplacementFieldType>;
-  DeformationWriterType::Pointer defwriter = DeformationWriterType::New();
+  auto defwriter = DeformationWriterType::New();
   defwriter->SetFileName(argv[4]);
   defwriter->SetInput(multires->GetOutput());
 

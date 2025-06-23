@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include <iostream>
 #include "itkRGBPixel.h"
 #include "itkComposeImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkComposeRGBImageFilterTest(int, char *[])
@@ -36,19 +37,18 @@ itkComposeRGBImageFilterTest(int, char *[])
   using SizeType = InputImageType::SizeType;
   using IndexType = InputImageType::IndexType;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  InputImageType::Pointer redImage = InputImageType::New();
-  InputImageType::Pointer greenImage = InputImageType::New();
-  InputImageType::Pointer blueImage = InputImageType::New();
+  auto redImage = InputImageType::New();
+  auto greenImage = InputImageType::New();
+  auto blueImage = InputImageType::New();
 
   SizeType size;
   size[0] = 2;
   size[1] = 2;
   size[2] = 2;
 
-  IndexType start;
-  start.Fill(0);
+  constexpr IndexType start{};
 
   RegionType region;
   region.SetIndex(start);
@@ -70,19 +70,9 @@ itkComposeRGBImageFilterTest(int, char *[])
   filter->SetInput2(greenImage);
   filter->SetInput3(blueImage);
 
-  try
-  {
-    filter->Update();
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught !" << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  OutputImageType::Pointer rgbImage = filter->GetOutput();
+  const OutputImageType::Pointer rgbImage = filter->GetOutput();
 
   using OutputIterator = itk::ImageRegionIterator<OutputImageType>;
   using InputIterator = itk::ImageRegionIterator<InputImageType>;
@@ -103,7 +93,7 @@ itkComposeRGBImageFilterTest(int, char *[])
 
   while (!ot.IsAtEnd())
   {
-    OutputPixelType outp = ot.Get();
+    const OutputPixelType outp = ot.Get();
     if (ir.Get() != outp.GetRed())
     {
       std::cerr << "Error in red component" << std::endl;
@@ -125,7 +115,6 @@ itkComposeRGBImageFilterTest(int, char *[])
     ++ib;
   }
 
-  std::cout << "Test Passed !" << std::endl;
-
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

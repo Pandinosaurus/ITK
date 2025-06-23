@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,15 +27,14 @@ ComputeAreaError(const SEType & k, unsigned int thickness = 0);
 int
 itkFlatStructuringElementTest(int, char *[])
 {
-  int  scalarRadius = 5;
-  int  scalarThickness = 2;
-  bool radiusIsParametric = true;
+  constexpr int  scalarRadius = 5;
+  constexpr int  scalarThickness = 2;
+  constexpr bool radiusIsParametric = true;
 
   using SE2Type = itk::FlatStructuringElement<2>;
-  SE2Type::RadiusType r2;
-  r2.Fill(scalarRadius);
+  auto r2 = itk::MakeFilled<SE2Type::RadiusType>(scalarRadius);
 
-  SE2Type::Self result2 = SE2Type::Self();
+  SE2Type::Self result2{};
   result2.RadiusIsParametricOn();
   ITK_TEST_SET_GET_VALUE(true, result2.GetRadiusIsParametric());
 
@@ -75,7 +74,7 @@ itkFlatStructuringElementTest(int, char *[])
   using SE3Type = itk::FlatStructuringElement<3>;
   SE3Type::RadiusType r3;
 
-  SE3Type::Self result3 = SE3Type::Self();
+  SE3Type::Self result3{};
   result3.RadiusIsParametricOff();
   ITK_TEST_SET_GET_VALUE(false, result3.GetRadiusIsParametric());
 
@@ -133,7 +132,7 @@ itkFlatStructuringElementTest(int, char *[])
   using SE4Type = itk::FlatStructuringElement<4>;
   SE4Type::RadiusType r4;
 
-  SE4Type::Self result4 = SE4Type::Self();
+  SE4Type::Self result4{};
   result4.RadiusIsParametricOn();
   ITK_TEST_SET_GET_VALUE(true, result4.GetRadiusIsParametric());
 
@@ -187,16 +186,11 @@ bool
 ComputeAreaError(const SEType & k, unsigned int thickness)
 {
   float expectedOuterForegroundArea = 1;
-  float expectedInnerForegroundArea;
+  float expectedInnerForegroundArea = 1; // Annulus does have inner area to subtract.
   if (thickness == 0)
   {
-    // Circle/Ellipse has no inner area to subract.
+    // Circle/Ellipse has no inner area to subtract.
     expectedInnerForegroundArea = 0;
-  }
-  else
-  {
-    // Annulus does have inner area to subract.
-    expectedInnerForegroundArea = 1;
   }
   if (SEType::NeighborhoodDimension == 2)
   {
@@ -217,13 +211,13 @@ ComputeAreaError(const SEType & k, unsigned int thickness)
   {
     return EXIT_FAILURE;
   }
-  for (unsigned int i = 0; i < SEType::NeighborhoodDimension; i++)
+  for (unsigned int i = 0; i < SEType::NeighborhoodDimension; ++i)
   {
     expectedOuterForegroundArea *= k.GetRadius()[i];
     expectedInnerForegroundArea *= (k.GetRadius()[i] - thickness);
   }
 
-  float expectedForegroundArea = expectedOuterForegroundArea - expectedInnerForegroundArea;
+  const float expectedForegroundArea = expectedOuterForegroundArea - expectedInnerForegroundArea;
 
   // Show the neighborhood if it is 2D.
   typename SEType::ConstIterator SEIt;
@@ -231,7 +225,7 @@ ComputeAreaError(const SEType & k, unsigned int thickness)
   {
     for (SEIt = k.Begin(); SEIt != k.End(); ++SEIt)
     {
-      std::cout << *SEIt << "\t";
+      std::cout << *SEIt << '\t';
       if ((SEIt - k.Begin() + 1) % k.GetSize()[0] == 0)
       {
         std::cout << std::endl;
@@ -252,7 +246,7 @@ ComputeAreaError(const SEType & k, unsigned int thickness)
   std::cout << "Expected foreground area: " << expectedForegroundArea << std::endl;
   std::cout << "Computed foreground area: " << computedForegroundArea << std::endl;
   std::cout << "Foreground area error: "
-            << 100 * itk::Math::abs(expectedForegroundArea - computedForegroundArea) / expectedForegroundArea << "%"
+            << 100 * itk::Math::abs(expectedForegroundArea - computedForegroundArea) / expectedForegroundArea << '%'
             << "\n\n";
 
   return EXIT_FAILURE;

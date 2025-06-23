@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,11 +37,10 @@ itkPathToChainCodePathFilterTest(int, char *[])
 
   // Setup the path
   std::cout << "Making a triangle Path with v0 at (30,30) -> (30,33) -> (33,33)" << std::endl;
-  VertexType             v;
-  InPathType::Pointer    inPath = InPathType::New();
-  ChainPathType::Pointer chainPath;
 
-  v.Fill(30);
+  auto inPath = InPathType::New();
+
+  auto v = itk::MakeFilled<VertexType>(30);
   inPath->AddVertex(v);
   v[0] = 30;
   v[1] = 33;
@@ -50,7 +49,7 @@ itkPathToChainCodePathFilterTest(int, char *[])
   inPath->AddVertex(v);
 
   // Set up the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, PathToChainCodePathFilter, PathToPathFilter);
 
   bool maximallyConnected = false;
@@ -58,7 +57,7 @@ itkPathToChainCodePathFilterTest(int, char *[])
 
   filter->SetInput(inPath);
 
-  chainPath = filter->GetOutput();
+  const ChainPathType::Pointer chainPath = filter->GetOutput();
 
   chainPath->Update();
 
@@ -98,9 +97,7 @@ itkPathToChainCodePathFilterTest(int, char *[])
     std::cout << "Test passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Test failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Test failed" << std::endl;
+  return EXIT_FAILURE;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,19 +29,13 @@ namespace itk
 //
 // Constructor
 //
-VXLVideoIO::VXLVideoIO()
-{
-  this->ResetMembers();
-}
+VXLVideoIO::VXLVideoIO() { this->ResetMembers(); }
 
 
 //
 // Destructor
 //
-VXLVideoIO::~VXLVideoIO()
-{
-  this->FinishReadingOrWriting();
-}
+VXLVideoIO::~VXLVideoIO() { this->FinishReadingOrWriting(); }
 
 
 //
@@ -54,7 +48,7 @@ VXLVideoIO::PrintSelf(std::ostream & os, Indent indent) const
 
   os << indent << "Reader Open: " << this->m_ReaderOpen << std::endl;
   os << indent << "Writer Open: " << this->m_WriterOpen << std::endl;
-  os << indent << "Image dimensions: [" << this->m_Dimensions[0] << "," << this->m_Dimensions[1] << "]" << std::endl;
+  os << indent << "Image dimensions: [" << this->m_Dimensions[0] << ',' << this->m_Dimensions[1] << ']' << std::endl;
   os << indent << "Frame Total: " << this->m_FrameTotal << std::endl;
 }
 
@@ -206,7 +200,7 @@ VXLVideoIO::CanReadFile(const char * filename)
   std::string fname = filename;
   if (fname == "")
   {
-    itkDebugMacro(<< "NoFilename specified");
+    itkDebugMacro("NoFilename specified");
     return false;
   }
 
@@ -228,7 +222,7 @@ VXLVideoIO::CanReadFile(const char * filename)
   }
   if (!extensionFound)
   {
-    itkDebugMacro(<< "Unrecognized file extension");
+    itkDebugMacro("Unrecognized file extension");
     return false;
   }
 
@@ -250,7 +244,7 @@ VXLVideoIO::CanReadFile(const char * filename)
 bool
 VXLVideoIO::CanReadCamera(CameraIDType cameraID) const
 {
-  itkWarningMacro(<< "For now, camera reading is not supported with VXL:" << cameraID);
+  itkWarningMacro("For now, camera reading is not supported with VXL:" << cameraID);
   return false;
 }
 
@@ -265,7 +259,7 @@ VXLVideoIO::ReadImageInformation()
   // Get information from camera
   if (this->m_ReadType == ReadFromCamera)
   {
-    itkExceptionMacro(<< "For now, camera reading is not supported with VXL");
+    itkExceptionMacro("For now, camera reading is not supported with VXL");
   }
 
   // Get information from file
@@ -283,11 +277,11 @@ VXLVideoIO::ReadImageInformation()
     this->m_FramesPerSecond = localStream.frame_rate();
     this->m_NumberOfComponents = this->GetNChannelsFromPixelFormat(this->m_PixelFormat);
 
-    // Assing the component type
+    // Assign the component type
     unsigned int bytesPerPixel = this->GetSizeFromPixelFormat(this->m_PixelFormat);
     if (bytesPerPixel == 0)
     {
-      itkExceptionMacro("Faile to load local steam. FFMPEG libraries seems to be missing in VXL installation.");
+      itkExceptionMacro("Failed to load local steam. FFMPEG libraries seems to be missing in VXL installation.");
     }
     if (bytesPerPixel == 1)
     {
@@ -303,7 +297,7 @@ VXLVideoIO::ReadImageInformation()
     }
 
     // Try to figure out if there are I-Frame issues we need to worry about
-    // and compensate accrodingly
+    // and compensate accordingly
     if (this->m_FrameTotal > 0)
     {
       localStream.advance(); // Advance to first frame (0)
@@ -311,17 +305,18 @@ VXLVideoIO::ReadImageInformation()
       this->m_IFrameInterval = localStream.frame_number();
       if (this->m_IFrameInterval == 0)
       {
-        itkExceptionMacro(<< "I-Frame spacing for this video is zeror! Please check input data.");
+        itkExceptionMacro("I-Frame spacing for this video is zeror! Please check input data.");
       }
-      this->m_LastIFrame = static_cast<FrameOffsetType>((float)this->m_FrameTotal / (float)this->m_IFrameInterval) *
+      this->m_LastIFrame = static_cast<FrameOffsetType>(static_cast<float>(this->m_FrameTotal) /
+                                                        static_cast<float>(this->m_IFrameInterval)) *
                              this->m_IFrameInterval -
                            1;
 
       // If the I-Frame spacing is not 1, warn the user
       if (this->m_IFrameInterval != 1)
       {
-        itkWarningMacro(<< "VXL can only seek to I-Frames. I-Frame spacing for this video is " << this->m_IFrameInterval
-                        << ". Last I-Frame is " << this->m_LastIFrame);
+        itkWarningMacro("VXL can only seek to I-Frames. I-Frame spacing for this video is "
+                        << this->m_IFrameInterval << ". Last I-Frame is " << this->m_LastIFrame);
       }
     }
   }
@@ -329,7 +324,7 @@ VXLVideoIO::ReadImageInformation()
   // Should never get here
   else
   {
-    itkExceptionMacro(<< "Invalid Read Type... How did we get here?");
+    itkExceptionMacro("Invalid Read Type... How did we get here?");
   }
 }
 
@@ -343,7 +338,7 @@ VXLVideoIO::Read(void * buffer)
   // Make sure we've already called ReadImageInformation (dimensions are non-zero)
   if (this->m_Dimensions.size() != 2 || this->m_Dimensions[0] == 0 || this->m_Dimensions[1] == 0)
   {
-    itkExceptionMacro(<< "Cannot read frame with zero dimension. May need to call ReadImageInformation");
+    itkExceptionMacro("Cannot read frame with zero dimension. May need to call ReadImageInformation");
   }
 
   // If video is not already open, open it and keep it open
@@ -355,7 +350,7 @@ VXLVideoIO::Read(void * buffer)
   // Advance to the next frame if possible
   if (!this->m_Reader->advance())
   {
-    itkDebugMacro(<< "Could not advance to the next frame");
+    itkDebugMacro("Could not advance to the next frame");
   }
 
   // Read the current frame
@@ -387,7 +382,7 @@ VXLVideoIO::Read(void * buffer)
     }
     else
     {
-      itkExceptionMacro(<< "Unsupported Pixel Format " << vidl_pixel_format_to_string(this->m_PixelFormat));
+      itkExceptionMacro("Unsupported Pixel Format " << vidl_pixel_format_to_string(this->m_PixelFormat));
     }
   }
 
@@ -412,7 +407,7 @@ VXLVideoIO::SetNextFrameToRead(FrameOffsetType frameNumber)
   // Make sure we're not setting past the end
   if (frameNumber > this->m_LastIFrame)
   {
-    itkDebugMacro(<< "Warning: Trying to seek past end of video (past last I-Frame)");
+    itkDebugMacro("Warning: Trying to seek past end of video (past last I-Frame)");
     return false;
   }
 
@@ -442,7 +437,7 @@ VXLVideoIO::CanWriteFile(const char * filename)
   // Make sure reader is closed
   if (this->m_ReaderOpen)
   {
-    itkWarningMacro(<< "Can't write anything if reader is open");
+    itkWarningMacro("Can't write anything if reader is open");
     return false;
   }
 
@@ -450,7 +445,7 @@ VXLVideoIO::CanWriteFile(const char * filename)
   std::string fname = filename;
   if (fname == "")
   {
-    itkWarningMacro(<< "No Filename specified");
+    itkWarningMacro("No Filename specified");
     return false;
   }
 
@@ -472,7 +467,7 @@ VXLVideoIO::CanWriteFile(const char * filename)
   }
   if (!extensionFound)
   {
-    itkWarningMacro(<< "Unrecognized file extension " << fname);
+    itkWarningMacro("Unrecognized file extension " << fname);
     return false;
   }
 
@@ -496,14 +491,14 @@ VXLVideoIO::SetWriterParameters(TemporalRatioType                  fps,
                                 const std::vector<SizeValueType> & dim,
                                 const char *                       fourCC,
                                 unsigned int                       nChannels,
-                                IOComponentType                    componentType)
+                                IOComponentEnum                    componentType)
 {
   if (this->m_ReaderOpen || this->m_WriterOpen)
   {
     itkExceptionMacro("Can not set the writer's parameters when either reader or writer is already open");
   }
 
-  if (componentType != UCHAR && componentType != UINT)
+  if (componentType != IOComponentEnum::UCHAR && IOComponentEnum::componentType != UINT)
   {
     itkExceptionMacro("VXL IO only supports writing video with pixels of UCHAR and UINT");
   }
@@ -548,7 +543,7 @@ VXLVideoIO::SetWriterParameters(TemporalRatioType                  fps,
   }
   else
   {
-    itkExceptionMacro(<< "Invalid number of channels " << this->m_NumberOfComponents);
+    itkExceptionMacro("Invalid number of channels " << this->m_NumberOfComponents);
   }
 }
 
@@ -664,7 +659,7 @@ VXLVideoIO::FourCCtoEncoderType(const char * fourCC)
   }
   else
   {
-    itkWarningMacro(<< "Unknown FourCC: " << fourCC);
+    itkWarningMacro("Unknown FourCC: " << fourCC);
     return vidl_ffmpeg_ostream_params::DEFAULT;
   }
 }
@@ -677,7 +672,7 @@ VXLVideoIO::UpdateReaderProperties()
 {
   this->m_CurrentFrame = this->m_Reader->frame_number();
 
-  this->m_Ratio = (double)this->m_CurrentFrame / (double)this->m_FrameTotal;
+  this->m_Ratio = static_cast<double>(this->m_CurrentFrame) / static_cast<double>(this->m_FrameTotal);
   this->m_PositionInMSec = this->m_Reader->duration() * this->m_Ratio;
 }
 
@@ -715,7 +710,7 @@ VXLVideoIO::OpenReader()
   // Read from camera
   else if (this->m_ReadType == ReadFromCamera)
   {
-    itkWarningMacro(<< "VXL camera not currently implemented");
+    itkWarningMacro("VXL camera not currently implemented");
   }
 }
 

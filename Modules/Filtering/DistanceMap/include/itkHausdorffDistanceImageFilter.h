@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class HausdorffDistanceImageFilter
+ * \class HausdorffDistanceImageFilter
  * \brief Computes the Hausdorff distance between the set of
  * non-zero pixels of two images.
  *
@@ -74,8 +74,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(HausdorffDistanceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HausdorffDistanceImageFilter);
 
   /** Image related type alias. */
   using InputImage1Type = TInputImage1;
@@ -115,18 +115,16 @@ public:
   GetInput2();
 
   /** Set if image spacing should be used in computing distances. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
-
+  /** @ITKEndGrouping */
   /** Return the computed Hausdorff distance. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(HausdorffDistance, RealType);
   itkGetConstMacro(AverageHausdorffDistance, RealType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(Input1HasNumericTraitsCheck, (Concept::HasNumericTraits<InputImage1PixelType>));
-  // End concept checking
-#endif
 
 protected:
   HausdorffDistanceImageFilter();
@@ -147,9 +145,9 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * data) override;
 
 private:
-  RealType m_HausdorffDistance;
-  RealType m_AverageHausdorffDistance;
-  bool     m_UseImageSpacing;
+  RealType m_HausdorffDistance{};
+  RealType m_AverageHausdorffDistance{};
+  bool     m_UseImageSpacing{ true };
 }; // end of class
 } // end namespace itk
 

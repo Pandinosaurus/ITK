@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,16 +43,16 @@ class DcmDictEntry;
 // Don't print error messages if you're not throwing
 // an exception
 //     std::cerr body;
-#define DCMTKExceptionOrErrorReturn(body)                                                                              \
-  {                                                                                                                    \
-    if (throwException)                                                                                                \
-    {                                                                                                                  \
-      itkGenericExceptionMacro(body);                                                                                  \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-      return EXIT_FAILURE;                                                                                             \
-    }                                                                                                                  \
+#define DCMTKExceptionOrErrorReturn(body) \
+  {                                       \
+    if (throwException)                   \
+    {                                     \
+      itkGenericExceptionMacro(body);     \
+    }                                     \
+    else                                  \
+    {                                     \
+      return EXIT_FAILURE;                \
+    }                                     \
   }
 
 namespace itk
@@ -124,7 +124,7 @@ public:
     std::string val;
     if (this->GetElementOB(group, element, val, throwException) != EXIT_SUCCESS)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     const char * data = val.c_str();
@@ -148,7 +148,7 @@ public:
     std::string val;
     if (this->GetElementOB(group, element, val, throwException) != EXIT_SUCCESS)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     const char * data = val.c_str();
@@ -201,22 +201,22 @@ public:
     auto * dsItem = dynamic_cast<DcmDecimalString *>(resultStack.top());
     if (dsItem == nullptr)
     {
-      DCMTKExceptionOrErrorReturn(<< "Can't get DecimalString Element at tag " << std::hex << group << " " << element
+      DCMTKExceptionOrErrorReturn(<< "Can't get DecimalString Element at tag " << std::hex << group << ' ' << element
                                   << std::dec);
     }
 
     OFVector<Float64> doubleVals;
     if (dsItem->getFloat64Vector(doubleVals) != EC_Normal)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant extract Array from DecimalString " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant extract Array from DecimalString " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     if (doubleVals.size() != count)
     {
-      DCMTKExceptionOrErrorReturn(<< "DecimalString " << std::hex << group << " " << std::hex << element << " expected "
+      DCMTKExceptionOrErrorReturn(<< "DecimalString " << std::hex << group << ' ' << std::hex << element << " expected "
                                   << count << "items, but found " << doubleVals.size() << std::dec);
     }
-    for (unsigned i = 0; i < count; i++)
+    for (unsigned int i = 0; i < count; ++i)
     {
       target[i] = static_cast<TType>(doubleVals[i]);
     }
@@ -283,26 +283,26 @@ public:
     DcmElement * el;
     if (this->m_Dataset->findAndGetElement(tagkey, el) != EC_Normal)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant find tag " << std::hex << group << " " << std::hex << element << std::dec);
+      DCMTKExceptionOrErrorReturn(<< "Cant find tag " << std::hex << group << ' ' << std::hex << element << std::dec);
     }
     auto * dsItem = dynamic_cast<DcmDecimalString *>(el);
     if (dsItem == nullptr)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     OFVector<Float64> doubleVals;
     if (dsItem->getFloat64Vector(doubleVals) != EC_Normal)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant extract Array from DecimalString " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant extract Array from DecimalString " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     if (doubleVals.size() != count)
     {
-      DCMTKExceptionOrErrorReturn(<< "DecimalString " << std::hex << group << " " << std::hex << element << " expected "
+      DCMTKExceptionOrErrorReturn(<< "DecimalString " << std::hex << group << ' ' << std::hex << element << " expected "
                                   << count << "items, but found " << doubleVals.size() << std::dec);
     }
-    for (unsigned i = 0; i < count; i++)
+    for (unsigned int i = 0; i < count; ++i)
     {
       target[i] = static_cast<TType>(doubleVals[i]);
     }
@@ -323,7 +323,7 @@ public:
     std::string val;
     if (this->GetElementOB(group, element, val, throwException) != EXIT_SUCCESS)
     {
-      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << " " << std::hex
+      DCMTKExceptionOrErrorReturn(<< "Cant find DecimalString element " << std::hex << group << ' ' << std::hex
                                   << element << std::dec);
     }
     const char * data = val.c_str();
@@ -404,19 +404,19 @@ public:
   int
   GetElementIS(const unsigned short group,
                const unsigned short element,
-               ::itk::int32_t &     target,
+               itk::int32_t &       target,
                const bool           throwException = true) const;
 
   int
   GetElementSL(const unsigned short group,
                const unsigned short element,
-               ::itk::int32_t &     target,
+               itk::int32_t &       target,
                const bool           throwException = true) const;
 
   int
   GetElementISorOB(const unsigned short group,
                    const unsigned short element,
-                   ::itk::int32_t &     target,
+                   itk::int32_t &       target,
                    const bool           throwException = true) const;
 
   int

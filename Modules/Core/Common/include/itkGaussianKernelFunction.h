@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
  * \ingroup ITKCommon
  */
 template <typename TRealValueType = double>
-class GaussianKernelFunction : public KernelFunctionBase<TRealValueType>
+class ITK_TEMPLATE_EXPORT GaussianKernelFunction : public KernelFunctionBase<TRealValueType>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(GaussianKernelFunction);
@@ -48,33 +48,29 @@ public:
   using Superclass = KernelFunctionBase<TRealValueType>;
   using Pointer = SmartPointer<Self>;
 
-  using RealType = typename Superclass::RealType;
+  using typename Superclass::RealType;
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianKernelFunction, KernelFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianKernelFunction);
 
   /** Evaluate the function. */
   TRealValueType
   Evaluate(const TRealValueType & u) const override
   {
-    return (std::exp(static_cast<TRealValueType>(-0.5) * itk::Math::sqr(u)) * m_Factor);
+    constexpr TRealValueType negHalf{ -0.5 };
+    return std::exp(negHalf * itk::Math::sqr(u)) * Math::one_over_sqrt2pi;
   }
 
 protected:
-  GaussianKernelFunction()
-    : m_Factor(NumericTraits<TRealValueType>::OneValue() /
-               std::sqrt(static_cast<TRealValueType>(2.0 * itk::Math::pi))){};
+  GaussianKernelFunction() {}
   ~GaussianKernelFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override
   {
     Superclass::PrintSelf(os, indent);
   }
-
-private:
-  const TRealValueType m_Factor;
 };
 } // end namespace itk
 

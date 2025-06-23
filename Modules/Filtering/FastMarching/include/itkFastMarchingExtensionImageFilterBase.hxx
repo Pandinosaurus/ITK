@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,22 +18,18 @@
 #ifndef itkFastMarchingExtensionImageFilterBase_hxx
 #define itkFastMarchingExtensionImageFilterBase_hxx
 
-#include "itkFastMarchingExtensionImageFilterBase.h"
 
 namespace itk
 {
 template <typename TInput, typename TOutput, typename TAuxValue, unsigned int VAuxDimension>
 FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>::FastMarchingExtensionImageFilterBase()
+  : m_AuxiliaryAliveValues(nullptr)
+  , m_AuxiliaryTrialValues(nullptr)
 {
-  m_AuxiliaryAliveValues = nullptr;
-  m_AuxiliaryTrialValues = nullptr;
-
   this->ProcessObject::SetNumberOfRequiredOutputs(1 + AuxDimension);
-
-  AuxImagePointer ptr;
-  for (unsigned int k = 0; k < AuxDimension; k++)
+  for (unsigned int k = 0; k < AuxDimension; ++k)
   {
-    ptr = AuxImageType::New();
+    AuxImagePointer ptr = AuxImageType::New();
     this->ProcessObject::SetNthOutput(k + 1, ptr.GetPointer());
     this->m_AuxImages[k] = nullptr;
   }
@@ -53,9 +49,9 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
 
 
 template <typename TInput, typename TOutput, typename TAuxValue, unsigned int VAuxDimension>
-typename FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>::AuxImageType *
+auto
 FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>::GetAuxiliaryImage(
-  const unsigned int & idx)
+  const unsigned int idx) -> AuxImageType *
 {
   if (idx >= AuxDimension || this->GetNumberOfIndexedOutputs() < idx + 2)
   {
@@ -78,7 +74,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
   // set the size of all the auxiliary outputs
   // to be the same as the primary output
   OutputImageType * primaryOutput = this->GetOutput();
-  for (unsigned int k = 0; k < AuxDimension; k++)
+  for (unsigned int k = 0; k < AuxDimension; ++k)
   {
     AuxImageType * ptr = this->GetAuxiliaryImage(k);
     ptr->CopyInformation(primaryOutput);
@@ -94,7 +90,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
   DataObject * itkNotUsed(output))
 {
   // This filter requires all of the output images in the buffer.
-  for (unsigned int j = 0; j < this->GetNumberOfIndexedOutputs(); j++)
+  for (unsigned int j = 0; j < this->GetNumberOfIndexedOutputs(); ++j)
   {
     if (this->ProcessObject::GetOutput(j))
     {
@@ -115,24 +111,24 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
 
   if (!m_AuxiliaryAliveValues)
   {
-    itkExceptionMacro(<< "in Initialize(): Null pointer for AuxAliveValues");
+    itkExceptionMacro("in Initialize(): Null pointer for AuxAliveValues");
   }
   if (m_AuxiliaryAliveValues->size() != (this->m_AlivePoints->size()))
   {
-    itkExceptionMacro(<< "in Initialize(): AuxAliveValues is the wrong size");
+    itkExceptionMacro("in Initialize(): AuxAliveValues is the wrong size");
   }
 
   if (!m_AuxiliaryTrialValues)
   {
-    itkExceptionMacro(<< "in Initialize(): Null pointer for AuxTrialValues");
+    itkExceptionMacro("in Initialize(): Null pointer for AuxTrialValues");
   }
   if (m_AuxiliaryTrialValues->size() != this->m_TrialPoints->size())
   {
-    itkExceptionMacro(<< "in Initialize(): AuxTrialValues is the wrong size");
+    itkExceptionMacro("in Initialize(): AuxTrialValues is the wrong size");
   }
 
   // allocate memory for the auxiliary outputs
-  for (unsigned int k = 0; k < AuxDimension; k++)
+  for (unsigned int k = 0; k < AuxDimension; ++k)
   {
     AuxImageType * ptr = this->GetAuxiliaryImage(k);
     ptr->SetBufferedRegion(ptr->GetRequestedRegion());
@@ -147,9 +143,9 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
 
   if (m_AuxiliaryAliveValues)
   {
-    AuxValueContainerConstIterator auxIter = m_AuxiliaryAliveValues->Begin();
-    NodePairContainerConstIterator pointsIter = this->m_AlivePoints->Begin();
-    NodePairContainerConstIterator pointsEnd = this->m_AlivePoints->Begin();
+    AuxValueContainerConstIterator       auxIter = m_AuxiliaryAliveValues->Begin();
+    NodePairContainerConstIterator       pointsIter = this->m_AlivePoints->Begin();
+    const NodePairContainerConstIterator pointsEnd = this->m_AlivePoints->Begin();
 
     while (pointsIter != pointsEnd)
     {
@@ -159,7 +155,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
       // check if node index is within the output level set
       if (this->m_BufferedRegion.IsInside(node))
       {
-        for (unsigned int k = 0; k < AuxDimension; k++)
+        for (unsigned int k = 0; k < AuxDimension; ++k)
         {
           this->m_AuxImages[k]->SetPixel(node, auxVec[k]);
         }
@@ -167,13 +163,13 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
       ++pointsIter;
       ++auxIter;
     } // end container while
-  }   // if AuxAliveValues set
+  } // if AuxAliveValues set
 
   if (m_AuxiliaryTrialValues)
   {
-    AuxValueContainerConstIterator auxIter = m_AuxiliaryTrialValues->Begin();
-    NodePairContainerConstIterator pointsIter = this->m_TrialPoints->Begin();
-    NodePairContainerConstIterator pointsEnd = this->m_TrialPoints->End();
+    AuxValueContainerConstIterator       auxIter = m_AuxiliaryTrialValues->Begin();
+    NodePairContainerConstIterator       pointsIter = this->m_TrialPoints->Begin();
+    const NodePairContainerConstIterator pointsEnd = this->m_TrialPoints->End();
 
     while (pointsIter != pointsEnd)
     {
@@ -183,7 +179,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
       // check if node index is within the output level set
       if (this->m_BufferedRegion.IsInside(node))
       {
-        for (unsigned int k = 0; k < AuxDimension; k++)
+        for (unsigned int k = 0; k < AuxDimension; ++k)
         {
           this->m_AuxImages[k]->SetPixel(node, auxVec[k]);
         }
@@ -191,7 +187,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
       ++pointsIter;
       ++auxIter;
     } // end container loop
-  }   // if AuxTrialValues set
+  } // if AuxTrialValues set
 }
 
 template <typename TInput, typename TOutput, typename TAuxValue, unsigned int VAuxDimension>
@@ -233,13 +229,13 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
     this->m_Heap.push(NodePairType(iNode, outputPixel));
 
     // update auxiliary values
-    for (unsigned int k = 0; k < AuxDimension; k++)
+    for (unsigned int k = 0; k < AuxDimension; ++k)
     {
       double       numer = 0.;
       double       denom = 0.;
       AuxValueType auxVal;
 
-      for (unsigned int j = 0; j < ImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; ++j)
       {
         temp_node = NodesUsed[j];
 
@@ -259,7 +255,7 @@ FastMarchingExtensionImageFilterBase<TInput, TOutput, TAuxValue, VAuxDimension>:
       }
       else
       {
-        auxVal = NumericTraits<AuxValueType>::ZeroValue();
+        auxVal = AuxValueType{};
       }
 
       this->m_AuxImages[k]->SetPixel(iNode, auxVal);

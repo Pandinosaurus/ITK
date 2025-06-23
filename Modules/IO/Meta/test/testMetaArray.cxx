@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ testMetaArray(int argc, char * argv[])
   arr[4] = 1;
 
   // Write them
-  itk::MetaArrayWriter::Pointer arrayWriter = itk::MetaArrayWriter::New();
+  const itk::MetaArrayWriter::Pointer arrayWriter = itk::MetaArrayWriter::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(arrayWriter, MetaArrayWriter, LightProcessObject);
 
@@ -128,8 +128,8 @@ testMetaArray(int argc, char * argv[])
 
   // Read them
   std::cout << "Read VariableLengthVector short" << std::endl;
-  itk::VariableLengthVector<short> rvecs;
-  itk::MetaArrayReader::Pointer    arrayReader = itk::MetaArrayReader::New();
+  itk::VariableLengthVector<short>    rvecs;
+  const itk::MetaArrayReader::Pointer arrayReader = itk::MetaArrayReader::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(arrayReader, MetaArrayReader, LightProcessObject);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
-#include "itkMRASlabIdentifier.h"
 #include "itkImageRegionIterator.h"
 #include "itkMath.h"
 
@@ -29,14 +28,12 @@ namespace itk
 {
 template <typename TInputImage>
 MRASlabIdentifier<TInputImage>::MRASlabIdentifier()
-{
-  m_Image = nullptr;
-  m_NumberOfSamples = 10;
-  m_BackgroundMinimumThreshold = NumericTraits<ImagePixelType>::min();
-  m_Tolerance = 0.0;
-  // default slicing axis is z
-  m_SlicingDirection = 2;
-}
+  : m_Image(nullptr)
+  , m_NumberOfSamples(10)
+  , m_SlicingDirection(2)
+  , m_BackgroundMinimumThreshold(NumericTraits<ImagePixelType>::min()) // default slicing axis is z
+
+{}
 
 template <typename TInputImage>
 void
@@ -55,15 +52,14 @@ MRASlabIdentifier<TInputImage>::GenerateSlabRegions()
   region = m_Image->GetLargestPossibleRegion();
   size = region.GetSize();
   index = region.GetIndex();
-  IndexValueType firstSlice = index[m_SlicingDirection];
-  IndexValueType lastSlice = firstSlice + size[m_SlicingDirection];
-  SizeValueType  totalSlices = size[m_SlicingDirection];
+  const IndexValueType firstSlice = index[m_SlicingDirection];
+  const IndexValueType lastSlice = firstSlice + size[m_SlicingDirection];
+  const SizeValueType  totalSlices = size[m_SlicingDirection];
 
-  double              sum;
   std::vector<double> avgMin(totalSlices);
   // calculate minimum intensities for each slice
   ImagePixelType pixel;
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     if (i != m_SlicingDirection)
     {
@@ -104,48 +100,44 @@ MRASlabIdentifier<TInputImage>::GenerateSlabRegions()
       ++iter;
     }
 
-    sum = 0.0;
+    double sum = 0.0;
     while (!mins.empty())
     {
       sum += mins.top();
       mins.pop();
     }
 
-    avgMin[count] = sum / (double)m_NumberOfSamples;
+    avgMin[count] = sum / static_cast<double>(m_NumberOfSamples);
 
     ++count;
     ++currentSlice;
   }
 
   // calculate overall average
-  sum = 0.0;
-  auto am_iter = avgMin.begin();
+  double sum = 0.0;
+  auto   am_iter = avgMin.begin();
   while (am_iter != avgMin.end())
   {
     sum += *am_iter;
     ++am_iter;
   }
 
-  double average = sum / (double)totalSlices;
+  const double average = sum / static_cast<double>(totalSlices);
 
   // determine slabs
   am_iter = avgMin.begin();
 
-  double prevSign = *am_iter - average;
-  double avgMinValue;
-
-  ImageIndexType  slabIndex;
+  double          prevSign = *am_iter - average;
   ImageRegionType slabRegion;
-  ImageSizeType   slabSize;
 
   SizeValueType  slabLength = 0;
   IndexValueType slabBegin = firstSlice;
-  slabSize = size;
-  slabIndex = index;
+  ImageSizeType  slabSize = size;
+  ImageIndexType slabIndex = index;
   while (am_iter != avgMin.end())
   {
-    avgMinValue = *am_iter;
-    double sign = avgMinValue - average;
+    double       avgMinValue = *am_iter;
+    const double sign = avgMinValue - average;
     if ((sign * prevSign < 0) && (itk::Math::abs(sign) > m_Tolerance))
     {
       slabIndex[m_SlicingDirection] = slabBegin;
@@ -158,8 +150,8 @@ MRASlabIdentifier<TInputImage>::GenerateSlabRegions()
       slabBegin += slabLength;
       slabLength = 0;
     }
-    am_iter++;
-    slabLength++;
+    ++am_iter;
+    ++slabLength;
   }
   slabIndex[m_SlicingDirection] = slabBegin;
   slabSize[m_SlicingDirection] = slabLength;
@@ -169,8 +161,8 @@ MRASlabIdentifier<TInputImage>::GenerateSlabRegions()
 }
 
 template <typename TInputImage>
-typename MRASlabIdentifier<TInputImage>::SlabRegionVectorType
-MRASlabIdentifier<TInputImage>::GetSlabRegionVector()
+auto
+MRASlabIdentifier<TInputImage>::GetSlabRegionVector() -> SlabRegionVectorType
 {
   return m_Slabs;
 }

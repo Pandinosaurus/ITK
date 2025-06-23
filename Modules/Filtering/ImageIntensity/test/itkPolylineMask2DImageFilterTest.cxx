@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ itkPolylineMask2DImageFilterTest(int argc, char * argv[])
 
   // Read input image
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   std::cout << "Input filename = " << argv[1] << std::endl;
 
@@ -61,10 +61,10 @@ itkPolylineMask2DImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  InputImageType::ConstPointer inputImage = reader->GetOutput();
+  const InputImageType::ConstPointer inputImage = reader->GetOutput();
 
   // Create polyline
-  InputPolylineType::Pointer inputPolyline = InputPolylineType::New();
+  auto inputPolyline = InputPolylineType::New();
 
   // We expect as input an image of 256 x 256 pixels with spacing 1,1.
 
@@ -98,7 +98,7 @@ itkPolylineMask2DImageFilterTest(int argc, char * argv[])
 
 
   // Create a mask  Filter
-  InputFilterType::Pointer filter = InputFilterType::New();
+  auto filter = InputFilterType::New();
 
   // Connect the input image
   filter->SetInput1(inputImage);
@@ -108,7 +108,7 @@ itkPolylineMask2DImageFilterTest(int argc, char * argv[])
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   std::cout << "Output filename = " << argv[2] << std::endl;
 

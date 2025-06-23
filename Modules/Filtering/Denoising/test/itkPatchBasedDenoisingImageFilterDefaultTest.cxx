@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,25 +37,37 @@ doDenoising(const std::string & inputFileName, const std::string & outputFileNam
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
   // Read the noisy image to be denoised
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputFileName);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   // Create filter and initialize
-  typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput(reader->GetOutput());
+  auto filter = FilterType::New();
+
+  ITK_TEST_SET_GET_BOOLEAN(filter, UseSmoothDiscPatchWeights, true);
+  auto kernelBandwidthSigma = typename FilterType::RealArrayType{};
+  ITK_TEST_SET_GET_VALUE(kernelBandwidthSigma, filter->GetKernelBandwidthSigma());
+  ITK_TEST_SET_GET_VALUE(0.20, filter->GetKernelBandwidthFractionPixelsForEstimation());
+  ITK_TEST_SET_GET_BOOLEAN(filter, ComputeConditionalDerivatives, false);
+  ITK_TEST_SET_GET_BOOLEAN(filter, UseFastTensorComputations, true);
+  ITK_TEST_SET_GET_VALUE(1.0, filter->GetKernelBandwidthMultiplicationFactor());
+  ITK_TEST_SET_GET_VALUE(0, filter->GetNoiseSigma());
 
   // Use 2 threads for consistency
   filter->SetNumberOfWorkUnits(2);
+
+  filter->SetInput(reader->GetOutput());
 
   // Denoise the image
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
 
+  std::cout << "NumIndependentComponents: " << filter->GetNumIndependentComponents() << std::endl;
+
   // Write the denoised image to file
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputFileName);
   writer->SetInput(filter->GetOutput());
 
@@ -69,7 +81,7 @@ itkPatchBasedDenoisingImageFilterDefaultTest(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Missing command line arguments" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputImageFileName outputImageFileName"
               << " numDimensions" << std::endl;
     return EXIT_FAILURE;
@@ -82,7 +94,7 @@ itkPatchBasedDenoisingImageFilterDefaultTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, 3>;
   using FilterType = itk::PatchBasedDenoisingImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, PatchBasedDenoisingImageFilter, PatchBasedDenoisingBaseImageFilter);
 
@@ -104,7 +116,7 @@ itkPatchBasedDenoisingImageFilterDefaultTest(int argc, char * argv[])
   {
     return doDenoising<OneComponent2DImage>(inFileName, outFileName);
   }
-  else if (numDimensions == 3)
+  if (numDimensions == 3)
   {
     return doDenoising<OneComponent3DImage>(inFileName, outFileName);
   }

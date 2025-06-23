@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ public:
   itkNewMacro(Self);
 
 protected:
-  CommandIterationUpdate() { m_LastMetricValue = 0; }
+  CommandIterationUpdate() = default;
 
 public:
   using OptimizerType = itk::OnePlusOneEvolutionaryOptimizer;
@@ -73,9 +73,9 @@ public:
     {
       return;
     }
-    double currentValue = optimizer->GetValue();
+    const double currentValue = optimizer->GetValue();
     // Only print out when the Metric value changes
-    if (std::fabs(m_LastMetricValue - currentValue) > 1e-7)
+    if (itk::Math::abs(m_LastMetricValue - currentValue) > 1e-7)
     {
       std::cout << optimizer->GetCurrentIteration() << "   ";
       std::cout << currentValue << "   ";
@@ -86,7 +86,7 @@ public:
   }
 
 private:
-  double m_LastMetricValue;
+  double m_LastMetricValue{ 0 };
 };
 
 
@@ -124,17 +124,17 @@ main(int argc, char * argv[])
       FixedImageType,
       MovingImageType>;
 
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetOptimizer(optimizer);
   registration->SetTransform(transform);
   registration->SetInterpolator(interpolator);
 
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
   registration->SetMetric(metric);
 
 
@@ -164,10 +164,8 @@ main(int argc, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -178,7 +176,8 @@ main(int argc, char * argv[])
   fixedImageReader->Update();
   movingImageReader->Update();
 
-  FixedImageType::ConstPointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::ConstPointer fixedImage =
+    fixedImageReader->GetOutput();
   registration->SetFixedImageRegion(fixedImage->GetBufferedRegion());
 
   transform->SetIdentity();
@@ -200,7 +199,8 @@ main(int argc, char * argv[])
   using OptimizerScalesType = OptimizerType::ScalesType;
   OptimizerScalesType optimizerScales(transform->GetNumberOfParameters());
 
-  FixedImageType::RegionType  region = fixedImage->GetLargestPossibleRegion();
+  const FixedImageType::RegionType region =
+    fixedImage->GetLargestPossibleRegion();
   FixedImageType::SizeType    size = region.GetSize();
   FixedImageType::SpacingType spacing = fixedImage->GetSpacing();
 
@@ -209,7 +209,7 @@ main(int argc, char * argv[])
   optimizer->SetScales(optimizerScales);
 
   using GeneratorType = itk::Statistics::NormalVariateGenerator;
-  GeneratorType::Pointer generator = GeneratorType::New();
+  auto generator = GeneratorType::New();
   generator->Initialize(12345);
 
   optimizer->MaximizeOn();
@@ -232,7 +232,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
   try
   {
@@ -251,8 +251,8 @@ main(int argc, char * argv[])
   ParametersType finalParameters = registration->GetLastTransformParameters();
   const double   finalTranslationX = finalParameters[0];
   const double   finalTranslationY = finalParameters[1];
-  unsigned int   numberOfIterations = optimizer->GetCurrentIteration();
-  const double   bestValue = optimizer->GetValue();
+  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  const double       bestValue = optimizer->GetValue();
 
   // Print out results
   std::cout << "Result = " << std::endl;
@@ -264,11 +264,11 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  TransformType::Pointer finalTransform = TransformType::New();
+  auto finalTransform = TransformType::New();
   finalTransform->SetParameters(finalParameters);
   finalTransform->SetFixedParameters(transform->GetFixedParameters());
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(finalTransform);
   resample->SetInput(movingImageReader->GetOutput());
@@ -281,7 +281,7 @@ main(int argc, char * argv[])
   using OutputImageType = itk::Image<PixelType, Dimension>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(resample->GetOutput());
   writer->Update();

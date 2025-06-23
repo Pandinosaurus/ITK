@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class WarpImageFilter
+ * \class WarpImageFilter
  * \brief Warps an image using an input displacement field.
  *
  * WarpImageFilter warps an existing image with respect to
@@ -56,7 +56,7 @@ namespace itk
  * Position mapped to outside of the input image buffer are assigned
  * a edge padding value.
  *
- * The LargetPossibleRegion for the output is inherited
+ * The LargestPossibleRegion for the output is inherited
  * from the input displacement field. The output image
  * spacing, origin and orientation may be set via
  * SetOutputSpacing, SetOutputOrigin and
@@ -96,18 +96,18 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(WarpImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WarpImageFilter);
 
   /** Typedef to describe the output image region type. */
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
   /** Inherit some types from the superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImageConstPointer;
   using IndexType = typename OutputImageType::IndexType;
   using IndexValueType = typename OutputImageType::IndexValueType;
   using SizeType = typename OutputImageType::SizeType;
@@ -119,6 +119,7 @@ public:
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int DisplacementFieldDimension = TDisplacementField::ImageDimension;
+
   /** type alias for base image type at the current ImageDimension */
   using ImageBaseType = ImageBase<Self::ImageDimension>;
 
@@ -128,13 +129,17 @@ public:
   using DisplacementType = typename DisplacementFieldType::PixelType;
 
   /** Interpolator type alias support */
-  using CoordRepType = double;
-  using InterpolatorType = InterpolateImageFunction<InputImageType, CoordRepType>;
+  using CoordinateType = double;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
+  using InterpolatorType = InterpolateImageFunction<InputImageType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
-  using DefaultInterpolatorType = LinearInterpolateImageFunction<InputImageType, CoordRepType>;
+  using DefaultInterpolatorType = LinearInterpolateImageFunction<InputImageType, CoordinateType>;
 
   /** Point type */
-  using PointType = Point<CoordRepType, Self::ImageDimension>;
+  using PointType = Point<CoordinateType, Self::ImageDimension>;
 
   /** Type for representing the direction of the output image */
   using DirectionType = typename TOutputImage::DirectionType;
@@ -147,29 +152,33 @@ public:
   itkGetInputMacro(DisplacementField, DisplacementFieldType);
 
   /** Get/Set the interpolator function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** Set the output image spacing. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputSpacing, SpacingType);
   virtual void
   SetOutputSpacing(const double * spacing);
-
+  /** @ITKEndGrouping */
   /** Get the output image spacing. */
   itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
   /** Set the output image origin. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputOrigin, PointType);
   virtual void
   SetOutputOrigin(const double * origin);
-
+  /** @ITKEndGrouping */
   /** Get the output image origin. */
   itkGetConstReferenceMacro(OutputOrigin, PointType);
 
   /** Set/Get the direction (orientation) of the output image */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputDirection, DirectionType);
   itkGetConstReferenceMacro(OutputDirection, DirectionType);
-
+  /** @ITKEndGrouping */
   /** Helper method to set the output parameters based on this image */
   void
   SetOutputParametersFromImage(const ImageBaseType * image);
@@ -220,15 +229,11 @@ public:
   void
   AfterThreadedGenerateData() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<ImageDimension, InputImageDimension>));
   itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<ImageDimension, DisplacementFieldDimension>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::InternalPixelType>));
   itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   WarpImageFilter();
@@ -251,7 +256,7 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
   /** This function should be in an interpolator but none of the ITK
    * interpolators at this point handle edge conditions properly
@@ -272,19 +277,19 @@ protected:
                                       const DisplacementFieldType * fieldPtr,
                                       DisplacementType &            output);
 
-  bool m_DefFieldSameInformation;
+  bool m_DefFieldSameInformation{};
   // variables for deffield interpolator
-  IndexType m_StartIndex, m_EndIndex;
+  IndexType m_StartIndex, m_EndIndex{};
 
 private:
-  PixelType     m_EdgePaddingValue;
-  SpacingType   m_OutputSpacing;
-  PointType     m_OutputOrigin;
-  DirectionType m_OutputDirection;
+  PixelType     m_EdgePaddingValue{};
+  SpacingType   m_OutputSpacing{};
+  PointType     m_OutputOrigin{};
+  DirectionType m_OutputDirection{};
 
-  InterpolatorPointer m_Interpolator;
-  SizeType            m_OutputSize;       // Size of the output image
-  IndexType           m_OutputStartIndex; // output image start index
+  InterpolatorPointer m_Interpolator{};
+  SizeType            m_OutputSize{};       // Size of the output image
+  IndexType           m_OutputStartIndex{}; // output image start index
 };
 } // end namespace itk
 

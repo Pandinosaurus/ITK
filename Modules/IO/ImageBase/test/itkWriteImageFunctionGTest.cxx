@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,10 @@
 
 #include "itkGTest.h"
 #include "itksys/SystemTools.hxx"
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 
-#define STRING(s) #s
+#define _STRING(s) #s
+#define TOSTRING(s) _STRING(s)
 
 namespace
 {
@@ -34,7 +35,7 @@ struct ITKWriteImageFunctionTest : public ::testing::Test
   SetUp() override
   {
     RegisterRequiredFactories();
-    itksys::SystemTools::ChangeDirectory(STRING(ITK_TEST_OUTPUT_DIR_STR));
+    itksys::SystemTools::ChangeDirectory(TOSTRING(ITK_TEST_OUTPUT_DIR));
   }
   using ImageType = itk::Image<float, 2>;
   using RegionType = ImageType::RegionType;
@@ -45,11 +46,11 @@ struct ITKWriteImageFunctionTest : public ::testing::Test
   {
     auto image = ImageType::New();
 
-    RegionType region(SizeType{ { 3, 2 } });
+    const RegionType region(SizeType{ { 3, 2 } });
 
     image->SetRegions(region);
 
-    image->Allocate(true);
+    image->AllocateInitialized();
     return image;
   }
 };
@@ -65,7 +66,7 @@ TEST_F(ITKWriteImageFunctionTest, ImageTypes)
   itk::WriteImage(image_ptr, fileName);
   itk::WriteImage(std::move(image_ptr), fileName);
 
-  ImageType::ConstPointer image_cptr = MakeImage();
+  const ImageType::ConstPointer image_cptr = MakeImage();
   itk::WriteImage(image_cptr, fileName);
   itk::WriteImage(std::move(image_cptr), fileName);
 

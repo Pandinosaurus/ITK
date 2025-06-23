@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLevelSetDomainPartitionMesh_hxx
 #define itkLevelSetDomainPartitionMesh_hxx
 
-#include "itkLevelSetDomainPartitionMesh.h"
 
 namespace itk
 {
@@ -36,7 +35,7 @@ LevelSetDomainPartitionMesh<TMesh>::PopulateListDomain()
     PointIdentifierType & idx = p_it->Index();
     IdentifierListType    identifierList;
 
-    for (IdentifierType i = NumericTraits<IdentifierType>::ZeroValue(); i < this->m_NumberOfLevelSetFunctions; ++i)
+    for (IdentifierType i{}; i < this->m_NumberOfLevelSetFunctions; ++i)
     {
       if (this->m_LevelSetDataPointerVector[i]->VerifyInsideRegion(idx))
       {
@@ -48,11 +47,6 @@ LevelSetDomainPartitionMesh<TMesh>::PopulateListDomain()
     }
   }
 }
-
-template <typename TMesh>
-void
-LevelSetDomainPartitionMesh<TMesh>::AllocateListDomain()
-{}
 
 } // end namespace itk
 

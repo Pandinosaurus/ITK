@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "ITKFEMExport.h"
 #include "vnl/vnl_matrix.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class LoadEdge
@@ -49,12 +47,12 @@ public:
   /** New macro for creation of through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoadEdge, LoadElement);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoadEdge);
 
   /** CreateAnother method will clone the existing instance of this type,
    * including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
   /**
@@ -95,7 +93,7 @@ protected:
    * Local number of the edge (face) of the element on which the load acts.
    * Check the corresponding element class for more info on edge numbering.
    */
-  int m_Edge;
+  int m_Edge{};
 
   /**
    * An edge force matrix. This matrix specifies nodal forces on all
@@ -113,9 +111,8 @@ protected:
    * element. Again check the documentation of the element class to which
    * the force is applied.
    */
-  vnl_matrix<Float> m_Force;
+  vnl_matrix<Float> m_Force{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLoadEdge_h

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,72 +31,76 @@ namespace itk
  * but with a large difference in performance since the affine transform will
  * use a matrix multiplication using a diagonal matrix.
  *
+ * The ND Parameters represent the scale in each dimension.
+ * The ND FixedParameters represent the fixed point (i.e. center point) from
+ * which scaling originates.
+ *
  * \ingroup ITKTransform
  *
  * \sphinx
  * \sphinxexample{Core/Transform/ScaleAnImage,Scale An Image}
  * \endsphinx
  */
-template <typename TParametersValueType = float, unsigned int NDimensions = 3>
+template <typename TParametersValueType = float, unsigned int VDimension = 3>
 class ITK_TEMPLATE_EXPORT ScaleTransform
-  : public MatrixOffsetTransformBase<TParametersValueType, NDimensions, NDimensions>
+  : public MatrixOffsetTransformBase<TParametersValueType, VDimension, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ScaleTransform);
 
   /** Standard class type aliases.   */
   using Self = ScaleTransform;
-  using Superclass = MatrixOffsetTransformBase<TParametersValueType, NDimensions, NDimensions>;
+  using Superclass = MatrixOffsetTransformBase<TParametersValueType, VDimension, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** New macro for creation of through a smart pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScaleTransform, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScaleTransform);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int SpaceDimension = NDimensions;
-  static constexpr unsigned int ParametersDimension = NDimensions;
+  static constexpr unsigned int SpaceDimension = VDimension;
+  static constexpr unsigned int ParametersDimension = VDimension;
 
   /** Scalar type. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Parameters type. */
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::ParametersType;
 
   /** Jacobian types. */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
 
   /** Standard vector type for this class. */
-  using ScaleType = FixedArray<TParametersValueType, NDimensions>;
+  using ScaleType = FixedArray<TParametersValueType, VDimension>;
 
   /** Standard vector type for this class. */
-  using InputVectorType = Vector<TParametersValueType, NDimensions>;
-  using OutputVectorType = Vector<TParametersValueType, NDimensions>;
+  using InputVectorType = Vector<TParametersValueType, VDimension>;
+  using OutputVectorType = Vector<TParametersValueType, VDimension>;
 
   /** Standard covariant vector type for this class. */
-  using InputCovariantVectorType = CovariantVector<TParametersValueType, NDimensions>;
-  using OutputCovariantVectorType = CovariantVector<TParametersValueType, NDimensions>;
+  using InputCovariantVectorType = CovariantVector<TParametersValueType, VDimension>;
+  using OutputCovariantVectorType = CovariantVector<TParametersValueType, VDimension>;
 
   /** Standard vnl_vector type for this class. */
-  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, NDimensions>;
-  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, NDimensions>;
+  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, VDimension>;
+  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, VDimension>;
 
   /** Standard coordinate point type for this class. */
-  using InputPointType = Point<TParametersValueType, NDimensions>;
-  using OutputPointType = Point<TParametersValueType, NDimensions>;
+  using InputPointType = Point<TParametersValueType, VDimension>;
+  using OutputPointType = Point<TParametersValueType, VDimension>;
 
   /** Base inverse transform type. This type should not be changed to the
    * concrete inverse transform type or inheritance would be lost.*/
   using InverseTransformBaseType = typename Superclass::InverseTransformBaseType;
   using InverseTransformBasePointer = typename InverseTransformBaseType::Pointer;
 
-  using MatrixType = typename Superclass::MatrixType;
+  using typename Superclass::MatrixType;
 
   /** Set parameters.  This method sets the parameters for the transform value
    *  specified by the user. The parameters are organized as scale[i] =
@@ -214,7 +218,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ScaleType m_Scale; // Scales of the transformation
+  ScaleType m_Scale{}; // Scales of the transformation
 
 }; // class ScaleTransform
 

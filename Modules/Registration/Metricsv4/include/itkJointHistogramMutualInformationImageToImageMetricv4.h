@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,13 +30,7 @@ namespace itk
 {
 /** \class JointHistogramMutualInformationImageToImageMetricv4
  * \brief Computes the mutual information between two images to be
- * registered using the method referenced below.
- *
- * References:
- * [1] "Optimization of Mutual Information for MultiResolution Image
- *      Registration"
- *      P. Thevenaz and M. Unser
- *      IEEE Transactions in Image Processing, 9(12) December 2000.
+ * registered using the method described in \cite thevenaz2000.
  *
  * \ingroup ITKMetricsv4
  */
@@ -62,36 +56,39 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(JointHistogramMutualInformationImageToImageMetricv4, ImageToImageMetricv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JointHistogramMutualInformationImageToImageMetricv4);
 
   /** Type used for representing parameter values  */
-  using CoordinateRepresentationType = typename Superclass::CoordinateRepresentationType;
+  using typename Superclass::CoordinateRepresentationType;
+
   /** Type used internally for computations */
+
   /** It should be possible to derive the internal computation type from the class object. */
   using InternalComputationValueType = TInternalComputationValueType;
+
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::NumberOfParametersType;
 
   /** Superclass type alias */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using FixedImagePointType = typename Superclass::FixedImagePointType;
-  using FixedImagePixelType = typename Superclass::FixedImagePixelType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::FixedImagePointType;
+  using typename Superclass::FixedImagePixelType;
   using FixedImageGradientType = typename Superclass::FixedGradientPixelType;
-  using MovingImagePointType = typename Superclass::MovingImagePointType;
-  using MovingImagePixelType = typename Superclass::MovingImagePixelType;
+  using typename Superclass::MovingImagePointType;
+  using typename Superclass::MovingImagePixelType;
   using MovingImageGradientType = typename Superclass::MovingGradientPixelType;
 
   using FixedTransformJacobianType = typename Superclass::FixedTransformType::JacobianType;
   using MovingTransformJacobianType = typename Superclass::MovingTransformType::JacobianType;
 
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualPointSetType = typename Superclass::VirtualPointSetType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualPointSetType;
 
   /* Image dimension accessors */
   static constexpr typename TVirtualImage::ImageDimensionType VirtualImageDimension = TVirtualImage::ImageDimension;
@@ -135,13 +132,15 @@ public:
 
 
   /** Get/Set the number of histogram bins */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NumberOfHistogramBins, SizeValueType, 5, NumericTraits<SizeValueType>::max());
   itkGetConstReferenceMacro(NumberOfHistogramBins, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Get/Set option to smooth the joint pdf after it's updated */
+  /** @ITKStartGrouping */
   itkSetMacro(VarianceForJointPDFSmoothing, TInternalComputationValueType);
   itkGetMacro(VarianceForJointPDFSmoothing, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Initialize the metric. Make sure all essential inputs are plugged in. */
   void
   Initialize() override;
@@ -215,31 +214,31 @@ protected:
 
 private:
   /** The fixed image marginal PDF */
-  typename MarginalPDFType::Pointer m_FixedImageMarginalPDF;
+  typename MarginalPDFType::Pointer m_FixedImageMarginalPDF{};
 
   /** The moving image marginal PDF. */
-  typename MarginalPDFType::Pointer m_MovingImageMarginalPDF;
+  typename MarginalPDFType::Pointer m_MovingImageMarginalPDF{};
 
   /** The joint PDF and PDF derivatives. */
-  mutable typename JointPDFType::Pointer m_JointPDF;
+  mutable typename JointPDFType::Pointer m_JointPDF{};
 
   /** Flag to control smoothing of joint pdf */
-  TInternalComputationValueType m_VarianceForJointPDFSmoothing;
+  TInternalComputationValueType m_VarianceForJointPDFSmoothing{};
 
   /** Variables to define the marginal and joint histograms. */
-  SizeValueType                 m_NumberOfHistogramBins;
-  TInternalComputationValueType m_FixedImageTrueMin;
-  TInternalComputationValueType m_FixedImageTrueMax;
-  TInternalComputationValueType m_MovingImageTrueMin;
-  TInternalComputationValueType m_MovingImageTrueMax;
-  TInternalComputationValueType m_FixedImageBinSize;
-  TInternalComputationValueType m_MovingImageBinSize;
+  SizeValueType                 m_NumberOfHistogramBins{};
+  TInternalComputationValueType m_FixedImageTrueMin{};
+  TInternalComputationValueType m_FixedImageTrueMax{};
+  TInternalComputationValueType m_MovingImageTrueMin{};
+  TInternalComputationValueType m_MovingImageTrueMax{};
+  TInternalComputationValueType m_FixedImageBinSize{};
+  TInternalComputationValueType m_MovingImageBinSize{};
 
-  TInternalComputationValueType m_JointPDFSum;
-  JointPDFSpacingType           m_JointPDFSpacing;
+  TInternalComputationValueType m_JointPDFSum{};
+  JointPDFSpacingType           m_JointPDFSpacing{};
 
-  TInternalComputationValueType m_Log2;
-  JointPDFIndexValueType        m_Padding;
+  TInternalComputationValueType m_Log2{};
+  JointPDFIndexValueType        m_Padding{};
 };
 
 } // end namespace itk

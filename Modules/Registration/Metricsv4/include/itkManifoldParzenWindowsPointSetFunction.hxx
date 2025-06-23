@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkManifoldParzenWindowsPointSetFunction_hxx
 #define itkManifoldParzenWindowsPointSetFunction_hxx
 
-#include "itkManifoldParzenWindowsPointSetFunction.h"
 
 #include "itkMath.h"
 #include "itkCompensatedSummation.h"
@@ -26,8 +25,8 @@
 namespace itk
 {
 
-template <typename TPointSet, typename TOutput, typename TCoordRep>
-ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::ManifoldParzenWindowsPointSetFunction()
+template <typename TPointSet, typename TOutput, typename TCoordinate>
+ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordinate>::ManifoldParzenWindowsPointSetFunction()
   : m_PointsLocator(nullptr)
   , m_RegularizationSigma(1.0)
   , m_KernelSigma(1.0)
@@ -36,9 +35,9 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::ManifoldPa
   m_MultiThreader = MultiThreaderBase::New();
 }
 
-template <typename TPointSet, typename TOutput, typename TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordinate>
 void
-ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::SetInputPointSet(const InputPointSetType * ptr)
+ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordinate>::SetInputPointSet(const InputPointSetType * ptr)
 {
   this->m_PointSet = ptr;
 
@@ -90,25 +89,25 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::SetInputPo
         Cout.Fill(0);
 
         typename PointsLocatorType::NeighborsIdentifierType neighbors;
-        this->m_PointsLocator->Search(point, this->m_CovarianceKNeighborhood, neighbors);
+        this->m_PointsLocator->FindClosestNPoints(point, this->m_CovarianceKNeighborhood, neighbors);
 
         CompensatedSummation<RealType> denominator;
-        for (unsigned int j = 0; j < this->m_CovarianceKNeighborhood; j++)
+        for (unsigned int j = 0; j < this->m_CovarianceKNeighborhood; ++j)
         {
           if (neighbors[j] != index && neighbors[j] < this->GetInputPointSet()->GetNumberOfPoints())
           {
             PointType neighbor = this->GetInputPointSet()->GetPoint(neighbors[j]);
 
-            RealType kernelValue = inputGaussians[index]->Evaluate(neighbor);
+            const RealType kernelValue = inputGaussians[index]->Evaluate(neighbor);
 
             denominator += kernelValue;
             if (kernelValue > 0.0)
             {
-              for (unsigned int m = 0; m < PointDimension; m++)
+              for (unsigned int m = 0; m < PointDimension; ++m)
               {
-                for (unsigned int n = m; n < PointDimension; n++)
+                for (unsigned int n = m; n < PointDimension; ++n)
                 {
-                  RealType covariance = kernelValue * (neighbor[m] - point[m]) * (neighbor[n] - point[n]);
+                  const RealType covariance = kernelValue * (neighbor[m] - point[m]) * (neighbor[n] - point[n]);
                   Cout(m, n) += covariance;
                   Cout(n, m) += covariance;
                 }
@@ -125,7 +124,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::SetInputPo
         {
           Cout /= static_cast<RealType>(this->m_CovarianceKNeighborhood);
         }
-        for (unsigned int m = 0; m < PointDimension; m++)
+        for (unsigned int m = 0; m < PointDimension; ++m)
         {
           Cout(m, m) += Math::sqr(this->m_RegularizationSigma);
         }
@@ -143,23 +142,23 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::SetInputPo
     nullptr);
 }
 
-template <typename TPointSet, typename TOutput, typename TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordinate>
 TOutput
-ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::Evaluate(const InputPointType & point) const
+ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordinate>::Evaluate(const InputPointType & point) const
 {
   if (this->GetInputPointSet() == nullptr)
   {
     itkExceptionMacro("The input point set has not been specified.");
   }
 
-  unsigned int numberOfNeighbors =
+  const unsigned int numberOfNeighbors =
     std::min(this->m_EvaluationKNeighborhood, static_cast<unsigned int>(this->m_Gaussians.size()));
 
   CompensatedSummation<OutputType> sum;
 
   if (numberOfNeighbors == this->m_Gaussians.size())
   {
-    for (unsigned int j = 0; j < this->m_Gaussians.size(); j++)
+    for (unsigned int j = 0; j < this->m_Gaussians.size(); ++j)
     {
       sum += static_cast<OutputType>(this->m_Gaussians[j]->Evaluate(point));
     }
@@ -167,9 +166,9 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::Evaluate(c
   else
   {
     typename PointsLocatorType::NeighborsIdentifierType neighbors;
-    this->m_PointsLocator->Search(point, numberOfNeighbors, neighbors);
+    this->m_PointsLocator->FindClosestNPoints(point, numberOfNeighbors, neighbors);
 
-    for (unsigned int j = 0; j < numberOfNeighbors; j++)
+    for (unsigned int j = 0; j < numberOfNeighbors; ++j)
     {
       sum += static_cast<OutputType>(this->m_Gaussians[neighbors[j]]->Evaluate(point));
     }
@@ -177,27 +176,29 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::Evaluate(c
   return static_cast<OutputType>(sum.GetSum() / static_cast<OutputType>(this->m_Gaussians.size()));
 }
 
-template <typename TPointSet, typename TOutput, typename TCoordRep>
-typename ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::GaussianConstPointer
-ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::GetGaussian(PointIdentifier i) const
+template <typename TPointSet, typename TOutput, typename TCoordinate>
+auto
+ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordinate>::GetGaussian(PointIdentifier i) const
+  -> GaussianConstPointer
 {
   if (i < this->m_Gaussians.size())
   {
     return this->m_Gaussians[i].GetPointer();
   }
-  else
-  {
-    return nullptr;
-  }
+
+  return nullptr;
 }
 
 /**
  * Standard "PrintSelf" method
  */
-template <typename TPointSet, typename TOutput, typename TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordinate>
 void
-ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordinate>::PrintSelf(std::ostream & os,
+                                                                                  Indent         indent) const
 {
+  Superclass::PrintSelf(os, indent);
+
   os << indent << "Covariance neighborhood: " << this->m_CovarianceKNeighborhood << std::endl;
   os << indent << "Evaluation neighborhood: " << this->m_EvaluationKNeighborhood << std::endl;
   os << indent << "Regularization sigma: " << this->m_RegularizationSigma << std::endl;

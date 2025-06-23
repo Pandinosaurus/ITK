@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ThreadPool, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThreadPool);
 
   /** Returns the global instance */
   static Pointer
@@ -84,17 +84,16 @@ auto result = pool->AddWork([](int param) { return param; }, 7);
    * std::cout << result.get() << std::endl; */
   template <class Function, class... Arguments>
   auto
-  AddWork(Function && function, Arguments &&... arguments)
-    -> std::future<typename std::result_of<Function(Arguments...)>::type>
+  AddWork(Function && function, Arguments &&... arguments) -> std::future<std::invoke_result_t<Function, Arguments...>>
   {
-    using return_type = typename std::result_of<Function(Arguments...)>::type;
+    using return_type = std::invoke_result_t<Function, Arguments...>;
 
     auto task = std::make_shared<std::packaged_task<return_type()>>(
-      std::bind(std::forward<Function>(function), std::forward<Arguments>(arguments)...));
+      [function, arguments...]() -> return_type { return function(arguments...); });
 
     std::future<return_type> res = task->get_future();
     {
-      std::unique_lock<std::mutex> lock(this->GetMutex());
+      const std::lock_guard<std::mutex> lockGuard(this->GetMutex());
       m_WorkQueue.emplace_back([task]() { (*task)(); });
     }
     m_Condition.notify_one();
@@ -108,6 +107,7 @@ auto result = pool->AddWork([](int param) { return param; }, 7);
   ThreadIdType
   GetMaximumNumberOfThreads() const
   {
+    const std::lock_guard<std::mutex> lockGuard(this->GetMutex());
     return static_cast<ThreadIdType>(m_Threads.size());
   }
 
@@ -118,20 +118,31 @@ auto result = pool->AddWork([](int param) { return param; }, 7);
   /** Set/Get wait for threads.
   This function should be used carefully, probably only during static
   initialization phase to disable waiting for threads when ITK is built as a
-  static library and linked into a shared library (Windows only).*/
+  static library and linked into a shared library (Windows only). */
+  /** @ITKStartGrouping */
   static bool
   GetDoNotWaitForThreads();
   static void
   SetDoNotWaitForThreads(bool doNotWaitForThreads);
-
+  /** @ITKEndGrouping */
 protected:
-  /* We need access to the mutex in AddWork, and the variable is only
-   * visible in .cxx file, so this method returns it. */
+  /** We need access to the mutex in AddWork, and the variable is only
+   * visible in the .cxx file, so this method returns it. */
   std::mutex &
-  GetMutex();
+  GetMutex() const;
 
   ThreadPool();
-  ~ThreadPool() override;
+
+  /** Stop the pool and release threads. To be called by the destructor and atfork. */
+  void
+  CleanUp();
+
+  ~ThreadPool() override { this->CleanUp(); }
+
+  static void
+  PrepareForFork();
+  static void
+  ResumeFromFork();
 
 private:
   /** Only used to synchronize the global variable across static libraries.*/
@@ -140,7 +151,7 @@ private:
   /** This is a list of jobs submitted to the thread pool.
    * This is the only place where the jobs are submitted.
    * Filled by AddWork, emptied by ThreadExecute. */
-  std::deque<std::function<void()>> m_WorkQueue;
+  std::deque<std::function<void()>> m_WorkQueue; // guarded by m_PimplGlobals->m_Mutex
 
   /** When a thread is idle, it is waiting on m_Condition.
    * AddWork signals it to resume a (random) thread. */
@@ -148,10 +159,10 @@ private:
 
   /** Vector to hold all thread handles.
    * Thread handles are used to delete (join) the threads. */
-  std::vector<std::thread> m_Threads;
+  std::vector<std::thread> m_Threads; // guarded by m_PimplGlobals->m_Mutex
 
   /* Has destruction started? */
-  bool m_Stopping{ false };
+  bool m_Stopping{ false }; // guarded by m_PimplGlobals->m_Mutex
 
   /** To lock on the internal variables */
   static ThreadPoolGlobals * m_PimplGlobals;

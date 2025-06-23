@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,14 @@
 #ifndef itkFEMFiniteDifferenceFunctionLoad_hxx
 #define itkFEMFiniteDifferenceFunctionLoad_hxx
 
-#include "itkFEMFiniteDifferenceFunctionLoad.h"
-
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 template <typename TMoving, typename TFixed>
 FiniteDifferenceFunctionLoad<TMoving, TFixed>::FiniteDifferenceFunctionLoad()
   : m_MovingImage(nullptr)
   , m_FixedImage(nullptr)
-  , m_Gamma(NumericTraits<Float>::ZeroValue())
+  , m_Gamma(Float{})
 {
   m_MovingSize.Fill(0);
   m_FixedSize.Fill(0);
@@ -37,11 +33,11 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::FiniteDifferenceFunctionLoad()
 }
 
 template <typename TMoving, typename TFixed>
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 FiniteDifferenceFunctionLoad<TMoving, TFixed>::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   copyPtr->m_MovingImage = this->m_MovingImage;
   copyPtr->m_FixedImage = this->m_FixedImage;
@@ -72,7 +68,7 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::InitializeIteration()
 
   if (!m_DifferenceFunction)
   {
-    typename defaultRegistrationFunctionType::Pointer drfp = defaultRegistrationFunctionType::New();
+    auto drfp = defaultRegistrationFunctionType::New();
     this->SetMetric(static_cast<FiniteDifferenceFunctionType *>(drfp));
   }
 
@@ -121,8 +117,9 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::SetCurrentEnergy(double e)
 }
 
 template <typename TMoving, typename TFixed>
-typename FiniteDifferenceFunctionLoad<TMoving, TFixed>::Float
+auto
 FiniteDifferenceFunctionLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(ElementContainerType * el, Float step)
+  -> Float
 {
   Float energy = 0.0, defe = 0.0;
 
@@ -145,10 +142,10 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Eleme
   gPos.fill(0.0);
 
   solmat.set_size(numNodes * ImageDimension, 1);
-  for (unsigned int elt = 0; elt < el->Size(); elt++)
+  for (unsigned int elt = 0; elt < el->Size(); ++elt)
   {
     element = el->GetElement(elt);
-    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; i++)
+    for (unsigned int i = 0; i < m_NumberOfIntegrationPoints; ++i)
     {
       element->GetIntegrationPointAndWeight(i, ip, w, m_NumberOfIntegrationPoints);
       // FIXME REMOVE WHEN ELEMENT NEW IS BASE CLASS
@@ -156,11 +153,11 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Eleme
 
       float solval, posval;
       Float detJ = element->JacobianDeterminant(ip);
-      for (unsigned int f = 0; f < ImageDimension; f++)
+      for (unsigned int f = 0; f < ImageDimension; ++f)
       {
         solval = 0.0;
         posval = 0.0;
-        for (unsigned int n = 0; n < numNodes; n++)
+        for (unsigned int n = 0; n < numNodes; ++n)
         {
           posval += shapef[n] * ((element->GetNodeCoordinates(n))[f]);
           float nodeval =
@@ -179,13 +176,13 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Eleme
       try
       {
         this->Fe(gPos);
-        tempe = std::fabs(0.0);
+        tempe = itk::Math::abs(0.0);
       }
       catch (...)
       {
         // Do nothing: we don't care if the metric region is outside the image
       }
-      for (unsigned int n = 0; n < numNodes; n++)
+      for (unsigned int n = 0; n < numNodes; ++n)
       {
         itk::fem::Element::Float temp = shapef[n] * tempe * w * detJ;
         energy += temp;
@@ -195,12 +192,12 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::EvaluateMetricGivenSolution(Eleme
     defe += element->GetElementDeformationEnergy(solmat);
   }
 
-  return std::fabs((double)energy * (double)m_Gamma - (double)defe);
+  return itk::Math::abs(static_cast<double>(energy) * static_cast<double>(m_Gamma) - static_cast<double>(defe));
 }
 
 template <typename TMoving, typename TFixed>
-typename FiniteDifferenceFunctionLoad<TMoving, TFixed>::FEMVectorType
-FiniteDifferenceFunctionLoad<TMoving, TFixed>::Fe(FEMVectorType Gpos)
+auto
+FiniteDifferenceFunctionLoad<TMoving, TFixed>::Fe(FEMVectorType Gpos) -> FEMVectorType
 {
 
   // We assume the vector input is of size 2*ImageDimension.
@@ -233,9 +230,9 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::Fe(FEMVectorType Gpos)
   typename TMoving::PointType physicalPoint;
 
   bool inimage = true;
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
-    if (itk::Math::isnan(Gpos[k]) || itk::Math::isinf(Gpos[k]) || std::fabs(Gpos[k]) > 1.e33)
+    if (itk::Math::isnan(Gpos[k]) || itk::Math::isinf(Gpos[k]) || itk::Math::abs(Gpos[k]) > 1.e33)
     {
       return femVec;
     }
@@ -243,9 +240,9 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::Fe(FEMVectorType Gpos)
     physicalPoint[k] = Gpos[k];
   }
 
-  m_FixedImage->TransformPhysicalPointToIndex(physicalPoint, oindex);
+  oindex = m_FixedImage->TransformPhysicalPointToIndex(physicalPoint);
 
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     if (oindex[k] > static_cast<OIndexValueType>(m_FixedSize[k] - 1) || oindex[k] < 0)
     {
@@ -263,7 +260,7 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::Fe(FEMVectorType Gpos)
 
   void * globalData = nullptr;
   OutVec = m_DifferenceFunction->ComputeUpdate(nD, globalData);
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     if (itk::Math::isnan(OutVec[k]) || itk::Math::isinf(OutVec[k]))
     {
@@ -297,16 +294,16 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::ApplyLoad(Element::ConstPointer e
   F.fill(0.0);
   shapef.set_size(numNodes);
   gip.set_size(numDegreesOfFreedom);
-  for (unsigned int i = 0; i < numIntegrationPoints; i++)
+  for (unsigned int i = 0; i < numIntegrationPoints; ++i)
   {
     element->GetIntegrationPointAndWeight(i, ip, w, order);
 
     shapef = element->ShapeFunctions(ip);
     detJ = element->JacobianDeterminant(ip);
-    for (unsigned int f = 0; f < numDegreesOfFreedom; f++)
+    for (unsigned int f = 0; f < numDegreesOfFreedom; ++f)
     {
       float posval = 0.0;
-      for (unsigned int n = 0; n < numNodes; n++)
+      for (unsigned int n = 0; n < numNodes; ++n)
       {
         posval += shapef[n] * ((element->GetNodeCoordinates(n))[f]);
       }
@@ -321,9 +318,9 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::ApplyLoad(Element::ConstPointer e
 
     force = this->Fe(gip);
     // Calculate the equivalent nodal loads
-    for (unsigned int n = 0; n < numNodes; n++)
+    for (unsigned int n = 0; n < numNodes; ++n)
     {
-      for (unsigned int d = 0; d < numDegreesOfFreedom; d++)
+      for (unsigned int d = 0; d < numDegreesOfFreedom; ++d)
       {
         itk::fem::Element::Float temp = shapef[n] * force[d] * w * detJ;
         F[n * numDegreesOfFreedom + d] += temp;
@@ -355,16 +352,23 @@ FiniteDifferenceFunctionLoad<TMoving, TFixed>::PrintSelf(std::ostream & os, Inde
   os << indent << "SolutionIndex2: " << m_SolutionIndex2 << std::endl;
   os << indent << "Gamma: " << m_Gamma << std::endl;
 
-  os << indent << "Solution: " << m_Solution << std::endl;
+  os << indent << "Solution: ";
+  if (m_Solution != nullptr)
+  {
+    os << m_Solution << std::endl;
+  }
+  else
+  {
+    os << "(null)" << std::endl;
+  }
 
-  os << indent << "GradSigma: " << itk::NumericTraits<Float>::PrintType(m_GradSigma) << std::endl;
+  os << indent << "GradSigma: " << static_cast<typename NumericTraits<Float>::PrintType>(m_GradSigma) << std::endl;
   os << indent << "Sign: " << m_Sign << std::endl;
   os << indent << "WhichMetric: " << m_WhichMetric << std::endl;
 
   itkPrintSelfObjectMacro(DifferenceFunction);
   itkPrintSelfObjectMacro(DisplacementField);
 }
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

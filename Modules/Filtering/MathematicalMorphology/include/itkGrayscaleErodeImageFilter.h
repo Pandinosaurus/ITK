@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,8 +65,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(GrayscaleErodeImageFilter, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GrayscaleErodeImageFilter);
 
   /** Image related type alias. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -79,7 +79,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   using HistogramFilterType = MovingHistogramErodeImageFilter<TInputImage, TOutputImage, TKernel>;
   using BasicFilterType = BasicErodeImageFilter<TInputImage, TOutputImage, TKernel>;
@@ -124,10 +124,11 @@ public:
   itkGetConstMacro(Boundary, PixelType);
 
   /** Set/Get the backend filter class. */
+  /** @ITKStartGrouping */
   void
   SetAlgorithm(AlgorithmEnum algo);
   itkGetConstMacro(Algorithm, AlgorithmEnum);
-
+  /** @ITKEndGrouping */
   /** GrayscaleErodeImageFilter need to set its internal filters as modified */
   void
   Modified() const override;
@@ -145,22 +146,22 @@ protected:
   GenerateData() override;
 
 private:
-  PixelType m_Boundary;
+  PixelType m_Boundary{};
 
   // the filters used internally
-  typename HistogramFilterType::Pointer m_HistogramFilter;
+  typename HistogramFilterType::Pointer m_HistogramFilter{};
 
-  typename BasicFilterType::Pointer m_BasicFilter;
+  typename BasicFilterType::Pointer m_BasicFilter{};
 
-  typename AnchorFilterType::Pointer m_AnchorFilter;
+  typename AnchorFilterType::Pointer m_AnchorFilter{};
 
-  typename VHGWFilterType::Pointer m_VHGWFilter;
+  typename VHGWFilterType::Pointer m_VHGWFilter{};
 
   // and the name of the filter
-  AlgorithmEnum m_Algorithm;
+  AlgorithmEnum m_Algorithm{};
 
   // the boundary condition need to be stored here
-  DefaultBoundaryConditionType m_BoundaryCondition;
+  DefaultBoundaryConditionType m_BoundaryCondition{};
 }; // end of class
 } // end namespace itk
 

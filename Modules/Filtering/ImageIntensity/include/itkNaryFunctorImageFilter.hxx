@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNaryFunctorImageFilter_hxx
 #define itkNaryFunctorImageFilter_hxx
 
-#include "itkNaryFunctorImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkProgressReporter.h"
 
@@ -53,7 +52,7 @@ NaryFunctorImageFilter<TInputImage, TOutputImage, TFunction>::DynamicThreadedGen
   // count the number of inputs that are non-null
   for (unsigned int i = 0; i < numberOfInputImages; ++i)
   {
-    InputImagePointer inputPtr = dynamic_cast<TInputImage *>(ProcessObject::GetInput(i));
+    const InputImagePointer inputPtr = dynamic_cast<TInputImage *>(ProcessObject::GetInput(i));
 
     if (inputPtr)
     {
@@ -72,15 +71,14 @@ NaryFunctorImageFilter<TInputImage, TOutputImage, TFunction>::DynamicThreadedGen
 
   NaryArrayType naryInputArray(numberOfValidInputImages);
 
-  OutputImagePointer                  outputPtr = this->GetOutput(0);
-  ImageScanlineIterator<TOutputImage> outputIt(outputPtr, outputRegionForThread);
+  const OutputImagePointer outputPtr = this->GetOutput(0);
 
-  typename std::vector<ImageScanlineConstIteratorType *>::iterator             regionIterators;
-  const typename std::vector<ImageScanlineConstIteratorType *>::const_iterator regionItEnd = inputItrVector.end();
+  typename std::vector<ImageScanlineConstIteratorType *>::iterator regionIterators;
+  const auto                                                       regionItEnd = inputItrVector.end();
 
   typename NaryArrayType::iterator arrayIt;
 
-  while (!outputIt.IsAtEnd())
+  for (ImageScanlineIterator outputIt(outputPtr, outputRegionForThread); !outputIt.IsAtEnd(); outputIt.NextLine())
   {
     while (!outputIt.IsAtEndOfLine())
     {
@@ -102,7 +100,6 @@ NaryFunctorImageFilter<TInputImage, TOutputImage, TFunction>::DynamicThreadedGen
       (*regionIterators)->NextLine();
       ++regionIterators;
     }
-    outputIt.NextLine();
   }
 
   // Free memory

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class GaborImageSource
+ * \class GaborImageSource
  * \brief Generate an n-dimensional image of a Gabor filter.
  *
  * GaborImageSource generates an image of either the real
@@ -39,7 +39,7 @@ namespace itk
  * The output image may be of any dimension.
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/150
+ * https://doi.org/10.54294/dhogdz
  *
  * \ingroup DataSources
  * \ingroup ITKImageSources
@@ -66,8 +66,8 @@ public:
 
   using SizeType = typename RegionType::SizeType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaborImageSource, GenerateImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaborImageSource);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -78,24 +78,28 @@ public:
   /** Type used to store gabor parameters. */
   using ArrayType = FixedArray<double, Self::ImageDimension>;
 
-  /** Set/Get the the standard deviation in each direction. */
+  /** Set/Get the standard deviation in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sigma, ArrayType);
   itkGetConstReferenceMacro(Sigma, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mean in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Mean, ArrayType);
   itkGetConstReferenceMacro(Mean, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the modulation frequency of the sine or cosine component. */
+  /** @ITKStartGrouping */
   itkSetMacro(Frequency, double);
   itkGetConstReferenceMacro(Frequency, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get whether the evaluation is performed using the using the imaginary
    * part. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(CalculateImaginaryPart, bool);
   itkGetConstReferenceMacro(CalculateImaginaryPart, bool);
   itkBooleanMacro(CalculateImaginaryPart);
-
+  /** @ITKEndGrouping */
 protected:
   GaborImageSource();
   ~GaborImageSource() override = default;
@@ -113,9 +117,9 @@ private:
   /** Evaluate using a stretched gabor filter (ensure zero dc response) */
   double m_PhaseOffset{ 0.0 };
 
-  ArrayType m_Sigma;
+  ArrayType m_Sigma{};
 
-  ArrayType m_Mean;
+  ArrayType m_Mean{};
 };
 } // end namespace itk
 

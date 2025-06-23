@@ -46,7 +46,7 @@ public:
   } NegociatedType;
 
 #if 0
-  //NOT FLEXIBLE, since force user to update lib everytime new module
+  //NOT FLEXIBLE, since forces user to update lib every time new module
   //comes out...
   // TODO
   typedef enum {
@@ -86,6 +86,9 @@ public:
     MPEG2MainProfileHighLevel,
     MPEG4AVCH264HighProfileLevel4_1,
     MPEG4AVCH264BDcompatibleHighProfileLevel4_1,
+    HTJ2KLossless,
+    HTJ2KRPCLLossless,
+    HTJ2K,
     TS_END
   } TSType;
 

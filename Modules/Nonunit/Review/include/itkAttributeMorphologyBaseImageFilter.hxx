@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,20 @@
 #ifndef itkAttributeMorphologyBaseImageFilter_hxx
 #define itkAttributeMorphologyBaseImageFilter_hxx
 
-#include "itkAttributeMorphologyBaseImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
 #include "itkConnectedComponentAlgorithm.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkCastImageFilter.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 /*
  * This code was contributed in the Insight Journal paper
  *
  * "Grayscale morphological attribute operations"
  * by Beare R.
- * https://hdl.handle.net/1926/1316
- * http://www.insight-journal.org/browse/publication/203
+ * https://doi.org/10.54294/ifvjls
  *
  */
 
@@ -67,7 +66,7 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
   {
     // save some time - simply copy the input in the output
     using CastType = CastImageFilter<TInputImage, TOutputImage>;
-    typename CastType::Pointer cast = CastType::New();
+    auto cast = CastType::New();
     cast->SetInput(this->GetInput());
     cast->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
     cast->SetInPlace(false);
@@ -87,48 +86,41 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 
   SizeValueType buffsize = output->GetRequestedRegion().GetNumberOfPixels();
 
-  SizeType kernelRadius;
-  kernelRadius.Fill(1);
+  constexpr auto kernelRadius = SizeType::Filled(1);
   using FaceCalculatorType = itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<TInputImage>;
   FaceCalculatorType                        faceCalculator;
-  typename FaceCalculatorType::FaceListType faceList;
-  faceList = faceCalculator(input, output->GetRequestedRegion(), kernelRadius);
-  typename FaceCalculatorType::FaceListType::iterator fit;
-  ProgressReporter                                    progress(this, 0, buffsize * 4); // pretend we have 4 steps
+  typename FaceCalculatorType::FaceListType faceList =
+    faceCalculator(input, output->GetRequestedRegion(), kernelRadius);
+  ProgressReporter progress(this, 0, buffsize * 4); // pretend we have 4 steps
 
-  fit = faceList.begin();
+  auto fit = faceList.begin();
 
-  m_SortPixels = new GreyAndPos[buffsize];
-  m_Parent = new OffsetValueType[buffsize];
-#ifndef PAMI
-  m_Processed = new bool[buffsize];
-#endif
+  m_SortPixels = make_unique_for_overwrite<OffsetValueType[]>(buffsize);
+  m_Parent = make_unique_for_overwrite<OffsetValueType[]>(buffsize);
+
   // This is a bit ugly, but I can't see an easy way around
-  m_Raw = new InputPixelType[buffsize];
-  m_AuxData = new AttributeType[buffsize];
+  m_Raw = make_unique_for_overwrite<InputPixelType[]>(buffsize);
+  m_AuxData = make_unique_for_overwrite<AttributeType[]>(buffsize);
 
   // copy the pixels to the sort buffer
   using CRegionIteratorType = ImageRegionConstIteratorWithIndex<TInputImage>;
   CRegionIteratorType RegIt(input, output->GetRequestedRegion());
   // IndexType Origin = RegIt.GetIndex();
-  OffsetValueType pos = 0;
-
-  for (RegIt.GoToBegin(); !RegIt.IsAtEnd(); ++RegIt, ++pos)
   {
-    GreyAndPos P;
-    P.Val = RegIt.Get();
-    P.Pos = pos;
-    m_SortPixels[pos] = P;
-    m_Raw[pos] = P.Val;
-#ifndef PAMI
-    m_Processed[pos] = false;
-#endif
-    m_Parent[pos] = INACTIVE;
-    m_AuxData[pos] = -1; // invalid value;
-    progress.CompletedPixel();
+    OffsetValueType pos = 0;
+    for (RegIt.GoToBegin(); !RegIt.IsAtEnd(); ++RegIt, ++pos)
+    {
+      m_SortPixels[pos] = pos;
+      m_Raw[pos] = RegIt.Get();
+
+      m_Parent[pos] = INACTIVE;
+      m_AuxData[pos] = -1; // invalid value;
+      progress.CompletedPixel();
+    }
   }
   progress.CompletedPixel();
-  std::sort(&(m_SortPixels[0]), &(m_SortPixels[buffsize - 1]), ComparePixStruct());
+  m_CompareOffset.buf = m_Raw.get();
+  std::stable_sort(&(m_SortPixels[0]), &(m_SortPixels[buffsize - 1]), m_CompareOffset);
   progress.CompletedPixel();
 
   // set up the offset vector
@@ -138,14 +130,13 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 
   // the core algorithm
   // process first pixel
-#ifdef PAMI
-  MakeSet(m_SortPixels[0].Pos);
-  // m_Processed[0] = true;
-  for (SizeValueType k = 1; k < buffsize; k++)
+  MakeSet(m_SortPixels[0]);
+
+  for (SizeValueType k = 1; k < buffsize; ++k)
   {
-    OffsetValueType ThisPos = m_SortPixels[k].Pos;
+    OffsetValueType ThisPos = m_SortPixels[k];
     IndexType       ThisWhere = input->ComputeIndex(ThisPos);
-    InputPixelType  ThisPix = m_SortPixels[k].Val;
+    InputPixelType  ThisPix = m_Raw[ThisPos];
     MakeSet(ThisPos);
     // Some optimization of bounds check
     if (fit->IsInside(ThisWhere))
@@ -164,7 +155,7 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
     else
     {
       // need a bounds check for each neighbour
-      for (unsigned i = 0; i < TheseOffsets.size(); i++)
+      for (unsigned int i = 0; i < TheseOffsets.size(); ++i)
       {
         if (output->GetRequestedRegion().IsInside(ThisWhere + TheseOffsets[i]))
         {
@@ -179,65 +170,6 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
     }
     progress.CompletedPixel();
   }
-#else
-  MakeSet(m_SortPixels[0].Pos);
-  m_Processed[0] = true;
-  for (SizeValueType k = 1; k < buffsize; k++)
-  {
-    OffsetValueType ThisPos = m_SortPixels[k].Pos;
-    OffsetValueType PrevPos = m_SortPixels[k - 1].Pos;
-    InputPixelType  ThisPix = m_Raw[ThisPos];
-    InputPixelType  PrevPix = m_Raw[PrevPos];
-    IndexType       ThisWhere = input->ComputeIndex(ThisPos);
-    if (ThisPix != PrevPix)
-    {
-      for (OffsetValueType QPos = k - 1; QPos >= 0; --QPos)
-      {
-        OffsetValueType QLoc = m_SortPixels[QPos].Pos;
-        if (m_Raw[QLoc] != PrevPix)
-        {
-          break;
-        }
-        if ((m_Parent[QLoc] == ACTIVE) && (m_AuxData[QLoc] >= m_Lambda))
-        {
-          m_Parent[QLoc] = INACTIVE;
-          m_AuxData[QLoc] = -1;
-          // dispose auxdata[QLoc]
-        }
-      }
-    }
-    MakeSet(ThisPos);
-    if (fit->IsInside(ThisWhere))
-    {
-      // no need for neighbor bounds check
-      for (unsigned i = 0; i < TheseDirectOffsets.size(); i++)
-      {
-        OffsetValueType NeighInd = ThisPos + TheseDirectOffsets[i];
-        if (m_Processed[NeighInd])
-        {
-          Union(NeighInd, ThisPos);
-        }
-      }
-    }
-    else
-    {
-      for (unsigned i = 0; i < TheseOffsets.size(); i++)
-      {
-        if (output->GetRequestedRegion().IsInside(ThisWhere + TheseOffsets[i]))
-        {
-          OffsetValueType NeighInd = ThisPos + TheseDirectOffsets[i];
-          if (m_Processed[NeighInd])
-          {
-            Union(NeighInd, ThisPos);
-          }
-        }
-      }
-    }
-    m_Processed[ThisPos] = true;
-    progress.CompletedPixel();
-  }
-
-#endif
 
   // resolving phase
   // copy pixels back
@@ -248,12 +180,11 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
   // fill Raw - worry about iteration details later.
   // We aren't filling m_Parent, as suggested in the paper, because it
   // is an integer array. We want this to work with float types
-#ifdef PAMI
   // write the new image to Raw - note that we aren't putting the
   // result in parent
-  for (pos = buffsize - 1; pos >= 0; --pos)
+  for (OffsetValueType pos = buffsize - 1; pos >= 0; --pos)
   {
-    OffsetValueType RPos = m_SortPixels[pos].Pos;
+    OffsetValueType RPos = m_SortPixels[pos];
     if (m_Parent[RPos] >= 0)
     {
       m_Raw[RPos] = m_Raw[m_Parent[RPos]];
@@ -266,35 +197,10 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
     progress.CompletedPixel();
   }
 
-#else
-  // the version from the paper
-  for (pos = buffsize - 1; pos >= 0; --pos)
-  {
-    OffsetValueType RPos = m_SortPixels[pos].Pos;
-    if (m_Parent[RPos] < 0)
-    {
-      m_Parent[RPos] = (OffsetValueType)m_Raw[RPos];
-    }
-    else
-    {
-      m_Parent[RPos] = m_Parent[m_Parent[RPos]];
-    }
-    progress.CompletedPixel();
-  }
-  for (pos = 0; pos < buffsize; ++pos, ++ORegIt)
-  {
-    ORegIt.Set(static_cast<OutputPixelType>(m_Parent[pos]));
-    progress.CompletedPixel();
-  }
-#endif
-
-  delete[] m_Raw;
-  delete[] m_SortPixels;
-  delete[] m_Parent;
-#ifndef PAMI
-  delete[] m_Processed;
-#endif
-  delete[] m_AuxData;
+  m_Raw.reset();
+  m_SortPixels.reset();
+  m_Parent.reset();
+  m_AuxData.reset();
 }
 
 template <typename TInputImage, typename TOutputImage, typename TAttribute, typename TFunction>
@@ -304,18 +210,14 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
   OffsetVecType &       Offsets)
 {
   using NeighType = ConstShapedNeighborhoodIterator<TOutputImage>;
-  SizeType KernRad;
-  KernRad.Fill(1);
+  auto      KernRad = SizeType::Filled(1);
   NeighType It(KernRad, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
   setConnectivity(&It, m_FullyConnected);
-  typename NeighType::IndexListType                 OffsetList;
-  typename NeighType::IndexListType::const_iterator LIt;
+  typename NeighType::IndexListType OffsetList = It.GetActiveIndexList();
+  IndexType                         idx = this->GetOutput()->GetRequestedRegion().GetIndex();
+  OffsetValueType                   offset = this->GetOutput()->ComputeOffset(idx);
 
-  OffsetList = It.GetActiveIndexList();
-  IndexType       idx = this->GetOutput()->GetRequestedRegion().GetIndex();
-  OffsetValueType offset = this->GetOutput()->ComputeOffset(idx);
-
-  for (LIt = OffsetList.begin(); LIt != OffsetList.end(); LIt++)
+  for (auto LIt = OffsetList.begin(); LIt != OffsetList.end(); ++LIt)
   {
     OffsetType O = It.GetOffset(*LIt);
     PosOffsets.push_back(this->GetOutput()->ComputeOffset(idx + O) - offset);
@@ -330,7 +232,7 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent << "Lambda: " << static_cast<typename NumericTraits<AttributeType>::PrintType>(m_Lambda) << std::endl;
 }
 } // end namespace itk

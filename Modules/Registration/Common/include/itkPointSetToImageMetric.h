@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +59,8 @@ public:
   /** Type used for representing point components  */
   using CoordinateRepresentationType = Superclass::ParametersValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToImageMetric, SingleValuedCostFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToImageMetric);
 
   /**  Type of the moving Image. */
   using MovingImageType = TMovingImage;
@@ -112,13 +112,15 @@ public:
   using ParametersType = Superclass::ParametersType;
 
   /** Get/Set the Fixed Image.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedPointSet, FixedPointSetType);
   itkGetConstObjectMacro(FixedPointSet, FixedPointSetType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the Moving Image.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingImage, MovingImageType);
   itkGetConstObjectMacro(MovingImage, MovingImageType);
-
+  /** @ITKEndGrouping */
   /** Connect the Transform. */
   itkSetObjectMacro(Transform, TransformType);
 
@@ -148,18 +150,18 @@ public:
    *  at the price of large memory footprint. Mode OFF results in small
    *  memory footprint at the price of large computation time
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeGradient, bool);
   itkGetConstReferenceMacro(ComputeGradient, bool);
-
-  /** Return the number of parameters required by the Transform */
+  /** @ITKEndGrouping */
+  /** Get the number of parameters required by the Transform. */
   unsigned int
   GetNumberOfParameters() const override
   {
     return m_Transform->GetNumberOfParameters();
   }
 
-  /** Initialize the Metric by making sure that all the components
-   *  are present and plugged together correctly     */
+  /** Initialize the Metric by making sure that all the components are present and plugged together correctly. */
   virtual void
   Initialize();
 
@@ -169,19 +171,19 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  mutable SizeValueType m_NumberOfPixelsCounted;
+  mutable SizeValueType m_NumberOfPixelsCounted{};
 
-  FixedPointSetConstPointer m_FixedPointSet;
+  FixedPointSetConstPointer m_FixedPointSet{};
 
-  MovingImageConstPointer m_MovingImage;
+  MovingImageConstPointer m_MovingImage{};
 
-  mutable TransformPointer m_Transform;
+  mutable TransformPointer m_Transform{};
 
-  InterpolatorPointer m_Interpolator;
+  InterpolatorPointer m_Interpolator{};
 
-  bool m_ComputeGradient;
+  bool m_ComputeGradient{};
 
-  GradientImagePointer m_GradientImage;
+  GradientImagePointer m_GradientImage{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itkFileOutputWindowTest(int, char *[])
   using myFileOutputWindow = itk::FileOutputWindow;
 
   // Create the filter
-  myFileOutputWindow::Pointer window = myFileOutputWindow::New();
+  auto window = myFileOutputWindow::New();
 
   // Test itkSetStringMacro
   const char * fileName = "";
@@ -40,15 +40,15 @@ itkFileOutputWindowTest(int, char *[])
   std::cout << "window->GetFileName(): " << fileName2 << std::endl;
 
   // Test itkSetMacros
-  const bool flush = false;
+  constexpr bool flush = false;
   window->SetFlush(flush);
-  const bool append = false;
+  constexpr bool append = false;
   window->SetAppend(append);
 
   // Test itkGetMacros
-  bool flush2 = window->GetFlush();
+  const bool flush2 = window->GetFlush();
   std::cout << "window->GetFlush(): " << flush2 << std::endl;
-  bool append2 = window->GetAppend();
+  const bool append2 = window->GetAppend();
   std::cout << "window->GetAppend(): " << append2 << std::endl;
 
   // Test itkBooleanMacros

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,8 +57,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToParametricSpaceFilter, ImageToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToParametricSpaceFilter);
 
   /** Some type alias associated with the input images. */
   using InputImageType = TInputImage;
@@ -94,8 +94,11 @@ public:
    * That assumes that the type of PointData in the output
    * mesh is capable of accepting an itk::Index through
    * an operator=(). Default value = true */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeIndices, bool);
-
+  itkGetConstMacro(ComputeIndices, bool);
+  itkBooleanMacro(ComputeIndices);
+  /** @ITKEndGrouping */
 protected:
   ImageToParametricSpaceFilter();
   ~ImageToParametricSpaceFilter() override = default;
@@ -105,7 +108,7 @@ protected:
 private:
   /** This variable defines if the indices of input image pixels
    * will be stored as Data at each one of the mesh points. */
-  bool m_ComputeIndices;
+  bool m_ComputeIndices{};
 };
 } // end namespace itk
 

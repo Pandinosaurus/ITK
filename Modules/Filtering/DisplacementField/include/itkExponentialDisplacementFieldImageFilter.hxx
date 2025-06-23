@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkExponentialDisplacementFieldImageFilter_hxx
 #define itkExponentialDisplacementFieldImageFilter_hxx
 
-#include "itkExponentialDisplacementFieldImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionConstIterator.h"
 
@@ -29,18 +28,15 @@ namespace itk
  */
 template <typename TInputImage, typename TOutputImage>
 ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::ExponentialDisplacementFieldImageFilter()
+  : m_AutomaticNumberOfIterations(true)
+  , m_MaximumNumberOfIterations(20)
+  , m_Divider(DivideByConstantType::New())
+  , m_Caster(CasterType::New())
+  , m_Warper(VectorWarperType::New())
+  , m_Adder(AdderType::New())
 {
-  m_AutomaticNumberOfIterations = true;
-  m_MaximumNumberOfIterations = 20;
-  m_ComputeInverse = false;
-  m_Divider = DivideByConstantType::New();
-  m_Caster = CasterType::New();
-  m_Warper = VectorWarperType::New();
-
-  FieldInterpolatorPointer VectorInterpolator = FieldInterpolatorType::New();
+  const FieldInterpolatorPointer VectorInterpolator = FieldInterpolatorType::New();
   m_Warper->SetInterpolator(VectorInterpolator);
-
-  m_Adder = AdderType::New();
   m_Adder->InPlaceOn();
 }
 
@@ -67,9 +63,9 @@ template <typename TInputImage, typename TOutputImage>
 void
 ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  itkDebugMacro(<< "Actually executing");
+  itkDebugMacro("Actually executing");
 
-  InputImageConstPointer inputPtr = this->GetInput();
+  const InputImageConstPointer inputPtr = this->GetInput();
 
   unsigned int numiter = 0;
 
@@ -93,11 +89,11 @@ ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData
     }
 
     using InputConstIterator = ImageRegionConstIterator<InputImageType>;
-    InputConstIterator InputIt = InputConstIterator(inputPtr, inputPtr->GetRequestedRegion());
+    InputConstIterator InputIt(inputPtr, inputPtr->GetRequestedRegion());
 
     for (InputIt.GoToBegin(); !InputIt.IsAtEnd(); ++InputIt)
     {
-      InputPixelRealValueType norm2 = InputIt.Get().GetSquaredNorm();
+      const InputPixelRealValueType norm2 = InputIt.Get().GetSquaredNorm();
       if (norm2 > maxnorm2)
       {
         maxnorm2 = norm2;
@@ -108,8 +104,8 @@ ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData
     maxnorm2 /= itk::Math::sqr(minpixelspacing);
 
     // Protect against maxnorm2 being zero.
-    InputPixelRealValueType numiterfloat = (maxnorm2 > 0) ? 2.0 + 0.5 * std::log(maxnorm2) / itk::Math::ln2
-                                                          : itk::NumericTraits<InputPixelRealValueType>::min();
+    const InputPixelRealValueType numiterfloat = (maxnorm2 > 0) ? 2.0 + 0.5 * std::log(maxnorm2) / itk::Math::ln2
+                                                                : itk::NumericTraits<InputPixelRealValueType>::min();
 
     if (numiterfloat >= 0.0)
     {
@@ -182,7 +178,7 @@ ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData
   m_Warper->SetOutputSpacing(inputPtr->GetSpacing());
   m_Warper->SetOutputDirection(inputPtr->GetDirection());
 
-  for (unsigned int i = 0; i < numiter; i++)
+  for (unsigned int i = 0; i < numiter; ++i)
   {
     m_Warper->SetInput(this->GetOutput());
     m_Warper->SetDisplacementField(this->GetOutput());
@@ -191,7 +187,7 @@ ExponentialDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData
 
     m_Warper->Update();
 
-    OutputImagePointer warpedIm = m_Warper->GetOutput();
+    const OutputImagePointer warpedIm = m_Warper->GetOutput();
     warpedIm->DisconnectPipeline();
 
     // Remember we chose to use an inplace adder

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,11 @@
 #include "vidl_itk_istream.hxx"
 #include "itkVideoFileReader.h"
 #include "itkVXLVideoIOFactory.h"
+#include "itkTestingMacros.h"
 #include "vidl/vidl_ffmpeg_ostream.h"
 
 
-//
 // Helper function to test pixel type
-//
 template <typename TPixelType>
 bool
 TestFormat(vidl_pixel_format expectedFormat)
@@ -41,16 +40,14 @@ TestFormat(vidl_pixel_format expectedFormat)
   return out;
 }
 
-#define TestFormatMacro(PixelType, expectedFormat)                                                                     \
-  if (!TestFormat<PixelType>(expectedFormat))                                                                          \
-  {                                                                                                                    \
-    std::cerr << "format() did not return expected result for pixel type " << typeid(PixelType).name() << std::endl;   \
-    return EXIT_FAILURE;                                                                                               \
+#define TestFormatMacro(PixelType, expectedFormat)                                                                   \
+  if (!TestFormat<PixelType>(expectedFormat))                                                                        \
+  {                                                                                                                  \
+    std::cerr << "format() did not return expected result for pixel type " << typeid(PixelType).name() << std::endl; \
+    return EXIT_FAILURE;                                                                                             \
   }
 
-//
-// Templated test
-//
+
 template <typename TPixelType>
 int
 vidl_itk_istreamTestWithPixelType(char * argv[], vidl_pixel_format expectedFormat)
@@ -111,30 +108,23 @@ vidl_itk_istreamTestWithPixelType(char * argv[], vidl_pixel_format expectedForma
     }
   }
 
-  // Return success
   delete istream;
   // delete ostream;   //BUG?  Can not close ostream
   return EXIT_SUCCESS;
 }
 
-#define TemplatedTestMacro(PixelType, expectedFormat)                                                                  \
-  if (vidl_itk_istreamTestWithPixelType<PixelType>(argv, expectedFormat) == EXIT_FAILURE)                              \
-  {                                                                                                                    \
-    return EXIT_FAILURE;                                                                                               \
+#define TemplatedTestMacro(PixelType, expectedFormat)                                     \
+  if (vidl_itk_istreamTestWithPixelType<PixelType>(argv, expectedFormat) == EXIT_FAILURE) \
+  {                                                                                       \
+    return EXIT_FAILURE;                                                                  \
   }
 
-//
-// Main test body
-//
 int
 vidl_itk_istreamTest(int argc, char * argv[])
 {
-  //
-  // Check parameters
-  //
   if (argc < 5)
   {
-    std::cerr << "Usage: " << argv[0] << " input_file output_file width height" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " input_file output_file width height" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -142,9 +132,7 @@ vidl_itk_istreamTest(int argc, char * argv[])
   // Register a VXLVideoIO. This should be fixed eventually
   itk::ObjectFactoryBase::RegisterFactory(itk::VXLVideoIOFactory::New());
 
-  //
   // Test all supported pixel formats
-  //
 
   // Scalar types
   TemplatedTestMacro(bool, VIDL_PIXEL_FORMAT_MONO_1);
@@ -161,13 +149,13 @@ vidl_itk_istreamTest(int argc, char * argv[])
   TemplatedTestMacro(itk::RGBAPixel<unsigned char>, VIDL_PIXEL_FORMAT_RGBA_32);
   TemplatedTestMacro(itk::RGBPixel<float>, VIDL_PIXEL_FORMAT_RGB_F32);
 
-  //
   // Test format returned for unsupported types
-  //
   TestFormatMacro(int, VIDL_PIXEL_FORMAT_UNKNOWN);
   TestFormatMacro(unsigned int, VIDL_PIXEL_FORMAT_UNKNOWN);
   TestFormatMacro(double, VIDL_PIXEL_FORMAT_UNKNOWN);
   TestFormatMacro(itk::RGBPixel<int>, VIDL_PIXEL_FORMAT_UNKNOWN);
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

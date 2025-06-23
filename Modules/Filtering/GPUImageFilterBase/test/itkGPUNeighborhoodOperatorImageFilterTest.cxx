@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,8 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  typename WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(inFile);
   writer->SetFileName(outFile);
@@ -69,14 +69,14 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
   oper.CreateDirectional();
 
   // test 1~8 work units for CPU
-  for (int nWorkUnits = 1; nWorkUnits <= 8; nWorkUnits++)
+  for (int numberOfWorkUnits = 1; numberOfWorkUnits <= 8; ++numberOfWorkUnits)
   {
-    typename NeighborhoodFilterType::Pointer CPUFilter = NeighborhoodFilterType::New();
+    auto CPUFilter = NeighborhoodFilterType::New();
 
     itk::TimeProbe cputimer;
     cputimer.Start();
 
-    CPUFilter->SetNumberOfWorkUnits(nWorkUnits);
+    CPUFilter->SetNumberOfWorkUnits(numberOfWorkUnits);
 
     CPUFilter->SetInput(reader->GetOutput());
     CPUFilter->SetOperator(oper);
@@ -90,9 +90,9 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
 
     // -------
 
-    if (nWorkUnits == 8)
+    if (numberOfWorkUnits == 8)
     {
-      typename GPUNeighborhoodFilterType::Pointer GPUFilter = GPUNeighborhoodFilterType::New();
+      auto GPUFilter = GPUNeighborhoodFilterType::New();
 
       itk::TimeProbe gputimer;
       gputimer.Start();
@@ -119,9 +119,9 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
 
       for (cit.GoToBegin(), git.GoToBegin(); !cit.IsAtEnd(); ++cit, ++git)
       {
-        double err = (double)(cit.Get()) - (double)(git.Get());
-        //         if(err > 0.1 || (double)(cit.Get()) < 0.1)   std::cout << "CPU : " << (double)(cit.Get()) << ", GPU :
-        //         " << (double)(git.Get()) << std::endl;
+        double err = static_cast<double>(cit.Get()) - static_cast<double>(git.Get());
+        //         if(err > 0.1 || static_cast<double>(cit.Get()) < 0.1)   std::cout << "CPU : " <<
+        //         static_cast<double>(cit.Get()) << ", GPU : " << static_cast<double>(git.Get()) << std::endl;
         diff += err * err;
         nPix++;
       }
@@ -131,7 +131,7 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
 
       if (nPix > 0)
       {
-        double RMSError = sqrt(diff / (double)nPix);
+        double RMSError = sqrt(diff / static_cast<double>(nPix));
         std::cout << "RMS Error : " << RMSError << std::endl;
         // the CPU filter operator has type double
         // but the double precision is not well-supported on most GPUs
@@ -150,7 +150,7 @@ runGPUNeighborhoodOperatorImageFilterTest(const std::string & inFile, const std:
         }
         if (RMSError > RMSThreshold)
         {
-          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ")" << std::endl;
+          std::cout << "RMS Error exceeds threshold (" << RMSThreshold << ')' << std::endl;
           return EXIT_FAILURE;
         }
       }

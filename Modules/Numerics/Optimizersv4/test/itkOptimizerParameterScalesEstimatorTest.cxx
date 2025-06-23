@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(OptimizerParameterScalesEstimatorTest, OptimizerParameterScalesEstimator);
+  itkOverrideGetNameOfClassMacro(OptimizerParameterScalesEstimatorTest);
 
   /** Estimate parameter scales */
   void
@@ -47,7 +47,7 @@ public:
   double
   EstimateStepScale(const ParametersType & step) override
   {
-    double norm = step.two_norm();
+    const double norm = step.two_norm();
     return norm;
   }
 
@@ -76,7 +76,7 @@ protected:
 int
 itkOptimizerParameterScalesEstimatorTest(int, char *[])
 {
-  OptimizerParameterScalesEstimatorTest::Pointer scalesEstimator = OptimizerParameterScalesEstimatorTest::New();
+  auto scalesEstimator = OptimizerParameterScalesEstimatorTest::New();
 
   OptimizerParameterScalesEstimatorTest::ScalesType scales;
   scalesEstimator->Print(std::cout);

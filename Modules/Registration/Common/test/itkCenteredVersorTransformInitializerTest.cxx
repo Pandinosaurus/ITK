@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkCenteredVersorTransformInitializer.h"
 
 #include "itkImageRegionIterator.h"
+#include "itkTestingMacros.h"
 
 
 /**
@@ -77,13 +78,11 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
   index[1] = 0;
   index[2] = 0;
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const RegionType region{ index, size };
 
 
-  FixedImageType::Pointer  fixedImage = FixedImageType::New();
-  MovingImageType::Pointer movingImage = MovingImageType::New();
+  auto fixedImage = FixedImageType::New();
+  auto movingImage = MovingImageType::New();
 
   fixedImage->SetRegions(region);
   fixedImage->SetSpacing(spacing);
@@ -147,13 +146,16 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
     ++mi;
   }
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   transform->SetIdentity();
 
 
   using InitializerType = itk::CenteredVersorTransformInitializer<FixedImageType, MovingImageType>;
 
-  InitializerType::Pointer initializer = InitializerType::New();
+  auto initializer = InitializerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(initializer, CenteredVersorTransformInitializer, CenteredTransformInitializer);
+
 
   initializer->SetFixedImage(fixedImage);
   initializer->SetMovingImage(movingImage);
@@ -168,7 +170,7 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
     TransformType::InputPointType fixedCenter;
     TransformType::InputPointType movingCenter;
 
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
       fixedCenter[j] = fixedOrigin[j] + size[j] * spacing[j] / 2.0;
       movingCenter[j] = movingOrigin[j] + size[j] * spacing[j] / 2.0;
@@ -177,11 +179,11 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
     TransformType::InputVectorType relativeCenter = movingCenter - fixedCenter;
 
 
-    const double tolerance = 1e-3;
+    constexpr double tolerance = 1e-3;
 
-    for (unsigned int k = 0; k < Dimension; k++)
+    for (unsigned int k = 0; k < Dimension; ++k)
     {
-      if (std::fabs(translation2[k] - relativeCenter[k]) > tolerance)
+      if (itk::Math::abs(translation2[k] - relativeCenter[k]) > tolerance)
       {
         std::cerr << "Translation differs from expected value" << std::endl;
         std::cerr << "It should be " << relativeCenter << std::endl;
@@ -189,7 +191,7 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
         pass = false;
         break;
       }
-      if (std::fabs(offset2[k] - relativeCenter[k]) > tolerance)
+      if (itk::Math::abs(offset2[k] - relativeCenter[k]) > tolerance)
       {
         std::cerr << "Offset differs from expected value" << std::endl;
         std::cerr << "It should be " << relativeCenter << std::endl;
@@ -199,7 +201,9 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
       }
     }
 
-    initializer->ComputeRotationOn();
+    auto computeRotation = true;
+    ITK_TEST_SET_GET_BOOLEAN(initializer, ComputeRotation, computeRotation);
+
     initializer->InitializeTransform();
 
     std::cout << "Initialized Transform is" << std::endl;
@@ -212,9 +216,9 @@ itkCenteredVersorTransformInitializerTest(int, char *[])
     expectedPoint[1] = 165.75;
     expectedPoint[2] = 13.25;
 
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
-      if (std::fabs(expectedPoint[j] - mappedOrigin[j]) > tolerance)
+      if (itk::Math::abs(expectedPoint[j] - mappedOrigin[j]) > tolerance)
       {
         std::cerr << "Mapped point differs from expected point" << std::endl;
         std::cerr << "It should be " << expectedPoint << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,10 +24,21 @@
 
 namespace itk
 {
-/* a simple class that will return an array of indexes that are
- * offsets along the line. The line will be described by a vector and a
- * length */
 
+/** \class BresenhamLine
+ * \brief Compute indices along a line in n dimensions.
+ *
+ * Returns an array of indices that are offsets along the line.
+ * The line can be described by a direction vector and a length.
+ * The line can be described by starting and ending indices.
+ *
+ * \ingroup ImageAccess
+ * \ingroup ITKCommon
+ *
+ * \sphinx
+ * \sphinxexample{Core/Common/BresenhamLine,Bresenham Line}
+ * \endsphinx
+ */
 template <unsigned int VDimension>
 class ITK_TEMPLATE_EXPORT BresenhamLine
 {
@@ -40,13 +51,9 @@ public:
   using OffsetArray = std::vector<OffsetType>;
   using IndexArray = std::vector<IndexType>;
 
-  // constructors
-  BresenhamLine() = default;
-  ~BresenhamLine() = default;
-
   /** Build a line in a specified Direction. */
   OffsetArray
-  BuildLine(LType Direction, unsigned int length);
+  BuildLine(LType Direction, IdentifierType length);
 
   /** Build a line between two pixels. */
   IndexArray

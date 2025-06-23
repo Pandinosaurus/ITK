@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,7 +56,7 @@ ReadMat(vnl_matlab_readhdr &                                                    
   {
     vnl_vector<float> fv(mathdr.rows());
     mathdr.read_data(fv.begin());
-    for (int i = 0; i < mathdr.rows(); i++)
+    for (int i = 0; i < mathdr.rows(); ++i)
     {
       array[i] = (ParametersValueType)(fv[i]);
     }
@@ -65,7 +65,7 @@ ReadMat(vnl_matlab_readhdr &                                                    
   {
     vnl_vector<double> dv(mathdr.rows());
     mathdr.read_data(dv.begin());
-    for (int i = 0; i < mathdr.rows(); i++)
+    for (int i = 0; i < mathdr.rows(); ++i)
     {
       array[i] = (ParametersValueType)(dv[i]);
     }
@@ -82,7 +82,7 @@ MatlabTransformIOTemplate<ParametersValueType>::Read()
   {
     matfile.close();
     itkExceptionMacro("The file could not be opened for read access " << std::endl
-                                                                      << "Filename: \"" << this->GetFileName() << "\"");
+                                                                      << "Filename: \"" << this->GetFileName() << '"');
   }
   while (!matfile.eof())
   {
@@ -131,7 +131,7 @@ MatlabTransformIOTemplate<ParametersValueType>::Write()
   this->OpenStream(out, true);
   while (it != this->GetWriteTransformList().end())
   {
-    std::string xfrmType((*it)->GetTransformTypeAsString());
+    const std::string xfrmType((*it)->GetTransformTypeAsString());
     TempArray = (*it)->GetParameters();
     vnl_matlab_write(out, TempArray.begin(), TempArray.size(), xfrmType.c_str());
     TempArray = (*it)->GetFixedParameters();

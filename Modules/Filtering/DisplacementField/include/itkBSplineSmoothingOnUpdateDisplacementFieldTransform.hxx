@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBSplineSmoothingOnUpdateDisplacementFieldTransform_hxx
 #define itkBSplineSmoothingOnUpdateDisplacementFieldTransform_hxx
 
-#include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 
 #include "itkImageAlgorithm.h"
 #include "itkContinuousIndex.h"
@@ -28,57 +27,48 @@
 namespace itk
 {
 
-/**
- * Constructor
- */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType,
-                                                   NDimensions>::BSplineSmoothingOnUpdateDisplacementFieldTransform()
+                                                   VDimension>::BSplineSmoothingOnUpdateDisplacementFieldTransform()
 
 {
   this->m_NumberOfControlPointsForTheUpdateField.Fill(4);
   this->m_NumberOfControlPointsForTheTotalField.Fill(0);
 }
 
-/**
- * set mesh size for update field
- */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::SetMeshSizeForTheUpdateField(
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::SetMeshSizeForTheUpdateField(
   const ArrayType & meshSize)
 {
   ArrayType numberOfControlPoints;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     numberOfControlPoints[d] = meshSize[d] + this->m_SplineOrder;
   }
   this->SetNumberOfControlPointsForTheUpdateField(numberOfControlPoints);
 }
 
-/**
- * set mesh size for total field
- */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::SetMeshSizeForTheTotalField(
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::SetMeshSizeForTheTotalField(
   const ArrayType & meshSize)
 {
   ArrayType numberOfControlPoints;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     numberOfControlPoints[d] = meshSize[d] + this->m_SplineOrder;
   }
   this->SetNumberOfControlPointsForTheTotalField(numberOfControlPoints);
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::UpdateTransformParameters(
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::UpdateTransformParameters(
   const DerivativeType & update,
   ScalarType             factor)
 {
-  DisplacementFieldPointer displacementField = this->GetModifiableDisplacementField();
+  const DisplacementFieldPointer displacementField = this->GetModifiableDisplacementField();
 
   const typename DisplacementFieldType::RegionType & bufferedRegion = displacementField->GetBufferedRegion();
   const SizeValueType                                numberOfPixels = bufferedRegion.GetNumberOfPixels();
@@ -90,7 +80,7 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   // Smooth the update field
   //
   bool smoothUpdateField = true;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     if (this->m_NumberOfControlPointsForTheUpdateField[d] <= this->m_SplineOrder)
     {
@@ -106,26 +96,26 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
     auto * updateFieldPointer =
       reinterpret_cast<DisplacementVectorType *>(const_cast<DerivativeType &>(update).data_block());
 
-    typename ImporterType::Pointer importer = ImporterType::New();
+    auto importer = ImporterType::New();
     importer->SetImportPointer(updateFieldPointer, numberOfPixels, importFilterWillReleaseMemory);
     importer->SetRegion(displacementField->GetBufferedRegion());
     importer->SetOrigin(displacementField->GetOrigin());
     importer->SetSpacing(displacementField->GetSpacing());
     importer->SetDirection(displacementField->GetDirection());
 
-    DisplacementFieldPointer updateField = importer->GetOutput();
+    const DisplacementFieldPointer updateField = importer->GetOutput();
     updateField->Update();
     updateField->DisconnectPipeline();
 
-    DisplacementFieldPointer updateSmoothField =
+    const DisplacementFieldPointer updateSmoothField =
       this->BSplineSmoothDisplacementField(updateField, this->m_NumberOfControlPointsForTheUpdateField);
 
     auto * updatePointer = reinterpret_cast<DerivativeValueType *>(updateSmoothField->GetBufferPointer());
 
     // Add the update field to the current total field
-    bool letArrayManageMemory = false;
+    const bool letArrayManageMemory = false;
     // Pass data pointer to required container. No copying is done.
-    DerivativeType smoothedUpdate(updatePointer, update.GetSize(), letArrayManageMemory);
+    const DerivativeType smoothedUpdate(updatePointer, update.GetSize(), letArrayManageMemory);
     Superclass::UpdateTransformParameters(smoothedUpdate, factor);
   }
   else
@@ -138,7 +128,7 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   // Smooth the total field
   //
   bool smoothTotalField = true;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     if (this->m_NumberOfControlPointsForTheTotalField[d] <= this->m_SplineOrder)
     {
@@ -151,18 +141,18 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   {
     itkDebugMacro("Smooothing the total field.");
 
-    typename ImporterType::Pointer importer = ImporterType::New();
+    auto importer = ImporterType::New();
     importer->SetImportPointer(displacementField->GetBufferPointer(), numberOfPixels, importFilterWillReleaseMemory);
     importer->SetRegion(displacementField->GetBufferedRegion());
     importer->SetOrigin(displacementField->GetOrigin());
     importer->SetSpacing(displacementField->GetSpacing());
     importer->SetDirection(displacementField->GetDirection());
 
-    DisplacementFieldPointer totalField = importer->GetOutput();
+    const DisplacementFieldPointer totalField = importer->GetOutput();
     totalField->Update();
     totalField->DisconnectPipeline();
 
-    DisplacementFieldPointer totalSmoothField =
+    const DisplacementFieldPointer totalSmoothField =
       this->BSplineSmoothDisplacementField(totalField, this->m_NumberOfControlPointsForTheTotalField);
 
     ImageAlgorithm::Copy<DisplacementFieldType, DisplacementFieldType>(
@@ -170,16 +160,13 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   }
 }
 
-/**
- * set displacement field and project it onto the space of b-spline transforms
- */
-template <typename TParametersValueType, unsigned int NDimensions>
-typename BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::DisplacementFieldPointer
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::BSplineSmoothDisplacementField(
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::BSplineSmoothDisplacementField(
   const DisplacementFieldType * field,
-  const ArrayType &             numberOfControlPoints)
+  const ArrayType &             numberOfControlPoints) -> DisplacementFieldPointer
 {
-  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  auto bspliner = BSplineFilterType::New();
   bspliner->SetUseInputFieldToDefineTheBSplineDomain(true);
   bspliner->SetDisplacementField(field);
   bspliner->SetNumberOfControlPoints(numberOfControlPoints);
@@ -194,16 +181,16 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   return smoothField;
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 typename LightObject::Pointer
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::InternalClone() const
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::InternalClone() const
 {
   LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   //
@@ -220,28 +207,18 @@ BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimens
   return loPtr;
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, NDimensions>::PrintSelf(std::ostream & os,
-                                                                                                 Indent indent) const
+BSplineSmoothingOnUpdateDisplacementFieldTransform<TParametersValueType, VDimension>::PrintSelf(std::ostream & os,
+                                                                                                Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Enforce stationary boundary: ";
-  if (this->m_EnforceStationaryBoundary)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
-  os << indent << "B-spline parameters: " << std::endl;
-  os << indent << "  spline order = " << this->m_SplineOrder << std::endl;
-  os << indent << "  number of control points for the update field = " << this->m_NumberOfControlPointsForTheUpdateField
+  os << indent << "SplineOrder: " << static_cast<typename NumericTraits<SplineOrderType>::PrintType>(m_SplineOrder)
      << std::endl;
-  os << indent << "  number of control points for the total field = " << this->m_NumberOfControlPointsForTheTotalField
-     << std::endl;
+  itkPrintSelfBooleanMacro(EnforceStationaryBoundary);
+  os << indent << "NumberOfControlPointsForTheUpdateField: " << m_NumberOfControlPointsForTheUpdateField << std::endl;
+  os << indent << "NumberOfControlPointsForTheTotalField: " << m_NumberOfControlPointsForTheTotalField << std::endl;
 }
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,16 @@
 #include "itkMeshFileReader.h"
 #include "itkMeshFileWriter.h"
 #include "itkConformalFlatteningMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkConformalFlatteningMeshFilterTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "Usage: " << argv[0] << "vtkInputFilename vtkOutputFilename mapToSphere[0:1] [polarCellId]\n";
-
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << "vtkInputFilename vtkOutputFilename mapToSphere[0:1] [polarCellId]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -39,34 +41,20 @@ itkConformalFlatteningMeshFilterTest(int argc, char * argv[])
 
   using CellIdentifier = MeshType::CellIdentifier;
 
-  //
   // Read mesh file
-  //
-
-  std::cout << "Read " << argv[1] << std::endl;
-
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   MeshType::Pointer mesh = reader->GetOutput();
 
-  //
-  // Test itkConformalFlatteningMeshFilter
-  //
+  auto filter = FilterType::New();
 
-  FilterType::Pointer filter = FilterType::New();
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ConformalFlatteningMeshFilter, MeshToMeshFilter);
 
-  // Connect the input
+
   filter->SetInput(mesh);
 
   CellIdentifier polarCellId = 0; // default set to the first cell
@@ -92,42 +80,20 @@ itkConformalFlatteningMeshFilterTest(int argc, char * argv[])
   //  double scale = std::stod( argv[4] );
   //  filter->SetScale( scale );
 
-  // Execute the filter
 
-  std::cout << "Execute the filter" << std::endl;
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-  try
-  {
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
 
   // Get the Smart Pointer to the Filter Output
   MeshType::Pointer newMesh = filter->GetOutput();
 
-  //
   // Write to file
-  //
-
-  std::cout << "Write " << argv[2] << std::endl;
-
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(newMesh);
   writer->SetFileName(argv[2]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

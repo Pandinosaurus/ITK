@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,12 +52,11 @@ main(int argc, char * argv[])
 
   using CompositeTransformType =
     itk::CompositeTransform<ScalarType, Dimension>;
-  CompositeTransformType::Pointer composite = CompositeTransformType::New();
+  auto composite = CompositeTransformType::New();
 
   using AffineTransformType = itk::AffineTransform<ScalarType, Dimension>;
-  AffineTransformType::Pointer        affine = AffineTransformType::New();
-  AffineTransformType::InputPointType cor;
-  cor.Fill(12);
+  auto affine = AffineTransformType::New();
+  auto cor = itk::MakeFilled<AffineTransformType::InputPointType>(12);
   affine->SetCenter(cor);
 
   composite->AddTransform(affine);
@@ -74,17 +73,16 @@ main(int argc, char * argv[])
   itk::TransformFactory<BSplineTransformType>::RegisterTransform();
   itk::TransformFactory<BSplineTransformFType>::RegisterTransform();
 
-  BSplineTransformType::Pointer bspline = BSplineTransformType::New();
+  auto bspline = BSplineTransformType::New();
 
-  BSplineTransformType::OriginType origin;
-  origin.Fill(100);
-  BSplineTransformType::PhysicalDimensionsType dimensions;
-  dimensions.Fill(1.5 * 9.0);
+  auto origin = itk::MakeFilled<BSplineTransformType::OriginType>(100);
+  auto dimensions =
+    itk::MakeFilled<BSplineTransformType::PhysicalDimensionsType>(1.5 * 9.0);
 
   bspline->SetTransformDomainOrigin(origin);
   bspline->SetTransformDomainPhysicalDimensions(dimensions);
 
-  BSplineTransformType::ParametersType parameters(
+  const BSplineTransformType::ParametersType parameters(
     bspline->GetNumberOfParameters());
   bspline->SetParameters(parameters);
   bspline->SetIdentity();
@@ -100,7 +98,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
   // Software Guide : BeginCodeSnippet
   using TransformWriterType = itk::TransformFileWriterTemplate<ScalarType>;
-  TransformWriterType::Pointer writer = TransformWriterType::New();
+  auto writer = TransformWriterType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -148,7 +146,7 @@ main(int argc, char * argv[])
 
   using TransformReaderType =
     itk::TransformFileReaderTemplate<ReadScalarType>;
-  TransformReaderType::Pointer reader = TransformReaderType::New();
+  auto reader = TransformReaderType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -181,8 +179,8 @@ main(int argc, char * argv[])
   // The transform reader is templated and it returns a list
   // of \doxygen{Transform}'s. Even thought the reader instantiate the
   // appropriate transform class when reading the file, it is up to the user
-  // to do the approriate cast. To get the output list of transform we use the
-  // GetTransformList() function.
+  // to do the appropriate cast. To get the output list of transform we use
+  // the GetTransformList() function.
   //
   // Software Guide : EndLatex
 
@@ -205,7 +203,7 @@ main(int argc, char * argv[])
   auto it = transforms->begin();
   if (!strcmp((*it)->GetNameOfClass(), "CompositeTransform"))
   {
-    ReadCompositeTransformType::Pointer compositeRead =
+    const ReadCompositeTransformType::Pointer compositeRead =
       static_cast<ReadCompositeTransformType *>((*it).GetPointer());
     compositeRead->Print(std::cout);
   }

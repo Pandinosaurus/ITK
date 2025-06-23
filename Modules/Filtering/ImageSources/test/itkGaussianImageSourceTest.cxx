@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ itkGaussianImageSourceTest(int argc, char * argv[])
 
   // Create a Gaussian image source
   using GaussianSourceType = itk::GaussianImageSource<ImageType>;
-  GaussianSourceType::Pointer gaussianImage = GaussianSourceType::New();
+  auto gaussianImage = GaussianSourceType::New();
 
   ImageType::SpacingValueType spacing[] = { 1.2f, 1.3f, 1.4f };
   ImageType::PointValueType   origin[] = { 1.0f, 4.0f, 2.0f };
@@ -78,12 +78,11 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(direction, gaussianImage->GetDirection());
 
   // Test SetReferenceImage from GenerateImageSource base class.
-  ImageType::Pointer   referenceImage = ImageType::New();
-  ImageType::IndexType startIndex;
-  startIndex.Fill(0);
-  ImageType::SizeType referenceSize;
+  auto                           referenceImage = ImageType::New();
+  constexpr ImageType::IndexType startIndex{};
+  ImageType::SizeType            referenceSize;
   referenceSize.SetSize(size);
-  ImageType::RegionType region(startIndex, referenceSize);
+  const ImageType::RegionType region(startIndex, referenceSize);
   referenceImage->SetRegions(region);
   referenceImage->Allocate();
   referenceImage->FillBuffer(0);
@@ -92,14 +91,14 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   referenceImage->SetSpacing(spacing);
   referenceImage->SetDirection(direction);
   gaussianImage->SetReferenceImage(referenceImage);
-  bool useReferenceImage = true;
+  constexpr bool useReferenceImage = true;
   ITK_TEST_SET_GET_BOOLEAN(gaussianImage, UseReferenceImage, useReferenceImage);
   gaussianImage->SetReferenceImage(referenceImage);
   ITK_TEST_SET_GET_VALUE(referenceImage, gaussianImage->GetReferenceImage());
 
   gaussianImage->SetOutputParametersFromImage(referenceImage);
 
-  bool normalized = std::stoi(argv[2]) != 0;
+  const bool normalized = std::stoi(argv[2]) != 0;
   ITK_TEST_SET_GET_BOOLEAN(gaussianImage, Normalized, normalized);
 
   gaussianImage->SetMean(mean);
@@ -113,7 +112,7 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   GaussianSourceType::ParametersType params = gaussianImage->GetParameters();
   if (params.GetSize() != 7)
   {
-    std::cerr << "Incorrect number of parameters. Expected 7, got " << params.GetSize() << "." << std::endl;
+    std::cerr << "Incorrect number of parameters. Expected 7, got " << params.GetSize() << '.' << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -152,7 +151,7 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   {
     std::cerr << "Sigma disagrees with parameters array." << std::endl;
     std::cerr << "Sigma: " << gaussianImage->GetSigma() << ", parameters: [" << params[0] << ", " << params[1] << ", "
-              << params[2] << "]" << std::endl;
+              << params[2] << ']' << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -162,7 +161,7 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   {
     std::cerr << "Mean disagrees with parameters array." << std::endl;
     std::cerr << "Mean: " << gaussianImage->GetMean() << ", parameters: [" << params[3] << ", " << params[4] << ", "
-              << params[5] << "]" << std::endl;
+              << params[5] << ']' << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -174,19 +173,19 @@ itkGaussianImageSourceTest(int argc, char * argv[])
   }
 
 
-  itk::SimpleFilterWatcher watcher(gaussianImage, "GaussianImageSource");
+  const itk::SimpleFilterWatcher watcher(gaussianImage, "GaussianImageSource");
 
   // Run the pipeline
   ITK_TRY_EXPECT_NO_EXCEPTION(gaussianImage->Update());
 
 
   // Get the output of the image source
-  ImageType::Pointer outputImage = gaussianImage->GetOutput();
+  const ImageType::Pointer outputImage = gaussianImage->GetOutput();
 
   // Write the result image
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
 

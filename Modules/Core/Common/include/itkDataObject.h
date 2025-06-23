@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ class ITK_FORWARD_EXPORT DataObject;
 /*--------------------Data Object Exceptions---------------------------*/
 
 /**
- *\class DataObjectError
+ * \class DataObjectError
  * \brief Exception object for DataObject exceptions.
  * \ingroup ITKCommon
  */
@@ -59,10 +59,7 @@ public:
   ~DataObjectError() noexcept override = default;
 
   /** Constructor. Needed to ensure the exception object can be copied. */
-  DataObjectError(const char * file, unsigned int lineNumber);
-
-  /** Constructor. Needed to ensure the exception object can be copied. */
-  DataObjectError(const std::string & file, unsigned int lineNumber);
+  DataObjectError(std::string file, unsigned int lineNumber);
 
   /** Copy constructor. Needed to ensure the exception object can be copied. */
   DataObjectError(const DataObjectError & orig) noexcept;
@@ -71,8 +68,8 @@ public:
   DataObjectError &
   operator=(const DataObjectError & orig) noexcept;
 
-  /** Standard type macro */
-  itkTypeMacro(DataObjectError, ExceptionObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DataObjectError);
 
   /** Set the data object that is throwing this exception. */
   void
@@ -80,13 +77,14 @@ public:
 
 
   /** Get the data object that is throwing this exception. */
-  const DataObject *
+  /** @ITKStartGrouping */
+  [[nodiscard]] const DataObject *
   GetDataObject() const noexcept;
 #if !defined(ITK_LEGACY_REMOVE)
   DataObject *
   GetDataObject() noexcept;
 #endif
-
+  /** @ITKEndGrouping */
 protected:
   /** Print exception information.  This method can be overridden by
    * specific exception subtypes.  The default is to print out the
@@ -100,7 +98,7 @@ private:
 };
 
 /**
- *\class InvalidRequestRegionError
+ * \class InvalidRequestRegionError
  *  \brief Exception object for invalid requested region.
  *
  * Exception object for invalid requested region.
@@ -117,10 +115,7 @@ public:
   ~InvalidRequestedRegionError() noexcept override = default;
 
   /** Constructor. Needed to ensure the exception object can be copied. */
-  InvalidRequestedRegionError(const char * file, unsigned int lineNumber);
-
-  /** Constructor. Needed to ensure the exception object can be copied. */
-  InvalidRequestedRegionError(const std::string & file, unsigned int lineNumber);
+  InvalidRequestedRegionError(std::string file, unsigned int lineNumber);
 
   /** Copy constructor.  Needed to ensure the exception object can be copied. */
   InvalidRequestedRegionError(const InvalidRequestedRegionError & orig) noexcept;
@@ -129,8 +124,8 @@ public:
   InvalidRequestedRegionError &
   operator=(const InvalidRequestedRegionError & orig) noexcept;
 
-  /** Standard type macro */
-  itkTypeMacro(InvalidRequestedRegionError, DataObjectError);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InvalidRequestedRegionError);
 
 protected:
   /** Print exception information.  This method can be overridden by
@@ -144,7 +139,7 @@ protected:
 /*----------------------------Data Object--------------------------------*/
 
 /**
- *\class DataObject
+ * \class DataObject
  * \brief Base class for all data objects in ITK.
  *
  * This is the base class for all data objects in the Insight data
@@ -300,8 +295,8 @@ public:
 
   using DataObjectIdentifierType = std::string;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DataObject, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DataObject);
 
   /** Method for creation through the object factory. */
   itkSimpleNewMacro(DataObject);
@@ -332,6 +327,10 @@ public:
   using DataObjectPointerArraySizeType = std::vector<Pointer>::size_type;
   DataObjectPointerArraySizeType
   GetSourceOutputIndex() const;
+
+  /** Does an Update() of its source, if it has one. Does nothing, otherwise. */
+  void
+  UpdateSource() const;
 
   /** Restore the data object to its initial state. This means releasing
    * memory. */
@@ -408,7 +407,7 @@ public:
    * a derived class is assumed to call its source's
    * ProcessObject::UpdateOutputInformation() which determines modified
    * times, LargestPossibleRegions, and any extra meta data like spacing,
-   * origin, etc. Default implementation simply call's it's source's
+   * origin, etc. Default implementation simply calls its source's
    * UpdateOutputInformation(). */
   virtual void
   UpdateOutputInformation();
@@ -429,13 +428,14 @@ public:
 
   /** The maximum MTime of all upstream filters and data objects.
    * This does not include the MTime of this data object. */
+  /** @ITKStartGrouping */
   void
   SetPipelineMTime(ModifiedTimeType time)
   {
     m_PipelineMTime = time;
   }
   itkGetConstReferenceMacro(PipelineMTime, ModifiedTimeType);
-
+  /** @ITKEndGrouping */
   /** MTime for the last time this DataObject was generated. */
   virtual ModifiedTimeType
   GetUpdateMTime() const;
@@ -445,9 +445,10 @@ public:
    *  the Unix epoch. That is the time 00:00:00 UTC on 1 January 1970
    *  (or 1970-01-01T00:00:00Z ISO 8601)
    */
+  /** @ITKStartGrouping */
   itkSetMacro(RealTimeStamp, RealTimeStamp);
   itkGetConstReferenceMacro(RealTimeStamp, RealTimeStamp);
-
+  /** @ITKEndGrouping */
   /** Setup a DataObject to receive new data.  This method is called
    * by the pipeline mechanism on each output of filter that needs
    * to execute.  The default implementation is to return a DataObject
@@ -552,24 +553,24 @@ protected:
 
 private:
   /** Who generated this data? */
-  WeakPointer<ProcessObject> m_Source;
-  DataObjectIdentifierType   m_SourceOutputName;
+  WeakPointer<ProcessObject> m_Source{};
+  DataObjectIdentifierType   m_SourceOutputName{};
 
   /** When was this data last generated?
    *  This time stamp is an integer number and it is intended to synchronize the
    *  activities of the pipeline. It doesn't relates to the clock time of
    *  acquiring or processing the data. */
-  TimeStamp m_UpdateMTime;
+  TimeStamp m_UpdateMTime{};
 
   /** When, in real time, this data was generated. */
-  RealTimeStamp m_RealTimeStamp;
+  RealTimeStamp m_RealTimeStamp{};
 
-  bool m_ReleaseDataFlag; // Data will release after use by a filter if on
-  bool m_DataReleased;    // Keep track of data release during pipeline execution
+  bool m_ReleaseDataFlag{}; // Data will release after use by a filter if on
+  bool m_DataReleased{};    // Keep track of data release during pipeline execution
 
   /** The maximum MTime of all upstream filters and data objects.
    * This does not include the MTime of this data object. */
-  ModifiedTimeType m_PipelineMTime;
+  ModifiedTimeType m_PipelineMTime{};
 
   /** Static member that controls global data release after use by filter. */
   static bool * m_GlobalReleaseDataFlag;

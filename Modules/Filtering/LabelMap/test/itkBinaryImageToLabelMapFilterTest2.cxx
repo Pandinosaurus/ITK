@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,8 @@ itkBinaryImageToLabelMapFilterTest2(int argc, char * argv[])
 
   if (argc != 6)
   {
-    std::cerr << "usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << "inputBinaryImage outputLabelImage";
     std::cerr << "foregroundValue backgroundValue NumThreads";
     std::cerr << std::endl;
@@ -46,11 +47,11 @@ itkBinaryImageToLabelMapFilterTest2(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using ImageToLabelType = itk::BinaryImageToLabelMapFilter<ImageType, LabelMapType>;
-  ImageToLabelType::Pointer imageToLabel = ImageToLabelType::New();
+  auto imageToLabel = ImageToLabelType::New();
 
   imageToLabel->SetInput(reader->GetOutput());
   imageToLabel->SetFullyConnected(true);
@@ -64,14 +65,16 @@ itkBinaryImageToLabelMapFilterTest2(int argc, char * argv[])
   ITK_TEST_EXPECT_EQUAL(imageToLabel->GetOutput()->GetNumberOfLabelObjects(), imageToLabel->GetNumberOfObjects());
 
   using LabelToImageType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  LabelToImageType::Pointer labelToImage = LabelToImageType::New();
+  auto labelToImage = LabelToImageType::New();
   labelToImage->SetInput(imageToLabel->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(labelToImage->GetOutput());
-  writer->Update();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

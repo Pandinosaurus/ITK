@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class ImageClassifierBase
+ * \class ImageClassifierBase
  * \brief Base class for the ImageClassifierBase object.
  *
  * itkImageClassifierBase is the base class for algorithms
@@ -82,8 +82,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageClassifierBase, ClassifierBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageClassifierBase);
 
   /** Type definition for the input image. */
   using InputImageType = TInputImage;
@@ -96,22 +96,23 @@ public:
   /** Type definitions from the Superclass */
 
   /**Set the decision rule */
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementVectorType;
 
   /** Typedefs for membership function */
-  using MembershipFunctionType = typename Superclass::MembershipFunctionType;
+  using typename Superclass::MembershipFunctionType;
 
-  using MembershipFunctionPointer = typename Superclass::MembershipFunctionPointer;
+  using typename Superclass::MembershipFunctionPointer;
 
-  using MembershipFunctionPointerVector = typename Superclass::MembershipFunctionPointerVector;
+  using typename Superclass::MembershipFunctionPointerVector;
 
   /** Type alias for decision rule */
-  using DecisionRuleType = typename Superclass::DecisionRuleType;
+  using typename Superclass::DecisionRuleType;
 
   /** Get/Set the input image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(InputImage, InputImageType);
   itkGetConstObjectMacro(InputImage, InputImageType);
-
+  /** @ITKEndGrouping */
   /** Set the classified image. */
   itkSetMacro(ClassifiedImage, ClassifiedImagePointer);
 
@@ -151,10 +152,10 @@ protected:
 private:
   using InputImageSizeType = typename TInputImage::SizeType;
 
-  InputImageConstPointer m_InputImage;
-  ClassifiedImagePointer m_ClassifiedImage;
+  InputImageConstPointer m_InputImage{};
+  ClassifiedImagePointer m_ClassifiedImage{};
 
-  /** Define a virtual Classifier function to classify the whole image. */
+  /** Define a virtual classifier function to classify the whole image. */
   virtual void
   Classify();
 }; // class ImageClassifierBase

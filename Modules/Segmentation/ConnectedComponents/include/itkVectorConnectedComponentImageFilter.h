@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ namespace itk
 namespace Functor
 {
 /**
- *\class SimilarVectorsFunctor
+ * \class SimilarVectorsFunctor
  *
  *  \brief A connected components filter that labels the
  *         objects in a vector image.  Two vectors are pointing
@@ -51,7 +51,7 @@ template <typename TInput>
 class SimilarVectorsFunctor
 {
 public:
-  SimilarVectorsFunctor() { m_Threshold = itk::NumericTraits<typename TInput::ValueType>::ZeroValue(); }
+  SimilarVectorsFunctor() = default;
 
   ~SimilarVectorsFunctor() = default;
 
@@ -67,22 +67,18 @@ public:
   }
 
   bool
-  operator!=(const SimilarVectorsFunctor &) const
+  operator==(const SimilarVectorsFunctor &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const SimilarVectorsFunctor & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(SimilarVectorsFunctor);
 
   bool
   operator()(const TInput & a, const TInput & b) const
   {
     using RealValueType = typename NumericTraits<typename TInput::ValueType>::RealType;
-    RealValueType dotProduct = NumericTraits<RealValueType>::ZeroValue();
+    RealValueType dotProduct{};
     for (unsigned int i = 0; i < NumericTraits<TInput>::GetLength(a); ++i)
     {
       dotProduct += a[i] * b[i];
@@ -91,12 +87,12 @@ public:
   }
 
 protected:
-  typename TInput::ValueType m_Threshold;
+  typename TInput::ValueType m_Threshold{};
 };
 } // end namespace Functor
 
 /**
- *\class VectorConnectedComponentImageFilter
+ * \class VectorConnectedComponentImageFilter
  *
  *  \brief A connected components filter that labels the
  *         objects in a vector image.  Two vectors are pointing
@@ -128,8 +124,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorConnectedComponentImageFilter, ConnectedComponentFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorConnectedComponentImageFilter);
 
   using InputValueType = typename TInputImage::PixelType::ValueType;
 
@@ -145,12 +141,8 @@ public:
     return (this->GetFunctor().GetDistanceThreshold());
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputValueHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
   itkConceptMacro(InputValyeTypeIsFloatingCheck, (Concept::IsFloatingPoint<InputValueType>));
-  // End concept checking
-#endif
 
 protected:
   VectorConnectedComponentImageFilter() = default;

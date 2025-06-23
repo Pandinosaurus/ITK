@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,30 +18,23 @@
 #ifndef itkHeavisideStepFunction_hxx
 #define itkHeavisideStepFunction_hxx
 
-#include "itkHeavisideStepFunction.h"
 #include "itkMath.h"
 
 namespace itk
 {
-template <typename TInput, typename TOutput>
-HeavisideStepFunction<TInput, TOutput>::HeavisideStepFunction()
-  : Superclass()
-{}
 
 template <typename TInput, typename TOutput>
-typename HeavisideStepFunction<TInput, TOutput>::OutputType
-HeavisideStepFunction<TInput, TOutput>::Evaluate(const InputType & input) const
+auto
+HeavisideStepFunction<TInput, TOutput>::Evaluate(const InputType & input) const -> OutputType
 {
-  return (input >= NumericTraits<InputType>::ZeroValue()) ? NumericTraits<OutputType>::OneValue()
-                                                          : NumericTraits<OutputType>::ZeroValue();
+  return (input >= InputType{}) ? NumericTraits<OutputType>::OneValue() : OutputType{};
 }
 
 template <typename TInput, typename TOutput>
-typename HeavisideStepFunction<TInput, TOutput>::OutputType
-HeavisideStepFunction<TInput, TOutput>::EvaluateDerivative(const InputType & input) const
+auto
+HeavisideStepFunction<TInput, TOutput>::EvaluateDerivative(const InputType & input) const -> OutputType
 {
-  return (Math::ExactlyEquals(input, NumericTraits<InputType>::ZeroValue())) ? NumericTraits<OutputType>::OneValue()
-                                                                             : NumericTraits<OutputType>::ZeroValue();
+  return (Math::ExactlyEquals(input, InputType{})) ? NumericTraits<OutputType>::OneValue() : OutputType{};
 }
 
 } // namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,22 +19,21 @@
 #ifndef itkLevelSetTestFunction_hxx
 #define itkLevelSetTestFunction_hxx
 
-#include "itkLevelSetTestFunction.h"
 
 namespace itk
 {
 
 template <typename TPixel>
-typename LevelSetTestFunction<TPixel>::OutputRealType
-LevelSetTestFunction<TPixel>::Evaluate(const PointType & point) const
+auto
+LevelSetTestFunction<TPixel>::Evaluate(const PointType & point) const -> OutputRealType
 {
   return static_cast<OutputRealType>(
     std::sqrt((point[0] - 7.0) * (point[0] - 7.0) + (point[1] - 4.0) * (point[1] - 4.0)) - 3.0);
 }
 
 template <typename TPixel>
-typename LevelSetTestFunction<TPixel>::GradientType
-LevelSetTestFunction<TPixel>::EvaluateGradient(const PointType & point) const
+auto
+LevelSetTestFunction<TPixel>::EvaluateGradient(const PointType & point) const -> GradientType
 {
   GradientType gradient;
   gradient[0] = (point[0] - 7.0) / std::sqrt((point[0] - 7.0) * (point[0] - 7.0) + (point[1] - 4.0) * (point[1] - 4.0));

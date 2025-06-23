@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -438,7 +438,7 @@ __kernel void ComputeUpdate(__global const IMGPIXELTYPE *fix,
       change[gidx] = 0;
       return;
       }
-    // to match checks in teh CPU version of the Demons Registration Function,
+    // to match checks in the CPU version of the Demons Registration Function,
     // compare diff with 0.001
     if (diff > -0.001 && diff < 0.001)
       {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,19 +52,19 @@ itkTobogganImageFilterTest(int argc, char * argv[])
   using GMGaussianType = itk::GradientMagnitudeRecursiveGaussianImageFilter<FloatImageType, FloatImageType>;
 
 
-  itk::ImageFileReader<InputImageType>::Pointer reader = itk::ImageFileReader<InputImageType>::New();
+  const itk::ImageFileReader<InputImageType>::Pointer reader = itk::ImageFileReader<InputImageType>::New();
 
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
-  FilterType::Pointer toboggan = FilterType::New();
+  auto toboggan = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(toboggan, TobogganImageFilter, ImageToImageFilter);
 
-  InputCastFilterType::Pointer inputCaster = InputCastFilterType::New();
-  GMGaussianType::Pointer      gmgaussian = GMGaussianType::New();
+  auto inputCaster = InputCastFilterType::New();
+  auto gmgaussian = GMGaussianType::New();
 
   inputCaster->SetInput(reader->GetOutput());
   gmgaussian->SetInput(inputCaster->GetOutput());
@@ -77,14 +77,14 @@ itkTobogganImageFilterTest(int argc, char * argv[])
 
 
   // Cast the output of the Toboggan filter
-  OutputCastFilterType::Pointer outputCaster = OutputCastFilterType::New();
+  auto outputCaster = OutputCastFilterType::New();
   outputCaster->SetInput(toboggan->GetOutput());
 
   ITK_TRY_EXPECT_NO_EXCEPTION(outputCaster->Update());
 
   // Write the output
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(outputCaster->GetOutput());
   writer->SetFileName(argv[2]);
 

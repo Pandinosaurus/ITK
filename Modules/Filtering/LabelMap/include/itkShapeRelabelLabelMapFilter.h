@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,14 +26,15 @@
 namespace itk
 {
 /**
- *\class ShapeRelabelLabelMapFilter
+ * \class ShapeRelabelLabelMapFilter
  * \brief Relabels objects according to their shape attributes.
  *
- * The ShapeRelabelImageFilter relabels a label collection image according to the shape attributes of
- * the objects. The label produced are always consecutives.
+ * The ShapeRelabelImageFilter relabels a label collection image according
+ * to the shape attributes of the objects. The label produced are always
+ * consecutive.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -69,33 +70,31 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ShapeRelabelLabelMapFilter, InPlaceLabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeRelabelLabelMapFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-/*  itkConceptMacro(InputEqualityComparableCheck,
+  /*itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck,
     (Concept::OStreamWritable<InputImagePixelType>));*/
-// End concept checking
-#endif
 
   /**
    * Set/Get the order of labeling of the objects. By default, the objects with
    * the highest attribute values are labeled first. Setting ReverseOrdering to true
    * causes the object with the smallest attributes to be labeled first.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ReverseOrdering, bool);
   itkGetConstReferenceMacro(ReverseOrdering, bool);
   itkBooleanMacro(ReverseOrdering);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the attribute to use.
    * Default is "Size".
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Attribute, AttributeType);
   itkSetMacro(Attribute, AttributeType);
   void
@@ -103,7 +102,7 @@ public:
   {
     this->SetAttribute(LabelObjectType::GetAttributeFromName(s));
   }
-
+  /** @ITKEndGrouping */
 protected:
   ShapeRelabelLabelMapFilter();
   ~ShapeRelabelLabelMapFilter() override = default;
@@ -151,20 +150,20 @@ protected:
 
     // and put back the objects in the map
     output->ClearLabels();
-    PixelType                           label = NumericTraits<PixelType>::ZeroValue();
-    typename VectorType::const_iterator it2 = labelObjects.begin();
+    PixelType label{};
+    auto      it2 = labelObjects.begin();
     while (it2 != labelObjects.end())
     {
       // Avoid the background label if it is used
       if (label == output->GetBackgroundValue())
       {
-        label++;
+        ++label;
       }
       (*it2)->SetLabel(label);
       output->AddLabelObject(*it2);
 
       // Go to the next label
-      label++;
+      ++label;
       progress.CompletedPixel();
 
       ++it2;
@@ -174,9 +173,9 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  bool m_ReverseOrdering;
+  bool m_ReverseOrdering{};
 
-  AttributeType m_Attribute;
+  AttributeType m_Attribute{};
 }; // end of class
 } // end namespace itk
 

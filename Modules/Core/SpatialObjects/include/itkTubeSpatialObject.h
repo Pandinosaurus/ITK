@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,20 +54,20 @@ public:
   using TubePointType = TSpatialObjectPointType;
   using TubePointListType = std::vector<TubePointType>;
 
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using SpatialObjectPointType = typename Superclass::SpatialObjectPointType;
-  using PointContainerType = VectorContainer<IdentifierType, PointType>;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::SpatialObjectPointType;
+  using PointContainerType = VectorContainer<PointType>;
   using PointContainerPointer = SmartPointer<PointContainerType>;
-  using VectorType = typename Superclass::VectorType;
-  using CovariantVectorType = typename Superclass::CovariantVectorType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
+  using typename Superclass::VectorType;
+  using typename Superclass::CovariantVectorType;
+  using typename Superclass::BoundingBoxType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(TubeSpatialObject, PointBasedSpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TubeSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -75,20 +75,24 @@ public:
   Clear() override;
 
   /** Set the type of tube end-type: false = flat, true = rounded */
+  /** @ITKStartGrouping */
   itkSetMacro(EndRounded, bool);
   itkGetConstMacro(EndRounded, bool);
   itkBooleanMacro(EndRounded);
-
-  /** Calculate the normalized tangent */
+  /** @ITKEndGrouping */
+  /** Compute the tangents and normals of the centerline of the tube. */
   bool
   ComputeTangentsAndNormals();
 
 #if !defined(ITK_LEGACY_REMOVE)
-  /** Calculate the normalized tangent - Old spelling of function name */
-  itkLegacyMacro(bool ComputeTangentAndNormals()) { return ComputeTangentsAndNormals(); }
+  /** Compute the tangents and normals of the centerline of the tube. */
+  itkLegacyMacro(bool ComputeTangentAndNormals())
+  {
+    return ComputeTangentsAndNormals();
+  }
 #endif
 
-  /** Remove duplicate points */
+  /** Remove duplicate points. */
   unsigned int
   RemoveDuplicatePointsInObjectSpace(double minSpacingInObjectSpace = 0);
 
@@ -110,12 +114,20 @@ public:
 
   itkBooleanMacro(Root);
 
-  /** Returns true if the point is inside the tube, false otherwise. */
+  /** Test whether a point is inside the object: returns true if the point is inside the tube, false otherwise.
+   *
+   * For computational speed purposes, it is faster if the method does not check the name of the class and the current
+   * depth.
+   */
   bool
   IsInsideInObjectSpace(const PointType & point) const override;
 
   /* Avoid hiding the overload that supports depth and name arguments */
   using Superclass::IsInsideInObjectSpace;
+
+  /** Copy the information from another spatial object. */
+  void
+  CopyInformation(const DataObject * data) override;
 
 protected:
   /** Compute the boundaries of the tube. */
@@ -129,13 +141,13 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
-  int  m_ParentPoint;
-  bool m_EndRounded;
-  bool m_Root;
+  int  m_ParentPoint{};
+  bool m_EndRounded{};
+  bool m_Root{};
 };
 
 } // end namespace itk

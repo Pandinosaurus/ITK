@@ -1,6 +1,7 @@
 itk_wrap_module(ITKCommon)
 
-set(WRAPPER_SUBMODULE_ORDER
+set(
+  WRAPPER_SUBMODULE_ORDER
   itkFixedArray
   itkVector
   itkCovariantVector
@@ -40,8 +41,10 @@ set(WRAPPER_SUBMODULE_ORDER
   itkSymmetricSecondRankTensor
   itkImage
   itkVectorImage
+  itkSpecialCoordinatesImage
+  itkPhasedArray3DSpecialCoordinatesImage
   itkNeighborhood
-#  SwigExtras
+  #  SwigExtras
   itkImageSourceCommon
   itkImageSource
   itkImageToImageFilterCommon
@@ -52,11 +55,10 @@ set(WRAPPER_SUBMODULE_ORDER
   itkDefaultDynamicMeshTraits
   itkDefaultStaticMeshTraits
   itkFunctionBase
-#  itkCellInterface
-#  itkPointSet
-#  itkVertexCell
-#  itkLineCell
+  #  itkCellInterface
+  #  itkPointSet
+  #  itkVertexCell
+  #  itkLineCell
 )
-itk_auto_load_submodules()
 
-itk_end_wrap_module()
+itk_auto_load_and_end_wrap_submodules()

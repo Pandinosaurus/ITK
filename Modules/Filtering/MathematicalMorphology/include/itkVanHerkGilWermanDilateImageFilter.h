@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,6 @@ template <typename TPixel>
 class MaxFunctor
 {
 public:
-  MaxFunctor() = default;
-  ~MaxFunctor() = default;
   inline TPixel
   operator()(const TPixel & A, const TPixel & B) const
   {
@@ -46,8 +44,8 @@ public:
   using Self = VanHerkGilWermanDilateImageFilter;
   using Superclass = VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, MaxFunctor<typename TImage::PixelType>>;
 
-  /** Runtime information support. */
-  itkTypeMacro(VanHerkGilWermanDilateImageFilter, VanHerkGilWermanErodeDilateImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VanHerkGilWermanDilateImageFilter);
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;

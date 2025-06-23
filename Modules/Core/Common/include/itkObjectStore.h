@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ namespace itk
 class ObjectStoreEnums
 {
 public:
-  /**\class GrowthStrategy
+  /**
    * \ingroup ITKCommon
    * Type of memory allocation strategy */
   enum class GrowthStrategy : uint8_t
@@ -95,8 +95,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectStore, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectStore);
 
   /** Type of the objects in storage. */
   using ObjectType = TObjectType;
@@ -141,13 +141,15 @@ public:
   Clear();
 
   /** Set/Get the linear growth size */
+  /** @ITKStartGrouping */
   itkSetMacro(LinearGrowthSize, SizeValueType);
   itkGetConstMacro(LinearGrowthSize, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the growth strategy. */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(GrowthStrategy, GrowthStrategyEnum);
   itkGetConstMacro(GrowthStrategy, GrowthStrategyEnum);
-
+  /** @ITKEndGrouping */
   /** Set growth strategy to exponential */
   void
   SetGrowthStrategyToExponential()
@@ -163,7 +165,7 @@ public:
   }
 
 protected:
-  ObjectStore();
+  ObjectStore() = default;
   ~ObjectStore() override;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -174,15 +176,12 @@ protected:
 
   struct MemoryBlock
   {
-    MemoryBlock()
-      : Begin(0)
-    {}
+    MemoryBlock() = default;
 
     MemoryBlock(SizeValueType n)
-      : Size(n)
-    {
-      Begin = new ObjectType[n];
-    }
+      : Begin(new ObjectType[n])
+      , Size(n)
+    {}
 
     ~MemoryBlock() = default; // Purposely does *not* free memory
 
@@ -192,21 +191,21 @@ protected:
       delete[] Begin;
     }
 
-    ObjectType *  Begin;
+    ObjectType *  Begin{};
     SizeValueType Size{ 0 };
   };
 
 private:
-  GrowthStrategyEnum m_GrowthStrategy;
+  GrowthStrategyEnum m_GrowthStrategy{ GrowthStrategyEnum::EXPONENTIAL_GROWTH };
 
-  SizeValueType m_Size;
-  SizeValueType m_LinearGrowthSize;
+  SizeValueType m_Size{};
+  SizeValueType m_LinearGrowthSize{ 1024 };
 
   /** Pointers to objects available for borrowing. */
-  FreeListType m_FreeList;
+  FreeListType m_FreeList{};
 
   /** A list of MemoryBlocks that have been allocated. */
-  std::vector<MemoryBlock> m_Store;
+  std::vector<MemoryBlock> m_Store{};
 };
 
 } // end namespace itk

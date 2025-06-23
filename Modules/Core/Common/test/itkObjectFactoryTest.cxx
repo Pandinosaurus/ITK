@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,14 +20,14 @@
 #include "itkImage.h"
 #include <list>
 
-#define CHECK_FOR_VALUE(a, b)                                                                                          \
-  {                                                                                                                    \
-    if (a != b)                                                                                                        \
-    {                                                                                                                  \
-      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl;                               \
-      return EXIT_FAILURE;                                                                                             \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define CHECK_FOR_VALUE(a, b)                                                            \
+  {                                                                                      \
+    if (a != b)                                                                          \
+    {                                                                                    \
+      std::cerr << "Error in " #a << " expected " << b << " but got " << a << std::endl; \
+      return EXIT_FAILURE;                                                               \
+    }                                                                                    \
+  }                                                                                      \
   ITK_MACROEND_NOOP_STATEMENT
 
 template <typename TPixel, unsigned int VImageDimension = 2>
@@ -45,8 +45,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(TestImage);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TestImage, Image);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TestImage);
 
   // Methods from itkObject
   ~TestImage() override = default;
@@ -68,8 +68,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(TestImage2);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TestImage2, Image);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TestImage2);
 
   // Methods from itkObject
   ~TestImage2() override = default;
@@ -101,14 +101,14 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TestFactory, itk::ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TestFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    TestFactory::Pointer factory = TestFactory::New();
+    auto factory = TestFactory::New();
     itk::ObjectFactoryBase::RegisterFactory(factory);
   }
 
@@ -146,7 +146,7 @@ TestNewImage(myPointer v, const char * expectedClassName)
 int
 itkObjectFactoryTest(int, char *[])
 {
-  TestFactory::Pointer factory = TestFactory::New();
+  auto factory = TestFactory::New();
   itk::ObjectFactoryBase::RegisterFactory(factory);
 
   // List all registered factories
@@ -158,17 +158,17 @@ itkObjectFactoryTest(int, char *[])
     std::cout << "  Factory version: " << oneFactory->GetITKSourceVersion() << std::endl
               << "  Factory description: " << oneFactory->GetDescription() << std::endl;
 
-    std::list<std::string>                 overrides = oneFactory->GetClassOverrideNames();
-    std::list<std::string>                 names = oneFactory->GetClassOverrideWithNames();
-    std::list<std::string>                 descriptions = oneFactory->GetClassOverrideDescriptions();
-    std::list<bool>                        enableflags = oneFactory->GetEnableFlags();
-    std::list<std::string>::const_iterator n = names.begin();
-    std::list<std::string>::const_iterator d = descriptions.begin();
-    std::list<bool>::const_iterator        e = enableflags.begin();
-    for (std::list<std::string>::const_iterator o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, ++e)
+    std::list<std::string> overrides = oneFactory->GetClassOverrideNames();
+    std::list<std::string> names = oneFactory->GetClassOverrideWithNames();
+    std::list<std::string> descriptions = oneFactory->GetClassOverrideDescriptions();
+    std::list<bool>        enableflags = oneFactory->GetEnableFlags();
+    auto                   n = names.begin();
+    auto                   d = descriptions.begin();
+    auto                   e = enableflags.begin();
+    for (auto o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, ++e)
     {
       std::cout << "    Override " << *o << " with " << *n << std::endl
-                << "      described as \"" << *d << "\"" << std::endl
+                << "      described as \"" << *d << '"' << std::endl
                 << "      enabled " << *e << std::endl;
     }
   }

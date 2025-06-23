@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,15 +29,47 @@
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkObjectByObjectLabelMapFilter.h"
 
+template <typename TLabelMap>
+int
+CheckLabelMapOverlap(TLabelMap * labelMap)
+{
+  int exitCode = EXIT_SUCCESS;
+
+  for (auto & labelObject : labelMap->GetLabelObjects())
+  {
+    // Manually check each label object against all other label objects, to ensure that no two label objects share an
+    // index.
+    for (itk::SizeValueType lineNumber = 0; lineNumber < labelObject->GetNumberOfLines(); ++lineNumber)
+    {
+      auto line = labelObject->GetLine(lineNumber);
+      auto idx = line.GetIndex();
+      ITK_TEST_EXPECT_TRUE(line.GetLength() <= labelObject->GetNumberOfPixels());
+      for (itk::SizeValueType lengthIndex = 0; lengthIndex < line.GetLength(); ++lengthIndex)
+      {
+        for (auto & checkObject : labelMap->GetLabelObjects())
+        {
+          if (checkObject != labelObject && checkObject->HasIndex(idx))
+          {
+            std::cerr << "Label: " << int(labelObject->GetLabel()) << " and " << int(checkObject->GetLabel())
+                      << " has index " << idx << std::endl;
+            exitCode = EXIT_FAILURE;
+          }
+        }
+        ++idx[0];
+      }
+    }
+  }
+  return exitCode;
+}
+
 int
 itkStatisticsUniqueLabelMapFilterTest1(int argc, char * argv[])
 {
-  // ToDo: remove dilationOutput once the JIRA issue 3370 has been solved
-  // Then, argc != 6
-  if (argc != 7)
+  if (argc != 6)
   {
-    std::cerr << "Usage: " << argv[0];
-    std::cerr << " input feature output dilationOutput";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input feature output";
     std::cerr << " reverseOrdering attribute";
     std::cerr << std::endl;
     return EXIT_FAILURE;
@@ -45,9 +77,8 @@ itkStatisticsUniqueLabelMapFilterTest1(int argc, char * argv[])
   const char *       inputImage = argv[1];
   const char *       featureImage = argv[2];
   const char *       outputImage = argv[3];
-  const char *       dilationOutput = argv[4];
-  const bool         reverseOrdering = std::stoi(argv[5]);
-  const unsigned int attribute = std::stoi(argv[6]);
+  const bool         reverseOrdering = std::stoi(argv[4]);
+  const unsigned int attribute = std::stoi(argv[5]);
 
   constexpr unsigned int Dimension = 2;
 
@@ -58,10 +89,10 @@ itkStatisticsUniqueLabelMapFilterTest1(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<StatisticsLabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputImage);
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(featureImage);
 
 
@@ -69,34 +100,33 @@ itkStatisticsUniqueLabelMapFilterTest1(int argc, char * argv[])
   constexpr unsigned int radiusValue = 5;
 
   using LabelImageToLabelMapFilterType = itk::LabelImageToLabelMapFilter<ImageType, LabelMapType>;
-  LabelImageToLabelMapFilterType::Pointer labelMapConverter = LabelImageToLabelMapFilterType::New();
+  auto labelMapConverter = LabelImageToLabelMapFilterType::New();
   labelMapConverter->SetInput(reader->GetOutput());
-  labelMapConverter->SetBackgroundValue(itk::NumericTraits<PixelType>::ZeroValue());
+  labelMapConverter->SetBackgroundValue(PixelType{});
 
   using StructuringElementType = itk::FlatStructuringElement<Dimension>;
-  StructuringElementType::RadiusType radius;
-  radius.Fill(radiusValue);
+  auto radius = itk::MakeFilled<StructuringElementType::RadiusType>(radiusValue);
 
-  StructuringElementType structuringElement = StructuringElementType::Box(radius);
+  const StructuringElementType structuringElement = StructuringElementType::Box(radius);
 
   using MorphologicalFilterType = itk::GrayscaleDilateImageFilter<ImageType, ImageType, StructuringElementType>;
-  MorphologicalFilterType::Pointer grayscaleDilateFilter = MorphologicalFilterType::New();
+  auto grayscaleDilateFilter = MorphologicalFilterType::New();
   grayscaleDilateFilter->SetInput(reader->GetOutput());
   grayscaleDilateFilter->SetKernel(structuringElement);
 
   using ObjectByObjectLabelMapFilterType = itk::ObjectByObjectLabelMapFilter<LabelMapType>;
-  ObjectByObjectLabelMapFilterType::Pointer objectByObjectLabelMapFilter = ObjectByObjectLabelMapFilterType::New();
+  auto objectByObjectLabelMapFilter = ObjectByObjectLabelMapFilterType::New();
   objectByObjectLabelMapFilter->SetInput(labelMapConverter->GetOutput());
   objectByObjectLabelMapFilter->SetBinaryInternalOutput(false);
   objectByObjectLabelMapFilter->SetFilter(grayscaleDilateFilter);
 
   using StatisticsFilterType = itk::StatisticsLabelMapFilter<LabelMapType, ImageType>;
-  StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
+  auto statisticsFilter = StatisticsFilterType::New();
   statisticsFilter->SetInput1(objectByObjectLabelMapFilter->GetOutput());
   statisticsFilter->SetFeatureImage(reader2->GetOutput());
 
   using LabelUniqueType = itk::StatisticsUniqueLabelMapFilter<LabelMapType>;
-  LabelUniqueType::Pointer unique = LabelUniqueType::New();
+  auto unique = LabelUniqueType::New();
 
   // testing boolean macro for ReverseOrdering
   unique->ReverseOrderingOn();
@@ -120,28 +150,30 @@ itkStatisticsUniqueLabelMapFilterTest1(int argc, char * argv[])
 
   unique->SetInput(statisticsFilter->GetOutput());
 
-  itk::SimpleFilterWatcher watcher(unique, "filter");
+  const itk::SimpleFilterWatcher watcher(unique, "filter");
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(unique->Update());
+
+  const int exitCode = CheckLabelMapOverlap(unique->GetOutput());
+
+  if (exitCode == EXIT_FAILURE)
+  {
+    std::cerr << "Overlap detected in the label map." << std::endl;
+  }
 
   using LabelMapToImageFilterType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  LabelMapToImageFilterType::Pointer labelMapToImageFilter = LabelMapToImageFilterType::New();
+  auto labelMapToImageFilter = LabelMapToImageFilterType::New();
   labelMapToImageFilter->SetInput(unique->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(labelMapToImageFilter->GetOutput());
   writer->SetFileName(outputImage);
   writer->UseCompressionOn();
 
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-
-  // WARNING: TEMPORARY: JIRA ISSUE 3370
-  // Writing an additional output of just the dilated label
-  writer->SetInput(grayscaleDilateFilter->GetOutput());
-  writer->SetFileName(dilationOutput);
-  writer->UseCompressionOn();
-
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
-  return EXIT_SUCCESS;
+  return exitCode;
 }

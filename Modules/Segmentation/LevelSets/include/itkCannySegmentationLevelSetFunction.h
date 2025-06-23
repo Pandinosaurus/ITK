@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,20 +48,21 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CannySegmentationLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CannySegmentationLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using VectorImageType = typename Superclass::VectorImageType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::ImageType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::VectorImageType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** */
+  /** @ITKStartGrouping */
   void
   SetThreshold(ScalarValueType v)
   {
@@ -72,18 +73,21 @@ public:
   {
     return m_Threshold;
   }
+  /** @ITKEndGrouping */
 
   /** */
+  /** @ITKStartGrouping */
   void
   SetVariance(double v)
   {
     m_Variance = v;
   }
-  double
+  [[nodiscard]] double
   GetVariance() const
   {
     return m_Variance;
   }
+  /** @ITKEndGrouping */
 
   /** Compute the Speed Image. The Speed Image is the distance to the
       canny edges. */
@@ -118,25 +122,24 @@ public:
 
 protected:
   CannySegmentationLevelSetFunction()
-  {
-    m_Variance = 0.0;
-    m_Threshold = NumericTraits<ScalarValueType>::ZeroValue();
-    m_Caster = CastImageFilter<FeatureImageType, ImageType>::New();
-    m_Canny = CannyEdgeDetectionImageFilter<ImageType, ImageType>::New();
-    m_Distance = DanielssonDistanceMapImageFilter<ImageType, ImageType>::New();
-  }
+    : m_Variance(0.0)
+    , m_Threshold(ScalarValueType{})
+    , m_Canny(CannyEdgeDetectionImageFilter<ImageType, ImageType>::New())
+    , m_Distance(DanielssonDistanceMapImageFilter<ImageType, ImageType>::New())
+    , m_Caster(CastImageFilter<FeatureImageType, ImageType>::New())
+  {}
 
   ~CannySegmentationLevelSetFunction() override = default;
 
 private:
-  ScalarValueType m_Variance;
-  double          m_Threshold;
+  ScalarValueType m_Variance{};
+  double          m_Threshold{};
 
-  typename CannyEdgeDetectionImageFilter<ImageType, ImageType>::Pointer m_Canny;
+  typename CannyEdgeDetectionImageFilter<ImageType, ImageType>::Pointer m_Canny{};
 
-  typename DanielssonDistanceMapImageFilter<ImageType, ImageType>::Pointer m_Distance;
+  typename DanielssonDistanceMapImageFilter<ImageType, ImageType>::Pointer m_Distance{};
 
-  typename CastImageFilter<FeatureImageType, ImageType>::Pointer m_Caster;
+  typename CastImageFilter<FeatureImageType, ImageType>::Pointer m_Caster{};
 
   /** If FeatureImageType != ImageType,
    *  use the CastImageFilter to match them.
@@ -148,6 +151,7 @@ private:
     m_Caster->SetInput(feature);
     m_Canny->SetInput(m_Caster->GetOutput());
   }
+
   /** If FeatureImageType == ImageType,
    *  assign directly to the Canny filter
    */

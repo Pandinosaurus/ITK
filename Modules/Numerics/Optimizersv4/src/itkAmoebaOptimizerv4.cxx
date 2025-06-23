@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,47 +22,43 @@ namespace itk
 {
 
 
-AmoebaOptimizerv4 ::AmoebaOptimizerv4()
-  : m_InitialSimplexDelta(1)
+AmoebaOptimizerv4::AmoebaOptimizerv4()
+  : m_ParametersConvergenceTolerance(1e-8)
+  , m_FunctionConvergenceTolerance(1e-4)
+  , m_AutomaticInitialSimplex(true)
+  , m_InitialSimplexDelta(1)
+  , m_VnlOptimizer(nullptr)
 {
   this->m_NumberOfIterations = 500;
-  this->m_ParametersConvergenceTolerance = 1e-8;
-  this->m_FunctionConvergenceTolerance = 1e-4;
-  this->m_AutomaticInitialSimplex = true;
   this->m_InitialSimplexDelta.Fill(NumericTraits<ParametersType::ValueType>::OneValue());
-  this->m_OptimizeWithRestarts = false;
-  this->m_VnlOptimizer = nullptr;
 }
 
 
-AmoebaOptimizerv4::~AmoebaOptimizerv4()
-{
-  delete m_VnlOptimizer;
-}
+AmoebaOptimizerv4::~AmoebaOptimizerv4() = default;
 
 
-const std::string
-AmoebaOptimizerv4 ::GetStopConditionDescription() const
+std::string
+AmoebaOptimizerv4::GetStopConditionDescription() const
 {
   return this->m_StopConditionDescription.str();
 }
 
 
 void
-AmoebaOptimizerv4 ::PrintSelf(std::ostream & os, Indent indent) const
+AmoebaOptimizerv4::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "ParametersConvergenceTolerance: " << this->m_ParametersConvergenceTolerance << std::endl;
   os << indent << "FunctionConvergenceTolerance: " << this->m_FunctionConvergenceTolerance << std::endl;
-  os << indent << "AutomaticInitialSimplex: " << (this->m_AutomaticInitialSimplex ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(AutomaticInitialSimplex);
   os << indent << "InitialSimplexDelta: " << this->m_InitialSimplexDelta << std::endl;
 }
 
 
 vnl_amoeba *
-AmoebaOptimizerv4 ::GetOptimizer() const
+AmoebaOptimizerv4::GetOptimizer() const
 {
-  return this->m_VnlOptimizer;
+  return this->m_VnlOptimizer.get();
 }
 
 void
@@ -75,7 +71,7 @@ AmoebaOptimizerv4::SetInitialSimplexDelta(ParametersType initialSimplexDelta, bo
 
 
 void
-AmoebaOptimizerv4 ::SetMetric(MetricType * metric)
+AmoebaOptimizerv4::SetMetric(MetricType * metric)
 {
   this->m_Metric = metric;
 
@@ -114,7 +110,7 @@ AmoebaOptimizerv4 ::SetMetric(MetricType * metric)
 
 
 void
-AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
+AmoebaOptimizerv4::StartOptimization(bool /* doOnlyInitialization */)
 {
   // Perform some verification, check scales,
   // pass settings to cost-function adaptor.
@@ -124,8 +120,8 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
   // expected parameter vector matches the one we have etc...)
   this->ValidateSettings();
 
-  ParametersType parameters = this->m_Metric->GetParameters();
-  unsigned int   n = parameters.GetSize();
+  ParametersType     parameters = this->m_Metric->GetParameters();
+  const unsigned int n = parameters.GetSize();
 
   InternalParametersType delta(m_InitialSimplexDelta);
 
@@ -136,8 +132,7 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
   CostFunctionAdaptorType * adaptor = GetNonConstCostFunctionAdaptor();
   // get rid of previous instance of the internal optimizer and create a
   // new one
-  delete m_VnlOptimizer;
-  m_VnlOptimizer = new vnl_amoeba(*adaptor);
+  m_VnlOptimizer = std::make_unique<vnl_amoeba>(*adaptor);
   m_VnlOptimizer->set_max_iterations(static_cast<int>(m_NumberOfIterations));
   m_VnlOptimizer->set_x_tolerance(m_ParametersConvergenceTolerance);
   m_VnlOptimizer->set_f_tolerance(m_FunctionConvergenceTolerance);
@@ -153,7 +148,7 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
   const ScalesType & scales = GetScales();
   if (!this->GetScalesAreIdentity())
   {
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; ++i)
     {
       parameters[i] *= scales[i];
     }
@@ -168,9 +163,9 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
     constexpr double       relativeDiameter = 0.05;
     constexpr double       zeroTermDelta = 0.00025;
     InternalParametersType automaticDelta(n);
-    for (unsigned int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; ++i)
     {
-      if (fabs(parameters[i]) > zeroTermDelta)
+      if (itk::Math::abs(parameters[i]) > zeroTermDelta)
       {
         automaticDelta[i] = relativeDiameter * parameters[i];
       }
@@ -196,17 +191,17 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
       parameters = bestPosition;
       delta = delta * (1.0 / pow(2.0, static_cast<double>(i)) * (rand() > RAND_MAX / 2 ? 1 : -1));
       m_VnlOptimizer->minimize(parameters, delta);
-      double currentValue = adaptor->f(parameters);
+      const double currentValue = adaptor->f(parameters);
       // be consistent with the underlying vnl amoeba implementation
       double maxAbs = 0.0;
-      for (unsigned j = 0; j < n; j++)
+      for (unsigned int j = 0; j < n; ++j)
       {
-        if (maxAbs < fabs(bestPosition[j] - parameters[j]))
+        if (maxAbs < itk::Math::abs(bestPosition[j] - parameters[j]))
         {
-          maxAbs = fabs(bestPosition[j] - parameters[j]);
+          maxAbs = itk::Math::abs(bestPosition[j] - parameters[j]);
         }
       }
-      converged = fabs(bestValue - currentValue) < this->m_FunctionConvergenceTolerance &&
+      converged = itk::Math::abs(bestValue - currentValue) < this->m_FunctionConvergenceTolerance &&
                   maxAbs < this->m_ParametersConvergenceTolerance;
       // this comparison is valid because the
       // adaptor is set to always return the function value
@@ -216,7 +211,7 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
         bestValue = currentValue;
         bestPosition = parameters;
       }
-      i++;
+      ++i;
     }
   }
   // get the results, we scale the parameters down if scales are defined
@@ -250,12 +245,12 @@ AmoebaOptimizerv4 ::StartOptimization(bool /* doOnlyInitialization */)
 
 
 void
-AmoebaOptimizerv4 ::ValidateSettings()
+AmoebaOptimizerv4::ValidateSettings()
 {
   // if we got here it is safe to get the number of parameters the cost
   // function expects
-  ParametersType parameters = this->m_Metric->GetParameters();
-  unsigned int   n = parameters.GetSize();
+  const ParametersType parameters = this->m_Metric->GetParameters();
+  const unsigned int   n = parameters.GetSize();
 
   // the user gave us data to use for the initial simplex, check that it
   // matches the number of parameters (simplex dimension is n+1 - the initial
@@ -265,7 +260,7 @@ AmoebaOptimizerv4 ::ValidateSettings()
   {
     if (m_InitialSimplexDelta.size() != n)
     {
-      itkExceptionMacro(<< "cost function and simplex delta dimensions mismatch");
+      itkExceptionMacro("cost function and simplex delta dimensions mismatch");
     }
   }
 
@@ -274,19 +269,19 @@ AmoebaOptimizerv4 ::ValidateSettings()
   {
     if (this->GetScales().Size() != n)
     {
-      itkExceptionMacro(<< "cost function and scaling information dimensions mismatch");
+      itkExceptionMacro("cost function and scaling information dimensions mismatch");
     }
   }
 
   // parameters' convergence tolerance has to be positive
   if (this->m_ParametersConvergenceTolerance < 0)
   {
-    itkExceptionMacro(<< "negative parameters convergence tolerance");
+    itkExceptionMacro("negative parameters convergence tolerance");
   }
   // function convergence tolerance has to be positive
   if (this->m_FunctionConvergenceTolerance < 0)
   {
-    itkExceptionMacro(<< "negative function convergence tolerance");
+    itkExceptionMacro("negative function convergence tolerance");
   }
 }
 

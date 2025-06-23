@@ -407,7 +407,6 @@ set(v3p_netlib_sources
      ${V3P_NETLIB_minpack_SOURCES}
      ${V3P_NETLIB_opt_SOURCES}
      ${V3P_NETLIB_linalg_SOURCES}
-     ${V3P_NETLIB_toms_SOURCES}
      ${V3P_NETLIB_datapac_SOURCES}
      ${V3P_NETLIB_mathews_SOURCES}
      ${V3P_NETLIB_sparse_SOURCES}
@@ -441,8 +440,12 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 # Create a netlib library with mangled symbols.
-vxl_add_library(LIBRARY_NAME ${VXL_LIB_PREFIX}v3p_netlib
-  LIBRARY_SOURCES ${v3p_netlib_sources})
+vxl_add_library(
+    LIBRARY_NAME ${VXL_LIB_PREFIX}v3p_netlib
+    LIBRARY_SOURCES ${v3p_netlib_sources}
+    DISABLE_MSVC_MP
+)
+
 if(UNIX)
   target_link_libraries(${VXL_LIB_PREFIX}v3p_netlib m)
 endif()

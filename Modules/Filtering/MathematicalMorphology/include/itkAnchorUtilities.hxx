@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkAnchorUtilities_hxx
 #define itkAnchorUtilities_hxx
 
-#include "itkAnchorUtilities.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNeighborhoodAlgorithm.h"
@@ -57,20 +56,21 @@ DoAnchorFace(const TImage *                            input,
   // using ItType = ImageRegionConstIteratorWithIndex<TImage>;
   // ItType it(input, face);
 
-  typename TImage::Pointer dumbImg = TImage::New();
+  auto dumbImg = TImage::New();
   dumbImg->SetRegions(face);
 
   TLine NormLine = line;
   NormLine.Normalize();
   // set a generous tolerance
-  float tol = 1.0 / LineOffsets.size();
-  for (unsigned int it = 0; it < face.GetNumberOfPixels(); it++)
+  const float tol = 1.0 / LineOffsets.size();
+  for (unsigned int it = 0; it < face.GetNumberOfPixels(); ++it)
   {
-    typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
-    unsigned                   start, end;
+    const typename TImage::IndexType Ind = dumbImg->ComputeIndex(it);
+    unsigned int                     start = 0;
+    unsigned int                     end = 0;
     if (FillLineBuffer<TImage, TBres, TLine>(input, Ind, NormLine, tol, LineOffsets, AllImage, inbuffer, start, end))
     {
-      const unsigned len = end - start + 1;
+      const unsigned int len = end - start + 1;
       // compat
       inbuffer[0] = border;
       inbuffer[len + 1] = border;

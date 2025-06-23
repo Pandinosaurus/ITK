@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,8 +33,8 @@
 
 #define ITK_VERSION_TO_STRING(x) ITK_VERSION_TO_STRING0(x)
 #define ITK_VERSION_TO_STRING0(x) #x
-#define ITK_VERSION                                                                                                    \
-  ITK_VERSION_TO_STRING(ITK_VERSION_MAJOR)                                                                             \
+#define ITK_VERSION                        \
+  ITK_VERSION_TO_STRING(ITK_VERSION_MAJOR) \
   "." ITK_VERSION_TO_STRING(ITK_VERSION_MINOR) "." ITK_VERSION_TO_STRING(ITK_VERSION_PATCH)
 #define ITK_SOURCE_VERSION "itk version " ITK_VERSION
 
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(Version, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Version);
 
   /** Return the version of itk this object is a part of. */
   static const char *

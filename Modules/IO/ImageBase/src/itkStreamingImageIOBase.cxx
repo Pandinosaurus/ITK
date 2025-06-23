@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,11 +35,11 @@ StreamingImageIOBase::PrintSelf(std::ostream & os, Indent indent) const
 bool
 StreamingImageIOBase::StreamReadBufferAsBinary(std::istream & file, void * _buffer)
 {
-  itkDebugMacro(<< "StreamingReadBufferAsBinary called");
+  itkDebugMacro("StreamingReadBufferAsBinary called");
 
   auto * buffer = static_cast<char *>(_buffer);
   // Offset into file
-  std::streampos dataPos = this->GetDataPosition();
+  const std::streampos dataPos = this->GetDataPosition();
 
   itkDebugStatement(const std::streamsize sizeOfRegion =
                       static_cast<std::streamsize>(m_IORegion.GetNumberOfPixels()) * this->GetPixelSize());
@@ -68,8 +68,8 @@ StreamingImageIOBase::StreamReadBufferAsBinary(std::istream & file, void * _buff
       subDimensionQuantity *= this->GetDimensions(i);
     }
 
-    itkDebugMacro(<< "Reading " << sizeOfChunk << " of " << sizeOfRegion << " bytes for " << m_FileName << " at "
-                  << dataPos + seekPos << " position in file");
+    itkDebugMacro("Reading " << sizeOfChunk << " of " << sizeOfRegion << " bytes for " << m_FileName << " at "
+                             << dataPos + seekPos << " position in file");
 
     file.seekg(dataPos + seekPos, std::ios::beg);
 
@@ -83,7 +83,7 @@ StreamingImageIOBase::StreamReadBufferAsBinary(std::istream & file, void * _buff
 
     if (file.fail())
     {
-      itkExceptionMacro(<< "Fail reading");
+      itkExceptionMacro("Fail reading");
     }
 
     if (movingDirection == m_IORegion.GetImageDimension())
@@ -112,15 +112,15 @@ bool
 StreamingImageIOBase::ReadBufferAsBinary(std::istream & is, void * buffer, StreamingImageIOBase::SizeType num)
 {
   // some systems have a limit of 2GB to be read at once
-  const SizeType maxChunk = 1024 * 1024 * 1024;
+  constexpr SizeType maxChunk = 1024 * 1024 * 1024;
 
   auto bytesRemaining = static_cast<std::streamsize>(num);
 
   while (bytesRemaining)
   {
-    std::streamsize bytesToRead = bytesRemaining > maxChunk ? maxChunk : bytesRemaining;
+    const std::streamsize bytesToRead = bytesRemaining > maxChunk ? maxChunk : bytesRemaining;
 
-    itkDebugMacro(<< "Reading " << bytesToRead << " of " << bytesRemaining << " bytes for " << m_FileName);
+    itkDebugMacro("Reading " << bytesToRead << " of " << bytesRemaining << " bytes for " << m_FileName);
 
     is.read(static_cast<char *>(buffer), bytesToRead);
 
@@ -139,15 +139,15 @@ bool
 StreamingImageIOBase::WriteBufferAsBinary(std::ostream & os, const void * buffer, StreamingImageIOBase::SizeType num)
 {
   // some systems have a limit of 2GB to be written at once
-  const SizeType maxChunk = 1024 * 1024 * 1024;
+  constexpr SizeType maxChunk = 1024 * 1024 * 1024;
 
   std::streamsize bytesRemaining = num;
 
   while (bytesRemaining)
   {
-    SizeType bytesToWrite = bytesRemaining > maxChunk ? maxChunk : bytesRemaining;
+    const SizeType bytesToWrite = bytesRemaining > maxChunk ? maxChunk : bytesRemaining;
 
-    itkDebugMacro(<< "Writing " << bytesToWrite << " of " << bytesRemaining << " bytes for " << m_FileName);
+    itkDebugMacro("Writing " << bytesToWrite << " of " << bytesRemaining << " bytes for " << m_FileName);
 
     os.write(static_cast<const char *>(buffer), bytesToWrite);
     if (os.fail())
@@ -165,11 +165,11 @@ StreamingImageIOBase::WriteBufferAsBinary(std::ostream & os, const void * buffer
 bool
 StreamingImageIOBase::StreamWriteBufferAsBinary(std::ostream & file, const void * _buffer)
 {
-  itkDebugMacro(<< "StreamingWriteBufferAsBinary called");
+  itkDebugMacro("StreamingWriteBufferAsBinary called");
 
   const auto * buffer = static_cast<const char *>(_buffer);
   // Offset into file
-  std::streampos dataPos = this->GetDataPosition();
+  const std::streampos dataPos = this->GetDataPosition();
 
   // compute the number of continuous bytes to be written
   std::streamsize sizeOfChunk = 1;
@@ -203,12 +203,12 @@ StreamingImageIOBase::StreamWriteBufferAsBinary(std::ostream & file, const void 
     // increment the buffer pointer
     buffer += sizeOfChunk;
 
-    itkDebugMacro(<< "Writing " << sizeOfChunk << " of "
-                  << " ?? bytes for " << m_FileName << " at " << dataPos + seekPos << " position in file");
+    itkDebugMacro("Writing " << sizeOfChunk << " of "
+                             << " ?? bytes for " << m_FileName << " at " << dataPos + seekPos << " position in file");
 
     if (file.fail())
     {
-      itkExceptionMacro(<< "Fail writing");
+      itkExceptionMacro("Fail writing");
     }
 
     if (movingDirection == m_IORegion.GetImageDimension())
@@ -256,7 +256,7 @@ StreamingImageIOBase::GetActualNumberOfSplitsForWriting(unsigned int          nu
     // fall back to super classses non-streaming implementation
     return ImageIOBase::GetActualNumberOfSplitsForWriting(numberOfRequestedSplits, pasteRegion, largestPossibleRegion);
   }
-  else if (!itksys::SystemTools::FileExists(m_FileName.c_str()))
+  if (!itksys::SystemTools::FileExists(m_FileName.c_str()))
   {
     // file doesn't exits so we don't have potential problems
   }
@@ -265,8 +265,8 @@ StreamingImageIOBase::GetActualNumberOfSplitsForWriting(unsigned int          nu
     // we are going to be pasting (may be streaming too)
 
     // need to check to see if the file is compatible
-    std::string errorMessage;
-    Pointer     headerImageIOReader = dynamic_cast<StreamingImageIOBase *>(this->CreateAnother().GetPointer());
+    std::string   errorMessage;
+    const Pointer headerImageIOReader = dynamic_cast<StreamingImageIOBase *>(this->CreateAnother().GetPointer());
 
     try
     {
@@ -293,8 +293,8 @@ StreamingImageIOBase::GetActualNumberOfSplitsForWriting(unsigned int          nu
     // 2)pixel type
     // this->GetPixelType() is not verified because the metaio file format
     // stores all multi-component types as arrays, so it does not
-    // distinguish between pixel types. Also as long as the compoent
-    // and number of compoents match we should be able to paste, that
+    // distinguish between pixel types. Also as long as the component
+    // and number of components match we should be able to paste, that
     // is the numbers should be the same it is just the interpretation
     // that is not matching
     else if (headerImageIOReader->GetNumberOfComponents() != this->GetNumberOfComponents() ||
@@ -345,7 +345,7 @@ StreamingImageIOBase::GetActualNumberOfSplitsForWriting(unsigned int          nu
 
     // need to remove the file incase the file doesn't match our
     // current header/meta data information
-    if (!itksys::SystemTools::RemoveFile(m_FileName.c_str()))
+    if (!itksys::SystemTools::RemoveFile(m_FileName))
     {
       itkExceptionMacro("Unable to remove file for streaming: " << m_FileName);
     }
@@ -366,10 +366,9 @@ StreamingImageIOBase::GenerateStreamableReadRegionFromRequestedRegion(const Imag
   {
     return ImageIOBase::GenerateStreamableReadRegionFromRequestedRegion(requestedRegion);
   }
-  else
-  {
-    streamableRegion = requestedRegion;
-  }
+
+  streamableRegion = requestedRegion;
+
 
   return streamableRegion;
 }
@@ -382,12 +381,13 @@ StreamingImageIOBase::RequestedToStream() const
   // This enables a 2D request from a 3D volume to get the first slice,
   // and a 4D with a 1-sized 4th dimension to equal the 3D volume
   // as well.
-  unsigned int maxNumberOfDimension = std::max(this->GetNumberOfDimensions(), this->GetIORegion().GetImageDimension());
+  const unsigned int maxNumberOfDimension =
+    std::max(this->GetNumberOfDimensions(), this->GetIORegion().GetImageDimension());
 
   ImageIORegion ioregion(maxNumberOfDimension);
   ImageIORegion largestRegion(maxNumberOfDimension);
 
-  for (unsigned int i = 0; i < maxNumberOfDimension; i++)
+  for (unsigned int i = 0; i < maxNumberOfDimension; ++i)
   {
     largestRegion.SetIndex(i, 0);
     if (i < this->GetNumberOfDimensions())

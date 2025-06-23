@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,9 @@ itkLabelShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
 
   if (argc != 7)
   {
-    std::cerr << "Usage: " << argv[0] << " input output";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output";
     std::cerr << " background numberOfObjectsToKeep";
     std::cerr << "reverseOrdering attribute" << std::endl;
     return EXIT_FAILURE;
@@ -40,21 +42,21 @@ itkLabelShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
   using IType = itk::Image<unsigned char, dim>;
 
   using ReaderType = itk::ImageFileReader<IType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using LabelKeepNObjectsType = itk::LabelShapeKeepNObjectsImageFilter<IType>;
-  LabelKeepNObjectsType::Pointer KeepNObjects = LabelKeepNObjectsType::New();
+  auto KeepNObjects = LabelKeepNObjectsType::New();
 
   KeepNObjects->SetInput(reader->GetOutput());
 
   // testing get/set BackgroundValue macro
-  int BackgroundValue = (std::stoi(argv[3]));
+  const int BackgroundValue = (std::stoi(argv[3]));
   KeepNObjects->SetBackgroundValue(BackgroundValue);
   ITK_TEST_SET_GET_VALUE(BackgroundValue, KeepNObjects->GetBackgroundValue());
 
   // testing get and set macros for NumberOfObjects
-  unsigned int numberOfObjects = std::stoi(argv[4]);
+  const unsigned int numberOfObjects = std::stoi(argv[4]);
   KeepNObjects->SetNumberOfObjects(numberOfObjects);
   ITK_TEST_SET_GET_VALUE(numberOfObjects, KeepNObjects->GetNumberOfObjects());
 
@@ -66,7 +68,7 @@ itkLabelShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(false, KeepNObjects->GetReverseOrdering());
 
   // testing get and set macros or ReverseOrdering
-  bool reverseOrdering = std::stoi(argv[5]);
+  const bool reverseOrdering = std::stoi(argv[5]);
   KeepNObjects->SetReverseOrdering(reverseOrdering);
   ITK_TEST_SET_GET_VALUE(reverseOrdering, KeepNObjects->GetReverseOrdering());
 
@@ -76,13 +78,13 @@ itkLabelShapeKeepNObjectsImageFilterTest1(int argc, char * argv[])
 
   const std::string attributeByName{ argv[6] };
   KeepNObjects->SetAttribute(attributeByName); // SetAttribute accepts a string for conversion to internal label code
-  const LabelKeepNObjectsType::AttributeType attributeByCode = LabelKeepNObjectsType::LabelObjectType::LABEL;
+  constexpr LabelKeepNObjectsType::AttributeType attributeByCode = LabelKeepNObjectsType::LabelObjectType::LABEL;
   ITK_TEST_SET_GET_VALUE(attributeByCode, KeepNObjects->GetAttribute());
 
-  itk::SimpleFilterWatcher watcher(KeepNObjects, "filter");
+  const itk::SimpleFilterWatcher watcher(KeepNObjects, "filter");
 
   using WriterType = itk::ImageFileWriter<IType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(KeepNObjects->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

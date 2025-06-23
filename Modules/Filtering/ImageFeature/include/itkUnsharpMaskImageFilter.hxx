@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkUnsharpMaskImageFilter_hxx
 #define itkUnsharpMaskImageFilter_hxx
 
-#include "itkUnsharpMaskImageFilter.h"
 #include "itkBinaryGeneratorImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressAccumulator.h"
@@ -30,7 +29,7 @@ template <typename TInputImage, typename TOutputImage, typename TInternalPrecisi
 UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::UnsharpMaskImageFilter()
   : m_Amount(0.5)
   , m_Threshold(0)
-  , m_Clamp(NumericTraits<OutputPixelType>::IsInteger)
+  , m_Clamp(std::is_integral_v<OutputPixelType>)
 // clamping is on for integral types, and off for floating types
 // this gives intuitive behavior for integral types
 // and skips min/max checks for floating types
@@ -47,7 +46,7 @@ UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::GenerateI
   Superclass::GenerateInputRequestedRegion();
 
   // This filter needs all of the input
-  InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
   if (image)
   {
     image->SetRequestedRegion(this->GetInput()->GetLargestPossibleRegion());
@@ -57,12 +56,12 @@ UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::GenerateI
 
 template <typename TInputImage, typename TOutputImage, typename TInternalPrecision>
 void
-UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::VerifyPreconditions() ITKv5_CONST
+UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::VerifyPreconditions() const
 {
   Superclass::VerifyPreconditions();
   if (m_Threshold < 0.0)
   {
-    itkExceptionMacro(<< "Threshold must be non-negative!");
+    itkExceptionMacro("Threshold must be non-negative!");
   }
 }
 
@@ -71,9 +70,9 @@ template <typename TInputImage, typename TOutputImage, typename TInternalPrecisi
 void
 UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::GenerateData()
 {
-  typename TInputImage::Pointer input = TInputImage::New();
+  auto input = TInputImage::New();
   input->Graft(const_cast<TInputImage *>(this->GetInput()));
-  typename GaussianType::Pointer gaussianF = GaussianType::New();
+  auto gaussianF = GaussianType::New();
   gaussianF->SetInput(input);
   gaussianF->SetSigmaArray(m_Sigmas);
   gaussianF->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
@@ -81,14 +80,14 @@ UnsharpMaskImageFilter<TInputImage, TOutputImage, TInternalPrecision>::GenerateD
   using USMType = UnsharpMaskingFunctor<InputPixelType, TInternalPrecision, OutputPixelType>;
   using BinaryFunctorType =
     BinaryGeneratorImageFilter<TInputImage, typename GaussianType::OutputImageType, TOutputImage>;
-  typename BinaryFunctorType::Pointer functorF = BinaryFunctorType::New();
+  auto functorF = BinaryFunctorType::New();
   functorF->SetInput1(this->GetInput());
   functorF->SetInput2(gaussianF->GetOutput());
-  USMType usmT(m_Amount, m_Threshold, m_Clamp);
+  const USMType usmT(m_Amount, m_Threshold, m_Clamp);
   functorF->SetFunctor(usmT);
   functorF->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
 
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(gaussianF, 0.7);
   progress->RegisterInternalFilter(functorF, 0.3);

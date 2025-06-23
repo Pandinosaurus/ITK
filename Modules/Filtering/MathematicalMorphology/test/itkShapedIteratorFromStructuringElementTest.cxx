@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,17 +22,14 @@ using LocalImageType = itk::Image<int, 2>;
 void
 CreateImagex(LocalImageType::Pointer & image)
 {
-  LocalImageType::IndexType start;
-  start.Fill(0);
+  constexpr LocalImageType::IndexType start{};
 
-  LocalImageType::SizeType size;
-  size.Fill(10);
+  auto size = LocalImageType::SizeType::Filled(10);
 
-  LocalImageType::RegionType region(start, size);
+  const LocalImageType::RegionType region(start, size);
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer
-                         // to zero
+  image->AllocateInitialized();
 }
 
 int
@@ -41,12 +38,11 @@ itkShapedIteratorFromStructuringElementTest(int, char *[])
   using ImageType = itk::Image<int, 2>;
   using PixelType = ImageType::PixelType;
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
   CreateImagex(image);
 
   using StructuringElementType = itk::BinaryBallStructuringElement<PixelType, 2>;
-  StructuringElementType::RadiusType elementRadius;
-  elementRadius.Fill(2);
+  auto elementRadius = itk::MakeFilled<StructuringElementType::RadiusType>(2);
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(elementRadius);
@@ -75,10 +71,10 @@ itkShapedIteratorFromStructuringElementTest(int, char *[])
   unsigned int col = 0;
   while (!imit.IsAtEnd())
   {
-    PixelType value = imit.Get();
+    const PixelType value = imit.Get();
     ++imit;
     ++col;
-    std::cout << value << " ";
+    std::cout << value << ' ';
     if ((col % 10) == 0)
     {
       std::cout << std::endl;
@@ -102,7 +98,7 @@ itkShapedIteratorFromStructuringElementTest(int, char *[])
   }
   if (!caught)
   {
-    std::cout << "Faile to catch expected exception." << std::endl;
+    std::cout << "Failed to catch expected exception." << std::endl;
     return EXIT_FAILURE;
   }
 

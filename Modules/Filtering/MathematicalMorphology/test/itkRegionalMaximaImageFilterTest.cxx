@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,11 +37,11 @@ RegionalMaximaImageFilterTestHelper(std::string inputImageFile,
   using OutputImageType = TInputImage;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputImageFile);
 
   using FilterType = itk::RegionalMaximaImageFilter<InputImageType, OutputImageType>;
-  typename FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(reader->GetOutput());
 
@@ -49,21 +49,21 @@ RegionalMaximaImageFilterTestHelper(std::string inputImageFile,
 
   ITK_TEST_SET_GET_BOOLEAN(filter, FlatIsMaxima, flatIsMaxima);
 
-  typename FilterType::OutputImagePixelType foregroundValue =
+  const typename FilterType::OutputImagePixelType foregroundValue =
     itk::NumericTraits<typename FilterType::OutputImagePixelType>::max();
   filter->SetForegroundValue(foregroundValue);
   ITK_TEST_SET_GET_VALUE(foregroundValue, filter->GetForegroundValue());
 
-  typename FilterType::OutputImagePixelType backgroundValue =
+  const typename FilterType::OutputImagePixelType backgroundValue =
     itk::NumericTraits<typename FilterType::OutputImagePixelType>::NonpositiveMin();
   filter->SetBackgroundValue(backgroundValue);
   ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
 
-  itk::SimpleFilterWatcher watcher(filter, "RegionalMaximaImageFilter");
+  const itk::SimpleFilterWatcher watcher(filter, "RegionalMaximaImageFilter");
 
   // Write the output images
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(outputImageFile);
   writer->Update();
@@ -71,7 +71,7 @@ RegionalMaximaImageFilterTestHelper(std::string inputImageFile,
 
   // Produce the same output with other filters
   using ConvexFilterType = itk::HConvexImageFilter<InputImageType, InputImageType>;
-  typename ConvexFilterType::Pointer convexFilter = ConvexFilterType::New();
+  auto convexFilter = ConvexFilterType::New();
   convexFilter->SetInput(reader->GetOutput());
   convexFilter->SetFullyConnected(fullyConnected);
   convexFilter->SetHeight(1);
@@ -79,12 +79,12 @@ RegionalMaximaImageFilterTestHelper(std::string inputImageFile,
   // Convex gives maxima with value = 1 and others with value = 0
   // Rescale the image so we have maxima = 255 other = 0
   using RescaleFilterType = itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
-  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
   rescaler->SetInput(convexFilter->GetOutput());
   rescaler->SetOutputMaximum(255);
   rescaler->SetOutputMinimum(0);
 
-  typename WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetInput(rescaler->GetOutput());
   writer2->SetFileName(outputImageFile2);
   writer2->Update();
@@ -111,14 +111,14 @@ itkRegionalMaximaImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  std::string inputImageFile = argv[1];
-  std::string outputImageFile = argv[2];
-  std::string outputImageFile2 = argv[3];
+  const std::string inputImageFile = argv[1];
+  const std::string outputImageFile = argv[2];
+  const std::string outputImageFile2 = argv[3];
 
-  unsigned int dimension = std::stoi(argv[4]);
+  const unsigned int dimension = std::stoi(argv[4]);
 
-  bool fullyConnected = std::stoi(argv[5]);
-  bool flatIsMaxima = std::stoi(argv[6]);
+  const bool fullyConnected = std::stoi(argv[5]);
+  const bool flatIsMaxima = std::stoi(argv[6]);
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited
@@ -127,7 +127,7 @@ itkRegionalMaximaImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, 2>;
 
   using FilterType = itk::RegionalMaximaImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, RegionalMaximaImageFilter, ImageToImageFilter);
 
@@ -137,7 +137,7 @@ itkRegionalMaximaImageFilterTest(int argc, char * argv[])
     return RegionalMaximaImageFilterTestHelper<Image2DType, Image2DType>(
       inputImageFile, outputImageFile, outputImageFile2, fullyConnected, flatIsMaxima);
   }
-  else if (dimension == 3)
+  if (dimension == 3)
   {
     using Image3DType = itk::Image<PixelType, 3>;
     return RegionalMaximaImageFilterTestHelper<Image3DType, Image3DType>(

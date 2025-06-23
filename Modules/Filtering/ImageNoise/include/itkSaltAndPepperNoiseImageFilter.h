@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class SaltAndPepperNoiseImageFilter
+ * \class SaltAndPepperNoiseImageFilter
  *
  * \brief Alter an image with fixed value impulse noise, often called salt and pepper noise.
  *
@@ -44,7 +44,7 @@ namespace itk
  * \begin{cases}
  * M,   & \quad \text{if } U < p/2 \\
  * m,   & \quad \text{if } U > 1 - p/2 \\
- * I_0, & \quad \text{if } p/2 \geq U \leq 1 - p/2
+ * I_0, & \quad \text{if } p/2 \geq U \leq 1 - p/2
  * \end{cases} \f$
  *
  * \par
@@ -59,7 +59,7 @@ namespace itk
  * \author Gaetan Lehmann
  *
  * This code was contributed in the Insight Journal paper "Noise
- * Simulation". https://www.insight-journal.org/browse/publication/721
+ * Simulation". https://doi.org/10.54294/vh6vbw
  *
  * \ingroup ITKImageNoise
  */
@@ -78,14 +78,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SaltAndPepperNoiseImageFilter, NoiseBaseImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SaltAndPepperNoiseImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -96,27 +96,26 @@ public:
 
   /** Set/Get the probability of the salt and pepper noise event.
    * Defaults to 0.01. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Probability, double);
   itkSetMacro(Probability, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the salt/high pixel value.
    * Defaults to NumericTraits<OutputImagePixelType>::max(). */
+  /** @ITKStartGrouping */
   itkSetMacro(SaltValue, OutputImagePixelType);
   itkGetConstMacro(SaltValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
 
   /** Set/Get the pepper/low pixel value.
    * Defaults to NumericTraits<OutputImagePixelType>::NonpositiveMin(). */
+  /** @ITKStartGrouping */
   itkSetMacro(PepperValue, OutputImagePixelType);
   itkGetConstMacro(PepperValue, OutputImagePixelType);
+  /** @ITKEndGrouping */
 
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
-  /** End concept checking */
-#endif
 
 protected:
   SaltAndPepperNoiseImageFilter();
@@ -130,8 +129,8 @@ protected:
 
 private:
   double               m_Probability{ 0.01 };
-  OutputImagePixelType m_SaltValue;
-  OutputImagePixelType m_PepperValue;
+  OutputImagePixelType m_SaltValue{};
+  OutputImagePixelType m_PepperValue{};
 };
 } // end namespace itk
 

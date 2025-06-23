@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ namespace itk
  * The transform can be described as:
  * \f$ (\textbf{R}_v + \textbf{S})\textbf{x} \f$ where \f$\textbf{R}_v\f$ is the
  * rotation matrix given the versor, and
- * \f$S=\left( \begin{array}{ccc}s_0-1 & 0 & 0 \\ 0 & s_1-1 & 0 \\ 0 & 0 & s_2-1 \end{array} \right)\ \f$
+ * \f$S=\left( \begin{array}{ccc}s_0-1 & 0 & 0 \\ 0 & s_1-1 & 0 \\ 0 & 0 & s_2-1 \end{array} \right) \f$
  *
  *
  * \note This transform's scale parameters are not related to the
@@ -40,7 +40,7 @@ namespace itk
  * College of Medicine, Department of Psychiatry NeuroImaging Center
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/180
+ * https://doi.org/10.54294/hmb052
  *
  * \ingroup ITKTransform
  */
@@ -59,8 +59,8 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScaleVersor3DTransform, VersorRigid3DTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScaleVersor3DTransform);
 
   /** Dimension of parameters. */
   static constexpr unsigned int InputSpaceDimension = 3;
@@ -68,29 +68,29 @@ public:
   static constexpr unsigned int ParametersDimension = 9;
 
   /** Parameters Type   */
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
-  using ScalarType = typename Superclass::ScalarType;
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
-  using InputVnlVectorType = typename Superclass::InputVnlVectorType;
-  using OutputVnlVectorType = typename Superclass::OutputVnlVectorType;
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
-  using MatrixType = typename Superclass::MatrixType;
-  using InverseMatrixType = typename Superclass::InverseMatrixType;
-  using CenterType = typename Superclass::CenterType;
-  using OffsetType = typename Superclass::OffsetType;
-  using TranslationType = typename Superclass::TranslationType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+  using typename Superclass::InputVnlVectorType;
+  using typename Superclass::OutputVnlVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::MatrixType;
+  using typename Superclass::InverseMatrixType;
+  using typename Superclass::CenterType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::TranslationType;
 
-  using VersorType = typename Superclass::VersorType;
-  using AxisType = typename Superclass::AxisType;
-  using AngleType = typename Superclass::AngleType;
+  using typename Superclass::VersorType;
+  using typename Superclass::AxisType;
+  using typename Superclass::AngleType;
 
   /** Scale Vector Type. */
   using ScaleVectorType = Vector<TParametersValueType, 3>;
@@ -100,11 +100,12 @@ public:
    * Orthogonality testing is bypassed in this case.
    *
    * \sa MatrixOffsetTransformBase::SetMatrix() */
+  /** @ITKStartGrouping */
   void
   SetMatrix(const MatrixType & matrix) override;
   void
   SetMatrix(const MatrixType & matrix, const TParametersValueType tolerance) override;
-
+  /** @ITKEndGrouping */
   /** Set the transformation from a container of parameters
    * This is typically used by optimizers.
    * There are 9 parameters:
@@ -139,7 +140,10 @@ public:
 
 protected:
   ScaleVersor3DTransform();
-  ScaleVersor3DTransform(const MatrixType & matrix, const OutputVectorType & offset);
+#if !defined(ITK_LEGACY_REMOVE)
+  [[deprecated("Removed unused constructor")]] ScaleVersor3DTransform(const MatrixType &       matrix,
+                                                                      const OutputVectorType & offset);
+#endif
   ScaleVersor3DTransform(unsigned int parametersDimension);
   ~ScaleVersor3DTransform() override = default;
 
@@ -161,7 +165,7 @@ protected:
 
 private:
   /**  Vector containing the scale. */
-  ScaleVectorType m_Scale;
+  ScaleVectorType m_Scale{};
 }; // class ScaleVersor3DTransform
 } // namespace itk
 

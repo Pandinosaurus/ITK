@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,8 +26,8 @@
 namespace itk
 {
 /**
- *\class AttributeSelectionLabelMapFilter
- * \brief remove the objects according to the value of their attribute
+ * \class AttributeSelectionLabelMapFilter
+ * \brief Remove the objects according to the value of their attribute.
  *
  * AttributeSelectionLabelMapFilter removes the objects in a label collection image
  * with an attribute value inside or outside a set of attribute values passed by
@@ -41,7 +41,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa AttributeLabelObject
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
@@ -80,23 +80,20 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(AttributeSelectionLabelMapFilter, InPlaceLabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AttributeSelectionLabelMapFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   /*  itkConceptMacro(InputEqualityComparableCheck,
       (Concept::EqualityComparable<InputImagePixelType>));
     itkConceptMacro(IntConvertibleToInputCheck,
       (Concept::Convertible<int, InputImagePixelType>));
     itkConceptMacro(InputOStreamWritableCheck,
       (Concept::OStreamWritable<InputImagePixelType>));*/
-  // End concept checking
-#endif
 
   /**
    * Set/Get the threshold used to keep or remove the objects.
    */
+  /** @ITKStartGrouping */
   const AttributeSetType &
   GetAttributeSet() const
   {
@@ -108,14 +105,17 @@ public:
     m_AttributeSet = set;
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
   /**
    * Set/Get whether the objects with the specified attribute values should be kept
    * or excluded.
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Exclude, bool);
   itkSetMacro(Exclude, bool);
   itkBooleanMacro(Exclude);
+  /** @ITKEndGrouping */
 
   /** Clear the attribute set, and add the attribute passed in parameter */
   void
@@ -157,8 +157,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  AttributeSetType m_AttributeSet;
-  bool             m_Exclude;
+  AttributeSetType m_AttributeSet{};
+  bool             m_Exclude{};
 
 }; // end of class
 

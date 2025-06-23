@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkGrayscaleFillholeImageFilter_hxx
 
 #include "itkImageRegionIterator.h"
-#include "itkGrayscaleFillholeImageFilter.h"
 #include "itkReconstructionByErosionImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkImageRegionExclusionIteratorWithIndex.h"
@@ -28,11 +27,7 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::GrayscaleFillholeImageFilter()
-
-{
-  m_FullyConnected = false;
-}
+GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::GrayscaleFillholeImageFilter() = default;
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -42,7 +37,7 @@ GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedR
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -71,16 +66,14 @@ GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::GenerateData()
   //
 
   // compute the maximum pixel value in the input
-  typename MinimumMaximumImageCalculator<TInputImage>::Pointer calculator =
-    MinimumMaximumImageCalculator<TInputImage>::New();
+  auto calculator = MinimumMaximumImageCalculator<TInputImage>::New();
   calculator->SetImage(this->GetInput());
   calculator->ComputeMaximum();
 
-  InputImagePixelType maxValue;
-  maxValue = calculator->GetMaximum();
+  const InputImagePixelType maxValue = calculator->GetMaximum();
 
   // allocate a marker image
-  InputImagePointer markerPtr = InputImageType::New();
+  const InputImagePointer markerPtr = InputImageType::New();
   markerPtr->SetRegions(this->GetInput()->GetRequestedRegion());
   markerPtr->CopyInformation(this->GetInput());
   markerPtr->Allocate();
@@ -111,11 +104,10 @@ GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Delegate to a geodesic erosion filter.
   //
   //
-  typename ReconstructionByErosionImageFilter<TInputImage, TInputImage>::Pointer erode =
-    ReconstructionByErosionImageFilter<TInputImage, TInputImage>::New();
+  auto erode = ReconstructionByErosionImageFilter<TInputImage, TInputImage>::New();
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(erode, 1.0f);
 
@@ -145,7 +137,7 @@ GrayscaleFillholeImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream 
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Number of iterations used to produce current output: " << m_NumberOfIterationsUsed << std::endl;
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
 }
 } // end namespace itk
 #endif

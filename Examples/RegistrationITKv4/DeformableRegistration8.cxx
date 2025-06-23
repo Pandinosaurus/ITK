@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -137,7 +137,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const unsigned int     SpaceDimension = ImageDimension;
+  constexpr unsigned int SpaceDimension = ImageDimension;
   constexpr unsigned int SplineOrder = 3;
   using CoordinateRepType = double;
 
@@ -156,9 +156,9 @@ main(int argc, char * argv[])
   using RegistrationType =
     itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType>;
 
-  MetricType::Pointer       metric = MetricType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto optimizer = OptimizerType::New();
+  auto registration = RegistrationType::New();
 
 
   registration->SetMetric(metric);
@@ -167,15 +167,14 @@ main(int argc, char * argv[])
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
 
-  FixedImageType::ConstPointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::ConstPointer fixedImage =
+    fixedImageReader->GetOutput();
 
   registration->SetFixedImage(fixedImage);
   registration->SetMovingImage(movingImageReader->GetOutput());
@@ -193,7 +192,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   // Software Guide : EndCodeSnippet
 
   // Initialize the transform
@@ -207,10 +206,10 @@ main(int argc, char * argv[])
   using InitializerType =
     itk::BSplineTransformInitializer<TransformType, FixedImageType>;
 
-  InitializerType::Pointer transformInitializer = InitializerType::New();
+  auto transformInitializer = InitializerType::New();
 
-  TransformType::MeshSizeType meshSize;
-  meshSize.Fill(numberOfGridNodesInOneDimension - SplineOrder);
+  auto meshSize = itk::MakeFilled<TransformType::MeshSizeType>(
+    numberOfGridNodesInOneDimension - SplineOrder);
 
   transformInitializer->SetTransform(transform);
   transformInitializer->SetImage(fixedImage);
@@ -255,7 +254,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   //  A single level registration process is run using
@@ -316,7 +315,8 @@ main(int argc, char * argv[])
   chronometer.Report(std::cout);
   memorymeter.Report(std::cout);
 
-  OptimizerType::ParametersType finalParameters = transform->GetParameters();
+  const OptimizerType::ParametersType finalParameters =
+    transform->GetParameters();
 
   std::cout << "Last Transform Parameters" << std::endl;
   std::cout << finalParameters << std::endl;
@@ -326,7 +326,7 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(transform);
   resample->SetInput(movingImageReader->GetOutput());
@@ -342,7 +342,7 @@ main(int argc, char * argv[])
   // such as 100 or 128.
   resample->SetDefaultPixelValue(0);
 
-  using OutputPixelType = signed short;
+  using OutputPixelType = short;
 
   using OutputImageType = itk::Image<OutputPixelType, ImageDimension>;
 
@@ -352,8 +352,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
 
   writer->SetFileName(argv[3]);
@@ -379,9 +379,9 @@ main(int argc, char * argv[])
                                       FixedImageType,
                                       OutputImageType>;
 
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
+  auto difference = DifferenceFilterType::New();
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetInput(difference->GetOutput());
 
 
@@ -437,8 +437,7 @@ main(int argc, char * argv[])
                                               CoordinateRepType>;
 
     /** Create an setup displacement field generator. */
-    DisplacementFieldGeneratorType::Pointer dispfieldGenerator =
-      DisplacementFieldGeneratorType::New();
+    auto dispfieldGenerator = DisplacementFieldGeneratorType::New();
     dispfieldGenerator->UseReferenceImageOn();
     dispfieldGenerator->SetReferenceImage(fixedImage);
     dispfieldGenerator->SetTransform(transform);
@@ -454,7 +453,7 @@ main(int argc, char * argv[])
     }
 
     using FieldWriterType = itk::ImageFileWriter<DisplacementFieldImageType>;
-    FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
+    auto fieldWriter = FieldWriterType::New();
 
     fieldWriter->SetInput(dispfieldGenerator->GetOutput());
 

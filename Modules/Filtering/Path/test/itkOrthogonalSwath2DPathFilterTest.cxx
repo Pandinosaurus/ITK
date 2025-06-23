@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,10 +71,9 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
 
   // Set up the path
   std::cout << "Making a square Path with v0 at (24,24) -> (24,104) -> (104,104) -> (104,24)" << std::endl;
-  PolyLineParametricPathType::Pointer inputPath = PolyLineParametricPathType::New();
+  auto inputPath = PolyLineParametricPathType::New();
 
-  VertexType v;
-  v.Fill(24);
+  auto v = itk::MakeFilled<VertexType>(24);
   inputPath->AddVertex(v);
   v[0] = 24;
   v[1] = 104;
@@ -88,27 +87,25 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
   inputPath->AddVertex(v);
 
   // Set up the first path filter
-  PathToChainCodePathFilterType::Pointer pathToChainCodePathFilter = PathToChainCodePathFilterType::New();
+  auto pathToChainCodePathFilter = PathToChainCodePathFilterType::New();
   pathToChainCodePathFilter->SetInput(inputPath);
 
   // Set up the second path filter
-  ChainCodeToFourierSeriesPathFilterType::Pointer chainCodeToFourierSeriesPathFilter =
+  const ChainCodeToFourierSeriesPathFilterType::Pointer chainCodeToFourierSeriesPathFilter =
     ChainCodeToFourierSeriesPathFilterType::New();
   chainCodeToFourierSeriesPathFilter->SetInput(pathToChainCodePathFilter->GetOutput());
   chainCodeToFourierSeriesPathFilter->SetNumberOfHarmonics(7); // make a nice, round, path for the swath
 
   // Set up the image
   std::cout << "Making a 64x64 black square centered in a 128x128 white image" << std::endl;
-  UCharImageType::Pointer inputImage = UCharImageType::New();
-  IndexType               start;
+  auto      inputImage = UCharImageType::New();
+  IndexType start;
   start[0] = 0;
   start[1] = 0;
   UCharImageType::SizeType size;
   size[0] = 128;
   size[1] = 128;
-  UCharImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const UCharImageType::RegionType region{ start, size };
   inputImage->SetRegions(region);
   double spacing[UCharImageType::ImageDimension];
   spacing[0] = 1.0;
@@ -120,12 +117,11 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
   using ImageRegionIteratorType = itk::ImageRegionIterator<UCharImageType>;
   ImageRegionIteratorType it(inputImage, inputImage->GetRequestedRegion());
   it.GoToBegin();
-  IndexType pixelIndex;
   while (!it.IsAtEnd())
   {
-    pixelIndex = it.GetIndex();
-    if (pixelIndex[0] >= int(size[0] / 4) && pixelIndex[0] < int(size[0] * 3 / 4) &&
-        pixelIndex[1] >= int(size[1] / 4) && pixelIndex[1] < int(size[1] * 3 / 4))
+    IndexType pixelIndex = it.GetIndex();
+    if (pixelIndex[0] >= static_cast<int>(size[0] / 4) && pixelIndex[0] < static_cast<int>(size[0] * 3 / 4) &&
+        pixelIndex[1] >= static_cast<int>(size[1] / 4) && pixelIndex[1] < static_cast<int>(size[1] * 3 / 4))
     {
       it.Set(0);
     }
@@ -137,27 +133,27 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
   }
 
   // Cast the input image into a double image
-  CastFilterType::Pointer castFilter = CastFilterType::New();
+  auto castFilter = CastFilterType::New();
   castFilter->SetInput(inputImage);
   castFilter->SetOutputMinimum(0);
   castFilter->SetOutputMaximum(1.0);
 
   // Smooth the (double pixel type) input image
-  SmoothFilterType::Pointer smoothFilter = SmoothFilterType::New();
+  auto smoothFilter = SmoothFilterType::New();
   smoothFilter->SetInput(castFilter->GetOutput());
-  double gaussianVariance = 1.0;
-  // We want a fast 3x3 kernel. A Gausian operator will not truncate its kernel
+  constexpr double gaussianVariance = 1.0;
+  // We want a fast 3x3 kernel. A Gaussian operator will not truncate its kernel
   // width to any less than a 5x5 kernel (kernel width of 3 for 1 center pixel +
-  // 2 edge pixels). However, a Gausian operator always uses at least a 3x3
+  // 2 edge pixels). However, a Gaussian operator always uses at least a 3x3
   // kernel, and so setting the maximum error to 1.0 (no limit) will make it
   // stop growing the kernel at the desired 3x3 size.
-  double maxError = 0.9;
+  constexpr double maxError = 0.9;
   smoothFilter->UseImageSpacingOff();
   smoothFilter->SetVariance(gaussianVariance);
   smoothFilter->SetMaximumError(maxError);
 
   // Extract the swath image
-  SwathFilterType::Pointer swathFilter = SwathFilterType::New();
+  auto swathFilter = SwathFilterType::New();
   swathFilter->SetImageInput(smoothFilter->GetOutput());
   swathFilter->SetPathInput(chainCodeToFourierSeriesPathFilter->GetOutput());
   size[0] = 512;
@@ -165,25 +161,25 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
   swathFilter->SetSize(size);
 
   // Find the vertical gradient of the swath image
-  MeritFilterType::Pointer meritFilter = MeritFilterType::New();
+  auto meritFilter = MeritFilterType::New();
   meritFilter->SetInput(swathFilter->GetOutput());
   meritFilter->SetOrder(1);     // first partial derivative
   meritFilter->SetDirection(1); // d/dy
 
   // Set up the test OrthogonalSwath2DPathFilter
-  OrthogonalSwath2DPathFilterType::Pointer orthogonalSwath2DPathFilter = OrthogonalSwath2DPathFilterType::New();
+  auto orthogonalSwath2DPathFilter = OrthogonalSwath2DPathFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(orthogonalSwath2DPathFilter, OrthogonalSwath2DPathFilter, PathAndImageToPathFilter);
 
   orthogonalSwath2DPathFilter->SetPathInput(chainCodeToFourierSeriesPathFilter->GetOutput());
   orthogonalSwath2DPathFilter->SetImageInput(meritFilter->GetOutput());
-  OutputPathType::Pointer outPath = orthogonalSwath2DPathFilter->GetOutput();
+  const OutputPathType::Pointer outPath = orthogonalSwath2DPathFilter->GetOutput();
 
   // Set up the input & output path images
-  FourierSeriesPathToImageFilterType::Pointer fourierSeriesPathToImageFilter =
+  const FourierSeriesPathToImageFilterType::Pointer fourierSeriesPathToImageFilter =
     FourierSeriesPathToImageFilterType::New();
-  OrthogonallyCorrected2DParametricPathToImageFilterType::Pointer orthogonallyCorrected2DParametricPathToImageFilter =
-    OrthogonallyCorrected2DParametricPathToImageFilterType::New();
+  const OrthogonallyCorrected2DParametricPathToImageFilterType::Pointer
+    orthogonallyCorrected2DParametricPathToImageFilter = OrthogonallyCorrected2DParametricPathToImageFilterType::New();
   size[0] = 128;
   size[1] = 128;
   fourierSeriesPathToImageFilter->SetSize(size); // same size as the input image
@@ -194,15 +190,15 @@ itkOrthogonalSwath2DPathFilterTest(int, char *[])
   orthogonallyCorrected2DParametricPathToImageFilter->SetPathValue(255);
   orthogonallyCorrected2DParametricPathToImageFilter->SetInput(orthogonalSwath2DPathFilter->GetOutput());
 
-  UCharImageType::Pointer inputPathImage = fourierSeriesPathToImageFilter->GetOutput();
-  UCharImageType::Pointer outputImage = orthogonallyCorrected2DParametricPathToImageFilter->GetOutput();
+  const UCharImageType::Pointer inputPathImage = fourierSeriesPathToImageFilter->GetOutput();
+  const UCharImageType::Pointer outputImage = orthogonallyCorrected2DParametricPathToImageFilter->GetOutput();
 
   // Setup the swath merit output image
-  RescaleIntensityImageFilterType::Pointer rescaleIntensityImageFilter = RescaleIntensityImageFilterType::New();
+  auto rescaleIntensityImageFilter = RescaleIntensityImageFilterType::New();
   rescaleIntensityImageFilter->SetInput(meritFilter->GetOutput());
   rescaleIntensityImageFilter->SetOutputMinimum(0);
   rescaleIntensityImageFilter->SetOutputMaximum(255);
-  UCharImageType::Pointer swathMeritImage = rescaleIntensityImageFilter->GetOutput();
+  const UCharImageType::Pointer swathMeritImage = rescaleIntensityImageFilter->GetOutput();
 
 
   // Update the pipeline

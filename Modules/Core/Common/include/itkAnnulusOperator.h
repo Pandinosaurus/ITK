@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,70 +72,75 @@ template <typename TPixel, unsigned int TDimension = 2, typename TAllocator = Ne
 class ITK_TEMPLATE_EXPORT AnnulusOperator : public NeighborhoodOperator<TPixel, TDimension, TAllocator>
 {
 public:
-  /** Standard type alias */
+  /** Standard class type aliases. */
   using Self = AnnulusOperator;
   using Superclass = NeighborhoodOperator<TPixel, TDimension, TAllocator>;
 
-  /** Additional type alias */
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
+  /** Additional type aliases. */
+  using PixelType = TPixel;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
   using SpacingType = Vector<double, TDimension>;
 
-  itkTypeMacro(AnnulusOperator, NeighborhoodOperator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AnnulusOperator);
 
-  /** This function is called to create the operator.  The radius of
-   * the operator is determine automatically.  */
+  /** Create the operator. The radius of the operator is determined automatically. */
   void
   CreateOperator();
 
   /** Set/Get the inner radius of the annulus. Radius is specified in
    * physical units (mm). */
+  /** @ITKStartGrouping */
   void
   SetInnerRadius(double r)
   {
     m_InnerRadius = r;
   }
-  double
+  [[nodiscard]] double
   GetInnerRadius() const
   {
     return m_InnerRadius;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the thickness of the annulus.  The outer radius of the
    * annulus is defined as r = InnerRadius + Thickness. Thickness is
    * specified in physical units (mm). */
+  /** @ITKStartGrouping */
   void
   SetThickness(double t)
   {
     m_Thickness = t;
   }
-  double
+  [[nodiscard]] double
   GetThickness() const
   {
     return m_Thickness;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get the pixel spacings.  Setting these ensures the annulus
    * is round in physical space. Defaults to 1. */
+  /** @ITKStartGrouping */
   void
   SetSpacing(SpacingType & s)
   {
     m_Spacing = s;
   }
-  const SpacingType &
+  [[nodiscard]] const SpacingType &
   GetSpacing() const
   {
     return m_Spacing;
   }
-
+  /** @ITKEndGrouping */
   /** Set/Get whether kernel values are computed automatically or
    * specified manually */
+  /** @ITKStartGrouping */
   void
   SetNormalize(bool b)
   {
     m_Normalize = b;
   }
-  bool
+  [[nodiscard]] bool
   GetNormalize() const
   {
     return m_Normalize;
@@ -150,15 +155,16 @@ public:
   {
     this->SetNormalize(false);
   }
-
+  /** @ITKEndGrouping */
   /** If Normalize is on, you define the annulus to have a bright
    * center or a dark center. */
+  /** @ITKStartGrouping */
   void
   SetBrightCenter(bool b)
   {
     m_BrightCenter = b;
   }
-  bool
+  [[nodiscard]] bool
   GetBrightCenter() const
   {
     return m_BrightCenter;
@@ -173,17 +179,18 @@ public:
   {
     this->SetBrightCenter(false);
   }
-
+  /** @ITKEndGrouping */
   /** If Normalize is off, the interior to annulus, the
    * annulus (region between the two circles), and the region exterior to the
-   * annulus to be defined manually.  Defauls are 0, 1, 0
+   * annulus to be defined manually.  Defaults are 0, 1, 0
    * respectively. */
+  /** @ITKStartGrouping */
   void
   SetInteriorValue(TPixel v)
   {
     m_InteriorValue = v;
   }
-  TPixel
+  [[nodiscard]] TPixel
   GetInteriorValue() const
   {
     return m_InteriorValue;
@@ -193,7 +200,7 @@ public:
   {
     m_AnnulusValue = v;
   }
-  TPixel
+  [[nodiscard]] TPixel
   GetAnnulusValue() const
   {
     return m_AnnulusValue;
@@ -203,28 +210,33 @@ public:
   {
     m_ExteriorValue = v;
   }
-  TPixel
+  [[nodiscard]] TPixel
   GetExteriorValue() const
   {
     return m_ExteriorValue;
   }
-
-  /** Prints some debugging information */
+  /** @ITKEndGrouping */
   void
-  PrintSelf(std::ostream & os, Indent i) const override
+  PrintSelf(std::ostream & os, Indent indent) const override
   {
-    os << i << "AnnulusOperator { this=" << this << ", m_InnerRadius = " << m_InnerRadius
-       << ", m_Thickness = " << m_Thickness << ", m_Spacing = " << m_Spacing << ", m_Normalize = " << m_Normalize
-       << ", m_BrightCenter = " << m_BrightCenter << ", m_InteriorValue = " << m_InteriorValue
-       << ", m_ExteriorValue = " << m_ExteriorValue << "}" << std::endl;
-    Superclass::PrintSelf(os, i.GetNextIndent());
+    Superclass::PrintSelf(os, indent);
+
+    os << indent << "InnerRadius: " << m_InnerRadius << std::endl;
+    os << indent << "Thickness: " << m_Thickness << std::endl;
+    os << indent << "Normalize: " << m_Normalize << std::endl;
+    os << indent << "BrightCenter: " << m_BrightCenter << std::endl;
+    os << indent << "InteriorValue: " << static_cast<typename NumericTraits<PixelType>::PrintType>(m_InteriorValue)
+       << std::endl;
+    os << indent << "AnnulusValue: " << static_cast<typename NumericTraits<PixelType>::PrintType>(m_AnnulusValue)
+       << std::endl;
+    os << indent << "ExteriorValue: " << static_cast<typename NumericTraits<PixelType>::PrintType>(m_ExteriorValue)
+       << std::endl;
+    os << indent << "Spacing: " << static_cast<typename NumericTraits<SpacingType>::PrintType>(m_Spacing) << std::endl;
   }
 
 protected:
-  /** Typedef support for coefficient vector type.  Necessary to
-   *  work around compiler bug on VC++. */
-  using CoefficientVector = typename Superclass::CoefficientVector;
-  using PixelType = typename Superclass::PixelType;
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
 
   /** Calculates operator coefficients. */
   CoefficientVector
@@ -239,10 +251,10 @@ private:
   double      m_Thickness{ 1.0 };
   bool        m_Normalize{ false };
   bool        m_BrightCenter{ false };
-  PixelType   m_InteriorValue{ NumericTraits<PixelType>::ZeroValue() };
+  PixelType   m_InteriorValue{};
   PixelType   m_AnnulusValue{ NumericTraits<PixelType>::OneValue() };
-  PixelType   m_ExteriorValue{ NumericTraits<PixelType>::ZeroValue() };
-  SpacingType m_Spacing{ 1.0 };
+  PixelType   m_ExteriorValue{};
+  SpacingType m_Spacing{ MakeFilled<SpacingType>(1.0) };
 };
 } // namespace itk
 

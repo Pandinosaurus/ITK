@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 template <typename TInput, typename TOutput, typename TCriterion>
-class DecimationQuadEdgeMeshFilter : public QuadEdgeMeshToQuadEdgeMeshFilter<TInput, TOutput>
+class ITK_TEMPLATE_EXPORT DecimationQuadEdgeMeshFilter : public QuadEdgeMeshToQuadEdgeMeshFilter<TInput, TOutput>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(DecimationQuadEdgeMeshFilter);
@@ -39,8 +39,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = QuadEdgeMeshToQuadEdgeMeshFilter<TInput, TOutput>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(DecimationQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DecimationQuadEdgeMeshFilter);
 
   using InputMeshType = TInput;
   using InputMeshPointer = typename InputMeshType::Pointer;
@@ -58,15 +58,13 @@ public:
 
 protected:
   DecimationQuadEdgeMeshFilter()
-  {
-    this->m_Iteration = 0;
-    this->m_OutputMesh = nullptr;
-  }
+    : m_OutputMesh(nullptr)
+  {}
 
   ~DecimationQuadEdgeMeshFilter() override = default;
 
-  CriterionPointer m_Criterion;
-  SizeValueType    m_Iteration;
+  CriterionPointer m_Criterion{};
+  SizeValueType    m_Iteration{};
 
   void
   GenerateData() override
@@ -119,7 +117,7 @@ protected:
   }
 
   /** Cache pointer to output to use in inner loops */
-  OutputMeshType * m_OutputMesh;
+  OutputMeshType * m_OutputMesh{};
 };
 } // namespace itk
 

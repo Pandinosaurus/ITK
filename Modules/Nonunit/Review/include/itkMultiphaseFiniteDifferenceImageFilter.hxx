@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMultiphaseFiniteDifferenceImageFilter_hxx
 #define itkMultiphaseFiniteDifferenceImageFilter_hxx
 
-#include "itkMultiphaseFiniteDifferenceImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkEventObject.h"
 
@@ -35,31 +34,31 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
 {
   if (!this->m_FunctionCount)
   {
-    itkExceptionMacro("Number of level set functions not specified. "
-                      << "Please set using SetFunctionCount()");
+    itkExceptionMacro("Number of level set functions not specified. Please set using SetFunctionCount()");
   }
 
   if (!this->m_InitializedState)
   {
-    // Set the coefficients for the deriviatives
-    double       coeffs[ImageDimension];
-    unsigned int i;
+    // Set the coefficients for the derivatives
+    double coeffs[ImageDimension];
     if (m_UseImageSpacing)
     {
-      for (i = 0; i < ImageDimension; i++)
+      const auto & spacing = m_LevelSet[0]->GetSpacing();
+
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
-        coeffs[i] = 1.0 / m_LevelSet[0]->GetSpacing()[i];
+        coeffs[i] = 1.0 / spacing[i];
       }
     }
     else
     {
-      for (i = 0; i < ImageDimension; i++)
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
         coeffs[i] = 1.0;
       }
     }
 
-    for (IdCellType id = 0; id < this->m_FunctionCount; id++)
+    for (IdCellType id = 0; id < this->m_FunctionCount; ++id)
     {
       this->m_DifferenceFunctions[id]->SetScaleCoefficients(coeffs);
     }
@@ -82,8 +81,6 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
   }
 
   // Iterative algorithm
-  TimeStepType dt;
-
   // An optional method for precalculating global values, or setting
   // up for the next iteration
   this->InitializeIteration();
@@ -91,7 +88,7 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
 
   while (!this->Halt())
   {
-    dt = this->CalculateChange();
+    TimeStepType dt = this->CalculateChange();
 
     this->ApplyUpdate(dt);
 
@@ -161,8 +158,7 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  FeatureRegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  FeatureRegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius(radius);
@@ -202,18 +198,17 @@ typename MultiphaseFiniteDifferenceImageFilter<TInputImage,
                                                TFiniteDifferenceFunction,
                                                TIdCell>::TimeStepType
 MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, TFiniteDifferenceFunction, TIdCell>::
-  ResolveTimeStep(const TimeStepVectorType & timeStepList, const std::vector<bool> & valid)
+  ResolveTimeStep(const TimeStepVectorType & timeStepList, const std::vector<uint8_t> & valid)
 {
-  TimeStepType        oMin = NumericTraits<TimeStepType>::ZeroValue();
+  TimeStepType        oMin{};
   const SizeValueType size = timeStepList.size();
 
   if (size == valid.size())
   {
     bool          flag = false;
     SizeValueType k = 0;
-    SizeValueType i;
 
-    for (i = 0; i < size; ++i)
+    for (SizeValueType i = 0; i < size; ++i)
     {
       if (valid[i])
       {
@@ -230,7 +225,7 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
     }
 
     // find minimum value
-    for (i = k; i < size; ++i)
+    for (SizeValueType i = k; i < size; ++i)
     {
       if (valid[i] && (timeStepList[i] < oMin))
       {
@@ -275,7 +270,7 @@ MultiphaseFiniteDifferenceImageFilter<TInputImage, TFeatureImage, TOutputImage, 
   Superclass::PrintSelf(os, indent);
 
   os << indent << "ElapsedIterations: " << this->m_ElapsedIterations << std::endl;
-  os << indent << "UseImageSpacing: " << (m_UseImageSpacing ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(UseImageSpacing);
   os << indent << "State: " << this->m_InitializedState << std::endl;
   os << indent << "MaximumRMSError: " << m_MaximumRMSError << std::endl;
   os << indent << "NumberOfIterations: " << this->m_NumberOfIterations << std::endl;

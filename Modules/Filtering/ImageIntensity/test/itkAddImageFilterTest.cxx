@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +51,8 @@ itkAddImageFilterTest(int, char *[])
   using RegionType = itk::ImageRegion<Dimension>;
 
   // Create two images
-  InputImageType1::Pointer inputImageA = InputImageType1::New();
-  InputImageType2::Pointer inputImageB = InputImageType2::New();
+  auto inputImageA = InputImageType1::New();
+  auto inputImageB = InputImageType2::New();
 
   // Define their size, and start index
   SizeType size;
@@ -70,15 +70,11 @@ itkAddImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   // Initialize the content of Image A
@@ -95,7 +91,7 @@ itkAddImageFilterTest(int, char *[])
 
 
   // Create the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, AddImageFilter, BinaryGeneratorImageFilter);
 
@@ -109,7 +105,7 @@ itkAddImageFilterTest(int, char *[])
 
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
 
   // Create an iterator for going through the image output
@@ -117,13 +113,13 @@ itkAddImageFilterTest(int, char *[])
 
   // Check the content of the result image
   //
-  const auto expectedValue = static_cast<OutputImageType::PixelType>(valueA + valueB);
+  constexpr auto expectedValue = static_cast<OutputImageType::PixelType>(valueA + valueB);
   while (!oIt.IsAtEnd())
   {
     if (!itk::Math::ExactlyEquals(oIt.Get(), expectedValue))
     {
       std::cerr << "Test failed!" << std::endl;
-      std::cerr << "Error in pixel value at index [" << oIt.GetIndex() << "]" << std::endl;
+      std::cerr << "Error in pixel value at index [" << oIt.GetIndex() << ']' << std::endl;
       std::cerr << "Expected: " << expectedValue << ", but got: " << oIt.Get() << std::endl;
       return EXIT_FAILURE;
     }
@@ -139,7 +135,7 @@ itkAddImageFilterTest(int, char *[])
     using ImageType2 = itk::Image<PixelType2>;
 
     using FilterType2 = itk::AddImageFilter<ImageType2, ImageType2, ImageType2>;
-    FilterType2::Pointer filter2 = FilterType2::New();
+    auto filter2 = FilterType2::New();
 
     ITK_TEST_EXPECT_TRUE(!filter2.IsNull());
   }
@@ -153,7 +149,7 @@ itkAddImageFilterTest(int, char *[])
 
     using FilterType3 = itk::AddImageFilter<ImageType3, ComplexImageType, ComplexImageType>;
 
-    FilterType3::Pointer filter3 = FilterType3::New();
+    auto filter3 = FilterType3::New();
 
     ITK_TEST_EXPECT_TRUE(!filter3.IsNull());
   }

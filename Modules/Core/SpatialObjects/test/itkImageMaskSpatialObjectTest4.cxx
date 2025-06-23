@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,9 @@
  *
  */
 
-#include <itkSpatialObjectToImageFilter.h>
-#include <itkBoxSpatialObject.h>
-#include <itkImageMaskSpatialObject.h>
+#include "itkSpatialObjectToImageFilter.h"
+#include "itkBoxSpatialObject.h"
+#include "itkImageMaskSpatialObject.h"
 
 namespace
 {
@@ -46,7 +46,7 @@ Test3dImageMask()
   // then translate it by 7 in all directions
   // bounding box should by [7,8] x [7,8] x [7,8]
 
-  BoxType::Pointer  box1 = BoxType::New();
+  auto              box1 = BoxType::New();
   BoxType::SizeType sizeArray;
   sizeArray[0] = 1;
   sizeArray[1] = 1;
@@ -55,7 +55,7 @@ Test3dImageMask()
   box1->SetDefaultInsideValue(1);
   box1->SetDefaultOutsideValue(0);
 
-  TransformType::Pointer          transform = TransformType::New();
+  auto                            transform = TransformType::New();
   TransformType::OutputVectorType translation;
 
   transform->SetIdentity();
@@ -84,9 +84,9 @@ Test3dImageMask()
 
   using SpatialObjectToImageFilterType = itk::SpatialObjectToImageFilter<BoxType, ImageType>;
 
-  SpatialObjectToImageFilterType::Pointer imageFilter = SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
 
-  // note visual studio 2015 u1  (release mode) fails to exectute .Fill
+  // note visual studio 2015 u1 (release mode) fails to execute. Fill
   // properly here by not initializing the last member. With initializer it
   // is happy.
   itk::Size<3> size = { { 10, 10, 10 } };
@@ -114,7 +114,7 @@ Test3dImageMask()
   imageFilter->SetInput(box1);
   imageFilter->Update();
 
-  ImageMaskSpatialObjectType::Pointer maskSpatialObject = ImageMaskSpatialObjectType::New();
+  auto maskSpatialObject = ImageMaskSpatialObjectType::New();
   maskSpatialObject->SetImage(imageFilter->GetOutput());
   maskSpatialObject->Update();
 
@@ -152,7 +152,7 @@ Test3dImageMask()
 
   constexpr std::array<double, MaskBoundsArrayType::Length> expectedBounds{ { 6.75, 8.25, 6.75, 8.25, 6.75, 8.25 } };
 
-  for (unsigned i = 0; i < MaskBoundsArrayType::Length; ++i)
+  for (unsigned int i = 0; i < MaskBoundsArrayType::Length; ++i)
   {
     if (itk::Math::NotAlmostEquals(maskBounds[i], expectedBounds[i]))
     {
@@ -177,7 +177,7 @@ Test2dImageMask()
   // then translate it by 7 in all directions
   // bounding box should by [7,8] x [7,8]
 
-  BoxType::Pointer  box1 = BoxType::New();
+  auto              box1 = BoxType::New();
   BoxType::SizeType sizeArray;
   sizeArray[0] = 1;
   sizeArray[1] = 1;
@@ -185,7 +185,7 @@ Test2dImageMask()
   box1->SetDefaultInsideValue(1);
   box1->SetDefaultOutsideValue(0);
 
-  TransformType::Pointer          transform = TransformType::New();
+  auto                            transform = TransformType::New();
   TransformType::OutputVectorType translation;
 
   transform->SetIdentity();
@@ -207,16 +207,15 @@ Test2dImageMask()
   }
 
   // Now generate an imageMaskSpatial Object from box1
-  // Should have the same bounding box. withing pixelation bounds
+  // Should have the same bounding box. within pixelation bounds
   using ImageType = itk::Image<unsigned char, 2>;
   using ImageMaskSpatialObjectType = itk::ImageMaskSpatialObject<2>;
 
   using SpatialObjectToImageFilterType = itk::SpatialObjectToImageFilter<BoxType, ImageType>;
 
-  SpatialObjectToImageFilterType::Pointer imageFilter = SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
 
-  itk::Size<2> size;
-  size.Fill(10);
+  auto size = itk::Size<2>::Filled(10);
   //  The SpatialObjectToImageFilter requires that the user defines the grid
   //  parameters of the output image. This includes the number of pixels along
   //  each dimension, the pixel spacing, and image direction
@@ -237,7 +236,7 @@ Test2dImageMask()
   imageFilter->SetInput(box1);
   imageFilter->Update();
 
-  ImageMaskSpatialObjectType::Pointer maskSpatialObject = ImageMaskSpatialObjectType::New();
+  auto maskSpatialObject = ImageMaskSpatialObjectType::New();
   maskSpatialObject->SetImage(imageFilter->GetOutput());
 
   maskSpatialObject->Update();
@@ -270,7 +269,7 @@ Test2dImageMask()
 
   constexpr std::array<double, MaskBoundsArrayType::Length> expectedBounds{ { 6.75, 8.15, 6.75, 8.15 } };
 
-  for (unsigned i = 0; i < MaskBoundsArrayType::Length; ++i)
+  for (unsigned int i = 0; i < MaskBoundsArrayType::Length; ++i)
   {
     if (itk::Math::NotAlmostEquals(maskBounds[i], expectedBounds[i]))
     {

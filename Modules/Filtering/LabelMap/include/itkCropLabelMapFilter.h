@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 namespace itk
 {
 /**
- *\class CropLabelMapFilter
+ * \class CropLabelMapFilter
  * \brief Crop a LabelMap image
  *
  * Crop a label map. If the output cannot contain some lines of the objects, they are truncated
@@ -43,7 +43,7 @@ namespace itk
  * boundaries in a single call. By default, the filter does not crop anything.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -63,17 +63,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CropLabelMapFilter, ChangeRegionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CropLabelMapFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -96,11 +96,12 @@ public:
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Set/Get the cropping sizes for the upper and lower boundaries. */
+  /** @ITKStartGrouping */
   itkSetMacro(UpperBoundaryCropSize, SizeType);
   itkGetMacro(UpperBoundaryCropSize, SizeType);
   itkSetMacro(LowerBoundaryCropSize, SizeType);
   itkGetMacro(LowerBoundaryCropSize, SizeType);
-
+  /** @ITKEndGrouping */
   void
   SetCropSize(const SizeType & size)
   {
@@ -124,8 +125,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  SizeType m_UpperBoundaryCropSize;
-  SizeType m_LowerBoundaryCropSize;
+  SizeType m_UpperBoundaryCropSize{};
+  SizeType m_LowerBoundaryCropSize{};
 };
 } // end namespace itk
 

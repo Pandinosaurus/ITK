@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class DifferenceOfGaussiansGradientImageFilter
+ * \class DifferenceOfGaussiansGradientImageFilter
  * \brief Performs difference-of-gaussians gradient detection
  *
  * \ingroup ImageEnhancement
@@ -59,8 +59,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DifferenceOfGaussiansGradientImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DifferenceOfGaussiansGradientImageFilter);
 
   /** Image size type alias. */
   using SizeType = Size<Self::NDimensions>;
@@ -75,14 +75,11 @@ public:
   using OutputImageRegionType = typename TInputImage::RegionType;
 
   /** Set/Get the member variables. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Width, unsigned int);
   itkSetMacro(Width, unsigned int);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(DataTypeHasNumericTraitsCheck, (Concept::HasNumericTraits<TDataType>));
-  // End concept checking
-#endif
 
 protected:
   DifferenceOfGaussiansGradientImageFilter();
@@ -95,7 +92,7 @@ protected:
   GenerateData() override;
 
 private:
-  unsigned int m_Width;
+  unsigned int m_Width{};
 };
 } // end namespace itk
 

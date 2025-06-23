@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -110,7 +110,7 @@ main(int argc, char * argv[])
   using ImageAdaptorType =
     itk::ImageAdaptor<ImageType, RedChannelPixelAccessor>;
 
-  ImageAdaptorType::Pointer adaptor = ImageAdaptorType::New();
+  auto adaptor = ImageAdaptorType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -124,7 +124,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   // Software Guide : EndCodeSnippet
 
   reader->SetFileName(argv[1]);
@@ -152,9 +152,9 @@ main(int argc, char * argv[])
   using RescalerType =
     itk::RescaleIntensityImageFilter<ImageAdaptorType, OutputImageType>;
 
-  RescalerType::Pointer rescaler = RescalerType::New();
+  auto rescaler = RescalerType::New();
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   // Software Guide : EndCodeSnippet
 
 

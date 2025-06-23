@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,23 @@
 
 #include "itkBSplineInterpolationWeightFunction.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkTestingMacros.h"
 
-// Test template instantiation for TCoordRep = float and VSplineOrder = 1.
+// Test template instantiation for TCoordinate = float and VSplineOrder = 1.
 // Note that this particular template instantiation would take forever to
 // compile on VS2015 Update 3 64-bit Release when using ITK 4.13, but
 // itkBSplineInterpolationWeightFunction.hxx can now handle this Visual C++
 // compiler bug.
 template class itk::BSplineInterpolationWeightFunction<float, 2U, 1U>;
+
+
+// Test NumberOfWeights:
+static_assert((itk::BSplineInterpolationWeightFunction<float, 2, 1>::NumberOfWeights == 4) &&
+                (itk::BSplineInterpolationWeightFunction<float, 2, 2>::NumberOfWeights == 9) &&
+                (itk::BSplineInterpolationWeightFunction<float, 2, 3>::NumberOfWeights == 16) &&
+                (itk::BSplineInterpolationWeightFunction<float, 3, 3>::NumberOfWeights == 64),
+              "NumberOfWeights must be (SplineOrder+1) ^ SpaceDimension");
+
 
 /*
  * This test exercises methods in the
@@ -35,25 +45,35 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
 {
 
   { // Creating a local scope
-    using CoordRepType = double;
+    using CoordinateType = double;
     constexpr unsigned int SpaceDimension = 1;
     constexpr unsigned int SplineOrder = 2;
 
     std::cout << "Testing SpaceDimension= " << SpaceDimension;
-    std::cout << " and SplineOrder= " << SplineOrder << "  ";
+    std::cout << " and SplineOrder= " << SplineOrder << std::endl;
 
-    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordRepType, SpaceDimension, SplineOrder>;
+    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordinateType, SpaceDimension, SplineOrder>;
     using ContinuousIndexType = FunctionType::ContinuousIndexType;
     using IndexType = FunctionType::IndexType;
     using WeightsType = FunctionType::WeightsType;
 
-    FunctionType::Pointer function = FunctionType::New();
+    auto function = FunctionType::New();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(function, BSplineInterpolationWeightFunction, FunctionBase);
+
+
+#if !defined(ITK_LEGACY_REMOVE)
+#  if defined(ITK_LEGACY_SILENT)
+    typename FunctionType::SizeType supportSize = FunctionType::SizeType::Filled(SplineOrder + 1);
+    ITK_TEST_EXPECT_EQUAL(supportSize, function->GetSupportSize());
+
+    unsigned int numberOfWeights = WeightsType::Length;
+    ITK_TEST_EXPECT_EQUAL(numberOfWeights, function->GetNumberOfWeights());
+#  endif
+#endif
 
     WeightsType weights1;
     WeightsType weights2;
-
-    weights1.SetSize(SplineOrder + 1);
-    weights2.SetSize(SplineOrder + 1);
 
     ContinuousIndexType position1;
     ContinuousIndexType position2;
@@ -61,7 +81,7 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
     IndexType startIndex1;
     IndexType startIndex2;
 
-    double testFailed = false;
+    bool testFailed = false;
 
     for (double x = 0.0; x <= 2.0; x += 0.1)
     {
@@ -72,13 +92,13 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
       function->Evaluate(position1, weights1, startIndex1);
       function->Evaluate(position2, weights2, startIndex2);
 
-      const unsigned int numberOfWeigts = weights1.size();
+      constexpr unsigned int numberOfWeigts = weights1.size();
 
       const int indexDifference = itk::Math::abs(startIndex2[0] + startIndex1[0]) & 1;
 
 
-      const double tolerance = 1e-6;
-      bool         symmetryForXBroken = false;
+      constexpr double tolerance = 1e-6;
+      bool             symmetryForXBroken = false;
 
       for (unsigned int nw = 0; nw < numberOfWeigts - indexDifference; ++nw)
       {
@@ -96,22 +116,22 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
         std::cerr << "indexDifference= " << indexDifference << std::endl;
         for (unsigned int nw = 0; nw < numberOfWeigts; ++nw)
         {
-          std::cerr << weights1[nw] << "\t";
+          std::cerr << weights1[nw] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int nw = 0; nw < numberOfWeigts; ++nw)
         {
-          std::cerr << weights2[nw] << "\t";
+          std::cerr << weights2[nw] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int sd = 0; sd < SpaceDimension; ++sd)
         {
-          std::cerr << startIndex1[sd] << "\t";
+          std::cerr << startIndex1[sd] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int sd = 0; sd < SpaceDimension; ++sd)
         {
-          std::cerr << startIndex2[sd] << "\t";
+          std::cerr << startIndex2[sd] << '\t';
         }
         std::cerr << std::endl;
       }
@@ -125,25 +145,23 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
     std::cout << "Test passed. " << std::endl;
   }
   { // Creating a local scope
-    using CoordRepType = double;
+    using CoordinateType = double;
     constexpr unsigned int SpaceDimension = 1;
     constexpr unsigned int SplineOrder = 3;
 
     std::cout << "Testing SpaceDimension= " << SpaceDimension;
-    std::cout << " and SplineOrder= " << SplineOrder << "  ";
+    std::cout << " and SplineOrder= " << SplineOrder << std::endl;
 
-    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordRepType, SpaceDimension, SplineOrder>;
+    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordinateType, SpaceDimension, SplineOrder>;
     using ContinuousIndexType = FunctionType::ContinuousIndexType;
     using IndexType = FunctionType::IndexType;
     using WeightsType = FunctionType::WeightsType;
 
-    FunctionType::Pointer function = FunctionType::New();
+    auto function = FunctionType::New();
+
 
     WeightsType weights1;
     WeightsType weights2;
-
-    weights1.SetSize(SplineOrder + 1);
-    weights2.SetSize(SplineOrder + 1);
 
     ContinuousIndexType position1;
     ContinuousIndexType position2;
@@ -151,7 +169,7 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
     IndexType startIndex1;
     IndexType startIndex2;
 
-    double testFailed = false;
+    bool testFailed = false;
 
     for (double x = 0.0; x <= 2.0; x += 0.1)
     {
@@ -162,13 +180,13 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
       function->Evaluate(position1, weights1, startIndex1);
       function->Evaluate(position2, weights2, startIndex2);
 
-      const unsigned int numberOfWeigts = weights1.size();
+      constexpr unsigned int numberOfWeigts = weights1.size();
 
       const int indexDifference = itk::Math::abs(startIndex2[0] + startIndex1[0] + 1) & 1;
 
 
-      const double tolerance = 1e-6;
-      bool         symmetryForXBroken = false;
+      constexpr double tolerance = 1e-6;
+      bool             symmetryForXBroken = false;
 
       for (unsigned int nw = 0; nw < numberOfWeigts - indexDifference; ++nw)
       {
@@ -186,22 +204,22 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
         std::cerr << "indexDifference= " << indexDifference << std::endl;
         for (unsigned int nw = 0; nw < numberOfWeigts; ++nw)
         {
-          std::cerr << weights1[nw] << "\t";
+          std::cerr << weights1[nw] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int nw = 0; nw < numberOfWeigts; ++nw)
         {
-          std::cerr << weights2[nw] << "\t";
+          std::cerr << weights2[nw] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int sd = 0; sd < SpaceDimension; ++sd)
         {
-          std::cerr << startIndex1[sd] << "\t";
+          std::cerr << startIndex1[sd] << '\t';
         }
         std::cerr << std::endl;
         for (unsigned int sd = 0; sd < SpaceDimension; ++sd)
         {
-          std::cerr << startIndex2[sd] << "\t";
+          std::cerr << startIndex2[sd] << '\t';
         }
         std::cerr << std::endl;
       }
@@ -216,23 +234,23 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
   }
 
   { // Creating a local scope
-    using CoordRepType = double;
+    using CoordinateType = double;
     constexpr unsigned int SpaceDimension = 3;
     constexpr unsigned int SplineOrder = 3;
     std::cout << "Testing SpaceDimension= " << SpaceDimension;
-    std::cout << " and SplineOrder= " << SplineOrder << "  ";
+    std::cout << " and SplineOrder= " << SplineOrder << std::endl;
 
-    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordRepType, SpaceDimension, SplineOrder>;
+    using FunctionType = itk::BSplineInterpolationWeightFunction<CoordinateType, SpaceDimension, SplineOrder>;
     using ContinuousIndexType = FunctionType::ContinuousIndexType;
     using IndexType = FunctionType::IndexType;
     using WeightsType = FunctionType::WeightsType;
     using SizeType = FunctionType::SizeType;
 
-    FunctionType::Pointer function = FunctionType::New();
+    auto function = FunctionType::New();
     function->Print(std::cout);
 
-    SizeType      size = function->GetSupportSize();
-    unsigned long numberOfWeights = function->GetNumberOfWeights();
+    constexpr SizeType      size = FunctionType::SupportSize;
+    constexpr unsigned long numberOfWeights = FunctionType::NumberOfWeights;
 
     std::cout << "Number Of Weights: " << numberOfWeights << std::endl;
 
@@ -254,16 +272,14 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
 
     // Check for accuracy
     using KernelType = itk::BSplineKernelFunction<SplineOrder>;
-    KernelType::Pointer kernel = KernelType::New();
+    auto kernel = KernelType::New();
 
     using ImageType = itk::Image<char, SpaceDimension>;
-    ImageType::Pointer    image = ImageType::New();
-    ImageType::RegionType region;
-    region.SetIndex(startIndex);
-    region.SetSize(size);
+    auto                        image = ImageType::New();
+    const ImageType::RegionType region{ startIndex, size };
 
     image->SetRegions(region);
-    image->Allocate(true); // initialize buffer to zero
+    image->AllocateInitialized();
 
     using IteratorType = itk::ImageRegionConstIteratorWithIndex<ImageType>;
     IteratorType  iter(image, image->GetBufferedRegion());
@@ -279,8 +295,8 @@ itkBSplineInterpolationWeightFunctionTest(int, char *[])
       }
       if (itk::Math::abs(weights[counter] - value) > 1e-7)
       {
-        std::cout << "Error at weights[" << counter << "]" << std::endl;
-        std::cout << "Compuated value: " << weights[counter] << std::endl;
+        std::cout << "Error at weights[" << counter << ']' << std::endl;
+        std::cout << "Computed value: " << weights[counter] << std::endl;
         std::cout << "Expected value: " << value << std::endl;
         return EXIT_FAILURE;
       }

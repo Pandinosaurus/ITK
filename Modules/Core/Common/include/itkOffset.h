@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,12 @@
 #include "itkSize.h"
 #include "itkMath.h"
 
+#include <cstddef> // For ptrdiff_t.
+
 namespace itk
 {
 
-/**
- * \struct Offset
- * \brief Represent a n-dimensional offset between two n-dimensional indexes of n-dimensional image.
+/** \brief Represent a n-dimensional offset between two n-dimensional indexes of n-dimensional image.
  *
  * Offset is a templated class to represent a multi-dimensional offset,
  * i.e. (i,j,k,...). Offset is templated over the dimension of the space.
@@ -74,7 +74,7 @@ public:
 
   /** Compatible Offset and value type alias. */
   using OffsetType = Offset<VDimension>;
-  using OffsetValueType = ::itk::OffsetValueType;
+  using OffsetValueType = itk::OffsetValueType;
 
   /** Dimension constant */
   static constexpr unsigned int Dimension = VDimension;
@@ -137,7 +137,7 @@ public:
 
   /** Subtract two offsets. */
   const Self
-  operator-(const Self & vec)
+  operator-(const Self & vec) const
   {
     Self result;
 
@@ -170,10 +170,9 @@ public:
     return *this;
   }
 
-
   /** Get the offset. This provides a read only pointer to the offset.
    * \sa SetOffset() */
-  const OffsetValueType *
+  [[nodiscard]] const OffsetValueType *
   GetOffset() const
   {
     return m_InternalArray;
@@ -207,7 +206,7 @@ public:
    * \warning No bound checking is performed
    * \sa GetIndex()
    * \sa SetElement() */
-  OffsetValueType
+  [[nodiscard]] OffsetValueType
   GetElement(unsigned long element) const
   {
     return m_InternalArray[element];
@@ -239,9 +238,9 @@ public:
   alignas(OffsetValueType) OffsetValueType m_InternalArray[VDimension];
 
   /** Copy values from a FixedArray by rounding each one of the components */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   inline void
-  CopyWithRound(const FixedArray<TCoordRep, VDimension> & point)
+  CopyWithRound(const FixedArray<TCoordinate, VDimension> & point)
   {
     for (unsigned int i = 0; i < VDimension; ++i)
     {
@@ -250,9 +249,9 @@ public:
   }
 
   /** Copy values from a FixedArray by casting each one of the components */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   inline void
-  CopyWithCast(const FixedArray<TCoordRep, VDimension> & point)
+  CopyWithCast(const FixedArray<TCoordinate, VDimension> & point)
   {
     for (unsigned int i = 0; i < VDimension; ++i)
     {
@@ -273,13 +272,13 @@ public:
    * so that the Offset class can be treated as a container
    * class in a way that is similar to the std::array.
    */
-  using value_type = ::itk::OffsetValueType;
+  using value_type = itk::OffsetValueType;
   using reference = value_type &;
   using const_reference = const value_type &;
   using iterator = value_type *;
   using const_iterator = const value_type *;
   using size_type = unsigned int;
-  using difference_type = std::ptrdiff_t;
+  using difference_type = ptrdiff_t;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -294,33 +293,45 @@ public:
   }
 
   void
-  swap(Offset & other)
+  swap(Offset & other) noexcept
   {
     std::swap(m_InternalArray, other.m_InternalArray);
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cbegin() const
+  {
+    return &m_InternalArray[0];
+  }
+
+  constexpr iterator
   begin()
   {
-    return iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   begin() const
   {
-    return const_iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cend() const
+  {
+    return &m_InternalArray[VDimension];
+  }
+
+  constexpr iterator
   end()
   {
-    return iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   end() const
   {
-    return const_iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
   reverse_iterator
@@ -329,7 +340,7 @@ public:
     return reverse_iterator(end());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rbegin() const
   {
     return const_reverse_iterator(end());
@@ -341,33 +352,41 @@ public:
     return reverse_iterator(begin());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rend() const
   {
     return const_reverse_iterator(begin());
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   size() const
   {
     return VDimension;
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   max_size() const
   {
     return VDimension;
   }
 
-  constexpr bool
+  [[nodiscard]] constexpr bool
   empty() const
   {
     return false;
   }
 
-  reference operator[](size_type pos) { return m_InternalArray[pos]; }
+  reference
+  operator[](size_type pos)
+  {
+    return m_InternalArray[pos];
+  }
 
-  const_reference operator[](size_type pos) const { return m_InternalArray[pos]; }
+  const_reference
+  operator[](size_type pos) const
+  {
+    return m_InternalArray[pos];
+  }
 
   reference
   at(size_type pos)
@@ -376,32 +395,32 @@ public:
     return m_InternalArray[pos];
   }
 
-  const_reference
+  [[nodiscard]] const_reference
   at(size_type pos) const
   {
     ExceptionThrowingBoundsCheck(pos);
     return m_InternalArray[pos];
   }
 
-  reference
+  constexpr reference
   front()
   {
     return *begin();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   front() const
   {
     return *begin();
   }
 
-  reference
+  constexpr reference
   back()
   {
     return VDimension ? *(end() - 1) : *end();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   back() const
   {
     return VDimension ? *(end() - 1) : *end();
@@ -413,7 +432,7 @@ public:
     return &m_InternalArray[0];
   }
 
-  const OffsetValueType *
+  [[nodiscard]] const OffsetValueType *
   data() const
   {
     return &m_InternalArray[0];
@@ -435,9 +454,7 @@ template <unsigned int VDimension>
 Offset<VDimension>
 Offset<VDimension>::GetBasisOffset(unsigned int dim)
 {
-  Self ind;
-
-  memset(ind.m_InternalArray, 0, sizeof(OffsetValueType) * VDimension);
+  Self ind{};
   ind.m_InternalArray[dim] = 1;
   return ind;
 }
@@ -446,17 +463,17 @@ template <unsigned int VDimension>
 std::ostream &
 operator<<(std::ostream & os, const Offset<VDimension> & ind)
 {
-  os << "[";
-  unsigned int dimlim = VDimension - 1;
+  os << '[';
+  const unsigned int dimlim = VDimension - 1;
   for (unsigned int i = 0; i < dimlim; ++i)
   {
     os << ind[i] << ", ";
   }
-  if (VDimension >= 1)
+  if constexpr (VDimension >= 1)
   {
     os << ind[VDimension - 1];
   }
-  os << "]";
+  os << ']';
   return os;
 }
 
@@ -507,14 +524,10 @@ operator>=(const Offset<VDimension> & one, const Offset<VDimension> & two)
 // Specialized algorithms [6.2.2.2].
 template <unsigned int VDimension>
 inline void
-swap(Offset<VDimension> & one, Offset<VDimension> & two)
+swap(Offset<VDimension> & one, Offset<VDimension> & two) noexcept
 {
   std::swap(one.m_InternalArray, two.m_InternalArray);
 }
-
-// static constexpr definition explicitly needed in C++11
-template <unsigned int VDimension>
-constexpr unsigned int Offset<VDimension>::Dimension;
 
 } // end namespace itk
 

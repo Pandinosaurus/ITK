@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,8 @@ template <typename T, unsigned int VImageDimension>
 void
 TestConstPixelAccess(const itk::Image<T, VImageDimension> & in, itk::Image<T, VImageDimension> & out)
 {
-  typename itk::Image<T, VImageDimension>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
-  typename itk::Image<T, VImageDimension>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
+  const typename itk::Image<T, VImageDimension>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
+  const typename itk::Image<T, VImageDimension>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
 
   T vec;
 
@@ -47,26 +47,25 @@ int
 itkImageRegionIteratorTest(int, char *[])
 {
   std::cout << "Creating an image" << std::endl;
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::Pointer o3 = itk::Image<itk::Vector<unsigned short, 5>, 3>::New();
+  const itk::Image<itk::Vector<unsigned short, 5>, 3>::Pointer o3 =
+    itk::Image<itk::Vector<unsigned short, 5>, 3>::New();
 
   int status = 0;
 
   float origin3D[3] = { 5.0f, 2.1f, 8.1f };
   float spacing3D[3] = { 1.5f, 2.1f, 1.0f };
 
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType imageSize3D = { { 20, 40, 60 } };
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType bufferSize3D = { { 8, 20, 14 } };
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType regionSize3D = { { 4, 6, 6 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType imageSize3D = { { 20, 40, 60 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType bufferSize3D = { { 8, 20, 14 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::SizeType regionSize3D = { { 4, 6, 6 } };
 
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType startIndex3D = { { 5, 4, 1 } };
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType bufferStartIndex3D = { { 2, 3, 5 } };
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType regionStartIndex3D = { { 5, 10, 12 } };
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType startIndex3D = { { 5, 4, 1 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType bufferStartIndex3D = { { 2, 3, 5 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType regionStartIndex3D = { { 5, 10, 12 } };
+  constexpr itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
 
 
-  itk::Image<itk::Vector<unsigned short, 5>, 3>::RegionType region;
-  region.SetSize(imageSize3D);
-  region.SetIndex(startIndex3D);
+  itk::Image<itk::Vector<unsigned short, 5>, 3>::RegionType region{ startIndex3D, imageSize3D };
   o3->SetLargestPossibleRegion(region);
   region.SetSize(bufferSize3D);
   region.SetIndex(bufferStartIndex3D);
@@ -93,20 +92,17 @@ itkImageRegionIteratorTest(int, char *[])
   (*o3)[regionEndIndex3D] = (*o3)[regionStartIndex3D];
   TestConstPixelAccess(*o3, *o3);
 
-
-  itk::ImageIterator<itk::Image<itk::Vector<unsigned short, 5>, 3>> standardIt(o3, region);
-
   // Iterate over a region using a simple for loop
   itk::ImageRegionIterator<itk::Image<itk::Vector<unsigned short, 5>, 3>> it(o3, region);
 
   std::cout << "Simple iterator loop: ";
   for (; !it.IsAtEnd(); ++it)
   {
-    itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType index = it.GetIndex();
+    const itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType index = it.GetIndex();
     std::cout << index << std::endl;
   }
 
-  itk::ImageRegionConstIterator<itk::Image<itk::Vector<unsigned short, 5>, 3>> standardCIt(o3, region);
+  const itk::ImageRegionConstIterator<itk::Image<itk::Vector<unsigned short, 5>, 3>> standardCIt(o3, region);
 
   // Iterate over a region using a simple for loop and a const iterator
   itk::ImageRegionConstIterator<itk::Image<itk::Vector<unsigned short, 5>, 3>> cit(o3, region);
@@ -114,7 +110,7 @@ itkImageRegionIteratorTest(int, char *[])
   std::cout << "Simple const iterator loop: ";
   for (; !cit.IsAtEnd(); ++cit)
   {
-    itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType index = cit.GetIndex();
+    const itk::Image<itk::Vector<unsigned short, 5>, 3>::IndexType index = cit.GetIndex();
     std::cout << index << std::endl;
   }
 
@@ -131,7 +127,7 @@ itkImageRegionIteratorTest(int, char *[])
     std::cout << "Simple iterator backwards loop: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   } while (!backIt.IsAtBegin()); // stop when we reach the beginning
@@ -140,15 +136,13 @@ itkImageRegionIteratorTest(int, char *[])
   {
     // Create an image
     using TestImageType = itk::Image<int, 2>;
-    TestImageType::IndexType imageCorner;
-    imageCorner.Fill(0);
+    constexpr TestImageType::IndexType imageCorner{};
 
-    TestImageType::SizeType imageSize;
-    imageSize.Fill(3);
+    auto imageSize = TestImageType::SizeType::Filled(3);
 
-    TestImageType::RegionType imageRegion(imageCorner, imageSize);
+    const TestImageType::RegionType imageRegion(imageCorner, imageSize);
 
-    TestImageType::Pointer image = TestImageType::New();
+    auto image = TestImageType::New();
     image->SetRegions(imageRegion);
     image->Allocate();
 
@@ -170,13 +164,11 @@ itkImageRegionIteratorTest(int, char *[])
     }
 
     // Setup and iterate over the first region
-    TestImageType::IndexType region1Start;
-    region1Start.Fill(0);
+    constexpr TestImageType::IndexType region1Start{};
 
-    TestImageType::SizeType regionSize;
-    regionSize.Fill(2);
+    auto regionSize = TestImageType::SizeType::Filled(2);
 
-    TestImageType::RegionType region1(region1Start, regionSize);
+    const TestImageType::RegionType region1(region1Start, regionSize);
 
     itk::ImageRegionConstIterator<TestImageType> imageIterator(image, region1);
 
@@ -197,10 +189,9 @@ itkImageRegionIteratorTest(int, char *[])
     }
 
     // Change iteration region
-    TestImageType::IndexType region2start;
-    region2start.Fill(1);
+    auto region2start = TestImageType::IndexType::Filled(1);
 
-    TestImageType::RegionType region2(region2start, regionSize);
+    const TestImageType::RegionType region2(region2start, regionSize);
 
     imageIterator.SetRegion(region2);
     imageIterator.GoToBegin();

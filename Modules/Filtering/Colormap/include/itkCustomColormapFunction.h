@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,7 @@
 
 #include <vector>
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 /**
  * \class CustomColormapFunction
@@ -36,7 +34,7 @@ namespace Function
  * This code was contributed in the Insight Journal paper:
  *
  * "Meeting Andy Warhol Somewhere Over the Rainbow: RGB Colormapping and ITK"
- * https://www.insight-journal.org/browse/publication/285
+ * https://doi.org/10.54294/tmojbk
  *
  * \ingroup ITKColormap
  *
@@ -59,9 +57,9 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  using RGBPixelType = typename Superclass::RGBPixelType;
-  using ScalarType = typename Superclass::ScalarType;
-  using RealType = typename Superclass::RealType;
+  using typename Superclass::RGBPixelType;
+  using typename Superclass::ScalarType;
+  using typename Superclass::RealType;
 
   using ChannelType = std::vector<RealType>;
 
@@ -109,12 +107,11 @@ protected:
   ~CustomColormapFunction() override = default;
 
 private:
-  ChannelType m_RedChannel;
-  ChannelType m_GreenChannel;
-  ChannelType m_BlueChannel;
+  ChannelType m_RedChannel{};
+  ChannelType m_GreenChannel{};
+  ChannelType m_BlueChannel{};
 };
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkCustomColormapFunction.hxx"

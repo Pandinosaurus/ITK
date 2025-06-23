@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,18 @@
  *=========================================================================*/
 #ifndef itkWatershedEquivalenceRelabeler_hxx
 #define itkWatershedEquivalenceRelabeler_hxx
-#include "itkWatershedEquivalenceRelabeler.h"
 #include "itkImageRegionIterator.h"
-namespace itk
-{
-namespace watershed
+
+namespace itk::watershed
 {
 template <typename TScalar, unsigned int TImageDimension>
 void
 EquivalenceRelabeler<TScalar, TImageDimension>::GenerateData()
 {
-  typename ImageType::ConstPointer input = this->GetInputImage();
-  typename ImageType::Pointer      output = this->GetOutputImage();
+  const typename ImageType::ConstPointer input = this->GetInputImage();
+  const typename ImageType::Pointer      output = this->GetOutputImage();
 
-  typename EquivalencyTableType::Pointer eqT = this->GetEquivalencyTable();
+  const typename EquivalencyTableType::Pointer eqT = this->GetEquivalencyTable();
 
   output->SetBufferedRegion(output->GetRequestedRegion());
   output->Allocate();
@@ -85,18 +83,16 @@ EquivalenceRelabeler<TScalar, TImageDimension>::GenerateOutputRequestedRegion(Da
   // No choice but to use RTTI here.
   // All Image outputs set to the same RequestedRegion  other
   // outputs ignored.
-  ImageBase<ImageDimension> * imgData;
-  ImageBase<ImageDimension> * op;
-  imgData = dynamic_cast<ImageBase<ImageDimension> *>(output);
+  auto * imgData = dynamic_cast<ImageBase<ImageDimension> *>(output);
 
   if (imgData)
   {
-    std::vector<ProcessObject::DataObjectPointer>::size_type idx;
+    std::vector<ProcessObject::DataObjectPointer>::size_type idx = 0;
     for (idx = 0; idx < this->GetNumberOfIndexedOutputs(); ++idx)
     {
       if (this->GetOutput(idx) && this->GetOutput(idx) != output)
       {
-        op = dynamic_cast<ImageBase<ImageDimension> *>(this->GetOutput(idx));
+        auto * op = dynamic_cast<ImageBase<ImageDimension> *>(this->GetOutput(idx));
         if (op)
         {
           this->GetOutput(idx)->SetRequestedRegion(output);
@@ -115,11 +111,10 @@ EquivalenceRelabeler<TScalar, TImageDimension>::PrintSelf(std::ostream & os, Ind
 
 template <typename TScalar, unsigned int TImageDimension>
 typename EquivalenceRelabeler<TScalar, TImageDimension>::DataObjectPointer
-  EquivalenceRelabeler<TScalar, TImageDimension>::MakeOutput(DataObjectPointerArraySizeType)
+EquivalenceRelabeler<TScalar, TImageDimension>::MakeOutput(DataObjectPointerArraySizeType)
 {
   return ImageType::New().GetPointer();
 }
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #endif

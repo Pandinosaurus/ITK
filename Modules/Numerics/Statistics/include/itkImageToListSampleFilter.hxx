@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,14 @@
 #ifndef itkImageToListSampleFilter_hxx
 #define itkImageToListSampleFilter_hxx
 
-#include "itkImageToListSampleFilter.h"
 #include "itkImageRegionConstIterator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TImage, typename TMaskImage>
 ImageToListSampleFilter<TImage, TMaskImage>::ImageToListSampleFilter()
+  : m_MaskValue(itk::NumericTraits<MaskPixelType>::max())
 {
-  this->m_MaskValue = itk::NumericTraits<MaskPixelType>::max();
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
 
@@ -75,8 +72,9 @@ ImageToListSampleFilter<TImage, TMaskImage>::GetMaskImage() const
 }
 
 template <typename TImage, typename TMaskImage>
-typename ImageToListSampleFilter<TImage, TMaskImage>::DataObjectPointer
+auto
 ImageToListSampleFilter<TImage, TMaskImage>::MakeOutput(DataObjectPointerArraySizeType itkNotUsed(idx))
+  -> DataObjectPointer
 {
   return ListSampleType::New().GetPointer();
 }
@@ -92,16 +90,11 @@ ImageToListSampleFilter<TImage, TMaskImage>::GetMeasurementVectorSize() const
     itkExceptionMacro("Input image has not been set yet");
   }
 
-  MeasurementVectorType m;
-  unsigned int          measurementVectorSize;
+  unsigned int measurementVectorSize = input->GetNumberOfComponentsPerPixel();
 
-  if (!MeasurementVectorTraits::IsResizable(m))
+  if (!MeasurementVectorTraits::IsResizable<MeasurementVectorType>({}))
   {
-    measurementVectorSize = NumericTraits<MeasurementVectorType>::GetLength(m);
-  }
-  else
-  {
-    measurementVectorSize = input->GetNumberOfComponentsPerPixel();
+    measurementVectorSize = NumericTraits<MeasurementVectorType>::GetLength({});
   }
 
   return measurementVectorSize;
@@ -184,14 +177,13 @@ ImageToListSampleFilter<TImage, TMaskImage>::GenerateInputRequestedRegion()
 }
 
 template <typename TImage, typename TMaskImage>
-const typename ImageToListSampleFilter<TImage, TMaskImage>::ListSampleType *
-ImageToListSampleFilter<TImage, TMaskImage>::GetOutput() const
+auto
+ImageToListSampleFilter<TImage, TMaskImage>::GetOutput() const -> const ListSampleType *
 {
   const auto * output = static_cast<const ListSampleType *>(this->ProcessObject::GetOutput(0));
 
   return output;
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

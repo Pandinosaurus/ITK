@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,6 +36,8 @@ namespace itk
  * a group, that is, any operations between versors result in another
  * versor. For this reason, addition is not defined in this class, even
  * though it is a valid operation between quaternions.
+ *
+ * \note Its special member functions are implicitly defaulted, following the C++ "Rule of Zero".
  *
  * \ingroup Geometry
  * \ingroup DataRepresentation
@@ -79,7 +81,7 @@ public:
   using MatrixType = Matrix<T, 3, 3>;
 
   /** Get a vnl_quaternion with a copy of the internal memory block. */
-  vnl_quaternion<T>
+  [[nodiscard]] vnl_quaternion<T>
   GetVnlQuaternion() const;
 
   /** Set the Versor from a Quaternion
@@ -108,17 +110,6 @@ public:
   void
   Set(T x, T y, T z, T w);
 
-  /** Default constructor creates a null versor
-   * (representing 0 degrees  rotation). */
-  Versor();
-
-  /** Copy constructor.  */
-  Versor(const Self & v);
-
-  /** Assignment operator =.  Copy the versor argument. */
-  const Self &
-  operator=(const Self & v);
-
   /** Composition operator *=.  Compose the current versor
    * with the operand and store the result in the current
    * versor. */
@@ -135,7 +126,7 @@ public:
   /** Get Tensor part of the Versor.
    * Given that Versors are normalized quaternions this value
    * is expected to be 1.0 always  */
-  ValueType
+  [[nodiscard]] ValueType
   GetTensor() const;
 
   /** Normalize the Versor.
@@ -147,18 +138,19 @@ public:
 
   /** Get Conjugate versor.  Returns the versor that produce
    * a rotation by the same angle but in opposite direction. */
-  Self
+  [[nodiscard]] Self
   GetConjugate() const;
 
   /** Get Reciprocal versor.  Returns the versor that composed
    * with this one will result in a scalar operator equals to 1.
    * It is also equivalent to 1/this. */
-  Self
+  [[nodiscard]] Self
   GetReciprocal() const;
 
   /** Versor operator*.  Performs the composition of two versors.
    * this operation is NOT commutative. */
-  Self operator*(const Self & v) const;
+  Self
+  operator*(const Self & v) const;
 
   /** Versor operator/.  Performs the division of two versors. */
   Self
@@ -169,68 +161,66 @@ public:
   bool
   operator==(const Self & v) const;
 
-  /** Versor operator!=  Performs the comparison between two versors.
-   * this operation uses an arbitrary threshold for the comparison.  */
-  bool
-  operator!=(const Self & v) const;
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   /** Returns the Scalar part. */
-  ValueType
+  [[nodiscard]] ValueType
   GetScalar() const;
 
   /** Returns the X component. */
-  ValueType
+  [[nodiscard]] ValueType
   GetX() const
   {
     return m_X;
   }
 
   /** Returns the Y component. */
-  ValueType
+  [[nodiscard]] ValueType
   GetY() const
   {
     return m_Y;
   }
 
   /** Returns the Z component. */
-  ValueType
+  [[nodiscard]] ValueType
   GetZ() const
   {
     return m_Z;
   }
 
   /** Returns the W component. */
-  ValueType
+  [[nodiscard]] ValueType
   GetW() const
   {
     return m_W;
   }
 
-  /** Returns the rotation angle in radians.  */
-  ValueType
+  /** Returns the rotation angle in radians. */
+  [[nodiscard]] ValueType
   GetAngle() const;
 
   /** Returns the axis of the rotation.
    * It is a unit vector parallel to the axis. */
-  VectorType
+  [[nodiscard]] VectorType
   GetAxis() const;
 
   /** Returns the Right part
    * It is a vector part of the Versor. It is
    * called Right because it is equivalent to
    * a right angle rotation. */
-  VectorType
+  [[nodiscard]] VectorType
   GetRight() const;
 
-  /** Set the versor using a vector and angle
-   * the unit vector parallel to the given vector
-   * will be used. The angle is expected in radians. */
+  /** Set the versor using a vector and angle.
+   *
+   * The unit vector parallel to the given vector will be used. The angle is expected in radians.
+   */
   void
   Set(const VectorType & axis, ValueType angle);
 
   /** Set the versor using an orthogonal matrix.
    *  Based on code from:
-   *  http://www.euclideanspace.com/maths/geometry/rotations/
+   *  https://www.euclideanspace.com/maths/geometry/rotations/
    *  conversions/matrixToQuaternion/index.htm
    */
   void
@@ -277,37 +267,41 @@ public:
   SetIdentity();
 
   /** Transform a vector. */
-  VectorType
+  [[nodiscard]] VectorType
   Transform(const VectorType & v) const;
 
-  /** Transform a covariant vector.  */
-  CovariantVectorType
+  /** Transform a covariant vector.
+   *
+   * Given that this is an orthogonal transformation CovariantVectors are transformed as vectors.
+   */
+  [[nodiscard]] CovariantVectorType
   Transform(const CovariantVectorType & v) const;
 
   /** Transform a point. */
-  PointType
+  [[nodiscard]] PointType
   Transform(const PointType & v) const;
 
   /** Transform a vnl_vector. */
-  VnlVectorType
+  [[nodiscard]] VnlVectorType
   Transform(const VnlVectorType & v) const;
 
   /** Get the matrix representation. */
-  MatrixType
+  [[nodiscard]] MatrixType
   GetMatrix() const;
 
   /** Get the Square root of the unit quaternion. */
-  Self
+  [[nodiscard]] Self
   SquareRoot() const;
 
-  /** Compute the Exponential of the unit quaternion
+  /** Compute the Exponential of the unit quaternion.
    * Exponentiation by a factor is equivalent to
    * multiplication of the rotation angle of the quaternion. */
-  Self
+  [[nodiscard]] Self
   Exponential(ValueType exponent) const;
 
 private:
   /** use different epsilon for float and double */
+  /** @ITKStartGrouping */
   static inline ValueType
   Epsilon(double *)
   {
@@ -323,18 +317,19 @@ private:
   {
     return Epsilon((ValueType *)nullptr);
   }
+  /** @ITKEndGrouping */
 
   /** Component parallel to x axis.  */
-  ValueType m_X;
+  ValueType m_X{};
 
   /** Component parallel to y axis.  */
-  ValueType m_Y;
+  ValueType m_Y{};
 
   /** Component parallel to z axis.  */
-  ValueType m_Z;
+  ValueType m_Z{};
 
   /** Escalar component of the Versor.  */
-  ValueType m_W;
+  ValueType m_W{ NumericTraits<T>::OneValue() };
 };
 
 template <typename T>

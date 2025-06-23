@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNormalizeToConstantImageFilter_hxx
 #define itkNormalizeToConstantImageFilter_hxx
 
-#include "itkNormalizeToConstantImageFilter.h"
 
 #include "itkDivideImageFilter.h"
 #include "itkNumericTraits.h"
@@ -59,18 +58,18 @@ NormalizeToConstantImageFilter<TInputImage, TOutputImage>::GenerateData()
   OutputImageType *      output0 = this->GetOutput(0);
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   using StatType = typename itk::StatisticsImageFilter<InputImageType>;
-  typename StatType::Pointer stat = StatType::New();
+  auto stat = StatType::New();
   stat->SetInput(input0);
   progress->RegisterInternalFilter(stat, 0.5f);
   stat->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   stat->Update();
 
   using DivType = typename itk::DivideImageFilter<InputImageType, OutputImageType, OutputImageType>;
-  typename DivType::Pointer div = DivType::New();
+  auto div = DivType::New();
   div->SetInput(input0);
   div->SetConstant2(static_cast<RealType>(stat->GetSum()) / m_Constant);
   div->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());

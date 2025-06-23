@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include <string>
 #include <queue>
 #include <thread>
+#include <atomic>
 
 #include "itkObjectFactory.h"
 #include <mutex>
@@ -36,7 +37,7 @@ namespace itk
 class LoggerThreadWrapperEnums
 {
 public:
-  /** \class Operation
+  /**
    * \ingroup ITKCommon
    * Definition of types of operations for LoggerThreadWrapper.
    */
@@ -72,8 +73,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LoggerThreadWrapper, SimpleLoggerType);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LoggerThreadWrapper);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
@@ -128,12 +129,15 @@ public:
   AddLogOutput(OutputType * output) override;
 
   void
-  Write(PriorityLevelEnum level, std::string const & content) override;
+  Write(PriorityLevelEnum level, const std::string & content) override;
 
   void
   Flush() override;
 
 protected:
+  void
+  PrivateFlush() override;
+
   /** Constructor */
   LoggerThreadWrapper();
 
@@ -148,29 +152,21 @@ protected:
   ThreadFunction();
 
 private:
-  using OperationContainerType = std::queue<OperationEnum>;
+  std::thread m_Thread{};
 
-  using MessageContainerType = std::queue<std::string>;
+  std::atomic<bool> m_TerminationRequested{};
 
-  using LevelContainerType = std::queue<PriorityLevelEnum>;
+  std::queue<OperationEnum> m_OperationQ{};
 
-  using OutputContainerType = std::queue<typename OutputType::Pointer>;
+  std::queue<std::string> m_MessageQ{};
 
-  std::thread m_Thread;
+  std::queue<PriorityLevelEnum> m_LevelQ{};
 
-  bool m_TerminationRequested;
+  std::queue<typename OutputType::Pointer> m_OutputQ{};
 
-  OperationContainerType m_OperationQ;
+  mutable std::mutex m_Mutex{};
 
-  MessageContainerType m_MessageQ;
-
-  LevelContainerType m_LevelQ;
-
-  OutputContainerType m_OutputQ;
-
-  mutable std::mutex m_Mutex;
-
-  DelayType m_Delay;
+  DelayType m_Delay{};
 
 }; // class LoggerThreadWrapper
 

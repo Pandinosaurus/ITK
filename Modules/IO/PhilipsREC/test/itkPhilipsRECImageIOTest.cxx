@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkImageFileWriter.h"
 
 #include "itkPhilipsRECImageIOFactory.h"
+#include "itkTestingMacros.h"
 
 int
 itkPhilipsRECImageIOTest(int argc, char * argv[])
@@ -27,7 +28,7 @@ itkPhilipsRECImageIOTest(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Usage: " << argv[0] << " InputImage OutputImage" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -39,23 +40,17 @@ itkPhilipsRECImageIOTest(int argc, char * argv[])
 
   itk::PhilipsRECImageIOFactory::RegisterOneFactory();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   writer->SetInput(reader->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,17 @@
 #include "itkAtanRegularizedHeavisideStepFunction.h"
 #include "itkLevelSetEvolutionNumberOfIterationsStoppingCriterion.h"
 #include "itkLevelSetEvolution.h"
+#include "itkTestingMacros.h"
 
 int
 itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
 {
-  if (argc < 6)
+  if (argc != 6)
   {
-    std::cerr << "Missing Arguments" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage:" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv)
+              << " inputFilename seedPosition0 seedPosition1 initialDistance outputFilename" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -71,14 +75,14 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   using NodeType = FastMarchingFilterType::NodeType;
 
   // Read the image to be segmented
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
-  InputImageType::Pointer input = reader->GetOutput();
+  const InputImageType::Pointer input = reader->GetOutput();
 
-  FastMarchingFilterType::Pointer fastMarching = FastMarchingFilterType::New();
+  auto fastMarching = FastMarchingFilterType::New();
 
-  NodeContainer::Pointer seeds = NodeContainer::New();
+  auto seeds = NodeContainer::New();
 
   ImageType::IndexType seedPosition;
   seedPosition[0] = std::stoi(argv[2]);
@@ -117,8 +121,8 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   //  only after the \code{Update()} methods of this filter has been called
   //  directly or indirectly.
   //
-  InputImageType::RegionType inputBufferedRegion = input->GetBufferedRegion();
-  InputImageType::SizeType   inputBufferedRegionSize = inputBufferedRegion.GetSize();
+  const InputImageType::RegionType inputBufferedRegion = input->GetBufferedRegion();
+  const InputImageType::SizeType   inputBufferedRegionSize = inputBufferedRegion.GetSize();
 
   fastMarching->SetOutputSize(inputBufferedRegionSize);
   fastMarching->Update();
@@ -127,29 +131,29 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   list_ids.push_back(1);
   list_ids.push_back(2);
 
-  IdListImageType::Pointer id_image = IdListImageType::New();
+  auto id_image = IdListImageType::New();
   id_image->SetRegions(input->GetLargestPossibleRegion());
   id_image->Allocate();
   id_image->FillBuffer(list_ids);
 
-  DomainMapImageFilterType::Pointer domainMapFilter = DomainMapImageFilterType::New();
+  auto domainMapFilter = DomainMapImageFilterType::New();
   domainMapFilter->SetInput(id_image);
   domainMapFilter->Update();
   std::cout << "Domain map computed" << std::endl;
 
   // Define the Heaviside function
-  HeavisideFunctionBaseType::Pointer heaviside = HeavisideFunctionBaseType::New();
+  auto heaviside = HeavisideFunctionBaseType::New();
   heaviside->SetEpsilon(1.0);
 
   // Map of levelset bases
-  LevelSetType::Pointer level_set1 = LevelSetType::New();
+  auto level_set1 = LevelSetType::New();
   level_set1->SetImage(fastMarching->GetOutput());
 
-  LevelSetType::Pointer level_set2 = LevelSetType::New();
+  auto level_set2 = LevelSetType::New();
   level_set2->SetImage(fastMarching->GetOutput());
 
   // Insert the levelsets in a levelset container
-  LevelSetContainerType::Pointer lscontainer = LevelSetContainerType::New();
+  auto lscontainer = LevelSetContainerType::New();
   lscontainer->SetHeaviside(heaviside);
   lscontainer->SetDomainMapFilter(domainMapFilter);
 
@@ -172,13 +176,13 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   // *** 1st Level Set phi ***
 
   // Create ChanAndVese internal term for phi_{1}
-  ChanAndVeseInternalTermType::Pointer cvInternalTerm0 = ChanAndVeseInternalTermType::New();
+  auto cvInternalTerm0 = ChanAndVeseInternalTermType::New();
   cvInternalTerm0->SetInput(input);
   cvInternalTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: CV internal term created" << std::endl;
 
   // Create ChanAndVese external term for phi_{1}
-  ChanAndVeseExternalTermType::Pointer cvExternalTerm0 = ChanAndVeseExternalTermType::New();
+  auto cvExternalTerm0 = ChanAndVeseExternalTermType::New();
   cvExternalTerm0->SetInput(input);
   cvExternalTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: CV external term created" << std::endl;
@@ -186,13 +190,13 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   // -----------------------------
   // *** 2nd Level Set phi ***
 
-  ChanAndVeseInternalTermType::Pointer cvInternalTerm1 = ChanAndVeseInternalTermType::New();
+  auto cvInternalTerm1 = ChanAndVeseInternalTermType::New();
   cvInternalTerm1->SetInput(input);
   cvInternalTerm1->SetCoefficient(1.0);
   std::cout << "LevelSet 2: CV internal term created" << std::endl;
 
   // Create ChanAndVese external term for phi_{1}
-  ChanAndVeseExternalTermType::Pointer cvExternalTerm1 = ChanAndVeseExternalTermType::New();
+  auto cvExternalTerm1 = ChanAndVeseExternalTermType::New();
   cvExternalTerm1->SetInput(input);
   cvExternalTerm1->SetCoefficient(1.0);
   std::cout << "LevelSet 2: CV external term created" << std::endl;
@@ -200,7 +204,7 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   // **************** CREATE ALL EQUATIONS ****************
 
   // Create Term Container
-  TermContainerType::Pointer termContainer0 = TermContainerType::New();
+  auto termContainer0 = TermContainerType::New();
   termContainer0->SetInput(input);
   termContainer0->SetCurrentLevelSetId(0);
   termContainer0->SetLevelSetContainer(lscontainer);
@@ -210,7 +214,7 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   std::cout << "Term container 0 created" << std::endl;
 
   // Create Term Container
-  TermContainerType::Pointer termContainer1 = TermContainerType::New();
+  auto termContainer1 = TermContainerType::New();
   termContainer1->SetInput(input);
   termContainer1->SetCurrentLevelSetId(1);
   termContainer1->SetLevelSetContainer(lscontainer);
@@ -219,16 +223,16 @@ itkTwoLevelSetDenseImage2DTest(int argc, char * argv[])
   termContainer1->AddTerm(1, cvExternalTerm1);
   std::cout << "Term container 1 created" << std::endl;
 
-  EquationContainerType::Pointer equationContainer = EquationContainerType::New();
+  auto equationContainer = EquationContainerType::New();
   equationContainer->AddEquation(0, termContainer0);
   equationContainer->AddEquation(1, termContainer1);
   equationContainer->SetLevelSetContainer(lscontainer);
 
   using StoppingCriterionType = itk::LevelSetEvolutionNumberOfIterationsStoppingCriterion<LevelSetContainerType>;
-  StoppingCriterionType::Pointer criterion = StoppingCriterionType::New();
+  auto criterion = StoppingCriterionType::New();
   criterion->SetNumberOfIterations(10);
 
-  LevelSetEvolutionType::Pointer evolution = LevelSetEvolutionType::New();
+  auto evolution = LevelSetEvolutionType::New();
   evolution->SetEquationContainer(equationContainer);
   evolution->SetStoppingCriterion(criterion);
   evolution->SetLevelSetContainer(lscontainer);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,10 +25,11 @@
 int
 itkZeroCrossingBasedEdgeDetectionImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 3)
+  if (argc < 5)
   {
     std::cerr << "Missing Parameters." << std::endl;
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " varianceValue maximumErrorValue" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " varianceValue maximumErrorValue backgroundValue foregroundValue" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -37,14 +38,14 @@ itkZeroCrossingBasedEdgeDetectionImageFilterTest(int argc, char * argv[])
   // Set up filter
   using FilterType = itk::ZeroCrossingBasedEdgeDetectionImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ZeroCrossingBasedEdgeDetectionImageFilter, ImageToImageFilter);
 
 
-  itk::SimpleFilterWatcher watcher(filter);
+  const itk::SimpleFilterWatcher watcher(filter);
 
-  float varianceValue = std::stod(argv[1]);
+  const float varianceValue = std::stod(argv[1]);
   filter->SetVariance(varianceValue);
   for (auto i : filter->GetVariance())
   {
@@ -57,12 +58,11 @@ itkZeroCrossingBasedEdgeDetectionImageFilterTest(int argc, char * argv[])
     }
   }
 
-  FilterType::ArrayType variance;
-  variance.Fill(varianceValue);
+  auto variance = itk::MakeFilled<FilterType::ArrayType>(varianceValue);
   filter->SetVariance(variance);
   ITK_TEST_SET_GET_VALUE(variance, filter->GetVariance());
 
-  float maximumErrorValue = std::stod(argv[2]);
+  const float maximumErrorValue = std::stod(argv[2]);
   filter->SetMaximumError(maximumErrorValue);
   for (auto i : filter->GetMaximumError())
   {
@@ -75,10 +75,17 @@ itkZeroCrossingBasedEdgeDetectionImageFilterTest(int argc, char * argv[])
     }
   }
 
-  FilterType::ArrayType maximumError;
-  maximumError.Fill(maximumErrorValue);
+  auto maximumError = itk::MakeFilled<FilterType::ArrayType>(maximumErrorValue);
   filter->SetMaximumError(maximumError);
   ITK_TEST_SET_GET_VALUE(maximumError, filter->GetMaximumError());
+
+  auto backgroundValue = static_cast<typename FilterType::OutputImagePixelType>(std::stod(argv[3]));
+  filter->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
+
+  auto foregroundValue = static_cast<typename FilterType::OutputImagePixelType>(std::stod(argv[4]));
+  filter->SetForegroundValue(foregroundValue);
+  ITK_TEST_SET_GET_VALUE(foregroundValue, filter->GetForegroundValue());
 
   // Run Test
   itk::Size<2> sz;

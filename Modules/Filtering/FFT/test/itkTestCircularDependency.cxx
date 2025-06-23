@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,23 +39,23 @@ FFTW()
   using CplxImageType = itk::Image<CplxPixelType, 3>;
 
   using FFTWComplexToComplexFilterType = itk::FFTWComplexToComplexFFTImageFilter<CplxImageType>;
-  typename FFTWComplexToComplexFilterType::Pointer fftwCplxToCplxFFT = FFTWComplexToComplexFilterType::New();
+  auto fftwCplxToCplxFFT = FFTWComplexToComplexFilterType::New();
 
   using FFTWRealToHalfHermitianForwardFFTImageFilterType =
     itk::FFTWRealToHalfHermitianForwardFFTImageFilter<RealImageType, CplxImageType>;
-  typename FFTWRealToHalfHermitianForwardFFTImageFilterType::Pointer fRlToHlfHrmtnFwrdFFT =
+  const typename FFTWRealToHalfHermitianForwardFFTImageFilterType::Pointer fRlToHlfHrmtnFwrdFFT =
     FFTWRealToHalfHermitianForwardFFTImageFilterType::New();
 
   using FFTWInverseFFTImageFilterType = itk::FFTWInverseFFTImageFilter<CplxImageType, RealImageType>;
-  typename FFTWInverseFFTImageFilterType::Pointer fNvrsFFT = FFTWInverseFFTImageFilterType::New();
+  auto fNvrsFFT = FFTWInverseFFTImageFilterType::New();
 
   using FFTWHalfHermitianToRealInverseFFTImageFilterType =
     itk::FFTWHalfHermitianToRealInverseFFTImageFilter<CplxImageType, RealImageType>;
-  typename FFTWHalfHermitianToRealInverseFFTImageFilterType::Pointer hlfHrmtnToRlnvrs =
+  const typename FFTWHalfHermitianToRealInverseFFTImageFilterType::Pointer hlfHrmtnToRlnvrs =
     FFTWHalfHermitianToRealInverseFFTImageFilterType::New();
 
   using FFTWForwardFFTImageFilterType = itk::FFTWForwardFFTImageFilter<RealImageType, CplxImageType>;
-  typename FFTWForwardFFTImageFilterType::Pointer fFrwrdFFT = FFTWForwardFFTImageFilterType::New();
+  auto fFrwrdFFT = FFTWForwardFFTImageFilterType::New();
 }
 #endif
 
@@ -69,23 +69,23 @@ Vnl()
   using CplxImageType = itk::Image<CplxPixelType, 3>;
 
   using VnlComplexToComplexFilterType = itk::VnlComplexToComplexFFTImageFilter<CplxImageType>;
-  typename VnlComplexToComplexFilterType::Pointer vnlCplxToCplxFFT = VnlComplexToComplexFilterType::New();
+  auto vnlCplxToCplxFFT = VnlComplexToComplexFilterType::New();
 
   using VnlRealToHalfHermitianForwardFFTImageFilterType =
     itk::VnlRealToHalfHermitianForwardFFTImageFilter<RealImageType, CplxImageType>;
-  typename VnlRealToHalfHermitianForwardFFTImageFilterType::Pointer vRlToHlfHrmtnFwrdFFT =
+  const typename VnlRealToHalfHermitianForwardFFTImageFilterType::Pointer vRlToHlfHrmtnFwrdFFT =
     VnlRealToHalfHermitianForwardFFTImageFilterType::New();
 
   using VnlInverseFFTImageFilterType = itk::VnlInverseFFTImageFilter<CplxImageType, RealImageType>;
-  typename VnlInverseFFTImageFilterType::Pointer vNvrsFFT = VnlInverseFFTImageFilterType::New();
+  auto vNvrsFFT = VnlInverseFFTImageFilterType::New();
 
   using VnlHalfHermitianToRealInverseFFTImageFilterType =
     itk::VnlHalfHermitianToRealInverseFFTImageFilter<CplxImageType, RealImageType>;
-  typename VnlHalfHermitianToRealInverseFFTImageFilterType::Pointer fHlfHrmtnToRlnvrs =
+  const typename VnlHalfHermitianToRealInverseFFTImageFilterType::Pointer fHlfHrmtnToRlnvrs =
     VnlHalfHermitianToRealInverseFFTImageFilterType::New();
 
   using VnlForwardFFTImageFilterType = itk::VnlForwardFFTImageFilter<RealImageType, CplxImageType>;
-  typename VnlForwardFFTImageFilterType::Pointer vFrwrdFFT = VnlForwardFFTImageFilterType::New();
+  auto vFrwrdFFT = VnlForwardFFTImageFilterType::New();
 }
 
 int

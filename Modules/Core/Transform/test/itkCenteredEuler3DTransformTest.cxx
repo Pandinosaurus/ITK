@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,12 @@ itkCenteredEuler3DTransformTest(int, char *[])
   std::cout << "==================================" << std::endl;
   std::cout << "Testing Centered Euler Angles 3D Transform" << std::endl << std::endl;
 
-  const double           epsilon = 1e-10;
+  constexpr double       epsilon = 1e-10;
   constexpr unsigned int N = 3;
   bool                   Ok = true;
 
   using EulerTransformType = itk::CenteredEuler3DTransform<double>;
-  EulerTransformType::Pointer eulerTransform = EulerTransformType::New();
+  auto eulerTransform = EulerTransformType::New();
 
   // Testing Identity
   std::cout << "Testing identity transform: ";
@@ -67,7 +67,7 @@ itkCenteredEuler3DTransformTest(int, char *[])
 
   // Rotate an itk::Point
   EulerTransformType::InputPointType::ValueType pInit[3] = { 10, -5, 3 };
-  EulerTransformType::InputPointType            p = pInit;
+  const EulerTransformType::InputPointType      p = pInit;
   EulerTransformType::InputPointType            q;
 
   itk::Matrix<double, 3, 3> RotationX;
@@ -107,9 +107,9 @@ itkCenteredEuler3DTransformTest(int, char *[])
 
   EulerTransformType::OutputPointType r;
   r = eulerTransform->TransformPoint(p);
-  for (unsigned int i = 0; i < N; i++)
+  for (unsigned int i = 0; i < N; ++i)
   {
-    if (std::fabs(q[i] - r[i]) > epsilon)
+    if (itk::Math::abs(q[i] - r[i]) > epsilon)
     {
       Ok = false;
       break;
@@ -122,17 +122,16 @@ itkCenteredEuler3DTransformTest(int, char *[])
     std::cerr << "Reported Result is     : " << r << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << " [ PASSED ] " << std::endl;
-  }
+
+  std::cout << " [ PASSED ] " << std::endl;
+
 
   std::cout << "Testing Translation:";
 
   eulerTransform->SetRotation(0, 0, 0);
 
   EulerTransformType::OffsetType::ValueType ioffsetInit[3] = { 1, -4, 8 };
-  EulerTransformType::OffsetType            ioffset = ioffsetInit;
+  const EulerTransformType::OffsetType      ioffset = ioffsetInit;
 
   eulerTransform->SetOffset(ioffset);
   std::cout << "eulerTransform: " << eulerTransform;
@@ -140,9 +139,9 @@ itkCenteredEuler3DTransformTest(int, char *[])
   q = p + ioffset;
 
   r = eulerTransform->TransformPoint(p);
-  for (unsigned int i = 0; i < N; i++)
+  for (unsigned int i = 0; i < N; ++i)
   {
-    if (std::fabs(q[i] - r[i]) > epsilon)
+    if (itk::Math::abs(q[i] - r[i]) > epsilon)
     {
       Ok = false;
       break;
@@ -155,20 +154,19 @@ itkCenteredEuler3DTransformTest(int, char *[])
     std::cerr << "Reported Result is     : " << r << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << " [ PASSED ] " << std::endl;
-  }
+
+  std::cout << " [ PASSED ] " << std::endl;
+
 
   // Testing Parameters
   std::cout << "Testing Set/Get Parameters: ";
   EulerTransformType::ParametersType parameters(9);
   parameters.Fill(0);
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     parameters[i] = i;
   }
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     parameters[i + 6] = i + 3;
   }
@@ -213,7 +211,7 @@ itkCenteredEuler3DTransformTest(int, char *[])
   eulerTransform->SetCenter(center);
 
   eulerTransform->Print(std::cout);
-  for (unsigned int pp = 0; pp < 2; pp++)
+  for (unsigned int pp = 0; pp < 2; ++pp)
   {
     std::cout << "Testing Jacobian when ComputeZYX is ";
     if (pp == 0)
@@ -248,7 +246,7 @@ itkCenteredEuler3DTransformTest(int, char *[])
     std::cout << jacobian << std::endl;
 
     EulerTransformType::JacobianType approxJacobian = jacobian;
-    for (unsigned int k = 0; k < eulerTransform->GetNumberOfParameters(); k++)
+    for (unsigned int k = 0; k < eulerTransform->GetNumberOfParameters(); ++k)
     {
       constexpr double                   delta = 0.001;
       EulerTransformType::ParametersType plusParameters;
@@ -269,14 +267,14 @@ itkCenteredEuler3DTransformTest(int, char *[])
 
       if (k < 3 || k > 5) // Jacobian is approx as identity for center of rotation
       {
-        for (unsigned int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; ++j)
         {
-          double approxDerivative = (plusPoint[j] - minusPoint[j]) / (2.0 * delta);
-          double computedDerivative = jacobian[j][k];
+          const double approxDerivative = (plusPoint[j] - minusPoint[j]) / (2.0 * delta);
+          const double computedDerivative = jacobian[j][k];
           approxJacobian[j][k] = approxDerivative;
           if (itk::Math::abs(approxDerivative - computedDerivative) > 1e-5)
           {
-            std::cerr << "Error computing Jacobian [" << j << "][" << k << "]" << std::endl;
+            std::cerr << "Error computing Jacobian [" << j << "][" << k << ']' << std::endl;
             std::cerr << "Result should be: " << approxDerivative << std::endl;
             std::cerr << "Reported result is: " << computedDerivative << std::endl;
             std::cerr << " [ FAILED ] " << std::endl;
@@ -295,11 +293,12 @@ itkCenteredEuler3DTransformTest(int, char *[])
 
   eulerTransform->SetRotation(0.2, 0.1, 0.3);
 
-  EulerTransformType::Pointer t2 = EulerTransformType::New();
+  auto t2 = EulerTransformType::New();
   t2->SetIdentity();
   t2->Compose(eulerTransform);
-  if ((std::fabs(t2->GetParameters()[0] - 0.2) > 0.0001) || (std::fabs(t2->GetParameters()[1] - 0.1) > 0.0001) ||
-      (std::fabs(t2->GetParameters()[2] - 0.3) > 0.0001))
+  if ((itk::Math::abs(t2->GetParameters()[0] - 0.2) > 0.0001) ||
+      (itk::Math::abs(t2->GetParameters()[1] - 0.1) > 0.0001) ||
+      (itk::Math::abs(t2->GetParameters()[2] - 0.3) > 0.0001))
   {
     std::cout << " [ FAILED ] " << std::endl;
     return EXIT_FAILURE;
@@ -315,15 +314,16 @@ itkCenteredEuler3DTransformTest(int, char *[])
   t2->SetComputeZYX(true);
   t2->Compose(eulerTransform);
 
-  if ((std::fabs(t2->GetParameters()[0] - 0.2) > 0.0001) || (std::fabs(t2->GetParameters()[1] - 0.1) > 0.0001) ||
-      (std::fabs(t2->GetParameters()[2] - 0.3) > 0.0001))
+  if ((itk::Math::abs(t2->GetParameters()[0] - 0.2) > 0.0001) ||
+      (itk::Math::abs(t2->GetParameters()[1] - 0.1) > 0.0001) ||
+      (itk::Math::abs(t2->GetParameters()[2] - 0.3) > 0.0001))
   {
     std::cout << " [ FAILED ] " << std::endl;
     return EXIT_FAILURE;
   }
   std::cout << " [ PASSED ] " << std::endl;
 
-  EulerTransformType::Pointer t3 = EulerTransformType::New();
+  auto t3 = EulerTransformType::New();
   t2->GetInverse(t3);
 
   t3 = dynamic_cast<EulerTransformType *>(t2->GetInverseTransform().GetPointer());
@@ -336,7 +336,7 @@ itkCenteredEuler3DTransformTest(int, char *[])
   std::cout << "Testing offset updating after changing angle order (ZYX) : ";
   const double dtr = (std::atan(1.0) * 4.0) / 180.0; // cast angles from degrees to radians
 
-  EulerTransformType::Pointer        centeredtransform = EulerTransformType::New();
+  auto                               centeredtransform = EulerTransformType::New();
   EulerTransformType::ParametersType transformParameters = centeredtransform->GetParameters();
   transformParameters[0] = 32;
   transformParameters[1] = -51;
@@ -374,7 +374,7 @@ itkCenteredEuler3DTransformTest(int, char *[])
                         (outputTestPoint[2] - testPoint[2]) * (outputTestPoint[2] - testPoint[2]);
   computeError = std::sqrt(computeError);
 
-  double errorTolerance = 0.001;
+  constexpr double errorTolerance = 0.001;
   if (computeError > errorTolerance)
   {
     std::cout << " [ FAILED ] " << std::endl;

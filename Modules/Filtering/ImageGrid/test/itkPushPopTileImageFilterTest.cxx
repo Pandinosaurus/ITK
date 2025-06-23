@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,14 +53,14 @@ itkPushPopTileImageFilterTest(int argc, char * argv[])
   layout[1] = 1;
 
   // Tile the input images
-  TilerType::Pointer tiler1 = TilerType::New();
-  TilerType::Pointer tiler2 = TilerType::New();
-  TilerType::Pointer tiler3 = TilerType::New();
-  TilerType::Pointer tiler4 = TilerType::New();
-  TilerType::Pointer tiler = TilerType::New();
+  auto tiler1 = TilerType::New();
+  auto tiler2 = TilerType::New();
+  auto tiler3 = TilerType::New();
+  auto tiler4 = TilerType::New();
+  auto tiler = TilerType::New();
 
-  unsigned char                yellow[3] = { 255, 255, 127 };
-  itk::RGBPixel<unsigned char> fillPixel = yellow;
+  unsigned char                      yellow[3] = { 255, 255, 127 };
+  const itk::RGBPixel<unsigned char> fillPixel = yellow;
 
   tiler1->SetDefaultPixelValue(fillPixel);
   tiler1->SetLayout(layout);
@@ -72,9 +72,9 @@ itkPushPopTileImageFilterTest(int argc, char * argv[])
   tiler4->SetLayout(layout);
 
   int f = 0;
-  for (int i = 1; i < argc - 1; i++)
+  for (int i = 1; i < argc - 1; ++i)
   {
-    ImageReaderType::Pointer reader = ImageReaderType::New();
+    auto reader = ImageReaderType::New();
     reader->SetFileName(argv[i]);
     reader->Update();
     tiler1->SetInput(f, reader->GetOutput());
@@ -83,11 +83,9 @@ itkPushPopTileImageFilterTest(int argc, char * argv[])
     tiler4->SetInput(f++, reader->GetOutput());
   }
 
-  InputImageType::ConstPointer image;
-
   tiler3->PopBackInput();
 
-  image = tiler4->GetInput();
+  InputImageType::ConstPointer image = tiler4->GetInput();
   tiler4->PopFrontInput();
   tiler4->PushBackInput(image);
 
@@ -105,7 +103,7 @@ itkPushPopTileImageFilterTest(int argc, char * argv[])
   tiler->PushBackInput(tiler3->GetOutput());
   tiler->PushBackInput(tiler4->GetOutput());
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[argc - 1]);
 

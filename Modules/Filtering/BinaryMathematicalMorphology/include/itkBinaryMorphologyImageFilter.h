@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,15 +34,8 @@ namespace itk
  *
  * BinaryMorphologyImageFilter is a base class for fast binary
  * morphological operations. The implementation of this class and its
- * subclasses are based on the papers:
- *
- * L.Vincent "Morphological transformations of binary images with
- * arbitrary structuring elements", and
- *
- * N.Nikopoulos et al. "An efficient algorithm for 3d binary
- * morphological transformations with 3d structuring elements
- * for arbitrary size and shape". IEEE Transactions on Image
- * Processing. Vol. 9. No. 3. 2000. pp. 283-286.
+ * subclasses are based on the papers \cite vincent1991 and
+ * \cite nikopoulos1997.
  *
  * Grayscale images can be processed as binary images by selecting a
  * "ForegroundValued" (which subclasses may alias as "DilateValue" or
@@ -125,8 +118,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryMorphologyImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMorphologyImageFilter);
 
   /** Kernel type alias. */
   using KernelType = TKernel;
@@ -173,10 +166,11 @@ public:
 
   /** Get/Set the borders as foreground (true) or background (false).
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BoundaryToForeground, bool);
   itkGetConstReferenceMacro(BoundaryToForeground, bool);
   itkBooleanMacro(BoundaryToForeground);
-
+  /** @ITKEndGrouping */
   /** Set kernel (structuring element). */
   void
   SetKernel(const KernelType & kernel) override;
@@ -228,22 +222,22 @@ protected:
     return m_KernelCCVector.end();
   }
 
-  bool m_BoundaryToForeground;
+  bool m_BoundaryToForeground{};
 
 private:
   /** Pixel value to dilate */
-  InputPixelType m_ForegroundValue;
+  InputPixelType m_ForegroundValue{};
 
   /** Pixel value for background */
-  OutputPixelType m_BackgroundValue;
+  OutputPixelType m_BackgroundValue{};
 
   /** Difference sets definition */
-  NeighborIndexContainerContainer m_KernelDifferenceSets;
+  NeighborIndexContainerContainer m_KernelDifferenceSets{};
 
   /** For each Connected Component ( CC ) of structuring element we
    * store the position of one element, arbitrary chosen, which belongs
    * to the CC */
-  std::vector<OffsetType> m_KernelCCVector;
+  std::vector<OffsetType> m_KernelCCVector{};
 };
 } // end namespace itk
 

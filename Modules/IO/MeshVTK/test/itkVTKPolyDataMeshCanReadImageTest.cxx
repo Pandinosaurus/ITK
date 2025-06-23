@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ itkVTKPolyDataMeshCanReadImageTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  itk::VTKPolyDataMeshIO::Pointer vtkMeshIO = itk::VTKPolyDataMeshIO::New();
+  const itk::VTKPolyDataMeshIO::Pointer vtkMeshIO = itk::VTKPolyDataMeshIO::New();
   // Ensure that the MeshIO does not claim to read a .vtk file with image
   // (Structured Grid) data
   ITK_TEST_EXPECT_EQUAL(vtkMeshIO->CanReadFile(argv[1]), false);

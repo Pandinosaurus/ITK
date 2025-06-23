@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ int
 ParticleSwarmOptimizerSAXWriter::CanWriteFile(const char * name)
 {
   std::ofstream ofs(name);
-  int           yes = ofs.is_open();
+  const int     yes = ofs.is_open();
   if (yes)
   {
     ofs.close();
@@ -68,28 +68,28 @@ ParticleSwarmOptimizerSAXWriter::WriteFile()
     ofs << "<optimizer type=\"ParticleSwarmOptimizer\"";
 
     ofs << " NumberOfParticles=\""
-        << this->m_InputObject->GetNumberOfParticles() << "\"";
+        << this->m_InputObject->GetNumberOfParticles() << '"';
 
     ofs << " MaximumNumberOfIterations=\""
-        << this->m_InputObject->GetMaximalNumberOfIterations() << "\"";
+        << this->m_InputObject->GetMaximalNumberOfIterations() << '"';
 
     ofs << " InertiaCoefficient=\""
-        << this->m_InputObject->GetInertiaCoefficient() << "\"";
+        << this->m_InputObject->GetInertiaCoefficient() << '"';
 
     ofs << " GlobalCoefficient=\""
-        << this->m_InputObject->GetGlobalCoefficient() << "\"";
+        << this->m_InputObject->GetGlobalCoefficient() << '"';
 
     ofs << " PersonalCoefficient=\""
-        << this->m_InputObject->GetPersonalCoefficient() << "\"";
+        << this->m_InputObject->GetPersonalCoefficient() << '"';
 
     ofs << " FunctionConvergenceTolerance=\""
-        << this->m_InputObject->GetFunctionConvergenceTolerance() << "\"";
+        << this->m_InputObject->GetFunctionConvergenceTolerance() << '"';
 
     ofs << " ConvergedPercentageToStop=\""
-        << this->m_InputObject->GetPercentageParticlesConverged() << "\"";
+        << this->m_InputObject->GetPercentageParticlesConverged() << '"';
 
-    ofs << ">";
-    ofs << "\n";
+    ofs << '>';
+    ofs << '\n';
 
     // write the lower bound
     ofs << "  <bound id=\"lower\"";
@@ -97,12 +97,12 @@ ParticleSwarmOptimizerSAXWriter::WriteFile()
     ofs << " value=\"";
     for (const auto & bound : this->m_InputObject->GetParameterBounds())
     {
-      ofs << " " << bound.first;
+      ofs << ' ' << bound.first;
     }
-    ofs << "\"";
+    ofs << '"';
 
     ofs << "/>";
-    ofs << "\n";
+    ofs << '\n';
 
     // write the upper bound
 
@@ -111,12 +111,12 @@ ParticleSwarmOptimizerSAXWriter::WriteFile()
     ofs << " value=\"";
     for (const auto & bound : this->m_InputObject->GetParameterBounds())
     {
-      ofs << " " << bound.second;
+      ofs << ' ' << bound.second;
     }
-    ofs << "\"";
+    ofs << '"';
 
     ofs << "/>";
-    ofs << "\n";
+    ofs << '\n';
 
     // write the ParametersConvergenceTolerance
 
@@ -127,18 +127,18 @@ ParticleSwarmOptimizerSAXWriter::WriteFile()
     // Note: The data-cast to unsigned int is required
     //       because itk::Array only supports 'unsigned int' number of
     //       elements.
-    for (unsigned int i = 0; i < ptols.GetSize(); i++)
+    for (unsigned int i = 0; i < ptols.GetSize(); ++i)
     {
-      ofs << " " << ptols[i];
+      ofs << ' ' << ptols[i];
     }
 
     ofs << "</ParametersConvergenceTolerance>";
-    ofs << "\n";
+    ofs << '\n';
 
     // close the tag 'optimizer'
 
     ofs << "</optimizer>";
-    ofs << "\n";
+    ofs << '\n';
 
     ofs.close();
 

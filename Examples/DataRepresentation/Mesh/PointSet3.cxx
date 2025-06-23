@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +51,7 @@ main(int, char *[])
 
 
   // A point set is instantiated here
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
 
 
   //  Software Guide : BeginLatex
@@ -137,7 +137,7 @@ main(int, char *[])
 
 
   // Software Guide : BeginCodeSnippet
-  PointDataContainer::Pointer pointData = PointDataContainer::New();
+  auto pointData = PointDataContainer::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -156,8 +156,8 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   unsigned int pointId = 0;
 
-  PixelType value0 = 34;
-  PixelType value1 = 67;
+  constexpr PixelType value0 = 34;
+  constexpr PixelType value1 = 67;
 
   pointData->InsertElement(pointId++, value0);
   pointData->InsertElement(pointId++, value1);
@@ -190,7 +190,7 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  PointDataContainer::Pointer pointData2 = pointSet->GetPointData();
+  const PointDataContainer::Pointer pointData2 = pointSet->GetPointData();
   // Software Guide : EndCodeSnippet
 
 
@@ -243,12 +243,12 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  PointDataIterator end = pointData2->End();
+  const PointDataIterator end = pointData2->End();
   while (pointDataIterator != end)
   {
-    PixelType p = pointDataIterator.Value(); // access the pixel data
-    std::cout << p << std::endl;             // print the pixel data
-    ++pointDataIterator;                     // advance to next pixel/point
+    const PixelType p = pointDataIterator.Value(); // access the pixel data
+    std::cout << p << std::endl;                   // print the pixel data
+    ++pointDataIterator; // advance to next pixel/point
   }
   // Software Guide : EndCodeSnippet
 

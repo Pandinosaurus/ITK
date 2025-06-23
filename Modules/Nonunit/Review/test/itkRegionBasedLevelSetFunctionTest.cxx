@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,12 +39,12 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(RegionBasedLevelSetFunctionTestHelper, RegionBasedLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionBasedLevelSetFunctionTestHelper);
 
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeaturePixelType = typename Superclass::FeaturePixelType;
-  using FeatureIndexType = typename Superclass::FeatureIndexType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeaturePixelType;
+  using typename Superclass::FeatureIndexType;
 
   ScalarValueType
   ComputeInternalTerm(const FeaturePixelType &, const FeatureIndexType &) override
@@ -77,7 +77,7 @@ protected:
   ~RegionBasedLevelSetFunctionTestHelper() override = default;
 };
 
-template <unsigned int NDimension>
+template <unsigned int VDimension>
 class RegionBasedLevelSetFunctionSharedDataHelper : public DataObject
 {
 public:
@@ -89,12 +89,12 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(RegionBasedLevelSetFunctionSharedDataHelper, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionBasedLevelSetFunctionSharedDataHelper);
 
   unsigned long m_FunctionCount;
 
-  using IndexType = Index<NDimension>;
+  using IndexType = Index<VDimension>;
 
   struct SingleData
   {
@@ -125,7 +125,7 @@ itkRegionBasedLevelSetFunctionTest(int, char *[])
   using RegionBasedLevelSetFunctionType =
     itk::RegionBasedLevelSetFunctionTestHelper<ImageType, FeatureImageType, DataHelperType>;
 
-  RegionBasedLevelSetFunctionType::Pointer function = RegionBasedLevelSetFunctionType::New();
+  auto function = RegionBasedLevelSetFunctionType::New();
   if (function.IsNull())
   {
     return EXIT_FAILURE;

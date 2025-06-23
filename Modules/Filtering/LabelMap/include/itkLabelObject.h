@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,8 @@
 namespace itk
 {
 /**
- *\class LabelObject
- *  \brief The base class for the representation of an labeled binary object in an image.
+ * \class LabelObject
+ *  \brief The base class for the representation of a labeled binary object in an image.
  *
  * LabelObject is the base class to represent a labeled object in an image.
  * It should be used associated with the LabelMap.
@@ -54,7 +54,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * http://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa LabelMapFilter, AttributeLabelObject
  * \ingroup DataRepresentation
@@ -78,8 +78,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LabelObject, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelObject);
 
   static constexpr unsigned int ImageDimension = VImageDimension;
 
@@ -204,7 +204,7 @@ public:
   Shift(OffsetType offset);
 
   /**
-   *\class ConstLineIterator
+   * \class ConstLineIterator
    * \brief A forward iterator over the lines of a LabelObject
    * \ingroup ITKLabelMap
    */
@@ -214,29 +214,22 @@ public:
     ConstLineIterator() = default;
 
     ConstLineIterator(const Self * lo)
+      : m_Begin(lo->m_LineContainer.begin())
+      , m_End(lo->m_LineContainer.end())
     {
-      m_Begin = lo->m_LineContainer.begin();
-      m_End = lo->m_LineContainer.end();
       m_Iterator = m_Begin;
     }
 
     ConstLineIterator(const ConstLineIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-    }
+      : m_Iterator(iter.m_Iterator)
+      , m_Begin(iter.m_Begin)
+      , m_End(iter.m_End)
+    {}
 
     ConstLineIterator &
-    operator=(const ConstLineIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-      return *this;
-    }
+    operator=(const ConstLineIterator & iter) = default;
 
-    const LineType &
+    [[nodiscard]] const LineType &
     GetLine() const
     {
       return *m_Iterator;
@@ -245,7 +238,7 @@ public:
     ConstLineIterator
     operator++(int)
     {
-      ConstLineIterator tmp = *this;
+      const ConstLineIterator tmp = *this;
       ++(*this);
       return tmp;
     }
@@ -263,11 +256,7 @@ public:
       return m_Iterator == iter.m_Iterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
     }
 
-    bool
-    operator!=(const ConstLineIterator & iter) const
-    {
-      return !(*this == iter);
-    }
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstLineIterator);
 
     void
     GoToBegin()
@@ -275,7 +264,7 @@ public:
       m_Iterator = m_Begin;
     }
 
-    bool
+    [[nodiscard]] bool
     IsAtEnd() const
     {
       return m_Iterator == m_End;
@@ -290,7 +279,7 @@ public:
   };
 
   /**
-   *\class ConstLineIterator
+   * \class ConstLineIterator
    * \brief A forward iterator over the indexes of a LabelObject
    * \ingroup ITKLabelMap
    */
@@ -306,31 +295,23 @@ public:
     }
 
     ConstIndexIterator(const Self * lo)
+      : m_Begin(lo->m_LineContainer.begin())
+      , m_End(lo->m_LineContainer.end())
     {
-      m_Begin = lo->m_LineContainer.begin();
-      m_End = lo->m_LineContainer.end();
       GoToBegin();
     }
 
     ConstIndexIterator(const ConstIndexIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Index = iter.m_Index;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-    }
+      : m_Iterator(iter.m_Iterator)
+      , m_Begin(iter.m_Begin)
+      , m_End(iter.m_End)
+      , m_Index(iter.m_Index)
+    {}
 
     ConstIndexIterator &
-    operator=(const ConstIndexIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Index = iter.m_Index;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
-      return *this;
-    }
+    operator=(const ConstIndexIterator & iter) = default;
 
-    const IndexType &
+    [[nodiscard]] const IndexType &
     GetIndex() const
     {
       return m_Index;
@@ -363,11 +344,7 @@ public:
       return m_Index == iter.m_Index && m_Iterator == iter.m_Iterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
     }
 
-    bool
-    operator!=(const ConstIndexIterator & iter) const
-    {
-      return !(*this == iter);
-    }
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIndexIterator);
 
     void
     GoToBegin()
@@ -377,7 +354,7 @@ public:
       NextValidLine();
     }
 
-    bool
+    [[nodiscard]] bool
     IsAtEnd() const
     {
       return m_Iterator == m_End;
@@ -414,8 +391,8 @@ protected:
 private:
   using LineContainerType = typename std::deque<LineType>;
 
-  LineContainerType m_LineContainer;
-  LabelType         m_Label;
+  LineContainerType m_LineContainer{};
+  LabelType         m_Label{};
 };
 } // end namespace itk
 

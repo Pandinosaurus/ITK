@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -163,7 +163,7 @@ def addUnwrappedType(s):
 def exploreTpl(tpl):
     for cl in tpl.values():
         exploreMethods(cl, cl)
-        # try to instanciate the class
+        # try to instantiate the class
         try:
             obj = cl.New()
             exploreMethods(obj, cl)
@@ -179,7 +179,7 @@ def exploreMethods(obj, cl):
     isin = isinstance(i, str)
     ls = excludedMethodsList
     attrNameList = sorted(
-        [i for i in dir(obj) if isin and i[0].isupper() and i not in ls]
+        i for i in dir(obj) if isin and i[0].isupper() and i not in ls
     )
 
     for attrName in attrNameList:

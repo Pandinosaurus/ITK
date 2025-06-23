@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,23 +34,17 @@ namespace itk
 class ITKIOImageBase_EXPORT ImageFileWriterException : public ExceptionObject
 {
 public:
-  /** Run-time information. */
-  itkTypeMacro(ImageFileWriterException, ExceptionObject);
+  ITK_DEFAULT_COPY_AND_MOVE(ImageFileWriterException);
+
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageFileWriterException);
 
   /** Constructor. */
-  ImageFileWriterException(const char * file,
+  ImageFileWriterException(std::string  file,
                            unsigned int line,
-                           const char * message = "Error in IO",
-                           const char * loc = "Unknown")
-    : ExceptionObject(file, line, message, loc)
-  {}
-
-  /** Constructor. */
-  ImageFileWriterException(const std::string & file,
-                           unsigned int        line,
-                           const char *        message = "Error in IO",
-                           const char *        loc = "Unknown")
-    : ExceptionObject(file, line, message, loc)
+                           std::string  message = "Error in IO",
+                           std::string  location = {})
+    : ExceptionObject(std::move(file), line, std::move(message), std::move(location))
   {}
 
   /** Has to have empty throw(). */
@@ -65,7 +59,7 @@ public:
  * data. If you wish to write data into a series of files (e.g., a
  * slice per file) use ImageSeriesWriter.
  *
- * A pluggable factory pattern is used that allows different kinds of writers
+ * A plugable factory pattern is used that allows different kinds of writers
  * to be registered (even at run time) without having to modify the
  * code in this class. You can either manually instantiate the ImageIO
  * object and associate it with the ImageFileWriter, or let the class
@@ -98,8 +92,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageFileWriter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageFileWriter);
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -119,9 +113,10 @@ public:
   GetInput(unsigned int idx);
 
   /** Specify the name of the output file to write. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
-
+  /** @ITKEndGrouping */
   /** Set/Get the ImageIO helper class. Usually this is created via the object
    * factory mechanism that determines whether a particular ImageIO can
    * write a certain file. This method provides a way to get the ImageIO
@@ -132,6 +127,7 @@ public:
    * correct choice and will allow a file to be created regardless of
    * the file extension. If the factory has set the ImageIO, the
    * extension must be supported by the specified ImageIO. */
+  /** @ITKStartGrouping */
   void
   SetImageIO(ImageIOBase * io)
   {
@@ -143,7 +139,7 @@ public:
     m_FactorySpecifiedImageIO = false;
   }
   itkGetModifiableObjectMacro(ImageIO, ImageIOBase);
-
+  /** @ITKEndGrouping */
   /** A special version of the Update() method for writers.  It
    * invokes start and end events and handles releasing data. It
    * eventually calls GenerateData() which does the actual writing.
@@ -167,9 +163,10 @@ public:
 
   /** Set/Get the number of pieces to divide the input.  The upstream pipeline
    * will try to be executed this many times. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfStreamDivisions, unsigned int);
   itkGetConstReferenceMacro(NumberOfStreamDivisions, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Aliased to the Write() method to be consistent with the rest of the
    * pipeline. */
   void
@@ -192,25 +189,28 @@ public:
   }
 
   /** Set the compression On or Off */
+  /** @ITKStartGrouping */
   itkSetMacro(UseCompression, bool);
   itkGetConstReferenceMacro(UseCompression, bool);
   itkBooleanMacro(UseCompression);
-
+  /** @ITKEndGrouping */
   /** Set the compression level. \sa ImageIOBase for details.
    * Set to a negative number to use ImageIO's default compression level. */
+  /** @ITKStartGrouping */
   itkSetMacro(CompressionLevel, int);
   itkGetConstReferenceMacro(CompressionLevel, int);
-
+  /** @ITKEndGrouping */
   /** By default the MetaDataDictionary is taken from the input image and
    *  passed to the ImageIO. In some cases, however, a user may prefer to
    *  introduce her/his own MetaDataDictionary. This is often the case of
    *  the ImageSeriesWriter. This flag defined whether the MetaDataDictionary
    *  to use will be the one from the input image or the one already set in
    *  the ImageIO object. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseInputMetaDataDictionary, bool);
   itkGetConstReferenceMacro(UseInputMetaDataDictionary, bool);
   itkBooleanMacro(UseInputMetaDataDictionary);
-
+  /** @ITKEndGrouping */
 protected:
   ImageFileWriter() = default;
   ~ImageFileWriter() override = default;
@@ -222,9 +222,9 @@ protected:
   GenerateData() override;
 
 private:
-  std::string m_FileName;
+  std::string m_FileName{};
 
-  ImageIOBase::Pointer m_ImageIO;
+  ImageIOBase::Pointer m_ImageIO{};
   bool                 m_UserSpecifiedImageIO{ false };
 
   ImageIORegion m_PasteIORegion{ TInputImage::ImageDimension };
@@ -246,12 +246,11 @@ template <typename TImagePointer>
 ITK_TEMPLATE_EXPORT void
 WriteImage(TImagePointer && image, const std::string & filename, bool compress = false)
 {
-  using NonReferenceImagePointer = typename std::remove_reference<TImagePointer>::type;
-  static_assert(std::is_pointer<NonReferenceImagePointer>::value ||
-                  mpl::IsSmartPointer<NonReferenceImagePointer>::Value,
+  using NonReferenceImagePointer = std::remove_reference_t<TImagePointer>;
+  static_assert(std::is_pointer_v<NonReferenceImagePointer> || mpl::IsSmartPointer<NonReferenceImagePointer>::Value,
                 "WriteImage requires a raw pointer or SmartPointer.");
 
-  using ImageType = typename std::remove_const<typename std::remove_reference<decltype(*image)>::type>::type;
+  using ImageType = std::remove_const_t<std::remove_reference_t<decltype(*image)>>;
   auto writer = ImageFileWriter<ImageType>::New();
   writer->SetInput(image);
   writer->SetFileName(filename);
@@ -265,7 +264,7 @@ WriteImage(TImagePointer && image, const std::string & filename, bool compress =
 #  include "itkImageFileWriter.hxx"
 #endif
 
-#ifdef ITK_IO_FACTORY_REGISTER_MANAGER
+#if defined ITK_IMAGEIO_FACTORY_REGISTER_MANAGER || defined ITK_IO_FACTORY_REGISTER_MANAGER
 #  include "itkImageIOFactoryRegisterManager.h"
 #endif
 

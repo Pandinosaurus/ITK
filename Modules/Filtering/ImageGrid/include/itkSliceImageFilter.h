@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SliceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SliceImageFilter);
 
   /** Typedef to images */
   using OutputImageType = TOutputImage;
@@ -94,34 +94,33 @@ public:
   using ArrayType = FixedArray<int, ImageDimension>;
 
   /** Set/Get the first index extracted from the input image */
+  /** @ITKStartGrouping */
   itkSetMacro(Start, IndexType);
   itkGetConstReferenceMacro(Start, IndexType);
   void
   SetStart(IndexValueType start);
-
+  /** @ITKEndGrouping */
   /** Set/Get the excluded end of the range */
+  /** @ITKStartGrouping */
   itkSetMacro(Stop, IndexType);
   itkGetConstReferenceMacro(Stop, IndexType);
   void
   SetStop(IndexValueType stop);
-
+  /** @ITKEndGrouping */
   /** Set/Get the stride of indexes extracted
    *
    * An exception will be generated if 0.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Step, ArrayType);
   itkGetConstReferenceMacro(Step, ArrayType);
   void
   SetStep(int step);
+  /** @ITKEndGrouping */
 
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
-  /** End concept checking */
-#endif
 
 protected:
   SliceImageFilter();
@@ -154,12 +153,12 @@ protected:
 
 
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
 private:
-  IndexType m_Start;
-  IndexType m_Stop;
-  ArrayType m_Step;
+  IndexType m_Start{};
+  IndexType m_Stop{};
+  ArrayType m_Step{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,7 @@ public:
     BeforeThreadedExecution() override
     {
       this->m_DomainInThreadedExecution.resize(this->GetNumberOfWorkUnitsUsed());
-      DomainType unsetDomain;
-      unsetDomain.Fill(-1);
+      auto unsetDomain = itk::MakeFilled<DomainType>(-1);
       for (auto & i : m_DomainInThreadedExecution)
       {
         i = unsetDomain;
@@ -76,7 +75,7 @@ public:
       std::cout << "\nDomain partition per thread:" << std::endl;
       for (itk::ThreadIdType i = 0; i < m_DomainInThreadedExecution.size(); ++i)
       {
-        std::cout << "ThreadId: " << i << "\t" << m_DomainInThreadedExecution[i] << std::endl;
+        std::cout << "ThreadId: " << i << '\t' << m_DomainInThreadedExecution[i] << std::endl;
       }
       std::cout << std::endl;
     }
@@ -85,9 +84,9 @@ public:
   }; // end TestDomainThreader class
 
   DomainThreaderAssociate()
+    : m_ClassDescriptor("enclosing class")
   {
     m_TestDomainThreader = TestDomainThreader::New();
-    m_ClassDescriptor = "enclosing class";
   }
 
   TestDomainThreader *
@@ -117,7 +116,7 @@ ThreadedIndexedContainerPartitionerRunTest(DomainThreaderAssociate & enclosingCl
   std::cout << "Testing with " << numberOfThreads << " threads and complete domain " << fullRange << " ..."
             << std::endl;
 
-  DomainThreaderAssociate::TestDomainThreader::Pointer domainThreader = enclosingClass.GetDomainThreader();
+  const DomainThreaderAssociate::TestDomainThreader::Pointer domainThreader = enclosingClass.GetDomainThreader();
 
   // Exercise GetMultiThreader().
   domainThreader->GetMultiThreader();
@@ -163,13 +162,13 @@ ThreadedIndexedContainerPartitionerRunTest(DomainThreaderAssociate & enclosingCl
     /* Check that we got the begin of the range */
     if (i == 0 && subRange[0] != fullRange[0])
     {
-      std::cerr << "Error: subRange[0][0] should be " << fullRange[0] << ", but it's " << subRange[0] << ".";
+      std::cerr << "Error: subRange[0][0] should be " << fullRange[0] << ", but it's " << subRange[0] << '.';
       return EXIT_FAILURE;
     }
     /* Check that we got the end of the range */
     if (i == numberOfThreads - 1 && subRange[1] != fullRange[1])
     {
-      std::cerr << "Error: subRange[N-1][1] should be " << fullRange[1] << ", but it's " << subRange[1] << ".";
+      std::cerr << "Error: subRange[N-1][1] should be " << fullRange[1] << ", but it's " << subRange[1] << '.';
       return EXIT_FAILURE;
     }
     /* Check that the sub-range endings and beginnings are continuous */
@@ -193,8 +192,8 @@ ThreadedIndexedContainerPartitionerRunTest(DomainThreaderAssociate & enclosingCl
 int
 itkThreadedIndexedContainerPartitionerTest(int, char *[])
 {
-  DomainThreaderAssociate                                   enclosingClass;
-  DomainThreaderAssociate::TestDomainThreader::ConstPointer domainThreader = enclosingClass.GetDomainThreader();
+  DomainThreaderAssociate                                         enclosingClass;
+  const DomainThreaderAssociate::TestDomainThreader::ConstPointer domainThreader = enclosingClass.GetDomainThreader();
 
   /* Check # of threads */
   std::cout << "GetGlobalMaximumNumberOfThreads: "
@@ -239,7 +238,7 @@ itkThreadedIndexedContainerPartitionerTest(int, char *[])
 
     /* Test with max number of threads and check that we only used as
      * many as is reasonable. */
-    itk::ThreadIdType maxNumberOfThreads = domainThreader->GetMultiThreader()->GetGlobalMaximumNumberOfThreads();
+    const itk::ThreadIdType maxNumberOfThreads = domainThreader->GetMultiThreader()->GetGlobalMaximumNumberOfThreads();
     fullRange[0] = 6;
     fullRange[1] = fullRange[0] + maxNumberOfThreads - 2;
     if (ThreadedIndexedContainerPartitionerRunTest(enclosingClass, maxNumberOfThreads, fullRange) != EXIT_SUCCESS)
@@ -249,7 +248,7 @@ itkThreadedIndexedContainerPartitionerTest(int, char *[])
     if (domainThreader->GetNumberOfWorkUnitsUsed() != maxNumberOfThreads - 1)
     {
       std::cerr << "Error: Expected to use only " << maxNumberOfThreads - 1 << "threads, but used "
-                << domainThreader->GetNumberOfWorkUnitsUsed() << "." << std::endl;
+                << domainThreader->GetNumberOfWorkUnitsUsed() << '.' << std::endl;
     }
   }
   else

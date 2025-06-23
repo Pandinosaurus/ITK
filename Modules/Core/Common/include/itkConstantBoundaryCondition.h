@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,30 +72,26 @@ public:
   using Self = ConstantBoundaryCondition;
   using Superclass = ImageBoundaryCondition<TInputImage, TOutputImage>;
 
-  /** Extract information from the image type */
-  using PixelType = typename Superclass::PixelType;
-  using PixelPointerType = typename Superclass::PixelPointerType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using RegionType = typename Superclass::RegionType;
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConstantBoundaryCondition);
 
-  using NeighborhoodAccessorFunctorType = typename Superclass::NeighborhoodAccessorFunctorType;
+  /** Extract information from the image type */
+  using typename Superclass::PixelType;
+  using typename Superclass::PixelPointerType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::RegionType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::NeighborhoodType;
+
+  using typename Superclass::NeighborhoodAccessorFunctorType;
 
   /** Save the image dimension. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Default constructor. */
-  ConstantBoundaryCondition();
-
-  /** Runtime information support. */
-  const char *
-  GetNameOfClass() const override
-  {
-    return "itkConstantBoundaryCondition";
-  }
+  ConstantBoundaryCondition() = default;
 
   /** Utility for printing the boundary condition. */
   void
@@ -125,7 +121,7 @@ public:
   SetConstant(const OutputPixelType & c);
 
   /** Get the value of the constant. */
-  const OutputPixelType &
+  [[nodiscard]] const OutputPixelType &
   GetConstant() const;
 
   /** Tell if the boundary condition can index to any location within
@@ -161,7 +157,7 @@ public:
   GetPixel(const IndexType & index, const TInputImage * image) const override;
 
 private:
-  OutputPixelType m_Constant;
+  OutputPixelType m_Constant{};
 };
 } // end namespace itk
 

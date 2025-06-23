@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ namespace itk
  * support for DiffusionTensorImages. A discussion on the design of this class
  * can be found in the WIKI pages of NAMIC:
  *
- * http://www.na-mic.org/Wiki/index.php/NAMIC_Wiki:DTI:ITK-DiffusionTensorPixelType
+ * https://www.na-mic.org/Wiki/index.php/NAMIC_Wiki:DTI:ITK-DiffusionTensorPixelType
  *
  * \note This work is part of the National Alliance for Medical Image
  * Computing (NAMIC), funded by the National Institutes of Health
@@ -64,10 +64,7 @@ namespace itk
  * NIA AG 17919, PI: E.V. Sullivan.
  *
  *
- * \par References
- * E. R. Melhem, S. Mori, G. Mukundan, M. A. Kraut, M. G. Pomper, and
- * P. C. M. van Zijl, "Diffusion tensor MR imaging of the brain and white
- * matter tractography," Am. J. Roentgenol., vol. 178, pp. 3-16, 2002.
+ * For algorithmic details see \cite melhem2002.
  *
  * \sa SymmetricSecondRankTensor
  *
@@ -84,27 +81,28 @@ public:
   using Superclass = SymmetricSecondRankTensor<TComponent, 3>;
 
   /** Propagating some type alias from the superclass */
-  using ValueType = typename Superclass::ValueType;
-  using ComponentType = typename Superclass::ComponentType;
-  using ComponentArrayType = typename Superclass::ComponentArrayType;
+  using typename Superclass::ValueType;
+  using typename Superclass::ComponentType;
+  using typename Superclass::ComponentArrayType;
 
-  using AccumulateValueType = typename Superclass::AccumulateValueType;
-  using RealValueType = typename Superclass::RealValueType;
+  using typename Superclass::AccumulateValueType;
+  using typename Superclass::RealValueType;
 
-  using EigenValuesArrayType = typename Superclass::EigenValuesArrayType;
-  using EigenVectorsMatrixType = typename Superclass::EigenVectorsMatrixType;
+  using typename Superclass::EigenValuesArrayType;
+  using typename Superclass::EigenVectorsMatrixType;
 
   /** Default Constructor. */
   DiffusionTensor3D() = default;
 
   /** Constructor with initialization. */
+  /** @ITKStartGrouping */
   DiffusionTensor3D(const Superclass & r);
   DiffusionTensor3D(const ComponentType & r);
   DiffusionTensor3D(const ComponentArrayType r);
-
+  /** @ITKEndGrouping */
   /** Constructor to enable casting...  */
-  template <typename TCoordRepB>
-  DiffusionTensor3D(const DiffusionTensor3D<TCoordRepB> & pa)
+  template <typename TCoordinateB>
+  DiffusionTensor3D(const DiffusionTensor3D<TCoordinateB> & pa)
     : SymmetricSecondRankTensor<TComponent, 3>(pa)
   {}
 
@@ -119,39 +117,52 @@ public:
   operator=(const ComponentArrayType r);
 
   /** Templated Pass-through assignment for the Array base class. */
-  template <typename TCoordRepB>
+  template <typename TCoordinateB>
   Self &
-  operator=(const DiffusionTensor3D<TCoordRepB> & pa)
+  operator=(const DiffusionTensor3D<TCoordinateB> & pa)
   {
     // NOTE (this != &pa ) because they are different pointer types
     // if this templated function is called
     // ComponentType 'itk::DiffusionTensor3D<double> *'
-    // TCoordRepB   'const DiffusionTensor3D<float> *')
+    // TCoordinateB   'const DiffusionTensor3D<float> *')
     SymmetricSecondRankTensor<TComponent, 3>::operator=(pa);
     return *this;
   }
 
-  /** Get Trace value */
-  AccumulateValueType
+  /** Get the trace value.
+   *
+   * Note that the indices are related to the fact
+   * that we store only the upper-right triangle of
+   * the matrix. Like
+   *
+   *       | 0  1  2  |
+   *       | X  3  4  |
+   *       | X  X  5  |
+   *
+   * The trace is therefore the sum of the components
+   * M[0], M[3] and M[5].
+   *
+   */
+  [[nodiscard]] AccumulateValueType
   GetTrace() const;
 
   /** Get the value of Fractional Anisotropy from the Tensor. */
-  RealValueType
+  [[nodiscard]] RealValueType
   GetFractionalAnisotropy() const;
 
   /** Get the value of Relative Anisotropy from the Tensor. */
-  RealValueType
+  [[nodiscard]] RealValueType
   GetRelativeAnisotropy() const;
 
-  /** Get the Inner Scalar Product from the Tensor. */
-  RealValueType
+  /** Get the inner scalar product from the Tensor. */
+  [[nodiscard]] RealValueType
   GetInnerScalarProduct() const;
 };
 
 
 template <typename T>
 inline void
-swap(DiffusionTensor3D<T> & a, DiffusionTensor3D<T> & b)
+swap(DiffusionTensor3D<T> & a, DiffusionTensor3D<T> & b) noexcept
 {
   a.swap(b);
 }

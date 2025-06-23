@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,8 +74,8 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ConnectedRegionsMeshFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConnectedRegionsMeshFilter);
 
   /**
    * Convenient type alias for this filter.
@@ -125,8 +125,10 @@ public:
    * SetExtractionModeToClosestPointRegion() also requires that
    * a point be defined.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ExtractionMode, int);
   itkGetConstMacro(ExtractionMode, int);
+  /** @ITKEndGrouping */
 
   void
   SetExtractionModeToPointSeededRegions()
@@ -242,7 +244,7 @@ public:
   SizeValueType
   GetNumberOfExtractedRegions()
   {
-    return m_RegionList.size();
+    return m_RegionNumber;
   }
 
 protected:
@@ -259,15 +261,15 @@ protected:
   PropagateConnectedWave();
 
 private:
-  int                         m_ExtractionMode;
-  InputMeshPointType          m_ClosestPoint;
-  std::vector<IdentifierType> m_SeedList;
-  std::vector<IdentifierType> m_RegionList;
-  std::vector<SizeValueType>  m_RegionSizes;
+  int                         m_ExtractionMode{};
+  InputMeshPointType          m_ClosestPoint{};
+  std::vector<IdentifierType> m_SeedList{};
+  std::vector<IdentifierType> m_RegionList{};
+  std::vector<SizeValueType>  m_RegionSizes{};
 
-  std::vector<OffsetValueType>  m_Visited;
-  SizeValueType                 m_NumberOfCellsInRegion;
-  IdentifierType                m_RegionNumber;
+  std::vector<OffsetValueType>  m_Visited{};
+  SizeValueType                 m_NumberOfCellsInRegion{};
+  IdentifierType                m_RegionNumber{};
   std::vector<IdentifierType> * m_Wave{ nullptr };
   std::vector<IdentifierType> * m_Wave2{ nullptr };
 }; // class declaration

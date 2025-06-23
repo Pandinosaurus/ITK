@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,10 +47,7 @@ namespace itk
  *
  * This filter is N-dimensional and known to be efficient
  * in computational time. The algorithm is the N-dimensional version
- * of the 4SED algorithm given for two dimensions in:
- *
- * Danielsson, Per-Erik.  Euclidean Distance Mapping.  Computer
- * Graphics and Image Processing 14, 227-248 (1980).
+ * of the 4SED algorithm given for two dimensions in \cite danielsson1980.
  *
  * \ingroup ImageFeatureExtraction
  * \ingroup ITKDistanceMap
@@ -72,8 +69,8 @@ public:
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DanielssonDistanceMapImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DanielssonDistanceMapImageFilter);
 
   /** Type for input image. */
   using InputImageType = TInputImage;
@@ -126,37 +123,28 @@ public:
   /** Pointer Type for the vector distance image. */
   using VectorImagePointer = typename VectorImageType::Pointer;
 
-  /** Set if the distance should be squared. */
+  /** Set/Get if the distance should be squared. */
+  /** @ITKStartGrouping */
   itkSetMacro(SquaredDistance, bool);
-
-  /** Get the distance squared. */
   itkGetConstReferenceMacro(SquaredDistance, bool);
-
-  /** Set On/Off if the distance is squared. */
   itkBooleanMacro(SquaredDistance);
-
-  /** Set if the input is binary. If this variable is set, each
+  /** @ITKEndGrouping */
+  /** Set/Get if the input is binary. If this variable is set, each
    * nonzero pixel in the input image will be given a unique numeric
    * code to be used by the Voronoi partition.  If the image is binary
    * but you are not interested in the Voronoi regions of the
    * different nonzero pixels, then you need not set this.  */
+  /** @ITKStartGrouping */
   itkSetMacro(InputIsBinary, bool);
-
-  /** Get if the input is binary.  See SetInputIsBinary(). */
   itkGetConstReferenceMacro(InputIsBinary, bool);
-
-  /** Set On/Off if the input is binary.  See SetInputIsBinary(). */
   itkBooleanMacro(InputIsBinary);
-
-  /** Set if image spacing should be used in computing distances. */
+  /** @ITKEndGrouping */
+  /** Set/Get if image spacing should be used in computing distances. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
-
-  /** Get whether spacing is used. */
   itkGetConstReferenceMacro(UseImageSpacing, bool);
-
-  /** Set On/Off whether spacing is used. */
   itkBooleanMacro(UseImageSpacing);
-
+  /** @ITKEndGrouping */
   /** Get Voronoi Map
    * This map shows for each pixel what object is closest to it.
    * Each object should be labeled by a number (larger than 0),
@@ -186,17 +174,13 @@ public:
   DataObjectPointer
   MakeOutput(DataObjectPointerArraySizeType idx) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
   static constexpr unsigned int VoronoiImageDimension = TVoronoiImage::ImageDimension;
 
-  // Begin concept checking
   itkConceptMacro(InputOutputSameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputVoronoiSameDimensionCheck, (Concept::SameDimension<InputImageDimension, VoronoiImageDimension>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, OutputPixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelType, OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   DanielssonDistanceMapImageFilter();
@@ -221,13 +205,12 @@ protected:
   UpdateLocalDistance(VectorImageType *, const IndexType &, const OffsetType &);
 
 private:
-  bool m_SquaredDistance;
-  bool m_InputIsBinary;
-  bool m_UseImageSpacing;
+  bool m_SquaredDistance{};
+  bool m_InputIsBinary{};
+  bool m_UseImageSpacing{ true };
 
-  SpacingType m_InputSpacingCache;
-
-}; // end of DanielssonDistanceMapImageFilter class
+  SpacingType m_InputSpacingCache{};
+};
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

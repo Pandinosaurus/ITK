@@ -7,7 +7,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,6 @@
 ## you can remove the sibling include.
 
 ## in the ITK/Code directory issue the following command
-from __future__ import print_function
 
 import os
 import sys
@@ -73,7 +72,7 @@ class FileToPathMapping:
         for line in ff:
             if line.find(remove_header) != -1:
                 print(
-                    "          Removing {0} from {1}".format(
+                    "          Removing {} from {}".format(
                         line, self.filePathBaseDirs[filename] + "/" + filename
                     )
                 )
@@ -87,7 +86,7 @@ class FileToPathMapping:
         )
 
     def proc_children(self, node, dupcandidate, starting_child):
-        ## Pocess all children
+        ## Process all children
         isdone = donenode.get((starting_child, dupcandidate), None)
         if isdone != None:
             # print("found {0} {1}".format(starting_child,dupcandidate))
@@ -108,12 +107,12 @@ class FileToPathMapping:
             for currEdge in nodeEdges:
                 if dupcandidate in myDependTree[currEdge]:
                     print(
-                        "Remove {0} from {1}:  found hereditary same include in {2}".format(
+                        "Remove {} from {}:  found hereditary same include in {}".format(
                             dupcandidate, starting_child, currEdge
                         )
                     )
                     ## Update Mapping to remove race condition where an include is removed
-                    ## after is is referenced as a hereditary source
+                    ## after it is referenced as a hereditary source
                     # print("{0} --> {1}".format(starting_child,myDependTree[starting_child]))
                     temp = myDependTree[starting_child]
                     temp.remove(dupcandidate)

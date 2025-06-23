@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,10 +52,10 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
   using PointDataContainerPointer = PointDataContainer::Pointer;
 
   // Let's create here a plane!
-  MeshType::Pointer plane = MeshType::New();
+  auto plane = MeshType::New();
 
-  PointsContainerPointer    points = PointsContainer::New();
-  PointDataContainerPointer pointdata = PointDataContainer::New();
+  const PointsContainerPointer    points = PointsContainer::New();
+  const PointDataContainerPointer pointdata = PointDataContainer::New();
 
   points->Reserve(100);
   pointdata->Reserve(100);
@@ -63,14 +63,14 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
   MeshType::PointType p;
   p[2] = 0.;
 
-  int    k = 0;
-  double alpha = (30.0 / 180.0) * itk::Math::pi;
-  double delta = 2.0 / std::tan(alpha);
+  int              k = 0;
+  constexpr double alpha = (30.0 / 180.0) * itk::Math::pi;
+  const double     delta = 2.0 / std::tan(alpha);
 
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 10; ++i)
   {
 
-    for (int j = 0; j < 10; j++)
+    for (int j = 0; j < 10; ++j)
     {
       p[0] = static_cast<CoordType>(0.5 * j * delta + i * delta);
       p[1] = static_cast<CoordType>(j);
@@ -85,9 +85,9 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
 
   k = 0;
 
-  for (int i = 0; i < 9; i++)
+  for (int i = 0; i < 9; ++i)
   {
-    for (int j = 0; j < 9; j++)
+    for (int j = 0; j < 9; ++j)
     {
       plane->AddFaceTriangle(k, k + 1, k + 11);
       plane->AddFaceTriangle(k, k + 11, k + 10);
@@ -100,16 +100,16 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
   //  using NodeContainerType = FastMarchingType::NodeContainerType;
   using NodePairContainerType = FastMarchingType::NodePairContainerType;
 
-  NodePairContainerType::Pointer trial = NodePairContainerType::New();
+  auto trial = NodePairContainerType::New();
 
-  NodePairType node_pair(0, 0.);
+  const NodePairType node_pair(0, 0.);
   trial->push_back(node_pair);
 
   using CriterionType = itk::FastMarchingThresholdStoppingCriterion<MeshType, MeshType>;
-  CriterionType::Pointer criterion = CriterionType::New();
+  auto criterion = CriterionType::New();
   criterion->SetThreshold(std::sqrt(100.0 + 182.25 * delta * delta) + 100.);
 
-  FastMarchingType::Pointer fmm_filter = FastMarchingType::New();
+  auto fmm_filter = FastMarchingType::New();
   fmm_filter->SetInput(plane);
   fmm_filter->SetTrialPoints(trial);
   fmm_filter->SetStoppingCriterion(criterion);
@@ -125,12 +125,12 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
     return EXIT_FAILURE;
   }
 
-  MeshType::Pointer output = fmm_filter->GetOutput();
+  const MeshType::Pointer output = fmm_filter->GetOutput();
 
-  PointDataContainerPointer output_data = output->GetPointData();
+  const PointDataContainerPointer output_data = output->GetPointData();
 
-  PointDataContainer::ConstIterator o_data_it = output_data->Begin();
-  PointDataContainer::ConstIterator o_data_end = output_data->End();
+  PointDataContainer::ConstIterator       o_data_it = output_data->Begin();
+  const PointDataContainer::ConstIterator o_data_end = output_data->End();
 
   PointsContainer::ConstIterator p_it = points->Begin();
 
@@ -140,7 +140,7 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
 
   while (o_data_it != o_data_end)
   {
-    PixelType expected_value = p.EuclideanDistanceTo(p_it->Value());
+    const PixelType expected_value = p.EuclideanDistanceTo(p_it->Value());
 
     if ((o_data_it->Value() - expected_value) > 5. * expected_value / 100.)
     {
@@ -153,7 +153,7 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
   }
 
   using WriterType = itk::MeshFileWriter<MeshType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(output);
   writer->SetFileName("itkFastMarchingQuadEdgeMeshFilterBaseTest4.vtk");
   writer->Update();
@@ -162,8 +162,6 @@ itkFastMarchingQuadEdgeMeshFilterBaseTest4(int, char *[])
   {
     return EXIT_FAILURE;
   }
-  else
-  {
-    return EXIT_SUCCESS;
-  }
+
+  return EXIT_SUCCESS;
 }

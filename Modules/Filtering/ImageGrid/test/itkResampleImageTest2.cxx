@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,24 +33,24 @@
 namespace
 {
 
-template <typename TCoordRepType, unsigned int NDimensions>
-class NonlinearAffineTransform : public itk::AffineTransform<TCoordRepType, NDimensions>
+template <typename TCoordinateType, unsigned int VDimension>
+class NonlinearAffineTransform : public itk::AffineTransform<TCoordinateType, VDimension>
 {
 public:
   /** Standard class type aliases.   */
   using Self = NonlinearAffineTransform;
-  using Superclass = itk::AffineTransform<TCoordRepType, NDimensions>;
+  using Superclass = itk::AffineTransform<TCoordinateType, VDimension>;
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
   /** New macro for creation of through a smart pointer. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NonlinearAffineTransform, AffineTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NonlinearAffineTransform);
 
   /** Override this. See test below. */
-  bool
+  [[nodiscard]] bool
   IsLinear() const override
   {
     return false;
@@ -65,8 +65,7 @@ itkResampleImageTest2(int argc, char * argv[])
   if (argc < 8)
   {
     std::cerr << "Missing parameters." << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0];
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << "inputImage "
               << " referenceImage"
               << " resampledImageLinear"
@@ -78,27 +77,27 @@ itkResampleImageTest2(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  constexpr unsigned int NDimensions = 2;
+  constexpr unsigned int VDimension = 2;
 
   using PixelType = unsigned char;
-  using ImageType = itk::Image<PixelType, NDimensions>;
-  using CoordRepType = double;
+  using ImageType = itk::Image<PixelType, VDimension>;
+  using CoordinateType = double;
 
-  using AffineTransformType = itk::AffineTransform<CoordRepType, NDimensions>;
-  using NonlinearAffineTransformType = NonlinearAffineTransform<CoordRepType, NDimensions>;
-  using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, CoordRepType>;
-  using ExtrapolatorType = itk::NearestNeighborExtrapolateImageFunction<ImageType, CoordRepType>;
+  using AffineTransformType = itk::AffineTransform<CoordinateType, VDimension>;
+  using NonlinearAffineTransformType = NonlinearAffineTransform<CoordinateType, VDimension>;
+  using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, CoordinateType>;
+  using ExtrapolatorType = itk::NearestNeighborExtrapolateImageFunction<ImageType, CoordinateType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader1 = ReaderType::New();
+  auto reader2 = ReaderType::New();
 
-  WriterType::Pointer writer1 = WriterType::New();
-  WriterType::Pointer writer2 = WriterType::New();
-  WriterType::Pointer writer3 = WriterType::New();
-  WriterType::Pointer writer4 = WriterType::New();
+  auto writer1 = WriterType::New();
+  auto writer2 = WriterType::New();
+  auto writer3 = WriterType::New();
+  auto writer4 = WriterType::New();
 
   reader1->SetFileName(argv[1]);
 
@@ -108,19 +107,19 @@ itkResampleImageTest2(int argc, char * argv[])
   writer4->SetFileName(argv[6]);
 
   // Create an affine transformation
-  AffineTransformType::Pointer affineTransform = AffineTransformType::New();
+  auto affineTransform = AffineTransformType::New();
   affineTransform->Scale(2.0);
 
   // Create a linear interpolation image function
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   // Create a nearest neighbor extrapolate image function
-  ExtrapolatorType::Pointer extrapolator = ExtrapolatorType::New();
+  auto extrapolator = ExtrapolatorType::New();
 
   // Create and configure a resampling filter
   using ResampleFilterType = itk::ResampleImageFilter<ImageType, ImageType>;
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(resample, ResampleImageFilter, ImageToImageFilter);
 
@@ -136,7 +135,7 @@ itkResampleImageTest2(int argc, char * argv[])
   resample->SetInterpolator(interpolator);
   ITK_TEST_SET_GET_VALUE(interpolator, resample->GetInterpolator());
 
-  bool useReferenceImage = std::stoi(argv[7]);
+  const bool useReferenceImage = std::stoi(argv[7]);
   ITK_TEST_SET_GET_BOOLEAN(resample, UseReferenceImage, useReferenceImage);
 
 
@@ -161,7 +160,7 @@ itkResampleImageTest2(int argc, char * argv[])
     }
 
     typename ImageType::SpacingType outputSpacing;
-    for (unsigned int i = 0; i < NDimensions; ++i)
+    for (unsigned int i = 0; i < VDimension; ++i)
     {
       outputSpacing[i] = outputSpacingValue;
     }
@@ -172,14 +171,15 @@ itkResampleImageTest2(int argc, char * argv[])
     typename ImageType::SizeType outputSize;
 
     using SizeValueType = typename ImageType::SizeType::SizeValueType;
-    for (unsigned int i = 0; i < NDimensions; ++i)
+    for (unsigned int i = 0; i < VDimension; ++i)
     {
-      outputSize[i] = itk::Math::Ceil<SizeValueType>((double)inputSize[i] * inputSpacing[i] / outputSpacing[i]);
+      outputSize[i] =
+        itk::Math::Ceil<SizeValueType>(static_cast<double>(inputSize[i]) * inputSpacing[i] / outputSpacing[i]);
     }
 
-    typename ImageType::DirectionType outputDirection = resample->GetInput()->GetDirection();
+    const typename ImageType::DirectionType outputDirection = resample->GetInput()->GetDirection();
 
-    typename ImageType::PointType outputOrigin = resample->GetInput()->GetOrigin();
+    const typename ImageType::PointType outputOrigin = resample->GetInput()->GetOrigin();
 
     resample->SetOutputSpacing(outputSpacing);
     ITK_TEST_SET_GET_VALUE(outputSpacing, resample->GetOutputSpacing());
@@ -222,7 +222,7 @@ itkResampleImageTest2(int argc, char * argv[])
   // instead of LinearThreadedGenerateData. This will test that
   // we get the same results for both methods.
   std::cout << "Test with NonlinearAffineTransform." << std::endl;
-  NonlinearAffineTransformType::Pointer nonlinearAffineTransform = NonlinearAffineTransformType::New();
+  auto nonlinearAffineTransform = NonlinearAffineTransformType::New();
 
   nonlinearAffineTransform->Scale(2.0);
   resample->SetTransform(nonlinearAffineTransform);

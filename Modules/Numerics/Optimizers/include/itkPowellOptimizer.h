@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,9 +31,9 @@ namespace itk
  * The code in this class was adapted from the Wikipedia and the
  * netlib.org zeroin function.
  *
- * http://www.netlib.org/go/zeroin.f
- * http://en.wikipedia.org/wiki/Brent_method
- * http://en.wikipedia.org/wiki/Golden_section_search
+ * https://www.netlib.org/go/zeroin.f
+ * https://en.wikipedia.org/wiki/Brent_method
+ * https://en.wikipedia.org/wiki/Golden_section_search
  *
  * This optimizer needs a cost function.
  * Partial derivatives of that function are not required.
@@ -73,50 +73,57 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PowellOptimizer, SingleValuedNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PowellOptimizer);
 
   /** Type of the Cost Function   */
   using CostFunctionType = SingleValuedCostFunction;
   using CostFunctionPointer = CostFunctionType::Pointer;
 
   /** Set if the Optimizer should Maximize the metric */
+  /** @ITKStartGrouping */
   itkSetMacro(Maximize, bool);
   itkBooleanMacro(Maximize);
   itkGetConstReferenceMacro(Maximize, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get maximum iteration limit. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumIteration, unsigned int);
   itkGetConstReferenceMacro(MaximumIteration, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the maximum number of line search iterations */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumLineIteration, unsigned int);
   itkGetConstMacro(MaximumLineIteration, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get StepLength for the (scaled) spacing of the sampling of
    * parameter space while bracketing the extremum */
+  /** @ITKStartGrouping */
   itkSetMacro(StepLength, double);
   itkGetConstReferenceMacro(StepLength, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get StepTolerance.  Once the local extreme is known to be within this
    * distance of the current parameter values, optimization terminates */
+  /** @ITKStartGrouping */
   itkSetMacro(StepTolerance, double);
   itkGetConstReferenceMacro(StepTolerance, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get ValueTolerance.  Once this current cost function value is known
    * to be within this tolerance of the cost function value at the local
    * extreme, optimization terminates */
+  /** @ITKStartGrouping */
   itkSetMacro(ValueTolerance, double);
   itkGetConstReferenceMacro(ValueTolerance, double);
-
+  /** @ITKEndGrouping */
   /** Return Current Value */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CurrentCost, MeasureType);
   MeasureType
   GetValue() const
   {
     return this->GetCurrentCost();
   }
-
+  /** @ITKEndGrouping */
   /** Return Current Iteration */
   itkGetConstReferenceMacro(CurrentIteration, unsigned int);
 
@@ -142,7 +149,7 @@ public:
   itkGetConstReferenceMacro(MetricWorstPossibleValue, double);
   itkSetMacro(MetricWorstPossibleValue, double);
 
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
 protected:
@@ -241,41 +248,41 @@ protected:
   itkSetMacro(Stop, bool);
 
 private:
-  unsigned int m_SpaceDimension;
+  unsigned int m_SpaceDimension{};
 
   /** Current iteration */
-  unsigned int m_CurrentIteration;
-  unsigned int m_CurrentLineIteration;
+  unsigned int m_CurrentIteration{};
+  unsigned int m_CurrentLineIteration{};
 
   /** Maximum iteration limit. */
-  unsigned int m_MaximumIteration;
-  unsigned int m_MaximumLineIteration;
+  unsigned int m_MaximumIteration{};
+  unsigned int m_MaximumLineIteration{};
 
-  bool   m_CatchGetValueException;
-  double m_MetricWorstPossibleValue;
+  bool   m_CatchGetValueException{};
+  double m_MetricWorstPossibleValue{};
 
   /** Set if the Metric should be maximized: Default = False */
-  bool m_Maximize;
+  bool m_Maximize{};
 
   /** The minimal size of search */
-  double m_StepLength;
-  double m_StepTolerance;
+  double m_StepLength{};
+  double m_StepTolerance{};
 
-  ParametersType     m_LineOrigin;
-  vnl_vector<double> m_LineDirection;
+  ParametersType     m_LineOrigin{};
+  vnl_vector<double> m_LineDirection{};
 
-  double m_ValueTolerance;
+  double m_ValueTolerance{};
 
   /** Internal storage for the value type / used as a cache  */
-  MeasureType m_CurrentCost;
+  MeasureType m_CurrentCost{};
 
   /** this is user-settable flag to stop optimization.
    * when users call StartOptimization, this value will be set false.
    * By calling StopOptimization, this flag will be set true, and
    * optimization will stop at the next iteration. */
-  bool m_Stop;
+  bool m_Stop{};
 
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{};
 }; // end of class
 } // end of namespace itk
 

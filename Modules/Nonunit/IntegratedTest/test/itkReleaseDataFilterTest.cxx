@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ itkReleaseDataFilterTest(int, char *[])
   ImageType::GlobalReleaseDataFlagOn();
 
   using RandomImageSourceType = itk::RandomImageSource<ImageType>;
-  RandomImageSourceType::Pointer random = RandomImageSourceType::New();
+  auto random = RandomImageSourceType::New();
   random->SetMin(0.0);
   random->SetMax(1000.0);
 
@@ -59,7 +59,7 @@ itkReleaseDataFilterTest(int, char *[])
   ImageType::PointValueType origin[2] = { 15, 400 };
   random->SetOrigin(origin);
 
-  MonitorFilter::Pointer monitor1 = MonitorFilter::New();
+  auto monitor1 = MonitorFilter::New();
   monitor1->SetInput(random->GetOutput());
 
 
@@ -67,41 +67,39 @@ itkReleaseDataFilterTest(int, char *[])
 
   // Create a mean image
   using MeanImageFilterType = itk::MeanImageFilter<ImageType, ImageType>;
-  MeanImageFilterType::Pointer mean1 = MeanImageFilterType::New();
+  auto mean1 = MeanImageFilterType::New();
   mean1->SetInput(monitor1->GetOutput());
 
   // define the neighborhood size used for the mean filter
-  ImageType::SizeType neighRadius;
-  neighRadius.Fill(2);
+  auto neighRadius = ImageType::SizeType::Filled(2);
   mean1->SetRadius(neighRadius);
 
-  MonitorFilter::Pointer monitor2a = MonitorFilter::New();
+  auto monitor2a = MonitorFilter::New();
   monitor2a->SetInput(mean1->GetOutput());
 
 
   // pipeline b
   using ShiftScaleImageFilterType = itk::ShiftScaleImageFilter<ImageType, ImageType>;
-  ShiftScaleImageFilterType::Pointer shiftscale = ShiftScaleImageFilterType::New();
+  auto shiftscale = ShiftScaleImageFilterType::New();
   shiftscale->SetInput(monitor1->GetOutput());
   shiftscale->SetScale(2.0);
   shiftscale->SetShift(-100.0);
 
   using ShrinkImageFilterType = itk::ShrinkImageFilter<ImageType, ImageType>;
-  ShrinkImageFilterType::Pointer shrinker = ShrinkImageFilterType::New();
+  auto shrinker = ShrinkImageFilterType::New();
   shrinker->SetInput(shiftscale->GetOutput());
   shrinker->SetShrinkFactors(2);
 
-  MonitorFilter::Pointer monitor2b = MonitorFilter::New();
+  auto monitor2b = MonitorFilter::New();
   monitor2b->SetInput(shrinker->GetOutput());
 
   using StreamingImageFilterType = itk::StreamingImageFilter<ImageType, ImageType>;
-  StreamingImageFilterType::Pointer streamer = StreamingImageFilterType::New();
+  auto streamer = StreamingImageFilterType::New();
   streamer->SetInput(monitor2b->GetOutput());
   streamer->SetNumberOfStreamDivisions(4);
 
 
-  ImageType::SizeType zeroSize;
-  zeroSize.Fill(0);
+  constexpr ImageType::SizeType zeroSize{};
 
 
   std::cout << "---- Updating \"a\" Pipeline ---" << std::endl;

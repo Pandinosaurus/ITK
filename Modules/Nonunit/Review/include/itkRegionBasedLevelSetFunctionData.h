@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,32 +35,12 @@ namespace itk
  *
  * This class holds cache data used during the computation of the LevelSet updates.
  *
- * Based on the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * Based on the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
- *
+ *  That is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  */
@@ -80,7 +60,7 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkTypeMacro(RegionBasedLevelSetFunctionData, LightObject);
+  itkOverrideGetNameOfClassMacro(RegionBasedLevelSetFunctionData);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -116,7 +96,7 @@ public:
   bool
   VerifyInsideRegion(const TIndex & featureIndex)
   {
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       if ((featureIndex[j] < static_cast<InputIndexValueType>(this->m_Start[j])) ||
           (featureIndex[j] > static_cast<InputIndexValueType>(this->m_End[j])))
@@ -135,12 +115,12 @@ public:
   FeatureIndexType
   GetFeatureIndex(const InputIndexType & inputIndex);
 
-  double m_WeightedNumberOfPixelsInsideLevelSet;
-  double m_WeightedNumberOfPixelsOutsideLevelSet;
+  double m_WeightedNumberOfPixelsInsideLevelSet{};
+  double m_WeightedNumberOfPixelsOutsideLevelSet{};
 
-  InputImagePointer m_HeavisideFunctionOfLevelSetImage;
-  InputIndexType    m_Start;
-  InputIndexType    m_End;
+  InputImagePointer m_HeavisideFunctionOfLevelSetImage{};
+  InputIndexType    m_Start{};
+  InputIndexType    m_End{};
 
 protected:
   RegionBasedLevelSetFunctionData();

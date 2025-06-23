@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkScaleSkewVersor3DTransform_hxx
 #define itkScaleSkewVersor3DTransform_hxx
 
-#include "itkScaleSkewVersor3DTransform.h"
 #include "itkMath.h"
 
 namespace itk
@@ -29,7 +28,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::ScaleSkewVersor3DTransform()
   : Superclass(ParametersDimension)
 {
   m_Scale.Fill(NumericTraits<TParametersValueType>::OneValue());
-  m_Skew.Fill(NumericTraits<TParametersValueType>::ZeroValue());
+  m_Skew.Fill(TParametersValueType{});
 }
 
 // Constructor with arguments
@@ -41,6 +40,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::ScaleSkewVersor3DTransform(uns
   m_Skew.Fill(0.0);
 }
 
+#if !defined(ITK_LEGACY_REMOVE)
 // Constructor with arguments
 template <typename TParametersValueType>
 ScaleSkewVersor3DTransform<TParametersValueType>::ScaleSkewVersor3DTransform(const MatrixType &       matrix,
@@ -49,6 +49,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::ScaleSkewVersor3DTransform(con
 {
   this->ComputeMatrixParameters();
 }
+#endif
 
 // Directly set the matrix
 template <typename TParametersValueType>
@@ -75,7 +76,7 @@ template <typename TParametersValueType>
 void
 ScaleSkewVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType & parameters)
 {
-  itkDebugMacro(<< "Setting parameters " << parameters);
+  itkDebugMacro("Setting parameters " << parameters);
 
   // Save parameters. Needed for proper operation of TransformUpdateParameters.
   if (&parameters != &(this->m_Parameters))
@@ -98,7 +99,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::SetParameters(const Parameters
     norm = std::sqrt(norm);
   }
 
-  double epsilon = 1e-10;
+  constexpr double epsilon = 1e-10;
   if (norm >= 1.0 - epsilon)
   {
     axis = axis / (norm + epsilon * norm);
@@ -107,7 +108,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::SetParameters(const Parameters
   newVersor.Set(axis);
   this->SetVarVersor(newVersor);
 
-  itkDebugMacro(<< "Versor is now " << newVersor);
+  itkDebugMacro("Versor is now " << newVersor);
 
   // Matrix must be defined before translation so that offset can be computed
   // from translation
@@ -136,7 +137,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::SetParameters(const Parameters
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 
-  itkDebugMacro(<< "After setting parameters ");
+  itkDebugMacro("After setting parameters ");
 }
 
 //
@@ -151,10 +152,10 @@ ScaleSkewVersor3DTransform<TParametersValueType>::SetParameters(const Parameters
 //
 
 template <typename TParametersValueType>
-const typename ScaleSkewVersor3DTransform<TParametersValueType>::ParametersType &
-ScaleSkewVersor3DTransform<TParametersValueType>::GetParameters() const
+auto
+ScaleSkewVersor3DTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
-  itkDebugMacro(<< "Getting parameters ");
+  itkDebugMacro("Getting parameters ");
 
   this->m_Parameters[0] = this->GetVersor().GetX();
   this->m_Parameters[1] = this->GetVersor().GetY();
@@ -175,7 +176,7 @@ ScaleSkewVersor3DTransform<TParametersValueType>::GetParameters() const
   this->m_Parameters[13] = this->GetSkew()[4];
   this->m_Parameters[14] = this->GetSkew()[5];
 
-  itkDebugMacro(<< "After getting parameters " << this->m_Parameters);
+  itkDebugMacro("After getting parameters " << this->m_Parameters);
 
   return this->m_Parameters;
 }
@@ -185,7 +186,7 @@ void
 ScaleSkewVersor3DTransform<TParametersValueType>::SetIdentity()
 {
   m_Scale.Fill(NumericTraits<ScaleVectorValueType>::OneValue());
-  m_Skew.Fill(NumericTraits<SkewVectorValueType>::ZeroValue());
+  m_Skew.Fill(SkewVectorValueType{});
   Superclass::SetIdentity();
 }
 
@@ -231,7 +232,7 @@ template <typename TParametersValueType>
 void
 ScaleSkewVersor3DTransform<TParametersValueType>::ComputeMatrixParameters()
 {
-  itkExceptionMacro(<< "Setting the matrix of a ScaleSkewVersor3D transform is not supported at this time.");
+  itkExceptionMacro("Setting the matrix of a ScaleSkewVersor3D transform is not supported at this time.");
 }
 
 // Print self

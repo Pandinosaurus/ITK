@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,9 @@
 #define itkLineSpatialObject_hxx
 
 
-#include "itkLineSpatialObject.h"
-
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TDimension>
 LineSpatialObject<TDimension>::LineSpatialObject()
 {
@@ -34,7 +32,6 @@ LineSpatialObject<TDimension>::LineSpatialObject()
   this->GetProperty().SetAlpha(1);
 }
 
-/** InternalClone */
 template <unsigned int TDimension>
 typename LightObject::Pointer
 LineSpatialObject<TDimension>::InternalClone() const
@@ -43,22 +40,13 @@ LineSpatialObject<TDimension>::InternalClone() const
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   return loPtr;
-}
-
-/** Print the object. */
-template <unsigned int TDimension>
-void
-LineSpatialObject<TDimension>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  os << indent << "LineSpatialObject(" << this << ")" << std::endl;
-  Superclass::PrintSelf(os, indent);
 }
 
 template <unsigned int TDimension>
@@ -75,7 +63,7 @@ LineSpatialObject<TDimension>::IsInsideInObjectSpace(const PointType & point) co
       bool match = true;
       for (unsigned int i = 0; i < TDimension; ++i)
       {
-        if (!Math::AlmostEquals((*it).GetPositionInObjectSpace()[i], point[i]))
+        if (!Math::AlmostEquals(it->GetPositionInObjectSpace()[i], point[i]))
         {
           match = false;
           break;
@@ -85,7 +73,7 @@ LineSpatialObject<TDimension>::IsInsideInObjectSpace(const PointType & point) co
       {
         return true;
       }
-      it++;
+      ++it;
     }
   }
 

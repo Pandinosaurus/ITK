@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkProgressReporter.h"
+#include "itkMultiThreaderBase.h"
 
 namespace itk
 {
@@ -28,7 +29,6 @@ ProgressReporter::ProgressReporter(ProcessObject * filter,
                                    float           progressWeight)
   : m_Filter(filter)
   , m_ThreadId(threadId)
-  , m_CurrentPixel(0)
   , m_InitialProgress(initialProgress)
   , m_ProgressWeight(progressWeight)
 {
@@ -47,6 +47,9 @@ ProgressReporter::ProgressReporter(ProcessObject * filter,
   {
     // Set the progress to initial progress.  The filter is just starting.
     m_Filter->UpdateProgress(m_InitialProgress);
+
+    // this class will report progress, avoid double reporting
+    m_Filter->GetMultiThreader()->SetUpdateProgress(false);
   }
 
   m_PixelsBeforeUpdate = m_PixelsPerUpdate;
@@ -58,9 +61,21 @@ ProgressReporter::~ProgressReporter()
   // Only thread 0 should update progress.
   if (m_ThreadId == 0 && m_Filter)
   {
-    // Set the progress to the end of its current range.  The filter has
-    // finished.
-    m_Filter->UpdateProgress(m_InitialProgress + m_ProgressWeight);
+    // Set the progress to the end of its current range.
+    // Make sure it increases the progress, in case multiple reporters
+    // were used inside filter's GenerateData().
+    const float newProgress = m_InitialProgress + m_ProgressWeight;
+    const float oldProgress = m_Filter->GetProgress();
+    if (newProgress > oldProgress)
+    {
+      m_Filter->UpdateProgress(m_InitialProgress + m_ProgressWeight);
+    }
+  }
+
+  if (m_Filter)
+  {
+    // reset the original state of ThreaderUpdateProgress
+    m_Filter->GetMultiThreader()->SetUpdateProgress(m_Filter->GetThreaderUpdateProgress());
   }
 }
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -97,13 +97,13 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   using PointType = MeshType::PointType;
   PointType point;
 
   constexpr unsigned int numberOfPoints = 10;
-  for (unsigned int id = 0; id < numberOfPoints; id++)
+  for (unsigned int id = 0; id < numberOfPoints; ++id)
   {
     point[0] = static_cast<PointType::ValueType>(id);              // x
     point[1] = std::log(static_cast<double>(id) + itk::Math::eps); // y
@@ -128,8 +128,8 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   CellType::CellAutoPointer line;
-  const unsigned int        numberOfCells = numberOfPoints - 1;
-  for (unsigned int cellId = 0; cellId < numberOfCells; cellId++)
+  constexpr unsigned int    numberOfCells = numberOfPoints - 1;
+  for (unsigned int cellId = 0; cellId < numberOfCells; ++cellId)
   {
     line.TakeOwnership(new LineType);
     line->SetPointId(0, cellId);     // first point
@@ -155,7 +155,7 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  for (unsigned int cellId = 0; cellId < numberOfCells; cellId++)
+  for (unsigned int cellId = 0; cellId < numberOfCells; ++cellId)
   {
     mesh->SetCellData(cellId, static_cast<PixelType>(cellId * cellId));
   }
@@ -218,8 +218,8 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  CellDataIterator cellDataIterator = mesh->GetCellData()->Begin();
-  CellDataIterator end = mesh->GetCellData()->End();
+  CellDataIterator       cellDataIterator = mesh->GetCellData()->Begin();
+  const CellDataIterator end = mesh->GetCellData()->End();
   // Software Guide : EndCodeSnippet
 
 
@@ -238,7 +238,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   while (cellDataIterator != end)
   {
-    PixelType cellValue = cellDataIterator.Value();
+    const PixelType cellValue = cellDataIterator.Value();
     std::cout << cellValue << std::endl;
     ++cellDataIterator;
   }

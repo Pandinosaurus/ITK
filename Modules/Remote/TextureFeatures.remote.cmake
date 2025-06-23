@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,8 +42,9 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Jean-Baptiste VIMORT <jb.vimort@kitware.com>
-itk_fetch_module(TextureFeatures
-"Filters to estimate texture feature maps from N-dimensional grayscale
+itk_fetch_module(
+  TextureFeatures
+  "Filters to estimate texture feature maps from N-dimensional grayscale
 images. This includes first-order texture features, grey level co-occurrence
 matrix (GLCM) features, and grey level run-length matrix (GLRLM) features.
 
@@ -52,9 +53,9 @@ For more information, see:
   Vimort J., McCormick M., Budin F., Paniagua B.
   Computing Textural Feature Maps for N-Dimensional images
   The Insight Journal. January-December. 2017.
-  https://www.insight-journal.org/browse/publication/985
+  https://doi.org/10.54294/qy48ty
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKTextureFeatures.git
-  GIT_TAG 822319790a43ad9ba8941152aebca86fc0a8e057
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKTextureFeatures.git
+  GIT_TAG 4e63c643c0c9b882b9d3f47e4cb9f886d2c259bd
   )

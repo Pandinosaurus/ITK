@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,45 +19,59 @@
 #include <iostream>
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkNullImageToImageFilterDriver.hxx"
+#include "itkTestingMacros.h"
 
-/**
- * This program tests the FilterImageAnisotropicDiffusion object by driving it
- * with a null input and output.  Returns 0 on success and 1 on failure.
- */
 int
 itkGradientAnisotropicDiffusionImageFilterTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
-  try
-  {
-    using ImageType = itk::Image<float, 2>;
+  constexpr unsigned int Dimension = 2;
 
-    // Set up filter
-    itk::GradientAnisotropicDiffusionImageFilter<ImageType, ImageType>::Pointer filter =
-      itk::GradientAnisotropicDiffusionImageFilter<ImageType, ImageType>::New();
-    filter->SetNumberOfIterations(1);
-    filter->SetConductanceParameter(3.0f);
-    filter->SetTimeStep(0.125f);
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
-    // The following lines are only for increased code coverage in testing.
-    filter->GetTimeStep();
-    filter->GetNumberOfIterations();
-    filter->GetConductanceParameter();
-    filter->SetConductanceScalingParameter(filter->GetConductanceScalingParameter());
-    filter->GetFixedAverageGradientMagnitude();
+  using FilterType = itk::GradientAnisotropicDiffusionImageFilter<ImageType, ImageType>;
 
-    // Run Test
-    itk::Size<2> sz;
-    sz[0] = 250;
-    sz[1] = 250;
-    itk::NullImageToImageFilterDriver<ImageType, ImageType> test1;
-    test1.SetImageSize(sz);
-    test1.SetFilter(filter);
-    test1.Execute();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    (&err)->Print(std::cerr);
-    return EXIT_FAILURE;
-  }
+  // Set up filter
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, GradientAnisotropicDiffusionImageFilter, AnisotropicDiffusionImageFilter);
+
+
+  constexpr itk::IdentifierType numberOfIterations = 1;
+  filter->SetNumberOfIterations(numberOfIterations);
+  ITK_TEST_SET_GET_VALUE(numberOfIterations, filter->GetNumberOfIterations());
+
+  constexpr FilterType::TimeStepType timeStep = 0.125;
+  filter->SetTimeStep(timeStep);
+  ITK_TEST_SET_GET_VALUE(timeStep, filter->GetTimeStep());
+
+  auto conductanceParameter = 3.0;
+  filter->SetConductanceParameter(conductanceParameter);
+  ITK_TEST_SET_GET_VALUE(conductanceParameter, filter->GetConductanceParameter());
+
+  constexpr unsigned int conductanceScalingUpdateInterval = 1;
+  filter->SetConductanceScalingUpdateInterval(conductanceScalingUpdateInterval);
+  ITK_TEST_SET_GET_VALUE(conductanceScalingUpdateInterval, filter->GetConductanceScalingUpdateInterval());
+
+  auto conductanceScalingParameter = 1.0;
+  filter->SetConductanceScalingParameter(conductanceScalingParameter);
+  ITK_TEST_SET_GET_VALUE(conductanceScalingParameter, filter->GetConductanceScalingParameter());
+
+  auto fixedAverageGradientMagnitude = 1.0;
+  filter->SetFixedAverageGradientMagnitude(fixedAverageGradientMagnitude);
+  ITK_TEST_SET_GET_VALUE(fixedAverageGradientMagnitude, filter->GetFixedAverageGradientMagnitude());
+
+  // Run test
+  itk::Size<Dimension> sz;
+  sz[0] = 250;
+  sz[1] = 250;
+  itk::NullImageToImageFilterDriver<ImageType, ImageType> test1;
+  test1.SetImageSize(sz);
+  test1.SetFilter(filter);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(test1.Execute());
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

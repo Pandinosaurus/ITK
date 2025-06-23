@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class GradientDescentLineSearchOptimizerv4Template
+ * \class GradientDescentLineSearchOptimizerv4Template
  *  \brief Gradient descent optimizer with a golden section line search.
  *
  * GradientDescentLineSearchOptimizer implements a simple gradient descent optimizer
@@ -69,8 +69,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GradientDescentLineSearchOptimizerv4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GradientDescentLineSearchOptimizerv4Template);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
@@ -79,11 +79,11 @@ public:
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Metric type over which this class is templated */
-  using MeasureType = typename Superclass::MeasureType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::ParametersType;
 
   /** Type for the convergence checker */
   using ConvergenceMonitoringType = itk::Function::WindowConvergenceMonitoringFunction<TInternalComputationValueType>;
@@ -91,9 +91,10 @@ public:
   /** The epsilon determines the accuracy of the line search
    *  i.e. the energy alteration that is considered convergent.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Epsilon, TInternalComputationValueType);
   itkGetMacro(Epsilon, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** The upper and lower limit below determine the range
    *  of values over which the learning rate can be adjusted
    *  by the golden section line search.  The update can then
@@ -103,13 +104,14 @@ public:
    *     NewParams = OldParams + UpperLimit * gradient
    *  Reasonable values might be 0 and 2.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(LowerLimit, TInternalComputationValueType);
   itkGetMacro(LowerLimit, TInternalComputationValueType);
   itkSetMacro(UpperLimit, TInternalComputationValueType);
   itkGetMacro(UpperLimit, TInternalComputationValueType);
   itkSetMacro(MaximumLineSearchIterations, unsigned int);
   itkGetMacro(MaximumLineSearchIterations, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   /** Advance one Step following the gradient direction.
    * Includes transform update. */
@@ -125,22 +127,31 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Search the golden section.
+   *
+   * \p a and \p c are the current bounds; the minimum is between them.
+   * \p b is a center point.
+   * \c f(x) is some mathematical function elsewhere defined.
+   * \p a corresponds to \c x1; \p b corresponds to \c x2; \p c corresponds to \c x3.
+   * \c x corresponds to \c x4.
+   */
   TInternalComputationValueType
   GoldenSectionSearch(TInternalComputationValueType a,
                       TInternalComputationValueType b,
                       TInternalComputationValueType c,
                       TInternalComputationValueType metricb = NumericTraits<TInternalComputationValueType>::max());
 
-  TInternalComputationValueType m_LowerLimit;
-  TInternalComputationValueType m_UpperLimit;
-  TInternalComputationValueType m_Phi;
-  TInternalComputationValueType m_Resphi;
-  TInternalComputationValueType m_Epsilon;
+  TInternalComputationValueType m_LowerLimit{};
+  TInternalComputationValueType m_UpperLimit{};
+  TInternalComputationValueType m_Phi{};
+  TInternalComputationValueType m_Resphi{};
+  TInternalComputationValueType m_Epsilon{};
 
   /** Controls the maximum recursion depth for the golden section search */
-  unsigned int m_MaximumLineSearchIterations;
+  unsigned int m_MaximumLineSearchIterations{};
+
   /** Counts the recursion depth for the golden section search */
-  unsigned int m_LineSearchIterations;
+  unsigned int m_LineSearchIterations{};
 };
 
 /** This helps to meet backward compatibility */

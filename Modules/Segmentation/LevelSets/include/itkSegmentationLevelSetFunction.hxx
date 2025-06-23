@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSegmentationLevelSetFunction_hxx
 #define itkSegmentationLevelSetFunction_hxx
 
-#include "itkSegmentationLevelSetFunction.h"
 
 namespace itk
 {
@@ -76,16 +75,17 @@ SegmentationLevelSetFunction<TImageType, TFeatureImageType>::AllocateAdvectionIm
 }
 
 template <typename TImageType, typename TFeatureImageType>
-typename SegmentationLevelSetFunction<TImageType, TFeatureImageType>::ScalarValueType
+auto
 SegmentationLevelSetFunction<TImageType, TFeatureImageType>::PropagationSpeed(const NeighborhoodType & neighborhood,
                                                                               const FloatOffsetType &  offset,
                                                                               GlobalDataStruct *) const
+  -> ScalarValueType
 {
   IndexType idx = neighborhood.GetIndex();
 
   ContinuousIndexType cdx;
 
-  for (unsigned i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
   }
@@ -94,22 +94,20 @@ SegmentationLevelSetFunction<TImageType, TFeatureImageType>::PropagationSpeed(co
   {
     return (static_cast<ScalarValueType>(m_Interpolator->EvaluateAtContinuousIndex(cdx)));
   }
-  else
-  {
-    return (static_cast<ScalarValueType>(m_SpeedImage->GetPixel(idx)));
-  }
+
+  return (static_cast<ScalarValueType>(m_SpeedImage->GetPixel(idx)));
 }
 
 template <typename TImageType, typename TFeatureImageType>
-typename SegmentationLevelSetFunction<TImageType, TFeatureImageType>::VectorType
+auto
 SegmentationLevelSetFunction<TImageType, TFeatureImageType>::AdvectionField(const NeighborhoodType & neighborhood,
                                                                             const FloatOffsetType &  offset,
-                                                                            GlobalDataStruct *) const
+                                                                            GlobalDataStruct *) const -> VectorType
 {
   IndexType           idx = neighborhood.GetIndex();
   ContinuousIndexType cdx;
 
-  for (unsigned i = 0; i < ImageDimension; ++i)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
   }

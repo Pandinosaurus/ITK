@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressReporter.h"
-#include "itkVnlHalfHermitianToRealInverseFFTImageFilter.h"
 
 namespace itk
 {
@@ -30,8 +29,8 @@ void
 VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Get pointers to the input and output.
-  typename InputImageType::ConstPointer inputPtr = this->GetInput();
-  typename OutputImageType::Pointer     outputPtr = this->GetOutput();
+  const typename InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename OutputImageType::Pointer     outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -40,7 +39,7 @@ VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::Generate
 
   // We don't have a nice progress to report, but at least this simple line
   // reports the beginning and the end of the process.
-  ProgressReporter progress(this, 0, 1);
+  const ProgressReporter progress(this, 0, 1);
 
   const InputSizeType   inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
   const InputIndexType  inputIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
@@ -52,26 +51,27 @@ VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::Generate
   outputPtr->Allocate();
 
   unsigned int vectorSize = 1;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     if (!VnlFFTCommon::IsDimensionSizeLegal(outputSize[i]))
     {
-      itkExceptionMacro(<< "Cannot compute FFT of image with size " << outputSize
-                        << ". VnlHalfHermitianToRealInverseFFTImageFilter operates "
-                        << "only on images whose size in each dimension has"
-                        << "only a combination of 2,3, and 5 as prime factors.");
+      itkExceptionMacro("Cannot compute FFT of image with size "
+                        << outputSize
+                        << ". VnlHalfHermitianToRealInverseFFTImageFilter operates only on images whose size in each "
+                           "dimension has only a combination of 2,3, and 5 as prime factors.");
     }
     vectorSize *= outputSize[i];
   }
 
   // VNL requires the full complex result of the transform, so we
   // produce it here from the half complex image assumed when the output is real.
-  SignalVectorType                              signal(vectorSize);
-  ImageRegionIteratorWithIndex<OutputImageType> oIt(outputPtr, outputPtr->GetLargestPossibleRegion());
+  SignalVectorType signal(vectorSize);
 
-  OutputIndexValueType maxXIndex = inputIndex[0] + static_cast<OutputIndexValueType>(inputSize[0]);
-  unsigned int         si = 0;
-  for (oIt.GoToBegin(); !oIt.IsAtEnd(); ++oIt)
+  const OutputIndexValueType maxXIndex = inputIndex[0] + static_cast<OutputIndexValueType>(inputSize[0]);
+  unsigned int               si = 0;
+  for (ImageRegionIteratorWithIndex<OutputImageType> oIt(outputPtr, outputPtr->GetLargestPossibleRegion());
+       !oIt.IsAtEnd();
+       ++oIt)
   {
     typename OutputImageType::IndexType index = oIt.GetIndex();
     if (index[0] >= maxXIndex)
@@ -90,7 +90,7 @@ VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::Generate
     {
       signal[si] = inputPtr->GetPixel(index);
     }
-    si++;
+    ++si;
   }
 
   OutputPixelType * out = outputPtr->GetBufferPointer();
@@ -104,7 +104,7 @@ VnlHalfHermitianToRealInverseFFTImageFilter<TInputImage, TOutputImage>::Generate
   // elements should have been accounted for by the VNL inverse
   // Fourier transform, but it is not. So, we take care of it by
   // dividing the signal by the vectorSize.
-  for (unsigned int i = 0; i < vectorSize; i++)
+  for (unsigned int i = 0; i < vectorSize; ++i)
   {
     out[i] = signal[i].real() / vectorSize;
   }

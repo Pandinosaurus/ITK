@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,8 +78,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ArchetypeSeriesFileNames, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ArchetypeSeriesFileNames);
 
   /* -------- Define the API for ArchetypeSeriesFileNames ----------- */
 
@@ -118,14 +118,14 @@ protected:
 
 private:
   /** A string for formatting the names of files in the series. */
-  std::string m_Archetype;
+  std::string m_Archetype{};
 
-  std::vector<StringVectorType> m_Groupings;
-  StringVectorType              m_FileNames; // ivar for returning by
-                                             // reference
+  std::vector<StringVectorType> m_Groupings{};
+  StringVectorType              m_FileNames{}; // ivar for returning by
+                                               // reference
 
-  TimeStamp m_ArchetypeMTime;
-  TimeStamp m_ScanTime;
+  TimeStamp m_ArchetypeMTime{};
+  TimeStamp m_ScanTime{};
 };
 } // namespace itk
 

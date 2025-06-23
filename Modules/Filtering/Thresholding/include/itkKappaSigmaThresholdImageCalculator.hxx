@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkKappaSigmaThresholdImageCalculator_hxx
 #define itkKappaSigmaThresholdImageCalculator_hxx
-#include "itkKappaSigmaThresholdImageCalculator.h"
 
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
@@ -27,7 +26,7 @@ namespace itk
 template <typename TInputImage, typename TMaskImage>
 KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::KappaSigmaThresholdImageCalculator()
   : m_MaskValue(NumericTraits<MaskPixelType>::max())
-  , m_Output(NumericTraits<InputPixelType>::ZeroValue())
+  , m_Output(InputPixelType{})
 {}
 
 template <typename TInputImage, typename TMaskImage>
@@ -45,7 +44,7 @@ KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::Compute()
                                                                    // pixels
                                                                    // to begin
 
-  for (unsigned int iteration = 0; iteration < this->m_NumberOfIterations; iteration++)
+  for (unsigned int iteration = 0; iteration < this->m_NumberOfIterations; ++iteration)
   {
     ImageRegionConstIteratorWithIndex<InputImageType> iIt(this->m_Image, this->m_Image->GetRequestedRegion());
 
@@ -61,7 +60,7 @@ KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::Compute()
         if (v <= threshold)
         {
           mean += v;
-          count++;
+          ++count;
         }
       }
       ++iIt;
@@ -101,12 +100,12 @@ KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::Compute()
 }
 
 template <typename TInputImage, typename TMaskImage>
-const typename KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::InputPixelType &
-KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::GetOutput() const
+auto
+KappaSigmaThresholdImageCalculator<TInputImage, TMaskImage>::GetOutput() const -> const InputPixelType &
 {
   if (!this->m_Valid)
   {
-    itkExceptionMacro(<< "GetOutput() invoked, but the output have not been computed. Call Compute() first.");
+    itkExceptionMacro("GetOutput() invoked, but the output have not been computed. Call Compute() first.");
   }
   return this->m_Output;
 }

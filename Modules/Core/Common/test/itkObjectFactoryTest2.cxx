@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,8 @@
 #include "itkImage.h"
 #include "itkRGBPixel.h"
 #include "itkTextOutput.h" // Needed to see warnings
+#include "itkTestingMacros.h"
+#include "itksys/SystemTools.hxx"
 
 using myPointer = itk::ImportImageContainer<unsigned long, short>::Pointer;
 bool
@@ -45,7 +47,7 @@ MakeImage(const int count, T pixel)
   using RegionType = typename ImageType::RegionType;
   using SizeType = typename ImageType::SizeType;
 
-  typename ImageType::Pointer testImage = ImageType::New();
+  auto testImage = ImageType::New();
 
   IndexType index;
   index[0] = 0;
@@ -56,9 +58,7 @@ MakeImage(const int count, T pixel)
   size[0] = count;
   size[1] = count;
   size[2] = count;
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const RegionType region{ index, size };
 
   testImage->SetRegions(region);
   testImage->Allocate();
@@ -71,16 +71,16 @@ ReallocateImage()
   using ImageType = itk::Image<double, 2>;
   using SizeType = ImageType::SizeType;
 
-  ImageType::Pointer testImage = ImageType::New();
+  auto testImage = ImageType::New();
 
-  SizeType size = { { 5, 3 } };
+  constexpr SizeType size = { { 5, 3 } };
 
   testImage->SetRegions(size);
-  testImage->Allocate(true); // initialize buffer to zero
+  testImage->AllocateInitialized();
 
-  SizeType size2 = { { 100, 100 } };
+  constexpr SizeType size2 = { { 100, 100 } };
   testImage->SetRegions(size2);
-  testImage->Allocate(true); // initialize buffer to zero
+  testImage->AllocateInitialized();
 }
 
 int
@@ -89,7 +89,9 @@ itkObjectFactoryTest2(int argc, char * argv[])
   itk::ObjectFactoryBase::UnRegisterAllFactories();
   if (argc < 2)
   {
-    std::cout << "Usage: " << argv[0] << " FactoryPath [FactoryPath [FactoryPath ..." << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " FactoryPath [FactoryPath [FactoryPath ..." << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -100,7 +102,7 @@ itkObjectFactoryTest2(int argc, char * argv[])
 #ifdef _WIN32
   std::string pathSeparator = ";";
 #else
-  std::string pathSeparator = ":";
+  const std::string pathSeparator = ":";
 #endif
   std::string path = "";
   for (int ac = 1; ac < argc - 1; ++ac)
@@ -115,10 +117,18 @@ itkObjectFactoryTest2(int argc, char * argv[])
 #ifdef CMAKE_INTDIR
   path += std::string("/") + std::string(CMAKE_INTDIR);
 #endif
+  const std::string itk_autoload_env{ "ITK_AUTOLOAD_PATH" };
+  const std::string myenv{ itk_autoload_env + "=" + path };
+  itksys::SystemTools::PutEnv(myenv);
+  std::cout << "SetValue => " << myenv << std::endl;
+  std::string getmyenv;
+  if (!itksys::SystemTools::GetEnv(itk_autoload_env, getmyenv))
+  {
+    std::cerr << "ERROR: Environmental variable not set as requested : " << itk_autoload_env << "!=" << path
+              << std::endl;
+  }
+  std::cout << "GetValue => " << itk_autoload_env + "=" + getmyenv << std::endl;
 
-  std::string myenv = std::string("ITK_AUTOLOAD_PATH=") + path;
-  std::cout << myenv << std::endl;
-  putenv(const_cast<char *>(myenv.c_str()));
   itk::ObjectFactoryBase::ReHash();
 
   // List all registered factories
@@ -132,17 +142,17 @@ itkObjectFactoryTest2(int argc, char * argv[])
       std::cout << "  Factory version: " << factory->GetITKSourceVersion() << std::endl
                 << "  Factory description: " << factory->GetDescription() << std::endl;
 
-      std::list<std::string>                 overrides = factory->GetClassOverrideNames();
-      std::list<std::string>                 names = factory->GetClassOverrideWithNames();
-      std::list<std::string>                 descriptions = factory->GetClassOverrideDescriptions();
-      std::list<bool>                        enableflags = factory->GetEnableFlags();
-      std::list<std::string>::const_iterator n = names.begin();
-      std::list<std::string>::const_iterator d = descriptions.begin();
-      std::list<bool>::const_iterator        e = enableflags.begin();
-      for (std::list<std::string>::const_iterator o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, ++e)
+      std::list<std::string> overrides = factory->GetClassOverrideNames();
+      std::list<std::string> names = factory->GetClassOverrideWithNames();
+      std::list<std::string> descriptions = factory->GetClassOverrideDescriptions();
+      std::list<bool>        enableflags = factory->GetEnableFlags();
+      auto                   n = names.begin();
+      auto                   d = descriptions.begin();
+      auto                   e = enableflags.begin();
+      for (auto o = overrides.begin(); o != overrides.end(); ++o, ++n, ++d, ++e)
       {
         std::cout << "    Override " << *o << " with " << *n << std::endl
-                  << "      described as \"" << *d << "\"" << std::endl
+                  << "      described as \"" << *d << '"' << std::endl
                   << "      enabled " << *e << std::endl;
       }
     }
@@ -154,7 +164,8 @@ itkObjectFactoryTest2(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  itk::ImportImageContainer<unsigned long, short>::Pointer v = itk::ImportImageContainer<unsigned long, short>::New();
+  const itk::ImportImageContainer<unsigned long, short>::Pointer v =
+    itk::ImportImageContainer<unsigned long, short>::New();
   if (!TestNew2(v, "TestImportImageContainer"))
   {
     return EXIT_FAILURE;
@@ -168,16 +179,14 @@ itkObjectFactoryTest2(int argc, char * argv[])
     MakeImage(10, static_cast<float>(0));
     MakeImage(10, static_cast<double>(0));
   }
-  itk::RGBPixel<unsigned char> rgbUC;
-  rgbUC.Fill(0);
-  itk::RGBPixel<unsigned short> rgbUS;
-  rgbUS.Fill(0);
+  const itk::RGBPixel<unsigned char>  rgbUC{};
+  const itk::RGBPixel<unsigned short> rgbUS{};
   MakeImage(10, rgbUC);
   MakeImage(10, rgbUS);
 
   ReallocateImage();
 
-  int status = EXIT_SUCCESS;
+  constexpr int status = EXIT_SUCCESS;
 
   return status;
 }

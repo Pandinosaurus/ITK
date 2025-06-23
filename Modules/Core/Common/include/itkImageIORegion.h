@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,9 +58,9 @@ public:
 
   /** these types correspond to those of itk::Size, itk::Offset and itk::Index
    */
-  using SizeValueType = ::itk::SizeValueType;
-  using IndexValueType = ::itk::IndexValueType;
-  using OffsetValueType = ::itk::OffsetValueType;
+  using SizeValueType = itk::SizeValueType;
+  using IndexValueType = itk::IndexValueType;
+  using OffsetValueType = itk::OffsetValueType;
 
   /** Index type alias support An index is used to access pixel values. */
   using IndexType = std::vector<IndexValueType>;
@@ -71,21 +71,21 @@ public:
   /** Region type taken from the superclass */
   using RegionType = Superclass::RegionEnum;
 
-  /** Standard part of all itk objects. */
-  itkTypeMacro(ImageIORegion, Region);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageIORegion);
 
   /** Dimension of the image available at run time. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetImageDimension() const;
 
   /** Dimension of the region to be written. This differs from the
    * the image dimension and is calculated at run-time by examining
    * the size of the image in each coordinate direction. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetRegionDimension() const;
 
   /** Return the region type. Images are described with structured regions. */
-  RegionType
+  [[nodiscard]] RegionType
   GetRegionType() const override;
 
   /** Constructor. ImageIORegion is a lightweight object that is not reference
@@ -121,56 +121,56 @@ public:
   SetIndex(const IndexType & index);
 
   /** Get index defining the corner of the region. */
-  const IndexType &
+  /** @ITKStartGrouping */
+  [[nodiscard]] const IndexType &
   GetIndex() const;
   IndexType &
   GetModifiableIndex();
-
+  /** @ITKEndGrouping */
   /** Set the size of the region. This plus the index determines the
    * rectangular shape, or extent, of the region. */
   void
   SetSize(const SizeType & size);
 
   /** Get the size of the region. */
-  const SizeType &
+  /** @ITKStartGrouping */
+  [[nodiscard]] const SizeType &
   GetSize() const;
   SizeType &
   GetModifiableSize();
-
+  /** @ITKEndGrouping */
   /** Convenience methods to get the size of the image in a particular
    * coordinate direction i. Do not try to access image sizes beyond the
    * the ImageDimension. */
-  SizeValueType
-  GetSize(unsigned long i) const;
+  [[nodiscard]] SizeValueType
+  GetSize(unsigned int i) const;
 
-  IndexValueType
-  GetIndex(unsigned long i) const;
-
-  void
-  SetSize(const unsigned long i, SizeValueType size);
+  [[nodiscard]] IndexValueType
+  GetIndex(unsigned int i) const;
 
   void
-  SetIndex(const unsigned long i, IndexValueType idx);
+  SetSize(const unsigned int i, SizeValueType size);
+
+  void
+  SetIndex(const unsigned int i, IndexValueType idx);
 
   /** Compare two regions. */
   bool
   operator==(const Self & region) const;
 
-  /** Compare two regions. */
-  bool
-  operator!=(const Self & region) const;
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   /** Test if an index is inside */
-  bool
+  [[nodiscard]] bool
   IsInside(const IndexType & index) const;
 
-  /** Test if a region (the argument) is completly inside of this region */
-  bool
-  IsInside(const Self & region) const;
+  /** Test if a region (the argument) is completely inside of this region */
+  [[nodiscard]] bool
+  IsInside(const Self & otherRegion) const;
 
   /** Get the number of pixels contained in this region. This just
    * multiplies the size components. */
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetNumberOfPixels() const;
 
 protected:
@@ -253,11 +253,8 @@ public:
           ImageRegionType &         outImageRegion,
           const ImageIndexType &    largestRegionIndex)
   {
-    ImageSizeType  size;
-    ImageIndexType index;
-
-    size.Fill(1); // initialize with default values
-    index.Fill(0);
+    auto           size = MakeFilled<ImageSizeType>(1); // initialize with default values
+    ImageIndexType index{};
 
     //
     // The ImageRegion and ImageIORegion objects may have different dimensions.

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,34 +50,33 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
   using FloatImageType = itk::Image<PixelType, Dimension>;
 
   using CriterionType = itk::FastMarchingThresholdStoppingCriterion<FloatImageType, FloatImageType>;
-  CriterionType::Pointer criterion = CriterionType::New();
+  auto criterion = CriterionType::New();
   criterion->SetThreshold(100.);
 
   using MarcherType = itk::FastMarchingExtensionImageFilterBase<FloatImageType, FloatImageType, unsigned char, 1>;
 
-  MarcherType::Pointer marcher = MarcherType::New();
+  auto marcher = MarcherType::New();
   marcher->SetStoppingCriterion(criterion);
 
-  ShowProgressObject                                    progressWatch(marcher);
-  itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
-  command = itk::SimpleMemberCommand<ShowProgressObject>::New();
+  ShowProgressObject                                          progressWatch(marcher);
+  const itk::SimpleMemberCommand<ShowProgressObject>::Pointer command =
+    itk::SimpleMemberCommand<ShowProgressObject>::New();
   command->SetCallbackFunction(&progressWatch, &ShowProgressObject::ShowProgress);
   marcher->AddObserver(itk::ProgressEvent(), command);
 
 
-  bool passed;
+  bool passed = false;
 
   // setup trial points
   using NodePairType = MarcherType::NodePairType;
   using NodePairContainerType = MarcherType::NodePairContainerType;
 
   // setup alive points
-  NodePairContainerType::Pointer AlivePoints = NodePairContainerType::New();
+  auto AlivePoints = NodePairContainerType::New();
 
-  FloatImageType::OffsetType offset0 = { { 28, 35 } };
+  constexpr FloatImageType::OffsetType offset0 = { { 28, 35 } };
 
-  itk::Index<2> index;
-  index.Fill(0);
+  itk::Index<2> index{};
 
   AlivePoints->push_back(NodePairType(index + offset0, 0.));
 
@@ -88,7 +87,7 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
 
 
   // setup trial points
-  NodePairContainerType::Pointer TrialPoints = NodePairContainerType::New();
+  auto TrialPoints = NodePairContainerType::New();
 
   index.Fill(0);
   index += offset0;
@@ -114,11 +113,11 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
   marcher->SetTrialPoints(TrialPoints);
 
   // specify the size of the output image
-  FloatImageType::SizeType size = { { 64, 64 } };
+  constexpr FloatImageType::SizeType size = { { 64, 64 } };
   marcher->SetOutputSize(size);
 
   // setup a speed image of ones
-  FloatImageType::Pointer    speedImage = FloatImageType::New();
+  auto                       speedImage = FloatImageType::New();
   FloatImageType::RegionType region;
   region.SetSize(size);
   speedImage->SetLargestPossibleRegion(region);
@@ -154,7 +153,7 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
   using VectorType = MarcherType::AuxValueVectorType;
   using AuxValueContainerType = MarcherType::AuxValueContainerType;
 
-  AuxValueContainerType::Pointer auxAliveValues = AuxValueContainerType::New();
+  auto auxAliveValues = AuxValueContainerType::New();
 
   // deliberately cause an exception setting AuxAliveValues of the wrong size
   marcher->SetAuxiliaryAliveValues(auxAliveValues);
@@ -201,7 +200,7 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  AuxValueContainerType::Pointer auxTrialValues = AuxValueContainerType::New();
+  auto auxTrialValues = AuxValueContainerType::New();
 
   // deliberately cause an exception setting AuxTrialValues of the wrong size
   marcher->SetAuxiliaryTrialValues(auxTrialValues);
@@ -251,45 +250,41 @@ itkFastMarchingExtensionImageFilterTest(int, char *[])
 
   // check the results
   passed = true;
-  FloatImageType::Pointer                  output = marcher->GetOutput();
+  const FloatImageType::Pointer            output = marcher->GetOutput();
   itk::ImageRegionIterator<FloatImageType> iterator(output, output->GetBufferedRegion());
 
   using AuxImageType = MarcherType::AuxImageType;
-  AuxImageType::Pointer                  auxImage = marcher->GetAuxiliaryImage(0);
+  const AuxImageType::Pointer            auxImage = marcher->GetAuxiliaryImage(0);
   itk::ImageRegionIterator<AuxImageType> auxIterator(auxImage, auxImage->GetBufferedRegion());
 
   while (!iterator.IsAtEnd())
   {
-    FloatImageType::IndexType tempIndex;
-    double                    distance;
-    float                     outputValue;
-
-    tempIndex = iterator.GetIndex();
+    FloatImageType::IndexType tempIndex = iterator.GetIndex();
     tempIndex -= offset0;
-    distance = 0.0;
-    for (int j = 0; j < 2; j++)
+    double distance = 0.0;
+    for (int j = 0; j < 2; ++j)
     {
       distance += tempIndex[j] * tempIndex[j];
     }
     distance = std::sqrt(distance);
 
-    outputValue = (float)iterator.Get();
+    auto outputValue = static_cast<float>(iterator.Get());
 
     if (itk::Math::NotAlmostEquals(distance, 0.0))
     {
       if (itk::Math::abs(outputValue) / distance > 1.42)
       {
-        std::cout << iterator.GetIndex() << " ";
-        std::cout << itk::Math::abs(outputValue) / distance << " ";
-        std::cout << itk::Math::abs(outputValue) << " " << distance << std::endl;
+        std::cout << iterator.GetIndex() << ' ';
+        std::cout << itk::Math::abs(outputValue) / distance << ' ';
+        std::cout << itk::Math::abs(outputValue) << ' ' << distance << std::endl;
         passed = false;
         break;
       }
 
       if (auxIterator.Get() != vector[0])
       {
-        std::cout << auxIterator.GetIndex() << " got aux value of " << (double)auxIterator.Get()
-                  << " but it should be  " << (double)vector[0] << std::endl;
+        std::cout << auxIterator.GetIndex() << " got aux value of " << static_cast<double>(auxIterator.Get())
+                  << " but it should be  " << static_cast<double>(vector[0]) << std::endl;
         passed = false;
         break;
       }

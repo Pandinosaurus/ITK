@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ ReadWrite(TScalar low, TScalar hi, char * file1, char * file2, bool ascii)
   // The source object is templated on the output type.
   //
   typename ImageType::SizeValueType size[TDimension];
-  for (unsigned int i = 0; i < TDimension; i++)
+  for (unsigned int i = 0; i < TDimension; ++i)
   {
     size[i] = 2 << (i + 1);
   }
@@ -57,8 +57,7 @@ ReadWrite(TScalar low, TScalar hi, char * file1, char * file2, bool ascii)
   // Create a mapper (in this case a writer). A mapper
   // is templated on the input type.
   //
-  itk::VTKImageIO::Pointer vtkIO;
-  vtkIO = itk::VTKImageIO::New();
+  const itk::VTKImageIO::Pointer vtkIO = itk::VTKImageIO::New();
   if (ascii)
   {
     vtkIO->SetFileTypeToASCII();
@@ -69,8 +68,7 @@ ReadWrite(TScalar low, TScalar hi, char * file1, char * file2, bool ascii)
   }
 
   // Write out the image
-  typename itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
+  const typename itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(random->GetOutput());
   writer->SetFileName(file1);
   writer->SetImageIO(vtkIO);

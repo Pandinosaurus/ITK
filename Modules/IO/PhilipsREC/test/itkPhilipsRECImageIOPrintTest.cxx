@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 
 #include <vxl_version.h>
 #include "vnl/vnl_vector_fixed.h"
+#include "itkTestingMacros.h"
 
 int
 itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
@@ -28,13 +29,13 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
 
   if (argc < 2)
   {
-    std::cerr << "Usage: " << argv[0] << " InputImage" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
   using PhilipsRECImageIOType = itk::PhilipsRECImageIO;
 
-  PhilipsRECImageIOType::Pointer imageIO = PhilipsRECImageIOType::New();
+  auto imageIO = PhilipsRECImageIOType::New();
 
   if (!imageIO->CanReadFile(argv[1]))
   {
@@ -43,15 +44,8 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
   }
   imageIO->SetFileName(argv[1]);
 
-  try
-  {
-    imageIO->ReadImageInformation();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(imageIO->ReadImageInformation());
+
 
   // Print all of the PAR parameters.
   // Return EXIT_FAILURE if the value cannot be read.
@@ -138,7 +132,7 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
   for (PhilipsRECImageIOType::TriggerTimesContainerType::ElementIdentifier iter = 0; iter < ptrToTimePoints->Size();
        iter++)
   {
-    std::cout << " " << ptrToTimePoints->ElementAt(iter);
+    std::cout << ' ' << ptrToTimePoints->ElementAt(iter);
   }
   std::cout << std::endl;
 
@@ -162,9 +156,9 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
   std::cout << "EchoTimes =";
-  for (PhilipsRECImageIOType::EchoTimesContainerType::ElementIdentifier iter = 0; iter < ptrToEchoes->Size(); iter++)
+  for (PhilipsRECImageIOType::EchoTimesContainerType::ElementIdentifier iter = 0; iter < ptrToEchoes->Size(); ++iter)
   {
-    std::cout << " " << ptrToEchoes->ElementAt(iter);
+    std::cout << ' ' << ptrToEchoes->ElementAt(iter);
   }
   std::cout << std::endl;
 
@@ -239,9 +233,9 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
   std::cout << "RepetitionTimes =";
-  for (PhilipsRECImageIOType::RepetitionTimesContainerType::ElementIdentifier iter = 0; iter < ptrToTR->Size(); iter++)
+  for (PhilipsRECImageIOType::RepetitionTimesContainerType::ElementIdentifier iter = 0; iter < ptrToTR->Size(); ++iter)
   {
-    std::cout << " " << ptrToTR->ElementAt(iter);
+    std::cout << ' ' << ptrToTR->ElementAt(iter);
   }
   std::cout << std::endl;
 
@@ -401,7 +395,7 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
   for (PhilipsRECImageIOType::GradientBvalueContainerType::ElementIdentifier iter = 0; iter < ptrToBValues->Size();
        iter++)
   {
-    std::cout << " " << ptrToBValues->ElementAt(iter);
+    std::cout << ' ' << ptrToBValues->ElementAt(iter);
   }
   std::cout << std::endl;
 
@@ -429,7 +423,7 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
        iter < ptrToGradValues->Size();
        iter++)
   {
-    std::cout << " " << ptrToGradValues->ElementAt(iter);
+    std::cout << ' ' << ptrToGradValues->ElementAt(iter);
   }
   std::cout << std::endl;
 
@@ -495,7 +489,7 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
        iter++)
   {
     std::cout << "Scanning Sequence " << iter << " =";
-    PhilipsRECImageIOType::ImageTypeRescaleValuesContainerType::Pointer rescaleValueVector =
+    const PhilipsRECImageIOType::ImageTypeRescaleValuesContainerType::Pointer rescaleValueVector =
       ptrToRescaleValues->ElementAt(iter);
     for (PhilipsRECImageIOType::ImageTypeRescaleValuesContainerType::ElementIdentifier iter1 = 0;
          iter1 < rescaleValueVector->Size();
@@ -529,9 +523,11 @@ itkPhilipsRECImageIOPrintTest(int argc, char * argv[])
   for (PhilipsRECImageIOType::LabelTypesASLContainerType::ElementIdentifier iter = 0; iter < ptrToASLLabelTypes->Size();
        iter++)
   {
-    std::cout << " " << ptrToASLLabelTypes->ElementAt(iter);
+    std::cout << ' ' << ptrToASLLabelTypes->ElementAt(iter);
   }
   std::cout << std::endl;
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkTextOutput.h"
 #include "itkSimpleFilterWatcher.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 
 // namespace{
@@ -47,7 +48,10 @@ itkFastMarchingUpwindGradientTest(int, char *[])
   using FloatImage = itk::Image<PixelType, 2>;
   using FloatFMType = itk::FastMarchingUpwindGradientImageFilter<FloatImage, FloatImage>;
 
-  FloatFMType::Pointer marcher = FloatFMType::New();
+  auto marcher = FloatFMType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(marcher, FastMarchingUpwindGradientImageFilter, FastMarchingImageFilter);
+
 
   //   ShowProgressObject progressWatch(marcher);
   //   itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
@@ -56,20 +60,19 @@ itkFastMarchingUpwindGradientTest(int, char *[])
   //                                &ShowProgressObject::ShowProgress);
   //   marcher->AddObserver( itk::ProgressEvent(), command);
 
-  itk::SimpleFilterWatcher MarcherWatcher(marcher);
+  const itk::SimpleFilterWatcher MarcherWatcher(marcher);
 
   using NodeType = FloatFMType::NodeType;
   using NodeContainer = FloatFMType::NodeContainer;
 
   // setup alive points
-  NodeContainer::Pointer alivePoints = NodeContainer::New();
+  auto alivePoints = NodeContainer::New();
 
   NodeType node;
 
-  FloatImage::OffsetType offset0 = { { 28, 35 } };
+  constexpr FloatImage::OffsetType offset0 = { { 28, 35 } };
 
-  itk::Index<2> index;
-  index.Fill(0);
+  itk::Index<2> index{};
 
   node.SetValue(0.0);
   node.SetIndex(index + offset0);
@@ -84,7 +87,7 @@ itkFastMarchingUpwindGradientTest(int, char *[])
 
 
   // setup trial points
-  NodeContainer::Pointer trialPoints = NodeContainer::New();
+  auto trialPoints = NodeContainer::New();
 
   node.SetValue(1.0);
 
@@ -118,11 +121,11 @@ itkFastMarchingUpwindGradientTest(int, char *[])
   marcher->SetTrialPoints(trialPoints);
 
   // specify the size of the output image
-  FloatImage::SizeType size = { { 64, 64 } };
+  constexpr FloatImage::SizeType size = { { 64, 64 } };
   marcher->SetOutputSize(size);
 
   // setup a speed image of ones
-  FloatImage::Pointer    speedImage = FloatImage::New();
+  auto                   speedImage = FloatImage::New();
   FloatImage::RegionType region;
   region.SetSize(size);
   speedImage->SetLargestPossibleRegion(region);
@@ -137,48 +140,63 @@ itkFastMarchingUpwindGradientTest(int, char *[])
 
   //  speedImage->Print( std::cout );
   marcher->SetInput(speedImage);
-  double stoppingValue = 100.0;
+  constexpr double stoppingValue = 100.0;
   marcher->SetStoppingValue(stoppingValue);
-  marcher->GenerateGradientImageOn();
+  ITK_TEST_SET_GET_VALUE(stoppingValue, marcher->GetStoppingValue());
+
+  constexpr bool generateGradientImage = true;
+  ITK_TEST_SET_GET_BOOLEAN(marcher, GenerateGradientImage, generateGradientImage);
 
   // Exercise this member function.
   // It is also necessary that the TargetOffset be set to 0.0 for the TargetReached
   // tests to pass.
-  marcher->SetTargetOffset(0.0);
+  constexpr double targetOffset = 0.0;
+  marcher->SetTargetOffset(targetOffset);
+  ITK_TEST_SET_GET_VALUE(targetOffset, marcher->GetTargetOffset());
+
+
+  // Test exceptions
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->SetTargetReachedModeToOneTarget());
+  ITK_TRY_EXPECT_EXCEPTION(marcher->Update());
+
+  itk::SizeValueType numberOfTargets = 0;
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->SetTargetReachedModeToSomeTargets(numberOfTargets));
+  ITK_TEST_SET_GET_VALUE(numberOfTargets, marcher->GetNumberOfTargets());
+  ITK_TRY_EXPECT_EXCEPTION(marcher->Update());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->SetTargetReachedModeToAllTargets());
+  ITK_TRY_EXPECT_EXCEPTION(marcher->Update());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->SetTargetReachedModeToNoTargets());
 
   // turn on debugging
   // marcher->DebugOn();
 
   // update the marcher
-  marcher->Update();
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->Update());
 
   // check the results
   using FloatGradientImage = FloatFMType::GradientImageType;
   using GradientPixelType = FloatGradientImage::PixelType;
-  FloatGradientImage::Pointer                  gradientOutput = marcher->GetGradientImage();
+  const FloatGradientImage::Pointer            gradientOutput = marcher->GetGradientImage();
   itk::ImageRegionIterator<FloatGradientImage> iterator(gradientOutput, gradientOutput->GetBufferedRegion());
 
   bool passed = true;
 
   for (; !iterator.IsAtEnd(); ++iterator)
   {
-
-    FloatGradientImage::IndexType tempIndex;
-    double                        distance;
-    GradientPixelType             outputPixel;
-
-    tempIndex = iterator.GetIndex();
+    FloatGradientImage::IndexType tempIndex = iterator.GetIndex();
     tempIndex -= offset0;
-    distance = 0.0;
-    for (int j = 0; j < 2; j++)
+    double distance = 0.0;
+    for (int j = 0; j < 2; ++j)
     {
       distance += tempIndex[j] * tempIndex[j];
     }
     distance = std::sqrt(distance);
 
-    outputPixel = iterator.Get();
+    GradientPixelType outputPixel = iterator.Get();
 
-    auto outputPixelNorm = (double)outputPixel.GetNorm();
+    const double outputPixelNorm{ outputPixel.GetNorm() };
 
     if (distance == 0.0)
     {
@@ -190,27 +208,20 @@ itkFastMarchingUpwindGradientTest(int, char *[])
     // and must be oriented radially from the seed point
 
     double dot = 0.0;
-    for (int j = 0; j < 2; j++)
+    for (int j = 0; j < 2; ++j)
     {
       dot += tempIndex[j] / distance * outputPixel[j];
     }
 
     if (outputPixelNorm < 0.9999 || outputPixelNorm > 1.0001 || dot < 0.99 || dot > 1.01)
     {
-      std::cout << iterator.GetIndex() << " ";
-      std::cout << outputPixelNorm << " ";
+      std::cout << iterator.GetIndex() << ' ';
+      std::cout << outputPixelNorm << ' ';
       std::cout << dot << std::endl;
       passed = false;
     }
   }
 
-
-  // Test that the stopping value of the algorithm is the one passed in.
-  if (itk::Math::NotAlmostEquals(marcher->GetStoppingValue(), stoppingValue))
-  {
-    std::cerr << "ERROR: Output stopping value does not equal initial stopping value!" << std::endl;
-    passed = false;
-  }
 
   // Set up target points.
   // The algorithm will stop when it reaches these points.
@@ -218,31 +229,54 @@ itkFastMarchingUpwindGradientTest(int, char *[])
   constexpr FloatImage::OffsetType offset2 = { { 40, 40 } };
   constexpr FloatImage::OffsetType offset1 = { { 50, 50 } };
   // This point is farthest from the AlivePoint:
-  constexpr FloatImage::OffsetType          offset3 = { { 0, 0 } };
-  const std::vector<FloatImage::OffsetType> targetOffsets{ offset1, offset2, offset3 };
+  constexpr FloatImage::OffsetType offset3 = { { 0, 0 } };
+  using VectorType = std::vector<FloatImage::OffsetType>;
+  const VectorType targetOffsets{ offset1, offset2, offset3 };
 
   index.Fill(0);
   node.SetValue(0.0);
-  NodeContainer::Pointer targetPoints = NodeContainer::New();
-  for (unsigned int i = 0, _end = targetOffsets.size(); i < _end; i++)
+  auto targetPoints = NodeContainer::New();
+  for (unsigned int i = 0, _end = targetOffsets.size(); i < _end; ++i)
   {
     node.SetIndex(index + targetOffsets[i]);
     targetPoints->InsertElement(i, node);
   }
   marcher->SetTargetPoints(targetPoints);
+  ITK_TEST_SET_GET_VALUE(targetPoints, marcher->GetTargetPoints());
+
+  // The target reached mode is set to no targets by default
+#if !defined(ITK_LEGACY_REMOVE)
+  ITK_TEST_SET_GET_VALUE(FloatFMType::NoTargets, marcher->GetTargetReachedMode());
+#endif
+  ITK_TEST_SET_GET_VALUE(FloatFMType::TargetConditionEnum::NoTargets, marcher->GetTargetReachedMode());
+
+  numberOfTargets = 0;
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetNumberOfTargets());
 
   // Stop the algorithm when ONE of the targets has been reached.
+#if !defined(ITK_LEGACY_REMOVE)
   marcher->SetTargetReachedModeToOneTarget();
-  marcher->Update();
+  ITK_TEST_SET_GET_VALUE(FloatFMType::OneTarget, marcher->GetTargetReachedMode());
+#endif
+  marcher->SetTargetReachedModeToOneTarget();
+  ITK_TEST_SET_GET_VALUE(FloatFMType::TargetConditionEnum::OneTarget, marcher->GetTargetReachedMode());
+
+  numberOfTargets = 1;
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetNumberOfTargets());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->Update());
+
+
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetReachedTargetPoints()->Size());
 
   // Find the smallest reaching time of the TargetPoints.  This is the time of the closest
   // TargetPoint.
   FloatFMType::PixelType smallestReachingTime = itk::NumericTraits<PixelType>::max();
-  for (const auto & targetOffset : targetOffsets)
+  for (const auto & offset : targetOffsets)
   {
-    if (marcher->GetOutput()->GetPixel(index + targetOffset) < smallestReachingTime)
+    if (marcher->GetOutput()->GetPixel(index + offset) < smallestReachingTime)
     {
-      smallestReachingTime = marcher->GetOutput()->GetPixel(index + targetOffset);
+      smallestReachingTime = marcher->GetOutput()->GetPixel(index + offset);
     }
   }
 
@@ -255,19 +289,47 @@ itkFastMarchingUpwindGradientTest(int, char *[])
     passed = false;
   }
 
+  // Now stop the algorithm once SOME of the targets have been reached.
+  numberOfTargets = targetPoints->Size() + 1;
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->SetTargetReachedModeToSomeTargets(numberOfTargets));
+  ITK_TRY_EXPECT_EXCEPTION(marcher->Update());
+
+  numberOfTargets = targetPoints->Size() - 1;
+  marcher->SetTargetReachedModeToSomeTargets(numberOfTargets);
+#if !defined(ITK_LEGACY_REMOVE)
+  ITK_TEST_SET_GET_VALUE(FloatFMType::SomeTargets, marcher->GetTargetReachedMode());
+#endif
+  ITK_TEST_SET_GET_VALUE(FloatFMType::TargetConditionEnum::SomeTargets, marcher->GetTargetReachedMode());
+
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetNumberOfTargets());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->Update());
+
+
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetReachedTargetPoints()->Size());
 
   // Now stop the algorithm once ALL of the targets have been reached.
   marcher->SetTargetReachedModeToAllTargets();
-  marcher->Update();
+#if !defined(ITK_LEGACY_REMOVE)
+  ITK_TEST_SET_GET_VALUE(FloatFMType::AllTargets, marcher->GetTargetReachedMode());
+#endif
+  ITK_TEST_SET_GET_VALUE(FloatFMType::TargetConditionEnum::AllTargets, marcher->GetTargetReachedMode());
+
+  numberOfTargets = targetPoints->Size();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->Update());
+
+
+  ITK_TEST_EXPECT_EQUAL(numberOfTargets, marcher->GetReachedTargetPoints()->Size());
 
   // Find the largest reaching time of the TargetPoints.  This is the largest time of
   // all of the target points.
   FloatFMType::PixelType largestReachingTime = itk::NumericTraits<PixelType>::NonpositiveMin();
-  for (const auto & targetOffset : targetOffsets)
+  for (const auto & offset : targetOffsets)
   {
-    if (marcher->GetOutput()->GetPixel(index + targetOffset) > largestReachingTime)
+    if (marcher->GetOutput()->GetPixel(index + offset) > largestReachingTime)
     {
-      largestReachingTime = marcher->GetOutput()->GetPixel(index + targetOffset);
+      largestReachingTime = marcher->GetOutput()->GetPixel(index + offset);
     }
   }
 
@@ -282,9 +344,16 @@ itkFastMarchingUpwindGradientTest(int, char *[])
 
   // Now check to make sure that stoppingValue is reset correctly.
   marcher->SetTargetReachedModeToNoTargets();
-  double newStoppingValue = 10.0;
+#if !defined(ITK_LEGACY_REMOVE)
+  ITK_TEST_SET_GET_VALUE(FloatFMType::NoTargets, marcher->GetTargetReachedMode());
+#endif
+  ITK_TEST_SET_GET_VALUE(FloatFMType::TargetConditionEnum::NoTargets, marcher->GetTargetReachedMode());
+
+  constexpr double newStoppingValue = 10.0;
   marcher->SetStoppingValue(newStoppingValue);
-  marcher->Update();
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(marcher->Update());
+
 
   if (itk::Math::NotExactlyEquals(marcher->GetStoppingValue(), newStoppingValue))
   {
@@ -294,9 +363,7 @@ itkFastMarchingUpwindGradientTest(int, char *[])
 
 
   // Exercise other member functions
-  std::cout << "TargetOffset: " << marcher->GetTargetOffset() << std::endl;
   std::cout << "SpeedConstant: " << marcher->GetSpeedConstant() << std::endl;
-  std::cout << "StoppingValue: " << marcher->GetStoppingValue() << std::endl;
   std::cout << "CollectPoints: " << marcher->GetCollectPoints() << std::endl;
 
   marcher->SetNormalizationFactor(2.0);
@@ -306,17 +373,26 @@ itkFastMarchingUpwindGradientTest(int, char *[])
   std::cout << "SpeedImage: " << marcher->GetInput();
   std::cout << std::endl;
 
-  //  marcher->Print( std::cout );
-
+  // Test streaming enumeration for FastMarchingUpwindGradientImageFilterEnums::TargetCondition elements
+  const std::set<itk::FastMarchingUpwindGradientImageFilterEnums::TargetCondition> allConditions{
+    itk::FastMarchingUpwindGradientImageFilterEnums::TargetCondition::NoTargets,
+    itk::FastMarchingUpwindGradientImageFilterEnums::TargetCondition::OneTarget,
+    itk::FastMarchingUpwindGradientImageFilterEnums::TargetCondition::SomeTargets,
+    itk::FastMarchingUpwindGradientImageFilterEnums::TargetCondition::AllTargets
+  };
+  for (const auto & ee : allConditions)
+  {
+    std::ostringstream ss;
+    ss << ee;
+    ITK_TEST_EXPECT_TRUE(ss.str().find("INVALID") == std::string::npos);
+  }
 
   if (passed)
   {
     std::cout << "Fast Marching Upwind Gradient test passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Fast Marching Upwind Gradient test failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Fast Marching Upwind Gradient test failed" << std::endl;
+  return EXIT_FAILURE;
 }

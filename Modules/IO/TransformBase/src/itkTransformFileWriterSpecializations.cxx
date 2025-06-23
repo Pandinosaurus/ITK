@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,6 +37,7 @@ TransformFileWriterTemplate<TParametersValueType>::TransformFileWriterTemplate()
 template <typename TParametersValueType>
 TransformFileWriterTemplate<TParametersValueType>::~TransformFileWriterTemplate() = default;
 
+#if !defined(ITK_FUTURE_LEGACY_REMOVE)
 /** Set the writer to append to the specified file */
 template <typename TParametersValueType>
 void
@@ -54,14 +55,6 @@ TransformFileWriterTemplate<TParametersValueType>::SetAppendOff()
   this->SetAppendMode(false);
 }
 
-/** Set the writer mode (append/overwrite). */
-template <typename TParametersValueType>
-void
-TransformFileWriterTemplate<TParametersValueType>::SetAppendMode(bool mode)
-{
-  this->m_AppendMode = mode;
-}
-
 /** Get the writer mode. */
 template <typename TParametersValueType>
 bool
@@ -69,6 +62,7 @@ TransformFileWriterTemplate<TParametersValueType>::GetAppendMode()
 {
   return (this->m_AppendMode);
 }
+#endif
 
 template <>
 void
@@ -91,7 +85,7 @@ template <typename TParametersValueType>
 const typename TransformFileWriterTemplate<TParametersValueType>::TransformType *
 TransformFileWriterTemplate<TParametersValueType>::GetInput()
 {
-  ConstTransformPointer res = *(m_TransformList.begin());
+  const ConstTransformPointer res = m_TransformList.front();
   return res.GetPointer();
 }
 
@@ -136,7 +130,8 @@ TransformFileWriterTemplate<TParametersValueType>::Update()
       std::ostringstream msg;
       msg << "Could not create Transform IO object for writing file " << this->GetFileName() << std::endl;
 
-      std::list<LightObject::Pointer> allobjects = ObjectFactoryBase::CreateAllInstance("itkTransformIOBaseTemplate");
+      const std::list<LightObject::Pointer> allobjects =
+        ObjectFactoryBase::CreateAllInstance("itkTransformIOBaseTemplate");
 
       if (!allobjects.empty())
       {
@@ -146,13 +141,15 @@ TransformFileWriterTemplate<TParametersValueType>::Update()
           const Object * obj = dynamic_cast<Object *>(allobject.GetPointer());
           msg << "    " << obj->GetNameOfClass() << std::endl;
         }
-        msg << "  You probably failed to set a file suffix, or" << std::endl;
-        msg << "    set the suffix to an unsupported type." << std::endl;
+        msg << "  You probably failed to set a file suffix, or" << std::endl
+            << "    set the suffix to an unsupported type." << std::endl;
       }
       else
       {
-        msg << "  There are no registered Transform IO factories." << std::endl;
-        msg << "  Please visit https://www.itk.org/Wiki/ITK/FAQ#NoFactoryException to diagnose the problem."
+        msg << "  There are no registered Transform IO factories." << std::endl
+            << "  Please visit "
+               "https://insightsoftwareconsortium.github.io/ITKWikiArchive/Wiki/ITK/FAQ#NoFactoryException to diagnose "
+               "the problem."
             << std::endl;
       }
 
@@ -202,11 +199,11 @@ struct TransformIOHelper
     TransformIOBaseTemplate<OutputParameterValueType>::CorrectTransformPrecisionType(transformName);
 
     // Instantiate the transform
-    LightObject::Pointer   i = ObjectFactoryBase::CreateInstance(transformName.c_str());
-    OutputTransformPointer convertedTransform = dynamic_cast<TOutputTransformType *>(i.GetPointer());
+    const LightObject::Pointer i = ObjectFactoryBase::CreateInstance(transformName.c_str());
+    OutputTransformPointer     convertedTransform = dynamic_cast<TOutputTransformType *>(i.GetPointer());
     if (convertedTransform.IsNull())
     {
-      itkGenericExceptionMacro(<< "Could not create an instance of " << transformName);
+      itkGenericExceptionMacro("Could not create an instance of " << transformName);
     }
     convertedTransform->UnRegister();
     return convertedTransform;
@@ -288,7 +285,7 @@ AddToTransformList(typename TInputTransformType::ConstPointer &             tran
      Following steps are needed to process a composite transform:
      1) Use the compositeTransformIOHelper to get the input transforms list.
      2) Iterate through the input transform list, convert each sub transform and put them in the output transform list.
-     3) Use a composite IO Helper agian to set the output transform list into the converted composite transform.
+     3) Use a composite IO Helper again to set the output transform list into the converted composite transform.
     */
     CompositeTransformIOHelperTemplate<InputParameterValueType> inputHelper;
     InputConstTransformListType inputTransformList = inputHelper.GetTransformList(transform);
@@ -299,7 +296,7 @@ AddToTransformList(typename TInputTransformType::ConstPointer &             tran
      The first transform of the output transform list should be a composite transform
      we push back just an empty composite transform as it will be skipped by the outputHelper.
     */
-    OutputTransformPointer outputComposite = IOhelper::CreateNewTypeTransform(transformName);
+    const OutputTransformPointer outputComposite = IOhelper::CreateNewTypeTransform(transformName);
     compositeTransformList.push_back(outputComposite);
 
     // Now we iterate through input list and convert each sub transform to a new transform with requested precision
@@ -312,7 +309,7 @@ AddToTransformList(typename TInputTransformType::ConstPointer &             tran
       // get the input sub transform
       const InputTransformType * const inSub = it->GetPointer();
       // convert each sub transform and push them to the output transform list
-      std::string            inSubName = inSub->GetTransformTypeAsString();
+      const std::string      inSubName = inSub->GetTransformTypeAsString();
       OutputTransformPointer convertedSub = IOhelper::CreateNewTypeTransform(inSubName);
       IOhelper::SetAllParameters(inSub, convertedSub);
       // push back the converted sub transform to the composite transform list

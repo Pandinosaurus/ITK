@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,13 +31,11 @@
  *
  *  Therefore the solution of the registration is |-7 -3|
  */
-namespace itk
+
+namespace itk::testhelper
 {
 
-namespace testhelper
-{
-
-template <typename TFixedPixelType, typename TMovingPixelType, unsigned int NDimension>
+template <typename TFixedPixelType, typename TMovingPixelType, unsigned int VDimension>
 class ImageRegistrationMethodImageSource : public itk::Object
 {
 public:
@@ -50,12 +48,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Image, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageRegistrationMethodImageSource);
 
 
-  using MovingImageType = itk::Image<TMovingPixelType, NDimension>;
-  using FixedImageType = itk::Image<TFixedPixelType, NDimension>;
+  using MovingImageType = itk::Image<TMovingPixelType, VDimension>;
+  using FixedImageType = itk::Image<TFixedPixelType, VDimension>;
 
   const MovingImageType *
   GetMovingImage() const
@@ -79,20 +77,12 @@ public:
   void
   GenerateImages(const typename MovingImageType::SizeType & size)
   {
-    typename MovingImageType::IndexType index;
-    index.Fill(0);
-    typename MovingImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(index);
+    const typename MovingImageType::RegionType region(size);
 
-    m_MovingImage->SetLargestPossibleRegion(region);
-    m_MovingImage->SetBufferedRegion(region);
-    m_MovingImage->SetRequestedRegion(region);
+    m_MovingImage->SetRegions(region);
     m_MovingImage->Allocate();
 
-    m_FixedImage->SetLargestPossibleRegion(region);
-    m_FixedImage->SetBufferedRegion(region);
-    m_FixedImage->SetRequestedRegion(region);
+    m_FixedImage->SetRegions(region);
     m_FixedImage->Allocate();
 
     /* Fill images with a 2D gaussian*/
@@ -102,10 +92,10 @@ public:
 
 
     itk::Point<double, 2> center;
-    center[0] = (double)region.GetSize()[0] / 2.0;
-    center[1] = (double)region.GetSize()[1] / 2.0;
+    center[0] = static_cast<double>(region.GetSize()[0]) / 2.0;
+    center[1] = static_cast<double>(region.GetSize()[1]) / 2.0;
 
-    const double s = (double)region.GetSize()[0] / 2.0;
+    const double s = static_cast<double>(region.GetSize()[0]) / 2.0;
 
     itk::Point<double, 2>  p;
     itk::Vector<double, 2> d;
@@ -147,22 +137,22 @@ public:
 
 protected:
   ImageRegistrationMethodImageSource()
+    : m_FixedImage(FixedImageType::New())
+    , m_MovingImage(MovingImageType::New())
   {
-    m_MovingImage = MovingImageType::New();
-    m_FixedImage = FixedImageType::New();
     m_Parameters = ParametersType(2);
     m_Parameters[0] = 7.0;
     m_Parameters[1] = 3.0;
   }
 
 private:
-  typename FixedImageType::Pointer  m_FixedImage;
-  typename MovingImageType::Pointer m_MovingImage;
+  typename FixedImageType::Pointer  m_FixedImage{};
+  typename MovingImageType::Pointer m_MovingImage{};
 
-  ParametersType m_Parameters;
+  ParametersType m_Parameters{};
 };
 
-} // end namespace testhelper
+} // namespace itk::testhelper
 
-} // end namespace itk
+// end namespace itk
 #endif

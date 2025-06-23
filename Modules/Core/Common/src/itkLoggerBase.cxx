@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,19 +21,16 @@
 namespace itk
 {
 LoggerBase::LoggerBase()
+  : m_PriorityLevel(LoggerBase::PriorityLevelEnum::NOTSET)
+  , m_LevelForFlushing(LoggerBase::PriorityLevelEnum::MUSTFLUSH)
+  , m_TimeStampFormat(TimeStampFormatEnum::REALVALUE)
+  , m_HumanReadableFormat("%Y %b %d %H:%M:%S")
 {
-  this->m_PriorityLevel = LoggerBase::PriorityLevelEnum::NOTSET;
-  this->m_LevelForFlushing = LoggerBase::PriorityLevelEnum::MUSTFLUSH;
   this->m_Clock = RealTimeClock::New();
   this->m_Output = MultipleLogOutput::New();
-  this->m_TimeStampFormat = TimeStampFormatEnum::REALVALUE;
-  this->m_HumanReadableFormat = "%Y %b %d %H:%M:%S";
 }
 
-LoggerBase::~LoggerBase()
-{
-  //  this->m_Output->Flush();
-}
+LoggerBase::~LoggerBase() = default;
 
 /** Adds an output stream to the MultipleLogOutput for writing. */
 void
@@ -44,7 +41,7 @@ LoggerBase::AddLogOutput(OutputType * output)
 }
 
 void
-LoggerBase::Write(PriorityLevelEnum level, std::string const & content)
+LoggerBase::Write(PriorityLevelEnum level, const std::string & content)
 {
   if (this->m_PriorityLevel >= level)
   {
@@ -59,15 +56,21 @@ LoggerBase::Write(PriorityLevelEnum level, std::string const & content)
 void
 LoggerBase::Flush()
 {
+  this->PrivateFlush();
+}
+
+void
+LoggerBase::PrivateFlush()
+{
   this->m_Output->Flush();
 }
 
 std::string
-LoggerBase::BuildFormattedEntry(PriorityLevelEnum level, std::string const & content)
+LoggerBase::BuildFormattedEntry(PriorityLevelEnum level, const std::string & content)
 {
-  static std::string m_LevelString[] = { "(MUSTFLUSH) ", "(FATAL) ", "(CRITICAL) ", "(WARNING) ",
-                                         "(INFO) ",      "(DEBUG) ", "(NOTSET) " };
-  std::ostringstream s;
+  static const std::string levelString[] = { "(MUSTFLUSH) ", "(FATAL) ", "(CRITICAL) ", "(WARNING) ",
+                                             "(INFO) ",      "(DEBUG) ", "(NOTSET) " };
+  std::ostringstream       s;
 
   switch (this->m_TimeStampFormat)
   {
@@ -83,7 +86,7 @@ LoggerBase::BuildFormattedEntry(PriorityLevelEnum level, std::string const & con
       break;
     }
   }
-  s << "  :  " << this->GetName() << "  " << m_LevelString[static_cast<int>(level)] << content;
+  s << "  :  " << this->GetName() << "  " << levelString[static_cast<int>(level)] << content;
 
   return s.str();
 }

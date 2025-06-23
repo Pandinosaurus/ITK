@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,18 +39,16 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
 
   // Create an itkMesh
   std::cout << "Creating Mesh File: ";
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
-  MeshType::CoordRepType testPointCoords[8][3] = { { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 3, 4, 5 },
-                                                   { 4, 5, 6 }, { 5, 6, 7 }, { 6, 7, 8 }, { 7, 8, 9 } };
+  const MeshType::CoordinateType testPointCoords[8][3] = { { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 3, 4, 5 },
+                                                           { 4, 5, 6 }, { 5, 6, 7 }, { 6, 7, 8 }, { 7, 8, 9 } };
 
 
   MeshType::PointIdentifier tetraPoints[4] = { 0, 1, 2, 3 };
   MeshType::PointIdentifier hexaPoints[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-  unsigned int i;
-  unsigned int j;
-  for (i = 0; i < 8; ++i)
+  for (unsigned int i = 0; i < 8; ++i)
   {
     mesh->SetPoint(i, PointType(testPointCoords[i]));
   }
@@ -69,12 +67,12 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
 
   // Add cell links
   using CellLinksContainerType = MeshType::CellLinksContainer;
-  CellLinksContainerType::Pointer   linkContainer = CellLinksContainerType::New();
+  auto                              linkContainer = CellLinksContainerType::New();
   MeshType::PointCellLinksContainer pcl;
 
-  for (j = 0; j < 3; j++)
+  for (unsigned int j = 0; j < 3; ++j)
   {
-    for (i = 0; i < 5; i++)
+    for (unsigned int i = 0; i < 5; ++i)
     {
       pcl.insert(j + i);
     }
@@ -85,30 +83,30 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
 
   // Add point data
   using PointDataContainer = MeshType::PointDataContainer;
-  PointDataContainer::Pointer pointData = PointDataContainer::New();
+  auto pointData = PointDataContainer::New();
 
   float data = 0.1;
-  for (j = 0; j < 2; j++)
+  for (unsigned int j = 0; j < 2; ++j)
   {
     pointData->SetElement(j, data);
-    data += (float)0.1;
+    data += static_cast<float>(0.1);
   }
   mesh->SetPointData(pointData);
 
   // Add cell data
   using CellDataContainer = MeshType::CellDataContainer;
-  CellDataContainer::Pointer cellData = CellDataContainer::New();
+  auto cellData = CellDataContainer::New();
 
   data = 0.9;
-  for (j = 0; j < 3; j++)
+  for (unsigned int j = 0; j < 3; ++j)
   {
     cellData->SetElement(j, data);
-    data -= (float)0.2;
+    data -= static_cast<float>(0.2);
   }
   mesh->SetCellData(cellData);
 
   // Create the mesh Spatial Object
-  MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+  auto meshSO = MeshSpatialObjectType::New();
   meshSO->SetMesh(mesh);
   meshSO->SetId(3);
   std::cout << "[PASSED]" << std::endl;
@@ -116,7 +114,7 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
   // Writing the file
   std::cout << "Testing Writing MeshSpatialObject: ";
   using WriterType = itk::SpatialObjectWriter<3, float, MeshTrait>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(meshSO);
   if ((argc > 2) && (!strcmp(argv[2], "binary")))
   {
@@ -130,7 +128,7 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
   // Reading the file
   std::cout << "Testing Reading MeshSpatialObject: ";
   using ReaderType = itk::SpatialObjectReader<3, float, MeshTrait>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   if ((argc > 2) && (strcmp(argv[2], "binary")))
   {
     reader->SetFileName(argv[2]);
@@ -140,7 +138,7 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
     reader->SetFileName(argv[1]);
   }
   reader->Update();
-  ReaderType::GroupPointer myScene = reader->GetGroup();
+  const ReaderType::GroupPointer myScene = reader->GetGroup();
   if (!myScene)
   {
     std::cout << "No Scene : [FAILED]" << std::endl;
@@ -156,7 +154,8 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  MeshSpatialObjectType::Pointer meshSO2 = dynamic_cast<MeshSpatialObjectType *>((*(children->begin())).GetPointer());
+  const MeshSpatialObjectType::Pointer meshSO2 =
+    dynamic_cast<MeshSpatialObjectType *>((*(children->begin())).GetPointer());
 
   std::cout << "Testing ID : ";
   if (meshSO2->GetId() != 3)
@@ -167,12 +166,12 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
   std::cout << " [PASSED]" << std::endl;
 
   std::cout << "Testing Points: ";
-  MeshType::Pointer mesh2 = meshSO2->GetMesh();
+  const MeshType::Pointer mesh2 = meshSO2->GetMesh();
   // Testing points
   const MeshType::PointsContainer *        points = mesh2->GetPoints();
   MeshType::PointsContainer::ConstIterator it_points = points->Begin();
 
-  j = 0;
+  unsigned int j = 0;
   while (it_points != points->End())
   {
     if ((*it_points)->Index() != j)
@@ -181,7 +180,7 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
       std::cout << "Index = " << (*it_points)->Index() << " v.s. " << j << std::endl;
       return EXIT_FAILURE;
     }
-    for (i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       if (itk::Math::NotExactlyEquals(((*it_points)->Value())[i], j + i))
       {
@@ -246,8 +245,8 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
       return EXIT_FAILURE;
     }
 
-    i = 0;
-    auto it = (*it_celllinks)->Value().begin();
+    unsigned int i = 0;
+    auto         it = (*it_celllinks)->Value().begin();
     while (it != (*it_celllinks)->Value().end())
     {
       if ((*it) != i)
@@ -283,13 +282,13 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
         std::cout << "Index = " << (*it_pd)->Index() << " v.s " << j << std::endl;
         return EXIT_FAILURE;
       }
-      if (std::fabs((*it_pd)->Value() - data) > 0.001)
+      if (itk::Math::abs((*it_pd)->Value() - data) > 0.001)
       {
         std::cout << " [FAILED]" << std::endl;
         std::cout << "value = " << (*it_pd)->Value() << " v.s " << data << std::endl;
         return EXIT_FAILURE;
       }
-      data += float(0.1);
+      data += static_cast<float>(0.1);
       it_pd++;
       j++;
     }
@@ -321,13 +320,13 @@ itkMeshSpatialObjectIOTest(int argc, char * argv[])
         std::cout << "Index = " << (*it_pc)->Index() << " v.s " << j << std::endl;
         return EXIT_FAILURE;
       }
-      if (std::fabs((*it_pc)->Value() - data) > 0.001)
+      if (itk::Math::abs((*it_pc)->Value() - data) > 0.001)
       {
         std::cout << " [FAILED]" << std::endl;
         std::cout << "value = " << (*it_pc)->Value() << " v.s " << data << std::endl;
         return EXIT_FAILURE;
       }
-      data -= float(0.2);
+      data -= static_cast<float>(0.2);
       it_pc++;
       j++;
     }

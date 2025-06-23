@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class FastMarchingExtensionImageFilter
+ * \class FastMarchingExtensionImageFilter
  * \brief Extend auxiliary variables smoothly using Fast Marching.
  *
  * Fast marching can be used to extend auxiliary variables smoothly
@@ -39,9 +39,7 @@ namespace itk
  * the value of the variables at the know points and on containing the
  * value of the variables at the trail points.
  *
- * Implementation of this class is based on Chapter 11 of
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Second edition, 1999.
+ * Implementation of this class is based on \cite sethian1999b.
  *
  * For an alternative implementation, see itk::FastMarchingExtensionImageFilterBase.
  *
@@ -61,7 +59,7 @@ class ITK_TEMPLATE_EXPORT FastMarchingExtensionImageFilter : public FastMarching
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingExtensionImageFilter);
 
-  /** Standard class typdedefs. */
+  /** Standard class typedefs. */
   using Self = FastMarchingExtensionImageFilter;
   using Superclass = FastMarchingImageFilter<TLevelSet, TSpeedImage>;
   using Pointer = SmartPointer<Self>;
@@ -70,13 +68,13 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingExtensionImageFilter, FastMarchingImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingExtensionImageFilter);
 
   /** Inherited type alias. */
-  using LevelSetType = typename Superclass::LevelSetType;
-  using SpeedImageType = typename Superclass::SpeedImageType;
-  using LevelSetImageType = typename Superclass::LevelSetImageType;
+  using typename Superclass::LevelSetType;
+  using typename Superclass::SpeedImageType;
+  using typename Superclass::LevelSetImageType;
 
   /** The dimension of the level set. */
   static constexpr unsigned int SetDimension = Superclass::SetDimension;
@@ -127,11 +125,7 @@ public:
     return m_AuxTrialValues;
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(AuxValueHasNumericTraitsCheck, (Concept::HasNumericTraits<TAuxValue>));
-  // End concept checking
-#endif
 
 protected:
   FastMarchingExtensionImageFilter();
@@ -153,10 +147,10 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
 private:
-  typename AuxValueContainer::Pointer m_AuxAliveValues;
-  typename AuxValueContainer::Pointer m_AuxTrialValues;
+  typename AuxValueContainer::Pointer m_AuxAliveValues{};
+  typename AuxValueContainer::Pointer m_AuxTrialValues{};
 
-  AuxImageType * m_AuxImages[AuxDimension];
+  AuxImageType * m_AuxImages[AuxDimension]{};
 };
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,17 +49,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run time information. */
-  itkTypeMacro(TorusInteriorExteriorSpatialFunction, InteriorExteriorSpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TorusInteriorExteriorSpatialFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Evaluates the function at a given position. */
   OutputType
@@ -67,25 +67,28 @@ public:
 
   /** Set/Get the origin of the torus (the point from which the major
    * radius is measured). */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Origin, InputType);
   itkSetMacro(Origin, InputType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the major radius of the torus. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(MajorRadius, double);
   itkSetMacro(MajorRadius, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the minor radius of the torus (radius of tube). */
+  /** @ITKStartGrouping */
   itkGetConstMacro(MinorRadius, double);
   itkSetMacro(MinorRadius, double);
-
+  /** @ITKEndGrouping */
 protected:
-  TorusInteriorExteriorSpatialFunction();
+  TorusInteriorExteriorSpatialFunction() = default;
   ~TorusInteriorExteriorSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  InputType m_Origin;
+  InputType m_Origin{};
   double    m_MajorRadius{ 3.0 };
   double    m_MinorRadius{ 1.0 };
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,19 +33,13 @@ template <typename TInput1, typename TInput2, typename TInput3, typename TOutput
 class ModulusSquare3
 {
 public:
-  ModulusSquare3() = default;
-  ~ModulusSquare3() = default;
   bool
-  operator!=(const ModulusSquare3 &) const
+  operator==(const ModulusSquare3 &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const ModulusSquare3 & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ModulusSquare3);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B, const TInput3 & C) const
@@ -56,7 +50,7 @@ public:
 } // namespace Functor
 
 /**
- *\class TernaryMagnitudeSquaredImageFilter
+ * \class TernaryMagnitudeSquaredImageFilter
  * \brief Compute the pixel-wise squared magnitude of three images.
  *
  * This class is templated over the types of the three
@@ -88,8 +82,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(TernaryMagnitudeSquaredImageFilter, TernaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TernaryMagnitudeSquaredImageFilter);
 
 protected:
   TernaryMagnitudeSquaredImageFilter()

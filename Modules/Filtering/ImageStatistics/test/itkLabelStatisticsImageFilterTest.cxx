@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,19 +30,20 @@ itkLabelStatisticsImageFilterTest(int argc, char * argv[])
 {
   std::cout << "itkLabelStatisticsImageFilterTest Start" << std::endl;
 
-  if (argc < 3)
+  if (argc < 4)
   {
     std::cerr << "Missing Arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
-    std::cerr << itkNameOfTestExecutableMacro(argv) << " inputImage labeledImage [numberOfStreamDivision]" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " inputImage labeledImage useHistograms [numberOfStreamDivision]"
+              << std::endl;
     return EXIT_FAILURE;
   }
   using ImageType = itk::Image<unsigned char, 2>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader1 = ReaderType::New();
+  auto reader2 = ReaderType::New();
 
   reader1->SetFileName(argv[1]);
   reader2->SetFileName(argv[2]);
@@ -50,21 +51,29 @@ itkLabelStatisticsImageFilterTest(int argc, char * argv[])
 
   unsigned int numberOfStreamDivisions = 1;
 
-  if (argc > 3)
+  if (argc > 4)
   {
-    numberOfStreamDivisions = std::max(std::stoi(argv[3]), 1);
+    numberOfStreamDivisions = std::max(std::stoi(argv[4]), 1);
   }
 
   using FilterType = itk::LabelStatisticsImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher filterWatch(filter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, LabelStatisticsImageFilter, ImageSink);
+
+
+  const itk::SimpleFilterWatcher filterWatch(filter);
+
+  auto useHistograms = static_cast<bool>(std::stoi(argv[3]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, UseHistograms, useHistograms);
+
+  filter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
+  ITK_TEST_SET_GET_VALUE(numberOfStreamDivisions, filter->GetNumberOfStreamDivisions());
 
   filter->SetInput(reader1->GetOutput());
   filter->SetLabelInput(reader2->GetOutput());
-  filter->UseHistogramsOn();
-  filter->SetNumberOfStreamDivisions(numberOfStreamDivisions);
+
   try
   {
     filter->Update();
@@ -84,7 +93,7 @@ itkLabelStatisticsImageFilterTest(int argc, char * argv[])
   using RegionType = FilterType::RegionType;
   using LabelPixelType = FilterType::LabelPixelType;
 
-  LabelPixelType labelValue;
+  LabelPixelType labelValue = 0.0;
 
   std::cout << "There are " << numberOfLabels << " labels" << std::endl;
   std::cout << "There are " << numberOfObjects << " objects" << std::endl;
@@ -107,7 +116,7 @@ itkLabelStatisticsImageFilterTest(int argc, char * argv[])
   }
 
   // Try two labels: one that exists and one that does not
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; ++i)
   {
     // Find an existing label
     if (i == 0)

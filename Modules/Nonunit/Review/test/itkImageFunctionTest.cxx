@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,9 @@
 namespace itk
 {
 
-template <typename TInputImage, typename TCoordRep = SpacePrecisionType>
+template <typename TInputImage, typename TCoordinate = SpacePrecisionType>
 class TestImageFunction
-  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>
+  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(TestImageFunction);
@@ -35,35 +35,35 @@ public:
   /** Standard class type aliases. */
   using Self = TestImageFunction;
   using Superclass =
-    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>;
+    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TestImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TestImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Dimension underlying input image. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Evaluate the function at specified Point position.*/
   OutputType
@@ -111,43 +111,31 @@ itkImageFunctionTest(int, char *[])
   using SizeType = RegionType::SizeType;
   using IndexType = ImageType::IndexType;
 
-  using CoordRepType = float;
-  using ContinuousIndexType = itk::ContinuousIndex<CoordRepType, Dimension>;
-  using PointType = itk::Point<CoordRepType, Dimension>;
+  using CoordinateType = float;
+  using ContinuousIndexType = itk::ContinuousIndex<CoordinateType, Dimension>;
+  using PointType = itk::Point<CoordinateType, Dimension>;
 
   using IndexNumericTraits = itk::NumericTraits<IndexType::IndexValueType>;
   using ContinuousIndexNumericTraits = itk::NumericTraits<ContinuousIndexType::ValueType>;
   using PointNumericTraits = itk::NumericTraits<PointType::ValueType>;
 
 
-  using FunctionType = itk::TestImageFunction<ImageType, CoordRepType>;
+  using FunctionType = itk::TestImageFunction<ImageType, CoordinateType>;
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
-  IndexType start;
-  start.Fill(1);
+  auto     start = IndexType::Filled(1);
   SizeType size;
   size[0] = 3;
   size[1] = 4;
   size[2] = 5;
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  RegionType region{ start, size };
 
   image->SetRegions(region);
   image->Allocate();
-
-  ImageType::PointType   origin;
-  ImageType::SpacingType spacing;
-  origin.Fill(0.0);
-  spacing.Fill(1.0);
-
-  image->SetOrigin(origin);
-  image->SetSpacing(spacing);
-
   image->Print(std::cout);
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
 
   /* Test SetInputImage & Accessors */
   function->SetInputImage(image);
@@ -156,7 +144,7 @@ itkImageFunctionTest(int, char *[])
   const FunctionType::ContinuousIndexType & endIndexC = function->GetEndContinuousIndex();
   const FunctionType::ContinuousIndexType & startIndexC = function->GetStartContinuousIndex();
 
-  for (unsigned int j = 0; j < Dimension; j++)
+  for (unsigned int j = 0; j < Dimension; ++j)
   {
     if (startIndex[j] != start[0] || endIndex[j] != static_cast<IndexType::IndexValueType>(start[0] + size[j] - 1) ||
         startIndexC[j] != start[0] - 0.5 || endIndexC[j] != start[0] + size[j] - 0.5)
@@ -236,7 +224,7 @@ itkImageFunctionTest(int, char *[])
   {
     std::cout << "Error with IsInsideBuffer 3C. Expected  false." << std::endl
               << "  indexC: " << indexC << std::endl
-              << "  start/end continuous indices: " << startIndexC << " " << endIndexC << std::endl;
+              << "  start/end continuous indices: " << startIndexC << ' ' << endIndexC << std::endl;
     result = EXIT_FAILURE;
   }
   indexC[0] = ContinuousIndexNumericTraits::max();
@@ -288,8 +276,7 @@ itkImageFunctionTest(int, char *[])
   }
 
   /* IsInsideBuffer with Point type */
-  PointType point;
-  point.Fill(1);
+  auto point = itk::MakeFilled<PointType>(1);
   if (!function->IsInsideBuffer(point))
   {
     std::cout << "Error with IsInsideBuffer 1P." << std::endl;

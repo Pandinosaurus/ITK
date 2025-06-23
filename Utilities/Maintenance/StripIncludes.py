@@ -7,7 +7,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,7 @@
 #
 # ==========================================================================*/
 
-## This script is designed to asssit stripping out the unecessary header includes
+## This script is designed to asssit stripping out the unnecessary header includes
 ## for all modules.
 
 ## To run the script you need to prepare a filelist.txt that list all the  .cxx
@@ -45,7 +45,6 @@ includesToSkip = [
 ]  # keep those headers
 #######################################################################
 
-from __future__ import print_function
 
 import os
 
@@ -90,7 +89,7 @@ def checkIfDef(line, ifDefCounter):
 def processFile(directory, fileName):
 
     absFileName = "/".join([sourceDir, directory, fileName])
-    lines = open(absFileName, "r").read().splitlines()
+    lines = open(absFileName).read().splitlines()
     removedLines = []
     ifDefCounter = 0
     for i, line in enumerate(lines):
@@ -150,7 +149,7 @@ def processFileList(fileList):
 
 def main():
 
-    fileList = open(relativeFileList, "r").read().splitlines()
+    fileList = open(relativeFileList).read().splitlines()
     processFileList(fileList)
 
 

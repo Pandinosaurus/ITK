@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ HilbertPathTestHelper(unsigned int maxHilbertPathOder)
 
   using IndexType = typename PathType::IndexType;
 
-  typename PathType::Pointer path = PathType::New();
+  auto path = PathType::New();
 
   for (unsigned int order = 1; order < maxHilbertPathOder; ++order)
   {
@@ -41,18 +41,18 @@ HilbertPathTestHelper(unsigned int maxHilbertPathOder)
     typename PathType::InputType input = 0;
     ITK_TRY_EXPECT_EXCEPTION(path->IncrementInput(input));
 
-    typename PathType::InputType endOfInput = path->EndOfInput();
+    const typename PathType::InputType endOfInput = path->EndOfInput();
     std::cout << "End of input: " << typename itk::NumericTraits<typename PathType::InputType>::PrintType(endOfInput)
               << std::endl;
 
     for (unsigned int d = 0; d < path->NumberOfSteps(); ++d)
     {
-      IndexType index = path->Evaluate(d);
+      const IndexType index = path->Evaluate(d);
 
       if (d != path->EvaluateInverse(index))
       {
         std::cerr << "Test failed!" << std::endl;
-        std::cerr << "Incorrect match-up for path index (" << d << ") and multi-dimensional index (" << index << ")"
+        std::cerr << "Incorrect match-up for path index (" << d << ") and multi-dimensional index (" << index << ')'
                   << std::endl;
         testStatus = EXIT_FAILURE;
       }
@@ -62,12 +62,12 @@ HilbertPathTestHelper(unsigned int maxHilbertPathOder)
 
     for (unsigned int d = 0; d < 10; ++d)
     {
-      IndexType index = path->TransformPathIndexToMultiDimensionalIndex(d);
+      const IndexType index = path->TransformPathIndexToMultiDimensionalIndex(d);
 
       if (d != path->EvaluateInverse(index))
       {
         std::cerr << "Test failed!" << std::endl;
-        std::cerr << "Incorrect match-up for path index (" << d << ") and multi-dimensional index (" << index << ")"
+        std::cerr << "Incorrect match-up for path index (" << d << ") and multi-dimensional index (" << index << ')'
                   << std::endl;
         testStatus = EXIT_FAILURE;
       }
@@ -90,7 +90,7 @@ itkHilbertPathTest(int, char *[])
 
   // Test dimension = 2
   using HilbertPathType2D = itk::HilbertPath<IndexValueType, 2>;
-  HilbertPathType2D::Pointer path2D = HilbertPathType2D::New();
+  auto path2D = HilbertPathType2D::New();
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited
@@ -101,7 +101,7 @@ itkHilbertPathTest(int, char *[])
 
   // Test dimension = 3
   using HilbertPathType3D = itk::HilbertPath<IndexValueType, 3>;
-  HilbertPathType3D::Pointer path3D = HilbertPathType3D::New();
+  auto path3D = HilbertPathType3D::New();
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited
@@ -112,7 +112,7 @@ itkHilbertPathTest(int, char *[])
 
   // Test dimension = 4
   using HilbertPathType4D = itk::HilbertPath<IndexValueType, 4>;
-  HilbertPathType4D::Pointer path4D = HilbertPathType4D::New();
+  auto path4D = HilbertPathType4D::New();
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited

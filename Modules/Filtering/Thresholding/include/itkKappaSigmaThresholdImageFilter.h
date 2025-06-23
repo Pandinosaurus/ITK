@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class KappaSigmaThresholdImageFilter
+ * \class KappaSigmaThresholdImageFilter
  * \brief Threshold an image using Kappa-Sigma-Clipping.
  *
  * This filter creates a binary thresholded image which separates background and
@@ -36,7 +36,7 @@ namespace itk
  * \author Gaetan Lehmann
  *
  * \note This class was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/132
+ * https://doi.org/10.54294/39qekn
  *
  * \sa KappaSigmaThresholdImageCalculator
  * \ingroup IntensityImageFilters
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(KappaSigmaThresholdImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KappaSigmaThresholdImageFilter);
 
   /** Standard image type within this class. */
   using InputImageType = TInputImage;
@@ -78,7 +78,7 @@ public:
   using MaskImagePointer = typename TMaskImage::Pointer;
 
   /** Set the "outside" pixel value. The default value
-   * NumericTraits<OutputPixelType>::ZeroValue(). */
+   * OutputPixelType{}. */
   itkSetMacro(OutsideValue, OutputPixelType);
 
   /** Get the "outside" pixel value. */
@@ -96,23 +96,22 @@ public:
 
   /** Set the mask value used to select which pixels will be considered in the
    * threshold computation (optional, only in case a MaskImage is set). */
+  /** @ITKStartGrouping */
   itkSetMacro(MaskValue, MaskPixelType);
   itkGetConstMacro(MaskValue, MaskPixelType);
-
+  /** @ITKEndGrouping */
   /** Set the Sigma multiplier (Kappa) to adjust the pixel rejection rate. */
+  /** @ITKStartGrouping */
   itkSetMacro(SigmaFactor, double);
   itkGetConstMacro(SigmaFactor, double);
-
+  /** @ITKEndGrouping */
   /** Set the number of rejection passes. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, unsigned int);
   itkGetConstMacro(NumberOfIterations, unsigned int);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputComparableCheck, (Concept::Comparable<OutputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
   /** Set the mask image */
   void
@@ -169,12 +168,12 @@ protected:
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
 private:
-  MaskPixelType   m_MaskValue;
+  MaskPixelType   m_MaskValue{};
   double          m_SigmaFactor{ 2 };
   unsigned int    m_NumberOfIterations{ 2 };
-  InputPixelType  m_Threshold;
-  OutputPixelType m_InsideValue;
-  OutputPixelType m_OutsideValue;
+  InputPixelType  m_Threshold{};
+  OutputPixelType m_InsideValue{};
+  OutputPixelType m_OutsideValue{};
 };
 } // end namespace itk
 

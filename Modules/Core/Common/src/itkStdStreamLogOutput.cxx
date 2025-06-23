@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,10 +21,7 @@
 namespace itk
 {
 /** Constructor */
-StdStreamLogOutput::StdStreamLogOutput()
-{
-  this->m_Stream = nullptr;
-}
+StdStreamLogOutput::StdStreamLogOutput() = default;
 
 /** Destructor */
 StdStreamLogOutput::~StdStreamLogOutput()
@@ -47,48 +44,44 @@ StdStreamLogOutput::SetStream(StreamType & Stream)
 void
 StdStreamLogOutput::Flush()
 {
-  StdStreamLogOutput::m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   if (this->m_Stream)
   {
     this->m_Stream->flush();
   }
-  StdStreamLogOutput::m_Mutex.unlock();
 }
 
 /** Write to a buffer */
 void
 StdStreamLogOutput::Write(double timestamp)
 {
-  StdStreamLogOutput::m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   if (this->m_Stream)
   {
     (*this->m_Stream) << timestamp;
   }
-  StdStreamLogOutput::m_Mutex.unlock();
 }
 
 /** Write to a buffer */
 void
-StdStreamLogOutput::Write(std::string const & content)
+StdStreamLogOutput::Write(const std::string & content)
 {
-  StdStreamLogOutput::m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   if (this->m_Stream)
   {
     (*this->m_Stream) << content;
   }
-  StdStreamLogOutput::m_Mutex.unlock();
 }
 
 /** Write to a buffer */
 void
-StdStreamLogOutput::Write(std::string const & content, double timestamp)
+StdStreamLogOutput::Write(const std::string & content, double timestamp)
 {
-  StdStreamLogOutput::m_Mutex.lock();
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   if (this->m_Stream)
   {
     (*this->m_Stream) << timestamp << "  :  " << content;
   }
-  StdStreamLogOutput::m_Mutex.unlock();
 }
 
 void

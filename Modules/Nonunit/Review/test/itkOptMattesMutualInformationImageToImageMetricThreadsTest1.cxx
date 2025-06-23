@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkTranslationTransform.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
+#include "itkTestingMacros.h"
 
 int
 itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * argv[])
@@ -26,9 +27,9 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
 
   if (argc < 3)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage " << std::endl;
-    std::cerr << argv[0] << " fixedImage movingImage [verbose(1/0)] [numberOfSamples]" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " fixedImage movingImage [verbose(1/0)] [numberOfSamples]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -51,8 +52,8 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
 
   using ImageReaderType = itk::ImageFileReader<ImageType>;
 
-  ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-  ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
@@ -64,26 +65,22 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
     verbose = std::stoi(argv[3]);
   }
 
-  try
-  {
-    fixedImageReader->Update();
-    movingImageReader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(fixedImageReader->Update());
+  ITK_TRY_EXPECT_NO_EXCEPTION(movingImageReader->Update());
+
 
   using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   using MetricType = itk::MattesMutualInformationImageToImageMetric<ImageType, ImageType>;
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, MattesMutualInformationImageToImageMetric, ImageToImageMetric);
+
 
   using TranformType = itk::TranslationTransform<double, Dimension>;
-  TranformType::Pointer transform = TranformType::New();
+  auto transform = TranformType::New();
 
   unsigned int numberOfSamples = 100;
 
@@ -107,10 +104,10 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
   using MeasureType = MetricType::MeasureType;
   using DerivativeType = MetricType::DerivativeType;
 
-  MeasureType    value_combined;
+  MeasureType    value_combined = NAN;
   DerivativeType derivative_combined;
 
-  MeasureType    value_separate;
+  MeasureType    value_separate = NAN;
   DerivativeType derivative_separate;
 
   std::vector<MeasureType>    values;
@@ -119,11 +116,11 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
   // By now restrict the number of threads to test to the range 1 to 4.
   const unsigned int maximumNumberOfThreadsToTest = defaultNumberOfThreads;
 
-  for (unsigned int numberOfThreads = 1; numberOfThreads < maximumNumberOfThreadsToTest; numberOfThreads++)
+  for (unsigned int numberOfWorkUnits = 1; numberOfWorkUnits < maximumNumberOfThreadsToTest; ++numberOfWorkUnits)
   {
     try
     {
-      metric->SetNumberOfWorkUnits(numberOfThreads);
+      metric->SetNumberOfWorkUnits(numberOfWorkUnits);
       metric->ReinitializeSeed(76926294);
       metric->Initialize();
 
@@ -143,7 +140,7 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
 
     if (verbose)
     {
-      std::cout << numberOfThreads;
+      std::cout << numberOfWorkUnits;
       std::cout << " : " << value_combined;
       std::cout << " : " << value_separate;
       std::cout << " : " << derivative_combined;
@@ -154,11 +151,11 @@ itkOptMattesMutualInformationImageToImageMetricThreadsTest1(int argc, char * arg
 
   bool testFailed = false;
 
-  const double tolerance = 1e-7;
+  constexpr double tolerance = 1e-7;
 
-  for (unsigned int i = 0; i < values.size(); i++)
+  for (unsigned int i = 0; i < values.size(); ++i)
   {
-    for (unsigned int j = i; j < values.size(); j++)
+    for (unsigned int j = i; j < values.size(); ++j)
     {
       const double difference = values[i] - values[j];
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,10 +20,7 @@
 
 namespace itk
 {
-SpatialObjectProperty::SpatialObjectProperty()
-{
-  this->Clear();
-}
+SpatialObjectProperty::SpatialObjectProperty() { this->Clear(); }
 
 void
 SpatialObjectProperty::Clear()
@@ -116,10 +113,8 @@ SpatialObjectProperty::GetTagScalarValue(const std::string & tag, double & value
     value = it->second;
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 bool
@@ -131,10 +126,17 @@ SpatialObjectProperty::GetTagStringValue(const std::string & tag, std::string & 
     value = it->second;
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
+}
+
+
+std::string
+SpatialObjectProperty::GetTagStringValue(const std::string & tag) const
+{
+  std::string value = "";
+  this->GetTagStringValue(tag, value);
+  return value;
 }
 
 std::map<std::string, double> &
@@ -190,10 +192,19 @@ SpatialObjectProperty::operator=(const SpatialObjectProperty & rhs)
 void
 SpatialObjectProperty::PrintSelf(std::ostream & os, Indent indent) const
 {
+  os << indent << "Color: " << m_Color << std::endl;
   os << indent << "Name: " << m_Name << std::endl;
-  os << indent << "RGBA: " << m_Color.GetRed() << " " << m_Color.GetGreen() << " " << m_Color.GetBlue() << " "
-     << m_Color.GetAlpha() << std::endl;
-  os << indent << "ScalarDictionary size: " << m_ScalarDictionary.size() << std::endl;
-  os << indent << "StringDictionary size: " << m_StringDictionary.size() << std::endl;
+
+  os << indent << "ScalarDictionary: " << std::endl;
+  for (const auto & keyval : m_ScalarDictionary)
+  {
+    os << indent.GetNextIndent() << keyval.first << ": " << keyval.second << std::endl;
+  }
+
+  os << indent << "StringDictionary: " << std::endl;
+  for (const auto & keyval : m_StringDictionary)
+  {
+    os << indent.GetNextIndent() << keyval.first << ": " << keyval.second << std::endl;
+  }
 }
 } // end of namespace itk

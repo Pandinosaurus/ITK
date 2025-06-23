@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +47,7 @@ itkEdgePotentialImageFilterTest(int, char *[])
   using RegionType = itk::ImageRegion<ImageDimension>;
 
   // Create two images
-  InputImageType::Pointer inputImage = InputImageType::New();
+  auto inputImage = InputImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -65,9 +65,7 @@ itkEdgePotentialImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize input image
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   // Create one iterator for the Input Image.
@@ -75,7 +73,7 @@ itkEdgePotentialImageFilterTest(int, char *[])
 
   // Initialize the content input image
   VectorType vec;
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     vec[j] = 10.0;
   }
@@ -91,14 +89,14 @@ itkEdgePotentialImageFilterTest(int, char *[])
   // create an EdgePotentialImageFilter
   using FilterType = itk::EdgePotentialImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer      filter = FilterType::New();
-  itk::SimpleFilterWatcher watcher(filter);
+  auto                           filter = FilterType::New();
+  const itk::SimpleFilterWatcher watcher(filter);
 
   // Connect the input images
   filter->SetInput(inputImage);
 
   // Get the Smart Pointer to the Filter Output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Execute the filter
   filter->Update();
@@ -108,7 +106,7 @@ itkEdgePotentialImageFilterTest(int, char *[])
 
   //  Check the content of the result image
   std::cout << "Verification of the output " << std::endl;
-  const OutputImageType::PixelType epsilon = 1e-6;
+  constexpr OutputImageType::PixelType epsilon = 1e-6;
   ot.GoToBegin();
   it.GoToBegin();
   while (!ot.IsAtEnd())
@@ -118,7 +116,7 @@ itkEdgePotentialImageFilterTest(int, char *[])
     const OutputImageType::PixelType pot = std::exp(-1.0 * (it.Get().GetNorm()));
     std::cout << ot.Get() << " = ";
     std::cout << pot << std::endl;
-    if (std::fabs(pot - output) > epsilon)
+    if (itk::Math::abs(pot - output) > epsilon)
     {
       std::cerr << "Error in itkEdgePotentialImageFilterTest " << std::endl;
       std::cerr << " potential( " << input << ") = " << pot << std::endl;

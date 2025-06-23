@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkGradientImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkGradientVectorFlowImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkGradientVectorFlowImageFilterTest(int, char *[])
@@ -50,9 +51,9 @@ itkGradientVectorFlowImageFilterTest(int, char *[])
 
   using myVectorMagnitudeFilterType = itk::VectorMagnitudeImageFilter<myGradientImageType, myImageType>;
   // Create the image
-  myImageType::Pointer inputImage = myImageType::New();
-  myImageType::Pointer interImage = myImageType::New();
-  myImageType::Pointer inter1Image = myImageType::New();
+  auto inputImage = myImageType::New();
+  auto interImage = myImageType::New();
+  auto inter1Image = myImageType::New();
 
 
   // Define their size, and start index
@@ -60,27 +61,18 @@ itkGradientVectorFlowImageFilterTest(int, char *[])
   size[0] = 128;
   size[1] = 128;
 
-  myIndexType start;
-  start.Fill(0);
+  myIndexType start{};
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
-  interImage->SetLargestPossibleRegion(region);
-  interImage->SetBufferedRegion(region);
-  interImage->SetRequestedRegion(region);
+  interImage->SetRegions(region);
   interImage->Allocate();
 
-  inter1Image->SetLargestPossibleRegion(region);
-  inter1Image->SetBufferedRegion(region);
-  inter1Image->SetRequestedRegion(region);
+  inter1Image->SetRegions(region);
   inter1Image->Allocate();
 
   // Declare Iterator types apropriated for each image
@@ -122,10 +114,10 @@ itkGradientVectorFlowImageFilterTest(int, char *[])
   using myFilterType = itk::GradientRecursiveGaussianImageFilter<myImageType, myGradientImageType>;
 
   // Create a  Filter
-  myFilterType::Pointer filter = myFilterType::New();
+  auto filter = myFilterType::New();
 
-  myGFilterType::Pointer               gfilter = myGFilterType::New();
-  myVectorMagnitudeFilterType::Pointer gtomfilter = myVectorMagnitudeFilterType::New();
+  auto gfilter = myGFilterType::New();
+  auto gtomfilter = myVectorMagnitudeFilterType::New();
 
   // Connect the input images
   filter->SetInput(inputImage);
@@ -138,25 +130,40 @@ itkGradientVectorFlowImageFilterTest(int, char *[])
 
   std::cout << "Filter: " << filter;
 
-  myLaplacianFilterType::Pointer m_LFilter = myLaplacianFilterType::New();
-  myGVFFilterType::Pointer       m_GVFFilter = myGVFFilterType::New();
+  auto m_LFilter = myLaplacianFilterType::New();
+  auto m_GVFFilter = myGVFFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(m_GVFFilter, GradientVectorFlowImageFilter, ImageToImageFilter);
+
 
   m_GVFFilter->SetInput(gfilter->GetOutput());
+
   m_GVFFilter->SetLaplacianFilter(m_LFilter);
-  m_GVFFilter->SetNoiseLevel(500);
-  m_GVFFilter->SetTimeStep(0.001);
-  m_GVFFilter->SetIterationNum(2);
+  ITK_TEST_SET_GET_VALUE(m_LFilter, m_GVFFilter->GetLaplacianFilter());
+
+  constexpr double noiseLevel = 500;
+  m_GVFFilter->SetNoiseLevel(noiseLevel);
+  ITK_TEST_SET_GET_VALUE(noiseLevel, m_GVFFilter->GetNoiseLevel());
+
+  constexpr double timeStep = 0.001;
+  m_GVFFilter->SetTimeStep(timeStep);
+  ITK_TEST_SET_GET_VALUE(timeStep, m_GVFFilter->GetTimeStep());
+
+  constexpr int iterationNum = 2;
+  m_GVFFilter->SetIterationNum(iterationNum);
+  ITK_TEST_SET_GET_VALUE(iterationNum, m_GVFFilter->GetIterationNum());
+
 
   // Get the Smart Pointer to the Filter Output
   // It is important to do it AFTER the filter is Updated
   // Because the object connected to the output may be changed
   // by another during GenerateData() call
-  myGradientImageType::Pointer outputImage = filter->GetOutput();
+  const myGradientImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the output image
-  myOutputIteratorType itg(outputImage, outputImage->GetRequestedRegion());
+  const myOutputIteratorType itg(outputImage, outputImage->GetRequestedRegion());
 
-  //  Print the content of the result image
+  // Print the content of the result image
   std::cout << " Result " << std::endl;
 
   gtomfilter->SetInput(filter->GetOutput());
@@ -173,7 +180,7 @@ itkGradientVectorFlowImageFilterTest(int, char *[])
 
   std::cout << m_GVFFilter->GetIterationNum() << std::endl;
 
-  myOutputIteratorType itgvf(m_GVFFilter->GetOutput(), m_GVFFilter->GetOutput()->GetRequestedRegion());
+  const myOutputIteratorType itgvf(m_GVFFilter->GetOutput(), m_GVFFilter->GetOutput()->GetRequestedRegion());
 
   std::cout << "Completed" << std::endl;
   // All objects should be automatically destroyed at this point

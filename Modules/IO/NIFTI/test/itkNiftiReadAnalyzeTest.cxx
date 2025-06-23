@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkMath.h"
-#include "itkSpatialOrientationAdapter.h"
+#include "itkAnatomicalOrientation.h"
 
 // debug
 #include <map>
@@ -120,59 +120,6 @@ const unsigned char LittleEndian_img[] = {
   0x00, 0x00, 0xe0, 0x42, 0x00, 0x00, 0xe0, 0x42, 0x00, 0x00, 0xe0, 0x42,
 };
 
-// Map between axis string labels and SpatialOrientation
-std::map<itk::SpatialOrientation::ValidCoordinateOrientationFlags, std::string> codeToString = {
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP, "RIP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIP, "LIP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP, "RSP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSP, "LSP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIA, "RIA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LIA, "LIA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA, "RSA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LSA, "LSA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRP, "IRP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILP, "ILP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRP, "SRP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLP, "SLP" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IRA, "IRA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ILA, "ILA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SRA, "SRA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SLA, "SLA" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI, "RPI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI, "LPI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI, "RAI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAI, "LAI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPS, "RPS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPS, "LPS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS, "RAS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAS, "LAS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRI, "PRI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLI, "PLI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARI, "ARI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALI, "ALI" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PRS, "PRS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PLS, "PLS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ARS, "ARS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ALS, "ALS" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPR, "IPR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPR, "SPR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAR, "IAR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAR, "SAR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IPL, "IPL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SPL, "SPL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_IAL, "IAL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_SAL, "SAL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR, "PIR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSR, "PSR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR, "AIR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASR, "ASR" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL, "PIL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PSL, "PSL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIL, "AIL" },
-  { itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL, "ASL" }
-};
-
-
 /** WriteFile
  * Write out a char array as binary
  */
@@ -199,8 +146,8 @@ ReadImage(const std::string &                     fileName,
 {
   using ReaderType = itk::ImageFileReader<TImage>;
 
-  typename ReaderType::Pointer        reader = ReaderType::New();
-  typename itk::NiftiImageIO::Pointer imageIO = itk::NiftiImageIO::New();
+  auto                                      reader = ReaderType::New();
+  const typename itk::NiftiImageIO::Pointer imageIO = itk::NiftiImageIO::New();
   {
     imageIO->SetLegacyAnalyze75Mode(analyze_mode);
     reader->SetImageIO(imageIO);
@@ -212,7 +159,7 @@ ReadImage(const std::string &                     fileName,
     catch (const itk::ExceptionObject & err)
     {
       std::cout << "Caught an exception: " << std::endl;
-      std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
+      std::cout << err << ' ' << __FILE__ << ' ' << __LINE__ << std::endl;
       throw;
     }
     catch (...)
@@ -229,19 +176,19 @@ ReadImage(const std::string &                     fileName,
 
 
 int
-itkNiftiAnalyzeContentsAndCoordinatesTest(char *                                                   av[],
-                                          unsigned char                                            hist_orient_code,
-                                          itk::SpatialOrientation::ValidCoordinateOrientationFlags expected_code,
-                                          itk::NiftiImageIOEnums::Analyze75Flavor                  analyze_mode,
-                                          bool                                                     flip_x = false)
+itkNiftiAnalyzeContentsAndCoordinatesTest(char *                                  argv[],
+                                          unsigned char                           hist_orient_code,
+                                          itk::AnatomicalOrientation              expected_code,
+                                          itk::NiftiImageIOEnums::Analyze75Flavor analyze_mode,
+                                          bool                                    flip_x = false)
 {
-  std::string hdrName(av[1]);
+  std::string hdrName(argv[1]);
   hdrName += "/littleEndian_";
-  hdrName += codeToString[expected_code];
+  hdrName += expected_code.GetAsPositiveStringEncoding();
   hdrName += ".hdr";
-  std::string imgName(av[1]);
+  std::string imgName(argv[1]);
   imgName += "/littleEndian_";
-  imgName += codeToString[expected_code];
+  imgName += expected_code.GetAsPositiveStringEncoding();
   imgName += ".img";
 
   // hack the header to have proper orientation code
@@ -277,7 +224,9 @@ itkNiftiAnalyzeContentsAndCoordinatesTest(char *                                
   catch (...)
   {
     if (analyze_mode == itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeReject)
+    {
       std::cerr << "Failure is expected" << std::endl << std::endl;
+    }
     return EXIT_FAILURE;
   }
 
@@ -299,33 +248,32 @@ itkNiftiAnalyzeContentsAndCoordinatesTest(char *                                
     }
   }
 
-  itk::SpatialOrientation::ValidCoordinateOrientationFlags orientation_code =
-    itk::SpatialOrientationAdapter().FromDirectionCosines(img->GetDirection());
+  const itk::AnatomicalOrientation orientation_code(img->GetDirection());
   // verify the correct orientation :
   if (orientation_code != expected_code)
   {
-    std::cerr << "Analyze orientation " << (int)hist_orient_code << std::endl;
-    std::cerr << "expected orientation " << codeToString[expected_code] << " but found "
-              << codeToString[orientation_code] << std::endl;
+    std::cerr << "Analyze orientation " << static_cast<int>(hist_orient_code) << std::endl;
+    std::cerr << "expected orientation " << expected_code.GetAsPositiveStringEncoding() << " but found "
+              << orientation_code.GetAsPositiveStringEncoding() << std::endl;
     return EXIT_FAILURE;
   }
 
   // TODO: check origin and spacing too
-  std::cout << "Analyze orientation :" << (int)hist_orient_code << std::endl
+  std::cout << "Analyze orientation :" << static_cast<int>(hist_orient_code) << std::endl
             << "Analyze flavor :" << analyze_mode << std::endl
             << "negative x step:" << (flip_x ? "true" : "false") << std::endl
             << "Origin   :" << img->GetOrigin() << std::endl
             << "Spacing  :" << img->GetSpacing() << std::endl
-            << "Code     :" << codeToString[orientation_code] << std::endl
+            << "Code     :" << orientation_code.GetAsPositiveStringEncoding() << std::endl
             << "Direction:" << img->GetDirection() << std::endl;
 
   return EXIT_SUCCESS;
 }
 
 int
-itkNiftiReadAnalyzeTest(int ac, char * av[])
+itkNiftiReadAnalyzeTest(int argc, char * argv[])
 {
-  if (ac < 2)
+  if (argc < 2)
   {
     std::cerr << "itkNiftiReadAnalyzeTest: Missing test directory argument" << std::endl;
     return EXIT_FAILURE;
@@ -338,97 +286,134 @@ itkNiftiReadAnalyzeTest(int ac, char * av[])
   // https://web.archive.org/web/20121116093304/http://wideman-one.com/gw/brain/analyze/formatdoc.htm Analyze code 5
   // should have been PSR but it was revised in NIFTI somehow to PIL
 
-  return itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                   0,
-                                                   itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI,
-                                                   itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeReject) !=
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       1,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       2,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       3,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       4,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       5,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIL,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) ==
-               EXIT_FAILURE ||
+  return itkNiftiAnalyzeContentsAndCoordinatesTest(
+           argv,
+           0,
+           itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                      itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                      itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+           itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeReject) != EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               1,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               2,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::RightToLeft),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               3,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               4,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::SuperiorToInferior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               5,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::LeftToRight),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM) == EXIT_FAILURE ||
              // ITK4 default behaviour: reader should ignore orientation code and always produce RAI ,
              // there should be a warning on console
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4Warning) ==
-               EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4Warning) == EXIT_FAILURE ||
              // ITK4 reader should ignore orientation code and always produce RAI
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       1,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       2,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       3,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       5,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       5,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) ==
-               EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               1,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               2,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               3,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               5,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               5,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4) == EXIT_FAILURE ||
              // flip X  axis , SPM reader should respect this
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM,
-                                                       true) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::LeftToRight,
+                                          itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeSPM,
+               true) == EXIT_FAILURE ||
              // flip X  axis , ITK4 reader should respect this
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LAI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4,
-                                                       true) == EXIT_FAILURE ||
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::LeftToRight,
+                                          itk::AnatomicalOrientation::CoordinateEnum::AnteriorToPosterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeITK4,
+               true) == EXIT_FAILURE ||
              // flip X  axis , FSL reader should ignore this
-             itkNiftiAnalyzeContentsAndCoordinatesTest(av,
-                                                       0,
-                                                       itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RPI,
-                                                       itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeFSL,
-                                                       true) == EXIT_FAILURE
+             itkNiftiAnalyzeContentsAndCoordinatesTest(
+               argv,
+               0,
+               itk::AnatomicalOrientation(itk::AnatomicalOrientation::CoordinateEnum::RightToLeft,
+                                          itk::AnatomicalOrientation::CoordinateEnum::PosteriorToAnterior,
+                                          itk::AnatomicalOrientation::CoordinateEnum::InferiorToSuperior),
+               itk::NiftiImageIOEnums::Analyze75Flavor::AnalyzeFSL,
+               true) == EXIT_FAILURE
 
            ? EXIT_FAILURE
            : EXIT_SUCCESS;

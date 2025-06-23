@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,32 +28,13 @@ namespace itk
  *
  * This class holds cache data used during the computation of the LevelSet updates.
  *
- * Based on the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * Based on the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
- *
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  */
@@ -74,55 +55,55 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkTypeMacro(ConstrainedRegionBasedLevelSetFunctionSharedData, RegionBasedLevelSetFunctionSharedData);
+  itkOverrideGetNameOfClassMacro(ConstrainedRegionBasedLevelSetFunctionSharedData);
 
   using InputImageType = TInputImage;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using InputSizeValueType = typename Superclass::InputSizeValueType;
-  using InputSpacingType = typename Superclass::InputSpacingType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using InputIndexValueType = typename Superclass::InputIndexValueType;
-  using InputPointType = typename Superclass::InputPointType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::InputSizeValueType;
+  using typename Superclass::InputSpacingType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::InputIndexValueType;
+  using typename Superclass::InputPointType;
 
   using FeatureImageType = TFeatureImage;
-  using FeatureImagePointer = typename Superclass::FeatureImagePointer;
-  using FeatureImageConstPointer = typename Superclass::FeatureImageConstPointer;
-  using FeaturePixelType = typename Superclass::FeaturePixelType;
-  using FeatureRegionType = typename Superclass::FeatureRegionType;
-  using FeatureSizeType = typename Superclass::FeatureSizeType;
-  using FeatureSizeValueType = typename Superclass::FeatureSizeValueType;
-  using FeatureSpacingType = typename Superclass::FeatureSpacingType;
-  using FeatureIndexType = typename Superclass::FeatureIndexType;
-  using FeaturePointType = typename Superclass::FeaturePointType;
+  using typename Superclass::FeatureImagePointer;
+  using typename Superclass::FeatureImageConstPointer;
+  using typename Superclass::FeaturePixelType;
+  using typename Superclass::FeatureRegionType;
+  using typename Superclass::FeatureSizeType;
+  using typename Superclass::FeatureSizeValueType;
+  using typename Superclass::FeatureSpacingType;
+  using typename Superclass::FeatureIndexType;
+  using typename Superclass::FeaturePointType;
 
-  using ListPixelType = typename Superclass::ListPixelType;
-  using ListImageType = typename Superclass::ListImageType;
-  using ListImagePointer = typename Superclass::ListImagePointer;
-  using ListImageConstPointer = typename Superclass::ListImageConstPointer;
-  using ListRegionType = typename Superclass::ListRegionType;
-  using ListSizeType = typename Superclass::ListSizeType;
-  using ListSizeValueType = typename Superclass::ListSizeValueType;
-  using ListSpacingType = typename Superclass::ListSpacingType;
-  using ListIndexType = typename Superclass::ListIndexType;
-  using ListIndexValueType = typename Superclass::ListIndexValueType;
-  using ListPointType = typename Superclass::ListPointType;
-  using ListIteratorType = typename Superclass::ListIteratorType;
+  using typename Superclass::ListPixelType;
+  using typename Superclass::ListImageType;
+  using typename Superclass::ListImagePointer;
+  using typename Superclass::ListImageConstPointer;
+  using typename Superclass::ListRegionType;
+  using typename Superclass::ListSizeType;
+  using typename Superclass::ListSizeValueType;
+  using typename Superclass::ListSpacingType;
+  using typename Superclass::ListIndexType;
+  using typename Superclass::ListIndexValueType;
+  using typename Superclass::ListPointType;
+  using typename Superclass::ListIteratorType;
 
-  using CentroidVectorType = typename Superclass::CentroidVectorType;
-  using SampleType = typename Superclass::SampleType;
-  using TreeGeneratorType = typename Superclass::TreeGeneratorType;
-  using TreePointer = typename Superclass::TreePointer;
-  using TreeType = typename Superclass::TreeType;
-  using KdTreePointer = typename Superclass::KdTreePointer;
+  using typename Superclass::CentroidVectorType;
+  using typename Superclass::SampleType;
+  using typename Superclass::TreeGeneratorType;
+  using typename Superclass::TreePointer;
+  using typename Superclass::TreeType;
+  using typename Superclass::KdTreePointer;
 
   using LevelSetDataType = TSingleData;
-  using LevelSetDataPointer = typename Superclass::LevelSetDataPointer;
-  using LevelSetDataPointerVector = typename Superclass::LevelSetDataPointerVector;
-  using LevelSetDataPointerVectorIterator = typename Superclass::LevelSetDataPointerVectorIterator;
+  using typename Superclass::LevelSetDataPointer;
+  using typename Superclass::LevelSetDataPointerVector;
+  using typename Superclass::LevelSetDataPointerVectorIterator;
 
   void
   PopulateListImage() override
@@ -140,7 +121,7 @@ public:
         ListIndexType ind = lIt.GetIndex();
 
         float queryPoint[ImageDimension];
-        for (unsigned int i = 0; i < ImageDimension; i++)
+        for (unsigned int i = 0; i < ImageDimension; ++i)
         {
           queryPoint[i] = ind[i] * spacing[i];
         }
@@ -149,7 +130,7 @@ public:
         this->m_KdTree->Search(queryPoint, this->m_NumberOfNeighbors, neighbors);
 
         ListPixelType L;
-        for (unsigned int i = 0; i < this->m_NumberOfNeighbors; i++)
+        for (unsigned int i = 0; i < this->m_NumberOfNeighbors; ++i)
         {
           if (this->m_LevelSetDataPointerVector[i]->VerifyInsideRegion(ind))
           {
@@ -165,7 +146,7 @@ public:
       {
         ListIndexType ind = lIt.GetIndex();
         ListPixelType L;
-        for (unsigned int i = 0; i < this->m_FunctionCount; i++)
+        for (unsigned int i = 0; i < this->m_FunctionCount; ++i)
         {
           if (this->m_LevelSetDataPointerVector[i]->VerifyInsideRegion(ind))
           {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,16 +26,14 @@
 int
 itkHistogramTest(int, char *[])
 {
-  std::cout << "Histogram Test \n \n";
-  bool        pass = true;
-  std::string whereFail = "";
+  int pass = EXIT_SUCCESS;
 
   using MeasurementType = float;
   constexpr unsigned int numberOfComponents = 3;
 
   // create a histogram with 3 components measurement vectors
   using HistogramType = itk::Statistics::Histogram<MeasurementType, itk::Statistics::DenseFrequencyContainer2>;
-  HistogramType::Pointer histogram = HistogramType::New();
+  auto histogram = HistogramType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(histogram, Histogram, Sample);
 
@@ -46,7 +44,7 @@ itkHistogramTest(int, char *[])
   // initializes a 64 x 64 x 64 histogram with equal size interval
   HistogramType::SizeType size(numberOfComponents);
   size.Fill(64);
-  unsigned long totalSize = size[0] * size[1] * size[2];
+  const unsigned long totalSize = size[0] * size[1] * size[2];
 
   MeasurementVectorType lowerBound(numberOfComponents);
   MeasurementVectorType upperBound(numberOfComponents);
@@ -54,208 +52,211 @@ itkHistogramTest(int, char *[])
   lowerBound.Fill(0);
   upperBound.Fill(1024);
 
-  //
-  // Exercise exception case
-  //
-  try
-  {
-    // purposely calling Initialize() before calling SetMeasurementVectorSize()
-    // in order to trigger an expected exception.
-    histogram->Initialize(size);
-    pass = false;
-    whereFail = "Initialize(size) before SetMeasurementVectorSize() didn't throw expected exception";
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cout << "Expected exception ";
-    std::cout << excp << std::endl;
-  }
+  // Test exceptions
 
+  // Call Initialize() before calling SetMeasurementVectorSize()
+  ITK_TRY_EXPECT_EXCEPTION(histogram->Initialize(size));
 
-  //
-  // Now call SetMeasurementVectorSize() correctly
-  //
   histogram->SetMeasurementVectorSize(numberOfComponents);
+  ITK_TEST_EXPECT_EQUAL(histogram->GetMeasurementVectorSize(), numberOfComponents);
 
-  if (histogram->GetMeasurementVectorSize() != numberOfComponents)
-  {
-    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  //
-  //  Exercise Initialize with size and bounds
-  //
   histogram->Initialize(size, lowerBound, upperBound);
 
   histogram->SetToZero();
 
   double interval = (upperBound[0] - lowerBound[0]) / static_cast<HistogramType::MeasurementType>(size[0]);
 
-  // tests begin
   MeasurementVectorType measurements(numberOfComponents);
   measurements.Fill(512);
 
   IndexType index(numberOfComponents);
   IndexType ind(numberOfComponents);
   index.Fill(32);
-  if (histogram->GetIndex(measurements, ind))
-  {
-    if (index != ind)
-    {
-      pass = false;
-      whereFail = "GetIndex(MeasurementVectorType&)";
-    }
-  }
-  else
-  {
-    pass = false;
-    whereFail = "GetIndex(MeasurementVectorType&)";
-  }
+
+  histogram->GetIndex(measurements, ind);
+  ITK_TEST_EXPECT_EQUAL(ind, index);
 
   InstanceIdentifier id = histogram->GetInstanceIdentifier(index);
-  if (index != histogram->GetIndex(id))
-  {
-    pass = false;
-    whereFail = "GetIndex(InstanceIdentifier&)";
-  }
+  ITK_TEST_EXPECT_EQUAL(histogram->GetIndex(id), index);
 
-  index.Fill(-5); // test for outside below
+  // Test for outside
+  index.Fill(-5);
+  ITK_TEST_EXPECT_TRUE(histogram->IsIndexOutOfBounds(index));
 
-  if (!histogram->IsIndexOutOfBounds(index))
-  {
-    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
-    pass = false;
-    whereFail = "IsIndexOutOfBounds(IndexType)";
-  }
+  // Test for inside
+  index.Fill(32);
+  ITK_TEST_EXPECT_TRUE(!histogram->IsIndexOutOfBounds(index));
 
+  // Test for outside
+  index.Fill(100);
+  ITK_TEST_EXPECT_TRUE(histogram->IsIndexOutOfBounds(index));
 
-  index.Fill(32); // test for inside
-
-  if (histogram->IsIndexOutOfBounds(index))
-  {
-    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
-    pass = false;
-    whereFail = "IsIndexOutOfBounds(IndexType)";
-  }
-
-  index.Fill(100); // test for outside
-
-  if (!histogram->IsIndexOutOfBounds(index))
-  {
-    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
-    pass = false;
-    whereFail = "IsIndexOutOfBounds(IndexType)";
-  }
-
-  if (totalSize != histogram->Size())
-  {
-    pass = false;
-    whereFail = "Size()";
-  }
-
-  if (size != histogram->GetSize())
-  {
-    pass = false;
-    whereFail = "GetSize()";
-  }
+  ITK_TEST_EXPECT_EQUAL(histogram->Size(), totalSize);
+  ITK_TEST_EXPECT_EQUAL(histogram->GetSize(), size);
 
   // Query the bounds of the bin using the index of the bin.
 
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 31), histogram->GetBinMin(0, 31)))
+  const MeasurementType & expectedValMeasType1 = lowerBound[0] + interval * 31;
+  const MeasurementType & obtainedValMeasType1 = histogram->GetBinMin(0, 31);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType1, expectedValMeasType1))
   {
-    pass = false;
-    whereFail = "GetBinMin(Dimension, nthBin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMin" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType1 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType1 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 32), histogram->GetBinMax(0, 31)))
+  const MeasurementType & expectedValMeasType2 = lowerBound[0] + interval * 32;
+  const MeasurementType & obtainedValMeasType2 = histogram->GetBinMax(0, 31);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType2, expectedValMeasType2))
   {
-    pass = false;
-    whereFail = "GetBinMax(Dimension, nthBin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMax" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType2 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType2 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
   // Query the histogram bin extremes using a value within the bin
 
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 31),
-                                 histogram->GetBinMinFromValue(0, lowerBound[0] + interval * 31.5)) ||
-      itk::Math::NotAlmostEquals((lowerBound[0]), histogram->GetBinMinFromValue(0, itk::NumericTraits<float>::min())) ||
-      itk::Math::NotAlmostEquals((lowerBound[0] + interval * (size[0] - 1)),
-                                 histogram->GetBinMinFromValue(0, itk::NumericTraits<float>::max())))
+  const MeasurementType & expectedValMeasType3 = lowerBound[0] + interval * 31;
+  const MeasurementType & obtainedValMeasType3 = histogram->GetBinMinFromValue(0, lowerBound[0] + interval * 31.5);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType3, expectedValMeasType3))
   {
-    pass = false;
-    whereFail = "GetBinMinFromValue(Dimension, A Value Within The Nth Bin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMinFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType2 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType2 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 32),
-                                 histogram->GetBinMaxFromValue(0, lowerBound[0] + interval * 31.5)) ||
-      itk::Math::NotAlmostEquals((lowerBound[0] + interval),
-                                 histogram->GetBinMaxFromValue(0, itk::NumericTraits<float>::min())) ||
-      itk::Math::NotAlmostEquals((upperBound[0]), histogram->GetBinMaxFromValue(0, itk::NumericTraits<float>::max())))
+  const MeasurementType & expectedValMeasType4 = lowerBound[0];
+  const MeasurementType & obtainedValMeasType4 = histogram->GetBinMinFromValue(0, itk::NumericTraits<float>::min());
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType4, expectedValMeasType4))
   {
-    pass = false;
-    whereFail = "GetBinMaxFromValue(Dimension, A Value Within The Nth Bin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMinFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType4 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType4 << std::endl;
+    pass = EXIT_FAILURE;
+  }
+
+  const MeasurementType & expectedValMeasType5 = lowerBound[0] + interval * (size[0] - 1);
+  const MeasurementType & obtainedValMeasType5 = histogram->GetBinMinFromValue(0, itk::NumericTraits<float>::max());
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType5, expectedValMeasType5))
+  {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMinFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType5 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType5 << std::endl;
+    pass = EXIT_FAILURE;
+  }
+
+  const MeasurementType & expectedValMeasType6 = lowerBound[0] + interval * 32;
+  const MeasurementType & obtainedValMeasType6 = histogram->GetBinMaxFromValue(0, lowerBound[0] + interval * 31.5);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType6, expectedValMeasType6))
+  {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMaxFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType6 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType6 << std::endl;
+    pass = EXIT_FAILURE;
+  }
+
+  const MeasurementType & expectedValMeasType7 = lowerBound[0] + interval;
+  const MeasurementType & obtainedValMeasType7 = histogram->GetBinMaxFromValue(0, itk::NumericTraits<float>::min());
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType7, expectedValMeasType7))
+  {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMaxFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType7 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType7 << std::endl;
+    pass = EXIT_FAILURE;
+  }
+
+  const MeasurementType & expectedValMeasType8 = upperBound[0];
+  const MeasurementType & obtainedValMeasType8 = histogram->GetBinMaxFromValue(0, itk::NumericTraits<float>::max());
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType8, expectedValMeasType8))
+  {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMaxFromValue" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType8 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType8 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
   index.Fill(31);
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 31), histogram->GetHistogramMinFromIndex(index)[0]))
+  const MeasurementType & expectedValMeasType9 = lowerBound[0] + interval * 31;
+  const MeasurementType & obtainedValMeasType9 = histogram->GetHistogramMinFromIndex(index)[0];
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType9, expectedValMeasType9))
   {
-    pass = false;
-    whereFail = "GetHistogramMinFromIndex(Dimension, nthBin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetHistogramMinFromIndex" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType9 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType9 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 32), histogram->GetHistogramMaxFromIndex(index)[0]))
+  const MeasurementType & expectedValMeasType10 = lowerBound[0] + interval * 32;
+  const MeasurementType & obtainedValMeasType10 = histogram->GetHistogramMaxFromIndex(index)[0];
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType10, expectedValMeasType10))
   {
-    pass = false;
-    whereFail = "GetHistogramMaxFromIndex(Dimension, nthBin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetHistogramMaxFromIndex" << std::endl;
+    std::cerr << "Expected: " << expectedValMeasType10 << std::endl;
+    std::cerr << ", but got: " << obtainedValMeasType10 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  for (id = 0; id < static_cast<InstanceIdentifier>(totalSize); id++)
+  for (id = 0; id < static_cast<InstanceIdentifier>(totalSize); ++id)
   {
     histogram->SetFrequency(id, 1);
     histogram->IncreaseFrequency(id, 1);
-    if (histogram->GetFrequency(id) != 2)
-    {
-      pass = false;
-      whereFail = "SetFrequency(InstanceIdentifier, 1) + IncreaseFrequency(InstanceIdentifier, 1) + "
-                  "GetFrequency(InstanceIdentifier)";
-    }
+
+    ITK_TEST_EXPECT_EQUAL(histogram->GetFrequency(id), 2);
   }
 
-  double quantile1 = histogram->Quantile(0, 0.3);
-  if (itk::Math::NotAlmostEquals(quantile1, 307.2))
+  // Quantile 1
+  double expectedValD = 307.2;
+  double obtainedValD = histogram->Quantile(0, 0.3);
+  if (itk::Math::NotAlmostEquals(obtainedValD, expectedValD))
   {
-    std::cerr << "quantile1 = " << quantile1 << std::endl;
-    pass = false;
-    whereFail = "Quantile(Dimension, percent)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::Quantile" << std::endl;
+    std::cerr << "Expected: " << expectedValD << std::endl;
+    std::cerr << ", but got: " << obtainedValD << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  double quantile2 = histogram->Quantile(0, 0.5);
-  if (quantile2 != 512.0)
+  // Quantile 2
+  expectedValD = 512.0;
+  obtainedValD = histogram->Quantile(0, 0.5);
+  if (itk::Math::NotAlmostEquals(obtainedValD, expectedValD))
   {
-    std::cerr << "quantile2 = " << quantile2 << std::endl;
-    pass = false;
-    whereFail = "Quantile(Dimension, percent)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::Quantile" << std::endl;
+    std::cerr << "Expected: " << expectedValD << std::endl;
+    std::cerr << ", but got: " << obtainedValD << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  double quantile3 = histogram->Quantile(0, 0.7);
-  if (itk::Math::NotAlmostEquals(quantile3, 716.8))
+  // Quantile 3
+  expectedValD = 716.8;
+  obtainedValD = histogram->Quantile(0, 0.7);
+  if (itk::Math::NotAlmostEquals(obtainedValD, expectedValD))
   {
-    std::cerr << "quantile3 = " << quantile3 << std::endl;
-    pass = false;
-    whereFail = "Quantile(Dimension, percent)";
-  }
-
-
-  if (!pass)
-  {
-    std::cerr << "Test failed in " << whereFail << "." << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::Quantile" << std::endl;
+    std::cerr << "Expected: " << expectedValD << std::endl;
+    std::cerr << ", but got: " << obtainedValD << std::endl;
+    pass = EXIT_FAILURE;
   }
 
 
   // Histogram with SparseFrequencyContainer2
   using SparseHistogramType = itk::Statistics::Histogram<MeasurementType, itk::Statistics::SparseFrequencyContainer2>;
-  SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New();
+  auto sparseHistogram = SparseHistogramType::New();
 
   sparseHistogram->SetMeasurementVectorSize(numberOfComponents);
 
@@ -267,131 +268,81 @@ itkHistogramTest(int, char *[])
   measurements.Fill(512);
   index.Fill(32);
   sparseHistogram->GetIndex(measurements, ind);
-
-  if (index != ind)
-  {
-    pass = false;
-    whereFail = "Sparse Histogram: GetIndex(MeasurementVectorType&)";
-  }
+  ITK_TEST_EXPECT_EQUAL(ind, index);
 
   id = sparseHistogram->GetInstanceIdentifier(index);
-  if (index != sparseHistogram->GetIndex(id))
-  {
-    pass = false;
-    whereFail = "Sparse Histogram: GetIndex(InstanceIdentifier&)";
-  }
+  ITK_TEST_EXPECT_EQUAL(sparseHistogram->GetIndex(id), index);
 
   index.Fill(100);
+  ITK_TEST_EXPECT_TRUE(sparseHistogram->IsIndexOutOfBounds(index));
+  ITK_TEST_EXPECT_EQUAL(sparseHistogram->Size(), totalSize);
+  ITK_TEST_EXPECT_EQUAL(sparseHistogram->GetSize(), size);
 
-  if (!sparseHistogram->IsIndexOutOfBounds(index))
+  const MeasurementType & expectedValMeasType11 = lowerBound[0] + interval * 31;
+  const MeasurementType & obtainedValMeasType11 = sparseHistogram->GetBinMin(0, 31);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType11, expectedValMeasType11))
   {
-    pass = false;
-    whereFail = "Sparse Histogram: IsIndexOutOfBounds(IndexType)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMin" << std::endl;
+    std::cerr << "Expected: " << obtainedValMeasType11 << std::endl;
+    std::cerr << ", but got: " << expectedValMeasType11 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
-  if (totalSize != sparseHistogram->Size())
+  const MeasurementType & expectedValMeasType12 = lowerBound[0] + interval * 32;
+  const MeasurementType & obtainedValMeasType12 = sparseHistogram->GetBinMax(0, 31);
+  if (itk::Math::NotAlmostEquals(obtainedValMeasType12, expectedValMeasType12))
   {
-    pass = false;
-    whereFail = "Sparse Histogram: Size()";
-  }
-
-  if (size != sparseHistogram->GetSize())
-  {
-    pass = false;
-    whereFail = "Sparse Histogram: GetSize()";
-  }
-
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 31), sparseHistogram->GetBinMin(0, 31)))
-  {
-    pass = false;
-    whereFail = "Sparse Histogram: GetBinMin(Dimension, nthBin)";
-  }
-
-  if (itk::Math::NotAlmostEquals((lowerBound[0] + interval * 32), sparseHistogram->GetBinMax(0, 31)))
-  {
-    pass = false;
-    whereFail = "Sparse Histogram: GetBinMax(Dimension, nthBin)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::GetBinMax" << std::endl;
+    std::cerr << "Expected: " << obtainedValMeasType12 << std::endl;
+    std::cerr << ", but got: " << expectedValMeasType12 << std::endl;
+    pass = EXIT_FAILURE;
   }
 
 
-  for (id = 0; id < static_cast<SparseHistogramType::InstanceIdentifier>(totalSize); id++)
+  for (id = 0; id < static_cast<SparseHistogramType::InstanceIdentifier>(totalSize); ++id)
   {
-    bool result = sparseHistogram->SetFrequency(id, 1);
-    if (!result)
-    {
-      pass = false;
-      whereFail = "SetFrequency(InstanceIdentifier, 1) ";
-      break;
-    }
-
-    result = sparseHistogram->IncreaseFrequency(id, 1);
-    if (!result)
-    {
-      pass = false;
-      whereFail = "IncreaseFrequency(InstanceIdentifier, 1) ";
-      break;
-    }
-
-    if (sparseHistogram->GetFrequency(id) != 2)
-    {
-      pass = false;
-      whereFail = "SetFrequency(InstanceIdentifier, 1) + IncreaseFrequency(InstanceIdentifier, 1) + "
-                  "GetFrequency(InstanceIdentifier)";
-      break;
-    }
+    ITK_TEST_EXPECT_TRUE(sparseHistogram->SetFrequency(id, 1));
+    ITK_TEST_EXPECT_TRUE(sparseHistogram->IncreaseFrequency(id, 1));
+    ITK_TEST_EXPECT_EQUAL(sparseHistogram->GetFrequency(id), 2);
   }
 
-  if (pass && (sparseHistogram->Quantile(0, 0.5) != 512.0))
+  expectedValD = 512.0;
+  obtainedValD = sparseHistogram->Quantile(0, 0.5);
+  if (itk::Math::NotAlmostEquals(obtainedValD, expectedValD))
   {
-    pass = false;
-    whereFail = "Sparse Histogram: Quantile(Dimension, percent)";
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in itk::Statistics::Histogram::Quantile" << std::endl;
+    std::cerr << "Expected: " << expectedValD << std::endl;
+    std::cerr << ", but got: " << obtainedValD << std::endl;
+    pass = EXIT_FAILURE;
   }
 
+  auto clipBinsAtEnds = true;
+  ITK_TEST_SET_GET_BOOLEAN(histogram, ClipBinsAtEnds, clipBinsAtEnds);
 
-  histogram->SetClipBinsAtEnds(true);
-  if (!histogram->GetClipBinsAtEnds())
-  {
-    pass = false;
-    whereFail = "Set/GetClipBinsAtEnds()";
-  }
+  clipBinsAtEnds = false;
+  ITK_TEST_SET_GET_BOOLEAN(histogram, ClipBinsAtEnds, clipBinsAtEnds);
 
-  histogram->SetClipBinsAtEnds(false);
-  if (histogram->GetClipBinsAtEnds())
-  {
-    pass = false;
-    whereFail = "Set/GetClipBinsAtEnds()";
-  }
-
-  if (histogram->GetMeasurementVectorSize() != numberOfComponents)
-  {
-    pass = false;
-    whereFail = "Set/GetMeasurementVectorSize()";
-  }
+  ITK_TEST_EXPECT_EQUAL(histogram->GetMeasurementVectorSize(), numberOfComponents);
 
   constexpr unsigned int measurementVectorSize = 17;
-
-  try
-  {
-    histogram->SetMeasurementVectorSize(measurementVectorSize);
-    pass = false;
-    whereFail = "SetMeasurementVectorSize() didn't throw expected exception";
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cout << "Expected exception ";
-    std::cout << excp << std::endl;
-  }
+  ITK_TRY_EXPECT_EXCEPTION(histogram->SetMeasurementVectorSize(measurementVectorSize));
 
   index.Fill(0);
   MeasurementVectorType measurement = histogram->GetMeasurementVector(index);
-  for (unsigned kid0 = 0; kid0 < numberOfComponents; kid0++)
+  for (unsigned int kid0 = 0; kid0 < numberOfComponents; ++kid0)
   {
-    if (itk::Math::NotAlmostEquals(measurement[kid0], 8))
+    constexpr float expectedValF = 8.0;
+    const float     obtainedValF = measurement[kid0];
+    if (itk::Math::NotAlmostEquals(obtainedValF, expectedValF))
     {
-      std::cerr << "GetMeasurementVector() for index = ";
-      std::cerr << index << std::endl;
-      pass = false;
-      whereFail = "GetMeasurementVector() failed for index";
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in itk::Statistics::Histogram::GetMeasurementVector at index [" << index << "]" << std::endl;
+      std::cerr << "Expected value " << expectedValF << std::endl;
+      std::cerr << " differs from " << obtainedValF << std::endl;
+      pass = EXIT_FAILURE;
       break;
     }
   }
@@ -399,28 +350,34 @@ itkHistogramTest(int, char *[])
   histogram->SetClipBinsAtEnds(true);
 
   measurement = histogram->GetMeasurementVector(index);
-  for (unsigned kid1 = 0; kid1 < numberOfComponents; kid1++)
+  for (unsigned int kid1 = 0; kid1 < numberOfComponents; ++kid1)
   {
-    if (itk::Math::NotAlmostEquals(measurement[kid1], 8))
+    constexpr float expectedValF = 8.0;
+    const float     obtainedValF = measurement[kid1];
+    if (itk::Math::NotAlmostEquals(obtainedValF, expectedValF))
     {
-      std::cerr << "GetMeasurementVector() for index = ";
-      std::cerr << index << std::endl;
-      pass = false;
-      whereFail = "GetMeasurementVector() failed for index";
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in itk::Statistics::Histogram::GetMeasurementVector at index [" << index << "]" << std::endl;
+      std::cerr << "Expected value " << expectedValF << std::endl;
+      std::cerr << " differs from " << obtainedValF << std::endl;
+      pass = EXIT_FAILURE;
       break;
     }
   }
 
   constexpr InstanceIdentifier instanceId = 0;
   measurement = histogram->GetMeasurementVector(instanceId);
-  for (unsigned kid2 = 0; kid2 < numberOfComponents; kid2++)
+  for (unsigned int kid2 = 0; kid2 < numberOfComponents; ++kid2)
   {
-    if (itk::Math::NotAlmostEquals(measurement[kid2], 8))
+    constexpr float expectedValF = 8.0;
+    const float     obtainedValF = measurement[kid2];
+    if (itk::Math::NotAlmostEquals(obtainedValF, expectedValF))
     {
-      std::cerr << "GetMeasurementVector() for instanceId = ";
-      std::cerr << instanceId << std::endl;
-      pass = false;
-      whereFail = "GetMeasurementVector() failed for instanceId";
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in itk::Statistics::Histogram::GetMeasurementVector at index [" << index << "]" << std::endl;
+      std::cerr << "Expected value " << expectedValF << std::endl;
+      std::cerr << " differs from " << obtainedValF << std::endl;
+      pass = EXIT_FAILURE;
       break;
     }
   }
@@ -429,7 +386,7 @@ itkHistogramTest(int, char *[])
   MeasurementVectorType outOfLowerRange(numberOfComponents);
   MeasurementVectorType outOfUpperRange(numberOfComponents);
 
-  for (unsigned int k = 0; k < numberOfComponents; k++)
+  for (unsigned int k = 0; k < numberOfComponents; ++k)
   {
     outOfLowerRange[k] = lowerBound[k] - 13;
     outOfUpperRange[k] = upperBound[k] + 23;
@@ -443,19 +400,11 @@ itkHistogramTest(int, char *[])
   std::cout << "GetIndex() with SetClipBinsAtEnds() = false " << std::endl;
   std::cout << "Boolean " << getindex1 << " Index " << index1 << std::endl;
 
-  if (!getindex1)
-  {
-    pass = false;
-    whereFail = "GetIndex() returned boolean failed for outOfLowerRange";
-  }
+  ITK_TEST_EXPECT_TRUE(getindex1);
 
-  for (unsigned k1 = 0; k1 < numberOfComponents; k1++)
+  for (unsigned int k1 = 0; k1 < numberOfComponents; ++k1)
   {
-    if (index1[k1] != 0)
-    {
-      pass = false;
-      whereFail = "GetIndex() index value failed for outOfLowerRange";
-    }
+    ITK_TEST_EXPECT_EQUAL(index1[k1], 0);
   }
 
 
@@ -466,11 +415,7 @@ itkHistogramTest(int, char *[])
   std::cout << "GetIndex() with SetClipBinsAtEnds() = true " << std::endl;
   std::cout << "Boolean " << getindex1 << " Index " << index1 << std::endl;
 
-  if (getindex1)
-  {
-    pass = false;
-    whereFail = "GetIndex() failed for outOfLowerRange";
-  }
+  ITK_TEST_EXPECT_TRUE(!getindex1);
 
   histogram->SetClipBinsAtEnds(false);
 
@@ -480,19 +425,11 @@ itkHistogramTest(int, char *[])
   std::cout << "GetIndex() with SetClipBinsAtEnds() = false " << std::endl;
   std::cout << "Boolean " << getindex2 << " Index " << index2 << std::endl;
 
-  if (!getindex2)
-  {
-    pass = false;
-    whereFail = "GetIndex() returned boolean failed for outOfUpperRange";
-  }
+  ITK_TEST_EXPECT_TRUE(getindex2);
 
-  for (unsigned k2 = 0; k2 < numberOfComponents; k2++)
+  for (unsigned int k2 = 0; k2 < numberOfComponents; ++k2)
   {
-    if (index2[k2] != (long)size[k2] - 1)
-    {
-      pass = false;
-      whereFail = "GetIndex() index value failed for outOfUpperRange";
-    }
+    ITK_TEST_EXPECT_EQUAL(index2[k2], static_cast<long>(size[k2]) - 1);
   }
 
 
@@ -503,19 +440,14 @@ itkHistogramTest(int, char *[])
   std::cout << "GetIndex() with SetClipBinsAtEnds() = true " << std::endl;
   std::cout << "Boolean " << getindex2 << " Index " << index2 << std::endl;
 
-  if (getindex2)
-  {
-    pass = false;
-    whereFail = "GetIndex() failed for outOfUpperRange";
-  }
+  ITK_TEST_EXPECT_TRUE(!getindex2);
 
-
-  // Testing GetIndex() for values that are above the median value of the Bin.
+  // Test GetIndex() for values that are above the median value of the bin.
   IndexType pindex(numberOfComponents);
   pindex.Fill(32);
   MeasurementVectorType measurementVector = histogram->GetMeasurementVector(pindex);
 
-  for (unsigned int gik1 = 0; gik1 < numberOfComponents; gik1++)
+  for (unsigned int gik1 = 0; gik1 < numberOfComponents; ++gik1)
   {
     measurementVector[gik1] += 0.3;
   }
@@ -523,97 +455,63 @@ itkHistogramTest(int, char *[])
   IndexType gindex;
   histogram->GetIndex(measurementVector, gindex);
 
-  for (unsigned int gik2 = 0; gik2 < numberOfComponents; gik2++)
+  for (unsigned int gik2 = 0; gik2 < numberOfComponents; ++gik2)
   {
-    if (gindex[gik2] != 32)
-    {
-      std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
-      std::cerr << "MeasurementVector = " << measurementVector << std::endl;
-      std::cerr << "Index returned = " << gindex << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_EQUAL(gindex[gik2], 32);
   }
 
-  // Testing GetIndex() for values that are below the median value of the Bin.
-  for (unsigned int gik3 = 0; gik3 < numberOfComponents; gik3++)
+  // Test GetIndex() for values that are below the median value of the bin.
+  for (unsigned int gik3 = 0; gik3 < numberOfComponents; ++gik3)
   {
     measurementVector[gik3] -= 0.6;
   }
 
   histogram->GetIndex(measurementVector, gindex);
 
-  for (unsigned int gik4 = 0; gik4 < numberOfComponents; gik4++)
+  for (unsigned int gik4 = 0; gik4 < numberOfComponents; ++gik4)
   {
-    if (gindex[gik4] != 32)
-    {
-      std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
-      std::cerr << "MeasurementVector = " << measurementVector << std::endl;
-      std::cerr << "Index returned = " << gindex << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_EQUAL(gindex[gik4], 32);
   }
 
-  // Testing GetIndex on the upper and lower bounds
+  // Test GetIndex on the upper and lower bounds
   IndexType upperIndex(numberOfComponents);
-  bool      upperIndexBool = histogram->GetIndex(upperBound, upperIndex);
-  if (!upperIndexBool)
-  {
-    pass = false;
-    whereFail = "GetIndex() returned boolean failed for upper bound";
-  }
+  ITK_TEST_EXPECT_TRUE(histogram->GetIndex(upperBound, upperIndex));
 
-  for (unsigned k1 = 0; k1 < numberOfComponents; k1++)
+  for (unsigned int k1 = 0; k1 < numberOfComponents; ++k1)
   {
-    if (upperIndex[k1] != 63)
-    {
-      pass = false;
-      whereFail = "GetIndex() index value failed for upperBound, as upper bound should map to the last bin.";
-    }
+    ITK_TEST_EXPECT_EQUAL(upperIndex[k1], 63);
   }
 
   IndexType lowerIndex(numberOfComponents);
-  bool      lowerIndexBool = histogram->GetIndex(lowerBound, lowerIndex);
-  if (!lowerIndexBool)
+  ITK_TEST_EXPECT_TRUE(histogram->GetIndex(lowerBound, lowerIndex));
+
+  for (unsigned int k1 = 0; k1 < numberOfComponents; ++k1)
   {
-    pass = false;
-    whereFail = "GetIndex() returned boolean failed for lower bound";
+    ITK_TEST_EXPECT_EQUAL(lowerIndex[k1], 0);
   }
 
-  for (unsigned k1 = 0; k1 < numberOfComponents; k1++)
-  {
-    if (lowerIndex[k1] != 0)
-    {
-      pass = false;
-      whereFail = "GetIndex() index value failed for lowerIndex, as lower bound should map to the first bin.";
-    }
-  }
-
-  // Testing GetIndex above the upper bound of a bin
+  // Test GetIndex above the upper bound of a bin
   histogram->SetClipBinsAtEnds(false);
   MeasurementVectorType measurementVectorAbove(numberOfComponents);
-  for (unsigned int gupk1 = 0; gupk1 < numberOfComponents; gupk1++)
+  for (unsigned int gupk1 = 0; gupk1 < numberOfComponents; ++gupk1)
   {
     measurementVectorAbove[gupk1] = 129.9;
   }
 
   IndexType aboveUpperIndex(numberOfComponents);
-  bool      aboveUpperIndexBool = histogram->GetIndex(measurementVectorAbove, aboveUpperIndex);
-  if (!aboveUpperIndexBool)
-  {
-    std::cerr << "Upper bound index = " << aboveUpperIndex << std::endl;
-  }
+  ITK_TEST_EXPECT_TRUE(histogram->GetIndex(measurementVectorAbove, aboveUpperIndex));
 
   // Get the mean value for a dimension
-  unsigned int dimension = 0;
-  double       mean = histogram->Mean(dimension);
+  constexpr unsigned int dimension = 0;
+  const double           mean = histogram->Mean(dimension);
   std::cout << "Mean value along dimension " << dimension << " : " << mean << std::endl;
 
   HistogramType::Iterator itr = histogram->Begin();
   HistogramType::Iterator end = histogram->End();
 
-  HistogramType::TotalAbsoluteFrequencyType totalFrequency = histogram->GetTotalFrequency();
+  const HistogramType::TotalAbsoluteFrequencyType totalFrequency = histogram->GetTotalFrequency();
 
-  InstanceIdentifier histogramSize = histogram->Size();
+  const InstanceIdentifier histogramSize = histogram->Size();
 
   while (itr != end)
   {
@@ -621,18 +519,10 @@ itkHistogramTest(int, char *[])
     ++itr;
   }
 
-  HistogramType::TotalAbsoluteFrequencyType newTotalFrequency = histogram->GetTotalFrequency();
+  const HistogramType::TotalAbsoluteFrequencyType newTotalFrequency = histogram->GetTotalFrequency();
+  ITK_TEST_EXPECT_EQUAL(newTotalFrequency, histogramSize + totalFrequency);
 
-  if (newTotalFrequency != histogramSize + totalFrequency)
-  {
-    std::cerr << "Get/SetFrequency error in the Iterator" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-
-  //
   // Exercise GetIndex() method in the iterator.
-  //
   std::cout << "TEST GetIndex() and GetFrequency() in the iterator" << std::endl;
   itr = histogram->Begin();
   end = histogram->End();
@@ -644,30 +534,41 @@ itkHistogramTest(int, char *[])
   }
 
 
-  //
   // Exercise GetMin / GetMax methods
-  //
   {
-    const double            epsilon = 1e-6;
+    constexpr double        epsilon = 1e-6;
     HistogramType::SizeType size2 = histogram->GetSize();
 
     HistogramType::BinMinContainerType binMinimums = histogram->GetMins();
 
-    for (unsigned int dim = 0; dim < numberOfComponents; dim++)
+    for (unsigned int dim = 0; dim < numberOfComponents; ++dim)
     {
       HistogramType::BinMinVectorType binDimensionMinimums = histogram->GetDimensionMins(dim);
-      for (unsigned int k = 0; k < size2[dim]; k++)
+      for (unsigned int k = 0; k < size2[dim]; ++k)
       {
-        HistogramType::MeasurementType minA = binMinimums[dim][k];
-        HistogramType::MeasurementType minB = binDimensionMinimums[k];
-        HistogramType::MeasurementType minC = histogram->GetBinMin(dim, k);
-        if ((itk::Math::abs(minA - minB) > epsilon) || (itk::Math::abs(minA - minC) > epsilon))
+        const HistogramType::MeasurementType minA = binMinimums[dim][k];
+        const HistogramType::MeasurementType minB = binDimensionMinimums[k];
+        if (itk::Math::abs(minA - minB) > epsilon)
         {
-          std::cerr << "Error in Get Bin Mins methods" << std::endl;
-          std::cerr << "dim = " << dim << " k = " << k << std::endl;
-          std::cerr << "GetMins()          = " << minA << std::endl;
-          std::cerr << "GetDimensionMins() = " << minB << std::endl;
-          std::cerr << "GetMin()           = " << minC << std::endl;
+          std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+          std::cerr << "Test failed!" << std::endl;
+          std::cerr << "Error in itk:Statistics::Histogram::GetMins/GetDimensionMins at index [" << k << "]"
+                    << std::endl;
+          std::cerr << "Expected value " << minA << std::endl;
+          std::cerr << " differs from: " << minB;
+          std::cerr << " by more than " << epsilon << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        const HistogramType::MeasurementType minC = histogram->GetBinMin(dim, k);
+        if (itk::Math::abs(minA - minC) > epsilon)
+        {
+          std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+          std::cerr << "Test failed!" << std::endl;
+          std::cerr << "Error in itk:Statistics::Histogram::GetMins/GetBinMin at index [" << k << "]" << std::endl;
+          std::cerr << "Expected value " << minA << std::endl;
+          std::cerr << " differs from: " << minC;
+          std::cerr << " by more than " << epsilon << std::endl;
           return EXIT_FAILURE;
         }
       }
@@ -675,21 +576,34 @@ itkHistogramTest(int, char *[])
 
     HistogramType::BinMaxContainerType binMaximums = histogram->GetMaxs();
 
-    for (unsigned int dim = 0; dim < numberOfComponents; dim++)
+    for (unsigned int dim = 0; dim < numberOfComponents; ++dim)
     {
       HistogramType::BinMaxVectorType binDimensionMaximums = histogram->GetDimensionMaxs(dim);
-      for (unsigned int k = 0; k < size2[dim]; k++)
+      for (unsigned int k = 0; k < size2[dim]; ++k)
       {
-        HistogramType::MeasurementType maxA = binMaximums[dim][k];
-        HistogramType::MeasurementType maxB = binDimensionMaximums[k];
-        HistogramType::MeasurementType maxC = histogram->GetBinMax(dim, k);
-        if ((itk::Math::abs(maxA - maxB) > epsilon) || (itk::Math::abs(maxA - maxC) > epsilon))
+        const HistogramType::MeasurementType maxA = binMaximums[dim][k];
+        const HistogramType::MeasurementType maxB = binDimensionMaximums[k];
+        if (itk::Math::abs(maxA - maxB) > epsilon)
         {
-          std::cerr << "Error in Get Bin Maxs methods" << std::endl;
-          std::cerr << "dim = " << dim << " k = " << k << std::endl;
-          std::cerr << "GetMaxs()          = " << maxA << std::endl;
-          std::cerr << "GetDimensionMaxs() = " << maxB << std::endl;
-          std::cerr << "GetMax()           = " << maxC << std::endl;
+          std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+          std::cerr << "Test failed!" << std::endl;
+          std::cerr << "Error in itk:Statistics::Histogram::GetMaxs/GetDimensionMaxs at index [" << k << "]"
+                    << std::endl;
+          std::cerr << "Expected value " << maxA << std::endl;
+          std::cerr << " differs from: " << maxB;
+          std::cerr << " by more than " << epsilon << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        const HistogramType::MeasurementType maxC = histogram->GetBinMax(dim, k);
+        if (itk::Math::abs(maxA - maxC) > epsilon)
+        {
+          std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(epsilon))));
+          std::cerr << "Test failed!" << std::endl;
+          std::cerr << "Error in itk:Statistics::Histogram::GetMaxs/GetBinMax at index [" << k << "]" << std::endl;
+          std::cerr << "Expected value " << maxA << std::endl;
+          std::cerr << " differs from: " << maxC;
+          std::cerr << " by more than " << epsilon << std::endl;
           return EXIT_FAILURE;
         }
       }
@@ -697,25 +611,17 @@ itkHistogramTest(int, char *[])
   }
 
 
-  // Testing methods specific to Iterators
+  // Test methods specific to Iterators
   {
     using IteratorType = HistogramType::Iterator;
-    IteratorType iter = histogram->Begin();
-    IteratorType iter2 = histogram->End();
+    const IteratorType iter = histogram->Begin();
+    IteratorType       iter2 = histogram->End();
 
     iter2 = iter;
-    if (iter2 != iter)
-    {
-      std::cerr << "Iterator operator=() failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_TRUE(iter == iter2);
 
     IteratorType iter3(histogram);
-    if (iter3 != histogram->Begin())
-    {
-      std::cerr << "Iterator constructor from histogram failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_TRUE(histogram->Begin() == iter3);
 
     unsigned int counter = 0;
     while (iter3 != histogram->End())
@@ -724,94 +630,49 @@ itkHistogramTest(int, char *[])
       counter++;
     }
 
-    if (counter != histogram->Size())
-    {
-      std::cerr << "Iterator walk failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_EQUAL(counter, histogram->Size());
 
-    IteratorType iter4(iter2);
-    if (iter4 != iter2)
-    {
-      std::cerr << "Iterator copy constructor failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    const IteratorType iter4(iter2);
+    ITK_TEST_EXPECT_TRUE(iter4 == iter2);
 
-    IteratorType iter5 = iter2;
-    if (iter5 != iter2)
-    {
-      std::cerr << "Iterator operator= failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    const IteratorType iter5 = iter2;
+    ITK_TEST_EXPECT_TRUE(iter5 == iter2);
 
-    IteratorType iter6(7, histogram);
-    if (iter6.GetInstanceIdentifier() != 7)
-    {
-      std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    constexpr itk::Statistics::Sample<HistogramType::MeasurementVectorType>::InstanceIdentifier id2 = 7;
+    const IteratorType                                                                          iter6(id2, histogram);
+    ITK_TEST_EXPECT_EQUAL(iter6.GetInstanceIdentifier(), id2);
   }
 
-  // Testing methods specific to ConstIterators
+  // Test methods specific to ConstIterators
   {
     using ConstIteratorType = HistogramType::ConstIterator;
-    ConstIteratorType iter = histogram->Begin();
-    ConstIteratorType iter2 = histogram->End();
+    const ConstIteratorType iter = histogram->Begin();
+    ConstIteratorType       iter2 = histogram->End();
 
     iter2 = iter;
+    ITK_TEST_EXPECT_TRUE(!(iter != iter2));
+    ITK_TEST_EXPECT_TRUE(iter == iter2);
 
-    if (iter2 != iter)
-    {
-      std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
-      return EXIT_FAILURE;
-    }
-
-    if (!(iter2 == iter))
-    {
-      std::cerr << "ConstIterator operator==() failed" << std::endl;
-      return EXIT_FAILURE;
-    }
-
-    ConstIteratorType iter3(iter2);
-    if (iter3 != iter2)
-    {
-      std::cerr << "ConstIterator copy constructor failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    const ConstIteratorType iter3(iter2);
+    ITK_TEST_EXPECT_TRUE(iter3 == iter2);
 
     const HistogramType * constHistogram = histogram.GetPointer();
 
-    ConstIteratorType iter4(constHistogram->Begin());
-    ConstIteratorType iter5(histogram->Begin());
-    if (iter4 != iter5)
-    {
-      std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
-      return EXIT_FAILURE;
-    }
+    const ConstIteratorType iter4(constHistogram->Begin());
+    const ConstIteratorType iter5(histogram->Begin());
+    ITK_TEST_EXPECT_TRUE(iter5 == iter4);
 
-    ConstIteratorType iter6(constHistogram);
-    ConstIteratorType iter7(histogram);
-    if (iter6 != iter7)
-    {
-      std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
-      return EXIT_FAILURE;
-    }
+    const ConstIteratorType iter6(constHistogram);
+    const ConstIteratorType iter7(histogram);
+    ITK_TEST_EXPECT_TRUE(iter6 == iter7);
 
-    ConstIteratorType iter8(histogram);
-    if (iter8.GetInstanceIdentifier() != 0)
-    {
-      std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    const ConstIteratorType                                                                     iter8(histogram);
+    constexpr itk::Statistics::Sample<HistogramType::MeasurementVectorType>::InstanceIdentifier id3 = 0;
+    ITK_TEST_EXPECT_EQUAL(iter8.GetInstanceIdentifier(), id3);
 
     unsigned int      counter = 0;
     ConstIteratorType iter10(constHistogram);
-    if (iter10 != constHistogram->Begin())
-    {
-      std::cerr << "ConstIterator constructor from histogram failed" << std::endl;
-      return EXIT_FAILURE;
-    }
-
+    ITK_TEST_EXPECT_TRUE(constHistogram->Begin() == iter10);
 
     while (iter10 != constHistogram->End())
     {
@@ -819,11 +680,7 @@ itkHistogramTest(int, char *[])
       counter++;
     }
 
-    if (counter != constHistogram->Size())
-    {
-      std::cerr << "Iterator walk failed" << std::endl;
-      return EXIT_FAILURE;
-    }
+    ITK_TEST_EXPECT_EQUAL(counter, constHistogram->Size());
   }
 
   // Test streaming enumeration for HistogramToRunLengthFeaturesFilterEnums::RunLengthFeature elements
@@ -844,12 +701,7 @@ itkHistogramTest(int, char *[])
     std::cout << "STREAMED ENUM VALUE HistogramToRunLengthFeaturesFilterEnums::RunLengthFeature: " << ee << std::endl;
   }
 
-  if (!pass)
-  {
-    std::cout << "Test failed in " << whereFail << "." << std::endl;
-    return EXIT_FAILURE;
-  }
 
-  std::cout << "Test passed." << std::endl;
-  return EXIT_SUCCESS;
+  std::cout << "Test finished." << std::endl;
+  return pass;
 }

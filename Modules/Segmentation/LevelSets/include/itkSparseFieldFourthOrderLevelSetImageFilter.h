@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -162,19 +162,19 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(SparseFieldFourthOrderLevelSetImageFilter, SparseFieldLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SparseFieldFourthOrderLevelSetImageFilter);
 
   /** Standard image dimension macro. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Typedefs derived from the superclass. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using ValueType = typename Superclass::ValueType;
-  using IndexType = typename Superclass::IndexType;
-  using LayerType = typename Superclass::LayerType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodScalesType = typename Superclass::NeighborhoodScalesType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::LayerType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodScalesType;
 
   /** The storage class used as the node type for the sparse normal vector
       image. */
@@ -215,6 +215,7 @@ public:
   itkSetMacro(NormalProcessConductance, ValueType);
   itkSetMacro(NormalProcessUnsharpFlag, bool);
   itkGetConstReferenceMacro(NormalProcessUnsharpFlag, bool);
+  itkBooleanMacro(NormalProcessUnsharpFlag);
   itkSetMacro(NormalProcessUnsharpWeight, ValueType);
   itkGetConstReferenceMacro(NormalProcessUnsharpWeight, ValueType);
 
@@ -226,10 +227,10 @@ public:
   /** Compute the number of layers that must be used in
       SparseFieldLevelSetImageFilter to accommodate the desired normal
       processing band. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetMinimumNumberOfLayers() const
   {
-    return (int)std::ceil(m_CurvatureBandWidth + Self::ImageDimension);
+    return static_cast<int>(std::ceil(m_CurvatureBandWidth + Self::ImageDimension));
   }
 
   /** This overrides SparseFieldLevelSetImageFilter's SetNumberOfLayers to make
@@ -237,7 +238,7 @@ public:
   void
   SetNumberOfLayers(const unsigned int n) override
   {
-    unsigned int nm = std::max(this->GetMinimumNumberOfLayers(), n);
+    const unsigned int nm = std::max(this->GetMinimumNumberOfLayers(), n);
 
     if (nm != this->GetNumberOfLayers())
     {
@@ -252,7 +253,7 @@ public:
   InitializeIteration() override
   {
     Superclass::InitializeIteration();
-    ValueType rmschange = this->GetRMSChange();
+    const ValueType rmschange = this->GetRMSChange();
 
     if ((this->GetElapsedIterations() == 0) || (m_RefitIteration == m_MaxRefitIteration) ||
         (rmschange <= m_RMSChangeNormalProcessTrigger) || (this->ActiveLayerCheckBand()))
@@ -267,14 +268,10 @@ public:
       ProcessNormals();
     }
 
-    m_RefitIteration++;
+    ++m_RefitIteration;
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<ValueType>));
-  // End concept checking
-#endif
 
 protected:
   SparseFieldFourthOrderLevelSetImageFilter();
@@ -301,57 +298,57 @@ protected:
    * the band where curvature from the processed normal vectors has been
    * computed. This is one of the conditions for triggering the ProcessNormals
    * method. */
-  bool
+  [[nodiscard]] bool
   ActiveLayerCheckBand() const;
 
 private:
   /** This is a iteration counter that gets reset to 0 every time
       ProcessNormals method is called. */
-  unsigned int m_RefitIteration;
+  unsigned int m_RefitIteration{};
 
   /** This parameter determines the maximum number of
       SparseFieldLevelSetImageFilter iterations that will be executed between
       calls to ProcessNormals. */
-  unsigned int m_MaxRefitIteration;
+  unsigned int m_MaxRefitIteration{};
 
   /** This parameter is used to set the corresponding parameter in
-      ImplicitManifoldNormalDiffusionfFilter. */
-  unsigned int m_MaxNormalIteration;
+      ImplicitManifoldNormalDiffusionFilter. */
+  unsigned int m_MaxNormalIteration{};
 
   /** This is used to trigger a call to the ProcessNormals method
       before m_RefitIteration reaches m_MaxRefitIteration if the RMSChange falls
       below this parameter. */
-  ValueType m_RMSChangeNormalProcessTrigger;
+  ValueType m_RMSChangeNormalProcessTrigger{};
 
   /** This flag is set to true to signal final convergence. It can be used by
       subclasses that define a Halt method. */
-  bool m_ConvergenceFlag;
+  bool m_ConvergenceFlag{};
 
   /** The level set function with the term for refitting the level set to the
       processed normal vectors. */
-  LevelSetFunctionType * m_LevelSetFunction;
+  LevelSetFunctionType * m_LevelSetFunction{};
 
   /** This parameter determines the width of the band where we compute
    * curvature from the processed normals. The wider the band, the more level set
    * iterations that can be performed between calls to ProcessNormals. It is
-   * qsuggested that this value is left at its default. */
-  ValueType m_CurvatureBandWidth;
+   * suggested that this value is left at its default. */
+  ValueType m_CurvatureBandWidth{};
 
   /** The parameter that chooses between isotropic/anisotropic filtering of the
       normal vectors. */
-  int m_NormalProcessType;
+  int m_NormalProcessType{};
 
   /** The conductance parameter used if anisotropic filtering of the normal
       vectors is chosen. */
-  ValueType m_NormalProcessConductance;
+  ValueType m_NormalProcessConductance{};
 
   /** The parameter that turns on/off the unsharp mask enhancement of the
       normals. */
-  bool m_NormalProcessUnsharpFlag;
+  bool m_NormalProcessUnsharpFlag{};
 
   /** The weight that controls the extent of enhancement if the
       NormalProcessUnsharpFlag is ON. */
-  ValueType m_NormalProcessUnsharpWeight;
+  ValueType m_NormalProcessUnsharpWeight{};
 
   /** Constants used in the computations. */
   static const SizeValueType m_NumVertex;

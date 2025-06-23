@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ namespace itk
  * and do not necessarily represent the official view of NCRR or NIH.
  *
  * This class was taken from the Insight Journal paper:
- * http://insight-journal.org/browse/publication/128
+ * https://doi.org/10.54294/h4j7t7
  *
  * \sa ComposeImageFilter
  *
@@ -58,19 +58,13 @@ template <typename TInput1, typename TInput2, typename TOutput>
 class MagnitudeAndPhaseToComplex
 {
 public:
-  MagnitudeAndPhaseToComplex() = default;
-  ~MagnitudeAndPhaseToComplex() = default;
   bool
-  operator!=(const MagnitudeAndPhaseToComplex &) const
+  operator==(const MagnitudeAndPhaseToComplex &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const MagnitudeAndPhaseToComplex & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(MagnitudeAndPhaseToComplex);
 
   inline std::complex<TOutput>
   operator()(const TInput1 & A, const TInput2 & B) const
@@ -109,16 +103,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MagnitudeAndPhaseToComplexImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MagnitudeAndPhaseToComplexImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1ConvertibleToDoubleCheck, (Concept::Convertible<InputPixel1Type, double>));
   itkConceptMacro(Input2ConvertibleToDoubleCheck, (Concept::Convertible<InputPixel2Type, double>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   MagnitudeAndPhaseToComplexImageFilter()

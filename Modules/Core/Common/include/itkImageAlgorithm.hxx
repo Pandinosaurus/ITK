@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageAlgorithm_hxx
 #define itkImageAlgorithm_hxx
 
-#include "itkImageAlgorithm.h"
 #include "itkArray.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageScanlineIterator.h"
@@ -37,8 +36,8 @@ ImageAlgorithm::DispatchedCopy(const InputImageType *                       inIm
 {
   if (inRegion.GetSize()[0] == outRegion.GetSize()[0])
   {
-    itk::ImageScanlineConstIterator<InputImageType> it(inImage, inRegion);
-    itk::ImageScanlineIterator<OutputImageType>     ot(outImage, outRegion);
+    itk::ImageScanlineConstIterator it(inImage, inRegion);
+    itk::ImageScanlineIterator      ot(outImage, outRegion);
 
     while (!it.IsAtEnd())
     {
@@ -208,17 +207,17 @@ ImageAlgorithm::EnlargeRegionOverBox(const typename InputImageType::RegionType &
   {
     numberOfInputCorners *= 2;
   }
-  using ContinuousInputIndexType = ContinuousIndex<double, InputImageType::ImageDimension>;
-  using ContinuousOutputIndexType = ContinuousIndex<double, OutputImageType::ImageDimension>;
+  using ContinuousIndexValueType = ContinuousIndex<SpacePrecisionType>::ValueType;
+  using ContinuousInputIndexType = ContinuousIndex<ContinuousIndexValueType, InputImageType::ImageDimension>;
+  using ContinuousOutputIndexType = ContinuousIndex<ContinuousIndexValueType, OutputImageType::ImageDimension>;
 
   std::vector<ContinuousOutputIndexType> outputCorners(numberOfInputCorners);
 
 
   for (unsigned int count = 0; count < numberOfInputCorners; ++count)
   {
-    ContinuousInputIndexType currentInputCornerIndex;
-    currentInputCornerIndex.Fill(0);
-    unsigned int localCount = count;
+    ContinuousInputIndexType currentInputCornerIndex{};
+    unsigned int             localCount = count;
 
     // For each dimension, set the current index to either
     // the highest or lowest index along this dimension.
@@ -241,10 +240,11 @@ ImageAlgorithm::EnlargeRegionOverBox(const typename InputImageType::RegionType &
     }
 
     using InputPointType = Point<SpacePrecisionType, InputImageType::ImageDimension>;
+    const InputPointType inputPoint =
+      inputImage->template TransformContinuousIndexToPhysicalPoint<SpacePrecisionType, ContinuousIndexValueType>(
+        currentInputCornerIndex);
     using OutputPointType = Point<SpacePrecisionType, OutputImageType::ImageDimension>;
-    InputPointType  inputPoint;
-    OutputPointType outputPoint;
-    inputImage->TransformContinuousIndexToPhysicalPoint(currentInputCornerIndex, inputPoint);
+    OutputPointType outputPoint{};
     if (transform != nullptr)
     {
       outputPoint = transform->TransformPoint(inputPoint);
@@ -254,13 +254,13 @@ ImageAlgorithm::EnlargeRegionOverBox(const typename InputImageType::RegionType &
       // if InputDimension < OutputDimension then embed point in Output space.
       // else if InputDimension == OutputDimension copy the points.
       // else if InputDimension > OutputDimension project the point to first N-Dimensions of Output space.
-      outputPoint.Fill(0.0);
-      for (unsigned d = 0; d < std::min(inputPoint.GetPointDimension(), outputPoint.GetPointDimension()); ++d)
+      for (unsigned int d = 0; d < std::min(inputPoint.GetPointDimension(), outputPoint.GetPointDimension()); ++d)
       {
         outputPoint[d] = inputPoint[d];
       }
     }
-    outputImage->TransformPhysicalPointToContinuousIndex(outputPoint, outputCorners[count]);
+    outputCorners[count] =
+      outputImage->template TransformPhysicalPointToContinuousIndex<ContinuousIndexValueType>(outputPoint);
   }
 
   // Compute a rectangular region from the vector of corner indexes

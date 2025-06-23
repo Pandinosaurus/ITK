@@ -13,11 +13,9 @@
 #
 #   vxl-maintainers@lists.sf.net
 
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.16.3)
 if(CMAKE_VERSION VERSION_LESS 3.12.0)
   cmake_policy(VERSION ${CMAKE_VERSION})
-else()
-  cmake_policy(VERSION 3.10.2...3.13.2)
 endif()
 
 if(NOT CMAKE_CXX_STANDARD)
@@ -43,7 +41,7 @@ endif()
 if(NOT CMAKE_C_EXTENSIONS)
   set(CMAKE_C_EXTENSIONS OFF)
 endif()
-set(VALID_C_STANDARDS "90" "99" "11")
+set(VALID_C_STANDARDS "90" "99" "11" "17" "23")
 if(NOT CMAKE_C_STANDARD IN_LIST VALID_C_STANDARDS )
    MESSAGE(FATAL_ERROR "CMAKE_C_STANDARD:STRING=${CMAKE_C_STANDARD} not in know standards list\n ${VALID_C_STANDARDS}.")
 endif()
@@ -55,25 +53,19 @@ foreach(p
     ## Only policies introduced after the cmake_minimum_required
     ## version need to explicitly be set to NEW.
 
-    ##----- Policies Introduced by CMake 3.12
-    CMP0075  #: Include file check macros honor CMAKE_REQUIRED_LIBRARIES.
-    ##----- Policies Introduced by CMake 3.10
-    CMP0071  #: Let AUTOMOC and AUTOUIC process GENERATED files.
     CMP0070  #: Define file(GENERATE) behavior for relative paths.
+    CMP0071  #: Let AUTOMOC and AUTOUIC process GENERATED files.
+    CMP0075  #: Include file check macros honor CMAKE_REQUIRED_LIBRARIES.
     CMP0083  #: Add PIE options when linking executable.
+    CMP0120  #: The WriteCompilerDetectionHeader module is removed.
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
   endif()
 endforeach()
 
-# Temporary fix for ITK 5.2 release.
-if(POLICY CMP0120) #: The WriteCompilerDetectionHeader module is removed.
-  cmake_policy(SET CMP0120 OLD)
-endif()
-
 project(VXL #Project name must be all caps to have properly generated VXL_VERSION_* variables
-    VERSION 3.1.0.0 # defines #MAJOR,MINOR,PATCH,TWEAK}
+    VERSION 5.6.0.0 # defines #MAJOR,MINOR,PATCH,TWEAK}
     DESCRIPTION "A multi-platform collection of C++ software libraries for Computer Vision and Image Understanding."
     LANGUAGES CXX C)
 
@@ -259,7 +251,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/config/cmake/config/VXLIntrospectionConfig.cma
 #-------------------------------------------------------------------
 # This block should come after VXLIntrospectionConfig.cmake has been executed.
 if(VCL_HAS_LFS OR WIN32)
-  option( VXL_USE_LFS "Should VXL use Large File Support?" NO)
+  option( VXL_USE_LFS "Should VXL use Large File Support?" OFF)
   mark_as_advanced( VXL_USE_LFS )
 endif()
 
@@ -267,13 +259,13 @@ if(VXL_USE_LFS)
   if(WIN32)
     # TODO: MS Version Support
     #  message( SEND_ERROR "Sorry - Large File Support is not quite working on Win32 yet. Turning VXL_USE_LFS off")
-    #  set(VXL_USE_LFS "NO" CACHE BOOL "Should VXL use Large File Support?" FORCE)
+    #  set(VXL_USE_LFS OFF CACHE BOOL "Should VXL use Large File Support?" FORCE)
   else()
     if(VCL_HAS_LFS)
       add_definitions( -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
     else()
       message( SEND_ERROR "This platform does not have Large File Support - turning VXL_USE_LFS off")
-      set(VXL_USE_LFS "NO" CACHE BOOL "Should VXL use Large File Support?" FORCE)
+      set(VXL_USE_LFS OFF CACHE BOOL "Should VXL use Large File Support?" FORCE)
     endif()
   endif()
 endif()
@@ -300,7 +292,7 @@ mark_as_advanced(VXL_BUILD_NONDEPRECATED_ONLY)
 CMAKE_DEPENDENT_OPTION(VXL_BUILD_CORE_PROBABILITY "Build VXL's probability libraries (Experimental)" ON
                        "VXL_BUILD_CORE_NUMERICS;NOT VXL_BUILD_CORE_NUMERICS_ONLY" OFF)
 
-option(VXL_USE_GEOTIFF "Use the GEOTIFF Library if available" True)
+option(VXL_USE_GEOTIFF "Use the GEOTIFF Library if available" ON)
 mark_as_advanced(VXL_USE_GEOTIFF)
 
 # Build the core vxl + support libraries

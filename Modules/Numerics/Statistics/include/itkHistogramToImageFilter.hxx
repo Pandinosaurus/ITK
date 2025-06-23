@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,18 @@
 #ifndef itkHistogramToImageFilter_hxx
 #define itkHistogramToImageFilter_hxx
 
-#include "itkHistogramToImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 
 namespace itk
 {
-/** Constructor */
+
 template <typename THistogram, typename TImage, typename TFunction>
 HistogramToImageFilter<THistogram, TImage, TFunction>::HistogramToImageFilter()
 {
   this->SetNumberOfRequiredInputs(1);
 }
 
-/** Set the Input Histogram */
 template <typename THistogram, typename TImage, typename TFunction>
 void
 HistogramToImageFilter<THistogram, TImage, TFunction>::SetInput(const HistogramType * input)
@@ -42,8 +40,8 @@ HistogramToImageFilter<THistogram, TImage, TFunction>::SetInput(const HistogramT
 }
 
 template <typename THistogram, typename TImage, typename TFunction>
-const typename HistogramToImageFilter<THistogram, TImage, TFunction>::HistogramType *
-HistogramToImageFilter<THistogram, TImage, TFunction>::GetInput()
+auto
+HistogramToImageFilter<THistogram, TImage, TFunction>::GetInput() -> const HistogramType *
 {
   return itkDynamicCastInDebugMode<const HistogramType *>(this->GetPrimaryInput());
 }
@@ -61,11 +59,9 @@ HistogramToImageFilter<THistogram, TImage, TFunction>::SetTotalFrequency(SizeVal
   {
     return;
   }
-  else
-  {
-    this->GetFunctor().SetTotalFrequency(n);
-    this->Modified();
-  }
+
+  this->GetFunctor().SetTotalFrequency(n);
+  this->Modified();
 }
 
 template <typename THistogram, typename TImage, typename TFunction>
@@ -87,8 +83,8 @@ HistogramToImageFilter<THistogram, TImage, TFunction>::GenerateOutputInformation
   SpacingType spacing;
   // Set the image size to the number of bins along each dimension.
   // TODO: is it possible to have a size 0 on one of the dimension? if yes, the size must be checked
-  unsigned int minDim = std::min((unsigned int)ImageDimension, inputHistogram->GetMeasurementVectorSize());
-  for (unsigned int i = 0; i < minDim; i++)
+  const unsigned int minDim = std::min(ImageDimension, inputHistogram->GetMeasurementVectorSize());
+  for (unsigned int i = 0; i < minDim; ++i)
   {
     size[i] = inputHistogram->GetSize(i);
     origin[i] = inputHistogram->GetMeasurement(0, i);
@@ -96,7 +92,7 @@ HistogramToImageFilter<THistogram, TImage, TFunction>::GenerateOutputInformation
   }
 
   // if the image is of greater dimension than the histogram, use some default values
-  for (unsigned int i = inputHistogram->GetMeasurementVectorSize(); i < ImageDimension; i++)
+  for (unsigned int i = inputHistogram->GetMeasurementVectorSize(); i < ImageDimension; ++i)
   {
     size[i] = 1;
     origin[i] = 0.0;
@@ -112,14 +108,11 @@ HistogramToImageFilter<THistogram, TImage, TFunction>::GenerateOutputInformation
   outputImage->SetOrigin(origin);   // and origin
 }
 
-//----------------------------------------------------------------------------
-
-/** Update */
 template <typename THistogram, typename TImage, typename TFunction>
 void
 HistogramToImageFilter<THistogram, TImage, TFunction>::GenerateData()
 {
-  itkDebugMacro(<< "HistogramToImageFilter::Update() called");
+  itkDebugMacro("HistogramToImageFilter::Update() called");
 
   this->AllocateOutputs();
 

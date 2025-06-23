@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -145,16 +145,10 @@ main(int argc, char * argv[])
     itk::ImageSliceConstIteratorWithIndex<ImageType3D>;
   // Software Guide : EndCodeSnippet
 
-  using ReaderType = itk::ImageFileReader<ImageType3D>;
-  using WriterType = itk::ImageFileWriter<ImageType2D>;
-
   ImageType3D::ConstPointer inputImage;
-  ReaderType::Pointer       reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
   try
   {
-    reader->Update();
-    inputImage = reader->GetOutput();
+    inputImage = itk::ReadImage<ImageType3D>(argv[1]);
   }
   catch (const itk::ExceptionObject & err)
   {
@@ -173,11 +167,10 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  auto projectionDirection = static_cast<unsigned int>(::std::stoi(argv[3]));
+  auto projectionDirection = static_cast<unsigned int>(std::stoi(argv[3]));
 
-  unsigned int i, j;
   unsigned int direction[2];
-  for (i = 0, j = 0; i < 3; ++i)
+  for (unsigned int i = 0, j = 0; i < 3; ++i)
   {
     if (i != projectionDirection)
     {
@@ -186,7 +179,6 @@ main(int argc, char * argv[])
     }
   }
   // Software Guide : EndCodeSnippet
-
 
   // Software Guide : BeginLatex
   //
@@ -205,7 +197,8 @@ main(int argc, char * argv[])
   ImageType2D::RegionType::SizeType  size;
   ImageType2D::RegionType::IndexType index;
 
-  ImageType3D::RegionType requestedRegion = inputImage->GetRequestedRegion();
+  const ImageType3D::RegionType requestedRegion =
+    inputImage->GetRequestedRegion();
 
   index[direction[0]] = requestedRegion.GetIndex()[direction[0]];
   index[1 - direction[0]] = requestedRegion.GetIndex()[direction[1]];
@@ -215,7 +208,7 @@ main(int argc, char * argv[])
   region.SetSize(size);
   region.SetIndex(index);
 
-  ImageType2D::Pointer outputImage = ImageType2D::New();
+  auto outputImage = ImageType2D::New();
 
   outputImage->SetRegions(region);
   outputImage->Allocate();
@@ -286,12 +279,9 @@ main(int argc, char * argv[])
   }
   // Software Guide : EndCodeSnippet
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(argv[2]);
-  writer->SetInput(outputImage);
   try
   {
-    writer->Update();
+    itk::WriteImage(outputImage, argv[2]);
   }
   catch (const itk::ExceptionObject & err)
   {

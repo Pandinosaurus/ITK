@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,6 +59,7 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   std::cout << argc << std::endl;
   unsigned int numberOfAffineIterations = 2;
   unsigned int numberOfDisplacementIterations = 2;
+  bool         useScalesEstimator = true;
   if (argc >= 5)
   {
     numberOfAffineIterations = std::stoi(argv[4]);
@@ -66,6 +67,10 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   if (argc >= 6)
   {
     numberOfDisplacementIterations = std::stoi(argv[5]);
+  }
+  if (argc >= 7)
+  {
+    useScalesEstimator = std::stoi(argv[6]);
   }
   std::cout << " affine iterations " << numberOfAffineIterations << " displacementIterations "
             << numberOfDisplacementIterations << std::endl;
@@ -82,38 +87,38 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
 
-  FixedImageReaderType::Pointer  fixedImageReader = FixedImageReaderType::New();
-  MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
 
   fixedImageReader->SetFileName(argv[1]);
   movingImageReader->SetFileName(argv[2]);
 
   // get the images
   fixedImageReader->Update();
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   movingImageReader->Update();
-  MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
 
   /** define a resample filter that will ultimately be used to deform the image */
   using ResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   /** create a composite transform holder for other transforms  */
   using CompositeType = itk::CompositeTransform<double, Dimension>;
 
-  CompositeType::Pointer compositeTransform = CompositeType::New();
+  auto compositeTransform = CompositeType::New();
 
   // create an affine transform
   using AffineTransformType = itk::AffineTransform<double, Dimension>;
-  AffineTransformType::Pointer affineTransform = AffineTransformType::New();
+  auto affineTransform = AffineTransformType::New();
   affineTransform->SetIdentity();
   std::cout << " affineTransform params prior to optimization " << affineTransform->GetParameters() << std::endl;
 
   using DisplacementTransformType = itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<double, Dimension>;
-  DisplacementTransformType::Pointer displacementTransform = DisplacementTransformType::New();
+  auto displacementTransform = DisplacementTransformType::New();
 
   using DisplacementFieldType = DisplacementTransformType::DisplacementFieldType;
-  DisplacementFieldType::Pointer field = DisplacementFieldType::New();
+  auto field = DisplacementFieldType::New();
 
   // set the field to be the same as the fixed image region, which will
   // act by default as the virtual domain in this example.
@@ -123,8 +128,7 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   std::cout << "fixedImage->GetLargestPossibleRegion(): " << fixedImage->GetLargestPossibleRegion() << std::endl;
   field->Allocate();
   // Fill it with 0's
-  DisplacementTransformType::OutputVectorType zeroVector;
-  zeroVector.Fill(0);
+  constexpr DisplacementTransformType::OutputVectorType zeroVector{};
   field->FillBuffer(zeroVector);
   // Assign to transform
   displacementTransform->SetDisplacementField(field);
@@ -133,7 +137,7 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
 
   // identity transform for fixed image
   using IdentityTransformType = itk::IdentityTransform<double, Dimension>;
-  IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+  auto identityTransform = IdentityTransformType::New();
   identityTransform->SetIdentity();
 
   // The metric
@@ -143,11 +147,12 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   using MetricType =
     itk::MeanSquaresImageToImageMetricv4<FixedImageType, MovingImageType, VirtualImageType, double, MetricTraitsType>;
   using PointSetType = MetricType::FixedSampledPointSetType;
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   using PointType = PointSetType::PointType;
-  PointSetType::Pointer                             pset(PointSetType::New());
-  unsigned long                                     ind = 0, ct = 0;
+  const PointSetType::Pointer                       pset(PointSetType::New());
+  unsigned long                                     ind = 0;
+  unsigned long                                     ct = 0;
   itk::ImageRegionIteratorWithIndex<FixedImageType> It(fixedImage, fixedImage->GetLargestPossibleRegion());
 
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
@@ -176,13 +181,13 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   metric->SetMovingImage(movingImage);
   metric->SetFixedTransform(identityTransform);
   metric->SetMovingTransform(affineTransform);
-  const bool gaussian = false;
+  constexpr bool gaussian = false;
   metric->SetUseMovingImageGradientFilter(gaussian);
   metric->SetUseFixedImageGradientFilter(gaussian);
   metric->Initialize();
 
   using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift<MetricType>;
-  RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+  const RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric(metric);
 
@@ -191,13 +196,13 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   //
   std::cout << "First do an affine registration " << std::endl;
   using OptimizerType = itk::GradientDescentOptimizerv4;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfAffineIterations);
   optimizer->SetScalesEstimator(shiftScaleEstimator);
   optimizer->StartOptimization();
 
-  std::cout << "Number of threads: metric: " << metric->GetNumberOfWorkUnitsUsed()
+  std::cout << "Number of work units: metric: " << metric->GetNumberOfWorkUnitsUsed()
             << " optimizer: " << optimizer->GetNumberOfWorkUnits() << std::endl;
   std::cout << "GetNumberOfSkippedFixedSampledPoints: " << metric->GetNumberOfSkippedFixedSampledPoints() << std::endl;
 
@@ -218,7 +223,8 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   RegistrationParameterScalesFromShiftType::ScalesType displacementScales(
     displacementTransform->GetNumberOfLocalParameters());
   displacementScales.Fill(1);
-  if (false)
+
+  if (!useScalesEstimator)
   {
     optimizer->SetScales(displacementScales);
   }
@@ -226,6 +232,7 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   {
     optimizer->SetScalesEstimator(shiftScaleEstimator);
   }
+
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfDisplacementIterations);
   try
@@ -277,17 +284,17 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   resample->SetOutputOrigin(fixedImage->GetOrigin());
   resample->SetOutputSpacing(fixedImage->GetSpacing());
   resample->SetOutputDirection(fixedImage->GetDirection());
-  resample->SetDefaultPixelValue(itk::NumericTraits<FixedImageType::PixelType::ValueType>::ZeroValue());
+  resample->SetDefaultPixelValue(FixedImageType::PixelType{});
   resample->Update();
 
   // write out the displacement field
   using DisplacementWriterType = itk::ImageFileWriter<DisplacementFieldType>;
-  DisplacementWriterType::Pointer displacementwriter = DisplacementWriterType::New();
-  std::string                     outfilename(argv[3]);
-  std::string                     ext = itksys::SystemTools::GetFilenameExtension(outfilename);
-  std::string                     name = itksys::SystemTools::GetFilenameWithoutExtension(outfilename);
-  std::string                     path = itksys::SystemTools::GetFilenamePath(outfilename);
-  std::string                     defout = path + std::string("/") + name + std::string("_def") + ext;
+  auto              displacementwriter = DisplacementWriterType::New();
+  const std::string outfilename(argv[3]);
+  const std::string ext = itksys::SystemTools::GetFilenameExtension(outfilename);
+  const std::string name = itksys::SystemTools::GetFilenameWithoutExtension(outfilename);
+  const std::string path = itksys::SystemTools::GetFilenamePath(outfilename);
+  const std::string defout = path + std::string("/") + name + std::string("_def") + ext;
   displacementwriter->SetFileName(defout.c_str());
   displacementwriter->SetInput(displacementTransform->GetDisplacementField());
   displacementwriter->Update();
@@ -297,8 +304,8 @@ itkMeanSquaresImageToImageMetricv4VectorRegistrationTest(int argc, char * argv[]
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
   using CastFilterType = itk::CastImageFilter<MovingImageType, OutputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
   writer->SetFileName(argv[3]);
   caster->SetInput(resample->GetOutput());
   writer->SetInput(caster->GetOutput());

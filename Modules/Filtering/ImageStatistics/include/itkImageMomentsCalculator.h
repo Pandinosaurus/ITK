@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,8 +71,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageMomentsCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageMomentsCalculator);
 
   /** Extract the dimension of the image. */
   static constexpr unsigned int ImageDimension = TImage::ImageDimension;
@@ -217,17 +217,17 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  bool       m_Valid; // Have moments been computed yet?
-  ScalarType m_M0;    // Zeroth moment
-  VectorType m_M1;    // First moments about origin
-  MatrixType m_M2;    // Second moments about origin
-  VectorType m_Cg;    // Center of gravity (physical units)
-  MatrixType m_Cm;    // Second central moments (physical)
-  VectorType m_Pm;    // Principal moments (physical)
-  MatrixType m_Pa;    // Principal axes (physical)
+  bool       m_Valid{}; // Have moments been computed yet?
+  ScalarType m_M0{};    // Zeroth moment
+  VectorType m_M1{};    // First moments about origin
+  MatrixType m_M2{};    // Second moments about origin
+  VectorType m_Cg{};    // Center of gravity (physical units)
+  MatrixType m_Cm{};    // Second central moments (physical)
+  VectorType m_Pm{};    // Principal moments (physical)
+  MatrixType m_Pa{};    // Principal axes (physical)
 
-  ImageConstPointer         m_Image;
-  SpatialObjectConstPointer m_SpatialObjectMask;
+  ImageConstPointer         m_Image{};
+  SpatialObjectConstPointer m_SpatialObjectMask{};
 }; // class ImageMomentsCalculator
 } // end namespace itk
 

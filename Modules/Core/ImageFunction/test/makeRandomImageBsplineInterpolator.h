@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@
  *
  *=========================================================================*/
 
-#ifndef __makeRandomImageBsplineInterpolator_h
-#define __makeRandomImageBsplineInterpolator_h
+#ifndef makeRandomImageBsplineInterpolator_h
+#define makeRandomImageBsplineInterpolator_h
 
 #include "itkBSplineResampleImageFunction.h"
 #include "itkRandomImageSource.h"
@@ -30,7 +30,7 @@ makeRandomImageInterpolator(const int SplineOrder)
   /** Generate a random input image and connect to BSpline decomposition filter */
 
   using SourceType = itk::RandomImageSource<ImageType>;
-  typename SourceType::Pointer source = SourceType::New();
+  const typename SourceType::Pointer source = SourceType::New();
   {
     using DirectionType = typename ImageType::DirectionType;
     DirectionType nonTrivialDirection;
@@ -44,27 +44,24 @@ makeRandomImageInterpolator(const int SplineOrder)
   }
   {
     using SpacingType = typename ImageType::SpacingType;
-    SpacingType spacing;
-    spacing.Fill(2.0);
+    auto spacing = itk::MakeFilled<SpacingType>(2.0);
     source->SetSpacing(spacing);
   }
   {
     using PointType = typename ImageType::PointType;
-    PointType origin;
-    origin.Fill(10.0);
+    auto origin = itk::MakeFilled<PointType>(10.0);
     source->SetOrigin(origin);
   }
   {
     using SizeType = typename ImageType::SizeType;
-    SizeType size;
-    size.Fill(32);
+    auto size = SizeType::Filled(32);
     source->SetSize(size);
   }
 
   source->SetMin(0.0);
   source->SetMax(10.0);
   source->Update();
-  typename ImageType::Pointer randImage = source->GetOutput();
+  const typename ImageType::Pointer randImage = source->GetOutput();
 
   /** Set up a BSplineInterpolateImageFunction for comparison. */
 

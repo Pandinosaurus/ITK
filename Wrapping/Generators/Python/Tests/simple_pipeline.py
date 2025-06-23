@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ itk.auto_progress(2)
 
 # first argument is the pixel type
 PType = getattr(itk, sys.argv[1])
-# second arguement the image dimension
+# second argument the image dimension
 dim = int(sys.argv[2])
 
 # get the image type

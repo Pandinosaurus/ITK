@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkStochasticFractalDimensionImageFilter_hxx
 #define itkStochasticFractalDimensionImageFilter_hxx
 
-#include "itkStochasticFractalDimensionImageFilter.h"
 
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkProgressReporter.h"
@@ -29,10 +28,9 @@ namespace itk
 {
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::StochasticFractalDimensionImageFilter()
+  : m_MaskImage(nullptr)
 {
   this->m_NeighborhoodRadius.Fill(2);
-
-  this->m_MaskImage = nullptr;
 }
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -47,8 +45,9 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Se
 }
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
-const typename StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::MaskImageType *
+auto
 StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::GetMaskImage() const
+  -> const MaskImageType *
 {
   const auto * maskImage = dynamic_cast<const MaskImageType *>(this->ProcessObject::GetInput(1));
 
@@ -76,13 +75,11 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
 
   typename FaceCalculatorType::FaceListType faceList = faceCalculator(inputImage, region, this->m_NeighborhoodRadius);
 
-  typename FaceCalculatorType::FaceListType::iterator fit;
-
   typename InputImageType::SpacingType spacing = inputImage->GetSpacing();
 
   RealType minSpacing = spacing[0];
 
-  for (unsigned int d = 0; d < ImageDimension; d++)
+  for (unsigned int d = 0; d < ImageDimension; ++d)
   {
     if (spacing[d] < minSpacing)
     {
@@ -94,7 +91,7 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
   std::vector<RealType> distancesFrequency;
   std::vector<RealType> averageAbsoluteIntensityDifference;
 
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (auto fit = faceList.begin(); fit != faceList.end(); ++fit)
   {
     ConstNeighborhoodIteratorType It(this->m_NeighborhoodRadius, inputImage, *fit);
 
@@ -104,7 +101,7 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
     {
       if (this->m_MaskImage && !this->m_MaskImage->GetPixel(It.GetIndex()))
       {
-        ItO.SetCenterPixel(NumericTraits<OutputPixelType>::ZeroValue());
+        ItO.SetCenterPixel(OutputPixelType{});
         progress.CompletedPixel();
         continue;
       }
@@ -113,9 +110,9 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
       distancesFrequency.clear();
       averageAbsoluteIntensityDifference.clear();
 
-      for (unsigned int i = 0; i < It.GetNeighborhood().Size(); i++)
+      for (unsigned int i = 0; i < It.GetNeighborhood().Size(); ++i)
       {
-        bool           IsInBounds1;
+        bool           IsInBounds1 = false;
         InputPixelType pixel1 = It.GetPixel(i, IsInBounds1);
 
         if (!IsInBounds1)
@@ -128,14 +125,14 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
           PointType point1;
           inputImage->TransformIndexToPhysicalPoint(It.GetIndex(i), point1);
 
-          for (unsigned int j = 0; j < It.GetNeighborhood().Size(); j++)
+          for (unsigned int j = 0; j < It.GetNeighborhood().Size(); ++j)
           {
             if (i == j)
             {
               continue;
             }
 
-            bool           IsInBounds2;
+            bool           IsInBounds2 = false;
             InputPixelType pixel2 = It.GetPixel(j, IsInBounds2);
 
             if (!IsInBounds2)
@@ -151,7 +148,7 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
               const RealType distance = point1.SquaredEuclideanDistanceTo(point2);
 
               bool distanceFound = false;
-              for (unsigned int k = 0; k < distances.size(); k++)
+              for (unsigned int k = 0; k < distances.size(); ++k)
               {
                 if (itk::Math::abs(distances[k] - distance) < 0.5 * minSpacing)
                 {
@@ -178,7 +175,7 @@ StochasticFractalDimensionImageFilter<TInputImage, TMaskImage, TOutputImage>::Ge
       RealType sumXY = 0.0;
       RealType sumXX = 0.0;
 
-      for (unsigned int k = 0; k < distances.size(); k++)
+      for (unsigned int k = 0; k < distances.size(); ++k)
       {
         if (distancesFrequency[k] == 0)
         {

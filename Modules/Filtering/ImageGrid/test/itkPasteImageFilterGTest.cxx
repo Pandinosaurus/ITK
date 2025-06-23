@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@
 #include "itkPasteImageFilter.h"
 #include "itkVectorImage.h"
 
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 #include "itkTestingHashImageFilter.h"
 
 namespace
@@ -45,7 +45,7 @@ protected:
   {
 
     using HashFilter = itk::Testing::HashImageFilter<TImageType>;
-    typename HashFilter::Pointer hasher = HashFilter::New();
+    auto hasher = HashFilter::New();
     hasher->SetInput(image);
     hasher->InPlaceOff();
     hasher->Update();
@@ -55,8 +55,6 @@ protected:
   template <typename TInputImage, typename TSourceImage = TInputImage>
   struct FixtureUtilities
   {
-    static const unsigned int Dimension = TInputImage::ImageDimension;
-
     using PixelType = typename TInputImage::PixelType;
     using OutputPixelType = PixelType;
     using InputImageType = TInputImage;
@@ -78,10 +76,9 @@ protected:
     static typename TImage::Pointer
     CreateImageT(unsigned int size = 100)
     {
-      typename TImage::Pointer image = TImage::New();
+      auto image = TImage::New();
 
-      typename TImage::SizeType imageSize;
-      imageSize.Fill(size);
+      auto imageSize = TImage::SizeType::Filled(size);
       image->SetRegions(typename TImage::RegionType(imageSize));
       image->Allocate();
       image->FillBuffer(0);
@@ -180,7 +177,11 @@ TEST_F(PasteFixture, ConstantPaste3_2)
   filter->SetDestinationImage(inputImage);
 
   filter->SetDestinationIndex({ { 11, 13, 17 } });
-  filter->SetDestinationSkipAxes(SkipType{ { { true, false, false } } });
+
+  SkipType destinationSkipAxes{ { { true, false, false } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->SetSourceRegion(Utils::SourceSizeType{ { 5, 6 } });
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("dfdbfe702adeccece580c5e0795d8f0a", MD5Hash(filter->GetOutput()));
@@ -189,20 +190,32 @@ TEST_F(PasteFixture, ConstantPaste3_2)
 
 
   filter->SetDestinationIndex({ { 11, 13, 17 } });
-  filter->SetDestinationSkipAxes(SkipType{ { { false, false, true } } });
+
+  destinationSkipAxes = SkipType{ { { false, false, true } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->SetSourceRegion(Utils::SourceSizeType{ { 5, 6 } });
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("7bca1328ead4ab2c6b89e1cdd1e3fdad", MD5Hash(filter->GetOutput()));
 
   filter->SetDestinationIndex({ { 11, 13, 17 } });
-  filter->SetDestinationSkipAxes(SkipType{ { { false, false, true } } });
+
+  destinationSkipAxes = SkipType{ { { false, false, true } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->SetSourceRegion(Utils::SourceSizeType{ { 5, 6 } });
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("7bca1328ead4ab2c6b89e1cdd1e3fdad", MD5Hash(filter->GetOutput()));
 
 
   filter->SetDestinationIndex({ { 11, 13, 17 } });
-  filter->SetDestinationSkipAxes(SkipType{ { { true, false, false } } });
+
+  destinationSkipAxes = SkipType{ { { true, false, false } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->SetSourceRegion(Utils::SourceSizeType{ { 1, 1 } });
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("2e40b486120da8d8a225d9ab505bc580", MD5Hash(filter->GetOutput()));
@@ -210,15 +223,23 @@ TEST_F(PasteFixture, ConstantPaste3_2)
 
   filter->SetDestinationIndex({ { 11, 13, 17 } });
   filter->SetSourceRegion(Utils::SourceSizeType{ { 1, 1 } });
-  filter->SetDestinationSkipAxes(SkipType{ { { true, true, true } } });
+
+  destinationSkipAxes = SkipType{ { { true, true, true } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   EXPECT_THROW(filter->VerifyPreconditions(), itk::ExceptionObject);
 
+  destinationSkipAxes = SkipType{ { { false, true, true } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
 
-  filter->SetDestinationSkipAxes(SkipType{ { { false, true, true } } });
   EXPECT_THROW(filter->VerifyPreconditions(), itk::ExceptionObject);
 
+  destinationSkipAxes = SkipType{ { { true, true, false } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
 
-  filter->SetDestinationSkipAxes(SkipType{ { { true, true, false } } });
   EXPECT_THROW(filter->VerifyPreconditions(), itk::ExceptionObject);
 }
 TEST_F(PasteFixture, InPlace)
@@ -296,18 +317,27 @@ TEST_F(PasteFixture, Paste3_2)
   filter->SetDestinationIndex({ { 11, 13, 17 } });
   filter->SetSourceRegion(sourceImage->GetLargestPossibleRegion());
 
-  filter->SetDestinationSkipAxes(SkipType{ { { true, false, false } } });
+  SkipType destinationSkipAxes{ { { true, false, false } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("753e433a43ab8fcf3d2ef0f8c78aef35", MD5Hash(filter->GetOutput()));
   EXPECT_EQ(0, filter->GetOutput()->GetPixel({ { 12, 13, 17 } }));
 
-  filter->SetDestinationSkipAxes(SkipType{ { { false, true, false } } });
+  destinationSkipAxes = SkipType{ { { false, true, false } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ(0, filter->GetOutput()->GetPixel({ { 11, 14, 17 } }));
   EXPECT_EQ("44bd0a10b89c58fd306beee6148fdb4d", MD5Hash(filter->GetOutput()));
 
 
-  filter->SetDestinationSkipAxes(SkipType{ { { false, false, true } } });
+  destinationSkipAxes = SkipType{ { { false, false, true } } };
+  filter->SetDestinationSkipAxes(destinationSkipAxes);
+  EXPECT_EQ(destinationSkipAxes, filter->GetDestinationSkipAxes());
+
   filter->UpdateLargestPossibleRegion();
   EXPECT_EQ("ce630d54304b6eba8cd73ec9617d2cf4", MD5Hash(filter->GetOutput()));
   EXPECT_EQ(0, filter->GetOutput()->GetPixel({ { 11, 13, 18 } }));

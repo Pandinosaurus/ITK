@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ public:
   using ObjectType = TObjectType;
 
   template <typename T>
-  using EnableIfConvertible = typename std::enable_if<std::is_convertible<T *, TObjectType *>::value>;
+  using EnableIfConvertible = typename std::enable_if<std::is_convertible_v<T *, TObjectType *>>;
 
   /** Default-constructor  */
   constexpr SmartPointer() noexcept = default;
@@ -103,24 +103,36 @@ public:
   ~SmartPointer() { this->UnRegister(); }
 
   /** Overload operator ->  */
-  ObjectType * operator->() const noexcept { return m_Pointer; }
+  ObjectType *
+  operator->() const noexcept
+  {
+    return m_Pointer;
+  }
 
-  ObjectType & operator*() const noexcept { return *m_Pointer; }
+  ObjectType &
+  operator*() const noexcept
+  {
+    return *m_Pointer;
+  }
 
-  explicit operator bool() const noexcept { return m_Pointer != nullptr; }
+  explicit
+  operator bool() const noexcept
+  {
+    return m_Pointer != nullptr;
+  }
 
   /** Return pointer to object.  */
   operator ObjectType *() const noexcept { return m_Pointer; }
 
   /** Test if the pointer is not NULL. */
-  bool
+  [[nodiscard]] bool
   IsNotNull() const noexcept
   {
     return m_Pointer != nullptr;
   }
 
   /** Test if the pointer is NULL. */
-  bool
+  [[nodiscard]] bool
   IsNull() const noexcept
   {
     return m_Pointer == nullptr;
@@ -128,11 +140,20 @@ public:
 
 
   /** Access function to pointer. */
-  ObjectType *
+  [[nodiscard]] ObjectType *
   GetPointer() const noexcept
   {
     return m_Pointer;
   }
+
+  /** Returns the stored (raw) pointer. Equivalent to `GetPointer()`, but then following the Standard C++ Library naming
+   * conversion (like `std::shared_ptr::get()`). */
+  [[nodiscard]] ObjectType *
+  get() const noexcept
+  {
+    return m_Pointer;
+  }
+
 
   /** Overload operator assignment.
    *
@@ -140,6 +161,7 @@ public:
    * Additionally, it relies on constructors for additional conversion
    * for pointer types.
    */
+  /** @ITKStartGrouping */
   // cppcheck-suppress operatorEqVarError
   SmartPointer &
   operator=(SmartPointer r) noexcept
@@ -151,12 +173,14 @@ public:
     return *this;
   }
 
-  SmartPointer & operator=(std::nullptr_t) noexcept
+  SmartPointer &
+  operator=(std::nullptr_t) noexcept
   {
     this->UnRegister();
     this->m_Pointer = nullptr;
     return *this;
   }
+  /** @ITKEndGrouping */
 
   /** Function to print object pointed to  */
   ObjectType *
@@ -169,7 +193,7 @@ public:
     else
     {
       // This prints the object pointed to by the pointer
-      (*m_Pointer).Print(os);
+      m_Pointer->Print(os);
     }
     return m_Pointer;
   }
@@ -218,6 +242,7 @@ private:
 
 
 /** Comparison of pointers. Equality comparison. */
+/** @ITKStartGrouping */
 template <class T, class TU>
 bool
 operator==(const SmartPointer<T> & l, const SmartPointer<TU> & r) noexcept
@@ -236,8 +261,9 @@ operator==(std::nullptr_t, const SmartPointer<T> & r) noexcept
 {
   return (nullptr == r.GetPointer());
 }
-
+/** @ITKEndGrouping */
 /** Comparison of pointers. Not equal comparison. */
+/** @ITKStartGrouping */
 template <class T, class TU>
 bool
 operator!=(const SmartPointer<T> & l, const SmartPointer<TU> & r) noexcept
@@ -256,7 +282,7 @@ operator!=(std::nullptr_t, const SmartPointer<T> & r) noexcept
 {
   return (nullptr != r.GetPointer());
 }
-
+/** @ITKEndGrouping */
 
 /** Comparison of pointers. Less than comparison.  */
 template <class T, class TU>

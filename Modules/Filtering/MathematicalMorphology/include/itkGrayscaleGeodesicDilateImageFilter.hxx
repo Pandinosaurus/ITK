@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,6 @@
 
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkNumericTraits.h"
-#include "itkGrayscaleGeodesicDilateImageFilter.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkProgressAccumulator.h"
 #include "itkProgressReporter.h"
@@ -35,11 +34,9 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GrayscaleGeodesicDilateImageFilter()
+
 {
-  m_RunOneIteration = false; // run to convergence
-  m_NumberOfIterationsUsed = 0;
   this->SetNumberOfRequiredInputs(2);
-  m_FullyConnected = false;
   this->DynamicMultiThreadingOn();
 }
 
@@ -52,8 +49,8 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::SetMarkerImage(co
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::MarkerImageType *
-GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GetMarkerImage()
+auto
+GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GetMarkerImage() -> const MarkerImageType *
 {
   return this->GetInput(0);
 }
@@ -67,8 +64,8 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::SetMaskImage(cons
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::MaskImageType *
-GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GetMaskImage()
+auto
+GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GetMaskImage() -> const MaskImageType *
 {
   return this->GetInput(1);
 }
@@ -81,9 +78,9 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateInputRequ
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the inputs
-  MarkerImagePointer markerPtr = const_cast<MarkerImageType *>(this->GetInput(0));
+  const MarkerImagePointer markerPtr = const_cast<MarkerImageType *>(this->GetInput(0));
 
-  MaskImagePointer maskPtr = const_cast<MaskImageType *>(this->GetInput(1));
+  const MaskImagePointer maskPtr = const_cast<MaskImageType *>(this->GetInput(1));
 
   if (!markerPtr || !maskPtr)
   {
@@ -108,8 +105,7 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateInputRequ
 
     // get a copy of the marker image requested region (should equal
     // the output requested region)
-    MarkerImageRegionType markerRequestedRegion;
-    markerRequestedRegion = markerPtr->GetRequestedRegion();
+    MarkerImageRegionType markerRequestedRegion = markerPtr->GetRequestedRegion();
 
     // pad the marker requested region by the elementary operator radius
     markerRequestedRegion.PadByRadius(1);
@@ -120,22 +116,20 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateInputRequ
       markerPtr->SetRequestedRegion(markerRequestedRegion);
       return;
     }
-    else
-    {
-      // Couldn't crop the region (requested region is outside the largest
-      // possible region).  Throw an exception.
 
-      // store what we tried to request (prior to trying to crop)
-      markerPtr->SetRequestedRegion(markerRequestedRegion);
+    // Couldn't crop the region (requested region is outside the largest
+    // possible region).  Throw an exception.
 
-      // build an exception
-      InvalidRequestedRegionError e(__FILE__, __LINE__);
-      e.SetLocation(ITK_LOCATION);
-      e.SetDescription(
-        "Requested region for the marker image is (at least partially) outside the largest possible region.");
-      e.SetDataObject(markerPtr);
-      throw e;
-    }
+    // store what we tried to request (prior to trying to crop)
+    markerPtr->SetRequestedRegion(markerRequestedRegion);
+
+    // build an exception
+    InvalidRequestedRegionError e(__FILE__, __LINE__);
+    e.SetLocation(ITK_LOCATION);
+    e.SetDescription(
+      "Requested region for the marker image is (at least partially) outside the largest possible region.");
+    e.SetDataObject(markerPtr);
+    throw e;
   }
   else
   {
@@ -181,8 +175,7 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateData()
   // separately. For efficiency, we will delegate to an instance that
   // is templated over <TInputImage, TInputImage> to avoid any
   // pixelwise casting until the final output image is configured.
-  typename GrayscaleGeodesicDilateImageFilter<TInputImage, TInputImage>::Pointer singleIteration =
-    GrayscaleGeodesicDilateImageFilter<TInputImage, TInputImage>::New();
+  auto singleIteration = GrayscaleGeodesicDilateImageFilter<TInputImage, TInputImage>::New();
   bool done = false;
 
   // set up the singleIteration filter. we are not using the grafting
@@ -193,7 +186,7 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateData()
   singleIteration->GetOutput()->SetRequestedRegion(this->GetOutput()->GetRequestedRegion());
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(singleIteration, 1.0f);
 
@@ -230,22 +223,22 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::GenerateData()
     if (!done)
     {
       // disconnect the current output from the singleIteration object
-      MarkerImagePointer marker = singleIteration->GetOutput();
+      const MarkerImagePointer marker = singleIteration->GetOutput();
       marker->DisconnectPipeline();
       // assign the old output as the input
       singleIteration->SetMarkerImage(marker);
       // since DisconnectPipeline() creates a new output object, we need
-      // to regraft the information onto the output
+      // to graft the information onto the output
       singleIteration->GetOutput()->SetRequestedRegion(this->GetOutput()->GetRequestedRegion());
 
       // Keep track of how many iterations have be done
-      m_NumberOfIterationsUsed++;
+      ++m_NumberOfIterationsUsed;
     }
   }
 
   // Convert the output of singleIteration to an TOutputImage type
   // (could use a CastImageFilter here to thread the copy)
-  typename OutputImageType::Pointer outputPtr = this->GetOutput();
+  const typename OutputImageType::Pointer outputPtr = this->GetOutput();
   outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
   outputPtr->Allocate();
 
@@ -288,29 +281,23 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
 
   // Find the boundary "faces". Structuring element is elementary
   // (face connected neighbors within a radius of 1).
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>::FaceListType faceList;
-  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>                        fC;
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>::RadiusType   kernelRadius;
-  kernelRadius.Fill(1);
-  faceList = fC(this->GetMarkerImage(), outputRegionForThread, kernelRadius);
-
-  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>::FaceListType::iterator fit;
-
-  typename NeighborhoodIteratorType::OffsetValueType i;
-  typename NeighborhoodIteratorType::OffsetType      offset;
-
-  MarkerImagePixelType value, dilateValue, maskValue;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType> fC;
+  auto                                                                 kernelRadius =
+    MakeFilled<typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>::RadiusType>(1);
+  const typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<MarkerImageType>::FaceListType faceList =
+    fC(this->GetMarkerImage(), outputRegionForThread, kernelRadius);
 
   // Iterate over the faces
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (const auto & face : faceList)
   {
-    NeighborhoodIteratorType markerIt(kernelRadius, this->GetMarkerImage(), *fit);
-    maskIt = ImageRegionConstIterator<MaskImageType>(this->GetMaskImage(), *fit);
-    oIt = ImageRegionIterator<OutputImageType>(this->GetOutput(), *fit);
+    NeighborhoodIteratorType markerIt(kernelRadius, this->GetMarkerImage(), face);
+    maskIt = ImageRegionConstIterator<MaskImageType>(this->GetMaskImage(), face);
+    oIt = ImageRegionIterator<OutputImageType>(this->GetOutput(), face);
 
     markerIt.OverrideBoundaryCondition(&BC);
     markerIt.GoToBegin();
 
+    typename NeighborhoodIteratorType::OffsetType offset;
     if (!m_FullyConnected)
     {
       // setup the marker iterator to only visit face connected
@@ -319,7 +306,7 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
       markerIt.ActivateOffset(offset); // center pixel
       for (unsigned int d = 0; d < TInputImage::ImageDimension; ++d)
       {
-        for (i = -1; i <= 1; i += 2)
+        for (typename NeighborhoodIteratorType::OffsetValueType i = -1; i <= 1; i += 2)
         {
           offset[d] = i;
           markerIt.ActivateOffset(offset); // a neighbor pixel in dimension d
@@ -341,14 +328,14 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
     // iterate over image region
     while (!oIt.IsAtEnd())
     {
-      dilateValue = NumericTraits<MarkerImagePixelType>::NonpositiveMin();
+      MarkerImagePixelType dilateValue = NumericTraits<MarkerImagePixelType>::NonpositiveMin();
 
       // Dilate by checking the face connected neighbors (and center pixel)
       typename NeighborhoodIteratorType::ConstIterator sIt;
-      for (sIt = markerIt.Begin(); !sIt.IsAtEnd(); sIt++)
+      for (sIt = markerIt.Begin(); !sIt.IsAtEnd(); ++sIt)
       {
         // a pixel in the neighborhood
-        value = sIt.Get();
+        const MarkerImagePixelType value = sIt.Get();
 
         // dilation is a max operation
         if (value > dilateValue)
@@ -360,7 +347,7 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::DynamicThreadedGe
       // Mask operation.  For geodesic dilation, the mask operation is
       // a pixelwise min operator with the elementary dilated image and
       // the mask image
-      maskValue = maskIt.Get();
+      const MarkerImagePixelType maskValue = maskIt.Get();
 
       if (maskValue < dilateValue)
       {
@@ -384,9 +371,9 @@ GrayscaleGeodesicDilateImageFilter<TInputImage, TOutputImage>::PrintSelf(std::os
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Run one iteration: " << (m_RunOneIteration ? "on" : "off") << std::endl;
-  os << indent << "Number of iterations used to produce current output: " << m_NumberOfIterationsUsed << std::endl;
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(RunOneIteration);
+  os << indent << "NumberOfIterationsUsed: " << m_NumberOfIterationsUsed << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
 }
 } // end namespace itk
 #endif

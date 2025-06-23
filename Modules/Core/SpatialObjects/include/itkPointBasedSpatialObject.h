@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,16 +49,16 @@ public:
   using SpatialObjectPointType = TSpatialObjectPointType;
   using SpatialObjectPointListType = std::vector<SpatialObjectPointType>;
 
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using VectorType = typename Superclass::VectorType;
-  using CovariantVectorType = typename Superclass::CovariantVectorType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::VectorType;
+  using typename Superclass::CovariantVectorType;
+  using typename Superclass::BoundingBoxType;
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(PointBasedSpatialObject, SpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointBasedSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -70,16 +70,16 @@ public:
   virtual void
   AddPoint(const SpatialObjectPointType & newPoint);
 
-  /** Removes the indicated point from this object */
+  /** Removes the indicated point from this object. */
   virtual void
   RemovePoint(IdentifierType id);
 
   /** Assign points to this object, and assigned this object to
-   * each point (for computing world coordinates) */
+   * each point (for computing world coordinates). */
   virtual void
   SetPoints(const SpatialObjectPointListType & newPoints);
 
-  /** Get the list of points assigned to this object */
+  /** Get the list of points assigned to this object. */
   virtual SpatialObjectPointListType &
   GetPoints()
   {
@@ -107,20 +107,24 @@ public:
   }
 
   /** Return the number of points in the list */
-  virtual SizeValueType
+  [[nodiscard]] virtual SizeValueType
   GetNumberOfPoints() const
   {
     return static_cast<SizeValueType>(m_Points.size());
   }
 
-  /** Method returns the Point closest to the given point */
+  /** Get the closest point in world space. */
   TSpatialObjectPointType
   ClosestPointInWorldSpace(const PointType & point) const;
 
+  /** Get the closest point in object space. */
   TSpatialObjectPointType
   ClosestPointInObjectSpace(const PointType & point) const;
 
-  /** Returns true if the point is inside the Blob, false otherwise. */
+  /** Test if a world-coordinate point is inside of this object or its children.
+   *
+   * Returns true if the point is inside the blob, false otherwise.
+   */
   bool
   IsInsideInObjectSpace(const PointType & point) const override;
 
@@ -135,13 +139,13 @@ protected:
   PointBasedSpatialObject();
   ~PointBasedSpatialObject() override = default;
 
-  SpatialObjectPointListType m_Points;
+  SpatialObjectPointListType m_Points{};
 
   /** Method to print the object.*/
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 };
 } // end namespace itk

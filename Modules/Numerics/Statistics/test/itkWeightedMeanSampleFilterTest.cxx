@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,8 +35,8 @@ public:
 
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  /** Standard macros. */
-  itkTypeMacro(WeightedMeanTestFunction, FunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WeightedMeanTestFunction);
   itkNewMacro(Self);
 
   /** Input type */
@@ -57,10 +57,8 @@ public:
     {
       return 0.5;
     }
-    else
-    {
-      return 1.0;
-    }
+
+    return 1.0;
   }
 
 protected:
@@ -75,22 +73,21 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   std::cout << "WeightedMeanSampleFilter test \n \n";
 
   constexpr unsigned int numberOfMeasurementVectors = 5;
-  unsigned int           counter;
 
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
   sample->SetMeasurementVectorSize(MeasurementVectorSize);
 
   MeasurementVectorType measure;
 
   // reset counter
-  counter = 0;
+  unsigned int counter = 0;
 
   while (counter < numberOfMeasurementVectors)
   {
-    for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+    for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
     {
       measure[i] = counter;
     }
@@ -100,7 +97,7 @@ itkWeightedMeanSampleFilterTest(int, char *[])
 
   using FilterType = itk::Statistics::WeightedMeanSampleFilter<SampleType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   std::cout << filter->GetNameOfClass() << std::endl;
   filter->Print(std::cout);
@@ -110,9 +107,7 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   try
   {
     filter->Update();
-    std::cerr << "Exception should have been thrown since \
-                    Update() is invoked without setting an input "
-              << std::endl;
+    std::cerr << "Exception should have been thrown since Update() is invoked without setting an input " << std::endl;
     return EXIT_FAILURE;
   }
   catch (const itk::ExceptionObject & excp)
@@ -122,9 +117,7 @@ itkWeightedMeanSampleFilterTest(int, char *[])
 
   if (filter->GetInput() != nullptr)
   {
-    std::cerr << "GetInput() should return nullptr if the input \
-                     has not been set"
-              << std::endl;
+    std::cerr << "GetInput() should return nullptr if the input has not been set" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -149,12 +142,12 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   mean[0] = 2.0;
   mean[1] = 2.0;
 
-  FilterType::MeasurementVectorType::ValueType epsilon = 1e-6;
+  constexpr FilterType::MeasurementVectorType::ValueType epsilon = 1e-6;
 
-  if ((std::fabs(meanOutput[0] - mean[0]) > epsilon) || (std::fabs(meanOutput[1] - mean[1]) > epsilon))
+  if ((itk::Math::abs(meanOutput[0] - mean[0]) > epsilon) || (itk::Math::abs(meanOutput[1] - mean[1]) > epsilon))
   {
     std::cerr << "Wrong result " << std::endl;
-    std::cerr << meanOutput[0] << " " << mean[0] << " " << meanOutput[1] << " " << mean[1] << " " << std::endl;
+    std::cerr << meanOutput[0] << ' ' << mean[0] << ' ' << meanOutput[1] << ' ' << mean[1] << ' ' << std::endl;
     std::cerr << "The result is not what is expected" << std::endl;
     return EXIT_FAILURE;
   }
@@ -180,10 +173,10 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   mean[0] = 2.0;
   mean[1] = 2.0;
 
-  if ((std::fabs(meanOutput[0] - mean[0]) > epsilon) || (std::fabs(meanOutput[1] - mean[1]) > epsilon))
+  if ((itk::Math::abs(meanOutput[0] - mean[0]) > epsilon) || (itk::Math::abs(meanOutput[1] - mean[1]) > epsilon))
   {
     std::cerr << "Wrong result " << std::endl;
-    std::cerr << meanOutput[0] << " " << mean[0] << " " << meanOutput[1] << " " << mean[1] << " " << std::endl;
+    std::cerr << meanOutput[0] << ' ' << mean[0] << ' ' << meanOutput[1] << ' ' << mean[1] << ' ' << std::endl;
     std::cerr << "The result is not what is expected" << std::endl;
     return EXIT_FAILURE;
   }
@@ -207,17 +200,17 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   mean[0] = 1.7777778;
   mean[1] = 1.7777778;
 
-  if ((std::fabs(meanOutput[0] - mean[0]) > epsilon) || (std::fabs(meanOutput[1] - mean[1]) > epsilon))
+  if ((itk::Math::abs(meanOutput[0] - mean[0]) > epsilon) || (itk::Math::abs(meanOutput[1] - mean[1]) > epsilon))
   {
     std::cerr << "Wrong result" << std::endl;
-    std::cerr << meanOutput[0] << " " << mean[0] << " " << meanOutput[1] << " " << mean[1] << " " << std::endl;
+    std::cerr << meanOutput[0] << ' ' << mean[0] << ' ' << meanOutput[1] << ' ' << mean[1] << ' ' << std::endl;
 
     std::cerr << "The result is not what is expected" << std::endl;
     return EXIT_FAILURE;
   }
 
   // set the weight using a function
-  WeightedMeanTestFunction::Pointer weightFunction = WeightedMeanTestFunction::New();
+  auto weightFunction = WeightedMeanTestFunction::New();
   filter->SetWeightingFunction(weightFunction);
 
   try
@@ -235,10 +228,10 @@ itkWeightedMeanSampleFilterTest(int, char *[])
   mean[0] = 2.0;
   mean[1] = 2.0;
 
-  if ((std::fabs(meanOutput[0] - mean[0]) > epsilon) || (std::fabs(meanOutput[1] - mean[1]) > epsilon))
+  if ((itk::Math::abs(meanOutput[0] - mean[0]) > epsilon) || (itk::Math::abs(meanOutput[1] - mean[1]) > epsilon))
   {
     std::cerr << "Wrong result" << std::endl;
-    std::cerr << meanOutput[0] << " " << mean[0] << " " << meanOutput[1] << " " << mean[1] << " " << std::endl;
+    std::cerr << meanOutput[0] << ' ' << mean[0] << ' ' << meanOutput[1] << ' ' << mean[1] << ' ' << std::endl;
     std::cerr << "The result is not what is expected" << std::endl;
     return EXIT_FAILURE;
   }

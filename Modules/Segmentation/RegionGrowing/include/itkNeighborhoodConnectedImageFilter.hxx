@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,22 +18,20 @@
 #ifndef itkNeighborhoodConnectedImageFilter_hxx
 #define itkNeighborhoodConnectedImageFilter_hxx
 
-#include "itkNeighborhoodConnectedImageFilter.h"
 #include "itkNeighborhoodBinaryThresholdImageFunction.h"
 #include "itkFloodFilledImageFunctionConditionalIterator.h"
 #include "itkProgressReporter.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 NeighborhoodConnectedImageFilter<TInputImage, TOutputImage>::NeighborhoodConnectedImageFilter()
+  : m_Lower(NumericTraits<InputImagePixelType>::NonpositiveMin())
+  , m_Upper(NumericTraits<InputImagePixelType>::max())
+  , m_ReplaceValue(NumericTraits<OutputImagePixelType>::OneValue())
 {
-  m_Lower = NumericTraits<InputImagePixelType>::NonpositiveMin();
-  m_Upper = NumericTraits<InputImagePixelType>::max();
-  m_ReplaceValue = NumericTraits<OutputImagePixelType>::OneValue();
   m_Radius.Fill(1);
 }
 
@@ -64,14 +62,15 @@ NeighborhoodConnectedImageFilter<TInputImage, TOutputImage>::AddSeed(const Index
   this->Modified();
 }
 
-/**
- * Standard PrintSelf method.
- */
 template <typename TInputImage, typename TOutputImage>
 void
 NeighborhoodConnectedImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  this->Superclass::PrintSelf(os, indent);
+  using namespace print_helper;
+
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "Seeds: " << m_Seeds << std::endl;
   os << indent << "Upper: " << static_cast<typename NumericTraits<InputImagePixelType>::PrintType>(m_Upper)
      << std::endl;
   os << indent << "Lower: " << static_cast<typename NumericTraits<InputImagePixelType>::PrintType>(m_Lower)
@@ -89,7 +88,7 @@ NeighborhoodConnectedImageFilter<TInputImage, TOutputImage>::GenerateInputReques
   Superclass::GenerateInputRequestedRegion();
   if (this->GetInput())
   {
-    InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
+    const InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
     image->SetRequestedRegionToLargestPossibleRegion();
   }
 }
@@ -106,22 +105,22 @@ template <typename TInputImage, typename TOutputImage>
 void
 NeighborhoodConnectedImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  typename Superclass::InputImageConstPointer inputImage = this->GetInput();
-  typename Superclass::OutputImagePointer     outputImage = this->GetOutput();
+  const typename Superclass::InputImageConstPointer inputImage = this->GetInput();
+  const typename Superclass::OutputImagePointer     outputImage = this->GetOutput();
 
   // Zero the output
   outputImage->SetBufferedRegion(outputImage->GetRequestedRegion());
   outputImage->Allocate();
-  outputImage->FillBuffer(NumericTraits<OutputImagePixelType>::ZeroValue());
+  outputImage->FillBuffer(OutputImagePixelType{});
 
   using FunctionType = NeighborhoodBinaryThresholdImageFunction<InputImageType>;
   using IteratorType = FloodFilledImageFunctionConditionalIterator<OutputImageType, FunctionType>;
 
-  typename FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
   function->SetInputImage(inputImage);
   function->ThresholdBetween(m_Lower, m_Upper);
   function->SetRadius(m_Radius);
-  IteratorType it = IteratorType(outputImage, function, m_Seeds);
+  IteratorType it(outputImage, function, m_Seeds);
 
   ProgressReporter progress(this, 0, outputImage->GetRequestedRegion().GetNumberOfPixels());
   while (!it.IsAtEnd())

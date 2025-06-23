@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,16 @@
 #ifndef itkDistanceToCentroidMembershipFunction_hxx
 #define itkDistanceToCentroidMembershipFunction_hxx
 
-#include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkEuclideanDistanceMetric.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TVector>
 DistanceToCentroidMembershipFunction<TVector>::DistanceToCentroidMembershipFunction()
+  : m_DistanceMetric(EuclideanDistanceMetric<TVector>::New())
 {
   // Initialize by default to an Euclidean distance. This default can be
   // changed by calling SetDistanceMetric().
-  m_DistanceMetric = EuclideanDistanceMetric<TVector>::New();
 }
 
 template <typename TVector>
@@ -53,8 +50,8 @@ DistanceToCentroidMembershipFunction<TVector>::SetMeasurementVectorSize(Measurem
 }
 
 template <typename TVector>
-const typename DistanceToCentroidMembershipFunction<TVector>::CentroidType &
-DistanceToCentroidMembershipFunction<TVector>::GetCentroid() const
+auto
+DistanceToCentroidMembershipFunction<TVector>::GetCentroid() const -> const CentroidType &
 {
   return m_DistanceMetric->GetOrigin();
 }
@@ -70,11 +67,11 @@ template <typename TVector>
 typename LightObject::Pointer
 DistanceToCentroidMembershipFunction<TVector>::InternalClone() const
 {
-  LightObject::Pointer   loPtr = Superclass::InternalClone();
-  typename Self::Pointer membershipFunction = dynamic_cast<Self *>(loPtr.GetPointer());
+  LightObject::Pointer         loPtr = Superclass::InternalClone();
+  const typename Self::Pointer membershipFunction = dynamic_cast<Self *>(loPtr.GetPointer());
   if (membershipFunction.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   membershipFunction->SetMeasurementVectorSize(this->GetMeasurementVectorSize());
@@ -91,6 +88,5 @@ DistanceToCentroidMembershipFunction<TVector>::PrintSelf(std::ostream & os, Inde
 
   os << indent << "Distance Metric: " << m_DistanceMetric.GetPointer() << std::endl;
 }
-} // end namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,30 +18,19 @@
 #ifndef itkCentralDifferenceImageFunction_hxx
 #define itkCentralDifferenceImageFunction_hxx
 
-#include "itkCentralDifferenceImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::CentralDifferenceImageFunction()
-{
-  this->m_UseImageDirection = true;
 
-  /* Interpolator. Default to linear. */
-  using LinearInterpolatorType = LinearInterpolateImageFunction<TInputImage, TCoordRep>;
-  this->m_Interpolator = LinearInterpolatorType::New();
-}
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::CentralDifferenceImageFunction()
+  : m_Interpolator(LinearInterpolateImageFunction<TInputImage, TCoordinate>::New())
+{}
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::SetInputImage(const TInputImage * inputData)
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::SetInputImage(const TInputImage * inputData)
 {
   if (inputData != this->m_Image)
   {
@@ -49,11 +38,11 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::SetInputIma
     this->m_Interpolator->SetInputImage(inputData);
 
     // Verify the output vector is the right size.
-    // OutputType of VariablelengthVector will have size 0 until allocated, so this
+    // OutputType of VariableLengthVector will have size 0 until allocated, so this
     // case can't be tested.
     if (inputData != nullptr)
     {
-      SizeValueType nComponents = OutputConvertType::GetNumberOfComponents();
+      const SizeValueType nComponents = OutputConvertType::GetNumberOfComponents();
       if (nComponents > 0)
       {
         if (nComponents != inputData->GetNumberOfComponentsPerPixel() * TInputImage::ImageDimension)
@@ -69,12 +58,9 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::SetInputIma
   }
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::SetInterpolator(InterpolatorType * interpolator)
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::SetInterpolator(InterpolatorType * interpolator)
 {
   if (interpolator != this->m_Interpolator)
   {
@@ -87,23 +73,21 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::SetInterpol
   }
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::PrintSelf(std::ostream & os, Indent indent) const
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "UseImageDirection = " << this->m_UseImageDirection << std::endl;
+
+  itkPrintSelfBooleanMacro(UseImageDirection);
+
+  itkPrintSelfObjectMacro(Interpolator);
 }
 
-/**
- * EvaluateAtIndex
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
-typename CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::OutputType
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
+auto
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtIndex(const IndexType & index) const
+  -> OutputType
 {
   OutputType derivative;
 
@@ -116,13 +100,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
   return derivative;
 }
 
-/*
- * Specialized for scalar pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtIndexSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtIndexSpecialized(
   const IndexType & index,
   OutputType &      orientedDerivative,
   OutputTypeSpecializationStructType<OutputType>) const
@@ -139,7 +120,7 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
   const typename InputImageType::IndexType & start = region.GetIndex();
 
   const unsigned int MaxDims = Self::ImageDimension;
-  for (unsigned int dim = 0; dim < MaxDims; dim++)
+  for (unsigned int dim = 0; dim < MaxDims; ++dim)
   {
     // bounds checking
     // checks for index either on the boundary or out of bounds.
@@ -147,7 +128,7 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
     // is in-bounds, so we don't do anything else if the point is out of bounds.
     if (index[dim] < start[dim] + 1 || index[dim] > (start[dim] + static_cast<OffsetValueType>(size[dim]) - 2))
     {
-      derivative[dim] = NumericTraits<OutputValueType>::ZeroValue();
+      derivative[dim] = OutputValueType{};
       continue;
     }
 
@@ -172,13 +153,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
   }
 }
 
-/*
- * Specialized for vector pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtIndexSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtIndexSpecialized(
   const IndexType & index,
   OutputType &      derivative,
   OutputTypeSpecializationStructType<Type>) const
@@ -194,11 +172,11 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
 
   using PixelType = typename InputImageType::PixelType;
   const PixelType *  neighPixels[Self::ImageDimension][2];
-  const PixelType    zeroPixel = NumericTraits<PixelType>::ZeroValue();
+  const PixelType    zeroPixel{};
   const unsigned int MaxDims = Self::ImageDimension;
   bool               dimOutOfBounds[Self::ImageDimension];
 
-  for (unsigned int dim = 0; dim < MaxDims; dim++)
+  for (unsigned int dim = 0; dim < MaxDims; ++dim)
   {
     // initialize to quiet compiler warnings
     neighPixels[dim][0] = &zeroPixel;
@@ -209,16 +187,16 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
       ((index[dim] < (start[dim] + 1)) || index[dim] > (start[dim] + static_cast<OffsetValueType>(size[dim]) - 2));
   }
 
-  for (unsigned int nc = 0; nc < numberComponents; nc++)
+  for (unsigned int nc = 0; nc < numberComponents; ++nc)
   {
     ScalarDerivativeType componentDerivative;
 
-    for (unsigned int dim = 0; dim < MaxDims; dim++)
+    for (unsigned int dim = 0; dim < MaxDims; ++dim)
     {
       // bounds checking
       if (dimOutOfBounds[dim])
       {
-        componentDerivative[dim] = NumericTraits<OutputValueType>::ZeroValue();
+        componentDerivative[dim] = OutputValueType{};
         continue;
       }
 
@@ -241,14 +219,14 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
     if (this->m_UseImageDirection)
     {
       const auto componentDerivativeOut = inputImage->TransformLocalVectorToPhysicalVector(componentDerivative);
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivativeOut[dim]);
       }
     }
     else
     {
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivative[dim]);
       }
@@ -256,12 +234,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtI
   }
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
-typename CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::OutputType
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::Evaluate(const PointType & point) const
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
+auto
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::Evaluate(const PointType & point) const
+  -> OutputType
 {
   OutputType derivative;
 
@@ -274,13 +250,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::Evaluate(co
   return derivative;
 }
 
-/*
- * Specialized for scalar pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateSpecialized(
   const PointType & point,
   OutputType &      orientedDerivative,
   OutputTypeSpecializationStructType<OutputType>) const
@@ -296,9 +269,9 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
   const SpacingType & spacing = inputImage->GetSpacing();
 
   const unsigned int MaxDims = Self::ImageDimension;
-  for (unsigned int dim = 0; dim < MaxDims; dim++)
+  for (unsigned int dim = 0; dim < MaxDims; ++dim)
   {
-    PointValueType offset = static_cast<PointValueType>(0.5) * spacing[dim];
+    const PointValueType offset = static_cast<PointValueType>(0.5) * spacing[dim];
     // Check the bounds using the point because the image direction may swap dimensions,
     // making checks in index space inaccurate.
     // If on a boundary, we set the derivative to zero. This is done to match the behavior
@@ -306,7 +279,7 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
     neighPoint1[dim] = point[dim] - offset;
     if (!this->IsInsideBuffer(neighPoint1))
     {
-      orientedDerivative[dim] = NumericTraits<DerivativeValueType>::ZeroValue();
+      orientedDerivative[dim] = DerivativeValueType{};
       neighPoint1[dim] = point[dim];
       neighPoint2[dim] = point[dim];
       continue;
@@ -314,13 +287,13 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
     neighPoint2[dim] = point[dim] + offset;
     if (!this->IsInsideBuffer(neighPoint2))
     {
-      orientedDerivative[dim] = NumericTraits<DerivativeValueType>::ZeroValue();
+      orientedDerivative[dim] = DerivativeValueType{};
       neighPoint1[dim] = point[dim];
       neighPoint2[dim] = point[dim];
       continue;
     }
 
-    PointValueType delta = neighPoint2[dim] - neighPoint1[dim];
+    const PointValueType delta = neighPoint2[dim] - neighPoint1[dim];
     if (delta > 10.0 * NumericTraits<PointValueType>::epsilon())
     {
       orientedDerivative[dim] =
@@ -343,13 +316,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
   }
 }
 
-/*
- * Specialized for vector pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateSpecialized(
   const PointType & point,
   OutputType &      derivative,
   OutputTypeSpecializationStructType<Type>) const
@@ -369,24 +339,23 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
   bool               dimOutOfBounds[Self::ImageDimension];
   const unsigned int MaxDims = Self::ImageDimension;
   PointValueType     delta[Self::ImageDimension];
-  PixelType          zeroPixel = NumericTraits<PixelType>::ZeroValue();
+  const PixelType    zeroPixel{};
 
   ScalarDerivativeType componentDerivativeOut;
-  ScalarDerivativeType componentDerivative;
-  componentDerivative.Fill(NumericTraits<OutputValueType>::ZeroValue());
+  ScalarDerivativeType componentDerivative{};
 
-  for (unsigned int dim = 0; dim < Self::ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < Self::ImageDimension; ++dim)
   {
     // initialize to quiet compiler warnings
     neighPixels[dim][0] = zeroPixel;
     neighPixels[dim][1] = zeroPixel;
-    delta[dim] = NumericTraits<PointValueType>::ZeroValue();
+    delta[dim] = PointValueType{};
     dimOutOfBounds[dim] = true;
   }
 
-  for (unsigned int nc = 0; nc < numberComponents; nc++)
+  for (unsigned int nc = 0; nc < numberComponents; ++nc)
   {
-    for (unsigned int dim = 0; dim < MaxDims; dim++)
+    for (unsigned int dim = 0; dim < MaxDims; ++dim)
     {
       // Initialize values that only depend on dimension and not component number.
       if (nc == 0)
@@ -395,14 +364,14 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
         // making checks in index space inaccurate.
         // If on a boundary, we set the derivative to zero. This is done to match the behavior
         // of EvaluateAtIndex. Another approach is to calculate the 1-sided difference.
-        PointValueType offset = static_cast<PointValueType>(0.5) * spacing[dim];
+        const PointValueType offset = static_cast<PointValueType>(0.5) * spacing[dim];
         neighPoint1[dim] = point[dim] - offset;
         neighPoint2[dim] = point[dim] + offset;
         dimOutOfBounds[dim] = (!this->IsInsideBuffer(neighPoint1) || !this->IsInsideBuffer(neighPoint2));
 
         if (dimOutOfBounds[dim])
         {
-          componentDerivative[dim] = NumericTraits<OutputValueType>::ZeroValue();
+          componentDerivative[dim] = OutputValueType{};
           neighPoint1[dim] = point[dim];
           neighPoint2[dim] = point[dim];
           continue;
@@ -426,13 +395,13 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
 
       if (delta[dim] > 10.0 * NumericTraits<PointValueType>::epsilon())
       {
-        OutputValueType left = InputPixelConvertType::GetNthComponent(nc, neighPixels[dim][0]);
-        OutputValueType right = InputPixelConvertType::GetNthComponent(nc, neighPixels[dim][1]);
+        const OutputValueType left = InputPixelConvertType::GetNthComponent(nc, neighPixels[dim][0]);
+        const OutputValueType right = InputPixelConvertType::GetNthComponent(nc, neighPixels[dim][1]);
         componentDerivative[dim] = (left - right) / delta[dim];
       }
       else
       {
-        componentDerivative[dim] = NumericTraits<OutputValueType>::ZeroValue();
+        componentDerivative[dim] = OutputValueType{};
       }
     }
 
@@ -442,14 +411,14 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
     if (!this->m_UseImageDirection)
     {
       inputImage->TransformPhysicalVectorToLocalVector(componentDerivative, componentDerivativeOut);
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivativeOut[dim]);
       }
     }
     else
     {
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivative[dim]);
       }
@@ -457,13 +426,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateSpe
   }
 }
 
-/**
- * EvaluateAtContinuousIndex
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
-typename CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::OutputType
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtContinuousIndex(
-  const ContinuousIndexType & cindex) const
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
+auto
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtContinuousIndex(
+  const ContinuousIndexType & cindex) const -> OutputType
 {
   OutputType derivative;
   // When ScalarDerivativeType is the same as OutputType, this calls
@@ -474,13 +440,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
   return derivative;
 }
 
-/*
- * Specialized for scalar pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtContinuousIndexSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtContinuousIndexSpecialized(
   const ContinuousIndexType & cindex,
   OutputType &                orientedDerivative,
   OutputTypeSpecializationStructType<OutputType>) const
@@ -500,13 +463,13 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
   const typename InputImageType::IndexType & start = region.GetIndex();
 
   const unsigned int MaxDims = Self::ImageDimension;
-  for (unsigned int dim = 0; dim < MaxDims; dim++)
+  for (unsigned int dim = 0; dim < MaxDims; ++dim)
   {
     // bounds checking
     if (cindex[dim] < static_cast<ContinuousIndexValueType>(start[dim] + 1) ||
         cindex[dim] > static_cast<ContinuousIndexValueType>(start[dim] + static_cast<OffsetValueType>(size[dim]) - 2))
     {
-      derivative[dim] = NumericTraits<DerivativeValueType>::ZeroValue();
+      derivative[dim] = DerivativeValueType{};
       continue;
     }
 
@@ -531,13 +494,10 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
   }
 }
 
-/*
- * Specialized for vector pixels
- */
-template <typename TInputImage, typename TCoordRep, typename TOutputType>
+template <typename TInputImage, typename TCoordinate, typename TOutputType>
 template <typename Type>
 void
-CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtContinuousIndexSpecialized(
+CentralDifferenceImageFunction<TInputImage, TCoordinate, TOutputType>::EvaluateAtContinuousIndexSpecialized(
   const ContinuousIndexType & cindex,
   OutputType &                derivative,
   OutputTypeSpecializationStructType<Type>) const
@@ -558,9 +518,9 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
   PixelType          neighPixels[Self::ImageDimension][2];
   bool               dimOutOfBounds[Self::ImageDimension];
   const unsigned int MaxDims = Self::ImageDimension;
-  PixelType          zeroPixel = NumericTraits<PixelType>::ZeroValue();
+  const PixelType    zeroPixel{};
 
-  for (unsigned int dim = 0; dim < MaxDims; dim++)
+  for (unsigned int dim = 0; dim < MaxDims; ++dim)
   {
     // initialize to quiet compiler warnings
     neighPixels[dim][0] = zeroPixel;
@@ -572,15 +532,15 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
        cindex[dim] > static_cast<ContinuousIndexValueType>(start[dim] + static_cast<OffsetValueType>(size[dim]) - 2));
   }
 
-  for (unsigned int nc = 0; nc < numberComponents; nc++)
+  for (unsigned int nc = 0; nc < numberComponents; ++nc)
   {
     ScalarDerivativeType componentDerivative;
 
-    for (unsigned int dim = 0; dim < MaxDims; dim++)
+    for (unsigned int dim = 0; dim < MaxDims; ++dim)
     {
       if (dimOutOfBounds[dim])
       {
-        componentDerivative[dim] = NumericTraits<DerivativeValueType>::ZeroValue();
+        componentDerivative[dim] = DerivativeValueType{};
         continue;
       }
 
@@ -603,14 +563,14 @@ CentralDifferenceImageFunction<TInputImage, TCoordRep, TOutputType>::EvaluateAtC
     if (this->m_UseImageDirection)
     {
       const auto componentDerivativeOut = inputImage->TransformLocalVectorToPhysicalVector(componentDerivative);
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivativeOut[dim]);
       }
     }
     else
     {
-      for (unsigned int dim = 0; dim < MaxDims; dim++)
+      for (unsigned int dim = 0; dim < MaxDims; ++dim)
       {
         OutputConvertType::SetNthComponent(nc * MaxDims + dim, derivative, componentDerivative[dim]);
       }

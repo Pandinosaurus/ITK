@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   // Software Guide : EndCodeSnippet
 
@@ -85,7 +85,7 @@ main(int argc, char * argv[])
 
   using WriterType = itk::ImageSeriesWriter<ImageType, Image2DType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(reader->GetOutput());
   // Software Guide : EndCodeSnippet
@@ -101,7 +101,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using NameGeneratorType = itk::NumericSeriesFileNames;
 
-  NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+  auto nameGenerator = NameGeneratorType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -153,10 +153,10 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  ImageType::ConstPointer inputImage = reader->GetOutput();
-  ImageType::RegionType   region = inputImage->GetLargestPossibleRegion();
-  ImageType::IndexType    start = region.GetIndex();
-  ImageType::SizeType     size = region.GetSize();
+  const ImageType::ConstPointer inputImage = reader->GetOutput();
+  const ImageType::RegionType region = inputImage->GetLargestPossibleRegion();
+  ImageType::IndexType        start = region.GetIndex();
+  ImageType::SizeType         size = region.GetSize();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex

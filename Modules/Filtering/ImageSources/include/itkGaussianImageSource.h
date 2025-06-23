@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class GaussianImageSource
+ * \class GaussianImageSource
  * \brief Generate an n-dimensional image of a Gaussian.
  *
  * GaussianImageSource generates an image of a Gaussian.
@@ -85,11 +85,11 @@ public:
   using SizeValueType = typename TOutputImage::SizeValueType;
 
   /** Types for parameters. */
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::ParametersType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianImageSource, ParametricImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianImageSource);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -97,36 +97,41 @@ public:
   /** Gets and sets for Gaussian parameters */
 
   /** Set/Get the scale factor to multiply the true value of the Gaussian. */
+  /** @ITKStartGrouping */
   itkSetMacro(Scale, double);
   itkGetConstReferenceMacro(Scale, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get whether or not to normalize the Gaussian. Default is false. */
+  /** @ITKStartGrouping */
   itkSetMacro(Normalized, bool);
   itkGetConstReferenceMacro(Normalized, bool);
   itkBooleanMacro(Normalized);
-
+  /** @ITKEndGrouping */
   /** Set/Get the standard deviation in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sigma, ArrayType);
   itkGetConstReferenceMacro(Sigma, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the mean in each direction. */
+  /** @ITKStartGrouping */
   itkSetMacro(Mean, ArrayType);
   itkGetConstReferenceMacro(Mean, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the parameters for this source. When this source is
    * templated over an N-dimensional output image type, the first N
    * values in the parameter array are the Sigma parameters in each
    * dimension, the next N values are the Mean parameters in each
    * dimension, and the last value is the Scale. */
+  /** @ITKStartGrouping */
   void
   SetParameters(const ParametersType & parameters) override;
   ParametersType
   GetParameters() const override;
-
+  /** @ITKEndGrouping */
   /** Get the number of parameters for this image source. When this
    * source is templated over an N-dimensional output image type, the
    * number of parameters is 2*N+1. */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfParameters() const override;
 
 protected:
@@ -139,9 +144,9 @@ protected:
   GenerateData() override;
 
 private:
-  ArrayType m_Sigma;
+  ArrayType m_Sigma{};
 
-  ArrayType m_Mean;
+  ArrayType m_Mean{};
 
   double m_Scale{ 255.0 };
 

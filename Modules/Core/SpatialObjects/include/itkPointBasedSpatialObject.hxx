@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,9 @@
 #define itkPointBasedSpatialObject_hxx
 
 
-#include "itkPointBasedSpatialObject.h"
-
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TDimension, class TSpatialObjectPointType>
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::PointBasedSpatialObject()
   : SpatialObject<TDimension>()
@@ -46,7 +44,6 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::Clear()
   this->Modified();
 }
 
-/** Set Points from a list */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 void
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::AddPoint(const SpatialObjectPointType & newPoint)
@@ -57,7 +54,6 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::AddPoint(const Spa
   this->Modified();
 }
 
-/** Remove a Point from the list */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 void
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::RemovePoint(IdentifierType id)
@@ -72,7 +68,6 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::RemovePoint(Identi
   this->Modified();
 }
 
-/** Set Points from a list */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 void
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::SetPoints(const SpatialObjectPointListType & newPoints)
@@ -90,7 +85,6 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::SetPoints(const Sp
   this->Modified();
 }
 
-/** Determine closest point in object space */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 TSpatialObjectPointType
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ClosestPointInObjectSpace(const PointType & point) const
@@ -100,27 +94,26 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ClosestPointInObje
 
   if (it == itend)
   {
-    itkExceptionMacro(<< "SpatialObject: ClosestPoint called using an empty point list");
+    itkExceptionMacro("SpatialObject: ClosestPoint called using an empty point list");
   }
 
   SpatialObjectPointType closestPoint;
   double                 closestPointDistance = NumericTraits<double>::max();
   while (it != itend)
   {
-    typename SpatialObjectPoint<TDimension>::PointType curpos = (*it).GetPositionInObjectSpace();
-    double                                             curdistance = curpos.EuclideanDistanceTo(point);
+    const typename SpatialObjectPoint<TDimension>::PointType curpos = it->GetPositionInObjectSpace();
+    const double                                             curdistance = curpos.EuclideanDistanceTo(point);
     if (curdistance < closestPointDistance)
     {
       closestPoint = (*it);
       closestPointDistance = curdistance;
     }
-    it++;
+    ++it;
   }
 
   return closestPoint;
 }
 
-/** Determine closest point in world space */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 TSpatialObjectPointType
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ClosestPointInWorldSpace(const PointType & point) const
@@ -130,27 +123,26 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ClosestPointInWorl
 
   if (it == itend)
   {
-    itkExceptionMacro(<< "SpatialObject: ClosestPoint called using an empty point list");
+    itkExceptionMacro("SpatialObject: ClosestPoint called using an empty point list");
   }
 
   SpatialObjectPointType closestPoint;
   double                 closestPointDistance = NumericTraits<double>::max();
   while (it != itend)
   {
-    typename SpatialObjectPoint<TDimension>::PointType curpos = (*it).GetPositionInWorldSpace();
-    double                                             curdistance = curpos.EuclideanDistanceTo(point);
+    const typename SpatialObjectPoint<TDimension>::PointType curpos = it->GetPositionInWorldSpace();
+    const double                                             curdistance = curpos.EuclideanDistanceTo(point);
     if (curdistance < closestPointDistance)
     {
       closestPoint = (*it);
       closestPointDistance = curdistance;
     }
-    it++;
+    ++it;
   }
 
   return closestPoint;
 }
 
-/** Compute bounding box of just this object */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 void
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ComputeMyBoundingBox()
@@ -162,28 +154,25 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::ComputeMyBoundingB
 
   if (it == end)
   {
-    typename BoundingBoxType::PointType pnt;
-    pnt.Fill(NumericTraits<typename BoundingBoxType::PointType::ValueType>::ZeroValue());
+    const typename BoundingBoxType::PointType pnt{};
     this->GetModifiableMyBoundingBoxInObjectSpace()->SetMinimum(pnt);
     this->GetModifiableMyBoundingBoxInObjectSpace()->SetMaximum(pnt);
     return;
   }
 
-  PointType pt = (*it).GetPositionInObjectSpace();
+  const PointType pt = it->GetPositionInObjectSpace();
 
   this->GetModifiableMyBoundingBoxInObjectSpace()->SetMinimum(pt);
   this->GetModifiableMyBoundingBoxInObjectSpace()->SetMaximum(pt);
-  it++;
+  ++it;
   while (it != end)
   {
-    this->GetModifiableMyBoundingBoxInObjectSpace()->ConsiderPoint((*it).GetPositionInObjectSpace());
-    it++;
+    this->GetModifiableMyBoundingBoxInObjectSpace()->ConsiderPoint(it->GetPositionInObjectSpace());
+    ++it;
   }
   this->GetModifiableMyBoundingBoxInObjectSpace()->ComputeBoundingBox();
 }
 
-/** Test if a world-coordinate point is inside of this object or its
- *    children, if they match the search depth and name */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 bool
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::IsInsideInObjectSpace(const PointType & point) const
@@ -208,15 +197,13 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::IsInsideInObjectSp
       {
         return true;
       }
-      it++;
+      ++it;
     }
   }
 
   return false;
 }
 
-
-/** InternalClone */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 typename LightObject::Pointer
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::InternalClone() const
@@ -225,10 +212,10 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::InternalClone() co
   // this to new transform.
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   rval->SetPoints(this->GetPoints());
@@ -236,14 +223,14 @@ PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::InternalClone() co
   return loPtr;
 }
 
-/** Print the object */
 template <unsigned int TDimension, class TSpatialObjectPointType>
 void
 PointBasedSpatialObject<TDimension, TSpatialObjectPointType>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  os << indent << "PointBasedSpatialObject(" << this << ")" << std::endl;
-  os << indent << "Number of points: " << m_Points.size() << std::endl;
   Superclass::PrintSelf(os, indent);
+
+  // ToDo
+  // os << indent << "Points: " << m_Points << std::endl;
 }
 } // end namespace itk
 

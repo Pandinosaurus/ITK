@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLaplacianSegmentationLevelSetFunction_hxx
 #define itkLaplacianSegmentationLevelSetFunction_hxx
 
-#include "itkLaplacianSegmentationLevelSetFunction.h"
 #include "itkLaplacianImageFilter.h"
 #include "itkCastImageFilter.h"
 
@@ -28,11 +27,9 @@ template <typename TImageType, typename TFeatureImageType>
 void
 LaplacianSegmentationLevelSetFunction<TImageType, TFeatureImageType>::CalculateSpeedImage()
 {
-  typename LaplacianImageFilter<ImageType, ImageType>::Pointer filter =
-    LaplacianImageFilter<ImageType, ImageType>::New();
+  auto filter = LaplacianImageFilter<ImageType, ImageType>::New();
 
-  typename CastImageFilter<FeatureImageType, ImageType>::Pointer caster =
-    CastImageFilter<FeatureImageType, ImageType>::New();
+  auto caster = CastImageFilter<FeatureImageType, ImageType>::New();
 
   caster->SetInput(this->GetFeatureImage());
   filter->SetInput(caster->GetOutput());

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,7 +80,7 @@ itkFEMElement3DMembraneTest(int, char *[])
   n7->SetCoordinates(pt);
 
   using ElasticityType = itk::fem::MaterialLinearElasticity;
-  ElasticityType::Pointer m = ElasticityType::New();
+  auto m = ElasticityType::New();
   m->SetGlobalNumber(0);
   m->SetYoungsModulus(10000.0);
   m->SetCrossSectionalArea(0.02);
@@ -88,7 +88,7 @@ itkFEMElement3DMembraneTest(int, char *[])
   m->SetPoissonsRatio(0.4);
 
   using ElementMembraneType = itk::fem::Element3DC0LinearHexahedronMembrane;
-  ElementMembraneType::Pointer e0 = ElementMembraneType::New();
+  auto e0 = ElementMembraneType::New();
 
   e0->SetGlobalNumber(0);
   e0->SetNode(0, n0);

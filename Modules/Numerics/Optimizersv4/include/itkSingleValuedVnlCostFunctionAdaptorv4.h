@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class SingleValuedVnlCostFunctionAdaptorv4
+ * \class SingleValuedVnlCostFunctionAdaptorv4
  * \brief This class is an Adaptor that allows to pass
  * itk::ObjectToObjectMetricBase objects to vnl_optimizers expecting
  * a vnl_cost_function. For use in the ITKv4 registration framework.
@@ -121,13 +121,13 @@ protected:
   ReportIteration(const EventObject & event) const;
 
 private:
-  ObjectToObjectMetricBase::Pointer m_ObjectMetric;
-  bool                              m_ScalesInitialized;
-  ScalesType                        m_Scales;
-  Object::Pointer                   m_Reporter;
+  ObjectToObjectMetricBase::Pointer m_ObjectMetric{};
+  bool                              m_ScalesInitialized{};
+  ScalesType                        m_Scales{};
+  Object::Pointer                   m_Reporter{};
 
-  mutable MeasureType    m_CachedValue;
-  mutable DerivativeType m_CachedDerivative;
+  mutable MeasureType    m_CachedValue{};
+  mutable DerivativeType m_CachedDerivative{};
 
 }; // end of Class CostFunction
 

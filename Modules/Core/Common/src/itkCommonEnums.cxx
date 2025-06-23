@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -175,6 +175,8 @@ operator<<(std::ostream & out, const CommonEnums::CellGeometry value)
         return "itk::CommonEnums::CellGeometry::VERTEX_CELL";
       case CommonEnums::CellGeometry::LINE_CELL:
         return "itk::CommonEnums::CellGeometry::LINE_CELL";
+      case CommonEnums::CellGeometry::POLYLINE_CELL:
+        return "itk::CommonEnums::CellGeometry::POLYLINE_CELL";
       case CommonEnums::CellGeometry::TRIANGLE_CELL:
         return "itk::CommonEnums::CellGeometry::TRIANGLE_CELL";
       case CommonEnums::CellGeometry::QUADRILATERAL_CELL:
@@ -227,8 +229,8 @@ operator<<(std::ostream & out, const OctreeEnums::Octree value)
     {
       case OctreeEnums::Octree::UNKNOWN_PLANE:
         return "itk::OctreeEnums::Octree::UNKNOWN_PLANE";
-      case OctreeEnums::Octree::SAGITAL_PLANE:
-        return "itk::OctreeEnums::Octree::SAGITAL_PLANE";
+      case OctreeEnums::Octree::SAGITTAL_PLANE:
+        return "itk::OctreeEnums::Octree::SAGITTAL_PLANE";
       case OctreeEnums::Octree::CORONAL_PLANE:
         return "itk::OctreeEnums::Octree::CORONAL_PLANE";
       case OctreeEnums::Octree::TRANSVERSE_PLANE:

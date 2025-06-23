@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class MeshSpatialObject
+ * \class MeshSpatialObject
  * \brief Implementation of an Mesh as spatial object.
  *
  * This class combines functionalities from a spatial object,
@@ -49,18 +49,18 @@ public:
 
   using MeshType = TMesh;
   using MeshPointer = typename MeshType::Pointer;
-  using TransformType = typename Superclass::TransformType;
-  using PointType = typename Superclass::PointType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
+  using typename Superclass::TransformType;
+  using typename Superclass::PointType;
+  using typename Superclass::BoundingBoxType;
 
-  using PointContainerType = VectorContainer<IdentifierType, PointType>;
+  using PointContainerType = VectorContainer<PointType>;
   using PointContainerPointer = typename PointContainerType::Pointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeshSpatialObject, SpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -72,12 +72,19 @@ public:
   SetMesh(MeshType * mesh);
 
   /** Get a pointer to the Mesh currently attached to the object. */
+  /** @ITKStartGrouping */
   MeshType *
   GetMesh();
   const MeshType *
   GetMesh() const;
-
-  /** Returns true if the point is inside, false otherwise. */
+  /** @ITKEndGrouping */
+  /** Test whether a point is inside or outside the object.
+   *
+   * Returns true if the point is inside, false otherwise.
+   *
+   * For computational speed purposes, it is faster if the method does not check the name of the class and the current
+   * depth.
+   */
   bool
   IsInsideInObjectSpace(const PointType & point) const override;
 
@@ -85,12 +92,15 @@ public:
   using Superclass::IsInsideInObjectSpace;
 
   /** Returns the latest modified time of the object and its component. */
-  ModifiedTimeType
+  [[nodiscard]] ModifiedTimeType
   GetMTime() const override;
 
 #if !defined(ITK_LEGACY_REMOVE)
   /** \deprecated Return the type of pixel used */
-  itkLegacyMacro(const char * GetPixelTypeName()) { return m_PixelType.c_str(); }
+  itkLegacyMacro(const char * GetPixelTypeName())
+  {
+    return m_PixelType.c_str();
+  }
 #endif
 
   /** Set/Get the precision for the IsInsideInObjectSpace function.
@@ -99,11 +109,12 @@ public:
    *  If the distance from the point to the surface is <= to
    *  m_IsInsidePrecisionInObjectSpace the point is considered inside the mesh.
    *  The default value is 1. */
+  /** @ITKStartGrouping */
   itkSetMacro(IsInsidePrecisionInObjectSpace, double);
   itkGetConstMacro(IsInsidePrecisionInObjectSpace, double);
-
+  /** @ITKEndGrouping */
 protected:
-  /** Compute the boundaries of the iamge spatial object. */
+  /** Compute the boundaries of the spatial object. */
   void
   ComputeMyBoundingBox() override;
 
@@ -113,17 +124,18 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
-  MeshPointer m_Mesh;
+  MeshPointer m_Mesh{};
 #if !defined(ITK_LEGACY_REMOVE)
-  std::string m_PixelType;
+  std::string m_PixelType{};
 #endif
-  double m_IsInsidePrecisionInObjectSpace;
+  double m_IsInsidePrecisionInObjectSpace{};
 };
-} // end of namespace itk
+
+} // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMeshSpatialObject.hxx"

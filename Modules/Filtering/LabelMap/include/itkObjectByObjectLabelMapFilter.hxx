@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkObjectByObjectLabelMapFilter_hxx
 #define itkObjectByObjectLabelMapFilter_hxx
 
-#include "itkObjectByObjectLabelMapFilter.h"
 #include "itkNumericTraits.h"
 
 #include "itkLabelObject.h"
@@ -45,41 +44,44 @@ ObjectByObjectLabelMapFilter<TInputImage,
                              TOutputFilter,
                              TInternalInputImageType,
                              TInternalOutputImageType>::ObjectByObjectLabelMapFilter()
+  : m_ConstrainPaddingToImage(true)
+  , m_KeepLabels(true)
+  , m_InternalForegroundValue(itk::NumericTraits<InternalOutputPixelType>::max())
+  , m_Select(SelectType::New())
+  , m_Crop(CropType::New())
+  , m_Pad(PadType::New())
+  , m_LM2BI(LM2BIType::New())
+  , m_LI2LM(LI2LMType::New())
+  , m_BI2LM(BI2LMType::New())
+  , m_InputFilter(nullptr)
+  , m_OutputFilter(nullptr)
+  , m_Label(InputImagePixelType{})
 {
-  m_ConstrainPaddingToImage = true;
   m_PadSize.Fill(1);
-  m_BinaryInternalOutput = false;
-  m_KeepLabels = true;
-  m_InternalForegroundValue = itk::NumericTraits<InternalOutputPixelType>::max();
-
-  m_InputFilter = nullptr;
-  m_OutputFilter = nullptr;
 
 
-  m_Select = SelectType::New();
   // be sure to *not* use the label objects internally
   m_Select->SetInPlace(false);
   m_Select->SetNumberOfWorkUnits(1);
 
-  m_Crop = CropType::New();
+
   m_Crop->SetInput(m_Select->GetOutput());
   m_Crop->SetNumberOfWorkUnits(1);
 
-  m_Pad = PadType::New();
+
   m_Pad->SetInput(m_Crop->GetOutput());
 
-  m_LM2BI = LM2BIType::New();
+
   m_LM2BI->SetInput(m_Pad->GetOutput());
   m_LM2BI->SetNumberOfWorkUnits(1);
 
-  m_LI2LM = LI2LMType::New();
+
   m_LI2LM->SetNumberOfWorkUnits(1);
 
-  m_BI2LM = BI2LMType::New();
+
   m_BI2LM->SetNumberOfWorkUnits(1);
 
   // to be sure that no one will use an uninitialized value
-  m_Label = itk::NumericTraits<InputImagePixelType>::ZeroValue();
 }
 
 
@@ -195,14 +197,12 @@ ObjectByObjectLabelMapFilter<TInputImage,
   if (m_ConstrainPaddingToImage)
   {
     m_Crop->SetCropBorder(m_PadSize);
-    SizeType zero;
-    zero.Fill(0);
+    constexpr SizeType zero{};
     m_Pad->SetPadSize(zero);
   }
   else
   {
-    SizeType zero;
-    zero.Fill(0);
+    constexpr SizeType zero{};
     m_Crop->SetCropBorder(zero);
     m_Pad->SetPadSize(m_PadSize);
   }
@@ -233,13 +233,12 @@ ObjectByObjectLabelMapFilter<TInputImage,
     // It seems to be a bug in the autocrop filter :-(
     m_Crop->Modified();
 
-    // to store the label objects
-    LabelMapType * labelMap;
-
     // to be reused later
     const typename OutputImageType::LabelObjectType * inLo = inIt.GetLabelObject();
 
     // update the pipeline
+    // to store the label objects
+    LabelMapType * labelMap = nullptr;
     if (m_BinaryInternalOutput)
     {
       m_BI2LM->UpdateLargestPossibleRegion();
@@ -268,7 +267,7 @@ ObjectByObjectLabelMapFilter<TInputImage,
         {
           // the label has been stolen by a previously split object. Just move that object elsewhere
           // to free the label
-          typename LabelObjectType::Pointer lotmp = output->GetLabelObject(m_Label);
+          const typename LabelObjectType::Pointer lotmp = output->GetLabelObject(m_Label);
           output->RemoveLabelObject(lotmp);
           outLo->SetLabel(m_Label);
           outLo->template CopyAttributesFrom<LabelObjectType>(inLo);

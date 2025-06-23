@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,10 @@ namespace itk
 {
 
 /**
- *\class RenyiEntropyThresholdCalculator
+ * \class RenyiEntropyThresholdCalculator
  * \brief Computes the RenyiEntropy's threshold for an image.
  *
- * Kapur J.N., Sahoo P.K., and Wong A.K.C. (1985) "A New Method for
- * Gray-Level Picture Thresholding Using the Entropy of the Histogram"
- * Graphical Models and Image Processing, 29(3): 273-285
- * M. Emre Celebi
- * 06.15.2007
+ * For algorithmic details see \cite kapur1985.
  *
  * This class is templated over the input histogram type.
  * \warning This calculator assumes that the input histogram has only one dimension.
@@ -42,7 +38,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \ingroup Operators
  * \ingroup ITKThresholding
@@ -62,8 +58,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RenyiEntropyThresholdCalculator, HistogramThresholdCalculator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RenyiEntropyThresholdCalculator);
 
   /** Type definition for the input image. */
   using HistogramType = THistogram;
@@ -71,11 +67,10 @@ public:
 
 protected:
   RenyiEntropyThresholdCalculator()
-  {
-    m_FirstBin = 0;
-    m_LastBin = 0;
-    m_Size = 0;
-  }
+    : m_FirstBin(0)
+    , m_LastBin(0)
+    , m_Size(0)
+  {}
   ~RenyiEntropyThresholdCalculator() override = default;
 
   void
@@ -108,9 +103,9 @@ protected:
                           const std::vector<double> & P2);
 
 private:
-  InstanceIdentifier m_FirstBin;
-  InstanceIdentifier m_LastBin;
-  SizeValueType      m_Size;
+  InstanceIdentifier m_FirstBin{};
+  InstanceIdentifier m_LastBin{};
+  SizeValueType      m_Size{};
 };
 
 } // end namespace itk

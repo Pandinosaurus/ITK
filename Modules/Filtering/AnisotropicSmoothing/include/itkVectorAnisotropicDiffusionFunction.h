@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
  * This class implements a vector-valued version of
  * AnisotropicDiffusionFunction.  Typically in vector-valued diffusion, vector
  * components are diffused independently of one another using a conductance
- * term that is linked across the components. Refer to the the documentation of
+ * term that is linked across the components. Refer to the documentation of
  * AnisotropicDiffusionFunction for an overview of anisotropic diffusion.  The
  * way that the conductance term is calculated is specific to the specific type
  * of diffusion function.
@@ -61,15 +61,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(VectorAnisotropicDiffusionFunction, AnisotropicDiffusionFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorAnisotropicDiffusionFunction);
 
   /** Inherit some parameters from the superclass type */
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
 
   /** Inherit some parameters from the superclass type */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;

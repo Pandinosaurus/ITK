@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using InputPixelType = signed short;
+  using InputPixelType = short;
   constexpr unsigned int InputDimension = 2;
 
   using InputImageType = itk::Image<InputPixelType, InputDimension>;
@@ -79,7 +79,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   // Software Guide : EndCodeSnippet
 
@@ -94,7 +94,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using ImageIOType = itk::GDCMImageIO;
 
-  ImageIOType::Pointer gdcmImageIO = ImageIOType::New();
+  auto gdcmImageIO = ImageIOType::New();
 
   reader->SetImageIO(gdcmImageIO);
   // Software Guide : EndCodeSnippet
@@ -142,7 +142,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using Writer1Type = itk::ImageFileWriter<InputImageType>;
 
-  Writer1Type::Pointer writer1 = Writer1Type::New();
+  auto writer1 = Writer1Type::New();
 
   writer1->SetFileName(argv[2]);
   writer1->SetInput(reader->GetOutput());
@@ -187,7 +187,7 @@ main(int argc, char * argv[])
   //
   //  We will now rescale the image using the RescaleIntensityImageFilter. For
   //  this purpose we use a better suited pixel type: \code{unsigned char}
-  //  instead of \code{signed short}.  The minimum and maximum values of the
+  //  instead of \code{short}.  The minimum and maximum values of the
   //  output image are explicitly defined in the rescaling filter.
   //
   // Software Guide : EndLatex
@@ -200,7 +200,7 @@ main(int argc, char * argv[])
   using RescaleFilterType =
     itk::RescaleIntensityImageFilter<InputImageType, WriteImageType>;
 
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
 
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
@@ -219,7 +219,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using Writer2Type = itk::ImageFileWriter<WriteImageType>;
 
-  Writer2Type::Pointer writer2 = Writer2Type::New();
+  auto writer2 = Writer2Type::New();
 
   writer2->SetFileName(argv[3]);
 
@@ -257,7 +257,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using Writer3Type = itk::ImageFileWriter<WriteImageType>;
 
-  Writer3Type::Pointer writer3 = Writer3Type::New();
+  auto writer3 = Writer3Type::New();
 
   writer3->SetFileName(argv[4]);
   writer3->SetInput(rescaler->GetOutput());

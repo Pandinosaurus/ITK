@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,7 @@
 
 #include <deque>
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 /**
  * \class ConvergenceMonitoringFunction
@@ -50,8 +48,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ConvergenceMonitoringFunction, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConvergenceMonitoringFunction);
 
   using ScalarType = TScalar;
   using RealType = typename NumericTraits<ScalarType>::RealType;
@@ -109,15 +107,14 @@ protected:
     auto it = this->m_EnergyValues.begin();
     while (it != this->m_EnergyValues.end())
     {
-      os << "(" << it - this->m_EnergyValues.begin() << "): " << *it << " ";
+      os << '(' << it - this->m_EnergyValues.begin() << "): " << *it << ' ';
       ++it;
     }
     os << std::endl;
   }
 
-  EnergyValueContainerType m_EnergyValues;
+  EnergyValueContainerType m_EnergyValues{};
 };
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

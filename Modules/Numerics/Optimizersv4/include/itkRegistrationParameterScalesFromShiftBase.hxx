@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,15 @@
 #ifndef itkRegistrationParameterScalesFromShiftBase_hxx
 #define itkRegistrationParameterScalesFromShiftBase_hxx
 
-#include "itkRegistrationParameterScalesFromShiftBase.h"
+#include <algorithm> // For max.
 
 namespace itk
 {
 
 template <typename TMetric>
 RegistrationParameterScalesFromShiftBase<TMetric>::RegistrationParameterScalesFromShiftBase()
-{
-  this->m_SmallParameterVariation = 0.01;
-}
+  : m_SmallParameterVariation(0.01)
+{}
 
 /** Compute parameter scales */
 template <typename TMetric>
@@ -64,17 +63,17 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateScales(ScalesType & p
     }
     else
     {
-      VirtualIndexType centralIndex = this->GetVirtualDomainCentralIndex();
+      const VirtualIndexType centralIndex = this->GetVirtualDomainCentralIndex();
       offset = this->m_Metric->ComputeParameterOffsetFromVirtualIndex(centralIndex, numLocalPara);
     }
   }
 
   // compute voxel shift generated from each transform parameter
-  for (SizeValueType i = 0; i < numLocalPara; i++)
+  for (SizeValueType i = 0; i < numLocalPara; ++i)
   {
     // For local support, we need to refill deltaParameters with zeros at each loop
     // since smoothing may change the values around the local voxel.
-    deltaParameters.Fill(NumericTraits<typename ParametersType::ValueType>::ZeroValue());
+    deltaParameters.Fill(typename ParametersType::ValueType{});
     deltaParameters[offset + i] = this->m_SmallParameterVariation;
 
     maxShift = this->ComputeMaximumVoxelShift(deltaParameters);
@@ -88,8 +87,8 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateScales(ScalesType & p
 
   if (Math::ExactlyEquals(minNonZeroShift, NumericTraits<FloatType>::max()))
   {
-    itkWarningMacro(<< "Variation in any parameter won't change a voxel position. The default scales (1.0) are used to "
-                       "avoid division-by-zero.");
+    itkWarningMacro("Variation in any parameter won't change a voxel position. The default scales (1.0) are used to "
+                    "avoid division-by-zero.");
     parameterScales.Fill(NumericTraits<typename ScalesType::ValueType>::OneValue());
   }
   else
@@ -100,7 +99,7 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateScales(ScalesType & p
     }
     else
     {
-      for (SizeValueType i = 0; i < numLocalPara; i++)
+      for (SizeValueType i = 0; i < numLocalPara; ++i)
       {
         if (parameterScales[i] <= NumericTraits<FloatType>::epsilon())
         {
@@ -123,8 +122,8 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateScales(ScalesType & p
  * w.r.t. the step is the shift produced by step.
  */
 template <typename TMetric>
-typename RegistrationParameterScalesFromShiftBase<TMetric>::FloatType
-RegistrationParameterScalesFromShiftBase<TMetric>::EstimateStepScale(const ParametersType & step)
+auto
+RegistrationParameterScalesFromShiftBase<TMetric>::EstimateStepScale(const ParametersType & step) -> FloatType
 {
   this->CheckAndSetInputs();
   this->SetStepScaleSamplingStrategy();
@@ -138,26 +137,21 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateStepScale(const Param
   // For global transforms, we want a linear approximation of the function
   // of step scale w.r.t "step". This is true only when "step" is close to
   // zero. Therefore, we need to scale "step" down.
-  FloatType maxStep = NumericTraits<FloatType>::ZeroValue();
-  for (typename ParametersType::SizeValueType p = 0; p < step.GetSize(); p++)
+  FloatType maxStep{};
+  for (typename ParametersType::SizeValueType p = 0; p < step.GetSize(); ++p)
   {
-    if (maxStep < std::abs(step[p]))
-    {
-      maxStep = std::abs(step[p]);
-    }
+    maxStep = std::max(maxStep, itk::Math::abs(step[p]));
   }
   if (maxStep <= NumericTraits<FloatType>::epsilon())
   {
-    return NumericTraits<FloatType>::ZeroValue();
+    return FloatType{};
   }
-  else
-  {
-    FloatType      factor = this->m_SmallParameterVariation / maxStep;
-    ParametersType smallStep(step.size());
-    // Use a small step to have a linear approximation.
-    smallStep = step * factor;
-    return this->ComputeMaximumVoxelShift(smallStep) / factor;
-  }
+
+  const FloatType factor = this->m_SmallParameterVariation / maxStep;
+  ParametersType  smallStep(step.size());
+  // Use a small step to have a linear approximation.
+  smallStep = step * factor;
+  return this->ComputeMaximumVoxelShift(smallStep) / factor;
 }
 
 /**
@@ -186,13 +180,13 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateLocalStepScales(const
   const SizeValueType numLocals = numAllPara / numPara;
 
   localStepScales.SetSize(numLocals);
-  localStepScales.Fill(NumericTraits<typename ScalesType::ValueType>::ZeroValue());
+  localStepScales.Fill(typename ScalesType::ValueType{});
 
   const auto numSamples = static_cast<const SizeValueType>(this->m_SamplePoints.size());
-  for (SizeValueType c = 0; c < numSamples; c++)
+  for (SizeValueType c = 0; c < numSamples; ++c)
   {
-    VirtualPointType & point = this->m_SamplePoints[c];
-    IndexValueType     localId = this->m_Metric->ComputeParameterOffsetFromVirtualPoint(point, numPara) / numPara;
+    const VirtualPointType & point = this->m_SamplePoints[c];
+    const IndexValueType     localId = this->m_Metric->ComputeParameterOffsetFromVirtualPoint(point, numPara) / numPara;
     localStepScales[localId] = sampleShifts[c];
   }
 }
@@ -201,20 +195,18 @@ RegistrationParameterScalesFromShiftBase<TMetric>::EstimateLocalStepScales(const
  * Compute the maximum shift when a transform is changed with deltaParameters
  */
 template <typename TMetric>
-typename RegistrationParameterScalesFromShiftBase<TMetric>::FloatType
+auto
 RegistrationParameterScalesFromShiftBase<TMetric>::ComputeMaximumVoxelShift(const ParametersType & deltaParameters)
+  -> FloatType
 {
   ScalesType sampleShifts;
 
   this->ComputeSampleShifts(deltaParameters, sampleShifts);
 
-  FloatType maxShift = NumericTraits<FloatType>::ZeroValue();
-  for (SizeValueType s = 0; s < sampleShifts.size(); s++)
+  FloatType maxShift{};
+  for (SizeValueType s = 0; s < sampleShifts.size(); ++s)
   {
-    if (maxShift < sampleShifts[s])
-    {
-      maxShift = sampleShifts[s];
-    }
+    maxShift = std::max(maxShift, sampleShifts[s]);
   }
 
   return maxShift;

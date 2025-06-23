@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include "itkRandomImageSource.h"
 #include "itkCastImageFilter.h"
 #include "itkTestingMacros.h"
+#include <set>
 
 namespace
 {
@@ -33,19 +34,19 @@ ExtractImageInPlaceTest()
   using ImageType = itk::Image<float, 3>;
 
   using SourceType = itk::RandomImageSource<ImageType>;
-  SourceType::Pointer source = SourceType::New();
-  ImageType::SizeType size = { { 32, 32, 32 } };
+  auto                          source = SourceType::New();
+  constexpr ImageType::SizeType size = { { 32, 32, 32 } };
   source->SetSize(size);
 
   source->UpdateLargestPossibleRegion();
 
 
-  ImageType::IndexType extractIndex = { { 16, 16, 16 } };
-  ImageType::SizeType  extractSize = { { 8, 8, 8 } };
-  ImageType::SizeType  zeroSize = { { 0, 0, 0 } };
+  constexpr ImageType::IndexType extractIndex = { { 16, 16, 16 } };
+  constexpr ImageType::SizeType  extractSize = { { 8, 8, 8 } };
+  constexpr ImageType::SizeType  zeroSize = { { 0, 0, 0 } };
 
   using ExtractFilterType = itk::ExtractImageFilter<ImageType, ImageType>;
-  ExtractFilterType::Pointer extract = ExtractFilterType::New();
+  auto extract = ExtractFilterType::New();
   extract->SetDirectionCollapseToSubmatrix();
   extract->SetExtractionRegion(ImageType::RegionType(extractIndex, extractSize));
   extract->InPlaceOn();
@@ -58,7 +59,7 @@ ExtractImageInPlaceTest()
   // add a filter between which will produce the requested region, and
   // enable in-place operation
   using SomeStreamableFitlerType = itk::CastImageFilter<ImageType, ImageType>;
-  SomeStreamableFitlerType::Pointer filter = SomeStreamableFitlerType::New();
+  auto filter = SomeStreamableFitlerType::New();
   filter->SetInput(source->GetOutput());
   filter->InPlaceOff(); // ensure a copy is performed
 
@@ -88,14 +89,12 @@ ExtractImageInPlaceTest()
 int
 itkExtractImageTest(int, char *[])
 {
-  itk::FileOutputWindow::Pointer fow = itk::FileOutputWindow::New();
+  const itk::FileOutputWindow::Pointer fow = itk::FileOutputWindow::New();
   fow->SetInstance(fow);
-
-  int nextVal;
 
   // type alias to simplify the syntax
   using SimpleImage = itk::Image<short, 2>;
-  SimpleImage::Pointer simpleImage = SimpleImage::New();
+  auto simpleImage = SimpleImage::New();
   std::cout << "Simple image spacing: " << simpleImage->GetSpacing()[0] << ", " << simpleImage->GetSpacing()[1]
             << std::endl;
 
@@ -104,14 +103,12 @@ itkExtractImageTest(int, char *[])
   using LineImage = itk::Image<short, 1>;
 
   // Test the creation of an image with native type
-  ShortImage::Pointer if2 = ShortImage::New();
+  auto if2 = ShortImage::New();
 
   // fill in an image
-  ShortImage::IndexType  index = { { 0, 0 } };
-  ShortImage::SizeType   size = { { 8, 12 } };
-  ShortImage::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  ShortImage::IndexType        index = { { 0, 0 } };
+  ShortImage::SizeType         size = { { 8, 12 } };
+  const ShortImage::RegionType region{ index, size };
   if2->SetLargestPossibleRegion(region);
   if2->SetBufferedRegion(region);
   if2->Allocate();
@@ -143,9 +140,7 @@ itkExtractImageTest(int, char *[])
   // fill in an image
   ShortImage::IndexType  extractIndex = { { 0, 0 } };
   ShortImage::SizeType   extractSize = { { 8, 12 } };
-  ShortImage::RegionType extractRegion;
-  extractRegion.SetSize(extractSize);
-  extractRegion.SetIndex(extractIndex);
+  ShortImage::RegionType extractRegion{ extractIndex, extractSize };
   extract->SetExtractionRegion(extractRegion);
   extract->UpdateLargestPossibleRegion();
 
@@ -195,7 +190,7 @@ itkExtractImageTest(int, char *[])
       }
       else
       {
-        nextVal = 8 * column + row;
+        int nextVal = 8 * column + row;
         if (iteratorIn1.Get() != nextVal)
         {
           std::cout << "Error: (" << row << ", " << column << "), expected " << nextVal << " got " << iteratorIn1.Get()
@@ -232,7 +227,7 @@ itkExtractImageTest(int, char *[])
   stream->SetInput(extract->GetOutput());
   stream->SetNumberOfStreamDivisions(2);
 
-  ShortImage::RegionType setRegion = extract->GetExtractionRegion();
+  const ShortImage::RegionType setRegion = extract->GetExtractionRegion();
   size = setRegion.GetSize();
   index = setRegion.GetIndex();
 
@@ -271,7 +266,7 @@ itkExtractImageTest(int, char *[])
         }
         else
         {
-          nextVal = 8 * column + row;
+          int nextVal = 8 * column + row;
           if (iteratorIn2.Get() != nextVal)
           {
             std::cout << "Error: (" << row << ", " << column << "), expected " << nextVal << " got "
@@ -326,7 +321,7 @@ itkExtractImageTest(int, char *[])
   ShortImage::IndexType testIndex;
   for (; !iteratorLineIn.IsAtEnd(); ++iteratorLineIn)
   {
-    LineImage::PixelType linePixelValue = iteratorLineIn.Get();
+    const LineImage::PixelType linePixelValue = iteratorLineIn.Get();
     testIndex[0] = extractIndex[0];
     testIndex[1] = iteratorLineIn.GetIndex()[0];
     if (linePixelValue != if2->GetPixel(testIndex))
@@ -342,6 +337,18 @@ itkExtractImageTest(int, char *[])
   {
     std::cout << "ExtractImageFilter case 3 failed." << std::endl;
     return EXIT_FAILURE;
+  }
+
+  // Test streaming enumeration for ExtractImageFilterEnums::DirectionCollapseStrategy elements
+  const std::set<itk::ExtractImageFilterEnums::DirectionCollapseStrategy> allDirectionCollapseStrategy{
+    itk::ExtractImageFilterEnums::DirectionCollapseStrategy::DIRECTIONCOLLAPSETOUNKOWN,
+    itk::ExtractImageFilterEnums::DirectionCollapseStrategy::DIRECTIONCOLLAPSETOIDENTITY,
+    itk::ExtractImageFilterEnums::DirectionCollapseStrategy::DIRECTIONCOLLAPSETOSUBMATRIX,
+    itk::ExtractImageFilterEnums::DirectionCollapseStrategy::DIRECTIONCOLLAPSETOGUESS
+  };
+  for (const auto & ee : allDirectionCollapseStrategy)
+  {
+    std::cout << "STREAMED ENUM VALUE ExtractImageFilterEnums::DirectionCollapseStrategy: " << ee << std::endl;
   }
 
   return ExtractImageInPlaceTest();

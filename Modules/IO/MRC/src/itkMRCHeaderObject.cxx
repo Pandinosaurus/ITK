@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,7 +69,7 @@ MRCHeaderObject::SetHeader(const Header * buffer)
   // the cmap field must should either be the magic field or 0
   if (strncmp(_header->cmap, magicMAP, 4) != 0 && memcmp(_header->cmap, "\0\0\0\0", 4) != 0)
   {
-    itkWarningMacro(<< "The header's cmap field does not have expected values");
+    itkWarningMacro("The header's cmap field does not have expected values");
     return false;
   }
 
@@ -100,7 +100,7 @@ MRCHeaderObject::SetHeader(const Header * buffer)
   else
   {
     // the stamp is not expected
-    itkWarningMacro(<< "The header's stamp field does not have expected values");
+    itkWarningMacro("The header's stamp field does not have expected values");
     return false;
   }
 
@@ -109,52 +109,6 @@ MRCHeaderObject::SetHeader(const Header * buffer)
 
   this->m_ExtendedHeader = nullptr;
   this->m_ExtendedFeiHeader = nullptr;
-
-  SizeValueType extendedHeaderBytes = 0;
-  if (this->m_Header.nreal & 1)
-  {
-    extendedHeaderBytes += 2;
-  }
-  if (this->m_Header.nreal & 2)
-  {
-    extendedHeaderBytes += 6;
-  }
-  if (this->m_Header.nreal & 4)
-  {
-    extendedHeaderBytes += 3;
-  }
-  if (this->m_Header.nreal & 8)
-  {
-    extendedHeaderBytes += 2;
-  }
-  if (this->m_Header.nreal & 16)
-  {
-    extendedHeaderBytes += 2;
-  }
-  if (this->m_Header.nreal & 32)
-  {
-    extendedHeaderBytes += 4;
-  }
-  if (this->m_Header.nreal & 64)
-  {
-    extendedHeaderBytes += 2;
-  }
-  if (this->m_Header.nreal & 128)
-  {
-    extendedHeaderBytes += 4;
-  }
-  if (this->m_Header.nreal & 256)
-  {
-    extendedHeaderBytes += 2;
-  }
-  if (this->m_Header.nreal & 512)
-  {
-    extendedHeaderBytes += 4;
-  }
-  if (this->m_Header.nreal & 1024)
-  {
-    extendedHeaderBytes += 2;
-  }
 
   this->m_ExtendedHeaderSize = this->m_Header.next;
 
@@ -167,13 +121,13 @@ MRCHeaderObject::SetHeader(const Header * buffer)
       this->m_Header.nxstart >= this->m_Header.nx || this->m_Header.nystart >= this->m_Header.ny ||
       this->m_Header.nzstart >= this->m_Header.nz)
   {
-    itkWarningMacro(<< "Some header data does not have sensable values");
+    itkWarningMacro("Some header data does not have sensable values");
     return false;
   }
 
   if (this->m_Header.nxstart != 0 || this->m_Header.nystart != 0 || this->m_Header.nzstart != 0)
   {
-    itkWarningMacro(<< "The header's nxstart, nystart and nzstart fields are not supported correctly");
+    itkWarningMacro("The header's nxstart, nystart and nzstart fields are not supported correctly");
   }
 
   return true;
@@ -205,11 +159,12 @@ MRCHeaderObject::SetExtendedHeader(const void * buffer)
 
     if (this->m_BigEndianHeader)
     {
-      ByteSwapper<float>::SwapRangeFromSystemToBigEndian((float *)this->m_ExtendedHeader, this->m_ExtendedHeaderSize);
+      ByteSwapper<float>::SwapRangeFromSystemToBigEndian(static_cast<float *>(this->m_ExtendedHeader),
+                                                         this->m_ExtendedHeaderSize);
     }
     else
     {
-      ByteSwapper<float>::SwapRangeFromSystemToLittleEndian((float *)this->m_ExtendedHeader,
+      ByteSwapper<float>::SwapRangeFromSystemToLittleEndian(static_cast<float *>(this->m_ExtendedHeader),
                                                             this->m_ExtendedHeaderSize);
     }
   }
@@ -223,17 +178,10 @@ MRCHeaderObject::IsOriginalHeaderBigEndian() const
 }
 
 MRCHeaderObject::MRCHeaderObject()
+  : m_BigEndianHeader(ByteSwapper<void *>::SystemIsBE())
+{}
 
-
-{
-  memset(&this->m_Header, 0, sizeof(Header));
-  this->m_BigEndianHeader = ByteSwapper<void *>::SystemIsBE();
-}
-
-MRCHeaderObject::~MRCHeaderObject()
-{
-  delete[] static_cast<char *>(this->m_ExtendedHeader);
-}
+MRCHeaderObject::~MRCHeaderObject() { delete[] static_cast<char *>(this->m_ExtendedHeader); }
 
 void
 MRCHeaderObject::swapHeader(bool bigEndian)
@@ -242,7 +190,7 @@ MRCHeaderObject::swapHeader(bool bigEndian)
   using Int32Swapper = itk::ByteSwapper<int32_t>;
   using Int16Swapper = itk::ByteSwapper<int16_t>;
 
-  if (FloatSwapper::SystemIsBigEndian())
+  if constexpr (FloatSwapper::SystemIsBigEndian())
   {
     this->m_Header.stamp[0] = 17;
   }
@@ -382,18 +330,18 @@ MRCHeaderObject::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "number: " << this->m_Header.nx << " " << this->m_Header.ny << " " << this->m_Header.nz << std::endl;
+  os << indent << "number: " << this->m_Header.nx << ' ' << this->m_Header.ny << ' ' << this->m_Header.nz << std::endl;
   os << indent << "mode: " << this->m_Header.mode << std::endl;
-  os << indent << "start: " << this->m_Header.nxstart << " " << this->m_Header.nystart << " " << this->m_Header.nzstart
+  os << indent << "start: " << this->m_Header.nxstart << ' ' << this->m_Header.nystart << ' ' << this->m_Header.nzstart
      << std::endl;
-  os << indent << "grid: " << this->m_Header.mx << " " << this->m_Header.my << " " << this->m_Header.mz << std::endl;
-  os << indent << "len: " << this->m_Header.xlen << " " << this->m_Header.ylen << " " << this->m_Header.zlen
+  os << indent << "grid: " << this->m_Header.mx << ' ' << this->m_Header.my << ' ' << this->m_Header.mz << std::endl;
+  os << indent << "len: " << this->m_Header.xlen << ' ' << this->m_Header.ylen << ' ' << this->m_Header.zlen
      << std::endl;
-  os << indent << "abg angles: " << this->m_Header.alpha << " " << this->m_Header.beta << " " << this->m_Header.gamma
+  os << indent << "abg angles: " << this->m_Header.alpha << ' ' << this->m_Header.beta << ' ' << this->m_Header.gamma
      << std::endl;
-  os << indent << "map: " << this->m_Header.mapc << " " << this->m_Header.mapr << " " << this->m_Header.maps
+  os << indent << "map: " << this->m_Header.mapc << ' ' << this->m_Header.mapr << ' ' << this->m_Header.maps
      << std::endl;
-  os << indent << "mmm: " << this->m_Header.amin << " " << this->m_Header.amax << " " << this->m_Header.amean
+  os << indent << "mmm: " << this->m_Header.amin << ' ' << this->m_Header.amax << ' ' << this->m_Header.amean
      << std::endl;
   os << indent << "ispg: " << this->m_Header.ispg << std::endl;
   os << indent << "nsymbt: " << this->m_Header.nsymbt << std::endl;
@@ -403,17 +351,18 @@ MRCHeaderObject::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "nreal: " << this->m_Header.nreal << std::endl;
   os << indent << "idtype: " << this->m_Header.idtype << std::endl;
   os << indent << "lens: " << this->m_Header.lens << std::endl;
-  os << indent << "nd: " << this->m_Header.nd1 << " " << this->m_Header.nd2 << std::endl;
-  os << indent << "vd: " << this->m_Header.vd1 << " " << this->m_Header.vd2 << std::endl;
+  os << indent << "nd: " << this->m_Header.nd1 << ' ' << this->m_Header.nd2 << std::endl;
+  os << indent << "vd: " << this->m_Header.vd1 << ' ' << this->m_Header.vd2 << std::endl;
   os << indent << "tiltangles: (" << this->m_Header.tiltangles[0] << ", " << this->m_Header.tiltangles[1] << ", "
      << this->m_Header.tiltangles[2] << ") (" << this->m_Header.tiltangles[3] << ", " << this->m_Header.tiltangles[4]
-     << ", " << this->m_Header.tiltangles[5] << ")" << std::endl;
-  os << indent << "org: " << this->m_Header.xorg << " " << this->m_Header.yorg << " " << this->m_Header.zorg
+     << ", " << this->m_Header.tiltangles[5] << ')' << std::endl;
+  os << indent << "org: " << this->m_Header.xorg << ' ' << this->m_Header.yorg << ' ' << this->m_Header.zorg
      << std::endl;
   os << indent << "cmap: \"" << this->m_Header.cmap[0] << this->m_Header.cmap[1] << this->m_Header.cmap[2]
-     << this->m_Header.cmap[3] << "\"" << std::endl;
-  os << indent << "stamp: " << int(this->m_Header.stamp[0]) << " " << int(this->m_Header.stamp[1]) << " "
-     << int(this->m_Header.stamp[2]) << " " << int(this->m_Header.stamp[3]) << std::endl;
+     << this->m_Header.cmap[3] << '"' << std::endl;
+  os << indent << "stamp: " << static_cast<int>(this->m_Header.stamp[0]) << ' '
+     << static_cast<int>(this->m_Header.stamp[1]) << ' ' << static_cast<int>(this->m_Header.stamp[2]) << ' '
+     << static_cast<int>(this->m_Header.stamp[3]) << std::endl;
   os << indent << "rms: " << this->m_Header.rms << std::endl;
   os << indent << "nlabl: " << this->m_Header.nlabl << std::endl;
 
@@ -432,13 +381,13 @@ MRCHeaderObject::PrintSelf(std::ostream & os, Indent indent) const
        << std::endl;
     for (int32_t z = 0; z < this->m_Header.nz && z < 1024; ++z)
     {
-      os << indent << "(" << this->m_ExtendedFeiHeader[z].atilt << ", " << this->m_ExtendedFeiHeader[z].btilt << ", "
+      os << indent << '(' << this->m_ExtendedFeiHeader[z].atilt << ", " << this->m_ExtendedFeiHeader[z].btilt << ", "
          << this->m_ExtendedFeiHeader[z].xstage << ", " << this->m_ExtendedFeiHeader[z].ystage << ", "
          << this->m_ExtendedFeiHeader[z].zstage << ", " << this->m_ExtendedFeiHeader[z].xshift << ", "
          << this->m_ExtendedFeiHeader[z].yshift << ", " << this->m_ExtendedFeiHeader[z].defocus << ", "
          << this->m_ExtendedFeiHeader[z].exptime << ", " << this->m_ExtendedFeiHeader[z].meanint << ", "
          << this->m_ExtendedFeiHeader[z].tiltaxis << ", " << this->m_ExtendedFeiHeader[z].pixelsize << ", "
-         << this->m_ExtendedFeiHeader[z].magnification << ")" << std::endl;
+         << this->m_ExtendedFeiHeader[z].magnification << ')' << std::endl;
     }
   }
 }

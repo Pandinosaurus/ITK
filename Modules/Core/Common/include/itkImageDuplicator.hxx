@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,29 +18,18 @@
 #ifndef itkImageDuplicator_hxx
 #define itkImageDuplicator_hxx
 
-#include "itkImageDuplicator.h"
 #include "itkImageAlgorithm.h"
 
 namespace itk
 {
-/** Constructor */
-template <typename TInputImage>
-ImageDuplicator<TInputImage>::ImageDuplicator()
-{
-  m_InputImage = nullptr;
-  m_DuplicateImage = nullptr;
-  m_InternalImageTime = 0;
-}
 
-/** */
 template <typename TInputImage>
 void
 ImageDuplicator<TInputImage>::Update()
 {
   if (!m_InputImage)
   {
-    itkExceptionMacro(<< "Input image has not been connected");
-    return;
+    itkExceptionMacro("Input image has not been connected");
   }
 
   // Update only if the input image has been modified
@@ -62,7 +51,7 @@ ImageDuplicator<TInputImage>::Update()
   m_DuplicateImage->SetRequestedRegion(m_InputImage->GetRequestedRegion());
   m_DuplicateImage->SetBufferedRegion(m_InputImage->GetBufferedRegion());
   m_DuplicateImage->Allocate();
-  typename ImageType::RegionType region = m_InputImage->GetBufferedRegion();
+  const typename ImageType::RegionType region = m_InputImage->GetBufferedRegion();
   ImageAlgorithm::Copy(m_InputImage.GetPointer(), m_DuplicateImage.GetPointer(), region, region);
 }
 
@@ -71,9 +60,13 @@ void
 ImageDuplicator<TInputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Input Image: " << m_InputImage << std::endl;
-  os << indent << "Output Image: " << m_DuplicateImage << std::endl;
-  os << indent << "Internal Image Time: " << m_InternalImageTime << std::endl;
+
+  itkPrintSelfObjectMacro(InputImage);
+  itkPrintSelfObjectMacro(DuplicateImage);
+
+  os << indent
+     << "InternalImageTime: " << static_cast<typename NumericTraits<ModifiedTimeType>::PrintType>(m_InternalImageTime)
+     << std::endl;
 }
 } // end namespace itk
 

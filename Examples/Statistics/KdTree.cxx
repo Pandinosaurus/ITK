@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,14 +51,14 @@ main()
   using MeasurementVectorType = itk::Vector<float, 2>;
 
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(2);
 
   MeasurementVectorType mv;
   for (unsigned int i = 0; i < 1000; ++i)
   {
-    mv[0] = (float)i;
-    mv[1] = (float)((1000 - i) / 2);
+    mv[0] = static_cast<float>(i);
+    mv[1] = static_cast<float>((1000 - i) / 2);
     sample->PushBack(mv);
   }
   // Software Guide : EndCodeSnippet
@@ -89,7 +89,7 @@ main()
 
   // Software Guide : BeginCodeSnippet
   using TreeGeneratorType = itk::Statistics::KdTreeGenerator<SampleType>;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  auto treeGenerator = TreeGeneratorType::New();
 
   treeGenerator->SetSample(sample);
   treeGenerator->SetBucketSize(16);
@@ -98,8 +98,7 @@ main()
   using CentroidTreeGeneratorType =
     itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType>;
 
-  CentroidTreeGeneratorType::Pointer centroidTreeGenerator =
-    CentroidTreeGeneratorType::New();
+  auto centroidTreeGenerator = CentroidTreeGeneratorType::New();
 
   centroidTreeGenerator->SetSample(sample);
   centroidTreeGenerator->SetBucketSize(16);
@@ -125,8 +124,8 @@ main()
   using TreeType = TreeGeneratorType::KdTreeType;
   using NodeType = TreeType::KdTreeNodeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput();
-  TreeType::Pointer centroidTree = centroidTreeGenerator->GetOutput();
+  const TreeType::Pointer tree = treeGenerator->GetOutput();
+  const TreeType::Pointer centroidTree = centroidTreeGenerator->GetOutput();
 
   NodeType * root = tree->GetRoot();
 
@@ -194,7 +193,7 @@ main()
   // Software Guide : BeginCodeSnippet
   using DistanceMetricType =
     itk::Statistics::EuclideanDistanceMetric<MeasurementVectorType>;
-  DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
+  auto distanceMetric = DistanceMetricType::New();
 
   DistanceMetricType::OriginType origin(2);
   for (unsigned int i = 0; i < sample->GetMeasurementVectorSize(); ++i)
@@ -213,7 +212,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  unsigned int                           numberOfNeighbors = 3;
+  constexpr unsigned int                 numberOfNeighbors = 3;
   TreeType::InstanceIdentifierVectorType neighbors;
   tree->Search(queryPoint, numberOfNeighbors, neighbors);
 
@@ -222,8 +221,7 @@ main()
     << std::endl
     << "query point = [" << queryPoint << "]" << std::endl
     << "k = " << numberOfNeighbors << std::endl;
-  std::cout << "measurement vector : distance from querry point "
-            << std::endl;
+  std::cout << "measurement vector : distance from query point " << std::endl;
   std::vector<double> distances1(numberOfNeighbors);
   for (unsigned int i = 0; i < numberOfNeighbors; ++i)
   {
@@ -250,8 +248,7 @@ main()
             << std::endl
             << "query point = [" << queryPoint << "]" << std::endl
             << "k = " << numberOfNeighbors << std::endl;
-  std::cout << "measurement vector : distance from querry point "
-            << std::endl;
+  std::cout << "measurement vector : distance from query point " << std::endl;
   for (unsigned int i = 0; i < numberOfNeighbors; ++i)
   {
     std::cout << "[" << tree->GetMeasurementVector(neighbors[i])
@@ -311,7 +308,7 @@ main()
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  double radius = 437.0;
+  constexpr double radius = 437.0;
 
   tree->Search(queryPoint, radius, neighbors);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkTernaryGeneratorImageFilter_hxx
 #define itkTernaryGeneratorImageFilter_hxx
 
-#include "itkTernaryGeneratorImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
 
@@ -56,7 +55,7 @@ void
 TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputImage3, TOutputImage>::SetInput1(
   const Input1ImagePixelType & input1)
 {
-  typename DecoratedInput1ImagePixelType::Pointer newInput = DecoratedInput1ImagePixelType::New();
+  auto newInput = DecoratedInput1ImagePixelType::New();
   newInput->Set(input1);
   this->SetInput1(newInput);
 }
@@ -77,7 +76,7 @@ const typename TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputIma
   const auto * input = dynamic_cast<const DecoratedInput1ImagePixelType *>(this->ProcessObject::GetInput(0));
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "Constant 1 is not set");
+    itkExceptionMacro("Constant 1 is not set");
   }
   return input->Get();
 }
@@ -106,7 +105,7 @@ void
 TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputImage3, TOutputImage>::SetInput2(
   const Input2ImagePixelType & input2)
 {
-  typename DecoratedInput2ImagePixelType::Pointer newInput = DecoratedInput2ImagePixelType::New();
+  auto newInput = DecoratedInput2ImagePixelType::New();
   newInput->Set(input2);
   this->SetInput2(newInput);
 }
@@ -127,7 +126,7 @@ const typename TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputIma
   const auto * input = dynamic_cast<const DecoratedInput2ImagePixelType *>(this->ProcessObject::GetInput(1));
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "Constant 2 is not set");
+    itkExceptionMacro("Constant 2 is not set");
   }
   return input->Get();
 }
@@ -157,7 +156,7 @@ void
 TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputImage3, TOutputImage>::SetInput3(
   const Input3ImagePixelType & input3)
 {
-  typename DecoratedInput3ImagePixelType::Pointer newInput = DecoratedInput3ImagePixelType::New();
+  auto newInput = DecoratedInput3ImagePixelType::New();
   newInput->Set(input3);
   this->SetInput3(newInput);
 }
@@ -178,7 +177,7 @@ const typename TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputIma
   const auto * input = dynamic_cast<const DecoratedInput3ImagePixelType *>(this->ProcessObject::GetInput(2));
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "Constant 3 is not set");
+    itkExceptionMacro("Constant 3 is not set");
   }
   return input->Get();
 }
@@ -248,23 +247,23 @@ TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputImage3, TOutputIma
   // We use dynamic_cast since inputs are stored as DataObjects. The
   // ImageToImageFilter::GetInput(int) always returns a pointer to a
   // TInputImage1 so it cannot be used for the second input.
-  const auto *       inputPtr1 = dynamic_cast<const TInputImage1 *>(ProcessObject::GetInput(0));
-  const auto *       inputPtr2 = dynamic_cast<const TInputImage2 *>(ProcessObject::GetInput(1));
-  const auto *       inputPtr3 = dynamic_cast<const TInputImage3 *>(ProcessObject::GetInput(2));
-  OutputImagePointer outputPtr = this->GetOutput(0);
+  const auto *             inputPtr1 = dynamic_cast<const TInputImage1 *>(ProcessObject::GetInput(0));
+  const auto *             inputPtr2 = dynamic_cast<const TInputImage2 *>(ProcessObject::GetInput(1));
+  const auto *             inputPtr3 = dynamic_cast<const TInputImage3 *>(ProcessObject::GetInput(2));
+  const OutputImagePointer outputPtr = this->GetOutput(0);
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
   std::unique_ptr<ImageScanlineConstIterator<TInputImage1>> inputIt1;
   std::unique_ptr<ImageScanlineConstIterator<TInputImage2>> inputIt2;
   std::unique_ptr<ImageScanlineConstIterator<TInputImage3>> inputIt3;
-  ImageScanlineIterator<TOutputImage>                       outputIt(outputPtr, outputRegionForThread);
+  ImageScanlineIterator                                     outputIt(outputPtr, outputRegionForThread);
 
   if (inputPtr1 && inputPtr2 && inputPtr3)
   {
-    inputIt1.reset(new ImageScanlineConstIterator<TInputImage1>(inputPtr1, outputRegionForThread));
-    inputIt2.reset(new ImageScanlineConstIterator<TInputImage2>(inputPtr2, outputRegionForThread));
-    inputIt3.reset(new ImageScanlineConstIterator<TInputImage3>(inputPtr3, outputRegionForThread));
+    inputIt1 = std::make_unique<ImageScanlineConstIterator<TInputImage1>>(inputPtr1, outputRegionForThread);
+    inputIt2 = std::make_unique<ImageScanlineConstIterator<TInputImage2>>(inputPtr2, outputRegionForThread);
+    inputIt3 = std::make_unique<ImageScanlineConstIterator<TInputImage3>>(inputPtr3, outputRegionForThread);
 
     while (!outputIt.IsAtEnd())
     {
@@ -287,15 +286,15 @@ TernaryGeneratorImageFilter<TInputImage1, TInputImage2, TInputImage3, TOutputIma
   {
     if (inputPtr1)
     {
-      inputIt1.reset(new ImageScanlineConstIterator<TInputImage1>(inputPtr1, outputRegionForThread));
+      inputIt1 = std::make_unique<ImageScanlineConstIterator<TInputImage1>>(inputPtr1, outputRegionForThread);
     }
     if (inputPtr2)
     {
-      inputIt2.reset(new ImageScanlineConstIterator<TInputImage2>(inputPtr2, outputRegionForThread));
+      inputIt2 = std::make_unique<ImageScanlineConstIterator<TInputImage2>>(inputPtr2, outputRegionForThread);
     }
     if (inputPtr3)
     {
-      inputIt3.reset(new ImageScanlineConstIterator<TInputImage3>(inputPtr3, outputRegionForThread));
+      inputIt3 = std::make_unique<ImageScanlineConstIterator<TInputImage3>>(inputPtr3, outputRegionForThread);
     }
 
 

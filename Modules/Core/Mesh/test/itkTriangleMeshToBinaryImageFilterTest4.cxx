@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ itkTriangleMeshToBinaryImageFilterTest4(int argc, char * argv[])
   using MeshType = itk::Mesh<float, Dimension>;
   using ReaderType = itk::MeshFileReader<MeshType>;
 
-  ReaderType::Pointer polyDataReader = ReaderType::New();
+  auto polyDataReader = ReaderType::New();
 
   polyDataReader->SetFileName(argv[1]);
 
@@ -62,7 +62,7 @@ itkTriangleMeshToBinaryImageFilterTest4(int argc, char * argv[])
 
   using TriangleImageType = itk::TriangleMeshToBinaryImageFilter<MeshType, ImageType>;
 
-  TriangleImageType::Pointer imageFilter = TriangleImageType::New();
+  auto imageFilter = TriangleImageType::New();
 
   imageFilter->SetInput(polyDataReader->GetOutput());
 
@@ -86,15 +86,11 @@ itkTriangleMeshToBinaryImageFilterTest4(int argc, char * argv[])
   spacing[2] = std::stod(argv[11]);
 
 
-  ImageType::IndexType  index3D = { { 0, 0, 0 } };
-  ImageType::RegionType region3D;
-  region3D.SetSize(size);
-  region3D.SetIndex(index3D);
+  constexpr ImageType::IndexType index3D = { { 0, 0, 0 } };
+  const ImageType::RegionType    region3D{ index3D, size };
 
-  ImageType::Pointer inputImage = ImageType::New();
-  inputImage->SetLargestPossibleRegion(region3D);
-  inputImage->SetBufferedRegion(region3D);
-  inputImage->SetRequestedRegion(region3D);
+  auto inputImage = ImageType::New();
+  inputImage->SetRegions(region3D);
   inputImage->SetOrigin(origin);
   inputImage->SetSpacing(spacing);
   inputImage->Allocate();
@@ -221,12 +217,12 @@ itkTriangleMeshToBinaryImageFilterTest4(int argc, char * argv[])
 
   const ImageType::SpacingType & testSpacing = imageFilter->GetSpacing();
 
-  for (unsigned i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     if (itk::Math::NotExactlyEquals(testSpacing[i], spacingAsFloatArray[i]))
     {
       std::cerr << "SetSpacing failure " << testSpacing << std::endl
-                << "!= " << spacingAsFloatArray[0] << " " << spacingAsFloatArray[1] << " " << spacingAsFloatArray[2]
+                << "!= " << spacingAsFloatArray[0] << ' ' << spacingAsFloatArray[1] << ' ' << spacingAsFloatArray[2]
                 << std::endl;
       return EXIT_FAILURE;
     }
@@ -239,12 +235,12 @@ itkTriangleMeshToBinaryImageFilterTest4(int argc, char * argv[])
   originAsFloatArray[2] = std::stod(argv[8]);
   imageFilter->SetOrigin(originAsFloatArray);
   const ImageType::PointType & testOrigin = imageFilter->GetOrigin();
-  for (unsigned i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     if (itk::Math::NotExactlyEquals(testOrigin[i], originAsFloatArray[i]))
     {
       std::cerr << "SetOrigin failure " << testOrigin << std::endl
-                << "!= " << originAsFloatArray[0] << " " << originAsFloatArray[1] << " " << originAsFloatArray[2]
+                << "!= " << originAsFloatArray[0] << ' ' << originAsFloatArray[1] << ' ' << originAsFloatArray[2]
                 << std::endl;
       return EXIT_FAILURE;
     }

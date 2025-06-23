@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,17 +42,18 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Matt McCormick <matt.mccormick@kitware.com>
-itk_fetch_module(PolarTransform
-"This is a module to transform from cartesian to polar coordinate systems and back.
+itk_fetch_module(
+  PolarTransform
+  "This is a module to transform from cartesian to polar coordinate systems and back.
 
 For more information, see the Insight Journal article:
 
   Bican J.
   Polar Transforms for ITK
   The Insight Journal. July-December. 2006.
-  http://insight-journal.org/browse/publication/130
+  https://doi.org/10.54294/t8t3j2
   "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKPolarTransform.git
-  GIT_TAG 82ac26b9c0546c345665c1938aa553aa4581f646
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKPolarTransform.git
+  GIT_TAG c5d34add1af45f6ac2d4c8a44313749561f8780f
   )

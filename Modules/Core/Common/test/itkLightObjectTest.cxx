@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ itkLightObjectTest(int, char *[])
 
   using ObjectType = itk::LightObject;
 
-  ObjectType::Pointer light = ObjectType::New();
+  auto light = ObjectType::New();
 
   std::cout << "Light Object class name = ";
   std::cout << light->GetNameOfClass() << std::endl;
@@ -43,19 +43,18 @@ itkLightObjectTest(int, char *[])
   std::cout << counts1 << std::endl;
 
   { // initialize scope for a SmartPointer
-    ObjectType::Pointer secondreference = light;
-    const int           counts2 = light->GetReferenceCount();
+    const ObjectType::Pointer secondreference = light;
+    const int                 counts2 = light->GetReferenceCount();
     if (counts2 != counts1 + 1)
     {
       std::cerr << "Problem in Reference counting increment" << std::endl;
       std::cout << "Test FAILED !" << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cout << "After assignment to another SmartPointer" << std::endl;
-      std::cout << "reference count is:  " << counts2 << std::endl;
-    }
+
+    std::cout << "After assignment to another SmartPointer" << std::endl;
+    std::cout << "reference count is:  " << counts2 << std::endl;
+
   } // terminate the scope for the SmartPointer. Reference count should
     // decrement at this point.
 
@@ -66,11 +65,10 @@ itkLightObjectTest(int, char *[])
     std::cout << "Test FAILED !" << std::endl;
     return EXIT_FAILURE;
   }
-  else
-  {
-    std::cout << "After destroying one SmartPointer" << std::endl;
-    std::cout << "reference count is:  " << counts3 << std::endl;
-  }
+
+  std::cout << "After destroying one SmartPointer" << std::endl;
+  std::cout << "reference count is:  " << counts3 << std::endl;
+
 
   std::cout << "Test PASSED !" << std::endl;
 

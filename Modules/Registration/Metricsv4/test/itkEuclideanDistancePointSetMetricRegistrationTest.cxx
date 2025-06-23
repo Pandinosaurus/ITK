@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,37 +75,35 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
 {
   using PointSetType = TPointSet;
   using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
+  using CoordinateType = typename PointType::CoordinateType;
 
-  typename PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  typename PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
   // Create a few points and apply a small rotation to make the moving point set
 
-  float     theta = itk::Math::pi / static_cast<float>(180.0) * static_cast<float>(1.0);
-  PointType fixedPoint;
-  fixedPoint[0] = static_cast<CoordRepType>(0.0);
-  fixedPoint[1] = static_cast<CoordRepType>(0.0);
+  constexpr float theta = itk::Math::pi / static_cast<float>(180.0) * static_cast<float>(1.0);
+  PointType       fixedPoint;
+  fixedPoint[0] = static_cast<CoordinateType>(0.0);
+  fixedPoint[1] = static_cast<CoordinateType>(0.0);
   fixedPoints->SetPoint(0, fixedPoint);
   fixedPoint[0] = pointMax;
-  fixedPoint[1] = static_cast<CoordRepType>(0.0);
+  fixedPoint[1] = static_cast<CoordinateType>(0.0);
   fixedPoints->SetPoint(1, fixedPoint);
   fixedPoint[0] = pointMax;
   fixedPoint[1] = pointMax;
   fixedPoints->SetPoint(2, fixedPoint);
-  fixedPoint[0] = static_cast<CoordRepType>(0.0);
+  fixedPoint[0] = static_cast<CoordinateType>(0.0);
   fixedPoint[1] = pointMax;
   fixedPoints->SetPoint(3, fixedPoint);
-  fixedPoint[0] = pointMax / static_cast<CoordRepType>(2.0);
-  fixedPoint[1] = pointMax / static_cast<CoordRepType>(2.0);
+  fixedPoint[0] = pointMax / static_cast<CoordinateType>(2.0);
+  fixedPoint[1] = pointMax / static_cast<CoordinateType>(2.0);
   fixedPoints->SetPoint(4, fixedPoint);
-  unsigned int numberOfPoints = fixedPoints->GetNumberOfPoints();
+  const unsigned int numberOfPoints = fixedPoints->GetNumberOfPoints();
 
   PointType movingPoint;
-  for (unsigned int n = 0; n < numberOfPoints; n++)
+  for (unsigned int n = 0; n < numberOfPoints; ++n)
   {
     fixedPoint = fixedPoints->GetPoint(n);
     movingPoint[0] = fixedPoint[0] * std::cos(theta) - fixedPoint[1] * std::sin(theta);
@@ -122,7 +120,7 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
 
   // scales estimator
   using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift<TMetric>;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+  const typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric(metric);
   // needed with pointset metrics
@@ -130,14 +128,14 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
 
   // optimizer
   using OptimizerType = itk::GradientDescentOptimizerv4;
-  typename OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfIterations);
   optimizer->SetScalesEstimator(shiftScaleEstimator);
   optimizer->SetMaximumStepSizeInPhysicalUnits(maximumPhysicalStepSize);
 
   using CommandType = itkEuclideanDistancePointSetMetricRegistrationTestCommandIterationUpdate<OptimizerType>;
-  typename CommandType::Pointer observer = CommandType::New();
+  auto observer = CommandType::New();
   // optimizer->AddObserver( itk::IterationEvent(), observer );
 
   // start
@@ -154,8 +152,7 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
     typename TTransform::ParametersType params = transform->GetParameters();
     for (itk::SizeValueType n = 0; n < transform->GetNumberOfParameters(); n += transform->GetNumberOfLocalParameters())
     {
-      typename TTransform::ParametersValueType zero =
-        itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
+      const typename TTransform::ParametersValueType zero{};
       if (itk::Math::NotExactlyEquals(params[n], zero) && itk::Math::NotExactlyEquals(params[n + 1], zero))
       {
         std::cout << n << ", " << n + 1 << " : " << params[n] << ", " << params[n + 1] << std::endl;
@@ -169,10 +166,11 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
 
   // applying the resultant transform and verify result
   std::cout << "Fixed\tMoving\tMovingTransformed\tFixedTransformed\tDiff" << std::endl;
-  bool                                             passed = true;
-  auto                                             tolerance = static_cast<typename PointType::ValueType>(1e-4);
-  typename TTransform::InverseTransformBasePointer fixedInverse = metric->GetFixedTransform()->GetInverseTransform();
-  for (unsigned int n = 0; n < numberOfPoints; n++)
+  bool                                                   passed = true;
+  auto                                                   tolerance = static_cast<typename PointType::ValueType>(1e-4);
+  const typename TTransform::InverseTransformBasePointer fixedInverse =
+    metric->GetFixedTransform()->GetInverseTransform();
+  for (unsigned int n = 0; n < numberOfPoints; ++n)
   {
     // compare the points in moving domain so we don't have to worry about an inverse
     // of the displacement field transform
@@ -182,9 +180,9 @@ itkEuclideanDistancePointSetMetricRegistrationTestRun(unsigned int              
     movingPoint = movingPoints->GetPoint(n);
     difference[0] = movingPoint[0] - transformedFixedPoint[0];
     difference[1] = movingPoint[1] - transformedFixedPoint[1];
-    std::cout << fixedPoints->GetPoint(n) << "\t" << movingPoint << "\t" << transformedFixedPoint << "\t" << difference
+    std::cout << fixedPoints->GetPoint(n) << '\t' << movingPoint << '\t' << transformedFixedPoint << '\t' << difference
               << std::endl;
-    if (fabs(difference[0]) > tolerance || fabs(difference[1]) > tolerance)
+    if (itk::Math::abs(difference[0]) > tolerance || itk::Math::abs(difference[1]) > tolerance)
     {
       passed = false;
     }
@@ -226,11 +224,11 @@ itkEuclideanDistancePointSetMetricRegistrationTest(int argc, char * argv[])
   // metric
   using PointSetType = itk::PointSet<unsigned char, Dimension>;
   using PointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType>;
-  PointSetMetricType::Pointer metric = PointSetMetricType::New();
+  auto metric = PointSetMetricType::New();
 
   // transform
   using AffineTransformType = itk::AffineTransform<double, Dimension>;
-  AffineTransformType::Pointer affineTransform = AffineTransformType::New();
+  auto affineTransform = AffineTransformType::New();
   affineTransform->SetIdentity();
   std::cout << "XX Test with affine transform: " << std::endl;
   int oneResult =
@@ -247,7 +245,7 @@ itkEuclideanDistancePointSetMetricRegistrationTest(int argc, char * argv[])
   //
 
   using DisplacementFieldTransformType = itk::DisplacementFieldTransform<double, Dimension>;
-  DisplacementFieldTransformType::Pointer displacementTransform = DisplacementFieldTransformType::New();
+  auto displacementTransform = DisplacementFieldTransformType::New();
 
   // Setup the physical space to match the point set virtual domain,
   // which is defined by the fixed point set since the fixed transform
@@ -256,43 +254,35 @@ itkEuclideanDistancePointSetMetricRegistrationTest(int argc, char * argv[])
   using RegionType = FieldType::RegionType;
   using RealType = DisplacementFieldTransformType::ScalarType;
 
-  FieldType::SpacingType spacing;
-  spacing.Fill(static_cast<RealType>(1.0));
+  auto spacing = itk::MakeFilled<FieldType::SpacingType>(static_cast<RealType>(1.0));
 
-  FieldType::DirectionType direction;
-  direction.Fill(static_cast<RealType>(0.0));
-  for (unsigned int d = 0; d < Dimension; d++)
+  FieldType::DirectionType direction{};
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     direction[d][d] = static_cast<RealType>(1.0);
   }
 
-  FieldType::PointType origin;
-  origin.Fill(static_cast<RealType>(0.0));
+  constexpr FieldType::PointType origin{};
 
-  RegionType::SizeType regionSize;
-  regionSize.Fill(static_cast<itk::SizeValueType>(pointMax) + 1);
+  auto regionSize = RegionType::SizeType::Filled(static_cast<itk::SizeValueType>(pointMax) + 1);
 
-  RegionType::IndexType regionIndex;
-  regionIndex.Fill(0);
+  constexpr RegionType::IndexType regionIndex{};
 
-  RegionType region;
-  region.SetSize(regionSize);
-  region.SetIndex(regionIndex);
+  const RegionType region{ regionIndex, regionSize };
 
-  FieldType::Pointer displacementField = FieldType::New();
+  auto displacementField = FieldType::New();
   displacementField->SetOrigin(origin);
   displacementField->SetDirection(direction);
   displacementField->SetSpacing(spacing);
   displacementField->SetRegions(region);
   displacementField->Allocate();
-  DisplacementFieldTransformType::OutputVectorType zeroVector;
-  zeroVector.Fill(static_cast<RealType>(0.0));
+  constexpr DisplacementFieldTransformType::OutputVectorType zeroVector{};
   displacementField->FillBuffer(zeroVector);
   displacementTransform->SetDisplacementField(displacementField);
 
   // metric
   using PointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType>;
-  PointSetMetricType::Pointer metric2 = PointSetMetricType::New();
+  auto metric2 = PointSetMetricType::New();
   // If we don't set the virtual domain when using a displacement field transform, the
   // metric takes it from the transform during initialization.
   // metric2->SetVirtualDomain( spacing, origin, direction, region );

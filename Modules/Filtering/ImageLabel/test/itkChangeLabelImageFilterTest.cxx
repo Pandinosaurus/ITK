@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,13 +40,13 @@ itkChangeLabelImageFilterTest(int, char *[])
 
   // Use a random image source as input
   using SourceType = itk::RandomImageSource<InputImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
   InputImageType::SizeValueType sizeArray[ImageDimension] = { 3, 3, 3 };
 
   // limit to a few labels
-  InputPixelType upper = 10;
-  source->SetMin(itk::NumericTraits<InputPixelType>::ZeroValue());
+  constexpr InputPixelType upper = 10;
+  source->SetMin(InputPixelType{});
   source->SetMax(upper);
   source->SetSize(sizeArray);
 
@@ -55,12 +55,12 @@ itkChangeLabelImageFilterTest(int, char *[])
 
 
   // Create a filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // Eliminate most labels
-  InputPixelType background = 0;
-  InputPixelType maxRemainingLabel = 2;
-  for (InputPixelType i = maxRemainingLabel; i <= upper; i++)
+  constexpr InputPixelType background = 0;
+  constexpr InputPixelType maxRemainingLabel = 2;
+  for (InputPixelType i = maxRemainingLabel; i <= upper; ++i)
   {
     filter->SetChange(i, background);
   }
@@ -74,7 +74,7 @@ itkChangeLabelImageFilterTest(int, char *[])
   filter->SetInput(source->GetOutput());
 
   // Get the Smart Pointer to the Filter Output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Execute the filter
   try
@@ -104,7 +104,7 @@ itkChangeLabelImageFilterTest(int, char *[])
 
     const InputPixelType  input = it.Get();
     const OutputPixelType output = ot.Get();
-    std::cout << (double)input << " " << (double)output << std::endl;
+    std::cout << static_cast<double>(input) << ' ' << static_cast<double>(output) << std::endl;
 
     if (output > maxRemainingLabel)
     {
@@ -154,7 +154,7 @@ itkChangeLabelImageFilterTest(int, char *[])
 
     const InputPixelType  input = ita.Get();
     const OutputPixelType output = ota.Get();
-    std::cout << (double)input << " " << (double)output << std::endl;
+    std::cout << static_cast<double>(input) << ' ' << static_cast<double>(output) << std::endl;
 
     if (input != output)
     {
@@ -175,12 +175,10 @@ itkChangeLabelImageFilterTest(int, char *[])
 
   if (pass)
   {
-    std::cout << "Test passsed. " << std::endl;
+    std::cout << "Test passed. " << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Test failed. " << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Test failed. " << std::endl;
+  return EXIT_FAILURE;
 }

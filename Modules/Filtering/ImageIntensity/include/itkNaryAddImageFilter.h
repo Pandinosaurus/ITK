@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,14 +35,12 @@ class Add1
 {
 public:
   using AccumulatorType = typename NumericTraits<TInput>::AccumulateType;
-  Add1() = default;
-  ~Add1() = default;
   inline TOutput
   operator()(const std::vector<TInput> & B) const
   {
-    AccumulatorType sum = NumericTraits<TOutput>::ZeroValue();
+    AccumulatorType sum = TOutput{};
 
-    for (unsigned int i = 0; i < B.size(); i++)
+    for (unsigned int i = 0; i < B.size(); ++i)
     {
       sum += static_cast<AccumulatorType>(B[i]);
     }
@@ -55,11 +53,7 @@ public:
     return true;
   }
 
-  bool
-  operator!=(const Add1 &) const
-  {
-    return false;
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Add1);
 };
 } // namespace Functor
 
@@ -119,16 +113,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(NaryAddImageFilter, NaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NaryAddImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(InputHasZeroCheck, (Concept::HasZero<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   NaryAddImageFilter() = default;

@@ -16,11 +16,14 @@ please visit the [ITKModuleTemplate](https://github.com/InsightSoftwareConsortiu
 
 Note that in each `<remote module name>.remote.cmake` file, the first argument
 of the function `itk_fetch_module()` is the name of the remote module, and it
-has to be consistent with the module name defined in the correponding
+has to be consistent with the module name defined in the corresponding
 `<remote module name>.remote.cmake` file.
 
 To better distinguish the remote modules from the internal ITK modules, the names
 of the remote modules should **not** contain the "ITK" string prefix in them.
+
+Git hashes should be used to reference a given module revision. If a tagged version is
+required then the equivalent hash should be used in place of the tag string.
 
 
 [ITK Software Guide]: https://itk.org/ItkSoftwareGuide.pdf
@@ -47,7 +50,7 @@ core developers in maintaining the core ITK code base.  There are currently (202
 
 ## Documenting the Compliance Level of a remote module
 Use the following template to document the compliance level of the modules.
-```
+```cmake
 #-- # Grading Level Criteria Report
 #-- EVALUATION DATE: 2020-03-01
 #-- EVALUATORS: [<<NO EVALUATOR>>,<<NO EVALUATOR>>]
@@ -77,12 +80,12 @@ Use the following template to document the compliance level of the modules.
 #--   - [X] Some tests exist and pass on at least some platform
 #--   - [ ] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [ ] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -92,12 +95,12 @@ Use the following template to document the compliance level of the modules.
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed.
 #       On 2020-02-15 manual evaluation of code coverage for running the supplied test resulted in 77% code coverage
 #       Tests manually confirmed to pass for Windows VS 19, Mac 10.14, and Ubuntu Linux gcc 7 compilers
-#       CI integration is not yet working as of 2020-02-19, so level 4 compliance not yet achived.
+#       CI integration is not yet working as of 2020-02-19, so level 4 compliance not yet achieved.
 
 itk_fetch_module(MyFavRemoteModule
   "The best image processing algorithm in ITK. From Insight Journal article with handle: https://hdl.handle.net/1234/567"
   MODULE_COMPLIANCE_LEVEL 3
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/MyFavRemoteModule.git
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/MyFavRemoteModule.git
   GIT_TAG 9988d866433896368bd3049c396b974433b22ccd
   )
 ```

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,90 +20,83 @@
 
 #include "itkMath.h"
 #include "itkNumericTraits.h"
-#include "itkScalableAffineTransform.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
-#include "itkMath.h"
 
 namespace itk
 {
-/** Constructor with default arguments */
-template <typename TParametersValueType, unsigned int NDimensions>
-ScalableAffineTransform<TParametersValueType, NDimensions>::ScalableAffineTransform()
+
+template <typename TParametersValueType, unsigned int VDimension>
+ScalableAffineTransform<TParametersValueType, VDimension>::ScalableAffineTransform()
   : Superclass(Self::ParametersDimension)
 {
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = 1;
     m_MatrixScale[i] = 1;
   }
 }
 
-/** Constructor with default arguments */
-template <typename TParametersValueType, unsigned int NDimensions>
-ScalableAffineTransform<TParametersValueType, NDimensions>::ScalableAffineTransform(unsigned int,
-                                                                                    unsigned int parametersDimension)
+template <typename TParametersValueType, unsigned int VDimension>
+ScalableAffineTransform<TParametersValueType, VDimension>::ScalableAffineTransform(unsigned int,
+                                                                                   unsigned int parametersDimension)
   : Superclass(parametersDimension)
 {
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = 1;
     m_MatrixScale[i] = 1;
   }
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
-ScalableAffineTransform<TParametersValueType, NDimensions>::ScalableAffineTransform(unsigned int parametersDimension)
+template <typename TParametersValueType, unsigned int VDimension>
+ScalableAffineTransform<TParametersValueType, VDimension>::ScalableAffineTransform(unsigned int parametersDimension)
   : Superclass(parametersDimension)
 {
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = 1;
     m_MatrixScale[i] = 1;
   }
 }
 
-/** Constructor with default arguments */
-template <typename TParametersValueType, unsigned int NDimensions>
-ScalableAffineTransform<TParametersValueType, NDimensions>::ScalableAffineTransform(const MatrixType &       matrix,
-                                                                                    const OutputVectorType & offset)
+#if !defined(ITK_LEGACY_REMOVE)
+template <typename TParametersValueType, unsigned int VDimension>
+ScalableAffineTransform<TParametersValueType, VDimension>::ScalableAffineTransform(const MatrixType &       matrix,
+                                                                                   const OutputVectorType & offset)
   : Superclass(matrix, offset)
 {
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = 1;
     m_MatrixScale[i] = 1;
   }
 }
+#endif
 
-/** Print self */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScalableAffineTransform<TParametersValueType, NDimensions>::PrintSelf(std::ostream & os, Indent indent) const
+ScalableAffineTransform<TParametersValueType, VDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-
-  unsigned int i;
-
   os << indent << "Scale : ";
-  for (i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
-    os << m_Scale[i] << " ";
+    os << m_Scale[i] << ' ';
   }
   os << std::endl;
   os << indent << "MatrixScale : ";
-  for (i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
-    os << m_MatrixScale[i] << " ";
+    os << m_MatrixScale[i] << ' ';
   }
   os << std::endl;
 }
 
-// Set the parameters in order to fit an Identity transform
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScalableAffineTransform<TParametersValueType, NDimensions>::SetIdentity()
+ScalableAffineTransform<TParametersValueType, VDimension>::SetIdentity()
 {
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = 1;
     m_MatrixScale[i] = 1;
@@ -111,14 +104,12 @@ ScalableAffineTransform<TParametersValueType, NDimensions>::SetIdentity()
   this->Superclass::SetIdentity();
 }
 
-/** Set the scale of the transformation */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScalableAffineTransform<TParametersValueType, NDimensions>::SetScale(const InputVectorType & scale)
+ScalableAffineTransform<TParametersValueType, VDimension>::SetScale(const InputVectorType & scale)
 {
-  unsigned int i;
 
-  for (i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = scale[i];
   }
@@ -126,13 +117,12 @@ ScalableAffineTransform<TParametersValueType, NDimensions>::SetScale(const Input
   this->Modified();
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScalableAffineTransform<TParametersValueType, NDimensions>::SetScale(const double scale[NDimensions])
+ScalableAffineTransform<TParametersValueType, VDimension>::SetScale(const double scale[VDimension])
 {
-  unsigned int i;
 
-  for (i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     m_Scale[i] = scale[i];
   }
@@ -140,31 +130,26 @@ ScalableAffineTransform<TParametersValueType, NDimensions>::SetScale(const doubl
   this->Modified();
 }
 
-// Get an inverse of this transform
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 bool
-ScalableAffineTransform<TParametersValueType, NDimensions>::GetInverse(Self * inverse) const
+ScalableAffineTransform<TParametersValueType, VDimension>::GetInverse(Self * inverse) const
 {
   return this->Superclass::GetInverse(inverse);
 }
 
-// Return an inverse of this transform
-template <typename TParametersValueType, unsigned int NDimensions>
-typename ScalableAffineTransform<TParametersValueType, NDimensions>::InverseTransformBasePointer
-ScalableAffineTransform<TParametersValueType, NDimensions>::GetInverseTransform() const
+template <typename TParametersValueType, unsigned int VDimension>
+auto
+ScalableAffineTransform<TParametersValueType, VDimension>::GetInverseTransform() const -> InverseTransformBasePointer
 {
-  Pointer inv = New();
-
-  return this->GetInverse(inv) ? inv.GetPointer() : nullptr;
+  return Superclass::InvertTransform(*this);
 }
 
-/** Set the scale of the transformation */
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ScalableAffineTransform<TParametersValueType, NDimensions>::ComputeMatrix()
+ScalableAffineTransform<TParametersValueType, VDimension>::ComputeMatrix()
 {
   bool scaleChanged = false;
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     if (Math::NotExactlyEquals(m_Scale[i], m_MatrixScale[i]))
     {
@@ -175,11 +160,10 @@ ScalableAffineTransform<TParametersValueType, NDimensions>::ComputeMatrix()
   {
     MatrixType                                mat;
     typename MatrixType::InternalMatrixType & imat = mat.GetVnlMatrix();
-    for (unsigned int i = 0; i < NDimensions; i++)
+    for (unsigned int i = 0; i < VDimension; ++i)
     {
-      if (Math::NotAlmostEquals(m_MatrixScale[i],
-                                NumericTraits<typename NumericTraits<InputVectorType>::ValueType>::ZeroValue()) &&
-          Math::NotAlmostEquals(m_Scale[i], NumericTraits<double>::ZeroValue()))
+      if (Math::NotAlmostEquals(m_MatrixScale[i], typename NumericTraits<InputVectorType>::ValueType{}) &&
+          Math::NotAlmostEquals(m_Scale[i], 0.0))
       {
         imat.put(i, i, m_Scale[i] / m_MatrixScale[i] * this->GetMatrix()[i][i]);
         m_MatrixScale[i] = m_Scale[i];

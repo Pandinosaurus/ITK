@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@
 #include "itkRayCastInterpolateImageFunction.h"
 // Software Guide : EndCodeSnippet
 
-//#define WRITE_CUBE_IMAGE_TO_FILE
+// #define WRITE_CUBE_IMAGE_TO_FILE
 
 
 void
@@ -329,7 +329,7 @@ main(int argc, char * argv[])
   {
 
     using ReaderType = itk::ImageFileReader<InputImageType>;
-    ReaderType::Pointer reader = ReaderType::New();
+    auto reader = ReaderType::New();
     reader->SetFileName(input_name);
 
 
@@ -436,7 +436,7 @@ main(int argc, char * argv[])
 #ifdef WRITE_CUBE_IMAGE_TO_FILE
     const char * filename = "cube.gipl";
     using WriterType = itk::ImageFileWriter<InputImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     writer->SetFileName(filename);
     writer->SetInput(image);
@@ -465,11 +465,11 @@ main(int argc, char * argv[])
     const InputImageType::SpacingType spacing = image->GetSpacing();
     std::cout << std::endl << "Input ";
 
-    InputImageType::RegionType region = image->GetBufferedRegion();
+    const InputImageType::RegionType region = image->GetBufferedRegion();
     region.Print(std::cout);
 
     std::cout << "  Resolution: [";
-    for (i = 0; i < Dimension; i++)
+    for (i = 0; i < Dimension; ++i)
     {
       std::cout << spacing[i];
       if (i < Dimension - 1)
@@ -479,7 +479,7 @@ main(int argc, char * argv[])
 
     const InputImageType::PointType origin = image->GetOrigin();
     std::cout << "  Origin: [";
-    for (i = 0; i < Dimension; i++)
+    for (i = 0; i < Dimension; ++i)
     {
       std::cout << origin[i];
       if (i < Dimension - 1)
@@ -501,7 +501,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using FilterType = itk::ResampleImageFilter<InputImageType, InputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(image);
   filter->SetDefaultPixelValue(0);
@@ -518,7 +518,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using TransformType = itk::CenteredEuler3DTransform<double>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   transform->SetComputeZYX(true);
 
@@ -540,8 +540,8 @@ main(int argc, char * argv[])
   using InputImageRegionType = InputImageType::RegionType;
   using InputImageSizeType = InputImageRegionType::SizeType;
 
-  InputImageRegionType imRegion = image->GetBufferedRegion();
-  InputImageSizeType   imSize = imRegion.GetSize();
+  const InputImageRegionType imRegion = image->GetBufferedRegion();
+  InputImageSizeType         imSize = imRegion.GetSize();
 
   imOrigin[0] += imRes[0] * static_cast<double>(imSize[0]) / 2.0;
   imOrigin[1] += imRes[1] * static_cast<double>(imSize[1]) / 2.0;
@@ -581,7 +581,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using InterpolatorType =
     itk::RayCastInterpolateImageFunction<InputImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   interpolator->SetTransform(transform);
   // Software Guide : EndCodeSnippet
 
@@ -688,8 +688,8 @@ main(int argc, char * argv[])
 
   double origin[Dimension];
 
-  origin[0] = imOrigin[0] + o2Dx - sx * ((double)dx - 1.) / 2.;
-  origin[1] = imOrigin[1] + o2Dy - sy * ((double)dy - 1.) / 2.;
+  origin[0] = imOrigin[0] + o2Dx - sx * (static_cast<double>(dx) - 1.) / 2.;
+  origin[1] = imOrigin[1] + o2Dy - sy * (static_cast<double>(dy) - 1.) / 2.;
   origin[2] = imOrigin[2] + sid / 2.;
 
   filter->SetOutputOrigin(origin);
@@ -716,13 +716,13 @@ main(int argc, char * argv[])
     // Software Guide : BeginCodeSnippet
     using RescaleFilterType =
       itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
-    RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    auto rescaler = RescaleFilterType::New();
     rescaler->SetOutputMinimum(0);
     rescaler->SetOutputMaximum(255);
     rescaler->SetInput(filter->GetOutput());
 
     using WriterType = itk::ImageFileWriter<OutputImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     writer->SetFileName(output_name);
     writer->SetInput(rescaler->GetOutput());

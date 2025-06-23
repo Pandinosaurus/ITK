@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +47,7 @@ itkNotImageFilterTest(int, char *[])
   using NotImageFilterType = itk::NotImageFilter<InputImageType, OutputImageType>;
 
   // Create the input image
-  InputImageType::Pointer inputImage = InputImageType::New();
+  auto inputImage = InputImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -65,9 +65,7 @@ itkNotImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize input image
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   // Declare appropriate Iterator types for each image
@@ -86,7 +84,7 @@ itkNotImageFilterTest(int, char *[])
   }
 
   // Create the filter
-  NotImageFilterType::Pointer filter = NotImageFilterType::New();
+  auto filter = NotImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, NotImageFilter, UnaryFunctorImageFilter);
 
@@ -107,7 +105,7 @@ itkNotImageFilterTest(int, char *[])
   filter->Update();
 
   // Get the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the image output
   OutputIteratorType ot(outputImage, outputImage->GetBufferedRegion());

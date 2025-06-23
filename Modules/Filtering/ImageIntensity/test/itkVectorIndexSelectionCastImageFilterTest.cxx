@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,8 +20,8 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
 #include "itkVectorIndexSelectionCastImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkVectorIndexSelectionCastImageFilterTest(int argc, char * argv[])
@@ -45,15 +45,15 @@ itkVectorIndexSelectionCastImageFilterTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   using FilterType = itk::VectorIndexSelectionCastImageFilter<InputImageType, OutputImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(reader->GetOutput());
   writer->SetInput(filter->GetOutput());
@@ -62,20 +62,12 @@ itkVectorIndexSelectionCastImageFilterTest(int argc, char * argv[])
 
   filter->SetIndex(index);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e;
-    return -1;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
 
   std::cout << "Test the exception if the index is too large" << std::endl;
 
-  InputImageType::ConstPointer inputImage = reader->GetOutput();
+  const InputImageType::ConstPointer inputImage = reader->GetOutput();
 
   const unsigned int maximumIndex = inputImage->GetNumberOfComponentsPerPixel();
 

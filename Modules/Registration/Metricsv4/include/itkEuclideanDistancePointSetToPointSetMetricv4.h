@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,9 +32,7 @@ namespace itk
  *  We only have to handle the individual point case as the parent
  *  class handles the aggregation.
  *
- *  Reference:
- *    PJ Besl and ND McKay, "A Method for Registration of 3-D Shapes",
- *    IEEE PAMI, Vol 14, No. 2, February 1992
+ *  For complete details see \cite besl1992.
  *
  * \ingroup ITKMetricsv4
  */
@@ -56,16 +54,30 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(EuclideanDistancePointSetToPointSetMetricv4, PointSetToPointSetMetricv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(EuclideanDistancePointSetToPointSetMetricv4);
 
   /** Types transferred from the base class */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using LocalDerivativeType = typename Superclass::LocalDerivativeType;
-  using PointType = typename Superclass::PointType;
-  using PixelType = typename Superclass::PixelType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::LocalDerivativeType;
+  using typename Superclass::PointType;
+  using typename Superclass::PixelType;
+  using typename Superclass::PointIdentifier;
+
+  using RealType = MeasureType;
+  /**
+   * Distance threshold to be used to calculate the metric value.
+   * Only point pairs that have distance lesser than this threshold
+   * contribute to the metric. Default is -1 to include all the pairs.
+   */
+  itkSetMacro(DistanceThreshold, RealType);
+
+  /**
+   * Get the Distance threshold to be used to calculate the metric value
+   * Default = -1.
+   */
+  itkGetConstMacro(DistanceThreshold, RealType);
 
   /**
    * Calculates the local metric value for a single point.
@@ -86,7 +98,7 @@ protected:
   EuclideanDistancePointSetToPointSetMetricv4() = default;
   ~EuclideanDistancePointSetToPointSetMetricv4() override = default;
 
-  bool
+  [[nodiscard]] bool
   RequiresFixedPointsLocator() const override
   {
     return false;
@@ -95,6 +107,9 @@ protected:
   /** PrintSelf function */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
+
+private:
+  RealType m_DistanceThreshold = -1.0;
 };
 } // end namespace itk
 

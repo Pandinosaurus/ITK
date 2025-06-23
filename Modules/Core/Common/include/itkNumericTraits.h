@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,19 +23,21 @@
 #undef min
 #undef max
 
-#define itkNUMERIC_TRAITS_MIN_MAX_MACRO()                                                                              \
-  static constexpr ValueType min(ValueType) { return std::numeric_limits<ValueType>::min(); }                          \
-  static constexpr ValueType max(ValueType) { return std::numeric_limits<ValueType>::max(); }                          \
-  static constexpr ValueType min() { return std::numeric_limits<ValueType>::min(); }                                   \
-  static constexpr ValueType max() { return std::numeric_limits<ValueType>::max(); }
+#define itkNUMERIC_TRAITS_MIN_MAX_MACRO()                                                     \
+  static constexpr ValueType min(ValueType) { return std::numeric_limits<ValueType>::min(); } \
+  static constexpr ValueType max(ValueType) { return std::numeric_limits<ValueType>::max(); } \
+  static constexpr ValueType min() { return std::numeric_limits<ValueType>::min(); }          \
+  static constexpr ValueType max() { return std::numeric_limits<ValueType>::max(); }          \
+  ITK_MACROEND_NOOP_STATEMENT
 
 #include <limits> // for std::numeric_limits
 #include <complex>
+#include <type_traits> // for std::is_floating_point
 
 namespace itk
 {
 
-// forward decare to avoid circular dependencies
+// forward declare to avoid circular dependencies
 template <typename TValue, unsigned int VLength>
 class FixedArray;
 
@@ -67,7 +69,7 @@ public:
   /** Return the type that can be printed. */
   using PrintType = T;
 
-  /** Return value of std::abs(). */
+  /** Return value of itk::Math::abs(). */
   using AbsType = T;
 
   /** Accumulation of addition and multiplication. */
@@ -186,9 +188,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
   /** Return the length of the scalar. This API is needed for
    * VariableLengthVector because
@@ -306,14 +308,14 @@ public:
     return !val;
   }
   static constexpr bool
-  IsNegative(bool val)
+  IsNegative(bool itkNotUsed(val))
   {
-    return val ? false : false;
+    return false;
   }
   static constexpr bool
-  IsNonnegative(bool val)
+  IsNonnegative(bool itkNotUsed(val))
   {
-    return val ? true : true;
+    return true;
   }
   static constexpr bool IsSigned = false;
   static constexpr bool IsInteger = true;
@@ -365,9 +367,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -471,9 +473,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -593,9 +595,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -638,14 +640,14 @@ public:
     return val == Zero;
   }
   static constexpr bool
-  IsNegative(unsigned char val)
+  IsNegative(unsigned char itkNotUsed(val))
   {
-    return val ? false : false;
+    return false;
   }
   static constexpr bool
-  IsNonnegative(unsigned char val)
+  IsNonnegative(unsigned char itkNotUsed(val))
   {
-    return val ? true : true;
+    return true;
   }
   static constexpr bool IsSigned = false;
   static constexpr bool IsInteger = true;
@@ -697,9 +699,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -799,9 +801,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -843,14 +845,14 @@ public:
     return val == Zero;
   }
   static constexpr bool
-  IsNegative(unsigned short val)
+  IsNegative(unsigned short itkNotUsed(val))
   {
-    return val ? false : false;
+    return false;
   }
   static constexpr bool
-  IsNonnegative(unsigned short val)
+  IsNonnegative(unsigned short itkNotUsed(val))
   {
-    return val ? true : true;
+    return true;
   }
   static constexpr bool IsSigned = false;
   static constexpr bool IsInteger = true;
@@ -902,9 +904,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1004,9 +1006,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1067,14 +1069,14 @@ public:
     return val == Zero;
   }
   static constexpr bool
-  IsNegative(unsigned int val)
+  IsNegative(unsigned int itkNotUsed(val))
   {
-    return val ? false : false;
+    return false;
   }
   static constexpr bool
-  IsNonnegative(unsigned int val)
+  IsNonnegative(unsigned int itkNotUsed(val))
   {
-    return val ? true : true;
+    return true;
   }
   static constexpr bool IsSigned = false;
   static constexpr bool IsInteger = true;
@@ -1126,9 +1128,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1229,9 +1231,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1332,9 +1334,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1436,9 +1438,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1539,9 +1541,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1650,9 +1652,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1754,9 +1756,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1797,8 +1799,16 @@ public:
   {
     return val == Zero;
   }
-  static constexpr bool IsNegative(ValueType) { return false; }
-  static constexpr bool IsNonnegative(ValueType) { return true; }
+  static constexpr bool
+  IsNegative(ValueType)
+  {
+    return false;
+  }
+  static constexpr bool
+  IsNonnegative(ValueType)
+  {
+    return true;
+  }
   static constexpr bool IsSigned = false;
   static constexpr bool IsInteger = true;
   static constexpr bool IsComplex = false;
@@ -1849,9 +1859,9 @@ public:
   {
     if (s != 1)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a scalar to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a scalar to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
 };
 
@@ -1890,8 +1900,16 @@ public:
   {
     return std::numeric_limits<ValueType>::max();
   }
-  static constexpr Self min(Self) { return min(); }
-  static constexpr Self max(Self) { return max(); }
+  static constexpr Self
+  min(Self)
+  {
+    return min();
+  }
+  static constexpr Self
+  max(Self)
+  {
+    return max();
+  }
   static constexpr ValueType
   epsilon()
   {
@@ -1924,7 +1942,7 @@ public:
     return val.real() >= 0;
   }
 
-  static constexpr bool IsSigned = NumericTraits<ValueType>::IsSigned;
+  static constexpr bool IsSigned = std::is_signed_v<ValueType>;
   static constexpr bool IsInteger = false;
   static constexpr bool IsComplex = true;
   static Self
@@ -1975,10 +1993,16 @@ public:
   {
     if (s != 2)
     {
-      itkGenericExceptionMacro(<< "Cannot set the size of a complex to " << s);
+      itkGenericExceptionMacro("Cannot set the size of a complex to " << s);
     }
-    m = NumericTraits<ValueType>::ZeroValue();
+    m = ValueType{};
   }
+
+#if defined(ITK_LEGACY_REMOVE)
+  static_assert(std::is_floating_point_v<TComponent>,
+                "As per https://en.cppreference.com/w/cpp/numeric/complex the behavior is unspecified and may fail to "
+                "compile if TComponent is not float, double, or long double and undefined if T is not NumericType.");
+#endif // defined(ITK_LEGACY_REMOVE)
 };
 /// \endcond
 } // end namespace itk

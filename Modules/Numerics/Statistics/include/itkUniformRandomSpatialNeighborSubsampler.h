@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkSpatialNeighborSubsampler.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class UniformRandomSpatialNeighborSubsampler
+ * \class UniformRandomSpatialNeighborSubsampler
  * \brief A subsampler that uniformly randomly selects points
  * within the specified radius of the query point.
  *
@@ -58,34 +56,34 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(UniformRandomSpatialNeighborSubsampler, SpatialNeighborSubsampler);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(UniformRandomSpatialNeighborSubsampler);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** type alias alias for the source data container */
-  using SampleType = typename Superclass::SampleType;
-  using SampleConstPointer = typename Superclass::SampleConstPointer;
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::SampleType;
+  using typename Superclass::SampleConstPointer;
+  using typename Superclass::MeasurementVectorType;
+  using typename Superclass::InstanceIdentifier;
 
-  using SubsampleType = typename Superclass::SubsampleType;
-  using SubsamplePointer = typename Superclass::SubsamplePointer;
-  using SubsampleConstIterator = typename Superclass::SubsampleConstIterator;
-  using InstanceIdentifierHolder = typename Superclass::InstanceIdentifierHolder;
+  using typename Superclass::SubsampleType;
+  using typename Superclass::SubsamplePointer;
+  using typename Superclass::SubsampleConstIterator;
+  using typename Superclass::InstanceIdentifierHolder;
   using SeedType = typename Baseclass::SeedType;
 
   using SearchSizeType = unsigned long;
   using RandomIntType = unsigned int;
 
   /** type alias related to image region */
-  using RadiusType = typename Superclass::RadiusType;
-  using RegionType = typename Superclass::RegionType;
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
-  using SizeType = typename Superclass::SizeType;
-  using ImageHelperType = typename Superclass::ImageHelperType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::RegionType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
+  using typename Superclass::SizeType;
+  using typename Superclass::ImageHelperType;
 
 
   /** type alias related to random variate generator */
@@ -142,7 +140,7 @@ protected:
    * This does a complete copy of the subsampler state
    * to the new subsampler
    */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
   UniformRandomSpatialNeighborSubsampler();
@@ -158,13 +156,12 @@ protected:
   virtual RandomIntType
   GetIntegerVariate(RandomIntType lowerBound, RandomIntType upperBound, RandomIntType itkNotUsed(mean));
 
-  SearchSizeType               m_NumberOfResultsRequested;
-  RandomGeneratorType::Pointer m_RandomNumberGenerator;
-  bool                         m_UseClockForSeed;
+  SearchSizeType               m_NumberOfResultsRequested{};
+  RandomGeneratorType::Pointer m_RandomNumberGenerator{};
+  bool                         m_UseClockForSeed{};
 }; // end of class UniformRandomSpatialNeighborSubsampler
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkUniformRandomSpatialNeighborSubsampler.hxx"

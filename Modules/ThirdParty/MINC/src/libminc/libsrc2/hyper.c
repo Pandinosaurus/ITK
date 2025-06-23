@@ -199,7 +199,7 @@ static int mirw_hyperslab_raw(int opcode,
     return MI_LOG_ERROR(MI2_MSG_GENERIC,"Trying to write to a volume thumbnail");
   }
 
-  sprintf(path, MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
+  snprintf(path, sizeof(path), MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
   /*printf("Using:%s\n",path);*/
   
   /* Open the dataset with the specified path
@@ -411,7 +411,7 @@ static int mirw_hyperslab_icv(int opcode,
     return MI_LOG_ERROR(MI2_MSG_GENERIC,"Trying to write to a volume thumbnail");
   }
   
-  sprintf(path, MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
+  snprintf(path, sizeof(path), MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
   /*printf("Using:%s\n",path);*/
   
   /* Open the dataset with the specified path
@@ -585,7 +585,7 @@ static int mirw_hyperslab_icv(int opcode,
     scaling_needed=0;
   } 
 #ifdef _DEBUG  
-  printf("mirw_hyperslab_icv:Slice_ndim:%d total_number_of_slices:%d image_slice_length:%d scaling_needed:%d\n",slice_ndims,total_number_of_slices,image_slice_length,scaling_needed);
+  printf("mirw_hyperslab_icv:Slice_ndim:%zu total_number_of_slices:%zu image_slice_length:%zu scaling_needed:%zu\n",(size_t)slice_ndims,(size_t)total_number_of_slices,(size_t)image_slice_length,(size_t)scaling_needed);
 #endif
 
   if (opcode == MIRW_OP_READ) 
@@ -895,7 +895,7 @@ static int mirw_hyperslab_normalized(int opcode,
     return (MI_ERROR);
   }
   
-  sprintf(path, MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
+  snprintf(path, sizeof(path), MI_ROOT_PATH "/image/%d/image", volume->selected_resolution);
 
   /* Open the dataset with the specified path
   */
@@ -952,7 +952,7 @@ static int mirw_hyperslab_normalized(int opcode,
   miget_volume_valid_range( volume, &volume_valid_max, &volume_valid_min);
 
 #ifdef _DEBUG
-  printf("mirw_hyperslab_normalized:Volume:%x valid_max:%f valid_min:%f scaling:%d\n",volume,volume_valid_max,volume_valid_min,volume->has_slice_scaling);
+  printf("mirw_hyperslab_normalized:Volume:%p valid_max:%f valid_min:%f scaling:%d\n",volume,volume_valid_max,volume_valid_min,volume->has_slice_scaling);
 #endif  
   
   if(volume->has_slice_scaling && 
@@ -1047,7 +1047,7 @@ static int mirw_hyperslab_normalized(int opcode,
   }
 
 #ifdef _DEBUG  
-  printf("mirw_hyperslab_normalized:Slice_ndim:%d total_number_of_slices:%d image_slice_length:%d\n",slice_ndims,total_number_of_slices,image_slice_length);
+  printf("mirw_hyperslab_normalized:Slice_ndim:%d total_number_of_slices:%zu image_slice_length:%zu\n",slice_ndims,(size_t)total_number_of_slices,(size_t)image_slice_length);
   printf("mirw_hyperslab_normalized:data min:%f data max:%f buffer_data_type:%d\n",data_min,data_max,buffer_data_type);
 #endif
 

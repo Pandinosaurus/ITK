@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkClampImageFilter_hxx
 #define itkClampImageFilter_hxx
 
-#include "itkClampImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkMath.h"
 
@@ -35,15 +34,15 @@ Clamp<TInput, TOutput>::Clamp()
 {}
 
 template <typename TInput, typename TOutput>
-typename Clamp<TInput, TOutput>::OutputType
-Clamp<TInput, TOutput>::GetLowerBound() const
+auto
+Clamp<TInput, TOutput>::GetLowerBound() const -> OutputType
 {
   return m_LowerBound;
 }
 
 template <typename TInput, typename TOutput>
-typename Clamp<TInput, TOutput>::OutputType
-Clamp<TInput, TOutput>::GetUpperBound() const
+auto
+Clamp<TInput, TOutput>::GetUpperBound() const -> OutputType
 {
   return m_UpperBound;
 }
@@ -54,7 +53,7 @@ Clamp<TInput, TOutput>::SetBounds(const OutputType lowerBound, const OutputType 
 {
   if (lowerBound > upperBound)
   {
-    itkGenericExceptionMacro("invalid bounds: [" << lowerBound << "; " << upperBound << "]");
+    itkGenericExceptionMacro("invalid bounds: [" << lowerBound << "; " << upperBound << ']');
   }
 
   m_LowerBound = lowerBound;
@@ -63,30 +62,23 @@ Clamp<TInput, TOutput>::SetBounds(const OutputType lowerBound, const OutputType 
 
 template <typename TInput, typename TOutput>
 bool
-Clamp<TInput, TOutput>::operator!=(const Self & other) const
-{
-  return m_UpperBound != other.m_UpperBound || m_LowerBound != other.m_LowerBound;
-}
-
-template <typename TInput, typename TOutput>
-bool
 Clamp<TInput, TOutput>::operator==(const Self & other) const
 {
-  return !(*this != other);
+  return m_UpperBound == other.m_UpperBound && m_LowerBound == other.m_LowerBound;
 }
 
 } // end namespace Functor
 
 template <typename TInputImage, typename TOutputImage>
-typename ClampImageFilter<TInputImage, TOutputImage>::OutputPixelType
-ClampImageFilter<TInputImage, TOutputImage>::GetLowerBound() const
+auto
+ClampImageFilter<TInputImage, TOutputImage>::GetLowerBound() const -> OutputPixelType
 {
   return this->GetFunctor().GetLowerBound();
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename ClampImageFilter<TInputImage, TOutputImage>::OutputPixelType
-ClampImageFilter<TInputImage, TOutputImage>::GetUpperBound() const
+auto
+ClampImageFilter<TInputImage, TOutputImage>::GetUpperBound() const -> OutputPixelType
 {
   return this->GetFunctor().GetUpperBound();
 }
@@ -119,7 +111,7 @@ ClampImageFilter<TInputImage, TOutputImage>::GenerateData()
     // then there is nothing to do. To avoid iterating over all the pixels for
     // nothing, graft the input to the output, generate a fake progress and exit.
     this->AllocateOutputs();
-    ProgressReporter progress(this, 0, 1);
+    const ProgressReporter progress(this, 0, 1);
     return;
   }
   Superclass::GenerateData();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include "itkNaryFunctorImageFilter.h"
 #include "itkNumericTraits.h"
+#include <algorithm> // For max.
 
 namespace itk
 {
@@ -38,19 +39,14 @@ public:
   // not sure if this type alias really makes things more clear... could just use
   // TOutput?
 
-  Maximum1() = default;
-  ~Maximum1() = default;
   inline TOutput
   operator()(const std::vector<TInput> & B) const
   {
     OutputValueType A = NumericTraits<TOutput>::NonpositiveMin();
 
-    for (unsigned int i = 0; i < B.size(); i++)
+    for (unsigned int i = 0; i < B.size(); ++i)
     {
-      if (A < static_cast<OutputValueType>(B[i]))
-      {
-        A = static_cast<OutputValueType>(B[i]);
-      }
+      A = std::max(A, static_cast<OutputValueType>(B[i]));
     }
     return A;
   }
@@ -61,11 +57,7 @@ public:
     return true;
   }
 
-  bool
-  operator!=(const Maximum1 &) const
-  {
-    return false;
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Maximum1);
 };
 } // namespace Functor
 
@@ -126,17 +118,13 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(NaryMaximumImageFilter, NaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NaryMaximumImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(InputLessThanComparableCheck, (Concept::LessThanComparable<typename TInputImage::PixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   NaryMaximumImageFilter() = default;

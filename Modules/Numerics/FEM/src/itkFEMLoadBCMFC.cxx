@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,18 +16,18 @@
  *
  *=========================================================================*/
 
+#include <utility>
+
 #include "itkFEMLoadBCMFC.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 // Overload the CreateAnother() method.
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 LoadBCMFC::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   // Copy Load Contents
   copyPtr->m_Index = this->m_Index;
@@ -44,12 +44,12 @@ LoadBCMFC::CreateAnother() const
  * Fix a DOF to a prescribed value
  */
 LoadBCMFC::LoadBCMFC(Element::ConstPointer element, int dof, vnl_vector<Element::Float> val)
+  : m_RightHandSide(std::move(val))
 {
   m_LeftHandSide.clear();
 
   /** Set the correct weight */
-  m_LeftHandSide.push_back(MFCTerm(element, dof, 1.0));
-  m_RightHandSide = val;
+  m_LeftHandSide.emplace_back(element, dof, 1.0);
 }
 
 void
@@ -75,13 +75,13 @@ LoadBCMFC::AddRightHandSideTerm(Element::Float term)
 {
   vnl_vector<Element::Float> tmpRightHandSide;
   tmpRightHandSide.set_size(this->m_RightHandSide.size());
-  for (unsigned int i = 0; i < this->m_RightHandSide.size(); i++)
+  for (unsigned int i = 0; i < this->m_RightHandSide.size(); ++i)
   {
     tmpRightHandSide[i] = this->m_RightHandSide[i];
   }
 
   this->m_RightHandSide.set_size(this->m_RightHandSide.size() + 1);
-  for (unsigned int i = 0; i < tmpRightHandSide.size(); i++)
+  for (unsigned int i = 0; i < tmpRightHandSide.size(); ++i)
   {
     this->m_RightHandSide[i] = tmpRightHandSide[i];
   }
@@ -136,7 +136,7 @@ LoadBCMFC::PrintSelf(std::ostream & os, Indent indent) const
   Superclass::PrintSelf(os, indent);
   os << indent << "Index: " << this->m_Index << std::endl;
   os << indent << "Left Hand Side Size: " << this->m_LeftHandSide.size() << std::endl;
-  for (unsigned int i = 0; i < this->m_LeftHandSide.size(); i++)
+  for (unsigned int i = 0; i < this->m_LeftHandSide.size(); ++i)
   {
     os << indent << "Left Hand Side Element (" << i << "): " << this->m_LeftHandSide[i].m_element << std::endl;
     os << indent << "Left Hand Side DOF (" << i << "): " << this->m_LeftHandSide[i].dof << std::endl;
@@ -147,5 +147,4 @@ LoadBCMFC::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Right HandSide: " << this->m_RightHandSide << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

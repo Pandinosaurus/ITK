@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,28 +19,27 @@
 
 namespace itk
 {
-SingleValuedVnlCostFunctionAdaptorv4 ::SingleValuedVnlCostFunctionAdaptorv4(unsigned int spaceDimension)
+SingleValuedVnlCostFunctionAdaptorv4::SingleValuedVnlCostFunctionAdaptorv4(unsigned int spaceDimension)
   : vnl_cost_function(spaceDimension)
+  , m_CachedValue(MeasureType{})
 {
-  m_ScalesInitialized = false;
   m_Reporter = Object::New();
-  m_CachedValue = NumericTraits<MeasureType>::ZeroValue();
   m_CachedDerivative.Fill(0);
 }
 
 void
-SingleValuedVnlCostFunctionAdaptorv4 ::SetScales(const ScalesType & scales)
+SingleValuedVnlCostFunctionAdaptorv4::SetScales(const ScalesType & scales)
 {
   m_Scales = scales;
   m_ScalesInitialized = true;
 }
 
 SingleValuedVnlCostFunctionAdaptorv4::InternalMeasureType
-SingleValuedVnlCostFunctionAdaptorv4 ::f(const InternalParametersType & inparameters)
+SingleValuedVnlCostFunctionAdaptorv4::f(const InternalParametersType & inparameters)
 {
   if (!m_ObjectMetric)
   {
-    itkGenericExceptionMacro(<< "Attempt to use a SingleValuedVnlCostFunctionAdaptorv4 without any Metric plugge d in");
+    itkGenericExceptionMacro("Attempt to use a SingleValuedVnlCostFunctionAdaptorv4 without any Metric plugge d in");
   }
 
   // Use scales if they are provided
@@ -60,7 +59,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::f(const InternalParametersType & inparame
   this->m_ObjectMetric->SetParameters(parameters);
   auto value = static_cast<InternalMeasureType>(m_ObjectMetric->GetValue());
 
-  // Notify observers. This is used for overcoming the limitaion of VNL
+  // Notify observers. This is used for overcoming the limitation of VNL
   // optimizers of not providing callbacks per iteration.
   m_CachedValue = value;
   this->ReportIteration(FunctionEvaluationIterationEvent());
@@ -69,8 +68,8 @@ SingleValuedVnlCostFunctionAdaptorv4 ::f(const InternalParametersType & inparame
 }
 
 void
-SingleValuedVnlCostFunctionAdaptorv4 ::gradf(const InternalParametersType & inparameters,
-                                             InternalDerivativeType &       gradient)
+SingleValuedVnlCostFunctionAdaptorv4::gradf(const InternalParametersType & inparameters,
+                                            InternalDerivativeType &       gradient)
 {
   if (!m_ObjectMetric)
   {
@@ -97,7 +96,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::gradf(const InternalParametersType & inpa
   // This will also scale gradient by user scales
   this->ConvertExternalToInternalGradient(m_CachedDerivative, gradient);
 
-  // Notify observers. This is used for overcoming the limitaion of VNL
+  // Notify observers. This is used for overcoming the limitation of VNL
   // optimizers of not providing callbacks per iteration.
   // Note that m_CachedDerivative is already loaded in the GetDerivative()
   // above.
@@ -105,13 +104,12 @@ SingleValuedVnlCostFunctionAdaptorv4 ::gradf(const InternalParametersType & inpa
 }
 
 void
-SingleValuedVnlCostFunctionAdaptorv4 ::compute(const InternalParametersType & x,
-                                               InternalMeasureType *          fun,
-                                               InternalDerivativeType *       g)
+SingleValuedVnlCostFunctionAdaptorv4::compute(const InternalParametersType & x,
+                                              InternalMeasureType *          fun,
+                                              InternalDerivativeType *       g)
 {
   // delegate the computation to the ObjectMetric
   ParametersType parameters(x.size());
-  double         measure;
 
   if (m_ScalesInitialized)
   {
@@ -126,6 +124,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::compute(const InternalParametersType & x,
   }
 
   this->m_ObjectMetric->SetParameters(parameters);
+  double measure = NAN;
   this->m_ObjectMetric->GetValueAndDerivative(measure, m_CachedDerivative);
   if (g) // sometimes Vnl doesn't pass a valid pointer
   {
@@ -134,7 +133,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::compute(const InternalParametersType & x,
   if (fun) // paranoids have longer lives...
   {
     *fun = static_cast<InternalMeasureType>(measure);
-    // Notify observers. This is used for overcoming the limitaion of VNL
+    // Notify observers. This is used for overcoming the limitation of VNL
     // optimizers of not providing callbacks per iteration.
     // Note that m_CachedDerivative is already loaded in the GetDerivative()
     // above.
@@ -144,8 +143,8 @@ SingleValuedVnlCostFunctionAdaptorv4 ::compute(const InternalParametersType & x,
 }
 
 void
-SingleValuedVnlCostFunctionAdaptorv4 ::ConvertExternalToInternalGradient(const DerivativeType &   input,
-                                                                         InternalDerivativeType & output) const
+SingleValuedVnlCostFunctionAdaptorv4::ConvertExternalToInternalGradient(const DerivativeType &   input,
+                                                                        InternalDerivativeType & output) const
 {
   // Convert external derivative measures into internal type
   const unsigned int size = input.GetSize();
@@ -163,7 +162,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::ConvertExternalToInternalGradient(const D
 }
 
 void
-SingleValuedVnlCostFunctionAdaptorv4 ::ReportIteration(const EventObject & event) const
+SingleValuedVnlCostFunctionAdaptorv4::ReportIteration(const EventObject & event) const
 {
   // This method reports iterations events. It is intended to
   // help monitoring the progress of the optimization process.
@@ -171,7 +170,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::ReportIteration(const EventObject & event
 }
 
 unsigned long
-SingleValuedVnlCostFunctionAdaptorv4 ::AddObserver(const EventObject & event, Command * command) const
+SingleValuedVnlCostFunctionAdaptorv4::AddObserver(const EventObject & event, Command * command) const
 {
   // Connects a Command/Observer to the internal reporter class.
   // This is useful for reporting iteration event to potential observers.
@@ -179,7 +178,7 @@ SingleValuedVnlCostFunctionAdaptorv4 ::AddObserver(const EventObject & event, Co
 }
 
 const SingleValuedVnlCostFunctionAdaptorv4::ParametersType &
-SingleValuedVnlCostFunctionAdaptorv4 ::GetCachedCurrentParameters() const
+SingleValuedVnlCostFunctionAdaptorv4::GetCachedCurrentParameters() const
 {
   // Return the cached value of the parameters used for computing the function.
   return this->m_ObjectMetric->GetParameters();

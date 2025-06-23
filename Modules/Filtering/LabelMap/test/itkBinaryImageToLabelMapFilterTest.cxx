@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,11 +48,11 @@ itkBinaryImageToLabelMapFilterTest(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using ImageToLabelType = itk::BinaryImageToLabelMapFilter<ImageType, LabelMapType>;
-  ImageToLabelType::Pointer imageToLabel = ImageToLabelType::New();
+  auto imageToLabel = ImageToLabelType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(imageToLabel, BinaryImageToLabelMapFilter, ImageToImageFilter);
 
@@ -65,21 +65,21 @@ itkBinaryImageToLabelMapFilterTest(int argc, char * argv[])
   auto fullyConnected = static_cast<bool>(std::stoi(argv[3]));
   ITK_TEST_SET_GET_BOOLEAN(imageToLabel, FullyConnected, fullyConnected);
 
-  typename ImageToLabelType::InputPixelType inputForegroundValue = std::stoi(argv[4]);
+  const typename ImageToLabelType::InputPixelType inputForegroundValue = std::stoi(argv[4]);
   imageToLabel->SetInputForegroundValue(inputForegroundValue);
   ITK_TEST_SET_GET_VALUE(inputForegroundValue, imageToLabel->GetInputForegroundValue());
 
-  typename ImageToLabelType::OutputPixelType outputBackgroundValue = std::stoi(argv[5]);
+  const typename ImageToLabelType::OutputPixelType outputBackgroundValue = std::stoi(argv[5]);
   imageToLabel->SetOutputBackgroundValue(outputBackgroundValue);
   ITK_TEST_SET_GET_VALUE(outputBackgroundValue, imageToLabel->GetOutputBackgroundValue());
 
-  itk::SimpleFilterWatcher watcher(imageToLabel);
+  const itk::SimpleFilterWatcher watcher(imageToLabel);
 
   using LabelToImageType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  LabelToImageType::Pointer labelToImage = LabelToImageType::New();
+  auto labelToImage = LabelToImageType::New();
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();
@@ -89,7 +89,7 @@ itkBinaryImageToLabelMapFilterTest(int argc, char * argv[])
   labelToImage->SetInput(imageToLabel->GetOutput());
   writer->SetInput(labelToImage->GetOutput());
 
-  bool expectfailure = std::stoi(argv[6]);
+  const bool expectfailure = std::stoi(argv[6]);
 
   if (expectfailure)
   {

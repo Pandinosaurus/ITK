@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,7 +59,7 @@ namespace itk
  * \author Tom Vercauteren, INRIA & Mauna Kea Technologies
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/154
+ * https://doi.org/10.54294/ux2obj
  *
  * \warning This filter assumes that the fixed image type, moving image type
  * and deformation field type all have the same number of dimensions.
@@ -85,31 +85,31 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastSymmetricForcesDemonsRegistrationFilter, PDEDeformableRegistrationFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastSymmetricForcesDemonsRegistrationFilter);
 
   /** FixedImage image type. */
-  using FixedImageType = typename Superclass::FixedImageType;
-  using FixedImagePointer = typename Superclass::FixedImagePointer;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::FixedImagePointer;
 
   /** MovingImage image type. */
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointer = typename Superclass::MovingImagePointer;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointer;
 
   /** Deformation field type. */
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
-  using DisplacementFieldPointer = typename Superclass::DisplacementFieldPointer;
+  using typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldPointer;
 
   static constexpr unsigned int ImageDimension = FixedImageType::ImageDimension;
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
-   * computed over the the overlapping region between the two images.
+   * computed over the overlapping region between the two images.
    * This value is calculated for the current iteration */
-  virtual double
+  [[nodiscard]] virtual double
   GetMetric() const;
 
-  const double &
+  [[nodiscard]] const double &
   GetRMSChange() const override;
 
   /** DemonsRegistrationFilterFunction type.
@@ -134,13 +134,14 @@ public:
   virtual void
   SetIntensityDifferenceThreshold(double);
 
-  virtual double
+  [[nodiscard]] virtual double
   GetIntensityDifferenceThreshold() const;
 
+  /** Set/Get the maximum update step length. */
   virtual void
   SetMaximumUpdateStepLength(double);
 
-  virtual double
+  [[nodiscard]] virtual double
   GetMaximumUpdateStepLength() const;
 
 protected:
@@ -159,7 +160,7 @@ protected:
   AllocateUpdateBuffer() override;
 
   /** FiniteDifferenceFunction type. */
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
   /** Take timestep type from the FiniteDifferenceFunction. */
   using TimeStepType = typename FiniteDifferenceFunctionType::TimeStepType;
@@ -178,16 +179,19 @@ protected:
   using AdderPointer = typename AdderType::Pointer;
 
 private:
-  /** Downcast the DifferenceFunction using a dynamic_cast to ensure that it is of the correct type.
-   * this method will throw an exception if the function is not of the expected type. */
+  /** Downcast the DifferenceFunction using a dynamic_cast to ensure that it is of the correct type (i.e.
+   * a DemonsRegistrationFunction).
+   *
+   * Throws an exception if the function is not of the expected type.
+   */
   DemonsRegistrationFunctionType *
   DownCastDifferenceFunctionType();
 
   const DemonsRegistrationFunctionType *
   DownCastDifferenceFunctionType() const;
 
-  MultiplyByConstantPointer m_Multiplier;
-  AdderPointer              m_Adder;
+  MultiplyByConstantPointer m_Multiplier{};
+  AdderPointer              m_Adder{};
 };
 } // end namespace itk
 

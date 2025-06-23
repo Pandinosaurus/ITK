@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,8 @@ itkAttributeKeepNObjectsLabelMapFilterTest1(int argc, char * argv[])
 {
   if (argc != 5)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " input output";
     std::cerr << " nbOfObjects reverseOrdering(0/1)";
     std::cerr << std::endl;
@@ -48,11 +49,11 @@ itkAttributeKeepNObjectsLabelMapFilterTest1(int argc, char * argv[])
   using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using I2LType = itk::LabelImageToLabelMapFilter<ImageType, LabelMapType>;
-  I2LType::Pointer i2l = I2LType::New();
+  auto i2l = I2LType::New();
   i2l->SetInput(reader->GetOutput());
 
 
@@ -61,7 +62,7 @@ itkAttributeKeepNObjectsLabelMapFilterTest1(int argc, char * argv[])
 
   // Now we will valuate the attributes. The attribute will be the object position
   // in the label map
-  LabelMapType::Pointer labelMap = i2l->GetOutput();
+  const LabelMapType::Pointer labelMap = i2l->GetOutput();
 
   int pos = 0;
   for (LabelMapType::Iterator it(labelMap); !it.IsAtEnd(); ++it)
@@ -72,10 +73,10 @@ itkAttributeKeepNObjectsLabelMapFilterTest1(int argc, char * argv[])
 
 
   using LabelKeepNObjectsType = itk::AttributeKeepNObjectsLabelMapFilter<LabelMapType>;
-  LabelKeepNObjectsType::Pointer opening = LabelKeepNObjectsType::New();
+  auto opening = LabelKeepNObjectsType::New();
 
   // testing get and set macros for NumberOfObjects
-  unsigned long nbOfObjects = std::stoi(argv[3]);
+  const unsigned long nbOfObjects = std::stoi(argv[3]);
   opening->SetNumberOfObjects(nbOfObjects);
   ITK_TEST_SET_GET_VALUE(nbOfObjects, opening->GetNumberOfObjects());
 
@@ -87,21 +88,21 @@ itkAttributeKeepNObjectsLabelMapFilterTest1(int argc, char * argv[])
   opening->ReverseOrderingOff();
   ITK_TEST_SET_GET_VALUE(false, opening->GetReverseOrdering());
 
-  bool reverseOrdering = std::stoi(argv[4]);
+  const bool reverseOrdering = std::stoi(argv[4]);
   opening->SetReverseOrdering(reverseOrdering);
   ITK_TEST_SET_GET_VALUE(reverseOrdering, opening->GetReverseOrdering());
 
   opening->SetInput(labelMap);
 
-  itk::SimpleFilterWatcher watcher(opening, "filter");
+  const itk::SimpleFilterWatcher watcher(opening, "filter");
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  L2IType::Pointer l2i = L2IType::New();
+  auto l2i = L2IType::New();
   l2i->SetInput(opening->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

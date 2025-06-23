@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ int
 itkFEMGenerateMeshTest(int, char *[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -50,7 +50,7 @@ itkFEMGenerateMeshTest(int, char *[])
   MeshOriginV.set_size(2);
   MeshSizeV.set_size(2);
   ElementsPerDim.set_size(2);
-  for (unsigned int j = 0; j < 2; j++)
+  for (unsigned int j = 0; j < 2; ++j)
   {
     MeshOriginV[j] = 0.0;
     MeshSizeV[j] = 10;
@@ -59,7 +59,7 @@ itkFEMGenerateMeshTest(int, char *[])
 
   using ElasticityType = itk::fem::MaterialLinearElasticity;
   // Create the material
-  ElasticityType::Pointer m = ElasticityType::New();
+  auto m = ElasticityType::New();
 
   m->SetGlobalNumber(0);
   m->SetYoungsModulus(1000.);
@@ -71,7 +71,7 @@ itkFEMGenerateMeshTest(int, char *[])
 
   // Create the element type
   using StrainType = itk::fem::Element2DC0LinearQuadrilateralStrain;
-  StrainType::Pointer e1 = StrainType::New();
+  auto e1 = StrainType::New();
 
   e1->SetMaterial(dynamic_cast<ElasticityType *>(m));
 
@@ -80,7 +80,7 @@ itkFEMGenerateMeshTest(int, char *[])
     itk::fem::Generate2DRectilinearMesh(e1, S, MeshOriginV, MeshSizeV, ElementsPerDim);
     std::cout << "Generated 2D rectilinear mesh" << std::endl;
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cerr << "Could not generate 2D mesh - test FAILED" << std::endl;
     return EXIT_FAILURE;
@@ -89,7 +89,7 @@ itkFEMGenerateMeshTest(int, char *[])
   MeshOriginV.set_size(3);
   MeshSizeV.set_size(3);
   ElementsPerDim.set_size(3);
-  for (unsigned int j = 0; j < 3; j++)
+  for (unsigned int j = 0; j < 3; ++j)
   {
     MeshOriginV[j] = 0.;
     MeshSizeV[j] = 10;
@@ -107,7 +107,7 @@ itkFEMGenerateMeshTest(int, char *[])
     itk::fem::Generate3DRectilinearMesh(e2, S, MeshOriginV, MeshSizeV, ElementsPerDim);
     std::cout << "Generated 3D rectilinear mesh" << std::endl;
   }
-  catch (itk::ExceptionObject &)
+  catch (const itk::ExceptionObject &)
   {
     std::cerr << "Could not create 3D mesh - test FAILED" << std::endl;
     return EXIT_FAILURE;

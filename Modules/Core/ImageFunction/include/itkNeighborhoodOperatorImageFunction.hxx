@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNeighborhoodOperatorImageFunction_hxx
 #define itkNeighborhoodOperatorImageFunction_hxx
 
-#include "itkNeighborhoodOperatorImageFunction.h"
 #include "itkNeighborhoodInnerProduct.h"
 #include "itkConstNeighborhoodIterator.h"
 
@@ -26,21 +25,22 @@
 
 namespace itk
 {
-/** Print self method */
+
 template <typename TInputImage, typename TOutput>
 void
 NeighborhoodOperatorImageFunction<TInputImage, TOutput>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  this->Superclass::PrintSelf(os, indent);
-  os << indent << "Applying Operator Function:" << std::endl;
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "Operator: " << static_cast<typename NumericTraits<NeighborhoodType>::PrintType>(m_Operator)
+     << std::endl;
 }
 
-/** Evaluate the function at the specified point */
 template <typename TInputImage, typename TOutput>
 TOutput
 NeighborhoodOperatorImageFunction<TInputImage, TOutput>::EvaluateAtIndex(const IndexType & index) const
 {
-  NeighborhoodInnerProduct<InputImageType, TOutput, TOutput> smartInnerProduct;
+  const NeighborhoodInnerProduct<InputImageType, TOutput, TOutput> smartInnerProduct;
 
   const TInputImage * const image = this->GetInputImage();
   assert(image != nullptr);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUUnaryFunctorImageFilter_hxx
 #define itkGPUUnaryFunctorImageFilter_hxx
 
-#include "itkGPUUnaryFunctorImageFilter.h"
 
 namespace itk
 {
@@ -46,18 +45,20 @@ GPUUnaryFunctorImageFilter<TInputImage, TOutputImage, TFunction, TParentImageFil
   int imgSize[3];
   imgSize[0] = imgSize[1] = imgSize[2] = 1;
 
-  int ImageDim = (int)TInputImage::ImageDimension;
+  int ImageDim = static_cast<int>(TInputImage::ImageDimension);
 
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     imgSize[i] = outSize[i];
   }
 
   size_t localSize[3], globalSize[3];
   localSize[0] = localSize[1] = localSize[2] = OpenCLGetLocalBlockSize(ImageDim);
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
-    globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); // total # of threads
+    globalSize[i] =
+      localSize[i] * static_cast<unsigned int>(
+                       ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i]))); // total # of threads
   }
 
   // arguments set up using Functor
@@ -68,7 +69,7 @@ GPUUnaryFunctorImageFilter<TInputImage, TOutputImage, TFunction, TParentImageFil
     m_UnaryFunctorImageFilterGPUKernelHandle, argidx++, inPtr->GetGPUDataManager());
   this->m_GPUKernelManager->SetKernelArgWithImage(
     m_UnaryFunctorImageFilterGPUKernelHandle, argidx++, otPtr->GetGPUDataManager());
-  for (int i = 0; i < (int)TInputImage::ImageDimension; i++)
+  for (int i = 0; i < static_cast<int>(TInputImage::ImageDimension); ++i)
   {
     this->m_GPUKernelManager->SetKernelArg(
       m_UnaryFunctorImageFilterGPUKernelHandle, argidx++, sizeof(int), &(imgSize[i]));

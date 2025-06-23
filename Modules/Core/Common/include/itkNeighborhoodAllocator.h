@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 #ifndef itkNeighborhoodAllocator_h
 #define itkNeighborhoodAllocator_h
+#include "itkMakeUniqueForOverwrite.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -59,15 +60,15 @@ public:
   /** Defaulted destructor */
   ~NeighborhoodAllocator() = default;
 
-  /** Allocates memory using new() */
+  /** Allocates memory. */
   void
   Allocate(unsigned int n)
   {
-    m_Data.reset(new TPixel[n]);
+    m_Data = make_unique_for_overwrite<TPixel[]>(n);
     m_ElementCount = n;
   }
 
-  /** Deallocates memory using delete[](). */
+  /** Deallocates memory. */
   void
   Deallocate()
   {
@@ -78,20 +79,19 @@ public:
   /** Copy constructor. */
   NeighborhoodAllocator(const Self & other)
     : m_ElementCount(other.m_ElementCount)
-    , m_Data(new TPixel[other.m_ElementCount])
+    , m_Data(make_unique_for_overwrite<TPixel[]>(other.m_ElementCount))
   {
     std::copy_n(other.m_Data.get(), m_ElementCount, m_Data.get());
   }
 
 
   /** Move-constructor. */
-  NeighborhoodAllocator(Self && other) ITK_NOEXCEPT
+  NeighborhoodAllocator(Self && other) noexcept
     : m_ElementCount{ other.m_ElementCount }
     , m_Data{ std::move(other.m_Data) }
   {
     other.m_ElementCount = 0;
   }
-
 
   /** Assignment operator. */
   Self &
@@ -105,10 +105,9 @@ public:
     return *this;
   }
 
-
   /** Move-assignment. */
   Self &
-  operator=(Self && other) ITK_NOEXCEPT
+  operator=(Self && other) noexcept
   {
     if (this != &other)
     {
@@ -119,14 +118,14 @@ public:
     return *this;
   }
 
-
   /** STL-style iterator support for the memory buffer. */
+  /** @ITKStartGrouping */
   iterator
   begin()
   {
     return m_Data.get();
   }
-  const_iterator
+  [[nodiscard]] const_iterator
   begin() const
   {
     return m_Data.get();
@@ -136,20 +135,31 @@ public:
   {
     return (m_Data.get() + m_ElementCount);
   }
-  const_iterator
+  [[nodiscard]] const_iterator
   end() const
   {
     return (m_Data.get() + m_ElementCount);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   size() const
   {
     return m_ElementCount;
   }
+  /** @ITKEndGrouping */
 
   /** Data access methods */
-  const TPixel & operator[](unsigned int i) const { return m_Data[i]; }
-  TPixel &       operator[](unsigned int i) { return m_Data[i]; }
+  /** @ITKStartGrouping */
+  const TPixel &
+  operator[](unsigned int i) const
+  {
+    return m_Data[i];
+  }
+  TPixel &
+  operator[](unsigned int i)
+  {
+    return m_Data[i];
+  }
+  /** @ITKEndGrouping */
 
   /** Allocates a buffer of size n */
   void
@@ -158,19 +168,19 @@ public:
     if (n != m_ElementCount)
     {
       *this = NeighborhoodAllocator();
-      m_Data.reset(new TPixel[n]);
+      m_Data = make_unique_for_overwrite<TPixel[]>(n);
       m_ElementCount = n;
     }
   }
 
   TPixel *
-  data() ITK_NOEXCEPT
+  data() noexcept
   {
     return m_Data.get();
   }
 
-  const TPixel *
-  data() const ITK_NOEXCEPT
+  [[nodiscard]] const TPixel *
+  data() const noexcept
   {
     return m_Data.get();
   }

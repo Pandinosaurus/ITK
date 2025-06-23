@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,23 +54,23 @@ namespace itk
  *
  * \ingroup ITKImageGrid
  */
-template <typename TInputImage, typename TCoordRep = double>
+template <typename TInputImage, typename TCoordinate = double>
 class ITK_TEMPLATE_EXPORT BSplineControlPointImageFunction
-  : public ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordRep>
+  : public ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BSplineControlPointImageFunction);
 
   using Self = BSplineControlPointImageFunction;
-  using Superclass = ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordRep>;
+  using Superclass = ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordinate>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineControlPointImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineControlPointImageFunction);
 
   /** Extract dimension from input image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -78,11 +78,15 @@ public:
   /** Image type alias support */
   using ControlPointLatticeType = TInputImage;
   using InputImageType = TInputImage;
-  using CoordRepType = TCoordRep;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using PixelType = typename InputImageType::PixelType;
   using RegionType = typename InputImageType::RegionType;
   using IndexType = typename InputImageType::IndexType;
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
   using InputImageRegionType = typename InputImageType::RegionType;
 
   using SpacingType = typename InputImageType::SpacingType;
@@ -91,14 +95,14 @@ public:
 
   /** Output type alias support */
   using OutputType = PixelType;
-  using GradientType = VariableSizeMatrix<CoordRepType>;
-  using HessianComponentType = VariableSizeMatrix<CoordRepType>;
+  using GradientType = VariableSizeMatrix<CoordinateType>;
+  using HessianComponentType = VariableSizeMatrix<CoordinateType>;
 
   /** Other type alias */
-  using ArrayType = FixedArray<unsigned, ImageDimension>;
-  using RealImageType = Image<CoordRepType, ImageDimension>;
+  using ArrayType = FixedArray<unsigned int, ImageDimension>;
+  using RealImageType = Image<CoordinateType, ImageDimension>;
   using RealImagePointer = typename RealImageType::Pointer;
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
   using RealType = float;
 
   /** Interpolation kernel type (default spline order = 3) */
@@ -160,21 +164,24 @@ public:
   /**
    * Set/Get the parametric spacing of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Spacing, SpacingType);
   itkGetConstMacro(Spacing, SpacingType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the parametric origin of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Origin, OriginType);
   itkGetConstMacro(Origin, OriginType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the parametric size of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the epsilon used for B-splines.  The B-spline parametric domain in
    * 1-D is defined on the half-closed interval [a,b).  Extension to n-D is
@@ -183,9 +190,10 @@ public:
    * the B-spline epsilon to push the edge of the image boundary inside the
    * B-spline parametric domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BSplineEpsilon, RealType);
   itkGetConstMacro(BSplineEpsilon, RealType);
-
+  /** @ITKEndGrouping */
   /**
    * Evaluate the resulting B-spline object at a specified point in the
    * parametric domain.
@@ -284,23 +292,23 @@ protected:
 
 private:
   /** Parameters for the B-spline object domain */
-  SizeType    m_Size;
-  SpacingType m_Spacing;
-  OriginType  m_Origin;
+  SizeType    m_Size{};
+  SpacingType m_Spacing{};
+  OriginType  m_Origin{};
 
-  ArrayType m_NumberOfControlPoints;
-  ArrayType m_CloseDimension;
-  ArrayType m_SplineOrder;
+  ArrayType m_NumberOfControlPoints{};
+  ArrayType m_CloseDimension{};
+  ArrayType m_SplineOrder{};
 
-  RealImagePointer m_NeighborhoodWeightImage;
+  RealImagePointer m_NeighborhoodWeightImage{};
 
-  typename KernelType::Pointer       m_Kernel[ImageDimension];
-  typename KernelOrder0Type::Pointer m_KernelOrder0;
-  typename KernelOrder1Type::Pointer m_KernelOrder1;
-  typename KernelOrder2Type::Pointer m_KernelOrder2;
-  typename KernelOrder3Type::Pointer m_KernelOrder3;
+  typename KernelType::Pointer       m_Kernel[ImageDimension]{};
+  typename KernelOrder0Type::Pointer m_KernelOrder0{};
+  typename KernelOrder1Type::Pointer m_KernelOrder1{};
+  typename KernelOrder2Type::Pointer m_KernelOrder2{};
+  typename KernelOrder3Type::Pointer m_KernelOrder3{};
 
-  CoordRepType m_BSplineEpsilon;
+  CoordinateType m_BSplineEpsilon{};
 };
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +59,8 @@ VNLSparseLUSolverTraitsTest(int, char *[])
   /**
    * Build the linear system to solve
    */
-  unsigned int N = 3;
-  VectorType   Bx = SolverTraits::InitializeVector(N);
+  constexpr unsigned int N = 3;
+  VectorType             Bx = SolverTraits::InitializeVector(N);
   Bx.fill(0.);
   Bx[0] = 2.1;
 
@@ -86,7 +86,7 @@ VNLSparseLUSolverTraitsTest(int, char *[])
   /**
    * Define the tolerance and expected results
    */
-  CoordinateType tolerance = 1e-9;
+  constexpr CoordinateType tolerance = 1e-9;
 
   VectorType Xexpected(N);
   Xexpected(0) = 1.575;

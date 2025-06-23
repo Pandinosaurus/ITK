@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +47,7 @@ itkIsolatedWatershedImageFilterTest(int argc, char * argv[])
   using PixelType = unsigned char;
   using ImageType = itk::Image<PixelType, Dimension>;
 
-  itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
+  const itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
 
   reader->SetFileName(argv[1]);
 
@@ -57,24 +57,20 @@ itkIsolatedWatershedImageFilterTest(int argc, char * argv[])
   // Create the IsolatedWatershedImageFilter object
   using FilterType = itk::IsolatedWatershedImageFilter<ImageType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, IsolatedWatershedImageFilter, ImageToImageFilter);
 
-
   filter->SetInput(reader->GetOutput());
 
-
-  FilterType::IndexType seed1, seed2;
-  seed1.Fill(0);
-  seed2.Fill(0);
+  FilterType::IndexType seed1{};
+  FilterType::IndexType seed2{};
 
   // Test the seeds being outside the input image exception
-  ImageType::Pointer inputImage = reader->GetOutput();
+  const ImageType::Pointer inputImage = reader->GetOutput();
 
-  ImageType::RegionType region = inputImage->GetLargestPossibleRegion();
-  ImageType::IndexType  offset;
-  offset.Fill(10);
+  const ImageType::RegionType region = inputImage->GetLargestPossibleRegion();
+  auto                        offset = ImageType::IndexType::Filled(10);
 
   seed1[0] = region.GetUpperIndex()[0] + offset[0];
   filter->SetSeed1(seed1);
@@ -100,35 +96,35 @@ itkIsolatedWatershedImageFilterTest(int argc, char * argv[])
   filter->SetSeed2(seed2);
   ITK_TEST_SET_GET_VALUE(seed2, filter->GetSeed2());
 
-  double threshold = std::stod(argv[7]);
+  const double threshold = std::stod(argv[7]);
   filter->SetThreshold(threshold);
   ITK_TEST_SET_GET_VALUE(threshold, filter->GetThreshold());
 
-  PixelType replaceValue1 = 255;
+  constexpr PixelType replaceValue1 = 255;
   filter->SetReplaceValue1(replaceValue1);
   ITK_TEST_SET_GET_VALUE(replaceValue1, filter->GetReplaceValue1());
 
-  PixelType replaceValue2 = 127;
+  constexpr PixelType replaceValue2 = 127;
   filter->SetReplaceValue2(replaceValue2);
   ITK_TEST_SET_GET_VALUE(replaceValue2, filter->GetReplaceValue2());
 
-  double upperValueLimit = 1.0;
+  constexpr double upperValueLimit = 1.0;
   filter->SetUpperValueLimit(upperValueLimit);
   ITK_TEST_SET_GET_VALUE(upperValueLimit, filter->GetUpperValueLimit());
 
-  double isolatedValueTolerance = std::stod(argv[8]);
+  const double isolatedValueTolerance = std::stod(argv[8]);
   filter->SetIsolatedValueTolerance(isolatedValueTolerance);
   ITK_TEST_SET_GET_VALUE(isolatedValueTolerance, filter->GetIsolatedValueTolerance());
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
 
-  double isolatedValue = filter->GetIsolatedValue();
+  const double isolatedValue = filter->GetIsolatedValue();
   std::cout << "IsolatedValue: " << isolatedValue << std::endl;
 
   // Write the filter output
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,7 @@
 #include "itkArray.h"
 #include "ITKStatisticsExport.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class ProbabilityDistribution
  * \brief ProbabilityDistribution class defines common interface for
@@ -80,8 +78,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard macros */
-  itkTypeMacro(ProbabilityDistribution, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ProbabilityDistribution);
 
   /** Type of the parameter vector. */
   using ParametersType = Array<double>;
@@ -164,9 +162,8 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  ParametersType m_Parameters;
+  ParametersType m_Parameters{};
 }; // end of class
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #endif

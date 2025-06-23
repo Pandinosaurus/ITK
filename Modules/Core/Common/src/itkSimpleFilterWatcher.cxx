@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,32 +30,18 @@
 namespace itk
 {
 SimpleFilterWatcher::SimpleFilterWatcher(ProcessObject * o, const char * comment)
+  : m_Comment(comment)
+  , m_Process{ o }
 {
-  // Initialize state
-  m_Process = o;
-  m_Steps = 0;
-  m_Comment = comment;
-  m_TestAbort = false;
-  m_Iterations = 0;
-#if defined(_COMPILER_VERSION) && (_COMPILER_VERSION == 730)
-  m_Quiet = true;
-#else
-  m_Quiet = false;
-#endif
-
   this->CreateCommands();
 }
 
 SimpleFilterWatcher::SimpleFilterWatcher()
   : m_Comment("Not watching an object")
   , m_Process(nullptr)
-
 {}
 
-SimpleFilterWatcher::SimpleFilterWatcher(const SimpleFilterWatcher & watch)
-{
-  this->DeepCopy(watch);
-}
+SimpleFilterWatcher::SimpleFilterWatcher(const SimpleFilterWatcher & watch) { this->DeepCopy(watch); }
 
 SimpleFilterWatcher &
 SimpleFilterWatcher::operator=(const SimpleFilterWatcher & watch)

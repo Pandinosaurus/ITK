@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,29 +18,26 @@
 
 
 #include "itkTransformFileReader.h"
+#include "itkTestingMacros.h"
 
 int
-itkTransformFileReaderTemplateTest(int argc, char * argv[])
+itkTransformFileReaderTemplateTest(int, char *[])
 {
-  if (argc < 1)
-  {
-    std::cerr << "Usage:" << argv[0];
-    std::cerr << std::endl;
-    return EXIT_FAILURE;
-  }
-
   using TransformReaderType = itk::TransformFileReaderTemplate<double>;
 
-  TransformReaderType::Pointer transformReader = TransformReaderType::New();
+  auto transformReader = TransformReaderType::New();
 
-  std::cout << "Reader class = " << transformReader->GetNameOfClass() << "Reader base = "
-            << dynamic_cast<TransformReaderType::Superclass *>(transformReader.GetPointer())->GetNameOfClass()
-            << std::endl;
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(transformReader, TransformFileReaderTemplate, LightProcessObject);
+
 
   // trigger empty read exception
   ITK_TRY_EXPECT_EXCEPTION(transformReader->Update());
 
-  transformReader->SetFileName("transform.garbage");
+
+  const char * fileName = "transform.garbage";
+  transformReader->SetFileName(fileName);
+  ITK_TEST_SET_GET_VALUE(fileName, transformReader->GetFileName());
+
   // trigger exception for transformio not found
   ITK_TRY_EXPECT_EXCEPTION(transformReader->Update());
 

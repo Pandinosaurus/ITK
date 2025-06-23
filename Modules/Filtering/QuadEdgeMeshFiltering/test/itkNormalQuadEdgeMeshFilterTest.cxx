@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include "itkQuadEdgeMeshExtendedTraits.h"
 #include "itkNormalQuadEdgeMeshFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkNormalQuadEdgeMeshFilterTest(int argc, char * argv[])
@@ -51,7 +52,7 @@ itkNormalQuadEdgeMeshFilterTest(int argc, char * argv[])
   using NormalFilterType = itk::NormalQuadEdgeMeshFilter<InputMeshType, OutputMeshType>;
   NormalFilterType::WeightEnum weight_type;
 
-  int param = std::stoi(argv[2]);
+  const int param = std::stoi(argv[2]);
 
   if ((param < 0) || (param > 2))
   {
@@ -61,24 +62,23 @@ itkNormalQuadEdgeMeshFilterTest(int argc, char * argv[])
     std::cout << "   * 2:  AREA" << std::endl;
     return EXIT_FAILURE;
   }
-  else
+
+  switch (param)
   {
-    switch (param)
-    {
-      default:
-      case 0:
-        weight_type = NormalFilterType::WeightEnum::GOURAUD;
-        break;
-      case 1:
-        weight_type = NormalFilterType::WeightEnum::THURMER;
-        break;
-      case 2:
-        weight_type = NormalFilterType::WeightEnum::AREA;
-        break;
-    }
+    default:
+    case 0:
+      weight_type = NormalFilterType::WeightEnum::GOURAUD;
+      break;
+    case 1:
+      weight_type = NormalFilterType::WeightEnum::THURMER;
+      break;
+    case 2:
+      weight_type = NormalFilterType::WeightEnum::AREA;
+      break;
   }
 
-  ReaderType::Pointer reader = ReaderType::New();
+
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   try
@@ -92,14 +92,20 @@ itkNormalQuadEdgeMeshFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  InputMeshType::Pointer mesh = reader->GetOutput();
+  const InputMeshType::Pointer mesh = reader->GetOutput();
 
-  NormalFilterType::Pointer normals = NormalFilterType::New();
-  normals->SetInput(mesh);
+  auto normals = NormalFilterType::New();
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(normals, NormalQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+
+
   normals->SetWeight(weight_type);
+  ITK_TEST_SET_GET_VALUE(weight_type, normals->GetWeight());
+
+  normals->SetInput(mesh);
+
   normals->Update();
 
-  OutputMeshType::Pointer output = normals->GetOutput();
+  const OutputMeshType::Pointer output = normals->GetOutput();
 
   //
   //   FIXME

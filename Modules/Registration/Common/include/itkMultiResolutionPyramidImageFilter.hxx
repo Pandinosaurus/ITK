@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMultiResolutionPyramidImageFilter_hxx
 #define itkMultiResolutionPyramidImageFilter_hxx
 
-#include "itkMultiResolutionPyramidImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkCastImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -31,21 +30,15 @@
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::MultiResolutionPyramidImageFilter()
+  : m_MaximumError(0.1)
+
 {
-  m_NumberOfLevels = 0;
   this->SetNumberOfLevels(2);
-  m_MaximumError = 0.1;
-  m_UseShrinkImageFilter = false;
 }
 
-/**
- * Set the number of computation levels
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetNumberOfLevels(unsigned int num)
@@ -65,9 +58,7 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetNumberOfLevels(
   }
 
   // resize the schedules
-  ScheduleType temp(m_NumberOfLevels, ImageDimension);
-  temp.Fill(0);
-  m_Schedule = temp;
+  m_Schedule = ScheduleType(m_NumberOfLevels, ImageDimension, 0);
 
   // determine initial shrink factor
   unsigned int startfactor = 1;
@@ -79,30 +70,27 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetNumberOfLevels(
   // set the required number of outputs
   this->SetNumberOfRequiredOutputs(m_NumberOfLevels);
 
-  auto         numOutputs = static_cast<unsigned int>(this->GetNumberOfIndexedOutputs());
-  unsigned int idx;
+  auto numOutputs = static_cast<unsigned int>(this->GetNumberOfIndexedOutputs());
+
   if (numOutputs < m_NumberOfLevels)
   {
     // add extra outputs
-    for (idx = numOutputs; idx < m_NumberOfLevels; idx++)
+    for (unsigned int idx = numOutputs; idx < m_NumberOfLevels; ++idx)
     {
-      typename DataObject::Pointer output = this->MakeOutput(idx);
+      const typename DataObject::Pointer output = this->MakeOutput(idx);
       this->SetNthOutput(idx, output.GetPointer());
     }
   }
   else if (numOutputs > m_NumberOfLevels)
   {
     // remove extra outputs
-    for (idx = m_NumberOfLevels; idx < numOutputs; idx++)
+    for (unsigned int idx = m_NumberOfLevels; idx < numOutputs; ++idx)
     {
       this->RemoveOutput(idx);
     }
   }
 }
 
-/*
- * Set the starting shrink factors
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetStartingShrinkFactors(unsigned int factor)
@@ -111,9 +99,6 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetStartingShrinkF
   this->SetStartingShrinkFactors(fixedArray.GetDataPointer());
 }
 
-/**
- * Set the starting shrink factors
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetStartingShrinkFactors(const unsigned int * factors)
@@ -142,9 +127,6 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetStartingShrinkF
   this->Modified();
 }
 
-/*
- * Get the starting shrink factors
- */
 template <typename TInputImage, typename TOutputImage>
 const unsigned int *
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GetStartingShrinkFactors() const
@@ -152,16 +134,13 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GetStartingShrinkF
   return (m_Schedule.data_block());
 }
 
-/*
- * Set the multi-resolution schedule
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetSchedule(const ScheduleType & schedule)
 {
   if (schedule.rows() != m_NumberOfLevels || schedule.columns() != ImageDimension)
   {
-    itkDebugMacro(<< "Schedule has wrong dimensions");
+    itkDebugMacro("Schedule has wrong dimensions");
     return;
   }
 
@@ -171,10 +150,9 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetSchedule(const 
   }
 
   this->Modified();
-  unsigned int level, dim;
-  for (level = 0; level < m_NumberOfLevels; level++)
+  for (unsigned int level = 0; level < m_NumberOfLevels; ++level)
   {
-    for (dim = 0; dim < ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
       m_Schedule[level][dim] = schedule[level][dim];
 
@@ -193,18 +171,14 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::SetSchedule(const 
   }
 }
 
-/*
- * Is the schedule downward divisible ?
- */
 template <typename TInputImage, typename TOutputImage>
 bool
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::IsScheduleDownwardDivisible(const ScheduleType & schedule)
 {
-  unsigned int ilevel, idim;
 
-  for (ilevel = 0; ilevel < schedule.rows() - 1; ilevel++)
+  for (unsigned int ilevel = 0; ilevel < schedule.rows() - 1; ++ilevel)
   {
-    for (idim = 0; idim < schedule.columns(); idim++)
+    for (unsigned int idim = 0; idim < schedule.columns(); ++idim)
     {
       if (schedule[ilevel][idim] == 0)
       {
@@ -220,15 +194,12 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::IsScheduleDownward
   return true;
 }
 
-/*
- * GenerateData for non downward divisible schedules
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Get the input and output pointers
-  InputImageConstPointer inputPtr = this->GetInput();
+  const InputImageConstPointer inputPtr = this->GetInput();
 
   // Create caster, smoother and resampleShrinker filters
   using CasterType = CastImageFilter<TInputImage, TOutputImage>;
@@ -238,8 +209,8 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
   using ResampleShrinkerType = ResampleImageFilter<TOutputImage, TOutputImage>;
   using ShrinkerType = ShrinkImageFilter<TOutputImage, TOutputImage>;
 
-  typename CasterType::Pointer   caster = CasterType::New();
-  typename SmootherType::Pointer smoother = SmootherType::New();
+  auto caster = CasterType::New();
+  auto smoother = SmootherType::New();
 
   typename ImageToImageType::Pointer shrinkerFilter;
   //
@@ -257,7 +228,7 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
   {
     resampleShrinker = ResampleShrinkerType::New();
     using LinearInterpolatorType = itk::LinearInterpolateImageFunction<OutputImageType, double>;
-    typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
+    auto interpolator = LinearInterpolatorType::New();
     resampleShrinker->SetInterpolator(interpolator);
     resampleShrinker->SetDefaultPixelValue(0);
     shrinkerFilter = resampleShrinker.GetPointer();
@@ -271,21 +242,21 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   shrinkerFilter->SetInput(smoother->GetOutput());
 
-  unsigned int ilevel, idim;
+
   unsigned int factors[ImageDimension];
   double       variance[ImageDimension];
 
-  for (ilevel = 0; ilevel < m_NumberOfLevels; ilevel++)
+  for (unsigned int ilevel = 0; ilevel < m_NumberOfLevels; ++ilevel)
   {
     this->UpdateProgress(static_cast<float>(ilevel) / static_cast<float>(m_NumberOfLevels));
 
     // Allocate memory for each output
-    OutputImagePointer outputPtr = this->GetOutput(ilevel);
+    const OutputImagePointer outputPtr = this->GetOutput(ilevel);
     outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
     outputPtr->Allocate();
 
     // compute shrink factors and variances
-    for (idim = 0; idim < ImageDimension; idim++)
+    for (unsigned int idim = 0; idim < ImageDimension; ++idim)
     {
       factors[idim] = m_Schedule[ilevel][idim];
       variance[idim] = itk::Math::sqr(0.5 * static_cast<float>(factors[idim]));
@@ -294,7 +265,7 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
     if (!this->GetUseShrinkImageFilter())
     {
       using IdentityTransformType = itk::IdentityTransform<double, OutputImageType::ImageDimension>;
-      typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+      auto identityTransform = IdentityTransformType::New();
       resampleShrinker->SetOutputParametersFromImage(outputPtr);
       resampleShrinker->SetTransform(identityTransform);
     }
@@ -314,9 +285,6 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateData()
   }
 }
 
-/**
- * PrintSelf method
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
@@ -324,15 +292,11 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ost
   Superclass::PrintSelf(os, indent);
 
   os << indent << "MaximumError: " << m_MaximumError << std::endl;
-  os << indent << "No. levels: " << m_NumberOfLevels << std::endl;
-  os << indent << "Schedule: " << std::endl;
-  os << m_Schedule << std::endl;
-  os << "Use ShrinkImageFilter= " << m_UseShrinkImageFilter << std::endl;
+  os << indent << "NumberOfLevels: " << m_NumberOfLevels << std::endl;
+  os << indent << "Schedule: " << static_cast<typename NumericTraits<ScheduleType>::PrintType>(m_Schedule) << std::endl;
+  itkPrintSelfBooleanMacro(UseShrinkImageFilter);
 }
 
-/*
- * GenerateOutputInformation
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
@@ -341,11 +305,11 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputInfo
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  InputImageConstPointer inputPtr = this->GetInput();
+  const InputImageConstPointer inputPtr = this->GetInput();
 
   if (!inputPtr)
   {
-    itkExceptionMacro(<< "Input has not been set");
+    itkExceptionMacro("Input has not been set");
   }
 
   const typename InputImageType::PointType &     inputOrigin = inputPtr->GetOrigin();
@@ -357,23 +321,20 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputInfo
   using SizeType = typename OutputImageType::SizeType;
   using IndexType = typename OutputImageType::IndexType;
 
-  OutputImagePointer                    outputPtr;
-  typename OutputImageType::PointType   outputOrigin;
-  typename OutputImageType::SpacingType outputSpacing;
-  SizeType                              outputSize;
-  IndexType                             outputStartIndex;
-
   // we need to compute the output spacing, the output image size,
   // and the output image start index
-  for (unsigned int ilevel = 0; ilevel < m_NumberOfLevels; ilevel++)
+  for (unsigned int ilevel = 0; ilevel < m_NumberOfLevels; ++ilevel)
   {
-    outputPtr = this->GetOutput(ilevel);
+    const OutputImagePointer outputPtr = this->GetOutput(ilevel);
     if (!outputPtr)
     {
       continue;
     }
 
-    for (unsigned int idim = 0; idim < OutputImageType::ImageDimension; idim++)
+    SizeType                              outputSize;
+    IndexType                             outputStartIndex;
+    typename OutputImageType::SpacingType outputSpacing;
+    for (unsigned int idim = 0; idim < OutputImageType::ImageDimension; ++idim)
     {
       const auto shrinkFactor = static_cast<double>(m_Schedule[ilevel][idim]);
       outputSpacing[idim] = inputSpacing[idim] * shrinkFactor;
@@ -390,14 +351,13 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputInfo
     // Now compute the new shifted origin for the updated levels;
     const typename OutputImageType::PointType::VectorType outputOriginOffset =
       (inputDirection * (outputSpacing - inputSpacing)) * 0.5;
-    for (unsigned int idim = 0; idim < OutputImageType::ImageDimension; idim++)
+    typename OutputImageType::PointType outputOrigin;
+    for (unsigned int idim = 0; idim < OutputImageType::ImageDimension; ++idim)
     {
       outputOrigin[idim] = inputOrigin[idim] + outputOriginOffset[idim];
     }
 
-    typename OutputImageType::RegionType outputLargestPossibleRegion;
-    outputLargestPossibleRegion.SetSize(outputSize);
-    outputLargestPossibleRegion.SetIndex(outputStartIndex);
+    const typename OutputImageType::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
     outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
     outputPtr->SetOrigin(outputOrigin);
@@ -407,9 +367,6 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputInfo
   }
 }
 
-/*
- * GenerateOutputRequestedRegion
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputRequestedRegion(DataObject * refOutput)
@@ -428,17 +385,16 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputRequ
   auto * ptr = itkDynamicCastInDebugMode<TOutputImage *>(refOutput);
   if (!ptr)
   {
-    itkExceptionMacro(<< "Could not cast refOutput to TOutputImage*.");
+    itkExceptionMacro("Could not cast refOutput to TOutputImage*.");
   }
 
-  unsigned int ilevel, idim;
 
   if (ptr->GetRequestedRegion() == ptr->GetLargestPossibleRegion())
   {
     // set the requested regions for the other outputs to their
     // requested region
 
-    for (ilevel = 0; ilevel < m_NumberOfLevels; ilevel++)
+    for (unsigned int ilevel = 0; ilevel < m_NumberOfLevels; ++ilevel)
     {
       if (ilevel == refLevel)
       {
@@ -461,14 +417,14 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputRequ
     IndexType  baseIndex = ptr->GetRequestedRegion().GetIndex();
     SizeType   baseSize = ptr->GetRequestedRegion().GetSize();
 
-    for (idim = 0; idim < TOutputImage::ImageDimension; idim++)
+    for (unsigned int idim = 0; idim < TOutputImage::ImageDimension; ++idim)
     {
-      unsigned int factor = m_Schedule[refLevel][idim];
+      const unsigned int factor = m_Schedule[refLevel][idim];
       baseIndex[idim] *= static_cast<IndexValueType>(factor);
       baseSize[idim] *= static_cast<SizeValueType>(factor);
     }
 
-    for (ilevel = 0; ilevel < m_NumberOfLevels; ilevel++)
+    for (unsigned int ilevel = 0; ilevel < m_NumberOfLevels; ++ilevel)
     {
       if (ilevel == refLevel)
       {
@@ -479,7 +435,7 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputRequ
         continue;
       }
 
-      for (idim = 0; idim < TOutputImage::ImageDimension; idim++)
+      for (unsigned int idim = 0; idim < TOutputImage::ImageDimension; ++idim)
       {
         auto factor = static_cast<double>(m_Schedule[ilevel][idim]);
 
@@ -503,9 +459,6 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateOutputRequ
   }
 }
 
-/**
- * GenerateInputRequestedRegion
- */
 template <typename TInputImage, typename TOutputImage>
 void
 MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
@@ -514,10 +467,10 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateInputReque
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
   if (!inputPtr)
   {
-    itkExceptionMacro(<< "Input has not been set.");
+    itkExceptionMacro("Input has not been set.");
   }
 
   // compute baseIndex and baseSize
@@ -528,38 +481,34 @@ MultiResolutionPyramidImageFilter<TInputImage, TOutputImage>::GenerateInputReque
   unsigned int refLevel = m_NumberOfLevels - 1;
   SizeType     baseSize = this->GetOutput(refLevel)->GetRequestedRegion().GetSize();
   IndexType    baseIndex = this->GetOutput(refLevel)->GetRequestedRegion().GetIndex();
-  RegionType   baseRegion;
 
-  unsigned int idim;
-  for (idim = 0; idim < ImageDimension; idim++)
+  for (unsigned int idim = 0; idim < ImageDimension; ++idim)
   {
-    unsigned int factor = m_Schedule[refLevel][idim];
+    const unsigned int factor = m_Schedule[refLevel][idim];
     baseIndex[idim] *= static_cast<IndexValueType>(factor);
     baseSize[idim] *= static_cast<SizeValueType>(factor);
   }
-  baseRegion.SetIndex(baseIndex);
-  baseRegion.SetSize(baseSize);
+  const RegionType baseRegion(baseIndex, baseSize);
 
   // compute requirements for the smoothing part
   using OutputPixelType = typename TOutputImage::PixelType;
   using OperatorType = GaussianOperator<OutputPixelType, ImageDimension>;
 
-  auto * oper = new OperatorType;
+  OperatorType oper;
 
   typename TInputImage::SizeType radius;
 
   RegionType inputRequestedRegion = baseRegion;
   refLevel = 0;
 
-  for (idim = 0; idim < TInputImage::ImageDimension; idim++)
+  for (unsigned int idim = 0; idim < TInputImage::ImageDimension; ++idim)
   {
-    oper->SetDirection(idim);
-    oper->SetVariance(itk::Math::sqr(0.5 * static_cast<float>(m_Schedule[refLevel][idim])));
-    oper->SetMaximumError(m_MaximumError);
-    oper->CreateDirectional();
-    radius[idim] = oper->GetRadius()[idim];
+    oper.SetDirection(idim);
+    oper.SetVariance(itk::Math::sqr(0.5 * static_cast<float>(m_Schedule[refLevel][idim])));
+    oper.SetMaximumError(m_MaximumError);
+    oper.CreateDirectional();
+    radius[idim] = oper.GetRadius()[idim];
   }
-  delete oper;
 
   inputRequestedRegion.PadByRadius(radius);
 

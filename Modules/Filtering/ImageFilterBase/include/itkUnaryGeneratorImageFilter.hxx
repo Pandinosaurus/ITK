@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,13 @@
 #ifndef itkUnaryGeneratorImageFilter_hxx
 #define itkUnaryGeneratorImageFilter_hxx
 
-#include "itkUnaryGeneratorImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkProgressReporter.h"
 #include "itkTotalProgressReporter.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 UnaryGeneratorImageFilter<TInputImage, TOutputImage>::UnaryGeneratorImageFilter()
 {
@@ -36,15 +33,6 @@ UnaryGeneratorImageFilter<TInputImage, TOutputImage>::UnaryGeneratorImageFilter(
   this->DynamicMultiThreadingOn();
 }
 
-/**
- * UnaryGeneratorImageFilter can produce an image which is a different resolution
- * than its input image.  As such, UnaryGeneratorImageFilter needs to provide an
- * implementation for GenerateOutputInformation() in order to inform
- * the pipeline execution model.  The original documentation of this
- * method is below.
- *
- * \sa ProcessObject::GenerateOutputInformation()
- */
 template <typename TInputImage, typename TOutputImage>
 void
 UnaryGeneratorImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
@@ -68,7 +56,8 @@ UnaryGeneratorImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation(
   this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion, inputPtr->GetLargestPossibleRegion());
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 
-  ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension, Superclass::InputImageDimension>
+  const ImageToImageFilterDetail::ImageInformationCopier<Superclass::OutputImageDimension,
+                                                         Superclass::InputImageDimension>
     informationCopier;
   informationCopier(outputPtr, inputPtr);
 }
@@ -105,11 +94,9 @@ UnaryGeneratorImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateDat
   this->CallCopyOutputRegionToInputRegion(inputRegionForThread, outputRegionForThread);
 
   // Define the iterators
-  ImageScanlineConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
-  ImageScanlineIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
+  ImageScanlineConstIterator inputIt(inputPtr, inputRegionForThread);
+  ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
   while (!inputIt.IsAtEnd())
   {
     while (!inputIt.IsAtEndOfLine())

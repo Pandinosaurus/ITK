@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class VTKImageExport
+ * \class VTKImageExport
  * \brief Connect the end of an ITK image pipeline to a VTK pipeline.
  *
  * VTKImageExport can be used at the end of an ITK image pipeline to
@@ -64,8 +64,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VTKImageExport, VTKImageExportBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VTKImageExport);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -73,16 +73,16 @@ public:
   /** The type of the input image. */
   using InputImageType = TInputImage;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
   itkConceptMacro(ImageDimensionCheck, (Concept::SameDimensionOrMinusOneOrTwo<3, Self::InputImageDimension>));
-#endif
+
   /** Set the input image of this image exporter. */
+  /** @ITKStartGrouping */
   using Superclass::SetInput;
   void
   SetInput(const InputImageType *);
   InputImageType *
   GetInput();
-
+  /** @ITKEndGrouping */
 protected:
   VTKImageExport();
   ~VTKImageExport() override = default;
@@ -128,14 +128,14 @@ protected:
   BufferPointerCallback() override;
 
 private:
-  std::string m_ScalarTypeName;
-  int         m_WholeExtent[6];
-  int         m_DataExtent[6];
-  double      m_DataSpacing[3];
-  double      m_DataOrigin[3];
-  double      m_DataDirection[9];
-  float       m_FloatDataSpacing[3];
-  float       m_FloatDataOrigin[3];
+  std::string m_ScalarTypeName{};
+  int         m_WholeExtent[6]{};
+  int         m_DataExtent[6]{};
+  double      m_DataSpacing[3]{};
+  double      m_DataOrigin[3]{};
+  double      m_DataDirection[9]{};
+  float       m_FloatDataSpacing[3]{};
+  float       m_FloatDataOrigin[3]{};
 };
 } // end namespace itk
 

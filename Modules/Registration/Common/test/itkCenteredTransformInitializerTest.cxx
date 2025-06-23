@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
   const typename FixedImageType::SizeType &   fixedSize = fixedRegion.GetSize();
   const typename FixedImageType::IndexType &  fixedIndex = fixedRegion.GetIndex();
   ContinuousIndexType                         fixedCenterIndex;
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     assert(0 < fixedSize[i]);
     fixedCenterIndex[i] = static_cast<double>(fixedIndex[i]) + static_cast<double>(fixedSize[i] - 1) / 2.0;
@@ -60,7 +60,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
   const typename MovingImageType::SizeType &   movingSize = movingRegion.GetSize();
   const typename MovingImageType::IndexType &  movingIndex = movingRegion.GetIndex();
   ContinuousIndexType                          movingCenterIndex;
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     assert(0 < movingSize[i]);
     movingCenterIndex[i] = static_cast<double>(movingIndex[i]) + static_cast<double>(movingSize[i] - 1) / 2.0;
@@ -70,11 +70,11 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
   TransformType::InputVectorType relativeCenter = movingCenter - fixedCenter;
 
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   using InitializerType = itk::CenteredTransformInitializer<TransformType, FixedImageType, MovingImageType>;
 
-  typename InitializerType::Pointer initializer = InitializerType::New();
+  auto initializer = InitializerType::New();
 
   initializer->SetFixedImage(fixedImage);
   initializer->SetMovingImage(movingImage);
@@ -91,12 +91,12 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
   const TransformType::InputPointType &   center1 = transform->GetCenter();
   const TransformType::OutputVectorType & translation1 = transform->GetTranslation();
   const TransformType::OffsetType &       offset1 = transform->GetOffset();
-  const double                            tolerance = 1e-3;
+  constexpr double                        tolerance = 1e-3;
 
   // Verfications for the Geometry Mode
-  for (unsigned int k = 0; k < Dimension; k++)
+  for (unsigned int k = 0; k < Dimension; ++k)
   {
-    if (std::fabs(center1[k] - fixedCenter[k]) > tolerance)
+    if (itk::Math::abs(center1[k] - fixedCenter[k]) > tolerance)
     {
       std::cerr << "Center differs from expected value" << std::endl;
       std::cerr << "It should be " << fixedCenter << std::endl;
@@ -104,7 +104,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
       pass = false;
       break;
     }
-    if (std::fabs(translation1[k] - relativeCenter[k]) > tolerance)
+    if (itk::Math::abs(translation1[k] - relativeCenter[k]) > tolerance)
     {
       std::cerr << "Translation differs from expected value" << std::endl;
       std::cerr << "It should be " << relativeCenter << std::endl;
@@ -112,7 +112,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
       pass = false;
       break;
     }
-    if (std::fabs(offset1[k] - relativeCenter[k]) > tolerance)
+    if (itk::Math::abs(offset1[k] - relativeCenter[k]) > tolerance)
     {
       std::cerr << "Offset differs from expected value" << std::endl;
       std::cerr << "It should be " << relativeCenter << std::endl;
@@ -135,9 +135,9 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
   const TransformType::OffsetType &       offset2 = transform->GetOffset();
 
   // Verfications for the Moments Mode
-  for (unsigned int k = 0; k < Dimension; k++)
+  for (unsigned int k = 0; k < Dimension; ++k)
   {
-    if (std::fabs(center2[k] - fixedCenter[k]) > tolerance)
+    if (itk::Math::abs(center2[k] - fixedCenter[k]) > tolerance)
     {
       std::cerr << "Center differs from expected value" << std::endl;
       std::cerr << "It should be " << fixedCenter << std::endl;
@@ -145,7 +145,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
       pass = false;
       break;
     }
-    if (std::fabs(translation2[k] - relativeCenter[k]) > tolerance)
+    if (itk::Math::abs(translation2[k] - relativeCenter[k]) > tolerance)
     {
       std::cerr << "Translation differs from expected value" << std::endl;
       std::cerr << "It should be " << relativeCenter << std::endl;
@@ -153,7 +153,7 @@ RunTest(itk::SmartPointer<TFixedImage> fixedImage, itk::SmartPointer<TMovingImag
       pass = false;
       break;
     }
-    if (std::fabs(offset2[k] - relativeCenter[k]) > tolerance)
+    if (itk::Math::abs(offset2[k] - relativeCenter[k]) > tolerance)
     {
       std::cerr << "Offset differs from expected value" << std::endl;
       std::cerr << "It should be " << relativeCenter << std::endl;
@@ -270,13 +270,11 @@ itkCenteredTransformInitializerTest(int, char *[])
     index[1] = 0;
     index[2] = 0;
 
-    RegionType region;
-    region.SetSize(size);
-    region.SetIndex(index);
+    const RegionType region{ index, size };
 
 
-    FixedImageType::Pointer  fixedImage = FixedImageType::New();
-    MovingImageType::Pointer movingImage = MovingImageType::New();
+    auto fixedImage = FixedImageType::New();
+    auto movingImage = MovingImageType::New();
 
     fixedImage->SetRegions(region);
     fixedImage->SetSpacing(spacing);
@@ -337,13 +335,9 @@ itkCenteredTransformInitializerTest(int, char *[])
     movingIndex[1] = 20;
     movingIndex[2] = 30;
 
-    RegionType fixedRegion;
-    fixedRegion.SetSize(size);
-    fixedRegion.SetIndex(fixedIndex);
+    const RegionType fixedRegion{ fixedIndex, size };
 
-    RegionType movingRegion;
-    movingRegion.SetSize(size);
-    movingRegion.SetIndex(movingIndex);
+    const RegionType movingRegion{ movingIndex, size };
 
     using VersorType = itk::Versor<itk::SpacePrecisionType>;
     VersorType x;
@@ -353,12 +347,12 @@ itkCenteredTransformInitializerTest(int, char *[])
     VersorType z;
     z.SetRotationAroundZ(1.5);
 
-    DirectionType fixedDirection = (x * y * z).GetMatrix();
-    DirectionType movingDirection = (z * y * x).GetMatrix();
+    const DirectionType fixedDirection = (x * y * z).GetMatrix();
+    const DirectionType movingDirection = (z * y * x).GetMatrix();
 
 
-    FixedImageType::Pointer  fixedImage = FixedImageType::New();
-    MovingImageType::Pointer movingImage = MovingImageType::New();
+    auto fixedImage = FixedImageType::New();
+    auto movingImage = MovingImageType::New();
 
     fixedImage->SetRegions(fixedRegion);
     fixedImage->SetSpacing(spacing);

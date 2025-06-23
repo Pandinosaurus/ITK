@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,8 +48,8 @@ public:
 
   /** Class Methods used to interface with the registered factories */
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TransformIOFactoryTemplate, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TransformIOFactoryTemplate);
 
   /** Convenient type alias. */
   using TransformIOBasePointer = typename TransformIOBaseTemplate<TParametersValueType>::Pointer;

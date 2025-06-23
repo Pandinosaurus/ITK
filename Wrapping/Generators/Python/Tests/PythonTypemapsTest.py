@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -128,16 +128,17 @@ assert median.GetInput() == median2.GetOutput()
 # catching exception
 try:
     median.Update()
-    print("Exception not throwed!", file=sys.stderr)
+    print("Exception not thrown!", file=sys.stderr)
     sys.exit(1)
 except RuntimeError as e:
-    print("Exception catched as expected", e)
+    print("Exception caught as expected", e)
 
 #   ----- keep that at the end! -----
 
+
 # pycommand masked
 def exit():
-    print("exitting on delete...")
+    print("exiting on delete...")
     sys.exit(0)
 
 

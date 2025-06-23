@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 #ifndef itkAdditiveGaussianNoiseImageFilter_hxx
 #define itkAdditiveGaussianNoiseImageFilter_hxx
 
-#include "itkAdditiveGaussianNoiseImageFilter.h"
+#include "itkBitCast.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
 #include "itkNormalVariateGenerator.h"
@@ -47,14 +47,14 @@ AdditiveGaussianNoiseImageFilter<TInputImage, TOutputImage>::ThreadedGenerateDat
 
   // Create a random generator per thread
   IndexValueType indSeed = 0;
-  for (unsigned d = 0; d < TOutputImage::ImageDimension; d++)
+  for (unsigned int d = 0; d < TOutputImage::ImageDimension; ++d)
   {
     indSeed += outputRegionForThread.GetIndex(d);
   }
-  typename Statistics::NormalVariateGenerator::Pointer randn = Statistics::NormalVariateGenerator::New();
-  const uint32_t                                       seed = Self::Hash(this->GetSeed(), uint32_t(indSeed));
-  // Convert the seed bit for bit to int32
-  randn->Initialize(*reinterpret_cast<const int32_t *>(&seed));
+  auto           randn = Statistics::NormalVariateGenerator::New();
+  const uint32_t seed = Self::Hash(this->GetSeed(), static_cast<uint32_t>(indSeed));
+  // Convert the seed bit for bit to int32_t
+  randn->Initialize(bit_cast<int32_t>(seed));
 
   // Define the portion of the input to walk for this thread, using
   // the CallCopyOutputRegionToInputRegion method allows for the input
@@ -63,11 +63,8 @@ AdditiveGaussianNoiseImageFilter<TInputImage, TOutputImage>::ThreadedGenerateDat
   this->CallCopyOutputRegionToInputRegion(inputRegionForThread, outputRegionForThread);
 
   // Define the iterators
-  ImageScanlineConstIterator<TInputImage> inputIt(inputPtr, inputRegionForThread);
-  ImageScanlineIterator<TOutputImage>     outputIt(outputPtr, outputRegionForThread);
-
-  inputIt.GoToBegin();
-  outputIt.GoToBegin();
+  ImageScanlineConstIterator inputIt(inputPtr, inputRegionForThread);
+  ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
   while (!inputIt.IsAtEnd())
   {

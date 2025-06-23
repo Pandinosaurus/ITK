@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 namespace Functor
 {
 /**
- *\class AccessorFunctor
+ * \class AccessorFunctor
  * \brief Convert an accessor to a functor so that it can be used in a
  * UnaryFunctorImageFilter.
  *
@@ -33,6 +33,10 @@ namespace Functor
  * allows an accessor to be used as functor in a UnaryFunctorImageFilter,
  * BinaryFunctorImageFilter, TernaryFunctorImageFilter, or
  * NaryFunctionImageFilter.
+ *
+ * \note AccessorFunctor does not have any user-declared "special member function", following the C++ Rule of Zero: the
+ * compiler will just generate any of them when necessary.
+ *
  * \ingroup ITKImageIntensity
  */
 template <typename TInput, typename TAccessor>
@@ -42,12 +46,6 @@ public:
   /** Standard class type aliases. */
   using Self = AccessorFunctor;
   using AccessorType = TAccessor;
-
-  /** Constructor and destructor. */
-  AccessorFunctor()
-    : m_Accessor()
-  {}
-  ~AccessorFunctor() = default;
 
   /** operator().  This is the "call" method of the functor. */
   using OutputType = typename TAccessor::ExternalType;
@@ -64,14 +62,6 @@ public:
     return m_Accessor;
   }
 
-  /** Assignment operator */
-  AccessorFunctor &
-  operator=(const AccessorFunctor & functor)
-  {
-    m_Accessor = functor.m_Accessor;
-    return *this;
-  }
-
   /** Set the accessor object. This replaces the current accessor with
    * a copy of the specified accessor.  This allows the user to
    * specify an accessor that has ivars set differently that the default
@@ -83,26 +73,22 @@ public:
     m_Accessor = accessor;
   }
 
-  /** operator!=.  Needed to determine if two accessors are the same. */
-  bool
-  operator!=(const Self & functor) const
-  {
-    return (m_Accessor != functor.m_Accessor);
-  }
-
+  /** Needed to determine if two accessors are the same. */
   bool
   operator==(const Self & other) const
   {
-    return !(*this != other);
+    return m_Accessor == other.m_Accessor;
   }
 
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
 private:
-  AccessorType m_Accessor;
+  AccessorType m_Accessor{};
 };
 } // namespace Functor
 
 /**
- *\class AdaptImageFilter
+ * \class AdaptImageFilter
  * \brief Convert an image to another pixel type using the specified data accessor.
  *
  * AdaptImageFilter converts an image to another pixel type using a
@@ -147,7 +133,7 @@ public:
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using FunctorType = typename Superclass::FunctorType;
+  using typename Superclass::FunctorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -155,8 +141,8 @@ public:
   /** Typedef for the accessor type */
   using AccessorType = TAccessor;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AdaptImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AdaptImageFilter);
 
   /** Get the accessor. This is a convenience method so the user */
   AccessorType &
@@ -169,9 +155,7 @@ public:
   void
   SetAccessor(AccessorType & accessor)
   {
-    FunctorType functor;
-
-    functor = this->GetFunctor();
+    FunctorType functor = this->GetFunctor();
     if (accessor != functor.GetAccessor())
     {
       functor.SetAccessor(accessor);

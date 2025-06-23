@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGaussianImageSource_hxx
 #define itkGaussianImageSource_hxx
 
-#include "itkGaussianImageSource.h"
 #include "itkGaussianSpatialFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkProgressReporter.h"
@@ -56,8 +55,8 @@ GaussianImageSource<TOutputImage>::SetParameters(const ParametersType & paramete
 }
 
 template <typename TOutputImage>
-typename GaussianImageSource<TOutputImage>::ParametersType
-GaussianImageSource<TOutputImage>::GetParameters() const
+auto
+GaussianImageSource<TOutputImage>::GetParameters() const -> ParametersType
 {
   ParametersType parameters(2 * ArrayType::Length + 1);
   for (unsigned int i = 0; i < ArrayType::Length; ++i)
@@ -89,7 +88,7 @@ GaussianImageSource<TOutputImage>::GenerateData()
 
   // Create and initialize a new Gaussian function
   using FunctionType = GaussianSpatialFunction<double, NDimensions>;
-  typename FunctionType::Pointer gaussian = FunctionType::New();
+  auto gaussian = FunctionType::New();
 
   gaussian->SetSigma(m_Sigma);
   gaussian->SetMean(m_Mean);
@@ -98,13 +97,10 @@ GaussianImageSource<TOutputImage>::GenerateData()
 
   // Create an iterator that will walk the output region
   using OutputIterator = ImageRegionIterator<TOutputImage>;
-  OutputIterator outIt = OutputIterator(outputPtr, outputPtr->GetRequestedRegion());
-
 
   ProgressReporter progress(this, 0, outputPtr->GetRequestedRegion().GetNumberOfPixels());
   // Walk the output image, evaluating the spatial function at each pixel
-  outIt.GoToBegin();
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(outputPtr, outputPtr->GetRequestedRegion()); !outIt.IsAtEnd(); ++outIt)
   {
     const typename TOutputImage::IndexType index = outIt.GetIndex();
     // The position at which the function is evaluated
@@ -115,8 +111,6 @@ GaussianImageSource<TOutputImage>::GenerateData()
     // Set the pixel value to the function value
     outIt.Set(static_cast<typename TOutputImage::PixelType>(value));
     progress.CompletedPixel();
-
-    ++outIt;
   }
 }
 
@@ -126,10 +120,10 @@ GaussianImageSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) c
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Gaussian mean: " << m_Mean << std::endl;
-  os << indent << "Gaussian sigma: " << m_Sigma << std::endl;
-  os << indent << "Gaussian scale: " << m_Scale << std::endl;
-  os << indent << "Normalized Gaussian?: " << m_Normalized << std::endl;
+  os << indent << "Mean: " << m_Mean << std::endl;
+  os << indent << "Sigma: " << m_Sigma << std::endl;
+  os << indent << "Scale: " << m_Scale << std::endl;
+  itkPrintSelfBooleanMacro(Normalized);
 }
 } // end namespace itk
 

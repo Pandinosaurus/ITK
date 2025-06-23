@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFrameDifferenceVideoFilter_hxx
 #define itkFrameDifferenceVideoFilter_hxx
 
-#include "itkFrameDifferenceVideoFilter.h"
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
@@ -97,15 +96,15 @@ FrameDifferenceVideoFilter<TInputVideoStream, TOutputVideoStream>::ThreadedGener
   // Get the input and output video streams
   const InputVideoStreamType * input = this->GetInput();
   OutputVideoStreamType *      output = this->GetOutput();
-  SizeValueType                numFrames = this->TemporalProcessObject::m_UnitInputNumberOfFrames;
+  const SizeValueType          numFrames = this->TemporalProcessObject::m_UnitInputNumberOfFrames;
 
   // Get output frame number
-  typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
-  SizeValueType                                      outputFrameNumber = outReqTempRegion.GetFrameStart();
+  const typename OutputVideoStreamType::TemporalRegionType outReqTempRegion = output->GetRequestedTemporalRegion();
+  const SizeValueType                                      outputFrameNumber = outReqTempRegion.GetFrameStart();
 
-  typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
-  SizeValueType                                     inputStart = inReqTempRegion.GetFrameStart();
-  SizeValueType                                     inputDuration = inReqTempRegion.GetFrameDuration();
+  const typename InputVideoStreamType::TemporalRegionType inReqTempRegion = input->GetRequestedTemporalRegion();
+  const SizeValueType                                     inputStart = inReqTempRegion.GetFrameStart();
+  const SizeValueType                                     inputDuration = inReqTempRegion.GetFrameDuration();
 
   // Make sure we've got the right duration
   if (inputDuration != numFrames)
@@ -115,11 +114,8 @@ FrameDifferenceVideoFilter<TInputVideoStream, TOutputVideoStream>::ThreadedGener
 
   // Get iterators for the input frames
   using ConstIterType = ImageRegionConstIterator<InputFrameType>;
-  OutputFrameSpatialRegionType inputRegion;
-  inputRegion.SetSize(outputRegionForThread.GetSize());
-  inputRegion.SetIndex(outputRegionForThread.GetIndex());
-  ConstIterType I0Iter(input->GetFrame(inputStart), inputRegion);
-  ConstIterType I1Iter(input->GetFrame(inputStart + numFrames - 1), inputRegion);
+  ConstIterType I0Iter(input->GetFrame(inputStart), outputRegionForThread);
+  ConstIterType I1Iter(input->GetFrame(inputStart + numFrames - 1), outputRegionForThread);
 
   // Get the output frame and its iterator
   OutputFrameType *                         outFrame = output->GetFrame(outputFrameNumber);

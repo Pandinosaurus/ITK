@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ namespace itk
  * The connectivity can be changed to minimum or maximum connectivity with
  * SetFullyConnected(). Full connectivity produces thicker contours.
  *
- * https://www.insight-journal.org/browse/publication/217
+ * https://doi.org/10.54294/c7d3gv
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -76,7 +76,7 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(LabelContourImageFilter, InPlaceImageFilter);
+  itkOverrideGetNameOfClassMacro(LabelContourImageFilter);
 
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
@@ -106,17 +106,19 @@ public:
    * FullyConnectedOff.
    * \note For objects that are 1 pixel wide, use FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the background value used to identify the objects and mark the
    * pixels not on the border of the objects.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
 protected:
   LabelContourImageFilter();
   ~LabelContourImageFilter() override = default;
@@ -168,9 +170,9 @@ protected:
   using ConsecutiveVectorType = typename ScanlineFunctions::ConsecutiveVectorType;
 
 private:
-  OutputImagePixelType m_BackgroundValue;
+  OutputImagePixelType m_BackgroundValue{};
 
-  LineMapType m_LineMap;
+  LineMapType m_LineMap{};
 };
 } // end namespace itk
 

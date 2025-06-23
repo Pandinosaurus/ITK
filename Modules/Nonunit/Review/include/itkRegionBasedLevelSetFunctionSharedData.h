@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,32 +35,13 @@ namespace itk
  *
  * This class holds cache data used during the computation of the LevelSet updates.
  *
- * Based on the paper:
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * Based on the paper \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
- *
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  */
@@ -77,7 +58,7 @@ public:
 
   static constexpr unsigned int ImageDimension = TFeatureImage::ImageDimension;
 
-  itkTypeMacro(RegionBasedLevelSetFunctionSharedData, LightObject);
+  itkOverrideGetNameOfClassMacro(RegionBasedLevelSetFunctionSharedData);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -128,7 +109,7 @@ public:
   using LevelSetDataPointerVectorIterator = typename LevelSetDataPointerVector::iterator;
 
   void
-  SetFunctionCount(const unsigned int & n)
+  SetFunctionCount(const unsigned int n)
   {
     this->m_FunctionCount = n;
     this->m_LevelSetDataPointerVector.resize(n, nullptr);
@@ -138,18 +119,18 @@ public:
     while (it != end)
     {
       (*it) = LevelSetDataType::New();
-      it++;
+      ++it;
     }
   }
 
   void
-  SetNumberOfNeighbors(const unsigned int & n)
+  SetNumberOfNeighbors(const unsigned int n)
   {
     this->m_NumberOfNeighbors = n;
   }
 
   void
-  CreateHeavisideFunctionOfLevelSetImage(const unsigned int & j, const InputImageType * image)
+  CreateHeavisideFunctionOfLevelSetImage(const unsigned int j, const InputImageType * image)
   {
     m_LevelSetDataPointerVector[j]->CreateHeavisideFunctionOfLevelSetImage(image);
   }
@@ -172,12 +153,12 @@ public:
   virtual void
   PopulateListImage() = 0;
 
-  LevelSetDataPointerVector m_LevelSetDataPointerVector;
+  LevelSetDataPointerVector m_LevelSetDataPointerVector{};
 
-  unsigned int     m_FunctionCount;
+  unsigned int     m_FunctionCount{};
   unsigned int     m_NumberOfNeighbors{ 6 };
-  ListImagePointer m_NearestNeighborListImage;
-  KdTreePointer    m_KdTree;
+  ListImagePointer m_NearestNeighborListImage{};
+  KdTreePointer    m_KdTree{};
 
 protected:
   RegionBasedLevelSetFunctionSharedData()

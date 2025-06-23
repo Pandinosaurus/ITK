@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@
 #include "itkBSplineDerivativeKernelFunction.h"
 #include "itkArray2D.h"
 
+#include <memory> // For unique_ptr.
 #include <mutex>
 
 
@@ -59,8 +60,8 @@ namespace itk
  * both the mutual information and its derivatives with respect to the
  * transform parameters.
  *
- * The calculations are based on the method of Mattes et al [1,2]
- * where the probability density distribution are estimated using
+ * The calculations are based on the method of Mattes et al
+ * \cite mattes2001, \cite mattes2003 where the probability density distribution are estimated using
  * Parzen histograms. Since the fixed image PDF does not contribute
  * to the derivatives, it does not need to be smooth. Hence,
  * a zero order (box car) BSpline kernel is used
@@ -82,28 +83,15 @@ namespace itk
  * values are estimated at discrete position or bins.
  * The number of bins used can be set via SetNumberOfHistogramBins().
  * To handle data with arbitrary magnitude and dynamic range,
- * the image intensity is scale such that any contribution to the
+ * the image intensity is scaled such that any contribution to the
  * histogram will fall into a valid bin.
  *
- * One the PDF's have been constructed, the mutual information
- * is obtained by doubling summing over the discrete PDF values.
+ * Once the PDF's have been constructed, the mutual information
+ * is obtained by double summing over the discrete PDF values.
  *
  *
  * Notes:
  * 1. This class returns the negative mutual information value.
- *
- * References:
- * [1] "Nonrigid multimodality image registration"
- *      D. Mattes, D. R. Haynor, H. Vesselle, T. Lewellen and W. Eubank
- *      Medical Imaging 2001: Image Processing, 2001, pp. 1609-1620.
- * [2] "PET-CT Image Registration in the Chest Using Free-form Deformations"
- *      D. Mattes, D. R. Haynor, H. Vesselle, T. Lewellen and W. Eubank
- *      IEEE Transactions in Medical Imaging. Vol.22, No.1,
-        January 2003. pp.120-128.
- * [3] "Optimization of Mutual Information for MultiResolution Image
- *      Registration"
- *      P. Thevenaz and M. Unser
- *      IEEE Transactions in Image Processing, 9(12) December 2000.
  *
  * \ingroup RegistrationMetrics
  * \ingroup ITKRegistrationCommon
@@ -128,30 +116,30 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MattesMutualInformationImageToImageMetric, ImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MattesMutualInformationImageToImageMetric);
 
   /** Types inherited from Superclass. */
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using InterpolatorType = typename Superclass::InterpolatorType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointType = typename Superclass::MovingImagePointType;
-  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
-  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
-  using BSplineTransformWeightsType = typename Superclass::BSplineTransformWeightsType;
-  using BSplineTransformIndexArrayType = typename Superclass::BSplineTransformIndexArrayType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::InterpolatorType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointType;
+  using typename Superclass::FixedImageConstPointer;
+  using typename Superclass::MovingImageConstPointer;
+  using typename Superclass::BSplineTransformWeightsType;
+  using typename Superclass::BSplineTransformIndexArrayType;
 
-  using CoordinateRepresentationType = typename Superclass::CoordinateRepresentationType;
-  using FixedImageSampleContainer = typename Superclass::FixedImageSampleContainer;
-  using ImageDerivativesType = typename Superclass::ImageDerivativesType;
-  using WeightsValueType = typename Superclass::WeightsValueType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::CoordinateRepresentationType;
+  using typename Superclass::FixedImageSampleContainer;
+  using typename Superclass::ImageDerivativesType;
+  using typename Superclass::WeightsValueType;
+  using typename Superclass::IndexValueType;
 
   using OffsetValueType = typename FixedImageType::OffsetValueType;
 
@@ -188,8 +176,10 @@ public:
    * windowing with a cubic-BSpline kernel. Note that even if the metric
    * is used on binary images, the number of bins should at least be
    * equal to five. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NumberOfHistogramBins, SizeValueType, 5, NumericTraits<SizeValueType>::max());
   itkGetConstReferenceMacro(NumberOfHistogramBins, SizeValueType);
+  /** @ITKEndGrouping */
 
   /** This variable selects the method to be used for computing the Metric
    * derivatives with respect to the Transform parameters. Two modes of
@@ -215,9 +205,11 @@ public:
    * the PDF bins. This is an array of floating point values with size equals to (number of
    * histogram bins)^2. This method is well suited for Transforms with a large
    * number of parameters, such as, BSplineTransforms. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseExplicitPDFDerivatives, bool);
   itkGetConstReferenceMacro(UseExplicitPDFDerivatives, bool);
   itkBooleanMacro(UseExplicitPDFDerivatives);
+  /** @ITKEndGrouping */
 
   /** The marginal PDFs are stored as std::vector. */
   using PDFValueType = double; // NOTE:  floating point precision is not as stable.  Double precision proves faster and
@@ -259,7 +251,7 @@ public:
 
 protected:
   MattesMutualInformationImageToImageMetric();
-  ~MattesMutualInformationImageToImageMetric() override;
+  ~MattesMutualInformationImageToImageMetric() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -277,7 +269,11 @@ private:
   using CubicBSplineFunctionType = BSplineKernelFunction<3, PDFValueType>;
   using CubicBSplineDerivativeFunctionType = BSplineDerivativeKernelFunction<3, PDFValueType>;
 
-  /** Precompute fixed image parzen window indices. */
+  /** Extract common processing for both GetValueAndDerivative and GetValue functions */
+  void
+  CommonGetValueProcessing() const;
+
+  /** Compute the Parzen window index locations from the pre-computed samples. */
   void
   ComputeFixedImageParzenWindowIndices(FixedImageSampleContainer & samples);
 
@@ -323,19 +319,15 @@ private:
   PDFValueType  m_FixedImageBinSize{ 0.0 };
   PDFValueType  m_MovingImageBinSize{ 0.0 };
 
-  /** Cubic BSpline kernel for computing Parzen histograms. */
-  typename CubicBSplineFunctionType::Pointer           m_CubicBSplineKernel;
-  typename CubicBSplineDerivativeFunctionType::Pointer m_CubicBSplineDerivativeKernel;
-
   /** Helper array for storing the values of the JointPDF ratios. */
   using PRatioType = PDFValueType;
   using PRatioArrayType = Array2D<PRatioType>;
 
-  mutable PRatioArrayType m_PRatioArray;
+  mutable PRatioArrayType m_PRatioArray{};
 
   /** The moving image marginal PDF. */
   using MarginalPDFType = std::vector<PDFValueType>;
-  mutable MarginalPDFType m_MovingImageMarginalPDF;
+  mutable MarginalPDFType m_MovingImageMarginalPDF{};
 
   struct MMIMetricPerThreadStruct
   {
@@ -362,9 +354,9 @@ private:
   // Due to a bug in older version of Visual Studio where std::vector resize
   // uses a value instead of a const reference, this must be a pointer.
   // See
-  //   http://thetweaker.wordpress.com/2010/05/05/stdvector-of-aligned-elements/
-  //   http://connect.microsoft.com/VisualStudio/feedback/details/692988
-  mutable AlignedMMIMetricPerThreadStruct * m_MMIMetricPerThreadVariables;
+  //   https://thetweaker.wordpress.com/2010/05/05/stdvector-of-aligned-elements/
+  //   https://connect.microsoft.com/VisualStudio/feedback/details/692988
+  std::unique_ptr<AlignedMMIMetricPerThreadStruct[]> m_MMIMetricPerThreadVariables;
 #endif
 
   bool         m_UseExplicitPDFDerivatives{ true };

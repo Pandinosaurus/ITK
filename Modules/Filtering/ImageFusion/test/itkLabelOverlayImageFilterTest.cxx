@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,16 +45,16 @@ itkLabelOverlayImageFilterTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
 
   // Read in the input image
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Read in the label image
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
   // Instantiate the filter
   using FilterType = itk::LabelOverlayImageFilter<ImageType, ImageType, ColorImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   // Exercising Background Value methods
   filter->SetBackgroundValue(10);
@@ -87,11 +87,11 @@ itkLabelOverlayImageFilterTest(int argc, char * argv[])
   // Set opacity
   filter->SetOpacity(std::stod(argv[3]));
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   // Instantiate output image
   using WriterType = itk::ImageFileWriter<ColorImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[4]);
@@ -107,10 +107,10 @@ itkLabelOverlayImageFilterTest(int argc, char * argv[])
   }
 
   // exercise the methods to change the colors
-  unsigned int numberOfColors1 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors1 = filter->GetNumberOfColors();
   filter->AddColor(1, 255, 255);
 
-  unsigned int numberOfColors2 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors2 = filter->GetNumberOfColors();
 
   if (numberOfColors2 != numberOfColors1 + 1)
   {
@@ -121,7 +121,7 @@ itkLabelOverlayImageFilterTest(int argc, char * argv[])
   filter->ResetColors();
   filter->AddColor(255, 255, 255);
 
-  unsigned int numberOfColors3 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors3 = filter->GetNumberOfColors();
 
   if (numberOfColors3 != 1)
   {

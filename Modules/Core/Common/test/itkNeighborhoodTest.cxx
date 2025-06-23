@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,25 +29,29 @@ println(const char * s)
 int
 itkNeighborhoodTest(int, char *[])
 {
-  unsigned int i;
-
   println("TESTING WITH VNL_VECTOR ALLOCATOR");
   itk::Neighborhood<float, 2, vnl_vector<float>> b;
   b.SetRadius(3);
 
   println("Test data access");
-  for (i = 0; i < b.Size(); ++i)
-    b[i] = (float)i;
+  for (unsigned int i = 0; i < b.Size(); ++i)
+  {
+    b[i] = static_cast<float>(i);
+  }
   b.Print(std::cout);
 
   println("Test non_const iterators");
   for (itk::Neighborhood<float, 2>::Iterator it = b.Begin(); it < b.End(); ++it)
+  {
     *it = 4.0f;
+  }
   b.Print(std::cout);
 
   println("Test const_iterators");
   for (itk::Neighborhood<float, 2>::ConstIterator itc = b.Begin(); itc < b.End(); ++itc)
-    std::cout << *itc << " ";
+  {
+    std::cout << *itc << ' ';
+  }
 
   println("Copy the buffer into a vnl_vector");
   vnl_vector<float> v = b.GetBufferReference();
@@ -75,11 +79,11 @@ itkNeighborhoodTest(int, char *[])
   q.Print(std::cout);
 
   println("Testing assignment operator");
-  itk::Neighborhood<float, 2> p = q;
+  const itk::Neighborhood<float, 2> p = q;
   p.Print(std::cout);
 
   println("Testing copy constructor");
-  itk::Neighborhood<float, 2> r(q);
+  const itk::Neighborhood<float, 2> r(q);
   r.Print(std::cout);
 
   println("Testing instantiation with itk::Vector");

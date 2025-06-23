@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,8 +79,8 @@ public:
 
   using AssociateType = TAssociate;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DomainThreader, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DomainThreader);
 
   /** Run the multi-threaded operation on the given domain.
    *
@@ -91,9 +91,10 @@ public:
   Execute(AssociateType * enclosingClass, const DomainType & completeDomain);
 
   /** Set/Get the DomainPartitioner. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(DomainPartitioner, DomainPartitionerType);
   itkGetModifiableObjectMacro(DomainPartitioner, DomainPartitionerType);
-
+  /** @ITKEndGrouping */
   /** Accessor for number of work units that were actually used in the last
    * ThreadedExecution. */
   itkGetConstMacro(NumberOfWorkUnitsUsed, ThreadIdType);
@@ -106,13 +107,15 @@ public:
    * \warning When setting the desired number of work units, it might be clamped by
    * itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads().
    * */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NumberOfWorkUnits, ThreadIdType, 1, ITK_MAX_THREADS);
   itkGetConstMacro(NumberOfWorkUnits, ThreadIdType);
-
+  /** @ITKEndGrouping */
   /** Convenience methods to set/get the maximum number of threads to use.
    * \warning When setting the maximum number of threads, it will be clamped by
    * itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads().
    * */
+  /** @ITKStartGrouping */
   ThreadIdType
   GetMaximumNumberOfThreads() const
   {
@@ -120,7 +123,7 @@ public:
   }
   void
   SetMaximumNumberOfThreads(const ThreadIdType threads);
-
+  /** @ITKEndGrouping */
 protected:
   DomainThreader();
   ~DomainThreader() override = default;
@@ -163,7 +166,7 @@ protected:
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   ThreaderCallback(void * arg);
 
-  AssociateType * m_Associate;
+  AssociateType * m_Associate{};
 
 private:
   void
@@ -180,10 +183,10 @@ private:
    * well into that number.
    * This value is determined at the beginning of \c Execute(). */
   ThreadIdType                            m_NumberOfWorkUnitsUsed{ 0 };
-  ThreadIdType                            m_NumberOfWorkUnits;
-  typename DomainPartitionerType::Pointer m_DomainPartitioner;
-  DomainType                              m_CompleteDomain;
-  MultiThreaderBase::Pointer              m_MultiThreader;
+  ThreadIdType                            m_NumberOfWorkUnits{};
+  typename DomainPartitionerType::Pointer m_DomainPartitioner{};
+  DomainType                              m_CompleteDomain{};
+  MultiThreaderBase::Pointer              m_MultiThreader{};
 };
 
 } // namespace itk

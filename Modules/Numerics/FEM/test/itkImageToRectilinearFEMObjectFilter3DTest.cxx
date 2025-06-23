@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,29 +21,84 @@
 #include "itkImageFileReader.h"
 #include "itkFEMElement3DC0LinearHexahedronMembrane.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
 {
-  if (argc < 12)
+  constexpr int inputFileDataCheckArgs = 10;
+  // numberOfNodesToTest (a least 1) + nodeNumber (at least 1) + nodeCoords (3 per node)
+  constexpr unsigned int minArgNodes = 5;
+  // numberOfElementsToTest (a least 1) + elementNumber (at least 1) + elementNodes (8 per element)
+  constexpr unsigned int minArgElements = 10;
+  int                    minArgC = inputFileDataCheckArgs + minArgNodes + minArgElements;
+
+  if (argc < minArgC)
   {
-    std::cerr << "Missing Spatial Object Filename" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName"
+              << " pixelsPerElementX"
+              << " pixelsPerElementY"
+              << " pixelsPerElementZ"
+              << " numberOfElementsX"
+              << " numberOfElementsY"
+              << " numberOfElementsZ"
+              << " expectedNumberOfNodes"
+              << " expectedNumberOfElements"
+              << " nodeCoords (3*numberOfNodesToTest)"
+              << " numberOfElementsToTest"
+              << " numberOfNodesToTest"
+              << " nodeNumber (numberOfNodesToTest)"
+              << " numberOfElementsToTest"
+              << " elementNumber (numberOfElementsToTest)"
+              << " elementNodes (8*numberOfElementsToTest)" << std::endl;
     return EXIT_FAILURE;
   }
+
+  constexpr unsigned int Dimension = 3;
+  constexpr unsigned int nodeSize = 8;
+
+  // Check the provided node and element argument numbers
+  const auto numberOfNodesToTest = static_cast<unsigned int>(std::stoi(argv[10]));
+  int        nodeData = numberOfNodesToTest * (1 + Dimension);
+  int        nodeTestData = 1 + nodeData;
+  if (argc < inputFileDataCheckArgs + nodeTestData)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Specified: " << numberOfNodesToTest << " nodes to test: "
+              << "this requires" << nodeTestData << " arguments(1 node number and " << Dimension
+              << " coordinates per node number); " << inputFileDataCheckArgs + nodeTestData - argc << " missing."
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  const auto numberOfElementsToTest = static_cast<unsigned int>(std::stoi(argv[11 + numberOfNodesToTest * 4]));
+  int        elementData = numberOfElementsToTest * (1 + nodeSize);
+  int        elementTestData = 1 + elementData;
+  if (argc < inputFileDataCheckArgs + nodeTestData + elementTestData)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Specified " << numberOfElementsToTest << " elements to test: "
+              << "this requires " << elementData << " arguments (1 element number and " << nodeSize
+              << " nodes per element number); " << inputFileDataCheckArgs + nodeTestData + elementTestData - argc
+              << " missing." << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
 
-  using ImageType = itk::Image<unsigned char, 3>;
+  using ImageType = itk::Image<unsigned char, Dimension>;
   using ImageFileReaderType = itk::ImageFileReader<ImageType>;
   double tolerance = 0.001;
 
   vnl_vector<unsigned int> pixelsPerElement;
   vnl_vector<unsigned int> numberOfElements;
-  pixelsPerElement.set_size(3);
-  numberOfElements.set_size(3);
+  pixelsPerElement.set_size(Dimension);
+  numberOfElements.set_size(Dimension);
   pixelsPerElement[0] = static_cast<unsigned int>(std::stoi(argv[2]));
   pixelsPerElement[1] = static_cast<unsigned int>(std::stoi(argv[3]));
   pixelsPerElement[2] = static_cast<unsigned int>(std::stoi(argv[4]));
@@ -51,7 +106,7 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
   numberOfElements[1] = static_cast<unsigned int>(std::stoi(argv[6]));
   numberOfElements[2] = static_cast<unsigned int>(std::stoi(argv[7]));
 
-  ImageFileReaderType::Pointer reader = ImageFileReaderType::New();
+  auto reader = ImageFileReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
@@ -65,7 +120,7 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
   m->SetMomentOfInertia(0.004);
 
   using MembraneElementType = itk::fem::Element3DC0LinearHexahedronMembrane;
-  MembraneElementType::Pointer e0 = MembraneElementType::New();
+  auto e0 = MembraneElementType::New();
   e0->SetGlobalNumber(0);
   if (dynamic_cast<ElasticityType *>(m.GetPointer()))
   {
@@ -73,14 +128,14 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
   }
 
   using MeshFilterType = itk::fem::ImageToRectilinearFEMObjectFilter<ImageType>;
-  MeshFilterType::Pointer meshFilter = MeshFilterType::New();
+  auto meshFilter = MeshFilterType::New();
   meshFilter->SetInput(reader->GetOutput());
   meshFilter->SetPixelsPerElement(pixelsPerElement);
   meshFilter->SetElement(e0);
   meshFilter->SetMaterial(m);
   meshFilter->Update();
 
-  using FEMObjectType = itk::fem::FEMObject<3>;
+  using FEMObjectType = itk::fem::FEMObject<Dimension>;
   FEMObjectType::Pointer femObject = meshFilter->GetOutput();
   std::cout << "FEM Object Generation Test:";
   if (!femObject)
@@ -97,9 +152,9 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
 
   vnl_vector<unsigned int> testPixelsPerElement = meshFilter->GetPixelsPerElement();
   vnl_vector<unsigned int> testNumberOfElements = meshFilter->GetNumberOfElements();
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
-    std::cout << "Pixels per Element Test " << i << ":";
+    std::cout << "Pixels per Element Test " << i << ':';
     if (testPixelsPerElement[i] != pixelsPerElement[i])
     {
       std::cout << " [FAILED]" << std::endl;
@@ -112,7 +167,7 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
       std::cout << " [PASSED]" << std::endl;
     }
 
-    std::cout << "Number Of Elements Test " << i << ":";
+    std::cout << "Number Of Elements Test " << i << ':';
     if (testNumberOfElements[i] != numberOfElements[i])
     {
       std::cout << " [FAILED]" << std::endl;
@@ -195,25 +250,24 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
   }
 
 
-  const auto numberOfNodesToTest = static_cast<unsigned int>(std::stoi(argv[10]));
-  for (unsigned int i = 0; i < numberOfNodesToTest; i++)
+  for (unsigned int i = 0; i < numberOfNodesToTest; ++i)
   {
     auto               nodeNumber = static_cast<unsigned int>(std::stoi(argv[11 + i * 4]));
     vnl_vector<double> loc;
-    loc.set_size(3);
+    loc.set_size(Dimension);
     loc[0] = std::stod(argv[11 + i * 4 + 1]);
     loc[1] = std::stod(argv[11 + i * 4 + 2]);
     loc[2] = std::stod(argv[11 + i * 4 + 3]);
     std::cout << "Node (" << nodeNumber << ") Test " << i << ": ";
-    if ((std::fabs(femObject->GetNode(nodeNumber)->GetCoordinates()[0] - loc[0]) > tolerance) ||
-        (std::fabs(femObject->GetNode(nodeNumber)->GetCoordinates()[1] - loc[1]) > tolerance) ||
-        (std::fabs(femObject->GetNode(nodeNumber)->GetCoordinates()[2] - loc[2]) > tolerance))
+    if ((itk::Math::abs(femObject->GetNode(nodeNumber)->GetCoordinates()[0] - loc[0]) > tolerance) ||
+        (itk::Math::abs(femObject->GetNode(nodeNumber)->GetCoordinates()[1] - loc[1]) > tolerance) ||
+        (itk::Math::abs(femObject->GetNode(nodeNumber)->GetCoordinates()[2] - loc[2]) > tolerance))
     {
       std::cout << "[FAILED]" << std::endl;
-      std::cout << "\tExpected (" << loc[0] << "," << loc[1] << "," << loc[2] << "), Got (";
-      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[0] << ",";
-      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[1] << ",";
-      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[2] << ")" << std::endl;
+      std::cout << "\tExpected (" << loc[0] << ',' << loc[1] << ',' << loc[2] << "), Got (";
+      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[0] << ',';
+      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[1] << ',';
+      std::cout << femObject->GetNode(nodeNumber)->GetCoordinates()[2] << ')' << std::endl;
       foundError = true;
     }
     else
@@ -222,8 +276,7 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
     }
   }
 
-  const auto numberOfElementsToTest = static_cast<unsigned int>(std::stoi(argv[11 + numberOfNodesToTest * 4]));
-  for (unsigned int i = 0; i < numberOfElementsToTest; i++)
+  for (unsigned int i = 0; i < numberOfElementsToTest; ++i)
   {
     auto            elementNumber = static_cast<unsigned int>(std::stoi(argv[12 + numberOfNodesToTest * 4 + i * 9]));
     vnl_vector<int> nodes;
@@ -248,17 +301,17 @@ itkImageToRectilinearFEMObjectFilter3DTest(int argc, char * argv[])
         (femObject->GetElement(elementNumber)->GetNode(7)->GetGlobalNumber() != nodes[7]))
     {
       std::cout << "[FAILED]" << std::endl;
-      std::cout << "\tExpected (" << nodes[0] << "," << nodes[0] << "," << nodes[1];
-      std::cout << "," << nodes[2] << "," << nodes[3] << "," << nodes[4] << ",";
-      std::cout << nodes[5] << "," << nodes[6] << "," << nodes[7] << "), Got (";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(0)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(1)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(2)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(3)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(4)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(5)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(6)->GetGlobalNumber() << ",";
-      std::cout << femObject->GetElement(elementNumber)->GetNode(7)->GetGlobalNumber() << ")" << std::endl;
+      std::cout << "\tExpected (" << nodes[0] << ',' << nodes[0] << ',' << nodes[1];
+      std::cout << ',' << nodes[2] << ',' << nodes[3] << ',' << nodes[4] << ',';
+      std::cout << nodes[5] << ',' << nodes[6] << ',' << nodes[7] << "), Got (";
+      std::cout << femObject->GetElement(elementNumber)->GetNode(0)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(1)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(2)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(3)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(4)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(5)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(6)->GetGlobalNumber() << ',';
+      std::cout << femObject->GetElement(elementNumber)->GetNode(7)->GetGlobalNumber() << ')' << std::endl;
       foundError = true;
     }
     else

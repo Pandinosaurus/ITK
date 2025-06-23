@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +57,7 @@ GetFirstPixelFromFilterOutput(const TPixel inputPixel)
 
 
 // Test if the resample image filter has a valid output region defined
-// A common mistake is to use SetReferenceIamge without setting UseReferenceIamgeOn
+// A common mistake is to use SetReferenceImage without setting UseReferenceImageOn
 // which results in the default output image size of 0,0,0.
 template <typename TPixel>
 TPixel
@@ -81,7 +81,7 @@ TestThrowErrorOnEmptyResampleSpace(const TPixel inputPixel, const bool setUseRef
     filter->UseReferenceImageOn();
   }
   filter->Update();
-  typename ImageType::ConstPointer filterOutputImage = filter->GetOutput();
+  const typename ImageType::ConstPointer filterOutputImage = filter->GetOutput();
   if (filterOutputImage->GetLargestPossibleRegion().GetNumberOfPixels() == 0)
   {
     return itk::NumericTraits<TPixel>::max();
@@ -107,7 +107,7 @@ template <typename TPixel>
 void
 Expect_ResampleImageFilter_thows_on_incomplete_configuration(const TPixel inputPixel)
 {
-  EXPECT_THROW(TestThrowErrorOnEmptyResampleSpace(inputPixel, false), ::itk::ExceptionObject);
+  EXPECT_THROW(TestThrowErrorOnEmptyResampleSpace(inputPixel, false), itk::ExceptionObject);
   EXPECT_EQ(TestThrowErrorOnEmptyResampleSpace(inputPixel, true), inputPixel);
 }
 
@@ -144,9 +144,9 @@ TEST(ResampleImageFilter, FilterPreservesAnyDoublePixelValueByDefault)
   std::default_random_engine randomEngine;
 
   // The number of iterations is arbitrarily chosen.
-  const std::size_t numberOfIterations = 11;
+  constexpr size_t numberOfIterations = 11;
 
-  for (std::size_t i = 0; i < numberOfIterations; ++i)
+  for (size_t i = 0; i < numberOfIterations; ++i)
   {
     const double randomNumber1 = std::uniform_real_distribution<>{}(randomEngine);
     const double randomNumber2 = std::uniform_real_distribution<>{ 0.0, NumericLimits::max() }(randomEngine);
@@ -161,10 +161,10 @@ TEST(ResampleImageFilter, FilterPreservesAnyDoublePixelValueByDefault)
 
 TEST(ResampleImageFilter, FilterPreservesMinAndMaxInt64PixelValuesByDefault)
 {
-  Expect_ResampleImageFilter_preserves_pixel_value(std::numeric_limits<std::int64_t>::min());
+  Expect_ResampleImageFilter_preserves_pixel_value(std::numeric_limits<int64_t>::min());
 
   // Note: The following expectation would fail on ITK version <= 4.13.1:
-  Expect_ResampleImageFilter_preserves_pixel_value(std::numeric_limits<std::int64_t>::max());
+  Expect_ResampleImageFilter_preserves_pixel_value(std::numeric_limits<int64_t>::max());
 }
 
 

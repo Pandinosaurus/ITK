@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,35 @@
 
 namespace itk
 {
+
+/** \class FastMarchingUpwindGradientImageFilterEnums
+ *
+ * \brief enums for itk::FastMarchingUpwindGradientImageFilter
+ *
+ * \ingroup ITKFastMarching
+ */
+class FastMarchingUpwindGradientImageFilterEnums
+{
+public:
+  /** \class TargetCondition
+   * \ingroup ITKFastMarching
+   * Specify how many targets are necessary to determine when the front must stop.
+   */
+  enum class TargetCondition : int
+  {
+    NoTargets,
+    OneTarget,
+    SomeTargets,
+    AllTargets
+  };
+};
+/** Define how to print enumeration values. */
+extern ITKFastMarching_EXPORT std::ostream &
+operator<<(std::ostream & out, const FastMarchingUpwindGradientImageFilterEnums::TargetCondition value);
+
+
 /**
- *\class FastMarchingUpwindGradientImageFilter
+ * \class FastMarchingUpwindGradientImageFilter
  *
  * \brief Generates the upwind gradient field of fast marching arrival times.
  *
@@ -63,7 +90,7 @@ class ITK_TEMPLATE_EXPORT FastMarchingUpwindGradientImageFilter : public FastMar
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingUpwindGradientImageFilter);
 
-  /** Standard class typdedefs. */
+  /** Standard class typedefs. */
   using Self = FastMarchingUpwindGradientImageFilter;
   using Superclass = FastMarchingImageFilter<TLevelSet, TSpeedImage>;
   using Pointer = SmartPointer<Self>;
@@ -72,30 +99,41 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingUpwindGradientImageFilter, FastMarchingImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingUpwindGradientImageFilter);
 
   /** Inherited type alias. */
-  using LevelSetType = typename Superclass::LevelSetType;
-  using SpeedImageType = typename Superclass::SpeedImageType;
-  using LevelSetImageType = typename Superclass::LevelSetImageType;
-  using LevelSetPointer = typename Superclass::LevelSetPointer;
-  using SpeedImageConstPointer = typename Superclass::SpeedImageConstPointer;
-  using LabelImageType = typename Superclass::LabelImageType;
-  using PixelType = typename Superclass::PixelType;
-  using AxisNodeType = typename Superclass::AxisNodeType;
-  using NodeType = typename Superclass::NodeType;
-  using NodeContainer = typename Superclass::NodeContainer;
-  using NodeContainerPointer = typename Superclass::NodeContainerPointer;
+  using typename Superclass::LevelSetType;
+  using typename Superclass::SpeedImageType;
+  using typename Superclass::LevelSetImageType;
+  using typename Superclass::LevelSetPointer;
+  using typename Superclass::SpeedImageConstPointer;
+  using typename Superclass::LabelImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AxisNodeType;
+  using typename Superclass::NodeType;
+  using typename Superclass::NodeContainer;
+  using typename Superclass::NodeContainerPointer;
 
-  using IndexType = typename Superclass::IndexType;
-  using OutputSpacingType = typename Superclass::OutputSpacingType;
-  using LevelSetIndexType = typename Superclass::LevelSetIndexType;
+  using typename Superclass::IndexType;
+  using typename Superclass::OutputSpacingType;
+  using typename Superclass::LevelSetIndexType;
 
   using PointType = typename Superclass::OutputPointType;
 
   /** The dimension of the level set. */
   static constexpr unsigned int SetDimension = Superclass::SetDimension;
+
+  using TargetConditionEnum = FastMarchingUpwindGradientImageFilterEnums::TargetCondition;
+  /** Backwards compatibility for enum values */
+#if !defined(ITK_LEGACY_REMOVE)
+  // We need to expose the enum values at the class level
+  // for backwards compatibility
+  static constexpr TargetConditionEnum NoTargets = TargetConditionEnum::NoTargets;
+  static constexpr TargetConditionEnum OneTarget = TargetConditionEnum::OneTarget;
+  static constexpr TargetConditionEnum SomeTargets = TargetConditionEnum::SomeTargets;
+  static constexpr TargetConditionEnum AllTargets = TargetConditionEnum::AllTargets;
+#endif
 
   /** Set the container of Target Points.
    * If a target point is reached, the propagation stops.
@@ -142,75 +180,72 @@ public:
   itkSetMacro(GenerateGradientImage, bool);
 
   /** Get the GenerateGradientImage flag. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(GenerateGradientImage, bool);
   itkBooleanMacro(GenerateGradientImage);
-
+  /** @ITKEndGrouping */
   /** Set how long (in terms of arrival times) after targets are reached the
    * front must stop.  This is useful to ensure that the level set of target
    * arrival time is smooth. */
   itkSetMacro(TargetOffset, double);
+
   /** Get the TargetOffset ivar. */
   itkGetConstReferenceMacro(TargetOffset, double);
 
   /** Choose whether the front must stop when the first target has been reached
    * or all targets have been reached.
    */
-  itkSetMacro(TargetReachedMode, int);
-  itkGetConstReferenceMacro(TargetReachedMode, int);
+  /** @ITKStartGrouping */
+  itkSetMacro(TargetReachedMode, TargetConditionEnum);
+  itkGetConstReferenceMacro(TargetReachedMode, TargetConditionEnum);
   void
   SetTargetReachedModeToNoTargets()
   {
-    this->SetTargetReachedMode(NoTargets);
+    this->SetTargetReachedMode(TargetConditionEnum::NoTargets);
+    m_NumberOfTargets = 0;
   }
   void
   SetTargetReachedModeToOneTarget()
   {
-    this->SetTargetReachedMode(OneTarget);
+    this->SetTargetReachedMode(TargetConditionEnum::OneTarget);
+    m_NumberOfTargets = 1;
   }
   void
   SetTargetReachedModeToSomeTargets(SizeValueType numberOfTargets)
   {
-    this->SetTargetReachedMode(SomeTargets);
+    this->SetTargetReachedMode(TargetConditionEnum::SomeTargets);
     m_NumberOfTargets = numberOfTargets;
   }
-
+  /** @ITKEndGrouping */
   void
   SetTargetReachedModeToAllTargets()
   {
-    this->SetTargetReachedMode(AllTargets);
+    this->SetTargetReachedMode(TargetConditionEnum::AllTargets);
+    // m_NumberOfTargets is not used for this case
   }
 
   /** Get the number of targets. */
   itkGetConstReferenceMacro(NumberOfTargets, SizeValueType);
 
   /** Get the arrival time corresponding to the last reached target.
-   *  If TargetReachedMode is set to NoTargets, TargetValue contains
+   *  If TargetReachedMode is set to TargetConditionEnum::NoTargets, TargetValue contains
    *  the last (aka largest) Eikonal solution value generated.
    */
   itkGetConstReferenceMacro(TargetValue, double);
 
-  enum
-  {
-    NoTargets,
-    OneTarget,
-    SomeTargets,
-    AllTargets
-  };
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(LevelSetDoubleDivisionOperatorsCheck,
                   (Concept::DivisionOperators<typename TLevelSet::PixelType, double>));
   itkConceptMacro(LevelSetDoubleDivisionAndAssignOperatorsCheck,
                   (Concept::DivisionAndAssignOperators<typename TLevelSet::PixelType, double>));
-  // End concept checking
-#endif
 
 protected:
   FastMarchingUpwindGradientImageFilter();
   ~FastMarchingUpwindGradientImageFilter() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
+
+  void
+  VerifyPreconditions() const override;
 
   void
   Initialize(LevelSetImageType *) override;
@@ -227,21 +262,63 @@ protected:
                   const LabelImageType *    labelImage,
                   GradientImageType *       gradientImage);
 
+  /** Check that target points are set.
+   *  Returns true if at least a target point exists; returns false otherwise.
+   */
+  [[nodiscard]] bool
+  IsTargetPointsExistenceConditionSatisfied() const
+  {
+    if (!m_TargetPoints || m_TargetPoints->Size() == 0)
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  /** Check that the conditions to set the target reached mode are satisfied.
+   *
+   * The sufficient target point count is 1 for TargetConditionEnum::OneTarget and TargetConditionEnum::AllTargets
+   * modes; and it is given by a particular value for the TargetConditionEnum::SomeTargets mode.
+   *
+   * Raises an exception if the conditions are not satisfied.
+   */
+  void
+  VerifyTargetReachedModeConditions(unsigned int targetModeMinPoints = 1) const
+  {
+    const bool targetPointsExist = this->IsTargetPointsExistenceConditionSatisfied();
+
+    if (!targetPointsExist)
+    {
+      itkExceptionMacro("No target point set. Cannot set the target reached mode.");
+    }
+    else
+    {
+      const SizeValueType availableNumberOfTargets = m_TargetPoints->Size();
+      if (targetModeMinPoints > availableNumberOfTargets)
+      {
+        itkExceptionMacro("Not enough target points: Available: " << availableNumberOfTargets
+                                                                  << "; Requested: " << targetModeMinPoints);
+      }
+    }
+  }
+
+
 private:
-  NodeContainerPointer m_TargetPoints;
-  NodeContainerPointer m_ReachedTargetPoints;
+  NodeContainerPointer m_TargetPoints{};
+  NodeContainerPointer m_ReachedTargetPoints{};
 
-  GradientImagePointer m_GradientImage;
+  GradientImagePointer m_GradientImage{};
 
-  bool m_GenerateGradientImage;
+  bool m_GenerateGradientImage{};
 
-  double m_TargetOffset;
+  double m_TargetOffset{};
 
-  int m_TargetReachedMode;
+  TargetConditionEnum m_TargetReachedMode{};
 
-  double m_TargetValue;
+  double m_TargetValue{};
 
-  SizeValueType m_NumberOfTargets;
+  SizeValueType m_NumberOfTargets{};
 };
 } // namespace itk
 

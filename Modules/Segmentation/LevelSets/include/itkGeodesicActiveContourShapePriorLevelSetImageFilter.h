@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ namespace itk
  * in the update equation behaves like a doublet and attracts the contour to the boundary.
  * The shape prior term adds robustness by incorporating aprior information about
  * the shape to be segmented.
- * This approach for segmentation follows that of Leventon et al (2000).
+ * This approach for segmentation follows that of \cite leventon2000.
  *
  * \par
  * The second input is the feature image.  For this filter, this is the edge
@@ -94,10 +94,6 @@ namespace itk
  * See SparseFieldLevelSetImageFilter and
  * SegmentationLevelSetImageFilter for more information.
  *
- * \par REFERENCES
- * \par
- * Leventon, M.E. et al. "Statistical Shape Influence in Geodesic Active Contours", CVPR 2000.
- *
  * \sa SegmentationLevelSetImageFilter
  * \sa ShapePriorSegmentationLevelSetImageFilter
  * \sa GeodesicActiveContourShapePriorLevelSetFunction
@@ -122,18 +118,18 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FeatureImageType = typename Superclass::FeatureImageType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
+  using typename Superclass::ValueType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FeatureImageType;
+  using typename Superclass::OutputPixelType;
 
   /** Type of the segmentation function */
   using GeodesicActiveContourFunctionType =
     GeodesicActiveContourShapePriorLevelSetFunction<OutputImageType, FeatureImageType>;
   using GeodesicActiveContourFunctionPointer = typename GeodesicActiveContourFunctionType::Pointer;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GeodesicActiveContourShapePriorLevelSetImageFilter, ShapePriorSegmentationLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GeodesicActiveContourShapePriorLevelSetImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -152,7 +148,7 @@ public:
 
   /** Get the value of sigma used to compute the edge potential map derivatives.
    */
-  float
+  [[nodiscard]] float
   GetDerivativeSigma() const
   {
     return m_GeodesicActiveContourFunction->GetDerivativeSigma();
@@ -172,7 +168,7 @@ protected:
   GenerateData() override;
 
 private:
-  GeodesicActiveContourFunctionPointer m_GeodesicActiveContourFunction;
+  GeodesicActiveContourFunctionPointer m_GeodesicActiveContourFunction{};
 };
 } // end namespace itk
 

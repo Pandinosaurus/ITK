@@ -7,7 +7,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,6 @@ third_party_contrib_urls=( "DCMTK:https://github.com/InsightSoftwareConsortium/D
   "GDCM:http://gdcm.sourceforge.net/wiki/index.php/Git"
   "GoogleTest:https://github.com/google/googletest/blob/master/CONTRIBUTING.md"
   "HDF5:https://github.com/HDFGroup/hdf5"
-  "KWIML:https://gitlab.kitware.com/utils/kwiml.git"
   "KWSys:https://gitlab.kitware.com/utils/kwsys/-/blob/master/CONTRIBUTING.rst"
   "libLBFGS:https://github.com/chokkan/liblbfgs"
   "MetaIO:https://github.com/Kitware/MetaIO/blob/master/CONTRIBUTING.rst"
@@ -40,7 +39,7 @@ third_party_contrib_urls=( "DCMTK:https://github.com/InsightSoftwareConsortium/D
   "pygccxml:https://github.com/CastXML/pygccxml"
   "TBB:https://github.com/oneapi-src/oneTBB"
   "VNL:https://github.com/vxl/vxl"
-  "ZLIB:https://gitlab.kitware.com/third-party/zlib" )
+  "ZLIB:https://github.com/zlib-ng/zlib-ng" )
 
 upstream_subtree_regex='Modules/ThirdParty/[^/]+/src/[^/]+/'
 changed_upstream_dirs=$(git diff --name-only HEAD~1.. |

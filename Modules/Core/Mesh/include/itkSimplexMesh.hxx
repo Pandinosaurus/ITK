@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSimplexMesh_hxx
 #define itkSimplexMesh_hxx
 
-#include "itkSimplexMesh.h"
 
 #include "itkProcessObject.h"
 #include <algorithm>
@@ -28,11 +27,7 @@
 
 namespace itk
 {
-/**
- * A protected default constructor allows the New() routine to create an
- * instance of SimplexMesh.   All the containers are initialized to empty
- * containers.
- */
+
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::SimplexMesh()
   : m_LastCellId(0)
@@ -40,19 +35,14 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SimplexMesh()
   m_GeometryData = GeometryMapType::New();
 }
 
-/**
- * Mesh Destructor takes care of releasing the memory of Cells
- * and CellBoundaries objects for which normal pointers are
- * stored.
- */
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::~SimplexMesh()
 {
   itkDebugMacro("Mesh Destructor ");
 
-  GeometryMapPointer  geometryMap = this->GetGeometryData();
-  GeometryMapIterator pointDataIterator = geometryMap->Begin();
-  GeometryMapIterator pointDataEnd = geometryMap->End();
+  const GeometryMapPointer  geometryMap = this->GetGeometryData();
+  GeometryMapIterator       pointDataIterator = geometryMap->Begin();
+  const GeometryMapIterator pointDataEnd = geometryMap->End();
 
   while (pointDataIterator != pointDataEnd)
   {
@@ -69,15 +59,13 @@ template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
 void
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::CopyInformation(const DataObject * data)
 {
-  const Superclass * mesh;
-
-  mesh = dynamic_cast<const Superclass *>(data);
+  const auto * mesh = dynamic_cast<const Superclass *>(data);
 
   if (mesh == nullptr)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::Mesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Superclass *).name());
+    itkExceptionMacro("itk::Mesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                  << typeid(Superclass *).name());
   }
 
   this->m_MaximumNumberOfRegions = mesh->GetMaximumNumberOfRegions();
@@ -93,8 +81,8 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SetBarycentricCoordinates(Poin
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::PointType
-SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetBarycentricCoordinates(PointIdentifier idx) const
+auto
+SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetBarycentricCoordinates(PointIdentifier idx) const -> PointType
 {
   return m_GeometryData->GetElement(idx)->eps;
 }
@@ -109,8 +97,8 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SetReferenceMetrics(PointIdent
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::PointType
-SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetReferenceMetrics(PointIdentifier idx) const
+auto
+SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetReferenceMetrics(PointIdentifier idx) const -> PointType
 {
   return m_GeometryData->GetElement(idx)->referenceMetrics;
 }
@@ -184,33 +172,34 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetDistance(PointIdentifier id
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::CellIdentifier
+auto
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::AddEdge(PointIdentifier startPointId, PointIdentifier endPointId)
+  -> CellIdentifier
 {
-  CellAutoPointer NewCellPointer(new LineType, true);
-  CellIdentifier  edgeId = m_LastCellId;
+  CellAutoPointer      NewCellPointer(new LineType, true);
+  const CellIdentifier edgeId = m_LastCellId;
 
   NewCellPointer->SetPointId(0, startPointId);
   NewCellPointer->SetPointId(1, endPointId);
 
   this->SetCell(edgeId, NewCellPointer);
-  m_LastCellId++;
+  ++m_LastCellId;
   return edgeId;
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::CellIdentifier
-SimplexMesh<TPixelType, VDimension, TMeshTraits>::AddFace(CellAutoPointer & cellPointer)
+auto
+SimplexMesh<TPixelType, VDimension, TMeshTraits>::AddFace(CellAutoPointer & cellPointer) -> CellIdentifier
 {
   this->SetCell(m_LastCellId, cellPointer);
-  m_LastCellId++;
+  ++m_LastCellId;
   return m_LastCellId - 1;
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::CellIdentifier
+auto
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::ReplaceFace(CellIdentifier    replaceIndex,
-                                                              CellAutoPointer & cellPointer)
+                                                              CellAutoPointer & cellPointer) -> CellIdentifier
 {
   // Release previous cell, if any.
   // See documentation of Mesh::SetCell().
@@ -224,17 +213,16 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::ReplaceFace(CellIdentifier    
   return replaceIndex;
 }
 
-/* PrintSelf. */
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
 void
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "LastCellId = " << m_LastCellId << std::endl;
+  os << indent << "LastCellId: " << static_cast<typename NumericTraits<CellIdentifier>::PrintType>(m_LastCellId)
+     << std::endl;
 
-  GeometryMapPointer geometryMap = this->GetGeometryData();
-  os << indent << "GeometryData: " << geometryMap << std::endl;
+  itkPrintSelfObjectMacro(GeometryData);
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
@@ -242,7 +230,7 @@ void
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::SetGeometryData(PointIdentifier       pointId,
                                                                   SimplexMeshGeometry * geometryData)
 {
-  SimplexMeshGeometry * oldGeometryData;
+  SimplexMeshGeometry * oldGeometryData = nullptr;
   if (m_GeometryData->GetElementIfIndexExists(pointId, &oldGeometryData))
   {
     delete oldGeometryData;
@@ -251,17 +239,17 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SetGeometryData(PointIdentifie
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::IndexArray
-SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetNeighbors(PointIdentifier idx) const
+auto
+SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetNeighbors(PointIdentifier idx) const -> IndexArray
 {
   return m_GeometryData->GetElement(idx)->neighborIndices;
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::NeighborListType *
+auto
 SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetNeighbors(PointIdentifier    idx,
                                                                unsigned int       radius,
-                                                               NeighborListType * list) const
+                                                               NeighborListType * list) const -> NeighborListType *
 {
   if (list == nullptr)
   {
@@ -285,53 +273,52 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::GetNeighbors(PointIdentifier  
 
     return list;
   }
+
+  IndexArray neighborArray = GetNeighbors(idx);
+
+  auto foundIt1 = std::find(list->begin(), list->end(), neighborArray[0]);
+  auto foundIt2 = std::find(list->begin(), list->end(), neighborArray[1]);
+  auto foundIt3 = std::find(list->begin(), list->end(), neighborArray[2]);
+  auto endIt = list->end();
+  bool found1 = false;
+  if (foundIt1 != endIt)
+  {
+    found1 = true;
+  }
+  bool found2 = false;
+  if (foundIt2 != endIt)
+  {
+    found2 = true;
+  }
+  bool found3 = false;
+  if (foundIt3 != endIt)
+  {
+    found3 = true;
+  }
+
+  if (!found1)
+  {
+    list->push_back(neighborArray[0]);
+  }
+  if (!found2)
+  {
+    list->push_back(neighborArray[1]);
+  }
+  if (!found3)
+  {
+    list->push_back(neighborArray[2]);
+  }
+
+  if (radius == 0)
+  {
+    return list;
+  }
   else
   {
-    IndexArray neighborArray = GetNeighbors(idx);
-
-    auto foundIt1 = std::find(list->begin(), list->end(), neighborArray[0]);
-    auto foundIt2 = std::find(list->begin(), list->end(), neighborArray[1]);
-    auto foundIt3 = std::find(list->begin(), list->end(), neighborArray[2]);
-    auto endIt = list->end();
-    bool found1 = false, found2 = false, found3 = false;
-
-    if (foundIt1 != endIt)
-    {
-      found1 = true;
-    }
-    if (foundIt2 != endIt)
-    {
-      found2 = true;
-    }
-    if (foundIt3 != endIt)
-    {
-      found3 = true;
-    }
-
-    if (!found1)
-    {
-      list->push_back(neighborArray[0]);
-    }
-    if (!found2)
-    {
-      list->push_back(neighborArray[1]);
-    }
-    if (!found3)
-    {
-      list->push_back(neighborArray[2]);
-    }
-
-    if (radius == 0)
-    {
-      return list;
-    }
-    else
-    {
-      list = GetNeighbors(neighborArray[0], radius - 1, list);
-      list = GetNeighbors(neighborArray[1], radius - 1, list);
-      list = GetNeighbors(neighborArray[2], radius - 1, list);
-      return list;
-    }
+    list = GetNeighbors(neighborArray[0], radius - 1, list);
+    list = GetNeighbors(neighborArray[1], radius - 1, list);
+    list = GetNeighbors(neighborArray[2], radius - 1, list);
+    return list;
   }
 }
 
@@ -341,7 +328,7 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::AddNeighbor(PointIdentifier po
 {
   SimplexMeshGeometry * data = m_GeometryData->GetElement(pointIdx);
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     if (data->neighborIndices[i] == ((PointIdentifier)NumericTraits<PointIdentifier>::max()))
     {
@@ -359,7 +346,7 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::ReplaceNeighbor(PointIdentifie
 {
   SimplexMeshGeometry * data = m_GeometryData->GetElement(pointIdx);
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     if (data->neighborIndices[i] == oldIdx)
     {
@@ -375,11 +362,10 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SwapNeighbors(PointIdentifier 
                                                                 PointIdentifier secondIdx)
 {
   SimplexMeshGeometry * data = m_GeometryData->GetElement(pointIdx);
-  int                   i;
   int                   firstFound = -1;
   int                   secondFound = -1;
 
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     if (data->neighborIndices[i] == firstIdx)
     {
@@ -399,15 +385,13 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::SwapNeighbors(PointIdentifier 
 }
 
 template <typename TPixelType, unsigned int VDimension, typename TMeshTraits>
-typename SimplexMesh<TPixelType, VDimension, TMeshTraits>::CovariantVectorType
-SimplexMesh<TPixelType, VDimension, TMeshTraits>::ComputeNormal(PointIdentifier idx) const
+auto
+SimplexMesh<TPixelType, VDimension, TMeshTraits>::ComputeNormal(PointIdentifier idx) const -> CovariantVectorType
 {
-  PointType p, n1, n2, n3;
-
-  p.Fill(0);
-  n1.Fill(0);
-  n2.Fill(0);
-  n3.Fill(0);
+  PointType p{};
+  PointType n1{};
+  PointType n2{};
+  PointType n3{};
 
   IndexArray neighbors = this->GetNeighbors(idx);
   this->GetPoint(idx, &p);
@@ -416,8 +400,7 @@ SimplexMesh<TPixelType, VDimension, TMeshTraits>::ComputeNormal(PointIdentifier 
   this->GetPoint(neighbors[2], &n3);
 
   // compute normals
-  CovariantVectorType normal;
-  normal.Fill(0.0);
+  CovariantVectorType normal{};
   CovariantVectorType z;
   z.SetVnlVector(vnl_cross_3d((n2 - n1).GetVnlVector(), (n3 - n1).GetVnlVector()));
   z.Normalize();

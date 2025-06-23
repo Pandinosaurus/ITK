@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,10 +42,10 @@ itkSphereSignedDistanceFunctionTest(int, char *[])
   using PointType = FunctionType::PointType;
   using ParametersType = FunctionType::ParametersType;
 
-  SphereFunctionType::Pointer sphere = SphereFunctionType::New();
+  auto sphere = SphereFunctionType::New();
 
   // cast it to a generic function
-  FunctionType::Pointer function = dynamic_cast<FunctionType *>(sphere.GetPointer());
+  const FunctionType::Pointer function = dynamic_cast<FunctionType *>(sphere.GetPointer());
   sphere = nullptr;
 
   // we must initialize the function before use
@@ -66,12 +66,12 @@ itkSphereSignedDistanceFunctionTest(int, char *[])
   for (double p = 0.0; p < 10.0; p += 1.0)
   {
     point.Fill(p);
-    FunctionType::OutputType output = function->Evaluate(point);
+    const FunctionType::OutputType output = function->Evaluate(point);
 
     std::cout << "f( " << point << ") = " << output << std::endl;
 
     // check results
-    CoordRep expected = p * std::sqrt(2.0) - parameters[0];
+    const CoordRep expected = p * std::sqrt(2.0) - parameters[0];
     if (itk::Math::abs(output - expected) > 1e-9)
     {
       std::cout << "But expected value is: " << expected << std::endl;

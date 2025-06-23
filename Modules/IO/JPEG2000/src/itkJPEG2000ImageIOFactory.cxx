@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,17 +44,10 @@ JPEG2000ImageIOFactory::GetDescription() const
 
 // Undocumented API used to register during static initialization.
 // DO NOT CALL DIRECTLY.
-
-static bool JPEG2000ImageIOFactoryHasBeenRegistered;
-
 void ITKIOJPEG2000_EXPORT
-     JPEG2000ImageIOFactoryRegister__Private()
+JPEG2000ImageIOFactoryRegister__Private()
 {
-  if (!JPEG2000ImageIOFactoryHasBeenRegistered)
-  {
-    JPEG2000ImageIOFactoryHasBeenRegistered = true;
-    JPEG2000ImageIOFactory::RegisterOneFactory();
-  }
+  ObjectFactoryBase::RegisterInternalFactoryOnce<JPEG2000ImageIOFactory>();
 }
 
 

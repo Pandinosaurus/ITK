@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +58,7 @@ TxtTransformIOTemplate<TParametersValueType>::CanWriteFile(const char * fileName
 
 template <typename TParametersValueType>
 std::string
-TxtTransformIOTemplate<TParametersValueType>::trim(std::string const & source, char const * delims)
+TxtTransformIOTemplate<TParametersValueType>::trim(const std::string & source, const char * delims)
 {
   std::string            result(source);
   std::string::size_type index = result.find_last_not_of(delims);
@@ -89,12 +89,11 @@ TxtTransformIOTemplate<TParametersValueType>::ReadComponentFile(std::string Valu
    * into a CompositeTransform.
    * The component filenames are listed w/out paths, and are expected
    * to be in the same path as the master file. */
-  std::string filePath = itksys::SystemTools::GetFilenamePath(this->GetFileName()) + "/";
+  const std::string filePath = itksys::SystemTools::GetFilenamePath(this->GetFileName()) + "/";
 
   /* Use TransformFileReader to read each component file. */
-  typename TransformFileReaderTemplate<TParametersValueType>::Pointer reader =
-    TransformFileReaderTemplate<TParametersValueType>::New();
-  std::string componentFullPath = filePath + Value;
+  auto              reader = TransformFileReaderTemplate<TParametersValueType>::New();
+  const std::string componentFullPath = filePath + Value;
   reader->SetFileName(componentFullPath);
   try
   {
@@ -104,7 +103,7 @@ TxtTransformIOTemplate<TParametersValueType>::ReadComponentFile(std::string Valu
   {
     itkExceptionMacro("Error reading component file: " << Value << std::endl << ex);
   }
-  TransformPointer transform = reader->GetTransformList()->front().GetPointer();
+  const TransformPointer transform = reader->GetTransformList()->front().GetPointer();
   this->GetReadTransformList().push_back(transform);
 }
 
@@ -120,7 +119,7 @@ TxtTransformIOTemplate<TParametersValueType>::Read()
   {
     in.close();
     itkExceptionMacro("The file could not be opened for read access " << std::endl
-                                                                      << "Filename: \"" << this->GetFileName() << "\"");
+                                                                      << "Filename: \"" << this->GetFileName() << '"');
   }
 
   itkDebugMacro("Read file transform Data");
@@ -140,9 +139,9 @@ TxtTransformIOTemplate<TParametersValueType>::Read()
   while (std::getline(in, line))
   {
     line = trim(line);
-    itkDebugMacro("Found line: \"" << line << "\"");
+    itkDebugMacro("Found line: \"" << line << '"');
 
-    if (line.length() == 0)
+    if (line.empty())
     {
       continue;
     }
@@ -153,17 +152,17 @@ TxtTransformIOTemplate<TParametersValueType>::Read()
     }
 
     // Get the name
-    const std::string::size_type end = line.find(":");
+    const std::string::size_type end = line.find(':');
     if (end == std::string::npos)
     {
       // Throw an error
       itkExceptionMacro("Tags must be delimited by :");
     }
-    std::string Name = trim(line.substr(0, end));
-    std::string Value = trim(line.substr(end + 1, line.length()));
+    const std::string Name = trim(line.substr(0, end));
+    std::string       Value = trim(line.substr(end + 1, line.length()));
     // Push back
-    itkDebugMacro("Name: \"" << Name << "\"");
-    itkDebugMacro("Value: \"" << Value << "\"");
+    itkDebugMacro("Name: \"" << Name << '"');
+    itkDebugMacro("Value: \"" << Value << '"');
     std::istringstream parse(Value);
     VectorBuffer.clear();
     if (Name == "Transform")
@@ -239,16 +238,15 @@ namespace itk_impl_details
 {
 template <typename TParametersValueType>
 inline void
-print_vector(std::ofstream & s, vnl_vector<TParametersValueType> const & v)
+print_vector(std::ofstream & s, const vnl_vector<TParametersValueType> & v)
 {
-  NumberToString<TParametersValueType> convert;
-  for (unsigned i = 0; i + 1 < v.size(); ++i)
+  for (unsigned int i = 0; i + 1 < v.size(); ++i)
   {
-    s << convert(v[i]) << ' ';
+    s << ConvertNumberToString(v[i]) << ' ';
   }
   if (!v.empty())
   {
-    s << convert(v.back());
+    s << ConvertNumberToString(v.back());
   }
 }
 } // namespace itk_impl_details
@@ -276,13 +274,12 @@ TxtTransformIOTemplate<TParametersValueType>::Write()
   }
   int count = 0;
 
-  typename ConstTransformListType::const_iterator end = transformList.end();
+  const auto end = transformList.end();
 
-  for (typename ConstTransformListType::const_iterator it = transformList.begin(); it != end; ++it, ++count)
+  for (auto it = transformList.begin(); it != end; ++it, ++count)
   {
     const std::string TransformTypeName = (*it)->GetTransformTypeAsString();
-    out << "#Transform " << count << std::endl;
-    out << "Transform: " << (*it)->GetTransformTypeAsString() << std::endl;
+    out << "#Transform " << count << std::endl << "Transform: " << (*it)->GetTransformTypeAsString() << std::endl;
     //
     // Composite Transforms are not written out with parameters;
     // their parameters are the union of all their component
@@ -291,19 +288,19 @@ TxtTransformIOTemplate<TParametersValueType>::Write()
     {
       if (count > 0)
       {
-        itkExceptionMacro(<< "Composite Transform can only be 1st transform in a file");
+        itkExceptionMacro("Composite Transform can only be 1st transform in a file");
       }
     }
     else
     {
       {
-        vnl_vector<ParametersValueType> TempArray = (*it)->GetParameters();
+        const vnl_vector<ParametersValueType> TempArray = (*it)->GetParameters();
         out << "Parameters: "; // << TempArray << std::endl;
         itk_impl_details::print_vector(out, TempArray);
         out << std::endl;
       }
       {
-        vnl_vector<FixedParametersValueType> FixedTempArray = (*it)->GetFixedParameters();
+        const vnl_vector<FixedParametersValueType> FixedTempArray = (*it)->GetFixedParameters();
         out << "FixedParameters: "; // << FixedTempArray << std::endl;
         itk_impl_details::print_vector(out, FixedTempArray);
         out << std::endl;

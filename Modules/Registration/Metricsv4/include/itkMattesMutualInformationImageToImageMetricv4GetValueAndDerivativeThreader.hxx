@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 #define itkMattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader_hxx
 
-#include "itkMattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader.h"
 
 namespace itk
 {
@@ -34,7 +33,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
    * of threads the threader will use, which isn't known for sure until this
    * method is called. */
 
-  /* Allocates and inits per-thread members.
+  /* Allocates and initializes per-thread members.
    * We need a couple of these and the rest will be ignored. */
   Superclass::BeforeThreadedExecution();
 
@@ -55,48 +54,36 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
   {
     this->m_MattesAssociate->m_MovingImageMarginalPDF.resize(this->m_MattesAssociate->m_NumberOfHistogramBins, 0.0F);
   }
-  else
-  {
-    std::fill(this->m_MattesAssociate->m_MovingImageMarginalPDF.begin(),
-              this->m_MattesAssociate->m_MovingImageMarginalPDF.end(),
-              PDFValueType{});
-  }
+  std::fill(this->m_MattesAssociate->m_MovingImageMarginalPDF.begin(),
+            this->m_MattesAssociate->m_MovingImageMarginalPDF.end(),
+            PDFValueType{});
 
-  const ThreadIdType mattesAssociateNumThreadsUsed = this->m_MattesAssociate->GetNumberOfWorkUnitsUsed();
+  const ThreadIdType mattesAssociateNumWorkUnitsUsed = this->m_MattesAssociate->GetNumberOfWorkUnitsUsed();
   const bool         reinitializeThreaderFixedImageMarginalPDF =
-    (this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF.size() != mattesAssociateNumThreadsUsed);
+    (this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF.size() != mattesAssociateNumWorkUnitsUsed);
 
   if (reinitializeThreaderFixedImageMarginalPDF)
   {
     this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF.resize(
-      mattesAssociateNumThreadsUsed, std::vector<PDFValueType>(this->m_MattesAssociate->m_NumberOfHistogramBins, 0.0F));
+      mattesAssociateNumWorkUnitsUsed,
+      std::vector<PDFValueType>(this->m_MattesAssociate->m_NumberOfHistogramBins, 0.0F));
   }
-  else
+  for (ThreadIdType workUnitID = 0; workUnitID < mattesAssociateNumWorkUnitsUsed; ++workUnitID)
   {
-    for (ThreadIdType threadId = 0; threadId < mattesAssociateNumThreadsUsed; ++threadId)
-    {
-      std::fill(this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF[threadId].begin(),
-                this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF[threadId].end(),
-                PDFValueType{});
-    }
+    std::fill(this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF[workUnitID].begin(),
+              this->m_MattesAssociate->m_ThreaderFixedImageMarginalPDF[workUnitID].end(),
+              PDFValueType{});
   }
 
   const ThreadIdType localNumberOfWorkUnitsUsed = this->GetNumberOfWorkUnitsUsed();
 
   this->m_MattesAssociate->m_JointPDFSum = 0;
 
-  JointPDFRegionType jointPDFRegion;
   // For the joint PDF define a region starting from {0,0}
   // with size {m_NumberOfHistogramBins, this->m_NumberOfHistogramBins}.
   // The dimension represents fixed image bin size
   // and moving image bin size , respectively.
-  JointPDFIndexType jointPDFIndex;
-  jointPDFIndex.Fill(0);
-  JointPDFSizeType jointPDFSize;
-  jointPDFSize.Fill(this->m_MattesAssociate->m_NumberOfHistogramBins);
-
-  jointPDFRegion.SetIndex(jointPDFIndex);
-  jointPDFRegion.SetSize(jointPDFSize);
+  const JointPDFRegionType jointPDFRegion(JointPDFSizeType::Filled(this->m_MattesAssociate->m_NumberOfHistogramBins));
 
   /*
    * Allocate memory for the joint PDF and joint PDF derivatives accumulator caches
@@ -109,10 +96,10 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
   if ((this->m_MattesAssociate->m_ThreaderJointPDF.size() == localNumberOfWorkUnitsUsed) &&
       (jointPDFRegion == this->m_MattesAssociate->m_ThreaderJointPDF[0]->GetBufferedRegion()))
   {
-    for (ThreadIdType threadId = 0; threadId < localNumberOfWorkUnitsUsed; ++threadId)
+    for (ThreadIdType workUnitID = 0; workUnitID < localNumberOfWorkUnitsUsed; ++workUnitID)
     {
       // Still need to reset to zero for subsequent runs
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId]->FillBuffer(0.0);
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID]->FillBuffer(0.0);
     }
   }
   else
@@ -127,14 +114,13 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
     spacing[1] = this->m_MattesAssociate->m_MovingImageBinSize;
 
     this->m_MattesAssociate->m_ThreaderJointPDF.resize(localNumberOfWorkUnitsUsed);
-    for (ThreadIdType threadId = 0; threadId < localNumberOfWorkUnitsUsed; ++threadId)
+    for (ThreadIdType workUnitID = 0; workUnitID < localNumberOfWorkUnitsUsed; ++workUnitID)
     {
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId] = JointPDFType::New();
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId]->SetRegions(jointPDFRegion);
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId]->SetOrigin(origin);
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId]->SetSpacing(spacing);
-      // NOTE: true = initizize to zero
-      this->m_MattesAssociate->m_ThreaderJointPDF[threadId]->Allocate(true);
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID] = JointPDFType::New();
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID]->SetRegions(jointPDFRegion);
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID]->SetOrigin(origin);
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID]->SetSpacing(spacing);
+      this->m_MattesAssociate->m_ThreaderJointPDF[workUnitID]->AllocateInitialized();
     }
   }
 
@@ -168,7 +154,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
         this->m_MattesAssociate->GetNumberOfParameters());
       // Initialize to zero because we accumulate, and so skipped points will
       // behave properly
-      this->m_MattesAssociate->m_LocalDerivativeByParzenBin[n].Fill(NumericTraits<DerivativeValueType>::ZeroValue());
+      this->m_MattesAssociate->m_LocalDerivativeByParzenBin[n].Fill(DerivativeValueType{});
     }
   }
   if (this->m_MattesAssociate->GetComputeDerivative() && !this->m_MattesAssociate->HasLocalSupport())
@@ -178,25 +164,17 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
     this->m_MattesAssociate->m_JointPdfIndex1DArray.clear();
     this->m_MattesAssociate->m_LocalDerivativeByParzenBin.clear();
 
-    JointPDFDerivativesRegionType jointPDFDerivativesRegion;
-    {
-      // For the derivatives of the joint PDF define a region starting from
-      // {0,0,0}
-      // with size {m_NumberOfParameters,m_NumberOfHistogramBins,
-      // this->m_NumberOfHistogramBins}. The dimension represents transform
-      // parameters,
-      // fixed image parzen window index and moving image parzen window index,
-      // respectively.
-      JointPDFDerivativesIndexType jointPDFDerivativesIndex;
-      jointPDFDerivativesIndex.Fill(0);
-      JointPDFDerivativesSizeType jointPDFDerivativesSize;
-      jointPDFDerivativesSize[0] = this->GetCachedNumberOfLocalParameters();
-      jointPDFDerivativesSize[1] = this->m_MattesAssociate->m_NumberOfHistogramBins;
-      jointPDFDerivativesSize[2] = this->m_MattesAssociate->m_NumberOfHistogramBins;
-
-      jointPDFDerivativesRegion.SetIndex(jointPDFDerivativesIndex);
-      jointPDFDerivativesRegion.SetSize(jointPDFDerivativesSize);
-    }
+    // For the derivatives of the joint PDF define a region starting from
+    // {0,0,0}
+    // with size {m_NumberOfParameters,m_NumberOfHistogramBins,
+    // this->m_NumberOfHistogramBins}. The dimension represents transform
+    // parameters,
+    // fixed image parzen window index and moving image parzen window index,
+    // respectively.
+    const JointPDFDerivativesRegionType jointPDFDerivativesRegion(
+      JointPDFDerivativesSizeType{ { this->GetCachedNumberOfLocalParameters(),
+                                     this->m_MattesAssociate->m_NumberOfHistogramBins,
+                                     this->m_MattesAssociate->m_NumberOfHistogramBins } });
 
     // Set the regions and allocate
     if (this->m_MattesAssociate->m_JointPDFDerivatives.IsNull() ||
@@ -204,7 +182,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
     {
       this->m_MattesAssociate->m_JointPDFDerivatives = JointPDFDerivativesType::New();
       this->m_MattesAssociate->m_JointPDFDerivatives->SetRegions(jointPDFDerivativesRegion);
-      this->m_MattesAssociate->m_JointPDFDerivatives->Allocate(true);
+      this->m_MattesAssociate->m_JointPDFDerivatives->AllocateInitialized();
     }
     else
     {
@@ -215,12 +193,12 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
     {
       this->m_MattesAssociate->m_ThreaderDerivativeManager.resize(localNumberOfWorkUnitsUsed);
     }
-    for (ThreadIdType threadId = 0; threadId < localNumberOfWorkUnitsUsed; ++threadId)
+    for (ThreadIdType workUnitID = 0; workUnitID < localNumberOfWorkUnitsUsed; ++workUnitID)
     {
-      this->m_MattesAssociate->m_ThreaderDerivativeManager[threadId].Initialize(
-        // A heuristic that assumues memory for 2x size of
-        // m_JointPDFDerivati efficient and easy to make, so
-        // split it accross all the threads.  A work unit of at least 400 is needed
+      this->m_MattesAssociate->m_ThreaderDerivativeManager[workUnitID].Initialize(
+        // A heuristic that assumes memory for 2x size of
+        // m_JointPDFDerivative efficient and easy to make, so
+        // split it across all the threads.  A work unit of at least 400 is needed
         // when the thread size approaches the number of histograms so that the
         // there is enough work to be done between thread lockings.
         std::max<size_t>(500,
@@ -261,7 +239,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
   {
     return false;
   }
-  else if (movingImageValue > this->m_MattesAssociate->m_MovingImageTrueMax)
+  if (movingImageValue > this->m_MattesAssociate->m_MovingImageTrueMax)
   {
     return false;
   }
@@ -350,16 +328,14 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
                                        MovingTransformType::TransformCategoryEnum::DisplacementField;
   while (pdfMovingIndex <= pdfMovingIndexMax)
   {
-    const auto val =
-      static_cast<PDFValueType>(this->m_MattesAssociate->m_CubicBSplineKernel->Evaluate(movingImageParzenWindowArg));
+    const auto val = CubicBSplineFunctionType::FastEvaluate(movingImageParzenWindowArg);
     *(pdfPtr++) += val;
 
     if (doComputeDerivative)
     {
       // Compute the cubicBSplineDerivative for later repeated use.
       const PDFValueType cubicBSplineDerivativeValue =
-        this->m_MattesAssociate->m_CubicBSplineDerivativeKernel->Evaluate(movingImageParzenWindowArg);
-
+        CubicBSplineDerivativeFunctionType::FastEvaluate(movingImageParzenWindowArg);
 
       if (transformIsDisplacement)
       {
@@ -430,7 +406,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<TDomain
 
     const PDFValueType derivativeContribution = innerProduct * cubicBSplineDerivativeValue;
     *(localSupportDerivativeResultPtr) += derivativeContribution;
-    localSupportDerivativeResultPtr++;
+    ++localSupportDerivativeResultPtr;
   }
 }
 
@@ -445,11 +421,11 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
   /* Store the number of valid points in the enclosing class
    * m_NumberOfValidPoints by collecting the valid points per thread.
    * We do this here because we're skipping Superclass::AfterThreadedExecution*/
-  this->m_MattesAssociate->m_NumberOfValidPoints = NumericTraits<SizeValueType>::ZeroValue();
-  for (ThreadIdType threadId = 0; threadId < localNumberOfWorkUnitsUsed; ++threadId)
+  this->m_MattesAssociate->m_NumberOfValidPoints = SizeValueType{};
+  for (ThreadIdType workUnitID = 0; workUnitID < localNumberOfWorkUnitsUsed; ++workUnitID)
   {
     this->m_MattesAssociate->m_NumberOfValidPoints +=
-      this->m_GetValueAndDerivativePerThreadVariables[threadId].NumberOfValidPoints;
+      this->m_GetValueAndDerivativePerThreadVariables[workUnitID].NumberOfValidPoints;
   }
 
   /* Porting: This code is from
@@ -473,7 +449,7 @@ MattesMutualInformationImageToImageMetricv4GetValueAndDerivativeThreader<
     JointPDFDerivativesValueType * const accumulatorPdfDPtrStart =
       this->m_MattesAssociate->m_JointPDFDerivatives->GetBufferPointer();
     JointPDFDerivativesValueType *             accumulatorPdfDPtr = accumulatorPdfDPtrStart;
-    JointPDFDerivativesValueType const * const tempThreadPdfDPtrEnd =
+    const JointPDFDerivativesValueType * const tempThreadPdfDPtrEnd =
       accumulatorPdfDPtrStart + histogramTotalElementsSize;
     while (accumulatorPdfDPtr < tempThreadPdfDPtrEnd)
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
 
-  itkTypeMacro(IterationCallback, Superclass);
+  itkOverrideGetNameOfClassMacro(IterationCallback);
   itkNewMacro(Self);
 
   /** Type defining the optimizer */
@@ -73,7 +73,7 @@ public:
     }
     else if (typeid(event) == typeid(itk::IterationEvent))
     {
-      std::cout << "#" << m_Optimizer->GetCurrentIteration()
+      std::cout << '#' << m_Optimizer->GetCurrentIteration()
                 << " Current parameters = " << m_Optimizer->GetCurrentPosition() << std::endl;
     }
     else if (typeid(event) == typeid(itk::EndEvent))
@@ -105,15 +105,15 @@ public:
   using PointType = Point<double, 2>;
   using PointListType = std::list<PointType>;
   using MovingSpatialObjectType = TMovingSpatialObject;
-  using ParametersType = typename Superclass::ParametersType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::MeasureType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimpleImageToSpatialObjectMetric, ImageToSpatialObjectMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimpleImageToSpatialObjectMetric);
 
   enum
   {
@@ -139,7 +139,7 @@ public:
 
     while (!it.IsAtEnd())
     {
-      for (unsigned int i = 0; i < Self::ObjectDimension; i++)
+      for (unsigned int i = 0; i < Self::ObjectDimension; ++i)
       {
         point[i] = it.GetIndex()[i];
       }
@@ -166,20 +166,18 @@ public:
   MeasureType
   GetValue(const ParametersType & parameters) const override
   {
-    double value;
     this->m_Transform->SetParameters(parameters);
 
     auto it = m_PointList.begin();
 
-    Index<2> index;
-    value = 0;
+    double value = 0;
     while (it != m_PointList.end())
     {
-      PointType transformedPoint = this->m_Transform->TransformPoint(*it);
-      this->m_FixedImage->TransformPhysicalPointToIndex(transformedPoint, index);
+      const PointType transformedPoint = this->m_Transform->TransformPoint(*it);
+      Index<2>        index = this->m_FixedImage->TransformPhysicalPointToIndex(transformedPoint);
       if (index[0] > 0L && index[1] > 0L &&
-          index[0] < static_cast<signed long>(this->m_FixedImage->GetLargestPossibleRegion().GetSize()[0]) &&
-          index[1] < static_cast<signed long>(this->m_FixedImage->GetLargestPossibleRegion().GetSize()[1]))
+          index[0] < static_cast<long>(this->m_FixedImage->GetLargestPossibleRegion().GetSize()[0]) &&
+          index[1] < static_cast<long>(this->m_FixedImage->GetLargestPossibleRegion().GetSize()[1]))
       {
         value += this->m_FixedImage->GetPixel(index);
       }
@@ -205,7 +203,6 @@ private:
 } // end namespace itk
 
 
-/** test */
 int
 itkImageToSpatialObjectRegistrationTest(int, char *[])
 {
@@ -213,9 +210,9 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   using EllipseType = itk::EllipseSpatialObject<2>;
 
   // Create a group with 3 ellipses linked by lines.
-  EllipseType::Pointer ellipse1 = EllipseType::New();
-  EllipseType::Pointer ellipse2 = EllipseType::New();
-  EllipseType::Pointer ellipse3 = EllipseType::New();
+  auto ellipse1 = EllipseType::New();
+  auto ellipse2 = EllipseType::New();
+  auto ellipse3 = EllipseType::New();
 
   // Set the radius
   ellipse1->SetRadiusInObjectSpace(10);
@@ -223,17 +220,18 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   ellipse3->SetRadiusInObjectSpace(10);
 
   // Place each ellipse at the right position to form a triangle
-  EllipseType::TransformType::OffsetType offset;
-  offset[0] = 100;
-  offset[1] = 40;
-  ellipse1->SetCenterInObjectSpace(offset);
+  EllipseType::PointType point;
+  point[0] = 100;
+  point[1] = 40;
+  ellipse1->SetCenterInObjectSpace(point);
   ellipse1->Update();
 
-  offset[0] = 40;
-  offset[1] = 150;
-  ellipse2->SetCenterInObjectSpace(offset);
+  point[0] = 40;
+  point[1] = 150;
+  ellipse2->SetCenterInObjectSpace(point);
   ellipse2->Update();
 
+  EllipseType::TransformType::OffsetType offset;
   offset[0] = 150;
   offset[1] = 150;
   // Moving the object using the ObjectToParentTransform should
@@ -241,7 +239,7 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   ellipse3->GetModifiableObjectToParentTransform()->SetOffset(offset);
   ellipse3->Update();
 
-  GroupType::Pointer group = GroupType::New();
+  auto group = GroupType::New();
   group->AddChild(ellipse1);
   group->AddChild(ellipse2);
   group->AddChild(ellipse3);
@@ -250,7 +248,7 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   using ImageType = itk::Image<double, 2>;
 
   using SpatialObjectToImageFilterType = itk::SpatialObjectToImageFilter<GroupType, ImageType>;
-  SpatialObjectToImageFilterType::Pointer imageFilter = SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
   imageFilter->SetInput(group);
   ImageType::SizeType size;
   size[0] = 200;
@@ -260,9 +258,9 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
 
   ImageType::Pointer image = imageFilter->GetOutput();
 
-  // blurr the image to have a global maximum
+  // blur the image to have a global maximum
   using GaussianFilterType = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
-  GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+  auto gaussianFilter = GaussianFilterType::New();
 
   gaussianFilter->SetInput(image);
   constexpr double variance = 20;
@@ -271,106 +269,56 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   image = gaussianFilter->GetOutput();
 
   using RegistrationType = itk::ImageToSpatialObjectRegistrationMethod<ImageType, GroupType>;
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(registration, ImageToSpatialObjectRegistrationMethod, ProcessObject);
 
   using MetricType = itk::SimpleImageToSpatialObjectMetric<ImageType, GroupType>;
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   std::cout << "metric = " << metric << std::endl;
 
   using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   using OptimizerType = itk::OnePlusOneEvolutionaryOptimizer;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   using TransformType = itk::Euler2DTransform<>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   metric->SetTransform(transform);
   std::cout << "Number of Parameters  : " << metric->GetNumberOfParameters() << std::endl;
   ITK_TEST_EXPECT_EQUAL(metric->GetNumberOfParameters(), 3);
 
-  bool catching;
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
-
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
   registration->SetFixedImage(image);
+  ITK_TEST_SET_GET_VALUE(image, registration->GetFixedImage());
 
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
-
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
   registration->SetMovingSpatialObject(group);
+  ITK_TEST_SET_GET_VALUE(group, registration->GetMovingSpatialObject());
 
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
-
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
   registration->SetMetric(metric);
+  ITK_TEST_SET_GET_VALUE(metric, registration->GetMetric());
 
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  /** Setup the optimizer */
+  // Setup the optimizer
   TransformType::ParametersType m_ParametersScale;
   m_ParametersScale.set_size(3);
 
   m_ParametersScale[0] = 100; // angle scale
 
-  for (unsigned int i = 1; i < 3; i++)
+  for (unsigned int i = 1; i < 3; ++i)
   {
     m_ParametersScale[i] = 1; // offset scale
   }
@@ -387,9 +335,11 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   std::cout << "Initial Parameters  : " << initialParameters << std::endl;
 
   registration->SetInitialTransformParameters(initialParameters);
+  ITK_TEST_SET_GET_VALUE(initialParameters, registration->GetInitialTransformParameters());
+
   optimizer->MaximizeOn();
 
-  itk::Statistics::NormalVariateGenerator::Pointer generator = itk::Statistics::NormalVariateGenerator::New();
+  const itk::Statistics::NormalVariateGenerator::Pointer generator = itk::Statistics::NormalVariateGenerator::New();
   generator->Initialize(12345);
 
   optimizer->SetNormalVariateGenerator(generator);
@@ -398,48 +348,23 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
   optimizer->SetMaximumIteration(500);
 
   using IterationCallbackType = itk::IterationCallback<OptimizerType>;
-  IterationCallbackType::Pointer callback = IterationCallbackType::New();
+  auto callback = IterationCallbackType::New();
   callback->SetOptimizer(optimizer);
 
   registration->SetOptimizer(optimizer);
+  ITK_TEST_SET_GET_VALUE(optimizer, registration->GetOptimizer());
 
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
-
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
-
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
   registration->SetTransform(transform);
+  ITK_TEST_SET_GET_VALUE(transform, registration->GetTransform());
 
-
-  try
-  {
-    catching = false;
-    registration->Update();
-  }
-  catch (...)
-  {
-    catching = true;
-  }
-
-  if (!catching)
-  {
-    std::cout << "Test failed!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Test exception
+  ITK_TRY_EXPECT_EXCEPTION(registration->Update());
 
   registration->SetInterpolator(interpolator);
+  ITK_TEST_SET_GET_VALUE(interpolator, registration->GetInterpolator());
 
   registration->Update();
 
@@ -447,7 +372,7 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
 
   std::cout << "Final Solution is : " << finalParameters << std::endl;
 
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     if (finalParameters[i] > 1) // if we are not within 1 pixel the registration fails
     {
@@ -456,6 +381,6 @@ itkImageToSpatialObjectRegistrationTest(int, char *[])
     }
   }
 
-  std::cout << "Test Succeed!" << std::endl;
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

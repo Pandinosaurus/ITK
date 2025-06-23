@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,33 +34,17 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2Run(typename TMetric::MeasureType
 
   using ImageType = typename TMetric::FixedImageType;
 
-  typename ImageType::SizeType size;
-  size.Fill(imageSize);
-  typename ImageType::IndexType index;
-  index.Fill(0);
-  typename ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
-  typename ImageType::SpacingType spacing;
-  spacing.Fill(1.0);
-  typename ImageType::PointType origin;
-  origin.Fill(0);
-  typename ImageType::DirectionType direction;
-  direction.SetIdentity();
+  auto                                 size = ImageType::SizeType::Filled(imageSize);
+  const typename ImageType::IndexType  index{};
+  const typename ImageType::RegionType region{ index, size };
 
   /* Create simple test images. */
-  typename ImageType::Pointer fixedImage = ImageType::New();
+  auto fixedImage = ImageType::New();
   fixedImage->SetRegions(region);
-  fixedImage->SetSpacing(spacing);
-  fixedImage->SetOrigin(origin);
-  fixedImage->SetDirection(direction);
   fixedImage->Allocate();
 
-  typename ImageType::Pointer movingImage = ImageType::New();
+  auto movingImage = ImageType::New();
   movingImage->SetRegions(region);
-  movingImage->SetSpacing(spacing);
-  movingImage->SetOrigin(origin);
-  movingImage->SetDirection(direction);
   movingImage->Allocate();
 
   /*
@@ -77,8 +61,8 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2Run(typename TMetric::MeasureType
   unsigned int count = 1;
   while (!itFixed.IsAtEnd())
   {
-    PixelType pix1(count);
-    PixelType pix2(1.0 / count);
+    const PixelType pix1(count);
+    const PixelType pix2(1.0 / count);
     itFixed.Set(pix1);
     itMoving.Set(pix2);
     count++;
@@ -90,13 +74,13 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2Run(typename TMetric::MeasureType
   using FixedTransformType = itk::TranslationTransform<double, imageDimensionality>;
   using MovingTransformType = itk::TranslationTransform<double, imageDimensionality>;
 
-  typename FixedTransformType::Pointer  fixedTransform = FixedTransformType::New();
-  typename MovingTransformType::Pointer movingTransform = MovingTransformType::New();
+  auto fixedTransform = FixedTransformType::New();
+  auto movingTransform = MovingTransformType::New();
 
   fixedTransform->SetIdentity();
   movingTransform->SetIdentity();
 
-  typename TMetric::Pointer metric = TMetric::New();
+  auto metric = TMetric::New();
 
   /* Assign images and transforms.
    * By not setting a virtual domain image or virtual domain settings,
@@ -155,8 +139,7 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2(int, char ** const)
     itk::MeanSquaresImageToImageMetricv4<VectorImageType, VectorImageType, VectorImageType, double, MetricTraitsType>;
 
   VectorMetricType::MeasureType    vectorMeasure = 0.0;
-  VectorMetricType::DerivativeType vectorDerivative;
-  vectorDerivative.Fill(0);
+  VectorMetricType::DerivativeType vectorDerivative{};
 
   itkMeanSquaresImageToImageMetricv4OnVectorTest2Run<VectorMetricType>(vectorMeasure, vectorDerivative);
   std::cout << "vectorMeasure: " << vectorMeasure << " vectorDerivative: " << vectorDerivative << std::endl;
@@ -166,15 +149,14 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2(int, char ** const)
   using ScalarMetricType = itk::MeanSquaresImageToImageMetricv4<ScalarImageType, ScalarImageType, ScalarImageType>;
 
   ScalarMetricType::MeasureType    scalarMeasure = 0.0;
-  ScalarMetricType::DerivativeType scalarDerivative;
-  scalarDerivative.Fill(0);
+  ScalarMetricType::DerivativeType scalarDerivative{};
 
   itkMeanSquaresImageToImageMetricv4OnVectorTest2Run<ScalarMetricType>(scalarMeasure, scalarDerivative);
   std::cout << "scalarMeasure: " << scalarMeasure << " scalarDerivative: " << scalarDerivative << std::endl;
 
   /* Compare */
-  double tolerance = 1e-8;
-  if (std::fabs(scalarMeasure - (vectorMeasure / vectorLength)) > tolerance)
+  constexpr double tolerance = 1e-8;
+  if (itk::Math::abs(scalarMeasure - (vectorMeasure / vectorLength)) > tolerance)
   {
     std::cerr << "Measures do not match within tolerance. scalarMeasure, vectorMeasure: " << scalarMeasure << ", "
               << vectorMeasure << std::endl;
@@ -182,9 +164,9 @@ itkMeanSquaresImageToImageMetricv4OnVectorTest2(int, char ** const)
   }
   std::cout << "Measure values match." << std::endl;
 
-  for (itk::SizeValueType n = 0; n < scalarDerivative.Size(); n++)
+  for (itk::SizeValueType n = 0; n < scalarDerivative.Size(); ++n)
   {
-    if (std::fabs(scalarDerivative[n] - (vectorDerivative[n] / vectorLength)) > tolerance)
+    if (itk::Math::abs(scalarDerivative[n] - (vectorDerivative[n] / vectorLength)) > tolerance)
     {
       std::cerr << "Derivatives do not match within tolerance. scalarDerivative, vectorDerivative: " << scalarDerivative
                 << std::endl

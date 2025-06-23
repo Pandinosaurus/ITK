@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -100,8 +100,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiResolutionPDEDeformableRegistration, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiResolutionPDEDeformableRegistration);
 
   /** Fixed image type. */
   using FixedImageType = TFixedImage;
@@ -190,21 +190,24 @@ public:
    * MultiResolutionPDEDeformableRegistration can take a third input
    * as an initial deformation field, this input is not a required input.
    */
-  std::vector<SmartPointer<DataObject>>::size_type
+  [[nodiscard]] std::vector<SmartPointer<DataObject>>::size_type
   GetNumberOfValidRequiredInputs() const override;
 
   /** Get/Set the internal registrator. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(RegistrationFilter, RegistrationType);
   itkGetModifiableObjectMacro(RegistrationFilter, RegistrationType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the fixed image pyramid. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(FixedImagePyramid, FixedImagePyramidType);
   itkGetModifiableObjectMacro(FixedImagePyramid, FixedImagePyramidType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the moving image pyramid. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(MovingImagePyramid, MovingImagePyramidType);
   itkGetModifiableObjectMacro(MovingImagePyramid, MovingImagePyramidType);
-
+  /** @ITKEndGrouping */
   /** Set number of multi-resolution levels. */
   virtual void
   SetNumberOfLevels(unsigned int num);
@@ -216,13 +219,16 @@ public:
   itkGetConstReferenceMacro(CurrentLevel, unsigned int);
 
   /** Get/Set the moving image pyramid. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(FieldExpander, FieldExpanderType);
   itkGetModifiableObjectMacro(FieldExpander, FieldExpanderType);
-
+  /** @ITKEndGrouping */
   /** Set number of iterations per multi-resolution levels. */
-  itkSetMacro(NumberOfIterations, NumberOfIterationsType);
+  /** @ITKStartGrouping */
+  virtual void
+  SetNumberOfIterations(NumberOfIterationsType numberOfIterations);
   itkSetVectorMacro(NumberOfIterations, unsigned int, m_NumberOfLevels);
-
+  /** @ITKEndGrouping */
   /** Get number of iterations per multi-resolution levels. */
   itkGetConstReferenceMacro(NumberOfIterations, NumberOfIterationsType);
 
@@ -237,8 +243,17 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** Generate output data by performing the registration
-   * at each resolution level. */
+  /** Generate output data by performing the registration at each resolution level.
+   *
+   * Performs a the deformable registration using a multiresolution scheme using an internal mini-pipeline
+   *
+   *  ref_pyramid ->  registrator  ->  field_expander --|| tempField
+   * test_pyramid ->           |                              |
+   *                           |                              |
+   *                           --------------------------------
+   *
+   * A tempField image is used to break the cycle between the registrator and field_expander.
+   */
   void
   GenerateData() override;
 
@@ -274,22 +289,22 @@ protected:
    * \sa ProcessObject::VerifyInputInformation
    */
   void
-  VerifyInputInformation() ITKv5_CONST override
+  VerifyInputInformation() const override
   {}
 
 private:
-  RegistrationPointer       m_RegistrationFilter;
-  FixedImagePyramidPointer  m_FixedImagePyramid;
-  MovingImagePyramidPointer m_MovingImagePyramid;
-  FieldExpanderPointer      m_FieldExpander;
-  DisplacementFieldPointer  m_InitialDisplacementField;
+  RegistrationPointer       m_RegistrationFilter{};
+  FixedImagePyramidPointer  m_FixedImagePyramid{};
+  MovingImagePyramidPointer m_MovingImagePyramid{};
+  FieldExpanderPointer      m_FieldExpander{};
+  DisplacementFieldPointer  m_InitialDisplacementField{};
 
-  unsigned int           m_NumberOfLevels;
-  unsigned int           m_CurrentLevel;
-  NumberOfIterationsType m_NumberOfIterations;
+  unsigned int           m_NumberOfLevels{};
+  unsigned int           m_CurrentLevel{};
+  NumberOfIterationsType m_NumberOfIterations{};
 
   /** Flag to indicate user stop registration request. */
-  bool m_StopRegistrationFlag;
+  bool m_StopRegistrationFlag{};
 };
 } // end namespace itk
 

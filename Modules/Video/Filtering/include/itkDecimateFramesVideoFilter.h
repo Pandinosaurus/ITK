@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class DecimateFramesVideoFilter
+ * \class DecimateFramesVideoFilter
  * \brief Reduce a video's frame-rate by keeping every Nth frame
  *
  * This filter simply takes an input video and passes every Nth frame through
@@ -54,19 +54,21 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(DecimateFramesVideoFilter, VideoToVideoFilter);
+  itkOverrideGetNameOfClassMacro(DecimateFramesVideoFilter);
 
   /** Get/Set the spacing of the preserved frames */
+  /** @ITKStartGrouping */
   void
   SetPreservedFrameSpacing(SizeValueType numFrames);
   SizeValueType
   GetPreservedFrameSpacing();
-
+  /** @ITKEndGrouping */
 protected:
   /** Constructor and Destructor */
+  /** @ITKStartGrouping */
   DecimateFramesVideoFilter();
   ~DecimateFramesVideoFilter() override = default;
-
+  /** @ITKEndGrouping */
   /** PrintSelf */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

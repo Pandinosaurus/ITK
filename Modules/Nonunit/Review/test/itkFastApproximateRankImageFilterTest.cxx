@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,91 +22,79 @@
 #include "itkImageFileWriter.h"
 #include "itkTextOutput.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
-itkFastApproximateRankImageFilterTest(int ac, char * av[])
+itkFastApproximateRankImageFilterTest(int argc, char * argv[])
 {
   // Comment the following if you want to use the itk text output window
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  if (ac < 4)
+  if (argc < 4)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage BaselineImage radius" << std::endl;
-    return -1;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage BaselineImage radius" << std::endl;
+    return EXIT_FAILURE;
   }
 
   using ImageType = itk::Image<unsigned char, 2>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer input = ReaderType::New();
-  input->SetFileName(av[1]);
+  auto input = ReaderType::New();
+  input->SetFileName(argv[1]);
 
   // Create a filter
   using FilterType = itk::FastApproximateRankImageFilter<ImageType, ImageType>;
-  FilterType::Pointer      filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, FastApproximateRankImageFilter, MiniPipelineSeparableImageFilter);
+
+
   itk::SimpleFilterWatcher filterWatch(filter);
 
   using RadiusType = FilterType::RadiusType;
 
-  // test default values
-  RadiusType r1;
-  r1.Fill(1);
-  if (filter->GetRadius() != r1)
-  {
-    std::cerr << "Wrong default Radius." << std::endl;
-    return EXIT_FAILURE;
-  }
-  if (filter->GetRank() != 0.5)
-  {
-    std::cerr << "Wrong default Rank." << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Test default values
+  auto r1 = itk::MakeFilled<RadiusType>(1);
+  ITK_TEST_SET_GET_VALUE(r1, filter->GetRadius());
 
-  // set radius with a radius type
-  RadiusType r5;
-  r5.Fill(5);
+  auto rank = 0.5;
+  ITK_TEST_SET_GET_VALUE(rank, filter->GetRank());
+
+  // Set radius with a radius type
+  auto r5 = itk::MakeFilled<RadiusType>(5);
   filter->SetRadius(r5);
-  if (filter->GetRadius() != r5)
-  {
-    std::cerr << "Radius value is not the expected one: r5." << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TEST_SET_GET_VALUE(r5, filter->GetRadius());
 
-  // set radius with an integer
-  filter->SetRadius(1);
-  if (filter->GetRadius() != r1)
-  {
-    std::cerr << "Radius value is not the expected one: r1." << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Set radius with an integer
+  auto radius = 1;
+  filter->SetRadius(radius);
+  ITK_TEST_SET_GET_VALUE(r1, filter->GetRadius());
 
-  filter->SetRank(0.25);
-  if (filter->GetRank() != 0.25)
-  {
-    std::cerr << "Rank value is not the expected one: " << filter->GetRank() << std::endl;
-    return EXIT_FAILURE;
-  }
+  rank = 0.25;
+  filter->SetRank(rank);
+  ITK_TEST_SET_GET_VALUE(rank, filter->GetRank());
 
-  try
-  {
-    int r = std::stoi(av[3]);
-    filter->SetInput(input->GetOutput());
-    filter->SetRadius(r);
-    filter->SetRank(0.5);
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return EXIT_FAILURE;
-  }
+  int r = std::stoi(argv[3]);
+  filter->SetRadius(r);
+
+  rank = 0.5;
+  filter->SetRank(rank);
+
+  filter->SetInput(input->GetOutput());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
 
   // Generate test image
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
-  writer->SetFileName(av[2]);
-  writer->Update();
+  writer->SetFileName(argv[2]);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

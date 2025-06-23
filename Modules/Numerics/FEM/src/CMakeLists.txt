@@ -1,4 +1,5 @@
-set(ITKFEM_SRCS
+set(
+  ITKFEM_SRCS
   itkFEMSolution.cxx
   itkFEMElement2DC0LinearLine.cxx
   itkFEMElement2DC0LinearLineStress.cxx
@@ -46,7 +47,7 @@ set(ITKFEM_SRCS
   itkFEMMaterialLinearElasticity.cxx
   itkFEMUtility.cxx
   dsrc2c.c
-  )
+)
 
 itk_module_add_library(ITKFEM ${ITKFEM_SRCS})
 target_link_libraries(ITKFEM LINK_PUBLIC ${ITKMetaIO_LIBRARIES})

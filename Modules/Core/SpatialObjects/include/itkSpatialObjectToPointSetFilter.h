@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class SpatialObjectToPointSetFilter
+ * \class SpatialObjectToPointSetFilter
  * \brief Base class for filters that take a SpatialObject
  *        as input and produce a PointSet as output.
  *  The pointset created is in physical space.
@@ -55,8 +55,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SpatialObjectToPointSetFilter, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpatialObjectToPointSetFilter);
 
   /** Some convenient type alias. */
   using PointBasedSpatialObjectType = TPointBasedSpatialObject;
@@ -81,18 +81,20 @@ public:
   SetInput(const DataObjectIdentifierType & key, const SpatialObjectType * object);
 
   /** Get the input Spatial Object. */
+  /** @ITKStartGrouping */
   const SpatialObjectType *
   GetInput();
   const SpatialObjectType *
   GetInput(unsigned int idx);
-
+  /** @ITKEndGrouping */
   /** The spatial object being transformed can be part of a hierarchy.
    * How deep in the hierarchy should we descend in generating the
    * PointSet?  A ChildrenDepth of 0 means to only include the object
    * itself. */
+  /** @ITKStartGrouping */
   itkSetMacro(ChildrenDepth, unsigned int);
   itkGetConstMacro(ChildrenDepth, unsigned int);
-
+  /** @ITKEndGrouping */
   /* Set the sampling factor of the object. The resulting pointset will have a
    * size inversely proportional to the sampling factor.*/
   itkSetMacro(SamplingFactor, unsigned int);

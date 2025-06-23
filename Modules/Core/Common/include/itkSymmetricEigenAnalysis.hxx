@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +18,8 @@
 #ifndef itkSymmetricEigenAnalysis_hxx
 #define itkSymmetricEigenAnalysis_hxx
 
-#include "itkSymmetricEigenAnalysis.h"
 #include "itkMath.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace itk
 {
@@ -31,10 +31,8 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValues(const
   {
     return ComputeEigenValuesWithEigenLibrary(A, D);
   }
-  else
-  {
-    return ComputeEigenValuesLegacy(A, D);
-  }
+
+  return ComputeEigenValuesLegacy(A, D);
 }
 
 template <typename TMatrix, typename TVector, typename TEigenMatrix>
@@ -47,28 +45,25 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
   {
     return ComputeEigenValuesAndVectorsWithEigenLibrary(A, EigenValues, EigenVectors);
   }
-  else
-  {
-    return ComputeEigenValuesAndVectorsLegacy(A, EigenValues, EigenVectors);
-  }
+
+  return ComputeEigenValuesAndVectorsLegacy(A, EigenValues, EigenVectors);
 }
 
 template <typename TMatrix, typename TVector, typename TEigenMatrix>
 unsigned int
 SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesLegacy(const TMatrix & A, TVector & D) const
 {
-  auto * workArea1 = new double[m_Dimension];
+  const auto workArea1 = std::make_unique<double[]>(m_Dimension);
 
   // Copy the input matrix
-  auto * inputMatrix = new double[m_Dimension * m_Dimension];
-  auto * dVector = new double[m_Dimension];
+  const auto inputMatrix = make_unique_for_overwrite<double[]>(m_Dimension * m_Dimension);
+  const auto dVector = make_unique_for_overwrite<double[]>(m_Dimension);
 
   unsigned int k = 0;
 
   for (unsigned int row = 0; row < m_Dimension; ++row)
   {
     dVector[row] = D[row];
-    workArea1[row] = 0;
 
     for (unsigned int col = 0; col < m_Dimension; ++col)
     {
@@ -76,17 +71,13 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesLegacy
     }
   }
 
-  this->ReduceToTridiagonalMatrix(inputMatrix, dVector, workArea1, workArea1);
-  const unsigned int eigenErrIndex = this->ComputeEigenValuesUsingQL(dVector, workArea1);
+  this->ReduceToTridiagonalMatrix(inputMatrix.get(), dVector.get(), workArea1.get(), workArea1.get());
+  const unsigned int eigenErrIndex = this->ComputeEigenValuesUsingQL(dVector.get(), workArea1.get());
 
   for (unsigned int i = 0; i < m_Dimension; ++i)
   {
     D[i] = dVector[i];
   }
-
-  delete[] dVector;
-  delete[] workArea1;
-  delete[] inputMatrix;
 
   return eigenErrIndex; // index of eigenvalue that could not be computed
 }
@@ -98,30 +89,30 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
   TVector &       EigenValues,
   TEigenMatrix &  EigenVectors) const
 {
-  auto * workArea1 = new double[m_Dimension];
-  auto * workArea2 = new double[m_Dimension * m_Dimension];
+  const auto workArea1 = std::make_unique<double[]>(m_Dimension);
+  const auto workArea2 = std::make_unique<double[]>(m_Dimension * m_Dimension);
 
   // Copy the input matrix
-  auto * inputMatrix = new double[m_Dimension * m_Dimension];
-  auto * dVector = new double[m_Dimension];
+  const auto inputMatrix = make_unique_for_overwrite<double[]>(m_Dimension * m_Dimension);
+  const auto dVector = make_unique_for_overwrite<double[]>(m_Dimension);
 
   unsigned int k = 0;
 
   for (unsigned int row = 0; row < m_Dimension; ++row)
   {
     dVector[row] = EigenValues[row];
-    workArea1[row] = 0;
 
     for (unsigned int col = 0; col < m_Dimension; ++col)
     {
-      workArea2[k] = 0;
       inputMatrix[k++] = A(row, col);
     }
   }
 
-  this->ReduceToTridiagonalMatrixAndGetTransformation(inputMatrix, dVector, workArea1, workArea2);
+  this->ReduceToTridiagonalMatrixAndGetTransformation(
+    inputMatrix.get(), dVector.get(), workArea1.get(), workArea2.get());
 
-  const unsigned int eigenErrIndex = this->ComputeEigenValuesAndVectorsUsingQL(dVector, workArea1, workArea2);
+  const unsigned int eigenErrIndex =
+    this->ComputeEigenValuesAndVectorsUsingQL(dVector.get(), workArea1.get(), workArea2.get());
 
   // Copy eigenvectors
   k = 0;
@@ -134,11 +125,6 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
     }
   }
 
-  delete[] dVector;
-  delete[] workArea2;
-  delete[] workArea1;
-  delete[] inputMatrix;
-
   return eigenErrIndex; // index of eigenvalue that could not be computed
 }
 
@@ -149,34 +135,28 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
                                                                                   double * e,
                                                                                   double * e2) const
 {
-  double d__1;
-
   // Local variables
-  double f, g, h;
-  int    i, j, k, l;
-  double scale;
-
-  for (i = 0; i < static_cast<int>(m_Order); ++i)
+  for (int i = 0; i < static_cast<int>(m_Order); ++i)
   {
     d[i] = a[m_Order - 1 + i * m_Dimension];
     a[m_Order - 1 + i * m_Dimension] = a[i + i * m_Dimension];
   }
 
-  for (i = m_Order - 1; i >= 0; --i)
+  for (int i = m_Order - 1; i >= 0; --i)
   {
-    l = i - 1;
-    h = 0.;
-    scale = 0.;
+    const int l = i - 1;
+    double    h = 0.;
+    double    scale = 0.;
 
     // Scale row (algol tol then not needed)
-    for (k = 0; k <= l; ++k)
+    for (int k = 0; k <= l; ++k)
     {
       scale += itk::Math::abs(d[k]);
     }
 
     if (scale == 0.)
     {
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         d[j] = a[l + j * m_Dimension];
         a[l + j * m_Dimension] = a[i + j * m_Dimension];
@@ -186,33 +166,33 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
       e2[i] = 0.;
       continue;
     }
-    for (k = 0; k <= l; ++k)
+    for (int k = 0; k <= l; ++k)
     {
       d[k] /= scale;
       h += d[k] * d[k];
     }
 
     e2[i] = scale * scale * h;
-    f = d[l];
-    d__1 = std::sqrt(h);
-    g = (-1.0) * itk::Math::sgn0(f) * itk::Math::abs(d__1);
+    double       f = d[l];
+    const double d__1 = std::sqrt(h);
+    double       g = (-1.0) * itk::Math::sgn0(f) * itk::Math::abs(d__1);
     e[i] = scale * g;
     h -= f * g;
     d[l] = f - g;
     if (l != 0)
     {
       // Form a*u
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         e[j] = 0.;
       }
 
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         f = d[j];
         g = e[j] + a[j + j * m_Dimension] * f;
 
-        for (k = j + 1; k <= l; ++k)
+        for (int k = j + 1; k <= l; ++k)
         {
           g += a[k + j * m_Dimension] * d[k];
           e[k] += a[k + j * m_Dimension] * f;
@@ -223,7 +203,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
       // Form p
       f = 0.;
 
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         e[j] /= h;
         f += e[j] * d[j];
@@ -231,25 +211,25 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
 
       h = f / (h + h);
       // Form q
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         e[j] -= h * d[j];
       }
 
       // Form reduced a
-      for (j = 0; j <= l; ++j)
+      for (int j = 0; j <= l; ++j)
       {
         f = d[j];
         g = e[j];
 
-        for (k = j; k <= l; ++k)
+        for (int k = j; k <= l; ++k)
         {
           a[k + j * m_Dimension] = a[k + j * m_Dimension] - f * e[k] - g * d[k];
         }
       }
     }
 
-    for (j = 0; j <= l; ++j)
+    for (int j = 0; j <= l; ++j)
     {
       f = d[j];
       d[j] = a[l + j * m_Dimension];
@@ -266,30 +246,24 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
                                                                                                       double *       e,
                                                                                                       double * z) const
 {
-  double d__1;
-
   // Local variables
-  double       f, g, h;
-  unsigned int i, j, k, l;
-  double       scale, hh;
-
-  for (i = 0; i < m_Order; ++i)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
-    for (j = i; j < m_Order; ++j)
+    for (unsigned int j = i; j < m_Order; ++j)
     {
       z[j + i * m_Dimension] = a[j + i * m_Dimension];
     }
     d[i] = a[m_Order - 1 + i * m_Dimension];
   }
 
-  for (i = m_Order - 1; i > 0; --i)
+  for (unsigned int i = m_Order - 1; i > 0; --i)
   {
-    l = i - 1;
-    h = 0.0;
-    scale = 0.0;
+    const unsigned int l = i - 1;
+    double             h = 0.0;
+    double             scale = 0.0;
 
     // Scale row (algol tol then not needed)
-    for (k = 0; k <= l; ++k)
+    for (unsigned int k = 0; k <= l; ++k)
     {
       scale += itk::Math::abs(d[k]);
     }
@@ -298,7 +272,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
     {
       e[i] = d[l];
 
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         d[j] = z[l + j * m_Dimension];
         z[i + j * m_Dimension] = 0.0;
@@ -307,32 +281,32 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
     }
     else
     {
-      for (k = 0; k <= l; ++k)
+      for (unsigned int k = 0; k <= l; ++k)
       {
         d[k] /= scale;
         h += d[k] * d[k];
       }
 
-      f = d[l];
-      d__1 = std::sqrt(h);
-      g = (-1.0) * itk::Math::sgn0(f) * itk::Math::abs(d__1);
+      double       f = d[l];
+      const double d__1 = std::sqrt(h);
+      double       g = (-1.0) * itk::Math::sgn0(f) * itk::Math::abs(d__1);
       e[i] = scale * g;
       h -= f * g;
       d[l] = f - g;
 
       // Form a*u
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         e[j] = 0.0;
       }
 
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         f = d[j];
         z[j + i * m_Dimension] = f;
         g = e[j] + z[j + j * m_Dimension] * f;
 
-        for (k = j + 1; k <= l; ++k)
+        for (unsigned int k = j + 1; k <= l; ++k)
         {
           g += z[k + j * m_Dimension] * d[k];
           e[k] += z[k + j * m_Dimension] * f;
@@ -344,27 +318,27 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
       // Form p
       f = 0.0;
 
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         e[j] /= h;
         f += e[j] * d[j];
       }
 
-      hh = f / (h + h);
+      const double hh = f / (h + h);
 
       // Form q
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         e[j] -= hh * d[j];
       }
 
       // Form reduced a
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
         f = d[j];
         g = e[j];
 
-        for (k = j; k <= l; ++k)
+        for (unsigned int k = j; k <= l; ++k)
         {
           z[k + j * m_Dimension] = z[k + j * m_Dimension] - f * e[k] - g * d[k];
         }
@@ -378,42 +352,42 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ReduceToTridiagonalMatri
   }
 
   // Accumulation of transformation matrices
-  for (i = 1; i < m_Order; ++i)
+  for (unsigned int i = 1; i < m_Order; ++i)
   {
-    l = i - 1;
+    const unsigned int l = i - 1;
     z[m_Order - 1 + l * m_Dimension] = z[l + l * m_Dimension];
     z[l + l * m_Dimension] = 1.0;
-    h = d[i];
+    const double h = d[i];
     if (h != 0.0)
     {
-      for (k = 0; k <= l; ++k)
+      for (unsigned int k = 0; k <= l; ++k)
       {
         d[k] = z[k + i * m_Dimension] / h;
       }
 
-      for (j = 0; j <= l; ++j)
+      for (unsigned int j = 0; j <= l; ++j)
       {
-        g = 0.0;
+        double g = 0.0;
 
-        for (k = 0; k <= l; ++k)
+        for (unsigned int k = 0; k <= l; ++k)
         {
           g += z[k + i * m_Dimension] * z[k + j * m_Dimension];
         }
 
-        for (k = 0; k <= l; ++k)
+        for (unsigned int k = 0; k <= l; ++k)
         {
           z[k + j * m_Dimension] -= g * d[k];
         }
       }
     }
 
-    for (k = 0; k <= l; ++k)
+    for (unsigned int k = 0; k <= l; ++k)
     {
       z[k + i * m_Dimension] = 0.0;
     }
   }
 
-  for (i = 0; i < m_Order; ++i)
+  for (unsigned int i = 0; i < m_Order; ++i)
   {
     d[i] = z[m_Order - 1 + i * m_Dimension];
     z[m_Order - 1 + i * m_Dimension] = 0.0;
@@ -430,41 +404,34 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
   constexpr double c_b10 = 1.0;
 
   // Local variables
-  double       c, f, g, h;
-  unsigned int i, j, l, m;
-  double       p, r, s, c2, c3 = 0.0;
-  double       s2 = 0.0;
-  double       dl1, el1;
-  double       tst1, tst2;
-
   unsigned int ierr = 0;
 
   if (m_Order == 1)
   {
     return 1;
   }
-
-  for (i = 1; i < m_Order; ++i)
+  for (unsigned int i = 1; i < m_Order; ++i)
   {
     e[i - 1] = e[i];
   }
 
-  f = 0.;
-  tst1 = 0.;
+  double f = 0.;
+  double tst1 = 0.;
   e[m_Order - 1] = 0.;
 
-  for (l = 0; l < m_Order; ++l)
+  for (unsigned int l = 0; l < m_Order; ++l)
   {
-    j = 0;
-    h = itk::Math::abs(d[l]) + itk::Math::abs(e[l]);
+    unsigned int j = 0;
+    double       h = itk::Math::abs(d[l]) + itk::Math::abs(e[l]);
     if (tst1 < h)
     {
       tst1 = h;
     }
     // Look for small sub-diagonal element
-    for (m = l; m < m_Order - 1; ++m)
+    unsigned int m = l;
+    for (; m < m_Order - 1; ++m)
     {
-      tst2 = tst1 + itk::Math::abs(e[m]);
+      const double tst2 = tst1 + itk::Math::abs(e[m]);
       if (tst2 == tst1)
       {
         break;
@@ -474,6 +441,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
 
     if (m != l)
     {
+      double tst2 = NAN;
       do
       {
         if (j == 30)
@@ -484,15 +452,15 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
         }
         ++j;
         // Form shift
-        g = d[l];
-        p = (d[l + 1] - g) / (e[l] * 2.);
-        r = itk::Math::hypot(p, c_b10);
+        double g = d[l];
+        double p = (d[l + 1] - g) / (e[l] * 2.);
+        double r = itk::Math::hypot(p, c_b10);
         d[l] = e[l] / (p + itk::Math::sgn0(p) * itk::Math::abs(r));
         d[l + 1] = e[l] * (p + itk::Math::sgn0(p) * itk::Math::abs(r));
-        dl1 = d[l + 1];
+        const double dl1 = d[l + 1];
         h = g - d[l];
 
-        for (i = l + 2; i < m_Order; ++i)
+        for (unsigned int i = l + 2; i < m_Order; ++i)
         {
           d[i] -= h;
         }
@@ -500,11 +468,13 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
         f += h;
         // ql transformation
         p = d[m];
-        c = 1.;
-        c2 = c;
-        el1 = e[l + 1];
-        s = 0.;
-        for (i = m - 1; i >= l; --i)
+        double       c = 1.;
+        double       c2 = c;
+        const double el1 = e[l + 1];
+        double       s = 0.;
+        double       s2 = 0;
+        double       c3 = c2;
+        for (unsigned int i = m - 1; i >= l; --i)
         {
           c3 = c2;
           c2 = c;
@@ -530,12 +500,13 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
       } while (tst2 > tst1);
     }
 
-    p = d[l] + f;
+    const double p = d[l] + f;
 
     if (m_OrderEigenValues == EigenValueOrderEnum::OrderByValue)
     {
       // Order by value
-      for (i = l; i > 0; --i)
+      unsigned int i = l;
+      for (; i > 0; --i)
       {
         if (p >= d[i - 1])
         {
@@ -548,7 +519,8 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesUsingQ
     else if (m_OrderEigenValues == EigenValueOrderEnum::OrderByMagnitude)
     {
       // Order by magnitude. Make eigenvalues positive
-      for (i = l; i > 0; --i)
+      unsigned int i = l;
+      for (; i > 0; --i)
       {
         if (itk::Math::abs(p) >= itk::Math::abs(d[i - 1]))
         {
@@ -574,42 +546,38 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
                                                                                             double * z) const
 {
   constexpr double c_b10 = 1.0;
-
-  // Local variables
-  double       c, f, g, h;
-  unsigned int i, j, k, l, m;
-  double       p, r, s, c2, c3 = 0.0;
-  double       s2 = 0.0;
-  double       dl1, el1;
-  double       tst1, tst2;
-
-  unsigned int ierr = 0;
-
   if (m_Order == 1)
   {
     return 1;
   }
 
-  for (i = 1; i < m_Order; ++i)
+  unsigned int ierr = 0;
+  double       c3 = 0.0;
+  double       s2 = 0.0;
+  for (unsigned int i = 1; i < m_Order; ++i)
   {
     e[i - 1] = e[i];
   }
 
-  f = 0.0;
-  tst1 = 0.;
+
+  double f = 0.0;
+  double tst1 = 0.;
   e[m_Order - 1] = 0.;
 
-  for (l = 0; l < m_Order; ++l)
+  for (unsigned int l = 0; l < m_Order; ++l)
   {
-    j = 0;
-    h = itk::Math::abs(d[l]) + itk::Math::abs(e[l]);
+    unsigned int j = 0;
+    double       h = itk::Math::abs(d[l]) + itk::Math::abs(e[l]);
     if (tst1 < h)
     {
       tst1 = h;
     }
 
     // Look for small sub-diagonal element
-    for (m = l; m < m_Order - 1; ++m)
+
+    double       tst2 = NAN;
+    unsigned int m = l;
+    for (; m < m_Order - 1; ++m)
     {
       tst2 = tst1 + itk::Math::abs(e[m]);
       if (tst2 == tst1)
@@ -632,15 +600,15 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
         }
         ++j;
         // Form shift
-        g = d[l];
-        p = (d[l + 1] - g) / (e[l] * 2.);
-        r = itk::Math::hypot(p, c_b10);
+        double g = d[l];
+        double p = (d[l + 1] - g) / (e[l] * 2.);
+        double r = itk::Math::hypot(p, c_b10);
         d[l] = e[l] / (p + itk::Math::sgn0(p) * itk::Math::abs(r));
         d[l + 1] = e[l] * (p + itk::Math::sgn0(p) * itk::Math::abs(r));
-        dl1 = d[l + 1];
+        const double dl1 = d[l + 1];
         h = g - d[l];
 
-        for (i = l + 2; i < m_Order; ++i)
+        for (unsigned int i = l + 2; i < m_Order; ++i)
         {
           d[i] -= h;
         }
@@ -648,12 +616,12 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
         f += h;
         // ql transformation
         p = d[m];
-        c = 1.0;
-        c2 = c;
-        el1 = e[l + 1];
-        s = 0.;
+        double       c = 1.0;
+        double       c2 = c;
+        const double el1 = e[l + 1];
+        double       s = 0.;
 
-        for (i = m - 1; i >= l; --i)
+        for (unsigned int i = m - 1; i >= l; --i)
         {
           c3 = c2;
           c2 = c;
@@ -668,7 +636,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
           d[i + 1] = h + s * (c * g + s * d[i]);
 
           // Form vector
-          for (k = 0; k < m_Order; ++k)
+          for (unsigned int k = 0; k < m_Order; ++k)
           {
             h = z[k + (i + 1) * m_Dimension];
             z[k + (i + 1) * m_Dimension] = s * z[k + i * m_Dimension] + c * h;
@@ -694,12 +662,12 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
   if (m_OrderEigenValues == EigenValueOrderEnum::OrderByValue)
   {
     // Order by value
-    for (i = 0; i < m_Order - 1; ++i)
+    for (unsigned int i = 0; i < m_Order - 1; ++i)
     {
-      k = i;
-      p = d[i];
+      unsigned int k = i;
+      double       p = d[i];
 
-      for (j = i + 1; j < m_Order; ++j)
+      for (unsigned int j = i + 1; j < m_Order; ++j)
       {
         if (d[j] >= p)
         {
@@ -716,7 +684,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
       d[k] = d[i];
       d[i] = p;
 
-      for (j = 0; j < m_Order; ++j)
+      for (unsigned int j = 0; j < m_Order; ++j)
       {
         p = z[j + i * m_Dimension];
         z[j + i * m_Dimension] = z[j + k * m_Dimension];
@@ -727,12 +695,12 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
   else if (m_OrderEigenValues == EigenValueOrderEnum::OrderByMagnitude)
   {
     // Order by magnitude
-    for (i = 0; i < m_Order - 1; ++i)
+    for (unsigned int i = 0; i < m_Order - 1; ++i)
     {
-      k = i;
-      p = d[i];
+      unsigned int k = i;
+      double       p = d[i];
 
-      for (j = i + 1; j < m_Order; ++j)
+      for (unsigned int j = i + 1; j < m_Order; ++j)
       {
         if (itk::Math::abs(d[j]) >= itk::Math::abs(p))
         {
@@ -750,7 +718,7 @@ SymmetricEigenAnalysis<TMatrix, TVector, TEigenMatrix>::ComputeEigenValuesAndVec
       d[k] = d[i];
       d[i] = p;
 
-      for (j = 0; j < m_Order; ++j)
+      for (unsigned int j = 0; j < m_Order; ++j)
       {
         p = z[j + i * m_Dimension];
         z[j + i * m_Dimension] = z[j + k * m_Dimension];

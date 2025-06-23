@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,10 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkGaussianImageSource.h"
+#include "itkBSplineTransformInitializer.h"
+#include "itkBSplineTransform.h"
+#include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkTestingMacros.h"
 
 #include <iostream>
 #include "itkStdStreamStateSave.h"
@@ -31,6 +35,7 @@
  *  This test computes the mean squares value and derivatives
  *  for various shift values in (-10,10).
  *
+ *  This test checks the weights caching derivative optimisation.
  */
 
 int
@@ -39,7 +44,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
 
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   //------------------------------------------------------------
   // Create two simple images
@@ -66,11 +71,11 @@ itkMeanSquaresImageMetricTest(int, char *[])
   FixedImageType::SpacingValueType  fixedImageSpacing[] = { 1.0f, 1.0f };
   MovingImageType::SpacingValueType movingImageSpacing[] = { 1.0f, 1.0f };
 
-  FixedImageType::PointValueType  fixedImageOrigin[] = { 0.0f, 0.0f };
-  MovingImageType::PointValueType movingImageOrigin[] = { 0.0f, 0.0f };
+  constexpr FixedImageType::PointValueType  fixedImageOrigin[] = { 0.0f, 0.0f };
+  constexpr MovingImageType::PointValueType movingImageOrigin[] = { 0.0f, 0.0f };
 
-  MovingImageSourceType::Pointer movingImageSource = MovingImageSourceType::New();
-  FixedImageSourceType::Pointer  fixedImageSource = FixedImageSourceType::New();
+  auto movingImageSource = MovingImageSourceType::New();
+  auto fixedImageSource = FixedImageSourceType::New();
 
   movingImageSource->SetSize(movingImageSize);
   movingImageSource->SetOrigin(movingImageOrigin);
@@ -87,8 +92,8 @@ itkMeanSquaresImageMetricTest(int, char *[])
   movingImageSource->Update(); // Force the filter to run
   fixedImageSource->Update();  // Force the filter to run
 
-  MovingImageType::Pointer movingImage = movingImageSource->GetOutput();
-  FixedImageType::Pointer  fixedImage = fixedImageSource->GetOutput();
+  const MovingImageType::Pointer movingImage = movingImageSource->GetOutput();
+  const FixedImageType::Pointer  fixedImage = fixedImageSource->GetOutput();
 
 
   //-----------------------------------------------------------
@@ -99,7 +104,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
   using TransformBaseType = MetricType::TransformType;
   using ParametersType = TransformBaseType::ParametersType;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
 
   //-----------------------------------------------------------
@@ -114,7 +119,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
 
   using TransformType = itk::TranslationTransform<CoordinateRepresentationType, ImageDimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   metric->SetTransform(transform);
 
@@ -124,7 +129,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
   //------------------------------------------------------------
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   interpolator->SetInputImage(movingImage);
 
@@ -163,7 +168,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
   ParametersType parameters(transform->GetNumberOfParameters());
 
   // initialize the offset/vector part
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     parameters[k] = 0.0f;
   }
@@ -174,7 +179,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
   // for parameters[1] = {-10,10}  (arbitrary choice...)
   //---------------------------------------------------------
 
-  MetricType::MeasureType    measure;
+  MetricType::MeasureType    measure = NAN;
   MetricType::DerivativeType derivative;
 
   std::cout << "param[1]   Metric    d(Metric)/d(param[1]) " << std::endl;
@@ -206,9 +211,8 @@ itkMeanSquaresImageMetricTest(int, char *[])
   metric->SetNumberOfWorkUnits(1);
   metric->Initialize();
   parameters[1] = 2.0;
-  MetricType::MeasureType    referenceMeasure;
-  MetricType::DerivativeType referenceDerivative;
-  referenceMeasure = metric->GetValue(parameters);
+  MetricType::DerivativeType    referenceDerivative;
+  const MetricType::MeasureType referenceMeasure = metric->GetValue(parameters);
   metric->GetDerivative(parameters, referenceDerivative);
 
   std::cout << "Testing consistency of the metric value computed by "
@@ -216,7 +220,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
 
   // Now check that the same metric value is computed when the number
   // of threads is adjusted from 1 to 8.
-  for (int currNumThreadsToTest = 1; currNumThreadsToTest <= 8; currNumThreadsToTest++)
+  for (int currNumThreadsToTest = 1; currNumThreadsToTest <= 8; ++currNumThreadsToTest)
   {
     itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(currNumThreadsToTest);
     metric->SetNumberOfWorkUnits(currNumThreadsToTest);
@@ -237,16 +241,16 @@ itkMeanSquaresImageMetricTest(int, char *[])
     std::cout << std::endl;
 
     bool sameDerivative = true;
-    for (unsigned int d = 0; d < parameters.Size(); d++)
+    for (unsigned int d = 0; d < parameters.Size(); ++d)
     {
-      if (fabs(derivative[d] - referenceDerivative[d]) > 1e-5)
+      if (itk::Math::abs(derivative[d] - referenceDerivative[d]) > 1e-5)
       {
         sameDerivative = false;
         break;
       }
     }
 
-    if (fabs(measure - referenceMeasure) > 1e-5 || !sameDerivative)
+    if (itk::Math::abs(measure - referenceMeasure) > 1e-5 || !sameDerivative)
     {
       std::cout << "Testing different number of threads... FAILED" << std::endl;
       std::cout << "Metric value computed with " << currNumThreadsToTest << " threads is incorrect. Computed value is "
@@ -280,7 +284,7 @@ itkMeanSquaresImageMetricTest(int, char *[])
   std::cout.precision(5);
   std::cout << derivative[1];
   std::cout << std::endl;
-  if (fabs(measure - referenceMeasure) > 1e-5)
+  if (itk::Math::abs(measure - referenceMeasure) > 1e-5)
   {
     std::cout << "Test reducing global max number of threads... FAILED." << std::endl;
     std::cout << "Metric value computed with " << numThreads << " threads is incorrect. Computed value is " << measure
@@ -294,6 +298,78 @@ itkMeanSquaresImageMetricTest(int, char *[])
   // exercise Print() method
   //-------------------------------------------------------
   metric->Print(std::cout);
+
+  // Check consistency between BSplineTransform derivatives computed with vs omitting weights caching.
+  constexpr unsigned int splineOrder = 3;
+  constexpr unsigned int nodesPerDimension = 8;
+  using BSplineTransformType = itk::BSplineTransform<CoordinateRepresentationType, ImageDimension, splineOrder>;
+  using InitializerType = itk::BSplineTransformInitializer<BSplineTransformType, MovingImageType>;
+  using GeneratorType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
+
+  // Offset moving image to ensure derivatives for BSplineTransform are non-zero.
+  MovingImageType::PointValueType bSplineTestMovingImageOrigin[] = { 1.0f, 1.0f };
+  movingImage->SetOrigin(bSplineTestMovingImageOrigin);
+
+  // Initialise BSplineTransform
+  auto                               bSplineTransform = BSplineTransformType::New();
+  auto                               initializer = InitializerType::New();
+  BSplineTransformType::MeshSizeType meshSize;
+  meshSize.Fill(nodesPerDimension - splineOrder);
+  initializer->SetTransform(bSplineTransform);
+  initializer->SetImage(movingImage);
+  initializer->SetTransformDomainMeshSize(meshSize);
+  initializer->InitializeTransform();
+
+  // Set bSplineTransform parameters with MersenneTwister
+  ParametersType bSplineParameters(bSplineTransform->GetNumberOfParameters());
+  auto           generator = GeneratorType::New();
+  generator->SetSeed();
+  for (unsigned int d = 0; d < bSplineParameters.Size(); ++d)
+  {
+    bSplineParameters[d] = generator->GetNormalVariate();
+  }
+  bSplineTransform->SetParameters(bSplineParameters);
+
+  // Connect metric to bSplineTransform
+  auto metricCacheTest = MetricType::New();
+  metricCacheTest->SetFixedImage(fixedImage);
+  metricCacheTest->SetMovingImage(movingImage);
+  metricCacheTest->SetInterpolator(interpolator);
+  metricCacheTest->SetFixedImageRegion(fixedImage->GetBufferedRegion());
+  metricCacheTest->SetTransform(bSplineTransform);
+  metricCacheTest->SetUseCachingOfBSplineWeights(true);
+  ITK_TRY_EXPECT_NO_EXCEPTION(metricCacheTest->Initialize());
+
+  // Compute derivatives with and without weights caching
+  MetricType::DerivativeType derivativeWithCaching, derivativeNoCaching;
+  metricCacheTest->GetDerivative(bSplineParameters, derivativeWithCaching);
+  metricCacheTest->SetUseCachingOfBSplineWeights(false);
+  metricCacheTest->GetDerivative(bSplineParameters, derivativeNoCaching);
+
+  // Check consistency between derivatives
+  bool sameDerivative = true;
+  for (unsigned int d = 0; d < bSplineParameters.Size(); ++d)
+  {
+    if (itk::Math::abs(derivativeWithCaching[d] - derivativeNoCaching[d]) > 1e-5)
+    {
+      sameDerivative = false;
+      break;
+    }
+  }
+
+  // Set moving to original origin
+  movingImage->SetOrigin(movingImageOrigin);
+  if (!sameDerivative)
+  {
+    std::cout << "\nTesting weights caching derivative calculation for BSpline Transform... FAILED" << std::endl;
+    std::cout << "Computed derivative using weights caching was:\n"
+              << derivativeWithCaching << "\n Derivative should be:\n"
+              << derivativeNoCaching << "\n"
+              << std::endl;
+
+    return EXIT_FAILURE;
+  }
+  std::cout << "\nTesting weights caching derivative calculation for BSpline Transform... PASSED\n" << std::endl;
 
   //-------------------------------------------------------
   // exercise misc member functions
@@ -340,27 +416,27 @@ itkMeanSquaresImageMetricTest(int, char *[])
     std::cout << "Test for exception throwing... PASSED ! " << std::endl;
   }
 
-  bool pass;
-#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent)                                          \
-  metric->Set##ComponentName(badComponent);                                                                            \
-  try                                                                                                                  \
-  {                                                                                                                    \
-    pass = false;                                                                                                      \
-    metric->Initialize();                                                                                              \
-  }                                                                                                                    \
-  catch (const itk::ExceptionObject & err)                                                                             \
-  {                                                                                                                    \
-    std::cout << "Caught expected ExceptionObject" << std::endl;                                                       \
-    std::cout << err << std::endl;                                                                                     \
-    pass = true;                                                                                                       \
-  }                                                                                                                    \
-  metric->Set##ComponentName(goodComponent);                                                                           \
-                                                                                                                       \
-  if (!pass)                                                                                                           \
-  {                                                                                                                    \
-    std::cout << "Test failed." << std::endl;                                                                          \
-    return EXIT_FAILURE;                                                                                               \
-  }                                                                                                                    \
+  bool pass = false;
+#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent) \
+  metric->Set##ComponentName(badComponent);                                   \
+  try                                                                         \
+  {                                                                           \
+    pass = false;                                                             \
+    metric->Initialize();                                                     \
+  }                                                                           \
+  catch (const itk::ExceptionObject & err)                                    \
+  {                                                                           \
+    std::cout << "Caught expected ExceptionObject" << std::endl;              \
+    std::cout << err << std::endl;                                            \
+    pass = true;                                                              \
+  }                                                                           \
+  metric->Set##ComponentName(goodComponent);                                  \
+                                                                              \
+  if (!pass)                                                                  \
+  {                                                                           \
+    std::cout << "Test failed." << std::endl;                                 \
+    return EXIT_FAILURE;                                                      \
+  }                                                                           \
   ITK_MACROEND_NOOP_STATEMENT
 
   TEST_INITIALIZATION_ERROR(Transform, nullptr, transform);

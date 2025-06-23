@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include <vector>
 #include "itkNumericTraits.h"
 
-namespace itk
-{
-namespace Functor
+namespace itk::Functor
 {
 /**
- *\class LabelToRGBFunctor
+ * \class LabelToRGBFunctor
  *  \brief Functor for converting labels into RGB triplets.
  *
  * This functor class used internally by LabelToRGBImageFilter
@@ -34,7 +32,7 @@ namespace Functor
  * This code was contributed in the Insight Journal paper:
  * "The watershed transform in ITK - discussion and new developments"
  * by Beare R., Lehmann G.
- * https://www.insight-journal.org/browse/publication/92
+ * https://doi.org/10.54294/lf8u75
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
  * INRA de Jouy-en-Josas, France.
@@ -53,6 +51,7 @@ public:
   using Self = LabelToRGBFunctor;
 
   LabelToRGBFunctor()
+    : m_BackgroundValue(TLabel{})
   {
     using ValueType = typename TRGBPixel::ValueType;
 
@@ -85,8 +84,7 @@ public:
     // LabelToRGBImageFilter)
     // Inside LabelToRGBImageFilter, the values are always initialized
     NumericTraits<TRGBPixel>::SetLength(m_BackgroundColor, 3);
-    m_BackgroundColor.Fill(NumericTraits<ValueType>::ZeroValue());
-    m_BackgroundValue = NumericTraits<TLabel>::ZeroValue();
+    m_BackgroundColor.Fill(ValueType{});
   }
 
   inline TRGBPixel
@@ -111,7 +109,7 @@ public:
 
     using ValueType = typename TRGBPixel::ValueType;
 
-    ValueType m = NumericTraits<ValueType>::max();
+    const ValueType m = NumericTraits<ValueType>::max();
 
     rgbPixel[0] = static_cast<ValueType>(static_cast<double>(r) / 255 * m);
     rgbPixel[1] = static_cast<ValueType>(static_cast<double>(g) / 255 * m);
@@ -127,37 +125,20 @@ public:
   }
 
   // Get number of colors in the LUT
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfColors() const
   {
     return static_cast<unsigned int>(m_Colors.size());
   }
 
   bool
-  operator!=(const Self & l) const
-  {
-    if (m_BackgroundColor != l.m_BackgroundColor || m_BackgroundValue != l.m_BackgroundValue ||
-        m_Colors.size() != l.m_Colors.size())
-    {
-      return true;
-    }
-
-    // We need to check each color to see if it's different
-    for (typename std::vector<TRGBPixel>::size_type i = 0; i < m_Colors.size(); ++i)
-    {
-      if (m_Colors[i] != l.m_Colors[i])
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool
   operator==(const Self & other) const
   {
-    return !(*this != other);
+    return m_BackgroundColor == other.m_BackgroundColor && m_BackgroundValue == other.m_BackgroundValue &&
+           m_Colors == other.m_Colors;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   void
   SetBackgroundValue(TLabel v)
@@ -179,7 +160,6 @@ public:
 
   TLabel m_BackgroundValue;
 };
-} // end namespace Functor
-} // end namespace itk
+} // namespace itk::Functor
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class EllipseSpatialObject
+ * \class EllipseSpatialObject
  *
  * \ingroup ITKSpatialObjects
  *
@@ -46,10 +46,10 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = SpatialObject<TDimension>;
   using SuperclassPointer = SmartPointer<Superclass>;
-  using PointType = typename Superclass::PointType;
-  using TransformType = typename Superclass::TransformType;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
-  using PointContainerType = VectorContainer<IdentifierType, PointType>;
+  using typename Superclass::PointType;
+  using typename Superclass::TransformType;
+  using typename Superclass::BoundingBoxType;
+  using PointContainerType = VectorContainer<PointType>;
   using PointContainerPointer = SmartPointer<PointContainerType>;
 
   using ArrayType = FixedArray<double, TDimension>;
@@ -59,16 +59,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(EllipseSpatialObject, SpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(EllipseSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
   void
   Clear() override;
 
-  /** Set all radii to the same radius value.  Each radius is
-   *  half the length of one axis of the ellipse.  */
+  /** Set all radii to the same radius value
+   *
+   * Each radius is half the length of one axis of the ellipse.
+   *
+   * The ellipse is formed by setting the ObjectToParentTransform.
+   */
   void
   SetRadiusInObjectSpace(double radius);
 
@@ -84,7 +88,11 @@ public:
   /** Get center in object space */
   itkGetConstReferenceMacro(CenterInObjectSpace, PointType);
 
-  /** Test whether a point is inside or outside the object */
+  /** Test whether a point is inside the object.
+   *
+   * For computational speed purposes, it is faster if the method does not  check the name of the class and the
+   * current depth.
+   */
   bool
   IsInsideInObjectSpace(const PointType & point) const override;
 
@@ -92,13 +100,25 @@ public:
   using Superclass::IsInsideInObjectSpace;
 
 #if !defined(ITK_LEGACY_REMOVE)
-  itkLegacyMacro(void SetRadius(double radius)) { this->SetRadiusInObjectSpace(radius); }
+  itkLegacyMacro(void SetRadius(double radius))
+  {
+    this->SetRadiusInObjectSpace(radius);
+  }
 
-  itkLegacyMacro(void SetRadius(ArrayType radii)) { this->SetRadiusInObjectSpace(radii); }
+  itkLegacyMacro(void SetRadius(ArrayType radii))
+  {
+    this->SetRadiusInObjectSpace(radii);
+  }
 
-  itkLegacyMacro(ArrayType GetRadius() const) { return this->GetRadiusInObjectSpace(); }
+  itkLegacyMacro(ArrayType GetRadius() const)
+  {
+    return this->GetRadiusInObjectSpace();
+  }
 
-  itkLegacyMacro(void SetRadiiInObjectSpace(ArrayType radii)) { this->SetRadiusInObjectSpace(radii); }
+  itkLegacyMacro(void SetRadiiInObjectSpace(ArrayType radii))
+  {
+    this->SetRadiusInObjectSpace(radii);
+  }
 #endif
 protected:
   /** Get the boundaries of a specific object.  This function needs to
@@ -110,17 +130,16 @@ protected:
   EllipseSpatialObject();
   ~EllipseSpatialObject() override = default;
 
-  /** Print the object informations in a stream. */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
   /* object space */
-  ArrayType m_RadiusInObjectSpace;
-  PointType m_CenterInObjectSpace;
+  ArrayType m_RadiusInObjectSpace{};
+  PointType m_CenterInObjectSpace{};
 };
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,8 @@ enum
 };
 using PixelType = itk::Vector<unsigned short, VectorDimension>;
 using ImageType = itk::Image<PixelType, ImageDimension>;
-using CoordRepType = double;
-using InterpolatorType = itk::VectorLinearInterpolateImageFunction<ImageType, CoordRepType>;
+using CoordinateType = itk::SpacePrecisionType;
+using InterpolatorType = itk::VectorLinearInterpolateImageFunction<ImageType, CoordinateType>;
 using IndexType = InterpolatorType::IndexType;
 using PointType = InterpolatorType::PointType;
 using ContinuousIndexType = InterpolatorType::ContinuousIndexType;
@@ -47,7 +47,7 @@ TestGeometricPoint(const InterpolatorType * interp, const PointType & point, boo
 
   std::cout << " Point: " << point;
 
-  bool bvalue = interp->IsInsideBuffer(point);
+  const bool bvalue = interp->IsInsideBuffer(point);
   std::cout << " Inside: " << bvalue;
 
   if (bvalue != isInside)
@@ -58,32 +58,36 @@ TestGeometricPoint(const InterpolatorType * interp, const PointType & point, boo
 
   if (isInside)
   {
-    int        k;
     OutputType value = interp->Evaluate(point);
     std::cout << " Value: ";
-    for (k = 0; k < VectorDimension - 1; k++)
     {
-      std::cout << value[k] << ", ";
-    }
-    std::cout << value[k] << std::endl;
-
-    for (k = 0; k < VectorDimension; k++)
-    {
-      if (itk::Math::abs(value[k] - trueValue[k]) > 1e-9)
+      int k = 0;
+      for (; k < VectorDimension - 1; ++k)
       {
-        break;
+        std::cout << value[k] << ", ";
       }
+      std::cout << value[k] << std::endl;
     }
-
-    if (k != VectorDimension)
     {
-      std::cout << " *** Error: Value should be: ";
-      for (k = 0; k < VectorDimension - 1; k++)
+      int k = 0;
+      for (; k < VectorDimension; ++k)
       {
-        std::cout << trueValue[k] << ", ";
+        if (itk::Math::abs(value[k] - trueValue[k]) > 1e-9)
+        {
+          break;
+        }
       }
-      std::cout << trueValue[k] << std::endl;
-      return false;
+
+      if (k != VectorDimension)
+      {
+        std::cout << " *** Error: Value should be: ";
+        for (k = 0; k < VectorDimension - 1; ++k)
+        {
+          std::cout << trueValue[k] << ", ";
+        }
+        std::cout << trueValue[k] << std::endl;
+        return false;
+      }
     }
   }
 
@@ -105,7 +109,7 @@ TestContinuousIndex(const InterpolatorType *    interp,
 
   std::cout << " Index: " << index;
 
-  bool bvalue = interp->IsInsideBuffer(index);
+  const bool bvalue = interp->IsInsideBuffer(index);
   std::cout << " Inside: " << bvalue;
 
   if (bvalue != isInside)
@@ -116,32 +120,37 @@ TestContinuousIndex(const InterpolatorType *    interp,
 
   if (isInside)
   {
-    int        k;
     OutputType value = interp->EvaluateAtContinuousIndex(index);
     std::cout << " Value: ";
-    for (k = 0; k < VectorDimension - 1; k++)
     {
-      std::cout << value[k] << ", ";
-    }
-    std::cout << value[k] << std::endl;
-
-    for (k = 0; k < VectorDimension; k++)
-    {
-      if (itk::Math::abs(value[k] - trueValue[k]) > 1e-9)
+      unsigned int k = 0;
+      for (; k < VectorDimension - 1; ++k)
       {
-        break;
+        std::cout << value[k] << ", ";
       }
+      std::cout << value[k] << std::endl;
     }
 
-    if (k != VectorDimension)
     {
-      std::cout << " *** Error: Value should be: ";
-      for (k = 0; k < VectorDimension - 1; k++)
+      unsigned int k = 0;
+      for (; k < VectorDimension; ++k)
       {
-        std::cout << trueValue[k] << ", ";
+        if (itk::Math::abs(value[k] - trueValue[k]) > 1e-9)
+        {
+          break;
+        }
       }
-      std::cout << trueValue[k] << std::endl;
-      return false;
+
+      if (k != VectorDimension)
+      {
+        std::cout << " *** Error: Value should be: ";
+        for (k = 0; k < VectorDimension - 1; ++k)
+        {
+          std::cout << trueValue[k] << ", ";
+        }
+        std::cout << trueValue[k] << std::endl;
+        return false;
+      }
     }
   }
 
@@ -156,12 +165,12 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
 
   std::cout << "Testing vector image interpolation: " << std::endl;
 
-  ImageType::SizeType size = { { 20, 40, 80 } };
-  double              origin[3] = { 0.5, 0.5, 0.5 };
-  double              spacing[3] = { 0.1, 0.05, 0.025 };
+  constexpr ImageType::SizeType size = { { 20, 40, 80 } };
+  constexpr double              origin[3] = { 0.5, 0.5, 0.5 };
+  constexpr double              spacing[3] = { 0.1, 0.05, 0.025 };
 
   // Create a test image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::RegionType region;
   region.SetSize(size);
 
@@ -174,23 +183,18 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
 
   // Write in a simple linear pattern
   using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
-  Iterator iter(image, region);
 
-  IndexType      index;
-  unsigned short value;
-  PixelType      pixel;
-
-  for (; !iter.IsAtEnd(); ++iter)
+  for (Iterator iter(image, region); !iter.IsAtEnd(); ++iter)
   {
-    index = iter.GetIndex();
-    value = 0;
+    IndexType      index = iter.GetIndex();
+    unsigned short value = 0;
 
-    for (int j = 0; j < ImageDimension; j++)
+    for (int j = 0; j < ImageDimension; ++j)
     {
       value += index[j];
     }
-
-    for (int k = 0; k < ImageDimension; k++)
+    PixelType pixel;
+    for (int k = 0; k < ImageDimension; ++k)
     {
       pixel[k] = (k + 1) * value;
     }
@@ -199,7 +203,7 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
   }
 
   // Create the interpolator
-  InterpolatorType::Pointer interp = InterpolatorType::New();
+  auto interp = InterpolatorType::New();
   interp->SetInputImage(image);
   interp->Print(std::cout);
 
@@ -213,7 +217,7 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
   OutputType          output;
   ContinuousIndexType cindex;
   PointType           point;
-  bool                passed;
+  bool                passed = false;
 
   // an integer position inside the image
   {
@@ -225,14 +229,18 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
   }
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   image->TransformContinuousIndexToPhysicalPoint(cindex, point);
   passed = TestGeometricPoint(interp, point, true, output);
 
   if (!passed)
+  {
     flag = 1;
-
+  }
+  IndexType index;
   index[0] = 10;
   index[1] = 20;
   index[2] = 40;
@@ -255,80 +263,95 @@ itkVectorInterpolateImageFunctionTest(int, char *[])
   }
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   image->TransformContinuousIndexToPhysicalPoint(cindex, point);
   passed = TestGeometricPoint(interp, point, true, output);
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   // position near image border
   {
-    const itk::SpacePrecisionType epsilon = 1.0e-10;
-    const itk::SpacePrecisionType darray[3] = { 19 - epsilon, 20, 40 };
-    const double                  temp[3] = { 79, 158, 237 };
+    constexpr itk::SpacePrecisionType epsilon = 1.0e-10;
+    constexpr itk::SpacePrecisionType darray[3] = { 19 - epsilon, 20, 40 };
+    constexpr double                  temp[3] = { 79, 158, 237 };
     output = OutputType(temp);
     cindex = ContinuousIndexType(darray);
     passed = TestContinuousIndex(interp, cindex, true, output);
   }
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   image->TransformContinuousIndexToPhysicalPoint(cindex, point);
   passed = TestGeometricPoint(interp, point, true, output);
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   // position outside the image
   {
-    const itk::SpacePrecisionType darray[3] = { 20, 20, 40 };
-    const double                  temp[3] = { 1, 1, 1 };
+    constexpr itk::SpacePrecisionType darray[3] = { 20, 20, 40 };
+    constexpr double                  temp[3] = { 1, 1, 1 };
     output = OutputType(temp);
     cindex = ContinuousIndexType(darray);
     passed = TestContinuousIndex(interp, cindex, false, output);
   }
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   image->TransformContinuousIndexToPhysicalPoint(cindex, point);
   passed = TestGeometricPoint(interp, point, false, output);
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   // at non-integer position
   {
-    const itk::SpacePrecisionType darray[3] = { 5.25, 12.5, 42.0 };
-    const double                  temp[3] = { 59.75, 119.5, 179.25 };
+    constexpr itk::SpacePrecisionType darray[3] = { 5.25, 12.5, 42.0 };
+    constexpr double                  temp[3] = { 59.75, 119.5, 179.25 };
     output = OutputType(temp);
     cindex = ContinuousIndexType(darray);
     passed = TestContinuousIndex(interp, cindex, true, output);
   }
 
   if (!passed)
+  {
     flag = 1;
+  }
 
   image->TransformContinuousIndexToPhysicalPoint(cindex, point);
   passed = TestGeometricPoint(interp, point, true, output);
 
   if (!passed)
+  {
     flag = 1;
+  }
 
 
-  /* Return results of test */
+  // Return results of test
   if (flag != 0)
   {
     std::cout << "*** Some test failed" << std::endl;
     return flag;
   }
-  else
-  {
-    std::cout << "All tests successfully passed" << std::endl;
-  }
+
+  std::cout << "All tests successfully passed" << std::endl;
+
 
   return EXIT_SUCCESS;
 }

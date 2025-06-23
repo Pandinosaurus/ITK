@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 int
 itkImageToVTKImageFilterTest(int, char *[])
 {
-  const int dim = 3;
+  constexpr int dim = 3;
   using ImageType = itk::Image<float, dim>;
   using SourceType = itk::RandomImageSource<ImageType>;
   using SpacingType = SourceType::SpacingType;
@@ -37,19 +37,18 @@ itkImageToVTKImageFilterTest(int, char *[])
   size[0] = 40;
   size[1] = 10;
   size[2] = 20;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
   source->SetSize(size);
 
   SpacingType spacing;
   spacing[0] = 0.5;
-  spacing[1] = -2;
+  spacing[1] = 2;
   spacing[2] = 1;
   OriginType origin;
   origin[0] = -1.5;
   origin[1] = 0.222;
   origin[2] = 0;
-  DirectionType direction;
-  direction.Fill(0.0);
+  DirectionType direction{};
   direction[0][1] = 1;
   direction[1][0] = -1;
   direction[2][2] = 0.7;
@@ -61,7 +60,7 @@ itkImageToVTKImageFilterTest(int, char *[])
   auto input = source->GetOutput();
   input->Print(std::cout);
 
-  ConnectorType::Pointer connector = ConnectorType::New();
+  auto connector = ConnectorType::New();
   connector->SetInput(input);
   connector->UpdateLargestPossibleRegion();
   connector->Update();
@@ -91,7 +90,7 @@ itkImageToVTKImageFilterTest(int, char *[])
     {
       if (input->GetDirection()[i][j] != output->GetDirectionMatrix()->GetData()[i * 3 + j])
       {
-        std::cerr << "Error: directions do not match for component (" << i << "," << j << ")." << std::endl;
+        std::cerr << "Error: directions do not match for component (" << i << ',' << j << ")." << std::endl;
         return EXIT_FAILURE;
       }
     }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ namespace itk
 {
 
 /**
- *\class OpenCVImageBridge
+ * \class OpenCVImageBridge
  * \brief This class provides static methods to convert between OpenCV images
  * and itk::Image
  *
@@ -60,7 +60,6 @@ class OpenCVImageBridge
 public:
   ITK_DISALLOW_COPY_AND_MOVE(OpenCVImageBridge);
 
-  /** ITK stype type alias */
   using Self = OpenCVImageBridge;
 
   /** IplImage* -> itk::Image */
@@ -85,7 +84,7 @@ public:
 
 private:
   /** Steps involved in this method are:
-    1) Handle converting between colorspaces
+    1) Handle converting between color spaces
     2) Allocate the output image
     3) Create a copy of the current IplImage's buffer without any padding
     (slow but necessary)
@@ -113,7 +112,7 @@ private:
     checkMatchingTypes<TPixel, OutputPixelType>(outChannels);
 
     // We only change current if it no longer points at in, so this is safe
-    IplImage * current = const_cast<IplImage *>(in);
+    auto * current = const_cast<IplImage *>(in);
 
     bool freeCurrent = false;
     if (inChannels == 3 && outChannels == 1)
@@ -249,7 +248,7 @@ private:
     out->SetSpacing(spacing);
     out->Allocate();
     size_t       lineLength = imgWidth * inChannels * sizeof(TPixel);
-    void *       unpaddedBuffer = reinterpret_cast<void *>(new TPixel[imgHeight * lineLength]);
+    auto *       unpaddedBuffer = reinterpret_cast<void *>(new TPixel[imgHeight * lineLength]);
     unsigned int paddedBufPos = 0;
     unsigned int unpaddedBufPos = 0;
 
@@ -300,16 +299,16 @@ private:
     {
       typename ImageType::IndexType pixelIndex = { { 0, 0 } };
 
-      for (int r = 0; r < out->height; r++)
+      for (int r = 0; r < out->height; ++r)
       {
-        ValueType * ptr = reinterpret_cast<ValueType *>(out->imageData + r * out->widthStep);
-        for (int c = 0; c < out->width; c++)
+        auto * ptr = reinterpret_cast<ValueType *>(out->imageData + r * out->widthStep);
+        for (int c = 0; c < out->width; ++c)
         {
           pixelIndex[0] = c;
           pixelIndex[1] = r;
           typename ImageType::PixelType pixel = in->GetPixel(pixelIndex);
 
-          for (unsigned int i = 0; i < 3; i++)
+          for (unsigned int i = 0; i < 3; ++i)
           {
             *ptr++ = pixel[i];
           }

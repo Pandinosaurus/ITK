@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,9 +28,7 @@
 #include "itkFEMException.h"
 #include <iostream>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class FEMLightObject
@@ -53,8 +51,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FEMLightObject, itk::LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FEMLightObject);
 
   /**
    * Set the global number of the object
@@ -87,9 +85,8 @@ protected:
    */
   FEMLightObject(const FEMLightObject & o)
     : itk::LightObject()
-  {
-    m_GlobalNumber = o.m_GlobalNumber;
-  }
+    , m_GlobalNumber(o.m_GlobalNumber)
+  {}
 
   /**
    * Global number of an object (ID of an object)
@@ -100,7 +97,6 @@ protected:
    */
   int m_GlobalNumber{ -1 };
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLightObject_h

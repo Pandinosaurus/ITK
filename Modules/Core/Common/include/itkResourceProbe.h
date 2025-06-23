@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #define itkResourceProbe_h
 
 #include "itkMacro.h"
+#include "itkIndent.h"
 #include "itkIntTypes.h"
 
 #include <iostream> // For cout.
@@ -56,11 +57,11 @@ public:
   virtual ~ResourceProbe() = default;
 
   /** Returns the type probed value */
-  std::string
+  [[nodiscard]] std::string
   GetType() const;
 
   /** Returns the unit probed value */
-  std::string
+  [[nodiscard]] std::string
   GetUnit() const;
 
   /** Start counting the change of value */
@@ -76,31 +77,31 @@ public:
   Stop();
 
   /** Returns the number of times that the probe has been started */
-  CountType
+  [[nodiscard]] CountType
   GetNumberOfStarts() const;
 
   /** Returns the number of times that the probe has been stopped */
-  CountType
+  [[nodiscard]] CountType
   GetNumberOfStops() const;
 
   /** Returns the number of iteration of the probe */
-  CountType
+  [[nodiscard]] CountType
   GetNumberOfIteration() const;
 
   /** Returns the instant value of the probed system.
    */
-  virtual ValueType
+  [[nodiscard]] virtual ValueType
   GetInstantValue() const = 0;
 
   /** Returns the accumulated value changes between the starts and stops
    *  of the probe */
-  virtual ValueType
+  [[nodiscard]] virtual ValueType
   GetTotal() const;
 
   /** Returns the average value changes between the starts and stops
    *  of the probe. Stop() has to be called at least once, returns 0 otherwise.
    */
-  virtual MeanType
+  [[nodiscard]] virtual MeanType
   GetMean() const;
 
   /** Reset the probe */
@@ -109,12 +110,12 @@ public:
 
   /** Returns the min value changes between the starts and stops
    *  of the probe */
-  virtual ValueType
+  [[nodiscard]] virtual ValueType
   GetMinimum() const;
 
   /** Returns the max value changes between the starts and stops
    *  of the probe */
-  virtual ValueType
+  [[nodiscard]] virtual ValueType
   GetMaximum() const;
 
   /** Returns the standard deviation value changes between the starts and stops
@@ -132,7 +133,7 @@ public:
   SetNameOfProbe(const char * nameOfProbe);
 
   /** Set name of probe */
-  virtual std::string
+  [[nodiscard]] virtual std::string
   GetNameOfProbe() const;
 
   /** Print System information */
@@ -174,28 +175,29 @@ protected:
   /** Prints a varName: varValue pair. */
   template <typename T>
   void
-  PrintJSONvar(std::ostream & os, const char * varName, T varValue, unsigned indent = 4, bool comma = true);
+  PrintJSONvar(std::ostream & os, const char * varName, T varValue, unsigned int indent = 4, bool comma = true);
 
-  /** Obsolete member function from ITK 4.8 - 4.13. Does not do anything anymore. */
-  itkLegacyMacro(virtual void GetSystemInformation());
+  /** Cause the object to print itself out. */
+  virtual void
+  Print(std::ostream & os, Indent indent) const;
 
 private:
-  ValueType m_StartValue;
-  ValueType m_TotalValue;
-  ValueType m_MinimumValue;
-  ValueType m_MaximumValue;
-  ValueType m_StandardDeviation;
-  ValueType m_StandardError;
+  ValueType m_StartValue{};
+  ValueType m_TotalValue{};
+  ValueType m_MinimumValue{};
+  ValueType m_MaximumValue{};
+  ValueType m_StandardDeviation{};
+  ValueType m_StandardError{};
 
-  CountType m_NumberOfStarts;
-  CountType m_NumberOfStops;
-  CountType m_NumberOfIteration;
+  CountType m_NumberOfStarts{};
+  CountType m_NumberOfStops{};
+  CountType m_NumberOfIteration{};
 
-  std::vector<ValueType> m_ProbeValueList;
+  std::vector<ValueType> m_ProbeValueList{};
 
-  std::string m_NameOfProbe;
-  std::string m_TypeString;
-  std::string m_UnitString;
+  std::string m_NameOfProbe{};
+  std::string m_TypeString{};
+  std::string m_UnitString{};
 
   static constexpr unsigned int tabwidth = 15;
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkChainCodePath2DTest(int, char *[])
   IndexType  index;
   OffsetType offset;
 
-  PathType::Pointer path = PathType::New();
+  auto path = PathType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(path, ChainCodePath2D, ChainCodePath);
 
@@ -53,16 +53,16 @@ itkChainCodePath2DTest(int, char *[])
   offset[1] = -1;
   path->InsertStep(5, offset); // insert new step 5 = 5
   offset = path->Evaluate(5);
-  std::cout << "Inserted new step[5] of 5 = (" << offset[0] << "," << offset[1] << ")" << std::endl;
+  std::cout << "Inserted new step[5] of 5 = (" << offset[0] << ',' << offset[1] << ')' << std::endl;
 
   path->ChangeStep(8, 3); // rotate the second 4 (now step 8) up to a 3
   offset = path->Evaluate(8);
-  std::cout << "Changed step[8] to 3 = (" << offset[0] << "," << offset[1] << ")" << std::endl;
+  std::cout << "Changed step[8] to 3 = (" << offset[0] << ',' << offset[1] << ')' << std::endl;
 
 
   path->ChangeStep(6, offset); // rotate the second 4 (now step 8) up to a 3
   offset = path->Evaluate(6);
-  std::cout << "Changed step[6] to = (" << offset[0] << "," << offset[1] << ")" << std::endl;
+  std::cout << "Changed step[6] to = (" << offset[0] << ',' << offset[1] << ')' << std::endl;
 
 
   std::cout << "Path is " << path->NumberOfSteps() << " steps: \"" << path->GetChainCodeAsString() << "\"."
@@ -74,7 +74,7 @@ itkChainCodePath2DTest(int, char *[])
 
 
   index = path->GetStart();
-  std::cout << "Starting at index (" << index[0] << "," << index[1] << ")" << std::endl;
+  std::cout << "Starting at index (" << index[0] << ',' << index[1] << ')' << std::endl;
   for (unsigned int input = 0;;)
   {
     offset = path->IncrementInput(input);
@@ -82,8 +82,8 @@ itkChainCodePath2DTest(int, char *[])
     {
       index = path->EvaluateToIndex(input);
 
-      std::cout << "Step[" << input - 1 << "] is (" << offset[0] << "," << offset[1] << ")";
-      std::cout << "\t to index (" << index[0] << "," << index[1] << ")" << std::endl;
+      std::cout << "Step[" << input - 1 << "] is (" << offset[0] << ',' << offset[1] << ')';
+      std::cout << "\t to index (" << index[0] << ',' << index[1] << ')' << std::endl;
     }
     else
     {
@@ -100,9 +100,7 @@ itkChainCodePath2DTest(int, char *[])
     std::cout << "Test passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "Test failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "Test failed" << std::endl;
+  return EXIT_FAILURE;
 }

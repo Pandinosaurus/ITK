@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,11 +21,11 @@ import sys
 from sys import stderr as system_error_stream
 
 # Required to work around weird import error with xarray
-from typing import Dict, Any, List, Optional, Sequence, Union
-
-import pkg_resources
+from typing import Any, Optional, Union
+from collections.abc import Sequence
 
 import itkConfig
+from itkConfig import DefaultFactoryLoading as _DefaultFactoryLoading
 from itk.support.template_class import itkTemplate
 
 
@@ -62,7 +62,7 @@ def itk_load_swig_module(name: str, namespace=None):
     # find the module's name in sys.modules, or create a new module so named
     this_module = sys.modules.setdefault(swig_module_name, create_itk_module(name))
 
-    # if this library and it's template_feature instantiations have already been loaded
+    # If this library and its template_feature instantiations have already been loaded
     # into sys.modules, bail out after loading the defined symbols into
     # 'namespace'
     if hasattr(this_module, "__templates_loaded"):
@@ -80,18 +80,11 @@ def itk_load_swig_module(name: str, namespace=None):
                     namespace[k] = v
         return
 
-    # We're definitely going to load the templates. We set templates_loaded
-    # here instead of at the end of the file to protect against cyclical
-    # dependencies that could kill the recursive lookup below.
-    this_module.__templates_loaded = True
-
-    # Now, we definitely need to load the template_feature instantiations from the
-    # named module, and possibly also load the underlying SWIG module. Before
-    # we can load the template_feature instantiations of this module, we need to load
-    # those of the modules on which this one depends. Ditto for the SWIG
-    # modules.
+    # Before we can load the template_feature instantiations of this module,
+    # we need to load those of the modules on which this one depends. Ditto
+    # for the SWIG modules.
     # So, we recursively satisfy the dependencies of named module and create
-    # the template_feature instantiations.
+    # the dependency template_feature instantiations.
     # Dependencies are looked up from the auto-generated configuration files,
     # via the itk_base_global_module_data instance defined at the bottom of this file, which
     # knows how to find those configuration files.
@@ -101,6 +94,34 @@ def itk_load_swig_module(name: str, namespace=None):
         for dep in deps:
             itk_load_swig_module(dep, namespace)
 
+    # It is possible that template_feature instantiations from this module
+    # were loaded as a side effect of dependency loading. For instance,
+    # if this module defines a factory override for a base class in a
+    # dependency module, that module will load and then immediately load
+    # this module to ensure overrides are available.
+    # We check whether this module and its template_feature instantiations have
+    # already been loaded into sys.modules. If so we can copy into 'namespace'
+    # and then exit early with success.
+    this_module = sys.modules.setdefault(swig_module_name, create_itk_module(name))
+    if hasattr(this_module, "__templates_loaded"):
+        if namespace is not None:
+            swig = namespace.setdefault("swig", {})
+            if hasattr(this_module, "swig"):
+                swig.update(this_module.swig)
+
+            # don't worry about overwriting the symbols in namespace -- any
+            # common symbols should be of type itkTemplate, which is a
+            # singleton type. That is, they are all identical, so replacing one
+            # with the other isn't a problem.
+            for k, v in this_module.__dict__.items():
+                if not (k.startswith("_") or k.startswith("itk") or k == "swig"):
+                    namespace[k] = v
+        return
+
+    # All actions after this point should execute exactly once to properly load in
+    # templates and factories.
+
+    # Indicate that we are proceeding with loading templates for this module
     if itkConfig.ImportCallback:
         itkConfig.ImportCallback(name, 0)
 
@@ -169,9 +190,9 @@ def itk_load_swig_module(name: str, namespace=None):
                             f"instance for class {template_feature.get_cpp_class_name()}. "
                             f"Overwriting old value."
                         )
-                    namespace[
-                        template_feature.get_python_class_name()
-                    ] = template_container
+                    namespace[template_feature.get_python_class_name()] = (
+                        template_container
+                    )
             except Exception as e:
                 debug_print_error(
                     f"{template_feature.get_swig_class_name()} not loaded from module {name} because of "
@@ -187,9 +208,7 @@ def itk_load_swig_module(name: str, namespace=None):
                     template_feature.get_cpp_class_name(), swig_class
                 )
                 setattr(
-                    this_module,
-                    template_feature.get_python_class_name(),
-                    swig_class,
+                    this_module, template_feature.get_python_class_name(), swig_class
                 )
                 if namespace is not None:
                     current_value = namespace.get(
@@ -207,6 +226,18 @@ def itk_load_swig_module(name: str, namespace=None):
                     f"{template_feature.get_swig_class_name()} not found in module {name} because of "
                     f"exception:\n {e}"
                 )
+
+    # Indicate that templates have been fully loaded from the module.
+    # Any subsequent attempts to load the module will bail out early
+    # if this flag is set.
+    this_module.__templates_loaded = True
+
+    # Load any modules that have been marked as defining overrides
+    # for some base class(es) defined in the current module.
+    # For instance, ITKImageIOBase will load any modules defining
+    # ImageIO objects for reading different image file types.
+    if _DefaultFactoryLoading:
+        load_module_needed_factories(name)
 
     for snakeCaseFunction in l_data.get_snake_case_functions():
         namespace[snakeCaseFunction] = getattr(l_module, snakeCaseFunction)
@@ -228,8 +259,7 @@ def debug_print_error(error):
         raise RuntimeError(error)
 
 
-class LibraryLoader(object):
-
+class LibraryLoader:
     """Do all the work to set up the environment so that a SWIG-generated
     library can be properly loaded. This involves setting paths defined in
     itkConfig."""
@@ -310,6 +340,56 @@ class ITKTemplateFeatures:
         return self._template_parameters
 
 
+_factories_loaded = []
+
+
+def load_factories(factory_name: str) -> None:
+    """Load the factories of the given name.
+
+    Supported names include:
+
+        - ImageIO
+        - MeshIO
+        - TransformIO
+        - FFTImageFilterInit
+    """
+    # Only load factories once
+    if factory_name in _factories_loaded:
+        return
+
+    import itk
+
+    for module_name, data in itk_base_global_module_data.items():
+        for name, factory_class_prefix in data.get_module_factories()[:2]:
+            if name == factory_name:
+                # Get the factory, loading new modules with itk_load_swig_module as necessary
+                namespace = dict()
+                itk_load_swig_module(module_name, namespace)
+                factory = namespace[f"{factory_class_prefix}{name}Factory"]
+                # Static method initializes factory overrides without adding to auto_pipeline
+                factory.RegisterOneFactory()
+    _factories_loaded.append(factory_name)
+
+
+# Modules that need to load the listed factories.
+# The factories are loaded after the module is loaded, which ensures any dependent code
+# like FFT-dependent code, will have its factories registered if there is
+# a module dependency on the ITKFFT module.
+# We need a separate function to initialize these because itk_load_swig_module calls itself recursively,
+# and we want to avoid circular dependencies.
+needed_factories = {
+    "ITKIOImageBase": "ImageIO",
+    "ITKIOMeshBase": "MeshIO",
+    "ITKIOTransformBase": "TransformIO",
+    "ITKFFT": "FFTImageFilterInit",
+}
+
+
+def load_module_needed_factories(name):
+    if name in needed_factories.keys():
+        load_factories(needed_factories[name])
+
+
 class ITKModuleInfo:
     """
     A structure to hold information loaded from the *Config.py
@@ -332,7 +412,11 @@ class ITKModuleInfo:
             self._depends = content_info.depends
         else:
             self._depends = tuple()
-        self._template_feature_tuples: List[ITKTemplateFeatures] = [
+        if hasattr(content_info, "factories"):
+            self._factories = content_info.factories
+        else:
+            self._factories = tuple()
+        self._template_feature_tuples: list[ITKTemplateFeatures] = [
             ITKTemplateFeatures(tfeat) for tfeat in _templates
         ]
 
@@ -345,9 +429,9 @@ class ITKModuleInfo:
             self._snake_case_functions: Sequence[str] = []
             return
         if hasattr(snake_content_info, "snake_case_functions"):
-            self._snake_case_functions: Sequence[
-                str
-            ] = snake_content_info.snake_case_functions
+            self._snake_case_functions: Sequence[str] = (
+                snake_content_info.snake_case_functions
+            )
         else:
             self._snake_case_functions: Sequence[str] = []
 
@@ -356,6 +440,9 @@ class ITKModuleInfo:
 
     def get_all_template_features(self) -> Sequence[ITKTemplateFeatures]:
         return self._template_feature_tuples
+
+    def get_module_factories(self) -> Sequence[Sequence[str]]:
+        return self._factories
 
     def get_snake_case_functions(self) -> Sequence[str]:
         return self._snake_case_functions
@@ -367,13 +454,13 @@ def _initialize(l_module_data):
     # files.
     candidate_config_path: str = os.path.join(itkConfig.path, "Configuration")
     if not os.path.isdir(candidate_config_path):
-        error_message: str = f"WARNING: Invalid configuration directory requested: {candidate_config_path}"
+        error_message: str = (
+            f"WARNING: Invalid configuration directory requested: {candidate_config_path}"
+        )
         raise RuntimeError(error_message)
 
     files = os.listdir(candidate_config_path)
-    known_modules: List[str] = sorted(
-        [f[:-9] for f in files if f.endswith("Config.py")]
-    )
+    known_modules: list[str] = sorted(f[:-9] for f in files if f.endswith("Config.py"))
     for module in known_modules:
         conf: str = f"{module}Config.py"
         snake_conf = f"{module}_snake_case.py"
@@ -381,7 +468,7 @@ def _initialize(l_module_data):
         l_module_data[module] = ITKModuleInfo(conf, snake_conf)
 
 
-itk_base_global_lazy_attributes: Dict[str, Any] = {}
-itk_base_global_module_data: Dict[str, ITKModuleInfo] = {}
+itk_base_global_lazy_attributes: dict[str, Any] = {}
+itk_base_global_module_data: dict[str, ITKModuleInfo] = {}
 _initialize(itk_base_global_module_data)
 del _initialize

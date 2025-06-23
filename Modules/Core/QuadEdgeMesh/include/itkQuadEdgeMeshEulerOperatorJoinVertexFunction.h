@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,14 +67,14 @@ public:
   using Superclass = QuadEdgeMeshFunctionBase<TMesh, TQEType *>;
 
   itkNewMacro(Self);
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(QuadEdgeMeshEulerOperatorJoinVertexFunction, QuadEdgeMeshFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuadEdgeMeshEulerOperatorJoinVertexFunction);
 
   /** Type of QuadEdge with which to apply slicing. */
   using QEType = TQEType;
 
-  using MeshType = typename Superclass::MeshType;
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::MeshType;
+  using typename Superclass::OutputType;
 
   using PointIdentifier = typename MeshType::PointIdentifier;
   using CellIdentifier = typename MeshType::CellIdentifier;
@@ -109,9 +109,9 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  PointIdentifier m_OldPointID;
+  PointIdentifier m_OldPointID{};
 
-  EdgeStatusType m_EdgeStatus;
+  EdgeStatusType m_EdgeStatus{};
 
   /**
    * \brief
@@ -140,7 +140,7 @@ protected:
    * \return false else
    */
   bool
-  IsFaceIsolated(QEType * e, const bool & iWasLeftFace, std::stack<TQEType *> & oToBeDeleted);
+  IsFaceIsolated(QEType * e, const bool iWasLeftFace, std::stack<TQEType *> & oToBeDeleted);
 
   bool
   IsSamosa(QEType * e);

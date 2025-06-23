@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,15 +56,15 @@ itkGrayscaleConnectedClosingImageFilterTest(int argc, char * argv[])
   using ConnectedClosingFilterType = itk::GrayscaleConnectedClosingImageFilter<InputImageType, OutputImageType>;
 
   // Create the filter
-  ConnectedClosingFilterType::Pointer connectedClosing = ConnectedClosingFilterType::New();
+  auto connectedClosing = ConnectedClosingFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(connectedClosing, GrayscaleConnectedClosingImageFilter, ImageToImageFilter);
 
 
-  itk::SimpleFilterWatcher watcher(connectedClosing, "connectedClosing");
+  const itk::SimpleFilterWatcher watcher(connectedClosing, "connectedClosing");
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(argv[1]);
 
@@ -87,7 +87,7 @@ itkGrayscaleConnectedClosingImageFilterTest(int argc, char * argv[])
 
 
   using WriterType = itk::ImageFileWriter<WriteImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
   writer->SetInput(connectedClosing->GetOutput());

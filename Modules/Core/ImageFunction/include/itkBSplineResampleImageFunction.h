@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@
 namespace itk
 {
 /**
- *\class BSplineResampleImageFunction
+ * \class BSplineResampleImageFunction
  * \brief Resample image intensity from a BSpline coefficient image.
  *
  * This class resample the image intensity at a non-integer position
@@ -53,22 +53,22 @@ namespace itk
  * \ingroup ImageFunctions
  * \ingroup ITKImageFunction
  */
-template <typename TImageType, typename TCoordRep = float>
+template <typename TImageType, typename TCoordinate = float>
 class BSplineResampleImageFunction
-  : public BSplineInterpolateImageFunction<TImageType, TCoordRep, typename TImageType::PixelType>
+  : public BSplineInterpolateImageFunction<TImageType, TCoordinate, typename TImageType::PixelType>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BSplineResampleImageFunction);
 
   /** Standard class type aliases. */
   using Self = BSplineResampleImageFunction;
-  using Superclass = BSplineInterpolateImageFunction<TImageType, TCoordRep, typename TImageType::PixelType>;
+  using Superclass = BSplineInterpolateImageFunction<TImageType, TCoordinate, typename TImageType::PixelType>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineResampleImageFunction, BSplineInterpolateImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineResampleImageFunction);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
@@ -78,7 +78,7 @@ public:
   SetInputImage(const TImageType * inputData) override
   {
     // bypass my superclass
-    this->InterpolateImageFunction<TImageType, TCoordRep>::SetInputImage(inputData);
+    this->InterpolateImageFunction<TImageType, TCoordinate>::SetInputImage(inputData);
     this->m_Coefficients = inputData;
     if (this->m_Coefficients.IsNotNull())
     {

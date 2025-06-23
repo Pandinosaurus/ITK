@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,7 @@
 
 #include "itkFEMLoadGrav.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 void
@@ -30,11 +28,11 @@ LoadGrav::PrintSelf(std::ostream & os, Indent indent) const
 }
 
 // Overload the CreateAnother() method.
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 LoadGravConst::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   // Copy Load Contents
   copyPtr->m_GravityForce = this->m_GravityForce;
@@ -49,7 +47,8 @@ LoadGravConst::CreateAnother() const
   return smartPtr;
 }
 
-vnl_vector<Element::Float> LoadGravConst::GetGravitationalForceAtPoint(vnl_vector<Element::Float>)
+vnl_vector<Element::Float>
+LoadGravConst::GetGravitationalForceAtPoint(vnl_vector<Element::Float>)
 {
   return m_GravityForce;
 }
@@ -90,7 +89,7 @@ LoadGravConst::ApplyLoad(Element::ConstPointer element, Element::VectorType & Fe
   Fe.fill(0.0);
 
   Element::Float w, detJ;
-  for (unsigned int i = 0; i < Nip; i++)
+  for (unsigned int i = 0; i < Nip; ++i)
   {
     element->GetIntegrationPointAndWeight(i, ip, w, order);
     gip = element->GetGlobalFromLocalCoordinates(ip);
@@ -110,14 +109,14 @@ LoadGravConst::ApplyLoad(Element::ConstPointer element, Element::VectorType & Fe
     {
       Nd = force_tmp.size();
     }
-    for (unsigned int d = 0; d < Nd; d++)
+    for (unsigned int d = 0; d < Nd; ++d)
     {
       force[d] = force_tmp[d];
     }
-    // Claculate the equivalent nodal loads
-    for (unsigned int n = 0; n < Nnodes; n++)
+    // Calculate the equivalent nodal loads
+    for (unsigned int n = 0; n < Nnodes; ++n)
     {
-      for (unsigned int d = 0; d < Ndofs; d++)
+      for (unsigned int d = 0; d < Ndofs; ++d)
       {
         Fe[n * Ndofs + d] += shapeF[n] * force[d] * w * detJ;
       }
@@ -132,5 +131,4 @@ LoadGravConst::PrintSelf(std::ostream & os, Indent indent) const
   os << indent << "Gravity Force: " << this->m_GravityForce << std::endl;
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

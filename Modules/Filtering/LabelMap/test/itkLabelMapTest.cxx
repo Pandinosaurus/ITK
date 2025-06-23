@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ itkLabelMapTest(int argc, char * argv[])
   using LabelObjectVectorType = LabelMapType::LabelObjectVectorType;
   using LabelVectorType = LabelMapType::LabelVectorType;
 
-  LabelMapType::Pointer map = LabelMapType::New();
+  auto map = LabelMapType::New();
 
   SizeType sizeIn;
   sizeIn[0] = 10;
@@ -75,7 +75,7 @@ itkLabelMapTest(int argc, char * argv[])
   regionOut = map->GetRequestedRegion();
   itkAssertOrThrowMacro((regionOut == regionIn), "SetRegions (region) failed");
 
-  LabelMapType::Pointer mapGraft = LabelMapType::New();
+  auto mapGraft = LabelMapType::New();
   mapGraft->Graft(map);
   regionOut = mapGraft->GetRequestedRegion();
   itkAssertOrThrowMacro((regionOut == regionIn), "Graft failed");
@@ -83,7 +83,7 @@ itkLabelMapTest(int argc, char * argv[])
   mapGraft->SetBackgroundValue(255);
   itkAssertOrThrowMacro((mapGraft->GetBackgroundValue() == 255), "Set/GetBackground failed.");
 
-  LabelObjectType::Pointer lo = LabelObjectType::New();
+  auto lo = LabelObjectType::New();
   lo->SetLabel(1);
 
   IndexType idx;
@@ -134,7 +134,7 @@ itkLabelMapTest(int argc, char * argv[])
   loLabels = map->GetLabels();
   itkAssertOrThrowMacro((loLabels[0] == 1), "GetLabels failed");
 
-  LabelObjectType::Pointer lo2 = LabelObjectType::New();
+  auto lo2 = LabelObjectType::New();
 
   idx[0] = 1;
   idx[1] = 21;

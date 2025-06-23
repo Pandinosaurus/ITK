@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,8 +42,9 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Arnaud Gelas <arnaudgelas@gmail.com>
-itk_fetch_module(TwoProjectionRegistration
-"An ITK-based implementation of intensity-based 2D/3D
+itk_fetch_module(
+  TwoProjectionRegistration
+  "An ITK-based implementation of intensity-based 2D/3D
 rigid image registration for patient setup assessment in external beam
 radiotherapy. The registration framework was designed to simultaneously
 register two projection images to a 3D image volume. The projection geometry
@@ -56,10 +57,10 @@ to compute projection images from a 3D image volume.
 A more detailed description can be found in the Insight Journal article::
 
 Wu, J. \"ITK-Based Implementation of Two-Projection 2D/3D Registration Method with an Application in Patient Setup for External Beam Radiotherapy\".
-  https://www.insight-journal.org/browse/publication/784
+  https://doi.org/10.54294/6f280b
   December, 2010.
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKTwoProjectionRegistration.git
-  GIT_TAG a451e6471d5f3ceeabfa88bdafeb996710b4b89e
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKTwoProjectionRegistration.git
+  GIT_TAG 7e995fcabd81f2e5099d582e5eec78702f8f4943
   )

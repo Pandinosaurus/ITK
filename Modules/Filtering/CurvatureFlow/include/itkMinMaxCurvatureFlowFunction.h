@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class MinMaxCurvatureFlowFunction
+ * \class MinMaxCurvatureFlowFunction
  *
  * This class encapsulate the finite difference equation which drives a
  * min/max curvature flow denoising algorithm.
@@ -54,15 +54,15 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MinMaxCurvatureFlowFunction, CurvatureFlowFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MinMaxCurvatureFlowFunction);
 
   /** Inherit some parameters from the superclass type. */
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
 
   /** Extract superclass dimension. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -87,8 +87,7 @@ public:
     return GetRadiusValueType();
   }
 
-  /** This method computes the solution update for each pixel that does not
-   * lie on a the data set boundary. */
+  /** Compute the solution update for each pixel that does not lie on a the data set boundary. */
   PixelType
   ComputeUpdate(const NeighborhoodType & it,
                 void *                   globalData,
@@ -99,7 +98,7 @@ protected:
   ~MinMaxCurvatureFlowFunction() override = default;
 
   using StencilOperatorType = Neighborhood<PixelType, Self::ImageDimension>;
-  StencilOperatorType m_StencilOperator;
+  StencilOperatorType m_StencilOperator{};
 
   /** Initialize the stencil operator to be an N-Dimensional sphere
    * of radius m_StencilRadius. */
@@ -107,17 +106,16 @@ protected:
   InitializeStencilOperator();
 
 private:
-  RadiusValueType m_StencilRadius;
+  RadiusValueType m_StencilRadius{};
 
   // To control overloaded versions of ComputeThreshold
   struct DispatchBase
   {};
-  template <signed int VDimension>
+  template <int VDimension>
   struct Dispatch : public DispatchBase
   {};
 
-  /** This method computes the threshold by averaging the intensity
-   *  in direction perpendicular to the image gradient. */
+  /** Compute the threshold by averaging the intensity in direction perpendicular to the image gradient. */
   PixelType
   ComputeThreshold(const Dispatch<2> &, const NeighborhoodType & it) const;
 

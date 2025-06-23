@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,6 @@
  *=========================================================================*/
 #ifndef itkImageToImageFilter_hxx
 #define itkImageToImageFilter_hxx
-#include "itkImageToImageFilter.h"
 #include "itkInputDataObjectIterator.h"
 #include "itkInputDataObjectConstIterator.h"
 
@@ -64,22 +63,22 @@ ImageToImageFilter<TInputImage, TOutputImage>::SetInput(unsigned int index, cons
 
 
 template <typename TInputImage, typename TOutputImage>
-const typename ImageToImageFilter<TInputImage, TOutputImage>::InputImageType *
-ImageToImageFilter<TInputImage, TOutputImage>::GetInput() const
+auto
+ImageToImageFilter<TInputImage, TOutputImage>::GetInput() const -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<const TInputImage *>(this->GetPrimaryInput());
 }
 
 
 template <typename TInputImage, typename TOutputImage>
-const typename ImageToImageFilter<TInputImage, TOutputImage>::InputImageType *
-ImageToImageFilter<TInputImage, TOutputImage>::GetInput(unsigned int idx) const
+auto
+ImageToImageFilter<TInputImage, TOutputImage>::GetInput(unsigned int idx) const -> const InputImageType *
 {
   const auto * in = dynamic_cast<const TInputImage *>(this->ProcessObject::GetInput(idx));
 
   if (in == nullptr && this->ProcessObject::GetInput(idx) != nullptr)
   {
-    itkWarningMacro(<< "Unable to convert input number " << idx << " to type " << typeid(InputImageType).name());
+    itkWarningMacro("Unable to convert input number " << idx << " to type " << typeid(InputImageType).name());
   }
   return in;
 }
@@ -117,7 +116,7 @@ ImageToImageFilter<TInputImage, TOutputImage>::CallCopyOutputRegionToInputRegion
   InputImageRegionType &        destRegion,
   const OutputImageRegionType & srcRegion)
 {
-  OutputToInputRegionCopierType regionCopier;
+  const OutputToInputRegionCopierType regionCopier;
 
   regionCopier(destRegion, srcRegion);
 }
@@ -128,7 +127,7 @@ void
 ImageToImageFilter<TInputImage, TOutputImage>::CallCopyInputRegionToOutputRegion(OutputImageRegionType & destRegion,
                                                                                  const InputImageRegionType & srcRegion)
 {
-  InputToOutputRegionCopierType regionCopier;
+  const InputToOutputRegionCopierType regionCopier;
 
   regionCopier(destRegion, srcRegion);
 }
@@ -146,7 +145,7 @@ ImageToImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inde
 
 template <typename TInputImage, typename TOutputImage>
 void
-ImageToImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CONST
+ImageToImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() const
 {
 
   using ImageBaseType = const ImageBase<InputImageDimension>;
@@ -183,41 +182,41 @@ ImageToImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CO
       // tolerance for origin and spacing depends on the size of pixel
       // tolerance for directions a fraction of the unit cube.
       const SpacePrecisionType coordinateTol =
-        std::abs(this->m_CoordinateTolerance * inputPtr1->GetSpacing()[0]); // use first dimension spacing
+        itk::Math::abs(this->m_CoordinateTolerance * inputPtr1->GetSpacing()[0]); // use first dimension spacing
 
-      if (!inputPtr1->GetOrigin().GetVnlVector().is_equal(inputPtrN->GetOrigin().GetVnlVector(), coordinateTol) ||
-          !inputPtr1->GetSpacing().GetVnlVector().is_equal(inputPtrN->GetSpacing().GetVnlVector(), coordinateTol) ||
-          !inputPtr1->GetDirection().GetVnlMatrix().as_ref().is_equal(inputPtrN->GetDirection().GetVnlMatrix().as_ref(),
-                                                                      this->m_DirectionTolerance))
+      if (!inputPtr1->IsCongruentImageGeometry(inputPtrN, m_CoordinateTolerance, m_DirectionTolerance))
       {
-        std::ostringstream originString, spacingString, directionString;
+        std::ostringstream originString;
         if (!inputPtr1->GetOrigin().GetVnlVector().is_equal(inputPtrN->GetOrigin().GetVnlVector(), coordinateTol))
         {
           originString.setf(std::ios::scientific);
           originString.precision(7);
-          originString << "InputImage Origin: " << inputPtr1->GetOrigin() << ", InputImage" << it.GetName()
+          originString << "InputImage Origin: " << inputPtr1->GetOrigin() << ", InputImage " << it.GetName()
                        << " Origin: " << inputPtrN->GetOrigin() << std::endl;
           originString << "\tTolerance: " << coordinateTol << std::endl;
         }
+        std::ostringstream spacingString;
         if (!inputPtr1->GetSpacing().GetVnlVector().is_equal(inputPtrN->GetSpacing().GetVnlVector(), coordinateTol))
         {
           spacingString.setf(std::ios::scientific);
           spacingString.precision(7);
-          spacingString << "InputImage Spacing: " << inputPtr1->GetSpacing() << ", InputImage" << it.GetName()
+          spacingString << "InputImage Spacing: " << inputPtr1->GetSpacing() << ", InputImage " << it.GetName()
                         << " Spacing: " << inputPtrN->GetSpacing() << std::endl;
           spacingString << "\tTolerance: " << coordinateTol << std::endl;
         }
-        if (!inputPtr1->GetDirection().GetVnlMatrix().as_ref().is_equal(
-              inputPtrN->GetDirection().GetVnlMatrix().as_ref(), this->m_DirectionTolerance))
+        std::ostringstream directionString;
+        if (!inputPtr1->GetDirection().GetVnlMatrix().is_equal(inputPtrN->GetDirection().GetVnlMatrix(),
+                                                               this->m_DirectionTolerance))
         {
           directionString.setf(std::ios::scientific);
           directionString.precision(7);
-          directionString << "InputImage Direction: " << inputPtr1->GetDirection() << ", InputImage" << it.GetName()
+          directionString << "InputImage Direction: " << inputPtr1->GetDirection() << ", InputImage " << it.GetName()
                           << " Direction: " << inputPtrN->GetDirection() << std::endl;
           directionString << "\tTolerance: " << this->m_DirectionTolerance << std::endl;
         }
-        itkExceptionMacro(<< "Inputs do not occupy the same physical space! " << std::endl
-                          << originString.str() << spacingString.str() << directionString.str());
+        itkExceptionMacro("Inputs do not occupy the same physical space! " << std::endl
+                                                                           << originString.str() << spacingString.str()
+                                                                           << directionString.str());
       }
     }
   }

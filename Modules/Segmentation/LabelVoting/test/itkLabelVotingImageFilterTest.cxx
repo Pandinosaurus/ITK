@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,9 +59,9 @@ itkLabelVotingImageFilterTest(int, char *[])
   using LabelVotingImageFilterType = itk::LabelVotingImageFilter<ImageType>;
 
   // Create the input images
-  ImageType::Pointer inputImageA = ImageType::New();
-  ImageType::Pointer inputImageB = ImageType::New();
-  ImageType::Pointer inputImageC = ImageType::New();
+  auto inputImageA = ImageType::New();
+  auto inputImageB = ImageType::New();
+  auto inputImageC = ImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -79,12 +79,10 @@ itkLabelVotingImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
-  IteratorType it = IteratorType(inputImageA, inputImageA->GetBufferedRegion());
+  IteratorType it(inputImageA, inputImageA->GetBufferedRegion());
 
   for (int i = 0; i < 8; ++i, ++it)
   {
@@ -92,9 +90,7 @@ itkLabelVotingImageFilterTest(int, char *[])
   }
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
   it = IteratorType(inputImageB, inputImageB->GetBufferedRegion());
@@ -104,9 +100,7 @@ itkLabelVotingImageFilterTest(int, char *[])
   }
 
   // Initialize Image C
-  inputImageC->SetLargestPossibleRegion(region);
-  inputImageC->SetBufferedRegion(region);
-  inputImageC->SetRequestedRegion(region);
+  inputImageC->SetRegions(region);
   inputImageC->Allocate();
 
   it = IteratorType(inputImageC, inputImageC->GetBufferedRegion());
@@ -116,7 +110,7 @@ itkLabelVotingImageFilterTest(int, char *[])
   }
 
   // Create the LabelVoting Filter
-  LabelVotingImageFilterType::Pointer labelVotingFilter = LabelVotingImageFilterType::New();
+  auto labelVotingFilter = LabelVotingImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(labelVotingFilter, LabelVotingImageFilter, ImageToImageFilter);
 
@@ -145,7 +139,7 @@ itkLabelVotingImageFilterTest(int, char *[])
     {
       std::cout << "Incorrect result using images A,B and undecided=255: "
                 << "i = " << i << ", Expected = " << combinationABundecided255[i] << ", Received = " << it.Get()
-                << "\n";
+                << '\n';
       return EXIT_FAILURE;
     }
   }
@@ -170,7 +164,7 @@ itkLabelVotingImageFilterTest(int, char *[])
     if (combinationAB[i] != it.Get())
     {
       std::cout << "Incorrect result using images A,B: i = " << i << ", Expected = " << combinationAB[i]
-                << ", Received = " << it.Get() << "\n";
+                << ", Received = " << it.Get() << '\n';
       return EXIT_FAILURE;
     }
   }
@@ -195,7 +189,7 @@ itkLabelVotingImageFilterTest(int, char *[])
     if (combinationABC[i] != it.Get())
     {
       std::cout << "Incorrect result using images A,B,C: i = " << i << ", Expected = " << combinationABC[i]
-                << ", Received = " << it.Get() << "\n";
+                << ", Received = " << it.Get() << '\n';
       return EXIT_FAILURE;
     }
   }

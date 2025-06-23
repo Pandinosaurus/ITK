@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,11 @@
 #include "itkErodeObjectMorphologyImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
 itkErodeObjectMorphologyImageFilterTest(int, char *[])
 {
-  unsigned int i;
 
   // Define the dimension of the images
   constexpr unsigned int myDimension = 2;
@@ -46,7 +46,7 @@ itkErodeObjectMorphologyImageFilterTest(int, char *[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create an image
-  myImageType::Pointer inputImage = myImageType::New();
+  auto inputImage = myImageType::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -57,9 +57,7 @@ itkErodeObjectMorphologyImageFilterTest(int, char *[])
   start[0] = 0;
   start[1] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image
   inputImage->SetRegions(region);
@@ -104,7 +102,7 @@ itkErodeObjectMorphologyImageFilterTest(int, char *[])
   ind[1] = 5;
   inputImage->SetPixel(ind, randomValue);
 
-  i = 0;
+  unsigned int i = 0;
   it.GoToBegin();
   while (!it.IsAtEnd())
   {
@@ -124,8 +122,8 @@ itkErodeObjectMorphologyImageFilterTest(int, char *[])
   using myFilterType = itk::ErodeObjectMorphologyImageFilter<myImageType, myImageType, myKernelType>;
 
   // Create the filter
-  myFilterType::Pointer    filter = myFilterType::New();
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  auto                           filter = myFilterType::New();
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   // Create the structuring element
   myKernelType           ball;
@@ -137,55 +135,45 @@ itkErodeObjectMorphologyImageFilterTest(int, char *[])
 
   // Connect the input image
   filter->SetInput(inputImage);
-  filter->SetKernel(ball);
-  filter->SetErodeValue(fgValue);
-  filter->SetBackgroundValue(5);
+  ITK_TEST_SET_GET_VALUE(inputImage, filter->GetInput());
 
-  // Exercise Set/Get methods for Background Value
-  const unsigned short backGround = filter->GetBackgroundValue();
-  if (backGround != 5)
-  {
-    std::cerr << "Set/Get Background value problem." << std::endl;
-    return EXIT_FAILURE;
-  }
+  filter->SetKernel(ball);
+  ITK_TEST_SET_GET_VALUE(ball, filter->GetKernel());
+
+  filter->SetErodeValue(fgValue);
+  ITK_TEST_SET_GET_VALUE(fgValue, filter->GetErodeValue());
+
+  constexpr unsigned short backgroundValue = 5;
+  filter->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
+
+  std::cout << "BoundaryCondition: " << filter->GetBoundaryCondition() << std::endl;
 
   // Get the Smart Pointer to the Filter Output
-  myImageType::Pointer outputImage = filter->GetOutput();
-
-
-  // Test the itkGetMacro
-  unsigned short value = filter->GetErodeValue();
-  std::cout << "filter->GetErodeValue(): " << value << std::endl;
+  const myImageType::Pointer outputImage = filter->GetOutput();
 
   // Execute the filter
-  try
-  {
-    filter->Update();
-    // Create an iterator for going through the image output
-    myIteratorType it2(outputImage, outputImage->GetBufferedRegion());
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-    //  Print the content of the result image
-    std::cout << "Result " << std::endl;
-    i = 0;
-    while (!it2.IsAtEnd())
+  // Create an iterator for going through the image output
+  myIteratorType it2(outputImage, outputImage->GetBufferedRegion());
+
+  // Print the content of the result image
+  std::cout << "Result " << std::endl;
+  i = 0;
+  while (!it2.IsAtEnd())
+  {
+    std::cout << it2.Get() << "  ";
+    ++it2;
+
+    if (++i % 20 == 0)
     {
-      std::cout << it2.Get() << "  ";
-      ++it2;
-
-      if (++i % 20 == 0)
-      {
-        std::cout << std::endl;
-      }
+      std::cout << std::endl;
     }
-  }
-
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught during filter Update\n" << e;
-    return -1;
   }
 
   // All objects should be automatically destroyed at this point
 
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

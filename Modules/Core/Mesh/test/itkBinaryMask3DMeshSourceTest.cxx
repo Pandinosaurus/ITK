@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "itkBinaryMask3DMeshSource.h"
+#include "itkTestingMacros.h"
 
 // Define the dimension of the images
 constexpr unsigned int Dimension = 3;
@@ -34,32 +35,39 @@ using PixelType = ImageType::PixelType;
 using ImagePointerType = ImageType::Pointer;
 
 void
-CreateCubeConfig(ImagePointerType      image,
-                 const unsigned int &  StartX,
-                 const unsigned int &  StartY,
-                 const unsigned int &  StartZ,
-                 const unsigned char & value1,
-                 const unsigned char & value2,
-                 const unsigned char & value3,
-                 const unsigned char & value4,
-                 const unsigned char & value5,
-                 const unsigned char & value6,
-                 const unsigned char & value7,
-                 const unsigned char & value8);
+CreateCubeConfig(ImagePointerType    image,
+                 const unsigned int  StartX,
+                 const unsigned int  StartY,
+                 const unsigned int  StartZ,
+                 const unsigned char value1,
+                 const unsigned char value2,
+                 const unsigned char value3,
+                 const unsigned char value4,
+                 const unsigned char value5,
+                 const unsigned char value6,
+                 const unsigned char value7,
+                 const unsigned char value8);
 
 void
-Create16CubeConfig(ImagePointerType      image,
-                   const unsigned int &  StartX,
-                   const unsigned int &  StartY,
-                   const unsigned int &  StartZ,
-                   const unsigned char & value1,
-                   const unsigned char & value2,
-                   const unsigned char & value3,
-                   const unsigned char & value4);
+Create16CubeConfig(ImagePointerType    image,
+                   const unsigned int  StartX,
+                   const unsigned int  StartY,
+                   const unsigned int  StartZ,
+                   const unsigned char value1,
+                   const unsigned char value2,
+                   const unsigned char value3,
+                   const unsigned char value4);
 
 int
 itkBinaryMask3DMeshSourceTest(int argc, char * argv[])
 {
+  if (argc != 2)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " useRegion" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Declare the type of the Mesh
   using MeshType = itk::Mesh<double>;
   using MeshSourceType = itk::BinaryMask3DMeshSource<ImageType, MeshType>;
@@ -72,77 +80,64 @@ itkBinaryMask3DMeshSourceTest(int argc, char * argv[])
   size[1] = 128;
   size[2] = 128;
 
-  IndexType start;
-  start.Fill(0);
+  constexpr IndexType start{};
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  RegionType region{ start, size };
 
-  ImagePointerType image = ImageType::New();
+  const ImagePointerType image = ImageType::New();
   image->SetRegions(region);
   image->Allocate();
   image->FillBuffer(backgroundValue);
 
-  unsigned int i, j, k, l;
-
-  for (unsigned char counter = 0; counter < 18; counter++)
+  for (unsigned char counter = 0; counter < 18; ++counter)
   {
-    i = (counter / 1) % 2; // 0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1.
-    j = (counter / 2) % 2; // 0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1.
-    k = (counter / 4) % 2; // 0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1.
-    l = (counter / 8) % 2; // 0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1.
+    const unsigned int i = (counter / 1) % 2; // 0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1.
+    const unsigned int j = (counter / 2) % 2; // 0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1.
+    const unsigned int k = (counter / 4) % 2; // 0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1.
+    const unsigned int l = (counter / 8) % 2; // 0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1.
     Create16CubeConfig(image, 0, 0, 3 * counter, i, j, k, l);
   }
 
-  MeshSourceType::Pointer meshSource = MeshSourceType::New();
+  auto meshSource = MeshSourceType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(meshSource, BinaryMask3DMeshSource, ImageToMeshFilter);
+
+
   meshSource->SetInput(image);
   meshSource->SetObjectValue(internalValue);
 
-  if (argc == 2)
+  auto useRegion = static_cast<bool>(std::stoi(argv[1]));
+  if (useRegion)
   {
-    if (std::stoi(argv[1]) == 1)
-    {
-      size[0] = 9;
-      size[1] = 9;
-      size[2] = 9;
-      region.SetSize(size);
-      meshSource->SetRegionOfInterest(region);
-    }
+    size[0] = 9;
+    size[1] = 9;
+    size[2] = 9;
+    region.SetSize(size);
+    meshSource->SetRegionOfInterest(region);
+    ITK_TEST_SET_GET_VALUE(region, meshSource->GetRegionOfInterest());
   }
 
-  try
-  {
-    meshSource->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown during Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(meshSource->Update());
 
-  std::cout << meshSource->GetNameOfClass() << std::endl;
-  std::cout << meshSource->GetNumberOfNodes() << std::endl;
-  std::cout << meshSource->GetNumberOfCells() << std::endl;
-  std::cout << meshSource << std::endl;
+  std::cout << "NumberOfNodes: " << meshSource->GetNumberOfNodes() << std::endl;
+  std::cout << "NumberOfCells: " << meshSource->GetNumberOfCells() << std::endl;
 
   return EXIT_SUCCESS;
 }
 
 void
-CreateCubeConfig(ImagePointerType      image,
-                 const unsigned int &  StartX,
-                 const unsigned int &  StartY,
-                 const unsigned int &  StartZ,
-                 const unsigned char & value1,
-                 const unsigned char & value2,
-                 const unsigned char & value3,
-                 const unsigned char & value4,
-                 const unsigned char & value5,
-                 const unsigned char & value6,
-                 const unsigned char & value7,
-                 const unsigned char & value8)
+CreateCubeConfig(ImagePointerType    image,
+                 const unsigned int  StartX,
+                 const unsigned int  StartY,
+                 const unsigned int  StartZ,
+                 const unsigned char value1,
+                 const unsigned char value2,
+                 const unsigned char value3,
+                 const unsigned char value4,
+                 const unsigned char value5,
+                 const unsigned char value6,
+                 const unsigned char value7,
+                 const unsigned char value8)
 {
   IndexType index;
 
@@ -196,14 +191,14 @@ CreateCubeConfig(ImagePointerType      image,
 }
 
 void
-Create16CubeConfig(ImagePointerType      image,
-                   const unsigned int &  StartX,
-                   const unsigned int &  StartY,
-                   const unsigned int &  StartZ,
-                   const unsigned char & value1,
-                   const unsigned char & value2,
-                   const unsigned char & value3,
-                   const unsigned char & value4)
+Create16CubeConfig(ImagePointerType    image,
+                   const unsigned int  StartX,
+                   const unsigned int  StartY,
+                   const unsigned int  StartZ,
+                   const unsigned char value1,
+                   const unsigned char value2,
+                   const unsigned char value3,
+                   const unsigned char value4)
 {
   // Case 0
   CreateCubeConfig(image, StartX + 0, StartY + 0, StartZ + 0, value1, value2, value3, value4, 0, 0, 0, 0);

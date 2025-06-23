@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 #include "itkImageIOBase.h"
 #include "itkByteSwapper.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace
 {
@@ -34,19 +35,17 @@ _WriteRawBytesAfterSwappingUtility(const void *         buffer,
   const itk::SizeValueType numberOfPixels = numberOfBytes / (sizeof(TStrongType));
   if (byteOrder == itk::IOByteOrderEnum::LittleEndian && InternalByteSwapperType::SystemIsBigEndian())
   {
-    auto * tempBuffer = new TStrongType[numberOfPixels];
-    memcpy((char *)tempBuffer, buffer, numberOfBytes);
-    InternalByteSwapperType::SwapRangeFromSystemToLittleEndian((TStrongType *)tempBuffer, numberOfComponents);
-    file.write((char *)tempBuffer, numberOfBytes);
-    delete[] tempBuffer;
+    const auto tempBuffer = itk::make_unique_for_overwrite<TStrongType[]>(numberOfPixels);
+    memcpy(tempBuffer.get(), buffer, numberOfBytes);
+    InternalByteSwapperType::SwapRangeFromSystemToLittleEndian(tempBuffer.get(), numberOfComponents);
+    file.write(reinterpret_cast<char *>(tempBuffer.get()), numberOfBytes);
   }
   else if (byteOrder == itk::IOByteOrderEnum::BigEndian && InternalByteSwapperType::SystemIsLittleEndian())
   {
-    auto * tempBuffer = new TStrongType[numberOfPixels];
-    memcpy((char *)tempBuffer, buffer, numberOfBytes);
-    InternalByteSwapperType::SwapRangeFromSystemToBigEndian((TStrongType *)tempBuffer, numberOfComponents);
-    file.write((char *)tempBuffer, numberOfBytes);
-    delete[] tempBuffer;
+    const auto tempBuffer = itk::make_unique_for_overwrite<TStrongType[]>(numberOfPixels);
+    memcpy(tempBuffer.get(), buffer, numberOfBytes);
+    InternalByteSwapperType::SwapRangeFromSystemToBigEndian(tempBuffer.get(), numberOfComponents);
+    file.write(reinterpret_cast<char *>(tempBuffer.get()), numberOfBytes);
   }
   else
   {

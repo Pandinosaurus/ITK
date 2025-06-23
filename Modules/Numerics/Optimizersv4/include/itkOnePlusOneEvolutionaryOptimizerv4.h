@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class OnePlusOneEvolutionaryOptimizerv4
+ * \class OnePlusOneEvolutionaryOptimizerv4
  * \brief 1+1 evolutionary strategy optimizer
  *
  * This optimizer searches for the optimal parameters. It changes its search
@@ -52,15 +52,8 @@ namespace itk
  * by Martin Styner, Univ. of North Carolina at Chapel Hill, and his
  * colleagues.
  *
- * For more details. refer to the following articles.
- * "Parametric estimate of intensity inhomogeneities applied to MRI"
- * Martin Styner, G. Gerig, Christian Brechbuehler, Gabor Szekely,
- * IEEE TRANSACTIONS ON MEDICAL IMAGING; 19(3), pp. 153-165, 2000,
- * (http://www.cs.unc.edu/~styner/docs/tmi00.pdf)
- *
- * "Evaluation of 2D/3D bias correction with 1+1ES-optimization"
- * Martin Styner, Prof. Dr. G. Gerig (IKT, BIWI, ETH Zuerich), TR-197
- * (http://www.cs.unc.edu/~styner/docs/StynerTR97.pdf)
+ * For more details refer to the following articles \cite styner2000
+ * and \cite styner1997.
  *
  * \sa NormalVariateGenerator
  * \ingroup ITKOptimizersv4
@@ -80,8 +73,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(OnePlusOneEvolutionaryOptimizerv4, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(OnePlusOneEvolutionaryOptimizerv4);
 
   /** Type of the Cost Function   */
   using CostFunctionType = SingleValuedCostFunctionv4;
@@ -91,35 +84,40 @@ public:
   using NormalVariateGeneratorType = Statistics::RandomVariateGeneratorBase;
 
   /** Measure type */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /** Parameters type */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Scales type */
-  using ScalesType = typename Superclass::ScalesType;
+  using typename Superclass::ScalesType;
 
   /** Set/Get maximum iteration limit. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumIteration, unsigned int);
   itkGetConstReferenceMacro(MaximumIteration, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the search radius grow factor in parameter space. */
+  /** @ITKStartGrouping */
   itkSetMacro(GrowthFactor, double);
   itkGetConstReferenceMacro(GrowthFactor, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the search radius shrink factor. */
+  /** @ITKStartGrouping */
   itkSetMacro(ShrinkFactor, double);
   itkGetConstReferenceMacro(ShrinkFactor, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get initial search radius in parameter space */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialRadius, double);
   itkGetConstReferenceMacro(InitialRadius, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the minimal size of search radius
    * (frobenius_norm of covariance matrix). */
+  /** @ITKStartGrouping */
   itkSetMacro(Epsilon, double);
   itkGetConstReferenceMacro(Epsilon, double);
-
+  /** @ITKEndGrouping */
   /** Get the current Frobenius norm of covariance matrix */
   itkGetConstReferenceMacro(FrobeniusNorm, double);
 
@@ -131,15 +129,16 @@ public:
    *
    * initialRadius: search radius in parameter space
    * grow: search radius grow factor
-   * shrink: searhc radius shrink factor */
+   * shrink: search radius shrink factor */
   void
   Initialize(double initialRadius, double grow = -1, double shrink = -1);
 
   /** Return Current Value */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CurrentCost, MeasureType);
   const MeasureType &
   GetValue() const override;
-
+  /** @ITKEndGrouping */
   /** Return if optimizer has been initialized */
   itkGetConstReferenceMacro(Initialized, bool);
 
@@ -160,11 +159,12 @@ public:
 
   itkGetConstReferenceMacro(CatchGetValueException, bool);
   itkSetMacro(CatchGetValueException, bool);
+  itkBooleanMacro(CatchGetValueException);
 
   itkGetConstReferenceMacro(MetricWorstPossibleValue, double);
   itkSetMacro(MetricWorstPossibleValue, double);
 
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
 protected:
@@ -176,45 +176,45 @@ protected:
 
 private:
   /** Smart pointer to the normal random variate generator. */
-  NormalVariateGeneratorType::Pointer m_RandomGenerator;
+  NormalVariateGeneratorType::Pointer m_RandomGenerator{};
 
   /** Maximum iteration limit. */
-  unsigned int m_MaximumIteration;
+  unsigned int m_MaximumIteration{};
 
-  bool   m_CatchGetValueException;
-  double m_MetricWorstPossibleValue;
+  bool   m_CatchGetValueException{};
+  double m_MetricWorstPossibleValue{};
 
   /** The minimal size of search radius
    * (frobenius_norm of covariance matrix). */
-  double m_Epsilon;
+  double m_Epsilon{};
 
   /** Initial search radius in parameter space. */
-  double m_InitialRadius;
+  double m_InitialRadius{};
 
   /** Search radius growth factor in parameter space. */
-  double m_GrowthFactor;
+  double m_GrowthFactor{};
 
   /** Search radius shrink factor in parameter space, */
-  double m_ShrinkFactor;
+  double m_ShrinkFactor{};
 
   /** Flag tells if the optimizer was initialized using Initialize function. */
-  bool m_Initialized;
+  bool m_Initialized{};
 
   /** Internal storage for the value type / used as a cache  */
-  MeasureType m_CurrentCost;
+  MeasureType m_CurrentCost{};
 
   /** This is user-settable flag to stop optimization.
    * when users call StartOptimization, this value will be set false.
    * By calling StopOptimization, this flag will be set true, and
    * optimization will stop at the next iteration. */
-  bool m_Stop;
+  bool m_Stop{};
 
   /** Stop description */
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{};
 
   /** Cache variable for reporting the Frobenius Norm
    */
-  double m_FrobeniusNorm;
+  double m_FrobeniusNorm{};
 }; // end of class
 } // end of namespace itk
 

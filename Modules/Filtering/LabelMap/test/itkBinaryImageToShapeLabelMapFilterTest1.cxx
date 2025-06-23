@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,13 @@ int
 itkBinaryImageToShapeLabelMapFilterTest1(int argc, char * argv[])
 {
 
-  if (argc != 8)
+  if (argc != 9)
   {
-    std::cerr << "Usage: " << argv[0];
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " inputBinaryImage outputShapeLabelMap";
     std::cerr << " fullyConnected(0/1) foregroundValue backgroundValue";
-    std::cerr << " feretDiameter, perimeter";
+    std::cerr << " feretDiameter perimeter computeOrientedBoundingBox";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
@@ -46,18 +47,22 @@ itkBinaryImageToShapeLabelMapFilterTest1(int argc, char * argv[])
 
   // reading image to file
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // converting binary image to shape label map
   using I2LType = itk::BinaryImageToShapeLabelMapFilter<ImageType, LabelMapType>;
-  I2LType::Pointer         i2l = I2LType::New();
-  itk::SimpleFilterWatcher watcher1(i2l);
+  auto i2l = I2LType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(i2l, BinaryImageToShapeLabelMapFilter, ImageToImageFilter);
+
+
+  const itk::SimpleFilterWatcher watcher1(i2l);
 
   i2l->SetInput(reader->GetOutput());
 
   // testing get/set FullyConnected macro
-  bool fullyConnected = std::stoi(argv[3]);
+  const bool fullyConnected = std::stoi(argv[3]);
   i2l->SetFullyConnected(fullyConnected);
   ITK_TEST_SET_GET_VALUE(fullyConnected, i2l->GetFullyConnected());
 
@@ -69,51 +74,33 @@ itkBinaryImageToShapeLabelMapFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_VALUE(true, i2l->GetFullyConnected());
 
   // testing get/set InputForegroundValue macro
-  int inputForegroundValue = (std::stoi(argv[4]));
+  const int inputForegroundValue = (std::stoi(argv[4]));
   i2l->SetInputForegroundValue(inputForegroundValue);
   ITK_TEST_SET_GET_VALUE(inputForegroundValue, i2l->GetInputForegroundValue());
 
   // testing get/set OutputBackgroundValue macro
-  int outputBackgroundValue = (std::stoi(argv[5]));
+  const int outputBackgroundValue = (std::stoi(argv[5]));
   i2l->SetOutputBackgroundValue(outputBackgroundValue);
   ITK_TEST_SET_GET_VALUE(outputBackgroundValue, i2l->GetOutputBackgroundValue());
 
-  // testing get/set ComputeFeretDiameter macro
-  bool computeFeretDiameter = (std::stoi(argv[6]));
-  i2l->SetComputeFeretDiameter(computeFeretDiameter);
-  ITK_TEST_SET_GET_VALUE(computeFeretDiameter, i2l->GetComputeFeretDiameter());
+  const bool computeFeretDiameter = (std::stoi(argv[6]));
+  ITK_TEST_SET_GET_BOOLEAN(i2l, ComputeFeretDiameter, computeFeretDiameter);
 
-  // testing boolean ComputeFeretDiameter macro
-  i2l->ComputeFeretDiameterOff();
-  ITK_TEST_SET_GET_VALUE(false, i2l->GetComputeFeretDiameter());
+  const bool computePerimeter = std::stoi(argv[7]);
+  ITK_TEST_SET_GET_BOOLEAN(i2l, ComputePerimeter, computePerimeter);
 
-  i2l->ComputeFeretDiameterOn();
-  ITK_TEST_SET_GET_VALUE(true, i2l->GetComputeFeretDiameter());
-
-  // testing get/set ComputePerimeter macro
-  bool computePerimeter = std::stoi(argv[7]);
-  i2l->SetComputePerimeter(computePerimeter);
-  ITK_TEST_SET_GET_VALUE(computePerimeter, i2l->GetComputePerimeter());
-
-  // testing boolean ComputePerimeter macro
-  i2l->ComputePerimeterOff();
-  ITK_TEST_SET_GET_VALUE(false, i2l->GetComputePerimeter());
-
-  i2l->ComputePerimeterOn();
-  ITK_TEST_SET_GET_VALUE(true, i2l->GetComputePerimeter());
-
-  i2l->SetComputeOrientedBoundingBox(true);
-  ITK_TEST_SET_GET_VALUE(true, i2l->GetComputeOrientedBoundingBox());
+  const bool computeOrientedBoundingBox = std::stoi(argv[8]);
+  ITK_TEST_SET_GET_BOOLEAN(i2l, ComputeOrientedBoundingBox, computeOrientedBoundingBox);
 
 
   using L2IType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
-  L2IType::Pointer         l2i = L2IType::New();
-  itk::SimpleFilterWatcher watcher2(l2i);
+  auto                           l2i = L2IType::New();
+  const itk::SimpleFilterWatcher watcher2(l2i);
 
   l2i->SetInput(i2l->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 
 namespace
 {
-std::mutex createImageIOLock;
+std::mutex createImageIOMutex;
 }
 
 ImageIOBase::Pointer
@@ -34,7 +34,7 @@ ImageIOFactory::CreateImageIO(const char * path, IOFileModeEnum mode)
 {
   std::list<ImageIOBase::Pointer> possibleImageIO;
 
-  std::lock_guard<std::mutex> mutexHolder(createImageIOLock);
+  const std::lock_guard<std::mutex> lockGuard(createImageIOMutex);
 
   for (auto & allobject : ObjectFactoryBase::CreateAllInstance("itkImageIOBase"))
   {

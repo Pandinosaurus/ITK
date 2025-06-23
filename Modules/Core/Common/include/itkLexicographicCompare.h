@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,15 +23,13 @@
 #include <iterator> // For std::begin, std::end, and reverse_iterator.
 #include "itkMacro.h"
 
-namespace itk
-{
 
 /*
 The  Functor was only used in one spot in the
 LevelSet class,  It does not exist in Slicer, BRAINSTools, Remote modules,
 ANTs, or any other project that I could find.
 */
-namespace Functor
+namespace itk::Functor
 {
 /** \class LexicographicCompare
  * \brief Order Index instances lexicographically.
@@ -74,22 +72,16 @@ public:
   bool
   operator()(const TBidirectionalRange1 & lhs, const TBidirectionalRange2 & rhs) const
   {
-    using ReverseIterator1 = std::reverse_iterator<decltype(std::begin(lhs))>;
-    using ReverseIterator2 = std::reverse_iterator<decltype(std::begin(rhs))>;
-
     // Note that the begin and end arguments are passed in reverse order, as
-    // each of them is converted to an std::reverse_iterator! (From C++14,
-    // std::make_reverse_iterator would be of help here, to construct the four
-    // std::reverse_iterator arguments!)
-    return std::lexicographical_compare(ReverseIterator1{ std::end(lhs) },
-                                        ReverseIterator1{ std::begin(lhs) },
-                                        ReverseIterator2{ std::end(rhs) },
-                                        ReverseIterator2{ std::begin(rhs) });
+    // each of them is converted to an std::reverse_iterator!
+    return std::lexicographical_compare(std::make_reverse_iterator(std::end(lhs)),
+                                        std::make_reverse_iterator(std::begin(lhs)),
+                                        std::make_reverse_iterator(std::end(rhs)),
+                                        std::make_reverse_iterator(std::begin(rhs)));
   }
 };
 
 
-} // end namespace Functor
-} // end namespace itk
+} // namespace itk::Functor
 
 #endif

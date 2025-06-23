@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,13 @@
 int
 itkJoinSeriesImageFilterStreamingTest(int argc, char * argv[])
 {
+  if (argc < 3)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   using ImageType = itk::Image<unsigned char, 3>;
   using SliceImageType = itk::Image<unsigned char, 2>;
 
@@ -35,18 +42,10 @@ itkJoinSeriesImageFilterStreamingTest(int argc, char * argv[])
   using JoinSeriesFilterType = itk::JoinSeriesImageFilter<SliceImageType, ImageType>;
   using ImageFileWriterType = itk::ImageFileWriter<ImageType>;
 
+  const std::string inputFileName = argv[1];
+  const std::string outputFileName = argv[2];
 
-  if (argc < 3)
-  {
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-
-  std::string inputFileName = argv[1];
-  std::string outputFileName = argv[2];
-
-  ImageFileReaderType::Pointer reader = ImageFileReaderType::New();
+  auto reader = ImageFileReaderType::New();
   reader->SetFileName(inputFileName);
   reader->UpdateOutputInformation();
 
@@ -55,19 +54,20 @@ itkJoinSeriesImageFilterStreamingTest(int argc, char * argv[])
     itk::Math::CastWithRangeCheck<unsigned int>(reader->GetOutput()->GetLargestPossibleRegion().GetSize(2));
 
 
-  itk::PipelineMonitorImageFilter<ImageType>::Pointer monitor1 = itk::PipelineMonitorImageFilter<ImageType>::New();
+  const itk::PipelineMonitorImageFilter<ImageType>::Pointer monitor1 =
+    itk::PipelineMonitorImageFilter<ImageType>::New();
   monitor1->SetInput(reader->GetOutput());
 
   std::vector<itk::ProcessObject::Pointer> savedPointers;
 
-  JoinSeriesFilterType::Pointer joinSeries = JoinSeriesFilterType::New();
+  auto joinSeries = JoinSeriesFilterType::New();
   joinSeries->SetOrigin(reader->GetOutput()->GetOrigin()[2]);
   joinSeries->SetSpacing(reader->GetOutput()->GetSpacing()[2]);
 
   for (ImageType::SizeValueType z = 0; z < numberOfSlices; ++z)
   {
 
-    SliceExtractorFilterType::Pointer extractor = SliceExtractorFilterType::New();
+    auto extractor = SliceExtractorFilterType::New();
     extractor->SetDirectionCollapseToSubmatrix();
 
     SliceExtractorFilterType::InputImageRegionType slice(reader->GetOutput()->GetLargestPossibleRegion());
@@ -85,24 +85,16 @@ itkJoinSeriesImageFilterStreamingTest(int argc, char * argv[])
   }
 
 
-  itk::PipelineMonitorImageFilter<ImageType>::Pointer monitor2 = itk::PipelineMonitorImageFilter<ImageType>::New();
+  const itk::PipelineMonitorImageFilter<ImageType>::Pointer monitor2 =
+    itk::PipelineMonitorImageFilter<ImageType>::New();
   monitor2->SetInput(joinSeries->GetOutput());
 
-  ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
+  auto writer = ImageFileWriterType::New();
   writer->SetInput(monitor2->GetOutput());
   writer->SetFileName(outputFileName);
   writer->SetNumberOfStreamDivisions(numberOfSlices);
 
-
-  try
-  {
-    writer->Update();
-  }
-  catch (...)
-  {
-    std::cerr << "Exception while trying to stream write file." << std::endl;
-    throw;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
   std::cout << "Number of Updates: " << monitor1->GetNumberOfUpdates() << std::endl;
   std::cout << "Verifying ImageFileReader to ExtractImageFilter pipeline interaction" << std::endl;
@@ -123,5 +115,6 @@ itkJoinSeriesImageFilterStreamingTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

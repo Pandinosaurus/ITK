@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ main(int, char *[])
   using CovariantVectorType = SurfaceType::CovariantVectorType;
   using PointType = SurfaceType::PointType;
 
-  SurfacePointer surface = SurfaceType::New();
+  const SurfacePointer surface = SurfaceType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -67,7 +67,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   SurfaceType::SurfacePointListType list;
 
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     SurfacePointType p;
     PointType        pnt;
@@ -77,7 +77,7 @@ main(int, char *[])
     p.SetPositionInObjectSpace(pnt);
     p.SetColor(1, 0, 0, 1);
     CovariantVectorType normal;
-    for (unsigned int j = 0; j < 3; j++)
+    for (unsigned int j = 0; j < 3; ++j)
     {
       normal[j] = j;
     }
@@ -109,7 +109,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  SurfaceType::SurfacePointListType pointList = surface->GetPoints();
+  const SurfaceType::SurfacePointListType pointList = surface->GetPoints();
   std::cout << "Number of points representing the surface: ";
   std::cout << pointList.size() << std::endl;
   // Software Guide : EndCodeSnippet
@@ -127,16 +127,14 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  SurfaceType::SurfacePointListType::const_iterator it =
-    surface->GetPoints().begin();
-  while (it != surface->GetPoints().end())
+  for (auto & currentPoint : surface->GetPoints())
   {
-    std::cout << "Position = " << (*it).GetPositionInObjectSpace()
+    std::cout << "Position = " << currentPoint.GetPositionInObjectSpace()
               << std::endl;
-    std::cout << "Normal = " << (*it).GetNormalInObjectSpace() << std::endl;
-    std::cout << "Color = " << (*it).GetColor() << std::endl;
+    std::cout << "Normal = " << currentPoint.GetNormalInObjectSpace()
+              << std::endl;
+    std::cout << "Color = " << currentPoint.GetColor() << std::endl;
     std::cout << std::endl;
-    it++;
   }
   // Software Guide : EndCodeSnippet
 

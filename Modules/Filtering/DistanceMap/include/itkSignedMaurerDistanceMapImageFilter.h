@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class SignedMaurerDistanceMapImageFilter
+ * \class SignedMaurerDistanceMapImageFilter
  *
  *  \brief This filter calculates the Euclidean distance transform
  *  of a binary image in linear time for arbitrary dimensions.
@@ -50,11 +50,7 @@ namespace itk
  *  the itk::DanielssonDistanceImageFilter class except it does not return
  *  the Voronoi map.
  *
- *  Reference:
- *  C. R. Maurer, Jr., R. Qi, and V. Raghavan, "A Linear Time Algorithm
- *  for Computing Exact Euclidean Distance Transforms of Binary Images in
- *  Arbitrary Dimensions", IEEE - Transactions on Pattern Analysis and
- *  Machine Intelligence, 25(2): 265-270, 2003.
+ *  For algorithmic details see \cite maurer2003.
  *
  * \ingroup ImageFeatureExtraction
  * \ingroup ITKDistanceMap
@@ -91,8 +87,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(SignedMaurerDistanceMapImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SignedMaurerDistanceMapImageFilter);
 
   using InputRegionType = typename InputImageType::RegionType;
   using OutputRegionType = typename OutputImageType::RegionType;
@@ -150,16 +146,13 @@ public:
    * Set the background value which defines the object.  Usually this
    * value is = 0.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, InputPixelType);
   itkGetConstReferenceMacro(BackgroundValue, InputPixelType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputPixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(OutputImagePixelTypeIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   SignedMaurerDistanceMapImageFilter();
@@ -188,8 +181,8 @@ private:
        Voronoi(unsigned int, OutputIndexType idx, OutputImageType * output);
   bool Remove(OutputPixelType, OutputPixelType, OutputPixelType, OutputPixelType, OutputPixelType, OutputPixelType);
 
-  InputPixelType   m_BackgroundValue;
-  InputSpacingType m_Spacing;
+  InputPixelType   m_BackgroundValue{};
+  InputSpacingType m_Spacing{};
 
   unsigned int m_CurrentDimension{ 0 };
 
@@ -197,7 +190,7 @@ private:
   bool m_UseImageSpacing{ true };
   bool m_SquaredDistance{ false };
 
-  const InputImageType * m_InputCache;
+  const InputImageType * m_InputCache{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ itkStatisticsAlgorithmTest(int, char *[])
   using MeasurementVectorType = itk::Array<float>;
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
   SampleType::MeasurementVectorType lower(measurementVectorSize);
   SampleType::MeasurementVectorType upper(measurementVectorSize);
@@ -66,14 +66,14 @@ itkStatisticsAlgorithmTest(int, char *[])
   measure[1] = 39;
   sample->PushBack(measure);
 
-  for (unsigned int i = 1; i < numberOfSamples; i++)
+  for (unsigned int i = 1; i < numberOfSamples; ++i)
   {
-    float value = i + 3;
+    const float value = i + 3;
     measure[0] = value;
     measure[1] = value * value;
     sample->PushBack(measure);
 
-    for (unsigned int j = 0; j < measurementVectorSize; j++)
+    for (unsigned int j = 0; j < measurementVectorSize; ++j)
     {
       if (measure[j] < realLower[j])
       {
@@ -91,9 +91,9 @@ itkStatisticsAlgorithmTest(int, char *[])
   ITK_TRY_EXPECT_NO_EXCEPTION(
     itk::Statistics::Algorithm::FindSampleBound(constSample, constSample->Begin(), constSample->End(), lower, upper));
 
-  const float epsilon = 1e-5;
+  constexpr float epsilon = 1e-5;
 
-  for (unsigned int j = 0; j < measurementVectorSize; j++)
+  for (unsigned int j = 0; j < measurementVectorSize; ++j)
   {
     if (itk::Math::abs(lower[j] - realLower[j]) > epsilon)
     {

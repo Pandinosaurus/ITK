@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,13 @@
 #ifndef itkLevelSetContainerBase_hxx
 #define itkLevelSetContainerBase_hxx
 
-#include "itkLevelSetContainerBase.h"
 
 namespace itk
 {
 
 template <typename TIdentifier, typename TLevelSet>
-const typename LevelSetContainerBase<TIdentifier, TLevelSet>::LevelSetContainerType &
-LevelSetContainerBase<TIdentifier, TLevelSet>::GetContainer() const
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::GetContainer() const -> const LevelSetContainerType &
 {
   return m_Container;
 }
@@ -39,43 +38,43 @@ LevelSetContainerBase<TIdentifier, TLevelSet>::SetContainer(const LevelSetContai
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::Iterator
-LevelSetContainerBase<TIdentifier, TLevelSet>::Begin()
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::Begin() -> Iterator
 {
   return Iterator(m_Container.begin());
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::ConstIterator
-LevelSetContainerBase<TIdentifier, TLevelSet>::Begin() const
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::Begin() const -> ConstIterator
 {
   return ConstIterator(m_Container.begin());
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::Iterator
-LevelSetContainerBase<TIdentifier, TLevelSet>::End()
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::End() -> Iterator
 {
   return Iterator(m_Container.end());
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::ConstIterator
-LevelSetContainerBase<TIdentifier, TLevelSet>::End() const
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::End() const -> ConstIterator
 {
   return ConstIterator(m_Container.end());
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::LevelSetIdentifierType
-LevelSetContainerBase<TIdentifier, TLevelSet>::Size() const
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::Size() const -> LevelSetIdentifierType
 {
   return static_cast<LevelSetIdentifierType>(m_Container.size());
 }
 
 template <typename TIdentifier, typename TLevelSet>
-typename LevelSetContainerBase<TIdentifier, TLevelSet>::LevelSetPointer
-LevelSetContainerBase<TIdentifier, TLevelSet>::GetLevelSet(const LevelSetIdentifierType & iId) const
+auto
+LevelSetContainerBase<TIdentifier, TLevelSet>::GetLevelSet(const LevelSetIdentifierType & iId) const -> LevelSetPointer
 {
   auto it = m_Container.find(iId);
 
@@ -83,10 +82,8 @@ LevelSetContainerBase<TIdentifier, TLevelSet>::GetLevelSet(const LevelSetIdentif
   {
     return it->second;
   }
-  else
-  {
-    return nullptr;
-  }
+
+  return nullptr;
 }
 
 template <typename TIdentifier, typename TLevelSet>
@@ -101,28 +98,26 @@ LevelSetContainerBase<TIdentifier, TLevelSet>::AddLevelSet(const LevelSetIdentif
     this->Modified();
     return true;
   }
+
+  if (m_Container.empty())
+  {
+    m_Container.insert(LevelSetPairType(iId, iLevelSet));
+    this->Modified();
+    return true;
+  }
   else
   {
-    if (m_Container.empty())
+    auto it = m_Container.find(iId);
+
+    if (it != m_Container.end())
+    {
+      return false;
+    }
+    else
     {
       m_Container.insert(LevelSetPairType(iId, iLevelSet));
       this->Modified();
       return true;
-    }
-    else
-    {
-      auto it = m_Container.find(iId);
-
-      if (it != m_Container.end())
-      {
-        return false;
-      }
-      else
-      {
-        m_Container.insert(LevelSetPairType(iId, iLevelSet));
-        this->Modified();
-        return true;
-      }
     }
   }
 }
@@ -142,10 +137,8 @@ LevelSetContainerBase<TIdentifier, TLevelSet>::RemoveLevelSet(const LevelSetIden
 
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 template <typename TIdentifier, typename TLevelSet>

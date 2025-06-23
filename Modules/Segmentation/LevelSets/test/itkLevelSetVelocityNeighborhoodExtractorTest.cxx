@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,22 +29,20 @@ itkLevelSetVelocityNeighborhoodExtractorTest(int, char *[])
 
   // Create an input image using fastmarching
   using SourceType = itk::FastMarchingImageFilter<ImageType>;
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
-  ImageType::SizeType size;
-  size.Fill(17);
+  auto size = ImageType::SizeType::Filled(17);
 
   source->SetOutputSize(size);
 
   SourceType::NodeType node;
-  ImageType::IndexType index;
-  index.Fill(8);
+  auto                 index = ImageType::IndexType::Filled(8);
 
   node.SetIndex(index);
   node.SetValue(-4.0);
 
   using NodeContainerType = SourceType::NodeContainer;
-  NodeContainerType::Pointer container = NodeContainerType::New();
+  auto container = NodeContainerType::New();
 
   container->InsertElement(0, node);
 
@@ -53,7 +51,7 @@ itkLevelSetVelocityNeighborhoodExtractorTest(int, char *[])
   source->Update();
 
   using ExtractorType = itk::LevelSetVelocityNeighborhoodExtractor<ImageType, AuxValueType, 2>;
-  ExtractorType::Pointer extractor = ExtractorType::New();
+  auto extractor = ExtractorType::New();
 
   extractor->SetInputLevelSet(source->GetOutput());
   extractor->SetLevelSetValue(0.0);
@@ -62,14 +60,14 @@ itkLevelSetVelocityNeighborhoodExtractorTest(int, char *[])
   // create some dummy auxiliary variable images
   using AuxImageType = ExtractorType::AuxImageType;
 
-  AuxImageType::Pointer aux0 = AuxImageType::New();
+  auto aux0 = AuxImageType::New();
   aux0->SetRegions(source->GetOutput()->GetBufferedRegion());
   aux0->Allocate();
   aux0->FillBuffer(1.0);
 
   extractor->SetAuxImage(aux0, 0);
 
-  AuxImageType::Pointer aux1 = AuxImageType::New();
+  auto aux1 = AuxImageType::New();
   aux1->SetRegions(source->GetOutput()->GetBufferedRegion());
   aux1->Allocate();
   aux1->FillBuffer(5.0);
@@ -79,36 +77,30 @@ itkLevelSetVelocityNeighborhoodExtractorTest(int, char *[])
   extractor->Locate();
 
   using Iterator = NodeContainerType::ConstIterator;
-  Iterator iter;
-  Iterator iterEnd;
 
   using AuxValueContainer = ExtractorType::AuxValueContainer;
   using AuxIterator = AuxValueContainer::ConstIterator;
-  AuxIterator aIter;
-  AuxIterator aIterEnd;
 
   std::cout << "Inside Points" << std::endl;
-  iter = extractor->GetInsidePoints()->Begin();
-  iterEnd = extractor->GetInsidePoints()->End();
-  aIter = extractor->GetAuxInsideValues()->Begin();
-  aIterEnd = extractor->GetAuxInsideValues()->End();
-  for (; iter != iterEnd; iter++, aIter++)
+
+  Iterator    iterEnd = extractor->GetInsidePoints()->End();
+  AuxIterator aIter = extractor->GetAuxInsideValues()->Begin();
+  for (Iterator iter = extractor->GetInsidePoints()->Begin(); iter != iterEnd; iter++, aIter++)
   {
-    std::cout << iter.Value().GetIndex() << " ";
-    std::cout << iter.Value().GetValue() << " ";
+    std::cout << iter.Value().GetIndex() << ' ';
+    std::cout << iter.Value().GetValue() << ' ';
     std::cout << aIter.Value() << std::endl;
   }
 
   std::cout << "Outside Points" << std::endl;
-  iter = extractor->GetOutsidePoints()->Begin();
+
   iterEnd = extractor->GetOutsidePoints()->End();
   aIter = extractor->GetAuxOutsideValues()->Begin();
-  aIterEnd = extractor->GetAuxOutsideValues()->End();
 
-  for (; iter != iterEnd; iter++, aIter++)
+  for (Iterator iter = extractor->GetOutsidePoints()->Begin(); iter != iterEnd; iter++, aIter++)
   {
-    std::cout << iter.Value().GetIndex() << " ";
-    std::cout << iter.Value().GetValue() << " ";
+    std::cout << iter.Value().GetIndex() << ' ';
+    std::cout << iter.Value().GetValue() << ' ';
     std::cout << aIter.Value() << std::endl;
   }
 

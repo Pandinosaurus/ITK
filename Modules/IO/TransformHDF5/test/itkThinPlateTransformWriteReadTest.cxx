@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,17 +33,17 @@
 #include "itkTestingMacros.h"
 #include "itkHDF5TransformIOFactory.h"
 #include "itkHDF5TransformIO.h"
-#include <itkTransformFactory.h>
+#include "itkTransformFactory.h"
 
 template <typename TransformType>
 static int
 ReadWriteTest(const char * const fileName)
 {
-  const double epsilon = 1e-12;
+  constexpr double epsilon = 1e-12;
   using ParametersValueType = typename TransformType::ScalarType;
 
   // Create transform
-  typename TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   using PointType = typename TransformType::InputPointType;
   using PointsIteratorType = typename TransformType::PointsIterator;
   using PointSetType = typename TransformType::PointSetType;
@@ -53,8 +53,8 @@ ReadWriteTest(const char * const fileName)
   PointType mappedPoint;
 
   // Reserve memory for the number of points
-  typename PointSetType::Pointer sourceLandmarks = PointSetType::New();
-  typename PointSetType::Pointer targetLandmarks = PointSetType::New();
+  auto sourceLandmarks = PointSetType::New();
+  auto targetLandmarks = PointSetType::New();
 
   sourceLandmarks->GetPoints()->Reserve(4);
   targetLandmarks->GetPoints()->Reserve(4);
@@ -65,9 +65,9 @@ ReadWriteTest(const char * const fileName)
 
   PointsIteratorType sourceend = sourceLandmarks->GetPoints()->End();
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; ++i)
   {
-    for (int j = 0; j < 2; j++)
+    for (int j = 0; j < 2; ++j)
     {
       sourcePoint[0] = j;
       sourcePoint[1] = i;
@@ -105,14 +105,14 @@ ReadWriteTest(const char * const fileName)
 
   // Write transform to file
   using TransformWriterType = typename itk::TransformFileWriterTemplate<ParametersValueType>;
-  typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+  auto transformWriter = TransformWriterType::New();
   transformWriter->SetFileName(fileName);
   transformWriter->AddTransform(transform);
   ITK_TRY_EXPECT_NO_EXCEPTION(transformWriter->Update());
 
   // Read transform file
   using TransformReaderType = typename itk::TransformFileReaderTemplate<ParametersValueType>;
-  typename TransformReaderType::Pointer transformReader = TransformReaderType::New();
+  auto transformReader = TransformReaderType::New();
   transformReader->SetFileName(fileName);
   ITK_TRY_EXPECT_NO_EXCEPTION(transformReader->Update());
 
@@ -173,11 +173,11 @@ itkThinPlateTransformWriteReadTest(int argc, char * argv[])
   itk::ObjectFactoryBase::RegisterFactory(itk::HDF5TransformIOFactory::New());
 
   // Run tests
-  int resultEBS = ReadWriteTest<EBSTransform2DType>("ElasticBodySplineKernelTransform_double_2.h5");
-  int resultEBRS = ReadWriteTest<EBRSTransform2DType>("ElasticBodyReciprocalSplineKernelTransform_double_2.h5");
-  int resultTPS = ReadWriteTest<TPSTransform2DType>("ThinPlateSplineKernelTransform_double_2.h5");
-  int resultTPR2 = ReadWriteTest<TPR2LRSTransform2DType>("ThinPlateR2LogRSplineKernelTransform_double_2.h5");
-  int resultVS = ReadWriteTest<VSTransform2DType>("VolumeSplineKernelTransform_double_2.h5");
+  const int resultEBS = ReadWriteTest<EBSTransform2DType>("ElasticBodySplineKernelTransform_double_2.h5");
+  const int resultEBRS = ReadWriteTest<EBRSTransform2DType>("ElasticBodyReciprocalSplineKernelTransform_double_2.h5");
+  const int resultTPS = ReadWriteTest<TPSTransform2DType>("ThinPlateSplineKernelTransform_double_2.h5");
+  const int resultTPR2 = ReadWriteTest<TPR2LRSTransform2DType>("ThinPlateR2LogRSplineKernelTransform_double_2.h5");
+  const int resultVS = ReadWriteTest<VSTransform2DType>("VolumeSplineKernelTransform_double_2.h5");
 
   // Check results
   if (resultEBS != EXIT_SUCCESS || resultEBRS != EXIT_SUCCESS || resultTPS != EXIT_SUCCESS ||

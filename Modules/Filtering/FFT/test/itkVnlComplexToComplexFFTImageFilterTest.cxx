@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,14 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkVnlComplexToComplexFFTImageFilter.h"
 #include "itkForwardFFTImageFilter.h"
 #include "itkInverseFFTImageFilter.h"
 #include "itkTestingMacros.h"
+
+#include "itkObjectFactoryBase.h"
+#include "itkVnlComplexToComplexFFTImageFilter.h"
+#include "itkVnlForwardFFTImageFilter.h"
+#include "itkVnlInverseFFTImageFilter.h"
 
 template <typename TPixel, unsigned int VDimension>
 int
@@ -35,40 +39,38 @@ transformImage(const char * inputImageFileName, const char * outputImageFileName
   using ComplexImageType = itk::Image<ComplexPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<RealImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputImageFileName);
 
-  using ForwardFilterType = itk::ForwardFFTImageFilter<RealImageType, ComplexImageType>;
-  typename ForwardFilterType::Pointer forwardFilter = ForwardFilterType::New();
+  using ForwardFilterType = itk::VnlForwardFFTImageFilter<RealImageType, ComplexImageType>;
+  auto forwardFilter = ForwardFilterType::New();
   forwardFilter->SetInput(reader->GetOutput());
 
   using ComplexFilterType = itk::VnlComplexToComplexFFTImageFilter<ComplexImageType>;
-  typename ComplexFilterType::Pointer inverseComplexFilter = ComplexFilterType::New();
+  auto inverseComplexFilter = ComplexFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    inverseComplexFilter, VnlComplexToComplexFFTImageFilter, ComplexToComplexFFTImageFilter);
+
+
   inverseComplexFilter->SetInput(forwardFilter->GetOutput());
   inverseComplexFilter->SetTransformDirection(ComplexFilterType::TransformDirectionEnum::INVERSE);
 
-  typename ComplexFilterType::Pointer forwardComplexFilter = ComplexFilterType::New();
+  auto forwardComplexFilter = ComplexFilterType::New();
   forwardComplexFilter->SetInput(inverseComplexFilter->GetOutput());
   forwardComplexFilter->SetTransformDirection(ComplexFilterType::TransformDirectionEnum::FORWARD);
 
-  using InverseFilterType = itk::InverseFFTImageFilter<ComplexImageType, RealImageType>;
-  typename InverseFilterType::Pointer inverseFilter = InverseFilterType::New();
+  using InverseFilterType = itk::VnlInverseFFTImageFilter<ComplexImageType, RealImageType>;
+  auto inverseFilter = InverseFilterType::New();
   inverseFilter->SetInput(forwardComplexFilter->GetOutput());
 
   using WriterType = itk::ImageFileWriter<RealImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputImageFileName);
   writer->SetInput(inverseFilter->GetOutput());
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & error)
-  {
-    std::cerr << error << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }
@@ -78,7 +80,8 @@ itkVnlComplexToComplexFFTImageFilterTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <InputImage> <OutputImage> <float|double>"
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage <float|double>"
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -86,7 +89,7 @@ itkVnlComplexToComplexFFTImageFilterTest(int argc, char * argv[])
   const char *      outputImageFileName = argv[2];
   const std::string pixelTypeString(argv[3]);
 
-  itk::ImageIOBase::Pointer imageIO =
+  const itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(inputImageFileName, itk::ImageIOFactory::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(inputImageFileName);
   imageIO->ReadImageInformation();
@@ -106,7 +109,7 @@ itkVnlComplexToComplexFFTImageFilterTest(int argc, char * argv[])
     }
     return EXIT_SUCCESS;
   }
-  else if (pixelTypeString.compare("double") == 0)
+  if (pixelTypeString.compare("double") == 0)
   {
     switch (dimension)
     {

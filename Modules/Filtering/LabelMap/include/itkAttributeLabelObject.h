@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,7 +52,7 @@ public:
 
 
 /**
- *\class AttributeLabelObject
+ * \class AttributeLabelObject
  *  \brief A LabelObject with a generic attribute
  *
  * The attribute type is defined in the third template parameter.
@@ -62,7 +62,7 @@ public:
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa LabelObject, ShapeLabelObject, StatisticsLabelObject
  *
@@ -70,7 +70,7 @@ public:
  * \ingroup ITKLabelMap
  */
 template <typename TLabel, unsigned int VImageDimension, typename TAttributeValue>
-class AttributeLabelObject : public LabelObject<TLabel, VImageDimension>
+class ITK_TEMPLATE_EXPORT AttributeLabelObject : public LabelObject<TLabel, VImageDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(AttributeLabelObject);
@@ -86,20 +86,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AttributeLabelObject, LabelObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AttributeLabelObject);
 
   using LabelMapType = LabelMap<Self>;
 
   static constexpr unsigned int ImageDimension = VImageDimension;
 
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   using LabelType = TLabel;
 
-  using LineType = typename Superclass::LineType;
+  using typename Superclass::LineType;
 
-  using LengthType = typename Superclass::LengthType;
+  using typename Superclass::LengthType;
 
   using AttributeValueType = TAttributeValue;
 
@@ -141,10 +141,7 @@ public:
   }
 
 protected:
-  AttributeLabelObject()
-  {
-    // how to initialize the attribute ?
-  }
+  AttributeLabelObject() = default;
 
 
   void
@@ -156,7 +153,7 @@ protected:
   }
 
 private:
-  AttributeValueType m_Attribute;
+  AttributeValueType m_Attribute{};
 };
 
 } // end namespace itk

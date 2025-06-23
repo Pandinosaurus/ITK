@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
  * StatisticsImageFilter computes the minimum, maximum, sum, sum of squares, mean, variance
  * sigma of an image.  The filter needs all of its input image.  It
  * behaves as a filter with an input and output. Thus it can be inserted
- * in a pipline with other filters and the statistics will only be
+ * in a pipeline with other filters and the statistics will only be
  * recomputed if a downstream filter changes.
  *
  * This filter is automatically multi-threaded and can stream its
@@ -48,8 +48,8 @@ namespace itk
  * \ingroup ITKImageStatistics
  *
  * \sphinx
- * \sphinxexample{Filtering/ImageStatistics/ComputeMinMaxVarianceMeanOfImage,Compute Min, Max, Variance And Mean Of
- * Image} \endsphinx
+ * \sphinxexample{Filtering/ImageStatistics/ComputeMinMaxVarianceMeanOfImage,Compute Min Max Variance And Mean Of Image}
+ * \endsphinx
  */
 template <typename TInputImage>
 class ITK_TEMPLATE_EXPORT StatisticsImageFilter : public ImageSink<TInputImage>
@@ -66,8 +66,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(StatisticsImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StatisticsImageFilter);
 
   /** Image related type alias. */
   using InputImagePointer = typename TInputImage::Pointer;
@@ -118,7 +118,7 @@ public:
   {
     Superclass::SetNumberOfStreamDivisions(n);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfStreamDivisions() const override
   {
     return Superclass::GetNumberOfStreamDivisions();
@@ -131,11 +131,7 @@ public:
   DataObjectPointer
   MakeOutput(const DataObjectIdentifierType & name) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   StatisticsImageFilter();
@@ -171,7 +167,7 @@ private:
   PixelType     m_ThreadMin{ 1 };
   PixelType     m_ThreadMax{ 1 };
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 }; // end of class
 } // end namespace itk
 

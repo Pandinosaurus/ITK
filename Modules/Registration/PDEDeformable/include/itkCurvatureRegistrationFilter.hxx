@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +28,12 @@
 
 namespace itk
 {
-/**
- * Default constructor
- */
+
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TImageForceFunction>
 CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImageForceFunction>::
   CurvatureRegistrationFilter()
 {
-  typename RegistrationFunctionType::Pointer drfp;
-  drfp = RegistrationFunctionType::New();
+  auto drfp = RegistrationFunctionType::New();
 
   this->SetDifferenceFunction(static_cast<FiniteDifferenceFunctionType *>(drfp.GetPointer()));
 
@@ -52,9 +49,6 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
   }
 }
 
-/**
- * Destructor.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TImageForceFunction>
 CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImageForceFunction>::
   ~CurvatureRegistrationFilter()
@@ -83,9 +77,6 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
   Superclass::PrintSelf(os, indent);
 }
 
-/**
- * Set the function state values before each iteration
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TImageForceFunction>
 void
 CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImageForceFunction>::Initialize()
@@ -94,7 +85,7 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
 
   if (!drfp)
   {
-    itkExceptionMacro(<< "Could not cast difference function to CurvatureRegistrationFunction");
+    itkExceptionMacro("Could not cast difference function to CurvatureRegistrationFunction");
   }
 
   drfp->SetDisplacementField(this->GetDisplacementField());
@@ -190,9 +181,6 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
   Superclass::Initialize();
 }
 
-/*
- * Get the metric value from the difference function
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TImageForceFunction>
 double
 CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImageForceFunction>::GetMetric() const
@@ -201,15 +189,12 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
 
   if (!drfp)
   {
-    itkExceptionMacro(<< "Could not cast difference function to CurvatureRegistrationFunction");
+    itkExceptionMacro("Could not cast difference function to CurvatureRegistrationFunction");
   }
 
   return drfp->GetMetric();
 }
 
-/*
- * Get the metric value from the difference function
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TImageForceFunction>
 void
 CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImageForceFunction>::ApplyUpdate(
@@ -217,7 +202,7 @@ CurvatureRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField, TImag
 {
   // unused dt parameter
   (void)dt;
-  DisplacementFieldPointer update = this->GetUpdateBuffer();
+  const DisplacementFieldPointer update = this->GetUpdateBuffer();
 
   ImageRegionConstIterator<DisplacementFieldType>   itInDeformation;
   ImageRegionIterator<DisplacementFieldType>        itOutDeformation;

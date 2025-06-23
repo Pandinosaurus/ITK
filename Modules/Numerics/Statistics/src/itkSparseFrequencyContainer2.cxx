@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,39 +17,37 @@
  *=========================================================================*/
 #include "itkSparseFrequencyContainer2.h"
 
-namespace itk
+namespace itk::Statistics
 {
-namespace Statistics
-{
-SparseFrequencyContainer2 ::SparseFrequencyContainer2()
-{
-  m_TotalFrequency = NumericTraits<TotalAbsoluteFrequencyType>::ZeroValue();
-}
+SparseFrequencyContainer2::SparseFrequencyContainer2()
+  : m_TotalFrequency(TotalAbsoluteFrequencyType{})
+{}
 
-void SparseFrequencyContainer2 ::Initialize(SizeValueType)
+void
+SparseFrequencyContainer2::Initialize(SizeValueType)
 {
   this->SetToZero();
 }
 
 void
-SparseFrequencyContainer2 ::SetToZero()
+SparseFrequencyContainer2::SetToZero()
 {
   auto iter = m_FrequencyContainer.begin();
   auto end = m_FrequencyContainer.end();
   while (iter != end)
   {
-    iter->second = NumericTraits<AbsoluteFrequencyType>::ZeroValue();
+    iter->second = AbsoluteFrequencyType{};
     ++iter;
   }
-  m_TotalFrequency = NumericTraits<TotalAbsoluteFrequencyType>::ZeroValue();
+  m_TotalFrequency = TotalAbsoluteFrequencyType{};
 }
 
 bool
-SparseFrequencyContainer2 ::SetFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
+SparseFrequencyContainer2::SetFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
 {
   // No need to test for bounds because in a map container the
   // element is allocated if the key doesn't exist yet
-  AbsoluteFrequencyType frequency = this->GetFrequency(id);
+  const AbsoluteFrequencyType frequency = this->GetFrequency(id);
 
   m_FrequencyContainer[id] = value;
   m_TotalFrequency += (value - frequency);
@@ -57,7 +55,7 @@ SparseFrequencyContainer2 ::SetFrequency(const InstanceIdentifier id, const Abso
 }
 
 SparseFrequencyContainer2::AbsoluteFrequencyType
-SparseFrequencyContainer2 ::GetFrequency(const InstanceIdentifier id) const
+SparseFrequencyContainer2::GetFrequency(const InstanceIdentifier id) const
 {
   auto iter = m_FrequencyContainer.find(id);
 
@@ -65,18 +63,16 @@ SparseFrequencyContainer2 ::GetFrequency(const InstanceIdentifier id) const
   {
     return iter->second;
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 bool
-SparseFrequencyContainer2 ::IncreaseFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
+SparseFrequencyContainer2::IncreaseFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
 {
   // No need to test for bounds because in a map container the
   // element is allocated if the key doesn't exist yet
-  AbsoluteFrequencyType frequency = this->GetFrequency(id);
+  const AbsoluteFrequencyType frequency = this->GetFrequency(id);
 
   m_FrequencyContainer[id] = frequency + value;
   m_TotalFrequency += value;
@@ -84,9 +80,8 @@ SparseFrequencyContainer2 ::IncreaseFrequency(const InstanceIdentifier id, const
 }
 
 void
-SparseFrequencyContainer2 ::PrintSelf(std::ostream & os, Indent indent) const
+SparseFrequencyContainer2::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics

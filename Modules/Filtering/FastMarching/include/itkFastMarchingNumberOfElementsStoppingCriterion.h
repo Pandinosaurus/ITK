@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,14 +31,15 @@ namespace itk
  *
  * \note For itk::Image, one element is one pixel. So the number of elements is directly
  * linked to the physical size of the object, i.e.
- * \f$ PhysicalSize = TargetNumberOfElements \cdot \prod_{i=1}{dim} Spacing_{i} \f$
+ * \f$ PhysicalSize = TargetNumberOfElements \cdot \prod_{i=1}^{dim} Spacing_{i} \f$
  *
  * \note For itk::QuadEdgeMesh, one element is one vertex.
  *
  * \ingroup ITKFastMarching
  */
 template <typename TInput, typename TOutput>
-class FastMarchingNumberOfElementsStoppingCriterion : public FastMarchingStoppingCriterionBase<TInput, TOutput>
+class ITK_TEMPLATE_EXPORT FastMarchingNumberOfElementsStoppingCriterion
+  : public FastMarchingStoppingCriterionBase<TInput, TOutput>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingNumberOfElementsStoppingCriterion);
@@ -51,23 +52,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingNumberOfElementsStoppingCriterion, FastMarchingStoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingNumberOfElementsStoppingCriterion);
 
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using NodeType = typename Superclass::NodeType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::NodeType;
 
   /** Get/set the threshold used by the stopping criteria. */
+  /** @ITKStartGrouping */
   itkSetMacro(TargetNumberOfElements, IdentifierType);
   itkGetMacro(TargetNumberOfElements, IdentifierType);
-
-  bool
+  /** @ITKEndGrouping */
+  [[nodiscard]] bool
   IsSatisfied() const override
   {
     return (this->m_CurrentNumberOfElements >= this->m_TargetNumberOfElements);
   }
 
-  std::string
+  [[nodiscard]] std::string
   GetDescription() const override
   {
     return "Current Number of Elements >= Target Number of Elements";
@@ -76,14 +78,14 @@ public:
 protected:
   FastMarchingNumberOfElementsStoppingCriterion()
     : Superclass()
-    , m_CurrentNumberOfElements(NumericTraits<IdentifierType>::ZeroValue())
-    , m_TargetNumberOfElements(NumericTraits<IdentifierType>::ZeroValue())
+    , m_CurrentNumberOfElements(IdentifierType{})
+    , m_TargetNumberOfElements(IdentifierType{})
   {}
 
   ~FastMarchingNumberOfElementsStoppingCriterion() override = default;
 
-  IdentifierType m_CurrentNumberOfElements;
-  IdentifierType m_TargetNumberOfElements;
+  IdentifierType m_CurrentNumberOfElements{};
+  IdentifierType m_TargetNumberOfElements{};
 
   void
   SetCurrentNode(const NodeType &) override
@@ -94,7 +96,7 @@ protected:
   void
   Reset() override
   {
-    this->m_CurrentNumberOfElements = NumericTraits<IdentifierType>::ZeroValue();
+    this->m_CurrentNumberOfElements = IdentifierType{};
   }
 };
 

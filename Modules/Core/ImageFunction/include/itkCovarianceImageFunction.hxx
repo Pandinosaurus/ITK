@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,20 @@
 #ifndef itkCovarianceImageFunction_hxx
 #define itkCovarianceImageFunction_hxx
 
-#include "itkCovarianceImageFunction.h"
 #include "itkMatrix.h"
 #include "itkConstNeighborhoodIterator.h"
 
 namespace itk
 {
 
-template <typename TInputImage, typename TCoordRep>
-CovarianceImageFunction<TInputImage, TCoordRep>::CovarianceImageFunction()
+template <typename TInputImage, typename TCoordinate>
+CovarianceImageFunction<TInputImage, TCoordinate>::CovarianceImageFunction()
 
   = default;
 
-template <typename TInputImage, typename TCoordRep>
-typename CovarianceImageFunction<TInputImage, TCoordRep>::RealType
-CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+CovarianceImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> RealType
 {
   using PixelType = typename TInputImage::PixelType;
   using PixelComponentType = typename PixelType::ValueType;
@@ -42,11 +41,11 @@ CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType
 
   if (!this->GetInputImage())
   {
-    itkExceptionMacro(<< "No image connected to CovarianceImageFunction");
+    itkExceptionMacro("No image connected to CovarianceImageFunction");
   }
 
   const unsigned int VectorDimension = this->GetInputImage()->GetNumberOfComponentsPerPixel();
-  RealType           covariance = RealType(VectorDimension, VectorDimension);
+  RealType           covariance(VectorDimension, VectorDimension);
 
   if (!this->IsInsideBuffer(index))
   {
@@ -55,15 +54,14 @@ CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType
   }
 
 
-  covariance.fill(NumericTraits<PixelComponentRealType>::ZeroValue());
+  covariance.fill(PixelComponentRealType{});
 
   using MeanVectorType = vnl_vector<PixelComponentRealType>;
-  MeanVectorType mean = MeanVectorType(VectorDimension);
-  mean.fill(NumericTraits<PixelComponentRealType>::ZeroValue());
+  MeanVectorType mean(VectorDimension);
+  mean.fill(PixelComponentRealType{});
 
   // Create an N-d neighborhood kernel, using a zeroflux boundary condition
-  typename InputImageType::SizeType kernelSize;
-  kernelSize.Fill(m_NeighborhoodRadius);
+  auto kernelSize = InputImageType::SizeType::Filled(m_NeighborhoodRadius);
 
   ConstNeighborhoodIterator<InputImageType> it(
     kernelSize, this->GetInputImage(), this->GetInputImage()->GetBufferedRegion());
@@ -77,10 +75,10 @@ CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType
   {
     const PixelType pixel = it.GetPixel(i);
 
-    for (unsigned int dimx = 0; dimx < VectorDimension; dimx++)
+    for (unsigned int dimx = 0; dimx < VectorDimension; ++dimx)
     {
       mean[dimx] += pixel[dimx];
-      for (unsigned int dimy = 0; dimy < VectorDimension; dimy++)
+      for (unsigned int dimy = 0; dimy < VectorDimension; ++dimy)
       {
         covariance[dimx][dimy] +=
           static_cast<PixelComponentRealType>(pixel[dimx]) * static_cast<PixelComponentRealType>(pixel[dimy]);
@@ -92,9 +90,9 @@ CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType
 
   mean /= rsize;
 
-  for (unsigned int dimx = 0; dimx < VectorDimension; dimx++)
+  for (unsigned int dimx = 0; dimx < VectorDimension; ++dimx)
   {
-    for (unsigned int dimy = 0; dimy < VectorDimension; dimy++)
+    for (unsigned int dimy = 0; dimy < VectorDimension; ++dimy)
     {
       covariance[dimx][dimy] /= rsize;
       covariance[dimx][dimy] -= mean[dimx] * mean[dimy];
@@ -104,9 +102,9 @@ CovarianceImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType
   return (covariance);
 }
 
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-CovarianceImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+CovarianceImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 

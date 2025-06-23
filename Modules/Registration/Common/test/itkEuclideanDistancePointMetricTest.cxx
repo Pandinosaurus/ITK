@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,29 +41,21 @@ CompareMeshSources(bool computeSquaredDistance)
 
   using IdentityType = itk::IdentityTransform<double, 3>;
 
-  typename FixedSourceType::Pointer fixed = FixedSourceType::New();
+  auto fixed = FixedSourceType::New();
   fixed->Update();
 
-  typename MovingSourceType::Pointer moving = MovingSourceType::New();
+  auto moving = MovingSourceType::New();
   moving->Update();
 
-  typename IdentityType::Pointer identity = IdentityType::New();
+  auto identity = IdentityType::New();
 
-  typename MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   metric->SetComputeSquaredDistance(computeSquaredDistance);
   ITK_TEST_SET_GET_VALUE(computeSquaredDistance, metric->GetComputeSquaredDistance());
 
-  if (computeSquaredDistance)
-  {
-    metric->ComputeSquaredDistanceOn();
-    ITK_TEST_EXPECT_TRUE(metric->GetComputeSquaredDistance());
-  }
-  else
-  {
-    metric->ComputeSquaredDistanceOff();
-    ITK_TEST_EXPECT_TRUE(!metric->GetComputeSquaredDistance());
-  }
+  ITK_TEST_SET_GET_BOOLEAN(metric, ComputeSquaredDistance, computeSquaredDistance);
+
 
   metric->SetFixedPointSet(fixed->GetOutput());
   metric->SetMovingPointSet(moving->GetOutput());
@@ -100,11 +92,11 @@ itkEuclideanDistancePointMetricTest(int argc, char * argv[])
 
   using MetricType = itk::EuclideanDistancePointMetric<MeshType, QuadEdgeMeshType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, EuclideanDistancePointMetric, PointSetToPointSetMetric);
 
-  bool computeSquaredDistance = static_cast<bool>(std::stoi(argv[1]));
+  const bool computeSquaredDistance = static_cast<bool>(std::stoi(argv[1]));
 
   if (CompareMeshSources<MeshType, MeshType>(computeSquaredDistance) > Epsilon)
   {

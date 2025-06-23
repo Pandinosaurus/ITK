@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkDerivativeImageFilter_hxx
 #define itkDerivativeImageFilter_hxx
-#include "itkDerivativeImageFilter.h"
 
 #include "itkNumericTraits.h"
 #include "itkNeighborhoodOperatorImageFilter.h"
@@ -35,7 +34,7 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  typename Superclass::InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const typename Superclass::InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
 
   if (!inputPtr)
   {
@@ -50,8 +49,7 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius(oper.GetRadius());
@@ -62,21 +60,19 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
     inputPtr->SetRequestedRegion(inputRequestedRegion);
     return;
   }
-  else
-  {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
 
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
+  // Couldn't crop the region (requested region is outside the largest
+  // possible region).  Throw an exception.
 
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    e.SetLocation(ITK_LOCATION);
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-  }
+  // store what we tried to request (prior to trying to crop)
+  inputPtr->SetRequestedRegion(inputRequestedRegion);
+
+  // build an exception
+  InvalidRequestedRegionError e(__FILE__, __LINE__);
+  e.SetLocation(ITK_LOCATION);
+  e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
+  e.SetDataObject(inputPtr);
+  throw e;
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -96,11 +92,11 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateData()
   oper.CreateDirectional();
   oper.FlipAxes();
 
-  if (m_UseImageSpacing == true)
+  if (m_UseImageSpacing)
   {
     if (this->GetInput()->GetSpacing()[m_Direction] == 0.0)
     {
-      itkExceptionMacro(<< "Image spacing cannot be zero.");
+      itkExceptionMacro("Image spacing cannot be zero.");
     }
     else
     {
@@ -108,11 +104,10 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateData()
     }
   }
 
-  typename NeighborhoodOperatorImageFilter<InputImageType, OutputImageType, OperatorValueType>::Pointer filter =
-    NeighborhoodOperatorImageFilter<InputImageType, OutputImageType, OperatorValueType>::New();
+  auto filter = NeighborhoodOperatorImageFilter<InputImageType, OutputImageType, OperatorValueType>::New();
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Register the filter with the with progress accumulator using
@@ -122,7 +117,7 @@ DerivativeImageFilter<TInputImage, TOutputImage>::GenerateData()
   filter->OverrideBoundaryCondition(&nbc);
 
   //
-  // Set up the mini-pipline
+  // Set up the mini-pipeline
   //
   filter->SetOperator(oper);
   filter->SetInput(this->GetInput());
@@ -148,7 +143,7 @@ DerivativeImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, I
 
   os << indent << "Order: " << m_Order << std::endl;
   os << indent << "Direction: " << m_Direction << std::endl;
-  os << indent << "UseImageSpacing: " << m_UseImageSpacing << std::endl;
+  itkPrintSelfBooleanMacro(UseImageSpacing);
 }
 } // end namespace itk
 

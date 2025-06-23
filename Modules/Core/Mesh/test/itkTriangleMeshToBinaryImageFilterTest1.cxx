@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,11 +36,10 @@ itkTriangleMeshToBinaryImageFilterTest1(int argc, char * argv[])
   using PointType = SphereMeshSourceType::PointType;
   using VectorType = SphereMeshSourceType::VectorType;
 
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(50);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  auto                 center = itk::MakeFilled<PointType>(50);
   PointType::ValueType scaleInit[3] = { 10, 10, 10 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(3);
@@ -48,14 +47,13 @@ itkTriangleMeshToBinaryImageFilterTest1(int argc, char * argv[])
   mySphereMeshSource->Update();
 
   using ImageType = itk::Image<unsigned char, 3>;
-  ImageType::Pointer  im = ImageType::New();
-  ImageType::SizeType imSize;
-  imSize.Fill(100);
+  auto im = ImageType::New();
+  auto imSize = ImageType::SizeType::Filled(100);
   im->SetRegions(imSize);
   im->Allocate();
 
   using TriangleMeshToBinaryImageFilterType = itk::TriangleMeshToBinaryImageFilter<TriangleMeshType, ImageType>;
-  TriangleMeshToBinaryImageFilterType::Pointer imageFilter = TriangleMeshToBinaryImageFilterType::New();
+  auto imageFilter = TriangleMeshToBinaryImageFilterType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(imageFilter, TriangleMeshToBinaryImageFilter, ImageSource);
 
   imageFilter->SetInput(mySphereMeshSource->GetOutput());
@@ -63,14 +61,14 @@ itkTriangleMeshToBinaryImageFilterTest1(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(imageFilter->Update());
 
   using ROIImageFilter = itk::RegionOfInterestImageFilter<ImageType, ImageType>;
-  ROIImageFilter::Pointer    roifilter = ROIImageFilter::New();
+  auto                       roifilter = ROIImageFilter::New();
   ROIImageFilter::RegionType region;
   region.GetModifiableIndex().Fill(35);
   region.GetModifiableSize().Fill(30);
   roifilter->SetInput(im);
   roifilter->SetRegionOfInterest(region);
   ITK_TRY_EXPECT_NO_EXCEPTION(roifilter->Update());
-  ImageType::Pointer roiImage = roifilter->GetOutput();
+  const ImageType::Pointer roiImage = roifilter->GetOutput();
   imageFilter->SetInfoImage(roiImage);
   ITK_TRY_EXPECT_NO_EXCEPTION(imageFilter->Update());
 

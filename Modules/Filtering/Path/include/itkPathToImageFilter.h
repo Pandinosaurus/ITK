@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class PathToImageFilter
+ * \class PathToImageFilter
  * \brief Base class for filters that take a Path as input and produce an image as output.
  * Base class for filters that take a Path as input and produce an image as
  * output. By default, if the user does not specify the size of the output
@@ -48,11 +48,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PathToImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PathToImageFilter);
 
   /** Some convenient type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
   using InputPathType = TInputPath;
   using InputPathPointer = typename InputPathType::Pointer;
   using InputPathConstPointer = typename InputPathType::ConstPointer;
@@ -64,7 +64,7 @@ public:
   /** ImageDimension constants */
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  /** Set/Get the path input of this process object.  */
+  /** Set/Get the input path. */
   using Superclass::SetInput;
   virtual void
   SetInput(const InputPathType * input);
@@ -88,16 +88,17 @@ public:
   virtual void
   SetSpacing(const float * spacing);
 
-  virtual const double *
+  [[nodiscard]] virtual const double *
   GetSpacing() const;
 
   /** Set/Get the value for pixels on and off the path.
    * By default, this filter will return a "0" image with path pixels set to 1 */
+  /** @ITKStartGrouping */
   itkSetMacro(PathValue, ValueType);
   itkGetConstMacro(PathValue, ValueType);
   itkSetMacro(BackgroundValue, ValueType);
   itkGetConstMacro(BackgroundValue, ValueType);
-
+  /** @ITKEndGrouping */
   /** The origin of the output image. The origin is the geometric
    * coordinates of the index (0,0,...,0).  It is stored internally
    * as double but may be set from float.
@@ -108,13 +109,14 @@ public:
   virtual void
   SetOrigin(const float * origin);
 
-  virtual const double *
+  [[nodiscard]] virtual const double *
   GetOrigin() const;
 
   /** Set/Get Size */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
-
+  /** @ITKEndGrouping */
 protected:
   PathToImageFilter();
   ~PathToImageFilter() override = default;
@@ -125,11 +127,11 @@ protected:
   void
   GenerateData() override;
 
-  SizeType  m_Size;
-  double    m_Spacing[OutputImageDimension];
-  double    m_Origin[OutputImageDimension];
-  ValueType m_PathValue;
-  ValueType m_BackgroundValue;
+  SizeType  m_Size{};
+  double    m_Spacing[OutputImageDimension]{};
+  double    m_Origin[OutputImageDimension]{};
+  ValueType m_PathValue{};
+  ValueType m_BackgroundValue{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,13 @@
 #ifndef itkGenerateImageSource_hxx
 #define itkGenerateImageSource_hxx
 
-#include "itkGenerateImageSource.h"
 
 namespace itk
 {
 template <typename TOutputImage>
 GenerateImageSource<TOutputImage>::GenerateImageSource()
-  : m_Spacing(1.0)
-  , m_Origin(0.0)
+  : m_Spacing(MakeFilled<SpacingType>(1.0))
+  , m_Origin()
 
 {
   this->m_Size.Fill(64); // arbitrary default size
@@ -64,6 +63,9 @@ GenerateImageSource<TOutputImage>::GenerateOutputInformation()
       outputPtr->SetSpacing(referenceImage->GetSpacing());
       outputPtr->SetOrigin(referenceImage->GetOrigin());
       outputPtr->SetDirection(referenceImage->GetDirection());
+      this->m_Direction = referenceImage->GetDirection();
+      this->m_StartIndex = referenceImage->GetLargestPossibleRegion().GetIndex();
+      this->m_Size = referenceImage->GetLargestPossibleRegion().GetSize();
     }
     else
     {

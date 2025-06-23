@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkComposeImageFilter_hxx
 #define itkComposeImageFilter_hxx
 
-#include "itkComposeImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkTotalProgressReporter.h"
 
@@ -28,8 +27,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 ComposeImageFilter<TInputImage, TOutputImage>::ComposeImageFilter()
 {
-  OutputPixelType p;
-  int             nbOfComponents = NumericTraits<OutputPixelType>::GetLength(p);
+  int nbOfComponents = NumericTraits<OutputPixelType>::GetLength({});
   nbOfComponents = std::max(1, nbOfComponents); // require at least one input
   this->SetNumberOfRequiredInputs(nbOfComponents);
   this->DynamicMultiThreadingOn();
@@ -87,12 +85,12 @@ ComposeImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
   const auto numberOfInputs = static_cast<const unsigned int>(this->GetNumberOfIndexedInputs());
   RegionType region;
 
-  for (unsigned int i = 0; i < numberOfInputs; i++)
+  for (unsigned int i = 0; i < numberOfInputs; ++i)
   {
-    auto * input = itkDynamicCastInDebugMode<InputImageType *>(this->ProcessObject::GetInput(i));
+    auto * input = this->GetInput(i);
     if (!input)
     {
-      itkExceptionMacro(<< "Input " << i << " not set!");
+      itkExceptionMacro("Input " << i << " not set!");
     }
     if (i == 0)
     {
@@ -100,7 +98,7 @@ ComposeImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
     }
     else if (input->GetLargestPossibleRegion() != region)
     {
-      itkExceptionMacro(<< "All Inputs must have the same dimensions.");
+      itkExceptionMacro("All Inputs must have the same dimensions.");
     }
   }
 }
@@ -110,33 +108,55 @@ template <typename TInputImage, typename TOutputImage>
 void
 ComposeImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(const RegionType & outputRegionForThread)
 {
-  typename OutputImageType::Pointer outputImage = static_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
-
+  const typename OutputImageType::Pointer outputImage = this->GetOutput();
 
   TotalProgressReporter progress(this, outputImage->GetRequestedRegion().GetNumberOfPixels());
 
-  ImageRegionIterator<OutputImageType> oit(outputImage, outputRegionForThread);
-  oit.GoToBegin();
 
   InputIteratorContainerType inputItContainer;
+  inputItContainer.reserve(this->GetNumberOfIndexedInputs());
 
-  for (unsigned int i = 0; i < this->GetNumberOfIndexedInputs(); i++)
+  for (unsigned int i = 0; i < this->GetNumberOfIndexedInputs(); ++i)
   {
     const InputImageType * inputImage = this->GetInput(i);
 
-    InputIteratorType iit(inputImage, outputRegionForThread);
-    iit.GoToBegin();
-    inputItContainer.push_back(iit);
+    inputItContainer.emplace_back(inputImage, outputRegionForThread);
   }
 
   OutputPixelType pix;
   NumericTraits<OutputPixelType>::SetLength(pix, static_cast<unsigned int>(this->GetNumberOfIndexedInputs()));
-  while (!oit.IsAtEnd())
+  for (ImageScanlineIterator oit(outputImage, outputRegionForThread); !oit.IsAtEnd(); oit.NextLine())
   {
-    ComputeOutputPixel(pix, inputItContainer);
-    oit.Set(pix);
-    ++oit;
-    progress.CompletedPixel();
+    while (!oit.IsAtEndOfLine())
+    {
+      if constexpr (std::is_same_v<OutputPixelType, std::complex<typename NumericTraits<OutputPixelType>::ValueType>>)
+      {
+        using ValueType = typename NumericTraits<OutputPixelType>::ValueType;
+        const OutputPixelType current_pixel = OutputPixelType{ static_cast<ValueType>(inputItContainer[0].Get()),
+                                                               static_cast<ValueType>(inputItContainer[1].Get()) };
+        oit.Set(current_pixel);
+        ++(inputItContainer[0]);
+        ++(inputItContainer[1]);
+      }
+      else
+      {
+        unsigned int i = 0;
+        for (auto & it : inputItContainer)
+        {
+          pix[i] = static_cast<typename NumericTraits<OutputPixelType>::ValueType>(it.Get());
+          ++i;
+          ++it;
+        }
+
+        oit.Set(pix);
+      }
+      ++oit;
+    }
+    for (auto & it : inputItContainer)
+    {
+      it.NextLine();
+    }
+    progress.Completed(outputRegionForThread.GetSize()[0]);
   }
 }
 } // end namespace itk

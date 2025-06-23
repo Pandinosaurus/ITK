@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,6 @@
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkNeighborhoodIterator.h"
-#include "itkNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
 #include "itkDerivativeOperator.h"
 #include "itkForwardDifferenceOperator.h"
@@ -38,9 +37,7 @@
 #include "itkNCCRegistrationFunction.h"
 #include "itkMIRegistrationFunction.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 /**
@@ -76,13 +73,13 @@ public:
   /** New macro for creation of through the object factory. */
   itkSimpleNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FiniteDifferenceFunctionLoad, LoadElement);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FiniteDifferenceFunctionLoad);
 
 
   /** CreateAnother method will clone the existing instance of this type,
    *  including its internal member variables. */
-  ::itk::LightObject::Pointer
+  itk::LightObject::Pointer
   CreateAnother() const override;
 
   // Necessary type alias for dealing with images BEGIN
@@ -321,28 +318,27 @@ protected:
 private:
   FiniteDifferenceFunctionLoad(); // cannot be private until we always use smart pointers
 
-  MovingPointer m_MovingImage;
-  FixedPointer  m_FixedImage;
+  MovingPointer m_MovingImage{};
+  FixedPointer  m_FixedImage{};
 
   /** Used by the metric to set the region size for the fixed image. */
-  MovingRadiusType m_MetricRadius;
+  MovingRadiusType m_MetricRadius{};
 
-  typename MovingImageType::SizeType  m_MovingSize;
-  typename FixedImageType::SizeType   m_FixedSize;
+  typename MovingImageType::SizeType  m_MovingSize{};
+  typename FixedImageType::SizeType   m_FixedSize{};
   unsigned int                        m_NumberOfIntegrationPoints{ 0 };
   unsigned int                        m_SolutionIndex{ 1 };
   unsigned int                        m_SolutionIndex2{ 0 };
-  Float                               m_Gamma;
+  Float                               m_Gamma{};
   typename Solution::ConstPointer     m_Solution{ nullptr };
   float                               m_GradSigma{ 0.0f };
   float                               m_Sign{ 1.0f };
   float                               m_WhichMetric{ 0.0f };
-  FiniteDifferenceFunctionTypePointer m_DifferenceFunction;
+  FiniteDifferenceFunctionTypePointer m_DifferenceFunction{};
 
-  typename DisplacementFieldType::Pointer m_DisplacementField;
+  typename DisplacementFieldType::Pointer m_DisplacementField{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMFiniteDifferenceFunctionLoad.hxx"

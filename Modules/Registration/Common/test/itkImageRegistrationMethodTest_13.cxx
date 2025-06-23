@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -84,7 +84,7 @@ F(itk::Vector<double, 3> & v);
  * Note: the optimization performance can be improved by
  * setting the image origin to center of mass of the image.
  *
- * Implementaton of this example and related components are based on:
+ * Implementation of this example and related components are based on:
  * Viola, P. and Wells III, W. (1997).
  * "Alignment by Maximization of Mutual Information"
  * International Journal of Computer Vision, 24(2):137-154
@@ -99,7 +99,6 @@ itkImageRegistrationMethodTest_13(int, char *[])
   bool pass = true;
 
   constexpr unsigned int dimension = 3;
-  unsigned int           j;
 
   using PixelType = float;
 
@@ -125,35 +124,29 @@ itkImageRegistrationMethodTest_13(int, char *[])
   using RegistrationType = itk::ImageRegistrationMethod<FixedImageType, MovingImageType>;
 
 
-  MetricType::Pointer       metric = MetricType::New();
-  TransformType::Pointer    transform = TransformType::New();
-  OptimizerType::Pointer    optimizer = OptimizerType::New();
-  FixedImageType::Pointer   fixedImage = FixedImageType::New();
-  MovingImageType::Pointer  movingImage = MovingImageType::New();
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto fixedImage = FixedImageType::New();
+  auto movingImage = MovingImageType::New();
+  auto interpolator = InterpolatorType::New();
+  auto registration = RegistrationType::New();
 
   /*********************************************************
    * Set up the two input images.
    * One image scaled and shifted with respect to the other.
    **********************************************************/
-  double displacement[dimension] = { 7, 3, 2 };
-  double scale[dimension] = { 0.80, 1.0, 1.0 };
+  constexpr double displacement[dimension] = { 7, 3, 2 };
+  constexpr double scale[dimension] = { 0.80, 1.0, 1.0 };
 
-  FixedImageType::SizeType   size = { { 100, 100, 40 } };
-  FixedImageType::IndexType  index = { { 0, 0, 0 } };
-  FixedImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  FixedImageType::SizeType            size = { { 100, 100, 40 } };
+  constexpr FixedImageType::IndexType index = { { 0, 0, 0 } };
+  const FixedImageType::RegionType    region{ index, size };
 
-  fixedImage->SetLargestPossibleRegion(region);
-  fixedImage->SetBufferedRegion(region);
-  fixedImage->SetRequestedRegion(region);
+  fixedImage->SetRegions(region);
   fixedImage->Allocate();
 
-  movingImage->SetLargestPossibleRegion(region);
-  movingImage->SetBufferedRegion(region);
-  movingImage->SetRequestedRegion(region);
+  movingImage->SetRegions(region);
   movingImage->Allocate();
 
 
@@ -161,9 +154,9 @@ itkImageRegistrationMethodTest_13(int, char *[])
   using FixedImageIterator = itk::ImageRegionIterator<FixedImageType>;
 
   itk::Point<double, dimension> center;
-  for (j = 0; j < dimension; j++)
+  for (unsigned int j = 0; j < dimension; ++j)
   {
-    center[j] = 0.5 * (double)region.GetSize()[j];
+    center[j] = 0.5 * static_cast<double>(region.GetSize()[j]);
   }
 
   itk::Point<double, dimension>  p;
@@ -174,21 +167,21 @@ itkImageRegistrationMethodTest_13(int, char *[])
 
   while (!mIter.IsAtEnd())
   {
-    for (j = 0; j < dimension; j++)
+    for (unsigned int j = 0; j < dimension; ++j)
     {
       p[j] = mIter.GetIndex()[j];
     }
 
     d = p - center;
 
-    fIter.Set((PixelType)F(d));
+    fIter.Set(static_cast<PixelType>(F(d)));
 
-    for (j = 0; j < dimension; j++)
+    for (unsigned int j = 0; j < dimension; ++j)
     {
       d[j] = d[j] * scale[j] + displacement[j];
     }
 
-    mIter.Set((PixelType)F(d));
+    mIter.Set(static_cast<PixelType>(F(d)));
 
     ++fIter;
     ++mIter;
@@ -196,9 +189,9 @@ itkImageRegistrationMethodTest_13(int, char *[])
 
   // set the image origin to be center of the image
   double transCenter[dimension];
-  for (j = 0; j < dimension; j++)
+  for (unsigned int j = 0; j < dimension; ++j)
   {
-    transCenter[j] = -0.5 * double(size[j]);
+    transCenter[j] = -0.5 * static_cast<double>(size[j]);
   }
 
   movingImage->SetOrigin(transCenter);
@@ -215,7 +208,7 @@ itkImageRegistrationMethodTest_13(int, char *[])
 
   parametersScales.Fill(1.0);
 
-  for (j = 9; j < 12; j++)
+  for (unsigned int j = 9; j < 12; ++j)
   {
     parametersScales[j] = 0.001;
   }
@@ -259,10 +252,10 @@ itkImageRegistrationMethodTest_13(int, char *[])
    * Run the registration - reducing learning rate as we go
    ************************************************************/
   constexpr unsigned int numberOfLoops = 3;
-  unsigned int           iter[numberOfLoops] = { 300, 300, 350 };
-  double                 rates[numberOfLoops] = { 1e-3, 5e-4, 1e-4 };
+  constexpr unsigned int iter[numberOfLoops] = { 300, 300, 350 };
+  constexpr double       rates[numberOfLoops] = { 1e-3, 5e-4, 1e-4 };
 
-  for (j = 0; j < numberOfLoops; j++)
+  for (unsigned int j = 0; j < numberOfLoops; ++j)
   {
 
     try
@@ -302,7 +295,7 @@ itkImageRegistrationMethodTest_13(int, char *[])
 
   std::cout << "True solution is: " << trueParameters << std::endl;
 
-  for (j = 0; j < 9; j++)
+  for (unsigned int j = 0; j < 9; ++j)
   {
     if (itk::Math::abs(solution[j] - trueParameters[j]) > 0.025)
     {
@@ -310,7 +303,7 @@ itkImageRegistrationMethodTest_13(int, char *[])
       pass = false;
     }
   }
-  for (j = 9; j < 12; j++)
+  for (unsigned int j = 9; j < 12; ++j)
   {
     if (itk::Math::abs(solution[j] - trueParameters[j]) > 1.0)
     {
@@ -329,7 +322,7 @@ itkImageRegistrationMethodTest_13(int, char *[])
   /*************************************************
    * Check for parzen window exception
    **************************************************/
-  double oldValue = metric->GetMovingImageStandardDeviation();
+  const double oldValue = metric->GetMovingImageStandardDeviation();
   metric->SetMovingImageStandardDeviation(0.005);
 
   try
@@ -403,7 +396,7 @@ F(itk::Vector<double, 3> & v)
   x -= 8;
   y += 3;
   z += 0;
-  double r = std::sqrt(x * x + y * y + z * z);
+  const double r = std::sqrt(x * x + y * y + z * z);
   if (r > 35)
   {
     value = 2 * (itk::Math::abs(x) + 0.8 * itk::Math::abs(y) + 0.5 * itk::Math::abs(z));

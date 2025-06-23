@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,44 +40,44 @@ namespace itk
  * \ingroup ITKFEM
  */
 
-template <unsigned int NDimensions = 3>
-class ITK_TEMPLATE_EXPORT MetaFEMObjectConverter : public MetaConverterBase<NDimensions>
+template <unsigned int VDimension = 3>
+class ITK_TEMPLATE_EXPORT MetaFEMObjectConverter : public MetaConverterBase<VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MetaFEMObjectConverter);
 
   /** Standard class type aliases */
   using Self = MetaFEMObjectConverter;
-  using Superclass = MetaConverterBase<NDimensions>;
+  using Superclass = MetaConverterBase<VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaFEMObjectConverter, MetaConverterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaFEMObjectConverter);
 
-  using SpatialObjectType = typename Superclass::SpatialObjectType;
+  using typename Superclass::SpatialObjectType;
   using SpatialObjectPointer = typename SpatialObjectType::Pointer;
-  using MetaObjectType = typename Superclass::MetaObjectType;
+  using typename Superclass::MetaObjectType;
 
   /** Specific class types for conversion */
-  using FEMObjectSpatialObjectType = FEMObjectSpatialObject<NDimensions>;
+  using FEMObjectSpatialObjectType = FEMObjectSpatialObject<VDimension>;
   using FEMObjectSpatialObjectPointer = typename FEMObjectSpatialObjectType::Pointer;
   using FEMObjectSpatialObjectConstPointer = typename FEMObjectSpatialObjectType::ConstPointer;
   using FEMObjectMetaObjectType = MetaFEMObject;
 
-  /** Convert the MetaObject to Spatial Object */
+  /** Convert the MetaObject to a SpatialObject. */
   SpatialObjectPointer
   MetaObjectToSpatialObject(const MetaObjectType * mo) override;
 
-  /** Convert the SpatialObject to MetaObject */
+  /** Convert the SpatialObject to a MetaObject. */
   MetaObjectType *
   SpatialObjectToMetaObject(const SpatialObjectType * spatialObject) override;
 
 protected:
-  /** Create the specific MetaObject for this class */
+  /** Create the specific MetaObject for this class. */
   MetaObjectType *
   CreateMetaObject() override;
 

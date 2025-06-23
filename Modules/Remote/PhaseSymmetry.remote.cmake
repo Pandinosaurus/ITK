@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,17 +42,18 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Matt McCormick <matt.mccormick@kitware.com>
-itk_fetch_module(PhaseSymmetry
-"Provides multi-scale steerable filters for computing phase symmetry.
+itk_fetch_module(
+  PhaseSymmetry
+  "Provides multi-scale steerable filters for computing phase symmetry.
 
 For more information, see the Insight Journal article:
 
 Hatt C.
 Multi-scale Steerable Phase-Symmetry Filters for ITK
 The Insight Journal. July-December. 2011.
-https://www.insight-journal.org/browse/publication/846
+https://doi.org/10.54294/gcb82u
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/KitwareMedical/ITKPhaseSymmetry.git
-  GIT_TAG 324417f1b3e8420c51e03f031a1ff625a5d8bc46
+  GIT_REPOSITORY https://github.com/KitwareMedical/ITKPhaseSymmetry.git
+  GIT_TAG edbc01415b011045b99ac20c0fea95ec78b2b7b9
   )

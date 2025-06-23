@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkGradientDifferenceImageToImageMetric.h"
 #include "itkGaussianImageSource.h"
 #include "itkTranslationTransform.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -44,11 +45,11 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
   FixedImageType::SpacingValueType  fixedImageSpacing[] = { 1.0f, 1.0f };
   MovingImageType::SpacingValueType movingImageSpacing[] = { 1.0f, 1.0f };
 
-  FixedImageType::PointValueType  fixedImageOrigin[] = { 0.0f, 0.0f };
-  MovingImageType::PointValueType movingImageOrigin[] = { 0.0f, 0.0f };
+  constexpr FixedImageType::PointValueType  fixedImageOrigin[] = { 0.0f, 0.0f };
+  constexpr MovingImageType::PointValueType movingImageOrigin[] = { 0.0f, 0.0f };
 
-  MovingImageSourceType::Pointer movingImageSource = MovingImageSourceType::New();
-  FixedImageSourceType::Pointer  fixedImageSource = FixedImageSourceType::New();
+  auto movingImageSource = MovingImageSourceType::New();
+  auto fixedImageSource = FixedImageSourceType::New();
 
   movingImageSource->SetSize(movingImageSize);
   movingImageSource->SetOrigin(movingImageOrigin);
@@ -65,8 +66,8 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
   movingImageSource->Update(); // Force the filter to run
   fixedImageSource->Update();  // Force the filter to run
 
-  MovingImageType::Pointer movingImage = movingImageSource->GetOutput();
-  FixedImageType::Pointer  fixedImage = fixedImageSource->GetOutput();
+  const MovingImageType::Pointer movingImage = movingImageSource->GetOutput();
+  const FixedImageType::Pointer  fixedImage = fixedImageSource->GetOutput();
 
   // Set up the metric.
   using MetricType = itk::GradientDifferenceImageToImageMetric<FixedImageType, MovingImageType>;
@@ -75,7 +76,14 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
   using DerivativeType = MetricType::DerivativeType;
   using ParametersType = TransformBaseType::ParametersType;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, GradientDifferenceImageToImageMetric, ImageToImageMetric);
+
+
+  constexpr double derivativeDelta = 0.001;
+  metric->SetDerivativeDelta(derivativeDelta);
+  ITK_TEST_SET_GET_VALUE(derivativeDelta, metric->GetDerivativeDelta());
 
   // Plug the images into the metric.
   metric->SetFixedImage(fixedImage);
@@ -84,13 +92,13 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
   // Set up a transform.
   using TransformType = itk::TranslationTransform<CoordinateRepresentationType, ImageDimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   metric->SetTransform(transform);
 
   // Set up an interpolator.
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   interpolator->SetInputImage(movingImage);
   metric->SetInterpolator(interpolator);
 
@@ -101,7 +109,7 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
   const unsigned int numberOfParameters = transform->GetNumberOfParameters();
 
   ParametersType parameters(numberOfParameters);
-  for (unsigned int k = 0; k < numberOfParameters; k++)
+  for (unsigned int k = 0; k < numberOfParameters; ++k)
   {
     parameters[k] = 0.0;
   }
@@ -113,14 +121,14 @@ itkGradientDifferenceImageToImageMetricTest(int, char *[])
     metric->Initialize();
 
     // Do some work
-    DerivativeType          derivatives(numberOfParameters);
-    MetricType::MeasureType value;
+    DerivativeType derivatives(numberOfParameters);
     for (double y = -10.0; y <= 10.0; y += 5.0)
     {
       parameters[1] = y;
       for (double x = -10.0; x <= 10.0; x += 5.0)
       {
         parameters[0] = x;
+        MetricType::MeasureType value = NAN;
         metric->GetValueAndDerivative(parameters, value, derivatives);
         std::cout << "Parameters: " << parameters << ", Value: " << value << ", Derivatives: " << derivatives
                   << std::endl;

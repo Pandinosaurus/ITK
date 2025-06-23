@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ main(int argc, char * argv[])
   //
   // We define the pixel type and dimension of the image to be read. In this
   // particular case, the dimensionality of the image is 3, and we assume a
-  // \code{signed short} pixel type that is commonly used for X-Rays CT
+  // \code{short} pixel type that is commonly used for X-Rays CT
   // scanners.
   //
   // The image orientation information contained in the direction cosines
@@ -76,7 +76,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -91,7 +91,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageSeriesReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -103,7 +103,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ImageIOType = itk::GDCMImageIO;
-  ImageIOType::Pointer dicomIO = ImageIOType::New();
+  auto dicomIO = ImageIOType::New();
 
   reader->SetImageIO(dicomIO);
   // Software Guide : EndCodeSnippet
@@ -154,7 +154,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using NamesGeneratorType = itk::GDCMSeriesFileNames;
-  NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+  auto nameGenerator = NamesGeneratorType::New();
 
   nameGenerator->SetUseSeriesDetails(true);
   nameGenerator->AddSeriesRestriction("0008|0021");
@@ -298,7 +298,7 @@ main(int argc, char * argv[])
 
     // Software Guide : BeginCodeSnippet
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     writer->SetFileName(argv[2]);
 

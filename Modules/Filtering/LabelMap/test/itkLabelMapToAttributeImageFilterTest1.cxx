@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,9 @@ itkLabelMapToAttributeImageFilterTest1(int argc, char * argv[])
 
   if (argc != 3)
   {
-    std::cerr << "usage: " << argv[0] << " input output" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input output" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -47,25 +49,33 @@ itkLabelMapToAttributeImageFilterTest1(int argc, char * argv[])
 
   // Reading Image File
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Converting LabelImage to ShapeLabelMap
   using I2LType = itk::LabelImageToShapeLabelMapFilter<ImageType, LabelMapType>;
-  I2LType::Pointer i2l = I2LType::New();
+  auto i2l = I2LType::New();
   i2l->SetInput(reader->GetOutput());
 
-  using L2ImageType =
+  using L2ImageFilterType =
     itk::LabelMapToAttributeImageFilter<LabelMapType,
                                         ImageType,
                                         itk::Functor::NumberOfPixelsLabelObjectAccessor<LabelMapType::LabelObjectType>>;
-  L2ImageType::Pointer l2i = L2ImageType::New();
+  auto l2i = L2ImageFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(l2i, LabelMapToAttributeImageFilter, ImageToImageFilter);
+
+
+  auto backgroundValue = itk::NumericTraits<typename L2ImageFilterType::OutputImagePixelType>::NonpositiveMin();
+  l2i->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, l2i->GetBackgroundValue());
+
   l2i->SetInput(i2l->GetOutput());
-  itk::SimpleFilterWatcher watcher(l2i, "filter");
+  const itk::SimpleFilterWatcher watcher(l2i, "filter");
 
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(l2i->GetOutput());
   writer->SetFileName(argv[2]);
   writer->UseCompressionOn();

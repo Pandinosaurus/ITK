@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ComplexToImaginaryImageFilter
+ * \class ComplexToImaginaryImageFilter
  * \brief Computes pixel-wise the imaginary part of a complex image.
  *
  * \ingroup IntensityImageFilters  MultiThreaded
@@ -36,19 +36,13 @@ template <typename TInput, typename TOutput>
 class ComplexToImaginary
 {
 public:
-  ComplexToImaginary() = default;
-  ~ComplexToImaginary() = default;
   bool
-  operator!=(const ComplexToImaginary &) const
+  operator==(const ComplexToImaginary &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const ComplexToImaginary & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ComplexToImaginary);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -59,7 +53,7 @@ public:
 } // namespace Functor
 
 template <typename TInputImage, typename TOutputImage>
-class ComplexToImaginaryImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT ComplexToImaginaryImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ComplexToImaginaryImageFilter);
@@ -75,18 +69,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ComplexToImaginaryImageFilter, UnaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ComplexToImaginaryImageFilter);
 
   using InputPixelType = typename TInputImage::PixelType;
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelValueType = typename NumericTraits<InputPixelType>::ValueType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputPixelValueType, OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   ComplexToImaginaryImageFilter()

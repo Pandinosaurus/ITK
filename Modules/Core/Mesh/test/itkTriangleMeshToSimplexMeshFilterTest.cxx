@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkRegularSphereMeshSource.h"
 #include "itkTriangleMeshToSimplexMeshFilter.h"
 #include "itkDefaultDynamicMeshTraits.h"
+#include "itkTestingMacros.h"
 
 int
 itkTriangleMeshToSimplexMeshFilterTest(int, char *[])
@@ -39,11 +40,10 @@ itkTriangleMeshToSimplexMeshFilterTest(int, char *[])
   // declare the triangle to simplex mesh filter
   using SimplexFilterType = itk::TriangleMeshToSimplexMeshFilter<TriangleMeshType, SimplexMeshType>;
 
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(0);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  constexpr PointType  center{};
   PointType::ValueType scaleInit[3] = { 5, 5, 5 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(0);
@@ -51,12 +51,15 @@ itkTriangleMeshToSimplexMeshFilterTest(int, char *[])
 
   std::cout << "Triangle mesh created. " << std::endl;
 
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(simplexFilter, TriangleMeshToSimplexMeshFilter, MeshToMeshFilter);
+
+
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
   simplexFilter->Update();
-  simplexFilter->Print(std::cout);
 
-  SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
+  const SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
 
   std::cout << "Simplex Mesh: " << simplexMesh << std::endl;
 

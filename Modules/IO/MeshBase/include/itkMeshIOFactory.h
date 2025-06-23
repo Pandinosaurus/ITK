@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,11 @@
 
 #include "itkObject.h"
 #include "itkMeshIOBase.h"
-#include "ITKIOMeshBaseExport.h"
 
 namespace itk
 {
 /**
- *\class MeshIOFactory
+ * \class MeshIOFactory
  * \brief Create instances of MeshIO objects using an object factory.
  *
  * Below are the supported mesh file format:
@@ -53,11 +52,11 @@ public:
   /** Class Methods used to interface with the registered factories */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeshIOFactory, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshIOFactory);
 
   /** Convenient type alias. */
-  using MeshIOBasePointer = ::itk::MeshIOBase::Pointer;
+  using MeshIOBasePointer = itk::MeshIOBase::Pointer;
 
   using IOFileModeEnum = itk::IOFileModeEnum;
 #if !defined(ITK_LEGACY_REMOVE)

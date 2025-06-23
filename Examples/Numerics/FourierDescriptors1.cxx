@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,13 +19,13 @@
 //  Software Guide : BeginLatex
 //
 //  Fourier Descriptors provide a mechanism for representing a closed curve in
-//  space.  The represented curve has infinite continuiity because the
+//  space.  The represented curve has infinite continuity because the
 //  parametric coordinate of its points are computed from a Fourier Series.
 //
 //  In this example we illustrate how a curve that is initially defined by a
 //  set of points in space can be represented in terms for Fourier
 //  Descriptors. This representation is useful for several purposes. For
-//  example, it provides a mechanmism for interpolating values among the
+//  example, it provides a mechanism for interpolating values among the
 //  points, it provides a way of analyzing the smoothness of the curve.  In
 //  this particular example we will focus on this second application of the
 //  Fourier Descriptors.
@@ -105,7 +105,7 @@ main(int argc, char * argv[])
 
   using PointsContainer = itk::VectorContainer<unsigned int, PointType>;
 
-  PointsContainer::Pointer points = PointsContainer::New();
+  auto points = PointsContainer::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -132,7 +132,7 @@ main(int argc, char * argv[])
   PointIterator pointItr = points->Begin();
 
   PointType point;
-  for (unsigned int pt = 0; pt < numberOfPoints; pt++)
+  for (unsigned int pt = 0; pt < numberOfPoints; ++pt)
   {
     inputFile >> point[0] >> point[1];
     pointItr.Value() = point;
@@ -162,8 +162,8 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const auto powerOfTwo = (unsigned int)std::ceil(
-    std::log((double)(numberOfPoints)) / std::log((double)(2.0)));
+  const auto powerOfTwo = static_cast<unsigned int>(
+    std::ceil(std::log(static_cast<double>(numberOfPoints)) / std::log(2.0)));
 
   const unsigned int spectrumSize = 1 << powerOfTwo;
 
@@ -182,7 +182,7 @@ main(int argc, char * argv[])
   FFTSpectrumType signal(spectrumSize);
 
   pointItr = points->Begin();
-  for (unsigned int p = 0; p < numberOfPoints; p++)
+  for (unsigned int p = 0; p < numberOfPoints; ++p)
   {
     signal[p] = FFTCoefficientType(pointItr.Value()[0], pointItr.Value()[1]);
     ++pointItr;
@@ -199,7 +199,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  for (unsigned int pad = numberOfPoints; pad < spectrumSize; pad++)
+  for (unsigned int pad = numberOfPoints; pad < spectrumSize; ++pad)
   {
     signal[pad] = 0.0;
   }
@@ -213,7 +213,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   std::cout << "Input to the FFT transform" << std::endl;
-  for (unsigned int s = 0; s < spectrumSize; s++)
+  for (unsigned int s = 0; s < spectrumSize; ++s)
   {
     std::cout << s << " : ";
     std::cout << signal[s] << std::endl;
@@ -240,7 +240,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   std::cout << std::endl;
   std::cout << "Result from the FFT transform" << std::endl;
-  for (unsigned int k = 0; k < spectrumSize; k++)
+  for (unsigned int k = 0; k < spectrumSize; ++k)
   {
     const double real = signal[k].real();
     const double imag = signal[k].imag();

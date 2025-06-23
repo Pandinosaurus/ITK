@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ template <typename TInternalComputationValueType>
 class ITK_FORWARD_EXPORT QuasiNewtonOptimizerv4Template;
 
 /**
- *\class QuasiNewtonOptimizerv4EstimateNewtonStepThreaderTemplate
+ * \class QuasiNewtonOptimizerv4EstimateNewtonStepThreaderTemplate
  * \brief Estimate the quasi-Newton step in a thread.
  * \ingroup ITKOptimizersv4
  * */
@@ -46,12 +46,12 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(QuasiNewtonOptimizerv4EstimateNewtonStepThreaderTemplate, DomainThreader);
+  itkOverrideGetNameOfClassMacro(QuasiNewtonOptimizerv4EstimateNewtonStepThreaderTemplate);
 
   itkNewMacro(Self);
 
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
   using IndexRangeType = DomainType;
 
 protected:

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class IsolatedWatershedImageFilter
+ * \class IsolatedWatershedImageFilter
  * \brief Isolate watershed basins using two seeds
  *
  * IsolatedWatershedImageFilter labels pixels with ReplaceValue1 that
@@ -53,8 +53,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods).  */
-  itkTypeMacro(IsolatedWatershedImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IsolatedWatershedImageFilter);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -80,57 +80,63 @@ public:
   /** Set seed point 1. This seed will be isolated from Seed2 (if
    *  possible). All pixels connected to this seed will be replaced
    *  with ReplaceValue1. */
+  /** @ITKStartGrouping */
   itkSetMacro(Seed1, IndexType);
   itkGetConstMacro(Seed1, IndexType);
-
+  /** @ITKEndGrouping */
   /** Set seed point 2. This seed will be isolated from Seed1 (if
    *  possible). All pixels connected to this seed will be replaced
    *  with ReplaceValue2. */
+  /** @ITKStartGrouping */
   itkSetMacro(Seed2, IndexType);
   itkGetConstMacro(Seed2, IndexType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Watershed threshold. The default is 0. */
+  /** @ITKStartGrouping */
   itkSetMacro(Threshold, double);
   itkGetConstMacro(Threshold, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the precision required for the intensity threshold
    *  value. The default is .001. */
+  /** @ITKStartGrouping */
   itkSetMacro(IsolatedValueTolerance, double);
   itkGetConstMacro(IsolatedValueTolerance, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the limit on the upper waterlevel value. The default is
    *  1.0. */
+  /** @ITKStartGrouping */
   itkSetMacro(UpperValueLimit, double);
   itkGetConstMacro(UpperValueLimit, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get value to replace Seed1(Seed2) pixels, pixels that are
    *  within the basin that contains Seed1(Seed2) this  value. The
    *  default is 1(0). */
+  /** @ITKStartGrouping */
   itkSetMacro(ReplaceValue1, OutputImagePixelType);
   itkGetConstMacro(ReplaceValue1, OutputImagePixelType);
   itkSetMacro(ReplaceValue2, OutputImagePixelType);
   itkGetConstMacro(ReplaceValue2, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Get value that isolates the two seeds. */
   itkGetConstMacro(IsolatedValue, double);
 
 protected:
   IsolatedWatershedImageFilter();
   ~IsolatedWatershedImageFilter() override = default;
-  IndexType m_Seed1;
-  IndexType m_Seed2;
+  IndexType m_Seed1{};
+  IndexType m_Seed2{};
 
-  OutputImagePixelType m_ReplaceValue1;
-  OutputImagePixelType m_ReplaceValue2;
+  OutputImagePixelType m_ReplaceValue1{};
+  OutputImagePixelType m_ReplaceValue2{};
 
-  typename GradientMagnitudeType::Pointer m_GradientMagnitude;
+  typename GradientMagnitudeType::Pointer m_GradientMagnitude{};
 
-  typename WatershedType::Pointer m_Watershed;
+  typename WatershedType::Pointer m_Watershed{};
 
-  double m_Threshold;
-  double m_IsolatedValue;
-  double m_IsolatedValueTolerance;
-  double m_UpperValueLimit;
+  double m_Threshold{};
+  double m_IsolatedValue{};
+  double m_IsolatedValueTolerance{};
+  double m_UpperValueLimit{};
 
   // Override since the filter needs all the data for the algorithm
   void
@@ -141,7 +147,7 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
   void
   GenerateData() override;
 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,11 +71,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HistogramToImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramToImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Some convenient type alias. */
   using HistogramType = THistogram;
@@ -86,7 +86,7 @@ public:
   /** Determine the image dimension. */
   static constexpr unsigned int ImageDimension = OutputImageType::ImageDimension;
 
-  /** Set/Get the input of this process object.  */
+  /** Set/Get the input histogram. */
   using Superclass::SetInput;
   virtual void
   SetInput(const HistogramType * input);
@@ -111,6 +111,7 @@ public:
    * (Functors do not have to derive from itk::LightObject, so they do
    * not necessarily have a reference count. So we cannot return a
    * SmartPointer.) */
+  /** @ITKStartGrouping */
   FunctorType &
   GetFunctor()
   {
@@ -121,6 +122,7 @@ public:
   {
     return m_Functor;
   }
+  /** @ITKEndGrouping */
 
   void
   SetTotalFrequency(SizeValueType n);
@@ -135,7 +137,7 @@ protected:
   void
   GenerateData() override;
 
-  FunctorType m_Functor;
+  FunctorType m_Functor{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

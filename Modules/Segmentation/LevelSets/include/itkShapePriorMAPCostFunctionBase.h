@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,18 +28,14 @@ namespace itk
  * \brief Represents the base class of maximum aprior (MAP) cost function used
  * ShapePriorSegmentationLevelSetImageFilter to estimate the shape parameters.
  *
- * This class follows the shape and pose parameters estimation developed in [1].
+ * This class follows the shape and pose parameters estimation
+ * developed in \cite leventon2000.
  *
  * This class has two template parameters, the feature image type representing the
  * edge potential map and the pixel type used to
  * represent the output level set in the ShapePriorSegmentationLevelSetImageFilter.
  *
  * \sa ShapePriorSegmentationLevelSetImageFilter
- *
- * \par REFERENCES
- * \par
- * [1] Leventon, M.E. et al. "Statistical Shape Influence in Geodesic Active Contours", CVPR 2000.
- *
  *
  * \ingroup Numerics Optimizers
  * \ingroup ITKLevelSets
@@ -56,20 +52,20 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapePriorMAPCostFunctionBase, SingleValuedCostFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapePriorMAPCostFunctionBase);
 
   /**  MeasureType type alias.
    *  It defines a type used to return the cost function value. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /** DerivativeType type alias.
    *  It defines a type used to return the cost function derivative.  */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /**  ParametersType type alias.
    *  It defines a position in the optimization search space. */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Type of the feature image representing the edge potential map. */
   using FeatureImageType = TFeatureImage;
@@ -93,17 +89,20 @@ public:
   using ShapeFunctionPointer = typename ShapeFunctionType::Pointer;
 
   /** Set/Get the shape distance function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(ShapeFunction, ShapeFunctionType);
   itkGetModifiableObjectMacro(ShapeFunction, ShapeFunctionType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the active region. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(ActiveRegion, NodeContainerType);
   itkGetConstObjectMacro(ActiveRegion, NodeContainerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the feature image. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FeatureImage, FeatureImageType);
   itkGetConstObjectMacro(FeatureImage, FeatureImageType);
-
+  /** @ITKEndGrouping */
   /** This method returns the value of the cost function corresponding
    * to the specified parameters.    */
   MeasureType
@@ -114,7 +113,7 @@ public:
   void
   GetDerivative(const ParametersType &, DerivativeType &) const override
   {
-    itkExceptionMacro(<< "This function is currently not supported.");
+    itkExceptionMacro("This function is currently not supported.");
   }
 
   /** Return the number of parameters. */
@@ -156,10 +155,10 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  ShapeFunctionPointer m_ShapeFunction;
-  NodeContainerPointer m_ActiveRegion;
+  ShapeFunctionPointer m_ShapeFunction{};
+  NodeContainerPointer m_ActiveRegion{};
 
-  FeatureImagePointer m_FeatureImage;
+  FeatureImagePointer m_FeatureImage{};
 };
 } // end namespace itk
 

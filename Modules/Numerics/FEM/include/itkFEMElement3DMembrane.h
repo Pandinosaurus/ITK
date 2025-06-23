@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,9 +22,7 @@
 #include "itkFEMElementBase.h"
 #include "itkFEMMaterialLinearElasticity.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class Element3DMembrane
@@ -56,13 +54,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Element3DMembrane, TBaseClass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Element3DMembrane);
 
   // Repeat the required type alias and enums from parent class
-  using Float = typename Superclass::Float;
-  using MatrixType = typename Superclass::MatrixType;
-  using VectorType = typename Superclass::VectorType;
+  using typename Superclass::Float;
+  using typename Superclass::MatrixType;
+  using typename Superclass::VectorType;
 
   /**
    * Default constructor only clears the internal storage
@@ -95,7 +93,7 @@ public:
   /**
    * 3D membrane elements have 3 DOFs per node.
    */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfDegreesOfFreedomPerNode() const override
   {
     return 3;
@@ -104,7 +102,7 @@ public:
   /**
    * Get/Set the material properties for the element
    */
-  Material::ConstPointer
+  [[nodiscard]] Material::ConstPointer
   GetMaterial() const override
   {
     return dynamic_cast<const Material *>(m_mat);
@@ -126,8 +124,7 @@ protected:
   const MaterialLinearElasticity * m_mat{ nullptr };
 
 }; // class Element3DMembrane
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMElement3DMembrane.hxx"

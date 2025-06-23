@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkExhaustiveOptimizerv4.h"
 
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 /**
  *  The objectif function is the quadratic form:
@@ -58,17 +59,17 @@ public:
   using MeasureType = Superclass::MeasureType;
 
 
-  ExhaustiveOptv4Metric() { m_HasLocalSupport = false; }
+  ExhaustiveOptv4Metric() = default;
 
   MeasureType
   GetValue() const override
   {
-    double x = this->m_Parameters[0];
-    double y = this->m_Parameters[1];
+    const double x = this->m_Parameters[0];
+    const double y = this->m_Parameters[1];
 
     std::cout << "GetValue ( " << x << " , " << y << ") = ";
 
-    MeasureType val = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const MeasureType val = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
 
     std::cout << val << std::endl;
 
@@ -78,8 +79,8 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    double x = this->m_Parameters[0];
-    double y = this->m_Parameters[1];
+    const double x = this->m_Parameters[0];
+    const double y = this->m_Parameters[1];
 
     std::cout << "GetDerivative ( " << x << " , " << y << ") = ";
 
@@ -87,7 +88,7 @@ public:
     derivative[0] = -(3 * x + 2 * y - 2);
     derivative[1] = -(2 * x + 6 * y + 8);
 
-    std::cout << "(" << derivative[0] << " , " << derivative[1] << ")" << std::endl;
+    std::cout << '(' << derivative[0] << " , " << derivative[1] << ')' << std::endl;
   }
 
   void
@@ -145,7 +146,7 @@ public:
 
 private:
   ParametersType m_Parameters;
-  bool           m_HasLocalSupport;
+  bool           m_HasLocalSupport{ false };
 };
 
 
@@ -167,7 +168,7 @@ public:
     if (nullptr != optimizer)
     {
       OptimizerType::ParametersType currentIndex = optimizer->GetCurrentIndex();
-      itk::SizeValueType            currentIteration = optimizer->GetCurrentIteration();
+      const itk::SizeValueType      currentIteration = optimizer->GetCurrentIteration();
 
       if (currentIndex.GetSize() == 2)
       {
@@ -200,16 +201,18 @@ itkExhaustiveOptimizerv4Test(int, char *[])
   using ScalesType = OptimizerType::ScalesType;
 
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, ExhaustiveOptimizerv4, ObjectToObjectOptimizerBaseTemplate);
 
 
   // Index observer (enables us to check if all positions were indeed visisted):
-  IndexObserver::Pointer idxObserver = IndexObserver::New();
+  auto idxObserver = IndexObserver::New();
   itkOptimizer->AddObserver(itk::IterationEvent(), idxObserver);
 
   // Declaration of the CostFunction
-  ExhaustiveOptv4Metric::Pointer metric = ExhaustiveOptv4Metric::New();
+  auto metric = ExhaustiveOptv4Metric::New();
   itkOptimizer->SetMetric(metric);
 
 
@@ -236,7 +239,9 @@ itkExhaustiveOptimizerv4Test(int, char *[])
   itkOptimizer->SetScales(parametersScale);
 
 
-  itkOptimizer->SetStepLength(1.0);
+  auto stepLength = 1.0;
+  itkOptimizer->SetStepLength(stepLength);
+  ITK_TEST_SET_GET_VALUE(stepLength, itkOptimizer->GetStepLength());
 
 
   using StepsType = OptimizerType::StepsType;
@@ -245,6 +250,7 @@ itkExhaustiveOptimizerv4Test(int, char *[])
   steps[1] = 10;
 
   itkOptimizer->SetNumberOfSteps(steps);
+  ITK_TEST_SET_GET_VALUE(steps, itkOptimizer->GetNumberOfSteps());
 
 
   try
@@ -261,24 +267,26 @@ itkExhaustiveOptimizerv4Test(int, char *[])
   }
 
 
-  bool minimumValuePass = itk::Math::abs(itkOptimizer->GetMinimumMetricValue() - -10) < 1E-3;
+  const bool minimumValuePass = itk::Math::abs(itkOptimizer->GetMinimumMetricValue() - -10) < 1E-3;
 
   std::cout << "MinimumMetricValue = " << itkOptimizer->GetMinimumMetricValue() << std::endl;
   std::cout << "Minimum Position = " << itkOptimizer->GetMinimumMetricValuePosition() << std::endl;
 
-  bool maximumValuePass = itk::Math::abs(itkOptimizer->GetMaximumMetricValue() - 926) < 1E-3;
+  const bool maximumValuePass = itk::Math::abs(itkOptimizer->GetMaximumMetricValue() - 926) < 1E-3;
   std::cout << "MaximumMetricValue = " << itkOptimizer->GetMaximumMetricValue() << std::endl;
   std::cout << "Maximum Position = " << itkOptimizer->GetMaximumMetricValuePosition() << std::endl;
 
   ParametersType finalPosition = itkOptimizer->GetMinimumMetricValuePosition();
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ')' << std::endl;
+
+  std::cout << "CurrentValue: " << itkOptimizer->GetCurrentValue() << std::endl;
 
   bool                       visitedIndicesPass = true;
   std::vector<unsigned long> visitedIndices = idxObserver->m_VisitedIndices;
 
-  size_t requiredNumberOfSteps = (2 * steps[0] + 1) * (2 * steps[1] + 1);
+  const size_t requiredNumberOfSteps = (2 * steps[0] + 1) * (2 * steps[1] + 1);
   if (visitedIndices.size() != requiredNumberOfSteps)
   {
     visitedIndicesPass = false;
@@ -299,9 +307,9 @@ itkExhaustiveOptimizerv4Test(int, char *[])
   //
   // check results to see if it is within range
   //
-  bool   trueParamsPass = true;
-  double trueParameters[2] = { 2, -2 };
-  for (unsigned int j = 0; j < 2; j++)
+  bool             trueParamsPass = true;
+  constexpr double trueParameters[2] = { 2, -2 };
+  for (unsigned int j = 0; j < 2; ++j)
   {
     if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
     {
@@ -319,9 +327,6 @@ itkExhaustiveOptimizerv4Test(int, char *[])
     return EXIT_FAILURE;
   }
 
-
-  std::cout << "Testing PrintSelf " << std::endl;
-  itkOptimizer->Print(std::cout);
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

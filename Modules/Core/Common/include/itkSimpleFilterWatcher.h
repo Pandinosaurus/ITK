@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkCommand.h"
 #include "itkProcessObject.h"
 #include "itkTimeProbe.h"
+#include <mutex>
 
 namespace itk
 {
@@ -47,7 +48,7 @@ namespace itk
  * Example of use:
  *
  * using FilterType = itk::BinaryThresholdImageFilter<ImageType>;
- * FilterType::Pointer thresholdFilter = FilterType::New();
+ * auto thresholdFilter = FilterType::New();
  *
  * SimpleFilterWatcher watcher(thresholdFilter, "Threshold");
  *
@@ -95,6 +96,7 @@ public:
 
   /** Methods to control the verbosity of the messages. Quiet
    * reporting limits the information emitted at a ProgressEvent. */
+  /** @ITKStartGrouping */
   void
   QuietOn()
   {
@@ -105,10 +107,12 @@ public:
   {
     m_Quiet = false;
   }
+  /** @ITKEndGrouping */
 
   /** Methods to use to test the AbortEvent of the a filter. If
    * TestAbort is on, the filter being watched will be aborted when
    * the progress reaches 30%. */
+  /** @ITKStartGrouping */
   void
   TestAbortOn()
   {
@@ -119,8 +123,10 @@ public:
   {
     m_TestAbort = false;
   }
+  /** @ITKEndGrouping */
 
   /** Methods to access member data */
+
   /** Get a pointer to the process object being watched. */
   ProcessObject *
   GetProcess()
@@ -129,41 +135,47 @@ public:
   }
 
   /** Set/Get the steps completed. */
+  /** @ITKStartGrouping */
   void
   SetSteps(int val)
   {
     m_Steps = val;
   }
-  int
+  [[nodiscard]] int
   GetSteps() const
   {
     return m_Steps;
   }
+  /** @ITKEndGrouping */
 
   /** Set/Get the number of iterations completed. */
+  /** @ITKStartGrouping */
   void
   SetIterations(int val)
   {
     m_Iterations = val;
   }
-  int
+  [[nodiscard]] int
   GetIterations() const
   {
     return m_Iterations;
   }
+  /** @ITKEndGrouping */
 
   /** Set/Get the quiet mode boolean. If true, verbose progress is
    * reported. */
+  /** @ITKStartGrouping */
   void
   SetQuiet(bool val)
   {
     m_Quiet = val;
   }
-  bool
+  [[nodiscard]] bool
   GetQuiet() const
   {
     return m_Quiet;
   }
+  /** @ITKEndGrouping */
 
   /** Get the comment for the watcher. */
   std::string
@@ -186,7 +198,8 @@ protected:
   {
     if (m_Process)
     {
-      m_Steps++;
+      const std::lock_guard<std::mutex> lockGuard(m_ProgressOutput);
+      ++m_Steps;
       if (!m_Quiet)
       {
         std::cout << " | " << m_Process->GetProgress() << std::flush;
@@ -229,7 +242,7 @@ protected:
   ShowIteration()
   {
     std::cout << " #" << std::flush;
-    m_Iterations++;
+    ++m_Iterations;
   }
 
   /** Callback method to show the StartEvent */
@@ -260,8 +273,8 @@ protected:
   EndFilter()
   {
     m_TimeProbe.Stop();
-    std::cout << std::endl << "Filter took " << m_TimeProbe.GetMean() << " seconds.";
     std::cout << std::endl
+              << "Filter took " << m_TimeProbe.GetMean() << " seconds." << std::endl
               << "-------- End " << (m_Process.GetPointer() ? m_Process->GetNameOfClass() : "None") << " \""
               << m_Comment << "\" " << std::endl;
     if (!m_Quiet)
@@ -283,20 +296,21 @@ protected:
   }
 
 private:
-  TimeProbe                   m_TimeProbe;
+  TimeProbe                   m_TimeProbe{};
   int                         m_Steps{ 0 };
   int                         m_Iterations{ 0 };
-  bool                        m_Quiet{ false };
   bool                        m_TestAbort{ false };
-  std::string                 m_Comment;
-  itk::ProcessObject::Pointer m_Process;
+  bool                        m_Quiet{ false };
+  std::string                 m_Comment{};
+  itk::ProcessObject::Pointer m_Process{};
+  std::mutex                  m_ProgressOutput{};
 
   using CommandType = SimpleMemberCommand<SimpleFilterWatcher>;
-  CommandType::Pointer m_StartFilterCommand;
-  CommandType::Pointer m_EndFilterCommand;
-  CommandType::Pointer m_ProgressFilterCommand;
-  CommandType::Pointer m_IterationFilterCommand;
-  CommandType::Pointer m_AbortFilterCommand;
+  CommandType::Pointer m_StartFilterCommand{};
+  CommandType::Pointer m_EndFilterCommand{};
+  CommandType::Pointer m_ProgressFilterCommand{};
+  CommandType::Pointer m_IterationFilterCommand{};
+  CommandType::Pointer m_AbortFilterCommand{};
 
   unsigned long m_StartTag{ 0 };
   unsigned long m_EndTag{ 0 };

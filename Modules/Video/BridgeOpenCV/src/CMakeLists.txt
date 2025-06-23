@@ -1,6 +1,7 @@
-set(ITKVideoBridgeOpenCV_SRC
-itkOpenCVVideoIO.cxx
-itkOpenCVVideoIOFactory.cxx
+set(
+  ITKVideoBridgeOpenCV_SRC
+  itkOpenCVVideoIO.cxx
+  itkOpenCVVideoIOFactory.cxx
 )
 
 add_library(ITKVideoBridgeOpenCV ${ITKVideoBridgeOpenCV_SRC})

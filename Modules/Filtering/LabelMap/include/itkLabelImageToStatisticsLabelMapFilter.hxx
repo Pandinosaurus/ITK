@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,19 +18,17 @@
 #ifndef itkLabelImageToStatisticsLabelMapFilter_hxx
 #define itkLabelImageToStatisticsLabelMapFilter_hxx
 
-#include "itkLabelImageToStatisticsLabelMapFilter.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TFeatureImage, typename TOutputImage>
 LabelImageToStatisticsLabelMapFilter<TInputImage, TFeatureImage, TOutputImage>::LabelImageToStatisticsLabelMapFilter()
+  : m_BackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_ComputePerimeter(true)
+  , m_NumberOfBins(LabelObjectValuatorType::GetDefaultNumberOfBins())
+  , m_ComputeHistogram(true)
 {
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  m_ComputeFeretDiameter = false;
-  m_ComputePerimeter = true;
-  m_NumberOfBins = 128;
-  m_ComputeHistogram = true;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -42,7 +40,7 @@ LabelImageToStatisticsLabelMapFilter<TInputImage, TFeatureImage, TOutputImage>::
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -62,20 +60,20 @@ void
 LabelImageToStatisticsLabelMapFilter<TInputImage, TFeatureImage, TOutputImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
   // Allocate the output
   this->AllocateOutputs();
 
-  typename LabelizerType::Pointer labelizer = LabelizerType::New();
+  auto labelizer = LabelizerType::New();
   labelizer->SetInput(this->GetInput());
   labelizer->SetBackgroundValue(m_BackgroundValue);
   labelizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(labelizer, .5f);
 
-  typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
+  auto valuator = LabelObjectValuatorType::New();
   valuator->SetInput(labelizer->GetOutput());
   valuator->SetFeatureImage(this->GetFeatureImage());
   valuator->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());

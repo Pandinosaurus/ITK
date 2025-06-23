@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkQuadEdgeMesh_hxx
 #define itkQuadEdgeMesh_hxx
-#include "itkQuadEdgeMesh.h"
 #include <limits>
 #include <vector>
 
@@ -63,7 +62,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Clear()
     }
   }
 
-  // Clear the points potentialy left behind by LightWeightDeleteEdge():
+  // Clear the points potentially left behind by LightWeightDeleteEdge():
   if (this->GetPoints())
   {
     this->GetPoints()->clear();
@@ -81,8 +80,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Graft(const DataObject * data)
   if (!mesh)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::QuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::QuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                          << typeid(Self *).name());
   }
 
   this->m_FreePointIndexes = mesh->m_FreePointIndexes;
@@ -97,10 +96,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Graft(const DataObject * data)
  * \brief The one and only method to modify the edge connectivity.
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::PointIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b) -> PointIdentifier
 {
-  bool            SplitingOrigin = a->IsInOnextRing(b);
+  const bool      SplitingOrigin = a->IsInOnextRing(b);
   PointIdentifier resultingOriginId;
 
   if (SplitingOrigin)
@@ -151,19 +150,18 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
     ////////// Handle the geometrical references:
     // Make sure the Origin's edge entry doesn't point to an entry edge
     // that isn't any more in the Onext ring:
-    PointIdentifier orgId = a->GetOrigin();
-    PointType       org = this->GetPoint(orgId);
+    const PointIdentifier orgId = a->GetOrigin();
+    PointType             org = this->GetPoint(orgId);
     org.SetEdge(a);
     this->SetPoint(orgId, org);
 
     // Create a newOrigin point by duplicating the geometry of Origin...
     PointType newOrigin = org;
     newOrigin.SetEdge(b);
-    PointIdentifier newOriginId = this->AddPoint(newOrigin);
+    const PointIdentifier newOriginId = this->AddPoint(newOrigin);
 
     // ...and inform Onext ring of b that their Origin() have changed:
-    typename QEPrimal::IteratorGeom it;
-    for (it = b->BeginGeomOnext(); it != b->EndGeomOnext(); it++)
+    for (auto it = b->BeginGeomOnext(); it != b->EndGeomOnext(); ++it)
     {
       it.Value()->SetOrigin(newOriginId);
     }
@@ -221,8 +219,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
 
     /////////////////////////////////////////////////////////////
     // First, consider the vertices: Origin and oldOrigin must be different.
-    PointIdentifier oldOriginId = b->GetOrigin();
-    PointIdentifier orgId = a->GetOrigin();
+    const PointIdentifier oldOriginId = b->GetOrigin();
+    const PointIdentifier orgId = a->GetOrigin();
 
     if (oldOriginId == orgId)
     {
@@ -264,13 +262,13 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
      *                  \              /
      *                   V ----a->--- V
      *
-     * Basically, we accept to proceed with spliting if there is a
-     * single face on the left and this face is at least an hexagone
+     * Basically, we accept to proceed with splitting if there is a
+     * single face on the left and this face is at least a hexagon
      * and the vertices we wish to splice are at least two vertices aside.
      */
 
-    FaceRefType aLeftFace = a->GetLeft();
-    FaceRefType bLeftFace = b->GetLeft();
+    const FaceRefType aLeftFace = a->GetLeft();
+    const FaceRefType bLeftFace = b->GetLeft();
 
     bool MustReconstructFace = false;
     if ((aLeftFace == m_NoFace && bLeftFace != m_NoFace) || (aLeftFace != m_NoFace && bLeftFace == m_NoFace))
@@ -295,7 +293,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
     }
 
     // Notice that when aLeftFace == m_NoFace and bLeftFace == m_NoFace
-    // we simply proceed... (with MustReconstructFace initialy set to
+    // we simply proceed... (with MustReconstructFace initially set to
     // false.
 
     ///////////////////////////////////////////////////////////////
@@ -311,8 +309,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
     // We need to inform the edges ranging from a->Onext() to b that
     // their Origin() have changed. Let's over do it (read, be lazy) and
     // inform the full Onext() ring:
-    typename QEPrimal::IteratorGeom it;
-    for (it = a->BeginGeomOnext(); it != a->EndGeomOnext(); it++)
+    for (auto it = a->BeginGeomOnext(); it != a->EndGeomOnext(); ++it)
     {
       it.Value()->SetOrigin(orgId);
     }
@@ -321,7 +318,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
     ///////////////////////////////////////////////////////////////
     // Now that we are done with the handling of the geometry of
     // vertices proceed with the geometry of the faces. When we
-    // are spliting a face (through Splicing) we must construct two
+    // are splitting a face (through Splicing) we must construct two
     // new faces:
     if (MustReconstructFace)
     {
@@ -338,13 +335,11 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::Splice(QEPrimal * a, QEPrimal * b)
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
 void
-QuadEdgeMesh<TPixel, VDimension, TTraits>::SetCell(CellIdentifier cId, CellAutoPointer & cell)
+QuadEdgeMesh<TPixel, VDimension, TTraits>::SetCell(CellIdentifier itkNotUsed(cId), CellAutoPointer & cell)
 {
-  (void)cId;
-
   // NOTE ALEX: should add some checking to be sure everything went fine
-  EdgeCellType *    qe;
-  PolygonCellType * pe;
+  EdgeCellType *    qe = nullptr;
+  PolygonCellType * pe = nullptr;
 
   // The QuadEdgeMeshCellTypes first
   if ((qe = dynamic_cast<EdgeCellType *>(cell.GetPointer())) != nullptr)
@@ -356,9 +351,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SetCell(CellIdentifier cId, CellAutoP
   }
   else if ((pe = dynamic_cast<PolygonCellType *>(cell.GetPointer())) != nullptr)
   {
-    PointIdList             points;
-    PointIdInternalIterator pit = pe->InternalPointIdsBegin();
-    PointIdInternalIterator pend = pe->InternalPointIdsEnd();
+    PointIdList                   points;
+    PointIdInternalIterator       pit = pe->InternalPointIdsBegin();
+    const PointIdInternalIterator pend = pe->InternalPointIdsEnd();
     while (pit != pend)
     {
       points.push_back(*pit);
@@ -371,9 +366,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SetCell(CellIdentifier cId, CellAutoP
   }
   else // non-QE cell, i.e. original itk cells for example
   {
-    PointIdentifier numPoint = cell->GetNumberOfPoints();
-    PointIdIterator pointId = cell->PointIdsBegin();
-    PointIdIterator endId = cell->PointIdsEnd();
+    const PointIdentifier numPoint = cell->GetNumberOfPoints();
+    PointIdIterator       pointId = cell->PointIdsBegin();
+    PointIdIterator       endId = cell->PointIdsEnd();
     // Edge
     if (numPoint == 2)
     {
@@ -404,11 +399,11 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SetCell(CellIdentifier cId, CellAutoP
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::PointIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedPointIndex()
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedPointIndex() -> PointIdentifier
 {
-  PointIdentifier pid = 0;
-  PointIdentifier maxpid = this->GetNumberOfPoints();
+  PointIdentifier       pid = 0;
+  const PointIdentifier maxpid = this->GetNumberOfPoints();
 
   if (!m_FreePointIndexes.empty())
   {
@@ -421,10 +416,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedPointIndex()
         m_FreePointIndexes.pop();
         return (pid);
       }
-      else
-      {
-        m_FreePointIndexes.pop();
-      }
+
+      m_FreePointIndexes.pop();
+
     } while (!m_FreePointIndexes.empty());
   }
 
@@ -434,7 +428,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedPointIndex()
     if (pid != 0)
     {
       PointsContainerConstIterator last = this->GetPoints()->End();
-      last--;
+      --last;
       pid = last.Index() + 1;
     }
   }
@@ -461,13 +455,13 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SqueezePointsIds()
   }
 
   // Get hold on the last point in the container
-  PointsContainerPointer       points = this->GetPoints();
+  const PointsContainerPointer points = this->GetPoints();
   PointsContainerConstIterator last = points->End();
   --last;
 
   // Check if there is any data
-  PointDataContainerPointer pointData = this->GetPointData();
-  bool                      HasPointData = (pointData->Size() != 0);
+  const PointDataContainerPointer pointData = this->GetPointData();
+  const bool                      HasPointData = (pointData->Size() != 0);
 
   // if there is get hold on the last point's data
   PointDataContainerIterator lastData = pointData->End();
@@ -476,17 +470,12 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SqueezePointsIds()
     --lastData;
   }
 
-  // Some Temp var to be used in the while loop
-  PointIdentifier FilledPointID;
-  QEType *        EdgeRingEntry;
-  QEType *        EdgeRingIter;
-
   // for all the free indexes and while there is any gap
   while ((!m_FreePointIndexes.empty()) && (last.Index() >= this->GetNumberOfPoints()))
   {
 
     // duplicate last point into the empty slot and pop the id from freeID list
-    FilledPointID = AddPoint(GetPoint(last.Index()));
+    PointIdentifier FilledPointID = AddPoint(GetPoint(last.Index()));
 
     // same thing for the data if any
     if (HasPointData)
@@ -496,10 +485,11 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SqueezePointsIds()
 
     // make sure that all the edges/faces now refer to the new ID
     // i.e. enforce the integrity at the QE level now.
-    EdgeRingEntry = GetPoint(last.Index()).GetEdge();
+    QEType * EdgeRingEntry = GetPoint(last.Index()).GetEdge();
     if (EdgeRingEntry)
     {
-      EdgeRingIter = EdgeRingEntry;
+
+      QEType * EdgeRingIter = EdgeRingEntry;
       do
       {
         EdgeRingIter->SetOrigin(FilledPointID);
@@ -525,10 +515,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::SqueezePointsIds()
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::PointIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::AddPoint(const PointType & p)
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::AddPoint(const PointType & p) -> PointIdentifier
 {
-  PointIdentifier pid = this->FindFirstUnusedPointIndex();
+  const PointIdentifier pid = this->FindFirstUnusedPointIndex();
 
   this->SetPoint(pid, p);
   return (pid);
@@ -556,7 +546,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::DeletePoint(const PointIdentifier & p
   // Remove the point from the points container
   this->GetPoints()->DeleteIndex(pid);
 
-  // Check if there is associated poindata and eventually delete them
+  // Check if there is associated pointData and eventually delete them
   if (this->GetPointData()->Size() > 0)
   {
     this->GetPointData()->DeleteIndex(pid);
@@ -571,8 +561,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::DeletePoint(const PointIdentifier & p
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::PointType
-QuadEdgeMesh<TPixel, VDimension, TTraits>::GetPoint(const PointIdentifier & pid) const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::GetPoint(const PointIdentifier & pid) const -> PointType
 {
   return (this->GetPoints()->GetElement(pid));
 }
@@ -580,8 +570,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::GetPoint(const PointIdentifier & pid)
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::VectorType
-QuadEdgeMesh<TPixel, VDimension, TTraits>::GetVector(const PointIdentifier & pid) const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::GetVector(const PointIdentifier & pid) const -> VectorType
 {
   return (this->GetPoint(pid).GetVectorFromOrigin());
 }
@@ -589,8 +579,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::GetVector(const PointIdentifier & pid
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::CellIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedCellIndex()
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedCellIndex() -> CellIdentifier
 {
   CellIdentifier cid;
 
@@ -601,7 +591,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedCellIndex()
     if (cid != 0)
     {
       CellsContainerIterator last = this->GetCells()->End();
-      last--;
+      --last;
       cid = last.Index() + 1;
     }
   }
@@ -622,8 +612,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindFirstUnusedCellIndex()
  * @sa \ref GeometricalQuadEdge::InsertAfterNextBorderEdgeWithUnsetLeft
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::AddEdge(const PointIdentifier & orgPid, const PointIdentifier & destPid)
+  -> QEPrimal *
 {
   // Make sure the points are different
   if (orgPid == destPid)
@@ -674,11 +665,11 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddEdge(const PointIdentifier & orgPi
 }
 
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::AddEdgeWithSecurePointList(const PointIdentifier & orgPid,
-                                                                      const PointIdentifier & destPid)
+                                                                      const PointIdentifier & destPid) -> QEPrimal *
 {
-  PointsContainerPointer points = this->GetPoints();
+  const PointsContainerPointer points = this->GetPoints();
 
   PointType & pOrigin = points->ElementAt(orgPid);
   PointType & pDestination = points->ElementAt(destPid);
@@ -735,7 +726,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::PushOnContainer(EdgeCellType * newEdg
   CellAutoPointer pEdge;
   pEdge.TakeOwnership(newEdge);
   this->SetEdgeCell(eid, pEdge);
-  m_NumberOfEdges++;
+  ++m_NumberOfEdges;
 }
 
 /**
@@ -765,7 +756,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::DeleteEdge(QEPrimal * e)
   const PointIdentifier & orgPid = e->GetOrigin();
   const PointIdentifier & destPid = e->GetDestination();
 
-  PointsContainerPointer points = this->GetPoints();
+  const PointsContainerPointer points = this->GetPoints();
 
   // Check if the Origin point's edge ring entry should be changed
   PointType & pOrigin = points->ElementAt(orgPid);
@@ -849,10 +840,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::DeleteEdge(QEPrimal * e)
     ++cit;
   }
 
-  // we checked all the cells i nthe container
+  // we checked all the cells in the container
   // now delete the elements in the map
-  auto                                     dit = cellsToDelete.begin();
-  const typename DeleteCellsCont::iterator dend = cellsToDelete.end();
+  auto       dit = cellsToDelete.begin();
+  const auto dend = cellsToDelete.end();
   while (dit != dend)
   {
     const CellType * cellToBeDeleted = this->GetCells()->GetElement(*dit);
@@ -905,7 +896,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::LightWeightDeleteEdge(EdgeCellType * 
   const PointIdentifier & orgPid = e->GetOrigin();
   const PointIdentifier & destPid = e->GetDestination();
 
-  PointsContainerPointer points = this->GetPoints();
+  const PointsContainerPointer points = this->GetPoints();
 
   if (orgPid != e->m_NoPoint && destPid != e->m_NoPoint)
   {
@@ -998,7 +989,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::LightWeightDeleteEdge(QEPrimal * e)
     return;
   }
 
-  CellIdentifier LineIdent = e->GetIdent();
+  const CellIdentifier LineIdent = e->GetIdent();
   if (LineIdent != m_NoPoint)
   {
     auto * edgeCell = dynamic_cast<EdgeCellType *>(this->GetEdgeCells()->GetElement(LineIdent));
@@ -1017,8 +1008,8 @@ template <typename TPixel, unsigned int VDimension, typename TTraits>
 void
 QuadEdgeMesh<TPixel, VDimension, TTraits>::DeleteFace(FaceRefType faceToDelete)
 {
-  CellsContainerPointer cells = this->GetCells();
-  CellType *            c;
+  const CellsContainerPointer cells = this->GetCells();
+  CellType *                  c = nullptr;
 
   if (!cells->GetElementIfIndexExists(faceToDelete, &c))
   {
@@ -1068,17 +1059,17 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::DeleteFace(FaceRefType faceToDelete)
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
-QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge() const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge() const -> QEPrimal *
 {
   if (this->GetEdgeCells()->empty())
   {
     return ((QEPrimal *)nullptr);
   }
 
-  const CellsContainer *      edgeCells = this->GetEdgeCells();
-  CellsContainerConstIterator cit = edgeCells->Begin();
-  auto *                      e = dynamic_cast<EdgeCellType *>(cit.Value());
+  const CellsContainer *            edgeCells = this->GetEdgeCells();
+  const CellsContainerConstIterator cit = edgeCells->Begin();
+  auto *                            e = dynamic_cast<EdgeCellType *>(cit.Value());
 
   return (e->GetQEGeom());
 }
@@ -1086,10 +1077,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge() const
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
-QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge(const CellIdentifier & eid) const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge(const CellIdentifier & eid) const -> QEPrimal *
 {
-  CellType * c;
+  CellType * c = nullptr;
 
   if (!this->GetEdgeCells()->GetElementIfIndexExists(eid, &c))
   {
@@ -1104,8 +1095,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::GetEdge(const CellIdentifier & eid) c
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
-QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdge(const PointIdentifier & pid0) const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdge(const PointIdentifier & pid0) const -> QEPrimal *
 {
   PointType p = this->GetPoint(pid0);
 
@@ -1115,15 +1106,16 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdge(const PointIdentifier & pid0
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdge(const PointIdentifier & pid0, const PointIdentifier & pid1) const
+  -> QEPrimal *
 {
   QEPrimal * initialEdge = this->GetPoint(pid0).GetEdge();
 
   if (initialEdge)
   {
-    typename QEPrimal::IteratorGeom it = initialEdge->BeginGeomOnext();
-    typename QEPrimal::IteratorGeom end = initialEdge->EndGeomOnext();
+    typename QEPrimal::IteratorGeom       it = initialEdge->BeginGeomOnext();
+    const typename QEPrimal::IteratorGeom end = initialEdge->EndGeomOnext();
     while (it != end)
     {
       if (it.Value()->GetDestination() == pid1)
@@ -1139,16 +1131,16 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdge(const PointIdentifier & pid0
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::EdgeCellType *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdgeCell(const PointIdentifier & pid0,
-                                                        const PointIdentifier & pid1) const
+                                                        const PointIdentifier & pid1) const -> EdgeCellType *
 {
   auto *     result = (EdgeCellType *)nullptr;
   QEPrimal * EdgeGeom = FindEdge(pid0, pid1);
 
   if (EdgeGeom != (QEPrimal *)nullptr)
   {
-    CellIdentifier LineIdent = EdgeGeom->GetIdent();
+    const CellIdentifier LineIdent = EdgeGeom->GetIdent();
     if (LineIdent != m_NoPoint)
     {
       result = dynamic_cast<EdgeCellType *>(this->GetEdgeCells()->GetElement(LineIdent));
@@ -1160,27 +1152,24 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::FindEdgeCell(const PointIdentifier & 
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
-QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points)
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points) -> QEPrimal *
 {
-  size_t N = points.size();
+  const size_t N = points.size();
 
 #ifndef NDEBUG
 
   // Check that there are no duplicate points
-  for (size_t i = 0; i < N; i++)
+  for (size_t i = 0; i < N; ++i)
   {
-    typename PointIdList::const_iterator itr = points.begin();
-    typename PointIdList::const_iterator end = points.end();
-    PointIdentifier                      count = NumericTraits<PointIdentifier>::ZeroValue();
-    const PointIdentifier                pointId = points[i];
-    while (itr != end)
+    PointIdentifier       count{};
+    const PointIdentifier pointId = points[i];
+    for (const auto & point : points)
     {
-      if (*itr == pointId)
+      if (point == pointId)
       {
         ++count;
       }
-      ++itr;
     }
     if (count != 1)
     {
@@ -1192,7 +1181,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points)
   PointsContainerPointer pointsContainer = this->GetPoints();
 
   // Check that all points exist
-  for (size_t i = 0; i < N; i++)
+  for (size_t i = 0; i < N; ++i)
   {
     if (!pointsContainer->IndexExists(points[i]))
     {
@@ -1203,10 +1192,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points)
 #endif
 
   // Check if existing edges have no face on the left.
-  for (size_t i = 0; i < N; i++)
+  for (size_t i = 0; i < N; ++i)
   {
-    PointIdentifier pid0 = points[i];
-    PointIdentifier pid1 = points[(i + 1) % N];
+    const PointIdentifier pid0 = points[i];
+    const PointIdentifier pid1 = points[(i + 1) % N];
 
     QEPrimal * edge = this->FindEdge(pid0, pid1);
 
@@ -1214,7 +1203,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points)
     {
       if (edge->IsLeftSet())
       {
-        itkDebugMacro("Edge [" << i << " " << ((i + 1) % N) << " has a left face.");
+        itkDebugMacro("Edge [" << i << ' ' << ((i + 1) % N) << " has a left face.");
         return (QEPrimal *)nullptr;
       }
     }
@@ -1226,8 +1215,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(const PointIdList & points)
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
-QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const PointIdList & points)
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const PointIdList & points) -> QEPrimal *
 {
   return AddFaceWithSecurePointList(points, true);
 }
@@ -1235,8 +1224,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const Poin
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const PointIdList & points, bool CheckEdges)
+  -> QEPrimal *
 {
   const auto numberOfPoints = static_cast<PointIdentifier>(points.size());
 
@@ -1244,11 +1234,11 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const Poin
   QEList FaceQEList(numberOfPoints, nullptr);
 
   // Now create edge list and create missing edges if needed.
-  for (PointIdentifier i = 0; i < numberOfPoints; i++)
+  for (PointIdentifier i = 0; i < numberOfPoints; ++i)
   {
-    PointIdentifier pid0 = points[i];
-    PointIdentifier pid1 = points[(i + 1) % numberOfPoints];
-    QEPrimal *      edge = this->FindEdge(pid0, pid1);
+    const PointIdentifier pid0 = points[i];
+    const PointIdentifier pid1 = points[(i + 1) % numberOfPoints];
+    QEPrimal *            edge = this->FindEdge(pid0, pid1);
 
     if (!edge && CheckEdges)
     {
@@ -1267,7 +1257,6 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const Poin
   }
 
   // Reorder all Onext rings
-  QEPrimal * e1;
   QEPrimal * e0 = FaceQEList.back();
 
   auto fIt = FaceQEList.begin();
@@ -1275,7 +1264,7 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceWithSecurePointList(const Poin
 
   while (fIt != fEnd)
   {
-    e1 = e0->GetSym();
+    QEPrimal * e1 = e0->GetSym();
     e0 = *fIt;
 
     e0->ReorderOnextRingBeforeAddFace(e1);
@@ -1308,16 +1297,16 @@ void
 QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(QEPrimal * entry)
 {
   // Create the cell and add it to the container
-  auto *         faceCell = new PolygonCellType(entry);
-  CellIdentifier fid = this->FindFirstUnusedCellIndex();
+  auto *               faceCell = new PolygonCellType(entry);
+  const CellIdentifier fid = this->FindFirstUnusedCellIndex();
 
   faceCell->SetIdent(fid);
 
   // Associate the above generated CellIndex as the default FaceRefType
   // of the new face [ i.e. use the itk level CellIdentifier as the
   // GeometricalQuadEdge::m_Origin of dual edges (edges of type QEDual) ].
-  typename QEPrimal::IteratorGeom it = entry->BeginGeomLnext();
-  typename QEPrimal::IteratorGeom end = entry->EndGeomLnext();
+  typename QEPrimal::IteratorGeom       it = entry->BeginGeomLnext();
+  const typename QEPrimal::IteratorGeom end = entry->EndGeomLnext();
 
   while (it != end)
   {
@@ -1338,10 +1327,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFace(QEPrimal * entry)
  * @param cPid \ref PointIdentifier of third point
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::QEPrimal *
+auto
 QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceTriangle(const PointIdentifier & aPid,
                                                            const PointIdentifier & bPid,
-                                                           const PointIdentifier & cPid)
+                                                           const PointIdentifier & cPid) -> QEPrimal *
 {
   PointIdList points(3);
 
@@ -1355,11 +1344,10 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::AddFaceTriangle(const PointIdentifier
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
 QuadEdgeMesh<TPixel, VDimension, TTraits>::QuadEdgeMesh()
-  : m_NumberOfFaces(0)
+  : m_EdgeCellsContainer(CellsContainer::New())
+  , m_NumberOfFaces(0)
   , m_NumberOfEdges(0)
-{
-  m_EdgeCellsContainer = CellsContainer::New();
-}
+{}
 
 template <typename TPixel, unsigned int VDimension, typename TTraits>
 QuadEdgeMesh<TPixel, VDimension, TTraits>::~QuadEdgeMesh()
@@ -1373,8 +1361,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ClearCellsContainer()
 {
   if (m_EdgeCellsContainer->GetReferenceCount() == 1)
   {
-    CellsContainerIterator EdgeCell = m_EdgeCellsContainer->Begin();
-    CellsContainerIterator EdgeEnd = m_EdgeCellsContainer->End();
+    CellsContainerIterator       EdgeCell = m_EdgeCellsContainer->Begin();
+    const CellsContainerIterator EdgeEnd = m_EdgeCellsContainer->End();
     while (EdgeCell != EdgeEnd)
     {
       const CellType * EdgeCellToBeDeleted = EdgeCell->Value();
@@ -1388,8 +1376,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ClearCellsContainer()
 /**
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::CoordRepType
-QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeEdgeLength(QEPrimal * e)
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeEdgeLength(QEPrimal * e) -> CoordinateType
 {
   const PointsContainer * points = this->GetPoints();
 
@@ -1408,8 +1396,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeEdgeLength(QEPrimal * e)
  * understanding is not useful at first contact with the class.
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::PointIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfPoints() const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfPoints() const -> PointIdentifier
 {
   const PointsContainer * points = this->GetPoints();
 
@@ -1419,9 +1407,9 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfPoints() const
     return (0);
   }
 
-  PointIdentifier              numberOfPoints = NumericTraits<PointIdentifier>::ZeroValue();
-  PointsContainerConstIterator pointIterator = points->Begin();
-  PointsContainerConstIterator pointEnd = points->End();
+  PointIdentifier                    numberOfPoints{};
+  PointsContainerConstIterator       pointIterator = points->Begin();
+  const PointsContainerConstIterator pointEnd = points->End();
 
   while (pointIterator != pointEnd)
   {
@@ -1442,12 +1430,12 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfPoints() const
  * understanding is not useful at first contact with the class.
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::CellIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfFaces() const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfFaces() const -> CellIdentifier
 {
-  CellIdentifier              numberOfFaces = NumericTraits<CellIdentifier>::ZeroValue();
-  CellsContainerConstIterator cellIterator = this->GetCells()->Begin();
-  CellsContainerConstIterator cellEnd = this->GetCells()->End();
+  CellIdentifier                    numberOfFaces{};
+  CellsContainerConstIterator       cellIterator = this->GetCells()->Begin();
+  const CellsContainerConstIterator cellEnd = this->GetCells()->End();
 
   PointIdentifier NumOfPoints;
 
@@ -1471,8 +1459,8 @@ QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfFaces() const
  *       understanding is not useful at first contact with the class.
  */
 template <typename TPixel, unsigned int VDimension, typename TTraits>
-typename QuadEdgeMesh<TPixel, VDimension, TTraits>::CellIdentifier
-QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfEdges() const
+auto
+QuadEdgeMesh<TPixel, VDimension, TTraits>::ComputeNumberOfEdges() const -> CellIdentifier
 {
   return static_cast<CellIdentifier>(this->GetEdgeCells()->size());
 }

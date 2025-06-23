@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -104,10 +104,10 @@ main(int, char *[])
   using SpatialObjectType = itk::SpatialObject<2>;
   using TransformType = SpatialObjectType::TransformType;
 
-  SpatialObjectType::Pointer object1 = SpatialObjectType::New();
+  auto object1 = SpatialObjectType::New();
   object1->GetProperty().SetName("First Object");
 
-  SpatialObjectType::Pointer object2 = SpatialObjectType::New();
+  auto object2 = SpatialObjectType::New();
   object2->GetProperty().SetName("Second Object");
   object1->AddChild(object2);
   // Software Guide : EndCodeSnippet
@@ -124,7 +124,7 @@ main(int, char *[])
   // siblings.  So, you should insert a \code{GroupSpatialObject} that holds
   // both the object and its siblings as children.  Then you can manipulate
   // the object's transform/scaling independent of its siblings in that group,
-  // and if you wish to transform the object and its simblings, you apply that
+  // and if you wish to transform the object and its siblings, you apply that
   // transform to the group.
   //
   // Software Guide : EndLatex
@@ -141,7 +141,7 @@ main(int, char *[])
   //
   // Next, we apply an offset on the \code{ObjectToParentTransform} to
   // \code{object1}
-  // which will also cauase a translation of its child, \code{object2}.
+  // which will also cause a translation of its child, \code{object2}.
   //
   // Software Guide : EndLatex
 
@@ -323,17 +323,17 @@ main(int, char *[])
   // object1 ObjectToParent Matrix:
   // 1 0
   // 0 1
-  // object1 ObjecTParent Offset: 3  3
-  // object2 ObjecToWorld Matrix:
+  // object1 ObjectToParent Offset: 3  3
+  // object2 ObjectToWorld Matrix:
   // 2 0
   // 0 2
   // object2 ObjectToWorld Offset: 7  6
   //
-  // object2 ObjecToParent Matrix:
+  // object2 ObjectToParent Matrix:
   // 2 0
   // 0 2
   // object2 ObjectToParent Offset: 7  6
-  // object2 ObjecToWorld Matrix:
+  // object2 ObjectToWorld Matrix:
   // 2 0
   // 0 2
   // object2 ObjectToWorld Offset: 7  6

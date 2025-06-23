@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,14 @@
 namespace itk
 {
 /**
- *\class Bruker2dseqImageIOFactory
+ * \class Bruker2dseqImageIOFactory
  * \brief Create instances of Bruker2dseqImageIO objects using an object factory.
  *
  * \author Don C. Bigler
  *         The Pennsylvania State University 2005
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/237
+ * https://doi.org/10.54294/o8w4c0
  *
  * \ingroup ITKIOBruker
  */
@@ -57,14 +57,14 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Bruker2dseqImageIOFactory, ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Bruker2dseqImageIOFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    Bruker2dseqImageIOFactory::Pointer factory = Bruker2dseqImageIOFactory::New();
+    auto factory = Bruker2dseqImageIOFactory::New();
 
     ObjectFactoryBase::RegisterFactoryInternal(factory);
   }

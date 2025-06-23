@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,8 +71,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using ConstWeakPointer = WeakPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageAdaptor, ImageBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageAdaptor);
 
   /** Typedef of unadapted image */
   using InternalImageType = TImage;
@@ -99,40 +99,40 @@ public:
   using AccessorFunctorType = typename InternalImageType::AccessorFunctorType::template Rebind<Self>::Type;
 
   /** Index type alias support An index is used to access pixel values. */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
   using IndexValueType = typename IndexType::IndexValueType;
 
   /** Size type alias support A size is used to define region bounds. */
-  using SizeType = typename Superclass::SizeType;
+  using typename Superclass::SizeType;
   using SizeValueType = typename SizeType::SizeValueType;
 
   /** Offset type alias support */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
   using OffsetValueType = typename OffsetType::OffsetValueType;
 
   /** Region type alias support A region is used to specify a subset of
    *  an image. */
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::RegionType;
 
   /** Spacing type alias support  Spacing holds the size of a pixel.  The
    * spacing is the geometric distance between image samples. */
-  using SpacingType = typename Superclass::SpacingType;
+  using typename Superclass::SpacingType;
 
   /** Origin type alias support  The origin is the geometric coordinates
    * of the index (0,0). */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
-  /** Direction type alias support  The Direction is a matix of
+  /** Direction type alias support  The Direction is a matrix of
    * direction cosines that specify the direction between samples.
    * */
-  using DirectionType = typename Superclass::DirectionType;
+  using typename Superclass::DirectionType;
 
 
   /**
    * example usage:
    * using OutputImageType = typename ImageAdaptorType::template Rebind< float >::Type;
    *
-   * \deprecated Use RebindImageType instead
+   * Deprecated: Use RebindImageType instead
    */
   template <typename UPixelType, unsigned int UImageDimension = TImage::ImageDimension>
   struct Rebind
@@ -140,8 +140,8 @@ public:
     using Type = Image<UPixelType, UImageDimension>;
   };
 
-  template <typename UPixelType, unsigned int NUImageDimension = TImage::ImageDimension>
-  using RebindImageType = itk::Image<UPixelType, NUImageDimension>;
+  template <typename UPixelType, unsigned int VUImageDimension = TImage::ImageDimension>
+  using RebindImageType = itk::Image<UPixelType, VUImageDimension>;
 
 
   /** Set the region object that defines the size and starting index
@@ -224,7 +224,11 @@ public:
   }
 
   /** Access a pixel. This version can only be an rvalue. */
-  PixelType operator[](const IndexType & index) const { return m_PixelAccessor.Get(m_Image->GetPixel(index)); }
+  PixelType
+  operator[](const IndexType & index) const
+  {
+    return m_PixelAccessor.Get(m_Image->GetPixel(index));
+  }
 
   /** Get the OffsetTable from the adapted image */
   const OffsetValueType *
@@ -271,8 +275,10 @@ public:
   virtual void
   Graft(const Self * imgData);
 
+#ifndef ITK_FUTURE_LEGACY_REMOVE
   /** Convenient type alias. */
-  using InternalPixelPointerType = InternalPixelType *;
+  using InternalPixelPointerType [[deprecated("Please just use `InternalPixelType *` instead!")]] = InternalPixelType *;
+#endif
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */
@@ -333,7 +339,7 @@ public:
   Modified() const override;
 
   /** Delegate GetMTime to the Internal Image */
-  ModifiedTimeType
+  [[nodiscard]] ModifiedTimeType
   GetMTime() const override;
 
   /** Return the Data Accesor object */
@@ -381,25 +387,49 @@ public:
   bool
   VerifyRequestedRegion() override;
 
+  /** Returns the continuous index from a physical point. */
+  template <typename TIndexRep, typename TCoordinate>
+  [[nodiscard]] ContinuousIndex<TIndexRep, TImage::ImageDimension>
+  TransformPhysicalPointToContinuousIndex(const Point<TCoordinate, TImage::ImageDimension> & point) const
+  {
+    return m_Image->template TransformPhysicalPointToContinuousIndex<TIndexRep>(point);
+  }
+
   /** \brief Get the continuous index from a physical point
    *
    * Returns true if the resulting index is within the image, false otherwise.
+   *
+   * \note For performance reasons, if you do not need to use the `bool` return value, please call the corresponding
+   * overload instead, which has only one parameter (the point), and returns the continuous index.
+   *
    * \sa Transform */
-  template <typename TCoordRep>
-  bool
-  TransformPhysicalPointToContinuousIndex(const Point<TCoordRep, Self::ImageDimension> &     point,
-                                          ContinuousIndex<TCoordRep, Self::ImageDimension> & index) const
+  template <typename TCoordinate>
+  ITK_NODISCARD("Call the overload which has the point as the only parameter and returns the index")
+  bool TransformPhysicalPointToContinuousIndex(const Point<TCoordinate, Self::ImageDimension> &     point,
+                                               ContinuousIndex<TCoordinate, Self::ImageDimension> & index) const
   {
     return m_Image->TransformPhysicalPointToContinuousIndex(point, index);
+  }
+
+  /** Returns the index (discrete) of a voxel from a physical point. */
+  template <typename TCoordinate>
+  [[nodiscard]] IndexType
+  TransformPhysicalPointToIndex(const Point<TCoordinate, Self::ImageDimension> & point) const
+  {
+    return m_Image->TransformPhysicalPointToIndex(point);
   }
 
   /** Get the index (discrete) from a physical point.
    * Floating point index results are truncated to integers.
    * Returns true if the resulting index is within the image, false otherwise
+   *
+   * \note For performance reasons, if you do not need to use the `bool` return value, please call the corresponding
+   * overload instead, which has only one parameter (the point), and returns the index.
+   *
    * \sa Transform */
-  template <typename TCoordRep>
-  bool
-  TransformPhysicalPointToIndex(const Point<TCoordRep, Self::ImageDimension> & point, IndexType & index) const
+  template <typename TCoordinate>
+  ITK_NODISCARD("Call the overload which has the point as the only parameter and returns the index")
+  bool TransformPhysicalPointToIndex(const Point<TCoordinate, Self::ImageDimension> & point, IndexType & index) const
   {
     return m_Image->TransformPhysicalPointToIndex(point, index);
   }
@@ -408,12 +438,20 @@ public:
    * the origin and spacing information comes from)
    * from a continuous index (in the index space)
    * \sa Transform */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   void
-  TransformContinuousIndexToPhysicalPoint(const ContinuousIndex<TCoordRep, Self::ImageDimension> & index,
-                                          Point<TCoordRep, Self::ImageDimension> &                 point) const
+  TransformContinuousIndexToPhysicalPoint(const ContinuousIndex<TCoordinate, Self::ImageDimension> & index,
+                                          Point<TCoordinate, Self::ImageDimension> &                 point) const
   {
     m_Image->TransformContinuousIndexToPhysicalPoint(index, point);
+  }
+
+  /** Returns a physical point from a continuous index (in the index space) */
+  template <typename TCoordinate, typename TIndexRep>
+  [[nodiscard]] Point<TCoordinate, TImage::ImageDimension>
+  TransformContinuousIndexToPhysicalPoint(const ContinuousIndex<TIndexRep, Self::ImageDimension> & index) const
+  {
+    return m_Image->template TransformContinuousIndexToPhysicalPoint<TIndexRep>(index);
   }
 
   /** Get a physical point (in the space which
@@ -421,23 +459,31 @@ public:
    * from a discrete index (in the index space)
    *
    * \sa Transform */
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   void
-  TransformIndexToPhysicalPoint(const IndexType & index, Point<TCoordRep, Self::ImageDimension> & point) const
+  TransformIndexToPhysicalPoint(const IndexType & index, Point<TCoordinate, Self::ImageDimension> & point) const
   {
     m_Image->TransformIndexToPhysicalPoint(index, point);
   }
 
-  template <typename TCoordRep>
+  /** Returns a physical point from a discrete index (in the index space) */
+  template <typename TCoordinate>
+  [[nodiscard]] Point<TCoordinate, Self::ImageDimension>
+  TransformIndexToPhysicalPoint(const IndexType & index) const
+  {
+    return m_Image->template TransformIndexToPhysicalPoint<TCoordinate>(index);
+  }
+
+  template <typename TCoordinate>
   void
-  TransformLocalVectorToPhysicalVector(const FixedArray<TCoordRep, Self::ImageDimension> & inputGradient,
-                                       FixedArray<TCoordRep, Self::ImageDimension> &       outputGradient) const
+  TransformLocalVectorToPhysicalVector(const FixedArray<TCoordinate, Self::ImageDimension> & inputGradient,
+                                       FixedArray<TCoordinate, Self::ImageDimension> &       outputGradient) const
   {
     m_Image->TransformLocalVectorToPhysicalVector(inputGradient, outputGradient);
   }
 
   template <typename TVector>
-  TVector
+  [[nodiscard]] TVector
   TransformLocalVectorToPhysicalVector(const TVector & inputGradient) const
   {
     TVector outputGradient;
@@ -445,16 +491,16 @@ public:
     return outputGradient;
   }
 
-  template <typename TCoordRep>
+  template <typename TCoordinate>
   void
-  TransformPhysicalVectorToLocalVector(const FixedArray<TCoordRep, Self::ImageDimension> & inputGradient,
-                                       FixedArray<TCoordRep, Self::ImageDimension> &       outputGradient) const
+  TransformPhysicalVectorToLocalVector(const FixedArray<TCoordinate, Self::ImageDimension> & inputGradient,
+                                       FixedArray<TCoordinate, Self::ImageDimension> &       outputGradient) const
   {
     m_Image->TransformPhysicalVectorToLocalVector(inputGradient, outputGradient);
   }
 
   template <typename TVector>
-  TVector
+  [[nodiscard]] TVector
   TransformPhysicalVectorToLocalVector(const TVector & inputGradient) const
   {
     TVector outputGradient;
@@ -476,7 +522,7 @@ private:
   // to have the correct vector length of the image.
   template <typename TPixelType>
   void
-  UpdateAccessor(typename ::itk::VectorImage<TPixelType, ImageDimension> * itkNotUsed(dummy))
+  UpdateAccessor(typename itk::VectorImage<TPixelType, ImageDimension> * itkNotUsed(dummy))
   {
     this->m_PixelAccessor.SetVectorLength(this->m_Image->GetNumberOfComponentsPerPixel());
   }
@@ -489,11 +535,11 @@ private:
 
   // Adapted image, most of the calls to ImageAdaptor
   // will be delegated to this image
-  typename TImage::Pointer m_Image;
+  typename TImage::Pointer m_Image{};
 
   // Data accessor object,
   // it converts the presentation of a pixel
-  AccessorType m_PixelAccessor;
+  AccessorType m_PixelAccessor{};
 };
 } // end namespace itk
 

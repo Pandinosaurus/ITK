@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,7 @@
 
 #include "itkImageFileReader.h"
 
-// This example is a convinience program that lists all of the registered
+// This example is a convenience program that lists all of the registered
 // Image IO factories in the ITK build. If an ImageIO module is enabled, the
 // corresponding IO factory will be automatically registered.
 int
@@ -26,7 +26,7 @@ main()
 {
   const std::list<itk::ObjectFactoryBase *> & factories =
     itk::ObjectFactoryBase::GetRegisteredFactories();
-  const std::size_t numFactories = factories.size();
+  const size_t numFactories = factories.size();
 
   std::cout << numFactories << " Image IO factories registered:" << std::endl;
 

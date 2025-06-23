@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -104,8 +104,8 @@ public:
   /** ImageDimension constants */
   static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TimeVaryingVelocityFieldImageRegistrationMethodv4, ImageRegistrationMethodv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TimeVaryingVelocityFieldImageRegistrationMethodv4);
 
   /** Input type alias for the images and transforms. */
   using FixedImageType = TFixedImage;
@@ -116,11 +116,11 @@ public:
   using RegionType = typename MovingImageType::RegionType;
 
   /** Metric and transform type alias */
-  using ImageMetricType = typename Superclass::ImageMetricType;
+  using typename Superclass::ImageMetricType;
   using ImageMetricPointer = typename ImageMetricType::Pointer;
   using VirtualImageType = typename ImageMetricType::VirtualImageType;
   using MeasureType = typename ImageMetricType::MeasureType;
-  using MultiMetricType = typename Superclass::MultiMetricType;
+  using typename Superclass::MultiMetricType;
 
   using OutputTransformType = TOutputTransform;
   using OutputTransformPointer = typename OutputTransformType::Pointer;
@@ -133,29 +133,33 @@ public:
   using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
   using DisplacementVectorType = typename TimeVaryingVelocityFieldType::PixelType;
 
-  using CompositeTransformType = typename Superclass::CompositeTransformType;
+  using typename Superclass::CompositeTransformType;
 
-  using DecoratedOutputTransformType = typename Superclass::DecoratedOutputTransformType;
+  using typename Superclass::DecoratedOutputTransformType;
   using DecoratedOutputTransformPointer = typename DecoratedOutputTransformType::Pointer;
 
   using NumberOfIterationsArrayType = Array<SizeValueType>;
 
   /** Set/Get the learning rate. */
+  /** @ITKStartGrouping */
   itkSetMacro(LearningRate, RealType);
   itkGetConstMacro(LearningRate, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of iterations per level. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterationsPerLevel, NumberOfIterationsArrayType);
   itkGetConstMacro(NumberOfIterationsPerLevel, NumberOfIterationsArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the convergence threshold */
+  /** @ITKStartGrouping */
   itkSetMacro(ConvergenceThreshold, RealType);
   itkGetConstMacro(ConvergenceThreshold, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the convergence window size */
+  /** @ITKStartGrouping */
   itkSetMacro(ConvergenceWindowSize, unsigned int);
   itkGetConstMacro(ConvergenceWindowSize, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   TimeVaryingVelocityFieldImageRegistrationMethodv4();
   ~TimeVaryingVelocityFieldImageRegistrationMethodv4() override = default;
@@ -170,17 +174,20 @@ protected:
   void
   ThreadedGenerateData(const RegionType &, ThreadIdType);
 
-  /** Handle optimization internally */
+  /** Start the optimization at each level.
+   *
+   * Performs a basic gradient descent operation.
+   */
   virtual void
   StartOptimization();
 
 private:
-  RealType m_LearningRate;
+  RealType m_LearningRate{};
 
-  RealType     m_ConvergenceThreshold;
+  RealType     m_ConvergenceThreshold{};
   unsigned int m_ConvergenceWindowSize{ 10 };
 
-  NumberOfIterationsArrayType m_NumberOfIterationsPerLevel;
+  NumberOfIterationsArrayType m_NumberOfIterationsPerLevel{};
 };
 } // end namespace itk
 

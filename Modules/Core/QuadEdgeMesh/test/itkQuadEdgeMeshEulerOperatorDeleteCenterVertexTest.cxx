@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,13 +19,11 @@
 #include "itkQuadEdgeMeshEulerOperatorDeleteCenterVertexFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorCreateCenterVertexFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkTestingMacros.h"
 
 int
-itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
+itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
-  (void)argc;
-  (void)argv;
-
   using MeshType = itk::QuadEdgeMesh<double, 3>;
   using MeshPointer = MeshType::Pointer;
   using QEType = MeshType::QEType;
@@ -69,10 +67,10 @@ itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
   //    0 ---------- 1 ---------- 2  --------- 3 ---------  4
   std::cout << "Checking DeleteCenterVertex." << std::endl;
 
-  MeshPointer mesh = MeshType::New();
+  const MeshPointer mesh = MeshType::New();
   CreateSquareTriangularMesh<MeshType>(mesh);
 
-  DeleteCenterVertex::Pointer deleteCenterVertex = DeleteCenterVertex::New();
+  auto deleteCenterVertex = DeleteCenterVertex::New();
   std::cout << "     "
             << "Test No Mesh Input";
   if (deleteCenterVertex->Evaluate((QEType *)1))
@@ -82,7 +80,8 @@ itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
   }
   std::cout << "OK" << std::endl;
 
-  (void)deleteCenterVertex->GetNameOfClass();
+  ITK_TEST_EXPECT_EQUAL(std::string_view("QuadEdgeMeshEulerOperatorDeleteCenterVertexFunction"),
+                        std::string_view(deleteCenterVertex->GetNameOfClass()));
 
   deleteCenterVertex->SetInput(mesh);
   std::cout << "     "
@@ -105,8 +104,8 @@ itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
   std::cout << "OK" << std::endl;
 
   {
-    MeshPointer specialmesh = MeshType::New();
-    PointType   pts3[4];
+    const MeshPointer specialmesh = MeshType::New();
+    PointType         pts3[4];
     pts3[0][0] = 0.0;
     pts3[0][1] = 0.0;
     pts3[0][2] = 0.0;
@@ -119,18 +118,17 @@ itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
     pts3[3][0] = 0.0;
     pts3[3][1] = 0.0;
     pts3[3][2] = 1.0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
       specialmesh->SetPoint(i, pts3[i]);
     }
-    int specialCells[12] = { 0, 1, 2, 0, 2, 3, 3, 1, 0, 1, 3, 2 };
+    const int specialCells[12] = { 0, 1, 2, 0, 2, 3, 3, 1, 0, 1, 3, 2 };
 
     CellType::CellAutoPointer cellpointer;
     using QEPolygonCellType = itk::QuadEdgeMeshPolygonCell<CellType>;
-    QEPolygonCellType * poly;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
-      poly = new QEPolygonCellType(3);
+      auto * poly = new QEPolygonCellType(3);
       cellpointer.TakeOwnership(poly);
       cellpointer->SetPointId(0, specialCells[3 * i]);
       cellpointer->SetPointId(1, specialCells[3 * i + 1]);
@@ -246,7 +244,7 @@ itkQuadEdgeMeshEulerOperatorDeleteCenterVertexTest(int argc, char * argv[])
 
   std::cout << "Checking DeleteCenterVertex( CreateCenterVertex()) Invariance.";
 
-  CreateCenterVertex::Pointer createCenterVertex = CreateCenterVertex::New();
+  auto createCenterVertex = CreateCenterVertex::New();
   createCenterVertex->SetInput(mesh);
 
   CreateSquareTriangularMesh<MeshType>(mesh);

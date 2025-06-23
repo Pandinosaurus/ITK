@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,8 +82,7 @@ namespace itk
    it.ActivateOffset(offset3);
    // etc..
    ...
-   ShapedNeighborhoodIterator<ImageType>::Iterator i;
-   for (i = it.Begin(); ! i.IsAtEnd(); ++i)
+   for (auto i = it.Begin(); ! i.IsAtEnd(); ++i)
    { i.Set(i.Get() + 1.0); }
    // you may also use i != i.End(), but IsAtEnd() may be slightly faster.
    \endcode
@@ -92,11 +91,11 @@ namespace itk
  *
    \code
    i = it.End();
-   i--;
+   --i;
    while (i != it.Begin())
    {
      i.Set(i.Get() + 1.0);
-     i--;
+     --i;
    }
     i.Set(i.Get() + 1.0);
    \endcode
@@ -163,30 +162,30 @@ public:
   using Superclass = ConstShapedNeighborhoodIterator<TImage, TBoundaryCondition>;
 
   /** Inherit type alias from superclass */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
   using OffsetValueType = typename OffsetType::OffsetValueType;
-  using RadiusType = typename Superclass::RadiusType;
-  using SizeType = typename Superclass::SizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
-  using ConstIterator = typename Superclass::ConstIterator;
-  using IndexListType = typename Superclass::IndexListType;
-  using BoundaryConditionType = typename Superclass::BoundaryConditionType;
-  using ImageBoundaryConditionPointerType = typename Superclass::ImageBoundaryConditionPointerType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using IndexType = typename Superclass::IndexType;
-  using ImageType = typename Superclass::ImageType;
-  using RegionType = typename Superclass::RegionType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::SizeType;
+  using typename Superclass::SizeValueType;
+  using typename Superclass::ConstIterator;
+  using typename Superclass::IndexListType;
+  using typename Superclass::BoundaryConditionType;
+  using typename Superclass::ImageBoundaryConditionPointerType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::IndexType;
+  using typename Superclass::ImageType;
+  using typename Superclass::RegionType;
+  using typename Superclass::IndexValueType;
 
   /** An  iterator for the ShapedNeighborhood classes. */
-  struct Iterator : public ConstIterator
+  struct Iterator : public Superclass::ConstIterator
   {
     Iterator() = default;
     Iterator(Self * s)
       : ConstIterator(s)
     {}
 
-    ~Iterator() ITK_ITERATOR_OVERRIDE = default;
+    ~Iterator() = default;
     Iterator &
     operator=(const Iterator & o)
     {
@@ -238,12 +237,9 @@ public:
     return *this;
   }
 
-  /** Standard itk print method */
-  void
-  PrintSelf(std::ostream &, Indent) const override;
-
   /** Returns a const iterator for the neighborhood which points to the first
    * pixel in the neighborhood. */
+  /** @ITKStartGrouping */
   Iterator
   Begin()
   {
@@ -254,6 +250,7 @@ public:
   {
     return Iterator(this, this->m_ActiveIndexList.end());
   }
+  /** @ITKEndGrouping */
 
   using Superclass::Begin;
   using Superclass::End;
@@ -261,12 +258,8 @@ public:
 protected:
   friend Superclass;
 
-  using NeighborIndexType = typename Superclass::NeighborIndexType;
+  using typename Superclass::NeighborIndexType;
 };
 } // namespace itk
-
-#ifndef ITK_MANUAL_INSTANTIATION
-#  include "itkShapedNeighborhoodIterator.hxx"
-#endif
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,30 +18,29 @@
 #ifndef itkMetaGaussianConverter_hxx
 #define itkMetaGaussianConverter_hxx
 
-#include "itkMetaGaussianConverter.h"
 
 namespace itk
 {
 
-template <unsigned int NDimensions>
-typename MetaGaussianConverter<NDimensions>::MetaObjectType *
-MetaGaussianConverter<NDimensions>::CreateMetaObject()
+template <unsigned int VDimension>
+auto
+MetaGaussianConverter<VDimension>::CreateMetaObject() -> MetaObjectType *
 {
   return dynamic_cast<MetaObjectType *>(new GaussianMetaObjectType);
 }
 
 /** Convert a metaGaussian into a gaussian SpatialObject  */
-template <unsigned int NDimensions>
-typename MetaGaussianConverter<NDimensions>::SpatialObjectPointer
-MetaGaussianConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+template <unsigned int VDimension>
+auto
+MetaGaussianConverter<VDimension>::MetaObjectToSpatialObject(const MetaObjectType * mo) -> SpatialObjectPointer
 {
   const auto * metaGaussian = dynamic_cast<const GaussianMetaObjectType *>(mo);
   if (metaGaussian == nullptr)
   {
-    itkExceptionMacro(<< "Can't convert MetaObject to MetaGaussian");
+    itkExceptionMacro("Can't convert MetaObject to MetaGaussian");
   }
 
-  GaussianSpatialObjectPointer gaussianSO = GaussianSpatialObjectType::New();
+  const GaussianSpatialObjectPointer gaussianSO = GaussianSpatialObjectType::New();
 
   gaussianSO->SetMaximum(metaGaussian->Maximum());
   gaussianSO->SetRadiusInObjectSpace(metaGaussian->Radius());
@@ -58,15 +57,15 @@ MetaGaussianConverter<NDimensions>::MetaObjectToSpatialObject(const MetaObjectTy
 }
 
 /** Convert a gaussian SpatialObject into a metaGaussian */
-template <unsigned int NDimensions>
-typename MetaGaussianConverter<NDimensions>::MetaObjectType *
-MetaGaussianConverter<NDimensions>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+template <unsigned int VDimension>
+auto
+MetaGaussianConverter<VDimension>::SpatialObjectToMetaObject(const SpatialObjectType * so) -> MetaObjectType *
 {
-  GaussianSpatialObjectConstPointer gaussianSO = dynamic_cast<const GaussianSpatialObjectType *>(so);
-  auto *                            metaGaussian = new GaussianMetaObjectType;
+  const GaussianSpatialObjectConstPointer gaussianSO = dynamic_cast<const GaussianSpatialObjectType *>(so);
+  auto *                                  metaGaussian = new GaussianMetaObjectType;
   if (gaussianSO.IsNull())
   {
-    itkExceptionMacro(<< "Can't downcast SpatialObject to GaussianSpatialObject");
+    itkExceptionMacro("Can't downcast SpatialObject to GaussianSpatialObject");
   }
 
   if (gaussianSO->GetParent())

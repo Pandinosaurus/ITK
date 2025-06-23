@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0.txt
+ * https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,14 @@
 
 #include "itkFEMElement3DC0LinearTriangularLaplaceBeltrami.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 // Overload the CreateAnother() method
-::itk::LightObject::Pointer
+itk::LightObject::Pointer
 Element3DC0LinearTriangularLaplaceBeltrami::CreateAnother() const
 {
-  ::itk::LightObject::Pointer smartPtr;
-  Pointer                     copyPtr = Self::New();
+  itk::LightObject::Pointer smartPtr;
+  Pointer                   copyPtr = Self::New();
 
   copyPtr->SetNode(0, this->GetNode(0));
   copyPtr->SetNode(1, this->GetNode(1));
@@ -127,39 +125,39 @@ Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType & Ke) 
   {
     Ke.set_size(9, 9);
     Ke.fill(0.0);
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[0][dd * 3] = cot[0][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[1][dd * 3 + 1] = cot[0][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[2][dd * 3 + 2] = cot[0][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[3][dd * 3] = cot[1][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[4][dd * 3 + 1] = cot[1][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[5][dd * 3 + 2] = cot[1][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[6][dd * 3] = cot[2][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[7][dd * 3 + 1] = cot[2][dd];
     }
-    for (int dd = 0; dd < 3; dd++)
+    for (int dd = 0; dd < 3; ++dd)
     {
       Ke[8][dd * 3 + 2] = cot[2][dd];
     }
@@ -247,7 +245,7 @@ float cottheta1=cemag/aemag;
 float cottheta2=cemag/bemag;
 float cottheta3=1.0/tan(theta3);
 
-//  if (fabs(cottheta1-1) < 1.e-6 && fabs(cottheta2-1) < 1.e-6) cottheta3=1.0;
+//  if (itk::Math::abs(cottheta1-1) < 1.e-6 && itk::Math::abs(cottheta2-1) < 1.e-6) cottheta3=1.0;
 //  std::cout <<" ct0 " << cottheta1 <<" ct1 " << cottheta2 <<" ct2 " << cottheta3  << std::endl;
 
 cot[na][na]=(cottheta3+cottheta2)*D[0][0];
@@ -300,5 +298,4 @@ Element3DC0LinearTriangularLaplaceBeltrami::PrintSelf(std::ostream & os, Indent 
   Superclass::PrintSelf(os, indent);
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

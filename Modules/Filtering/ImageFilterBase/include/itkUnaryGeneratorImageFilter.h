@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,13 +46,13 @@ namespace itk
  * image, etc.
  *
  * \sa UnaryFunctorImageFilter
- * \sa BinaryGeneratorImageFilter TernaryGeneratormageFilter
+ * \sa BinaryGeneratorImageFilter TernaryGeneratorImageFilter
  *
  * \ingroup ITKImageFilterBase MultiThreaded
  *
  */
 template <typename TInputImage, typename TOutputImage>
-class UnaryGeneratorImageFilter : public InPlaceImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT UnaryGeneratorImageFilter : public InPlaceImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(UnaryGeneratorImageFilter);
@@ -66,8 +66,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(UnaryGeneratorImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(UnaryGeneratorImageFilter);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::ConstPointer;
@@ -88,6 +88,7 @@ public:
    *
    * The functor defines an operation done per pixel.
    */
+  /** @ITKStartGrouping */
   void
   SetFunctor(const std::function<ConstRefFunctionType> & f)
   {
@@ -106,12 +107,14 @@ public:
 
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
 
   /** Set the pixel functor by a C function pointer
    *
    * The functor defines an operation done per pixel.
    */
+  /** @ITKStartGrouping */
   void
   SetFunctor(ConstRefFunctionType * funcPointer)
   {
@@ -130,6 +133,7 @@ public:
 
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
 
   /** Set the pixel functor by a "Functor Object"
@@ -162,7 +166,8 @@ protected:
    * execution model.  The original documentation of this method is
    * below.
    *
-   * \sa ProcessObject::GenerateOutputInformation()  */
+   * \sa ProcessObject::GenerateOutputInformation()
+   */
   void
   GenerateOutputInformation() override;
 
@@ -176,14 +181,15 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
+  /** @ITKStartGrouping */
   template <typename TFunctor>
   void
   DynamicThreadedGenerateDataWithFunctor(const TFunctor &, const OutputImageRegionType & outputRegionForThread);
   void
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
-
+  /** @ITKEndGrouping */
 private:
-  std::function<void(const OutputImageRegionType &)> m_DynamicThreadedGenerateDataFunction;
+  std::function<void(const OutputImageRegionType &)> m_DynamicThreadedGenerateDataFunction{};
 };
 } // end namespace itk
 

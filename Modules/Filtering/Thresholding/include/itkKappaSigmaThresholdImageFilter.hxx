@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkKappaSigmaThresholdImageFilter_hxx
 #define itkKappaSigmaThresholdImageFilter_hxx
 
-#include "itkKappaSigmaThresholdImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkProgressAccumulator.h"
 
@@ -27,20 +26,20 @@ namespace itk
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 KappaSigmaThresholdImageFilter<TInputImage, TMaskImage, TOutputImage>::KappaSigmaThresholdImageFilter()
   : m_MaskValue(NumericTraits<MaskPixelType>::max())
-  , m_Threshold(NumericTraits<InputPixelType>::ZeroValue())
+  , m_Threshold(InputPixelType{})
   , m_InsideValue(NumericTraits<OutputPixelType>::max())
-  , m_OutsideValue(NumericTraits<OutputPixelType>::ZeroValue())
+  , m_OutsideValue(OutputPixelType{})
 {}
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 KappaSigmaThresholdImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData()
 {
-  typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Compute the Threshold for the input image
-  typename CalculatorType::Pointer thresholdImageCalculator = CalculatorType::New();
+  auto thresholdImageCalculator = CalculatorType::New();
   thresholdImageCalculator->SetImage(this->GetInput());
   thresholdImageCalculator->SetMask(this->GetMaskImage());
   thresholdImageCalculator->SetMaskValue(m_MaskValue);
@@ -50,8 +49,7 @@ KappaSigmaThresholdImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateD
 
   m_Threshold = thresholdImageCalculator->GetOutput();
 
-  typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::Pointer threshold =
-    BinaryThresholdImageFilter<TInputImage, TOutputImage>::New();
+  auto threshold = BinaryThresholdImageFilter<TInputImage, TOutputImage>::New();
 
   progress->RegisterInternalFilter(threshold, .5f);
   threshold->GraftOutput(this->GetOutput());

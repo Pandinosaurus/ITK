@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,6 @@
  *=========================================================================*/
 #ifndef itkBSplineUpsampleImageFilter_hxx
 #define itkBSplineUpsampleImageFilter_hxx
-#include "itkBSplineUpsampleImageFilter.h"
 
 namespace itk
 {
@@ -46,11 +45,11 @@ template <typename TInputImage, typename TOutputImage, typename ResamplerType>
 void
 BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateData()
 {
-  itkDebugMacro(<< "Actually executing");
+  itkDebugMacro("Actually executing");
 
   // Get the input and output pointers
-  InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   // Since we are providing a GenerateData() method, we need to allocate the
   // output buffer memory (if we provided a ThreadedGenerateData(), then
@@ -59,7 +58,7 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateDa
   outputPtr->Allocate();
 
   // Iterator for walking the output region is defined in the Superclass
-  OutputImageIterator outIt = OutputImageIterator(outputPtr, outputPtr->GetRequestedRegion());
+  OutputImageIterator outIt(outputPtr, outputPtr->GetRequestedRegion());
 
   // Calculate actual output
   // TODO:  Need to verify outIt is correctly sized.
@@ -77,8 +76,8 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateIn
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   if (!outputPtr || !inputPtr)
   {
@@ -88,22 +87,19 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateIn
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 
   // Compute the input requested region (size and start index)
-  unsigned int                             i;
   const typename TOutputImage::SizeType &  outputRequestedRegionSize = outputPtr->GetRequestedRegion().GetSize();
   const typename TOutputImage::IndexType & outputRequestedRegionStartIndex = outputPtr->GetRequestedRegion().GetIndex();
 
   typename TInputImage::SizeType  inputRequestedRegionSize;
   typename TInputImage::IndexType inputRequestedRegionStartIndex;
 
-  for (i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     inputRequestedRegionSize[i] = outputRequestedRegionSize[i] / 2;
-    inputRequestedRegionStartIndex[i] = outputRequestedRegionStartIndex[i] / (int)2;
+    inputRequestedRegionStartIndex[i] = outputRequestedRegionStartIndex[i] / 2;
   }
 
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion.SetSize(inputRequestedRegionSize);
-  inputRequestedRegion.SetIndex(inputRequestedRegionStartIndex);
+  const typename TInputImage::RegionType inputRequestedRegion(inputRequestedRegionStartIndex, inputRequestedRegionSize);
 
   inputPtr->SetRequestedRegion(inputRequestedRegion);
 }
@@ -119,8 +115,8 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateOu
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   if (!outputPtr || !inputPtr)
   {
@@ -129,7 +125,6 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateOu
 
   // we need to compute the output spacing, the output image size, and the
   // output image start index
-  unsigned int                              i;
   const typename TInputImage::SpacingType & inputSpacing = inputPtr->GetSpacing();
   const typename TInputImage::SizeType &    inputSize = inputPtr->GetLargestPossibleRegion().GetSize();
   const typename TInputImage::IndexType &   inputStartIndex = inputPtr->GetLargestPossibleRegion().GetIndex();
@@ -138,20 +133,18 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::GenerateOu
   typename TOutputImage::SizeType    outputSize;
   typename TOutputImage::IndexType   outputStartIndex;
 
-  for (i = 0; i < TOutputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     // TODO:  Verify this is being rounded correctly.
-    outputSpacing[i] = inputSpacing[i] / (double)2;
+    outputSpacing[i] = inputSpacing[i] / 2.0;
     // TODO:  Verify this is being rounded correctly.
-    outputSize[i] = (unsigned int)std::floor((double)(inputSize[i] * 2.0));
-    outputStartIndex[i] = (int)std::ceil((double)inputStartIndex[i] * 2.0);
+    outputSize[i] = static_cast<unsigned int>(std::floor(static_cast<double>(inputSize[i] * 2.0)));
+    outputStartIndex[i] = static_cast<int>(std::ceil(static_cast<double>(inputStartIndex[i]) * 2.0));
   }
 
   outputPtr->SetSpacing(outputSpacing);
 
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputStartIndex, outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }
@@ -165,9 +158,7 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::EnlargeOut
 {
   // this filter requires the all of the output image to be in
   // the buffer
-  TOutputImage * imgData;
-
-  imgData = dynamic_cast<TOutputImage *>(output);
+  auto * imgData = dynamic_cast<TOutputImage *>(output);
   if (imgData)
   {
     imgData->SetRequestedRegionToLargestPossibleRegion();
@@ -175,9 +166,8 @@ BSplineUpsampleImageFilter<TInputImage, TOutputImage, ResamplerType>::EnlargeOut
   else
   {
     // pointer could not be cast to TLevelSet *
-    itkWarningMacro(<< "itk::BSplineUpsampleImageFilter"
-                    << "::EnlargeOutputRequestedRegion cannot cast " << typeid(output).name() << " to "
-                    << typeid(TOutputImage *).name());
+    itkWarningMacro("itk::BSplineUpsampleImageFilter::EnlargeOutputRequestedRegion cannot cast "
+                    << typeid(output).name() << " to " << typeid(TOutputImage *).name());
   }
 }
 } // namespace itk

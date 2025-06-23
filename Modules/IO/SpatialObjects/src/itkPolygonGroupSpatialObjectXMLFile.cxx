@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,12 @@
 #include "itksys/SystemTools.hxx"
 #include "itkMetaDataObject.h"
 #include "itkIOCommon.h"
-#define RAISE_EXCEPTION(s)                                                                                             \
-  {                                                                                                                    \
-    ExceptionObject exception(__FILE__, __LINE__);                                                                     \
-    exception.SetDescription(s);                                                                                       \
-    throw exception;                                                                                                   \
-  }                                                                                                                    \
+#define RAISE_EXCEPTION(s)                         \
+  {                                                \
+    ExceptionObject exception(__FILE__, __LINE__); \
+    exception.SetDescription(s);                   \
+    throw exception;                               \
+  }                                                \
   ITK_MACROEND_NOOP_STATEMENT
 
 namespace itk
@@ -78,46 +78,47 @@ PolygonGroupSpatialObjectXMLFileReader::EndElement(const char * name)
   }
   else if (itksys::SystemTools::Strucmp(name, "X-SIZE") == 0)
   {
-    int size = std::stoi(m_CurCharacterData.c_str());
+    const int size = std::stoi(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<int>(thisDic, ROI_X_SIZE, size);
   }
   else if (itksys::SystemTools::Strucmp(name, "Y-SIZE") == 0)
   {
-    int size = std::stoi(m_CurCharacterData.c_str());
+    const int size = std::stoi(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<int>(thisDic, ROI_Y_SIZE, size);
   }
   else if (itksys::SystemTools::Strucmp(name, "Z-SIZE") == 0)
   {
-    int size = std::stoi(m_CurCharacterData.c_str());
+    const int size = std::stoi(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<int>(thisDic, ROI_Z_SIZE, size);
   }
   else if (itksys::SystemTools::Strucmp(name, "X-RESOLUTION") == 0)
   {
-    float res = std::stod(m_CurCharacterData.c_str());
+    const float res = std::stod(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<float>(thisDic, ROI_X_RESOLUTION, res);
   }
   else if (itksys::SystemTools::Strucmp(name, "Y-RESOLUTION") == 0)
   {
-    float res = std::stod(m_CurCharacterData.c_str());
+    const float res = std::stod(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<float>(thisDic, ROI_Y_RESOLUTION, res);
   }
   else if (itksys::SystemTools::Strucmp(name, "Z-RESOLUTION") == 0)
   {
-    float res = std::stod(m_CurCharacterData.c_str());
+    const float res = std::stod(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<float>(thisDic, ROI_Z_RESOLUTION, res);
   }
   else if (itksys::SystemTools::Strucmp(name, "NUM-SEGMENTS") == 0)
   {
-    int size = std::stoi(m_CurCharacterData.c_str());
+    const int size = std::stoi(m_CurCharacterData.c_str());
     itk::EncapsulateMetaData<int>(thisDic, ROI_NUM_SEGMENTS, size);
   }
   else if (itksys::SystemTools::Strucmp(name, "POINT") == 0)
   {
     double       pval[3];
     const char * s = m_CurCharacterData.c_str();
-    char *       endptr;
+
     for (double & i : pval)
     {
+      char * endptr = nullptr;
       i = strtod(s, &endptr);
       if (s == endptr)
       {
@@ -142,7 +143,7 @@ void
 PolygonGroupSpatialObjectXMLFileReader::CharacterDataHandler(const char * inData, int inLength)
 {
   m_CurCharacterData = "";
-  for (int i = 0; i < inLength; i++)
+  for (int i = 0; i < inLength; ++i)
   {
     m_CurCharacterData = m_CurCharacterData + inData[i];
   }
@@ -162,10 +163,10 @@ template <>
 class NumericTraits<std::string>
 {
 public:
-  static const std::string
+  static std::string
   ZeroValue()
   {
-    return std::string("");
+    return {};
   }
 };
 
@@ -177,7 +178,7 @@ WriteMetaDataAttribute(PolygonGroupSpatialObjectXMLFileWriter * This,
                        const char * const                       attName,
                        std::ofstream &                          output)
 {
-  T value = NumericTraits<T>::ZeroValue();
+  T value{};
 
   if (ExposeMetaData<T>(thisDic, MetaName, value))
   {
@@ -195,12 +196,12 @@ PolygonGroupSpatialObjectXMLFileWriter::WriteFile()
   // sanity checks
   if (m_InputObject == nullptr)
   {
-    std::string errmsg("No PolygonGroup to Write");
+    const std::string errmsg("No PolygonGroup to Write");
     RAISE_EXCEPTION(errmsg);
   }
-  if (m_Filename.length() == 0)
+  if (m_Filename.empty())
   {
-    std::string errmsg("No filename given");
+    const std::string errmsg("No filename given");
     RAISE_EXCEPTION(errmsg);
   }
   std::ofstream output(m_Filename.c_str());
@@ -244,15 +245,15 @@ PolygonGroupSpatialObjectXMLFileWriter::WriteFile()
   {
     WriteStartElement("POLYGON", output);
     output << std::endl;
-    auto * curstrand = dynamic_cast<PolygonSpatialObjectType *>((*it).GetPointer());
+    auto * curstrand = dynamic_cast<PolygonSpatialObjectType *>(it->GetPointer());
     PolygonSpatialObjectType::PolygonPointListType & polygonPoints = curstrand->GetPoints();
     auto                                             pointIt = polygonPoints.begin();
     auto                                             pointItEnd = polygonPoints.end();
     while (pointIt != pointItEnd)
     {
-      PolygonSpatialObjectType::PointType curpoint = (*pointIt).GetPositionInObjectSpace();
+      PolygonSpatialObjectType::PointType curpoint = pointIt->GetPositionInObjectSpace();
       WriteStartElement("POINT", output);
-      output << curpoint[0] << " " << curpoint[1] << " " << curpoint[2];
+      output << curpoint[0] << ' ' << curpoint[1] << ' ' << curpoint[2];
       WriteEndElement("POINT", output);
       output << std::endl;
       ++pointIt;

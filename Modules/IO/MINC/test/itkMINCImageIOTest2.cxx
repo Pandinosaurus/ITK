@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,8 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTestingMacros.h"
+#include <vector>
+#include <numeric>
 
 int
 itkMINCImageIOTest2(int argc, char * argv[])
@@ -38,18 +40,28 @@ itkMINCImageIOTest2(int argc, char * argv[])
 
   using ImageType = itk::Image<unsigned short, 3>;
 
-  itk::MINCImageIO::Pointer mincIO1 = itk::MINCImageIO::New();
+  const itk::MINCImageIO::Pointer mincIO1 = itk::MINCImageIO::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(mincIO1, MINCImageIO, ImageIOBase);
 
 
-  itk::MINCImageIO::Pointer mincIO2 = itk::MINCImageIO::New();
+  constexpr unsigned int     supportedDimCount = 4; // includes the degenerate 0-dimensional case
+  std::vector<unsigned long> supportedDims(supportedDimCount);
+  std::iota(std::begin(supportedDims), std::end(supportedDims), 0);
+  for (const auto & value : supportedDims)
+  {
+    ITK_TEST_EXPECT_TRUE(mincIO1->SupportsDimension(value));
+  }
+
+  ITK_TEST_EXPECT_TRUE(!mincIO1->SupportsDimension(supportedDims.back() + 1));
+
+  const itk::MINCImageIO::Pointer mincIO2 = itk::MINCImageIO::New();
 
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetImageIO(mincIO1);
   writer->SetImageIO(mincIO2);
@@ -62,7 +74,7 @@ itkMINCImageIOTest2(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
 
-  ImageType::ConstPointer image = reader->GetOutput();
+  const ImageType::ConstPointer image = reader->GetOutput();
 
   image->Print(std::cout);
 

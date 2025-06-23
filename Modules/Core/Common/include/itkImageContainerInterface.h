@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,18 +59,20 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(ImageContainerInterface, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageContainerInterface);
 
   /** Save the template parameters. */
   using ElementIdentifier = TElementIdentifier;
   using Element = TElement;
 
   /** Index operator. This version can be an lvalue. */
-  virtual TElement & operator[](const ElementIdentifier) = 0;
+  virtual TElement &
+  operator[](const ElementIdentifier) = 0;
 
   /** Index operator. This version can only be an rvalue */
-  virtual const TElement & operator[](const ElementIdentifier) const = 0;
+  virtual const TElement &
+  operator[](const ElementIdentifier) const = 0;
 
   /** Return a pointer to the beginning of the buffer.  This is used by
    * the image iterator class. */

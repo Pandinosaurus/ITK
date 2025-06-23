@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,10 +40,10 @@ constexpr int V_DEPTH = 64;
 float
 sphere(float x, float y, float z)
 {
-  float dis;
-  dis = (x - (float)V_WIDTH / 2.0) * (x - (float)V_WIDTH / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
-        (y - (float)V_HEIGHT / 2.0) * (y - (float)V_HEIGHT / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
-        (z - (float)V_DEPTH / 2.0) * (z - (float)V_DEPTH / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
+  const float dis =
+    (x - float{ V_WIDTH } / 2.0) * (x - float{ V_WIDTH } / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
+    (y - float{ V_HEIGHT } / 2.0) * (y - float{ V_HEIGHT } / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
+    (z - float{ V_DEPTH } / 2.0) * (z - float{ V_DEPTH } / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
   return (1.0f - dis);
 }
 
@@ -61,7 +61,7 @@ evaluate_function(itk::Image<char, 3> * im, float (*f)(float, float, float))
       for (int x = 0; x < V_WIDTH; ++x)
       {
         idx[0] = x;
-        if (f((float)x, (float)y, (float)z) >= 0.0)
+        if (f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)) >= 0.0)
         {
           im->SetPixel(idx, 1);
         }
@@ -92,15 +92,15 @@ itkAntiAliasBinaryImageFilterTest(int argc, char * argv[])
   using BinaryImageType = itk::Image<InputDataType, 3>;
   using RealImageType = itk::Image<float, 3>;
 
-  itk::AntiAliasBinaryImageFilter<BinaryImageType, RealImageType>::Pointer antialiaser =
+  const itk::AntiAliasBinaryImageFilter<BinaryImageType, RealImageType>::Pointer antialiaser =
     itk::AntiAliasBinaryImageFilter<BinaryImageType, RealImageType>::New();
 
   // Create a binary image of a sphere.
-  BinaryImageType::Pointer               image = BinaryImageType::New();
+  auto                                   image = BinaryImageType::New();
   BinaryImageType::RegionType            region;
   BinaryImageType::RegionType::SizeType  sz;
   BinaryImageType::RegionType::IndexType idx;
-  for (unsigned k = 0; k < 3; k++)
+  for (unsigned int k = 0; k < 3; ++k)
   {
     sz[k] = 64;
     idx[k] = 0;
@@ -119,7 +119,7 @@ itkAntiAliasBinaryImageFilterTest(int argc, char * argv[])
   antialiaser->GetMaximumRMSError();
 
 
-  // Generally a good idea to set this value as a safeguard against infinte
+  // Generally a good idea to set this value as a safeguard against infinite
   // loops if the MaximumRMSError has been set too low.
   antialiaser->SetNumberOfIterations(100);
 
@@ -141,7 +141,7 @@ itkAntiAliasBinaryImageFilterTest(int argc, char * argv[])
   else
   {
     using WriterType = itk::ImageFileWriter<RealImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
     writer->SetInput(antialiaser->GetOutput());
     writer->SetFileName(outputImage);
     ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());

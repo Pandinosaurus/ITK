@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBinaryFunctorImageFilter_hxx
 #define itkBinaryFunctorImageFilter_hxx
 
-#include "itkBinaryFunctorImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkTotalProgressReporter.h"
 
@@ -57,7 +56,7 @@ void
 BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::SetInput1(
   const Input1ImagePixelType & input1)
 {
-  typename DecoratedInput1ImagePixelType::Pointer newInput = DecoratedInput1ImagePixelType::New();
+  auto newInput = DecoratedInput1ImagePixelType::New();
   newInput->Set(input1);
   this->SetInput1(newInput);
 }
@@ -71,13 +70,14 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::S
 }
 
 template <typename TInputImage1, typename TInputImage2, typename TOutputImage, typename TFunction>
-const typename BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::Input1ImagePixelType &
+auto
 BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::GetConstant1() const
+  -> const Input1ImagePixelType &
 {
   const auto * input = dynamic_cast<const DecoratedInput1ImagePixelType *>(this->ProcessObject::GetInput(0));
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "Constant 1 is not set");
+    itkExceptionMacro("Constant 1 is not set");
   }
   return input->Get();
 }
@@ -104,7 +104,7 @@ void
 BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::SetInput2(
   const Input2ImagePixelType & input2)
 {
-  typename DecoratedInput2ImagePixelType::Pointer newInput = DecoratedInput2ImagePixelType::New();
+  auto newInput = DecoratedInput2ImagePixelType::New();
   newInput->Set(input2);
   this->SetInput2(newInput);
 }
@@ -118,13 +118,14 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::S
 }
 
 template <typename TInputImage1, typename TInputImage2, typename TOutputImage, typename TFunction>
-const typename BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::Input2ImagePixelType &
+auto
 BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::GetConstant2() const
+  -> const Input2ImagePixelType &
 {
   const auto * input = dynamic_cast<const DecoratedInput2ImagePixelType *>(this->ProcessObject::GetInput(1));
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "Constant 2 is not set");
+    itkExceptionMacro("Constant 2 is not set");
   }
   return input->Get();
 }
@@ -133,9 +134,9 @@ template <typename TInputImage1, typename TInputImage2, typename TOutputImage, t
 void
 BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::GenerateOutputInformation()
 {
-  const DataObject * input = nullptr;
-  Input1ImagePointer inputPtr1 = dynamic_cast<const TInputImage1 *>(ProcessObject::GetInput(0));
-  Input2ImagePointer inputPtr2 = dynamic_cast<const TInputImage2 *>(ProcessObject::GetInput(1));
+  const DataObject *       input = nullptr;
+  const Input1ImagePointer inputPtr1 = dynamic_cast<const TInputImage1 *>(ProcessObject::GetInput(0));
+  const Input2ImagePointer inputPtr2 = dynamic_cast<const TInputImage2 *>(ProcessObject::GetInput(1));
 
   if (this->GetNumberOfInputs() >= 2)
   {
@@ -179,9 +180,9 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::D
 
   if (inputPtr1 && inputPtr2)
   {
-    ImageScanlineConstIterator<TInputImage1> inputIt1(inputPtr1, outputRegionForThread);
-    ImageScanlineConstIterator<TInputImage2> inputIt2(inputPtr2, outputRegionForThread);
-    ImageScanlineIterator<TOutputImage>      outputIt(outputPtr, outputRegionForThread);
+    ImageScanlineConstIterator inputIt1(inputPtr1, outputRegionForThread);
+    ImageScanlineConstIterator inputIt2(inputPtr2, outputRegionForThread);
+    ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
     while (!inputIt1.IsAtEnd())
     {
@@ -201,8 +202,8 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::D
   }
   else if (inputPtr1)
   {
-    ImageScanlineConstIterator<TInputImage1> inputIt1(inputPtr1, outputRegionForThread);
-    ImageScanlineIterator<TOutputImage>      outputIt(outputPtr, outputRegionForThread);
+    ImageScanlineConstIterator inputIt1(inputPtr1, outputRegionForThread);
+    ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
     const Input2ImagePixelType & input2Value = this->GetConstant2();
 
@@ -221,8 +222,8 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::D
   }
   else if (inputPtr2)
   {
-    ImageScanlineConstIterator<TInputImage2> inputIt2(inputPtr2, outputRegionForThread);
-    ImageScanlineIterator<TOutputImage>      outputIt(outputPtr, outputRegionForThread);
+    ImageScanlineConstIterator inputIt2(inputPtr2, outputRegionForThread);
+    ImageScanlineIterator      outputIt(outputPtr, outputRegionForThread);
 
     const Input1ImagePixelType & input1Value = this->GetConstant1();
 
@@ -241,7 +242,7 @@ BinaryFunctorImageFilter<TInputImage1, TInputImage2, TOutputImage, TFunction>::D
   }
   else
   {
-    itkGenericExceptionMacro(<< "At most one of the inputs can be a constant.");
+    itkGenericExceptionMacro("At most one of the inputs can be a constant.");
   }
 }
 } // end namespace itk

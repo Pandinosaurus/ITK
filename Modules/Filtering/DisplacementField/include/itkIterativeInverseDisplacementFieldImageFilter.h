@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IterativeInverseDisplacementFieldImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IterativeInverseDisplacementFieldImageFilter);
 
   /** Some type alias. */
   using InputImageType = TInputImage;
@@ -103,14 +103,10 @@ public:
   itkSetMacro(StopValue, double);
   itkGetConstMacro(StopValue, double);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputImageValueType>));
 
   itkConceptMacro(SameDimensionCheck,
                   (Concept::SameDimension<TInputImage::ImageDimension, TOutputImage::ImageDimension>));
-  // End concept checking
-#endif
 
 protected:
   IterativeInverseDisplacementFieldImageFilter();
@@ -122,10 +118,10 @@ protected:
   void
   GenerateData() override;
 
-  unsigned int m_NumberOfIterations;
+  unsigned int m_NumberOfIterations{};
 
-  double m_StopValue;
-  double m_Time;
+  double m_StopValue{};
+  double m_Time{};
 };
 } // end namespace itk
 

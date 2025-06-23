@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkCentralDifferenceImageFunctionTest(int, char *[])
@@ -29,10 +30,9 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
   using PixelType = unsigned int;
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  ImageType::Pointer  image = ImageType::New();
-  ImageType::SizeType size;
-  size.Fill(16);
-  ImageType::RegionType region(size);
+  auto                        image = ImageType::New();
+  auto                        size = ImageType::SizeType::Filled(16);
+  const ImageType::RegionType region(size);
 
   image->SetRegions(region);
   image->Allocate();
@@ -51,12 +51,15 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
   }
 
   // set up central difference calculator
-  using CoordRepType = float;
-  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordRepType>;
+  using CoordinateType = float;
+  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordinateType>;
   using OutputType = FunctionType::OutputType;
   using OutputValueType = FunctionType::OutputValueType;
 
-  FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(function, CentralDifferenceImageFunction, ImageFunction);
+
 
   function->SetInputImage(image);
 
@@ -73,8 +76,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
     std::cout << "Index: " << index << " is inside the BufferedRegion." << std::endl;
   }
 
-  FunctionType::ContinuousIndexType cindex;
-  cindex.Fill(8.0);
+  auto       cindex = itk::MakeFilled<FunctionType::ContinuousIndexType>(8.0);
   OutputType continuousIndexOutput = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "ContinuousIndex: " << cindex << " Derivative: ";
   std::cout << continuousIndexOutput << std::endl;
@@ -85,8 +87,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
     result = EXIT_FAILURE;
   }
 
-  FunctionType::PointType point;
-  point.Fill(8.0);
+  auto       point = itk::MakeFilled<FunctionType::PointType>(8.0);
   OutputType pointOutput = function->Evaluate(point);
   std::cout << "Point: " << point << " Derivative: ";
   std::cout << pointOutput << std::endl;
@@ -110,7 +111,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
   {
     std::cout << "Index: " << index << " is inside the BufferedRegion." << std::endl;
   }
-  if (itk::Math::NotExactlyEquals(indexOutput[0], itk::NumericTraits<OutputValueType>::ZeroValue()))
+  if (itk::Math::NotExactlyEquals(indexOutput[0], OutputValueType{}))
   {
     std::cout << "ERROR: Index: " << index << " - expected result dim 0 to have value 0. " << std::endl;
     result = EXIT_FAILURE;
@@ -153,7 +154,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
   {
     std::cout << "Index: " << index << " is inside the BufferedRegion." << std::endl;
   }
-  if (itk::Math::NotExactlyEquals(indexOutput[1], itk::NumericTraits<OutputValueType>::ZeroValue()))
+  if (itk::Math::NotExactlyEquals(indexOutput[1], OutputValueType{}))
   {
     std::cout << "ERROR: Index: " << index << " - expected result dim 1 to have value 0. " << std::endl;
     result = EXIT_FAILURE;
@@ -216,7 +217,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
     result = EXIT_FAILURE;
   }
 
-  if (fabs((right[0] + left[0]) / 2.0 - center[0]) > 1e-06)
+  if (itk::Math::abs((right[0] + left[0]) / 2.0 - center[0]) > 1e-06)
   {
     std::cerr << "ERROR: Failed for EvaluateAtContinuousIndex at non-integer incecies. "
               << "Center index result is not average of left and right." << std::endl;
@@ -242,7 +243,7 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
     result = EXIT_FAILURE;
   }
 
-  if (fabs((right[0] + left[0]) / 2.0 - center[0]) > 1e-06)
+  if (itk::Math::abs((right[0] + left[0]) / 2.0 - center[0]) > 1e-06)
   {
     std::cerr << "ERROR: Failed for Evaluate at non-integer incecies. "
               << "Center index result is not average of left and right." << std::endl;
@@ -294,8 +295,10 @@ itkCentralDifferenceImageFunctionTest(int, char *[])
 
   // with image direction disabled, result should be same as with
   // identity direction
-  function->SetUseImageDirection(false);
-  OutputType directionOffDerivative = function->Evaluate(point);
+  constexpr bool useImageDirection = false;
+  ITK_TEST_SET_GET_BOOLEAN(function, UseImageDirection, useImageDirection);
+
+  const OutputType directionOffDerivative = function->Evaluate(point);
   std::cout << "Point: " << point << " directionOffDerivative: " << directionOffDerivative << std::endl;
 
   if (directionOffDerivative != origDerivative)

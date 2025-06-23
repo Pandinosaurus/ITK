@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ namespace itk
  * \author Gaetan Lehmann
  *
  * This class was taken from the Insight Journal paper:
- * http://insight-journal.org/browse/publication/133
+ * https://doi.org/10.54294/47329s
  *
  * \ingroup ITKImageGrid
  */
@@ -90,13 +90,13 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Superclass type alias. */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(SliceBySliceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SliceBySliceImageFilter);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -166,7 +166,7 @@ protected:
   ~SliceBySliceImageFilter() override = default;
 
   void
-  VerifyInputInformation() ITKv5_CONST override;
+  VerifyInputInformation() const override;
 
   void
   GenerateData() override;
@@ -178,13 +178,13 @@ protected:
   GenerateInputRequestedRegion() override;
 
 private:
-  unsigned int m_Dimension;
+  unsigned int m_Dimension{};
 
-  typename InputFilterType::Pointer m_InputFilter;
+  typename InputFilterType::Pointer m_InputFilter{};
 
-  typename OutputFilterType::Pointer m_OutputFilter;
+  typename OutputFilterType::Pointer m_OutputFilter{};
 
-  IndexValueType m_SliceIndex;
+  IndexValueType m_SliceIndex{};
 };
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,11 +55,7 @@ namespace itk
  *
  * Note that there is no advection term in this function.
  *
- * This implementation is based on:
- * "Shape Modeling with Front Propagation: A Level Set Approach",
- * R. Malladi, J. A. Sethian and B. C. Vermuri.
- * IEEE Trans. on Pattern Analysis and Machine Intelligence,
- * Vol 17, No. 2, pp 158-174, February 1995
+ * This implementation is based on \cite malladi1995.
  *
  * \sa LevelSetFunction
  * \sa SegmentationLevelSetImageFunction
@@ -85,17 +81,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ShapeDetectionLevelSetFunction, SegmentationLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeDetectionLevelSetFunction);
 
   /** Extract some parameters from the superclass. */
-  using ImageType = typename Superclass::ImageType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using FeatureScalarType = typename Superclass::FeatureScalarType;
-  using RadiusType = typename Superclass::RadiusType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
+  using typename Superclass::ImageType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::FeatureScalarType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::GlobalDataStruct;
 
   /** Extract some parameters from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -117,7 +113,7 @@ public:
   {
     Superclass::Initialize(r);
 
-    this->SetAdvectionWeight(NumericTraits<ScalarValueType>::ZeroValue());
+    this->SetAdvectionWeight(ScalarValueType{});
     this->SetPropagationWeight(NumericTraits<ScalarValueType>::OneValue());
     this->SetCurvatureWeight(NumericTraits<ScalarValueType>::OneValue());
   }
@@ -125,7 +121,7 @@ public:
 protected:
   ShapeDetectionLevelSetFunction()
   {
-    this->SetAdvectionWeight(NumericTraits<ScalarValueType>::ZeroValue());
+    this->SetAdvectionWeight(ScalarValueType{});
     this->SetPropagationWeight(NumericTraits<ScalarValueType>::OneValue());
     this->SetCurvatureWeight(NumericTraits<ScalarValueType>::OneValue());
   }

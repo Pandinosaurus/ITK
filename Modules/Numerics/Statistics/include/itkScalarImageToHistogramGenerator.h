@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkHistogram.h"
 #include "itkObject.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ScalarImageToHistogramGenerator
+ * \class ScalarImageToHistogramGenerator
  *
  * \brief TODO
  * \ingroup ITKStatistics
@@ -45,8 +43,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageToHistogramGenerator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarImageToHistogramGenerator);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -114,12 +112,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  AdaptorPointer m_ImageToListSampleAdaptor;
+  AdaptorPointer m_ImageToListSampleAdaptor{};
 
-  GeneratorPointer m_HistogramGenerator;
+  GeneratorPointer m_HistogramGenerator{};
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkScalarImageToHistogramGenerator.hxx"

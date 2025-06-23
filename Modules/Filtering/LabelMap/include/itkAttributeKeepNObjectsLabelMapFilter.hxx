@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkAttributeKeepNObjectsLabelMapFilter_hxx
 #define itkAttributeKeepNObjectsLabelMapFilter_hxx
 
-#include "itkAttributeKeepNObjectsLabelMapFilter.h"
 #include "itkProgressReporter.h"
 
 
@@ -27,9 +26,8 @@ namespace itk
 
 template <typename TImage, typename TAttributeAccessor>
 AttributeKeepNObjectsLabelMapFilter<TImage, TAttributeAccessor>::AttributeKeepNObjectsLabelMapFilter()
+  : m_NumberOfObjects(1)
 {
-  m_ReverseOrdering = false;
-  m_NumberOfObjects = 1;
   // create the output image for the removed objects
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput(1, static_cast<TImage *>(this->MakeOutput(1).GetPointer()));
@@ -67,18 +65,18 @@ AttributeKeepNObjectsLabelMapFilter<TImage, TAttributeAccessor>::GenerateData()
     auto end = labelObjects.begin() + m_NumberOfObjects;
     if (m_ReverseOrdering)
     {
-      ReverseComparator comparator;
+      const ReverseComparator comparator;
       std::nth_element(labelObjects.begin(), end, labelObjects.end(), comparator);
     }
     else
     {
-      Comparator comparator;
+      const Comparator comparator;
       std::nth_element(labelObjects.begin(), end, labelObjects.end(), comparator);
     }
     //   progress.CompletedPixel();
 
     // and move the last objects to the second output
-    for (typename VectorType::const_iterator it = end; it != labelObjects.end(); it++)
+    for (auto it = end; it != labelObjects.end(); ++it)
     {
       output->RemoveLabelObject(*it);
       output2->AddLabelObject(*it);

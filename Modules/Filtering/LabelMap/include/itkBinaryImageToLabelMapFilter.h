@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
  * The GetOutput() function of this class returns an itk::LabelMap.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -77,12 +77,12 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(BinaryImageToLabelMapFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(BinaryImageToLabelMapFilter);
 
   /**
    * Types from the Superclass
    */
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImagePointer;
 
   /**
    * Extract some information from the image types.  Dimensionality
@@ -90,7 +90,7 @@ public:
    */
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelType = typename TInputImage::PixelType;
-  using SizeValueType = typename TInputImage::SizeValueType;
+  using SizeValueType = itk::SizeValueType;
   using OffsetValueType = typename TInputImage::OffsetValueType;
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
@@ -117,10 +117,11 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   // only set after completion
   itkGetConstReferenceMacro(NumberOfObjects, SizeValueType);
 
@@ -128,16 +129,18 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<OutputPixelType>::NonpositiveMin().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputBackgroundValue, OutputPixelType);
   itkGetConstMacro(OutputBackgroundValue, OutputPixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the value to be consider "foreground" in the input image.
    * Defaults to NumericTraits<InputPixelType>::max().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InputForegroundValue, InputPixelType);
   itkGetConstMacro(InputForegroundValue, InputPixelType);
-
+  /** @ITKEndGrouping */
 protected:
   BinaryImageToLabelMapFilter();
   ~BinaryImageToLabelMapFilter() override = default;
@@ -179,9 +182,9 @@ protected:
   using WorkUnitData = typename ScanlineFunctions::WorkUnitData;
 
 private:
-  OutputPixelType m_OutputBackgroundValue;
-  InputPixelType  m_InputForegroundValue;
-  SizeValueType   m_NumberOfObjects;
+  OutputPixelType m_OutputBackgroundValue{};
+  InputPixelType  m_InputForegroundValue{};
+  SizeValueType   m_NumberOfObjects{};
 };
 } // end namespace itk
 

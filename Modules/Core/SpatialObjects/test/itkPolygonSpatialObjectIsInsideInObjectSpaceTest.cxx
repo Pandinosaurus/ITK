@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,13 +72,13 @@ itkPolygonSpatialObjectIsInsideInObjectSpaceTest(int argc, char * argv[])
   {
     // read over first line
     fs.getline(data, sizeof(data), '\n');
-    char commaDelim;
+    char commaDelim = 0;
     while (fs.getline(data, sizeof(data), '\n'))
     {
       std::stringstream ss(data);
 
-      PolygonPointType                       polygonPt;
-      itk::SpatialObject<Dimension>::Pointer so = itk::SpatialObject<Dimension>::New();
+      PolygonPointType                             polygonPt;
+      const itk::SpatialObject<Dimension>::Pointer so = itk::SpatialObject<Dimension>::New();
       polygonPt.SetSpatialObject(so);
       PointType pt;
 

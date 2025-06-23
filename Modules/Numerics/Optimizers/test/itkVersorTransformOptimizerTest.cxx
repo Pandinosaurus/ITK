@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,7 +52,7 @@ public:
   using TransformType = itk::VersorTransform<double>;
 
   itkNewMacro(Self);
-  itkTypeMacro(versorCostFunction, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(versorCostFunction);
 
   enum
   {
@@ -90,7 +90,7 @@ public:
     B[2] = 0;
 
     VectorType rightPart;
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       rightPart[i] = parameters[i];
     }
@@ -102,7 +102,7 @@ public:
 
     const VectorType C = m_Transform->TransformVector(B);
 
-    MeasureType measure = A * C;
+    const MeasureType measure = A * C;
 
     std::cout << measure << std::endl;
 
@@ -114,7 +114,7 @@ public:
   {
 
     VectorType rightPart;
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
       rightPart[i] = parameters[i];
     }
@@ -135,9 +135,9 @@ public:
     versorY.SetRotationAroundY(deltaAngle);
     versorZ.SetRotationAroundZ(deltaAngle);
 
-    VersorType plusdDeltaX = currentVersor * versorX;
-    VersorType plusdDeltaY = currentVersor * versorY;
-    VersorType plusdDeltaZ = currentVersor * versorZ;
+    const VersorType plusdDeltaX = currentVersor * versorX;
+    const VersorType plusdDeltaY = currentVersor * versorY;
+    const VersorType plusdDeltaZ = currentVersor * versorZ;
 
     ParametersType parametersPlustDeltaX(SpaceDimension);
     ParametersType parametersPlustDeltaY(SpaceDimension);
@@ -186,12 +186,12 @@ itkVersorTransformOptimizerTest(int, char *[])
   using ScalesType = OptimizerType::ScalesType;
 
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
 
 
   // Declaration of the CostFunction adaptor
-  versorCostFunction::Pointer costFunction = versorCostFunction::New();
+  auto costFunction = versorCostFunction::New();
 
 
   itkOptimizer->SetCostFunction(costFunction);
@@ -207,7 +207,7 @@ itkVersorTransformOptimizerTest(int, char *[])
   axis[1] = 0.0f;
   axis[2] = 0.0f;
 
-  VersorType::ValueType angle = 0.0f;
+  constexpr VersorType::ValueType angle = 0.0f;
 
   VersorType initialRotation;
   initialRotation.Set(axis, angle);
@@ -251,12 +251,12 @@ itkVersorTransformOptimizerTest(int, char *[])
 
   VersorType             finalRotation;
   VersorType::VectorType finalRightPart;
-  for (unsigned int i = 0; i < spaceDimensions; i++)
+  for (unsigned int i = 0; i < spaceDimensions; ++i)
   {
     finalRightPart[i] = finalPosition[i];
   }
   finalRotation.Set(finalRightPart);
-  std::cout << "Solution        = (" << finalRotation << ")" << std::endl;
+  std::cout << "Solution        = (" << finalRotation << ')' << std::endl;
 
   //
   // check results to see if it is within range
@@ -266,12 +266,11 @@ itkVersorTransformOptimizerTest(int, char *[])
   // True versor
 
   VersorType::VectorType trueAxis;
-  VersorType::ValueType  trueAngle;
   trueAxis[0] = 1.0f;
   trueAxis[1] = 0.0f;
   trueAxis[2] = 0.0f;
-  trueAngle = 2.0 * std::atan(1.0f);
-  VersorType trueRotation;
+  const VersorType::ValueType trueAngle = 2.0 * std::atan(1.0f);
+  VersorType                  trueRotation;
   trueRotation.Set(trueAxis, trueAngle);
 
   ParametersType trueParameters(spaceDimensions);
@@ -281,7 +280,7 @@ itkVersorTransformOptimizerTest(int, char *[])
 
   std::cout << "True Parameters = " << trueParameters << std::endl;
 
-  VersorType                  ratio = finalRotation * trueRotation.GetReciprocal();
+  const VersorType            ratio = finalRotation * trueRotation.GetReciprocal();
   const VersorType::ValueType cosHalfAngle = ratio.GetW();
   const VersorType::ValueType cosHalfAngleSquare = cosHalfAngle * cosHalfAngle;
   if (cosHalfAngleSquare < 0.95)

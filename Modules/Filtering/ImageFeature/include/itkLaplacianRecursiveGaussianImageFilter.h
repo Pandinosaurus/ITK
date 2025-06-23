@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class LaplacianRecursiveGaussianImageFilter
+ * \class LaplacianRecursiveGaussianImageFilter
  * \brief Computes the Laplacian of Gaussian (LoG) of an image.
  *
  * Computes the Laplacian of Gaussian (LoG) of an image by convolution
@@ -96,22 +96,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(LaplacianRecursiveGaussianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LaplacianRecursiveGaussianImageFilter);
 
-  /** Set Sigma value. Sigma is measured in the units of image spacing. */
+  /** Set/Get Sigma value. Sigma is measured in the units of image spacing. */
+  /** @ITKStartGrouping */
   void
   SetSigma(RealType sigma);
   RealType
   GetSigma() const;
-
+  /** @ITKEndGrouping */
   /** Define which normalization factor will be used for the Gaussian
    *  \sa  RecursiveGaussianImageFilter::SetNormalizeAcrossScale
    */
+  /** @ITKStartGrouping */
   void
   SetNormalizeAcrossScale(bool normalize);
   itkGetConstMacro(NormalizeAcrossScale, bool);
-
+  /** @ITKEndGrouping */
 protected:
   LaplacianRecursiveGaussianImageFilter();
   ~LaplacianRecursiveGaussianImageFilter() override = default;
@@ -127,11 +129,11 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
 private:
-  GaussianFilterPointer   m_SmoothingFilters[NumberOfSmoothingFilters];
-  DerivativeFilterPointer m_DerivativeFilter;
+  GaussianFilterPointer   m_SmoothingFilters[NumberOfSmoothingFilters]{};
+  DerivativeFilterPointer m_DerivativeFilter{};
 
   /** Normalize the image across scale space */
-  bool m_NormalizeAcrossScale;
+  bool m_NormalizeAcrossScale{};
 };
 } // end namespace itk
 

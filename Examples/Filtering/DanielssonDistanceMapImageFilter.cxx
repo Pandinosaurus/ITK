@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -102,22 +102,22 @@ main(int argc, char * argv[])
 
   using LabelerType =
     itk::ConnectedComponentImageFilter<InputImageType, InputImageType>;
-  LabelerType::Pointer labeler = LabelerType::New();
+  auto labeler = LabelerType::New();
 
   // Software Guide : BeginCodeSnippet
   using FilterType = itk::DanielssonDistanceMapImageFilter<InputImageType,
                                                            OutputImageType,
                                                            VoronoiImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
   using RescalerType =
     itk::RescaleIntensityImageFilter<OutputImageType, OutputImageType>;
-  RescalerType::Pointer scaler = RescalerType::New();
+  auto scaler = RescalerType::New();
 
   using VoronoiRescalerType =
     itk::RescaleIntensityImageFilter<VoronoiImageType, VoronoiImageType>;
-  VoronoiRescalerType::Pointer voronoiScaler = VoronoiRescalerType::New();
+  auto voronoiScaler = VoronoiRescalerType::New();
 
   //
   // Reader and Writer types are instantiated.
@@ -126,9 +126,9 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
   using VoronoiWriterType = itk::ImageFileWriter<VoronoiImageType>;
 
-  ReaderType::Pointer        reader = ReaderType::New();
-  WriterType::Pointer        writer = WriterType::New();
-  VoronoiWriterType::Pointer voronoiWriter = VoronoiWriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto voronoiWriter = VoronoiWriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
@@ -226,7 +226,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterOffsetType = itk::ImageFileWriter<OffsetImageType>;
-  WriterOffsetType::Pointer offsetWriter = WriterOffsetType::New();
+  auto offsetWriter = WriterOffsetType::New();
   // Software Guide : EndCodeSnippet
 
 

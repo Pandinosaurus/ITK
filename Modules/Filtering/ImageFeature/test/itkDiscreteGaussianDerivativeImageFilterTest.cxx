@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,19 +57,19 @@ itkDiscreteGaussianDerivativeImageFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using DerivativeFilterType = itk::DiscreteGaussianDerivativeImageFilter<ImageType, ImageType>;
-  DerivativeFilterType::Pointer derivativeFilter = DerivativeFilterType::New();
+  auto derivativeFilter = DerivativeFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(derivativeFilter, DiscreteGaussianDerivativeImageFilter, ImageToImageFilter);
 
 
-  itk::SimpleFilterWatcher watcher(derivativeFilter, "DiscreteGaussianDerivativeImageFilter");
+  const itk::SimpleFilterWatcher watcher(derivativeFilter, "DiscreteGaussianDerivativeImageFilter");
 
   derivativeFilter->SetInput(reader->GetOutput());
 
@@ -82,7 +82,7 @@ itkDiscreteGaussianDerivativeImageFilterTest(int argc, char * argv[])
   derivativeFilter->SetOrder(order);
   ITK_TEST_SET_GET_VALUE(order, derivativeFilter->GetOrder());
 
-  double sigma = std::stod(argv[5]);
+  const double sigma = std::stod(argv[5]);
 
   DerivativeFilterType::ArrayType::ValueType maxErrorVal = 0.001;
   int                                        maxKernelWidth = 100;
@@ -96,14 +96,12 @@ itkDiscreteGaussianDerivativeImageFilterTest(int argc, char * argv[])
     maxKernelWidth = std::stoi(argv[7]);
   }
 
-  DerivativeFilterType::ArrayType variance;
-  variance.Fill(sigma * sigma);
+  auto variance = itk::MakeFilled<DerivativeFilterType::ArrayType>(sigma * sigma);
 
   derivativeFilter->SetVariance(variance);
   ITK_TEST_SET_GET_VALUE(variance, derivativeFilter->GetVariance());
 
-  DerivativeFilterType::ArrayType maxError;
-  maxError.Fill(maxErrorVal);
+  auto maxError = itk::MakeFilled<DerivativeFilterType::ArrayType>(maxErrorVal);
 
   derivativeFilter->SetMaximumError(maxErrorVal);
   ITK_TEST_SET_GET_VALUE(maxError, derivativeFilter->GetMaximumError());
@@ -111,20 +109,20 @@ itkDiscreteGaussianDerivativeImageFilterTest(int argc, char * argv[])
   derivativeFilter->SetMaximumKernelWidth(maxKernelWidth);
   ITK_TEST_SET_GET_VALUE(maxKernelWidth, derivativeFilter->GetMaximumKernelWidth());
 
-  bool useImageSpacing = true;
+  constexpr bool useImageSpacing = true;
   ITK_TEST_SET_GET_BOOLEAN(derivativeFilter, UseImageSpacing, useImageSpacing);
 
-  bool normalizeAcrossScale = false;
+  constexpr bool normalizeAcrossScale = false;
   ITK_TEST_SET_GET_BOOLEAN(derivativeFilter, NormalizeAcrossScale, normalizeAcrossScale);
 
-  unsigned int internalNumberOfStreamDivisions = DerivativeFilterType::InputImageType::GetImageDimension() *
-                                                 DerivativeFilterType::InputImageType::GetImageDimension();
+  constexpr unsigned int internalNumberOfStreamDivisions = DerivativeFilterType::InputImageType::GetImageDimension() *
+                                                           DerivativeFilterType::InputImageType::GetImageDimension();
   derivativeFilter->SetInternalNumberOfStreamDivisions(internalNumberOfStreamDivisions);
   ITK_TEST_SET_GET_VALUE(internalNumberOfStreamDivisions, derivativeFilter->GetInternalNumberOfStreamDivisions());
 
 
   using RescaleFilterType = itk::RescaleIntensityImageFilter<ImageType, OutputImageType>;
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum(itk::NumericTraits<OutputPixelType>::min());
   rescaler->SetOutputMaximum(itk::NumericTraits<OutputPixelType>::max());
   rescaler->SetInput(derivativeFilter->GetOutput());
@@ -132,7 +130,7 @@ itkDiscreteGaussianDerivativeImageFilterTest(int argc, char * argv[])
 
   // Write the output image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(rescaler->GetOutput());
 

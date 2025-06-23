@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,18 +15,18 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#include "itkComplexToComplexFFTImageFilter.h"
-
 #ifndef itkFFTWComplexToComplexFFTImageFilter_h
-#  define itkFFTWComplexToComplexFFTImageFilter_h
+#define itkFFTWComplexToComplexFFTImageFilter_h
 
-#  include "itkFFTWCommon.h"
+#include "itkComplexToComplexFFTImageFilter.h"
+#include "itkFFTWCommon.h"
 
+#include "itkFFTImageFilterFactory.h"
 
 namespace itk
 {
 /**
- *\class FFTWComplexToComplexFFTImageFilter
+ * \class FFTWComplexToComplexFFTImageFilter
  *
  *  \brief Implements an API to enable the Fourier transform or the inverse
  *  Fourier transform of images with complex valued voxels to be computed using
@@ -38,7 +38,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "FFT Complex to Complex filters and helper classes"
  * by Warfield S.
- * https://www.insight-journal.org/browse/publication/128
+ * https://doi.org/10.54294/h4j7t7
  *
  * \author Simon K. Warfield simon.warfield\@childrens.harvard.edu
  *
@@ -55,22 +55,23 @@ namespace itk
  *
  * \sa FFTWGlobalConfiguration
  */
-template <typename TImage>
-class ITK_TEMPLATE_EXPORT FFTWComplexToComplexFFTImageFilter : public ComplexToComplexFFTImageFilter<TImage>
+template <typename TInputImage, typename TOutputImage = TInputImage>
+class ITK_TEMPLATE_EXPORT FFTWComplexToComplexFFTImageFilter
+  : public ComplexToComplexFFTImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FFTWComplexToComplexFFTImageFilter);
 
   /** Standard class type aliases. */
   using Self = FFTWComplexToComplexFFTImageFilter;
-  using Superclass = ComplexToComplexFFTImageFilter<TImage>;
+  using Superclass = ComplexToComplexFFTImageFilter<TInputImage, TOutputImage>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using ImageType = TImage;
+  using typename Superclass::ImageType;
   using PixelType = typename ImageType::PixelType;
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
   using OutputImageRegionType = typename OutputImageType::RegionType;
 
   // the proxy type is a wrapper for the fftw API
@@ -84,12 +85,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FFTWComplexToComplexFFTImageFilter, ComplexToComplexFFTImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FFTWComplexToComplexFFTImageFilter);
 
   static constexpr unsigned int ImageDimension = ImageType::ImageDimension;
 
-  /** Image type type alias support */
+  /** Image type alias support */
   using ImageSizeType = typename ImageType::SizeType;
 
   /**
@@ -103,13 +104,14 @@ public:
    *
    * /sa FFTWGlobalConfiguration
    */
+  /** @ITKStartGrouping */
   virtual void
   SetPlanRigor(const int & value)
   {
-#  ifndef ITK_USE_CUFFTW
+#ifndef ITK_USE_CUFFTW
     // use that method to check the value
     FFTWGlobalConfiguration::GetPlanRigorName(value);
-#  endif
+#endif
     if (m_PlanRigor != value)
     {
       m_PlanRigor = value;
@@ -120,11 +122,11 @@ public:
   void
   SetPlanRigor(const std::string & name)
   {
-#  ifndef ITK_USE_CUFFTW
+#ifndef ITK_USE_CUFFTW
     this->SetPlanRigor(FFTWGlobalConfiguration::GetPlanRigorValue(name));
-#  endif
+#endif
   }
-
+  /** @ITKEndGrouping */
 protected:
   FFTWComplexToComplexFFTImageFilter();
   ~FFTWComplexToComplexFFTImageFilter() override = default;
@@ -142,16 +144,29 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  bool m_CanUseDestructiveAlgorithm;
+  bool m_CanUseDestructiveAlgorithm{};
 
-  int m_PlanRigor;
+  int m_PlanRigor{};
+};
+
+
+// Describe whether input/output are real- or complex-valued
+// for factory registration
+template <>
+struct FFTImageFilterTraits<FFTWComplexToComplexFFTImageFilter>
+{
+  template <typename TUnderlying>
+  using InputPixelType = std::complex<TUnderlying>;
+  template <typename TUnderlying>
+  using OutputPixelType = std::complex<TUnderlying>;
+  using FilterDimensions = std::integer_sequence<unsigned int, 4, 3, 2, 1>;
 };
 
 
 } // namespace itk
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "itkFFTWComplexToComplexFFTImageFilter.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkFFTWComplexToComplexFFTImageFilter.hxx"
+#endif
 
 #endif // itkFFTWComplexToComplexFFTImageFilter_h

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,41 +45,41 @@ namespace itk
  * \sphinxexample{Core/ImageFunction/ComputeMedianOfImageAtPixel,Compute Median Of Image At Pixel}
  * \endsphinx
  */
-template <typename TInputImage, typename TCoordRep = float>
+template <typename TInputImage, typename TCoordinate = float>
 class ITK_TEMPLATE_EXPORT MedianImageFunction
-  : public ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordRep>
+  : public ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MedianImageFunction);
 
   /** Standard class type aliases. */
   using Self = MedianImageFunction;
-  using Superclass = ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordRep>;
+  using Superclass = ImageFunction<TInputImage, typename TInputImage::PixelType, TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MedianImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MedianImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
-  using InputPixelType = typename Superclass::InputPixelType;
+  using typename Superclass::InputPixelType;
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Size type of the underlying image. */
   using ImageSizeType = typename InputImageType::SizeType;
@@ -87,7 +87,7 @@ public:
   /** Dimension of the underlying image. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
 
-  /** Evalulate the function at specified index */
+  /** Evaluate the function at specified index */
   OutputType
   EvaluateAtIndex(const IndexType & index) const override;
 
@@ -112,10 +112,11 @@ public:
 
   /** Get/Set the radius of the neighborhood over which the
       statistics are evaluated */
+  /** @ITKStartGrouping */
   void
   SetNeighborhoodRadius(unsigned int);
   itkGetConstReferenceMacro(NeighborhoodRadius, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   MedianImageFunction();
   ~MedianImageFunction() override = default;

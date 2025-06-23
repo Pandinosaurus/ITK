@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,19 +33,11 @@ class ITK_TEMPLATE_EXPORT IntensityLinearTransform
 public:
   using RealType = typename NumericTraits<TInput>::RealType;
   IntensityLinearTransform()
-  {
-    m_Factor = 1.0;
-    m_Offset = 0.0;
-    m_Minimum = NumericTraits<TOutput>::NonpositiveMin();
-    m_Maximum = NumericTraits<TOutput>::max();
-#if defined(__GNUC__) && (__GNUC__ == 5) && (__GNUC_MINOR__ == 2) && defined(NDEBUG) && defined(__i386__)
-    m_EpsilonCompensation = static_cast<RealType>(std::numeric_limits<TOutput>::epsilon());
-    if (m_EpsilonCompensation == 0)
-    {
-      m_EpsilonCompensation = std::numeric_limits<RealType>::epsilon();
-    }
-#endif
-  }
+    : m_Factor(1.0)
+    , m_Offset(0.0)
+    , m_Maximum(NumericTraits<TOutput>::max())
+    , m_Minimum(NumericTraits<TOutput>::NonpositiveMin())
+  {}
 
   ~IntensityLinearTransform() = default;
   void
@@ -68,33 +60,22 @@ public:
   {
     m_Maximum = max;
   }
-  bool
-  operator!=(const IntensityLinearTransform & other) const
-  {
-    if (Math::NotExactlyEquals(m_Factor, other.m_Factor) || Math::NotExactlyEquals(m_Offset, other.m_Offset) ||
-        Math::NotExactlyEquals(m_Maximum, other.m_Maximum) || Math::NotExactlyEquals(m_Minimum, other.m_Minimum))
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const IntensityLinearTransform & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Factor, other.m_Factor) && Math::ExactlyEquals(m_Offset, other.m_Offset) &&
+           Math::ExactlyEquals(m_Maximum, other.m_Maximum) && Math::ExactlyEquals(m_Minimum, other.m_Minimum);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(IntensityLinearTransform);
 
   inline TOutput
   operator()(const TInput & x) const
   {
-#if defined(__GNUC__) && (__GNUC__ == 5) && (__GNUC_MINOR__ == 2) && defined(NDEBUG) && defined(__i386__)
-    RealType value = static_cast<RealType>(x) * m_Factor + m_Offset + m_EpsilonCompensation;
-    TOutput  result = static_cast<TOutput>(value) - static_cast<TOutput>(m_EpsilonCompensation);
-#else
-    RealType value = static_cast<RealType>(x) * m_Factor + m_Offset;
-    auto     result = static_cast<TOutput>(value);
-#endif
+    const RealType value = static_cast<RealType>(x) * m_Factor + m_Offset;
+    auto           result = static_cast<TOutput>(value);
+
     result = (result > m_Maximum) ? m_Maximum : result;
     result = (result < m_Minimum) ? m_Minimum : result;
     return result;
@@ -105,14 +86,11 @@ private:
   RealType m_Offset;
   TOutput  m_Maximum;
   TOutput  m_Minimum;
-#if defined(__GNUC__) && (__GNUC__ == 5) && (__GNUC_MINOR__ == 2) && defined(NDEBUG) && defined(__i386__)
-  RealType m_EpsilonCompensation;
-#endif
 };
 } // end namespace Functor
 
 /**
- *\class RescaleIntensityImageFilter
+ * \class RescaleIntensityImageFilter
  * \brief Applies a linear transformation to the intensity levels of the
  * input Image.
  *
@@ -177,8 +155,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(RescaleIntensityImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RescaleIntensityImageFilter);
 
   itkSetMacro(OutputMinimum, OutputPixelType);
   itkSetMacro(OutputMaximum, OutputPixelType);
@@ -188,14 +166,16 @@ public:
   /** Get the Scale and Shift used for the linear transformation
       of gray level values.
    \warning These Values are only valid after the filter has been updated */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Scale, RealType);
   itkGetConstReferenceMacro(Shift, RealType);
-
+  /** @ITKEndGrouping */
   /** Get the Minimum and Maximum values of the input image.
    \warning These Values are only valid after the filter has been updated */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(InputMinimum, InputPixelType);
   itkGetConstReferenceMacro(InputMaximum, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Process to execute before entering the multithreaded section */
   void
   BeforeThreadedGenerateData() override;
@@ -204,28 +184,24 @@ public:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
   itkConceptMacro(RealTypeMultiplyOperatorCheck, (Concept::MultiplyOperator<RealType>));
   itkConceptMacro(RealTypeAdditiveOperatorsCheck, (Concept::AdditiveOperators<RealType>));
-  // End concept checking
-#endif
 
 protected:
   RescaleIntensityImageFilter();
   ~RescaleIntensityImageFilter() override = default;
 
 private:
-  RealType m_Scale;
-  RealType m_Shift;
+  RealType m_Scale{};
+  RealType m_Shift{};
 
-  InputPixelType m_InputMinimum;
-  InputPixelType m_InputMaximum;
+  InputPixelType m_InputMinimum{};
+  InputPixelType m_InputMaximum{};
 
-  OutputPixelType m_OutputMinimum;
-  OutputPixelType m_OutputMaximum;
+  OutputPixelType m_OutputMinimum{};
+  OutputPixelType m_OutputMaximum{};
 };
 } // end namespace itk
 

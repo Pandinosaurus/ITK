@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCellInterface_hxx
 #define itkCellInterface_hxx
 
-#include "itkCellInterface.h"
 
 namespace itk
 {
@@ -38,15 +37,15 @@ CellInterface<TPixelType, TCellTraits>::GetInterpolationOrder() const
  * PointIdsBegin() const.
  */
 template <typename TPixelType, typename TCellTraits>
-typename CellInterface<TPixelType, TCellTraits>::PointIdConstIterator
-CellInterface<TPixelType, TCellTraits>::GetPointIds() const
+auto
+CellInterface<TPixelType, TCellTraits>::GetPointIds() const -> PointIdConstIterator
 {
   return this->PointIdsBegin();
 }
 
 template <typename TPixelType, typename TCellTraits>
-typename CellInterface<TPixelType, TCellTraits>::PointIdentifierContainerType
-CellInterface<TPixelType, TCellTraits>::GetPointIdsContainer() const
+auto
+CellInterface<TPixelType, TCellTraits>::GetPointIdsContainer() const -> PointIdentifierContainerType
 {
   PointIdentifierContainerType res;
   res.SetSize(this->GetNumberOfPoints());
@@ -136,8 +135,8 @@ CellInterface<TPixelType, TCellTraits>::GetNumberOfUsingCells()
  * Get a begin iterator for the UsingCellsContainer.
  */
 template <typename TPixelType, typename TCellTraits>
-typename CellInterface<TPixelType, TCellTraits>::UsingCellsContainerIterator
-CellInterface<TPixelType, TCellTraits>::UsingCellsBegin()
+auto
+CellInterface<TPixelType, TCellTraits>::UsingCellsBegin() -> UsingCellsContainerIterator
 {
   return m_UsingCells.begin();
 }
@@ -146,8 +145,8 @@ CellInterface<TPixelType, TCellTraits>::UsingCellsBegin()
  * Get an end iterator for the UsingCellsContainer.
  */
 template <typename TPixelType, typename TCellTraits>
-typename CellInterface<TPixelType, TCellTraits>::UsingCellsContainerIterator
-CellInterface<TPixelType, TCellTraits>::UsingCellsEnd()
+auto
+CellInterface<TPixelType, TCellTraits>::UsingCellsEnd() -> UsingCellsContainerIterator
 {
   return m_UsingCells.end();
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,21 +64,23 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CumulativeGaussianOptimizer, MultipleValuedNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CumulativeGaussianOptimizer);
 
   /** Set and get macros. */
+  /** @ITKStartGrouping */
   itkSetMacro(DifferenceTolerance, double);
   itkGetMacro(DifferenceTolerance, double);
   itkSetMacro(Verbose, bool);
   itkGetMacro(Verbose, bool);
+  itkBooleanMacro(Verbose);
   itkGetMacro(ComputedMean, double);
   itkGetMacro(ComputedStandardDeviation, double);
   itkGetMacro(UpperAsymptote, double);
   itkGetMacro(LowerAsymptote, double);
   itkGetMacro(FinalSampledArray, MeasureType *);
   itkGetMacro(FitError, double);
-
+  /** @ITKEndGrouping */
   void
   SetDataArray(MeasureType * cumGaussianArray);
 
@@ -91,7 +93,7 @@ public:
   PrintArray(MeasureType * array);
 
   /** Report the reason for stopping. */
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
 protected:
@@ -102,48 +104,48 @@ protected:
 
 private:
   /** When to stop the iteration for the Gaussian extension loop. */
-  double m_DifferenceTolerance;
+  double m_DifferenceTolerance{};
 
   /** The final mean of the Cumulative Gaussian. */
-  double m_ComputedMean;
+  double m_ComputedMean{};
 
   /** The final standard deviation of the Cumulative Gaussian. */
-  double m_ComputedStandardDeviation;
+  double m_ComputedStandardDeviation{};
 
   /** The final amplitude of the Gaussian. */
-  double m_ComputedAmplitude;
+  double m_ComputedAmplitude{};
 
   /** The transition height (distance between upper and lower
    * asymptotes) of the Cumulative Gaussian. */
-  double m_ComputedTransitionHeight;
+  double m_ComputedTransitionHeight{};
 
   /** The final upper asymptote of the Cumulative Gaussian. */
-  double m_UpperAsymptote;
+  double m_UpperAsymptote{};
 
   /** The final lower asymptote of the Cumulative Gaussian. */
-  double m_LowerAsymptote;
+  double m_LowerAsymptote{};
 
   /** Offset for the mean calculation. */
-  double m_OffsetForMean;
+  double m_OffsetForMean{};
 
   /** Flag to print iteration results. */
-  bool m_Verbose;
+  bool m_Verbose{};
 
   /** Least squares fit error as a measure of goodness. */
-  double m_FitError;
+  double m_FitError{};
 
   /** Array of values computed from the final parameters of the
    * Cumulative Gaussian. */
-  MeasureType * m_FinalSampledArray;
+  MeasureType * m_FinalSampledArray{};
 
   /** Original data array. */
-  MeasureType * m_CumulativeGaussianArray;
+  MeasureType * m_CumulativeGaussianArray{};
 
   /** Extend the tails of the Gaussian. */
   MeasureType *
   ExtendGaussian(MeasureType * originalArray, MeasureType * extendedArray, int startingPointForInsertion);
 
-  /** Recalulate the parameters of the extended Gaussian array. */
+  /** Recalculate the parameters of the extended Gaussian array. */
   MeasureType *
   RecalculateExtendedArrayFromGaussianParameters(MeasureType * originalArray,
                                                  MeasureType * extendedArray,
@@ -154,7 +156,7 @@ private:
   double
   FindAverageSumOfSquaredDifferences(MeasureType * array1, MeasureType * array2);
 
-  /** Given an array sampled from a Gaussin, compute the final parameters. */
+  /** Given an array sampled from a Gaussian, compute the final parameters. */
   void
   FindParametersOfGaussian(MeasureType * sampledGaussianArray);
 
@@ -175,7 +177,7 @@ private:
   VerticalBestShift(MeasureType * originalArray, MeasureType * newArray);
 
   /** Describe the stop condition */
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,13 +47,13 @@ public:
 
   /** Optional record name
    */
-  std::string m_RecordName;
+  std::string m_RecordName{};
 
   /** Contains a list of token with the associated memory allocated, tokens
    *  could be typically: Size, Rss, Shared_Clean, Shared_Dirty, Private_Clean,
    *  Private_Dirty, Referenced.
    */
-  std::map<std::string, MemoryLoadType> m_Tokens;
+  std::map<std::string, MemoryLoadType> m_Tokens{};
 };
 
 /** \class SmapsRecord
@@ -163,7 +163,7 @@ protected:
   using MapRecordVectorType = std::vector<MapRecord *>;
 
   /** contains all the segment records */
-  MapRecordVectorType m_Records;
+  MapRecordVectorType m_Records{};
 };
 
 /** \class SmapsData_2_6
@@ -191,7 +191,7 @@ public:
                           operator>>(std::istream & smapsStream, SmapsData_2_6 & data);
 
 protected:
-  bool m_HeapRecordFound;
+  bool m_HeapRecordFound{};
 };
 
 /** \class VMMapData_10_2
@@ -277,8 +277,8 @@ public:
   GetMemoryUsage(const char * filter, const char * token = "Size");
 
 protected:
-  std::string m_MapFilePath; //< location of the last loaded Map file
-  TMapData    m_MapData;     //< data of the loaded smap file
+  std::string m_MapFilePath{}; // location of the last loaded Map file
+  TMapData    m_MapData{};     // data of the loaded smap file
 };
 
 /** \class SmapsFileParser
@@ -291,14 +291,14 @@ template <typename TSmapsDataType>
 class ITK_TEMPLATE_EXPORT SmapsFileParser : public MapFileParser<TSmapsDataType>
 {
 public:
-  virtual ~SmapsFileParser() = default;
+  ~SmapsFileParser() override = default;
   /** Load and parse the smaps file pointed by smapsFileLocation.
    *  If smapsFileLocation is empty, load the file located at
    *  "/proc/" + PID + "/smaps"
    *  Throw an exception is the file can't be opened.
    */
-  virtual void
-  ReadFile(const std::string & mapFileLocation = "");
+  void
+  ReadFile(const std::string & mapFileLocation = "") override;
 };
 
 /** \class VMMapFileParser
@@ -310,12 +310,12 @@ template <typename TVMMapDataType>
 class ITK_TEMPLATE_EXPORT VMMapFileParser : public MapFileParser<TVMMapDataType>
 {
 public:
-  virtual ~VMMapFileParser() = default;
+  ~VMMapFileParser() override = default;
   /** If no vmmap file, create one using "vmmap pid" command
    *  Throw an exception is the file can't be created/opened.
    */
-  virtual void
-  ReadFile(const std::string & mapFileLocation = "");
+  void
+  ReadFile(const std::string & mapFileLocation = "") override;
 };
 } // end namespace itk
 

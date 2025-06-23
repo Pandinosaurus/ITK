@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 //  aggregating them in a group. This process is equivalent to what is called
 //  ''MetaBalls'' in Computer Graphics.
 //
-//  See http://en.wikipedia.org/wiki/Metaballs
+//  See https://en.wikipedia.org/wiki/Metaballs
 //
 //
 //  \index{itk::SpatialObjectToImageFilter|textbf}
@@ -95,7 +95,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -127,8 +127,7 @@ main(int argc, char * argv[])
   using SpatialObjectToImageFilterType =
     itk::SpatialObjectToImageFilter<GroupType, ImageType>;
 
-  SpatialObjectToImageFilterType::Pointer imageFilter =
-    SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -167,9 +166,9 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MetaBallType::Pointer metaBall1 = MetaBallType::New();
-  MetaBallType::Pointer metaBall2 = MetaBallType::New();
-  MetaBallType::Pointer metaBall3 = MetaBallType::New();
+  auto metaBall1 = MetaBallType::New();
+  auto metaBall2 = MetaBallType::New();
+  auto metaBall3 = MetaBallType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -202,9 +201,9 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using TransformType = GroupType::TransformType;
 
-  TransformType::Pointer transform1 = TransformType::New();
-  TransformType::Pointer transform2 = TransformType::New();
-  TransformType::Pointer transform3 = TransformType::New();
+  auto transform1 = TransformType::New();
+  auto transform2 = TransformType::New();
+  auto transform3 = TransformType::New();
 
   transform1->SetIdentity();
   transform2->SetIdentity();
@@ -250,7 +249,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  GroupType::Pointer group = GroupType::New();
+  auto group = GroupType::New();
   group->AddChild(metaBall1);
   group->AddChild(metaBall2);
   group->AddChild(metaBall3);
@@ -275,7 +274,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const PixelType airHounsfieldUnits = -1000;
+  constexpr PixelType airHounsfieldUnits = -1000;
 
   imageFilter->SetUseObjectValue(true);
   imageFilter->SetOutsideValue(airHounsfieldUnits);
@@ -292,7 +291,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
   writer->SetInput(imageFilter->GetOutput());

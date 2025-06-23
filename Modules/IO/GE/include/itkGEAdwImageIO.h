@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
  *         permission of the authors, Milan Sonka, Joseph Reinhardt,
  *         Ryan Long, Hans Johnson, Gary Christensen, and others.
  *         The specification for this file format is taken from the
- *         web site http://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
+ *         web site https://analyzedirect.com/support/10.0Documents/Analyze_Resource_01.pdf
  * \author Kent Williams
  *         The University of Iowa 2003
  * \brief This file was written as a modification to the itkMetaImageIO
@@ -39,7 +39,7 @@
 namespace itk
 {
 /**
- *\class GEAdwImageIO
+ * \class GEAdwImageIO
  *
  * \author Hans J. Johnson
  * \brief Class that defines how to read GEAdw file format.
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GEAdwImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GEAdwImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -141,7 +141,7 @@ private:
     GE_ADW_EX_PATNAME_LEN = 25,
     GE_ADW_EX_PATAGE = 242, /**< Patient Age - Short Int */
     GE_ADW_EX_PATAGE_LEN = 2,
-    GE_ADW_EX_PATIAN = 244, /**< Patient Age Notation - SHort Int */
+    GE_ADW_EX_PATIAN = 244, /**< Patient Age Notation - Short Int */
     GE_ADW_EX_PATIAN_LEN = 2,
     GE_ADW_EX_PATSEX = 246, /**< Patient Sex - Short Integer */
     GE_ADW_EX_PATSEX_LEN = 2,
@@ -194,7 +194,7 @@ private:
     GE_ADW_SE_CONTRAST = 1274, /**< Non-zero if contrast - Short Int */
     GE_ADW_SE_CONTRAST_LEN = 2,
     GE_ADW_SE_START_RAS = 1276, /**< RAS letter for first scan location
-                                  - STring */
+                                  - String */
     GE_ADW_SE_START_RAS_LEN = 1,
     GE_ADW_SE_START_LOC = 1280, /**< Start location position - Float */
     GE_ADW_SE_START_LOC_LEN = 4,
@@ -299,7 +299,7 @@ private:
     GE_ADW_IM_ECHONUM_LEN = 2,
     GE_ADW_IM_NEX = 2408, /**< Number of averages - float */
     GE_ADW_IM_NEX_LEN = 4,
-    GE_ADW_IM_CONTIG = 2412, /**< Continuos slices flag - short integer */
+    GE_ADW_IM_CONTIG = 2412, /**< Continuous slices flag - short integer */
     GE_ADW_IM_CONTIG_LEN = 2,
     GE_ADW_IM_HRTRATE = 2414, /**< Cardiac Heart rate (bpm) - short integer */
     GE_ADW_IM_HRTRATE_LEN = 2,

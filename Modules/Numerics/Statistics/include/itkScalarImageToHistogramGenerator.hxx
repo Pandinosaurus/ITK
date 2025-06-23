@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,13 @@
 #ifndef itkScalarImageToHistogramGenerator_hxx
 #define itkScalarImageToHistogramGenerator_hxx
 
-#include "itkScalarImageToHistogramGenerator.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TImage>
 ScalarImageToHistogramGenerator<TImage>::ScalarImageToHistogramGenerator()
+  : m_ImageToListSampleAdaptor(AdaptorType::New())
+  , m_HistogramGenerator(GeneratorType::New())
 {
-  m_ImageToListSampleAdaptor = AdaptorType::New();
-  m_HistogramGenerator = GeneratorType::New();
   m_HistogramGenerator->SetInput(m_ImageToListSampleAdaptor);
 }
 
@@ -40,8 +36,8 @@ ScalarImageToHistogramGenerator<TImage>::SetInput(const ImageType * image)
 }
 
 template <typename TImage>
-const typename ScalarImageToHistogramGenerator<TImage>::HistogramType *
-ScalarImageToHistogramGenerator<TImage>::GetOutput() const
+auto
+ScalarImageToHistogramGenerator<TImage>::GetOutput() const -> const HistogramType *
 {
   return m_HistogramGenerator->GetOutput();
 }
@@ -104,10 +100,10 @@ void
 ScalarImageToHistogramGenerator<TImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << "ImageToListSample adaptor = " << m_ImageToListSampleAdaptor << std::endl;
-  os << "HistogramGenerator = " << m_HistogramGenerator << std::endl;
+
+  itkPrintSelfObjectMacro(ImageToListSampleAdaptor);
+  itkPrintSelfObjectMacro(HistogramGenerator);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

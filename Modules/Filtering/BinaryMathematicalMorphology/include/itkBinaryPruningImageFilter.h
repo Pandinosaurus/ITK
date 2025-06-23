@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class BinaryPruningImageFilter
+ * \class BinaryPruningImageFilter
  *
  * \brief This filter removes "spurs" of less than a certain
  * length in the input image.
@@ -37,11 +37,7 @@ namespace itk
  *
  * This filter is a sequential pruning algorithm and known to be computational time
  * dependable of the image size.  The algorithm is the N-dimensional version
- * of that given for two dimensions in:
- *
- * Rafael C. Gonzales and Richard E. Woods.
- * Digital Image Processing.
- * Addison Wesley, 491-494, (1993).
+ * of that given for two dimensions in \cite gonzales1993.
  *
  * \sa MorphologyImageFilter
  * \sa BinaryErodeImageFilter
@@ -70,13 +66,13 @@ public:
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryPruningImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryPruningImageFilter);
 
   /** Type for input image. */
   using InputImageType = TInputImage;
 
-  /** Type for output image: Skelenton of the object.  */
+  /** Type for output image: Skeleton of the object.  */
   using OutputImageType = TOutputImage;
 
   /** Type for the region of the input image. */
@@ -100,27 +96,24 @@ public:
   /** Neighborhood iterator type */
   using NeighborhoodIteratorType = NeighborhoodIterator<TInputImage>;
 
-  /** Get Skelenton by thinning image. */
+  /** Get Skeleton by thinning image. */
   OutputImageType *
   GetPruning();
 
   /** Set/Get the iteration value */
+  /** @ITKStartGrouping */
   itkSetMacro(Iteration, unsigned int);
   itkGetConstMacro(Iteration, unsigned int);
-
+  /** @ITKEndGrouping */
   /** ImageDimension enumeration   */
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(SameTypeCheck, (Concept::SameType<PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(AdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(IntConvertibleToPixelTypeCheck, (Concept::Convertible<int, PixelType>));
   itkConceptMacro(PixelLessThanIntCheck, (Concept::LessThanComparable<PixelType, int>));
-  // End concept checking
-#endif
 
 protected:
   BinaryPruningImageFilter();
@@ -141,7 +134,7 @@ protected:
   ComputePruneImage();
 
 private:
-  unsigned int m_Iteration;
+  unsigned int m_Iteration{};
 }; // end of BinaryThinningImageFilter class
 } // end namespace itk
 

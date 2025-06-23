@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,10 +29,13 @@
 #include "itkOnePlusOneEvolutionaryOptimizer.h"
 #include "itkImageRegionIterator.h"
 
+#include <memory> // For unique_ptr.
+
+
 namespace itk
 {
 /**
- *\class MRIBiasEnergyFunction
+ * \class MRIBiasEnergyFunction
  * \brief Represents a cost function for MRI bias field correction optimization.
  *
  * This is a wrapping class which provides interfaces between images,
@@ -56,8 +59,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MRIBiasEnergyFunction, SingleValuedCostFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MRIBiasEnergyFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -77,7 +80,7 @@ public:
 
   /** Parameters type for optimizer (coefficients type for bias
    * field estimate). */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Not used, but expected by SingleValuedNonLinearOptimizer class. */
   using DerivativeType = Superclass::DerivativeType;
@@ -114,7 +117,7 @@ public:
   void
   SetSamplingFactors(const SamplingFactorType factor)
   {
-    for (unsigned int i = 0; i < SpaceDimension; i++)
+    for (unsigned int i = 0; i < SpaceDimension; ++i)
     {
       m_SamplingFactor[i] = factor[i];
     }
@@ -154,30 +157,30 @@ protected:
   MRIBiasEnergyFunction();
 
   /** Destructor. */
-  ~MRIBiasEnergyFunction() override;
+  ~MRIBiasEnergyFunction() override = default;
 
 private:
   /** Bias field object pointer. */
-  BiasFieldType * m_BiasField;
+  BiasFieldType * m_BiasField{};
 
   /** Input image smart pointer. */
-  ImagePointer m_Image;
+  ImagePointer m_Image{};
 
   /** Input mask image smart pointer. */
-  MaskPointer m_Mask;
+  MaskPointer m_Mask{};
 
   /** Region of interest. */
-  ImageRegionType m_Region;
+  ImageRegionType m_Region{};
 
   /** Internal energy function object pointer. */
-  InternalEnergyFunction * m_InternalEnergyFunction;
+  std::unique_ptr<InternalEnergyFunction> m_InternalEnergyFunction;
 
   /** Sampling factors */
-  SamplingFactorType m_SamplingFactor;
+  SamplingFactorType m_SamplingFactor{};
 }; // end of class
 
 /**
- *\class MRIBiasFieldCorrectionFilter
+ * \class MRIBiasFieldCorrectionFilter
  * \brief Corrects 3D MRI bias field.
  *
  * This class is templated over the type of the input image (TInputImage)
@@ -214,17 +217,9 @@ private:
  * and his colleagues.
  *
  * The multiresolution pyramid implementation is based on
- * itkMultiTesolutionPyramidImageFilter (without Gaussian smoothing)
+ * itkMultiResolutionPyramidImageFilter (without Gaussian smoothing)
  *
- * For more details. refer to the following articles.
- * "Parametric estimate of intensity inhomogeneities applied to MRI"
- * Martin Styner, Guido Gerig, Christian Brechbuehler, Gabor Szekely,
- * IEEE TRANSACTIONS ON MEDICAL IMAGING; 19(3), pp. 153-165, 2000,
- * (http://www.cs.unc.edu/~styner/docs/tmi00.pdf)
- *
- * "Evaluation of 2D/3D bias correction with 1+1ES-optimization"
- * Martin Styner, Prof. Dr. G. Gerig (IKT, BIWI, ETH Zuerich), TR-197
- * (http://www.cs.unc.edu/~styner/docs/StynerTR97.pdf)
+ * For more details refer to \cite styner2000 and \cite styner1997.
  * \ingroup ITKBiasCorrection
  */
 template <typename TInputImage, typename TOutputImage, typename TMaskImage>
@@ -242,8 +237,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MRIBiasFieldCorrectionFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MRIBiasFieldCorrectionFilter);
 
   /** The dimension of the image. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -298,15 +293,19 @@ public:
   /** Set/Get the input mask image pointer.
    * Without this mask, this filter calculates the energy value using
    * all pixels in the input image. */
+  /** @ITKStartGrouping */
   void
   SetInputMask(ImageMaskType * inputMask);
   itkGetModifiableObjectMacro(InputMask, ImageMaskType);
+  /** @ITKEndGrouping */
 
   /** Get/Set the out mask image pointer.
    * Without this mask, this filter corrects every pixel in the input image. */
+  /** @ITKStartGrouping */
   void
   SetOutputMask(ImageMaskType * outputMask);
   itkGetModifiableObjectMacro(OutputMask, ImageMaskType);
+  /** @ITKEndGrouping */
 
 #if defined(ITK_LEGACY_REMOVE)
   /** If this value is true, the filter assumes the bias field is
@@ -322,9 +321,11 @@ public:
   /** Set/Get the multiplicative nature of the filter's bias field: if
    * true, the filter assumes the bias field is multiplicative and
    * internally uses log intensity values for every calculation. */
+  /** @ITKStartGrouping */
   itkSetMacro(BiasFieldMultiplicative, bool);
   itkGetConstMacro(BiasFieldMultiplicative, bool);
   itkBooleanMacro(BiasFieldMultiplicative);
+  /** @ITKEndGrouping */
 
 #if defined(ITK_LEGACY_REMOVE)
   /** If the bias field is multiplicative, it returns true. */
@@ -339,18 +340,22 @@ public:
    * intensity correction will be applied before bias field
    * correction (default value is true for 3D input images, and false for 2D
    * input images). */
+  /** @ITKStartGrouping */
   itkSetMacro(UsingInterSliceIntensityCorrection, bool);
   itkGetConstMacro(UsingInterSliceIntensityCorrection, bool);
   itkBooleanMacro(UsingInterSliceIntensityCorrection);
+  /** @ITKEndGrouping */
 
   /** Set/Get the slab correction flag. If the flag is true, inter-slice
    * intensity correction and bias field correction will be performed slab by
    * slab which is identified by the slab identifier (default value is false).
    * NOTE: if users want to slab identification, all the input image data
    * should be buffered. */
+  /** @ITKStartGrouping */
   itkSetMacro(UsingSlabIdentification, bool);
   itkGetConstMacro(UsingSlabIdentification, bool);
   itkBooleanMacro(UsingSlabIdentification);
+  /** @ITKEndGrouping */
 
   itkSetMacro(SlabBackgroundMinimumThreshold, InputImagePixelType);
   itkGetConstReferenceMacro(SlabBackgroundMinimumThreshold, InputImagePixelType);
@@ -366,24 +371,32 @@ public:
    * the inter-slice intensity correction without actual bias correction,
    * disabling bias field correction would be an useful option (default value
    * is true). */
+  /** @ITKStartGrouping */
   itkSetMacro(UsingBiasFieldCorrection, bool);
   itkGetConstMacro(UsingBiasFieldCorrection, bool);
   itkBooleanMacro(UsingBiasFieldCorrection);
+  /** @ITKEndGrouping */
 
   /** Set/Get the flag. If the flag is true, the output image (corrected image)
    * will be created when this filter is updated (default value is true). */
+  /** @ITKStartGrouping */
   itkSetMacro(GeneratingOutput, bool);
   itkGetConstMacro(GeneratingOutput, bool);
   itkBooleanMacro(GeneratingOutput);
+  /** @ITKEndGrouping */
 
   /** Sets the direction of slicing.
    * 0 - x axis, 1 - y axis, 2 - z axis */
+  /** @ITKStartGrouping */
   itkSetMacro(SlicingDirection, int);
   itkGetConstMacro(SlicingDirection, int);
+  /** @ITKEndGrouping */
 
   /** Set/Get the degree of the bias field estimate. */
+  /** @ITKStartGrouping */
   itkSetMacro(BiasFieldDegree, int);
   itkGetConstMacro(BiasFieldDegree, int);
+  /** @ITKEndGrouping */
 
   /** Sets the initial 3D bias field estimate coefficients that will be
    * used for correcting each slab. */
@@ -411,26 +424,35 @@ public:
 
   /** Set/Get the maximum iteration termination condition parameter for the
    * bias field correction. */
+  /** @ITKStartGrouping */
   itkSetMacro(VolumeCorrectionMaximumIteration, int);
   itkGetConstMacro(VolumeCorrectionMaximumIteration, int);
+  /** @ITKEndGrouping */
 
   /** Set/Get the maximum iteration termination condition parameter for the
    * inter-slice intensity inhomogeneity correction. */
+  /** @ITKStartGrouping */
   itkSetMacro(InterSliceCorrectionMaximumIteration, int);
   itkGetConstMacro(InterSliceCorrectionMaximumIteration, int);
+  /** @ITKEndGrouping */
 
   /** Set/Get the initial search radius. */
+  /** @ITKStartGrouping */
   itkSetMacro(OptimizerInitialRadius, double);
   itkGetConstMacro(OptimizerInitialRadius, double);
+  /** @ITKEndGrouping */
 
   /** Set/Get the search radius grow factor. */
+  /** @ITKStartGrouping */
   itkSetMacro(OptimizerGrowthFactor, double);
   itkGetConstMacro(OptimizerGrowthFactor, double);
+  /** @ITKEndGrouping */
 
   /** Set/Get the search radius shrink factor. */
-
+  /** @ITKStartGrouping */
   itkSetMacro(OptimizerShrinkFactor, double);
   itkGetConstMacro(OptimizerShrinkFactor, double);
+  /** @ITKEndGrouping */
 
   /** Set the number of multi-resolution levels. The matrix containing the
    * schedule will be resized accordingly. The schedule is populated with
@@ -467,7 +489,7 @@ public:
   SetStartingShrinkFactors(const unsigned int * factors);
 
   /** Get the starting shrink factors. */
-  const unsigned int *
+  [[nodiscard]] const unsigned int *
   GetStartingShrinkFactors() const;
 
   /** Test if the schedule is downward divisible. This method returns true if
@@ -515,7 +537,7 @@ protected:
 protected:
   /** Converts image data from source to target applying std::log(pixel + 1)
    * to all pixels. If the source pixel has negative value, it sets
-   * the value of the corresponding pixel in the targe image as zero. */
+   * the value of the corresponding pixel in the target image as zero. */
   void
   Log1PImage(InternalImageType * source, InternalImageType * target);
 
@@ -565,37 +587,37 @@ protected:
 
 private:
   /** Energy function object pointer. */
-  EnergyFunctionPointer m_EnergyFunction;
+  EnergyFunctionPointer m_EnergyFunction{};
 
   /** Normal variate generator smart pointer. */
-  NormalVariateGeneratorType::Pointer m_NormalVariateGenerator;
+  NormalVariateGeneratorType::Pointer m_NormalVariateGenerator{};
 
   /** Input mask image smart pointer. */
-  ImageMaskPointer m_InputMask;
+  ImageMaskPointer m_InputMask{};
 
   /** Output mask image smart pointer. */
-  ImageMaskPointer m_OutputMask;
+  ImageMaskPointer m_OutputMask{};
 
   /** Internal image smart pointer. */
-  InternalImagePointer m_InternalInput;
+  InternalImagePointer m_InternalInput{};
 
   /** Storage for the MRI slab identifier return. */
-  SlabRegionVectorType m_Slabs;
+  SlabRegionVectorType m_Slabs{};
 
   /** [0 - x, 1 - y, 2 - z]. */
-  int m_SlicingDirection;
+  int m_SlicingDirection{};
 
   /** Bias Field character if true, multiplicative.  if false, additive. */
   bool m_BiasFieldMultiplicative{ true };
 
   /** operation selection flags. */
-  bool m_UsingInterSliceIntensityCorrection;
+  bool m_UsingInterSliceIntensityCorrection{};
   bool m_UsingSlabIdentification{ false };
   bool m_UsingBiasFieldCorrection{ true };
   bool m_GeneratingOutput{ true };
 
   unsigned int        m_SlabNumberOfSamples{ 200 };
-  InputImagePixelType m_SlabBackgroundMinimumThreshold;
+  InputImagePixelType m_SlabBackgroundMinimumThreshold{};
   double              m_SlabTolerance{ 0.0 };
 
   /** The degree of the bias field estimate. */
@@ -605,15 +627,15 @@ private:
   unsigned int m_NumberOfLevels{ 0 };
 
   /** The multires schedule */
-  ScheduleType m_Schedule;
+  ScheduleType m_Schedule{};
 
   /** Storage for the initial 3D bias field estimate coefficients that will be
    * used for correcting each slab. */
-  BiasFieldType::CoefficientArrayType m_BiasFieldCoefficients;
+  BiasFieldType::CoefficientArrayType m_BiasFieldCoefficients{};
 
   /** Storage for the resulting 3D bias field estimate coefficients
    * after optimization. */
-  BiasFieldType::CoefficientArrayType m_EstimatedBiasFieldCoefficients;
+  BiasFieldType::CoefficientArrayType m_EstimatedBiasFieldCoefficients{};
 
   int m_VolumeCorrectionMaximumIteration{ 2000 };
 
@@ -626,13 +648,13 @@ private:
   double m_OptimizerGrowthFactor{ 1.05 };
 
   /** Storage for the optimizer's search radius shrink factor. */
-  double m_OptimizerShrinkFactor;
+  double m_OptimizerShrinkFactor{};
 
   /** Storage for tissue classes' mean values. */
-  Array<double> m_TissueClassMeans;
+  Array<double> m_TissueClassMeans{};
 
   /** Storage for tissue classes' variance values. */
-  Array<double> m_TissueClassSigmas;
+  Array<double> m_TissueClassSigmas{};
 };
 
 } // end namespace itk

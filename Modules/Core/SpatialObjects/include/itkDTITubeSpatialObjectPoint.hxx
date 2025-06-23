@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,11 @@
 #ifndef itkDTITubeSpatialObjectPoint_hxx
 #define itkDTITubeSpatialObjectPoint_hxx
 
-#include "itkDTITubeSpatialObjectPoint.h"
 #include "itksys/SystemTools.hxx"
 
 namespace itk
 {
-/** Constructor */
+
 template <unsigned int TPointDimension>
 DTITubeSpatialObjectPoint<TPointDimension>::DTITubeSpatialObjectPoint()
 {
@@ -37,33 +36,17 @@ DTITubeSpatialObjectPoint<TPointDimension>::DTITubeSpatialObjectPoint()
   m_TensorMatrix[5] = 1;
 }
 
-/** Copy Constructor */
-template <unsigned int TPointDimension>
-DTITubeSpatialObjectPoint<TPointDimension>::DTITubeSpatialObjectPoint(const DTITubeSpatialObjectPoint & other)
-  : Superclass(other)
-{
-  m_Fields.clear();
-  const FieldListType & fields = other.GetFields();
-  auto                  it = fields.begin();
-  while (it != fields.end())
-  {
-    this->AddField((*it).first.c_str(), (*it).second);
-    it++;
-  }
-  for (unsigned int i = 0; i < 6; i++)
-  {
-    m_TensorMatrix[i] = other.m_TensorMatrix[i];
-  }
-}
-
 template <unsigned int TPointDimension>
 void
 DTITubeSpatialObjectPoint<TPointDimension>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
+
+  os << indent << "TensorMatrix: " << m_TensorMatrix << std::endl;
+  // ToDo
+  // os << indent << "Fields: " << m_Fields << std::endl;
 }
 
-/** Translate the enumerated types to a string */
 template <unsigned int TPointDimension>
 std::string
 DTITubeSpatialObjectPoint<TPointDimension>::TranslateEnumToChar(DTITubeSpatialObjectPointFieldEnum name) const
@@ -72,29 +55,27 @@ DTITubeSpatialObjectPoint<TPointDimension>::TranslateEnumToChar(DTITubeSpatialOb
   switch (static_cast<int>(name))
   {
     case 0:
-      return std::string("FA");
+      return { "FA" };
     case 1:
-      return std::string("ADC");
+      return { "ADC" };
     case 2:
-      return std::string("GA");
+      return { "GA" };
     default:
       // Just fall through.
       break;
   }
-  return std::string("");
+  return {};
 }
 
-/** Add a field to the point list */
 template <unsigned int TPointDimension>
 void
 DTITubeSpatialObjectPoint<TPointDimension>::AddField(const char * name, float value)
 {
-  FieldType field(itksys::SystemTools::LowerCase(name), value);
+  const FieldType field(itksys::SystemTools::LowerCase(name), value);
 
   m_Fields.push_back(field);
 }
 
-/** Set a field value to the point list */
 template <unsigned int TPointDimension>
 void
 DTITubeSpatialObjectPoint<TPointDimension>::SetField(const char * name, float value)
@@ -103,20 +84,19 @@ DTITubeSpatialObjectPoint<TPointDimension>::SetField(const char * name, float va
 
   while (it != m_Fields.end())
   {
-    if (!strcmp((*it).first.c_str(), itksys::SystemTools::LowerCase(name).c_str()))
+    if (!strcmp(it->first.c_str(), itksys::SystemTools::LowerCase(name).c_str()))
     {
-      (*it).second = value;
+      it->second = value;
     }
-    it++;
+    ++it;
   }
 }
 
-/** Set a value to a field in the point list */
 template <unsigned int TPointDimension>
 void
 DTITubeSpatialObjectPoint<TPointDimension>::SetField(DTITubeSpatialObjectPointFieldEnum name, float value)
 {
-  std::string charname = this->TranslateEnumToChar(name);
+  const std::string charname = this->TranslateEnumToChar(name);
 
   if (!charname.empty())
   {
@@ -128,16 +108,15 @@ DTITubeSpatialObjectPoint<TPointDimension>::SetField(DTITubeSpatialObjectPointFi
   }
 }
 
-/** Add a field to the point list */
 template <unsigned int TPointDimension>
 void
 DTITubeSpatialObjectPoint<TPointDimension>::AddField(DTITubeSpatialObjectPointFieldEnum name, float value)
 {
-  std::string charname = this->TranslateEnumToChar(name);
+  const std::string charname = this->TranslateEnumToChar(name);
 
   if (!charname.empty())
   {
-    FieldType field(itksys::SystemTools::LowerCase(charname).c_str(), value);
+    const FieldType field(itksys::SystemTools::LowerCase(charname).c_str(), value);
     m_Fields.push_back(field);
   }
   else
@@ -146,7 +125,6 @@ DTITubeSpatialObjectPoint<TPointDimension>::AddField(DTITubeSpatialObjectPointFi
   }
 }
 
-/** Return the value of the given field */
 template <unsigned int TPointDimension>
 float
 DTITubeSpatialObjectPoint<TPointDimension>::GetField(const char * name) const
@@ -155,21 +133,20 @@ DTITubeSpatialObjectPoint<TPointDimension>::GetField(const char * name) const
 
   while (it != m_Fields.end())
   {
-    if (!strcmp((*it).first.c_str(), itksys::SystemTools::LowerCase(name).c_str()))
+    if (!strcmp(it->first.c_str(), itksys::SystemTools::LowerCase(name).c_str()))
     {
-      return (*it).second;
+      return it->second;
     }
-    it++;
+    ++it;
   }
   return -1;
 }
 
-/** Add a field to the point list */
 template <unsigned int TPointDimension>
 float
 DTITubeSpatialObjectPoint<TPointDimension>::GetField(DTITubeSpatialObjectPointFieldEnum name) const
 {
-  std::string charname = this->TranslateEnumToChar(name);
+  const std::string charname = this->TranslateEnumToChar(name);
   if (!charname.empty())
   {
     return this->GetField(itksys::SystemTools::LowerCase(charname).c_str());
@@ -178,28 +155,6 @@ DTITubeSpatialObjectPoint<TPointDimension>::GetField(DTITubeSpatialObjectPointFi
   return -1;
 }
 
-template <unsigned int TPointDimension>
-typename DTITubeSpatialObjectPoint<TPointDimension>::Self &
-DTITubeSpatialObjectPoint<TPointDimension>::operator=(const DTITubeSpatialObjectPoint & rhs)
-{
-  if (this != &rhs)
-  {
-    Superclass::operator=(rhs);
-    m_Fields.clear();
-    const FieldListType & fields = rhs.GetFields();
-    auto                  it = fields.begin();
-    while (it != fields.end())
-    {
-      this->AddField((*it).first.c_str(), (*it).second);
-      it++;
-    }
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      m_TensorMatrix[i] = rhs.m_TensorMatrix[i];
-    }
-  }
-  return *this;
-}
 } // end namespace itk
 
 #endif

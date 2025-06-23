@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,8 +41,7 @@ namespace itk
  * \ingroup ITKMetricsv4
  */
 template <typename TDomainPartitioner, typename TJointHistogramMetric>
-class ITK_TEMPLATE_EXPORT JointHistogramMutualInformationComputeJointPDFThreader
-{};
+class ITK_TEMPLATE_EXPORT JointHistogramMutualInformationComputeJointPDFThreader{};
 
 /** \class JointHistogramMutualInformationComputeJointPDFThreader
  * \brief Specialization for ThreadedImageRegionPartitioner.
@@ -67,18 +66,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(JointHistogramMutualInformationComputeJointPDFThreader,
-               JointHistogramMutualInformationComputeJointPDFThreaderBase);
+  itkOverrideGetNameOfClassMacro(JointHistogramMutualInformationComputeJointPDFThreader);
 
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::VirtualPointType;
 
 protected:
   JointHistogramMutualInformationComputeJointPDFThreader() = default;
@@ -108,18 +106,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(JointHistogramMutualInformationComputeJointPDFThreader,
-               JointHistogramMutualInformationComputeJointPDFThreaderBase);
+  itkOverrideGetNameOfClassMacro(JointHistogramMutualInformationComputeJointPDFThreader);
 
   itkNewMacro(Self);
 
   /** Superclass types. */
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::VirtualPointType;
 
   using JointHistogramMetricType = TJointHistogramMetric;
   using VirtualPointSetType = typename JointHistogramMetricType::VirtualPointSetType;
@@ -133,8 +130,8 @@ protected:
 };
 } // end namespace itk
 
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkJointHistogramMutualInformationComputeJointPDFThreader.hxx"
 #endif
 
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "itkJointHistogramMutualInformationComputeJointPDFThreader.hxx"
 #endif

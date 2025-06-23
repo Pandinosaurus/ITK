@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkThreadedIteratorRangePartitioner_hxx
 
 #include "itkNumericTraits.h"
-#include "itkThreadedIteratorRangePartitioner.h"
 #include "itkMath.h"
 
 #include <iterator>
@@ -37,10 +36,10 @@ ThreadedIteratorRangePartitioner<TIterator>::PartitionDomain(const ThreadIdType 
   // overallIndexRange is expected to be inclusive
 
   // determine the actual number of pieces that will be generated
-  ThreadIdType count = std::distance(completeDomain.Begin(), completeDomain.End());
+  const ThreadIdType count = std::distance(completeDomain.Begin(), completeDomain.End());
 
   auto valuesPerThread = Math::Ceil<ThreadIdType>(static_cast<double>(count) / static_cast<double>(requestedTotal));
-  ThreadIdType maxThreadIdUsed =
+  const ThreadIdType maxThreadIdUsed =
     Math::Ceil<ThreadIdType>(static_cast<double>(count) / static_cast<double>(valuesPerThread)) - 1;
 
   if (threadId > maxThreadIdUsed)

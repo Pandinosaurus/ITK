@@ -7,7 +7,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,13 +23,12 @@
 # This script is designed to help change the copyright notices in all ITK files to a common format.
 # For files that are .h, .cxx, .hxx, .c, if there is no other copyright information, add the itkCopyright.
 
-from __future__ import print_function
 
 import re
 import sys
 import os
 
-## New license as specified on: https://itk.org/Wiki/ITK_Release_4/Licensing
+## New license as specified on: https://insightsoftwareconsortium.github.io/ITKWikiArchive/Wiki/ITK_Release_4/Licensing
 NewITKCopyrightNotice = """/*=========================================================================
  *
  *  Copyright NumFOCUS
@@ -38,7 +37,7 @@ NewITKCopyrightNotice = """/*===================================================
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,15 +61,17 @@ NewVTKDependantCopyrightNotice = """/*==========================================
 
 ## Patterns that match the old copyright notice sections
 ## ITK only copyright
-ITKOnlyOldHeader = """ */\* *==.*Program:.*Insight Segmentation & Registration Toolkit.*Copyright .* Insight.*Consortium. All rights reserved.*See ITKCopyright.txt or https://www.itk.org/HTML/Copyright.htm for details.[\n\r ]*This software is distributed WITHOUT ANY WARRANTY; without even.*the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR.*PURPOSE.  See the above copyright notices for more information.*=== *\*/[\n\r ]*"""
+ITKOnlyOldHeader = """ */\\* *==.*Program:.*Insight Segmentation & Registration Toolkit.*Copyright .* Insight.*Consortium. All rights reserved.*See ITKCopyright.txt or https://www.itk.org/HTML/Copyright.htm for details.[\n\r ]*This software is distributed WITHOUT ANY WARRANTY; without even.*the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR.*PURPOSE.  See the above copyright notices for more information.*=== *\\*/[\n\r ]*"""
 ITKOnlyOldRE = re.compile(ITKOnlyOldHeader, re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 ## Files that originated in VTK, and now have ITK also
-ITKVTKOldHeader = """ */\* *==.*Program:.*Insight Segmentation & Registration Toolkit.*Copyright .* Insight Software Consortium. All rights reserved.*See ITKCopyright.txt or https://www.itk.org/HTML/Copyright.htm for details.[\n\r ]*.*VTKCopyright.txt.*This software is distributed WITHOUT ANY WARRANTY; without even.*the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR.*PURPOSE.  See the above copyright notices for more information.*=== *\*/[\n\r ]*"""
+ITKVTKOldHeader = """ */\\* *==.*Program:.*Insight Segmentation & Registration Toolkit.*Copyright .* Insight Software Consortium. All rights reserved.*See ITKCopyright.txt or https://www.itk.org/HTML/Copyright.htm for details.[\n\r ]*.*VTKCopyright.txt.*This software is distributed WITHOUT ANY WARRANTY; without even.*the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR.*PURPOSE.  See the above copyright notices for more information.*=== *\\*/[\n\r ]*"""
 ITKVTKOldRE = re.compile(ITKVTKOldHeader, re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 ## Looking for new files.
-NewITKHeader = """ */\* *==.*http://www.apache.org/licenses/LICENSE-2.0.txt.*=== *\*/"""
+NewITKHeader = (
+    r""" */\* *==.*https://www.apache.org/licenses/LICENSE-2.0.txt.*=== *\*/"""
+)
 NewITKHeaderRE = re.compile(NewITKHeader, re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 eolSpaceRemove = re.compile(r"  *$", re.MULTILINE)
@@ -116,7 +117,7 @@ for top, directory, files in os.walk(HeadOfITKTree):
         currFile = os.path.join(top, ff)
         print(currFile)
 
-        infile = open(currFile, "r")
+        infile = open(currFile)
         file_text = infile.read()
         newstring = (
             file_text  # default output to input, just in case all search patterns fail

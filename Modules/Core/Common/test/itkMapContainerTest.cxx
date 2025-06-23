@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,23 +38,17 @@ itkMapContainerTest(int, char *[])
   /**
    * Create the Container
    */
-  ContainerPointer container = ContainerType::New();
-
-  PointType pointA;
-  PointType pointB;
-  PointType pointC;
-  PointType pointD;
+  const ContainerPointer container = ContainerType::New();
 
   VectorType displacement;
-
   displacement[0] = 2;
   displacement[1] = 5;
   displacement[2] = 9;
 
-  pointA.Fill(0.0);
-  pointB = pointA + displacement;
-  pointC = pointB + displacement;
-  pointD = pointC + displacement;
+  auto            pointA = itk::MakeFilled<PointType>(0.0);
+  const PointType pointB = pointA + displacement;
+  const PointType pointC = pointB + displacement;
+  const PointType pointD = pointC + displacement;
 
   container->SetElement(0, pointA);
   container->SetElement(1, pointB);
@@ -63,10 +57,10 @@ itkMapContainerTest(int, char *[])
 
   // Iterator
   {
-    ContainerType::Iterator p_null;
-    ContainerType::Iterator p = container->Begin();
-    ContainerType::Iterator p_copy(p);
-    ContainerType::Iterator p_assign = p;
+    const ContainerType::Iterator p_null;
+    ContainerType::Iterator       p = container->Begin();
+    ContainerType::Iterator       p_copy(p);
+    ContainerType::Iterator       p_assign = p;
 
     while (p != container->End())
     {
@@ -81,10 +75,10 @@ itkMapContainerTest(int, char *[])
 
   // ConstIterator
   {
-    ContainerType::ConstIterator p_null;
-    ContainerType::ConstIterator p = container->Begin();
-    ContainerType::ConstIterator p_copy(p);
-    ContainerType::ConstIterator p_assign = p;
+    const ContainerType::ConstIterator p_null;
+    ContainerType::ConstIterator       p = container->Begin();
+    ContainerType::ConstIterator       p_copy(p);
+    ContainerType::ConstIterator       p_assign = p;
 
     while (p != container->End())
     {

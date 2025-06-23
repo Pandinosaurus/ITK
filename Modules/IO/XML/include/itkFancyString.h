@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ class ITKIOXML_EXPORT FancyString
 {
 public:
   FancyString();
-  FancyString(const std::string & str);
+  FancyString(std::string str);
   FancyString(const char * s);
 
   FancyString &
@@ -119,7 +119,7 @@ public:
   /**
    * Function to convert this value to a "std::string".
    */
-  const std::string &
+  [[nodiscard]] const std::string &
   ToString() const;
 
   /**
@@ -162,11 +162,11 @@ public:
   FancyString &
   TrimRight(const std::string & dislike = " \t\n\r");
 
-  /** Method to covert lower-case characters to upper cases in a string. */
+  /** Method to convert lower-case characters to upper cases in a string. */
   FancyString &
   ToUpperCase();
 
-  /** Method to covert upper-case characters to lower cases in a string. */
+  /** Method to convert upper-case characters to lower cases in a string. */
   FancyString &
   ToLowerCase();
 
@@ -213,18 +213,18 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 
 bool ITKIOXML_EXPORT
-     operator!=(itk::FancyString & s, const std::string &);
+operator!=(itk::FancyString & s, const std::string &);
 bool ITKIOXML_EXPORT
-     operator!=(itk::FancyString & s, const char *);
+operator!=(itk::FancyString & s, const char *);
 bool ITKIOXML_EXPORT
-     operator!=(itk::FancyString & s, const itk::FancyString &);
+operator!=(itk::FancyString & s, const itk::FancyString &);
 
 bool ITKIOXML_EXPORT
-     operator==(itk::FancyString & s, const std::string &);
+operator==(itk::FancyString & s, const std::string &);
 bool ITKIOXML_EXPORT
-     operator==(itk::FancyString & s, const char *);
+operator==(itk::FancyString & s, const char *);
 bool ITKIOXML_EXPORT
-     operator==(itk::FancyString & s, const itk::FancyString &);
+operator==(itk::FancyString & s, const itk::FancyString &);
 
 namespace itk
 {

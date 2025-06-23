@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,10 @@
 #include "itkSample.h"
 #include "itkSubsample.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class SubsamplerBase
+ * \class SubsamplerBase
  * \brief This is the base subsampler class which defines the subsampler API.
  *
  * This class will search a Sample provided by SetSample and return a
@@ -58,8 +56,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(SubsamplerBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SubsamplerBase);
 
   /** implement type-specific clone method */
   itkCloneMacro(Self);
@@ -77,22 +75,27 @@ public:
   using SeedType = unsigned int;
 
   /** Plug in the actual sample data */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Sample, SampleType);
   itkGetConstObjectMacro(Sample, SampleType);
+  /** @ITKEndGrouping */
 
   /** Indicate whether the Search method can return the query point
    * as one element of the Subsample
    */
+  /** @ITKStartGrouping */
   itkSetMacro(CanSelectQuery, bool);
   itkGetConstReferenceMacro(CanSelectQuery, bool);
   itkBooleanMacro(CanSelectQuery);
+  /** @ITKEndGrouping */
 
   /** Provide an interface to set the seed.
    *  The seed value will be used by subclasses where appropriate.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Seed, SeedType);
   itkGetConstReferenceMacro(Seed, SeedType);
-
+  /** @ITKEndGrouping */
 
   /** Specify whether the subsampler should return all possible
    * matches. */
@@ -129,14 +132,13 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  SampleConstPointer m_Sample;
-  bool               m_RequestMaximumNumberOfResults;
-  bool               m_CanSelectQuery;
-  SeedType           m_Seed;
+  SampleConstPointer m_Sample{};
+  bool               m_RequestMaximumNumberOfResults{};
+  bool               m_CanSelectQuery{};
+  SeedType           m_Seed{};
 }; // end of class SubsamplerBase
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkSubsamplerBase.hxx"

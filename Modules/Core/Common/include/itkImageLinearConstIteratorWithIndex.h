@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -105,26 +105,26 @@ public:
   using Self = ImageLinearConstIteratorWithIndex;
   using Superclass = ImageConstIteratorWithIndex<TImage>;
 
-  /** Index type alias support While this was already typdef'ed in the superclass,
+  /** Index type alias support While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc.
    * Note that we have to rescope Index back to itk::Index so that it is not
    * confused with ImageIterator::Index. */
   using IndexType = typename TImage::IndexType;
 
-  /** Region type alias support While this was already typdef'ed in the superclass,
+  /** Region type alias support While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc.
    * Note that we have to rescope Region back to itk::ImageRegion so that it
    * is not confused with ImageIterator::Index. */
   using RegionType = typename TImage::RegionType;
 
-  /** Image type alias support While this was already typdef'ed in the superclass,
+  /** Image type alias support While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc.
    * Note that we have to rescope Index back to itk::Index so that it is not
    * confused with ImageIterator::Index. */
   using ImageType = TImage;
 
   /** PixelContainer type alias support Used to refer to the container for
-   * the pixel data. While this was already typdef'ed in the superclass,
+   * the pixel data. While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc. */
   using PixelContainer = typename TImage::PixelContainer;
   using PixelContainerPointer = typename PixelContainer::Pointer;
@@ -135,8 +135,8 @@ public:
 
   {}
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageLinearConstIteratorWithIndex(const ImageType * ptr, const RegionType & region);
 
   /** Constructor that can be used to cast from an ImageIterator to an
@@ -176,14 +176,14 @@ public:
   GoToEndOfLine();
 
   /** Test if the index is at the end of line */
-  inline bool
+  [[nodiscard]] inline bool
   IsAtEndOfLine() const
   {
     return this->m_PositionIndex[m_Direction] >= this->m_EndIndex[m_Direction];
   }
 
   /** Test if the index is at the begin of line */
-  inline bool
+  [[nodiscard]] inline bool
   IsAtReverseEndOfLine() const
   {
     return this->m_PositionIndex[m_Direction] < this->m_BeginIndex[m_Direction];
@@ -195,8 +195,8 @@ public:
   {
     if (direction >= TImage::ImageDimension)
     {
-      itkGenericExceptionMacro(<< "In image of dimension " << TImage::ImageDimension << " Direction " << direction
-                               << " sas selected");
+      itkGenericExceptionMacro("In image of dimension " << TImage::ImageDimension << " Direction " << direction
+                                                        << " was selected");
     }
     m_Direction = direction;
     m_Jump = this->m_OffsetTable[m_Direction];
@@ -262,11 +262,9 @@ ImageLinearConstIteratorWithIndex<TImage>::NextLine()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position -= this->m_OffsetTable[n] * (this->m_Region.GetSize()[n] - 1);
-      this->m_PositionIndex[n] = this->m_BeginIndex[n];
-    }
+
+    this->m_Position -= this->m_OffsetTable[n] * (this->m_Region.GetSize()[n] - 1);
+    this->m_PositionIndex[n] = this->m_BeginIndex[n];
   }
 }
 
@@ -298,11 +296,9 @@ ImageLinearConstIteratorWithIndex<TImage>::PreviousLine()
       this->m_Remaining = true;
       break;
     }
-    else
-    {
-      this->m_Position += this->m_OffsetTable[n] * (this->m_Region.GetSize()[n] - 1);
-      this->m_PositionIndex[n] = this->m_EndIndex[n] - 1;
-    }
+
+    this->m_Position += this->m_OffsetTable[n] * (this->m_Region.GetSize()[n] - 1);
+    this->m_PositionIndex[n] = this->m_EndIndex[n] - 1;
   }
 }
 } // end namespace itk

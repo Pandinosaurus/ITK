@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,12 @@
 #ifndef itkInverseDisplacementFieldImageFilter_hxx
 #define itkInverseDisplacementFieldImageFilter_hxx
 
-#include "itkInverseDisplacementFieldImageFilter.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 #include "itkThinPlateSplineKernelTransform.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkResampleImageFilter.h"
+#include <algorithm> // For max.
 
 namespace itk
 {
@@ -35,7 +35,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::InverseDisplacem
 {
   m_OutputSpacing.Fill(1.0);
   m_OutputOrigin.Fill(0.0);
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     m_Size[i] = 0;
   }
@@ -104,15 +104,15 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrepareKernelBas
 
   // Source contains points with physical coordinates of the
   // destination displacement fields (the inverse field)
-  LandmarkContainerPointer source = LandmarkContainer::New();
+  const LandmarkContainerPointer source = LandmarkContainer::New();
 
   // Target contains vectors (stored as points) indicating
   // displacement in the inverse direction.
-  LandmarkContainerPointer target = LandmarkContainer::New();
+  const LandmarkContainerPointer target = LandmarkContainer::New();
 
   using ResamplerType = itk::ResampleImageFilter<InputImageType, InputImageType>;
 
-  typename ResamplerType::Pointer resampler = ResamplerType::New();
+  auto resampler = ResamplerType::New();
 
   const InputImageType * inputImage = this->GetInput();
 
@@ -124,21 +124,17 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrepareKernelBas
   using InputRegionType = typename InputImageType::RegionType;
   using InputSizeType = typename InputImageType::SizeType;
 
-  InputRegionType region;
-
-  region = inputImage->GetLargestPossibleRegion();
+  const InputRegionType region = inputImage->GetLargestPossibleRegion();
 
   InputSizeType size = region.GetSize();
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     size[i] = static_cast<SizeValueType>(size[i] / m_SubsamplingFactor);
     spacing[i] *= m_SubsamplingFactor;
   }
 
-  InputRegionType subsampledRegion;
-  subsampledRegion.SetSize(size);
-  subsampledRegion.SetIndex(region.GetIndex());
+  const InputRegionType subsampledRegion(region.GetIndex(), size);
 
   resampler->SetSize(size);
   resampler->SetOutputStartIndex(subsampledRegion.GetIndex());
@@ -159,7 +155,6 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrepareKernelBas
   unsigned int landmarkId = 0;
 
   IteratorType ot(sampledInput, subsampledRegion);
-  ot.GoToBegin();
 
   OutputPixelType               value;
   Point<double, ImageDimension> sourcePoint;
@@ -175,7 +170,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrepareKernelBas
 
     target->InsertElement(landmarkId, targetPoint);
 
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       sourcePoint[i] = targetPoint[i] + value[i];
     }
@@ -186,16 +181,16 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::PrepareKernelBas
     ++ot;
   }
 
-  itkDebugMacro(<< "Number of Landmarks created = " << numberOfLandmarks);
+  itkDebugMacro("Number of Landmarks created = " << numberOfLandmarks);
 
   m_KernelTransform->GetModifiableTargetLandmarks()->SetPoints(target);
   m_KernelTransform->GetModifiableSourceLandmarks()->SetPoints(source);
 
-  itkDebugMacro(<< "Before ComputeWMatrix() ");
+  itkDebugMacro("Before ComputeWMatrix() ");
 
   m_KernelTransform->ComputeWMatrix();
 
-  itkDebugMacro(<< "After ComputeWMatrix() ");
+  itkDebugMacro("After ComputeWMatrix() ");
 }
 
 /**
@@ -209,7 +204,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
   // the KernelBased spline.
   this->PrepareKernelBaseSpline();
 
-  itkDebugMacro(<< "Actually executing");
+  itkDebugMacro("Actually executing");
 
   // Get the output pointers
   OutputImageType * outputPtr = this->GetOutput();
@@ -220,9 +215,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Create an iterator that will walk the output region for this thread.
   using OutputIterator = ImageRegionIteratorWithIndex<TOutputImage>;
 
-  OutputImageRegionType region = outputPtr->GetRequestedRegion();
-
-  OutputIterator outIt(outputPtr, region);
+  const OutputImageRegionType region = outputPtr->GetRequestedRegion();
 
   // Define a few indices that will be used to translate from an input pixel
   // to an output pixel
@@ -236,10 +229,8 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Support for progress methods/callbacks
   ProgressReporter progress(this, 0, region.GetNumberOfPixels(), 10);
 
-  outIt.GoToBegin();
-
   // Walk the output region
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(outputPtr, region); !outIt.IsAtEnd(); ++outIt)
   {
     // Determine the index of the current output pixel
     outputIndex = outIt.GetIndex();
@@ -250,13 +241,12 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateData()
 
     OutputPixelType inverseDisplacement;
 
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       inverseDisplacement[i] = interpolation[i] - outputPoint[i];
     }
 
     outIt.Set(inverseDisplacement); // set inverse displacement.
-    ++outIt;
     progress.CompletedPixel();
   }
 }
@@ -281,11 +271,10 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateInputReq
   }
 
   // get pointers to the input and output
-  InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
 
   // Request the entire input image
-  InputImageRegionType inputRegion;
-  inputRegion = inputPtr->GetLargestPossibleRegion();
+  const InputImageRegionType inputRegion = inputPtr->GetLargestPossibleRegion();
   inputPtr->SetRequestedRegion(inputRegion);
 }
 
@@ -300,7 +289,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GenerateOutputIn
   Superclass::GenerateOutputInformation();
 
   // get pointers to the input and output
-  OutputImagePointer outputPtr = this->GetOutput();
+  const OutputImagePointer outputPtr = this->GetOutput();
   if (!outputPtr)
   {
     return;
@@ -327,10 +316,7 @@ InverseDisplacementFieldImageFilter<TInputImage, TOutputImage>::GetMTime() const
 
   if (m_KernelTransform)
   {
-    if (latestTime < m_KernelTransform->GetMTime())
-    {
-      latestTime = m_KernelTransform->GetMTime();
-    }
+    latestTime = std::max(latestTime, m_KernelTransform->GetMTime());
   }
 
   return latestTime;

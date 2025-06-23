@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,23 +47,23 @@ itkMaskedFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   using RealImageType = itk::Image<double, 2>;
   using FilterType = itk::MaskedFFTNormalizedCorrelationImageFilter<InputImageType, RealImageType, MaskImageType>;
 
-  char *                    fixedImageFileName = argv[1];
-  char *                    movingImageFileName = argv[2];
-  const char *              outputImageFileName = argv[3];
-  FilterType::SizeValueType requiredNumberOfOverlappingPixels = 0;
-  FilterType::RealPixelType requiredFractionOfOverlappingPixels = 0;
+  char *                              fixedImageFileName = argv[1];
+  char *                              movingImageFileName = argv[2];
+  const char *                        outputImageFileName = argv[3];
+  constexpr FilterType::SizeValueType requiredNumberOfOverlappingPixels = 0;
+  FilterType::RealPixelType           requiredFractionOfOverlappingPixels = 0;
   if (argc > 4)
   {
     requiredFractionOfOverlappingPixels = std::stod(argv[4]);
   }
 
-  ReaderType::Pointer fixedImageReader = ReaderType::New();
+  auto fixedImageReader = ReaderType::New();
   fixedImageReader->SetFileName(fixedImageFileName);
 
-  ReaderType::Pointer movingImageReader = ReaderType::New();
+  auto movingImageReader = ReaderType::New();
   movingImageReader->SetFileName(movingImageFileName);
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetFixedImage(fixedImageReader->GetOutput());
   filter->SetMovingImage(movingImageReader->GetOutput());
   // Larger values zero-out pixels on a larger border around the correlation image.
@@ -73,8 +73,8 @@ itkMaskedFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
 
   if (argc > 5)
   {
-    char *                  fixedMaskFileName = argv[5];
-    MaskReaderType::Pointer fixedMaskReader = MaskReaderType::New();
+    char * fixedMaskFileName = argv[5];
+    auto   fixedMaskReader = MaskReaderType::New();
     fixedMaskReader->SetFileName(fixedMaskFileName);
     fixedMaskReader->Update();
     filter->SetFixedImageMask(fixedMaskReader->GetOutput());
@@ -82,14 +82,14 @@ itkMaskedFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
 
   if (argc > 6)
   {
-    char *                  movingMaskFileName = argv[6];
-    MaskReaderType::Pointer movingMaskReader = MaskReaderType::New();
+    char * movingMaskFileName = argv[6];
+    auto   movingMaskReader = MaskReaderType::New();
     movingMaskReader->SetFileName(movingMaskFileName);
     movingMaskReader->Update();
     filter->SetMovingImageMask(movingMaskReader->GetOutput());
   }
 
-  itk::SimpleFilterWatcher watcher(filter, "MaskedFFTNormalizedCorrelation");
+  const itk::SimpleFilterWatcher watcher(filter, "MaskedFFTNormalizedCorrelation");
 
   // Shift the correlation values so they can be written out as a png.
   // The original range is [-1,1], and the new range is [0,255].
@@ -102,13 +102,13 @@ itkMaskedFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   // mapped to 127 or 128, depending on whether they are slightly negative or positive.
   // Therefore, we truncate instead so that all values near 0 get mapped to 127.
   using RescaleType = itk::ShiftScaleImageFilter<RealImageType, OutputImageType>;
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto rescaler = RescaleType::New();
   rescaler->SetInput(filter->GetOutput());
   rescaler->SetShift(1);
   rescaler->SetScale(255.0 / 2.0);
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputImageFileName);
   writer->SetInput(rescaler->GetOutput());
   try
@@ -117,7 +117,7 @@ itkMaskedFFTNormalizedCorrelationImageFilterTest(int argc, char * argv[])
   }
   catch (const itk::ExceptionObject & excep)
   {
-    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
 

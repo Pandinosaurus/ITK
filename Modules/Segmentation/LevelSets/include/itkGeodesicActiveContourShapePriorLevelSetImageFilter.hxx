@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGeodesicActiveContourShapePriorLevelSetImageFilter_hxx
 #define itkGeodesicActiveContourShapePriorLevelSetImageFilter_hxx
 
-#include "itkGeodesicActiveContourShapePriorLevelSetImageFilter.h"
 #include "itkMath.h"
 
 namespace itk
@@ -26,10 +25,10 @@ namespace itk
 template <typename TInputImage, typename TFeatureImage, typename TOutputType>
 GeodesicActiveContourShapePriorLevelSetImageFilter<TInputImage, TFeatureImage, TOutputType>::
   GeodesicActiveContourShapePriorLevelSetImageFilter()
+  : m_GeodesicActiveContourFunction(GeodesicActiveContourFunctionType::New())
 {
   // Instantiate a geodesic active contour function and set it as the
   // segmentation function.
-  m_GeodesicActiveContourFunction = GeodesicActiveContourFunctionType::New();
   this->SetShapePriorSegmentationFunction(m_GeodesicActiveContourFunction);
 
   // Turn off interpolation
@@ -61,7 +60,7 @@ GeodesicActiveContourShapePriorLevelSetImageFilter<TInputImage, TFeatureImage, T
 {
   Superclass::PrintSelf(os, indent);
 
-  os << "GeodesicActiveContourFunction: " << m_GeodesicActiveContourFunction.GetPointer() << std::endl;
+  os << indent << "GeodesicActiveContourFunction: " << m_GeodesicActiveContourFunction.GetPointer() << std::endl;
 }
 
 } // end namespace itk

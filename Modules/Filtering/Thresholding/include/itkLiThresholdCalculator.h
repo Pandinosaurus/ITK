@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,19 +25,13 @@ namespace itk
 {
 
 /**
- *\class LiThresholdCalculator
+ * \class LiThresholdCalculator
  * \brief Computes the Li threshold for an image. Aka intermeans
  *
  * Implements Li's Minimum Cross Entropy thresholding method
- * This implementation is based on the iterative version (Ref. 2) of the algorithm.
- * 1) Li C.H. and Lee C.K. (1993) "Minimum Cross Entropy Thresholding"
- *    Pattern Recognition, 26(4): 617-625
- * 2) Li C.H. and Tam P.K.S. (1998) "An Iterative Algorithm for Minimum
- *    Cross Entropy Thresholding"Pattern Recognition Letters, 18(8): 771-776
- * 3) Sezgin M. and Sankur B. (2004) "Survey over Image Thresholding
- *    Techniques and Quantitative Performance Evaluation" Journal of
- *    Electronic Imaging, 13(1): 146-165
- *    http://citeseer.ist.psu.edu/sezgin04survey.html
+ * This implementation is based on the iterative version \cite li1998
+ * of the algorithm. For additional information see \cite li1993,
+ * \cite li1998 and \cite sezgin2004.
  *
  * This class is templated over the input histogram type.
  * \warning This calculator assumes that the input histogram has only one dimension.
@@ -47,7 +41,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \ingroup Operators
  * \ingroup ITKThresholding
@@ -67,8 +61,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LiThresholdCalculator, HistogramThresholdCalculator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LiThresholdCalculator);
 
   /** Type definition for the input image. */
   using HistogramType = THistogram;

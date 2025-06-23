@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
 {
 
 /**
- *\class PyBuffer
+ * \class PyBuffer
  *
  *  \brief Helper class to get ITK image views into python arrays and back.
  *
@@ -73,10 +73,11 @@ public:
   _GetArrayViewFromImage(ImageType * image);
 
   /**
-   * Get an ITK image from a Python array
+   * Get an ITK image from a contiguous Python array. Internal helper function for the implementation of
+   * `itkPyBuffer.GetImageViewFromArray`.
    */
-  static const OutputImagePointer
-  _GetImageViewFromArray(PyObject * arr, PyObject * shape, PyObject * numOfComponent);
+  static OutputImagePointer
+  _get_image_view_from_contiguous_array(PyObject * arr, PyObject * shape, PyObject * numOfComponent);
 };
 
 } // namespace itk

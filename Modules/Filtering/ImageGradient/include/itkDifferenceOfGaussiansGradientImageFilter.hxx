@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,34 +20,32 @@
 
 #include <cmath>
 #include "itkProgressReporter.h"
-#include "itkDifferenceOfGaussiansGradientImageFilter.h"
 #include "itkImageRegionIterator.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TDataType>
 DifferenceOfGaussiansGradientImageFilter<TInputImage, TDataType>::DifferenceOfGaussiansGradientImageFilter()
+  : m_Width(2)
 {
-  itkDebugMacro(<< "DifferenceOfGaussiansGradientImageFilter::DifferenceOfGaussiansGradientImageFilter() called");
-
-  m_Width = 2;
+  itkDebugMacro("DifferenceOfGaussiansGradientImageFilter::DifferenceOfGaussiansGradientImageFilter() called");
 }
 
 template <typename TInputImage, typename TDataType>
 void
 DifferenceOfGaussiansGradientImageFilter<TInputImage, TDataType>::GenerateData()
 {
-  itkDebugMacro(<< "DifferenceOfGaussiansGradientImageFilter::GenerateData() called");
+  itkDebugMacro("DifferenceOfGaussiansGradientImageFilter::GenerateData() called");
 
   // Get the input and output pointers
-  typename Superclass::InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput(0));
-  typename Superclass::OutputImagePointer outputPtr = this->GetOutput(0);
+  const typename Superclass::InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput(0));
+  const typename Superclass::OutputImagePointer outputPtr = this->GetOutput(0);
 
   // Make sure we're getting everything
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 
   // How big is the input image?
-  typename TInputImage::SizeType size = inputPtr->GetLargestPossibleRegion().GetSize();
+  const typename TInputImage::SizeType size = inputPtr->GetLargestPossibleRegion().GetSize();
 
   // Create a region object native to the output image type
   OutputImageRegionType outputRegion;
@@ -66,7 +64,7 @@ DifferenceOfGaussiansGradientImageFilter<TInputImage, TDataType>::GenerateData()
   // Create an iterator that will walk the output region
   using OutputIterator = ImageRegionIterator<TOutputImage>;
 
-  OutputIterator outIt = OutputIterator(outputPtr, outputPtr->GetRequestedRegion());
+  OutputIterator outIt(outputPtr, outputPtr->GetRequestedRegion());
 
   // Define a few indices that will be used to translate from an input pixel
   // to an output pixel
@@ -99,10 +97,10 @@ DifferenceOfGaussiansGradientImageFilter<TInputImage, TDataType>::GenerateData()
     {
       // We're in a safe position, so calculate the gradient for
       // each dimension
-      for (unsigned int i = 0; i < NDimensions; i++)
+      for (unsigned int i = 0; i < NDimensions; ++i)
       {
         // Build the indices for each pixel
-        for (unsigned int j = 0; j < NDimensions; j++)
+        for (unsigned int j = 0; j < NDimensions; ++j)
         {
           if (j == i)
           {
@@ -129,7 +127,7 @@ DifferenceOfGaussiansGradientImageFilter<TInputImage, TDataType>::GenerateData()
     progress.CompletedPixel();
   }
 
-  itkDebugMacro(<< "DifferenceOfGaussiansGradientImageFilter::GenerateData() finished");
+  itkDebugMacro("DifferenceOfGaussiansGradientImageFilter::GenerateData() finished");
 }
 
 template <typename TInputImage, typename TDataType>

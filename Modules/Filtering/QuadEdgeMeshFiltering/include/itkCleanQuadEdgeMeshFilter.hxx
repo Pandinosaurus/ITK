@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkCleanQuadEdgeMeshFilter_hxx
 #define itkCleanQuadEdgeMeshFilter_hxx
 
-#include "itkCleanQuadEdgeMeshFilter.h"
 #include "itkMath.h"
 
 namespace itk
@@ -26,16 +25,13 @@ namespace itk
 
 template <typename TInputMesh, typename TOutputMesh>
 CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::CleanQuadEdgeMeshFilter()
+  : m_AbsoluteTolerance(InputCoordinateType{})
+  , m_RelativeTolerance(InputCoordinateType{})
+  , m_BoundingBox(BoundingBoxType::New())
+  , m_Criterion(CriterionType::New())
+  , m_Decimation(DecimationType::New())
 {
-  this->m_AbsoluteTolerance = NumericTraits<InputCoordRepType>::ZeroValue();
-  this->m_RelativeTolerance = NumericTraits<InputCoordRepType>::ZeroValue();
-
-  this->m_BoundingBox = BoundingBoxType::New();
-
-  this->m_Criterion = CriterionType::New();
   this->m_Criterion->SetTopologicalChange(false);
-
-  this->m_Decimation = DecimationType::New();
   this->m_Decimation->SetCriterion(this->m_Criterion);
 }
 
@@ -44,9 +40,9 @@ template <typename TInputMesh, typename TOutputMesh>
 void
 CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
 {
-  InputCoordRepType zeroValue = NumericTraits<InputCoordRepType>::ZeroValue();
+  constexpr InputCoordinateType zeroValue{};
 
-  InputCoordRepType absoluteToleranceSquared = this->m_AbsoluteTolerance * this->m_AbsoluteTolerance;
+  InputCoordinateType absoluteToleranceSquared = this->m_AbsoluteTolerance * this->m_AbsoluteTolerance;
   if ((Math::ExactlyEquals(this->m_AbsoluteTolerance, zeroValue)) &&
       (Math::NotExactlyEquals(this->m_RelativeTolerance, zeroValue)))
   {
@@ -64,19 +60,19 @@ CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
 
 template <typename TInputMesh, typename TOutputMesh>
 void
-CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::MergePoints(const InputCoordRepType absoluteToleranceSquared)
+CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::MergePoints(const InputCoordinateType absoluteToleranceSquared)
 {
-  OutputMeshPointer output = this->GetOutput();
+  const OutputMeshPointer output = this->GetOutput();
 
   this->m_Criterion->SetMeasureBound(absoluteToleranceSquared);
 
   this->m_Decimation->SetInput(this->GetInput());
   this->m_Decimation->Update();
 
-  InputMeshPointer decimatedMesh = this->m_Decimation->GetOutput();
+  const InputMeshPointer decimatedMesh = this->m_Decimation->GetOutput();
 
-  InputPointsContainerIterator pointsIt = decimatedMesh->GetPoints()->Begin();
-  InputPointsContainerIterator pointsItEnd = decimatedMesh->GetPoints()->End();
+  InputPointsContainerIterator       pointsIt = decimatedMesh->GetPoints()->Begin();
+  const InputPointsContainerIterator pointsItEnd = decimatedMesh->GetPoints()->End();
 
   OutputPointType outputPoint;
 
@@ -90,13 +86,11 @@ CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::MergePoints(const InputCoordRe
   // Copy Edge Cells
   InputCellsContainerIterator cellIt = decimatedMesh->GetEdgeCells()->Begin();
   InputCellsContainerIterator cellItEnd = decimatedMesh->GetEdgeCells()->End();
-  InputEdgeCellType *         qeCell;
-  InputQEPrimal *             qeGeometry;
 
   while (cellIt != cellItEnd)
   {
-    qeCell = dynamic_cast<InputEdgeCellType *>(cellIt.Value());
-    qeGeometry = qeCell->GetQEGeom();
+    auto qeCell = dynamic_cast<InputEdgeCellType *>(cellIt.Value());
+    auto qeGeometry = qeCell->GetQEGeom();
     output->AddEdgeWithSecurePointList(qeGeometry->GetOrigin(), qeGeometry->GetDestination());
     ++cellIt;
   }
@@ -104,11 +98,10 @@ CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::MergePoints(const InputCoordRe
   // Copy cells
   cellIt = decimatedMesh->GetCells()->Begin();
   cellItEnd = decimatedMesh->GetCells()->End();
-  InputPolygonCellType * polygonCell;
 
   while (cellIt != cellItEnd)
   {
-    polygonCell = dynamic_cast<InputPolygonCellType *>(cellIt.Value());
+    auto polygonCell = dynamic_cast<InputPolygonCellType *>(cellIt.Value());
     if (polygonCell)
     {
       InputPointIdList points;
@@ -130,11 +123,11 @@ template <typename TInputMesh, typename TOutputMesh>
 void
 CleanQuadEdgeMeshFilter<TInputMesh, TOutputMesh>::CleanPoints()
 {
-  OutputMeshPointer output = this->GetOutput();
+  const OutputMeshPointer output = this->GetOutput();
 
-  OutputPointsContainerIterator p_it = output->GetPoints()->Begin();
-  OutputPointsContainerIterator p_end = output->GetPoints()->End();
-  OutputPointIdentifier         id(0);
+  OutputPointsContainerIterator       p_it = output->GetPoints()->Begin();
+  const OutputPointsContainerIterator p_end = output->GetPoints()->End();
+  OutputPointIdentifier               id(0);
 
   while (p_it != p_end)
   {

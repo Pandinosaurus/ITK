@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaDataObjectBase, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaDataObjectBase);
 
   /**
    * \author Hans J. Johnson
@@ -72,6 +72,21 @@ public:
   virtual const std::type_info &
   GetMetaDataObjectTypeInfo() const;
 
+  /** Returns (metaDataBase1 == metaDataBase2). */
+  friend bool
+  operator==(const Self & lhs, const Self & rhs)
+  {
+    return lhs.Equal(rhs);
+  }
+
+  /** Returns (metaDataBase1 != metaDataBase2). */
+  friend bool
+  operator!=(const Self & lhs, const Self & rhs)
+  {
+    return !(lhs == rhs);
+  }
+
+
   /**
    * Defines the default behavior for printing out this element
    * \param os An output stream
@@ -82,6 +97,10 @@ public:
 protected:
   MetaDataObjectBase();
   ~MetaDataObjectBase() override;
+
+private:
+  virtual bool
+  Equal(const MetaDataObjectBase &) const = 0;
 };
 } // namespace itk
 

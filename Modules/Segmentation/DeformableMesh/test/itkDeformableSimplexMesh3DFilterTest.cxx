@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,7 @@
 #include "itkSigmoidImageFilter.h"
 #include "itkTriangleMeshToSimplexMeshFilter.h"
 #include "itkSimplexMeshVolumeCalculator.h"
+#include "itkTestingMacros.h"
 
 int
 itkDeformableSimplexMesh3DFilterTest(int, char *[])
@@ -65,15 +66,14 @@ itkDeformableSimplexMesh3DFilterTest(int, char *[])
   using SimplexFilterType = itk::TriangleMeshToSimplexMeshFilter<TriangleMeshType, SimplexMeshType>;
 
 
-  // decalre the simplex mesh volume calculator
+  // declare the simplex mesh volume calculator
   using SimplexVolumeType = itk::SimplexMeshVolumeCalculator<SimplexMeshType>;
 
   // create the actual mesh, sphere
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(10);
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  auto                 center = itk::MakeFilled<PointType>(10);
   PointType::ValueType scaleInit[3] = { 3, 3, 3 };
-  VectorType           scale = scaleInit;
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(2);
@@ -83,29 +83,28 @@ itkDeformableSimplexMesh3DFilterTest(int, char *[])
   std::cout << "Triangle mesh created. " << std::endl;
 
   // send the sphere mesh ( triangle cells) to create a simplex mesh
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
   simplexFilter->Update();
 
-  SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
+  const SimplexMeshType::Pointer simplexMesh = simplexFilter->GetOutput();
   simplexMesh->DisconnectPipeline();
 
   std::cout << "Simplex Mesh: " << simplexMesh << std::endl;
 
   std::cout << "Creating dummy image...";
-  OriginalImageType::Pointer originalImage = OriginalImageType::New();
+  auto originalImage = OriginalImageType::New();
 
-  ImageSizeType imageSize;
-  imageSize.Fill(20);
+  auto imageSize = ImageSizeType::Filled(20);
   originalImage->SetRegions(imageSize);
   originalImage->Allocate();
 
   IndexType index;
-  for (int x = 0; x < 20; x++)
+  for (int x = 0; x < 20; ++x)
   {
-    for (int y = 0; y < 20; y++)
+    for (int y = 0; y < 20; ++y)
     {
-      for (int z = 0; z < 20; z++)
+      for (int z = 0; z < 20; ++z)
       {
         index[0] = x;
         index[1] = y;
@@ -126,7 +125,7 @@ itkDeformableSimplexMesh3DFilterTest(int, char *[])
   std::cout << "Creating dummy image done" << std::endl;
 
   std::cout << " starting to Filter Image" << std::endl;
-  GradientAnisotropicImageType::Pointer gradientanisotropicfilter = GradientAnisotropicImageType::New();
+  auto gradientanisotropicfilter = GradientAnisotropicImageType::New();
   gradientanisotropicfilter->SetInput(originalImage);
   gradientanisotropicfilter->SetNumberOfIterations(5);
   gradientanisotropicfilter->SetTimeStep(0.0625);
@@ -134,13 +133,13 @@ itkDeformableSimplexMesh3DFilterTest(int, char *[])
   gradientanisotropicfilter->Update();
   std::cout << "GradientAnisotropicDiffusion is DONE!" << std::endl;
 
-  GradientMagnitudeType::Pointer gradientmagnitudefilter = GradientMagnitudeType::New();
+  auto gradientmagnitudefilter = GradientMagnitudeType::New();
   gradientmagnitudefilter->SetInput(gradientanisotropicfilter->GetOutput());
   gradientmagnitudefilter->SetSigma(1.0);
   gradientmagnitudefilter->Update();
   std::cout << "GradientMagnitude is DONE!" << std::endl;
 
-  SigmoidImageType::Pointer sigmoidimagefilter = SigmoidImageType::New();
+  auto sigmoidimagefilter = SigmoidImageType::New();
   sigmoidimagefilter->SetInput(gradientmagnitudefilter->GetOutput());
   sigmoidimagefilter->SetOutputMinimum(0);
   sigmoidimagefilter->SetOutputMaximum(1);
@@ -149,36 +148,69 @@ itkDeformableSimplexMesh3DFilterTest(int, char *[])
   sigmoidimagefilter->Update();
   std::cout << "Sigmoid is DONE!" << std::endl;
 
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  auto gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(sigmoidimagefilter->GetOutput());
   gradientFilter->SetSigma(1.0);
   gradientFilter->Update();
   std::cout << "GradientMagnitude is DONE!" << std::endl;
 
-  DeformFilterType::Pointer deformFilter = DeformFilterType::New();
+  auto deformFilter = DeformFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(deformFilter, DeformableSimplexMesh3DFilter, MeshToMeshFilter);
+
 
   constexpr unsigned int numberOfCycles = 100;
 
-  for (unsigned int i = 0; i < numberOfCycles; i++)
+  for (unsigned int i = 0; i < numberOfCycles; ++i)
   {
+    constexpr double       alpha = 0.1;
+    constexpr double       beta = -0.1;
+    constexpr double       gamma = 0.05;
+    constexpr double       damping = 0.65;
+    constexpr int          iterations = 5;
+    constexpr unsigned int rigidity = 1;
     // must disconnect the pipeline
     simplexMesh->DisconnectPipeline();
     deformFilter->SetInput(simplexMesh);
     deformFilter->SetGradient(gradientFilter->GetOutput());
-    deformFilter->SetAlpha(0.1);
-    deformFilter->SetBeta(-0.1);
-    deformFilter->SetIterations(5);
-    deformFilter->SetRigidity(1);
+    ITK_TEST_SET_GET_VALUE(gradientFilter->GetOutput(), deformFilter->GetGradient());
+
+    deformFilter->SetAlpha(alpha);
+    ITK_TEST_SET_GET_VALUE(alpha, deformFilter->GetAlpha());
+
+    deformFilter->SetBeta(beta);
+    ITK_TEST_SET_GET_VALUE(beta, deformFilter->GetBeta());
+
+    deformFilter->SetGamma(gamma);
+    ITK_TEST_SET_GET_VALUE(gamma, deformFilter->GetGamma());
+
+    deformFilter->SetDamping(damping);
+    ITK_TEST_SET_GET_VALUE(damping, deformFilter->GetDamping());
+
+    deformFilter->SetIterations(iterations);
+    ITK_TEST_SET_GET_VALUE(iterations, deformFilter->GetIterations());
+
+    deformFilter->SetRigidity(rigidity);
+    ITK_TEST_SET_GET_VALUE(rigidity, deformFilter->GetRigidity());
+
     deformFilter->Update();
   }
-  SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
+
+  std::cout << "ImageWidth: " << deformFilter->GetImageWidth() << std::endl;
+  std::cout << "ImageHeight: " << deformFilter->GetImageHeight() << std::endl;
+  std::cout << "ImageDepth: " << deformFilter->GetImageDepth() << std::endl;
+  std::cout << "Deform filter Step: " << deformFilter->GetStep() << std::endl;
+
+  const SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
 
   // calculate the volume of the mesh
-  SimplexVolumeType::Pointer volumecalculator = SimplexVolumeType::New();
+  auto volumecalculator = SimplexVolumeType::New();
   volumecalculator->SetSimplexMesh(deformFilter->GetOutput());
   volumecalculator->Compute();
 
   std::cout << "whole volume is " << volumecalculator->GetVolume() << std::endl;
-  std::cout << "[TEST DONE]" << std::endl;
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class ConvolutionImageFilter
+ * \class ConvolutionImageFilter
  * \brief Convolve a given image with an arbitrary image kernel.
  *
  * This filter operates by centering the flipped kernel at each pixel
@@ -51,7 +51,7 @@ namespace itk
  *
  * "Image Kernel Convolution"
  * by Tustison N., Gee J.
- * http://insight-journal.org/browse/publication/208
+ * https://doi.org/10.54294/e292kx
  *
  * \author Nicholas J. Tustison
  * \author James C. Gee
@@ -76,8 +76,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(ConvolutionImageFilter, ConvolutionImageFilterBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConvolutionImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -118,7 +118,7 @@ protected:
 
   /** The kernel needs padding if any of the sizes of its dimensions is
    * even. This method checks for this condition. */
-  bool
+  [[nodiscard]] bool
   GetKernelNeedsPadding() const;
 
   /** Calculates the padding width needed to make each dimension odd. */

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,16 +23,19 @@
 #include <map>
 #include <functional>
 
+#ifndef ITK_FUTURE_LEGACY_REMOVE
 /** \brief A function which does nothing
+ * \deprecated Preferably use the C++ `[[maybe_unused]]` attribute instead!
  *
  * This function is to be used to mark parameters as unused to suppress
  * compiler warning. It can be used when the parameter needs to be named
- * (i.e. itkNotUsed cannot be used) but is not always used. It ensures
- * that the parameter is not optimized out.
+ * (i.e. itkNotUsed cannot be used) but is not always used.
  */
 template <typename T>
-inline void
-Unused(const T &){};
+[[deprecated("Preferably use the C++ `[[maybe_unused]]` attribute instead!")]] inline void
+Unused(const T &)
+{}
+#endif
 
 namespace itk
 {
@@ -47,8 +50,12 @@ class ITKCommon_EXPORT SingletonIndex
 public:
   /** Standard class types. */
   using Self = SingletonIndex;
-  using SingletonData =
-    std::map<std::string, std::tuple<void *, std::function<void(void *)>, std::function<void(void)>>>;
+
+#ifndef ITK_LEGACY_REMOVE
+  using SingletonData [[deprecated("The internal representation of the singleton data is private, and may not "
+                                   "correspond with SingletonData anymore.")]] =
+    std::map<std::string, std::tuple<void *, std::function<void(void *)>, std::function<void()>>>;
+#endif
 
   // obtain a global registered in the singleton index under the
   // globalName, if unknown then nullptr will be returned.
@@ -60,29 +67,47 @@ public:
   }
 
 
-  // returns true if the globalName has not been registered yet.
-  //
   // It is assumed that the global will remain valid until the start
   // of globals being destroyed.
   template <typename T>
-  bool
-  SetGlobalInstance(const char *                globalName,
-                    T *                         global,
-                    std::function<void(void *)> func,
-                    std::function<void(void)>   deleteFunc)
+  void
+  SetGlobalInstance(const char * globalName, T * global, std::function<void()> deleteFunc)
   {
-    return this->SetGlobalInstancePrivate(globalName, global, func, deleteFunc);
+    this->SetGlobalInstancePrivate(globalName, GlobalObject{ global, std::move(deleteFunc) });
   }
+
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  template <typename T>
+  ITK_FUTURE_DEPRECATED("Prefer calling the SetGlobalInstance(globalName, global, deleteFunc) overload (without the "
+                        "unused func parameter)!")
+  bool SetGlobalInstance(const char *                globalName,
+                         T *                         global,
+                         std::function<void(void *)> itkNotUsed(func),
+                         std::function<void()>       deleteFunc)
+  {
+    this->SetGlobalInstance(globalName, global, std::move(deleteFunc));
+    // Just returns true for backward compatibility (legacy only).
+    return true;
+  }
+#endif
 
   /** Set/Get the pointer to GlobalSingleton.
    * Note that SetGlobalSingleton is not concurrent thread safe. */
+  /** @ITKStartGrouping */
   static Self *
   GetInstance();
   static void
   SetInstance(Self * instance);
   ~SingletonIndex();
-
+  /** @ITKEndGrouping */
 private:
+  // Internal struct to store the instance pointer and the delete function object of a global object.
+  struct GlobalObject
+  {
+    void *                Instance{};
+    std::function<void()> DeleteFunc{};
+  };
+
   // may return nullptr if string is not registered already
   //
   // access something like a std::map<std::string, void *> or
@@ -91,20 +116,17 @@ private:
   // work, and could use some type of Holder<T> class for intrinsic types
   void *
   GetGlobalInstancePrivate(const char * globalName);
-  // If globalName is already registered than false is return,
-  // otherwise global is added to the singleton index under globalName
-  bool
-  SetGlobalInstancePrivate(const char *                globalName,
-                           void *                      global,
-                           std::function<void(void *)> func,
-                           std::function<void(void)>   deleteFunc);
+
+  // global is added or set to the singleton index under globalName
+  void
+  SetGlobalInstancePrivate(const char * globalName, GlobalObject globalObject);
 
   /** The static GlobalSingleton. This is initialized to nullptr as the first
    * stage of static initialization. It is then populated on the first call to
    * itk::Singleton::Modified() but it can be overridden with SetGlobalSingleton().
    * */
-  SingletonData m_GlobalObjects;
-  static Self * m_Instance;
+  std::map<std::string, GlobalObject> m_GlobalObjects;
+  static Self *                       m_Instance;
   //  static SingletonIndexPrivate * m_GlobalSingleton;
 };
 
@@ -112,22 +134,29 @@ private:
 // A wrapper for a global variable registered in the singleton index.
 template <typename T>
 T *
-Singleton(const char * globalName, std::function<void(void *)> func, std::function<void(void)> deleteFunc)
+Singleton(const char * globalName, std::function<void()> deleteFunc)
 {
-  static SingletonIndex * singletonIndex = SingletonIndex::GetInstance();
-  Unused(singletonIndex);
-  T * instance = SingletonIndex::GetInstance()->GetGlobalInstance<T>(globalName);
+  [[maybe_unused]] static SingletonIndex * singletonIndex = SingletonIndex::GetInstance();
+  T *                                      instance = SingletonIndex::GetInstance()->GetGlobalInstance<T>(globalName);
   if (instance == nullptr)
   {
     instance = new T;
-    if (!SingletonIndex::GetInstance()->SetGlobalInstance<T>(globalName, instance, func, deleteFunc))
-    {
-      delete instance;
-      instance = nullptr;
-    }
+    SingletonIndex::GetInstance()->SetGlobalInstance<T>(globalName, instance, std::move(deleteFunc));
   }
   return instance;
 }
+
+
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+template <typename T>
+ITK_FUTURE_DEPRECATED(
+  "Prefer calling the Singleton(globalName, deleteFunc) overload (without the unused func parameter)!")
+T * Singleton(const char * globalName, std::function<void(void *)> itkNotUsed(func), std::function<void()> deleteFunc)
+{
+  return Singleton<T>(globalName, std::move(deleteFunc));
+}
+#endif
+
 } // end namespace itk
 
 #endif

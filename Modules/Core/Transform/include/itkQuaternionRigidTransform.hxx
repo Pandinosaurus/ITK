@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkQuaternionRigidTransform_hxx
 #define itkQuaternionRigidTransform_hxx
 
-#include "itkQuaternionRigidTransform.h"
 
 namespace itk
 {
@@ -26,20 +25,19 @@ namespace itk
 template <typename TParametersValueType>
 QuaternionRigidTransform<TParametersValueType>::QuaternionRigidTransform()
   : Superclass(ParametersDimension)
-{
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1); // axis * std::sin(t/2),
-                                              // std::cos(t/2)
-}
+  // axis * std::sin(t/2), std::cos(t/2)
+  , m_Rotation(VnlQuaternionType(0, 0, 0, 1))
+{}
 
 // Constructor with default arguments
 template <typename TParametersValueType>
 QuaternionRigidTransform<TParametersValueType>::QuaternionRigidTransform(unsigned int parametersDimension)
   : Superclass(parametersDimension)
-{
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1); // axis * std::sin(t/2),
-                                              // std::cos(t/2)
-}
+  // axis * std::sin(t/2),std::cos(t/2)
+  , m_Rotation(VnlQuaternionType(0, 0, 0, 1))
+{}
 
+#if !defined(ITK_LEGACY_REMOVE)
 // Constructor with explicit arguments
 template <typename TParametersValueType>
 QuaternionRigidTransform<TParametersValueType>::QuaternionRigidTransform(const MatrixType &       matrix,
@@ -48,6 +46,7 @@ QuaternionRigidTransform<TParametersValueType>::QuaternionRigidTransform(const M
 {
   this->ComputeMatrixParameters();
 }
+#endif
 
 // Print self
 template <typename TParametersValueType>
@@ -92,14 +91,14 @@ QuaternionRigidTransform<TParametersValueType>::SetParameters(const ParametersTy
 
   // Transfer the quaternion part
   unsigned int par = 0;
-  for (unsigned int j = 0; j < 4; j++)
+  for (unsigned int j = 0; j < 4; ++j)
   {
     m_Rotation[j] = parameters[par];
     ++par;
   }
   this->ComputeMatrix();
   // Transfer the constant part
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     translation[i] = parameters[par];
     ++par;
@@ -114,21 +113,21 @@ QuaternionRigidTransform<TParametersValueType>::SetParameters(const ParametersTy
 
 // Set Parameters
 template <typename TParametersValueType>
-const typename QuaternionRigidTransform<TParametersValueType>::ParametersType &
-QuaternionRigidTransform<TParametersValueType>::GetParameters() const
+auto
+QuaternionRigidTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
   VnlQuaternionType quaternion = this->GetRotation();
   OutputVectorType  translation = this->GetTranslation();
 
   // Transfer the quaternion part
   unsigned int par = 0;
-  for (unsigned int j = 0; j < 4; j++)
+  for (unsigned int j = 0; j < 4; ++j)
   {
     this->m_Parameters[par] = quaternion[j];
     ++par;
   }
   // Transfer the constant part
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     this->m_Parameters[par] = translation[i];
     ++par;
@@ -167,16 +166,16 @@ QuaternionRigidTransform<TParametersValueType>::ComputeJacobianWithRespectToPara
   jacobian[2][3] = jacobian[0][1];
 
   // compute derivatives for the translation part
-  unsigned int blockOffset = 4;
-  for (unsigned int dim = 0; dim < SpaceDimension; dim++)
+  constexpr unsigned int blockOffset = 4;
+  for (unsigned int dim = 0; dim < SpaceDimension; ++dim)
   {
     jacobian[dim][blockOffset + dim] = 1.0;
   }
 }
 
 template <typename TParametersValueType>
-const typename QuaternionRigidTransform<TParametersValueType>::InverseMatrixType &
-QuaternionRigidTransform<TParametersValueType>::GetInverseMatrix() const
+auto
+QuaternionRigidTransform<TParametersValueType>::GetInverseMatrix() const -> const InverseMatrixType &
 {
   // If the transform has been modified we recompute the inverse
   if (this->InverseMatrixIsOld())
@@ -194,12 +193,10 @@ template <typename TParametersValueType>
 void
 QuaternionRigidTransform<TParametersValueType>::ComputeMatrix()
 {
-  VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
+  const VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
   // this is done to compensate for the transposed representation
   // between VNL and ITK
-  MatrixType newMatrix;
-
-  newMatrix = conjugateRotation.rotation_matrix_transpose();
+  const MatrixType newMatrix = conjugateRotation.rotation_matrix_transpose();
   this->SetVarMatrix(newMatrix);
 }
 
@@ -207,7 +204,7 @@ template <typename TParametersValueType>
 void
 QuaternionRigidTransform<TParametersValueType>::ComputeMatrixParameters()
 {
-  VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());
+  const VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());
 
   m_Rotation = quat.conjugate();
 }

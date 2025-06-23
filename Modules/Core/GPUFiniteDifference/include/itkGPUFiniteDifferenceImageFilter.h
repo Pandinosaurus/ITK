@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +50,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(GPUFiniteDifferenceImageFilter, GPUInPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUFiniteDifferenceImageFilter);
 
   /** Input and output image types. */
   using InputImageType = TInputImage;
@@ -87,8 +87,7 @@ public:
   }
 
   /** This method sets the pointer to a FiniteDifferenceFunction object that
-   * will be used by the filter to calculate updates at image pixels.
-   * \returns A FiniteDifferenceObject pointer. */
+   * will be used by the filter to calculate updates at image pixels. */
   void
   SetDifferenceFunction(FiniteDifferenceFunctionType * differenceFunction) override
   {
@@ -123,23 +122,21 @@ public:
   }
 
   /** Set/Get the state of the filter. */
+  /** @ITKStartGrouping */
 #if !defined(ITK_WRAPPING_PARSER)
   itkSetMacro(State, GPUFiniteDifferenceFilterEnum);
   itkGetConstReferenceMacro(State, GPUFiniteDifferenceFilterEnum);
 #endif
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputPixelIsFloatingPointCheck, (Concept::IsFloatingPoint<OutputPixelValueType>));
-  // End concept checking
-#endif
 
   /** Methods to get timers */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(InitTime, TimeProbe);
   itkGetConstReferenceMacro(ComputeUpdateTime, TimeProbe);
   itkGetConstReferenceMacro(ApplyUpdateTime, TimeProbe);
   itkGetConstReferenceMacro(SmoothFieldTime, TimeProbe);
-
+  /** @ITKEndGrouping */
 protected:
   GPUFiniteDifferenceImageFilter();
   ~GPUFiniteDifferenceImageFilter() override;
@@ -240,12 +237,12 @@ protected:
    *
    * \param timeStepList The set of time changes compiled from all the threaded calls
    * to ThreadedGenerateData.
-   * \param valid The set of flags indicating which of "list" elements are
-   *  valid
+   * \param valid The set of flags indicating which of "timeStepList" elements are
+   *  valid.
    *
    * The default is to return the minimum value in the list. */
   TimeStepType
-  ResolveTimeStep(const std::vector<TimeStepType> & timeStepList, const std::vector<bool> & valid) const override;
+  ResolveTimeStep(const std::vector<TimeStepType> & timeStepList, const BooleanStdVectorType & valid) const override;
 
   /** This method is called after the solution has been generated to allow
    * subclasses to apply some further processing to the output. */
@@ -254,7 +251,7 @@ protected:
   {}
 
   /** Timers for statistics */
-  TimeProbe m_InitTime, m_ComputeUpdateTime, m_ApplyUpdateTime, m_SmoothFieldTime;
+  TimeProbe m_InitTime, m_ComputeUpdateTime, m_ApplyUpdateTime, m_SmoothFieldTime{};
 
 private:
   /** Initialize the values of the Function coefficients. This function will
@@ -264,14 +261,14 @@ private:
   InitializeFunctionCoefficients();
 
   /** The function that will be used in calculating updates for each pixel. */
-  typename FiniteDifferenceFunctionType::Pointer m_DifferenceFunction;
+  typename FiniteDifferenceFunctionType::Pointer m_DifferenceFunction{};
 
   /** Control whether derivatives use spacing of the input image in
       its calculation. */
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{};
 
   /** State that the filter is in, i.e. UNINITIALIZED or INITIALIZED */
-  GPUFiniteDifferenceFilterEnum m_State;
+  GPUFiniteDifferenceFilterEnum m_State{};
 };
 
 } // end namespace itk

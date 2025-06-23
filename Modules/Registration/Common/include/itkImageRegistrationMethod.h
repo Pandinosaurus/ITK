@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,8 +81,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageRegistrationMethod, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageRegistrationMethod);
 
   /**  Type of the Fixed image. */
   using FixedImageType = TFixedImage;
@@ -122,31 +122,37 @@ public:
   using DataObjectPointer = typename DataObject::Pointer;
 
   /** Set/Get the Fixed image. */
+  /** @ITKStartGrouping */
   void
   SetFixedImage(const FixedImageType * fixedImage);
   itkGetConstObjectMacro(FixedImage, FixedImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Moving image. */
+  /** @ITKStartGrouping */
   void
   SetMovingImage(const MovingImageType * movingImage);
   itkGetConstObjectMacro(MovingImage, MovingImageType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Optimizer. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Optimizer, OptimizerType);
   itkGetModifiableObjectMacro(Optimizer, OptimizerType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Metric. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Metric, MetricType);
   itkGetModifiableObjectMacro(Metric, MetricType);
-
-  /** Set/Get the Transfrom. */
+  /** @ITKEndGrouping */
+  /** Set/Get the Transform. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Transform, TransformType);
   itkGetModifiableObjectMacro(Transform, TransformType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the Interpolator. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Interpolator, InterpolatorType);
   itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the initial transformation parameters. */
   virtual void
   SetInitialTransformParameters(const ParametersType & param);
@@ -172,9 +178,11 @@ public:
    the ImageMetric in order to restrict the metric computation to
    consider only this region.  */
   itkGetConstReferenceMacro(FixedImageRegion, FixedImageRegionType);
+
   /** True if a region has been defined for the fixed image to which
    the ImageMetric will limit its computation */
   itkGetConstMacro(FixedImageRegionDefined, bool);
+
   /** Turn on/off the use of a fixed image region to which
    the ImageMetric will limit its computation.
    \warning The region must have been previously defined using the
@@ -214,25 +222,25 @@ protected:
   /** Provides derived classes with the ability to set this private var */
   itkSetMacro(LastTransformParameters, ParametersType);
 
-  /* Start the Optimization */
+  /** Start the optimization. */
   void
   StartOptimization();
 
 private:
-  MetricPointer          m_Metric;
-  OptimizerType::Pointer m_Optimizer;
+  MetricPointer          m_Metric{};
+  OptimizerType::Pointer m_Optimizer{};
 
-  MovingImageConstPointer m_MovingImage;
-  FixedImageConstPointer  m_FixedImage;
+  MovingImageConstPointer m_MovingImage{};
+  FixedImageConstPointer  m_FixedImage{};
 
-  TransformPointer    m_Transform;
-  InterpolatorPointer m_Interpolator;
+  TransformPointer    m_Transform{};
+  InterpolatorPointer m_Interpolator{};
 
-  ParametersType m_InitialTransformParameters;
-  ParametersType m_LastTransformParameters;
+  ParametersType m_InitialTransformParameters{};
+  ParametersType m_LastTransformParameters{};
 
-  bool                 m_FixedImageRegionDefined;
-  FixedImageRegionType m_FixedImageRegion;
+  bool                 m_FixedImageRegionDefined{};
+  FixedImageRegionType m_FixedImageRegion{};
 };
 } // end namespace itk
 

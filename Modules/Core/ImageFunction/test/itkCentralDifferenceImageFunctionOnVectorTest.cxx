@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,11 +25,11 @@ template <typename T>
 bool
 IsEqual(T & m1, T & m2)
 {
-  for (unsigned int r = 0; r < T::RowDimensions; r++)
+  for (unsigned int r = 0; r < T::RowDimensions; ++r)
   {
-    for (unsigned int c = 0; c < T::ColumnDimensions; c++)
+    for (unsigned int c = 0; c < T::ColumnDimensions; ++c)
     {
-      if (std::fabs(m1(r, c) - m2(r, c)) > 1e-4)
+      if (itk::Math::abs(m1(r, c) - m2(r, c)) > 1e-4)
       {
         return false;
       }
@@ -52,10 +52,9 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   using PixelType = itk::Vector<float, VectorLength>;
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typename ImageType::Pointer  image = ImageType::New();
-  typename ImageType::SizeType size;
-  size.Fill(16);
-  typename ImageType::RegionType region(size);
+  auto                                 image = ImageType::New();
+  auto                                 size = ImageType::SizeType::Filled(16);
+  const typename ImageType::RegionType region(size);
 
   image->SetRegions(region);
   image->Allocate();
@@ -70,7 +69,7 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   {
     PixelType pix;
     pix[0] = counter * counter;
-    for (unsigned int i = 1; i < VectorLength; i++)
+    for (unsigned int i = 1; i < VectorLength; ++i)
     {
       pix[i] = pix[i - 1] / 10.0;
     }
@@ -80,37 +79,34 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   }
 
   // set up central difference calculator
-  using CoordRepType = float;
+  using CoordinateType = float;
   using DerivativeType = itk::Matrix<double, VectorLength, ImageDimension>;
 
-  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordRepType, DerivativeType>;
+  using FunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordinateType, DerivativeType>;
   using OutputType = typename FunctionType::OutputType;
   using OutputValueType = typename FunctionType::OutputValueType;
 
-  typename FunctionType::Pointer function = FunctionType::New();
+  auto function = FunctionType::New();
 
   function->SetInputImage(image);
 
-  typename ImageType::IndexType index;
-
   // pick an index inside the image
-  index.Fill(8);
-  OutputType indexOutput = function->EvaluateAtIndex(index);
+  typename ImageType::IndexType index{ { 8, 8 } };
+  OutputType                    indexOutput = function->EvaluateAtIndex(index);
   std::cout << "Index: " << index << " Derivative: ";
   std::cout << indexOutput << std::endl;
 
   // verify the output
   OutputType truthOutput;
-  for (unsigned int dim = 0; dim < ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
   {
-    PixelType                     deriv;
     typename ImageType::IndexType indexTest = index;
     indexTest[dim] = indexTest[dim] + 1;
-    deriv = image->GetPixel(indexTest);
+    PixelType deriv = image->GetPixel(indexTest);
     indexTest[dim] = indexTest[dim] - 2;
     deriv -= image->GetPixel(indexTest);
     deriv /= 2.0;
-    for (unsigned int nc = 0; nc < VectorLength; nc++)
+    for (unsigned int nc = 0; nc < VectorLength; ++nc)
     {
       truthOutput[nc][dim] = deriv[nc];
     }
@@ -133,8 +129,7 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   }
 
   // test continuous index
-  typename FunctionType::ContinuousIndexType cindex;
-  cindex.Fill(8.0);
+  auto       cindex = itk::MakeFilled<typename FunctionType::ContinuousIndexType>(8.0);
   OutputType continuousIndexOutput = function->EvaluateAtContinuousIndex(cindex);
   std::cout << "ContinuousIndex: " << cindex << " Derivative: ";
   std::cout << continuousIndexOutput << std::endl;
@@ -145,8 +140,7 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
     result = EXIT_FAILURE;
   }
 
-  typename FunctionType::PointType point;
-  point.Fill(8.0);
+  auto       point = itk::MakeFilled<typename FunctionType::PointType>(8.0);
   OutputType pointOutput = function->Evaluate(point);
   std::cout << "Point: " << point << " Derivative: ";
   std::cout << pointOutput << std::endl;
@@ -171,9 +165,9 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   {
     std::cout << "Index: " << index << " is inside the BufferedRegion." << std::endl;
   }
-  for (itk::SizeValueType n = 0; n < VectorLength; n++)
+  for (itk::SizeValueType n = 0; n < VectorLength; ++n)
   {
-    if (itk::Math::NotAlmostEquals(indexOutput(n, 0), itk::NumericTraits<OutputValueType>::ZeroValue()))
+    if (itk::Math::NotAlmostEquals(indexOutput(n, 0), OutputValueType{}))
     {
       std::cout << "ERROR: Index: " << index << " expected output dim 0 to be 0. << std::endl; " << std::endl;
       result = EXIT_FAILURE;
@@ -218,9 +212,9 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   {
     std::cout << "Index: " << index << " is inside the BufferedRegion." << std::endl;
   }
-  for (itk::SizeValueType n = 0; n < VectorLength; n++)
+  for (itk::SizeValueType n = 0; n < VectorLength; ++n)
   {
-    if (itk::Math::NotAlmostEquals(indexOutput(n, 1), itk::NumericTraits<OutputValueType>::ZeroValue()))
+    if (itk::Math::NotAlmostEquals(indexOutput(n, 1), OutputValueType{}))
     {
       std::cout << "ERROR: Index: " << index << " expected output dim 1 to be 0. " << std::endl;
       result = EXIT_FAILURE;
@@ -283,7 +277,7 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
     result = EXIT_FAILURE;
   }
 
-  if (fabs((right[0][0] + left[0][0]) / 2.0 - center[0][0]) > 1e-06)
+  if (itk::Math::abs((right[0][0] + left[0][0]) / 2.0 - center[0][0]) > 1e-06)
   {
     std::cout << "ERROR: Failed for EvaluateAtContinuousIndex at non-integer incecies. Center index result is not "
                  "average of left and right."
@@ -305,11 +299,11 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
 
   if (center == left || center == right)
   {
-    std::cout << "ERROR: Failed for Evaluate at non-interger indices. Results are unexpectedly identical." << std::endl;
+    std::cout << "ERROR: Failed for Evaluate at non-integer indices. Results are unexpectedly identical." << std::endl;
     result = EXIT_FAILURE;
   }
 
-  if (fabs((right[0][0] + left[0][0]) / 2.0 - center[0][0]) > 1e-06)
+  if (itk::Math::abs((right[0][0] + left[0][0]) / 2.0 - center[0][0]) > 1e-06)
   {
     std::cout
       << "ERROR: Failed for Evaluate at non-integer incecies. Center index result is not average of left and right."
@@ -355,9 +349,9 @@ itkCentralDifferenceImageFunctionOnVectorTestRun()
   // Test with incorrectly-sized output type
   using BadDerivativeType = itk::Matrix<double, 10, ImageDimension>;
 
-  using BadFunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordRepType, BadDerivativeType>;
+  using BadFunctionType = itk::CentralDifferenceImageFunction<ImageType, CoordinateType, BadDerivativeType>;
 
-  typename BadFunctionType::Pointer badFunction = BadFunctionType::New();
+  auto badFunction = BadFunctionType::New();
   ITK_TRY_EXPECT_EXCEPTION(badFunction->SetInputImage(image));
 
   return result;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,58 +23,55 @@
 #include "itkTextOutput.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
-itkNoiseImageFilterTest(int ac, char * av[])
+itkNoiseImageFilterTest(int argc, char * argv[])
 {
   // Comment the following if you want to use the itk text output window
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage BaselineImage\n";
-    return -1;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage BaselineImage" << std::endl;
+    return EXIT_FAILURE;
   }
 
-  itk::Size<2> radius;
   using myImageIn = itk::Image<unsigned short, 2>;
   using myImageOut = itk::Image<float, 2>;
   using myImageChar = itk::Image<unsigned char, 2>;
-  itk::ImageFileReader<myImageIn>::Pointer input = itk::ImageFileReader<myImageIn>::New();
-  input->SetFileName(av[1]);
+  const itk::ImageFileReader<myImageIn>::Pointer input = itk::ImageFileReader<myImageIn>::New();
+  input->SetFileName(argv[1]);
 
   // Create a filter
   using FilterType = itk::NoiseImageFilter<myImageIn, myImageOut>;
 
-  FilterType::Pointer      filter = FilterType::New();
-  itk::SimpleFilterWatcher filterWatch(filter);
+  auto                           filter = FilterType::New();
+  const itk::SimpleFilterWatcher filterWatch(filter);
 
   using RescaleFilterType = itk::RescaleIntensityImageFilter<myImageOut, myImageChar>;
 
-  RescaleFilterType::Pointer rescale = RescaleFilterType::New();
+  auto rescale = RescaleFilterType::New();
   rescale->SetOutputMinimum(0);
   rescale->SetOutputMaximum(255);
   rescale->SetInput(filter->GetOutput());
 
-  try
-  {
-    radius.Fill(5);
-    filter->SetInput(input->GetOutput());
-    filter->SetRadius(radius);
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return -1;
-  }
+  auto radius = itk::MakeFilled<itk::Size<2>>(5);
+  filter->SetInput(input->GetOutput());
+  filter->SetRadius(radius);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
 
   // Generate test image
-  itk::ImageFileWriter<myImageChar>::Pointer writer;
-  writer = itk::ImageFileWriter<myImageChar>::New();
+  const itk::ImageFileWriter<myImageChar>::Pointer writer = itk::ImageFileWriter<myImageChar>::New();
   writer->SetInput(rescale->GetOutput());
-  writer->SetFileName(av[2]);
-  writer->Update();
+  writer->SetFileName(argv[2]);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,21 +42,14 @@ public:
     , m_Beta(0.0)
   {}
   ~WeightedAdd2() = default;
-  bool
-  operator!=(const WeightedAdd2 & other) const
-  {
-    if (Math::NotExactlyEquals(m_Alpha, other.m_Alpha))
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const WeightedAdd2 & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Alpha, other.m_Alpha);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(WeightedAdd2);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
@@ -74,7 +67,7 @@ public:
     m_Beta = NumericTraits<RealType>::OneValue() - m_Alpha;
   }
 
-  RealType
+  [[nodiscard]] RealType
   GetAlpha() const
   {
     return m_Alpha;
@@ -120,7 +113,8 @@ private:
  * \ingroup ITKImageIntensity
  */
 template <typename TInputImage1, typename TInputImage2, typename TOutputImage>
-class WeightedAddImageFilter : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
+class ITK_TEMPLATE_EXPORT WeightedAddImageFilter
+  : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
 
 {
 public:
@@ -142,8 +136,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(WeightedAddImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WeightedAddImageFilter);
 
   /** Set the weight for the first operand of the weighted addition */
   void
@@ -160,15 +154,11 @@ public:
     return this->GetFunctor().GetAlpha();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1HasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage1::PixelType>));
   itkConceptMacro(Input1RealTypeMultiplyCheck,
                   (Concept::MultiplyOperator<typename TInputImage1::PixelType, RealType, RealType>));
   itkConceptMacro(Input2RealTypeMultiplyCheck,
                   (Concept::MultiplyOperator<typename TInputImage2::PixelType, RealType, RealType>));
-  // End concept checking
-#endif
 
 protected:
   WeightedAddImageFilter() = default;
@@ -188,7 +178,7 @@ private:
     return m_Functor;
   }
 
-  FunctorType m_Functor;
+  FunctorType m_Functor{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@
 #ifndef itkMath_h
 #define itkMath_h
 
+#include <cassert>
 #include <cmath>
 #include "itkMathDetail.h"
 #include "itkConceptChecking.h"
@@ -40,14 +41,12 @@
  */
 #include <vxl_version.h>
 
-namespace itk
-{
-namespace Math
+namespace itk::Math
 {
 // These constants originate from VXL's vnl_math.h. They have been
 // moved here to improve visibility, and to ensure that the constants
 // are available during compile time ( as opposed to static ITK_CONSTEXPR
-// member vaiables ).
+// member variables ).
 
 
 /** \brief \f[e\f] The base of the natural logarithm or Euler's number */
@@ -80,7 +79,7 @@ static constexpr double deg_per_rad = vnl_math::deg_per_rad;
 static constexpr double sqrt2pi = vnl_math::sqrt2pi;
 /** \brief \f[ \frac{2}{\sqrt{\pi}} \f]  */
 static constexpr double two_over_sqrtpi = vnl_math::two_over_sqrtpi;
-/** \brief \f[ \frac{2}{\sqrt{2\pi}} \f]  */
+/** \brief \f[ \frac{1}{\sqrt{2\pi}} \f]  */
 static constexpr double one_over_sqrt2pi = vnl_math::one_over_sqrt2pi;
 /** \brief \f[ \sqrt{2} \f]  */
 static constexpr double sqrt2 = vnl_math::sqrt2;
@@ -101,23 +100,22 @@ static constexpr float float_sqrteps = vnl_math::float_sqrteps;
 /** A useful macro to generate a template floating point to integer
  *  conversion templated on the return type and using either the 32
  *  bit, the 64 bit or the vanilla version */
-#define itkTemplateFloatingToIntegerMacro(name)                                                                        \
-  template <typename TReturn, typename TInput>                                                                         \
-  inline TReturn name(TInput x)                                                                                        \
-  {                                                                                                                    \
-                                                                                                                       \
-    if (sizeof(TReturn) <= 4)                                                                                          \
-    {                                                                                                                  \
-      return static_cast<TReturn>(Detail::name##_32(x));                                                               \
-    }                                                                                                                  \
-    else if (sizeof(TReturn) <= 8)                                                                                     \
-    {                                                                                                                  \
-      return static_cast<TReturn>(Detail::name##_64(x));                                                               \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-      return static_cast<TReturn>(Detail::name##_base<TReturn, TInput>(x));                                            \
-    }                                                                                                                  \
+#define itkTemplateFloatingToIntegerMacro(name)                             \
+  template <typename TReturn, typename TInput>                              \
+  inline TReturn name(TInput x)                                             \
+  {                                                                         \
+    if constexpr (sizeof(TReturn) <= 4)                                     \
+    {                                                                       \
+      return static_cast<TReturn>(Detail::name##_32(x));                    \
+    }                                                                       \
+    else if constexpr (sizeof(TReturn) <= 8)                                \
+    {                                                                       \
+      return static_cast<TReturn>(Detail::name##_64(x));                    \
+    }                                                                       \
+    else                                                                    \
+    {                                                                       \
+      return static_cast<TReturn>(Detail::name##_base<TReturn, TInput>(x)); \
+    }                                                                       \
   }
 
 /** \brief Round towards nearest integer
@@ -139,7 +137,7 @@ static constexpr float float_sqrteps = vnl_math::float_sqrteps;
  *  \warning We assume that the rounding mode is not changed from the default
  *  one (or at least that it is always restored to the default one).
  */
-itkTemplateFloatingToIntegerMacro(RoundHalfIntegerToEven);
+itkTemplateFloatingToIntegerMacro(RoundHalfIntegerToEven)
 
 /** \brief Round towards nearest integer
  *
@@ -163,7 +161,7 @@ itkTemplateFloatingToIntegerMacro(RoundHalfIntegerToEven);
  *  the default one (or at least that it is always restored to the
  *  default one).
  */
-itkTemplateFloatingToIntegerMacro(RoundHalfIntegerUp);
+itkTemplateFloatingToIntegerMacro(RoundHalfIntegerUp)
 
 /** \brief Round towards nearest integer (This is a synonym for RoundHalfIntegerUp)
  *
@@ -191,7 +189,7 @@ Round(TInput x)
  *  the default one (or at least that it is always restored to the
  *  default one).
  */
-itkTemplateFloatingToIntegerMacro(Floor);
+itkTemplateFloatingToIntegerMacro(Floor)
 
 /** \brief Round towards plus infinity
  *
@@ -203,7 +201,7 @@ itkTemplateFloatingToIntegerMacro(Floor);
  *  the default one (or at least that it is always restored to the
  *  default one).
  */
-itkTemplateFloatingToIntegerMacro(Ceil);
+itkTemplateFloatingToIntegerMacro(Ceil)
 
 #undef itkTemplateFloatingToIntegerMacro
 
@@ -211,20 +209,18 @@ template <typename TReturn, typename TInput>
 inline TReturn
 CastWithRangeCheck(TInput x)
 {
-#ifdef ITK_USE_CONCEPT_CHECKING
   itkConceptMacro(OnlyDefinedForIntegerTypes1, (itk::Concept::IsInteger<TReturn>));
   itkConceptMacro(OnlyDefinedForIntegerTypes2, (itk::Concept::IsInteger<TInput>));
-#endif // ITK_USE_CONCEPT_CHECKING
 
   auto ret = static_cast<TReturn>(x);
-  if (sizeof(TReturn) > sizeof(TInput) &&
-      !(!itk::NumericTraits<TReturn>::is_signed && itk::NumericTraits<TInput>::is_signed))
+  if constexpr (sizeof(TReturn) > sizeof(TInput) &&
+                !(!itk::NumericTraits<TReturn>::is_signed && itk::NumericTraits<TInput>::is_signed))
   {
     // if the output type is bigger and we are not converting a signed
     // integer to an unsigned integer then we have no problems
     return ret;
   }
-  else if (sizeof(TReturn) >= sizeof(TInput))
+  else if constexpr (sizeof(TReturn) >= sizeof(TInput))
   {
     if (itk::NumericTraits<TInput>::IsPositive(x) != itk::NumericTraits<TReturn>::IsPositive(ret))
     {
@@ -252,8 +248,8 @@ template <typename T>
 inline typename Detail::FloatIEEE<T>::IntType
 FloatDifferenceULP(T x1, T x2)
 {
-  Detail::FloatIEEE<T> x1f(x1);
-  Detail::FloatIEEE<T> x2f(x2);
+  const Detail::FloatIEEE<T> x1f(x1);
+  const Detail::FloatIEEE<T> x2f(x2);
   return x1f.AsULP() - x2f.AsULP();
 }
 
@@ -268,8 +264,8 @@ template <typename T>
 inline T
 FloatAddULP(T x, typename Detail::FloatIEEE<T>::IntType ulps)
 {
-  Detail::FloatIEEE<T> representInput(x);
-  Detail::FloatIEEE<T> representOutput(representInput.asInt + ulps);
+  const Detail::FloatIEEE<T> representInput(x);
+  const Detail::FloatIEEE<T> representOutput(representInput.asInt + ulps);
   return representOutput.asFloat;
 }
 
@@ -299,7 +295,7 @@ FloatAddULP(T x, typename Detail::FloatIEEE<T>::IntType ulps)
  * to each other.
  *
  * \param x1                    first floating value to compare
- * \param x2                    second floating values to compare
+ * \param x2                    second floating value to compare
  * \param maxUlps               maximum units in the last place to be considered equal
  * \param maxAbsoluteDifference maximum absolute difference to be considered equal
  */
@@ -328,11 +324,7 @@ FloatAlmostEqual(T                                        x1,
     return false;
   }
 
-  typename Detail::FloatIEEE<T>::IntType ulps = FloatDifferenceULP(x1, x2);
-  if (ulps < 0)
-  {
-    ulps = -ulps;
-  }
+  const typename Detail::FloatIEEE<T>::IntType ulps = std::abs(FloatDifferenceULP(x1, x2));
   return ulps <= maxUlps;
 }
 
@@ -410,9 +402,13 @@ struct AlmostEqualsSignedVsUnsigned
   AlmostEqualsFunction(TSignedInt signedVariable, TUnsignedInt unsignedVariable)
   {
     if (signedVariable < 0)
+    {
       return false;
+    }
     if (unsignedVariable > static_cast<size_t>(itk::NumericTraits<TSignedInt>::max()))
+    {
       return false;
+    }
     return signedVariable == static_cast<TSignedInt>(unsignedVariable);
   }
 };
@@ -456,7 +452,7 @@ struct AlmostEqualsFunctionSelector<false, true, false, true>
 
 template <>
 struct AlmostEqualsFunctionSelector<false, true, true, true>
-// float vs signed int
+// float vs int
 {
   using SelectedVersion = AlmostEqualsFloatVsInteger;
 };
@@ -477,7 +473,7 @@ struct AlmostEqualsFunctionSelector<true, false, false, true>
 
 template <>
 struct AlmostEqualsFunctionSelector<true, true, false, true>
-// signed int vs float
+// int vs float
 {
   using SelectedVersion = AlmostEqualsIntegerVsFloat;
 };
@@ -515,10 +511,10 @@ struct AlmostEqualsFunctionSelector<true, false, true, false>
 template <typename TInputType1, typename TInputType2>
 struct AlmostEqualsScalarImplementer
 {
-  static constexpr bool TInputType1IsInteger = itk::NumericTraits<TInputType1>::IsInteger;
-  static constexpr bool TInputType1IsSigned = itk::NumericTraits<TInputType1>::IsSigned;
-  static constexpr bool TInputType2IsInteger = itk::NumericTraits<TInputType2>::IsInteger;
-  static constexpr bool TInputType2IsSigned = itk::NumericTraits<TInputType2>::IsSigned;
+  static constexpr bool TInputType1IsInteger = std::is_integral_v<TInputType1>;
+  static constexpr bool TInputType1IsSigned = std::is_signed_v<TInputType1>;
+  static constexpr bool TInputType2IsInteger = std::is_integral_v<TInputType2>;
+  static constexpr bool TInputType2IsSigned = std::is_signed_v<TInputType2>;
 
   using SelectedVersion = typename AlmostEqualsFunctionSelector<TInputType1IsInteger,
                                                                 TInputType1IsSigned,
@@ -572,9 +568,7 @@ struct AlmostEqualsScalarVsComplex
   static bool
   AlmostEqualsFunction(TScalarType scalarVariable, TComplexType complexVariable)
   {
-    if (!AlmostEqualsScalarComparer(
-          complexVariable.imag(),
-          itk::NumericTraits<typename itk::NumericTraits<TComplexType>::ValueType>::ZeroValue()))
+    if (!AlmostEqualsScalarComparer(complexVariable.imag(), typename itk::NumericTraits<TComplexType>::ValueType{}))
     {
       return false;
     }
@@ -721,9 +715,10 @@ template <typename TInput1, typename TInput2>
 inline bool
 ExactlyEquals(const TInput1 & x1, const TInput2 & x2)
 {
-  CLANG_PRAGMA_PUSH
-  CLANG_SUPPRESS_Wfloat_equal return x1 == x2;
-  CLANG_PRAGMA_POP
+  ITK_GCC_PRAGMA_PUSH
+  ITK_GCC_SUPPRESS_Wfloat_equal
+  return x1 == x2;
+  ITK_GCC_PRAGMA_POP
 }
 
 // The NotExactlyEquals function
@@ -739,6 +734,7 @@ NotExactlyEquals(const TInput1 & x1, const TInput2 & x2)
  *
  * \note Negative numbers cannot be prime.
  */
+/** @ITKStartGrouping */
 ITKCommon_EXPORT bool
 IsPrime(unsigned short n);
 ITKCommon_EXPORT bool
@@ -747,9 +743,10 @@ ITKCommon_EXPORT bool
 IsPrime(unsigned long n);
 ITKCommon_EXPORT bool
 IsPrime(unsigned long long n);
-
+/** @ITKEndGrouping */
 
 /** Return the greatest factor of the decomposition in prime numbers. */
+/** @ITKStartGrouping */
 ITKCommon_EXPORT unsigned short
 GreatestPrimeFactor(unsigned short n);
 ITKCommon_EXPORT unsigned int
@@ -758,58 +755,46 @@ ITKCommon_EXPORT unsigned long
 GreatestPrimeFactor(unsigned long n);
 ITKCommon_EXPORT unsigned long long
 GreatestPrimeFactor(unsigned long long n);
-
-// C++11 does not guarantee that assert can be used in constexpr
-// functions. This is a work-around for GCC 4.8, 4.9. Originating
-// from Andrzej's C++ blog:
-//  https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
-#if defined NDEBUG
-#  define ITK_X_ASSERT(CHECK) void(0)
-#else
-#  define ITK_X_ASSERT(CHECK) ((CHECK) ? void(0) : [] { assert(!#CHECK); }())
-#endif
+/** @ITKEndGrouping */
 
 /**  Returns `a * b`. Numeric overflow triggers a compilation error in
  * "constexpr context" and a debug assert failure at run-time.
  */
-template <typename TReturnType = std::uintmax_t>
+template <typename TReturnType = uintmax_t>
 constexpr TReturnType
-UnsignedProduct(const std::uintmax_t a, const std::uintmax_t b) ITK_NOEXCEPT
+UnsignedProduct(const uintmax_t a, const uintmax_t b) noexcept
 {
-  static_assert(std::is_unsigned<TReturnType>::value, "UnsignedProduct only supports unsigned return types");
+  static_assert(std::is_unsigned_v<TReturnType>, "UnsignedProduct only supports unsigned return types");
 
   // Note that numeric overflow is not "undefined behavior", for unsigned numbers.
   // This function checks if the result of a*b is mathematically correct.
   return (a == 0) || (b == 0) ||
              (((static_cast<TReturnType>(a * b) / a) == b) && ((static_cast<TReturnType>(a * b) / b) == a))
            ? static_cast<TReturnType>(a * b)
-           : (ITK_X_ASSERT(!"UnsignedProduct overflow!"), 0);
+           : (assert(!"UnsignedProduct overflow!"), 0);
 }
 
 
 /** Calculates base ^ exponent. Numeric overflow triggers a compilation error in
  * "constexpr context" and a debug assert failure at run-time. Otherwise equivalent to
- * C++11 `static_cast<std::uintmax_t>(std::pow(base, exponent))`
+ * C++11 `static_cast<uintmax_t>(std::pow(base, exponent))`
  *
  * \note `UnsignedPower(0, 0)` is not supported, as zero to the power of zero has
  * no agreed-upon value: https://en.wikipedia.org/wiki/Zero_to_the_power_of_zero
  */
-template <typename TReturnType = std::uintmax_t>
+template <typename TReturnType = uintmax_t>
 constexpr TReturnType
-UnsignedPower(const std::uintmax_t base, const std::uintmax_t exponent) ITK_NOEXCEPT
+UnsignedPower(const uintmax_t base, const uintmax_t exponent) noexcept
 {
-  static_assert(std::is_unsigned<TReturnType>::value, "UnsignedPower only supports unsigned return types");
+  static_assert(std::is_unsigned_v<TReturnType>, "UnsignedPower only supports unsigned return types");
 
   // Uses recursive function calls because C++11 does not support other ways of
   // iterations for a constexpr function.
-  return (exponent == 0)
-           ? (ITK_X_ASSERT(base > 0), 1)
-           : (exponent == 1) ? base
-                             : UnsignedProduct<TReturnType>(UnsignedPower<TReturnType>(base, exponent / 2),
-                                                            UnsignedPower<TReturnType>(base, (exponent + 1) / 2));
+  return (exponent == 0)   ? (assert(base > 0), 1)
+         : (exponent == 1) ? base
+                           : UnsignedProduct<TReturnType>(UnsignedPower<TReturnType>(base, exponent / 2),
+                                                          UnsignedPower<TReturnType>(base, (exponent + 1) / 2));
 }
-
-#undef ITK_X_ASSERT
 
 
 /*==========================================
@@ -833,12 +818,66 @@ using vnl_math::sgn;
 using vnl_math::sgn0;
 using vnl_math::remainder_truncated;
 using vnl_math::remainder_floored;
-using vnl_math::abs;
 using vnl_math::sqr;
 using vnl_math::cube;
 using vnl_math::squared_magnitude;
 
-} // end namespace Math
-} // end namespace itk
+
+/*============================================
+Decouple dependence and exposure of vnl_math::abs operations
+in ITK.  Placing this small amount of duplicate vnl_math
+code directly in ITK removes backward compatibility
+issues with system installed VXL versions.
+*/
+inline bool
+abs(bool x)
+{
+  return x;
+}
+inline unsigned char
+abs(unsigned char x)
+{
+  return x;
+}
+inline unsigned char
+abs(signed char x)
+{
+  return x < 0 ? static_cast<unsigned char>(-x) : x;
+}
+inline unsigned char
+abs(char x)
+{
+  return static_cast<unsigned char>(x);
+}
+inline unsigned short
+abs(short x)
+{
+  return x < 0 ? static_cast<unsigned short>(-x) : x;
+}
+inline unsigned short
+abs(unsigned short x)
+{
+  return x;
+}
+inline unsigned int
+abs(unsigned int x)
+{
+  return x;
+}
+inline unsigned long
+abs(unsigned long x)
+{
+  return x;
+}
+// long long - target type will have width of at least 64 bits. (since C++11)
+inline unsigned long long
+abs(unsigned long long x)
+{
+  return x;
+}
+
+using std::abs;
+
+} // namespace itk::Math
 
 #endif // end of itkMath.h

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ Sleep(unsigned int milliseconds)
 int
 itkMemoryProbesCollecterBaseTest(int, char *[])
 {
-  const size_t bufsize = 256L * 1024L * 1024L; // 256 MiB
+  constexpr size_t bufsize = 768L * 1024L * 1024L; // 768 MiB
 
   itk::MemoryProbesCollectorBase mcollecter;
   itk::MemoryProbe               probe;
@@ -55,12 +55,12 @@ itkMemoryProbesCollecterBaseTest(int, char *[])
   Sleep(5000);
   mcollecter.Stop("Update");
   probe.Stop();
-  itk::MemoryProbe::MemoryLoadType total = probe.GetTotal();
+  const itk::MemoryProbe::MemoryLoadType total = probe.GetTotal();
   std::cout << " Total Value " << probe.GetTotal() << std::endl;
   if (total == 0)
   {
-    std::cout << "WARNING: Total memory usage should be greater than zero"
-              << "Memory Probes do not work on this platform" << std::endl;
+    std::cout << "WARNING: Total memory usage should be greater than zero. Memory Probes do not work on this platform"
+              << std::endl;
     delete[] buf;
     return EXIT_SUCCESS;
   }
@@ -69,7 +69,7 @@ itkMemoryProbesCollecterBaseTest(int, char *[])
   delete[] buf;
   Sleep(5000);
   probe.Stop();
-  if (total != 0 && total < probe.GetTotal())
+  if (total < probe.GetTotal())
   {
     std::cerr << "Freeing memory should result in less memory but it is " << probe.GetTotal() << probe.GetUnit()
               << " instead of " << total << probe.GetUnit() << std::endl;

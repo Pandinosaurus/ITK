@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ int
 ParticleSwarmOptimizerSAXReader::CanReadFile(const char * name)
 {
   std::ifstream ifs(name);
-  int           yes = ifs.is_open();
+  const int     yes = ifs.is_open();
   if (yes)
   {
     ifs.close();
@@ -97,7 +97,7 @@ ParticleSwarmOptimizerSAXReader::EndElement(const char * name)
     // all children have been read, now incorporate them into the output
     // object
     ParticleSwarmOptimizer::ParameterBoundsType bounds;
-    for (size_t i = 0; i < this->m_LowerBound.size(); i++)
+    for (size_t i = 0; i < this->m_LowerBound.size(); ++i)
     {
       std::pair<double, double> value;
       value.first = this->m_LowerBound[i];
@@ -135,7 +135,7 @@ ParticleSwarmOptimizerSAXReader::CharacterDataHandler(const char * inData,
   {
     std::vector<double> data;
 
-    std::string        s(inData, inLength);
+    const std::string  s(inData, inLength);
     std::istringstream iss(s);
     while (iss.good())
     {
@@ -146,7 +146,7 @@ ParticleSwarmOptimizerSAXReader::CharacterDataHandler(const char * inData,
 
     Array<double> ptols(
       static_cast<Array<double>::SizeValueType>(data.size()));
-    for (unsigned int i = 0; i < data.size(); i++)
+    for (unsigned int i = 0; i < data.size(); ++i)
     {
       ptols[i] = data[i];
     }
@@ -282,7 +282,7 @@ ParticleSwarmOptimizerSAXReader::ProcessBoundAttributes(
         }
       }
     } // end if
-  }   // end for
+  } // end for
 }
 
 /** Search for and return a particular attribute from the attribute list. */

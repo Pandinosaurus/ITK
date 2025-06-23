@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLevelSetDomainPartitionImage_hxx
 #define itkLevelSetDomainPartitionImage_hxx
 
-#include "itkLevelSetDomainPartitionImage.h"
 
 namespace itk
 {
@@ -30,8 +29,8 @@ LevelSetDomainPartitionImage<TImage>::SetLevelSetDomainRegionVector(const LevelS
 }
 
 template <typename TImage>
-const typename LevelSetDomainPartitionImage<TImage>::LevelSetDomainRegionVectorType &
-LevelSetDomainPartitionImage<TImage>::GetLevelSetDomainRegionVector() const
+auto
+LevelSetDomainPartitionImage<TImage>::GetLevelSetDomainRegionVector() const -> const LevelSetDomainRegionVectorType &
 {
   return m_LevelSetDomainRegionVector;
 }
@@ -43,20 +42,19 @@ LevelSetDomainPartitionImage<TImage>::PopulateListDomain()
   this->AllocateListDomain();
 
   const ListRegionType & region = this->m_ListDomain->GetLargestPossibleRegion();
-  ListIteratorType       lIt(this->m_ListDomain, region);
 
-  for (lIt.GoToBegin(); !lIt.IsAtEnd(); ++lIt)
+  for (ListIteratorType lIt(this->m_ListDomain, region); !lIt.IsAtEnd(); ++lIt)
   {
-    ListIndexType      listIndex = lIt.GetIndex();
-    IdentifierListType identifierList;
-    IdentifierType     i = NumericTraits<IdentifierType>::ZeroValue();
+    const ListIndexType listIndex = lIt.GetIndex();
+    IdentifierListType  identifierList;
+    IdentifierType      i{};
     while (i < this->m_NumberOfLevelSetFunctions)
     {
       if (this->m_LevelSetDomainRegionVector[i].IsInside(listIndex))
       {
         identifierList.push_back(i);
       }
-      i++;
+      ++i;
     }
     lIt.Set(identifierList);
   }

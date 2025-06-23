@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include <iostream>
 #include "itkComposeImageFilter.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkCompose2DCovariantVectorImageFilterTest(int, char *[])
@@ -35,18 +36,17 @@ itkCompose2DCovariantVectorImageFilterTest(int, char *[])
   using SizeType = InputImageType::SizeType;
   using IndexType = InputImageType::IndexType;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  InputImageType::Pointer zeroImage = InputImageType::New();
-  InputImageType::Pointer oneImage = InputImageType::New();
+  auto zeroImage = InputImageType::New();
+  auto oneImage = InputImageType::New();
 
   SizeType size;
   size[0] = 2;
   size[1] = 2;
   size[2] = 2;
 
-  IndexType start;
-  start.Fill(0);
+  constexpr IndexType start{};
 
   RegionType region;
   region.SetIndex(start);
@@ -64,21 +64,11 @@ itkCompose2DCovariantVectorImageFilterTest(int, char *[])
   filter->SetInput1(zeroImage);
   filter->SetInput2(oneImage);
 
-  try
-  {
-    filter->Update();
-  }
-
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught !" << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
   using OutputImageType = FilterType::OutputImageType;
 
-  OutputImageType::Pointer twoVectorImage = filter->GetOutput();
+  const OutputImageType::Pointer twoVectorImage = filter->GetOutput();
 
   using OutputIterator = itk::ImageRegionIterator<OutputImageType>;
   using InputIterator = itk::ImageRegionIterator<InputImageType>;
@@ -113,7 +103,6 @@ itkCompose2DCovariantVectorImageFilterTest(int, char *[])
     ++i1;
   }
 
-  std::cout << "Test Passed !" << std::endl;
-
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

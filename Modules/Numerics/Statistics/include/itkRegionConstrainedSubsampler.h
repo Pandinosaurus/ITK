@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@
 #include "itkSubsamplerBase.h"
 #include "itkImageRegion.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class RegionConstrainedSubsampler
+ * \class RegionConstrainedSubsampler
  * \brief This an abstract subsampler that constrains subsamples
  * to be contained within a given image region.
  *
@@ -63,8 +61,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(RegionConstrainedSubsampler, SubsamplerBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionConstrainedSubsampler);
 
   /** type alias alias for the source data container */
   using SampleType = TSample;
@@ -119,7 +117,7 @@ protected:
    * This does a complete copy of the subsampler state
    * to the new subsampler
    */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
   RegionConstrainedSubsampler();
@@ -128,14 +126,13 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  RegionType m_RegionConstraint;
-  bool       m_RegionConstraintInitialized;
-  RegionType m_SampleRegion;
-  bool       m_SampleRegionInitialized;
+  RegionType m_RegionConstraint{};
+  bool       m_RegionConstraintInitialized{};
+  RegionType m_SampleRegion{};
+  bool       m_SampleRegionInitialized{};
 }; // end of class RegionConstrainedSubsampler
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkRegionConstrainedSubsampler.hxx"

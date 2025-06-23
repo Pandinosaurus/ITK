@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,12 @@
 #ifndef itkHistogramToTextureFeaturesFilter_hxx
 #define itkHistogramToTextureFeaturesFilter_hxx
 
-#include "itkHistogramToTextureFeaturesFilter.h"
 
 #include "itkNumericTraits.h"
 #include "itkMath.h"
-#include "itkMath.h"
+#include <memory> // For make_unique.
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 // constructor
 template <typename THistogram>
@@ -50,15 +47,16 @@ HistogramToTextureFeaturesFilter<THistogram>::SetInput(const HistogramType * his
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::HistogramType *
-HistogramToTextureFeaturesFilter<THistogram>::GetInput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetInput() const -> const HistogramType *
 {
   return itkDynamicCastInDebugMode<const HistogramType *>(this->GetPrimaryInput());
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::DataObjectPointer
+auto
 HistogramToTextureFeaturesFilter<THistogram>::MakeOutput(DataObjectPointerArraySizeType itkNotUsed(idx))
+  -> DataObjectPointer
 {
   return MeasurementObjectType::New().GetPointer();
 }
@@ -79,31 +77,31 @@ HistogramToTextureFeaturesFilter<THistogram>::GenerateData()
 
   for (HistogramIterator hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
   {
-    AbsoluteFrequencyType frequency = hit.GetFrequency();
-    RelativeFrequencyType relativeFrequency = frequency / totalFrequency;
+    const AbsoluteFrequencyType frequency = hit.GetFrequency();
+    const RelativeFrequencyType relativeFrequency = frequency / totalFrequency;
     m_RelativeFrequencyContainer.push_back(relativeFrequency);
   }
 
   // Now get the various means and variances. This is takes two passes
   // through the histogram.
-  double pixelMean;
-  double marginalMean;
-  double marginalDevSquared;
-  double pixelVariance;
+  double pixelMean = NAN;
+  double marginalMean = NAN;
+  double marginalDevSquared = NAN;
+  double pixelVariance = NAN;
 
   this->ComputeMeansAndVariances(pixelMean, marginalMean, marginalDevSquared, pixelVariance);
 
   // Finally compute the texture features. Another one pass.
-  MeasurementType energy = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType entropy = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType correlation = NumericTraits<MeasurementType>::ZeroValue();
+  MeasurementType energy{};
+  MeasurementType entropy{};
+  MeasurementType correlation{};
 
-  MeasurementType inverseDifferenceMoment = NumericTraits<MeasurementType>::ZeroValue();
+  MeasurementType inverseDifferenceMoment{};
 
-  MeasurementType inertia = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType clusterShade = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType clusterProminence = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType haralickCorrelation = NumericTraits<MeasurementType>::ZeroValue();
+  MeasurementType inertia{};
+  MeasurementType clusterShade{};
+  MeasurementType clusterProminence{};
+  MeasurementType haralickCorrelation{};
 
   double pixelVarianceSquared = pixelVariance * pixelVariance;
   // Variance is only used in correlation. If variance is 0, then
@@ -116,13 +114,13 @@ HistogramToTextureFeaturesFilter<THistogram>::GenerateData()
   }
   const double log2 = std::log(2.0);
 
-  typename RelativeFrequencyContainerType::const_iterator rFreqIterator = m_RelativeFrequencyContainer.begin();
+  auto rFreqIterator = m_RelativeFrequencyContainer.begin();
 
   for (HistogramIterator hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
   {
-    RelativeFrequencyType frequency = *rFreqIterator;
+    const RelativeFrequencyType frequency = *rFreqIterator;
     ++rFreqIterator;
-    if (Math::AlmostEquals(frequency, NumericTraits<RelativeFrequencyType>::ZeroValue()))
+    if (Math::AlmostEquals(frequency, RelativeFrequencyType{}))
     {
       continue; // no use doing these calculations if we're just multiplying by
                 // zero.
@@ -182,30 +180,26 @@ HistogramToTextureFeaturesFilter<THistogram>::ComputeMeansAndVariances(double & 
   const HistogramType * inputHistogram = this->GetInput();
 
   // Initialize everything
-  typename HistogramType::SizeValueType binsPerAxis = inputHistogram->GetSize(0);
-  auto *                                marginalSums = new double[binsPerAxis];
-  for (double * ms_It = marginalSums; ms_It < marginalSums + binsPerAxis; ms_It++)
-  {
-    *ms_It = 0;
-  }
+  const typename HistogramType::SizeValueType binsPerAxis = inputHistogram->GetSize(0);
+  const auto                                  marginalSums = std::make_unique<double[]>(binsPerAxis);
   pixelMean = 0;
 
-  typename RelativeFrequencyContainerType::const_iterator rFreqIterator = m_RelativeFrequencyContainer.begin();
+  auto rFreqIterator = m_RelativeFrequencyContainer.begin();
 
   // Ok, now do the first pass through the histogram to get the marginal sums
   // and compute the pixel mean
   HistogramIterator hit = inputHistogram->Begin();
   while (hit != inputHistogram->End())
   {
-    RelativeFrequencyType frequency = *rFreqIterator;
-    IndexType             index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
+    const RelativeFrequencyType frequency = *rFreqIterator;
+    IndexType                   index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelMean += index[0] * frequency;
     marginalSums[index[0]] += frequency;
     ++hit;
     ++rFreqIterator;
   }
 
-  /*  Now get the mean and deviaton of the marginal sums.
+  /*  Now get the mean and deviation of the marginal sums.
       Compute incremental mean and SD, a la Knuth, "The  Art of Computer
       Programming, Volume 2: Seminumerical Algorithms",  section 4.2.2.
       Compute mean and standard deviation using the recurrence relation:
@@ -217,15 +211,15 @@ HistogramToTextureFeaturesFilter<THistogram>::ComputeMeansAndVariances(double & 
   */
   marginalMean = marginalSums[0];
   marginalDevSquared = 0;
-  for (unsigned int arrayIndex = 1; arrayIndex < binsPerAxis; arrayIndex++)
+  for (unsigned int arrayIndex = 1; arrayIndex < binsPerAxis; ++arrayIndex)
   {
-    int    k = arrayIndex + 1;
-    double M_k_minus_1 = marginalMean;
-    double S_k_minus_1 = marginalDevSquared;
-    double x_k = marginalSums[arrayIndex];
+    const int    k = arrayIndex + 1;
+    const double M_k_minus_1 = marginalMean;
+    const double S_k_minus_1 = marginalDevSquared;
+    const double x_k = marginalSums[arrayIndex];
 
-    double M_k = M_k_minus_1 + (x_k - M_k_minus_1) / k;
-    double S_k = S_k_minus_1 + (x_k - M_k_minus_1) * (x_k - M_k);
+    const double M_k = M_k_minus_1 + (x_k - M_k_minus_1) / k;
+    const double S_k = S_k_minus_1 + (x_k - M_k_minus_1) * (x_k - M_k);
 
     marginalMean = M_k;
     marginalDevSquared = S_k;
@@ -237,130 +231,128 @@ HistogramToTextureFeaturesFilter<THistogram>::ComputeMeansAndVariances(double & 
   pixelVariance = 0;
   for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
   {
-    RelativeFrequencyType frequency = *rFreqIterator;
-    IndexType             index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
+    const RelativeFrequencyType frequency = *rFreqIterator;
+    IndexType                   index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelVariance += (index[0] - pixelMean) * (index[0] - pixelMean) * frequency;
     ++rFreqIterator;
   }
-
-  delete[] marginalSums;
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetEnergyOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetEnergyOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(0));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetEntropyOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetEntropyOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(1));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetCorrelationOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetCorrelationOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(2));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetInverseDifferenceMomentOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetInverseDifferenceMomentOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(3));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetInertiaOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetInertiaOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(4));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetClusterShadeOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetClusterShadeOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(5));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetClusterProminenceOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetClusterProminenceOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(6));
 }
 
 template <typename THistogram>
-const typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToTextureFeaturesFilter<THistogram>::GetHaralickCorrelationOutput() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetHaralickCorrelationOutput() const -> const MeasurementObjectType *
 {
   return static_cast<const MeasurementObjectType *>(this->ProcessObject::GetOutput(7));
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetEnergy() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetEnergy() const -> MeasurementType
 {
   return this->GetEnergyOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetEntropy() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetEntropy() const -> MeasurementType
 {
   return this->GetEntropyOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetCorrelation() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetCorrelation() const -> MeasurementType
 {
   return this->GetCorrelationOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetInverseDifferenceMoment() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetInverseDifferenceMoment() const -> MeasurementType
 {
   return this->GetInverseDifferenceMomentOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetInertia() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetInertia() const -> MeasurementType
 {
   return this->GetInertiaOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetClusterShade() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetClusterShade() const -> MeasurementType
 {
   return this->GetClusterShadeOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetClusterProminence() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetClusterProminence() const -> MeasurementType
 {
   return this->GetClusterProminenceOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetHaralickCorrelation() const
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetHaralickCorrelation() const -> MeasurementType
 {
   return this->GetHaralickCorrelationOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToTextureFeaturesFilter<THistogram>::MeasurementType
-HistogramToTextureFeaturesFilter<THistogram>::GetFeature(TextureFeatureEnum feature)
+auto
+HistogramToTextureFeaturesFilter<THistogram>::GetFeature(TextureFeatureEnum feature) -> MeasurementType
 {
   switch (feature)
   {
@@ -391,7 +383,6 @@ HistogramToTextureFeaturesFilter<THistogram>::PrintSelf(std::ostream & os, Inden
 {
   Superclass::PrintSelf(os, indent);
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

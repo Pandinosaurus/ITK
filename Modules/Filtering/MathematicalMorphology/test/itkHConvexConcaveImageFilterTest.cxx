@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,16 +64,16 @@ itkHConvexConcaveImageFilterTest(int argc, char * argv[])
 
 
   // Creation of reader and writer filters
-  ReaderType::Pointer  reader = ReaderType::New();
-  WriterType::Pointer  writer = WriterType::New();
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto rescaler = RescaleType::New();
 
   // Create the filters
-  HConvexFilterType::Pointer  hConvexFilter = HConvexFilterType::New();
-  HConcaveFilterType::Pointer hConcaveFilter = HConcaveFilterType::New();
+  auto hConvexFilter = HConvexFilterType::New();
+  auto hConcaveFilter = HConcaveFilterType::New();
 
-  itk::SimpleFilterWatcher watchConvex(hConvexFilter, "HConvexImageFilter");
-  itk::SimpleFilterWatcher watchConcave(hConcaveFilter, "HConcaveImageFilter");
+  const itk::SimpleFilterWatcher watchConvex(hConvexFilter, "HConvexImageFilter");
+  const itk::SimpleFilterWatcher watchConcave(hConcaveFilter, "HConcaveImageFilter");
 
   // Set up the input and output files
   reader->SetFileName(argv[1]);
@@ -89,7 +89,7 @@ itkHConvexConcaveImageFilterTest(int argc, char * argv[])
   // Create a filter to add the two images
   using AddFilterType = itk::AddImageFilter<InputImageType, InputImageType, OutputImageType>;
 
-  AddFilterType::Pointer add = AddFilterType::New();
+  auto add = AddFilterType::New();
   add->SetInput1(hConvexFilter->GetOutput());
   add->SetInput2(hConcaveFilter->GetOutput());
 

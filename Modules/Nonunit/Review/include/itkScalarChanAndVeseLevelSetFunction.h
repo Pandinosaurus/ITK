@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,34 +33,11 @@ namespace itk
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- * Based on the papers:
+ * Based on the papers \cite chan1999 and \cite dufour2005.
  *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
- *
- *         "Segmenting and Tracking Fluorescent Cells in Dynamic 3-D
- *          Microscopy With Coupled Active Surfaces"
- *          Dufour, Shinin, Tajbakhsh, Guillen-Aghion, Olivo-Marin
- *          In IEEE Transactions on Image Processing, vol. 14, No 9, Sep. 2005
- *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  *
@@ -92,49 +69,49 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(ScalarChanAndVeseLevelSetFunction, ScalarLevelSetFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarChanAndVeseLevelSetFunction);
 
   static constexpr unsigned int ImageDimension = TFeatureImage::ImageDimension;
 
   using InputImageType = TInputImage;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using InputIndexValueType = typename Superclass::InputIndexValueType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using InputSizeValueType = typename Superclass::InputSizeValueType;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using InputPointType = typename Superclass::InputPointType;
+  using typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::InputIndexValueType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::InputSizeValueType;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::InputPointType;
 
   using FeatureImageType = TFeatureImage;
   using FeatureImageConstPointer = typename FeatureImageType::ConstPointer;
-  using FeaturePixelType = typename Superclass::FeaturePixelType;
-  using FeatureIndexType = typename Superclass::FeatureIndexType;
-  using FeatureOffsetType = typename Superclass::FeatureOffsetType;
+  using typename Superclass::FeaturePixelType;
+  using typename Superclass::FeatureIndexType;
+  using typename Superclass::FeatureOffsetType;
 
-  using ScalarValueType = typename Superclass::ScalarValueType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using RadiusType = typename Superclass::RadiusType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using GlobalDataStruct = typename Superclass::GlobalDataStruct;
-  using PixelType = typename Superclass::PixelType;
-  using VectorType = typename Superclass::VectorType;
+  using typename Superclass::ScalarValueType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::GlobalDataStruct;
+  using typename Superclass::PixelType;
+  using typename Superclass::VectorType;
 
-  using SharedDataType = typename Superclass::SharedDataType;
-  using SharedDataPointer = typename Superclass::SharedDataPointer;
+  using typename Superclass::SharedDataType;
+  using typename Superclass::SharedDataPointer;
 
-  using ImageIteratorType = typename Superclass::ImageIteratorType;
-  using ConstImageIteratorType = typename Superclass::ConstImageIteratorType;
-  using FeatureImageIteratorType = typename Superclass::FeatureImageIteratorType;
-  using ConstFeatureIteratorType = typename Superclass::ConstFeatureIteratorType;
+  using typename Superclass::ImageIteratorType;
+  using typename Superclass::ConstImageIteratorType;
+  using typename Superclass::FeatureImageIteratorType;
+  using typename Superclass::ConstFeatureIteratorType;
 
-  using ListPixelType = typename Superclass::ListPixelType;
-  using ListPixelConstIterator = typename Superclass::ListPixelConstIterator;
-  using ListPixelIterator = typename Superclass::ListPixelIterator;
-  using ListImageType = typename Superclass::ListImageType;
+  using typename Superclass::ListPixelType;
+  using typename Superclass::ListPixelConstIterator;
+  using typename Superclass::ListPixelIterator;
+  using typename Superclass::ListImageType;
 
 protected:
   ScalarChanAndVeseLevelSetFunction()

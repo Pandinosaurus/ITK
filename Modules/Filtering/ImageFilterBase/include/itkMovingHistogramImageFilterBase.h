@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,7 +69,7 @@ namespace itk
  * to consider that the histogram will never be empty.
  *
  * One histogram is created for each thread by the method NewHistogram().
- * The NewHistogram() method can be overriden to pass some parameters to the
+ * The NewHistogram() method can be overridden to pass some parameters to the
  * histogram.
  *
  * The neighborhood is defined by a structuring element, and must a
@@ -102,8 +102,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(MovingHistogramImageFilterBase, KernelImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MovingHistogramImageFilterBase);
 
   /** Image related type alias. */
   using InputImageType = TInputImage;
@@ -113,7 +113,7 @@ public:
   using IndexType = typename TInputImage::IndexType;
   using PixelType = typename TInputImage::PixelType;
   using OffsetType = typename TInputImage::OffsetType;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
   using OutputPixelType = typename TOutputImage::PixelType;
 
   /** Image related type alias. */
@@ -153,25 +153,24 @@ protected:
                   int &           LineDirection);
 
   // store the added and removed pixel offset in a list
-  OffsetMapType m_AddedOffsets;
-  OffsetMapType m_RemovedOffsets;
+  OffsetMapType m_AddedOffsets{};
+  OffsetMapType m_RemovedOffsets{};
 
   // store the offset of the kernel to initialize the histogram
-  OffsetListType m_KernelOffsets;
+  OffsetListType m_KernelOffsets{};
 
-  FixedArray<int, Self::ImageDimension> m_Axes;
+  FixedArray<int, Self::ImageDimension> m_Axes{};
 
-  SizeValueType m_PixelsPerTranslation;
+  SizeValueType m_PixelsPerTranslation{};
 
 private:
   class DirectionCost
   {
   public:
     DirectionCost(int dimension, int count)
-    {
-      m_Dimension = dimension;
-      m_Count = count;
-    }
+      : m_Dimension(dimension)
+      , m_Count(count)
+    {}
 
     /**
      * return true if the object is a worth choice for the best axis
@@ -184,7 +183,7 @@ private:
       {
         return true;
       }
-      else if (m_Count < dc.m_Count)
+      if (m_Count < dc.m_Count)
       {
         return false;
       }

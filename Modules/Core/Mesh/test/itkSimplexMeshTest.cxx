@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ itkSimplexMeshTest(int, char *[])
   using SimplexMeshType = itk::SimplexMesh<double, 3, MeshTraits>;
   using SimplexMeshGeometryType = itk::SimplexMeshGeometry;
 
-  SimplexMeshType::Pointer simplexMesh = SimplexMeshType::New();
+  auto simplexMesh = SimplexMeshType::New();
 
   using NeighborsListType = SimplexMeshType::NeighborListType;
 
@@ -41,8 +41,8 @@ itkSimplexMeshTest(int, char *[])
   /**
    * Define the 3d geometric positions for 8 points in a cube.
    */
-  SimplexMeshType::CoordRepType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
-                                                          { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
+  const SimplexMeshType::CoordinateType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
+                                                                  { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
 
 
   /**
@@ -119,10 +119,10 @@ itkSimplexMeshTest(int, char *[])
 
   itk::TimeProbe timeProbe;
 
-  for (unsigned int i = 0; i < 2; i++)
+  for (unsigned int i = 0; i < 2; ++i)
   {
     timeProbe.Start();
-    for (unsigned int pointIndex = 0; pointIndex < simplexMesh->GetPoints()->Size(); pointIndex++)
+    for (unsigned int pointIndex = 0; pointIndex < simplexMesh->GetPoints()->Size(); ++pointIndex)
     {
       neighbors = simplexMesh->GetNeighbors(pointIndex, i, neighbors);
     }

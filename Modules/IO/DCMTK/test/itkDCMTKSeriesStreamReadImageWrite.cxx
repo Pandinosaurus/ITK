@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,11 +37,11 @@
 static bool
 IsEqualTolerant(const float lm, const float rm, double tol)
 {
-  tol = std::fabs(tol);
-  float temp = std::fabs(lm - rm);
-  return temp <= tol * std::fabs(lm) || temp <= tol * std::fabs(rm) ||
-         (std::fabs(lm) < std::numeric_limits<float>::epsilon() &&
-          std::fabs(rm) < std::numeric_limits<float>::epsilon());
+  tol = itk::Math::abs(tol);
+  float temp = itk::Math::abs(lm - rm);
+  return temp <= tol * itk::Math::abs(lm) || temp <= tol * itk::Math::abs(rm) ||
+         (itk::Math::abs(lm) < std::numeric_limits<float>::epsilon() &&
+          itk::Math::abs(rm) < std::numeric_limits<float>::epsilon());
 }
 
 int
@@ -84,11 +84,11 @@ itkDCMTKSeriesStreamReadImageWrite(int argc, char * argv[])
 
   bool expectedToStream = !forceNoStreaming;
 
-  ImageIOType::Pointer     gdcmIO = ImageIOType::New();
-  SeriesFileNames::Pointer filenameGenerator = SeriesFileNames::New();
+  auto gdcmIO = ImageIOType::New();
+  auto filenameGenerator = SeriesFileNames::New();
   filenameGenerator->SetInputDirectory(argv[1]);
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   const ReaderType::FileNamesContainer & filenames = filenameGenerator->GetInputFileNames();
 
@@ -97,11 +97,11 @@ itkDCMTKSeriesStreamReadImageWrite(int argc, char * argv[])
 
 
   using MonitorFilter = itk::PipelineMonitorImageFilter<ImageType>;
-  MonitorFilter::Pointer monitor = MonitorFilter::New();
+  auto monitor = MonitorFilter::New();
   monitor->SetInput(reader->GetOutput());
 
   using StreamingFilter = itk::StreamingImageFilter<ImageType, ImageType>;
-  StreamingFilter::Pointer streamer = StreamingFilter::New();
+  auto streamer = StreamingFilter::New();
   streamer->SetInput(monitor->GetOutput());
   streamer->SetNumberOfStreamDivisions(numberOfDataPieces);
 
@@ -164,7 +164,7 @@ itkDCMTKSeriesStreamReadImageWrite(int argc, char * argv[])
   ImageType::SpacingType spacing = reader->GetOutput()->GetSpacing();
 
   // we only give 4 bits of tolerance, IEEE float a 24-bit mantissa
-  const double percentTolerance = 1.0 / double((unsigned int)(1) << 18);
+  const double percentTolerance = 1.0 / static_cast<double>(1U << 18);
 
   if (!IsEqualTolerant(spacing[0], expectedSpacing[0], percentTolerance) ||
       !IsEqualTolerant(spacing[1], expectedSpacing[1], percentTolerance) ||
@@ -176,7 +176,7 @@ itkDCMTKSeriesStreamReadImageWrite(int argc, char * argv[])
 
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
   writer->SetInput(reader->GetOutput());

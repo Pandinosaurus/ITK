@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,13 +32,7 @@ namespace itk
  *  This class computers the KL-metric by comparing the histograms
  *  of the testing histogram formed by the overlap of intensities in
  *  the images, to a training histogram. It is based on the
- *  following paper:
- *
- *  Albert C.S. Chung, William M. Wells III, Alexander Norbash, and
- *  W. Eric L.  Grimson, Multi-modal Image Registration by
- *  Minimising Kullback-Leibler Distance, In Medical Image Computing
- *  and Computer-Assisted Intervention - MICCAI 2002, LNCS 2489,
- *  pp. 525 - 532.
+ *  algorithm described in \cite chung2002.
  *
  *  The metric is given by KL(P_test||P_train)
  *  = Sum_{i1,i2} P_test(i1,i2) std::log(P_test(i1,i2)/P_train(i1,i2))
@@ -59,7 +53,7 @@ namespace itk
  *  \par SUPPORT
  *  This work was supported by the Functional Imaging Research in
  *  Schizophrenia Testbed (FIRST) Biomedical Informatics Research
- *  Network (BIRN, http://www.birncommunity.org/), which is funded by the
+ *  Network (BIRN, https://www.birncommunity.org/), which is funded by the
  *  National Center for Research Resources at the National
  *  Institutes of Health (NIH).  This work is also funded by the
  *  Neuroimage Analysis Center (P41 RR13218).
@@ -84,34 +78,34 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KullbackLeiblerCompareHistogramImageToImageMetric, HistogramImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KullbackLeiblerCompareHistogramImageToImageMetric);
 
   /** Types transferred from the base class */
-  using RealType = typename Superclass::RealType;
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
+  using typename Superclass::RealType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
   using TransformConstPointer = typename Superclass::ConstPointer;
-  using TransformParametersType = typename Superclass::TransformParametersType;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using GradientPixelType = typename Superclass::GradientPixelType;
+  using typename Superclass::TransformParametersType;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::GradientPixelType;
 
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
-  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::FixedImageConstPointer;
+  using typename Superclass::MovingImageConstPointer;
 
-  using HistogramType = typename Superclass::HistogramType;
-  using HistogramSizeType = typename Superclass::HistogramSizeType;
+  using typename Superclass::HistogramType;
+  using typename Superclass::HistogramSizeType;
   using HistogramMeasurementVectorType = typename Superclass::MeasurementVectorType;
 
-  using HistogramFrequencyType = typename Superclass::HistogramFrequencyType;
-  using HistogramIteratorType = typename Superclass::HistogramIteratorType;
-  using HistogramPointerType = typename Superclass::HistogramPointerType;
-  using InterpolatorType = typename Superclass::InterpolatorType;
-  using InterpolatorPointer = typename Superclass::InterpolatorPointer;
+  using typename Superclass::HistogramFrequencyType;
+  using typename Superclass::HistogramIteratorType;
+  using typename Superclass::HistogramPointerType;
+  using typename Superclass::InterpolatorType;
+  using typename Superclass::InterpolatorPointer;
 
   /** Set epsilon, which is added to each bin in both Histogram */
   itkSetMacro(Epsilon, double);
@@ -120,13 +114,14 @@ public:
   itkGetConstReferenceMacro(Epsilon, double);
 
   /** Return the number of parameters required by the Transform */
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfParameters() const override
   {
     return this->GetTransform()->GetNumberOfParameters();
   }
 
   /** Forms the histogram of the training images to prepare to evaluate the */
+
   /** metric. Must set all parameters first */
   void
   Initialize() override;
@@ -134,11 +129,12 @@ public:
 protected:
   /** Constructor is protected to ensure that \c New() function is used to
       create instances. */
+  /** @ITKStartGrouping */
   KullbackLeiblerCompareHistogramImageToImageMetric();
   ~KullbackLeiblerCompareHistogramImageToImageMetric() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
-
+  /** @ITKEndGrouping */
   /** Form the Histogram for the Training data */
   void
   FormTrainingHistogram();
@@ -147,7 +143,7 @@ protected:
   MeasureType
   EvaluateMeasure(HistogramType & histogram) const override;
 
-  double m_Epsilon;
+  double m_Epsilon{};
 };
 } // End namespace itk.
 

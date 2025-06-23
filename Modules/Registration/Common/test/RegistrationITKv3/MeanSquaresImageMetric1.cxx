@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 
 
-#include "itkTestDriverIncludeRequiredIOFactories.h"
+#include "itkTestDriverIncludeRequiredFactories.h"
 int
 main(int argc, char * argv[])
 {
@@ -69,8 +69,8 @@ main(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer fixedReader = ReaderType::New();
-  ReaderType::Pointer movingReader = ReaderType::New();
+  const ReaderType::Pointer fixedReader = ReaderType::New();
+  const ReaderType::Pointer movingReader = ReaderType::New();
 
   fixedReader->SetFileName(argv[1]);
   movingReader->SetFileName(argv[2]);
@@ -94,7 +94,7 @@ main(int argc, char * argv[])
 
   using MetricType = itk::MeanSquaresImageToImageMetric<ImageType, ImageType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  const MetricType::Pointer metric = MetricType::New();
 
 
   //
@@ -104,18 +104,18 @@ main(int argc, char * argv[])
 
   using TransformType = itk::TranslationTransform<double, Dimension>;
 
-  TransformType::Pointer transform = TransformType::New();
+  const TransformType::Pointer transform = TransformType::New();
 
 
   using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  const InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
 
   transform->SetIdentity();
 
-  ImageType::ConstPointer fixedImage = fixedReader->GetOutput();
-  ImageType::ConstPointer movingImage = movingReader->GetOutput();
+  const ImageType::ConstPointer fixedImage = fixedReader->GetOutput();
+  const ImageType::ConstPointer movingImage = movingReader->GetOutput();
 
 
   //
@@ -155,9 +155,9 @@ main(int argc, char * argv[])
   constexpr int rangex = 50;
   constexpr int rangey = 50;
 
-  for (int dx = -rangex; dx <= rangex; dx++)
+  for (int dx = -rangex; dx <= rangex; ++dx)
   {
-    for (int dy = -rangey; dy <= rangey; dy++)
+    for (int dy = -rangey; dy <= rangey; ++dy)
     {
       displacement[0] = dx;
       displacement[1] = dy;

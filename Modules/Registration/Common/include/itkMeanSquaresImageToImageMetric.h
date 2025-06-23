@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,8 @@
 #include "itkImageToImageMetric.h"
 #include "itkPoint.h"
 #include "itkIndex.h"
+
+#include <memory> // For unique_ptr.
 
 
 namespace itk
@@ -50,30 +52,30 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeanSquaresImageToImageMetric, ImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeanSquaresImageToImageMetric);
 
   /** Types inherited from Superclass. */
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using InterpolatorType = typename Superclass::InterpolatorType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointType = typename Superclass::MovingImagePointType;
-  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
-  using MovingImageConstPointer = typename Superclass::MovingImageConstPointer;
-  using CoordinateRepresentationType = typename Superclass::CoordinateRepresentationType;
-  using FixedImageSampleContainer = typename Superclass::FixedImageSampleContainer;
-  using ImageDerivativesType = typename Superclass::ImageDerivativesType;
-  using WeightsValueType = typename Superclass::WeightsValueType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::InterpolatorType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointType;
+  using typename Superclass::FixedImageConstPointer;
+  using typename Superclass::MovingImageConstPointer;
+  using typename Superclass::CoordinateRepresentationType;
+  using typename Superclass::FixedImageSampleContainer;
+  using typename Superclass::ImageDerivativesType;
+  using typename Superclass::WeightsValueType;
+  using typename Superclass::IndexValueType;
 
   // Needed for evaluation of Jacobian.
-  using FixedImagePointType = typename Superclass::FixedImagePointType;
+  using typename Superclass::FixedImagePointType;
 
   /** The moving image dimension. */
   static constexpr unsigned int MovingImageDimension = MovingImageType::ImageDimension;
@@ -104,7 +106,7 @@ public:
 
 protected:
   MeanSquaresImageToImageMetric();
-  ~MeanSquaresImageToImageMetric() override;
+  ~MeanSquaresImageToImageMetric() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -130,7 +132,7 @@ private:
   };
 
   itkAlignedTypedef(64, PerThreadS, AlignedPerThreadType);
-  AlignedPerThreadType * m_PerThread;
+  std::unique_ptr<AlignedPerThreadType[]> m_PerThread;
 };
 } // end namespace itk
 

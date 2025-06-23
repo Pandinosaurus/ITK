@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,23 +47,18 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
 
   using FilterType = itk::BSplineScatteredDataPointSetToImageFilter<PointSetType, VectorImageType>;
 
-  VectorImageType::SizeType size;
-  size.Fill(100);
-  VectorImageType::PointType origin;
-  origin.Fill(0);
-  VectorImageType::SpacingType spacing;
-  spacing.Fill(1);
-  VectorImageType::DirectionType direction;
+  auto                                 size = VectorImageType::SizeType::Filled(100);
+  constexpr VectorImageType::PointType origin{};
+  auto                                 spacing = itk::MakeFilled<VectorImageType::SpacingType>(1);
+  VectorImageType::DirectionType       direction;
   direction.SetIdentity();
 
   // Instantiate example corresponding points with relative weighting
 
-  PointSetType::Pointer pointSet = PointSetType::New();
-  pointSet->Initialize();
+  auto pointSet = PointSetType::New();
 
   using WeightsContainerType = FilterType::WeightsContainerType;
-  WeightsContainerType::Pointer weights = WeightsContainerType::New();
-  weights->Initialize();
+  auto weights = WeightsContainerType::New();
 
   // Create first landmark pair and weights
   PointType landmarkInFirstImage1;
@@ -77,11 +72,11 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   landmarkInSecondImage1[1] = 5.0;
   landmarkInSecondImage1[2] = 5.0;
 
-  RealType weight1 = 1.0;
+  constexpr RealType weight1 = 1.0;
   weights->InsertElement(0, weight1);
 
   VectorType vector1;
-  for (unsigned int d = 0; d < DataDimension; d++)
+  for (unsigned int d = 0; d < DataDimension; ++d)
   {
     vector1[d] = landmarkInSecondImage1[d] - landmarkInFirstImage1[d];
   }
@@ -100,11 +95,11 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   landmarkInSecondImage2[1] = 35.0;
   landmarkInSecondImage2[2] = 45.0;
 
-  RealType weight2 = 3.0;
+  constexpr RealType weight2 = 3.0;
   weights->InsertElement(1, weight2);
 
   VectorType vector2;
-  for (unsigned int d = 0; d < DataDimension; d++)
+  for (unsigned int d = 0; d < DataDimension; ++d)
   {
     vector2[d] = landmarkInSecondImage2[d] - landmarkInFirstImage2[d];
   }
@@ -123,11 +118,11 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   landmarkInSecondImage3[1] = 35.0;
   landmarkInSecondImage3[2] = 45.0;
 
-  RealType weight3 = 0.5;
+  constexpr RealType weight3 = 0.5;
   weights->InsertElement(2, weight3);
 
   VectorType vector3;
-  for (unsigned int d = 0; d < DataDimension; d++)
+  for (unsigned int d = 0; d < DataDimension; ++d)
   {
     vector3[d] = landmarkInSecondImage3[d] - landmarkInFirstImage3[d];
   }
@@ -136,7 +131,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
 
   // Now fit the displacement
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineScatteredDataPointSetToImageFilter, PointSetToImageFilter);
 
@@ -160,12 +155,10 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   // transform.  Specifically, this includes the final
   // number of control points and the spline order.
   filter->SetSplineOrder(SplineOrder);
-  FilterType::ArrayType ncps;
-  ncps.Fill(4);
+  auto ncps = itk::MakeFilled<FilterType::ArrayType>(4);
   filter->SetNumberOfControlPoints(ncps);
   filter->SetNumberOfLevels(3);
-  FilterType::ArrayType close;
-  close.Fill(0);
+  constexpr FilterType::ArrayType close{};
   filter->SetCloseDimension(close);
 
 
@@ -175,15 +168,15 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   // Instantiate the BSpline transform
 
   using TransformType = itk::BSplineTransform<float, DataDimension, SplineOrder>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   using CoefficientImageType = TransformType::ImageType;
 
   TransformType::CoefficientImageArray coefficientImages;
-  for (unsigned int j = 0; j < DataDimension; j++)
+  for (unsigned int j = 0; j < DataDimension; ++j)
   {
     using SelectorType = itk::VectorIndexSelectionCastImageFilter<VectorImageType, CoefficientImageType>;
-    SelectorType::Pointer selector = SelectorType::New();
+    auto selector = SelectorType::New();
     selector->SetInput(filter->GetPhiLattice());
     selector->SetIndex(j);
 
@@ -197,27 +190,26 @@ itkBSplineScatteredDataPointSetToImageFilterTest4(int, char *[])
   using InputPointType = TransformType::InputPointType;
   using OutputPointType = TransformType::OutputPointType;
 
-  InputPointType inputPoint;
-  inputPoint.Fill(50.0);
+  auto inputPoint = itk::MakeFilled<InputPointType>(50.0);
 
-  OutputPointType outputPoint = transform->TransformPoint(inputPoint);
+  const OutputPointType outputPoint = transform->TransformPoint(inputPoint);
 
   // Now instantiate an interpolator to get an approximation of what
   // the transform should produce
 
   using InterpolatorType = itk::VectorLinearInterpolateImageFunction<VectorImageType>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
   interpolator->SetInputImage(filter->GetOutput());
 
   VectorImageType::PointType testPoint;
   testPoint.CastFrom(inputPoint);
 
-  VectorType vector = interpolator->Evaluate(testPoint);
-  RealType   testDistance = vector.GetNorm();
-  RealType   approximateDistance = inputPoint.EuclideanDistanceTo(outputPoint);
+  VectorType     vector = interpolator->Evaluate(testPoint);
+  const RealType testDistance = vector.GetNorm();
+  const RealType approximateDistance = inputPoint.EuclideanDistanceTo(outputPoint);
 
   VectorImageType::PointType approximateOutputPoint;
-  for (unsigned int d = 0; d < DataDimension; d++)
+  for (unsigned int d = 0; d < DataDimension; ++d)
   {
     approximateOutputPoint[d] = testPoint[d] + vector[d];
   }

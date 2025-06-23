@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVanHerkGilWermanErodeDilateImageFilter_hxx
 #define itkVanHerkGilWermanErodeDilateImageFilter_hxx
 
-#include "itkVanHerkGilWermanErodeDilateImageFilter.h"
 #include "itkImageRegionIterator.h"
 
 #include "itkVanHerkGilWermanUtilities.h"
@@ -27,7 +26,7 @@ namespace itk
 {
 template <typename TImage, typename TKernel, typename TFunction1>
 VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, TFunction1>::VanHerkGilWermanErodeDilateImageFilter()
-  : m_Boundary(NumericTraits<InputImagePixelType>::ZeroValue())
+  : m_Boundary(InputImagePixelType{})
 {
   this->DynamicMultiThreadingOn();
   this->ThreaderUpdateProgressOff();
@@ -42,7 +41,6 @@ VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, TFunction1>::DynamicThre
   if (!this->GetKernel().GetDecomposable())
   {
     itkExceptionMacro("VanHerkGilWerman morphology only works with decomposable structuring elements");
-    return;
   }
 
   // TFunction1 will be < for erosions
@@ -55,7 +53,7 @@ VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, TFunction1>::DynamicThre
 
   InputImageConstPointer input = this->GetInput();
 
-  SizeValueType totalPixels =
+  const SizeValueType totalPixels =
     this->GetKernel().GetLines().size() * this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
   TotalProgressReporter progress(this, totalPixels);
 
@@ -65,16 +63,16 @@ VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, TFunction1>::DynamicThre
   IReg.Crop(this->GetInput()->GetRequestedRegion());
 
   // allocate an internal buffer
-  typename InputImageType::Pointer internalbuffer = InputImageType::New();
+  auto internalbuffer = InputImageType::New();
   internalbuffer->SetRegions(IReg);
   internalbuffer->Allocate();
-  InputImagePointer output = internalbuffer;
+  const InputImagePointer output = internalbuffer;
 
   // get the region size
-  InputImageRegionType OReg = outputRegionForThread;
+  const InputImageRegionType OReg = outputRegionForThread;
   // maximum buffer length is sum of dimensions
   unsigned int bufflength = 0;
-  for (unsigned i = 0; i < TImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TImage::ImageDimension; ++i)
   {
     bufflength += IReg.GetSize()[i];
   }
@@ -91,18 +89,18 @@ VanHerkGilWermanErodeDilateImageFilter<TImage, TKernel, TFunction1>::DynamicThre
 
   using KernelLType = typename KernelType::LType;
 
-  for (unsigned i = 0; i < decomposition.size(); i++)
+  for (unsigned int i = 0; i < decomposition.size(); ++i)
   {
-    typename KernelType::LType     ThisLine = decomposition[i];
-    typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
-    unsigned int                   SELength = GetLinePixels<KernelLType>(ThisLine);
+    const typename KernelType::LType     ThisLine = decomposition[i];
+    const typename BresType::OffsetArray TheseOffsets = BresLine.BuildLine(ThisLine, bufflength);
+    unsigned int                         SELength = GetLinePixels<KernelLType>(ThisLine);
     // want lines to be odd
     if (!(SELength % 2))
     {
       ++SELength;
     }
 
-    InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
+    const InputImageRegionType BigFace = MakeEnlargedFace<InputImageType, KernelLType>(input, IReg, ThisLine);
 
     DoFace<TImage, BresType, TFunction1, KernelLType>(
       input, output, m_Boundary, ThisLine, TheseOffsets, SELength, buffer, forward, reverse, IReg, BigFace);

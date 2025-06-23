@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,11 @@
 #ifndef itkHistogramToRunLengthFeaturesFilter_hxx
 #define itkHistogramToRunLengthFeaturesFilter_hxx
 
-#include "itkHistogramToRunLengthFeaturesFilter.h"
 
 #include "itkNumericTraits.h"
 #include "itkMath.h"
-#include "itkMath.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 // constructor
@@ -37,7 +33,7 @@ HistogramToRunLengthFeaturesFilter<THistogram>::HistogramToRunLengthFeaturesFilt
 
   // allocate the data objects for the outputs which are
   // just decorators real types
-  for (unsigned int i = 0; i < 10; i++)
+  for (unsigned int i = 0; i < 10; ++i)
   {
     this->ProcessObject::SetNthOutput(i, this->MakeOutput(i));
   }
@@ -51,8 +47,8 @@ HistogramToRunLengthFeaturesFilter<THistogram>::SetInput(const HistogramType * h
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::HistogramType *
-HistogramToRunLengthFeaturesFilter<THistogram>::GetInput() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetInput() const -> const HistogramType *
 {
   if (this->GetNumberOfInputs() < 1)
   {
@@ -62,8 +58,9 @@ HistogramToRunLengthFeaturesFilter<THistogram>::GetInput() const
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::DataObjectPointer
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::MakeOutput(DataObjectPointerArraySizeType itkNotUsed(idx))
+  -> DataObjectPointer
 {
   return MeasurementObjectType::New().GetPointer();
 }
@@ -76,16 +73,16 @@ HistogramToRunLengthFeaturesFilter<THistogram>::GenerateData()
 
   this->m_TotalNumberOfRuns = static_cast<unsigned long>(inputHistogram->GetTotalFrequency());
 
-  MeasurementType shortRunEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType longRunEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType greyLevelNonuniformity = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType runLengthNonuniformity = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType lowGreyLevelRunEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType highGreyLevelRunEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType shortRunLowGreyLevelEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType shortRunHighGreyLevelEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType longRunLowGreyLevelEmphasis = NumericTraits<MeasurementType>::ZeroValue();
-  MeasurementType longRunHighGreyLevelEmphasis = NumericTraits<MeasurementType>::ZeroValue();
+  MeasurementType shortRunEmphasis{};
+  MeasurementType longRunEmphasis{};
+  MeasurementType greyLevelNonuniformity{};
+  MeasurementType runLengthNonuniformity{};
+  MeasurementType lowGreyLevelRunEmphasis{};
+  MeasurementType highGreyLevelRunEmphasis{};
+  MeasurementType shortRunLowGreyLevelEmphasis{};
+  MeasurementType shortRunHighGreyLevelEmphasis{};
+  MeasurementType longRunLowGreyLevelEmphasis{};
+  MeasurementType longRunHighGreyLevelEmphasis{};
 
   vnl_vector<double> greyLevelNonuniformityVector(inputHistogram->GetSize()[0], 0.0);
   vnl_vector<double> runLengthNonuniformityVector(inputHistogram->GetSize()[1], 0.0);
@@ -93,13 +90,13 @@ HistogramToRunLengthFeaturesFilter<THistogram>::GenerateData()
   using HistogramIterator = typename HistogramType::ConstIterator;
   for (HistogramIterator hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
   {
-    MeasurementType frequency = hit.GetFrequency();
-    if (Math::ExactlyEquals(frequency, NumericTraits<MeasurementType>::ZeroValue()))
+    const MeasurementType frequency = hit.GetFrequency();
+    if (Math::ExactlyEquals(frequency, MeasurementType{}))
     {
       continue;
     }
-    MeasurementVectorType measurement = hit.GetMeasurementVector();
-    IndexType             index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
+    const MeasurementVectorType measurement = hit.GetMeasurementVector();
+    IndexType                   index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
 
     auto i2 = static_cast<double>((index[0] + 1) * (index[0] + 1));
     auto j2 = static_cast<double>((index[1] + 1) * (index[1] + 1));
@@ -175,143 +172,149 @@ HistogramToRunLengthFeaturesFilter<THistogram>::GenerateData()
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunEmphasisOutput() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunEmphasisOutput() const -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(0));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunEmphasisOutput() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunEmphasisOutput() const -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(1));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToRunLengthFeaturesFilter<THistogram>::GetGreyLevelNonuniformityOutput() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetGreyLevelNonuniformityOutput() const -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(2));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
-HistogramToRunLengthFeaturesFilter<THistogram>::GetRunLengthNonuniformityOutput() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetRunLengthNonuniformityOutput() const -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(3));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetLowGreyLevelRunEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(4));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetHighGreyLevelRunEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(5));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunLowGreyLevelEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(6));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunHighGreyLevelEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(7));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunLowGreyLevelEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(8));
 }
 
 template <typename THistogram>
-const typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementObjectType *
+auto
 HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunHighGreyLevelEmphasisOutput() const
+  -> const MeasurementObjectType *
 {
   return itkDynamicCastInDebugMode<const MeasurementObjectType *>(this->ProcessObject::GetOutput(9));
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunEmphasis() const -> MeasurementType
 {
   return this->GetShortRunEmphasisOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunEmphasis() const -> MeasurementType
 {
   return this->GetLongRunEmphasisOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetGreyLevelNonuniformity() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetGreyLevelNonuniformity() const -> MeasurementType
 {
   return this->GetGreyLevelNonuniformityOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetRunLengthNonuniformity() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetRunLengthNonuniformity() const -> MeasurementType
 {
   return this->GetRunLengthNonuniformityOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetLowGreyLevelRunEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetLowGreyLevelRunEmphasis() const -> MeasurementType
 {
   return this->GetLowGreyLevelRunEmphasisOutput()->Get();
 }
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetHighGreyLevelRunEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetHighGreyLevelRunEmphasis() const -> MeasurementType
 {
   return this->GetHighGreyLevelRunEmphasisOutput()->Get();
 }
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunLowGreyLevelEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunLowGreyLevelEmphasis() const -> MeasurementType
 {
   return this->GetShortRunLowGreyLevelEmphasisOutput()->Get();
 }
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunHighGreyLevelEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetShortRunHighGreyLevelEmphasis() const -> MeasurementType
 {
   return this->GetShortRunHighGreyLevelEmphasisOutput()->Get();
 }
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunLowGreyLevelEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunLowGreyLevelEmphasis() const -> MeasurementType
 {
   return this->GetLongRunLowGreyLevelEmphasisOutput()->Get();
 }
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunHighGreyLevelEmphasis() const
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetLongRunHighGreyLevelEmphasis() const -> MeasurementType
 {
   return this->GetLongRunHighGreyLevelEmphasisOutput()->Get();
 }
 
 template <typename THistogram>
-typename HistogramToRunLengthFeaturesFilter<THistogram>::MeasurementType
-HistogramToRunLengthFeaturesFilter<THistogram>::GetFeature(RunLengthFeatureEnum feature)
+auto
+HistogramToRunLengthFeaturesFilter<THistogram>::GetFeature(RunLengthFeatureEnum feature) -> MeasurementType
 {
   switch (feature)
   {
@@ -347,8 +350,7 @@ HistogramToRunLengthFeaturesFilter<THistogram>::PrintSelf(std::ostream & os, Ind
   Superclass::PrintSelf(os, indent);
 }
 
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 
 #endif

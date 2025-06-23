@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,13 +18,11 @@
 #ifndef itkObjectToObjectMultiMetricv4_hxx
 #define itkObjectToObjectMultiMetricv4_hxx
 
-#include "itkObjectToObjectMultiMetricv4.h"
 #include "itkCompositeTransform.h"
 
 namespace itk
 {
 
-/** Constructor */
 template <unsigned int TFixedDimension,
           unsigned int TMovingDimension,
           typename TVirtualImage,
@@ -38,7 +36,6 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   this->m_MovingTransform = nullptr;
 }
 
-/** Add a metric to the queue. */
 template <unsigned int TFixedDimension,
           unsigned int TMovingDimension,
           typename TVirtualImage,
@@ -50,7 +47,6 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   this->m_MetricQueue.push_back(metric);
 }
 
-/** Clear the queue */
 template <unsigned int TFixedDimension,
           unsigned int TMovingDimension,
           typename TVirtualImage,
@@ -62,7 +58,6 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   this->m_MetricQueue.clear();
 }
 
-/** Get the number of metrics */
 template <unsigned int TFixedDimension,
           unsigned int TMovingDimension,
           typename TVirtualImage,
@@ -87,7 +82,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
     itkExceptionMacro("No metrics are assigned. Cannot assign transform.");
   }
   Superclass::SetMovingTransform(transform);
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     this->m_MetricQueue[j]->SetMovingTransform(transform);
   }
@@ -106,7 +101,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
     itkExceptionMacro("No metrics are assigned. Cannot assign transform.");
   }
   Superclass::SetFixedTransform(transform);
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     this->m_MetricQueue[j]->SetFixedTransform(transform);
   }
@@ -138,8 +133,8 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
                         << this->m_MetricWeights.Size());
     }
     /* normalize the weights */
-    WeightValueType sum = NumericTraits<WeightValueType>::ZeroValue();
-    for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+    WeightValueType sum{};
+    for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
     {
       sum += this->m_MetricWeights[j];
     }
@@ -147,7 +142,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
     {
       itkExceptionMacro("The derivative weights are too small: " << this->m_MetricWeights);
     }
-    for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+    for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
     {
       this->m_MetricWeights[j] = this->m_MetricWeights[j] / sum;
     }
@@ -165,7 +160,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
 
   /* Verify the same transform is in all metrics. */
   const MovingTransformType * firstTransform = nullptr;
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     const MovingTransformType * transform = this->m_MetricQueue[j]->GetMovingTransform();
     // Check if it's a composite. If so, there must be only one transform set to be
@@ -175,11 +170,11 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
     if (composite != nullptr)
     {
       SizeValueType count = 0;
-      for (size_t n = 0; n < composite->GetNumberOfTransforms(); n++)
+      for (size_t n = 0; n < composite->GetNumberOfTransforms(); ++n)
       {
         if (composite->GetNthTransformToOptimize(static_cast<SizeValueType>(n)))
         {
-          count++;
+          ++count;
           transform = composite->GetNthTransformConstPointer(static_cast<SizeValueType>(n));
         }
       }
@@ -187,7 +182,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
       {
         itkExceptionMacro(
           "Expected exactly one transform set to be optimized within the composite transform. Error with metric "
-          << j << ".");
+          << j << '.');
       }
     }
 
@@ -218,13 +213,13 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   }
 
   /* Initialize individual metrics. */
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     try
     {
       this->m_MetricQueue[j]->Initialize();
     }
-    catch (ExceptionObject & exc)
+    catch (const ExceptionObject & exc)
     {
       std::string msg("Caught exception initializing metric: \n");
       msg += exc.what();
@@ -236,7 +231,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   /* Get the first valid virtual domain and assign
    * it to this metric as a common virtual domain,
    * for direct use by calling classes. */
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     if (this->m_MetricQueue[j]->GetVirtualImage())
     {
@@ -260,12 +255,12 @@ typename ObjectToObjectMultiMetricv4<TFixedDimension,
 ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TInternalComputationValueType>::GetValue()
   const
 {
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     this->m_MetricValueArray[j] = this->m_MetricQueue[j]->GetValue();
   }
 
-  MeasureType firstValue = this->m_MetricValueArray[0];
+  const MeasureType firstValue = this->m_MetricValueArray[0];
   this->m_Value = firstValue;
   return firstValue;
 }
@@ -294,20 +289,20 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   {
     derivativeResult.SetSize(this->GetNumberOfParameters());
   }
-  derivativeResult.Fill(NumericTraits<DerivativeValueType>::ZeroValue());
+  derivativeResult.Fill(DerivativeValueType{});
 
   DerivativeType metricDerivative;
-  MeasureType    metricValue = NumericTraits<MeasureType>::ZeroValue();
+  MeasureType    metricValue{};
 
   // Loop over metrics
-  DerivativeValueType totalMagnitude = NumericTraits<DerivativeValueType>::ZeroValue();
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  DerivativeValueType totalMagnitude{};
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     this->m_MetricQueue[j]->GetValueAndDerivative(metricValue, metricDerivative);
     this->m_MetricValueArray[j] = metricValue;
 
-    DerivativeValueType magnitude = metricDerivative.magnitude();
-    DerivativeValueType weightOverMagnitude = NumericTraits<DerivativeValueType>::ZeroValue();
+    const DerivativeValueType magnitude = metricDerivative.magnitude();
+    DerivativeValueType       weightOverMagnitude{};
     totalMagnitude += magnitude;
 
     if (magnitude > NumericTraits<DerivativeValueType>::epsilon())
@@ -315,7 +310,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
       weightOverMagnitude = this->m_MetricWeights[j] / magnitude;
     }
     // derivative = \sum_j w_j * (dM_j / ||dM_j||)
-    for (NumberOfParametersType p = 0; p < this->GetNumberOfParameters(); p++)
+    for (NumberOfParametersType p = 0; p < this->GetNumberOfParameters(); ++p)
     {
       // roll our own loop to avoid temporary variable that could be large when using displacement fields.
       derivativeResult[p] += (metricDerivative[p] * weightOverMagnitude);
@@ -326,7 +321,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
   // This keeps the behavior of this metric the same as a regular metric, with respect to derivative
   // magnitudes.
   totalMagnitude /= this->GetNumberOfMetrics();
-  for (NumberOfParametersType p = 0; p < this->GetNumberOfParameters(); p++)
+  for (NumberOfParametersType p = 0; p < this->GetNumberOfParameters(); ++p)
   {
     derivativeResult[p] *= totalMagnitude;
   }
@@ -356,9 +351,9 @@ typename ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtual
   ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TInternalComputationValueType>::
     GetWeightedValue() const
 {
-  MeasureType value = NumericTraits<MeasureType>::ZeroValue();
+  MeasureType value{};
 
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     // value = sum_j w_j * M_j
     value += this->m_MetricValueArray[j] * this->m_MetricWeights[j];
@@ -389,7 +384,7 @@ bool
 ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TInternalComputationValueType>::
   SupportsArbitraryVirtualDomainSamples() const
 {
-  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); j++)
+  for (SizeValueType j = 0; j < this->GetNumberOfMetrics(); ++j)
   {
     if (!this->m_MetricQueue[j]->SupportsArbitraryVirtualDomainSamples())
     {
@@ -410,7 +405,7 @@ ObjectToObjectMultiMetricv4<TFixedDimension, TMovingDimension, TVirtualImage, TI
 {
   os << indent << "Weights of metric derivatives: " << this->m_MetricWeights << std::endl;
   os << indent << "The multivariate contains the following metrics: " << std::endl << std::endl;
-  for (SizeValueType i = 0; i < this->GetNumberOfMetrics(); i++)
+  for (SizeValueType i = 0; i < this->GetNumberOfMetrics(); ++i)
   {
     os << indent << "~~~ Metric " << i << " ~~~" << std::endl;
     this->m_MetricQueue[i]->Print(os, indent.GetNextIndent());

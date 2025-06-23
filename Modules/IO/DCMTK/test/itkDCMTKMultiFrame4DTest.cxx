@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,57 +21,37 @@
 #include "itkDCMTKImageIO.h"
 #include "itkSubtractImageFilter.h"
 #include "itkStatisticsImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkDCMTKMultiFrame4DTest(int argc, char * argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Missing filenames" << std::endl
-              << "itkDCMTKMultiFram4DTest"
-              << " <inputDicomFile> <outputFile>" << std::endl;
+    std::cerr << "Missing Parameters" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputDicomFile" << std::endl;
     return EXIT_FAILURE;
   }
   using ImageType = itk::Image<unsigned short, 4>;
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
   reader->SetImageIO(itk::DCMTKImageIO::New());
   reader->SetFileName(argv[1]);
-  writer->SetFileName(argv[2]);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader" << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
 
   ImageType::Pointer im = reader->GetOutput();
   std::cout << im;
-  writer->SetInput(im);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file writer" << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
-  catch (...)
-  {
-    return EXIT_FAILURE;
-  }
+  auto writer = WriterType::New();
+  writer->SetInput(im);
+  writer->SetFileName(argv[2]);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   // don't want to set imageIO so re-instantiate reader
   reader = ReaderType::New();
@@ -79,29 +59,25 @@ itkDCMTKMultiFrame4DTest(int argc, char * argv[])
 
   using SubtractFilterType = itk::SubtractImageFilter<ImageType, ImageType, ImageType>;
 
-  SubtractFilterType::Pointer subtractFilter = SubtractFilterType::New();
+  auto subtractFilter = SubtractFilterType::New();
   subtractFilter->SetInput1(im);
   subtractFilter->SetInput2(reader->GetOutput());
 
   using StatisticsFilterType = itk::StatisticsImageFilter<ImageType>;
-  StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
+  auto statisticsFilter = StatisticsFilterType::New();
 
   statisticsFilter->SetInput(subtractFilter->GetOutput());
-  try
-  {
-    statisticsFilter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception checking files " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(statisticsFilter->Update());
+
+
   if (statisticsFilter->GetMinimum() != 0.0 || statisticsFilter->GetMaximum() != 0.0)
   {
     std::cerr << "file written doesn't match file read." << std::endl
               << "min(" << statisticsFilter->GetMinimum() << ") max(" << statisticsFilter->GetMaximum() << std::endl;
     return EXIT_FAILURE;
   }
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

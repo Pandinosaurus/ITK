@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ namespace itk
        medianFilter->Update();
        ImageType::Pointer image = medianFilter->GetOutput();
        using DuplicatorType = itk::ImageDuplicator< ImageType >;
-       DuplicatorType::Pointer duplicator = DuplicatorType::New();
+       auto duplicator = DuplicatorType::New();
        duplicator->SetInputImage(image);
        duplicator->Update();
        ImageType::Pointer clonedImage = duplicator->GetOutput();
@@ -65,8 +65,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageDuplicator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageDuplicator);
 
   /** Type definitions for the input image. */
   using ImageType = TInputImage;
@@ -86,6 +86,7 @@ public:
    * by returning a non-const pointer
    * for the generated Object.
    */
+  /** @ITKStartGrouping */
   // NOTE:  The m_DuplicateImage is only
   //       exposed via the Source generation interface
   //       by the GetOutput() method that mimics
@@ -100,7 +101,7 @@ public:
   {
     return this->m_DuplicateImage.GetPointer();
   }
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   // This interface was exposed in ITKv4 when the itkGetModifiableObjectMacro was used
   virtual ImageType *
@@ -115,15 +116,15 @@ public:
   Update();
 
 protected:
-  ImageDuplicator();
+  ImageDuplicator() = default;
   ~ImageDuplicator() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ImageConstPointer m_InputImage;
-  ImagePointer      m_DuplicateImage;
-  ModifiedTimeType  m_InternalImageTime;
+  ImageConstPointer m_InputImage{};
+  ImagePointer      m_DuplicateImage{};
+  ModifiedTimeType  m_InternalImageTime{};
 };
 } // end namespace itk
 

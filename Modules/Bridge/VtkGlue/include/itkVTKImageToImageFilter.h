@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ namespace itk
 {
 
 /**
- *\class VTKImageToImageFilter
+ * \class VTKImageToImageFilter
  * \brief Converts a VTK image into an ITK image and plugs a
  *  VTK data pipeline to an ITK datapipeline.
  *
@@ -62,28 +62,29 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VTKImageToImageFilter, VTKImageImport);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VTKImageToImageFilter);
 
   /** Some type alias. */
   using OutputImageType = TOutputImage;
   using OutputImagePointer = typename OutputImageType::ConstPointer;
 
-  /** Set the input in the form of a vtkImageData */
+  /** Set the input in the form of a vtkImageData. */
   void
   SetInput(vtkImageData *);
   using Superclass::SetInput;
 
-  /** Return the internal VTK image exporter filter.
-      This is intended to facilitate users the access
-      to methods in the exporter */
+  /** Get the internal VTK image exporter filter.
+   *
+   * Intended to facilitate users the access to methods in the exporter.
+   */
   vtkImageExport *
   GetExporter() const;
 
-  /** Return the internal ITK image importer filter.
-      This is intended to facilitate users the access
-      to methods in the importer.
-      */
+  /** Get the internal ITK image importer filter.
+   *
+   * Intended to facilitate users the access to methods in the importer.
+   */
   const Superclass *
   GetImporter() const;
 
@@ -93,7 +94,7 @@ protected:
 
 private:
   using ImageExportPointer = vtkSmartPointer<vtkImageExport>;
-  ImageExportPointer m_Exporter;
+  ImageExportPointer m_Exporter{};
 };
 
 } // end namespace itk

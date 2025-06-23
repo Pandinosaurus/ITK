@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +36,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DataObjectTestHelper, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DataObjectTestHelper);
 
 protected:
   DataObjectTestHelper() = default;
@@ -54,11 +54,11 @@ protected:
 int
 itkDataObjectTest(int, char *[])
 {
-  itk::DataObjectTestHelper::Pointer dataObject = itk::DataObjectTestHelper::New();
+  const itk::DataObjectTestHelper::Pointer dataObject = itk::DataObjectTestHelper::New();
 
-  itk::RealTimeClock::Pointer clock = itk::RealTimeClock::New();
+  const itk::RealTimeClock::Pointer clock = itk::RealTimeClock::New();
   dataObject->SetRealTimeStamp(clock->GetRealTimeStamp());
-  itk::RealTimeStamp timeStamp = dataObject->GetRealTimeStamp();
+  const itk::RealTimeStamp timeStamp = dataObject->GetRealTimeStamp();
   dataObject->DataHasBeenGenerated();
   if (timeStamp != dataObject->GetRealTimeStamp())
   {

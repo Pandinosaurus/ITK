@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@
  *  NthElementPixelAccessor
  *
  *  The example shows how an Adaptor can be used to
- *  get acces only to the Nth component of a vector image
+ *  get access only to the Nth component of a vector image
  *  giving the appearance of being just a 'float' image
  *
  *  That will allow to pass the Nth component of this
@@ -63,22 +63,18 @@ itkNthElementPixelAccessorTest(int, char *[])
   index[0] = 0;
   index[1] = 0;
 
-  myImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const myImageType::RegionType region{ index, size };
 
-  myImageType::Pointer myImage = myImageType::New();
+  auto myImage = myImageType::New();
 
-  myImage->SetLargestPossibleRegion(region);
-  myImage->SetBufferedRegion(region);
-  myImage->SetRequestedRegion(region);
+  myImage->SetRegions(region);
   myImage->Allocate();
 
   myIteratorType it1(myImage, myImage->GetRequestedRegion());
 
   // Value to initialize the pixels
   myImageType::PixelType::ComponentType colorInit[3] = { 1.0f, 0.5f, 0.5f };
-  myImageType::PixelType                color = colorInit;
+  const myImageType::PixelType          color = colorInit;
 
   // Initializing all the pixel in the image
   it1.GoToBegin();
@@ -99,7 +95,7 @@ itkNthElementPixelAccessorTest(int, char *[])
     ++it1;
   }
 
-  myNthAdaptorType::Pointer myAdaptor = myNthAdaptorType::New();
+  auto myAdaptor = myNthAdaptorType::New();
   myAdaptor->SetImage(myImage);
 
   myNthAccessorType myNthAccessor;

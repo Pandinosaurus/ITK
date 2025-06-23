@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,26 +43,26 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(CleanQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CleanQuadEdgeMeshFilter);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
   using InputMeshType = TInputMesh;
-  using InputMeshPointer = typename Superclass::InputMeshPointer;
-  using InputCoordRepType = typename Superclass::InputCoordRepType;
-  using InputPointType = typename Superclass::InputPointType;
-  using InputPointIdentifier = typename Superclass::InputPointIdentifier;
-  using InputQEPrimal = typename Superclass::InputQEPrimal;
-  using InputVectorType = typename Superclass::InputVectorType;
+  using typename Superclass::InputMeshPointer;
+  using typename Superclass::InputCoordinateType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::InputPointIdentifier;
+  using typename Superclass::InputQEPrimal;
+  using typename Superclass::InputVectorType;
 
-  using InputEdgeCellType = typename Superclass::InputEdgeCellType;
-  using InputPolygonCellType = typename Superclass::InputPolygonCellType;
-  using InputPointIdList = typename Superclass::InputPointIdList;
-  using InputCellTraits = typename Superclass::InputCellTraits;
-  using InputPointsIdInternalIterator = typename Superclass::InputPointsIdInternalIterator;
-  using InputQEIterator = typename Superclass::InputQEIterator;
+  using typename Superclass::InputEdgeCellType;
+  using typename Superclass::InputPolygonCellType;
+  using typename Superclass::InputPointIdList;
+  using typename Superclass::InputCellTraits;
+  using typename Superclass::InputPointsIdInternalIterator;
+  using typename Superclass::InputQEIterator;
 
   using InputPointsContainer = typename InputMeshType::PointsContainer;
   using InputPointsContainerPointer = typename InputMeshType::PointsContainerPointer;
@@ -73,12 +73,12 @@ public:
   static constexpr unsigned int PointDimension = InputMeshType::PointDimension;
 
   using OutputMeshType = TOutputMesh;
-  using OutputMeshPointer = typename Superclass::OutputMeshPointer;
-  using OutputCoordRepType = typename Superclass::OutputCoordRepType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using OutputPointIdentifier = typename Superclass::OutputPointIdentifier;
-  using OutputQEPrimal = typename Superclass::OutputQEPrimal;
-  using OutputVectorType = typename Superclass::OutputVectorType;
+  using typename Superclass::OutputMeshPointer;
+  using typename Superclass::OutputCoordinateType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::OutputPointIdentifier;
+  using typename Superclass::OutputQEPrimal;
+  using typename Superclass::OutputVectorType;
 
   using OutputQEType = typename OutputMeshType::QEType;
   using OutputPointsContainer = typename OutputMeshType::PointsContainer;
@@ -88,7 +88,7 @@ public:
   using OutputCellsContainerIterator = typename OutputMeshType::CellsContainerIterator;
 
   using BoundingBoxType =
-    BoundingBox<InputPointIdentifier, Self::PointDimension, InputCoordRepType, InputPointsContainer>;
+    BoundingBox<InputPointIdentifier, Self::PointDimension, InputCoordinateType, InputPointsContainer>;
 
   using BoundingBoxPointer = typename BoundingBoxType::Pointer;
 
@@ -99,13 +99,15 @@ public:
   using DecimationPointer = typename DecimationType::Pointer;
 
   /** TODO */
-  itkSetMacro(AbsoluteTolerance, InputCoordRepType);
-  itkGetConstMacro(AbsoluteTolerance, InputCoordRepType);
-
+  /** @ITKStartGrouping */
+  itkSetMacro(AbsoluteTolerance, InputCoordinateType);
+  itkGetConstMacro(AbsoluteTolerance, InputCoordinateType);
+  /** @ITKEndGrouping */
   /** TODO */
-  itkSetClampMacro(RelativeTolerance, InputCoordRepType, 0.0, 1.0);
-  itkGetConstMacro(RelativeTolerance, InputCoordRepType);
-
+  /** @ITKStartGrouping */
+  itkSetClampMacro(RelativeTolerance, InputCoordinateType, 0.0, 1.0);
+  itkGetConstMacro(RelativeTolerance, InputCoordinateType);
+  /** @ITKEndGrouping */
 protected:
   CleanQuadEdgeMeshFilter();
 
@@ -115,7 +117,7 @@ protected:
   GenerateData() override;
 
   virtual void
-  MergePoints(const InputCoordRepType absoluteToleranceSquared);
+  MergePoints(const InputCoordinateType absoluteToleranceSquared);
 
   virtual void
   CleanPoints();
@@ -124,12 +126,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  InputCoordRepType m_AbsoluteTolerance;
-  InputCoordRepType m_RelativeTolerance;
+  InputCoordinateType m_AbsoluteTolerance{};
+  InputCoordinateType m_RelativeTolerance{};
 
-  BoundingBoxPointer m_BoundingBox;
-  CriterionPointer   m_Criterion;
-  DecimationPointer  m_Decimation;
+  BoundingBoxPointer m_BoundingBox{};
+  CriterionPointer   m_Criterion{};
+  DecimationPointer  m_Decimation{};
 };
 } // end namespace itk
 

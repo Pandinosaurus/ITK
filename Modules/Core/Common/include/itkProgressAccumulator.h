@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ProgressAccumulator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ProgressAccumulator);
 
   /** Get the total progress accumulated by this object */
   itkGetConstMacro(AccumulatedProgress, float);
@@ -138,6 +138,8 @@ private:
     // The tags for adding/removing observers to mini-pipeline filter
     unsigned long ProgressObserverTag;
     unsigned long StartObserverTag;
+
+    float AccumulatedProgress{ 0.0 };
   };
 
   /** A callback function that is called by the progressing filters */
@@ -145,25 +147,25 @@ private:
   ReportProgress(Object * who, const EventObject & event);
 
   /** The client mini-pipeline filter */
-  GenericFilterPointer m_MiniPipelineFilter;
+  GenericFilterPointer m_MiniPipelineFilter{};
 
   /** An array of record structures */
   using FilterRecordVector = std::vector<struct FilterRecord>;
 
   /** The total accumulated progress */
-  float m_AccumulatedProgress;
+  float m_AccumulatedProgress{};
 
   /** The total accumulated progress for multiple runs of the mini-pipeline */
-  float m_BaseAccumulatedProgress;
+  float m_BaseAccumulatedProgress{};
 
   /**
    * A list of progress proportions of the different filters in the
    * pipeline
    */
-  FilterRecordVector m_FilterRecord;
+  FilterRecordVector m_FilterRecord{};
 
   /** The callback command */
-  CommandPointer m_CallbackCommand;
+  CommandPointer m_CallbackCommand{};
 };
 } // End namespace itk
 

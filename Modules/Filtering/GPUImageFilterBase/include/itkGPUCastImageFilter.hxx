@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUCastImageFilter_hxx
 #define itkGPUCastImageFilter_hxx
 
-#include "itkGPUCastImageFilter.h"
 #include "itkOpenCLUtil.h"
 
 namespace itk
@@ -34,8 +33,7 @@ GPUCastImageFilter<TInputImage, TOutputImage>::GPUCastImageFilter()
     itkExceptionMacro("GPUCastImageFilter supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << TInputImage::ImageDimension << "\n";
-  defines << "#define INPIXELTYPE ";
+  defines << "#define DIM_" << TInputImage::ImageDimension << '\n' << "#define INPIXELTYPE ";
   GetTypenameInString(typeid(typename TInputImage::PixelType), defines);
   defines << "#define OUTPIXELTYPE ";
   GetTypenameInString(typeid(typename TOutputImage::PixelType), defines);
@@ -55,9 +53,9 @@ template <typename TInputImage, typename TOutputImage>
 void
 GPUCastImageFilter<TInputImage, TOutputImage>::GPUGenerateData()
 {
-  itkDebugMacro(<< "Calling GPUCastImageFilter::GPUGenerateData()");
+  itkDebugMacro("Calling GPUCastImageFilter::GPUGenerateData()");
   GPUSuperclass::GPUGenerateData();
-  itkDebugMacro(<< "GPUCastImageFilter::GPUGenerateData() finished");
+  itkDebugMacro("GPUCastImageFilter::GPUGenerateData() finished");
 }
 
 

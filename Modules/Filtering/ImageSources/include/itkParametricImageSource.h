@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class ParametricImageSource
+ * \class ParametricImageSource
  * \brief Base class for all parametric image sources.
  *
  * This abstract class specifies an interface than enables parameters
@@ -67,8 +67,8 @@ public:
   /** ImageDimension constant */
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ParametricImageSource, GenerateImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ParametricImageSource);
 
   /** Set the parameters for this source. Setting the parameters does
    * not mark the image source as modified; subclasses should override
@@ -78,11 +78,11 @@ public:
   SetParameters(const ParametersType & parameters) = 0;
 
   /** Get the parameters for this source. */
-  virtual ParametersType
+  [[nodiscard]] virtual ParametersType
   GetParameters() const = 0;
 
   /** Get the number of parameters. */
-  virtual unsigned int
+  [[nodiscard]] virtual unsigned int
   GetNumberOfParameters() const = 0;
 
 protected:

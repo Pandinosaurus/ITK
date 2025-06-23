@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,15 +16,22 @@
  *
  *=========================================================================*/
 
-#include <iostream>
 #include "itkTimeStamp.h"
 #include "itkMultiThreaderBase.h"
 
+#include <iostream>
+#include <memory> // For make_unique.
+#include <type_traits>
+
+static_assert(std::is_nothrow_default_constructible_v<itk::TimeStamp>, "Check TimeStamp default-constructibility");
+static_assert(std::is_trivially_copy_constructible_v<itk::TimeStamp>, "Check TimeStamp copy-constructibility");
+static_assert(std::is_trivially_copy_assignable_v<itk::TimeStamp>, "Check TimeStamp copy-assignability");
+static_assert(std::is_trivially_destructible_v<itk::TimeStamp>, "Check TimeStamp destructibility");
 
 // A helper struct for the test, the idea is to have one timestamp per thread.
 // To ease the writing of the test, we use  MultiThreaderBase::SingleMethodExecute
 // with an array of timestamps in the shared data
-using TimeStampTestHelper = struct TimeStampTestHelperStruct
+struct TimeStampTestHelper
 {
   std::vector<itk::TimeStamp> timestamps;
   std::vector<unsigned long>  counters;
@@ -33,16 +40,16 @@ using TimeStampTestHelper = struct TimeStampTestHelperStruct
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 modified_function(void * ptr)
 {
-  using ThreadInfoType = itk::MultiThreaderBase::WorkUnitInfo;
+  using WorkUnitInfoType = itk::MultiThreaderBase::WorkUnitInfo;
 
-  auto * infoStruct = static_cast<ThreadInfoType *>(ptr);
+  auto * infoStruct = static_cast<WorkUnitInfoType *>(ptr);
 
-  const itk::ThreadIdType threadId = infoStruct->WorkUnitID;
+  const itk::ThreadIdType workUnitID = infoStruct->WorkUnitID;
 
   auto * helper = static_cast<TimeStampTestHelper *>(infoStruct->UserData);
 
-  helper->timestamps[threadId].Modified();
-  helper->counters[threadId]++;
+  helper->timestamps[workUnitID].Modified();
+  helper->counters[workUnitID]++;
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
@@ -57,7 +64,7 @@ itkTimeStampTest(int, char *[])
     TimeStampTestHelper helper;
 
     // Set up the multithreader
-    itk::MultiThreaderBase::Pointer multithreader = itk::MultiThreaderBase::New();
+    const itk::MultiThreaderBase::Pointer multithreader = itk::MultiThreaderBase::New();
     multithreader->SetNumberOfWorkUnits(itk::ITK_MAX_THREADS + 10); // this will be clamped
     multithreader->SetSingleMethod(modified_function, &helper);
 
@@ -83,7 +90,7 @@ itkTimeStampTest(int, char *[])
 
     // Declare an array to test whether the all modified times have
     // been used
-    std::vector<bool> istimestamped(numberOfWorkUnits);
+    const auto istimestamped = std::make_unique<bool[]>(numberOfWorkUnits);
 
     // Call Modified once  on any object to make it up-to-date
     multithreader->Modified();
@@ -113,7 +120,7 @@ itkTimeStampTest(int, char *[])
           min_mtime = mtime;
         }
 
-        // initialiaze the array to false
+        // initialize the array to false
         istimestamped[k] = false;
       }
 
@@ -127,7 +134,7 @@ itkTimeStampTest(int, char *[])
           // been used
           const itk::ModifiedTimeType index = helper.timestamps[k].GetMTime() - min_mtime;
 
-          if (istimestamped[index] == true)
+          if (istimestamped[index])
           {
             iter_success = false;
             std::cerr << helper.timestamps[k].GetMTime() << " was used twice as a timestamp!" << std::endl;

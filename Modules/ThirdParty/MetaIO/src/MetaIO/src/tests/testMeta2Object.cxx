@@ -40,27 +40,33 @@ main(int, char *[])
   float myMatrix[4];
   for (i = 0; i < 4; i++)
   {
-    myMatrix[i] = i;
+    myMatrix[i] = static_cast<float>(i);
   }
   tObj.AddUserField("MyMatrix", MET_FLOAT_MATRIX, 2, myMatrix);
 
+  std::cout << "*** Writing this info..." << std::endl;
   tObj.PrintInfo();
   tObj.Write();
 
   tObj.Clear();
   tObj.ClearUserFields();
 
+  std::cout << "*** Adding user fields..." << std::endl;
   tObj.AddUserField("MyName", MET_STRING);
   tObj.AddUserField("MyArray", MET_INT_ARRAY, 3);
   tObj.AddUserField("MyMatrix", MET_FLOAT_MATRIX, 2);
 
+  std::cout << "*** Pre-reading..." << std::endl;
+  tObj.PrintInfo();
+  std::cout << "*** Reading..." << std::endl;
   tObj.Read();
+  std::cout << "*** Reading results..." << std::endl;
   tObj.PrintInfo();
 
   char * name = static_cast<char *>(tObj.GetUserField("MyName"));
-  if (strcmp(name, "Julien") != 0)
+  if (name == nullptr || strcmp(name, "Julien") != 0)
   {
-    std::cout << "MyName: FAIL" << std::endl;
+    std::cout << "MyName: FAIL" << '\n';
     return EXIT_FAILURE;
   }
 
@@ -69,9 +75,9 @@ main(int, char *[])
   int * array = static_cast<int *>(tObj.GetUserField("MyArray"));
   for (i = 0; i < 3; i++)
   {
-    if (array[i] != i + 1)
+    if (array == nullptr || array[i] != i + 1)
     {
-      std::cout << "MyArray: FAIL" << std::endl;
+      std::cout << "MyArray: FAIL" << '\n';
       delete[] array;
       return EXIT_FAILURE;
     }
@@ -82,9 +88,9 @@ main(int, char *[])
   auto * matrix = static_cast<float *>(tObj.GetUserField("MyMatrix"));
   for (i = 0; i < 4; i++)
   {
-    if (matrix[i] != i)
+    if (matrix == nullptr || matrix[i] != i)
     {
-      std::cout << "MyMatrix: FAIL" << std::endl;
+      std::cout << "MyMatrix: FAIL" << '\n';
       delete[] matrix;
       return EXIT_FAILURE;
     }
@@ -92,7 +98,7 @@ main(int, char *[])
 
   delete[] matrix;
 
-  std::cout << "PASSED!" << std::endl;
+  std::cout << "PASSED!" << '\n';
 
   tObj.Clear();
   tObj.ClearUserFields();
@@ -109,46 +115,46 @@ main(int, char *[])
   tObj.PrintInfo();
   if (tObj.NDims() != 2)
   {
-    std::cout << "NDims: FAIL" << std::endl;
+    std::cout << "NDims: FAIL" << '\n';
     return EXIT_FAILURE;
   }
   else
   {
-    std::cout << "NDims: PASS" << std::endl;
+    std::cout << "NDims: PASS" << '\n';
   }
 
   int zero = 0;
   if (tObj.Position(zero) != 4)
   {
-    std::cout << "Position: FAIL :" << tObj.Position(zero) << std::endl;
+    std::cout << "Position: FAIL :" << tObj.Position(zero) << '\n';
     return EXIT_FAILURE;
   }
   else
   {
-    std::cout << "Position: PASS" << std::endl;
+    std::cout << "Position: PASS" << '\n';
   }
 
   if (tObj.ElementSpacing(zero) != 2)
   {
-    std::cout << "ElementSpacing: FAIL: " << tObj.ElementSpacing(zero) << std::endl;
+    std::cout << "ElementSpacing: FAIL: " << tObj.ElementSpacing(zero) << '\n';
     return EXIT_FAILURE;
   }
   else
   {
-    std::cout << "ElementSpacing: PASS" << std::endl;
+    std::cout << "ElementSpacing: PASS" << '\n';
   }
 
   auto * inDataChar = new char[1];
   inDataChar[0] = 1;
   auto * outDataChar = new char[1];
-  if (!MET_ValueToValue(MET_CHAR_ARRAY, inDataChar, 0, MET_CHAR_ARRAY, outDataChar))
+  if (!MET_ValueToValueN(MET_CHAR_ARRAY, inDataChar, 0, MET_CHAR_ARRAY, outDataChar, 1))
   {
-    std::cout << "MET_ValueToValue: FAIL" << std::endl;
+    std::cout << "MET_ValueToValueN: FAIL" << '\n';
     return EXIT_FAILURE;
   }
   else
   {
-    std::cout << "outDataChar = " << static_cast<int>(outDataChar[0]) << std::endl;
+    std::cout << "outDataChar = " << static_cast<int>(outDataChar[0]) << '\n';
   }
 
   delete[] inDataChar;
@@ -157,20 +163,20 @@ main(int, char *[])
   auto * inDataUChar = new unsigned char[1];
   inDataUChar[0] = 1;
   auto * outDataUChar = new unsigned char[1];
-  if (!MET_ValueToValue(MET_UCHAR_ARRAY, inDataUChar, 0, MET_UCHAR_ARRAY, outDataUChar))
+  if (!MET_ValueToValueN(MET_UCHAR_ARRAY, inDataUChar, 0, MET_UCHAR_ARRAY, outDataUChar, 1))
   {
-    std::cout << "MET_ValueToValue: FAIL" << std::endl;
+    std::cout << "MET_ValueToValueN: FAIL" << '\n';
     return EXIT_FAILURE;
   }
   else
   {
-    std::cout << "outDataUChar = " << static_cast<int>(outDataUChar[0]) << std::endl;
+    std::cout << "outDataUChar = " << static_cast<int>(outDataUChar[0]) << '\n';
   }
 
   delete[] inDataUChar;
   delete[] outDataUChar;
 
 
-  std::cout << "[DONE]" << std::endl;
+  std::cout << "[DONE]" << '\n';
   return EXIT_SUCCESS;
 }

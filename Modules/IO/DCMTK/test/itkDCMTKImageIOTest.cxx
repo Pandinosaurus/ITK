@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +20,21 @@
 #include "itkImageFileWriter.h"
 #include "itkDCMTKImageIO.h"
 #include "itkRescaleIntensityImageFilter.h"
+#include "itkTestingMacros.h"
 
 #include <fstream>
 
 // Specific ImageIO test
 
 int
-itkDCMTKImageIOTest(int ac, char * av[])
+itkDCMTKImageIOTest(int argc, char * argv[])
 {
 
-  if (ac < 5)
+  if (argc < 5)
   {
-    std::cerr << "Usage: " << av[0] << " DicomImage OutputDicomImage OutputImage RescalDicomImage\n";
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " DicomImage OutputDicomImage OutputImage RescalDicomImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -40,23 +43,15 @@ itkDCMTKImageIOTest(int ac, char * av[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
   using ImageIOType = itk::DCMTKImageIO;
-  ImageIOType::Pointer dcmtkImageIO = ImageIOType::New();
+  auto dcmtkImageIO = ImageIOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->SetImageIO(dcmtkImageIO);
   // reader->DebugOn();
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   // Rescale intensities and rewrite the image in another format
   //
@@ -64,27 +59,19 @@ itkDCMTKImageIOTest(int ac, char * av[])
   using WriteImageType = itk::Image<WritePixelType, 2>;
   using RescaleFilterType = itk::RescaleIntensityImageFilter<InputImageType, WriteImageType>;
 
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
   rescaler->SetInput(reader->GetOutput());
 
   using Writer2Type = itk::ImageFileWriter<WriteImageType>;
-  Writer2Type::Pointer writer2 = Writer2Type::New();
+  auto writer2 = Writer2Type::New();
   // writer2->DebugOn();
-  writer2->SetFileName(av[3]);
+  writer2->SetFileName(argv[3]);
   writer2->SetInput(rescaler->GetOutput());
 
-  try
-  {
-    writer2->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file writer " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer2->Update());
+
 
   dcmtkImageIO->Print(std::cout);
 

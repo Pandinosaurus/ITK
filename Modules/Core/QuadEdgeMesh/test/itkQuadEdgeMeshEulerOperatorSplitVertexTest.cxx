@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkQuadEdgeMeshEulerOperatorSplitVertexFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorJoinVertexFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkTestingMacros.h"
 
 int
 itkQuadEdgeMeshEulerOperatorSplitVertexTest(int, char *[])
@@ -38,10 +39,10 @@ itkQuadEdgeMeshEulerOperatorSplitVertexTest(int, char *[])
   //
   /////////////////////////////////////////
   std::cout << "Checking SplitVertex." << std::endl;
-  MeshPointer mesh = MeshType::New();
+  const MeshPointer mesh = MeshType::New();
   CreateSquareTriangularMesh<MeshType>(mesh);
 
-  SplitVertex::Pointer splitVertex = SplitVertex::New();
+  auto splitVertex = SplitVertex::New();
   std::cout << "     "
             << "Test No Mesh Input";
   if (splitVertex->Evaluate((QEType *)1, (QEType *)1))
@@ -51,7 +52,8 @@ itkQuadEdgeMeshEulerOperatorSplitVertexTest(int, char *[])
   }
   std::cout << "OK" << std::endl;
 
-  (void)splitVertex->GetNameOfClass();
+  ITK_TEST_EXPECT_EQUAL(std::string_view("QuadEdgeMeshEulerOperatorSplitVertexFunction"),
+                        std::string_view(splitVertex->GetNameOfClass()));
 
   splitVertex->SetInput(mesh);
   std::cout << "     "
@@ -83,7 +85,7 @@ itkQuadEdgeMeshEulerOperatorSplitVertexTest(int, char *[])
   if (mesh->GetPoint(splitVertex->GetNewPointID()).GetValence() != 4)
   {
     std::cout << "FAILED, wrong valence of " << mesh->GetPoint(splitVertex->GetNewPointID()).GetValence()
-              << " for vertex " << splitVertex->GetNewPointID() << "." << std::endl;
+              << " for vertex " << splitVertex->GetNewPointID() << '.' << std::endl;
     return EXIT_FAILURE;
   }
   if (mesh->GetPoint(11).GetValence() != 4)
@@ -135,7 +137,7 @@ itkQuadEdgeMeshEulerOperatorSplitVertexTest(int, char *[])
 
   splitVertex->SetInput(mesh);
 
-  JoinVertex::Pointer joinVertex = JoinVertex::New();
+  auto joinVertex = JoinVertex::New();
   joinVertex->SetInput(mesh);
   if (!joinVertex->Evaluate(splitVertex->Evaluate(mesh->FindEdge(5, 11), mesh->FindEdge(17, 11))))
   {

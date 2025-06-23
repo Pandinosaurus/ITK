@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,9 +34,9 @@ itkBSplineScatteredDataPointSetToImageFilterTest3(int argc, char * argv[])
 
   if (argc < 3)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage:" << std::endl;
-    std::cerr << argv[0] << "inputPointsFile.txt outputImage" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << "inputPointsFile.txt outputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -53,7 +53,7 @@ itkBSplineScatteredDataPointSetToImageFilterTest3(int argc, char * argv[])
 
   using PointSetType = itk::PointSet<PointSetPixelType, ParametricDimension>;
 
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
 
   // Read the input points
   std::ifstream inputFile;
@@ -89,18 +89,16 @@ itkBSplineScatteredDataPointSetToImageFilterTest3(int argc, char * argv[])
   // Instantiate the filter and set the parameters
   using FilterType = itk::BSplineScatteredDataPointSetToImageFilter<PointSetType, ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BSplineScatteredDataPointSetToImageFilter, PointSetToImageFilter);
 
   // Define the parametric domain
-  ImageType::SpacingType spacing;
-  spacing.Fill(0.001);
+  auto                spacing = itk::MakeFilled<ImageType::SpacingType>(0.001);
   ImageType::SizeType size;
   // Adding 0.5 to avoid rounding errors
   size.Fill(static_cast<unsigned int>(1.0 / spacing[0] + .5) + 1);
-  ImageType::PointType origin;
-  origin.Fill(0.0);
+  constexpr ImageType::PointType origin{};
 
   filter->SetSize(size);
   filter->SetOrigin(origin);
@@ -108,15 +106,14 @@ itkBSplineScatteredDataPointSetToImageFilterTest3(int argc, char * argv[])
   filter->SetInput(pointSet);
 
   filter->SetSplineOrder(3);
-  FilterType::ArrayType ncps;
-  ncps.Fill(4);
+  auto ncps = itk::MakeFilled<FilterType::ArrayType>(4);
   filter->SetNumberOfControlPoints(ncps);
 
   // We set an extreme number of levels to show how this
   // fails because of the choice of B-spline epsilon
   filter->SetNumberOfLevels(15);
 
-  bool generateOutputImage = true;
+  constexpr bool generateOutputImage = true;
   filter->SetGenerateOutputImage(generateOutputImage);
   ITK_TEST_SET_GET_VALUE(generateOutputImage, filter->GetGenerateOutputImage());
 
@@ -130,19 +127,19 @@ itkBSplineScatteredDataPointSetToImageFilterTest3(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
   // Get the filter output
-  ImageType::Pointer outputImage = filter->GetOutput();
+  const ImageType::Pointer outputImage = filter->GetOutput();
 
   // Cast the output image
   using CastImageFilterType = itk::CastImageFilter<ImageType, OutputImageType>;
 
-  CastImageFilterType::Pointer caster = CastImageFilterType::New();
+  auto caster = CastImageFilterType::New();
 
   caster->SetInput(outputImage);
 
   // Write the result image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
 

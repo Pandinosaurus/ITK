@@ -23,7 +23,6 @@ namespace METAIO_NAMESPACE
 
 /** MetaTransform constructors */
 MetaTransform::MetaTransform()
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaTransform()" );
   MetaTransform::Clear();
@@ -31,7 +30,6 @@ MetaTransform::MetaTransform()
 
 //
 MetaTransform::MetaTransform(const char * _headerName)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaTransform()" );
   MetaTransform::Clear();
@@ -40,7 +38,6 @@ MetaTransform::MetaTransform(const char * _headerName)
 
 //
 MetaTransform::MetaTransform(const MetaTransform * _group)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaTransform()" );
   MetaTransform::Clear();
@@ -304,7 +301,7 @@ MetaTransform::M_Write()
 
   if (!MetaObject::M_Write())
   {
-    std::cout << "MetaLandmark: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaLandmark: M_Read: Error parsing file" << '\n';
     return false;
   }
 
@@ -328,7 +325,7 @@ MetaTransform::M_Write()
     {
       *m_WriteStream << parameters[i] << " ";
     }
-    *m_WriteStream << std::endl;
+    *m_WriteStream << '\n';
   }
 
   return true;
@@ -429,7 +426,7 @@ MetaTransform::M_Read()
 
   if (!MetaObject::M_Read())
   {
-    std::cout << "MetaTransform: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaTransform: M_Read: Error parsing file" << '\n';
     return false;
   }
 
@@ -499,8 +496,8 @@ MetaTransform::M_Read()
     auto gc = static_cast<unsigned int>(m_ReadStream->gcount());
     if (gc != parametersDimension * sizeof(double))
     {
-      std::cout << "MetaTransform: m_Read: data not read completely" << std::endl;
-      std::cout << "   ideal = " << parametersDimension * sizeof(double) << " : actual = " << gc << std::endl;
+      std::cout << "MetaTransform: m_Read: data not read completely" << '\n';
+      std::cout << "   ideal = " << parametersDimension * sizeof(double) << " : actual = " << gc << '\n';
       delete[] _data;
       return false;
     }

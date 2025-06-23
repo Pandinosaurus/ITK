@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkZeroCrossingBasedEdgeDetectionImageFilter_hxx
 #define itkZeroCrossingBasedEdgeDetectionImageFilter_hxx
 
-#include "itkZeroCrossingBasedEdgeDetectionImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkLaplacianImageFilter.h"
 #include "itkZeroCrossingImageFilter.h"
@@ -30,29 +29,26 @@ namespace itk
 
 template <typename TInputImage, typename TOutputImage>
 ZeroCrossingBasedEdgeDetectionImageFilter<TInputImage, TOutputImage>::ZeroCrossingBasedEdgeDetectionImageFilter()
+  : m_BackgroundValue(OutputImagePixelType{})
+  , m_ForegroundValue(NumericTraits<OutputImagePixelType>::OneValue())
 {
   m_Variance.Fill(1.0);
   m_MaximumError.Fill(0.01);
-  m_BackgroundValue = NumericTraits<OutputImagePixelType>::ZeroValue();
-  m_ForegroundValue = NumericTraits<OutputImagePixelType>::OneValue();
 }
 
 template <typename TInputImage, typename TOutputImage>
 void
 ZeroCrossingBasedEdgeDetectionImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  typename InputImageType::ConstPointer input = this->GetInput();
+  const typename InputImageType::ConstPointer input = this->GetInput();
 
   // Create the filters that are needed
-  typename DiscreteGaussianImageFilter<TInputImage, TOutputImage>::Pointer gaussianFilter =
-    DiscreteGaussianImageFilter<TInputImage, TOutputImage>::New();
-  typename LaplacianImageFilter<TInputImage, TOutputImage>::Pointer laplacianFilter =
-    LaplacianImageFilter<TInputImage, TOutputImage>::New();
-  typename ZeroCrossingImageFilter<TInputImage, TOutputImage>::Pointer zerocrossingFilter =
-    ZeroCrossingImageFilter<TInputImage, TOutputImage>::New();
+  auto gaussianFilter = DiscreteGaussianImageFilter<TInputImage, TOutputImage>::New();
+  auto laplacianFilter = LaplacianImageFilter<TInputImage, TOutputImage>::New();
+  auto zerocrossingFilter = ZeroCrossingImageFilter<TInputImage, TOutputImage>::New();
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Construct the mini-pipeline

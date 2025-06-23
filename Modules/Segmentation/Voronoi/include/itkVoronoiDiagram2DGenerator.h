@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,15 +29,13 @@ namespace itk
  * \brief Implement the Sweep Line Algorithm for the construction of the
  *        2D Voronoi Diagram.
  *
- * Detailed information on this method can be found in:
- * "A sweepline algorithm for Voronoi diagrams."
- * S. Fortune, Algorithmica 2, 153-174, 1987.
+ * Detailed information on this method can be found in \cite fortune1987.
  *
  * Input parameters are:
  * (1) Size of the region.
  * (2) Seed points coordinates. These coordinates can also be randomly set.
  *
- * \tparam TCoordType The type associated with the coordination of the seeds
+ * \tparam TCoordinate The type associated with the coordination of the seeds
  * and the resulting vertices.
  *
  * \ingroup ITKVoronoi
@@ -46,25 +44,25 @@ namespace itk
  * \sphinxexample{Segmentation/Voronoi/VoronoiDiagram,Voronoi Diagram}
  * \endsphinx
  */
-template <typename TCoordType>
-class ITK_TEMPLATE_EXPORT VoronoiDiagram2DGenerator : public MeshSource<VoronoiDiagram2D<TCoordType>>
+template <typename TCoordinate>
+class ITK_TEMPLATE_EXPORT VoronoiDiagram2DGenerator : public MeshSource<VoronoiDiagram2D<TCoordinate>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VoronoiDiagram2DGenerator);
 
   using Self = VoronoiDiagram2DGenerator;
-  using Superclass = MeshSource<VoronoiDiagram2D<TCoordType>>;
+  using Superclass = MeshSource<VoronoiDiagram2D<TCoordinate>>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Standard part of every itk Object. */
-  itkTypeMacro(VoronoiDiagram2DGenerator, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VoronoiDiagram2DGenerator);
 
   /** Convenient type alias. */
-  using VoronoidDiagramType = VoronoiDiagram2D<TCoordType>;
+  using VoronoidDiagramType = VoronoiDiagram2D<TCoordinate>;
   using VDMesh = VoronoidDiagramType;
   using SeedsIterator = typename VDMesh::SeedsIterator;
   using OutputType = typename VDMesh::Pointer;
@@ -72,7 +70,11 @@ public:
   using SeedsType = typename VDMesh::SeedsType;
   using EdgeInfo = typename VDMesh::EdgeInfo;
   using EdgeInfoDQ = typename VDMesh::EdgeInfoDQ;
-  using CoordRepType = typename VDMesh::CoordRepType;
+  using CoordinateType = typename VDMesh::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using VoronoiEdge = typename VDMesh::VoronoiEdge;
 
   /** Get the number of seed points. */
@@ -131,9 +133,9 @@ protected:
 
 private:
   unsigned int m_NumberOfSeeds{ 0 };
-  PointType    m_VorBoundary;
-  OutputType   m_OutputVD;
-  SeedsType    m_Seeds;
+  PointType    m_VorBoundary{};
+  OutputType   m_OutputVD{};
+  SeedsType    m_Seeds{};
 
   /** Compare point coordinates in the y direction. */
   static bool
@@ -165,7 +167,7 @@ private:
     FortuneSite()
       : m_Sitenbr(NumericTraits<int>::max())
     {
-      m_Coord.Fill(NumericTraits<CoordRepType>::max());
+      m_Coord.Fill(NumericTraits<CoordinateType>::max());
     }
 
     ~FortuneSite() = default;
@@ -229,16 +231,16 @@ private:
   unsigned int                 m_PQhashsize{ 0 };
   unsigned int                 m_Nedges{ 0 };
   unsigned int                 m_Nvert{ 0 };
-  FortuneSite *                m_BottomSite;
-  std::vector<FortuneHalfEdge> m_PQHash;
+  FortuneSite *                m_BottomSite{};
+  std::vector<FortuneHalfEdge> m_PQHash{};
 
   unsigned int                   m_ELhashsize{ 0 };
-  FortuneHalfEdge                m_ELleftend;
-  FortuneHalfEdge                m_ELrightend;
-  std::vector<FortuneHalfEdge *> m_ELHash;
+  FortuneHalfEdge                m_ELleftend{};
+  FortuneHalfEdge                m_ELrightend{};
+  std::vector<FortuneHalfEdge *> m_ELHash{};
 
-  FortuneEdge              m_DELETED;
-  std::vector<FortuneSite> m_SeedSites;
+  FortuneEdge              m_DELETED{};
+  std::vector<FortuneSite> m_SeedSites{};
 
   /** Methods to convert the result from Fortune Algorithm into itkMesh
    * structure.
@@ -247,7 +249,7 @@ private:
   differentPoint(PointType p1, PointType p2);
 
   bool
-  almostsame(CoordRepType p1, CoordRepType p2);
+  almostsame(CoordinateType p1, CoordinateType p2);
 
   unsigned char
   Pointonbnd(int VertID);

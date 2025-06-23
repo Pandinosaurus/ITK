@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkMacro.h"
 #include "itkHexahedronCell.h"
 #include "itkLineCell.h"
+#include "itkPolyLineCell.h"
 #include "itkMeshIOBase.h"
 #include "itkMeshSource.h"
 #include "itkPolygonCell.h"
@@ -39,7 +40,7 @@ namespace itk
 {
 
 /**
- *\class MeshFileReader
+ * \class MeshFileReader
  * \brief Mesh source that reads mesh data from a single file.
  *
  * This source object is a general filter to read data from
@@ -67,7 +68,7 @@ namespace itk
  * \ingroup IOFilters
  * \ingroup ITKIOMeshBase
  *
- * \author Wanlin Zhu. Uviversity of New South Wales, Australia.
+ * \author Wanlin Zhu. University of New South Wales, Australia.
  *
  * \sphinx
  * \sphinxexample{IO/Mesh/ReadMesh,Read Mesh}
@@ -76,7 +77,7 @@ namespace itk
 
 template <typename TOutputMesh,
           typename ConvertPointPixelTraits = MeshConvertPixelTraits<typename TOutputMesh::PixelType>,
-          class ConvertCellPixelTraits = MeshConvertPixelTraits<typename TOutputMesh::CellPixelType>>
+          typename ConvertCellPixelTraits = MeshConvertPixelTraits<typename TOutputMesh::CellPixelType>>
 class ITK_TEMPLATE_EXPORT MeshFileReader : public MeshSource<TOutputMesh>
 {
 public:
@@ -91,12 +92,16 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeshFileReader, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshFileReader);
 
   /** Define output mesh types */
   using OutputMeshType = TOutputMesh;
-  using OutputCoordRepType = typename OutputMeshType::CoordRepType;
+  using OutputCoordinateType = typename OutputMeshType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using OutputCoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `OutputCoordRepType`. Please use `OutputCoordinateType` instead!") = OutputCoordinateType;
+#endif
   using OutputPointPixelType = typename OutputMeshType::PixelType;
   using OutputCellPixelType = typename OutputMeshType::CellPixelType;
   using OutputPointType = typename OutputMeshType::PointType;
@@ -108,6 +113,7 @@ public:
 
   using OutputVertexCellType = VertexCell<OutputCellType>;
   using OutputLineCellType = LineCell<OutputCellType>;
+  using OutputPolyLineCellType = PolyLineCell<OutputCellType>;
   using OutputTriangleCellType = TriangleCell<OutputCellType>;
   using OutputPolygonCellType = PolygonCell<OutputCellType>;
   using OutputTetrahedronCellType = TetrahedronCell<OutputCellType>;
@@ -120,8 +126,10 @@ public:
   static constexpr unsigned int OutputPointDimension = OutputMeshType::PointDimension;
 
   /** Specify the file to read. This is forwarded to the IO instance. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
+  /** @ITKEndGrouping */
 
   /** Set/Get the MeshIO helper class. Often this is created via the object
    * factory mechanism that determines whether a particular MeshIO can
@@ -129,9 +137,11 @@ public:
    * instance that is created. Or you can directly specify the MeshIO
    * to use to read a particular file in case the factory mechanism will
    * not work properly (e.g., unknown or unusual extension). */
+  /** @ITKStartGrouping */
   void
   SetMeshIO(MeshIOBase * meshIO);
   itkGetModifiableObjectMacro(MeshIO, MeshIOBase);
+  /** @ITKEndGrouping */
 
   /** Prepare the allocation of the output mesh during the first back
    * propagation of the pipeline. */
@@ -179,21 +189,51 @@ protected:
   void
   GenerateData() override;
 
-  MeshIOBase::Pointer m_MeshIO;
-  bool                m_UserSpecifiedMeshIO; // keep track whether the MeshIO is
-                                             // user specified
-  std::string m_FileName;                    // The file to be read
+  MeshIOBase::Pointer m_MeshIO{};
+  bool                m_UserSpecifiedMeshIO{}; // keep track whether the MeshIO is
+                                               // user specified
+  std::string m_FileName{};                    // The file to be read
 
 private:
-  std::string m_ExceptionMessage;
+  template <typename T>
+  void
+  ReadPointsUsingMeshIO();
+
+  template <typename T>
+  void
+  ReadCellsUsingMeshIO();
+
+  std::string m_ExceptionMessage{};
 };
+
+
+/** Convenience function for reading a mesh.
+ *
+ * `TOutputMesh` is the expected output mesh type, and the optional
+ * `ConvertPointPixelTraits`, ``ConvertCellPixelTraits` template parameters are used to do the conversion,
+ * as specified by MeshFileReader.
+ *
+ * The function reads the mesh from the specified file, and returns the
+ * mesh that it has read.
+ * */
+template <typename TOutputMesh,
+          typename ConvertPointPixelTraits = MeshConvertPixelTraits<typename TOutputMesh::PixelType>,
+          typename ConvertCellPixelTraits = MeshConvertPixelTraits<typename TOutputMesh::CellPixelType>>
+typename TOutputMesh::Pointer
+ReadMesh(const std::string & filename)
+{
+  const auto reader = MeshFileReader<TOutputMesh, ConvertPointPixelTraits, ConvertCellPixelTraits>::New();
+  reader->SetFileName(filename);
+  reader->Update();
+  return reader->GetOutput();
+}
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMeshFileReader.hxx"
 #endif
 
-#ifdef ITK_IO_FACTORY_REGISTER_MANAGER
+#if defined ITK_MESHIO_FACTORY_REGISTER_MANAGER || defined ITK_IO_FACTORY_REGISTER_MANAGER
 #  include "itkMeshIOFactoryRegisterManager.h"
 #endif
 

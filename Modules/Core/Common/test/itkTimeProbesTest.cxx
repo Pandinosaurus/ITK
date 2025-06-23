@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,9 @@ TestTransformIndexToPhysicalPoint(T * image)
       }
     }
     if (k == 5)
+    {
       std::cout << point3D << std::endl;
+    }
   }
 }
 template <typename T>
@@ -62,11 +64,13 @@ TestTransformPhysicalPointToIndex(T * image)
       for (int i = 0; i < 1000; ++i)
       {
         point3D[0] = static_cast<typename itk::NumericTraits<typename T::PointType>::ValueType>(i);
-        image->TransformPhysicalPointToIndex(point3D, index3D);
+        index3D = image->TransformPhysicalPointToIndex(point3D);
       }
     }
     if (k == 5)
+    {
       std::cout << point3D << std::endl;
+    }
   }
 }
 //-------------------------
@@ -121,13 +125,13 @@ itkTimeProbesTest(int, char *[])
 
     using Image3DType = itk::Image<float, 3>;
 
-    Image3DType::Pointer image3D = Image3DType::New();
-    Image3DType::Pointer orientedImage3D = Image3DType::New();
+    auto image3D = Image3DType::New();
+    auto orientedImage3D = Image3DType::New();
 
     using Region3DType = itk::ImageRegion<3>;
     using Size3DType = Region3DType::SizeType;
-    Region3DType region3D;
-    Size3DType   size3D = { { 1000, 1000, 1000 } };
+    Region3DType         region3D;
+    constexpr Size3DType size3D = { { 1000, 1000, 1000 } };
 
     region3D.SetSize(size3D);
     collector.Start("i:TransformIndexToPhysicalPoint");
@@ -147,22 +151,22 @@ itkTimeProbesTest(int, char *[])
     collector.Stop("o:TransformPhysicalPointToIndex");
   }
 
-  // Print a regualr report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
+  // Print a regular report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
   std::cout << std::endl << "Print normal reports from all probes" << std::endl;
   collector.Report();
 
-  // Print a regualr report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
+  // Print a regular report (including nameOfProbe, Iteration, Total, Min, Mean, Max, and STD)
   // of the probe of "Loop1"
   std::cout << std::endl << "Print a normal report of a specific probe" << std::endl;
   collector.Report("Loop1");
 
-  // Print a expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
+  // Print an expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
   //                          Mean/Min *100 (%), Mean, Max, Max- Mean, Max/Mean(%),
   //                          Total Diff(:Max - Min) and STD)
   std::cout << std::endl << "Print expanded reports from all probes" << std::endl;
   collector.ExpandedReport();
 
-  // Print a expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
+  // Print an expanded report (including nameOfProbe, Iteration, Total, Min, Mean-Min
   //                          Mean/Min *100 (%), Mean, Max, Max- Mean, Max/Mean(%),
   //                          Total Diff(:Max - Min) and STD)
   std::cout << std::endl << "Print an expanded report of a specific probe" << std::endl;
@@ -174,7 +178,7 @@ itkTimeProbesTest(int, char *[])
   std::cout << std::endl << "Print a JSON report of a specific probe" << std::endl;
   collector.JSONReport("o:TransformPhysicalPointToIndex");
 
-  // Test writing to a ostream
+  // Test writing to an ostream
   std::ofstream logfile;
   logfile.open("itkTimeProbesTest.txt");
   collector.Report(logfile);

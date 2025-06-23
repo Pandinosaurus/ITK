@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ protected:
   {
     // mark used to avoid warnings
     (void)&Self::Clone;
-  };
+  }
 
 public:
   void
@@ -77,8 +77,9 @@ public:
 
 template <unsigned int TDimension>
 int
-ImageRegistration(int itkNotUsed(argc), char * argv[])
+ImageRegistration(int argc, char * argv[])
 {
+  ITK_TEST_EXPECT_TRUE(argc == 4);
   const unsigned int ImageDimension = TDimension;
 
 
@@ -88,30 +89,30 @@ ImageRegistration(int itkNotUsed(argc), char * argv[])
 
   using ImageReaderType = itk::ImageFileReader<FixedImageType>;
 
-  typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName(argv[2]);
   fixedImageReader->Update();
-  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   fixedImage->Update();
   fixedImage->DisconnectPipeline();
 
-  typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
   movingImageReader->SetFileName(argv[3]);
   movingImageReader->Update();
-  typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
   movingImage->Update();
   movingImage->DisconnectPipeline();
 
   // Set up the centered transform initializer
   using TransformType = itk::Euler2DTransform<double>;
-  typename TransformType::Pointer initialTransform = TransformType::New();
+  auto initialTransform = TransformType::New();
 
 
   using MetricType = itk::MeanSquaresImageToImageMetricv4<FixedImageType, MovingImageType>;
-  typename MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   using RegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TransformType>;
-  typename RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   registration->SetFixedImage(fixedImage);
   registration->SetMovingImage(movingImage);
@@ -120,36 +121,29 @@ ImageRegistration(int itkNotUsed(argc), char * argv[])
   registration->SetNumberOfLevels(1);
 
   using Optimizerv4Type = itk::ConjugateGradientLineSearchOptimizerv4;
-  typename Optimizerv4Type::Pointer optimizer = Optimizerv4Type::New();
+  auto optimizer = Optimizerv4Type::New();
 
   optimizer->SetLearningRate(1.0);
   optimizer->SetNumberOfIterations(100);
   optimizer->SetMinimumConvergenceValue(1e-5);
   optimizer->SetConvergenceWindowSize(2);
 
-  double                                           scaleData[] = { 200000, 1.0, 1.0 };
-  typename Optimizerv4Type::ScalesType::Superclass scales(scaleData, 3);
+  double                                                 scaleData[] = { 200000, 1.0, 1.0 };
+  const typename Optimizerv4Type::ScalesType::Superclass scales(scaleData, 3);
   optimizer->SetScales(scales);
 
   registration->SetOptimizer(optimizer);
 
   using CommandType = CommandIterationUpdate<Optimizerv4Type>;
-  typename CommandType::Pointer observer = CommandType::New();
+  auto observer = CommandType::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
-  try
-  {
-    registration->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(registration->Update());
+
 
   registration->GetTransform()->Print(std::cout);
   std::cout << optimizer->GetStopConditionDescription() << std::endl;
-  typename TransformType::ParametersType results = registration->GetTransform()->GetParameters();
+  const typename TransformType::ParametersType results = registration->GetTransform()->GetParameters();
 
   std::cout << "Expecting close (+/- 0.3) to: ( 0.0, -2.8, 9.5 )" << std::endl;
   std::cout << "Parameters: " << results << std::endl;
@@ -166,8 +160,10 @@ itkSimpleImageRegistrationTest4(int argc, char * argv[])
 {
   if (argc < 4)
   {
-    std::cout << argv[0] << " imageDimension fixedImage movingImage" << std::endl;
-    exit(1);
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " imageDimension fixedImage movingImage" << std::endl;
+    return EXIT_FAILURE;
   }
 
   switch (std::stoi(argv[1]))
@@ -177,6 +173,6 @@ itkSimpleImageRegistrationTest4(int argc, char * argv[])
 
     default:
       std::cerr << "Unsupported dimension" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
   }
 }

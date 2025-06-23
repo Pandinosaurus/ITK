@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,16 +68,16 @@ itkRemoveBoundaryObjectsTest(int argc, char * argv[])
 
 
   // Creation of Reader and Writer filters
-  ReaderType::Pointer  reader = ReaderType::New();
-  WriterType::Pointer  writer = WriterType::New();
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto rescaler = RescaleType::New();
 
   // Create the filter
-  FillholeFilterType::Pointer fillhole = FillholeFilterType::New();
+  auto fillhole = FillholeFilterType::New();
 
   // Create the xor and not filter
-  XorFilterType::Pointer xorfilter = XorFilterType::New();
-  NotFilterType::Pointer notfilter = NotFilterType::New();
+  auto xorfilter = XorFilterType::New();
+  auto notfilter = NotFilterType::New();
 
   // Setup the input and output files
   reader->SetFileName(argv[1]);

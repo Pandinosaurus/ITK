@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkChangeLabelLabelMapFilter_hxx
 #define itkChangeLabelLabelMapFilter_hxx
 
-#include "itkChangeLabelLabelMapFilter.h"
 #include "itkProgressReporter.h"
 #include <deque>
 
@@ -37,8 +36,8 @@ ChangeLabelLabelMapFilter<TImage>::SetChangeMap(const ChangeMapType & changeMap)
 }
 
 template <typename TImage>
-const typename ChangeLabelLabelMapFilter<TImage>::ChangeMapType &
-ChangeLabelLabelMapFilter<TImage>::GetChangeMap() const
+auto
+ChangeLabelLabelMapFilter<TImage>::GetChangeMap() const -> const ChangeMapType &
 {
   return m_MapOfLabelToBeReplaced;
 }
@@ -86,7 +85,7 @@ ChangeLabelLabelMapFilter<TImage>::GenerateData()
 
   VectorType labelObjectsToBeRelabeled;
 
-  ChangeMapIterator pairToReplace = m_MapOfLabelToBeReplaced.begin();
+  auto pairToReplace = m_MapOfLabelToBeReplaced.begin();
 
   while (pairToReplace != m_MapOfLabelToBeReplaced.end())
   {
@@ -102,14 +101,14 @@ ChangeLabelLabelMapFilter<TImage>::GenerateData()
     }
 
     progress.CompletedPixel();
-    pairToReplace++;
+    ++pairToReplace;
   }
 
   // ChangeBackgroundIfNeeded
 
   // Check if the background is among the list of labels to relabel.
-  ChangeMapIterator backgroundLabelItr = m_MapOfLabelToBeReplaced.find(output->GetBackgroundValue());
-  const bool        backgroundLabelMustBeReplaced = (backgroundLabelItr != m_MapOfLabelToBeReplaced.end());
+  const auto backgroundLabelItr = m_MapOfLabelToBeReplaced.find(output->GetBackgroundValue());
+  const bool backgroundLabelMustBeReplaced = (backgroundLabelItr != m_MapOfLabelToBeReplaced.end());
 
   // Then change the label of the background if needed
   if (backgroundLabelMustBeReplaced)
@@ -135,7 +134,7 @@ ChangeLabelLabelMapFilter<TImage>::GenerateData()
   while (labelObjectItr != labelObjectsToBeRelabeled.end())
   {
     LabelObjectType * labelObjectSource = *labelObjectItr;
-    PixelType         newLabel = m_MapOfLabelToBeReplaced[labelObjectSource->GetLabel()];
+    const PixelType   newLabel = m_MapOfLabelToBeReplaced[labelObjectSource->GetLabel()];
 
     // Ignore the label if it is the background
     if (newLabel != output->GetBackgroundValue())
@@ -166,7 +165,7 @@ ChangeLabelLabelMapFilter<TImage>::GenerateData()
 
     // go to the next label object
     progress.CompletedPixel();
-    labelObjectItr++;
+    ++labelObjectItr;
   }
 }
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ itkShiftLabelObjectTest(int argc, char * argv[])
 
   using LabelImageToLabelMapFilterType = itk::LabelImageToLabelMapFilter<ImageType, LabelMapType>;
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   SizeType sizeIn;
   sizeIn[0] = 12;
@@ -55,7 +55,7 @@ itkShiftLabelObjectTest(int argc, char * argv[])
 
   IndexType idxVertical;
   idxVertical[0] = 6;
-  for (int ctr = 1; ctr < 12; ctr++)
+  for (int ctr = 1; ctr < 12; ++ctr)
   {
     idxHorizontal[0] = ctr;
     idxVertical[1] = ctr;
@@ -63,7 +63,7 @@ itkShiftLabelObjectTest(int argc, char * argv[])
     image->SetPixel(idxVertical, 1);
   }
 
-  LabelImageToLabelMapFilterType::Pointer conversion = LabelImageToLabelMapFilterType::New();
+  auto conversion = LabelImageToLabelMapFilterType::New();
   conversion->SetInput(image);
   conversion->Update();
 
@@ -79,16 +79,15 @@ itkShiftLabelObjectTest(int argc, char * argv[])
   map->Print(std::cout);
 
   std::cout << "Printing out map." << std::endl;
-  for (int ctrI = 0; ctrI < 11; ctrI++)
+  for (int ctrI = 0; ctrI < 11; ++ctrI)
   {
-    for (int ctrJ = 0; ctrJ < 11; ctrJ++)
+    for (int ctrJ = 0; ctrJ < 11; ++ctrJ)
     {
       IndexType index;
       index[0] = ctrI;
       index[1] = ctrJ;
-      unsigned long val;
-      val = map->GetPixel(index);
-      std::cout << "Pixel[" << ctrI << "," << ctrJ << "]: " << val << std::endl;
+      const unsigned long val = map->GetPixel(index);
+      std::cout << "Pixel[" << ctrI << ',' << ctrJ << "]: " << val << std::endl;
       if ((ctrI == 5) || (ctrJ == 5))
       {
         itkAssertOrThrowMacro((val == 1), "Error in Label Image (foreground).");

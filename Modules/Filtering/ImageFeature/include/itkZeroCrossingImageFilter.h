@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
 namespace itk
 {
 /**
- *\class ZeroCrossingImageFilter
+ * \class ZeroCrossingImageFilter
  * \brief This filter finds the closest pixel to the zero-crossings
  * (sign changes) in a signed itk::Image.
  *
@@ -34,7 +34,7 @@ namespace itk
  *  \par Inputs and Outputs
  *  The input to this filter is an itk::Image of arbitrary dimension.  The
  *  algorithm assumes a signed data type (zero-crossings are not defined for
- *  unsigned data types), and requires that operator>, operator<, operator==,
+ *  unsigned int data types), and requires that operator>, operator<, operator==,
  *  and operator!= are defined.
  *
  *  \par
@@ -42,7 +42,7 @@ namespace itk
  *  By default, zero-crossing pixels are labeled with a default "foreground"
  *  value of itk::NumericTraits<OutputDataType>::OneValue(), where OutputDataType is
  *  the data type of the output image.  All other pixels are labeled with a
- *  default "background" value of itk::NumericTraits<OutputDataType>::ZeroValue().
+ *  default "background" value of OutputDataType{}.
  *
  *  \par Parameters
  *  There are two parameters for this filter.  ForegroundValue is the value
@@ -88,8 +88,8 @@ public:
   /** Typedef to describe the output image region type. */
   using OutputImageRegionType = typename TOutputImage::RegionType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ZeroCrossingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ZeroCrossingImageFilter);
 
   /** ImageDimension enumeration   */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -97,7 +97,7 @@ public:
 
   /** ZeroCrossingImageFilter needs a larger input requested
    * region than the output requested region (larger by the kernel
-   * size to do comparisons between the central pixel and ite neighbors).
+   * size to do comparisons between the central pixel and its neighbors).
    * Thus ZeroCrossingImageFilter needs to provide an implementation
    * for GenerateInputRequestedRegion() in order to inform the
    * pipeline execution model.
@@ -107,21 +107,19 @@ public:
   GenerateInputRequestedRegion() override;
 
   /** Set/Get the label value for zero-crossing pixels. */
+  /** @ITKStartGrouping */
   itkSetMacro(ForegroundValue, OutputImagePixelType);
   itkGetConstMacro(ForegroundValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the label value for non-zero-crossing pixels. */
+  /** @ITKStartGrouping */
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputComparableCheck, (Concept::Comparable<InputImagePixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   ZeroCrossingImageFilter();
@@ -129,8 +127,8 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  OutputImagePixelType m_BackgroundValue;
-  OutputImagePixelType m_ForegroundValue;
+  OutputImagePixelType m_BackgroundValue{};
+  OutputImagePixelType m_ForegroundValue{};
 
   /**
    * ZeroCrossingImageFilter can be implemented as a multithreaded filter.

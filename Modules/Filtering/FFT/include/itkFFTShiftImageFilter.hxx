@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,11 @@
 #ifndef itkFFTShiftImageFilter_hxx
 #define itkFFTShiftImageFilter_hxx
 
-#include "itkFFTShiftImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-FFTShiftImageFilter<TInputImage, TOutputImage>::FFTShiftImageFilter()
-{
-  m_Inverse = false;
-}
+FFTShiftImageFilter<TInputImage, TOutputImage>::FFTShiftImageFilter() = default;
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -37,12 +33,12 @@ FFTShiftImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // Compute the shift.
   typename Superclass::OffsetType shift;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     shift[i] = (size[i] / 2);
     if (m_Inverse)
     {
-      shift[i] = -shift[i];
+      shift[i] *= -1;
     }
   }
 

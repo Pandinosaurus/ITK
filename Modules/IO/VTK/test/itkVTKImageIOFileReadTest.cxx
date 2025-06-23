@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,11 +23,11 @@
 
 template <class TImage>
 int
-ReadImage(const std::string fileName, typename TImage::Pointer image)
+ReadImage(const std::string & fileName, typename TImage::Pointer image)
 {
 
   using IOType = itk::VTKImageIO;
-  IOType::Pointer vtkIO = IOType::New();
+  auto vtkIO = IOType::New();
 
   if (!vtkIO->CanReadFile(fileName.c_str()))
   {
@@ -37,7 +37,7 @@ ReadImage(const std::string fileName, typename TImage::Pointer image)
   using ImageType = TImage;
   using ImageReaderType = itk::ImageFileReader<ImageType>;
 
-  typename ImageReaderType::Pointer reader = ImageReaderType::New();
+  auto reader = ImageReaderType::New();
   reader->SetImageIO(vtkIO);
   reader->SetFileName(fileName);
 
@@ -70,7 +70,7 @@ itkVTKImageIOFileReadTest(int argc, char * argv[])
 
   // Read matrix.vtk file
   using matrixImageType = itk::Image<float, 2>;
-  matrixImageType::Pointer matriximage = matrixImageType::New();
+  auto matriximage = matrixImageType::New();
 
   if (ReadImage<matrixImageType>(argv[1], matriximage) == EXIT_FAILURE)
   {
@@ -81,7 +81,7 @@ itkVTKImageIOFileReadTest(int argc, char * argv[])
 
   // Read ironProt.vtk file
   using ironProtImageType = itk::Image<unsigned char, 3>;
-  ironProtImageType::Pointer ironProtimage = ironProtImageType::New();
+  auto ironProtimage = ironProtImageType::New();
 
   if (ReadImage<ironProtImageType>(argv[2], ironProtimage) == EXIT_FAILURE)
   {

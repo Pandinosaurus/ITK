@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSliceBySliceImageFilter_hxx
 #define itkSliceBySliceImageFilter_hxx
 
-#include "itkSliceBySliceImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageAlgorithm.h"
 
@@ -36,12 +35,10 @@ SliceBySliceImageFilter<TInputImage,
                         TOutputFilter,
                         TInternalInputImageType,
                         TInternalOutputImageType>::SliceBySliceImageFilter()
-{
-  m_InputFilter = nullptr;
-  m_OutputFilter = nullptr;
-  this->m_Dimension = ImageDimension - 1;
-  m_SliceIndex = 0;
-}
+  : m_Dimension(ImageDimension - 1)
+  , m_InputFilter(nullptr)
+  , m_OutputFilter(nullptr)
+{}
 
 template <typename TInputImage,
           typename TOutputImage,
@@ -55,7 +52,7 @@ SliceBySliceImageFilter<TInputImage,
                         TInputFilter,
                         TOutputFilter,
                         TInternalInputImageType,
-                        TInternalOutputImageType>::VerifyInputInformation() ITKv5_CONST
+                        TInternalOutputImageType>::VerifyInputInformation() const
 {
 
   Superclass::VerifyInputInformation();
@@ -255,7 +252,7 @@ SliceBySliceImageFilter<TInputImage,
   using InternalInputImagePointer = typename InternalInputImageType::Pointer;
   std::vector<InternalInputImagePointer> internalInputs(this->GetNumberOfIndexedInputs());
 
-  for (unsigned int i = 0; i < numberOfIndexedInputs; i++)
+  for (unsigned int i = 0; i < numberOfIndexedInputs; ++i)
   {
 
     InternalSpacingType internalInputSpacing;
@@ -285,14 +282,13 @@ SliceBySliceImageFilter<TInputImage,
     this->InvokeEvent(IterationEvent());
 
     // update the origin on a per-slice basis
-    for (unsigned int i = 0; i < numberOfIndexedInputs; i++)
+    for (unsigned int i = 0; i < numberOfIndexedInputs; ++i)
     {
       // Passing through a N-1 direction matrix to the internal slice filter is
       // not supported to avoid dealing with singularities, but we still account
       // for the direction matrix when collapsing the origin to an N-1
       // point.
-      typename InputImageType::IndexType originIndex;
-      originIndex.Fill(0);
+      typename InputImageType::IndexType originIndex{};
       originIndex[m_Dimension] = slice;
 
       typename InputImageType::PointType inputOrigin;
@@ -340,7 +336,7 @@ SliceBySliceImageFilter<TInputImage,
 
     // reallocate the internal input at each slice, so the slice by slice filter can work
     // even if the pipeline is run in place
-    for (unsigned int i = 0; i < numberOfIndexedInputs; i++)
+    for (unsigned int i = 0; i < numberOfIndexedInputs; ++i)
     {
       internalInputs[i]->SetRegions(internalInputRegion);
       internalInputs[i]->Allocate();
@@ -358,7 +354,7 @@ SliceBySliceImageFilter<TInputImage,
     progress.CompletedPixel();
 
     // and copy the output slice to the output image
-    for (unsigned int i = 0; i < numberOfIndexedOutputs; i++)
+    for (unsigned int i = 0; i < numberOfIndexedOutputs; ++i)
     {
       ImageAlgorithm::Copy(this->m_OutputFilter->GetOutput(i), this->GetOutput(i), internalOutputRegion, outputRegion);
     }

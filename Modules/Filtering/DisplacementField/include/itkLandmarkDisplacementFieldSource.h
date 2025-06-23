@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,8 +64,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LandmarkDisplacementFieldSource, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LandmarkDisplacementFieldSource);
 
   /** Number of dimensions. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -99,37 +99,42 @@ public:
   /** Get/Set the coordinate transformation.
    * Set the KernelBase spline used for resampling the displacement grid.
    * */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(KernelTransform, KernelTransformType);
   itkGetModifiableObjectMacro(KernelTransform, KernelTransformType);
-
-  /** Set the size of the output image. */
+  /** @ITKEndGrouping */
+  /** Set/Get the output image size. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputRegion, OutputImageRegionType);
-
-  /** Get the size of the output image. */
   itkGetConstReferenceMacro(OutputRegion, OutputImageRegionType);
-
+  /** @ITKEndGrouping */
   /** Set the output image spacing. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputSpacing, SpacingType);
   virtual void
   SetOutputSpacing(const double * spacing);
-
+  /** @ITKEndGrouping */
   /** Get the output image spacing. */
   itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
   /** Set the output image origin. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputOrigin, OriginPointType);
   virtual void
   SetOutputOrigin(const double * origin);
-
-  /** Set the output direction cosine matrix. */
+  /** @ITKEndGrouping */
+  /** Set/Get the output direction cosine matrix. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputDirection, DirectionType);
   itkGetConstReferenceMacro(OutputDirection, DirectionType);
-
+  /** @ITKEndGrouping */
   /** Get the output image origin. */
   itkGetConstReferenceMacro(OutputOrigin, OriginPointType);
 
-  /** Set the list of source landmarks */
+  /** Set the list of source landmarks. */
   itkSetConstObjectMacro(SourceLandmarks, LandmarkContainer);
+
+  /** Set the list of target landmarks. */
   itkSetConstObjectMacro(TargetLandmarks, LandmarkContainer);
 
   /** LandmarkDisplacementFieldSource produces an image which is a different size
@@ -141,7 +146,7 @@ public:
   GenerateOutputInformation() override;
 
   /** Method Compute the Modified Time based on changed to the components. */
-  ModifiedTimeType
+  [[nodiscard]] ModifiedTimeType
   GetMTime() const override;
 
 protected:
@@ -150,33 +155,31 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /**
-   * GenerateData() computes the internal KernelBase spline and resamples
-   * the displacement field.
-   */
+  /** Computes the internal KernelBase spline and resamples
+   * the displacement field. */
   void
   GenerateData() override;
 
   /** Subsample the input displacement field and generate the
-   *  landmarks for the kernel base spline
-   */
+   *  landmarks for the kernel base spline. */
   void
   PrepareKernelBaseSpline();
 
 private:
-  KernelTransformPointerType m_KernelTransform; // Coordinate transform to
-                                                // use
+  /** Coordinate transform to use. */
+  KernelTransformPointerType m_KernelTransform{};
 
-  OutputImageRegionType m_OutputRegion; // Region of the output
-                                        // image
-  SpacingType     m_OutputSpacing;      // output image spacing
-  OriginPointType m_OutputOrigin;       // output image origin
-  DirectionType   m_OutputDirection;    // output image direction
-                                        // cosines
+  /** Region of the output image. */
+  OutputImageRegionType m_OutputRegion{};
 
-  LandmarkContainerPointer m_SourceLandmarks; // List of source landmarks
-  LandmarkContainerPointer m_TargetLandmarks; // List of target landmarks
+  SpacingType     m_OutputSpacing{};
+  OriginPointType m_OutputOrigin{};
+  DirectionType   m_OutputDirection{};
+
+  LandmarkContainerPointer m_SourceLandmarks{};
+  LandmarkContainerPointer m_TargetLandmarks{};
 };
+
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

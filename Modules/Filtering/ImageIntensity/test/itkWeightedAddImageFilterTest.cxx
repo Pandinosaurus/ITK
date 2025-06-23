@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,20 @@
 
 #include "itkWeightedAddImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkTestingMacros.h"
 
 
 int
-itkWeightedAddImageFilterTest(int, char *[])
+itkWeightedAddImageFilterTest(int argc, char * argv[])
 {
+  if (argc != 2)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " alpha" << std::endl;
+    return EXIT_FAILURE;
+  }
+
 
   // Define the dimension of the images
   constexpr unsigned int myDimension = 3;
@@ -51,8 +60,8 @@ itkWeightedAddImageFilterTest(int, char *[])
   using myFilterTypePointer = myFilterType::Pointer;
 
   // Create two images
-  myImageType1Pointer inputImageA = myImageType1::New();
-  myImageType2Pointer inputImageB = myImageType2::New();
+  const myImageType1Pointer inputImageA = myImageType1::New();
+  const myImageType2Pointer inputImageB = myImageType2::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -65,20 +74,14 @@ itkWeightedAddImageFilterTest(int, char *[])
   start[1] = 0;
   start[2] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
 
@@ -113,18 +116,21 @@ itkWeightedAddImageFilterTest(int, char *[])
 
 
   // Create an ADD Filter
-  myFilterTypePointer filter = myFilterType::New();
+  const myFilterTypePointer filter = myFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, WeightedAddImageFilter, BinaryGeneratorImageFilter);
 
 
   // Connect the input images
   filter->SetInput1(inputImageA);
   filter->SetInput2(inputImageB);
 
-  filter->SetAlpha(0.4);
-
+  auto alpha = static_cast<typename myFilterType::RealType>(std::stod(argv[1]));
+  filter->SetAlpha(alpha);
+  ITK_TEST_SET_GET_VALUE(alpha, filter->GetAlpha());
 
   // Get the Smart Pointer to the Filter Output
-  myImageType3Pointer outputImage = filter->GetOutput();
+  const myImageType3Pointer outputImage = filter->GetOutput();
 
 
   // Execute the filter
@@ -133,7 +139,7 @@ itkWeightedAddImageFilterTest(int, char *[])
   // Create an iterator for going through the image output
   myIteratorType3 it3(outputImage, outputImage->GetBufferedRegion());
 
-  //  Print the content of the result image
+  // Print the content of the result image
   std::cout << " Result " << std::endl;
   while (!it3.IsAtEnd())
   {

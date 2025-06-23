@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,7 +77,7 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using InputPixelType = signed short;
+  using InputPixelType = short;
   constexpr unsigned int Dimension = 2;
   using InputImageType = itk::Image<InputPixelType, Dimension>;
   // Software Guide : EndCodeSnippet
@@ -92,7 +92,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   // Software Guide : EndCodeSnippet
 
@@ -106,7 +106,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ImageIOType = itk::GDCMImageIO;
-  ImageIOType::Pointer gdcmImageIO = ImageIOType::New();
+  auto gdcmImageIO = ImageIOType::New();
   reader->SetImageIO(gdcmImageIO);
   // Software Guide : EndCodeSnippet
 
@@ -141,7 +141,7 @@ main(int argc, char * argv[])
 
 
   // Software Guide : BeginCodeSnippet
-  InputImageType::Pointer inputImage = reader->GetOutput();
+  const InputImageType::Pointer inputImage = reader->GetOutput();
   using DictionaryType = itk::MetaDataDictionary;
   DictionaryType & dictionary = inputImage->GetMetaDataDictionary();
   // Software Guide : EndCodeSnippet
@@ -162,8 +162,8 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   for (int i = 3; i < argc; i += 2)
   {
-    std::string entryId(argv[i]);
-    std::string value(argv[i + 1]);
+    const std::string entryId(argv[i]);
+    const std::string value(argv[i + 1]);
     itk::EncapsulateMetaData<std::string>(dictionary, entryId, value);
   }
   // Software Guide : EndCodeSnippet
@@ -184,7 +184,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using Writer1Type = itk::ImageFileWriter<InputImageType>;
 
-  Writer1Type::Pointer writer1 = Writer1Type::New();
+  auto writer1 = Writer1Type::New();
 
   writer1->SetInput(reader->GetOutput());
   writer1->SetFileName(argv[2]);

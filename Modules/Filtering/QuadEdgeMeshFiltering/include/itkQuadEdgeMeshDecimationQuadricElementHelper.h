@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ class QuadEdgeMeshDecimationQuadricElementHelper
 public:
   using Self = QuadEdgeMeshDecimationQuadricElementHelper;
   using PointType = TPoint;
-  using CoordType = typename PointType::CoordRepType;
+  using CoordType = typename PointType::CoordinateType;
 
   static constexpr unsigned int PointDimension = PointType::PointDimension;
   static constexpr unsigned int NumberOfCoefficients = PointDimension * (PointDimension + 1 / 2 + PointDimension + 1);
@@ -47,29 +47,28 @@ public:
 
   // *****************************************************************
   QuadEdgeMeshDecimationQuadricElementHelper()
-    : m_Coefficients(itk::NumericTraits<CoordType>::ZeroValue())
-    , m_A(PointDimension, PointDimension, itk::NumericTraits<CoordType>::ZeroValue())
-    , m_B(itk::NumericTraits<CoordType>::ZeroValue())
+    : m_Coefficients(CoordType{})
+    , m_A(PointDimension, PointDimension, CoordType{})
+    , m_B(CoordType{})
+    , m_Rank(PointDimension)
     , m_SVDAbsoluteThreshold(static_cast<CoordType>(1e-6))
     , m_SVDRelativeThreshold(static_cast<CoordType>(1e-3))
-  {
-    this->m_Rank = PointDimension;
-  }
+  {}
 
   QuadEdgeMeshDecimationQuadricElementHelper(const CoefficientVectorType & iCoefficients)
     : m_Coefficients(iCoefficients)
-    , m_A(PointDimension, PointDimension, itk::NumericTraits<CoordType>::ZeroValue())
-    , m_B(itk::NumericTraits<CoordType>::ZeroValue())
+    , m_A(PointDimension, PointDimension, CoordType{})
+    , m_B(CoordType{})
+    , m_Rank(PointDimension)
     , m_SVDAbsoluteThreshold(static_cast<CoordType>(1e-3))
     , m_SVDRelativeThreshold(static_cast<CoordType>(1e-3))
   {
-    this->m_Rank = PointDimension;
     this->ComputeAMatrixAndBVector();
   }
 
   ~QuadEdgeMeshDecimationQuadricElementHelper() = default;
 
-  CoefficientVectorType
+  [[nodiscard]] CoefficientVectorType
   GetCoefficients() const
   {
     return this->m_Coefficients;
@@ -89,20 +88,20 @@ public:
     return m_B;
   }
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetRank() const
   {
     return m_Rank;
   }
 
   /// TODO this method should be really optimized!!!
-  inline CoordType
+  [[nodiscard]] inline CoordType
   ComputeError(const PointType & iP) const
   {
     //     ComputeAMatrixAndBVector();
     vnl_svd<CoordType> svd(m_A, m_SVDAbsoluteThreshold);
     svd.zero_out_relative(m_SVDRelativeThreshold);
-    CoordType oError = inner_product(iP.GetVnlVector(), svd.recompose() * iP.GetVnlVector());
+    const CoordType oError = inner_product(iP.GetVnlVector(), svd.recompose() * iP.GetVnlVector());
 
     return this->m_Coefficients.back() - oError;
     /*
@@ -156,7 +155,7 @@ public:
     VNLVectorType displacement = svd.solve(y);
 
     PointType oP;
-    for (unsigned int dim = 0; dim < PointDimension; dim++)
+    for (unsigned int dim = 0; dim < PointDimension; ++dim)
     {
       oP[dim] = iP[dim] + displacement[dim];
     }
@@ -165,7 +164,7 @@ public:
 
   /// TODO to be implemented!!!
   PointType
-  ComputeOptimalLocation(const unsigned int &)
+  ComputeOptimalLocation(const unsigned int)
   {}
 
   void
@@ -174,7 +173,7 @@ public:
               const PointType & iP3,
               const CoordType & iWeight = static_cast<CoordType>(1.))
   {
-    VectorType N = TriangleType::ComputeNormal(iP1, iP2, iP3);
+    const VectorType N = TriangleType::ComputeNormal(iP1, iP2, iP3);
 
     AddPoint(iP1, N, iWeight);
   }
@@ -182,13 +181,11 @@ public:
   void
   AddPoint(const PointType & iP, const VectorType & iN, const CoordType & iWeight = static_cast<CoordType>(1.))
   {
-    unsigned int k(0), dim1, dim2;
-
-    CoordType d = -iN * iP.GetVectorFromOrigin();
-
-    for (dim1 = 0; dim1 < PointDimension; ++dim1)
+    unsigned int    k(0); /*one-line-declaration*/
+    const CoordType d = -iN * iP.GetVectorFromOrigin();
+    for (unsigned int dim1 = 0; dim1 < PointDimension; ++dim1)
     {
-      for (dim2 = dim1; dim2 < PointDimension; ++dim2)
+      for (unsigned int dim2 = dim1; dim2 < PointDimension; ++dim2)
       {
         this->m_Coefficients[k++] += iWeight * iN[dim1] * iN[dim2];
       }
@@ -236,9 +233,10 @@ public:
     return *this;
   }
 
-  Self operator*(const CoordType & iV) const
+  Self
+  operator*(const CoordType & iV) const
   {
-    Self oElement = Self(this->m_Coefficients * iV);
+    Self oElement(this->m_Coefficients * iV);
 
     return oElement;
   }
@@ -262,11 +260,10 @@ protected:
   void
   ComputeAMatrixAndBVector()
   {
-    unsigned int k(0), dim1, dim2;
-
-    for (dim1 = 0; dim1 < PointDimension; ++dim1)
+    unsigned int k(0);
+    for (unsigned int dim1 = 0; dim1 < PointDimension; ++dim1)
     {
-      for (dim2 = dim1; dim2 < PointDimension; ++dim2)
+      for (unsigned int dim2 = dim1; dim2 < PointDimension; ++dim2)
       {
         m_A[dim1][dim2] = m_A[dim2][dim1] = m_Coefficients[k++];
       }

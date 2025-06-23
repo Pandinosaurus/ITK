@@ -1,7 +1,5 @@
 if(NOT VTK_RENDERING_BACKEND STREQUAL "None")
-  set(ITKVtkGlue_SRCS
-    QuickView.cxx
-    )
+  set(ITKVtkGlue_SRCS QuickView.cxx)
 
   add_library(ITKVtkGlue ${ITKVtkGlue_SRCS})
   itk_module_link_dependencies()

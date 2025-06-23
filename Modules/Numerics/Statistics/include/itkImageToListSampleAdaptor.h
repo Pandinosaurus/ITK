@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,9 +28,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkMeasurementVectorTraits.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class ImageToListSampleAdaptor
  *  \brief This class provides ListSample interface to ITK Image
@@ -66,8 +64,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToListSampleAdaptor, ListSample);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToListSampleAdaptor);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -94,10 +92,10 @@ public:
   using MeasurementVectorTraitsType = MeasurementVectorTraitsTypes<MeasurementVectorType>;
   using MeasurementType = typename MeasurementVectorTraitsType::ValueType;
 
-  using AbsoluteFrequencyType = typename Superclass::AbsoluteFrequencyType;
-  using TotalAbsoluteFrequencyType = typename Superclass::TotalAbsoluteFrequencyType;
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::AbsoluteFrequencyType;
+  using typename Superclass::TotalAbsoluteFrequencyType;
+  using typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::InstanceIdentifier;
 
   using ValueType = MeasurementVectorType;
 
@@ -127,10 +125,8 @@ public:
     {
       return Superclass::GetMeasurementVectorSize();
     }
-    else
-    {
-      return m_Image->GetNumberOfComponentsPerPixel();
-    }
+
+    return m_Image->GetNumberOfComponentsPerPixel();
   }
 
   /** method to return frequency for a specified id */
@@ -195,16 +191,12 @@ public:
     }
 
     bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iter != it.m_Iter);
-    }
-
-    bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iter == it.m_Iter);
     }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
 
   protected:
     // This method should only be available to the ListSample class
@@ -260,10 +252,10 @@ public:
   Iterator
   Begin()
   {
-    ImagePointer      nonConstImage = const_cast<ImageType *>(m_Image.GetPointer());
-    ImageIteratorType imageIterator(nonConstImage, nonConstImage->GetLargestPossibleRegion());
+    const ImagePointer nonConstImage = const_cast<ImageType *>(m_Image.GetPointer());
+    ImageIteratorType  imageIterator(nonConstImage, nonConstImage->GetLargestPossibleRegion());
     imageIterator.GoToBegin();
-    Iterator iter(imageIterator, 0);
+    const Iterator iter(imageIterator, 0);
     return iter;
   }
 
@@ -271,11 +263,11 @@ public:
   Iterator
   End()
   {
-    ImagePointer                           nonConstImage = const_cast<ImageType *>(m_Image.GetPointer());
+    const ImagePointer                     nonConstImage = const_cast<ImageType *>(m_Image.GetPointer());
     const typename ImageType::RegionType & largestRegion = nonConstImage->GetLargestPossibleRegion();
     ImageIteratorType                      imageIterator(nonConstImage, largestRegion);
     imageIterator.GoToEnd();
-    Iterator iter(imageIterator, largestRegion.GetNumberOfPixels());
+    const Iterator iter(imageIterator, largestRegion.GetNumberOfPixels());
 
     return iter;
   }
@@ -286,7 +278,7 @@ public:
   {
     ImageConstIteratorType imageConstIterator(m_Image, m_Image->GetLargestPossibleRegion());
     imageConstIterator.GoToBegin();
-    ConstIterator iter(imageConstIterator, 0);
+    const ConstIterator iter(imageConstIterator, 0);
 
     return iter;
   }
@@ -298,7 +290,7 @@ public:
     const typename ImageType::RegionType & largestRegion = m_Image->GetLargestPossibleRegion();
     ImageConstIteratorType                 imageConstIterator(m_Image, largestRegion);
     imageConstIterator.GoToEnd();
-    ConstIterator iter(imageConstIterator, largestRegion.GetNumberOfPixels());
+    const ConstIterator iter(imageConstIterator, largestRegion.GetNumberOfPixels());
 
     return iter;
   }
@@ -310,12 +302,11 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ImageConstPointer             m_Image;
-  mutable MeasurementVectorType m_MeasurementVectorInternal;
+  ImageConstPointer             m_Image{};
+  mutable MeasurementVectorType m_MeasurementVectorInternal{};
 
 }; // end of class ImageToListSampleAdaptor
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageToListSampleAdaptor.hxx"

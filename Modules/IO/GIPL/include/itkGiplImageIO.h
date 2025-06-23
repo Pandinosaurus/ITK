@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,15 +23,16 @@
 #include <fstream>
 #include "itkImageIOBase.h"
 #include <cstdio>
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
 class GiplImageIOInternals;
 
 /**
- *\class GiplImageIO
+ * \class GiplImageIO
  *
- *  \brief Read GiplImage file format.
+ *  \brief Read GIPL (Guy's Image Processing Lab) file format.
  *
  *  \ingroup IOFilters
  *
@@ -50,8 +51,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GiplImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GiplImageIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -60,7 +61,7 @@ public:
   bool
   CanReadFile(const char *) override;
 
-  /** Set the spacing and dimension information for the set filename. */
+  /** Read information about the Gipl file and put the cursor of the stream just before the first data pixel. */
   void
   ReadImageInformation() override;
 
@@ -96,11 +97,11 @@ private:
   bool
   CheckExtension(const char *);
 
-  std::ifstream m_Ifstream;
-  std::ofstream m_Ofstream;
-  bool          m_IsCompressed;
+  std::ifstream m_Ifstream{};
+  std::ofstream m_Ofstream{};
+  bool          m_IsCompressed{};
 
-  GiplImageIOInternals * m_Internal;
+  const std::unique_ptr<GiplImageIOInternals> m_Internal;
 };
 } // end namespace itk
 

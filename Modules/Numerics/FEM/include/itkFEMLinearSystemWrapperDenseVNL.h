@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +26,7 @@
 #include "ITKFEMExport.h"
 #include <vector>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class LinearSystemWrapperDenseVNL
@@ -91,7 +89,7 @@ public:
   {}
 
   /* assembly & solving routines */
-  Float
+  [[nodiscard]] Float
   GetMatrixValue(unsigned int i, unsigned int j, unsigned int matrixIndex) const override
   {
     return (*((*m_Matrices)[matrixIndex]))(i, j);
@@ -106,7 +104,7 @@ public:
   {
     (*((*m_Matrices)[matrixIndex]))(i, j) += value;
   }
-  Float
+  [[nodiscard]] Float
   GetVectorValue(unsigned int i, unsigned int vectorIndex) const override
   {
     return (*((*m_Vectors)[vectorIndex]))[i];
@@ -121,7 +119,7 @@ public:
   {
     (*((*m_Vectors)[vectorIndex]))(i) += value;
   }
-  Float
+  [[nodiscard]] Float
   GetSolutionValue(unsigned int i, unsigned int solutionIndex) const override;
 
   void
@@ -157,7 +155,7 @@ public:
   SwapSolutions(unsigned int solutionIndex1, unsigned int solutionIndex2) override;
 
   void
-  CopySolution2Vector(unsigned solutionIndex, unsigned int vectorIndex) override;
+  CopySolution2Vector(unsigned int solutionIndex, unsigned int vectorIndex) override;
 
   void
   CopyVector2Solution(unsigned int vectorIndex, unsigned int solutionIndex) override;
@@ -181,7 +179,6 @@ private:
   /** vector of pointers to VNL vectors */
   std::vector<vnl_vector<Float> *> * m_Solutions{ nullptr };
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif // itkFEMLinearSystemWrapperDenseVNL_h

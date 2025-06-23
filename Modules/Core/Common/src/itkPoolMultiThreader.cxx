@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -86,12 +86,10 @@ PoolMultiThreader::PoolMultiThreader()
   }
 
   ThreadIdType defaultThreads = std::max(1u, GetGlobalDefaultNumberOfThreads());
-#if !defined(ITKV4_COMPATIBILITY)
   if (defaultThreads > 1) // one work unit for only one thread
   {
     defaultThreads *= 4;
   }
-#endif
   m_NumberOfWorkUnits = std::min<ThreadIdType>(ITK_MAX_THREADS, defaultThreads);
   m_MaximumNumberOfThreads = m_ThreadPool->GetMaximumNumberOfThreads();
 }
@@ -101,7 +99,7 @@ PoolMultiThreader::~PoolMultiThreader() = default;
 void
 PoolMultiThreader::SetSingleMethod(ThreadFunctionType f, void * data)
 {
-  m_SingleMethod = f;
+  m_SingleMethod = std::move(f);
   m_SingleData = data;
 }
 
@@ -109,7 +107,7 @@ void
 PoolMultiThreader::SetMaximumNumberOfThreads(ThreadIdType numberOfThreads)
 {
   Superclass::SetMaximumNumberOfThreads(numberOfThreads);
-  ThreadIdType threadCount = m_ThreadPool->GetMaximumNumberOfThreads();
+  const ThreadIdType threadCount = m_ThreadPool->GetMaximumNumberOfThreads();
   if (threadCount < m_MaximumNumberOfThreads)
   {
     m_ThreadPool->AddThreads(m_MaximumNumberOfThreads - threadCount);
@@ -124,7 +122,7 @@ PoolMultiThreader::SingleMethodExecute()
 
   if (!m_SingleMethod)
   {
-    itkExceptionMacro(<< "No single method set!");
+    itkExceptionMacro("No single method set!");
   }
 
   // obey the global maximum number of threads limit
@@ -169,7 +167,7 @@ PoolMultiThreader::ParallelizeArray(SizeValueType             firstIndex,
     SizeValueType chunkSize = (lastIndexPlus1 - firstIndex) / m_NumberOfWorkUnits;
     if ((lastIndexPlus1 - firstIndex) % m_NumberOfWorkUnits > 0)
     {
-      chunkSize++; // we want slightly bigger chunks to be processed first
+      ++chunkSize; // we want slightly bigger chunks to be processed first
     }
 
     auto lambda = [aFunc](SizeValueType start, SizeValueType end) {
@@ -205,7 +203,7 @@ PoolMultiThreader::ParallelizeArray(SizeValueType             firstIndex,
         do
         {
           status = m_ThreadInfoArray[i].Future.wait_for(threadCompletionPollingInterval);
-          if (filter)
+          if (filter && status == std::future_status::timeout)
           {
             filter->IncrementProgress(0);
           }
@@ -244,7 +242,7 @@ PoolMultiThreader::ParallelizeImageRegion(unsigned int         dimension,
   else
   {
     ImageIORegion region(dimension);
-    for (unsigned d = 0; d < dimension; ++d)
+    for (unsigned int d = 0; d < dimension; ++d)
     {
       region.SetIndex(d, index[d]);
       region.SetSize(d, size[d]);
@@ -256,11 +254,11 @@ PoolMultiThreader::ParallelizeImageRegion(unsigned int         dimension,
     else
     {
       const ImageRegionSplitterBase * splitter = ImageSourceCommon::GetGlobalDefaultSplitter();
-      ThreadIdType                    splitCount = splitter->GetNumberOfSplits(region, m_NumberOfWorkUnits);
+      const ThreadIdType              splitCount = splitter->GetNumberOfSplits(region, m_NumberOfWorkUnits);
       ProgressReporter                reporter(filter, 0, splitCount);
       itkAssertOrThrowMacro(splitCount <= m_NumberOfWorkUnits, "Split count is greater than number of work units!");
       ImageIORegion iRegion;
-      ThreadIdType  total;
+      ThreadIdType  total = 0;
       for (ThreadIdType i = 1; i < splitCount; ++i)
       {
         iRegion = region;
@@ -297,11 +295,12 @@ PoolMultiThreader::ParallelizeImageRegion(unsigned int         dimension,
           do
           {
             status = m_ThreadInfoArray[i].Future.wait_for(threadCompletionPollingInterval);
-            if (filter)
+            if (filter && status == std::future_status::timeout)
             {
               filter->IncrementProgress(0);
             }
           } while (status != std::future_status::ready);
+          m_ThreadInfoArray[i].Future.get();
           reporter.CompletedPixel();
         });
       }

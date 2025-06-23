@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,41 +17,38 @@
  *=========================================================================*/
 #ifndef itkThinPlateR2LogRSplineKernelTransform_hxx
 #define itkThinPlateR2LogRSplineKernelTransform_hxx
-#include "itkThinPlateR2LogRSplineKernelTransform.h"
 
 namespace itk
 {
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ThinPlateR2LogRSplineKernelTransform<TParametersValueType, NDimensions>::ComputeG(const InputVectorType & x,
-                                                                                  GMatrixType &           gmatrix) const
+ThinPlateR2LogRSplineKernelTransform<TParametersValueType, VDimension>::ComputeG(const InputVectorType & x,
+                                                                                 GMatrixType &           gmatrix) const
 {
   const TParametersValueType r = x.GetNorm();
 
-  gmatrix.fill(NumericTraits<TParametersValueType>::ZeroValue());
-  const TParametersValueType R2logR =
-    (r > 1e-8) ? r * r * std::log(r) : NumericTraits<TParametersValueType>::ZeroValue();
+  gmatrix.fill(TParametersValueType{});
+  const TParametersValueType R2logR = (r > 1e-8) ? r * r * std::log(r) : TParametersValueType{};
 
   gmatrix.fill_diagonal(R2logR);
 }
 
-template <typename TParametersValueType, unsigned int NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
 void
-ThinPlateR2LogRSplineKernelTransform<TParametersValueType, NDimensions>::ComputeDeformationContribution(
+ThinPlateR2LogRSplineKernelTransform<TParametersValueType, VDimension>::ComputeDeformationContribution(
   const InputPointType & thisPoint,
   OutputPointType &      result) const
 {
-  unsigned long numberOfLandmarks = this->m_SourceLandmarks->GetNumberOfPoints();
+  const unsigned long numberOfLandmarks = this->m_SourceLandmarks->GetNumberOfPoints();
 
   PointsIterator sp = this->m_SourceLandmarks->GetPoints()->Begin();
 
-  for (unsigned int lnd = 0; lnd < numberOfLandmarks; lnd++)
+  for (unsigned int lnd = 0; lnd < numberOfLandmarks; ++lnd)
   {
-    InputVectorType            position = thisPoint - sp->Value();
+    const InputVectorType      position = thisPoint - sp->Value();
     const TParametersValueType r = position.GetNorm();
-    const TParametersValueType R2logR =
-      (r > 1e-8) ? r * r * std::log(r) : NumericTraits<TParametersValueType>::ZeroValue();
-    for (unsigned int odim = 0; odim < NDimensions; odim++)
+    const TParametersValueType R2logR = (r > 1e-8) ? r * r * std::log(r) : TParametersValueType{};
+    for (unsigned int odim = 0; odim < VDimension; ++odim)
     {
       result[odim] += R2logR * this->m_DMatrix(odim, lnd);
     }

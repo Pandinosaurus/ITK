@@ -1,11 +1,15 @@
-set(DOCUMENTATION "This module contains classes related to calculation of
-eigenvectors and eigenvalues.")
+set(
+  DOCUMENTATION
+  "This module contains classes related to calculation of
+eigenvectors and eigenvalues."
+)
 
-itk_module(ITKEigen
+itk_module(
+  ITKEigen
   DEPENDS
-    ITKImageFilterBase
+  ITKImageFilterBase
   TEST_DEPENDS
-    ITKTestKernel
+  ITKTestKernel
   DESCRIPTION
-    "${DOCUMENTATION}"
+  "${DOCUMENTATION}"
 )

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,9 @@ template <typename TRegistration>
 class ShowProgressObject
 {
 public:
-  ShowProgressObject(TRegistration * o) { m_Process = o; }
+  ShowProgressObject(TRegistration * o)
+    : m_Process(o)
+  {}
   void
   ShowProgress()
   {
@@ -71,15 +73,15 @@ FillWithCircle(typename TImage::Pointer & image,
   it.GoToBegin();
 
   typename TImage::IndexType index;
-  double                     r2 = itk::Math::sqr(radius);
+  const double               r2 = itk::Math::sqr(radius);
 
   while (!it.IsAtEnd())
   {
     index = it.GetIndex();
     double distance = 0;
-    for (unsigned int j = 0; j < TImage::ImageDimension; j++)
+    for (unsigned int j = 0; j < TImage::ImageDimension; ++j)
     {
-      distance += itk::Math::sqr((double)index[j] - center[j]);
+      distance += itk::Math::sqr(static_cast<double>(index[j]) - center[j]);
     }
     if (distance <= r2)
     {
@@ -93,7 +95,7 @@ FillWithCircle(typename TImage::Pointer & image,
   }
 
   using SmoothingFilterType = itk::SmoothingRecursiveGaussianImageFilter<TImage, TImage>;
-  typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
+  auto smoother = SmoothingFilterType::New();
   smoother->SetInput(image);
   smoother->SetSigma(1.0);
   smoother->Update();
@@ -139,16 +141,13 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   SizeType                 size;
   size.SetSize(sizeArray);
 
-  IndexType index;
-  index.Fill(0);
+  constexpr IndexType index{};
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const RegionType region{ index, size };
 
-  ImageType::Pointer moving = ImageType::New();
-  ImageType::Pointer fixed = ImageType::New();
-  FieldType::Pointer initField = FieldType::New();
+  auto moving = ImageType::New();
+  auto fixed = ImageType::New();
+  auto initField = FieldType::New();
 
   moving->SetLargestPossibleRegion(region);
   moving->SetBufferedRegion(region);
@@ -162,15 +161,14 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   initField->SetBufferedRegion(region);
   initField->Allocate();
 
-  double    center[ImageDimension];
-  double    radius;
-  PixelType fgnd = 250;
-  PixelType bgnd = 15;
+  double              center[ImageDimension];
+  constexpr PixelType fgnd = 250;
+  constexpr PixelType bgnd = 15;
 
   // fill moving with circle
   center[0] = 64;
   center[1] = 64;
-  radius = 30;
+  double radius = 30;
   FillWithCircle<ImageType>(moving, center, radius, fgnd, bgnd);
 
   // fill fixed with circle
@@ -180,19 +178,18 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   FillWithCircle<ImageType>(fixed, center, radius, fgnd, bgnd);
 
   // fill initial deformation with zero vectors
-  VectorType zeroVec;
-  zeroVec.Fill(0.0);
+  constexpr VectorType zeroVec{};
   initField->FillBuffer(zeroVec);
 
   using CasterType = itk::CastImageFilter<FieldType, FieldType>;
-  CasterType::Pointer caster = CasterType::New();
+  auto caster = CasterType::New();
   caster->SetInput(initField);
   caster->InPlaceOff();
 
   std::cout << "Run registration and warp moving" << std::endl;
 
   using RegistrationType = itk::LevelSetMotionRegistrationFilter<ImageType, ImageType, FieldType>;
-  RegistrationType::Pointer registrator = RegistrationType::New();
+  auto registrator = RegistrationType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(registrator, LevelSetMotionRegistrationFilter, PDEDeformableRegistrationFilter);
 
@@ -206,15 +203,15 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   registrator->SetMaximumError(0.08);
   registrator->SetMaximumKernelWidth(10);
 
-  double intensityDifferenceThreshold = 0.001;
+  constexpr double intensityDifferenceThreshold = 0.001;
   registrator->SetIntensityDifferenceThreshold(intensityDifferenceThreshold);
   ITK_TEST_SET_GET_VALUE(intensityDifferenceThreshold, registrator->GetIntensityDifferenceThreshold());
 
-  double gradientMagnitudeThreshold = 1e-9;
+  constexpr double gradientMagnitudeThreshold = 1e-9;
   registrator->SetGradientMagnitudeThreshold(gradientMagnitudeThreshold);
   ITK_TEST_SET_GET_VALUE(gradientMagnitudeThreshold, registrator->GetGradientMagnitudeThreshold());
 
-  double alpha = 0.1;
+  constexpr double alpha = 0.1;
   registrator->SetAlpha(alpha);
   ITK_TEST_SET_GET_VALUE(alpha, registrator->GetAlpha());
 
@@ -238,7 +235,7 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   std::cout << "Max. kernel width: " << registrator->GetMaximumKernelWidth() << std::endl;
 
   double v[ImageDimension];
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     v[j] = registrator->GetStandardDeviations()[j];
   }
@@ -247,20 +244,18 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   using ProgressType = ShowProgressObject<RegistrationType>;
   ProgressType progressWatch(registrator);
 
-  itk::SimpleMemberCommand<ProgressType>::Pointer command;
-
-  command = itk::SimpleMemberCommand<ProgressType>::New();
+  const itk::SimpleMemberCommand<ProgressType>::Pointer command = itk::SimpleMemberCommand<ProgressType>::New();
   command->SetCallbackFunction(&progressWatch, &ProgressType::ShowProgress);
 
   registrator->AddObserver(itk::ProgressEvent(), command);
 
   // Warp moving image
   using WarperType = itk::WarpImageFilter<ImageType, ImageType, FieldType>;
-  WarperType::Pointer warper = WarperType::New();
+  auto warper = WarperType::New();
 
-  using CoordRepType = WarperType::CoordRepType;
-  using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, CoordRepType>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  using CoordinateType = WarperType::CoordinateType;
+  using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, CoordinateType>;
+  auto interpolator = InterpolatorType::New();
 
   warper->SetInput(moving);
   warper->SetDisplacementField(registrator->GetOutput());
@@ -275,7 +270,7 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
   warper->Update();
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   if (argc > 1)
   {
@@ -316,8 +311,7 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
     ++warpedIter;
   }
 
-  std::cout << "Number of pixels different: " << numPixelsDifferent;
-  std::cout << std::endl;
+  std::cout << "Number of pixels different: " << numPixelsDifferent << std::endl;
 
   constexpr unsigned int maximumNumberOfPixelsDifferent = 4600;
   if (numPixelsDifferent > maximumNumberOfPixelsDifferent)
@@ -352,7 +346,6 @@ itkLevelSetMotionRegistrationFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  //--------------------------------------------------------------
   std::cout << "Test exception handling." << std::endl;
 
   std::cout << "Test nullptr moving image. " << std::endl;

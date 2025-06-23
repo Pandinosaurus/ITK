@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,21 +17,17 @@
  *=========================================================================*/
 #ifndef itkUniformRandomSpatialNeighborSubsampler_hxx
 #define itkUniformRandomSpatialNeighborSubsampler_hxx
-#include "itkUniformRandomSpatialNeighborSubsampler.h"
 #include <set>
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 template <typename TSample, typename TRegion>
 UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::UniformRandomSpatialNeighborSubsampler()
+
 {
   m_RandomNumberGenerator = RandomGeneratorType::New();
-  m_UseClockForSeed = false;
   m_RandomNumberGenerator->SetSeed(this->m_Seed);
-  m_NumberOfResultsRequested = 0;
 }
 
 template <typename TSample, typename TRegion>
@@ -40,10 +36,10 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::InternalClone() const
 {
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   rval->m_NumberOfResultsRequested = this->m_NumberOfResultsRequested;
@@ -59,11 +55,11 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::Search(const InstanceI
 {
   if (!this->m_RadiusInitialized)
   {
-    itkExceptionMacro(<< "Radius not set.");
+    itkExceptionMacro("Radius not set.");
   }
   if (!this->m_SampleRegionInitialized)
   {
-    itkExceptionMacro(<< "Sample region not set.");
+    itkExceptionMacro("Sample region not set.");
   }
   if (!this->GetRegionConstraintInitialized())
   {
@@ -73,9 +69,8 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::Search(const InstanceI
   results->Clear();
   results->SetSample(this->m_Sample);
 
-  RegionType searchRegion;
-  IndexType  searchStartIndex;
-  IndexType  searchEndIndex;
+  IndexType searchStartIndex;
+  IndexType searchEndIndex;
 
   IndexType constraintIndex = this->m_RegionConstraint.GetIndex();
   SizeType  constraintSize = this->m_RegionConstraint.GetSize();
@@ -91,7 +86,7 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::Search(const InstanceI
   {
     if (queryIndex[dim] < static_cast<IndexValueType>(this->m_Radius[dim]))
     {
-      searchStartIndex[dim] = std::max(NumericTraits<IndexValueType>::ZeroValue(), constraintIndex[dim]);
+      searchStartIndex[dim] = std::max(IndexValueType{}, constraintIndex[dim]);
     }
     else
     {
@@ -125,7 +120,7 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::Search(const InstanceI
 
   unsigned int pointsFound = 0;
 
-  ::std::set<InstanceIdentifier>       usedIds;
+  const std::set<InstanceIdentifier>   usedIds;
   typename RegionType::OffsetValueType offset;
 
   // The trouble with decoupling the region from the sample is that
@@ -174,12 +169,13 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::Search(const InstanceI
 } // end Search method
 
 template <typename TSample, typename TRegion>
-typename UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::RandomIntType
+auto
 UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::GetIntegerVariate(RandomIntType lowerBound,
                                                                             RandomIntType upperBound,
                                                                             RandomIntType itkNotUsed(mean))
+  -> RandomIntType
 {
-  RandomIntType sizeRange = upperBound - lowerBound;
+  const RandomIntType sizeRange = upperBound - lowerBound;
   // mean ignored since we are uniformly sampling
   return lowerBound + m_RandomNumberGenerator->GetIntegerVariate(sizeRange);
 }
@@ -195,7 +191,6 @@ UniformRandomSpatialNeighborSubsampler<TSample, TRegion>::PrintSelf(std::ostream
   os << std::endl;
 }
 
-} // end namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #endif

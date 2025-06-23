@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,13 +82,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information. */
-  itkTypeMacro(AnisotropicDiffusionImageFilter, DenseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AnisotropicDiffusionImageFilter);
 
   /** Capture information from the superclass. */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using UpdateBufferType = typename Superclass::UpdateBufferType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::UpdateBufferType;
 
   /** Dimensionality of input and output data is assumed to be the same.
    * It is inherited from the superclass. */
@@ -96,27 +96,35 @@ public:
 
   /** The pixel type of the output image will be used in computations.
    * Inherited from the superclass. */
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
 
   /** Set/Get the time step for each iteration */
+  /** @ITKStartGrouping */
   itkSetMacro(TimeStep, TimeStepType);
   itkGetConstMacro(TimeStep, TimeStepType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the conductance parameter governing sensitivity of the
       conductance equation. */
+  /** @ITKStartGrouping */
   itkSetMacro(ConductanceParameter, double);
   itkGetConstMacro(ConductanceParameter, double);
+  /** @ITKEndGrouping */
 
   /** Set/Get the interval at which a new scaling for the conductance term is
       calculated.  */
+  /** @ITKStartGrouping */
   itkSetMacro(ConductanceScalingUpdateInterval, unsigned int);
   itkGetConstMacro(ConductanceScalingUpdateInterval, unsigned int);
+  /** @ITKEndGrouping */
 
   /** The following parameters are not used at this time.  Setting them will
       have no effect on the output */
+  /** @ITKStartGrouping */
   itkSetMacro(ConductanceScalingParameter, double);
   itkGetConstMacro(ConductanceScalingParameter, double);
+  /** @ITKEndGrouping */
 
   /** Supplies a fixed value for the average gradient magnitude of the image to
       the AnisotropicDiffusionFunction at each iteration.  The average gradient
@@ -149,15 +157,15 @@ protected:
   void
   InitializeIteration() override;
 
-  bool m_GradientMagnitudeIsFixed;
+  bool m_GradientMagnitudeIsFixed{};
 
 private:
-  double       m_ConductanceParameter;
-  double       m_ConductanceScalingParameter;
-  unsigned int m_ConductanceScalingUpdateInterval;
-  double       m_FixedAverageGradientMagnitude;
+  double       m_ConductanceParameter{};
+  double       m_ConductanceScalingParameter{};
+  unsigned int m_ConductanceScalingUpdateInterval{};
+  double       m_FixedAverageGradientMagnitude{};
 
-  TimeStepType m_TimeStep;
+  TimeStepType m_TimeStep{};
 };
 } // namespace itk
 

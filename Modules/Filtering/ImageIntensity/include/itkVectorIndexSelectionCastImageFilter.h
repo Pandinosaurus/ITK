@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,10 +28,10 @@ template <typename TInput, typename TOutput>
 class VectorIndexSelectionCast
 {
 public:
-  VectorIndexSelectionCast() { m_Index = 0; }
+  VectorIndexSelectionCast() = default;
   ~VectorIndexSelectionCast() = default;
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetIndex() const
   {
     return m_Index;
@@ -43,20 +43,12 @@ public:
   }
 
   bool
-  operator!=(const VectorIndexSelectionCast & other) const
-  {
-    if (m_Index != other.m_Index)
-    {
-      return true;
-    }
-    return false;
-  }
-
-  bool
   operator==(const VectorIndexSelectionCast & other) const
   {
-    return !(*this != other);
+    return m_Index == other.m_Index;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(VectorIndexSelectionCast);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -65,7 +57,7 @@ public:
   }
 
 private:
-  unsigned int m_Index;
+  unsigned int m_Index{ 0 };
 };
 } // namespace Functor
 
@@ -114,10 +106,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(VectorIndexSelectionCastImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorIndexSelectionCastImageFilter);
 
   /** Get/Set methods for the index */
+  /** @ITKStartGrouping */
   void
   SetIndex(unsigned int i)
   {
@@ -128,17 +121,14 @@ public:
     }
   }
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetIndex() const
   {
     return this->GetFunctor().GetIndex();
   }
+  /** @ITKEndGrouping */
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   VectorIndexSelectionCastImageFilter() = default;
@@ -169,8 +159,8 @@ protected:
 
     if (index >= numberOfComponents)
     {
-      itkExceptionMacro(<< "Selected index = " << index
-                        << " is greater than the number of components = " << numberOfComponents);
+      itkExceptionMacro("Selected index = " << index
+                                            << " is greater than the number of components = " << numberOfComponents);
     }
   }
 };

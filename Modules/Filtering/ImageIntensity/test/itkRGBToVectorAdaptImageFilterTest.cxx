@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
  *  convert an RGBPixel image to an image that has
  *  vector pixel type.
  *
- *  This allows to access an RGB image a an image of vectors.
+ *  This allows access to an RGB image as an image of vectors.
  *
  */
 
@@ -70,11 +70,9 @@ itkRGBToVectorAdaptImageFilterTest(int, char *[])
   index[0] = 0;
   index[1] = 0;
 
-  RGBImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  const RGBImageType::RegionType region{ index, size };
 
-  RGBImageType::Pointer myImage = RGBImageType::New();
+  auto myImage = RGBImageType::New();
 
 
   myImage->SetRegions(region);
@@ -89,8 +87,9 @@ itkRGBToVectorAdaptImageFilterTest(int, char *[])
   it1.GoToBegin();
   while (!it1.IsAtEnd())
   {
-    color.Set(
-      (float)vnl_sample_uniform(0.0, 1.0), (float)vnl_sample_uniform(0.0, 1.0), (float)vnl_sample_uniform(0.0, 1.0));
+    color.Set(static_cast<float>(vnl_sample_uniform(0.0, 1.0)),
+              static_cast<float>(vnl_sample_uniform(0.0, 1.0)),
+              static_cast<float>(vnl_sample_uniform(0.0, 1.0)));
     it1.Set(color);
     ++it1;
   }
@@ -100,7 +99,7 @@ itkRGBToVectorAdaptImageFilterTest(int, char *[])
   // Convert to a Vector image
   using AdaptFilterType = itk::AdaptImageFilter<RGBImageType, myImageType, AccessorType>;
 
-  AdaptFilterType::Pointer adaptImageToVector = AdaptFilterType::New();
+  auto adaptImageToVector = AdaptFilterType::New();
 
   adaptImageToVector->SetInput(myImage);
   adaptImageToVector->UpdateLargestPossibleRegion();
@@ -113,8 +112,8 @@ itkRGBToVectorAdaptImageFilterTest(int, char *[])
   it1.GoToBegin();
   while (!it.IsAtEnd())
   {
-    VectorPixelType v = it.Get();
-    RGBPixelType    c = it1.Get();
+    VectorPixelType    v = it.Get();
+    const RGBPixelType c = it1.Get();
 
     if (itk::Math::NotExactlyEquals(v[0], c.GetRed()) || itk::Math::NotExactlyEquals(v[1], c.GetGreen()) ||
         itk::Math::NotExactlyEquals(v[2], c.GetBlue()))
@@ -139,9 +138,7 @@ itkRGBToVectorAdaptImageFilterTest(int, char *[])
     std::cout << "AdaptImageFilterTest passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "AdaptImageFilterTest passed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "AdaptImageFilterTest passed" << std::endl;
+  return EXIT_FAILURE;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPeakSignalToNoiseRatioCalculator_hxx
 #define itkPeakSignalToNoiseRatioCalculator_hxx
 
-#include "itkPeakSignalToNoiseRatioCalculator.h"
 
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
@@ -28,12 +27,10 @@ namespace itk
 
 template <class TInputImage>
 PeakSignalToNoiseRatioCalculator<TInputImage>::PeakSignalToNoiseRatioCalculator()
-{
-  m_Valid = false;
-  m_Image = nullptr;
-  m_NoisyImage = nullptr;
-  m_Output = NumericTraits<InputPixelType>::ZeroValue();
-}
+  : m_Output(InputPixelType{})
+  , m_Image(nullptr)
+  , m_NoisyImage(nullptr)
+{}
 
 template <class TInputImage>
 void
@@ -57,9 +54,7 @@ PeakSignalToNoiseRatioCalculator<TInputImage>::Compute()
   }
 
   ImageRegionConstIteratorWithIndex<InputImageType> iIt(m_Image, m_Image->GetRequestedRegion());
-  iIt.GoToBegin();
   ImageRegionConstIteratorWithIndex<InputImageType> nIt(m_NoisyImage, m_NoisyImage->GetRequestedRegion());
-  nIt.GoToBegin();
 
   // init the values
   double         mse = 0;
@@ -67,7 +62,7 @@ PeakSignalToNoiseRatioCalculator<TInputImage>::Compute()
 
   while (!iIt.IsAtEnd())
   {
-    mse += pow((double)nIt.Get() - (double)iIt.Get(), 2);
+    mse += pow(static_cast<double>(nIt.Get()) - static_cast<double>(iIt.Get()), 2);
     max = std::max(iIt.Get(), max);
     ++iIt;
     ++nIt;
@@ -84,7 +79,7 @@ PeakSignalToNoiseRatioCalculator<TInputImage>::GetOutput() const
 {
   if (!m_Valid)
   {
-    itkExceptionMacro(<< "GetOutput() invoked, but the output have not been computed. Call Compute() first.");
+    itkExceptionMacro("GetOutput() invoked, but the output have not been computed. Call Compute() first.");
   }
   return m_Output;
 }

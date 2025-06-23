@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkQuadEdgeMeshEulerOperatorSplitFacetFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorJoinFacetFunction.h"
 #include "itkQuadEdgeMeshEulerOperatorsTestHelper.h"
+#include "itkTestingMacros.h"
 
 int
 itkQuadEdgeMeshEulerOperatorSplitFaceTest(int, char *[])
@@ -40,7 +41,11 @@ itkQuadEdgeMeshEulerOperatorSplitFaceTest(int, char *[])
   // Split the facet again in order to restore the original situation:
   std::cout << "Checking SplitFacet." << std::endl;
 
-  SplitFacet::Pointer splitFacet = SplitFacet::New();
+  auto splitFacet = SplitFacet::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(splitFacet, QuadEdgeMeshEulerOperatorSplitFacetFunction, QuadEdgeMeshFunctionBase);
+
+
   std::cout << "     "
             << "Test No Mesh Input";
   if (splitFacet->Evaluate((QEType *)1, (QEType *)2))
@@ -50,9 +55,7 @@ itkQuadEdgeMeshEulerOperatorSplitFaceTest(int, char *[])
   }
   std::cout << "OK" << std::endl;
 
-  (void)splitFacet->GetNameOfClass();
-
-  MeshPointer mesh = MeshType::New();
+  const MeshPointer mesh = MeshType::New();
   CreateSquareTriangularMesh<MeshType>(mesh);
 
   splitFacet->SetInput(mesh);
@@ -93,10 +96,11 @@ itkQuadEdgeMeshEulerOperatorSplitFaceTest(int, char *[])
   }
   std::cout << "OK" << std::endl;
 
-  JoinFacet::Pointer joinFacet = JoinFacet::New();
-  QEType *           DeletedEdge = mesh->FindEdge(12, 7);
-  QEType *           G = DeletedEdge->GetSym()->GetLprev();
-  QEType *           H = joinFacet->Evaluate(DeletedEdge);
+  auto joinFacet = JoinFacet::New();
+  joinFacet->SetInput(mesh);
+  QEType * DeletedEdge = mesh->FindEdge(12, 7);
+  QEType * G = DeletedEdge->GetSym()->GetLprev();
+  QEType * H = joinFacet->Evaluate(DeletedEdge);
 
   if (!splitFacet->Evaluate(H, G))
   {

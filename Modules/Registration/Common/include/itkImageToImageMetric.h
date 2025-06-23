@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,8 @@
 #include "itkSpatialObject.h"
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkMultiThreaderBase.h"
+
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -63,8 +65,8 @@ public:
   /** Type used for representing point components  */
   using CoordinateRepresentationType = typename Superclass::ParametersValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToImageMetric, SingleValuedCostFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToImageMetric);
 
   /**  Type of the moving Image. */
   using MovingImageType = TMovingImage;
@@ -125,22 +127,24 @@ public:
   using MovingImageMaskConstPointer = typename MovingImageMaskType::ConstPointer;
 
   /**  Type of the measure. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /**  Type of the derivative. */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Get/Set the Fixed Image.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedImage, FixedImageType);
   itkGetConstObjectMacro(FixedImage, FixedImageType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the Moving Image.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingImage, MovingImageType);
   itkGetConstObjectMacro(MovingImage, MovingImageType);
-
+  /** @ITKEndGrouping */
   /** Connect the Transform. */
   itkSetObjectMacro(Transform, TransformType);
 
@@ -170,15 +174,33 @@ public:
   itkGetConstReferenceMacro(FixedImageRegion, FixedImageRegionType);
 
   /** Set/Get the moving image mask. */
-  itkSetObjectMacro(MovingImageMask, MovingImageMaskType);
+  /** @ITKStartGrouping */
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  virtual void
+  SetMovingImageMask(MovingImageMaskType * const arg)
+  {
+    const auto * const constArg = arg;
+    // Call the overload defined by itkSetConstObjectMacro, or an override.
+    this->SetMovingImageMask(constArg);
+  }
+#endif
   itkSetConstObjectMacro(MovingImageMask, MovingImageMaskType);
   itkGetConstObjectMacro(MovingImageMask, MovingImageMaskType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the fixed image mask. */
-  itkSetObjectMacro(FixedImageMask, FixedImageMaskType);
+  /** @ITKStartGrouping */
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  virtual void
+  SetFixedImageMask(FixedImageMaskType * const arg)
+  {
+    const auto * const constArg = arg;
+    // Call the overload defined by itkSetConstObjectMacro, or an override.
+    this->SetFixedImageMask(constArg);
+  }
+#endif
   itkSetConstObjectMacro(FixedImageMask, FixedImageMaskType);
   itkGetConstObjectMacro(FixedImageMask, FixedImageMaskType);
-
+  /** @ITKEndGrouping */
   /** Set the fixed image indexes to be used as the samples when
    *   computing the match metric */
   void
@@ -190,15 +212,17 @@ public:
   itkGetConstReferenceMacro(UseFixedImageIndexes, bool);
 
   /** Set/Get number of work units to use for computations. */
+  /** @ITKStartGrouping */
   void
-  SetNumberOfWorkUnits(ThreadIdType numberOfThreads);
+  SetNumberOfWorkUnits(ThreadIdType numberOfWorkUnits);
   itkGetConstReferenceMacro(NumberOfWorkUnits, ThreadIdType);
-
+  /** @ITKEndGrouping */
   /** Set/Get gradient computation. */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeGradient, bool);
   itkGetConstReferenceMacro(ComputeGradient, bool);
   itkBooleanMacro(ComputeGradient);
-
+  /** @ITKEndGrouping */
   /** Computes the gradient image and assigns it to m_GradientImage */
   virtual void
   ComputeGradient();
@@ -217,8 +241,7 @@ public:
     return m_Transform->GetNumberOfParameters();
   }
 
-  /** Initialize the Metric by making sure that all the components
-   *  are present and plugged together correctly     */
+  /** Initialize the Metric by making sure that all the components are present and plugged together correctly. */
   virtual void
   Initialize();
 
@@ -226,12 +249,15 @@ public:
   virtual void
   MultiThreadingInitialize();
 
-  /** Number of spatial samples to used to compute metric
-   *   This sets the number of samples.  */
+  /** Number of spatial samples to compute the metric.
+   *
+   * Sets the number of samples.
+   */
+  /** @ITKStartGrouping */
   virtual void
   SetNumberOfFixedImageSamples(SizeValueType numSamples);
   itkGetConstReferenceMacro(NumberOfFixedImageSamples, SizeValueType);
-
+  /** @ITKEndGrouping */
   /** Number of spatial samples to used to compute metric
    *   This sets the number of samples.  */
   void
@@ -296,11 +322,12 @@ public:
    * clock from your machine in order to have a very random initialization of
    * the seed. This will indeed increase the non-deterministic behavior of the
    * metric. */
+  /** @ITKStartGrouping */
   void
   ReinitializeSeed();
   void
   ReinitializeSeed(int seed);
-
+  /** @ITKEndGrouping */
   /** This boolean flag is only relevant when this metric is used along
    * with a BSplineBaseTransform. The flag enables/disables the
    * caching of values computed when a physical point is mapped through
@@ -317,22 +344,24 @@ public:
    * therefore, interesting to enable the caching, if enough memory is
    * available for it. The caching is enabled by default, in order to
    * preserve backward compatibility with previous versions of ITK. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseCachingOfBSplineWeights, bool);
   itkGetConstReferenceMacro(UseCachingOfBSplineWeights, bool);
   itkBooleanMacro(UseCachingOfBSplineWeights);
-
+  /** @ITKEndGrouping */
   using MultiThreaderType = MultiThreaderBase;
   /** Get the Threader. */
+  /** @ITKStartGrouping */
   itkGetModifiableObjectMacro(Threader, MultiThreaderType);
   const TransformPointer *
   GetThreaderTransform()
   {
-    return m_ThreaderTransform;
+    return m_ThreaderTransform.get();
   }
-
+  /** @ITKEndGrouping */
 protected:
   ImageToImageMetric();
-  ~ImageToImageMetric() override;
+  ~ImageToImageMetric() override = default;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -345,43 +374,55 @@ protected:
   class FixedImageSamplePoint
   {
   public:
-    FixedImageSamplePoint()
-    {
-      point.Fill(0.0);
-      value = 0;
-      valueIndex = 0;
-    }
+    FixedImageSamplePoint() { point.Fill(0.0); }
 
     ~FixedImageSamplePoint() = default;
 
+    friend inline std::ostream &
+    operator<<(std::ostream & os, const FixedImageSamplePoint & val)
+    {
+      os << "point: " << static_cast<typename NumericTraits<FixedImagePointType>::PrintType>(val.point) << std::endl;
+      os << "value: " << val.value << std::endl;
+      os << "valueIndex: " << val.valueIndex << std::endl;
+
+      return os;
+    }
+
   public:
     FixedImagePointType point;
-    double              value;
-    unsigned int        valueIndex;
+    double              value{ 0 };
+    unsigned int        valueIndex{ 0 };
   };
 
   bool                     m_UseFixedImageIndexes{ false };
-  FixedImageIndexContainer m_FixedImageIndexes;
+  FixedImageIndexContainer m_FixedImageIndexes{};
 
   bool                m_UseFixedImageSamplesIntensityThreshold{ false };
-  FixedImagePixelType m_FixedImageSamplesIntensityThreshold;
+  FixedImagePixelType m_FixedImageSamplesIntensityThreshold{};
 
   /** FixedImageSamplePoint type alias support */
   using FixedImageSampleContainer = std::vector<FixedImageSamplePoint>;
 
-  /** Uniformly select a sample set from the fixed image domain. */
+  /** Uniformly select a sample set from the fixed image domain.
+   *
+   * Samples the fixed image using a random walk.
+   */
   virtual void
   SampleFixedImageRegion(FixedImageSampleContainer & samples) const;
 
+  /** Use the indexes that have been passed to the metric. */
   virtual void
   SampleFixedImageIndexes(FixedImageSampleContainer & samples) const;
 
-  /** Gather all the pixels from the fixed image domain. */
+  /** Sample the fixed image domain using all pixels in the Fixed image region.
+   *
+   * Gathers all the pixels from the fixed image domain.
+   */
   virtual void
   SampleFullFixedImageRegion(FixedImageSampleContainer & samples) const;
 
   /** Container to store a set of points and fixed image values. */
-  FixedImageSampleContainer m_FixedImageSamples;
+  FixedImageSampleContainer m_FixedImageSamples{};
 
   SizeValueType m_NumberOfParameters{ 0 };
 
@@ -391,22 +432,23 @@ protected:
   // onto this accumulator variable.
   mutable SizeValueType m_NumberOfPixelsCounted{ 0 };
 
-  FixedImageConstPointer  m_FixedImage;
-  MovingImageConstPointer m_MovingImage;
+  FixedImageConstPointer  m_FixedImage{};
+  MovingImageConstPointer m_MovingImage{};
 
   /** Main transform to be used in thread = 0 */
-  TransformPointer m_Transform;
+  TransformPointer m_Transform{};
+
   /** Copies of Transform helpers per thread (N-1 of them, since m_Transform
    * will do the work for thread=0. */
-  TransformPointer * m_ThreaderTransform;
+  std::unique_ptr<TransformPointer[]> m_ThreaderTransform;
 
-  InterpolatorPointer m_Interpolator;
+  InterpolatorPointer m_Interpolator{};
 
   bool                 m_ComputeGradient{ true };
-  GradientImagePointer m_GradientImage;
+  GradientImagePointer m_GradientImage{};
 
-  FixedImageMaskConstPointer  m_FixedImageMask;
-  MovingImageMaskConstPointer m_MovingImageMask;
+  FixedImageMaskConstPointer  m_FixedImageMask{};
+  MovingImageMaskConstPointer m_MovingImageMask{};
 
   ThreadIdType m_NumberOfWorkUnits{ 1 };
 
@@ -415,7 +457,7 @@ protected:
 
   bool m_ReseedIterator{ false };
 
-  mutable int m_RandomSeed;
+  mutable int m_RandomSeed{};
 
   /** Types and variables related to BSpline deformable transforms.
    * If the transform is of type third order BSplineBaseTransform,
@@ -423,8 +465,12 @@ protected:
    * only inspecting the parameters within the support region
    * of a mapped point.  */
 
-  /** Boolean to indicate if the transform is BSpline deformable. */
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  /** Boolean to indicate if the transform is BSpline deformable.
+  \deprecated `m_TransformIsBSpline` is intended to be removed, in the future. Please use `m_BSplineTransform`
+  instead. For example, `if (m_TransformIsBSpline)` may be rewritten as `if (m_BSplineTransform)`. */
   bool m_TransformIsBSpline{ false };
+#endif
 
   /** The number of BSpline transform weights is the number of
    * of parameter in the support region (per dimension ). */
@@ -452,33 +498,37 @@ protected:
    * image derivatives are computed using central differencing.
    */
   using BSplineInterpolatorType = BSplineInterpolateImageFunction<MovingImageType, CoordinateRepresentationType>;
+
   /** Typedefs for using central difference calculator. */
   using DerivativeFunctionType = CentralDifferenceImageFunction<MovingImageType, CoordinateRepresentationType>;
   using ImageDerivativesType = CovariantVector<double, Self::MovingImageDimension>;
 
-  typename BSplineTransformType::Pointer m_BSplineTransform;
+  typename BSplineTransformType::Pointer m_BSplineTransform{};
 
-  BSplineTransformWeightsArrayType m_BSplineTransformWeightsArray;
-  BSplineTransformIndicesArrayType m_BSplineTransformIndicesArray;
-  MovingImagePointArrayType        m_BSplinePreTransformPointsArray;
-  BooleanArrayType                 m_WithinBSplineSupportRegionArray;
+  BSplineTransformWeightsArrayType m_BSplineTransformWeightsArray{};
+  BSplineTransformIndicesArrayType m_BSplineTransformIndicesArray{};
+  MovingImagePointArrayType        m_BSplinePreTransformPointsArray{};
+  BooleanArrayType                 m_WithinBSplineSupportRegionArray{};
 
-  BSplineParametersOffsetType m_BSplineParametersOffset;
+  BSplineParametersOffsetType m_BSplineParametersOffset{};
 
   // Variables needed for optionally caching values when using a BSpline
   // transform.
   bool                                   m_UseCachingOfBSplineWeights{ true };
-  mutable BSplineTransformWeightsType    m_BSplineTransformWeights;
-  mutable BSplineTransformIndexArrayType m_BSplineTransformIndices;
+  mutable BSplineTransformWeightsType    m_BSplineTransformWeights{};
+  mutable BSplineTransformIndexArrayType m_BSplineTransformIndices{};
 
-  mutable BSplineTransformWeightsType *    m_ThreaderBSplineTransformWeights;
-  mutable BSplineTransformIndexArrayType * m_ThreaderBSplineTransformIndices;
+  mutable std::unique_ptr<BSplineTransformWeightsType[]>    m_ThreaderBSplineTransformWeights;
+  mutable std::unique_ptr<BSplineTransformIndexArrayType[]> m_ThreaderBSplineTransformIndices;
 
+  /** Cache pre-transformed points, weights and indices. */
   virtual void
   PreComputeTransformValues();
 
   /** Transform a point from FixedImage domain to MovingImage domain.
-   * This function also checks if mapped point is within support region. */
+   *
+   * This function also checks if mapped point is within support region.
+   */
   virtual void
   TransformPoint(unsigned int           sampleNumber,
                  MovingImagePointType & mappedPoint,
@@ -486,6 +536,10 @@ protected:
                  double &               movingImageValue,
                  ThreadIdType           threadId) const;
 
+  /** Transform a point from FixedImage domain to MovingImage domain.
+   *
+   * This function also checks if mapped point is within support region.
+   */
   virtual void
   TransformPointWithDerivatives(unsigned int           sampleNumber,
                                 MovingImagePointType & mappedPoint,
@@ -494,15 +548,22 @@ protected:
                                 ImageDerivativesType & movingImageGradient,
                                 ThreadIdType           threadId) const;
 
-  /** Boolean to indicate if the interpolator BSpline. */
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  /** Boolean to indicate if the interpolator BSpline.
+  \deprecated `m_InterpolatorIsBSpline` is intended to be removed, in the future. Please use `m_BSplineInterpolator`
+  instead. For example, `if (m_InterpolatorIsBSpline)` may be rewritten as `if (m_BSplineInterpolator)`. */
   bool m_InterpolatorIsBSpline{ false };
+#endif
+
   /** Pointer to BSplineInterpolator. */
-  typename BSplineInterpolatorType::Pointer m_BSplineInterpolator;
+  typename BSplineInterpolatorType::Pointer m_BSplineInterpolator{};
 
   /** Pointer to central difference calculator. */
-  typename DerivativeFunctionType::Pointer m_DerivativeCalculator;
+  typename DerivativeFunctionType::Pointer m_DerivativeCalculator{};
 
-  /** Compute image derivatives at a point. */
+  /** Compute image derivatives at a point using a central difference function if we are not using a
+   * BSplineInterpolator, which includes derivatives.
+   */
   virtual void
   ComputeImageDerivatives(const MovingImagePointType & mappedPoint,
                           ImageDerivativesType &       gradient,
@@ -526,7 +587,7 @@ protected:
     ConstantPointerWrapper(ImageToImageMetric * i2i_metricPointer)
       : m_ConstMetricPointer{ i2i_metricPointer }
     {}
-    const ImageToImageMetric *
+    [[nodiscard]] const ImageToImageMetric *
     GetConstMetricPointer() const
     {
       return m_ConstMetricPointer;
@@ -549,12 +610,12 @@ protected:
     MultiThreaderWorkUnitInfoImageToImageMetricWrapper(const void * workunitInfoAsVoid)
       : m_WorkUnitInfo(static_cast<const typename MultiThreaderType::WorkUnitInfo *>(workunitInfoAsVoid))
     {}
-    ThreadIdType
+    [[nodiscard]] ThreadIdType
     GetThreadId() const
     {
       return m_WorkUnitInfo->WorkUnitID;
     }
-    const ImageToImageMetric *
+    [[nodiscard]] const ImageToImageMetric *
     GetConstImageToImageMetricPointer() const
     {
       return (static_cast<ConstantPointerWrapper *>(m_WorkUnitInfo->UserData))->GetConstMetricPointer();
@@ -564,11 +625,11 @@ protected:
     const typename MultiThreaderType::WorkUnitInfo * m_WorkUnitInfo;
   };
 
-  MultiThreaderType::Pointer m_Threader;
-  ConstantPointerWrapper *   m_ConstSelfWrapper;
-  mutable unsigned int *     m_ThreaderNumberOfMovingImageSamples{ nullptr };
-  bool                       m_WithinThreadPreProcess{ false };
-  bool                       m_WithinThreadPostProcess{ false };
+  MultiThreaderType::Pointer              m_Threader{};
+  std::unique_ptr<ConstantPointerWrapper> m_ConstSelfWrapper;
+  mutable std::unique_ptr<unsigned int[]> m_ThreaderNumberOfMovingImageSamples;
+  bool                                    m_WithinThreadPreProcess{ false };
+  bool                                    m_WithinThreadPostProcess{ false };
 
   void
   GetValueMultiThreadedInitiate() const;
@@ -576,15 +637,20 @@ protected:
   void
   GetValueMultiThreadedPostProcessInitiate() const;
 
+  /** Get the match Measure. */
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   GetValueMultiThreaded(void * workunitInfoAsVoid);
 
+  /** Get the match Measure. */
   static ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
   GetValueMultiThreadedPostProcess(void * workunitInfoAsVoid);
 
+  /** Get the match Measure. */
   virtual inline void
   GetValueThread(ThreadIdType threadId) const;
 
+  /** Get the match Measure. */
+  /** @ITKStartGrouping */
   virtual inline void
   GetValueThreadPreProcess(ThreadIdType itkNotUsed(threadId), bool itkNotUsed(withinSampleThread)) const
   {}
@@ -599,7 +665,7 @@ protected:
   virtual inline void
   GetValueThreadPostProcess(ThreadIdType itkNotUsed(threadId), bool itkNotUsed(withinSampleThread)) const
   {}
-
+  /** @ITKEndGrouping */
   void
   GetValueAndDerivativeMultiThreadedInitiate() const;
 
@@ -631,14 +697,16 @@ protected:
   GetValueAndDerivativeThreadPostProcess(ThreadIdType itkNotUsed(threadId), bool itkNotUsed(withinSampleThread)) const
   {}
 
-  /** Synchronizes the threader transforms with the transform
-   *   member variable.
+  /** Synchronizes the threader transforms with the transform member variable.
+   *
+   * This method can be const because we are not altering the m_ThreaderTransform pointer. We are altering the object
+   * that m_ThreaderTransform[idx] points at.* This is allowed under C++ const rules.
    */
   virtual void
   SynchronizeTransforms() const;
 
 private:
-  FixedImageRegionType m_FixedImageRegion;
+  FixedImageRegionType m_FixedImageRegion{};
 };
 } // end namespace itk
 

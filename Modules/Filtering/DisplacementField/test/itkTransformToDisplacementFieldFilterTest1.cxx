@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
  * a deformation field from the transform, and uses the WarpImageFilter and
  * compares the two results to ensure that the same answer is found in both cases.
  * This test was written by Yong Quaing Zhao in order to address bug
- * 0008930http://public.kitware.com/Bug/view.php?id=8930
+ * 0008930https://public.kitware.com/Bug/view.php?id=8930
  */
 
 #include <fstream>
@@ -72,11 +72,9 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
 
 
   // Create input image.
-  SizeType size;
-  size.Fill(24);
-  IndexType index;
-  index.Fill(0);
-  SpacingType spacing;
+  auto                size = SizeType::Filled(24);
+  constexpr IndexType index{};
+  SpacingType         spacing;
   spacing[0] = 1.1;
   spacing[1] = 2.2;
   spacing[2] = 3.3;
@@ -97,24 +95,22 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
   inputDirection[2][1] = -1;
   inputDirection[2][2] = 0;
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
-  ImageType::Pointer image = ImageType::New();
+  const RegionType region{ index, size };
+  auto             image = ImageType::New();
   image->SetRegions(region);
   image->Allocate();
   image->SetSpacing(spacing);
   image->SetOrigin(origin);
   image->SetDirection(inputDirection);
-  image->FillBuffer(itk::NumericTraits<ScalarPixelType>::ZeroValue());
+  image->FillBuffer(ScalarPixelType{});
 
   float     incrValue = 100.0;
   IndexType pixelIndex;
-  for (unsigned int i = 0; i < size[0]; i++)
+  for (unsigned int i = 0; i < size[0]; ++i)
   {
-    for (unsigned int j = 0; j < size[1]; j++)
+    for (unsigned int j = 0; j < size[1]; ++j)
     {
-      for (unsigned int k = 0; k < size[2]; k++)
+      for (unsigned int k = 0; k < size[2]; ++k)
       {
         pixelIndex[0] = i;
         pixelIndex[1] = j;
@@ -136,14 +132,10 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
   }
 
   // Set Output information.
-  IndexType outputIndex;
-  outputIndex.Fill(0);
-  SpacingType outputSpacing;
-  SizeType    outputSize;
-  outputSize.Fill(24);
-  RegionType outputRegion;
-  outputRegion.SetSize(outputSize);
-  outputRegion.SetIndex(outputIndex);
+  constexpr IndexType outputIndex{};
+  SpacingType         outputSpacing;
+  auto                outputSize = SizeType::Filled(24);
+  const RegionType    outputRegion{ outputIndex, outputSize };
   outputSpacing[0] = 1.0;
   outputSpacing[1] = 2.0;
   outputSpacing[2] = 3.0;
@@ -151,14 +143,13 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
   outputOrigin[0] = 50;
   outputOrigin[1] = 30;
   outputOrigin[2] = -60;
-  DirectionType outputDirection = inputDirection;
+  const DirectionType outputDirection = inputDirection;
 
   // Create transforms.
-  TransformType::Pointer eulerTransform = TransformType::New();
+  auto eulerTransform = TransformType::New();
   {
     // Set the options.
-    IndexType imageCenter;
-    imageCenter.Fill(11);
+    auto      imageCenter = IndexType::Filled(11);
     PointType centerPoint;
     image->TransformIndexToPhysicalPoint(imageCenter, centerPoint);
     eulerTransform->SetCenter(centerPoint);
@@ -176,7 +167,7 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
 
   // Use ResampleImageFilter to get transformed image.
   using ResampleImageFilter = itk::ResampleImageFilter<ImageType, ImageType>;
-  ResampleImageFilter::Pointer resample = ResampleImageFilter::New();
+  auto resample = ResampleImageFilter::New();
   resample->SetInput(image);
   resample->SetTransform(eulerTransform);
   resample->SetSize(outputRegion.GetSize());
@@ -187,7 +178,7 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
   resample->Update();
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer1 = WriterType::New();
+  auto writer1 = WriterType::New();
   writer1->SetInput(resample->GetOutput());
   writer1->SetFileName(resampledImageFileName);
 
@@ -195,7 +186,7 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
 
 
   // Create an setup deformation field generator.
-  DisplacementFieldGeneratorType::Pointer defGenerator = DisplacementFieldGeneratorType::New();
+  auto defGenerator = DisplacementFieldGeneratorType::New();
 
   auto useReferenceImage = static_cast<bool>(std::stoi(argv[3]));
   ITK_TEST_SET_GET_BOOLEAN(defGenerator, UseReferenceImage, useReferenceImage);
@@ -207,7 +198,7 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
 
 
   // Use WarpImageFilter with deformation field.
-  WarpImageType::Pointer warper = WarpImageType::New();
+  auto warper = WarpImageType::New();
   warper->SetOutputSize(outputRegion.GetSize());
   warper->SetOutputStartIndex(outputRegion.GetIndex());
   warper->SetOutputSpacing(outputSpacing);
@@ -219,7 +210,7 @@ itkTransformToDisplacementFieldFilterTest1(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(warper->Update());
 
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetInput(warper->GetOutput());
   writer2->SetFileName(displacementFieldFileName);
 

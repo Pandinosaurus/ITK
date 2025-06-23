@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,7 @@
 #include "itkProbabilityDistribution.h"
 #include "ITKStatisticsExport.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class GaussianDistribution
  * \brief GaussianDistribution class defines the interface for a
@@ -69,8 +67,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Strandard macros */
-  itkTypeMacro(GaussianDistribution, ProbabilityDistribution);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianDistribution);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -222,9 +220,7 @@ public:
    * Biophysics Research Institute at the Medical College of
    * Wisconsin.  This function is based off of a rational polynomial
    * approximation to the inverse Gaussian CDF which can be found in
-   * M. Abramowitz and I.A. Stegun. Handbook of Mathematical Functions
-   * with Formulas, Graphs, and Mathematical Tables.  John Wiley & Sons.
-   * New York. Equation 26.2.23. pg. 933. 1972.
+   * \cite abramowitz1972 Equation 26.2.23. pg. 933.
    *
    * Since the initial approximation only provides an estimate within
    * 4.5 E-4 of the true value, 3 Newton-Raphson iterations are used
@@ -270,7 +266,6 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 }; // end of class
-} // end of namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #endif

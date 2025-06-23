@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,11 +59,7 @@ namespace itk
  *
  * \f[ \nabla \cdot \frac{\nabla f}{\mid \nabla f \mid} \f] .
  *
- * \par References
- *  R. Whitaker and X. Xue. Variable-Conductance, Level-Set Curvature for
- *  Image Denoising, International Conference on Image Processing, 2001
- *  pp. 142-145, Vol.3.
- *
+ * For additional information see \cite whitaker2001.
  *
  * \sa AnisotropicDiffusionFunction
  * \ingroup FiniteDifferenceFunctions
@@ -86,16 +82,16 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CurvatureNDAnisotropicDiffusionFunction, ScalarAnisotropicDiffusionFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CurvatureNDAnisotropicDiffusionFunction);
 
   /** Inherit some parameters from the superclass type. */
-  using ImageType = typename Superclass::ImageType;
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
 
   using NeighborhoodSizeValueType = typename NeighborhoodType::SizeValueType;
 
@@ -122,7 +118,7 @@ protected:
 
 private:
   /** Inner product function. */
-  NeighborhoodInnerProduct<ImageType> m_InnerProduct;
+  NeighborhoodInnerProduct<ImageType> m_InnerProduct{};
 
   /** Slices for the ND neighborhood. */
   std::slice x_slice[ImageDimension];
@@ -130,16 +126,16 @@ private:
   std::slice xd_slice[ImageDimension][ImageDimension];
 
   /** Derivative operator */
-  DerivativeOperator<PixelType, Self::ImageDimension> m_DerivativeOperator;
+  DerivativeOperator<PixelType, Self::ImageDimension> m_DerivativeOperator{};
 
   /** Modified global average gradient magnitude term. */
-  PixelType m_K;
+  PixelType m_K{};
 
   /** */
   static double m_MIN_NORM;
 
-  NeighborhoodSizeValueType m_Center;
-  NeighborhoodSizeValueType m_Stride[ImageDimension];
+  NeighborhoodSizeValueType m_Center{};
+  NeighborhoodSizeValueType m_Stride[ImageDimension]{};
 };
 } // end namespace itk
 

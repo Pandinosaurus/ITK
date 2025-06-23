@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkImageFileReader.h"
 #include "itkGDCMImageIO.h"
 #include "itkVersor.h"
+#include "itkTestingMacros.h"
 
 // Specific ImageIO test
 
@@ -26,12 +27,12 @@
  *  computed in itkGDCMImageIO are orthogonal
  */
 int
-itkGDCMImageIOOrthoDirTest(int ac, char * av[])
+itkGDCMImageIOOrthoDirTest(int argc, char * argv[])
 {
 
-  if (ac < 2)
+  if (argc < 2)
   {
-    std::cerr << "Usage: " << av[0] << " DicomImage\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " DicomImage\n";
     return EXIT_FAILURE;
   }
 
@@ -40,10 +41,10 @@ itkGDCMImageIOOrthoDirTest(int ac, char * av[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using ImageIOType = itk::GDCMImageIO;
 
-  ImageIOType::Pointer dcmImageIO = ImageIOType::New();
+  auto dcmImageIO = ImageIOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->SetImageIO(dcmImageIO);
 
   try
@@ -57,8 +58,7 @@ itkGDCMImageIOOrthoDirTest(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  InputImageType::DirectionType directionCosines;
-  directionCosines = reader->GetOutput()->GetDirection();
+  const InputImageType::DirectionType directionCosines = reader->GetOutput()->GetDirection();
 
   std::cout << "Dir Cosines " << directionCosines;
 

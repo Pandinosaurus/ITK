@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ import numpy as np
 
 
 class TestNumpyVnlMemoryviewInterface(unittest.TestCase):
-    """ This tests numpy array <-> ITK Scalar Image conversion. """
+    """This tests numpy array <-> ITK Scalar Image conversion."""
 
     def setUp(self):
         pass
@@ -118,6 +118,13 @@ class TestNumpyVnlMemoryviewInterface(unittest.TestCase):
                 else:
                     diff += abs(m3.get(ii, jj))
         self.assertEqual(0, diff)
+        # Check instantiations for more combinations of Matrix
+        for i in range(3, 5):
+            for j in range(3, 5):
+                itkm_f = itk.Matrix[itk.F, i, j]()
+                m3 = itkm_f.GetVnlMatrix()
+                itkm_d = itk.Matrix[itk.D, i, j]()
+                m3 = itkm_d.GetVnlMatrix()
 
 
 if __name__ == "__main__":

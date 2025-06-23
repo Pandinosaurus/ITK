@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkAttributeRelabelLabelMapFilter_hxx
 #define itkAttributeRelabelLabelMapFilter_hxx
 
-#include "itkAttributeRelabelLabelMapFilter.h"
 #include "itkProgressReporter.h"
 
 
@@ -26,10 +25,7 @@ namespace itk
 {
 
 template <typename TImage, typename TAttributeAccessor>
-AttributeRelabelLabelMapFilter<TImage, TAttributeAccessor>::AttributeRelabelLabelMapFilter()
-{
-  m_ReverseOrdering = false;
-}
+AttributeRelabelLabelMapFilter<TImage, TAttributeAccessor>::AttributeRelabelLabelMapFilter() = default;
 
 
 template <typename TImage, typename TAttributeAccessor>
@@ -57,12 +53,12 @@ AttributeRelabelLabelMapFilter<TImage, TAttributeAccessor>::GenerateData()
   // instantiate the comparator and sort the vector
   if (m_ReverseOrdering)
   {
-    ReverseComparator comparator;
+    const ReverseComparator comparator;
     std::sort(labelObjects.begin(), labelObjects.end(), comparator);
   }
   else
   {
-    Comparator comparator;
+    const Comparator comparator;
     std::sort(labelObjects.begin(), labelObjects.end(), comparator);
   }
   //   progress.CompletedPixel();
@@ -70,18 +66,18 @@ AttributeRelabelLabelMapFilter<TImage, TAttributeAccessor>::GenerateData()
   // and put back the objects in the map
   output->ClearLabels();
   unsigned int label = 0;
-  for (typename VectorType::const_iterator it = labelObjects.begin(); it != labelObjects.end(); it++)
+  for (auto it = labelObjects.begin(); it != labelObjects.end(); ++it)
   {
     // avoid the background label if it is used
     if (label == output->GetBackgroundValue())
     {
-      label++;
+      ++label;
     }
     (*it)->SetLabel(label);
     output->AddLabelObject(*it);
 
     // go to the nex label
-    label++;
+    ++label;
     progress.CompletedPixel();
   }
 }

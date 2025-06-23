@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,19 +28,11 @@
 #ifndef itkImage_hxx
 #define itkImage_hxx
 
-#include "itkImage.h"
 #include "itkProcessObject.h"
 #include <algorithm>
 
 namespace itk
 {
-
-template <typename TPixel, unsigned int VImageDimension>
-Image<TPixel, VImageDimension>::Image()
-{
-  m_Buffer = PixelContainer::New();
-}
-
 
 template <typename TPixel, unsigned int VImageDimension>
 void
@@ -127,8 +119,8 @@ Image<TPixel, VImageDimension>::Graft(const DataObject * data)
     else
     {
       // pointer could not be cast back down
-      itkExceptionMacro(<< "itk::Image::Graft() cannot cast " << typeid(data).name() << " to "
-                        << typeid(const Self *).name());
+      itkExceptionMacro("itk::Image::Graft() cannot cast " << typeid(data).name() << " to "
+                                                           << typeid(const Self *).name());
     }
   }
 }
@@ -148,8 +140,7 @@ Image<TPixel, VImageDimension>::GetNumberOfComponentsPerPixel() const
 {
   // use the GetLength() method which works with variable length arrays,
   // to make it work with as much pixel types as possible
-  const auto p = PixelType();
-  return NumericTraits<PixelType>::GetLength(p);
+  return NumericTraits<PixelType>::GetLength({});
 }
 
 

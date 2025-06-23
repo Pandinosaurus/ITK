@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ namespace itk
  * or GetDisplacementField.
  *
  * The PDE algorithm is run for a user defined number of iterations.
- * Typically the PDE algorithm requires period Gaussin smoothing of the
+ * Typically the PDE algorithm requires period Gaussian smoothing of the
  * deformation field to enforce an elastic-like condition. The amount
  * of smoothing is governed by a set of user defined standard deviations
  * (one for each dimension).
@@ -95,8 +95,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(GPUPDEDeformableRegistrationFilter, GPUDenseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUPDEDeformableRegistrationFilter);
 
   /** FixedImage image type. */
   using FixedImageType = TFixedImage;
@@ -147,7 +147,8 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  /** A simple method to copy the data from the input to the output.
+  /** Copy the data from the input to the output.
+   *
    * If the input does not exist, a zero field is written to the output. */
   void
   CopyInputToOutput() override;
@@ -158,13 +159,15 @@ protected:
   InitializeIteration() override;
 
   /** Utility to smooth the deformation field (represented in the Output)
-   * using a Gaussian operator. The amount of smoothing can be specified
+   * using a separable Gaussian kernel. The amount of smoothing can be specified
    * by setting the StandardDeviations. */
   void
   SmoothDisplacementField() override;
 
-  /** Smooth a vector field, which may be m_DisplacementField or
-   * m_UpdateBuffer. */
+  /** Smooth a vector field using a separable Gaussian kernel.
+   *
+   * The smoothed field may be m_DisplacementField or m_UpdateBuffer.
+   */
   virtual void
   GPUSmoothVectorField(DisplacementFieldPointer         field,
                        typename GPUDataManager::Pointer GPUSmoothingKernels[],
@@ -173,18 +176,23 @@ protected:
   virtual void
   AllocateSmoothingBuffer();
 
-  /** Utility to smooth the UpdateBuffer using a Gaussian operator.
+  /** Smooth the UpdateBuffer using a separable Gaussian kernel.
    * The amount of smoothing can be specified by setting the
    * UpdateFieldStandardDeviations. */
   void
   SmoothUpdateField() override;
 
-  /** This method is called after the solution has been generated. In this case,
-   * the filter release the memory of the internal buffers. */
+  /** Release the memory of the internal buffers.
+   *
+   * Called after the solution has been generated.
+   */
   void
   PostProcessOutput() override;
 
-  /** This method is called before iterating the solution. */
+  /** Initialize flags.
+   *
+   * Called before iterating the solution.
+   */
   void
   Initialize() override;
 
@@ -207,24 +215,24 @@ protected:
 private:
   /** Temporary deformation field use for smoothing the
    * the deformation field. */
-  DisplacementFieldPointer m_TempField;
+  DisplacementFieldPointer m_TempField{};
 
 private:
   /** Memory buffer for smoothing kernels of the displacement field. */
-  int                              m_SmoothingKernelSizes[ImageDimension];
-  DeformationScalarType *          m_SmoothingKernels[ImageDimension];
-  typename GPUDataManager::Pointer m_GPUSmoothingKernels[ImageDimension];
+  int                              m_SmoothingKernelSizes[ImageDimension]{};
+  DeformationScalarType *          m_SmoothingKernels[ImageDimension]{};
+  typename GPUDataManager::Pointer m_GPUSmoothingKernels[ImageDimension]{};
 
   /** Memory buffer for smoothing kernels of the update field. */
-  int                              m_UpdateFieldSmoothingKernelSizes[ImageDimension];
-  DeformationScalarType *          m_UpdateFieldSmoothingKernels[ImageDimension];
-  typename GPUDataManager::Pointer m_UpdateFieldGPUSmoothingKernels[ImageDimension];
+  int                              m_UpdateFieldSmoothingKernelSizes[ImageDimension]{};
+  DeformationScalarType *          m_UpdateFieldSmoothingKernels[ImageDimension]{};
+  typename GPUDataManager::Pointer m_UpdateFieldGPUSmoothingKernels[ImageDimension]{};
 
-  int *                            m_ImageSizes;
-  typename GPUDataManager::Pointer m_GPUImageSizes;
+  int *                            m_ImageSizes{};
+  typename GPUDataManager::Pointer m_GPUImageSizes{};
 
   /* GPU kernel handle for GPUSmoothDisplacementField */
-  int m_SmoothDisplacementFieldGPUKernelHandle;
+  int m_SmoothDisplacementFieldGPUKernelHandle{};
 };
 } // end namespace itk
 

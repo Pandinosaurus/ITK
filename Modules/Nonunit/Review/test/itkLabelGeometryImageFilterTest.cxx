@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,10 @@
 
 #include "itkCSVArray2DFileReader.h"
 #include "itkCSVNumericObjectFileWriter.h"
+#include "itkTestingMacros.h"
 
 // Helper function declaration.
-template <const unsigned int NDimension>
+template <const unsigned int VDimension>
 int
 LabelGeometryImageFilterTest(std::string labelImageName,
                              std::string intensityImageName,
@@ -43,8 +44,9 @@ itkLabelGeometryImageFilterTest(int argc, char * argv[])
 {
   if (argc < 5)
   {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "labelImage intensityImage outputImage outputFileName [compareFileName]" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << "labelImage intensityImage outputImage outputFileName [compareFileName]" << std::endl;
     return EXIT_FAILURE;
   }
   // Legacy compat with older MetaImages
@@ -81,7 +83,7 @@ itkLabelGeometryImageFilterTest(int argc, char * argv[])
   return EXIT_SUCCESS;
 }
 
-template <const unsigned int NDimension>
+template <const unsigned int VDimension>
 int
 LabelGeometryImageFilterTest(std::string labelImageName,
                              std::string intensityImageName,
@@ -95,54 +97,54 @@ LabelGeometryImageFilterTest(std::string labelImageName,
   using LabelPixelType = unsigned short;
   using IntensityPixelType = unsigned char;
 
-  using LabelImageType = itk::Image<LabelPixelType, NDimension>;
-  using IntensityImageType = itk::Image<IntensityPixelType, NDimension>;
+  using LabelImageType = itk::Image<LabelPixelType, VDimension>;
+  using IntensityImageType = itk::Image<IntensityPixelType, VDimension>;
 
   // Read the label image.
   using LabelReaderType = itk::ImageFileReader<LabelImageType>;
-  typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+  auto labelReader = LabelReaderType::New();
   labelReader->SetFileName(labelImageName);
 
   // Read the intensity image.
   using IntensityReaderType = itk::ImageFileReader<IntensityImageType>;
-  typename IntensityReaderType::Pointer intensityReader = IntensityReaderType::New();
+  auto intensityReader = IntensityReaderType::New();
   intensityReader->SetFileName(intensityImageName);
 
   // First test the filter without any intensity image.
   using LabelGeometryType = itk::LabelGeometryImageFilter<LabelImageType, IntensityImageType>;
-  typename LabelGeometryType::Pointer labelGeometryFilter = LabelGeometryType::New();
+  auto labelGeometryFilter = LabelGeometryType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(labelGeometryFilter, LabelGeometryImageFilter, ImageToImageFilter);
+
+
   labelGeometryFilter->SetInput(labelReader->GetOutput());
   labelGeometryFilter->SetIntensityInput(intensityReader->GetOutput());
 
   // These generate optional outputs.
-  labelGeometryFilter->CalculatePixelIndicesOn();
-  labelGeometryFilter->CalculateOrientedBoundingBoxOn();
-  labelGeometryFilter->CalculateOrientedLabelRegionsOn();
-  labelGeometryFilter->CalculateOrientedIntensityRegionsOn();
+  auto calculatePixelIndices = true;
+  ITK_TEST_SET_GET_BOOLEAN(labelGeometryFilter, CalculatePixelIndices, calculatePixelIndices);
 
-  try
-  {
-    labelGeometryFilter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << e << std::endl;
-  }
+  auto calculateOrientedBoundingBox = true;
+  ITK_TEST_SET_GET_BOOLEAN(labelGeometryFilter, CalculateOrientedBoundingBox, calculateOrientedBoundingBox);
+
+  auto calculateOrientedLabelRegions = true;
+  ITK_TEST_SET_GET_BOOLEAN(labelGeometryFilter, CalculateOrientedLabelRegions, calculateOrientedLabelRegions);
+
+  auto calculateOrientedIntensityRegions = true;
+  ITK_TEST_SET_GET_BOOLEAN(labelGeometryFilter, CalculateOrientedIntensityRegions, calculateOrientedIntensityRegions);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(labelGeometryFilter->Update());
+
 
   // Write out the oriented image of the first object.
   typename LabelGeometryType::LabelPixelType labelValue = 1;
   using IntensityWriterType = itk::ImageFileWriter<IntensityImageType>;
-  typename IntensityWriterType::Pointer intensityWriter = IntensityWriterType::New();
+  auto intensityWriter = IntensityWriterType::New();
   intensityWriter->SetFileName(outputImageName);
   intensityWriter->SetInput(labelGeometryFilter->GetOrientedIntensityImage(labelValue));
-  try
-  {
-    intensityWriter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << e << std::endl;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(intensityWriter->Update());
+
 
   // Write all of the object features out to a csv file.
   int numberOfLabels = labelGeometryFilter->GetNumberOfLabels();
@@ -151,10 +153,9 @@ LabelGeometryImageFilterTest(std::string labelImageName,
   using MatrixType = WriterType::vnlMatrixType;
   MatrixType matrix(numberOfLabels, numberOfColumns);
 
-  int                                              rowIndex = 0;
-  typename LabelGeometryType::LabelsType           allLabels = labelGeometryFilter->GetLabels();
-  typename LabelGeometryType::LabelsType::iterator allLabelsIt;
-  for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
+  int                                    rowIndex = 0;
+  typename LabelGeometryType::LabelsType allLabels = labelGeometryFilter->GetLabels();
+  for (auto allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); ++allLabelsIt)
   {
     int columnIndex = 0;
     labelValue = *allLabelsIt;
@@ -164,7 +165,7 @@ LabelGeometryImageFilterTest(std::string labelImageName,
 
     matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetCentroid(labelValue)[0];
     matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetCentroid(labelValue)[1];
-    if (NDimension == 3)
+    if constexpr (VDimension == 3)
     {
       matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetCentroid(labelValue)[2];
     }
@@ -174,7 +175,7 @@ LabelGeometryImageFilterTest(std::string labelImageName,
     }
     matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetWeightedCentroid(labelValue)[0];
     matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetWeightedCentroid(labelValue)[1];
-    if (NDimension == 3)
+    if constexpr (VDimension == 3)
     {
       matrix(rowIndex, columnIndex++) = labelGeometryFilter->GetWeightedCentroid(labelValue)[2];
     }
@@ -189,7 +190,7 @@ LabelGeometryImageFilterTest(std::string labelImageName,
 
     typename LabelGeometryType::RealType orientation = labelGeometryFilter->GetOrientation(labelValue);
     // If the orientation is very close pi, we set it to 0.
-    orientation = std::fabs(itk::Math::pi - orientation) < epsilon ? 0 : orientation;
+    orientation = itk::Math::abs(itk::Math::pi - orientation) < epsilon ? 0 : orientation;
     matrix(rowIndex, columnIndex++) = orientation;
 
     rowIndex++;
@@ -197,39 +198,32 @@ LabelGeometryImageFilterTest(std::string labelImageName,
 
   // Set up the headers.
   WriterType::StringVectorType columnName;
-  columnName.push_back("Label number");
-  columnName.push_back("Volume (voxels)");
-  columnName.push_back("Integrated intensity");
-  columnName.push_back("Centroid X (voxel)");
-  columnName.push_back("Centroid Y (voxel)");
-  columnName.push_back("Centroid Z (voxel)");
-  columnName.push_back("Weighted centroid X (voxel)");
-  columnName.push_back("Weighted centroid Y (voxel)");
-  columnName.push_back("Weighted centroid Z (voxel)");
-  columnName.push_back("Major axis length");
-  columnName.push_back("Minor axis length");
-  columnName.push_back("Eccentricity");
-  columnName.push_back("Elongation");
-  columnName.push_back("Orientation");
+  columnName.emplace_back("Label number");
+  columnName.emplace_back("Volume (voxels)");
+  columnName.emplace_back("Integrated intensity");
+  columnName.emplace_back("Centroid X (voxel)");
+  columnName.emplace_back("Centroid Y (voxel)");
+  columnName.emplace_back("Centroid Z (voxel)");
+  columnName.emplace_back("Weighted centroid X (voxel)");
+  columnName.emplace_back("Weighted centroid Y (voxel)");
+  columnName.emplace_back("Weighted centroid Z (voxel)");
+  columnName.emplace_back("Major axis length");
+  columnName.emplace_back("Minor axis length");
+  columnName.emplace_back("Eccentricity");
+  columnName.emplace_back("Elongation");
+  columnName.emplace_back("Orientation");
 
   // write out the array2D object
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputFileName);
   writer->SetInput(&matrix);
   writer->SetColumnHeaders(columnName);
-  MatrixType * matrixPointer;
-  matrixPointer = new MatrixType(matrix.data_block(), numberOfLabels, numberOfColumns);
+  auto * matrixPointer = new MatrixType(matrix.data_block(), numberOfLabels, numberOfColumns);
   writer->SetInput(matrixPointer);
-  try
-  {
-    writer->Write();
-  }
-  catch (const itk::ExceptionObject & exp)
-  {
-    std::cerr << "Exception caught!" << std::endl;
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Write());
+
+
   delete matrixPointer;
 
   // If an optional csv file was passed in, compare the results of this analysis with the values in the file.
@@ -239,36 +233,29 @@ LabelGeometryImageFilterTest(std::string labelImageName,
     // Read the values we just wrote.
     // This is better than comparing against the values in memory because some truncation occurs when writing to file.
     using ReaderType = itk::CSVArray2DFileReader<double>;
-    ReaderType::Pointer newReader = ReaderType::New();
+    auto newReader = ReaderType::New();
     newReader->SetFileName(outputFileName);
     newReader->SetFieldDelimiterCharacter(',');
     newReader->HasColumnHeadersOn();
     newReader->HasRowHeadersOff();
 
     // Read the values to compare against.
-    ReaderType::Pointer compareReader = ReaderType::New();
+    auto compareReader = ReaderType::New();
     compareReader->SetFileName(compareFileName);
     compareReader->SetFieldDelimiterCharacter(',');
     compareReader->HasColumnHeadersOn();
     compareReader->HasRowHeadersOff();
-    try
-    {
-      newReader->Parse();
-      compareReader->Parse();
-    }
-    catch (const itk::ExceptionObject & exp)
-    {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
-      return EXIT_FAILURE;
-    }
+
+    ITK_TRY_EXPECT_NO_EXCEPTION(newReader->Parse());
+    ITK_TRY_EXPECT_NO_EXCEPTION(compareReader->Parse());
+
 
     using DataFrameObjectType = itk::CSVArray2DDataObject<double>;
-    DataFrameObjectType::Pointer newDFO = DataFrameObjectType::New();
+    auto newDFO = DataFrameObjectType::New();
     newDFO = newReader->GetOutput();
     MatrixType newMatrix = newDFO->GetMatrix();
 
-    DataFrameObjectType::Pointer compareDFO = DataFrameObjectType::New();
+    auto compareDFO = DataFrameObjectType::New();
     compareDFO = compareReader->GetOutput();
     MatrixType compareMatrix = compareDFO->GetMatrix();
 
@@ -302,9 +289,9 @@ compareMatrices(const MatrixType & m1, const MatrixType & m2, double epsilon)
     return pass;
   }
 
-  for (unsigned int i = 0; i < m1.rows(); i++)
+  for (unsigned int i = 0; i < m1.rows(); ++i)
   {
-    for (unsigned int j = 0; j < m1.cols(); j++)
+    for (unsigned int j = 0; j < m1.cols(); ++j)
     {
       // We need to test whether m1 is a NaN and/or m2 is a NaN.
       // If they are both NaN, then they are the same.
@@ -319,11 +306,11 @@ compareMatrices(const MatrixType & m1, const MatrixType & m2, double epsilon)
         pass = false;
         return pass;
       }
-      if (std::fabs(m1[i][j] - m2[i][j]) > epsilon)
+      if (itk::Math::abs(m1[i][j] - m2[i][j]) > epsilon)
       {
         std::cout << "Matrix difference:"
-                  << "abs(m2[" << i << "][" << j << "] - m1[" << i << "][" << j
-                  << "]): " << std::fabs(m1[i][j] - m2[i][j]) << std::endl;
+                  << "itk::Math::abs(m2[" << i << "][" << j << "] - m1[" << i << "][" << j
+                  << "]): " << itk::Math::abs(m1[i][j] - m2[i][j]) << std::endl;
         pass = false;
         return pass;
       }

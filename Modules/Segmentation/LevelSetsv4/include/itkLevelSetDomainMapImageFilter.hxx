@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,30 +19,29 @@
 #ifndef itkLevelSetDomainMapImageFilter_hxx
 #define itkLevelSetDomainMapImageFilter_hxx
 
-#include "itkLevelSetDomainMapImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::LevelSetDomainMapImageFilter()
+  : m_InputImage(nullptr)
+  , m_OutputImage(nullptr)
 {
   this->Superclass::SetNumberOfRequiredInputs(1);
   this->Superclass::SetNumberOfRequiredOutputs(1);
-  this->m_InputImage = nullptr;
-  this->m_OutputImage = nullptr;
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::DomainMapType &
-LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::GetDomainMap() const
+auto
+LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::GetDomainMap() const -> const DomainMapType &
 {
   return this->m_DomainMap;
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::InputImageRegionType
+auto
 LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::ComputeConsistentRegion(
-  const InputImageRegionType & inputRegion) const
+  const InputImageRegionType & inputRegion) const -> InputImageRegionType
 {
   bool regionWasModified = false;
 
@@ -66,11 +65,11 @@ LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::ComputeConsistentRegion
       const OutputImagePixelType segmentPixel = oIt.Get();
       const InputImagePixelType  nextPixel = iIt.Get();
 
-      if ((nextPixel != firstCornerPixelValue) || (segmentPixel != NumericTraits<OutputImagePixelType>::ZeroValue()))
+      if ((nextPixel != firstCornerPixelValue) || (segmentPixel != OutputImagePixelType{}))
       {
         const InputImageIndexType & stopIdx = iIt.GetIndex();
         InputImageSizeType          sizeOfRegion;
-        for (unsigned int i = 0; i < ImageDimension; i++)
+        for (unsigned int i = 0; i < ImageDimension; ++i)
         {
           sizeOfRegion[i] = stopIdx[i] - firstCornerIndex[i] + 1;
         }
@@ -102,12 +101,11 @@ LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   this->m_OutputImage = this->GetOutput();
   this->m_OutputImage->SetBufferedRegion(region);
-  this->m_OutputImage->Allocate();
-  this->m_OutputImage->FillBuffer(NumericTraits<OutputImagePixelType>::ZeroValue());
+  this->m_OutputImage->AllocateInitialized();
 
   InputImageIndexType end;
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     end[i] = size[i] - 1;
   }
@@ -129,12 +127,12 @@ LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::GenerateData()
 
     // outputPixel is null when it has not been processed yet,
     // or there is nothing to be processed
-    if ((!inputPixel.empty()) && (outputPixel == NumericTraits<OutputImagePixelType>::ZeroValue()))
+    if ((!inputPixel.empty()) && (outputPixel == OutputImagePixelType{}))
     {
       InputImageRegionType subRegion;
       InputImageSizeType   sizeOfRegion;
 
-      for (unsigned int i = 0; i < ImageDimension; i++)
+      for (unsigned int i = 0; i < ImageDimension; ++i)
       {
         bool sameOverlappingLevelSetIds = true;
         stopIdx = startIdx;
@@ -145,7 +143,7 @@ LevelSetDomainMapImageFilter<TInputImage, TOutputImage>::GenerateData()
 
           // Check if the input list pixels are different, or
           // the output image already has been assigned to another region
-          if ((nextPixel != inputPixel) || (currentOutputPixel != NumericTraits<OutputImagePixelType>::ZeroValue()))
+          if ((nextPixel != inputPixel) || (currentOutputPixel != OutputImagePixelType{}))
           {
             sameOverlappingLevelSetIds = false;
           }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkMetaDataObject.h"
 #include "itkImage.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 template <typename TMetaData>
 int
@@ -28,7 +29,10 @@ testMetaData(const TMetaData & value)
 
   using MetaDataObjectType = itk::MetaDataObject<MetaDataType>;
 
-  typename MetaDataObjectType::Pointer metaDataObject = MetaDataObjectType::New();
+  auto metaDataObject = MetaDataObjectType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metaDataObject, MetaDataObject, MetaDataObjectBase);
+
 
   metaDataObject->SetMetaDataObjectValue(value);
   if (itk::Math::NotExactlyEquals(metaDataObject->GetMetaDataObjectValue(), value))
@@ -64,9 +68,14 @@ itkMetaDataObjectTest(int, char *[])
   result += testMetaData<float>(-24);
   result += testMetaData<double>(-24);
   result += testMetaData<std::string>("I T K");
-
+  result += testMetaData<std::vector<double>>({ 1.0, 2.0, 3.0 });
+  result += testMetaData<std::vector<std::vector<double>>>({ { 1.0, 2.0, 3.0 }, { 4.0, 5.0, 6.0 } });
+  result += testMetaData(itk::Array<char>(3, 'I'));
+  result += testMetaData<itk::Array<double>>(itk::Array<double>(3, 3.0));
+  result += testMetaData(itk::Matrix<float, 4, 4>());
+  result += testMetaData<itk::Matrix<double, 3, 3>>(itk::Matrix<double, 3, 3>::GetIdentity());
   using ImageType = itk::Image<unsigned short, 3>;
-  ImageType::Pointer image = nullptr;
+  const ImageType::Pointer image = nullptr;
   result += testMetaData<ImageType::Pointer>(image);
 
   return result;

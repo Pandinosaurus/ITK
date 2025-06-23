@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ namespace itk
 {
 
 /**
- *\class BoundingBox
+ * \class BoundingBox
  *
  * \brief Represent and compute information about bounding boxes.
  *
@@ -55,7 +55,7 @@ namespace itk
  * Template parameters for BoundingBox:
  *
  * \tparam TPointIdentifier The type used to access a particular point (i.e., a point's id)
- * \tparam TCoordRep Numerical type with which to represent each coordinate value.
+ * \tparam TCoordinate Numerical type with which to represent each coordinate value.
  * \tparam VPointDimension Geometric dimension of space.
  *
  * \ingroup DataRepresentation
@@ -65,8 +65,8 @@ namespace itk
  */
 template <typename TPointIdentifier = IdentifierType,
           unsigned int VPointDimension = 3,
-          typename TCoordRep = float,
-          typename TPointsContainer = VectorContainer<TPointIdentifier, Point<TCoordRep, VPointDimension>>>
+          typename TCoordinate = float,
+          typename TPointsContainer = VectorContainer<TPointIdentifier, Point<TCoordinate, VPointDimension>>>
 class ITK_TEMPLATE_EXPORT BoundingBox : public Object
 {
 public:
@@ -78,8 +78,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(BoundingBox, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BoundingBox);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -89,13 +89,17 @@ public:
 
   /** Hold on to the type information specified by the template parameters. */
   using PointIdentifier = TPointIdentifier;
-  using CoordRepType = TCoordRep;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using PointsContainer = TPointsContainer;
   using PointsContainerPointer = typename PointsContainer::Pointer;
   using PointsContainerConstPointer = typename PointsContainer::ConstPointer;
 
-  using PointType = Point<CoordRepType, VPointDimension>;
-  using BoundsArrayType = FixedArray<CoordRepType, VPointDimension * 2>;
+  using PointType = Point<CoordinateType, VPointDimension>;
+  using BoundsArrayType = FixedArray<CoordinateType, VPointDimension * 2>;
 
   /** Hold on to the dimensions specified by the template parameters. */
   static constexpr unsigned int PointDimension = VPointDimension;
@@ -122,7 +126,7 @@ public:
   ComputeCorners() const;
 
   /** Compute and return the corners of the bounding box */
-  itkLegacyMacro(const PointsContainer * GetCorners());
+  itkLegacyMacro(const PointsContainer * GetCorners();)
 
   /** Method that actually computes bounding box. */
   bool
@@ -172,7 +176,7 @@ public:
   /** Get the length squared of the diagonal of the bounding box.
    * Returns zero if bounding box cannot be computed. Note that the
    * Accumulate type is used to represent the length. */
-  using AccumulateType = typename NumericTraits<CoordRepType>::AccumulateType;
+  using AccumulateType = typename NumericTraits<CoordinateType>::AccumulateType;
   AccumulateType
   GetDiagonalLength2() const;
 
@@ -189,7 +193,7 @@ public:
   DeepCopy() const;
 
 protected:
-  BoundingBox();
+  BoundingBox() = default;
   ~BoundingBox() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -197,13 +201,13 @@ protected:
   using ConstIterator = typename PointsContainer::ConstIterator;
 
 private:
-  PointsContainerConstPointer m_PointsContainer;
+  PointsContainerConstPointer m_PointsContainer{};
 #if !defined(ITK_LEGACY_REMOVE)
   PointsContainerPointer m_CornersContainer{ PointsContainer::New() };
 #endif
-  mutable BoundsArrayType m_Bounds;
-  mutable TimeStamp       m_BoundsMTime; // The last time the bounds
-                                         // were computed.
+  mutable BoundsArrayType m_Bounds{};
+  mutable TimeStamp       m_BoundsMTime{}; // The last time the bounds
+                                           // were computed.
 };
 } // end namespace itk
 

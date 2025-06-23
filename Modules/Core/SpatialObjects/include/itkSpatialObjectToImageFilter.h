@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class SpatialObjectToImageFilter
+ * \class SpatialObjectToImageFilter
  * \brief Base class for filters that take a SpatialObject
  *        as input and produce an image as output.
  *  By default, if the user does not specify the size of the output image,
@@ -50,6 +50,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   using OutputImageType = TOutputImage;
+  using IndexType = typename OutputImageType::IndexType;
   using SizeType = typename OutputImageType::SizeType;
   using PointType = typename OutputImageType::PointType;
   using OutputImagePointer = typename OutputImageType::Pointer;
@@ -60,11 +61,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SpatialObjectToImageFilter, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SpatialObjectToImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
 
   /** Some convenient type alias. */
   using InputSpatialObjectType = TInputSpatialObject;
@@ -77,7 +78,7 @@ public:
 
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  /** Set/Get the image input of this process object.  */
+  /** Set/Get the input spatial object. */
   using Superclass::SetInput;
   virtual void
   SetInput(const InputSpatialObjectType * input);
@@ -100,6 +101,7 @@ public:
     this->SetOrigin(refImage->GetOrigin());
     this->SetSpacing(refImage->GetSpacing());
     this->SetDirection(refImage->GetDirection());
+    this->SetIndex(refImage->GetLargestPossibleRegion().GetIndex());
     this->SetSize(refImage->GetLargestPossibleRegion().GetSize());
   }
 
@@ -119,6 +121,9 @@ public:
   virtual const double *
   GetSpacing() const;
 
+  virtual const SpacingType &
+  GetSpacingVector() const;
+
   /** Directions of the output image. The
    * direction is for oriented images. */
   virtual void
@@ -133,8 +138,10 @@ public:
    * If this "inside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(InsideValue, ValueType);
   itkGetConstMacro(InsideValue, ValueType);
+  /** @ITKEndGrouping */
 
   /** Set/Get the value for pixels outside the spatial object.
    * By default, this filter will return an image
@@ -142,8 +149,10 @@ public:
    * If this "outside" value is changed to a non-null value,
    * the output produced by this filter will be a mask with inside/outside values
    * specified by the user. */
+  /** @ITKStartGrouping */
   itkSetMacro(OutsideValue, ValueType);
   itkGetConstMacro(OutsideValue, ValueType);
+  /** @ITKEndGrouping */
 
   /** The origin of the output image. The origin is the geometric
    * coordinates of the index (0,0,...,0).  It is stored internally
@@ -161,22 +170,39 @@ public:
   virtual const double *
   GetOrigin() const;
 
+  virtual const PointType &
+  GetOriginPoint() const;
+
+  /** The index of the output image. The index is the pixel
+   * coordinates of the image region.
+   * \sa GetSize() */
+  /** @ITKStartGrouping */
+  itkSetMacro(Index, IndexType);
+  itkGetConstMacro(Index, IndexType);
+  /** @ITKEndGrouping */
+
   /** The spatial object being transformed can be part of a hierarchy.
    * How deep in the hierarchy should we descend in generating the
    * image?  A ChildrenDepth of 0 means to only include the object
    * itself. */
+  /** @ITKStartGrouping */
   itkSetMacro(ChildrenDepth, unsigned int);
   itkGetConstMacro(ChildrenDepth, unsigned int);
+  /** @ITKEndGrouping */
 
   /** Set/Get Size */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
+  /** @ITKEndGrouping */
 
   /** If UseObjectValue is set to true, then the filter uses
    *  the ValueAtInWorldSpace() function instead of IsInsideInWorldSpace() */
+  /** @ITKStartGrouping */
   itkSetMacro(UseObjectValue, bool);
   itkGetConstMacro(UseObjectValue, bool);
   itkBooleanMacro(UseObjectValue);
+  /** @ITKEndGrouping */
 
 protected:
   SpatialObjectToImageFilter();
@@ -188,17 +214,21 @@ protected:
   void
   GenerateData() override;
 
-  SizeType      m_Size;
-  double        m_Spacing[OutputImageDimension];
-  double        m_Origin[OutputImageDimension];
-  DirectionType m_Direction;
+  IndexType     m_Index{};
+  SizeType      m_Size{};
+  double        m_Spacing[OutputImageDimension]{};
+  double        m_Origin[OutputImageDimension]{};
+  DirectionType m_Direction{};
 
-  unsigned int m_ChildrenDepth;
+  mutable SpacingType m_SpacingVector{};
+  mutable PointType   m_OriginPoint{};
 
-  ValueType m_InsideValue;
-  ValueType m_OutsideValue;
+  unsigned int m_ChildrenDepth{};
 
-  bool m_UseObjectValue;
+  ValueType m_InsideValue{};
+  ValueType m_OutsideValue{};
+
+  bool m_UseObjectValue{};
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

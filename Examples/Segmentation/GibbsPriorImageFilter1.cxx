@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,8 +47,8 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-#define NUM_CLASSES 3
-#define MAX_NUM_ITER 1
+constexpr int NUM_CLASSES = 3;
+constexpr int MAX_NUM_ITER = 1;
 
 int
 main(int argc, char * argv[])
@@ -92,29 +92,16 @@ main(int argc, char * argv[])
   using ClassImageType = itk::Image<unsigned short, NDIMENSION>;
   // Software Guide : EndCodeSnippet
 
-
-  // We instantiate reader and writer types
-  //
-  using ReaderType = itk::ImageFileReader<ClassImageType>;
-  using WriterType = itk::ImageFileWriter<ClassImageType>;
-
-  ReaderType::Pointer inputimagereader = ReaderType::New();
-  ReaderType::Pointer trainingimagereader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  inputimagereader->SetFileName(argv[1]);
-  trainingimagereader->SetFileName(argv[2]);
-  writer->SetFileName(argv[3]);
-
+  const auto input_image = itk::ReadImage<ClassImageType>(argv[1]);
+  const auto training_image = itk::ReadImage<ClassImageType>(argv[2]);
 
   // We convert the input into vector images
   //
-  VecImageType::Pointer vecImage = VecImageType::New();
+  auto vecImage = VecImageType::New();
   using VecImagePixelType = VecImageType::PixelType;
-  VecImageType::SizeType vecImgSize = { { 181, 217, 1 } };
+  constexpr VecImageType::SizeType vecImgSize = { { 181, 217, 1 } };
 
-  VecImageType::IndexType index;
-  index.Fill(0);
+  constexpr VecImageType::IndexType index{};
 
   VecImageType::RegionType region;
 
@@ -134,13 +121,9 @@ main(int argc, char * argv[])
   VecIterator vecIt(vecImage, vecImage->GetBufferedRegion());
   vecIt.GoToBegin();
 
-  inputimagereader->Update();
-  trainingimagereader->Update();
-
   using ClassIterator = itk::ImageRegionIterator<ClassImageType>;
 
-  ClassIterator inputIt(inputimagereader->GetOutput(),
-                        inputimagereader->GetOutput()->GetBufferedRegion());
+  ClassIterator inputIt(input_image, input_image->GetBufferedRegion());
   inputIt.GoToBegin();
 
   // Set up the vector to store the image  data
@@ -178,12 +161,11 @@ main(int argc, char * argv[])
                                      MembershipFunctionType,
                                      ClassImageType>;
 
-  ImageGaussianModelEstimatorType::Pointer applyEstimateModel =
-    ImageGaussianModelEstimatorType::New();
+  auto applyEstimateModel = ImageGaussianModelEstimatorType::New();
 
   applyEstimateModel->SetNumberOfModels(NUM_CLASSES);
   applyEstimateModel->SetInputImage(vecImage);
-  applyEstimateModel->SetTrainingImage(trainingimagereader->GetOutput());
+  applyEstimateModel->SetTrainingImage(training_image);
 
 
   // Run the gaussian classifier algorithm
@@ -204,12 +186,12 @@ main(int argc, char * argv[])
   using DecisionRuleBasePointer = itk::Statistics::DecisionRule::Pointer;
 
   using DecisionRuleType = itk::Statistics::MinimumDecisionRule;
-  DecisionRuleType::Pointer myDecisionRule = DecisionRuleType::New();
+  auto myDecisionRule = DecisionRuleType::New();
 
   std::cout << " site 3 " << std::endl;
 
   //----------------------------------------------------------------------
-  // Set the classifier to be used and assigne the parameters for the
+  // Set the classifier to be used and assigned the parameters for the
   // supervised classifier algorithm except the input image which is
   // grabbed from the Gibbs application pipeline.
   //----------------------------------------------------------------------
@@ -226,13 +208,13 @@ main(int argc, char * argv[])
   using ClassifierType =
     itk::ImageClassifierBase<VecImageType, ClassImageType>;
   using ClassifierPointer = ClassifierType::Pointer;
-  ClassifierPointer myClassifier = ClassifierType::New();
+  const ClassifierPointer myClassifier = ClassifierType::New();
   // Software Guide : EndCodeSnippet
 
   // Set the Classifier parameters
   myClassifier->SetNumberOfClasses(NUM_CLASSES);
 
-  // Set the decison rule
+  // Set the decision rule
   myClassifier->SetDecisionRule((DecisionRuleBasePointer)myDecisionRule);
 
   // Add the membership functions
@@ -241,7 +223,7 @@ main(int argc, char * argv[])
     myClassifier->AddMembershipFunction(membershipFunctions[i]);
   }
 
-  // Set the Gibbs Prior labeller
+  // Set the Gibbs Prior labeler
   //  Software Guide : BeginLatex
   //
   //  After that we can define the multi-channel Gibbs prior model.
@@ -251,11 +233,10 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using GibbsPriorFilterType =
     itk::RGBGibbsPriorFilter<VecImageType, ClassImageType>;
-  GibbsPriorFilterType::Pointer applyGibbsImageFilter =
-    GibbsPriorFilterType::New();
+  auto applyGibbsImageFilter = GibbsPriorFilterType::New();
   // Software Guide : EndCodeSnippet
 
-  // Set the MRF labeller parameters
+  // Set the MRF labeler parameters
   //  Software Guide : BeginLatex
   //
   //  The parameters for the Gibbs prior filter are defined
@@ -287,7 +268,7 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   applyGibbsImageFilter->SetInput(vecImage);
   applyGibbsImageFilter->SetClassifier(myClassifier);
-  applyGibbsImageFilter->SetTrainingImage(trainingimagereader->GetOutput());
+  applyGibbsImageFilter->SetTrainingImage(training_image);
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -302,8 +283,7 @@ main(int argc, char * argv[])
 
   std::cout << "applyGibbsImageFilter: " << applyGibbsImageFilter;
 
-  writer->SetInput(applyGibbsImageFilter->GetOutput());
-  writer->Update();
+  itk::WriteImage(applyGibbsImageFilter->GetOutput(), argv[3]);
 
   //  Software Guide : BeginLatex
   //

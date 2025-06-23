@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkHistogramThresholdImageFilter_hxx
 #define itkHistogramThresholdImageFilter_hxx
-#include "itkHistogramThresholdImageFilter.h"
 
 #include "itkMaskedImageToHistogramFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -30,8 +29,8 @@ namespace itk
 template <typename TInputImage, typename TOutputImage, typename TMaskImage>
 HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>::HistogramThresholdImageFilter()
   : m_InsideValue(NumericTraits<OutputPixelType>::max())
-  , m_OutsideValue(NumericTraits<OutputPixelType>::ZeroValue())
-  , m_Threshold(NumericTraits<InputPixelType>::ZeroValue())
+  , m_OutsideValue(OutputPixelType{})
+  , m_Threshold(InputPixelType{})
   , m_MaskValue(NumericTraits<MaskPixelType>::max())
 
 {
@@ -71,13 +70,13 @@ template <typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
 HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateData()
 {
-  typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
-  HistogramGeneratorPointer histogramGenerator = HistogramGeneratorType::New();
+  const HistogramGeneratorPointer histogramGenerator = HistogramGeneratorType::New();
 
   using MaskedHistogramGeneratorType = Statistics::MaskedImageToHistogramFilter<InputImageType, MaskImageType>;
-  typename MaskedHistogramGeneratorType::Pointer maskedHistogramGenerator = MaskedHistogramGeneratorType::New();
+  auto maskedHistogramGenerator = MaskedHistogramGeneratorType::New();
 
   if (this->GetMaskImage())
   {
@@ -103,7 +102,7 @@ HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDa
   progress->RegisterInternalFilter(m_Calculator, .2f);
 
   using ThresholderType = BinaryThresholdImageFilter<TInputImage, TOutputImage>;
-  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  auto thresholder = ThresholderType::New();
   thresholder->SetInput(this->GetInput());
   thresholder->SetLowerThreshold(NumericTraits<InputPixelType>::NonpositiveMin());
   thresholder->SetUpperThresholdInput(m_Calculator->GetOutput());
@@ -113,7 +112,7 @@ HistogramThresholdImageFilter<TInputImage, TOutputImage, TMaskImage>::GenerateDa
   progress->RegisterInternalFilter(thresholder, .4f);
 
   using MaskType = MaskImageFilter<TOutputImage, TMaskImage>;
-  typename MaskType::Pointer masker = MaskType::New();
+  auto masker = MaskType::New();
 
   if ((this->GetMaskOutput()) && (this->GetMaskImage()))
   {

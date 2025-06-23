@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,6 @@
  *
  *=========================================================================*/
 #include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkTestingMacros.h"
 #include <fstream>
@@ -39,33 +38,32 @@ itkBMPImageIOTest(int argc, char * argv[])
   using PixelType = itk::RGBPixel<ComponentType>;
   using ImageType = itk::Image<PixelType, Dimension>;
 
-  itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
+  const itk::ImageFileReader<ImageType>::Pointer reader = itk::ImageFileReader<ImageType>::New();
 
   reader->SetFileName(argv[1]);
 
   reader->UpdateOutputInformation();
 
-  std::cout << "PixelType: " << reader->GetImageIO()->GetPixelTypeAsString(reader->GetImageIO()->GetPixelType())
+  std::cout << "PixelType: " << itk::ImageIOBase::GetPixelTypeAsString(reader->GetImageIO()->GetPixelType())
             << std::endl;
-  std::cout << "ComponentType: "
-            << reader->GetImageIO()->GetComponentTypeAsString(reader->GetImageIO()->GetComponentType()) << std::endl;
+  std::cout << "ComponentType: " << itk::ImageIOBase::GetComponentTypeAsString(reader->GetImageIO()->GetComponentType())
+            << std::endl;
   std::cout << "NumberOfComponents: " << reader->GetImageIO()->GetNumberOfComponents() << std::endl;
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  ImageType::Pointer image = reader->GetOutput();
+  const ImageType::Pointer image = reader->GetOutput();
 
   image->Print(std::cout);
 
-  ImageType::RegionType region = image->GetLargestPossibleRegion();
+  const ImageType::RegionType region = image->GetLargestPossibleRegion();
   std::cout << "LargestPossibleRegion " << region;
 
   // Print the IO
   reader->GetImageIO()->Print(std::cout);
 
   // Generate test image
-  itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
+  const itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(reader->GetOutput());
   writer->SetFileName(argv[2]);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ itkQuadEdgeMeshTest2(int, char *[])
   using QuadEdgeType = LineType::QEType;
   using CellAutoPointer = CellType::CellAutoPointer;
 
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   MeshType::PointType p0;
   MeshType::PointType p1;
@@ -81,9 +81,9 @@ itkQuadEdgeMeshTest2(int, char *[])
   }
 
   using CellIterator = MeshType::CellsContainer::Iterator;
-  CellIterator cellIterator = mesh->GetCells()->Begin();
-  unsigned int ids[] = { 0, 1, 2, 1, 2, 0, 2, 0, 1 };
-  int          itIds = 0;
+  CellIterator       cellIterator = mesh->GetCells()->Begin();
+  const unsigned int ids[] = { 0, 1, 2, 1, 2, 0, 2, 0, 1 };
+  int                itIds = 0;
 
   while (cellIterator != mesh->GetCells()->End())
   {

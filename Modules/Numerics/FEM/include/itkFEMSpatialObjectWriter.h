@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,39 +25,39 @@ namespace itk
 {
 /** \class FEMSpatialObjectWriter
  *
- * \brief Read any SpatialObject file with conversion for FEM Objects
+ * \brief Write FEM SpatialObjects to a file
  *
  * \ingroup ITKFEM
  */
-template <unsigned int NDimensions = 3,
+template <unsigned int VDimension = 3,
           typename PixelType = unsigned char,
-          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, NDimensions, NDimensions>>
-class FEMSpatialObjectWriter : public SpatialObjectWriter<NDimensions, PixelType, TMeshTraits>
+          typename TMeshTraits = DefaultStaticMeshTraits<PixelType, VDimension, VDimension>>
+class ITK_TEMPLATE_EXPORT FEMSpatialObjectWriter : public SpatialObjectWriter<VDimension, PixelType, TMeshTraits>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FEMSpatialObjectWriter);
 
   using Self = FEMSpatialObjectWriter;
-  using Superclass = SpatialObjectWriter<NDimensions, PixelType, TMeshTraits>;
+  using Superclass = SpatialObjectWriter<VDimension, PixelType, TMeshTraits>;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Superclass, Self);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FEMSpatialObjectWriter);
 
   /** Method for creation through the object factory */
   itkNewMacro(Self);
 
 protected:
-  std::string m_FileName;
+  std::string m_FileName{};
 
   FEMSpatialObjectWriter();
   ~FEMSpatialObjectWriter() override = default;
 };
 
-template <unsigned int NDimensions, typename PixelType, typename TMeshTraits>
-FEMSpatialObjectWriter<NDimensions, PixelType, TMeshTraits>::FEMSpatialObjectWriter()
+template <unsigned int VDimension, typename PixelType, typename TMeshTraits>
+FEMSpatialObjectWriter<VDimension, PixelType, TMeshTraits>::FEMSpatialObjectWriter()
 {
-  this->RegisterMetaConverter("FEMObject", "FEMObjectSpatialObject", MetaFEMObjectConverter<NDimensions>::New());
+  this->RegisterMetaConverter("FEMObject", "FEMObjectSpatialObject", MetaFEMObjectConverter<VDimension>::New());
 }
 
 } // namespace itk

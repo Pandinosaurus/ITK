@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,9 +40,10 @@
 #include "itkPointSet.h"
 #include <fstream>
 
-
+namespace
+{
 int
-main(int argc, char * argv[])
+ExampleMain(int argc, const char * const argv[])
 {
   if (argc < 4)
   {
@@ -58,11 +59,8 @@ main(int argc, char * argv[])
 
   using PixelType = unsigned char;
   using InputImageType = itk::Image<PixelType, ImageDimension>;
-  using ReaderType = itk::ImageFileReader<InputImageType>;
-  using DeformedImageWriterType = itk::ImageFileWriter<InputImageType>;
   using FieldVectorType = itk::Vector<float, ImageDimension>;
   using DisplacementFieldType = itk::Image<FieldVectorType, ImageDimension>;
-  using FieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
   using CoordinateRepType = double;
   using TransformType =
     itk::ThinPlateSplineKernelTransform<CoordinateRepType, ImageDimension>;
@@ -74,24 +72,14 @@ main(int argc, char * argv[])
   using InterpolatorType =
     itk::LinearInterpolateImageFunction<InputImageType, double>;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[2]);
+  InputImageType::ConstPointer inputImage;
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  inputImage = itk::ReadImage<InputImageType>(argv[2]);
 
 
   // Software Guide : BeginLatex
   //
-  // Landmarks correspondances may be associated with the
+  // Landmarks correspondences may be associated with the
   // SplineKernelTransforms via Point Set containers. Let us define containers
   // for the landmarks.
   //
@@ -100,17 +88,17 @@ main(int argc, char * argv[])
   // Define container for landmarks
 
   // Software Guide : BeginCodeSnippet
-  PointSetType::Pointer sourceLandMarks = PointSetType::New();
-  PointSetType::Pointer targetLandMarks = PointSetType::New();
-  PointType             p1;
-  PointType             p2;
-  PointSetType::PointsContainer::Pointer sourceLandMarkContainer =
+  auto      sourceLandMarks = PointSetType::New();
+  auto      targetLandMarks = PointSetType::New();
+  PointType p1;
+  PointType p2;
+  const PointSetType::PointsContainer::Pointer sourceLandMarkContainer =
     sourceLandMarks->GetPoints();
-  PointSetType::PointsContainer::Pointer targetLandMarkContainer =
+  const PointSetType::PointsContainer::Pointer targetLandMarkContainer =
     targetLandMarks->GetPoints();
   // Software Guide : EndCodeSnippet
 
-  PointIdType id = itk::NumericTraits<PointIdType>::ZeroValue();
+  PointIdType id{};
 
   // Read in the list of landmarks
   std::ifstream infile;
@@ -127,7 +115,7 @@ main(int argc, char * argv[])
   infile.close();
 
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer tps = TransformType::New();
+  auto tps = TransformType::New();
   tps->SetSourceLandmarks(sourceLandMarks);
   tps->SetTargetLandmarks(targetLandMarks);
   tps->ComputeWMatrix();
@@ -141,15 +129,14 @@ main(int argc, char * argv[])
   // Software Guide : EndLatex
 
   // Set the resampler params
-  InputImageType::ConstPointer inputImage = reader->GetOutput();
-  ResamplerType::Pointer       resampler = ResamplerType::New();
-  InterpolatorType::Pointer    interpolator = InterpolatorType::New();
+  auto resampler = ResamplerType::New();
+  auto interpolator = InterpolatorType::New();
   resampler->SetInterpolator(interpolator);
-  InputImageType::SpacingType   spacing = inputImage->GetSpacing();
-  InputImageType::PointType     origin = inputImage->GetOrigin();
-  InputImageType::DirectionType direction = inputImage->GetDirection();
-  InputImageType::RegionType    region = inputImage->GetBufferedRegion();
-  InputImageType::SizeType      size = region.GetSize();
+  const InputImageType::SpacingType   spacing = inputImage->GetSpacing();
+  const InputImageType::PointType     origin = inputImage->GetOrigin();
+  const InputImageType::DirectionType direction = inputImage->GetDirection();
+  const InputImageType::RegionType region = inputImage->GetBufferedRegion();
+  const InputImageType::SizeType   size = region.GetSize();
 
   // Software Guide : BeginCodeSnippet
   resampler->SetOutputSpacing(spacing);
@@ -160,24 +147,11 @@ main(int argc, char * argv[])
   // Software Guide : EndCodeSnippet
 
   resampler->SetOutputStartIndex(region.GetIndex());
-  resampler->SetInput(reader->GetOutput());
+  resampler->SetInput(inputImage);
 
   // Set and write deformed image
-  DeformedImageWriterType::Pointer deformedImageWriter =
-    DeformedImageWriterType::New();
-  deformedImageWriter->SetInput(resampler->GetOutput());
-  deformedImageWriter->SetFileName(argv[3]);
 
-  try
-  {
-    deformedImageWriter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  itk::WriteImage(resampler->GetOutput(), argv[3]);
 
 
   // Software Guide : BeginLatex
@@ -189,7 +163,7 @@ main(int argc, char * argv[])
 
   // Compute the deformation field
 
-  DisplacementFieldType::Pointer field = DisplacementFieldType::New();
+  auto field = DisplacementFieldType::New();
   field->SetRegions(region);
   field->SetOrigin(origin);
   field->SetSpacing(spacing);
@@ -208,7 +182,7 @@ main(int argc, char * argv[])
     index = fi.GetIndex();
     field->TransformIndexToPhysicalPoint(index, point1);
     point2 = tps->TransformPoint(point1);
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       displacement[i] = point2[i] - point1[i];
     }
@@ -217,18 +191,31 @@ main(int argc, char * argv[])
   }
 
   // Write computed deformation field
-  FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
-  fieldWriter->SetFileName(argv[4]);
-  fieldWriter->SetInput(field);
+
+  itk::WriteImage(field, argv[4]);
+
+
+  return EXIT_SUCCESS;
+}
+} // namespace
+int
+main(int argc, char * argv[])
+{
   try
   {
-    fieldWriter->Update();
+    return ExampleMain(argc, argv);
   }
-  catch (const itk::ExceptionObject & excp)
+  catch (const itk::ExceptionObject & exceptionObject)
   {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "ITK exception caught:\n" << exceptionObject << '\n';
   }
-  return EXIT_SUCCESS;
+  catch (const std::exception & stdException)
+  {
+    std::cerr << "std exception caught:\n" << stdException.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Unhandled exception!\n";
+  }
+  return EXIT_FAILURE;
 }

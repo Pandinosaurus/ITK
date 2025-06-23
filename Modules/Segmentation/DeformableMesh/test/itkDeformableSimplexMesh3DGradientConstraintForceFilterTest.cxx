@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,16 +25,19 @@
 
 #include "itkSobelEdgeDetectionImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
+#include "itkTestingMacros.h"
 
 int
 itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
 {
 
+  constexpr unsigned int PointDimension = 3;
+
   // Declare the type of the input and output mesh
-  using TriangleMeshTraits = itk::DefaultDynamicMeshTraits<double, 3, 3, double, double>;
-  using SimplexMeshTraits = itk::DefaultDynamicMeshTraits<double, 3, 3, double, double>;
-  using TriangleMeshType = itk::Mesh<double, 3, TriangleMeshTraits>;
-  using SimplexMeshType = itk::SimplexMesh<double, 3, SimplexMeshTraits>;
+  using TriangleMeshTraits = itk::DefaultDynamicMeshTraits<double, PointDimension, PointDimension, double, double>;
+  using SimplexMeshTraits = itk::DefaultDynamicMeshTraits<double, PointDimension, PointDimension, double, double>;
+  using TriangleMeshType = itk::Mesh<double, PointDimension, TriangleMeshTraits>;
+  using SimplexMeshType = itk::SimplexMesh<double, PointDimension, SimplexMeshTraits>;
 
   // declare triangle mesh source
   using SphereMeshSourceType = itk::RegularSphereMeshSource<TriangleMeshType>;
@@ -46,11 +49,10 @@ itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
 
   // note : image is volume of 20x20x20 starting at 0,0,0 so make sure
   // the mesh sits on image in space
-  SphereMeshSourceType::Pointer mySphereMeshSource = SphereMeshSourceType::New();
-  PointType                     center;
-  center.Fill(10);
-  PointType::ValueType scaleInit[3] = { 5, 5, 5 };
-  VectorType           scale = scaleInit;
+  auto                 mySphereMeshSource = SphereMeshSourceType::New();
+  auto                 center = itk::MakeFilled<PointType>(10);
+  PointType::ValueType scaleInit[PointDimension] = { 5, 5, 5 };
+  const VectorType     scale = scaleInit;
 
   mySphereMeshSource->SetCenter(center);
   mySphereMeshSource->SetResolution(2);
@@ -58,7 +60,7 @@ itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
 
   std::cout << "Triangle mesh created. " << std::endl;
 
-  SimplexFilterType::Pointer simplexFilter = SimplexFilterType::New();
+  auto simplexFilter = SimplexFilterType::New();
   simplexFilter->SetInput(mySphereMeshSource->GetOutput());
 
   using DeformFilterType = itk::DeformableSimplexMesh3DGradientConstraintForceFilter<SimplexMeshType, SimplexMeshType>;
@@ -69,20 +71,19 @@ itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
   using IndexType = OriginalImageType::IndexType;
   using ImageSizeType = OriginalImageType::SizeType;
 
-  OriginalImageType::Pointer originalImage = OriginalImageType::New();
+  auto originalImage = OriginalImageType::New();
 
-  ImageSizeType imageSize;
-  imageSize.Fill(20);
+  auto imageSize = ImageSizeType::Filled(20);
   originalImage->SetRegions(imageSize);
   originalImage->Allocate();
 
 
   IndexType index;
-  for (int x = 0; x < 20; x++)
+  for (int x = 0; x < 20; ++x)
   {
-    for (int y = 0; y < 20; y++)
+    for (int y = 0; y < 20; ++y)
     {
-      for (int z = 0; z < 20; z++)
+      for (int z = 0; z < 20; ++z)
       {
         index[0] = x;
         index[1] = y;
@@ -103,37 +104,47 @@ itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
 
   using EdgeFilterType = itk::SobelEdgeDetectionImageFilter<OriginalImageType, OriginalImageType>;
 
-  EdgeFilterType::Pointer edgeFilter = EdgeFilterType::New();
+  auto edgeFilter = EdgeFilterType::New();
   edgeFilter->SetInput(originalImage);
   edgeFilter->Update();
 
   using GradientImageType = DeformFilterType::GradientImageType;
   using GradientFilterType = itk::GradientRecursiveGaussianImageFilter<OriginalImageType, GradientImageType>;
 
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  auto gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(edgeFilter->GetOutput());
   gradientFilter->SetSigma(1.0);
   gradientFilter->Update();
 
   std::cout << "done." << std::endl;
 
-  DeformFilterType::Pointer deformFilter = DeformFilterType::New();
+  auto deformFilter = DeformFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    deformFilter, DeformableSimplexMesh3DGradientConstraintForceFilter, DeformableSimplexMesh3DFilter);
+
+
   deformFilter->SetInput(simplexFilter->GetOutput());
   deformFilter->SetImage(originalImage);
   deformFilter->SetGradient(gradientFilter->GetOutput());
   deformFilter->SetAlpha(0.2);
   deformFilter->SetBeta(0.1);
-  deformFilter->SetRange(1);
+
+  constexpr int range = 1;
+  deformFilter->SetRange(range);
+  ITK_TEST_SET_GET_VALUE(range, deformFilter->GetRange());
+
   deformFilter->SetIterations(100);
   deformFilter->SetRigidity(0);
   deformFilter->Update();
 
-  SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
+  const SimplexMeshType::Pointer deformResult = deformFilter->GetOutput();
 
   std::cout << "Deformation Result: " << deformResult << std::endl;
 
-
-  std::cout << "[TEST DONE]" << std::endl;
+  // Print the filter after its update so that its StartVoxel, Positive and Negative ivars's ImageVoxel class stream
+  // insertion operator overload gets exercised.
+  deformFilter->Print(std::cout);
 
   // Test streaming enumeration for DeformableSimplexMesh3DGradientConstraintForceFilterEnums::SIDE elements
   const std::set<itk::DeformableSimplexMesh3DGradientConstraintForceFilterEnums::SIDE> allSIDE{
@@ -147,5 +158,7 @@ itkDeformableSimplexMesh3DGradientConstraintForceFilterTest(int, char *[])
               << std::endl;
   }
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

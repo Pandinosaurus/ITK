@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,17 +30,16 @@ itkGaborImageSourceTestHelper(char * outputFilename, bool calculcateImaginaryPar
 
   // Instantiate the filter
   using GaborSourceType = itk::GaborImageSource<ImageType>;
-  typename GaborSourceType::Pointer gaborImage = GaborSourceType::New();
+  auto gaborImage = GaborSourceType::New();
 
-  if (ImageDimension == 2)
+  if constexpr (ImageDimension == 2)
   {
-    typename ImageType::SizeType size;
-    size.Fill(64 * 4);
+    auto size = ImageType::SizeType::Filled(64 * 4);
     gaborImage->SetSize(size);
   }
 
   typename GaborSourceType::ArrayType sigma;
-  if (ImageDimension == 2)
+  if constexpr (ImageDimension == 2)
   {
     sigma[0] = 2.0;
     sigma[1] = 5.0;
@@ -54,11 +53,11 @@ itkGaborImageSourceTestHelper(char * outputFilename, bool calculcateImaginaryPar
   gaborImage->SetSigma(sigma);
   ITK_TEST_SET_GET_VALUE(sigma, gaborImage->GetSigma());
 
-  typename GaborSourceType::ArrayType mean = 0.1;
+  const typename GaborSourceType::ArrayType mean(0.1);
   gaborImage->SetMean(mean);
   ITK_TEST_SET_GET_VALUE(mean, gaborImage->GetMean());
 
-  double frequency = 0.1;
+  constexpr double frequency = 0.1;
   gaborImage->SetFrequency(frequency);
   ITK_TEST_SET_GET_VALUE(frequency, gaborImage->GetFrequency());
 
@@ -78,7 +77,7 @@ itkGaborImageSourceTestHelper(char * outputFilename, bool calculcateImaginaryPar
   ITK_TRY_EXPECT_NO_EXCEPTION(gaborImage->Update());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(outputFilename);
   writer->SetInput(gaborImage->GetOutput());
 
@@ -104,7 +103,7 @@ itkGaborImageSourceTest(int argc, char * argv[])
 
   // Instantiate the filter
   using GaborSourceType = itk::GaborImageSource<ImageType>;
-  GaborSourceType::Pointer gaborImage = GaborSourceType::New();
+  auto gaborImage = GaborSourceType::New();
 
   // Exercise basic object methods
   // Done outside the helper function in the test because GCC is limited

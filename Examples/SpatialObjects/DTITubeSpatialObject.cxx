@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,14 +48,12 @@ main(int, char *[])
   //
   // Software Guide : EndLatex
 
-  unsigned int i;
-
   // Software Guide : BeginCodeSnippet
   using DTITubeType = itk::DTITubeSpatialObject<3>;
   using DTITubePointType = DTITubeType::DTITubePointType;
   using PointType = DTITubeType::PointType;
 
-  DTITubeType::Pointer dtiTube = DTITubeType::New();
+  auto dtiTube = DTITubeType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -77,7 +75,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   DTITubeType::DTITubePointListType list;
-  for (i = 0; i < 5; ++i)
+  for (unsigned int i = 0; i < 5; ++i)
   {
     DTITubePointType p;
     PointType        pnt;
@@ -99,7 +97,7 @@ main(int, char *[])
     p.AddField("Lambda2", 5 * i);
     p.AddField("Lambda3", 6 * i);
     auto * v = new float[6];
-    for (unsigned int k = 0; k < 6; k++)
+    for (unsigned int k = 0; k < 6; ++k)
     {
       v[k] = k;
     }
@@ -133,7 +131,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  DTITubeType::DTITubePointListType pointList = dtiTube->GetPoints();
+  const DTITubeType::DTITubePointListType pointList = dtiTube->GetPoints();
   std::cout << "Number of points representing the fiber tract: ";
   std::cout << pointList.size() << std::endl;
   // Software Guide : EndCodeSnippet
@@ -148,40 +146,46 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  DTITubeType::DTITubePointListType::const_iterator it =
-    dtiTube->GetPoints().begin();
-  i = 0;
-  while (it != dtiTube->GetPoints().end())
   {
-    std::cout << std::endl;
-    std::cout << "Point #" << i << std::endl;
-    std::cout << "Position: " << (*it).GetPositionInObjectSpace()
-              << std::endl;
-    std::cout << "Radius: " << (*it).GetRadiusInObjectSpace() << std::endl;
-    std::cout << "FA: "
-              << (*it).GetField(itk::DTITubeSpatialObjectPointEnums::
-                                  DTITubeSpatialObjectPointField::FA)
-              << std::endl;
-    std::cout << "ADC: "
-              << (*it).GetField(itk::DTITubeSpatialObjectPointEnums::
-                                  DTITubeSpatialObjectPointField::ADC)
-              << std::endl;
-    std::cout << "GA: "
-              << (*it).GetField(itk::DTITubeSpatialObjectPointEnums::
-                                  DTITubeSpatialObjectPointField::GA)
-              << std::endl;
-    std::cout << "Lambda1: " << (*it).GetField("Lambda1") << std::endl;
-    std::cout << "Lambda2: " << (*it).GetField("Lambda2") << std::endl;
-    std::cout << "Lambda3: " << (*it).GetField("Lambda3") << std::endl;
-    std::cout << "TensorMatrix: " << (*it).GetTensorMatrix()[0] << " : ";
-    std::cout << (*it).GetTensorMatrix()[1] << " : ";
-    std::cout << (*it).GetTensorMatrix()[2] << " : ";
-    std::cout << (*it).GetTensorMatrix()[3] << " : ";
-    std::cout << (*it).GetTensorMatrix()[4] << " : ";
-    std::cout << (*it).GetTensorMatrix()[5] << std::endl;
-    std::cout << "Color = " << (*it).GetColor() << std::endl;
-    ++it;
-    ++i;
+    unsigned int i = 0;
+    for (auto & currentPoint : dtiTube->GetPoints())
+    {
+      std::cout << std::endl;
+      std::cout << "Point #" << i << std::endl;
+      std::cout << "Position: " << currentPoint.GetPositionInObjectSpace()
+                << std::endl;
+      std::cout << "Radius: " << currentPoint.GetRadiusInObjectSpace()
+                << std::endl;
+      std::cout << "FA: "
+                << currentPoint.GetField(itk::DTITubeSpatialObjectPointEnums::
+                                           DTITubeSpatialObjectPointField::FA)
+                << std::endl;
+      std::cout << "ADC: "
+                << currentPoint.GetField(
+                     itk::DTITubeSpatialObjectPointEnums::
+                       DTITubeSpatialObjectPointField::ADC)
+                << std::endl;
+      std::cout << "GA: "
+                << currentPoint.GetField(itk::DTITubeSpatialObjectPointEnums::
+                                           DTITubeSpatialObjectPointField::GA)
+                << std::endl;
+      std::cout << "Lambda1: " << currentPoint.GetField("Lambda1")
+                << std::endl;
+      std::cout << "Lambda2: " << currentPoint.GetField("Lambda2")
+                << std::endl;
+      std::cout << "Lambda3: " << currentPoint.GetField("Lambda3")
+                << std::endl;
+      std::cout << "TensorMatrix: " << currentPoint.GetTensorMatrix()[0]
+                << " : ";
+      std::cout << currentPoint.GetTensorMatrix()[1] << " : ";
+      std::cout << currentPoint.GetTensorMatrix()[2] << " : ";
+      std::cout << currentPoint.GetTensorMatrix()[3] << " : ";
+      std::cout << currentPoint.GetTensorMatrix()[4] << " : ";
+      std::cout << currentPoint.GetTensorMatrix()[5] << std::endl;
+      std::cout << "Color = " << currentPoint.GetColor() << std::endl;
+
+      ++i;
+    }
   }
   // Software Guide : EndCodeSnippet
 

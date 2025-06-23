@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,14 +26,14 @@
 
 namespace itk
 {
-/**\class ESMDemonsRegistrationFunctionEnums
+/** \class ESMDemonsRegistrationFunctionEnums
  * \brief Contains all enum classes used by ESMDemonsRegistrationFunction class.
  * \ingroup ITKPDEDeformableRegistration
  */
 class ESMDemonsRegistrationFunctionEnums
 {
 public:
-  /**\class GradientEnum
+  /** \class GradientEnum
    * \ingroup FiniteDifferenceFunctions
    * \ingroup ITKPDEDeformableRegistration
    * Type of available image forces */
@@ -47,7 +47,7 @@ public:
 };
 // Define how to print enumeration
 extern ITKPDEDeformableRegistration_EXPORT std::ostream &
-                                           operator<<(std::ostream & out, const ESMDemonsRegistrationFunctionEnums::Gradient value);
+operator<<(std::ostream & out, const ESMDemonsRegistrationFunctionEnums::Gradient value);
 /**
  * \class ESMDemonsRegistrationFunction
  *
@@ -70,7 +70,7 @@ extern ITKPDEDeformableRegistration_EXPORT std::ostream &
  * \author Tom Vercauteren, INRIA & Mauna Kea Technologies
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/154
+ * https://doi.org/10.54294/ux2obj
  *
  * \sa SymmetricForcesDemonsRegistrationFunction
  * \sa SymmetricForcesDemonsRegistrationFilter
@@ -97,42 +97,46 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ESMDemonsRegistrationFunction, PDEDeformableRegistrationFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ESMDemonsRegistrationFunction);
 
   /** MovingImage image type. */
-  using MovingImageType = typename Superclass::MovingImageType;
-  using MovingImagePointer = typename Superclass::MovingImagePointer;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::MovingImagePointer;
   using MovingPixelType = typename MovingImageType::PixelType;
 
   /** FixedImage image type. */
-  using FixedImageType = typename Superclass::FixedImageType;
-  using FixedImagePointer = typename Superclass::FixedImagePointer;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::FixedImagePointer;
   using IndexType = typename FixedImageType::IndexType;
   using SizeType = typename FixedImageType::SizeType;
   using SpacingType = typename FixedImageType::SpacingType;
   using DirectionType = typename FixedImageType::DirectionType;
 
   /** Deformation field type. */
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
-  using DisplacementFieldTypePointer = typename Superclass::DisplacementFieldTypePointer;
+  using typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
-  using PixelType = typename Superclass::PixelType;
-  using RadiusType = typename Superclass::RadiusType;
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::PixelType;
+  using typename Superclass::RadiusType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::TimeStepType;
 
   /** Interpolator type. */
-  using CoordRepType = double;
-  using InterpolatorType = InterpolateImageFunction<MovingImageType, CoordRepType>;
+  using CoordinateType = double;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
+  using InterpolatorType = InterpolateImageFunction<MovingImageType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
   using PointType = typename InterpolatorType::PointType;
-  using DefaultInterpolatorType = LinearInterpolateImageFunction<MovingImageType, CoordRepType>;
+  using DefaultInterpolatorType = LinearInterpolateImageFunction<MovingImageType, CoordinateType>;
 
   /** Warper type */
   using WarperType = WarpImageFilter<MovingImageType, MovingImageType, DisplacementFieldType>;
@@ -147,7 +151,7 @@ public:
   using GradientCalculatorPointer = typename GradientCalculatorType::Pointer;
 
   /** Moving image gradient (unwarped) calculator type. */
-  using MovingImageGradientCalculatorType = CentralDifferenceImageFunction<MovingImageType, CoordRepType>;
+  using MovingImageGradientCalculatorType = CentralDifferenceImageFunction<MovingImageType, CoordinateType>;
   using MovingImageGradientCalculatorPointer = typename MovingImageGradientCalculatorType::Pointer;
 
   /** Set the moving image interpolator. */
@@ -185,7 +189,7 @@ public:
     return global;
   }
 
-  /** Release memory for global data structure. */
+  /** Update the metric and release memory for the per-thread-global data structure. */
   void
   ReleaseGlobalDataPointer(void * gd) const override;
 
@@ -193,14 +197,14 @@ public:
   void
   InitializeIteration() override;
 
-  /** This method is called by a finite difference solver image filter at
-   * each pixel that does not lie on a data set boundary */
+  /** Compute update at a non-boundary neighbourhood. Called by a finite difference solver image filter at
+   * each pixel that does not lie on a data set boundary. */
   PixelType
   ComputeUpdate(const NeighborhoodType & it, void * gd, const FloatOffsetType & offset = FloatOffsetType(0.0)) override;
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
-   * computed over the the overlapping region between the two images. */
+   * computed over the overlapping region between the two images. */
   virtual double
   GetMetric() const
   {
@@ -249,6 +253,7 @@ public:
 #endif
 
   /** Set/Get the type of used image forces */
+  /** @ITKStartGrouping */
   virtual void
   SetUseGradientType(GradientEnum gtype)
   {
@@ -259,6 +264,7 @@ public:
   {
     return m_UseGradientType;
   }
+  /** @ITKEndGrouping */
 
 protected:
   ESMDemonsRegistrationFunction();
@@ -280,50 +286,50 @@ protected:
 
 private:
   /** Cache fixed image information. */
-  PointType     m_FixedImageOrigin;
-  SpacingType   m_FixedImageSpacing;
-  DirectionType m_FixedImageDirection;
-  double        m_Normalizer;
+  PointType     m_FixedImageOrigin{};
+  SpacingType   m_FixedImageSpacing{};
+  DirectionType m_FixedImageDirection{};
+  double        m_Normalizer{};
 
   /** Function to compute derivatives of the fixed image. */
-  GradientCalculatorPointer m_FixedImageGradientCalculator;
+  GradientCalculatorPointer m_FixedImageGradientCalculator{};
 
   /** Function to compute derivatives of the moving image (unwarped). */
-  MovingImageGradientCalculatorPointer m_MappedMovingImageGradientCalculator;
+  MovingImageGradientCalculatorPointer m_MappedMovingImageGradientCalculator{};
 
-  GradientEnum m_UseGradientType;
+  GradientEnum m_UseGradientType{};
 
   /** Function to interpolate the moving image. */
-  InterpolatorPointer m_MovingImageInterpolator;
+  InterpolatorPointer m_MovingImageInterpolator{};
 
   /** Filter to warp moving image for fast gradient computation. */
-  WarperPointer m_MovingImageWarper;
+  WarperPointer m_MovingImageWarper{};
 
-  MovingImageType * m_MovingImageWarperOutput;
+  MovingImageType * m_MovingImageWarperOutput{};
 
   /** The global timestep. */
-  TimeStepType m_TimeStep;
+  TimeStepType m_TimeStep{};
 
   /** Threshold below which the denominator term is considered zero. */
-  double m_DenominatorThreshold;
+  double m_DenominatorThreshold{};
 
   /** Threshold below which two intensity value are assumed to match. */
-  double m_IntensityDifferenceThreshold;
+  double m_IntensityDifferenceThreshold{};
 
   /** Maximum update step length in pixels (default is 0.5 as in Thirion). */
-  double m_MaximumUpdateStepLength;
+  double m_MaximumUpdateStepLength{};
 
   /** The metric value is the mean square difference in intensity between
    * the fixed image and transforming moving image computed over the
    * the overlapping region between the two images. */
-  mutable double        m_Metric;
-  mutable double        m_SumOfSquaredDifference;
-  mutable SizeValueType m_NumberOfPixelsProcessed;
-  mutable double        m_RMSChange;
-  mutable double        m_SumOfSquaredChange;
+  mutable double        m_Metric{};
+  mutable double        m_SumOfSquaredDifference{};
+  mutable SizeValueType m_NumberOfPixelsProcessed{};
+  mutable double        m_RMSChange{};
+  mutable double        m_SumOfSquaredChange{};
 
   /** Mutex lock to protect modification to metric. */
-  mutable std::mutex m_MetricCalculationLock;
+  mutable std::mutex m_MetricCalculationMutex{};
 };
 } // end namespace itk
 

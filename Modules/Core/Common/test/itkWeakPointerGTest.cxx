@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,9 +31,9 @@ template <typename T>
 constexpr bool
 AllSpecialMemberFunctionsNoThrow()
 {
-  return std::is_nothrow_default_constructible<T>::value && std::is_nothrow_copy_constructible<T>::value &&
-         std::is_nothrow_copy_assignable<T>::value && std::is_nothrow_move_constructible<T>::value &&
-         std::is_nothrow_move_assignable<T>::value && std::is_nothrow_destructible<T>::value;
+  return std::is_nothrow_default_constructible_v<T> && std::is_nothrow_copy_constructible_v<T> &&
+         std::is_nothrow_copy_assignable_v<T> && std::is_nothrow_move_constructible_v<T> &&
+         std::is_nothrow_move_assignable_v<T> && std::is_nothrow_destructible_v<T>;
 }
 
 } // namespace
@@ -50,6 +50,28 @@ TEST(WeakPointer, DefaultConstructedEqualsNullptr)
 }
 
 
+TEST(WeakPointer, CheckNull)
+{
+  constexpr WeakPointerType nullPtr;
+  ASSERT_TRUE(nullPtr.IsNull());
+
+  const itk::LightObject::Pointer lightObject = itk::LightObject::New();
+  const WeakPointerType           ptr = lightObject.GetPointer();
+  ASSERT_TRUE(ptr.IsNotNull());
+}
+
+
+TEST(WeakPointer, CheckSerialization)
+{
+  constexpr WeakPointerType nullPtr;
+  std::cout << nullPtr << std::endl;
+
+  const itk::LightObject::Pointer lightObject = itk::LightObject::New();
+  const WeakPointerType           ptr = lightObject.GetPointer();
+  std::cout << ptr << std::endl;
+}
+
+
 TEST(WeakPointer, ConvertedFromNullptrEqualsNullptr)
 {
   ASSERT_EQ(WeakPointerType{ nullptr }, nullptr);
@@ -60,8 +82,7 @@ TEST(WeakPointer, ConvertedFromNullptrEqualsNullptr)
 
 TEST(WeakPointer, AssignedFromNullptrEqualsNullptr)
 {
-  WeakPointerType ptr;
-  ptr = nullptr;
+  const WeakPointerType ptr = nullptr;
   ASSERT_EQ(ptr, nullptr);
   ASSERT_TRUE(ptr == nullptr);
   ASSERT_TRUE(nullptr == ptr);

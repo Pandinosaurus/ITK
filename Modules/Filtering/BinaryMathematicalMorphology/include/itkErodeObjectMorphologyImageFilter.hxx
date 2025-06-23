@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,13 @@
 #ifndef itkErodeObjectMorphologyImageFilter_hxx
 #define itkErodeObjectMorphologyImageFilter_hxx
 
-#include "itkErodeObjectMorphologyImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 ErodeObjectMorphologyImageFilter<TInputImage, TOutputImage, TKernel>::ErodeObjectMorphologyImageFilter()
+  : m_BackgroundValue(PixelType{})
 {
-  m_BackgroundValue = NumericTraits<PixelType>::ZeroValue();
-
   m_ErodeBoundaryCondition.SetConstant(NumericTraits<PixelType>::max());
   this->OverrideBoundaryCondition(&m_ErodeBoundaryCondition);
 }
@@ -36,13 +34,12 @@ void
 ErodeObjectMorphologyImageFilter<TInputImage, TOutputImage, TKernel>::Evaluate(OutputNeighborhoodIteratorType & nit,
                                                                                const KernelType &               kernel)
 {
-  unsigned int             i;
-  KernelIteratorType       kernel_it;
+  KernelIteratorType       kernel_it = kernel.Begin();
   const KernelIteratorType kernelEnd = kernel.End();
 
   bool valid = true;
 
-  for (i = 0, kernel_it = kernel.Begin(); kernel_it < kernelEnd; ++kernel_it, ++i)
+  for (unsigned int i = 0; kernel_it < kernelEnd; ++kernel_it, ++i)
   {
     if (*kernel_it)
     {

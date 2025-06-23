@@ -14,11 +14,11 @@
 #include "gdcmDirectory.h"
 #include "gdcmTrace.h"
 
+#include <cassert>
+#include <cerrno>
+#include <cstring> // strerror
 #include <iterator>
-#include <assert.h>
-#include <errno.h>
 #include <sys/stat.h>  //stat function
-#include <string.h> // strerror
 
 #ifdef _MSC_VER
   #include <windows.h>
@@ -65,8 +65,10 @@ unsigned int Directory::Explore(FilenameType const &name, bool recursive)
   std::wstring dirName = System::ConvertToUNC(name.c_str());
   Directories.push_back(ToUtf8(dirName));
   WIN32_FIND_DATAW fileData;
-  if ('\\' != dirName[dirName.size()-1]) dirName.push_back('\\');
-  assert( '\\' == dirName[dirName.size()-1] );
+  if ('\\' == dirName[dirName.size() - 1])
+    dirName = dirName.substr(0, dirName.size() - 1);
+  if ('/' != dirName[dirName.size() - 1]) dirName.push_back('/');
+  assert( '/' == dirName[dirName.size()-1] );
   const std::wstring firstfile = dirName+L"*";
   HANDLE hFile = FindFirstFileW(firstfile.c_str(), &fileData);
 
@@ -118,7 +120,7 @@ unsigned int Directory::Explore(FilenameType const &name, bool recursive)
     }
 
   // According to POSIX, the dirent structure contains a field char d_name[]
-  // of unspecified size, with at most NAME_MAX characters preceeding the
+  // of unspecified size, with at most NAME_MAX characters preceding the
   // terminating null character. Use of other fields will harm the  porta-
   // bility of your programs.
 

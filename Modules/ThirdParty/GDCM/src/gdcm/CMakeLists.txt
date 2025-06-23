@@ -1,14 +1,7 @@
-cmake_minimum_required(VERSION 3.9.2 FATAL_ERROR)
+set(GDCM_MAX_VALIDATED_CMAKE_VERSION "3.13.4")
 
-set(GDCM_MAX_VALIDATED_CMAKE_VERSION "3.13.1")
-if("${CMAKE_VERSION}" VERSION_LESS_EQUAL "${GDCM_MAX_VALIDATED_CMAKE_VERSION}")
-  # As of 2018-12-04 GDCM has been validated to build with cmake version 3.13.1 new policies.
-  # Set and use the newest cmake policies that are validated to work
-  set(GDCM_CMAKE_POLICY_VERSION "${CMAKE_VERSION}")
-else()
-  set(GDCM_CMAKE_POLICY_VERSION "${GDCM_MAX_VALIDATED_CMAKE_VERSION}")
-endif()
-cmake_policy(VERSION ${GDCM_CMAKE_POLICY_VERSION}) 
+# Set minimum required version of CMake, and policy version
+cmake_minimum_required(VERSION 3.9.2...${GDCM_MAX_VALIDATED_CMAKE_VERSION} FATAL_ERROR) # travis-ci wants 3.9.2
 
 # GDCM version 3.0.0 will only support C++11 and greater
 if(CMAKE_CXX_STANDARD EQUAL "98" )
@@ -17,17 +10,18 @@ endif()
 #----------------------------------------------------------------------------
 
 project(GDCM
-  VERSION 3.0.8
+  VERSION 3.0.25
   LANGUAGES CXX C
 )
 ## NOTE: the "DESCRIPTION" feature of project() was introduced in cmake 3.10.0
 set(PROJECT_DESCRIPTION "GDCM - Grassroots DICOM. GDCM is yet another DICOM library.")
 
-## Set aliases for backwards compatibility.  GDCM_VERSION_XXX are configured by the project() command 
+## Set aliases for backwards compatibility.  GDCM_VERSION_XXX are configured by the project() command
 set(GDCM_MAJOR_VERSION ${GDCM_VERSION_MAJOR})
 set(GDCM_MINOR_VERSION ${GDCM_VERSION_MINOR})
 set(GDCM_BUILD_VERSION ${GDCM_VERSION_PATCH})
 set(GDCM_VERSION "${GDCM_VERSION_MAJOR}.${GDCM_VERSION_MINOR}.${GDCM_VERSION_PATCH}") # ${GDCM_VERSION_TWEAK}
+set(GDCM_SHORT_VERSION "${GDCM_VERSION_MAJOR}.${GDCM_VERSION_MINOR}")
 
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY CMAKE_BUILD_TYPE CMAKE_INSTALL_PREFIX)
 set(GDCM_CMAKE_DIR "${GDCM_SOURCE_DIR}/CMake" CACHE INTERNAL "")
@@ -133,6 +127,12 @@ if(NOT LIBRARY_OUTPUT_PATH)
   mark_as_advanced(LIBRARY_OUTPUT_PATH)
 endif()
 
+# TODO: The following should be used for CMake 3 and beyond,
+# EXECUTABLE_OUTPUT_PATH and LIBRARY_OUTPUT_PATH are deprecated
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+
 #-----------------------------------------------------------------------------
 # Adding GDCM_DATA_ROOT
 if(GDCM_STANDALONE)
@@ -180,9 +180,8 @@ macro(CHECK_INCLUDE_FILE_CONCAT FILE VARIABLE)
   endif()
 endmacro()
 
-CHECK_INCLUDE_FILE("stdint.h"       GDCM_HAVE_STDINT_H)
-if(UNIX) #Avoid polluting Win32 cmakecache
-  CHECK_INCLUDE_FILE("inttypes.h"     GDCM_HAVE_INTTYPES_H)
+if(UNIX)
+  include(GNUInstallDirs)
 endif()
 
 #include(${GDCM_SOURCE_DIR}/CMake/gdcmPlatformCxxTests.cmake)
@@ -190,12 +189,6 @@ endif()
 #GDCM_PLATFORM_CXX_TEST(GDCM_CXX_HAS_FUNCTION
 #    "Checking whether compiler has __FUNCTION__" DIRECT)
 
-
-#-----------------------------------------------------------------------------
-# Build the main lib...
-if(NOT GDCM_HAVE_STDINT_H)
-  message(FATAL_ERROR "You system does not have stdint.h")
-endif()
 
 # --------------------------------------------------------------------------
 # Configure the export configuration
@@ -323,7 +316,7 @@ option(GDCM_USE_SYSTEM_PAPYRUS3 "Use system papyrus3" OFF)
 option(GDCM_USE_SYSTEM_SOCKETXX "Use system socket++" OFF)
 option(GDCM_USE_SYSTEM_LJPEG "Use system ljpeg (ijg lib)" OFF)
 option(GDCM_USE_SYSTEM_OPENJPEG "Use system openjpeg" OFF)
-option(GDCM_USE_SYSTEM_CHARLS "Use system CharLS" OFF)
+option(GDCM_USE_SYSTEM_CHARLS "Use system charls" OFF)
 mark_as_advanced(
   GDCM_USE_SYSTEM_ZLIB
   GDCM_USE_SYSTEM_OPENSSL
@@ -356,14 +349,15 @@ else()
 endif()
 
 if(GDCM_USE_SYSTEM_CHARLS)
-  find_package(CharLS 2.0.0 REQUIRED)
-  set(GDCM_CHARLS_LIBRARIES ${CHARLS_LIBRARIES})
+  find_package(charls 2.2.0 REQUIRED)
+  set(GDCM_CHARLS_LIBRARIES charls)
+  message(STATUS "Found charls version " ${charls_VERSION})
 else()
   set(GDCM_CHARLS_LIBRARIES gdcmcharls)
 endif()
 
 if(GDCM_USE_SYSTEM_OPENJPEG)
-  find_package(OpenJPEG 2.0.0 REQUIRED)
+  #find_package(OpenJPEG  REQUIRED)
   set(GDCM_OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARIES})
 else()
   set(GDCM_OPENJPEG_LIBRARIES gdcmopenjp2)
@@ -466,10 +460,10 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Python install
-#find_package(PythonInterp REQUIRED)
+#find_package(Python3 COMPONENTS Interpreter REQUIRED)
 #macro(GET_PYTHON_SITE_PACKAGE dir)
 #  execute_process(
-#  COMMAND ${PYTHON_EXECUTABLE} "-c" "from distutils import sysconfig; print sysconfig.get_python_lib()"
+#  COMMAND ${Python3_EXECUTABLE} "-c" "from distutils import sysconfig; print sysconfig.get_python_lib()"
 #  #WORKING_DIRECTORY @LIBRARY_OUTPUT_PATH@
 #  RESULT_VARIABLE import_res
 #  OUTPUT_VARIABLE import_output
@@ -508,11 +502,14 @@ endif()
 #-----------------------------------------------------------------------------
 # Wrapping
 if(GDCM_STANDALONE)
-  option(GDCM_WRAP_PYTHON "build python wrapping" OFF)
+  option(GDCM_WRAP_PYTHON "build gdcm/python wrapping" OFF)
+  option(VTKGDCM_WRAP_PYTHON "build vtkgdcm/python wrapping" OFF)
   option(GDCM_WRAP_PERL "build perl wrapping (experimental !)" OFF)
   option(GDCM_WRAP_PHP "build php wrapping" OFF)
-  option(GDCM_WRAP_JAVA "build java wrapping" OFF)
-  option(GDCM_WRAP_CSHARP "build csharp wrapping" OFF)
+  option(GDCM_WRAP_JAVA "build gdcm/java wrapping" OFF)
+  option(VTKGDCM_WRAP_JAVA "build vtkgdcm/java wrapping" OFF)
+  option(GDCM_WRAP_CSHARP "build gdcm/csharp wrapping" OFF)
+  option(VTKGDCM_WRAP_CSHARP "build vtkgdcm/csharp wrapping" OFF)
   mark_as_advanced(GDCM_WRAP_PHP)
   mark_as_advanced(GDCM_WRAP_PERL)
   mark_as_advanced(GDCM_USE_ACTIVIZ)
@@ -564,6 +561,10 @@ if(APPLE)
   if(GDCM_USE_COREFOUNDATION_LIBRARY)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation )
   endif()
+  mark_as_advanced(
+    GDCM_USE_COREFOUNDATION_LIBRARY
+    COREFOUNDATION_LIBRARY
+    )
 endif()
 
 #-----------------------------------------------------------------------------
@@ -661,7 +662,97 @@ if(GDCM_STANDALONE)
     mark_as_advanced(VTK_DIR)
     set(GDCM_VTK_DIR ${VTK_DIR})
     mark_as_advanced(GDCM_USE_PARAVIEW)
-    add_subdirectory(Utilities/VTK)
+
+    set(VTKGDCM_NAME vtkgdcm CACHE STRING "vtk-gdcm lib name")
+    mark_as_advanced(VTKGDCM_NAME)
+
+    if(VTK_VERSION VERSION_LESS 8.90)
+      add_subdirectory(Utilities/VTK)
+    else()
+      message(STATUS "Building Utilities/VTK as a VTK 9 Module")
+      # TODO: use VTKGDCM_NAME instead of vtkgdcm
+
+      option(VTKGDCM_VERSIONED_INSTALL "Install with versioned names." ON)
+      mark_as_advanced(VTKGDCM_VERSIONED_INSTALL)
+      if(VTKGDCM_VERSIONED_INSTALL)
+        set(vtk_version_suffix "-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+        set(vtkgdcm_library_suffix "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+      else()
+        set(vtk_version_suffix "")
+        set(vtkgdcm_library_suffix "")
+      endif()
+      if(DEFINED GDCM_CUSTOM_LIBRARY_SUFFIX)
+        set(vtkgdcm_library_suffix "${GDCM_CUSTOM_LIBRARY_SUFFIX}")
+      endif()
+
+      vtk_module_scan(
+        MODULE_FILES          "${CMAKE_CURRENT_SOURCE_DIR}/Utilities/VTK/vtkgdcm.module"
+        REQUEST_MODULES       "GDCM::vtkgdcm"
+        PROVIDES_MODULES      vtkgdcm_modules
+        ENABLE_TESTS          "${GDCM_BUILD_TESTING}"
+      )
+
+      # documented at https://vtk.org/doc/nightly/html/group__module.html
+      vtk_module_build(
+        MODULES               ${vtkgdcm_modules}
+        INSTALL_EXPORT        GDCM
+        ARCHIVE_DESTINATION   "${GDCM_INSTALL_LIB_DIR}"
+        HEADERS_DESTINATION   "${GDCM_INSTALL_INCLUDE_DIR}/vtk${vtk_version_suffix}"
+        CMAKE_DESTINATION     "${GDCM_INSTALL_PACKAGE_DIR}"
+        LICENSE_DESTINATION   "${GDCM_INSTALL_DATA_DIR}/vtkgdcm-${GDCM_SHORT_VERSION}"
+        SPDX_DESTINATION      "${GDCM_INSTALL_DATA_DIR}/vtkgdcm-${GDCM_SHORT_VERSION}"
+        HIERARCHY_DESTINATION "${GDCM_INSTALL_LIB_DIR}/vtk${vtk_version_suffix}/hierarchy/vtkgdcm"
+        LIBRARY_NAME_SUFFIX   "${vtkgdcm_library_suffix}"
+        VERSION               "${GDCM_VERSION}"
+        SOVERSION             "1"
+        # TODO: these are probably not set as they should be
+        #USE_EXTERNAL          "${GDCM_USE_EXTERNAL}"
+        #TEST_DATA_TARGET      vtkgdcmData
+        #TEST_INPUT_DATA_DIRECTORY  "${vtkgdcm_test_data_directory_input}"
+        #TEST_OUTPUT_DATA_DIRECTORY "${vtkgdcm_test_data_directory_output}"
+      )
+
+      if(VTKGDCM_WRAP_PYTHON)
+        find_package(PythonInterp ${VTK_PYTHON_VERSION} QUIET)
+
+        vtk_module_wrap_python(
+          MODULES             ${vtkgdcm_modules}
+          TARGET              GDCM::vtkgdcmpython
+          INSTALL_EXPORT      vtkgdcmPython
+          PYTHON_PACKAGE      "vtkgdcm"
+          CMAKE_DESTINATION   "${GDCM_INSTALL_PACKAGE_DIR}"
+          LIBRARY_DESTINATION "${GDCM_INSTALL_LIB_DIR}"
+          MODULE_DESTINATION  "${GDCM_VTK_INSTALL_PYTHONMODULE_DIR}"
+          SOABI               "${Python${VTK_PYTHON_VERSION}_SOABI}"
+          BUILD_STATIC        OFF
+        )
+
+        file(GENERATE
+          OUTPUT  "${CMAKE_BINARY_DIR}/${GDCM_VTK_INSTALL_PYTHONMODULE_DIR}/vtkgdcm/__init__.py"
+          CONTENT "from .vtkgdcm import *\n\n__all__ = ['vtkgdcm']\n__version__ = \"${GDCM_VERSION}\"\n")
+        install(
+          FILES       "${CMAKE_BINARY_DIR}/${GDCM_VTK_INSTALL_PYTHONMODULE_DIR}/vtkgdcm/__init__.py"
+          DESTINATION "${GDCM_VTK_INSTALL_PYTHONMODULE_DIR}/vtkgdcm/")
+
+        export(
+          EXPORT    vtkgdcmPython
+          NAMESPACE GDCM::
+          FILE      "${GDCM_INSTALL_PACKAGE_DIR}/vtkgdcmPython-targets.cmake")
+        install(
+          EXPORT      vtkgdcmPython
+          NAMESPACE   GDCM::
+          FILE        vtkgdcmPython-targets.cmake
+          DESTINATION "${GDCM_INSTALL_PACKAGE_DIR}")
+      endif()
+
+      if(VTKGDCM_WRAP_JAVA)
+        # TODO: this is broken, incomplete, needs lots of work
+        vtk_module_wrap_java(
+          MODULES         ${vtkgdcm_modules}
+          WRAPPED_MODULES vtkgdcm_java_wrapped_modules
+          JAVA_OUTPUT     "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles")
+      endif()
+    endif()
   endif()
 endif()
 
@@ -800,7 +891,7 @@ if(GDCM_STANDALONE) # disabled for ITK distribution of gdcm
       set(CPACK_NUGET_PACKAGE_DESCRIPTION "Grassroots DiCoM is a C++ library for DICOM medical files. It is accessible from Python, C#, Java and PHP. It supports RAW, JPEG, JPEG 2000, JPEG-LS, RLE and deflated transfer syntax.
       It comes with a super fast scanner implementation to quickly scan hundreds of DICOM files.
       It supports SCU network operations (C-ECHO, C-FIND, C-STORE, C-MOVE). PS 3.3 & 3.6 are distributed as XML files.
-      It also provides PS 3.15 certificates and password based mecanism to anonymize and de-identify DICOM datasets.")
+      It also provides PS 3.15 certificates and password based mechanism to anonymize and de-identify DICOM datasets.")
       set(CPACK_NUGET_PACKAGE_LICENSEURL "http://gdcm.sourceforge.net/Copyright.html")
       set(CPACK_NUGET_PACKAGE_HOMEPAGE_URL "http://gdcm.sourceforge.net")
       set(CPACK_NUGET_PACKAGE_TAGS "dicom" "medical")
@@ -816,11 +907,11 @@ if(GDCM_STANDALONE) # disabled for ITK distribution of gdcm
   if(GDCM_USE_VTK)
     foreach(comp ${components})
       if( "${comp}" STREQUAL "PythonModule" )
-        if(VTK_WRAP_PYTHON)
+        if(VTK_WRAP_PYTHON AND VTKGDCM_WRAP_PYTHON)
           list(APPEND components VTK${comp})
         endif()
       elseif( "${comp}" STREQUAL "JavaModule" )
-        if(VTK_WRAP_JAVA)
+        if(VTK_WRAP_JAVA AND VTKGDCM_WRAP_JAVA)
           list(APPEND components VTK${comp})
         endif()
       else()

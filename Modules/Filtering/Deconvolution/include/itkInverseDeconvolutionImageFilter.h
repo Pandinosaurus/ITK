@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,12 @@
 #define itkInverseDeconvolutionImageFilter_h
 
 #include "itkFFTConvolutionImageFilter.h"
+#include "itkMath.h"
 
 namespace itk
 {
 /**
- *\class InverseDeconvolutionImageFilter
+ * \class InverseDeconvolutionImageFilter
  * \brief The direct linear inverse deconvolution filter.
  *
  * The inverse filter is the most straightforward deconvolution
@@ -31,7 +32,7 @@ namespace itk
  * equivalent to multiplying the Fourier transform of the two images,
  * the inverse filter consists of inverting the multiplication. In
  * other words, this filter computes the following:
- * \f[ hat{F}(\omega) =
+ * \f[ \hat{F}(\omega) =
  *       \begin{cases}
  *         G(\omega) / H(\omega) & \text{if $|H(\omega)| \geq \epsilon$} \\
  *         0                     & \text{otherwise}
@@ -69,8 +70,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(InverseDeconvolutionImageFilter, FFTConvolutionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InverseDeconvolutionImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -78,33 +79,34 @@ public:
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
   using KernelImageType = TKernelImage;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using KernelPixelType = typename Superclass::KernelPixelType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using OutputIndexType = typename Superclass::OutputIndexType;
-  using KernelIndexType = typename Superclass::KernelIndexType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using OutputSizeType = typename Superclass::OutputSizeType;
-  using KernelSizeType = typename Superclass::KernelSizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using OutputRegionType = typename Superclass::OutputRegionType;
-  using KernelRegionType = typename Superclass::KernelRegionType;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::KernelPixelType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::OutputIndexType;
+  using typename Superclass::KernelIndexType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::OutputSizeType;
+  using typename Superclass::KernelSizeType;
+  using typename Superclass::SizeValueType;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::OutputRegionType;
+  using typename Superclass::KernelRegionType;
 
   /** Internal image types. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
   /** Set/get the threshold value used to determine whether a
    * frequency of the Fourier transform of the blurring kernel is
    * considered to be zero. Default value is 1.0e-4. */
+  /** @ITKStartGrouping */
   itkSetMacro(KernelZeroMagnitudeThreshold, double);
   itkGetConstMacro(KernelZeroMagnitudeThreshold, double);
-
+  /** @ITKEndGrouping */
 protected:
   InverseDeconvolutionImageFilter();
   ~InverseDeconvolutionImageFilter() override = default;
@@ -117,7 +119,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_KernelZeroMagnitudeThreshold;
+  double m_KernelZeroMagnitudeThreshold{};
 };
 
 namespace Functor
@@ -126,24 +128,22 @@ template <typename TInput1, typename TInput2, typename TOutput>
 class ITK_TEMPLATE_EXPORT InverseDeconvolutionFunctor
 {
 public:
-  InverseDeconvolutionFunctor() { m_KernelZeroMagnitudeThreshold = 0.0; }
+  InverseDeconvolutionFunctor() = default;
   ~InverseDeconvolutionFunctor() = default;
 
   bool
-  operator!=(const InverseDeconvolutionFunctor &) const
+  operator==(const InverseDeconvolutionFunctor &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const InverseDeconvolutionFunctor & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(InverseDeconvolutionFunctor);
+
   inline TOutput
   operator()(const TInput1 & I, const TInput2 & H) const
   {
-    const double absH = std::abs(H);
-    TOutput      value = NumericTraits<TOutput>::ZeroValue();
+    const double absH = itk::Math::abs(H);
+    TOutput      value{};
     if (absH >= m_KernelZeroMagnitudeThreshold)
     {
       value = static_cast<TOutput>(I / H);
@@ -153,19 +153,20 @@ public:
 
   /** Set/get the threshold value below which complex magnitudes are considered
    * to be zero. */
+  /** @ITKStartGrouping */
   void
   SetKernelZeroMagnitudeThreshold(double mu)
   {
     m_KernelZeroMagnitudeThreshold = mu;
   }
-  double
+  [[nodiscard]] double
   GetKernelZeroMagnitudeThreshold() const
   {
     return m_KernelZeroMagnitudeThreshold;
   }
-
+  /** @ITKEndGrouping */
 private:
-  double m_KernelZeroMagnitudeThreshold;
+  double m_KernelZeroMagnitudeThreshold{ 0.0 };
 };
 } // namespace Functor
 

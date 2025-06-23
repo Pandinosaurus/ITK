@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,19 +58,13 @@ template <typename TInput1, typename TInput2, typename TOutput>
 class ConstrainedValueDifference
 {
 public:
-  ConstrainedValueDifference() = default;
-  ~ConstrainedValueDifference() = default;
   bool
-  operator!=(const ConstrainedValueDifference &) const
+  operator==(const ConstrainedValueDifference &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const ConstrainedValueDifference & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstrainedValueDifference);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
@@ -106,18 +100,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ConstrainedValueDifferenceImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConstrainedValueDifferenceImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage1::PixelType, double>));
   itkConceptMacro(Input2ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage2::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
   itkConceptMacro(DoubleGreaterThanOutputCheck,
                   (Concept::GreaterThanComparable<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ConstrainedValueDifferenceImageFilter()

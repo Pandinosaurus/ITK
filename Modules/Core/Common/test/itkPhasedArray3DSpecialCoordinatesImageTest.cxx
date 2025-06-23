@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,11 +32,10 @@ itkPhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   using IndexType = Image::IndexType;
   using ContinuousIndexType = itk::ContinuousIndex<itk::SpacePrecisionType, 3>;
 
-  Image::Pointer image = Image::New();
+  auto image = Image::New();
   // image->DebugOn();
   // image->GetSource();
-  SizeType size;
-  size.Fill(5); // 5x5x5 sampling of data
+  auto       size = SizeType::Filled(5); // 5x5x5 sampling of data
   RegionType region;
   region.SetSize(size);
   image->SetRegions(region);
@@ -58,16 +57,17 @@ itkPhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   std::cout << std::endl;
 
 
-  PointType           point;
-  IndexType           index;
-  ContinuousIndexType continuousIndex;
-
-  point.Fill(0.05);
+  auto point = itk::MakeFilled<PointType>(0.05);
   point[2] = 3.1;
-  image->TransformPhysicalPointToIndex(point, index);
-  std::cout << "Point " << point << " -> Index " << index << std::endl;
-  image->TransformPhysicalPointToContinuousIndex(point, continuousIndex);
-  std::cout << "Point " << point << " -> Continuous Index " << continuousIndex << std::endl;
+
+  IndexType  index;
+  const bool isIndexInside = image->TransformPhysicalPointToIndex(point, index);
+  std::cout << "Point " << point << " -> Index " << index << (isIndexInside ? " inside" : " outside") << std::endl;
+
+  ContinuousIndexType continuousIndex;
+  const bool          isContinuousIndexInside = image->TransformPhysicalPointToContinuousIndex(point, continuousIndex);
+  std::cout << "Point " << point << " -> Continuous Index " << continuousIndex
+            << (isContinuousIndexInside ? " inside" : " outside") << std::endl;
 
   if (index[0] != 2 || index[1] != 2 || index[2] != 1)
   {
@@ -93,7 +93,7 @@ itkPhasedArray3DSpecialCoordinatesImageTest(int, char *[])
   }
 
   using WindowedSincInterpolatorType = itk::WindowedSincInterpolateImageFunction<Image, 3>;
-  WindowedSincInterpolatorType::Pointer interpolator = WindowedSincInterpolatorType::New();
+  auto interpolator = WindowedSincInterpolatorType::New();
   interpolator->SetInputImage(image);
 
   std::cout << std::endl;
@@ -103,9 +103,7 @@ itkPhasedArray3DSpecialCoordinatesImageTest(int, char *[])
     std::cout << "PhasedArray3DSpecialCoordinatesImage tests passed" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "PhasedArray3DSpecialCoordinatesImage tests failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "PhasedArray3DSpecialCoordinatesImage tests failed" << std::endl;
+  return EXIT_FAILURE;
 }

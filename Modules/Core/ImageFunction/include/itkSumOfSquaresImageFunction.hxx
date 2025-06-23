@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,27 +18,23 @@
 #ifndef itkSumOfSquaresImageFunction_hxx
 #define itkSumOfSquaresImageFunction_hxx
 
-#include "itkSumOfSquaresImageFunction.h"
 
 #include "itkShapedImageNeighborhoodRange.h"
 
 namespace itk
 {
 
-template <typename TInputImage, typename TCoordRep>
-SumOfSquaresImageFunction<TInputImage, TCoordRep>::SumOfSquaresImageFunction()
-{
-  this->m_NeighborhoodRadius = 1;
-  this->m_NeighborhoodSize = 1;
-}
+template <typename TInputImage, typename TCoordinate>
+SumOfSquaresImageFunction<TInputImage, TCoordinate>::SumOfSquaresImageFunction()
+  : m_NeighborhoodRadius(1)
+  , m_NeighborhoodSize(1)
+{}
 
-template <typename TInputImage, typename TCoordRep>
-typename SumOfSquaresImageFunction<TInputImage, TCoordRep>::RealType
-SumOfSquaresImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+SumOfSquaresImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const -> RealType
 {
-  RealType sumOfSquares;
-
-  sumOfSquares = NumericTraits<RealType>::ZeroValue();
+  RealType sumOfSquares{};
 
   const InputImageType * const image = this->GetInputImage();
 
@@ -64,9 +60,9 @@ SumOfSquaresImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexTy
   return (sumOfSquares);
 }
 
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-SumOfSquaresImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+SumOfSquaresImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
 

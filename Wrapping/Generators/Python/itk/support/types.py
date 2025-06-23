@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,11 @@
 #
 # ==========================================================================*/
 
-from typing import Union, Optional, Tuple, TYPE_CHECKING
+import importlib
+from importlib.metadata import metadata
+from typing import Union, TYPE_CHECKING
+import os
+
 try:
     from numpy.typing import ArrayLike
 except ImportError:
@@ -24,27 +28,28 @@ except ImportError:
 
 _HAVE_XARRAY = False
 try:
-    import xarray as xr
+    metadata("xarray")
 
     _HAVE_XARRAY = True
-except ImportError:
+except importlib.metadata.PackageNotFoundError:
     pass
 _HAVE_TORCH = False
 try:
-    import torch
+    metadata("torch")
 
     _HAVE_TORCH = True
-except ImportError:
+except importlib.metadata.PackageNotFoundError:
     pass
+
 
 # noinspection PyPep8Naming
 class itkCType:
     # import locally to facilitate dynamic loading in itk/__init__.py
     import numpy as np
-    from typing import Any, Dict, Optional, Tuple
+    from typing import Optional
 
-    __c_types__: Dict[str, "itkCType"] = {}
-    __c_types_for_dtype__: Dict[str, np.dtype] = {}
+    __c_types__: dict[str, "itkCType"] = {}
+    __c_types_for_dtype__: dict[str, np.dtype] = {}
 
     def __init__(self, name: str, short_name: str, np_dtype: np.dtype = None) -> None:
         # Remove potential white space around type names
@@ -68,10 +73,9 @@ class itkCType:
     @staticmethod
     def GetCType(name: str) -> Optional["itkCType"]:
         # import locally to facilitate dynamic loading in itk/__init__.py
-        from typing import Dict
 
         """Get the type corresponding to the provided C primitive type name."""
-        aliases: Dict[str, str] = {
+        aliases: dict[str, str] = {
             "short": "signed short",
             "int": "signed int",
             "long": "signed long",
@@ -113,28 +117,30 @@ class itkCType:
         """
         This function is intended to be run only one time
         """
-        import os
         import numpy as np
 
-        _F: "itkCType" = itkCType("float", "F", np.float32)
-        _D: "itkCType" = itkCType("double", "D", np.float64)
-        _UC: "itkCType" = itkCType("unsigned char", "UC", np.uint8)
-        _US: "itkCType" = itkCType("unsigned short", "US", np.uint16)
-        _UI: "itkCType" = itkCType("unsigned int", "UI", np.uint32)
+        _F: "itkCType" = itkCType("float", "F", np.dtype(np.float32))
+        _D: "itkCType" = itkCType("double", "D", np.dtype(np.float64))
+        _UC: "itkCType" = itkCType("unsigned char", "UC", np.dtype(np.uint8))
+        _US: "itkCType" = itkCType("unsigned short", "US", np.dtype(np.uint16))
+        _UI: "itkCType" = itkCType("unsigned int", "UI", np.dtype(np.uint32))
         if os.name == "nt":
-            _UL: "itkCType" = itkCType("unsigned long", "UL", np.uint32)
-            _SL: "itkCType" = itkCType("signed long", "SL", np.int32)
+            _UL: "itkCType" = itkCType("unsigned long", "UL", np.dtype(np.uint32))
+            _SL: "itkCType" = itkCType("signed long", "SL", np.dtype(np.int32))
             _LD: "itkCType" = itkCType("long double", "LD")
         else:
-            _UL: "itkCType" = itkCType("unsigned long", "UL", np.uint64)
-            _SL: "itkCType" = itkCType("signed long", "SL", np.int64)
-            _LD: "itkCType" = itkCType("long double", "LD", np.float128)
-        _ULL: "itkCType" = itkCType("unsigned long long", "ULL", np.uint64)
-        _SC: "itkCType" = itkCType("signed char", "SC", np.int8)
-        _SS: "itkCType" = itkCType("signed short", "SS", np.int16)
-        _SI: "itkCType" = itkCType("signed int", "SI", np.int32)
-        _SLL: "itkCType" = itkCType("signed long long", "SLL", np.int64)
-        _B: "itkCType" = itkCType("bool", "B", np.bool)
+            _UL: "itkCType" = itkCType("unsigned long", "UL", np.dtype(np.uint64))
+            _SL: "itkCType" = itkCType("signed long", "SL", np.dtype(np.int64))
+            if hasattr(np, "float128"):
+                _LD: "itkCType" = itkCType("long double", "LD", np.dtype(np.float128))
+            else:
+                _LD: "itkCType" = itkCType("long double", "LD")
+        _ULL: "itkCType" = itkCType("unsigned long long", "ULL", np.dtype(np.uint64))
+        _SC: "itkCType" = itkCType("signed char", "SC", np.dtype(np.int8))
+        _SS: "itkCType" = itkCType("signed short", "SS", np.dtype(np.int16))
+        _SI: "itkCType" = itkCType("signed int", "SI", np.dtype(np.int32))
+        _SLL: "itkCType" = itkCType("signed long long", "SLL", np.dtype(np.int64))
+        _B: "itkCType" = itkCType("bool", "B", np.dtype(np.bool_))
         return _F, _D, _UC, _US, _UI, _UL, _SL, _LD, _ULL, _SC, _SS, _SI, _SLL, _B
 
 
@@ -171,6 +177,14 @@ B: itkCType
     B,
 ) = itkCType.initialize_c_types_once()
 
+# Aliases for SizeValueType, IdentifierType, OffsetType
+ST = UL
+IT = UL
+OT = SL
+if os.name == "nt":
+    ST = ULL
+    IT = ULL
+    OT = SLL
 
 # Type aliases to avoid expensive import, circular references. Use with forward references.
 if TYPE_CHECKING:
@@ -206,11 +220,11 @@ ImageSource = "itk.ImageSource"
 ImageOrImageSource = Union[ImageBase, ImageSource]
 # Can be coerced into an itk.ImageBase
 if _HAVE_XARRAY and _HAVE_TORCH:
-    ImageLike = Union[ImageBase, ArrayLike, xr.DataArray, torch.Tensor]
+    ImageLike = Union[ImageBase, ArrayLike, "xr.DataArray", "torch.Tensor"]
 elif _HAVE_XARRAY:
-    ImageLike = Union[ImageBase, ArrayLike, xr.DataArray]
+    ImageLike = Union[ImageBase, ArrayLike, "xr.DataArray"]
 elif _HAVE_TORCH:
-    ImageLike = Union[ImageBase, ArrayLike, torch.Tensor]
+    ImageLike = Union[ImageBase, ArrayLike, "torch.Tensor"]
 else:
     ImageLike = Union[ImageBase, ArrayLike]
 
@@ -241,9 +255,9 @@ Matrix = "itk.Matrix"
 # When there is a single indexed output, it is returned directly.
 # When there are multiple indexed outputs, a tuple of the indexed outputs is
 # returned.
-ImageSourceReturn = Union[ImageLike, Tuple[ImageLike, ...]]
-MeshSourceReturn = Union[Mesh, Tuple[Mesh, ...]]
-PathSourceReturn = Union[Path, Tuple[Path, ...]]
+ImageSourceReturn = Union[ImageLike, tuple[ImageLike, ...]]
+MeshSourceReturn = Union[Mesh, tuple[Mesh, ...]]
+PathSourceReturn = Union[Path, tuple[Path, ...]]
 
 InterpolateImageFunction = "itk.InterpolateImageFunction"
 ExtrapolateImageFunction = "itk.ExtrapolateImageFunction"

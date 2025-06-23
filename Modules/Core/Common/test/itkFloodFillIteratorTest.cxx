@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ itkFloodFillIteratorTest(int, char *[])
   TImageType::PointValueType   sourceImageOrigin[] = { 0, 0, 0 };
 
   // Creates the sourceImage (but doesn't set the size or allocate memory)
-  TImageType::Pointer sourceImage = TImageType::New();
+  auto sourceImage = TImageType::New();
   sourceImage->SetOrigin(sourceImageOrigin);
   sourceImage->SetSpacing(sourceImageSpacing);
 
@@ -56,19 +56,16 @@ itkFloodFillIteratorTest(int, char *[])
   TImageType::RegionType largestPossibleRegion;
   // Resize the region
   largestPossibleRegion.SetSize(sourceImageSizeObject);
-  // Set the largest legal region size (i.e. the size of the whole sourceImage) to what we just defined
-  sourceImage->SetLargestPossibleRegion(largestPossibleRegion);
-  // Set the buffered region
-  sourceImage->SetBufferedRegion(largestPossibleRegion);
-  // Set the requested region
-  sourceImage->SetRequestedRegion(largestPossibleRegion);
+  // Set the largest legal region size (i.e. the size of the whole sourceImage), the buffered, and
+  // the requested region to what we just defined.
+  sourceImage->SetRegions(largestPossibleRegion);
   // Now allocate memory for the sourceImage
   sourceImage->Allocate();
 
   std::cout << "New sourceImage allocated" << std::endl;
 
   // Initialize the image to hold all 0's
-  itk::ImageRegionIterator<TImageType> it = itk::ImageRegionIterator<TImageType>(sourceImage, largestPossibleRegion);
+  itk::ImageRegionIterator<TImageType> it(sourceImage, largestPossibleRegion);
 
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
@@ -82,7 +79,7 @@ itkFloodFillIteratorTest(int, char *[])
 
   // Create and initialize a new sphere function
 
-  TFunctionType::Pointer spatialFunc = TFunctionType::New();
+  auto spatialFunc = TFunctionType::New();
   spatialFunc->SetRadius(5);
 
   TFunctionPositionType center;
@@ -94,12 +91,12 @@ itkFloodFillIteratorTest(int, char *[])
   std::cout << "Sphere spatial function created" << std::endl;
 
   //---------Create and initialize a spatial function iterator-----------
-  TImageType::IndexType            seedPos;
-  const TImageType::IndexValueType pos[] = { 10, 10, 10 };
+  TImageType::IndexType                seedPos;
+  constexpr TImageType::IndexValueType pos[] = { 10, 10, 10 };
   seedPos.SetIndex(pos);
 
   using TItType = itk::FloodFilledSpatialFunctionConditionalIterator<TImageType, TFunctionType>;
-  TItType sfi = TItType(sourceImage, spatialFunc, seedPos);
+  TItType sfi(sourceImage, spatialFunc, seedPos);
 
   // Iterate through the entire image and set interior pixels to 255
   for (; !(sfi.IsAtEnd()); ++sfi)

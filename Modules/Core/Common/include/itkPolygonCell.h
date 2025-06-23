@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,10 +41,6 @@ namespace itk
  * PolygonCell represents a polygon for a Mesh.
  *  the points of the polygon can be dynamically changed.
  *
- * \tparam TPixelType The type associated with a point, cell, or boundary
- * for use in storing its data.
- *
- * \tparam TCellTraits Type information of mesh containing cell.
  *
  * \ingroup MeshObjects
  * \ingroup ITKCommon
@@ -56,11 +52,12 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(PolygonCell);
 
   /** Standard class type aliases. */
+  /** @ITKStartGrouping */
   itkCellCommonTypedefs(PolygonCell);
   itkCellInheritedTypedefs(TCellInterface);
-
-  /** Standard part of every itk Object. */
-  itkTypeMacro(PolygonCell, CellInterface);
+  /** @ITKEndGrouping */
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolygonCell);
 
   /** Save some template parameter information. */
   static constexpr unsigned int CellDimension = 2;
@@ -80,18 +77,19 @@ public:
   itkCellVisitMacro(CellGeometryEnum::POLYGON_CELL);
 
   /** Implement the standard CellInterface. */
-  CellGeometryEnum
+  /** @ITKStartGrouping */
+  [[nodiscard]] CellGeometryEnum
   GetType() const override
   {
     return CellGeometryEnum::POLYGON_CELL;
   }
   void
   MakeCopy(CellAutoPointer &) const override;
-
-  unsigned int
+  /** @ITKEndGrouping */
+  [[nodiscard]] unsigned int
   GetDimension() const override;
 
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfPoints() const override;
 
   CellFeatureCount
@@ -144,6 +142,7 @@ public:
   GetEdge(CellFeatureIdentifier, EdgeAutoPointer &);
 
   /** Constructor and destructor */
+  /** @ITKStartGrouping */
   PolygonCell() = default;
   PolygonCell(PointIdentifier NumberOfPoints)
   {
@@ -153,12 +152,12 @@ public:
     }
     this->BuildEdges();
   }
-
+  /** @ITKEndGrouping */
   ~PolygonCell() override = default;
 
 protected:
-  std::vector<EdgeInfo>        m_Edges;
-  std::vector<PointIdentifier> m_PointIds;
+  std::vector<EdgeInfo>        m_Edges{};
+  std::vector<PointIdentifier> m_PointIds{};
 };
 } // namespace itk
 

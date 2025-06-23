@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class WrapPadImageFilter
+ * \class WrapPadImageFilter
  * \brief Increase the image size by padding with replicants of the
  * input image value.
  *
@@ -65,44 +65,40 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(WrapPadImageFilter, PadImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WrapPadImageFilter);
 
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using InputImageConstPointer = typename Superclass::InputImageConstPointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::InputImageConstPointer;
 
   /** Typedef to describe the output image region type. */
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using InputImageRegionType = typename Superclass::InputImageRegionType;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::InputImageRegionType;
 
   /** Typedef to describe the type of pixel. */
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
-  using InputImagePixelType = typename Superclass::InputImagePixelType;
+  using typename Superclass::OutputImagePixelType;
+  using typename Superclass::InputImagePixelType;
 
   /** Typedef to describe the output and input image index and size types. */
-  using OutputImageIndexType = typename Superclass::OutputImageIndexType;
-  using InputImageIndexType = typename Superclass::InputImageIndexType;
-  using OutputImageSizeType = typename Superclass::OutputImageSizeType;
-  using InputImageSizeType = typename Superclass::InputImageSizeType;
+  using typename Superclass::OutputImageIndexType;
+  using typename Superclass::InputImageIndexType;
+  using typename Superclass::OutputImageSizeType;
+  using typename Superclass::InputImageSizeType;
 
   /** ImageDimension enumeration. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   WrapPadImageFilter();
   ~WrapPadImageFilter() override = default;
 
 private:
-  PeriodicBoundaryCondition<TInputImage, TOutputImage> m_InternalBoundaryCondition;
+  PeriodicBoundaryCondition<TInputImage, TOutputImage> m_InternalBoundaryCondition{};
 };
 } // end namespace itk
 

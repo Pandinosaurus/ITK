@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkDenseFiniteDifferenceImageFilter_h
 #define itkDenseFiniteDifferenceImageFilter_h
 
+#include "itkBooleanStdVector.h"
 #include "itkFiniteDifferenceImageFilter.h"
 #include "itkMultiThreaderBase.h"
 
@@ -79,13 +80,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(DenseFiniteDifferenceImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DenseFiniteDifferenceImageFilter);
 
   /** Convenient type alias */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
   /** Dimensionality of input and output data is assumed to be the same.
    * It is inherited from the superclass. */
@@ -93,25 +94,23 @@ public:
 
   /** The pixel type of the output image will be used in computations.
    * Inherited from the superclass. */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** The value type of a time step.  Inherited from the superclass. */
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::TimeStepType;
 
   /** The container type for the update buffer. */
   using UpdateBufferType = OutputImageType;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputTimesDoubleCheck, (Concept::MultiplyOperator<PixelType, double>));
   itkConceptMacro(OutputAdditiveOperatorsCheck, (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(OutputAdditiveAndAssignOperatorsCheck, (Concept::AdditiveAndAssignOperators<PixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<typename TInputImage::PixelType, PixelType>));
-  // End concept checking
-#endif
 
 protected:
-  DenseFiniteDifferenceImageFilter() { m_UpdateBuffer = UpdateBufferType::New(); }
+  DenseFiniteDifferenceImageFilter()
+    : m_UpdateBuffer(UpdateBufferType::New())
+  {}
   ~DenseFiniteDifferenceImageFilter() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -172,7 +171,8 @@ private:
     DenseFiniteDifferenceImageFilter * Filter;
     TimeStepType                       TimeStep;
     std::vector<TimeStepType>          TimeStepList;
-    std::vector<bool>                  ValidTimeStepList;
+
+    BooleanStdVectorType ValidTimeStepList;
   };
 
   /** This callback method uses ImageSource::SplitRequestedRegion to acquire an
@@ -186,7 +186,7 @@ private:
   CalculateChangeThreaderCallback(void * arg);
 
   /** The buffer that holds the updates for an iteration of the algorithm. */
-  typename UpdateBufferType::Pointer m_UpdateBuffer;
+  typename UpdateBufferType::Pointer m_UpdateBuffer{};
 };
 } // end namespace itk
 

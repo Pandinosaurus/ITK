@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkHausdorffDistanceImageFilter_hxx
 #define itkHausdorffDistanceImageFilter_hxx
-#include "itkHausdorffDistanceImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkProgressAccumulator.h"
@@ -27,13 +26,11 @@ namespace itk
 {
 template <typename TInputImage1, typename TInputImage2>
 HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::HausdorffDistanceImageFilter()
+  : m_HausdorffDistance(RealType{})
+  , m_AverageHausdorffDistance(RealType{})
 {
   // this filter requires two input images
   this->SetNumberOfRequiredInputs(2);
-
-  m_HausdorffDistance = NumericTraits<RealType>::ZeroValue();
-  m_AverageHausdorffDistance = NumericTraits<RealType>::ZeroValue();
-  m_UseImageSpacing = true;
 }
 
 template <typename TInputImage1, typename TInputImage2>
@@ -51,15 +48,15 @@ HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::SetInput2(const TInput
 }
 
 template <typename TInputImage1, typename TInputImage2>
-const typename HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::InputImage1Type *
-HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GetInput1()
+auto
+HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GetInput1() -> const InputImage1Type *
 {
   return this->GetInput();
 }
 
 template <typename TInputImage1, typename TInputImage2>
-const typename HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::InputImage2Type *
-HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GetInput2()
+auto
+HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GetInput2() -> const InputImage2Type *
 {
   return itkDynamicCastInDebugMode<const TInputImage2 *>(this->ProcessObject::GetInput(1));
 }
@@ -75,12 +72,12 @@ HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GenerateInputRequested
   // - the corresponding region of the second image
   if (this->GetInput1())
   {
-    InputImage1Pointer image1 = const_cast<InputImage1Type *>(this->GetInput1());
+    const InputImage1Pointer image1 = const_cast<InputImage1Type *>(this->GetInput1());
     image1->SetRequestedRegionToLargestPossibleRegion();
 
     if (this->GetInput2())
     {
-      InputImage2Pointer image2 = const_cast<InputImage2Type *>(this->GetInput2());
+      const InputImage2Pointer image2 = const_cast<InputImage2Type *>(this->GetInput2());
       image2->SetRequestedRegion(this->GetInput1()->GetRequestedRegion());
     }
   }
@@ -98,29 +95,29 @@ template <typename TInputImage1, typename TInputImage2>
 void
 HausdorffDistanceImageFilter<TInputImage1, TInputImage2>::GenerateData()
 {
-  ThreadIdType nbthreads = this->GetNumberOfWorkUnits();
+  const ThreadIdType numberOfWorkUnits = this->GetNumberOfWorkUnits();
 
   // Pass the first input through as the output
-  InputImage1Pointer image = const_cast<TInputImage1 *>(this->GetInput1());
+  const InputImage1Pointer image = const_cast<TInputImage1 *>(this->GetInput1());
   this->GraftOutput(image);
 
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   using Filter12Type = DirectedHausdorffDistanceImageFilter<InputImage1Type, InputImage2Type>;
-  typename Filter12Type::Pointer filter12 = Filter12Type::New();
+  auto filter12 = Filter12Type::New();
   filter12->SetInput1(this->GetInput1());
   filter12->SetInput2(this->GetInput2());
-  filter12->SetNumberOfWorkUnits(nbthreads);
+  filter12->SetNumberOfWorkUnits(numberOfWorkUnits);
   filter12->SetUseImageSpacing(m_UseImageSpacing);
 
   using Filter21Type = DirectedHausdorffDistanceImageFilter<InputImage2Type, InputImage1Type>;
-  typename Filter21Type::Pointer filter21 = Filter21Type::New();
+  auto filter21 = Filter21Type::New();
   filter21->SetInput1(this->GetInput2());
   filter21->SetInput2(this->GetInput1());
-  filter21->SetNumberOfWorkUnits(nbthreads);
+  filter21->SetNumberOfWorkUnits(numberOfWorkUnits);
   filter21->SetUseImageSpacing(m_UseImageSpacing);
 
   // Register the filter with the with progress accumulator using

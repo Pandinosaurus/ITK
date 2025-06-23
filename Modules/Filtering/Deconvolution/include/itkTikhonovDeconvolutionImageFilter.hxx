@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkTikhonovDeconvolutionImageFilter_hxx
 #define itkTikhonovDeconvolutionImageFilter_hxx
 
-#include "itkTikhonovDeconvolutionImageFilter.h"
 
 #include "itkBinaryGeneratorImageFilter.h"
 
@@ -27,10 +26,7 @@ namespace itk
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 TikhonovDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>::
-  TikhonovDeconvolutionImageFilter()
-{
-  m_RegularizationConstant = 0.0;
-}
+  TikhonovDeconvolutionImageFilter() = default;
 
 template <typename TInputImage, typename TKernelImage, typename TOutputImage, typename TInternalPrecision>
 void
@@ -38,10 +34,10 @@ TikhonovDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInter
 {
   // Create a process accumulator for tracking the progress of this
   // minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
-  typename InputImageType::Pointer localInput = InputImageType::New();
+  auto localInput = InputImageType::New();
   localInput->Graft(this->GetInput());
 
   const KernelImageType * kernelImage = this->GetKernelImage();
@@ -59,7 +55,7 @@ TikhonovDeconvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInter
 
   using TikhonovFilterType =
     BinaryGeneratorImageFilter<InternalComplexImageType, InternalComplexImageType, InternalComplexImageType>;
-  typename TikhonovFilterType::Pointer tikhonovFilter = TikhonovFilterType::New();
+  auto tikhonovFilter = TikhonovFilterType::New();
   tikhonovFilter->SetInput1(input);
   tikhonovFilter->SetInput2(kernel);
   tikhonovFilter->SetFunctor(tikhonovFunctor);

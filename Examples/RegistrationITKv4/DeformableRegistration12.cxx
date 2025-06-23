@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -146,22 +146,23 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   using FixedImageReaderType = itk::ImageFileReader<FixedImageType>;
-  FixedImageReaderType::Pointer fixedImageReader =
-    FixedImageReaderType::New();
+  auto fixedImageReader = FixedImageReaderType::New();
   fixedImageReader->SetFileName(argv[1]);
   fixedImageReader->Update();
-  FixedImageType::ConstPointer fixedImage = fixedImageReader->GetOutput();
-  FixedImageType::RegionType   fixedRegion = fixedImage->GetBufferedRegion();
+  const FixedImageType::ConstPointer fixedImage =
+    fixedImageReader->GetOutput();
+  const FixedImageType::RegionType fixedRegion =
+    fixedImage->GetBufferedRegion();
 
   using MovingImageReaderType = itk::ImageFileReader<MovingImageType>;
-  MovingImageReaderType::Pointer movingImageReader =
-    MovingImageReaderType::New();
+  auto movingImageReader = MovingImageReaderType::New();
   movingImageReader->SetFileName(argv[2]);
   movingImageReader->Update();
-  MovingImageType::ConstPointer movingImage = movingImageReader->GetOutput();
+  const MovingImageType::ConstPointer movingImage =
+    movingImageReader->GetOutput();
 
   // Software Guide : BeginCodeSnippet
-  const unsigned int     SpaceDimension = ImageDimension;
+  constexpr unsigned int SpaceDimension = ImageDimension;
   constexpr unsigned int SplineOrder = 3;
   using CoordinateRepType = double;
 
@@ -171,7 +172,7 @@ main(int argc, char * argv[])
 
   using RegistrationType =
     itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType>;
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   //  Software Guide : BeginLatex
   //
@@ -180,7 +181,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
   //
   // Software Guide : BeginCodeSnippet
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
   // Software Guide : EndCodeSnippet
 
   unsigned int numberOfGridNodesInOneDimension = 7;
@@ -195,7 +196,7 @@ main(int argc, char * argv[])
   TransformType::MeshSizeType           meshSize;
   TransformType::OriginType             fixedOrigin;
 
-  for (unsigned int i = 0; i < SpaceDimension; i++)
+  for (unsigned int i = 0; i < SpaceDimension; ++i)
   {
     fixedOrigin[i] = fixedImage->GetOrigin()[i];
     fixedPhysicalDimensions[i] =
@@ -227,14 +228,14 @@ main(int argc, char * argv[])
   using MetricType =
     itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                      MovingImageType>;
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
   metric->SetNumberOfHistogramBins(32);
   metric->SetUseMovingImageGradientFilter(false);
   metric->SetUseFixedImageGradientFilter(false);
   metric->SetUseSampledPointSet(false);
 
   using OptimizerType = itk::LBFGSBOptimizerv4;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   // Software Guide : BeginCodeSnippet
   const unsigned int numParameters = transform->GetNumberOfParameters();
@@ -259,7 +260,7 @@ main(int argc, char * argv[])
 
   // Create the Command observer and register it with the optimizer.
   //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   // One level registration is performed using the shrink factor 1 and
@@ -323,7 +324,8 @@ main(int argc, char * argv[])
 
   // While the registration filter is run, it updates the output transform
   // parameters with the final registration parameters
-  OptimizerType::ParametersType finalParameters = transform->GetParameters();
+  const OptimizerType::ParametersType finalParameters =
+    transform->GetParameters();
 
   // Report the time and memory taken by the registration
   chronometer.Report(std::cout);
@@ -332,7 +334,7 @@ main(int argc, char * argv[])
   using ResampleFilterType =
     itk::ResampleImageFilter<MovingImageType, FixedImageType>;
 
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  auto resample = ResampleFilterType::New();
 
   resample->SetTransform(transform);
   resample->SetInput(movingImageReader->GetOutput());
@@ -358,8 +360,8 @@ main(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
 
-  WriterType::Pointer     writer = WriterType::New();
-  CastFilterType::Pointer caster = CastFilterType::New();
+  auto writer = WriterType::New();
+  auto caster = CastFilterType::New();
 
 
   writer->SetFileName(argv[3]);
@@ -385,9 +387,9 @@ main(int argc, char * argv[])
                                       FixedImageType,
                                       OutputImageType>;
 
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
+  auto difference = DifferenceFilterType::New();
 
-  WriterType::Pointer writer2 = WriterType::New();
+  auto writer2 = WriterType::New();
   writer2->SetInput(difference->GetOutput());
 
 
@@ -438,7 +440,7 @@ main(int argc, char * argv[])
     using VectorType = itk::Vector<float, ImageDimension>;
     using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
-    DisplacementFieldType::Pointer field = DisplacementFieldType::New();
+    auto field = DisplacementFieldType::New();
     field->SetRegions(fixedRegion);
     field->SetOrigin(fixedImage->GetOrigin());
     field->SetSpacing(fixedImage->GetSpacing());
@@ -467,7 +469,7 @@ main(int argc, char * argv[])
     }
 
     using FieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
-    FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
+    auto fieldWriter = FieldWriterType::New();
 
     fieldWriter->SetInput(field);
 

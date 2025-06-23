@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ itkImageAdaptorNthElementTest(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   //-------------------------------------------------------------
   //                        Typedefs
@@ -77,13 +77,10 @@ itkImageAdaptorNthElementTest(int, char *[])
   size[1] = 2;
   size[2] = 2; // Small size, because we are printing it
 
-  myIndexType start;
-  start.Fill(0);
+  constexpr myIndexType start{};
 
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   float spacing[3];
   spacing[0] = 1.0;
@@ -94,11 +91,9 @@ itkImageAdaptorNthElementTest(int, char *[])
   //                 Create and Initialize the RGBPixel image
   //-------------------------------------------------------------
 
-  myContainerPixelImageType::Pointer myContainerPixelImage = myContainerPixelImageType::New();
+  auto myContainerPixelImage = myContainerPixelImageType::New();
 
-  myContainerPixelImage->SetLargestPossibleRegion(region);
-  myContainerPixelImage->SetBufferedRegion(region);
-  myContainerPixelImage->SetRequestedRegion(region);
+  myContainerPixelImage->SetRegions(region);
   myContainerPixelImage->Allocate();
   myContainerPixelImage->SetSpacing(spacing);
 
@@ -120,40 +115,38 @@ itkImageAdaptorNthElementTest(int, char *[])
   while (!it.IsAtEnd())
   {
     myIndexType index = it.GetIndex();
-    std::cout << "[";
+    std::cout << '[';
     std::cout.width(3);
-    std::cout << index[0] << ",";
+    std::cout << index[0] << ',';
     std::cout.width(3);
-    std::cout << index[1] << ",";
+    std::cout << index[1] << ',';
     std::cout.width(3);
     std::cout << index[2] << "] =  ";
     std::cout.width(4);
-    std::cout << it.Get()[0] << ",";
+    std::cout << it.Get()[0] << ',';
     std::cout.width(4);
-    std::cout << it.Get()[1] << ",";
+    std::cout << it.Get()[1] << ',';
     std::cout.width(4);
     std::cout << it.Get()[2] << std::endl;
     ++it;
   }
 
 
-  std::cout << "Container Image Initializaed" << std::endl;
+  std::cout << "Container Image Initialized" << std::endl;
 
   //-------------------------------------------------------------
   //                 Create and Initialize the Float image
   //-------------------------------------------------------------
 
-  myFloatImageType::Pointer myFloatImage = myFloatImageType::New();
+  auto myFloatImage = myFloatImageType::New();
 
-  myFloatImage->SetLargestPossibleRegion(region);
-  myFloatImage->SetBufferedRegion(region);
-  myFloatImage->SetRequestedRegion(region);
+  myFloatImage->SetRegions(region);
   myFloatImage->Allocate();
   myFloatImage->SetSpacing(spacing);
 
   myFloatIteratorType itf(myFloatImage, myFloatImage->GetRequestedRegion());
 
-  myFloatPixelType initialFloatValue = 5.0;
+  constexpr myFloatPixelType initialFloatValue = 5.0;
 
   while (!itf.IsAtEnd())
   {
@@ -166,11 +159,11 @@ itkImageAdaptorNthElementTest(int, char *[])
   while (!itf.IsAtEnd())
   {
     myIndexType index = itf.GetIndex();
-    std::cout << "[";
+    std::cout << '[';
     std::cout.width(3);
-    std::cout << index[0] << ",";
+    std::cout << index[0] << ',';
     std::cout.width(3);
-    std::cout << index[1] << ",";
+    std::cout << index[1] << ',';
     std::cout.width(3);
     std::cout << index[2] << "] =  ";
     std::cout.width(8);
@@ -178,14 +171,14 @@ itkImageAdaptorNthElementTest(int, char *[])
     ++itf;
   }
 
-  std::cout << "Float Image Initializaed" << std::endl;
+  std::cout << "Float Image Initialized" << std::endl;
 
 
   //-------------------------------------------------------------
   //         Create the adaptor and connect the image
   //-------------------------------------------------------------
 
-  myAdaptorType::Pointer myAdaptor = myAdaptorType::New();
+  auto myAdaptor = myAdaptorType::New();
 
   myAdaptor->SetImage(myContainerPixelImage);
 
@@ -193,7 +186,7 @@ itkImageAdaptorNthElementTest(int, char *[])
   //         Create the filter and connect the inputs
   //-------------------------------------------------------------
 
-  myFilterType::Pointer filter = myFilterType::New();
+  auto filter = myFilterType::New();
 
   filter->SetInput1(myAdaptor);
   filter->SetInput2(myFloatImage);
@@ -205,7 +198,7 @@ itkImageAdaptorNthElementTest(int, char *[])
   myFloatImageType::Pointer myFloatOutputImage = filter->GetOutput();
   myFloatOutputImage->SetSpacing(spacing);
 
-  std::cout << "Float Output Image Initializaed" << std::endl;
+  std::cout << "Float Output Image Initialized" << std::endl;
 
   //-------------------------------------------------------------
   //         Force the execution of the filter
@@ -235,11 +228,11 @@ itkImageAdaptorNthElementTest(int, char *[])
   while (!ito.IsAtEnd())
   {
     myIndexType index = ito.GetIndex();
-    std::cout << "[";
+    std::cout << '[';
     std::cout.width(3);
-    std::cout << index[0] << ",";
+    std::cout << index[0] << ',';
     std::cout.width(3);
-    std::cout << index[1] << ",";
+    std::cout << index[1] << ',';
     std::cout.width(3);
     std::cout << index[2] << "] =  ";
     std::cout.width(8);
@@ -262,11 +255,11 @@ itkImageAdaptorNthElementTest(int, char *[])
   while (!ito.IsAtEnd())
   {
     myIndexType index = ito.GetIndex();
-    std::cout << "[";
+    std::cout << '[';
     std::cout.width(3);
-    std::cout << index[0] << ",";
+    std::cout << index[0] << ',';
     std::cout.width(3);
-    std::cout << index[1] << ",";
+    std::cout << index[1] << ',';
     std::cout.width(3);
     std::cout << index[2] << "] =  ";
     std::cout.width(8);
@@ -289,11 +282,11 @@ itkImageAdaptorNthElementTest(int, char *[])
   while (!ito.IsAtEnd())
   {
     myIndexType index = ito.GetIndex();
-    std::cout << "[";
+    std::cout << '[';
     std::cout.width(3);
-    std::cout << index[0] << ",";
+    std::cout << index[0] << ',';
     std::cout.width(3);
-    std::cout << index[1] << ",";
+    std::cout << index[1] << ',';
     std::cout.width(3);
     std::cout << index[2] << "] =  ";
     std::cout.width(8);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,9 @@
 #include "itkSingleton.h"
 
 #include <algorithm>
+#include <atomic>
+#include <cassert>
+#include <mutex>
 
 
 namespace itk
@@ -33,9 +36,16 @@ namespace itk
 struct ThreadPoolGlobals
 {
   ThreadPoolGlobals() = default;
-  // To lock on the internal variables.
-  std::mutex          m_Mutex;
+
+  // To lock on the various internal variables.
+  std::mutex m_Mutex;
+
+  // To allow singleton creation of ThreadPool.
+  std::once_flag m_ThreadPoolOnceFlag;
+
+  // The singleton instance of ThreadPool.
   ThreadPool::Pointer m_ThreadPoolInstance;
+
 #if defined(_WIN32) && defined(ITKCommon_EXPORTS)
   // ThreadPool's destructor is called during DllMain's DLL_PROCESS_DETACH.
   // Because ITKCommon-5.X.dll is usually being detached due to process termination,
@@ -43,9 +53,9 @@ struct ThreadPoolGlobals
   // except the current thread either have exited already or have been
   // explicitly terminated by a call to the ExitProcess function".
   // Therefore we must not wait for the condition_variable.
-  bool m_WaitForThreads = false;
+  std::atomic<bool> m_WaitForThreads{ false };
 #else // In a static library, we have to wait.
-  bool m_WaitForThreads = true;
+  std::atomic<bool> m_WaitForThreads{ true };
 #endif
 };
 
@@ -65,20 +75,18 @@ ThreadPool::GetInstance()
   // initialized.
   itkInitGlobalsMacro(PimplGlobals);
 
-  if (m_PimplGlobals->m_ThreadPoolInstance.IsNull())
-  {
-    std::unique_lock<std::mutex> mutexHolder(m_PimplGlobals->m_Mutex);
-    // After we have the lock, double check the initialization
-    // flag to ensure it hasn't been changed by another thread.
+  // Create a singleton ThreadPool.
+  std::call_once(m_PimplGlobals->m_ThreadPoolOnceFlag, []() {
+    m_PimplGlobals->m_ThreadPoolInstance = ObjectFactory<Self>::Create();
     if (m_PimplGlobals->m_ThreadPoolInstance.IsNull())
     {
-      m_PimplGlobals->m_ThreadPoolInstance = ObjectFactory<Self>::Create();
-      if (m_PimplGlobals->m_ThreadPoolInstance.IsNull())
-      {
-        new ThreadPool(); // constructor sets m_PimplGlobals->m_ThreadPoolInstance
-      }
+      new ThreadPool(); // constructor sets m_PimplGlobals->m_ThreadPoolInstance
     }
-  }
+#if defined(ITK_USE_PTHREADS)
+    pthread_atfork(ThreadPool::PrepareForFork, ThreadPool::ResumeFromFork, ThreadPool::ResumeFromFork);
+#endif
+  });
+
   return m_PimplGlobals->m_ThreadPoolInstance;
 }
 
@@ -98,11 +106,14 @@ ThreadPool::SetDoNotWaitForThreads(bool doNotWaitForThreads)
 
 ThreadPool::ThreadPool()
 {
+  // m_PimplGlobals->m_Mutex not needed to be acquired here because construction only occurs via GetInstance which is
+  // protected by call_once.
+
   m_PimplGlobals->m_ThreadPoolInstance = this;        // threads need this
   m_PimplGlobals->m_ThreadPoolInstance->UnRegister(); // Remove extra reference
-  ThreadIdType threadCount = MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
+  const ThreadIdType threadCount = MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
   m_Threads.reserve(threadCount);
-  for (unsigned int i = 0; i < threadCount; ++i)
+  for (ThreadIdType i = 0; i < threadCount; ++i)
   {
     m_Threads.emplace_back(&ThreadPool::ThreadExecute);
   }
@@ -111,16 +122,16 @@ ThreadPool::ThreadPool()
 void
 ThreadPool::AddThreads(ThreadIdType count)
 {
-  std::unique_lock<std::mutex> mutexHolder(m_PimplGlobals->m_Mutex);
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->m_Mutex);
   m_Threads.reserve(m_Threads.size() + count);
-  for (unsigned int i = 0; i < count; ++i)
+  for (ThreadIdType i = 0; i < count; ++i)
   {
     m_Threads.emplace_back(&ThreadPool::ThreadExecute);
   }
 }
 
 std::mutex &
-ThreadPool::GetMutex()
+ThreadPool::GetMutex() const
 {
   return m_PimplGlobals->m_Mutex;
 }
@@ -128,19 +139,23 @@ ThreadPool::GetMutex()
 int
 ThreadPool::GetNumberOfCurrentlyIdleThreads() const
 {
-  std::unique_lock<std::mutex> mutexHolder(m_PimplGlobals->m_Mutex);
-  return int(m_Threads.size()) - int(m_WorkQueue.size()); // lousy approximation
+  const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->m_Mutex);
+  return static_cast<int>(m_Threads.size()) - static_cast<int>(m_WorkQueue.size()); // lousy approximation
 }
 
-ThreadPool::~ThreadPool()
+void
+ThreadPool::CleanUp()
 {
+  bool shouldNotify = false;
   {
-    std::unique_lock<std::mutex> mutexHolder(m_PimplGlobals->m_Mutex);
+    const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->m_Mutex);
 
     this->m_Stopping = true;
+
+    shouldNotify = m_PimplGlobals->m_WaitForThreads && !m_Threads.empty();
   }
 
-  if (m_PimplGlobals->m_WaitForThreads && !m_Threads.empty())
+  if (shouldNotify)
   {
     m_Condition.notify_all();
   }
@@ -148,12 +163,28 @@ ThreadPool::~ThreadPool()
   // Even if the threads have already been terminated,
   // we should join() the std::thread variables.
   // Otherwise some sanity check in debug mode complains.
-  for (auto & m_Thread : m_Threads)
+  for (auto & thread : m_Threads)
   {
-    m_Thread.join();
+    assert(thread.joinable());
+    thread.join();
   }
 }
 
+void
+ThreadPool::PrepareForFork()
+{
+  m_PimplGlobals->m_ThreadPoolInstance->CleanUp();
+}
+
+void
+ThreadPool::ResumeFromFork()
+{
+  ThreadPool *       instance = m_PimplGlobals->m_ThreadPoolInstance.GetPointer();
+  const ThreadIdType threadCount = instance->m_Threads.size();
+  instance->m_Threads.clear();
+  instance->m_Stopping = false;
+  instance->AddThreads(threadCount);
+}
 
 void
 ThreadPool::ThreadExecute()

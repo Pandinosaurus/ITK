@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@
 #include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkStatisticsImageFilter.h"
+#include "itkVectorLinearInterpolateImageFunction.h"
 
 #include "itkTimeProbesCollectorBase.h"
 #include "itkTestingMacros.h"
@@ -60,8 +61,8 @@ public:
       return;
     }
 
-    unsigned int                                             currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
+    const unsigned int                                             currentLevel = filter->GetCurrentLevel();
+    const typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
       filter->GetShrinkFactorsPerDimension(currentLevel);
     typename TFilter::SmoothingSigmasArrayType                 smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
@@ -69,7 +70,7 @@ public:
 
     const itk::ObjectToObjectOptimizerBase * optimizerBase = filter->GetOptimizer();
     using GradientDescentOptimizerv4Type = itk::GradientDescentOptimizerv4;
-    typename GradientDescentOptimizerv4Type::ConstPointer optimizer =
+    const typename GradientDescentOptimizerv4Type::ConstPointer optimizer =
       dynamic_cast<const GradientDescentOptimizerv4Type *>(optimizerBase);
     if (!optimizer)
     {
@@ -102,7 +103,7 @@ public:
     {
       for (itk::SizeValueType i = 0; i < gradient.GetSize(); i += (gradient.GetSize() / 16))
       {
-        std::cout << gradient[i] << " ";
+        std::cout << gradient[i] << ' ';
       }
     }
     std::cout << std::endl;
@@ -113,13 +114,15 @@ template <unsigned int VImageDimension>
 int
 PerformExpImageRegistration(int argc, char * argv[])
 {
-  if (argc < 6)
+  if (argc < 10)
   {
-    std::cout
-      << itkNameOfTestExecutableMacro(argv)
-      << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr
+      << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations "
+         "calculateNumberOfIntegrationStepsAutomatically lowerTimeBound upperTimeBound numberOfIntegrationSteps"
       << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   itk::TimeProbesCollectorBase timer;
@@ -129,23 +132,23 @@ PerformExpImageRegistration(int argc, char * argv[])
 
   using ImageReaderType = itk::ImageFileReader<FixedImageType>;
 
-  typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+  auto fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName(argv[2]);
   timer.Start("0 fixedImageReader");
   fixedImageReader->Update();
   timer.Stop("0 fixedImageReader");
-  typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+  const typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
   timer.Start("1 fixedImage");
   fixedImage->Update();
   timer.Stop("1 fixedImage");
   fixedImage->DisconnectPipeline();
 
-  typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+  auto movingImageReader = ImageReaderType::New();
   movingImageReader->SetFileName(argv[3]);
   timer.Start("2 movingImageReader");
   movingImageReader->Update();
   timer.Stop("2 movingImageReader");
-  typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+  const typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
   timer.Start("3 movingImage");
   movingImage->Update();
   timer.Stop("3 movingImage");
@@ -154,7 +157,7 @@ PerformExpImageRegistration(int argc, char * argv[])
   using AffineTransformType = itk::AffineTransform<double, VImageDimension>;
   using AffineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, AffineTransformType>;
   using GradientDescentOptimizerv4Type = itk::GradientDescentOptimizerv4;
-  typename AffineRegistrationType::Pointer affineSimple = AffineRegistrationType::New();
+  auto affineSimple = AffineRegistrationType::New();
   affineSimple->SetFixedImage(fixedImage);
   affineSimple->SetMovingImage(movingImage);
 
@@ -170,7 +173,7 @@ PerformExpImageRegistration(int argc, char * argv[])
   }
 
   using GradientDescentOptimizerv4Type = itk::GradientDescentOptimizerv4;
-  typename GradientDescentOptimizerv4Type::Pointer affineOptimizer =
+  const typename GradientDescentOptimizerv4Type::Pointer affineOptimizer =
     dynamic_cast<GradientDescentOptimizerv4Type *>(affineSimple->GetModifiableOptimizer());
   if (affineOptimizer.IsNull())
   {
@@ -186,12 +189,12 @@ PerformExpImageRegistration(int argc, char * argv[])
   affineOptimizer->SetDoEstimateLearningRateAtEachIteration(true);
 
   using AffineCommandType = CommandIterationUpdate<AffineRegistrationType>;
-  typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
+  auto affineObserver = AffineCommandType::New();
   affineSimple->AddObserver(itk::IterationEvent(), affineObserver);
 
   {
     using ImageMetricType = itk::ImageToImageMetricv4<FixedImageType, MovingImageType>;
-    typename ImageMetricType::Pointer imageMetric =
+    const typename ImageMetricType::Pointer imageMetric =
       dynamic_cast<ImageMetricType *>(affineSimple->GetModifiableMetric());
     if (imageMetric.IsNull())
     {
@@ -201,29 +204,22 @@ PerformExpImageRegistration(int argc, char * argv[])
     imageMetric->SetFloatingPointCorrectionResolution(1e4);
   }
 
-  try
-  {
-    std::cout << "Affine txf:" << std::endl;
-    timer.Start("4 affineSimple");
-    affineSimple->Update();
-    timer.Stop("4 affineSimple");
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  timer.Start("4 affineSimple");
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(affineSimple->Update());
+
+  timer.Stop("4 affineSimple");
 
   {
     using ImageMetricType = itk::ImageToImageMetricv4<FixedImageType, MovingImageType>;
-    typename ImageMetricType::Pointer imageMetric =
+    const typename ImageMetricType::Pointer imageMetric =
       dynamic_cast<ImageMetricType *>(affineOptimizer->GetModifiableMetric());
     std::cout << "Affine parameters after registration: " << std::endl
               << affineOptimizer->GetCurrentPosition() << std::endl
               << "Last LearningRate: " << affineOptimizer->GetLearningRate() << std::endl
               << "Use FltPtCorrex: " << imageMetric->GetUseFloatingPointCorrection() << std::endl
               << "FltPtCorrexRes: " << imageMetric->GetFloatingPointCorrectionResolution() << std::endl
-              << "Number of threads used: metric: " << imageMetric->GetNumberOfWorkUnitsUsed() << std::endl
+              << "Number of work units used: metric: " << imageMetric->GetNumberOfWorkUnitsUsed() << std::endl
               << " optimizer: " << affineOptimizer->GetNumberOfWorkUnits() << std::endl;
   }
   //
@@ -234,14 +230,14 @@ PerformExpImageRegistration(int argc, char * argv[])
   using RealType = typename AffineRegistrationType::RealType;
 
   using CompositeTransformType = itk::CompositeTransform<RealType, VImageDimension>;
-  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+  auto compositeTransform = CompositeTransformType::New();
   compositeTransform->AddTransform(affineSimple->GetModifiableTransform());
 
   using VectorType = itk::Vector<RealType, VImageDimension>;
-  VectorType zeroVector(0.0);
+  constexpr VectorType zeroVector{};
   using DisplacementFieldType = itk::Image<VectorType, VImageDimension>;
   using ConstantVelocityFieldType = itk::Image<VectorType, VImageDimension>;
-  typename ConstantVelocityFieldType::Pointer displacementField = ConstantVelocityFieldType::New();
+  auto displacementField = ConstantVelocityFieldType::New();
   displacementField->CopyInformation(fixedImage);
   displacementField->SetRegions(fixedImage->GetBufferedRegion());
   displacementField->Allocate();
@@ -251,19 +247,42 @@ PerformExpImageRegistration(int argc, char * argv[])
 
   using DisplacementFieldRegistrationType =
     itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, ConstantVelocityFieldTransformType>;
-  typename DisplacementFieldRegistrationType::Pointer displacementFieldSimple =
+  const typename DisplacementFieldRegistrationType::Pointer displacementFieldSimple =
     DisplacementFieldRegistrationType::New();
 
-  typename ConstantVelocityFieldTransformType::Pointer fieldTransform = ConstantVelocityFieldTransformType::New();
+  auto fieldTransform = ConstantVelocityFieldTransformType::New();
   fieldTransform->SetGaussianSmoothingVarianceForTheUpdateField(0.75);
   fieldTransform->SetGaussianSmoothingVarianceForTheConstantVelocityField(1.5);
   fieldTransform->SetConstantVelocityField(displacementField);
-  fieldTransform->SetCalculateNumberOfIntegrationStepsAutomatically(true);
+
+  using InterpolatorType =
+    itk::VectorLinearInterpolateImageFunction<typename ConstantVelocityFieldTransformType::ConstantVelocityFieldType,
+                                              typename ConstantVelocityFieldTransformType::ScalarType>;
+  auto constantVelocityFieldInterpolator = InterpolatorType::New();
+  fieldTransform->SetConstantVelocityFieldInterpolator(constantVelocityFieldInterpolator);
+  ITK_TEST_SET_GET_VALUE(constantVelocityFieldInterpolator, fieldTransform->GetConstantVelocityFieldInterpolator());
+
+  auto calculateNumberOfIntegrationStepsAutomatically = static_cast<bool>(std::stoi(argv[7]));
+  ITK_TEST_SET_GET_BOOLEAN(
+    fieldTransform, CalculateNumberOfIntegrationStepsAutomatically, calculateNumberOfIntegrationStepsAutomatically);
+
+  auto lowerTimeBound = static_cast<typename ConstantVelocityFieldTransformType::ScalarType>(std::stod(argv[8]));
+  fieldTransform->SetLowerTimeBound(lowerTimeBound);
+  ITK_TEST_SET_GET_VALUE(lowerTimeBound, fieldTransform->GetLowerTimeBound());
+
+  auto upperTimeBound = static_cast<typename ConstantVelocityFieldTransformType::ScalarType>(std::stod(argv[9]));
+  fieldTransform->SetUpperTimeBound(upperTimeBound);
+  ITK_TEST_SET_GET_VALUE(upperTimeBound, fieldTransform->GetUpperTimeBound());
+
+  auto numberOfIntegrationSteps = static_cast<unsigned int>(std::stoi(argv[10]));
+  fieldTransform->SetNumberOfIntegrationSteps(numberOfIntegrationSteps);
+  ITK_TEST_SET_GET_VALUE(numberOfIntegrationSteps, fieldTransform->GetNumberOfIntegrationSteps());
+
+  std::cout << "ConstantVelocityFieldSetTime: " << fieldTransform->GetConstantVelocityFieldSetTime() << std::endl;
 
   using CorrelationMetricType = itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType>;
-  typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-  typename CorrelationMetricType::RadiusType radius;
-  radius.Fill(4);
+  auto correlationMetric = CorrelationMetricType::New();
+  auto radius = itk::MakeFilled<typename CorrelationMetricType::RadiusType>(4);
   correlationMetric->SetRadius(radius);
   correlationMetric->SetUseMovingImageGradientFilter(false);
   correlationMetric->SetUseFixedImageGradientFilter(false);
@@ -272,12 +291,12 @@ PerformExpImageRegistration(int argc, char * argv[])
   // correlationMetric->SetFloatingPointCorrectionResolution(1e4);
 
   using ScalesEstimatorType = itk::RegistrationParameterScalesFromPhysicalShift<CorrelationMetricType>;
-  typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
+  auto scalesEstimator = ScalesEstimatorType::New();
   scalesEstimator->SetMetric(correlationMetric);
   scalesEstimator->SetTransformForward(true);
   scalesEstimator->SetSmallParameterVariation(1.0);
 
-  typename GradientDescentOptimizerv4Type::Pointer optimizer = GradientDescentOptimizerv4Type::New();
+  auto optimizer = GradientDescentOptimizerv4Type::New();
   optimizer->SetLearningRate(1.0);
 #ifdef NDEBUG
   optimizer->SetNumberOfIterations(std::stoi(argv[6]));
@@ -318,21 +337,21 @@ PerformExpImageRegistration(int argc, char * argv[])
 
   typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
-  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++)
+  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); ++level)
   {
     // We use the shrink image filter to calculate the fixed parameters of the virtual
     // domain at each level.  To speed up calculation and avoid unnecessary memory
     // usage, we could calculate these fixed parameters directly.
 
     using ShrinkFilterType = itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType>;
-    typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(fieldTransform->GetConstantVelocityField());
     timer.Start("5 shrink");
     shrinkFilter->Update();
     timer.Stop("5 shrink");
 
-    typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
+    const typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
       VelocityFieldTransformAdaptorType::New();
     fieldTransformAdaptor->SetRequiredSpacing(shrinkFilter->GetOutput()->GetSpacing());
     fieldTransformAdaptor->SetRequiredSize(shrinkFilter->GetOutput()->GetBufferedRegion().GetSize());
@@ -347,22 +366,16 @@ PerformExpImageRegistration(int argc, char * argv[])
   displacementFieldSimple->InPlaceOn();
 
   using DisplacementFieldRegistrationCommandType = CommandIterationUpdate<DisplacementFieldRegistrationType>;
-  typename DisplacementFieldRegistrationCommandType::Pointer displacementFieldObserver =
+  const typename DisplacementFieldRegistrationCommandType::Pointer displacementFieldObserver =
     DisplacementFieldRegistrationCommandType::New();
   displacementFieldSimple->AddObserver(itk::IterationEvent(), displacementFieldObserver);
 
-  try
-  {
-    std::cout << "Displ. txf - gauss update" << std::endl;
-    timer.Start("6 displacementFieldSimple");
-    displacementFieldSimple->Update();
-    timer.Stop("6 displacementFieldSimple");
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception caught: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  timer.Start("6 displacementFieldSimple");
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(displacementFieldSimple->Update());
+
+  timer.Stop("6 displacementFieldSimple");
+
 
   compositeTransform->AddTransform(displacementFieldSimple->GetModifiableTransform());
 
@@ -370,12 +383,11 @@ PerformExpImageRegistration(int argc, char * argv[])
             << "Last LearningRate: " << optimizer->GetLearningRate() << std::endl
             << "Use FltPtCorrex: " << correlationMetric->GetUseFloatingPointCorrection() << std::endl
             << "FltPtCorrexRes: " << correlationMetric->GetFloatingPointCorrectionResolution() << std::endl
-            << "Number of threads used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
-            << "Number of threads used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
+            << "Number of work units used: metric: " << correlationMetric->GetNumberOfWorkUnitsUsed()
             << " optimizer: " << displacementFieldSimple->GetOptimizer()->GetNumberOfWorkUnits() << std::endl;
 
   using ResampleFilterType = itk::ResampleImageFilter<MovingImageType, FixedImageType>;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  auto resampler = ResampleFilterType::New();
   resampler->SetTransform(compositeTransform);
   resampler->SetInput(movingImage);
   resampler->SetSize(fixedImage->GetLargestPossibleRegion().GetSize());
@@ -388,7 +400,7 @@ PerformExpImageRegistration(int argc, char * argv[])
   timer.Stop("7 resampler");
 
   using WriterType = itk::ImageFileWriter<FixedImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[4]);
   writer->SetInput(resampler->GetOutput());
   timer.Start("8 writer");
@@ -398,7 +410,7 @@ PerformExpImageRegistration(int argc, char * argv[])
   // Check identity of forward and inverse transforms
 
   using ComposerType = itk::ComposeDisplacementFieldsImageFilter<DisplacementFieldType, DisplacementFieldType>;
-  typename ComposerType::Pointer composer = ComposerType::New();
+  auto composer = ComposerType::New();
   composer->SetDisplacementField(fieldTransform->GetDisplacementField());
   composer->SetWarpingField(fieldTransform->GetInverseDisplacementField());
   timer.Start("8 composer");
@@ -406,14 +418,14 @@ PerformExpImageRegistration(int argc, char * argv[])
   timer.Stop("8 composer");
 
   using MagnituderType = itk::VectorMagnitudeImageFilter<DisplacementFieldType, MovingImageType>;
-  typename MagnituderType::Pointer magnituder = MagnituderType::New();
+  auto magnituder = MagnituderType::New();
   magnituder->SetInput(composer->GetOutput());
   timer.Start("9 magnituder");
   magnituder->Update();
   timer.Stop("9 magnituder");
 
   using StatisticsImageFilterType = itk::StatisticsImageFilter<MovingImageType>;
-  typename StatisticsImageFilterType::Pointer stats = StatisticsImageFilterType::New();
+  auto stats = StatisticsImageFilterType::New();
   stats->SetInput(magnituder->GetOutput());
   timer.Start("10 stats");
   stats->Update();
@@ -438,13 +450,15 @@ PerformExpImageRegistration(int argc, char * argv[])
 int
 itkExponentialImageRegistrationTest(int argc, char * argv[])
 {
-  if (argc < 6)
+  if (argc < 10)
   {
-    std::cout
-      << itkNameOfTestExecutableMacro(argv)
-      << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr
+      << " imageDimension fixedImage movingImage outputImage numberOfAffineIterations numberOfDeformableIterations "
+         "calculateNumberOfIntegrationStepsAutomatically lowerTimeBound upperTimeBound numberOfIntegrationSteps"
       << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   switch (std::stoi(argv[1]))
@@ -457,7 +471,7 @@ itkExponentialImageRegistrationTest(int argc, char * argv[])
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

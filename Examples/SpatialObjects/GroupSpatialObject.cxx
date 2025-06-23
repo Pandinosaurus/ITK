@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using GroupType = itk::GroupSpatialObject<3>;
-  GroupType::Pointer myGroup = GroupType::New();
+  auto myGroup = GroupType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -58,7 +58,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using EllipseType = itk::EllipseSpatialObject<3>;
-  EllipseType::Pointer myEllipse = EllipseType::New();
+  auto myEllipse = EllipseType::New();
   myEllipse->SetRadiusInObjectSpace(2);
 
   myGroup->AddChild(myEllipse);
@@ -72,8 +72,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  GroupType::VectorType offset;
-  offset.Fill(10);
+  auto offset = itk::MakeFilled<GroupType::VectorType>(10);
   myGroup->GetModifiableObjectToParentTransform()->SetOffset(offset);
   myGroup->Update();
   // Software Guide : EndCodeSnippet
@@ -88,8 +87,7 @@ main(int, char *[])
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  GroupType::PointType point;
-  point.Fill(10);
+  auto point = itk::MakeFilled<GroupType::PointType>(10);
   std::cout << "Is my point " << point
             << " inside?: " << myGroup->IsInsideInWorldSpace(point, 2)
             << std::endl;

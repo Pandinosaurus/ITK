@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 
 #include "itkLogger.h"
 #include <mutex>
+#include <atomic>
 
 #include <string>
 #include <queue>
@@ -45,8 +46,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ThreadLogger, Logger);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThreadLogger);
 
   /** New macro for creation of a Smart Pointer */
   itkNewMacro(Self);
@@ -58,14 +59,14 @@ public:
   using DelayType = unsigned int;
 
   /** Definition of types of operations for ThreadLogger. */
-  typedef enum
+  enum OperationType
   {
     SET_PRIORITY_LEVEL,
     SET_LEVEL_FOR_FLUSHING,
     ADD_LOG_OUTPUT,
     WRITE,
     FLUSH
-  } OperationType;
+  };
 
   /** Set the priority level for the current logger. Only messages that have
    * priorities equal or greater than the one set here will be posted to the
@@ -102,7 +103,7 @@ public:
   AddLogOutput(OutputType * output) override;
 
   void
-  Write(PriorityLevelEnum level, std::string const & content) override;
+  Write(PriorityLevelEnum level, const std::string & content) override;
 
   void
   Flush() override;
@@ -125,29 +126,21 @@ private:
   void
   InternalFlush();
 
-  using OperationContainerType = std::queue<OperationType>;
+  std::thread m_Thread{};
 
-  using MessageContainerType = std::queue<std::string>;
+  std::atomic<bool> m_TerminationRequested{};
 
-  using LevelContainerType = std::queue<PriorityLevelEnum>;
+  std::queue<OperationType> m_OperationQ{};
 
-  using OutputContainerType = std::queue<OutputType::Pointer>;
+  std::queue<std::string> m_MessageQ{};
 
-  std::thread m_Thread;
+  std::queue<PriorityLevelEnum> m_LevelQ{};
 
-  bool m_TerminationRequested;
+  std::queue<OutputType::Pointer> m_OutputQ{};
 
-  OperationContainerType m_OperationQ;
+  mutable std::mutex m_Mutex{};
 
-  MessageContainerType m_MessageQ;
-
-  LevelContainerType m_LevelQ;
-
-  OutputContainerType m_OutputQ;
-
-  mutable std::mutex m_Mutex;
-
-  DelayType m_Delay;
+  DelayType m_Delay{};
 
 }; // class ThreadLogger
 } // namespace itk

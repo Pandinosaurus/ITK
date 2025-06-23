@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -140,17 +140,15 @@ itkContourSpatialObjectPointTest(int, char *[])
     pOriginal.SetPositionInObjectSpace(42, 41, 43);
 
     // itk::ContourSpatialObjectPoint
-    ContourSpatialObjectPoint3DType::CovariantVectorType normal;
-    normal.Fill(276);
+    auto normal = itk::MakeFilled<ContourSpatialObjectPoint3DType::CovariantVectorType>(276);
     pOriginal.SetNormalInObjectSpace(normal);
-    ContourSpatialObjectPoint3DType::PointType picked;
-    picked.Fill(277);
+    auto picked = itk::MakeFilled<ContourSpatialObjectPoint3DType::PointType>(277);
     pOriginal.SetPickedPointInObjectSpace(picked);
 
     // Copy
-    ContourSpatialObjectPoint3DType pCopy(pOriginal);
+    const ContourSpatialObjectPoint3DType pCopy(pOriginal);
     // Assign
-    ContourSpatialObjectPoint3DType pAssign = pOriginal;
+    const ContourSpatialObjectPoint3DType pAssign = pOriginal;
 
     std::vector<ContourSpatialObjectPoint3DType> pointVector;
     pointVector.push_back(pCopy);

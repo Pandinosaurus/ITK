@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,18 +22,16 @@
 #include "itkSimpleDataObjectDecorator.h"
 #include "itkInPlaceImageFilter.h"
 
-namespace itk
+namespace itk::Testing
 {
-namespace Testing
-{
-/**\class HashImageFilterEnums
+/** \class HashImageFilterEnums
  * \brief Enum classes for HashImageFilter
  * \ingroup ITKTestKernel
  * */
 class HashImageFilterEnums
 {
 public:
-  /**\class HashFunction
+  /**
    * \ingroup ITKTestKernel
    * Describes the hash function
    */
@@ -47,11 +45,11 @@ extern std::ostream &
 operator<<(std::ostream & out, HashImageFilterEnums::HashFunction value);
 
 /**
- *\class HashImageFilter
+ * \class HashImageFilter
  * \brief Generates a md5 hash string from an image.
  *
- * \note This class utlizes low level buffer pointer access, to work
- * with itk::Image and itk::VectorImage. It is modelled after the access
+ * \note This class utilizes low level buffer pointer access, to work
+ * with itk::Image and itk::VectorImage. It is modeled after the access
  * an ImageFileWriter provides to an ImageIO.
  *
  * \warning The output is not very useful. This filter is derived from
@@ -78,8 +76,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(HashImageFilter, CastImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HashImageFilter);
 
   /** Smart Pointer type to a DataObject. */
   using DataObjectPointer = typename DataObject::Pointer;
@@ -88,7 +86,7 @@ public:
   using HashObjectType = SimpleDataObjectDecorator<std::string>;
 
   /** Get the computed Hash values */
-  std::string
+  [[nodiscard]] std::string
   GetHash() const
   {
     return this->GetHashOutput()->Get();
@@ -98,7 +96,7 @@ public:
   {
     return static_cast<HashObjectType *>(this->ProcessObject::GetOutput(1));
   }
-  const HashObjectType *
+  [[nodiscard]] const HashObjectType *
   GetHashOutput() const
   {
     return static_cast<const HashObjectType *>(this->ProcessObject::GetOutput(1));
@@ -156,8 +154,7 @@ private:
   HashFunctionEnum m_HashFunction{ HashFunctionEnum::MD5 };
 };
 
-} // end namespace Testing
-} // end namespace itk
+} // namespace itk::Testing
 
 
 #include "itkTestingHashImageFilter.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,14 +31,15 @@ class SimpleMultiResolutionImageRegistrationUI
 {
 public:
   SimpleMultiResolutionImageRegistrationUI(TRegistrator * ptr)
-    : m_Tag(0)
+
   {
 
     if (!ptr)
+    {
       return;
+    }
     m_Registrator = ptr;
-    typename itk::SimpleMemberCommand<SimpleMultiResolutionImageRegistrationUI>::Pointer iterationCommand =
-      itk::SimpleMemberCommand<SimpleMultiResolutionImageRegistrationUI>::New();
+    auto iterationCommand = itk::SimpleMemberCommand<SimpleMultiResolutionImageRegistrationUI>::New();
 
     iterationCommand->SetCallbackFunction(this, &SimpleMultiResolutionImageRegistrationUI::StartNewLevel);
 
@@ -60,8 +61,8 @@ public:
   }
 
 protected:
-  typename TRegistrator::Pointer m_Registrator;
-  unsigned long                  m_Tag;
+  typename TRegistrator::Pointer m_Registrator{};
+  unsigned long                  m_Tag{};
 };
 
 
@@ -70,14 +71,16 @@ protected:
 // This UI allows the number of iterations and learning rate
 // to be changes at each resolution level.
 template <typename TRegistration>
-class SimpleMultiResolutionImageRegistrationUI2 : public SimpleMultiResolutionImageRegistrationUI<TRegistration>
+class ITK_TEMPLATE_EXPORT SimpleMultiResolutionImageRegistrationUI2
+  : public SimpleMultiResolutionImageRegistrationUI<TRegistration>
 {
 public:
   using Superclass = SimpleMultiResolutionImageRegistrationUI<
     itk::MultiResolutionImageRegistrationMethod<itk::Image<float, 3>, itk::Image<float, 3>>>;
 
   SimpleMultiResolutionImageRegistrationUI2(TRegistration * ptr)
-    : Superclass(ptr){};
+    : Superclass(ptr)
+  {}
   ~SimpleMultiResolutionImageRegistrationUI2() override = default;
 
   void
@@ -100,16 +103,20 @@ public:
     this->Superclass::StartNewLevel();
 
     if (!this->m_Registrator)
+    {
       return;
+    }
 
     // Try to cast the optimizer to a gradient descent type,
     // return if casting didn't work.
-    itk::GradientDescentOptimizer::Pointer optimizer =
+    const itk::GradientDescentOptimizer::Pointer optimizer =
       dynamic_cast<itk::GradientDescentOptimizer *>(this->m_Registrator->GetModifiableOptimizer());
     if (!optimizer)
+    {
       return;
+    }
 
-    unsigned int level = this->m_Registrator->GetCurrentLevel();
+    const unsigned int level = this->m_Registrator->GetCurrentLevel();
     if (m_NumberOfIterations.Size() >= level + 1)
     {
       optimizer->SetNumberOfIterations(m_NumberOfIterations[level]);
@@ -125,8 +132,8 @@ public:
   }
 
 private:
-  itk::Array<unsigned int> m_NumberOfIterations;
-  itk::Array<double>       m_LearningRates;
+  itk::Array<unsigned int> m_NumberOfIterations{};
+  itk::Array<double>       m_LearningRates{};
 };
 
 

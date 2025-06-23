@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,16 +54,14 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
 
   // Set up the image
   std::cout << "Making a 64x64 white square centered in a 128x128 black image" << std::endl;
-  ImageType::Pointer inputImage = ImageType::New();
-  IndexType          start;
+  auto      inputImage = ImageType::New();
+  IndexType start;
   start[0] = 0;
   start[1] = 0;
   ImageType::SizeType size;
   size[0] = 128;
   size[1] = 128;
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const ImageType::RegionType region{ start, size };
   inputImage->SetRegions(region);
   double spacing[ImageType::ImageDimension];
   spacing[0] = 1.0;
@@ -75,12 +73,11 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
   using ImageRegionIteratorType = itk::ImageRegionIterator<ImageType>;
   ImageRegionIteratorType it(inputImage, inputImage->GetRequestedRegion());
   it.GoToBegin();
-  IndexType pixelIndex;
   while (!it.IsAtEnd())
   {
-    pixelIndex = it.GetIndex();
-    if (pixelIndex[0] >= int(size[0] / 4) && pixelIndex[0] < int(size[0] * 3 / 4) &&
-        pixelIndex[1] >= int(size[1] / 4) && pixelIndex[1] < int(size[1] * 3 / 4))
+    IndexType pixelIndex = it.GetIndex();
+    if (pixelIndex[0] >= static_cast<int>(size[0] / 4) && pixelIndex[0] < static_cast<int>(size[0] * 3 / 4) &&
+        pixelIndex[1] >= static_cast<int>(size[1] / 4) && pixelIndex[1] < static_cast<int>(size[1] * 3 / 4))
     {
       it.Set(255);
     }
@@ -93,9 +90,8 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
 
   // Set up the path
   std::cout << "Making a square Path with v0 at (24,24) -> (24,104) -> (104,104) -> (104,24)" << std::endl;
-  PolyLineParametricPathType::Pointer inputPath = PolyLineParametricPathType::New();
-  VertexType                          v;
-  v.Fill(24);
+  auto inputPath = PolyLineParametricPathType::New();
+  auto v = itk::MakeFilled<VertexType>(24);
   inputPath->AddVertex(v);
   v[0] = 24;
   v[1] = 104;
@@ -109,23 +105,27 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
   inputPath->AddVertex(v);
 
   // Set up the first filter
-  PathToChainCodePathFilterType::Pointer pathToChainCodePathFilter = PathToChainCodePathFilterType::New();
+  auto pathToChainCodePathFilter = PathToChainCodePathFilterType::New();
   pathToChainCodePathFilter->SetInput(inputPath);
-  ChainCodePathType::Pointer chainPath = pathToChainCodePathFilter->GetOutput();
+  const ChainCodePathType::Pointer chainPath = pathToChainCodePathFilter->GetOutput();
 
   // Set up the second filter
-  ChainCodeToFourierSeriesPathFilterType::Pointer chainCodeToFourierSeriesPathFilte =
+  const ChainCodeToFourierSeriesPathFilterType::Pointer chainCodeToFourierSeriesPathFilte =
     ChainCodeToFourierSeriesPathFilterType::New();
   chainCodeToFourierSeriesPathFilte->SetInput(pathToChainCodePathFilter->GetOutput());
   chainCodeToFourierSeriesPathFilte->SetNumberOfHarmonics(7); // make a nice, round, path for the swath
-  FourierSeriesPathType::Pointer outputPath = chainCodeToFourierSeriesPathFilte->GetOutput();
+  const FourierSeriesPathType::Pointer outputPath = chainCodeToFourierSeriesPathFilte->GetOutput();
 
   // Set up the third filter; THIS IS THE MAIN FILTER TO BE TESTED
-  ExtractOrthogonalSwath2DImageFilterType::Pointer extractOrthogonalSwath2DImageFilter =
+  const ExtractOrthogonalSwath2DImageFilterType::Pointer extractOrthogonalSwath2DImageFilter =
     ExtractOrthogonalSwath2DImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(
     extractOrthogonalSwath2DImageFilter, ExtractOrthogonalSwath2DImageFilter, ImageAndPathToImageFilter);
+
+
+  constexpr typename ImageType::PixelType defaultPixelValue{};
+  extractOrthogonalSwath2DImageFilter->SetDefaultPixelValue(defaultPixelValue);
 
   extractOrthogonalSwath2DImageFilter->SetImageInput(inputImage);
   extractOrthogonalSwath2DImageFilter->SetPathInput(chainCodeToFourierSeriesPathFilte->GetOutput());
@@ -135,7 +135,7 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
   extractOrthogonalSwath2DImageFilter->SetSize(size);
 
   // Set up the output
-  ImageType::Pointer outputImage = extractOrthogonalSwath2DImageFilter->GetOutput();
+  const ImageType::Pointer outputImage = extractOrthogonalSwath2DImageFilter->GetOutput();
 
   // Test spacing
   double pathImageSpacing[ImageType::ImageDimension];
@@ -191,7 +191,8 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
     index[1] = 1;
     if (outputImage->GetPixel(index) != 255)
     {
-      std::cout << "index " << index << " = " << int(outputImage->GetPixel(index)) << ": [FAILURE]" << std::endl;
+      std::cout << "index " << index << " = " << static_cast<int>(outputImage->GetPixel(index)) << ": [FAILURE]"
+                << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -199,12 +200,13 @@ itkExtractOrthogonalSwath2DImageFilterTest(int argc, char * argv[])
     index[1] = size[1] - 2;
     if (outputImage->GetPixel(index) != 0)
     {
-      std::cout << "index " << index << " = " << int(outputImage->GetPixel(index)) << ": [FAILURE]" << std::endl;
+      std::cout << "index " << index << " = " << static_cast<int>(outputImage->GetPixel(index)) << ": [FAILURE]"
+                << std::endl;
       return EXIT_FAILURE;
     }
   }
 
-  itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
+  const itk::ImageFileWriter<ImageType>::Pointer writer = itk::ImageFileWriter<ImageType>::New();
   writer->SetInput(extractOrthogonalSwath2DImageFilter->GetOutput());
   writer->SetFileName(argv[1]);
 

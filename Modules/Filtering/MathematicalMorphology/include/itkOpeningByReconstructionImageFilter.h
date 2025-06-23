@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ namespace itk
  * erosion.  The opening by reconstruction of an image "f" is defined
  * as:
  *
- *   OpeningByReconstruction(f) = DilationByRecontruction(f, Erosion(f)).
+ *   OpeningByReconstruction(f) = DilationByReconstruction(f, Erosion(f)).
  *
  * Opening by reconstruction not only removes structures destroyed by
  * the erosion, but also levels down the contrast of the brightest
@@ -41,9 +41,7 @@ namespace itk
  * by dilation using a marker image that is the original image for all
  * unaffected pixels.
  *
- * Opening by reconstruction is described in Chapter 6.3.9 of Pierre
- * Soille's book "Morphological Image Analysis: Principles and
- * Applications", Second Edition, Springer, 2003.
+ * Opening by reconstruction is described in \cite soille2004.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -85,8 +83,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(OpeningByReconstructionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(OpeningByReconstructionImageFilter);
 
   /** Set kernel (structuring element). */
   itkSetMacro(Kernel, KernelType);
@@ -100,23 +98,21 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get whether the original intensities of the image retained for
    * those pixels unaffected by the opening by reconstruction. If Off,
    * the output pixel contrast will be reduced. */
+  /** @ITKStartGrouping */
   itkSetMacro(PreserveIntensities, bool);
   itkGetConstReferenceMacro(PreserveIntensities, bool);
   itkBooleanMacro(PreserveIntensities);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   OpeningByReconstructionImageFilter();
@@ -139,9 +135,9 @@ protected:
 
 private:
   /** kernel or structuring element to use. */
-  KernelType m_Kernel;
-  bool       m_FullyConnected;
-  bool       m_PreserveIntensities;
+  KernelType m_Kernel{};
+  bool       m_FullyConnected{};
+  bool       m_PreserveIntensities{};
 }; // end of class
 } // end namespace itk
 

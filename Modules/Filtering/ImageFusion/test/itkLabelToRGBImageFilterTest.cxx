@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,15 +26,17 @@
 int
 itkLabelToRGBImageFilterTest(int argc, char * argv[])
 {
-  constexpr int Dimension = 2;
 
   if (argc < 3)
   {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
     std::cerr << " LabelImage OutputImage" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
+
+
+  constexpr int Dimension = 2;
 
   using PixelType = unsigned char;
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -43,50 +45,50 @@ itkLabelToRGBImageFilterTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
 
   // Read in the input image
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Instantiate the filter
   using FilterType = itk::LabelToRGBImageFilter<ImageType, ColorImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, LabelToRGBImageFilter, UnaryFunctorImageFilter);
+
 
   // Exercising Background Value methods
-  filter->SetBackgroundValue(10);
-  if (filter->GetBackgroundValue() != 10)
-  {
-    std::cerr << "Background value Set/Get Problem" << std::endl;
-    return EXIT_FAILURE;
-  }
+  typename FilterType::LabelPixelType backgroundValue = 10;
+  filter->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
+
+  const typename FilterType::OutputPixelType backgroundColor{};
+  filter->SetBackgroundColor(backgroundColor);
+  ITK_TEST_SET_GET_VALUE(backgroundColor, filter->GetBackgroundColor());
 
 
   // Set the filter input and label images
   filter->SetInput(reader->GetOutput());
-  filter->SetBackgroundValue(0);
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  backgroundValue = 0;
+  filter->SetBackgroundValue(backgroundValue);
+
+
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   // Instantiate output image
   using WriterType = itk::ImageFileWriter<ColorImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   // exercise the methods to change the colors
-  unsigned int numberOfColors1 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors1 = filter->GetNumberOfColors();
   filter->AddColor(1, 255, 255);
 
-  unsigned int numberOfColors2 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors2 = filter->GetNumberOfColors();
 
   if (numberOfColors2 != numberOfColors1 + 1)
   {
@@ -97,7 +99,7 @@ itkLabelToRGBImageFilterTest(int argc, char * argv[])
   filter->ResetColors();
   filter->AddColor(255, 255, 255);
 
-  unsigned int numberOfColors3 = filter->GetNumberOfColors();
+  const unsigned int numberOfColors3 = filter->GetNumberOfColors();
 
   if (numberOfColors3 != 1)
   {
@@ -105,5 +107,6 @@ itkLabelToRGBImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,29 +22,26 @@
 
 
 int
-itkCrossHelperTest(int argc, char * argv[])
+itkCrossHelperTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
-  (void)argc;
-  (void)argv;
-
   constexpr unsigned int Dimension2D = 2;
   constexpr unsigned int Dimension3D = 3;
   constexpr unsigned int Dimension4D = 4;
 
-  using CoordRepType = double;
+  using CoordinateType = double;
 
-  using Vector2DType = itk::Vector<CoordRepType, Dimension2D>;
-  using Vector3DType = itk::Vector<CoordRepType, Dimension3D>;
-  using Vector4DType = itk::Vector<CoordRepType, Dimension4D>;
+  using Vector2DType = itk::Vector<CoordinateType, Dimension2D>;
+  using Vector3DType = itk::Vector<CoordinateType, Dimension3D>;
+  using Vector4DType = itk::Vector<CoordinateType, Dimension4D>;
 
   using Cross2DType = itk::CrossHelper<Vector2DType>;
-  Cross2DType cross2d;
+  constexpr Cross2DType cross2d;
 
   using Cross3DType = itk::CrossHelper<Vector3DType>;
-  Cross3DType cross3d;
+  constexpr Cross3DType cross3d;
 
   using Cross4DType = itk::CrossHelper<Vector4DType>;
-  Cross4DType cross4d;
+  constexpr Cross4DType cross4d;
 
   Vector2DType u2d;
   u2d[0] = 1.;

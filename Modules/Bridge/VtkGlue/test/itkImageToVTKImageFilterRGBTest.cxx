@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,17 +20,16 @@
 
 #include "itkImageFileReader.h"
 #include "itkRGBPixel.h"
+#include "itkTestingMacros.h"
 
 int
 itkImageToVTKImageFilterRGBTest(int argc, char * argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Usage: ";
-    std::cerr << argv[0];
-    std::cerr << " <InputFileName>";
-    std::cerr << std::endl;
-
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " InputFileName" << std::endl;
     return EXIT_FAILURE;
   }
   const char * inputFileName = argv[1];
@@ -41,11 +40,11 @@ itkImageToVTKImageFilterRGBTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(inputFileName);
 
   using ConnectorType = itk::ImageToVTKImageFilter<ImageType>;
-  ConnectorType::Pointer connector = ConnectorType::New();
+  auto connector = ConnectorType::New();
   connector->SetInput(reader->GetOutput());
 
   connector->UpdateLargestPossibleRegion();
@@ -58,5 +57,7 @@ itkImageToVTKImageFilterRGBTest(int argc, char * argv[])
 
   connector->Update();
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

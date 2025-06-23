@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,28 +42,21 @@ public:
     m_Factor = a;
   }
   static constexpr unsigned int VectorDimension = TInput::Dimension;
-  bool
-  operator!=(const VectorMagnitudeLinearTransform & other) const
-  {
-    if (Math::NotExactlyEquals(m_Factor, other.m_Factor))
-    {
-      return true;
-    }
-    return false;
-  }
 
   bool
   operator==(const VectorMagnitudeLinearTransform & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Factor, other.m_Factor);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(VectorMagnitudeLinearTransform);
 
   inline TOutput
   operator()(const TInput & x) const
   {
     TOutput result;
 
-    for (unsigned int i = 0; i < VectorDimension; i++)
+    for (unsigned int i = 0; i < VectorDimension; ++i)
     {
       const RealType scaledComponent = static_cast<RealType>(x[i]) * m_Factor;
       result[i] = static_cast<typename TOutput::ValueType>(scaledComponent);
@@ -77,7 +70,7 @@ private:
 } // end namespace Functor
 
 /**
- *\class VectorRescaleIntensityImageFilter
+ * \class VectorRescaleIntensityImageFilter
  * \brief Applies a linear transformation to the magnitude of pixel vectors in a
  * vector Image.
  *
@@ -126,11 +119,11 @@ public:
   using InputRealType = typename NumericTraits<InputValueType>::RealType;
   using OutputRealType = typename NumericTraits<OutputValueType>::RealType;
 
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorRescaleIntensityImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorRescaleIntensityImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -141,9 +134,10 @@ public:
   /** Get the Scale and Shift used for the linear transformation
       of magnitude values.
    \warning These values are only valid after the filter has been updated. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Scale, InputRealType);
   itkGetConstReferenceMacro(Shift, InputRealType);
-
+  /** @ITKEndGrouping */
   /** Get the Maximum value of the input image magnitudes.
    \warning These values are only valid after the filter has been updated. */
   itkGetConstReferenceMacro(InputMaximumMagnitude, InputRealType);
@@ -155,23 +149,19 @@ public:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputValueType>));
-  // End concept checking
-#endif
 
 protected:
   VectorRescaleIntensityImageFilter();
   ~VectorRescaleIntensityImageFilter() override = default;
 
 private:
-  InputRealType m_Scale;
-  InputRealType m_Shift;
+  InputRealType m_Scale{};
+  InputRealType m_Shift{};
 
-  InputRealType  m_InputMaximumMagnitude;
-  OutputRealType m_OutputMaximumMagnitude;
+  InputRealType  m_InputMaximumMagnitude{};
+  OutputRealType m_OutputMaximumMagnitude{};
 };
 } // end namespace itk
 

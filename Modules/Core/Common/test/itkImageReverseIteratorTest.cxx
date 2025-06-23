@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@ template <typename T, unsigned int VImageDimension>
 void
 TestConstPixelAccess(const itk::Image<T, VImageDimension> & in, itk::Image<T, VImageDimension> & out)
 {
-  typename itk::Image<T, VImageDimension>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
-  typename itk::Image<T, VImageDimension>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
+  const typename itk::Image<T, VImageDimension>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
+  const typename itk::Image<T, VImageDimension>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
 
   T vec;
 
@@ -54,24 +54,22 @@ itkImageReverseIteratorTest(int, char *[])
   using ImageType = itk::Image<PixelType, Dimension>;
 
   std::cout << "Creating an image" << std::endl;
-  ImageType::Pointer o3 = ImageType::New();
+  auto o3 = ImageType::New();
 
   float origin3D[3] = { 5.0f, 2.1f, 8.1f };
   float spacing3D[3] = { 1.5f, 2.1f, 1.0f };
 
-  ImageType::SizeType imageSize3D = { { 20, 40, 60 } };
-  ImageType::SizeType bufferSize3D = { { 8, 20, 14 } };
-  ImageType::SizeType regionSize3D = { { 4, 6, 6 } };
+  constexpr ImageType::SizeType imageSize3D = { { 20, 40, 60 } };
+  constexpr ImageType::SizeType bufferSize3D = { { 8, 20, 14 } };
+  constexpr ImageType::SizeType regionSize3D = { { 4, 6, 6 } };
 
-  ImageType::IndexType startIndex3D = { { 5, 4, 1 } };
-  ImageType::IndexType bufferStartIndex3D = { { 2, 3, 5 } };
-  ImageType::IndexType regionStartIndex3D = { { 5, 10, 12 } };
-  ImageType::IndexType regionEndIndex3D = { { 8, 15, 17 } };
+  constexpr ImageType::IndexType startIndex3D = { { 5, 4, 1 } };
+  constexpr ImageType::IndexType bufferStartIndex3D = { { 2, 3, 5 } };
+  constexpr ImageType::IndexType regionStartIndex3D = { { 5, 10, 12 } };
+  constexpr ImageType::IndexType regionEndIndex3D = { { 8, 15, 17 } };
 
 
-  ImageType::RegionType region;
-  region.SetSize(imageSize3D);
-  region.SetIndex(startIndex3D);
+  ImageType::RegionType region{ startIndex3D, imageSize3D };
   o3->SetLargestPossibleRegion(region);
   region.SetSize(bufferSize3D);
   region.SetIndex(bufferStartIndex3D);
@@ -98,9 +96,6 @@ itkImageReverseIteratorTest(int, char *[])
   (*o3)[regionEndIndex3D] = (*o3)[regionStartIndex3D];
   TestConstPixelAccess(*o3, *o3);
 
-
-  itk::ImageIterator<ImageType> standardIt(o3, region);
-
   // Iterate over a region using a simple for loop
   itk::ImageRegionIterator<ImageType> it(o3, region);
 
@@ -110,7 +105,7 @@ itkImageReverseIteratorTest(int, char *[])
     std::cout << "Simple iterator loop: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   }
@@ -126,7 +121,7 @@ itkImageReverseIteratorTest(int, char *[])
     std::cout << "Simple iterator backwards loop: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   } while (!backIt.IsAtBegin()); // stop when we reach the beginning
@@ -141,7 +136,7 @@ itkImageReverseIteratorTest(int, char *[])
     std::cout << "Reverse iterator: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   }
@@ -163,7 +158,7 @@ itkImageReverseIteratorTest(int, char *[])
     std::cout << "Reverse iterator backwards loop: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   } while (!backReverseIt.IsAtBegin()); // stop when we reach the beginning
@@ -176,7 +171,7 @@ itkImageReverseIteratorTest(int, char *[])
     std::cout << "Reverse const iterator: ";
     for (unsigned int i = 0; i < index.GetIndexDimension(); ++i)
     {
-      std::cout << index[i] << " ";
+      std::cout << index[i] << ' ';
     }
     std::cout << std::endl;
   }

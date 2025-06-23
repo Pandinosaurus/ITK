@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,7 @@
  *=========================================================================*/
 /**
  *         The specification for this file format is taken from the
- *         web site http://www.bic.mni.mcgill.ca/ServicesSoftware/MINC
+ *         web site https://www.bic.mni.mcgill.ca/ServicesSoftware/MINC
  * \author Vladimir S. FONOV
  *         Brain Imaging Center, Montreal Neurological Institute, McGill University, Montreal Canada 2012
  * \author Leila Baghdadi
@@ -32,6 +32,7 @@
 #include "itkMatrix.h"
 
 #include "ITKIOMINCExport.h"
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -41,7 +42,7 @@ namespace itk
 struct ITKIOMINC_HIDDEN MINCImageIOPImpl;
 
 /**
- *\class MINCImageIO
+ * \class MINCImageIO
  *
  * \author Leila Baghdadi
  * \brief Class that defines how to read MINC file format.
@@ -51,7 +52,7 @@ struct ITKIOMINC_HIDDEN MINCImageIOPImpl;
  * Note, like ITK, MINC is N dimensional and dimensions
  * can be submitted in any arbitrary order. Here we make sure the
  * dimensions are ordered as xspace, yspace, zspace, time and
- * vector_dimension and so on or xfrequencey, yfrequency, zfrequency,
+ * vector_dimension and so on or xfrequency, yfrequency, zfrequency,
  * tfrequency and vector_dimension and so on NOTE** This class only
  * reads the regularly sampled dimensions as I am not sure how to deal
  * with "irregularly sampled" dimensions yet!
@@ -62,7 +63,7 @@ struct ITKIOMINC_HIDDEN MINCImageIOPImpl;
  * This code was contributed in the Insight Journal paper:
  * "MINC2.0 IO Support for ITK"
  * by Baghdadi L.
- * https://www.insight-journal.org/browse/publication/88
+ * https://doi.org/10.54294/j8lsa6
  *
  * \ingroup IOFilters
  *
@@ -77,11 +78,12 @@ public:
   using Superclass = ImageIOBase;
   using Pointer = SmartPointer<Self>;
   using MatrixType = Matrix<float, 3, 3>;
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MINCImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MINCImageIO);
 
   /** Right now MINC supports up to 3D with multiple components */
   bool
@@ -122,6 +124,12 @@ public:
   void
   Write(const void * buffer) override;
 
+  /** Set to automatically convert from PositiveCoordinateOrientation RAS to PositiveCoordinateOrientation LPS*/
+  /** @ITKStartGrouping */
+  itkSetMacro(RAStoLPS, bool);
+  itkGetConstMacro(RAStoLPS, bool);
+  itkBooleanMacro(RAStoLPS);
+  /** @ITKEndGrouping */
 protected:
   MINCImageIO();
   ~MINCImageIO() override;
@@ -132,26 +140,27 @@ protected:
   void
   WriteSlice(std::string & fileName, const void * buffer);
 
-  // will assign m_NDims and allocate all internal buffers to hold the
-  // information
+  /** Assign m_NDims and allocate all internal buffers to hold the
+   * information. */
   void
   AllocateDimensions(int nDims);
 
-  // cleanup internal buffers
+  /** Cleanup internal buffers. */
   void
   CleanupDimensions();
 
-  // close existing volume, cleanup internal structures
+  /** Close existing volume, cleanup internal structures. */
   void
   CloseVolume();
 
 private:
-  MINCImageIOPImpl * m_MINCPImpl;
+  const std::unique_ptr<MINCImageIOPImpl> m_MINCPImpl;
 
-  MatrixType m_DirectionCosines;
+  MatrixType m_DirectionCosines{};
 
   // complex type images, composed of complex numbers
   // int m_Complex;
+  bool m_RAStoLPS{ false };
 };
 } // end namespace itk
 

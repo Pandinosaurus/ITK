@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ namespace itk
 LoggerManager::LoggerPointer
 LoggerManager::CreateLogger(const NameType & name, PriorityLevelEnum level, PriorityLevelEnum levelForFlushing)
 {
-  Logger::Pointer logger = Logger::New();
+  auto logger = Logger::New();
 
   logger->SetName(name.c_str());
   logger->SetPriorityLevel(level);
@@ -36,7 +36,7 @@ LoggerManager::CreateLogger(const NameType & name, PriorityLevelEnum level, Prio
 LoggerManager::ThreadLoggerPointer
 LoggerManager::CreateThreadLogger(const NameType & name, PriorityLevelEnum level, PriorityLevelEnum levelForFlushing)
 {
-  ThreadLogger::Pointer logger = ThreadLogger::New();
+  auto logger = ThreadLogger::New();
 
   logger->SetName(name.c_str());
   logger->SetPriorityLevel(level);
@@ -68,60 +68,45 @@ LoggerManager::GetLogger(const NameType & name)
 void
 LoggerManager::SetPriorityLevel(PriorityLevelEnum level)
 {
-  auto itr = this->m_LoggerSet.begin();
-
-  while (itr != this->m_LoggerSet.end())
+  for (const auto & logger : m_LoggerSet)
   {
-    (*itr).second->SetPriorityLevel(level);
-    ++itr;
+    logger.second->SetPriorityLevel(level);
   }
 }
 
 void
 LoggerManager::SetLevelForFlushing(PriorityLevelEnum level)
 {
-  auto itr = this->m_LoggerSet.begin();
-
-  while (itr != this->m_LoggerSet.end())
+  for (const auto & logger : m_LoggerSet)
   {
-    (*itr).second->SetLevelForFlushing(level);
-    ++itr;
+    logger.second->SetLevelForFlushing(level);
   }
 }
 
 void
 LoggerManager::AddLogOutput(OutputType * output)
 {
-  auto itr = this->m_LoggerSet.begin();
-
-  while (itr != this->m_LoggerSet.end())
+  for (const auto & logger : m_LoggerSet)
   {
-    (*itr).second->AddLogOutput(output);
-    ++itr;
+    logger.second->AddLogOutput(output);
   }
 }
 
 void
-LoggerManager::Write(PriorityLevelEnum level, std::string const & content)
+LoggerManager::Write(PriorityLevelEnum level, const std::string & content)
 {
-  auto itr = this->m_LoggerSet.begin();
-
-  while (itr != this->m_LoggerSet.end())
+  for (const auto & logger : m_LoggerSet)
   {
-    (*itr).second->Write(level, content);
-    ++itr;
+    logger.second->Write(level, content);
   }
 }
 
 void
 LoggerManager::Flush()
 {
-  auto itr = this->m_LoggerSet.begin();
-
-  while (itr != this->m_LoggerSet.end())
+  for (const auto & logger : m_LoggerSet)
   {
-    (*itr).second->Flush();
-    ++itr;
+    logger.second->Flush();
   }
 }
 

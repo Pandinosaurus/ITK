@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@ itkArrayTest(int, char *[])
   using FloatArrayType = itk::Array<float>;
   using DoubleArrayType = itk::Array<double>;
 
-  FloatArrayType  fa(10);
-  DoubleArrayType da(10);
+  const FloatArrayType  fa(10);
+  const DoubleArrayType da(10);
 
   /**
    * The following section tests the functionality of the Array's
@@ -64,15 +64,13 @@ itkArrayTest(int, char *[])
   //
   // Copy an itk::Array which manages its own memory
   //
-  FloatArrayType test1;
-  test1 = myOwnBoss;
+  const FloatArrayType test1 = myOwnBoss;
   std::cout << test1 << std::endl;
 
   //
   // Copy an itk::Array which does not manage its own memory
   //
-  FloatArrayType test2;
-  test2 = notMyOwnBoss;
+  FloatArrayType test2 = notMyOwnBoss;
   std::cout << test2 << std::endl;
 
   //
@@ -109,7 +107,7 @@ itkArrayTest(int, char *[])
   objectToCopy.SetDataSameSize(data); // This implicitly means LetArrayManageMemory=false
 
   // Make a copy of the array which is not managing its own memory.
-  FloatArrayType copy(objectToCopy);
+  const FloatArrayType copy(objectToCopy);
 
   // DO a double
   //

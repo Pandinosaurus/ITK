@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ namespace itk
 class FrustumSpatialFunctionEnums
 {
 public:
-  /** \class RotationPlane
+  /**
    *  \ingroup ITKCommon
    */
   enum class RotationPlane : uint8_t
@@ -72,17 +72,17 @@ public:
 
   using RotationPlaneEnum = FrustumSpatialFunctionEnums::RotationPlane;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FrustumSpatialFunction, InteriorExteriorSpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FrustumSpatialFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Rotate the frustum in the XZ or the YZ plane. */
   using FrustumRotationPlaneType = RotationPlaneEnum;
@@ -98,41 +98,48 @@ public:
   Evaluate(const InputType & position) const override;
 
   /** Set/Get the apex of the pyramid. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Apex, InputType);
   itkSetMacro(Apex, InputType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the angle of the pyramid axis with respect to the Z axis. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(AngleZ, double);
   itkSetMacro(AngleZ, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the aperture angle in the X axis. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(ApertureAngleX, double);
   itkSetMacro(ApertureAngleX, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the aperture angle in the Y axis. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(ApertureAngleY, double);
   itkSetMacro(ApertureAngleY, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the top plane distance to the apex. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(TopPlane, double);
   itkSetMacro(TopPlane, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the bottom plane distance to the apex. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(BottomPlane, double);
   itkSetMacro(BottomPlane, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the plane in which the frustum should rotate. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(RotationPlane, FrustumRotationPlaneType);
   itkSetMacro(RotationPlane, FrustumRotationPlaneType);
-
+  /** @ITKEndGrouping */
 protected:
-  FrustumSpatialFunction();
+  FrustumSpatialFunction() = default;
   ~FrustumSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  InputType                m_Apex;
+  InputType                m_Apex{};
   double                   m_AngleZ{ 0.0f };
   double                   m_ApertureAngleX{ 0.0f };
   double                   m_ApertureAngleY{ 0.0f };

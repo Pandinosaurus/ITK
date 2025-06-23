@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ namespace itk
  * constrained iterative k-means method.
  *
  * The original algorithm was designed to cluster on the joint
- * domain of the images index space and it's CIELAB color space. This
+ * domain of the images index space and its CIELAB color space. This
  * implementation works with images of arbitrary dimension
  * as well as scalar, single channel, images and most multi-component image
  * types including ITK's arbitrary length VectorImage.
@@ -53,12 +53,12 @@ namespace itk
  * "Scalable Simple Linear Iterative Clustering (SSLIC) Using a
  * Generic and Parallel Approach" by Lowekamp B. C., Chen D. T., Yaniv
  * Z., Yoo T. S.
- * https://www.insight-journal.org/browse/publication/989
+ * https://doi.org/10.54294/8hic7f
  *
  * \ingroup Segmentation ITKSuperPixel MultiThreading
  */
 template <typename TInputImage, typename TOutputImage, typename TDistancePixel = float>
-class SLICImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT SLICImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(SLICImageFilter);
@@ -72,8 +72,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SLICImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SLICImageFilter);
 
   /** ImageDimension constants */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -203,13 +203,13 @@ protected:
   Distance(const ClusterType & cluster, const InputPixelType & _v, const PointType & pt);
 
 private:
-  SuperGridSizeType m_SuperGridSize;
-  unsigned int      m_MaximumNumberOfIterations;
+  SuperGridSizeType m_SuperGridSize{};
+  unsigned int      m_MaximumNumberOfIterations{};
   double            m_SpatialProximityWeight{ 10.0 };
 
-  FixedArray<double, ImageDimension> m_DistanceScales;
-  std::vector<ClusterComponentType>  m_Clusters;
-  std::vector<ClusterComponentType>  m_OldClusters;
+  FixedArray<double, ImageDimension> m_DistanceScales{};
+  std::vector<ClusterComponentType>  m_Clusters{};
+  std::vector<ClusterComponentType>  m_OldClusters{};
 
 
   void
@@ -228,17 +228,17 @@ private:
 
   using MarkerImageType = Image<unsigned char, ImageDimension>;
 
-  std::vector<UpdateClusterMap> m_UpdateClusterPerThread;
+  std::vector<UpdateClusterMap> m_UpdateClusterPerThread{};
 
-  typename DistanceImageType::Pointer m_DistanceImage;
-  typename MarkerImageType::Pointer   m_MarkerImage;
+  typename DistanceImageType::Pointer m_DistanceImage{};
+  typename MarkerImageType::Pointer   m_MarkerImage{};
 
   bool m_EnforceConnectivity{ true };
 
   bool m_InitializationPerturbation{ true };
 
-  double     m_AverageResidual;
-  std::mutex m_Mutex;
+  double     m_AverageResidual{};
+  std::mutex m_Mutex{};
 };
 } // end namespace itk
 

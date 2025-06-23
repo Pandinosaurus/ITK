@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkBinaryMorphologicalOpeningImageFilter_hxx
 #define itkBinaryMorphologicalOpeningImageFilter_hxx
 
-#include "itkBinaryMorphologicalOpeningImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkProgressAccumulator.h"
@@ -28,7 +27,7 @@
  * This code was contributed in the Insight Journal paper:
  * "Binary morphological closing and opening image filters"
  * by Lehmann G.
- * https://www.insight-journal.org/browse/publication/58
+ * https://doi.org/10.54294/bcwtvq
  *
  */
 
@@ -36,10 +35,9 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 BinaryMorphologicalOpeningImageFilter<TInputImage, TOutputImage, TKernel>::BinaryMorphologicalOpeningImageFilter()
-{
-  m_ForegroundValue = NumericTraits<PixelType>::max();
-  m_BackgroundValue = NumericTraits<PixelType>::ZeroValue();
-}
+  : m_ForegroundValue(NumericTraits<PixelType>::max())
+  , m_BackgroundValue(PixelType{})
+{}
 
 template <typename TInputImage, typename TOutputImage, typename TKernel>
 void
@@ -49,11 +47,9 @@ BinaryMorphologicalOpeningImageFilter<TInputImage, TOutputImage, TKernel>::Gener
   this->AllocateOutputs();
 
   /** set up erosion and dilation methods */
-  typename BinaryDilateImageFilter<TInputImage, TOutputImage, TKernel>::Pointer dilate =
-    BinaryDilateImageFilter<TInputImage, TOutputImage, TKernel>::New();
+  auto dilate = BinaryDilateImageFilter<TInputImage, TOutputImage, TKernel>::New();
 
-  typename BinaryErodeImageFilter<TInputImage, TInputImage, TKernel>::Pointer erode =
-    BinaryErodeImageFilter<TInputImage, TInputImage, TKernel>::New();
+  auto erode = BinaryErodeImageFilter<TInputImage, TInputImage, TKernel>::New();
 
   dilate->SetKernel(this->GetKernel());
   dilate->ReleaseDataFlagOn();
@@ -64,7 +60,7 @@ BinaryMorphologicalOpeningImageFilter<TInputImage, TOutputImage, TKernel>::Gener
   erode->SetBackgroundValue(m_BackgroundValue);  // Replacement value for eroded voxels
 
   /** set up the minipipeline */
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   progress->RegisterInternalFilter(erode, .5f);
   progress->RegisterInternalFilter(dilate, .5f);

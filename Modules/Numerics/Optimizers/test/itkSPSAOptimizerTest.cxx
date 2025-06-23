@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 #include <set>
 #include "itkSPSAOptimizer.h"
+#include "itkTestingMacros.h"
 
 
 /**
@@ -61,14 +62,14 @@ public:
   GetValue(const ParametersType & parameters) const override
   {
 
-    double x = parameters[0];
-    double y = parameters[1];
+    const double x = parameters[0];
+    const double y = parameters[1];
 
     std::cout << "GetValue( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = ";
 
-    MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
 
     std::cout << measure << std::endl;
     return measure;
@@ -78,11 +79,11 @@ public:
   GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const override
   {
 
-    double x = parameters[0];
-    double y = parameters[1];
+    const double x = parameters[0];
+    const double y = parameters[1];
 
     std::cout << "GetDerivative( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = ";
 
     derivative = DerivativeType(SpaceDimension);
@@ -109,11 +110,14 @@ itkSPSAOptimizerTest(int, char *[])
   using OptimizerType = itk::SPSAOptimizer;
   using ScalesType = OptimizerType::ScalesType;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, SPSAOptimizer, SingleValuedNonLinearOptimizer);
+
 
   // Declaration of the CostFunction
-  SPSACostFunction::Pointer costFunction = SPSACostFunction::New();
+  auto costFunction = SPSACostFunction::New();
   itkOptimizer->SetCostFunction(costFunction);
 
   using ParametersType = SPSACostFunction::ParametersType;
@@ -124,17 +128,50 @@ itkSPSAOptimizerTest(int, char *[])
   parametersScale[1] = 2.0;
   itkOptimizer->SetScales(parametersScale);
 
-  itkOptimizer->MinimizeOn();
-  itkOptimizer->SetMaximumNumberOfIterations(100);
-  itkOptimizer->Seta(1.0);
-  itkOptimizer->SetA(10.0);
-  itkOptimizer->SetAlpha(0.602);
-  itkOptimizer->Setc(0.0001);
-  itkOptimizer->SetGamma(0.101);
-  itkOptimizer->SetTolerance(1e-5);
-  itkOptimizer->SetStateOfConvergenceDecayRate(0.5);
+  constexpr bool maximize = false;
+  ITK_TEST_SET_GET_BOOLEAN(itkOptimizer, Maximize, maximize);
+
+  constexpr bool minimize = !maximize;
+  ITK_TEST_SET_GET_BOOLEAN(itkOptimizer, Minimize, minimize);
+
+  constexpr double a = 10.0;
+  itkOptimizer->SetA(a);
+  ITK_TEST_SET_GET_VALUE(a, itkOptimizer->GetA());
+
+  constexpr double alpha = 0.602;
+  itkOptimizer->SetAlpha(alpha);
+  ITK_TEST_SET_GET_VALUE(alpha, itkOptimizer->GetAlpha());
+
+  constexpr double c = 0.0001;
+  itkOptimizer->Setc(c);
+  ITK_TEST_SET_GET_VALUE(c, itkOptimizer->Getc());
+
+  itkOptimizer->SetSc(c);
+  ITK_TEST_SET_GET_VALUE(c, itkOptimizer->GetSc());
+
+  constexpr double gamma = 0.101;
+  itkOptimizer->SetGamma(gamma);
+  ITK_TEST_SET_GET_VALUE(gamma, itkOptimizer->GetGamma());
+
+  constexpr double tolerance = 1e-5;
+  itkOptimizer->SetTolerance(tolerance);
+  ITK_TEST_SET_GET_VALUE(tolerance, itkOptimizer->GetTolerance());
+
+  constexpr double stateOfConvergenceDecayRate = 0.5;
+  itkOptimizer->SetStateOfConvergenceDecayRate(stateOfConvergenceDecayRate);
+  ITK_TEST_SET_GET_VALUE(stateOfConvergenceDecayRate, itkOptimizer->GetStateOfConvergenceDecayRate());
+
+  constexpr itk::SizeValueType minimumNumberOfIterations = 10;
   itkOptimizer->SetMinimumNumberOfIterations(10);
-  itkOptimizer->SetNumberOfPerturbations(1);
+  ITK_TEST_SET_GET_VALUE(minimumNumberOfIterations, itkOptimizer->GetMinimumNumberOfIterations());
+
+  constexpr itk::SizeValueType maximumNumberOfIterations = 100;
+  itkOptimizer->SetMaximumNumberOfIterations(maximumNumberOfIterations);
+  ITK_TEST_SET_GET_VALUE(maximumNumberOfIterations, itkOptimizer->GetMaximumNumberOfIterations());
+
+  constexpr itk::SizeValueType numberOfPerturbations = 1;
+  itkOptimizer->SetNumberOfPerturbations(numberOfPerturbations);
+  ITK_TEST_SET_GET_VALUE(numberOfPerturbations, itkOptimizer->GetNumberOfPerturbations());
 
   // We start not so far from  | 2 -2 |
   ParametersType initialPosition(spaceDimension);
@@ -155,7 +192,7 @@ itkSPSAOptimizerTest(int, char *[])
     return EXIT_FAILURE;
   }
   std::cout << "\nEstimated parameter: a = " << itkOptimizer->Geta();
-  std::cout << "\nEstimated parameter: A = " << itkOptimizer->GetA() << "\n" << std::endl;
+  std::cout << "\nEstimated parameter: A = " << itkOptimizer->GetA() << '\n' << std::endl;
 
   try
   {
@@ -173,24 +210,29 @@ itkSPSAOptimizerTest(int, char *[])
 
   ParametersType finalPosition = itkOptimizer->GetCurrentPosition();
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ')' << std::endl;
 
   std::cout << "StateOfConvergence in last iteration: " << itkOptimizer->GetStateOfConvergence() << std::endl;
   std::cout << "NumberOfIterations: " << itkOptimizer->GetCurrentIteration() << std::endl;
 
   std::cout << "Stop condition: " << itkOptimizer->GetStopConditionDescription() << std::endl;
 
+  std::cout << "LearningRate: " << itkOptimizer->GetLearningRate() << std::endl;
+  std::cout << "GradientMagnitude: " << itkOptimizer->GetGradientMagnitude() << std::endl;
+  std::cout << "Gradient: " << itkOptimizer->GetGradient() << std::endl;
 
   //
   // check results to see if it is within range
   //
-  bool   pass = true;
-  double trueParameters[2] = { 2, -2 };
-  for (unsigned int j = 0; j < 2; j++)
+  bool             pass = true;
+  constexpr double trueParameters[2] = { 2, -2 };
+  for (unsigned int j = 0; j < 2; ++j)
   {
     if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
+    {
       pass = false;
+    }
   }
   if (itkOptimizer->GetStopCondition() == itk::SPSAOptimizer::StopConditionSPSAOptimizerEnum::Unknown)
   {
@@ -206,8 +248,6 @@ itkSPSAOptimizerTest(int, char *[])
     std::cout << "Test failed." << std::endl;
     return EXIT_FAILURE;
   }
-
-  itkOptimizer->Print(std::cout);
 
   // Test streaming enumeration for SPSAOptimizerEnums::StopConditionSPSAOptimizer elements
   const std::set<itk::SPSAOptimizerEnums::StopConditionSPSAOptimizer> allStopConditionSPSAOptimizer{

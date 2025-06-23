@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDisplacementFieldToBSplineImageFilter_hxx
 #define itkDisplacementFieldToBSplineImageFilter_hxx
 
-#include "itkDisplacementFieldToBSplineImageFilter.h"
 
 #include "itkContinuousIndex.h"
 #include "itkImportImageFilter.h"
@@ -33,15 +32,18 @@ namespace itk
 template <typename TInputImage, typename TInputPointSet, typename TOutputImage>
 DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>::
   DisplacementFieldToBSplineImageFilter()
+  : m_PointWeights(nullptr)
 
 {
-  this->SetNumberOfRequiredInputs(0);
-
+  // Input 0 DisplacementField optional
+  Self::SetPrimaryInputName("DisplacementField");
+  Self::RemoveRequiredInputName("DisplacementField");
+  // Input 1 ConfidenceImage optional
+  Self::AddOptionalInputName("ConfidenceImage", 1);
+  // Input 2 PointSet optional
+  Self::AddOptionalInputName("PointSet", 2);
   this->m_NumberOfFittingLevels.Fill(1);
   this->m_NumberOfControlPoints.Fill(4);
-
-  this->m_PointWeights = nullptr;
-
   this->m_BSplineDomainOrigin.Fill(0.0);
   this->m_BSplineDomainSpacing.Fill(1.0);
   this->m_BSplineDomainSize.Fill(0);
@@ -100,6 +102,30 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
 
 template <typename TInputImage, typename TInputPointSet, typename TOutputImage>
 void
+DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>::VerifyPreconditions() const
+{
+  Superclass::VerifyPreconditions();
+
+  if (this->GetInput() == nullptr && this->GetPointSet() == nullptr)
+  {
+    itkExceptionMacro("Either a DisplacementField or PointSet input must be specified as Input.");
+  }
+
+  const InputPointSetType * inputPointSet = this->GetPointSet();
+  if (inputPointSet && this->m_UsePointWeights && (this->m_PointWeights->Size() != inputPointSet->GetNumberOfPoints()))
+  {
+    itkExceptionMacro("The number of input points does not match the number of weight elements.");
+  }
+
+
+  if (!this->m_UseInputFieldToDefineTheBSplineDomain && !this->m_BSplineDomainIsDefined)
+  {
+    itkExceptionMacro("Output (B-spline) domain is undefined.");
+  }
+}
+
+template <typename TInputImage, typename TInputPointSet, typename TOutputImage>
+void
 DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>::GenerateData()
 {
   const InputFieldType * inputField = this->GetInput();
@@ -117,26 +143,16 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
   const RealImageType * confidenceImage = this->GetConfidenceImage();
 
   const InputPointSetType * inputPointSet = this->GetPointSet();
-  if (inputPointSet && this->m_UsePointWeights && (this->m_PointWeights->Size() != inputPointSet->GetNumberOfPoints()))
-  {
-    itkExceptionMacro("The number of input points does not match the number of weight elements.");
-  }
 
-  typename InputPointSetType::Pointer fieldPoints = InputPointSetType::New();
-  fieldPoints->Initialize();
+  auto fieldPoints = InputPointSetType::New();
 
-  typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
+  auto weights = WeightsContainerType::New();
 
-  IdentifierType numberOfPoints = NumericTraits<IdentifierType>::ZeroValue();
+  IdentifierType numberOfPoints{};
 
   const typename WeightsContainerType::Element boundaryWeight = 1.0e10;
 
-  if (this->m_BSplineDomainIsDefined == false)
-  {
-    itkExceptionMacro("Output (B-spline) domain is undefined.");
-  }
-
-  using ContinuousIndexType = ContinuousIndex<typename InputFieldPointType::CoordRepType, ImageDimension>;
+  using ContinuousIndexType = ContinuousIndex<typename InputFieldPointType::CoordinateType, ImageDimension>;
 
   // Create an output field based on the b-spline domain to determine boundary
   // points and whether or not specified points are inside or outside the domain.
@@ -144,14 +160,14 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
   typename InputFieldType::DirectionType identity;
   identity.SetIdentity();
 
-  typename OutputFieldType::Pointer bsplinePhysicalDomainField = OutputFieldType::New();
+  auto bsplinePhysicalDomainField = OutputFieldType::New();
   bsplinePhysicalDomainField->SetOrigin(this->m_BSplineDomainOrigin);
   bsplinePhysicalDomainField->SetSpacing(this->m_BSplineDomainSpacing);
   bsplinePhysicalDomainField->SetRegions(this->m_BSplineDomainSize);
   bsplinePhysicalDomainField->SetDirection(this->m_BSplineDomainDirection);
   // bsplinePhysicalDomainField->Allocate();
 
-  typename OutputFieldType::Pointer bsplineParametricDomainField = OutputFieldType::New();
+  auto bsplineParametricDomainField = OutputFieldType::New();
   bsplineParametricDomainField->SetOrigin(this->m_BSplineDomainOrigin);
   bsplineParametricDomainField->SetSpacing(this->m_BSplineDomainSpacing);
   bsplineParametricDomainField->SetRegions(this->m_BSplineDomainSize);
@@ -175,7 +191,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
       typename OutputFieldType::IndexType index = ItB.GetIndex();
 
       bool isOnStationaryBoundary = false;
-      for (unsigned int d = 0; d < ImageDimension; d++)
+      for (unsigned int d = 0; d < ImageDimension; ++d)
       {
         if (index[d] == startIndex[d] || index[d] == startIndex[d] + static_cast<int>(this->m_BSplineDomainSize[d]) - 1)
         {
@@ -185,7 +201,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
       }
       if (isOnStationaryBoundary)
       {
-        VectorType                            data(0.0);
+        const VectorType                      data{};
         typename InputPointSetType::PointType point;
 
         bsplineParametricDomainField->TransformIndexToPhysicalPoint(index, point);
@@ -193,7 +209,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
         fieldPoints->SetPoint(numberOfPoints, point);
         fieldPoints->SetPointData(numberOfPoints, data);
         weights->InsertElement(numberOfPoints, boundaryWeight);
-        numberOfPoints++;
+        ++numberOfPoints;
       }
     }
   }
@@ -213,7 +229,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
       bool isOnStationaryBoundary = false;
       if (this->m_EnforceStationaryBoundary && this->m_UseInputFieldToDefineTheBSplineDomain)
       {
-        for (unsigned int d = 0; d < ImageDimension; d++)
+        for (unsigned int d = 0; d < ImageDimension; ++d)
         {
           if (index[d] == startIndex[d] ||
               index[d] == startIndex[d] + static_cast<int>(this->m_BSplineDomainSize[d]) - 1)
@@ -235,12 +251,14 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
         weight = static_cast<typename WeightsContainerType::Element>(confidenceImage->GetPixel(index));
       }
 
-      ContinuousIndexType                   cidx;
       PointType                             parametricPoint;
       typename InputPointSetType::PointType physicalPoint;
 
       inputField->TransformIndexToPhysicalPoint(index, physicalPoint);
-      bsplinePhysicalDomainField->TransformPhysicalPointToContinuousIndex(physicalPoint, cidx);
+      const ContinuousIndexType cidx =
+        bsplinePhysicalDomainField
+          ->template TransformPhysicalPointToContinuousIndex<typename InputFieldPointType::CoordinateType>(
+            physicalPoint);
       bsplineParametricDomainField->TransformContinuousIndexToPhysicalPoint(cidx, parametricPoint);
 
       bool isInside = true;
@@ -256,7 +274,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
       {
         if (this->m_EstimateInverse)
         {
-          for (unsigned int d = 0; d < ImageDimension; d++)
+          for (unsigned int d = 0; d < ImageDimension; ++d)
           {
             physicalPoint[d] += data[d];
           }
@@ -279,7 +297,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
         fieldPoints->SetPoint(numberOfPoints, parametricPoint);
         fieldPoints->SetPointData(numberOfPoints, data);
         weights->InsertElement(numberOfPoints, weight);
-        numberOfPoints++;
+        ++numberOfPoints;
       }
     }
   }
@@ -309,7 +327,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
 
       if (this->m_EstimateInverse)
       {
-        for (unsigned int d = 0; d < ImageDimension; d++)
+        for (unsigned int d = 0; d < ImageDimension; ++d)
         {
           physicalPoint[d] += data[d];
         }
@@ -326,10 +344,10 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
       {
         // If we enforce the stationary and the point is on the boundary (or really close
         // to the boundary), we can ignore it.
-        for (unsigned int d = 0; d < ImageDimension; d++)
+        for (unsigned int d = 0; d < ImageDimension; ++d)
         {
-          if (cidx[d] < static_cast<typename ContinuousIndexType::CoordRepType>(startIndex[d]) + 0.5 ||
-              cidx[d] > static_cast<typename ContinuousIndexType::CoordRepType>(
+          if (cidx[d] < static_cast<typename ContinuousIndexType::CoordinateType>(startIndex[d]) + 0.5 ||
+              cidx[d] > static_cast<typename ContinuousIndexType::CoordinateType>(
                           startIndex[d] + static_cast<int>(this->m_BSplineDomainSize[d]) - 1) -
                           0.5)
           {
@@ -346,7 +364,7 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
         fieldPoints->SetPoint(numberOfPoints, parametricPoint);
         fieldPoints->SetPointData(numberOfPoints, data);
         weights->InsertElement(numberOfPoints, weight);
-        numberOfPoints++;
+        ++numberOfPoints;
       }
 
       ++ItP;
@@ -361,10 +379,9 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
 
   itkDebugMacro("Calculating the B-spline displacement field. ");
 
-  ArrayType close;
-  close.Fill(false);
+  constexpr auto close = MakeFilled<ArrayType>(false);
 
-  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  auto bspliner = BSplineFilterType::New();
   bspliner->SetOrigin(this->m_BSplineDomainOrigin);
   bspliner->SetSpacing(this->m_BSplineDomainSpacing);
   bspliner->SetSize(this->m_BSplineDomainSize);
@@ -376,10 +393,10 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
   bspliner->SetInput(fieldPoints);
   bspliner->SetPointWeights(weights);
   bspliner->SetGenerateOutputImage(true);
-  bspliner->Update();
 
-  this->SetNthOutput(0, bspliner->GetOutput());
-  this->SetNthOutput(1, bspliner->GetPhiLattice());
+  bspliner->GraftOutput(this->GetOutput());
+  bspliner->Update();
+  this->GraftOutput(bspliner->GetOutput());
 }
 
 template <typename TInputImage, typename TInputPointSet, typename TOutputImage>
@@ -389,33 +406,28 @@ DisplacementFieldToBSplineImageFilter<TInputImage, TInputPointSet, TOutputImage>
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Estimate inverse: ";
-  if (this->m_EstimateInverse)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
-  os << indent << "Enforce stationary boundary: ";
-  if (this->m_EnforceStationaryBoundary)
-  {
-    os << "true" << std::endl;
-  }
-  else
-  {
-    os << "false" << std::endl;
-  }
-  os << indent << "Spline order: " << this->m_SplineOrder << std::endl;
-  os << indent << "Number of fitting levels: " << this->m_NumberOfFittingLevels << std::endl;
-  os << indent << "Number of control points: " << this->m_NumberOfControlPoints << std::endl;
+  itkPrintSelfBooleanMacro(EstimateInverse);
+  itkPrintSelfBooleanMacro(EnforceStationaryBoundary);
+  os << indent << "NumberOfControlPoints: " << m_NumberOfControlPoints << std::endl;
+  os << indent << "NumberOfFittingLevels: " << m_NumberOfFittingLevels << std::endl;
 
-  os << indent << "B-spline domain" << std::endl;
-  os << indent << "  Origin: " << this->m_BSplineDomainOrigin << std::endl;
-  os << indent << "  Spacing: " << this->m_BSplineDomainSpacing << std::endl;
-  os << indent << "  Size: " << this->m_BSplineDomainSize << std::endl;
-  os << indent << "  Direction: " << this->m_BSplineDomainDirection << std::endl;
+  itkPrintSelfObjectMacro(PointWeights);
+
+  itkPrintSelfBooleanMacro(UsePointWeights);
+
+  os << indent
+     << "BSplineDomainOrigin: " << static_cast<typename NumericTraits<OriginType>::PrintType>(m_BSplineDomainOrigin)
+     << std::endl;
+  os << indent
+     << "BSplineDomainSpacing: " << static_cast<typename NumericTraits<SpacingType>::PrintType>(m_BSplineDomainSpacing)
+     << std::endl;
+  os << indent << "BSplineDomainSize: " << static_cast<typename NumericTraits<SizeType>::PrintType>(m_BSplineDomainSize)
+     << std::endl;
+  os << indent << "BSplineDomainDirection: "
+     << static_cast<typename NumericTraits<DirectionType>::PrintType>(m_BSplineDomainDirection) << std::endl;
+
+  itkPrintSelfBooleanMacro(BSplineDomainIsDefined);
+  itkPrintSelfBooleanMacro(UseInputFieldToDefineTheBSplineDomain);
 }
 
 } // end namespace itk

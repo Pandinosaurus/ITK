@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,9 +35,9 @@ itkTransformToDisplacementFieldFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  std::string transformName = argv[1];
-  std::string fileName = argv[2];
-  std::string bSplineParametersFile;
+  const std::string transformName = argv[1];
+  const std::string fileName = argv[2];
+  std::string       bSplineParametersFile;
   if (argc > 3)
   {
     bSplineParametersFile = argv[3];
@@ -71,18 +71,14 @@ itkTransformToDisplacementFieldFilterTest(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<DisplacementFieldImageType>;
 
   // Create output information.
-  SizeType size;
-  size.Fill(20);
-  IndexType index;
-  index.Fill(0);
-  SpacingType spacing;
-  spacing.Fill(0.7);
-  OriginType origin;
-  origin.Fill(-10.0);
+  auto                size = SizeType::Filled(20);
+  constexpr IndexType index{};
+  auto                spacing = itk::MakeFilled<SpacingType>(0.7);
+  auto                origin = itk::MakeFilled<OriginType>(-10.0);
 
   // Create transforms.
-  AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
-  BSplineTransformType::Pointer bSplineTransform = BSplineTransformType::New();
+  auto affineTransform = AffineTransformType::New();
+  auto bSplineTransform = BSplineTransformType::New();
   if (transformName == "Affine")
   {
     // Set the options.
@@ -147,7 +143,7 @@ itkTransformToDisplacementFieldFilterTest(int argc, char * argv[])
   }
 
   // Create an setup displacement field generator.
-  DisplacementFieldGeneratorType::Pointer defGenerator = DisplacementFieldGeneratorType::New();
+  auto defGenerator = DisplacementFieldGeneratorType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(defGenerator, TransformToDisplacementFieldFilter, ImageSource);
 
@@ -166,6 +162,7 @@ itkTransformToDisplacementFieldFilterTest(int argc, char * argv[])
 
   DisplacementFieldGeneratorType::DirectionType direction;
   direction.SetIdentity();
+  defGenerator->SetOutputDirection(direction);
   ITK_TEST_SET_GET_VALUE(direction, defGenerator->GetOutputDirection());
 
   if (transformName == "Affine")
@@ -179,7 +176,7 @@ itkTransformToDisplacementFieldFilterTest(int argc, char * argv[])
   std::cout << "Transform: " << defGenerator->GetTransform() << std::endl;
 
   // Write displacement field to disk.
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(defGenerator->GetOutput());
   writer->SetFileName(fileName.c_str());
 

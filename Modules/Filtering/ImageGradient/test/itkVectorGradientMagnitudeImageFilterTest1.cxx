@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,21 +39,23 @@ itkVectorGradientMagnitudeImageFilterTest1(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
+  constexpr unsigned int Dimension = 2;
+
   using RGBPixelType = itk::RGBPixel<unsigned short>;
-  using CharImageType = itk::Image<unsigned char, 2>;
-  using RGBImageType = itk::Image<RGBPixelType, 2>;
-  using AdaptorType = itk::RGBToVectorImageAdaptor<RGBImageType>;
-  using FilterType = itk::VectorGradientMagnitudeImageFilter<AdaptorType>;
-  using ReaderType = itk::ImageFileReader<RGBImageType>;
-  using RescaleFilterType = itk::RescaleIntensityImageFilter<FilterType::OutputImageType, CharImageType>;
-  using WriterType = itk::ImageFileWriter<CharImageType>;
+  using CharImageType = itk::Image<unsigned char, Dimension>;
+  using RGBImageType = itk::Image<RGBPixelType, Dimension>;
 
   // Create a reader and filter
-  ReaderType::Pointer reader = ReaderType::New();
+  using ReaderType = itk::ImageFileReader<RGBImageType>;
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+
+  using AdaptorType = itk::RGBToVectorImageAdaptor<RGBImageType>;
+  auto adaptor = AdaptorType::New();
   adaptor->SetImage(reader->GetOutput());
-  FilterType::Pointer filter = FilterType::New();
+
+  using FilterType = itk::VectorGradientMagnitudeImageFilter<AdaptorType>;
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, VectorGradientMagnitudeImageFilter, ImageToImageFilter);
 
@@ -74,14 +76,12 @@ itkVectorGradientMagnitudeImageFilterTest1(int argc, char * argv[])
   ITK_TEST_SET_GET_BOOLEAN(filter, UseImageSpacing, useImageSpacing);
 
   auto derivativeWeightsValue = static_cast<FilterType::DerivativeWeightsType::ValueType>(std::stod(argv[4]));
-  FilterType::DerivativeWeightsType derivativeWeights;
-  derivativeWeights.Fill(derivativeWeightsValue);
+  auto derivativeWeights = itk::MakeFilled<FilterType::DerivativeWeightsType>(derivativeWeightsValue);
   filter->SetDerivativeWeights(derivativeWeights);
   ITK_TEST_SET_GET_VALUE(derivativeWeights, filter->GetDerivativeWeights());
 
   auto componentWeightsValue = static_cast<FilterType::ComponentWeightsType::ValueType>(std::stod(argv[5]));
-  FilterType::ComponentWeightsType componentWeights;
-  componentWeights.Fill(componentWeightsValue);
+  auto componentWeights = itk::MakeFilled<FilterType::ComponentWeightsType>(componentWeightsValue);
   filter->SetComponentWeights(componentWeights);
   ITK_TEST_SET_GET_VALUE(componentWeights, filter->GetComponentWeights());
 
@@ -98,12 +98,14 @@ itkVectorGradientMagnitudeImageFilterTest1(int argc, char * argv[])
 #endif
   ITK_TEST_SET_GET_BOOLEAN(filter, UsePrincipleComponents, mode);
 
-  RescaleFilterType::Pointer rescale = RescaleFilterType::New();
+  using RescaleFilterType = itk::RescaleIntensityImageFilter<FilterType::OutputImageType, CharImageType>;
+  auto rescale = RescaleFilterType::New();
   rescale->SetOutputMinimum(0);
   rescale->SetOutputMaximum(255);
   rescale->SetInput(filter->GetOutput());
 
-  WriterType::Pointer writer = WriterType::New();
+  using WriterType = itk::ImageFileWriter<CharImageType>;
+  auto writer = WriterType::New();
   writer->SetInput(rescale->GetOutput());
   writer->SetFileName(argv[2]);
 
@@ -111,7 +113,7 @@ itkVectorGradientMagnitudeImageFilterTest1(int argc, char * argv[])
 
 
   std::cout << "The gradient image range was (low, high) = (" << rescale->GetInputMinimum() << ", "
-            << rescale->GetInputMaximum() << ")" << std::endl;
+            << rescale->GetInputMaximum() << ')' << std::endl;
   std::cout << "Output was scaled, shifted = " << rescale->GetScale() << ", " << rescale->GetShift() << std::endl;
 
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkWhitakerSparseLevelSetImage.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
 itkWhitakerSparseLevelSetImageTest(int, char *[])
@@ -29,19 +30,22 @@ itkWhitakerSparseLevelSetImageTest(int, char *[])
   using LabelMapType = SparseLevelSetType::LabelMapType;
   using IndexType = LabelMapType::IndexType;
 
-  IndexType index;
-  index.Fill(3);
+  auto index = IndexType::Filled(3);
 
-  LabelMapType::Pointer labelMap = LabelMapType::New();
+  auto labelMap = LabelMapType::New();
   labelMap->SetBackgroundValue(3);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     ++index[1];
     labelMap->SetPixel(index, -3);
   }
 
-  SparseLevelSetType::Pointer phi = SparseLevelSetType::New();
+  auto phi = SparseLevelSetType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(phi, WhitakerSparseLevelSetImage, LevelSetSparseImage);
+
+
   phi->SetLabelMap(labelMap);
 
   index[0] = 3;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNormalizeImageFilter_hxx
 #define itkNormalizeImageFilter_hxx
 
-#include "itkNormalizeImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkProgressAccumulator.h"
 
@@ -26,11 +25,9 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 NormalizeImageFilter<TInputImage, TOutputImage>::NormalizeImageFilter()
-{
-  m_StatisticsFilter = nullptr;
-  m_StatisticsFilter = StatisticsImageFilter<TInputImage>::New();
-  m_ShiftScaleFilter = ShiftScaleImageFilter<TInputImage, TOutputImage>::New();
-}
+  : m_StatisticsFilter(StatisticsImageFilter<TInputImage>::New())
+  , m_ShiftScaleFilter(ShiftScaleImageFilter<TInputImage, TOutputImage>::New())
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -39,7 +36,7 @@ NormalizeImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
   if (this->GetInput())
   {
-    InputImagePointer image = const_cast<typename Superclass::InputImageType *>(this->GetInput());
+    const InputImagePointer image = const_cast<typename Superclass::InputImageType *>(this->GetInput());
     image->SetRequestedRegionToLargestPossibleRegion();
   }
 }
@@ -57,7 +54,7 @@ template <typename TInputImage, typename TOutputImage>
 void
 NormalizeImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 

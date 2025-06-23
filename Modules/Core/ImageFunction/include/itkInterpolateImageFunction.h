@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class InterpolateImageFunction
+ * \class InterpolateImageFunction
  * \brief Base class for all image interpolators.
  *
  * InterpolateImageFunction is the base for all ImageFunctions that
@@ -41,9 +41,9 @@ namespace itk
  *
  * \ingroup ITKImageFunction
  */
-template <typename TInputImage, typename TCoordRep = double>
+template <typename TInputImage, typename TCoordinate = double>
 class ITK_TEMPLATE_EXPORT InterpolateImageFunction
-  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>
+  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(InterpolateImageFunction);
@@ -51,35 +51,35 @@ public:
   /** Standard class type aliases. */
   using Self = InterpolateImageFunction;
   using Superclass =
-    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>;
+    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InterpolateImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InterpolateImageFunction);
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** Dimension underlying input image. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
-  using IndexValueType = typename Superclass::IndexValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::IndexValueType;
 
   /** Size type alias support */
   using SizeType = typename InputImageType::SizeType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** RealType type alias support */
   using RealType = typename NumericTraits<typename TInputImage::PixelType>::RealType;
@@ -95,9 +95,8 @@ public:
   OutputType
   Evaluate(const PointType & point) const override
   {
-    ContinuousIndexType index;
-
-    this->GetInputImage()->TransformPhysicalPointToContinuousIndex(point, index);
+    const ContinuousIndexType index =
+      this->GetInputImage()->template TransformPhysicalPointToContinuousIndex<TCoordinate>(point);
     return (this->EvaluateAtContinuousIndex(index));
   }
 
@@ -128,28 +127,13 @@ public:
     return (static_cast<RealType>(this->GetInputImage()->GetPixel(index)));
   }
 
-/** Get the radius required for interpolation.
- *
- * This defines the number of surrounding pixels required to interpolate at
- * a given point.
- */
-#if defined(ITKV4_COMPATIBILITY)
-  virtual SizeType
-  GetRadius() const
-  {
-    // if ITKv4 compatibility is enabled then set the radius to the
-    // largest by default.
-    const InputImageType * input = this->GetInputImage();
-    if (!input)
-    {
-      itkExceptionMacro("Input image required!");
-    }
-    return input->GetLargestPossibleRegion().GetSize();
-  }
-#else
+  /** Get the radius required for interpolation.
+   *
+   * This defines the number of surrounding pixels required to interpolate at
+   * a given point.
+   */
   virtual SizeType
   GetRadius() const = 0;
-#endif
 
 protected:
   InterpolateImageFunction() = default;

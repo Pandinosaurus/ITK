@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,9 @@ CheckBuffer(const TImageType * image, typename TImageType::PixelType p)
   while (!iter.IsAtEnd())
   {
     if (itk::Math::NotExactlyEquals(iter.Get(), p))
+    {
       return false;
+    }
     ++iter;
   }
   return true;
@@ -62,29 +64,25 @@ itkImageAlgorithmCopyTest2(int, char *[])
   using RegionType = itk::ImageRegion<3>;
 
 
-  RegionType::IndexType index;
-  index.Fill(0);
-  RegionType::SizeType size;
-  size.Fill(64);
+  constexpr RegionType::IndexType index{};
+  auto                            size = RegionType::SizeType::Filled(64);
 
-  RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const RegionType region{ index, size };
 
 
-  Short3DImageType::Pointer image1 = Short3DImageType::New();
+  auto image1 = Short3DImageType::New();
   image1->SetRegions(region);
   image1->Allocate();
   image1->FillBuffer(13);
 
-  Short3DImageType::Pointer image2 = Short3DImageType::New();
+  auto image2 = Short3DImageType::New();
   image2->SetRegions(region);
-  image2->Allocate(true); // initialize buffer to zero
+  image2->AllocateInitialized();
 
 
-  Float3DImageType::Pointer image3 = Float3DImageType::New();
+  auto image3 = Float3DImageType::New();
   image3->SetRegions(region);
-  image3->Allocate(true); // initialize buffer to zero
+  image3->AllocateInitialized();
 
   std::cout << "Copying two images of same type" << std::endl;
   itk::ImageAlgorithm::Copy(image1.GetPointer(), image2.GetPointer(), region, region);
@@ -103,7 +101,7 @@ itkImageAlgorithmCopyTest2(int, char *[])
   ITK_TEST_EXPECT_TRUE(CheckBuffer(image1.GetPointer(), 13));
 
 
-  AbsImageType::Pointer absimage = AbsImageType::New();
+  auto absimage = AbsImageType::New();
   absimage->SetImage(image3);
   image2->FillBuffer(0);
 
@@ -113,12 +111,12 @@ itkImageAlgorithmCopyTest2(int, char *[])
   ITK_TEST_EXPECT_TRUE(CheckBuffer(image2.GetPointer(), 13));
 
 
-  STDVectorImageType::Pointer image4 = STDVectorImageType::New();
+  auto image4 = STDVectorImageType::New();
   image4->SetRegions(region);
   image4->Allocate();
   image4->FillBuffer(std::vector<float>(10, 3.14));
 
-  STDVectorImageType::Pointer image5 = STDVectorImageType::New();
+  auto image5 = STDVectorImageType::New();
   image5->SetRegions(region);
   image5->Allocate();
 

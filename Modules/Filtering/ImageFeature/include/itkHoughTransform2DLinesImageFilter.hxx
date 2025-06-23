@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkHoughTransform2DLinesImageFilter_hxx
 #define itkHoughTransform2DLinesImageFilter_hxx
 
-#include "itkHoughTransform2DLinesImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
@@ -31,7 +30,6 @@ namespace itk
 template <typename TInputPixelType, typename TOutputPixelType>
 HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::HoughTransform2DLinesImageFilter()
   : m_LinesList()
-
 {}
 
 
@@ -54,8 +52,8 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GenerateOut
   Superclass::GenerateOutputInformation();
 
   // Get pointers to the input and output
-  InputImageConstPointer input = this->GetInput();
-  OutputImagePointer     output = this->GetOutput();
+  const InputImageConstPointer input = this->GetInput();
+  const OutputImagePointer     output = this->GetOutput();
 
   if (!input || !output)
   {
@@ -63,15 +61,13 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GenerateOut
   }
 
   // Compute the size of the output image
-  typename InputImageType::RegionType region;
-  Size<2>                             size;
+  Size<2> size;
 
-  size[0] = (SizeValueType)(
-    std::sqrt(m_AngleResolution * m_AngleResolution +
-              input->GetLargestPossibleRegion().GetSize()[0] * input->GetLargestPossibleRegion().GetSize()[0]));
+  size[0] = (SizeValueType)(std::sqrt(m_AngleResolution * m_AngleResolution +
+                                      input->GetLargestPossibleRegion().GetSize()[0] *
+                                        input->GetLargestPossibleRegion().GetSize()[0]));
   size[1] = (SizeValueType)m_AngleResolution;
-  region.SetSize(size);
-  region.SetIndex(input->GetLargestPossibleRegion().GetIndex());
+  const typename InputImageType::RegionType region(input->GetLargestPossibleRegion().GetIndex(), size);
 
   output->SetLargestPossibleRegion(region);
 }
@@ -84,7 +80,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GenerateInp
   Superclass::GenerateInputRequestedRegion();
   if (this->GetInput())
   {
-    InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
+    const InputImagePointer image = const_cast<InputImageType *>(this->GetInput());
     image->SetRequestedRegionToLargestPossibleRegion();
   }
 }
@@ -95,8 +91,8 @@ void
 HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GenerateData()
 {
   // Get the input and output pointers
-  InputImageConstPointer inputImage = this->GetInput(0);
-  OutputImagePointer     outputImage = this->GetOutput(0);
+  const InputImageConstPointer inputImage = this->GetInput(0);
+  const OutputImagePointer     outputImage = this->GetOutput(0);
 
   // Allocate the output
   this->AllocateOutputs();
@@ -105,7 +101,6 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GenerateDat
   const double nPI = 4.0 * std::atan(1.0);
 
   ImageRegionConstIteratorWithIndex<InputImageType> image_it(inputImage, inputImage->GetRequestedRegion());
-  image_it.GoToBegin();
 
   Index<2> index;
 
@@ -140,8 +135,8 @@ void
 HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::Simplify()
 {
   // Get the input and output pointers.
-  InputImageConstPointer inputImage = this->GetInput(0);
-  OutputImagePointer     outputImage = this->GetOutput(0);
+  const InputImageConstPointer inputImage = this->GetInput(0);
+  const OutputImagePointer     outputImage = this->GetOutput(0);
 
   if (!inputImage || !outputImage)
   {
@@ -154,7 +149,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::Simplify()
   m_SimplifyAccumulator->SetOrigin(inputImage->GetOrigin());
   m_SimplifyAccumulator->SetSpacing(inputImage->GetSpacing());
   m_SimplifyAccumulator->SetDirection(inputImage->GetDirection());
-  m_SimplifyAccumulator->Allocate(true); // Initialize buffer to zero.
+  m_SimplifyAccumulator->AllocateInitialized();
 
   Index<2> index;
   Index<2> maxIndex;
@@ -163,7 +158,6 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::Simplify()
   typename OutputImageType::PixelType valuemax;
 
   ImageRegionConstIteratorWithIndex<InputImageType> image_it(inputImage, inputImage->GetRequestedRegion());
-  image_it.GoToBegin();
 
   const double nPI = 4.0 * std::atan(1.0);
 
@@ -205,9 +199,6 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::Simplify()
                                                                    m_SimplifyAccumulator->GetRequestedRegion());
   ImageRegionIteratorWithIndex<OutputImageType>      accu_it(outputImage, outputImage->GetRequestedRegion());
 
-  accusimple_it.GoToBegin();
-  accu_it.GoToBegin();
-
   while (!accusimple_it.IsAtEnd())
   {
     accu_it.Set(accusimple_it.Get());
@@ -218,8 +209,8 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::Simplify()
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
-typename HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::LinesListType &
-HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
+auto
+HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines() -> LinesListType &
 {
   // If the filter has not been updated.
   if (this->GetMTime() == m_OldModifiedTime)
@@ -235,7 +226,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
     using InternalImagePixelType = float;
     using InternalImageType = Image<InternalImagePixelType, 2>;
 
-    OutputImagePointer outputImage = this->GetOutput(0);
+    const OutputImagePointer outputImage = this->GetOutput(0);
 
     if (!outputImage)
     {
@@ -245,11 +236,11 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
     // Convert the accumulator output image type to internal image type.
     using CastImageFilterType = CastImageFilter<OutputImageType, InternalImageType>;
 
-    const typename CastImageFilterType::Pointer castImageFilter = CastImageFilterType::New();
+    const auto castImageFilter = CastImageFilterType::New();
     castImageFilter->SetInput(outputImage);
 
     using GaussianFilterType = DiscreteGaussianImageFilter<InternalImageType, InternalImageType>;
-    const typename GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+    const auto gaussianFilter = GaussianFilterType::New();
 
     // The output is the accumulator image.
     gaussianFilter->SetInput(castImageFilter->GetOutput());
@@ -258,7 +249,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
     const InternalImageType::Pointer postProcessImage = gaussianFilter->GetOutput();
 
     using MinMaxCalculatorType = MinimumMaximumImageCalculator<InternalImageType>;
-    typename MinMaxCalculatorType::Pointer      minMaxCalculator = MinMaxCalculatorType::New();
+    auto                                        minMaxCalculator = MinMaxCalculatorType::New();
     itk::ImageRegionIterator<InternalImageType> it_input(postProcessImage,
                                                          postProcessImage->GetLargestPossibleRegion());
 
@@ -290,20 +281,20 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
           // Create the line.
           LineType::LinePointListType list; // Insert two points per line.
 
-          double radius = it_input.GetIndex()[0];
-          double teta = ((it_input.GetIndex()[1]) * 2 * Math::pi / this->GetAngleResolution()) - Math::pi;
-          double Vx = radius * std::cos(teta);
-          double Vy = radius * std::sin(teta);
-          double norm = std::sqrt(Vx * Vx + Vy * Vy);
-          double VxNorm = Vx / norm;
-          double VyNorm = Vy / norm;
+          const double radius = it_input.GetIndex()[0];
+          const double teta = ((it_input.GetIndex()[1]) * 2 * Math::pi / this->GetAngleResolution()) - Math::pi;
+          const double Vx = radius * std::cos(teta);
+          const double Vy = radius * std::sin(teta);
+          const double norm = std::sqrt(Vx * Vx + Vy * Vy);
+          double       VxNorm = Vx / norm;
+          double       VyNorm = Vy / norm;
 
           if (teta <= 0 || teta >= Math::pi / 2)
           {
             if (teta >= Math::pi / 2)
             {
-              VyNorm = -VyNorm;
-              VxNorm = -VxNorm;
+              VyNorm *= -1;
+              VxNorm *= -1;
             }
 
             LinePointType p;
@@ -322,7 +313,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
           }
 
           // Create a Line Spatial Object.
-          LinePointer line = LineType::New();
+          const LinePointer line = LineType::New();
           line->SetId(lines);
           line->SetPoints(list);
           line->Update();
@@ -334,8 +325,8 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
           {
             for (double length = 0; length < m_DiscRadius; length += 1)
             {
-              index[0] = (IndexValueType)(it_input.GetIndex()[0] + length * std::cos(angle));
-              index[1] = (IndexValueType)(it_input.GetIndex()[1] + length * std::sin(angle));
+              index[0] = static_cast<IndexValueType>(it_input.GetIndex()[0] + length * std::cos(angle));
+              index[1] = static_cast<IndexValueType>(it_input.GetIndex()[1] + length * std::sin(angle));
               if (postProcessImage->GetBufferedRegion().IsInside(index))
               {
                 postProcessImage->SetPixel(index, 0);
@@ -346,7 +337,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::GetLines()
           minMaxCalculator->ComputeMaximum();
           max = minMaxCalculator->GetMaximum();
 
-          lines++;
+          ++lines;
           if (lines == m_NumberOfLines)
           {
             break;
@@ -379,7 +370,7 @@ HoughTransform2DLinesImageFilter<TInputPixelType, TOutputPixelType>::PrintSelf(s
   auto         it = m_LinesList.begin();
   while (it != m_LinesList.end())
   {
-    os << indent << "[" << i << "]: " << *it << std::endl;
+    os << indent << '[' << i << "]: " << *it << std::endl;
     ++it;
     ++i;
   }

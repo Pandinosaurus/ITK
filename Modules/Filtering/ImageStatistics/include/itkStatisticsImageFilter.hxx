@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkStatisticsImageFilter_hxx
 #define itkStatisticsImageFilter_hxx
-#include "itkStatisticsImageFilter.h"
 
 
 #include "itkImageScanlineIterator.h"
@@ -35,8 +34,8 @@ StatisticsImageFilter<TInputImage>::StatisticsImageFilter()
   Self::SetMean(NumericTraits<RealType>::max());
   Self::SetSigma(NumericTraits<RealType>::max());
   Self::SetVariance(NumericTraits<RealType>::max());
-  Self::SetSum(NumericTraits<RealType>::ZeroValue());
-  Self::SetSumOfSquares(NumericTraits<RealType>::ZeroValue());
+  Self::SetSum(RealType{});
+  Self::SetSumOfSquares(RealType{});
 }
 
 template <typename TInputImage>
@@ -61,9 +60,9 @@ StatisticsImageFilter<TInputImage>::BeforeStreamedGenerateData()
   Superclass::BeforeStreamedGenerateData();
 
   // Resize the thread temporaries
-  m_Count = NumericTraits<SizeValueType>::ZeroValue();
-  m_SumOfSquares = NumericTraits<RealType>::ZeroValue();
-  m_ThreadSum = NumericTraits<RealType>::ZeroValue();
+  m_Count = SizeValueType{};
+  m_SumOfSquares = RealType{};
+  m_ThreadSum = RealType{};
   m_ThreadMin = NumericTraits<PixelType>::max();
   m_ThreadMax = NumericTraits<PixelType>::NonpositiveMin();
 }
@@ -100,13 +99,13 @@ void
 StatisticsImageFilter<TInputImage>::ThreadedStreamedGenerateData(const RegionType & regionForThread)
 {
 
-  CompensatedSummation<RealType> sum = NumericTraits<RealType>::ZeroValue();
-  CompensatedSummation<RealType> sumOfSquares = NumericTraits<RealType>::ZeroValue();
-  SizeValueType                  count = NumericTraits<SizeValueType>::ZeroValue();
+  CompensatedSummation<RealType> sum = RealType{};
+  CompensatedSummation<RealType> sumOfSquares = RealType{};
+  SizeValueType                  count{};
   PixelType                      min = NumericTraits<PixelType>::max();
   PixelType                      max = NumericTraits<PixelType>::NonpositiveMin();
 
-  ImageScanlineConstIterator<TInputImage> it(this->GetInput(), regionForThread);
+  ImageScanlineConstIterator it(this->GetInput(), regionForThread);
 
   // do the work
   while (!it.IsAtEnd())
@@ -126,7 +125,7 @@ StatisticsImageFilter<TInputImage>::ThreadedStreamedGenerateData(const RegionTyp
     it.NextLine();
   }
 
-  std::lock_guard<std::mutex> mutexHolder(m_Mutex);
+  const std::lock_guard<std::mutex> lockGuard(m_Mutex);
   m_ThreadSum += sum;
   m_SumOfSquares += sumOfSquares;
   m_Count += count;

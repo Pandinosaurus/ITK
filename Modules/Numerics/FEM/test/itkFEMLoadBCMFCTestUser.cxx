@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,15 +21,10 @@
 #include "itkFEMElement2DC0LinearLineStress.h"
 
 int
-itkFEMLoadBCMFCTestUser(int argc, char *[])
+itkFEMLoadBCMFCTestUser(int, char *[])
 {
-  if (argc < 1)
-  {
-    std::cerr << "Missing Spatial Object Filename" << std::endl;
-    return EXIT_FAILURE;
-  }
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -37,10 +32,10 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   itk::FEMFactoryBase::RegisterDefaultTypes();
 
   using Solver2DType = itk::fem::Solver<2>;
-  Solver2DType::Pointer solver = Solver2DType::New();
+  auto solver = Solver2DType::New();
 
   using FEMObjectType = itk::fem::FEMObject<2>;
-  FEMObjectType::Pointer femObject = FEMObjectType::New();
+  auto femObject = FEMObjectType::New();
 
   itk::fem::LinearSystemWrapperVNL vnlSolver;
 
@@ -92,7 +87,7 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   m->SetYoungsModulus(200000000000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(2000.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);       /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);       /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   m = itk::fem::MaterialLinearElasticity::New();
@@ -100,7 +95,7 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   m->SetYoungsModulus(200000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(1200.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);       /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);       /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   m = itk::fem::MaterialLinearElasticity::New();
@@ -108,7 +103,7 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   m->SetYoungsModulus(70000.0); /* Young modulus */
   m->SetPoissonsRatio(0.3);
   m->SetCrossSectionalArea(900.0); /* Crossection area */
-  m->SetMomentOfInertia(1.0);      /* Momemt of inertia */
+  m->SetMomentOfInertia(1.0);      /* Moment of inertia */
   femObject->AddNextMaterial(m);
 
   itk::fem::Element2DC0LinearLineStress::Pointer e1;
@@ -212,11 +207,11 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   float expectedResult[10] = { 0.283525f, 0.0f, 0.283525f, 1.70115f, 0.283525f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
   bool foundError = false;
-  for (int i = 0; i < numDOF; i++)
+  for (int i = 0; i < numDOF; ++i)
   {
     soln[i] = solver->GetSolution(i);
     // std::cout << "Solution[" << i << "]:" << soln[i] << std::endl;
-    if (std::fabs(expectedResult[i] - soln[i]) > 0.0001)
+    if (itk::Math::abs(expectedResult[i] - soln[i]) > 0.0001)
     {
       std::cout << "ERROR: Index " << i << ". Expected " << expectedResult[i] << " Solution " << soln[i] << std::endl;
       foundError = true;
@@ -232,14 +227,14 @@ itkFEMLoadBCMFCTestUser(int argc, char *[])
   // to write the deformed mesh
   // Testing the fe mesh validity
   /* using FEMObjectSpatialObjectType = itk::FEMObjectSpatialObject<2>;
-   FEMObjectSpatialObjectType::Pointer femSODef = FEMObjectSpatialObjectType::New();
+   auto femSODef = FEMObjectSpatialObjectType::New();
    femSODef->SetFEMObject(solver->GetOutput());
    using FEMSpatialObjectWriterType = itk::FEMSpatialObjectWriter<2>;
    using FEMSpatialObjectWriterPointer = FEMSpatialObjectWriterType::Pointer;
-   FEMSpatialObjectWriterPointer SpatialWriter = FEMSpatialObjectWriterType::New();
-   SpatialWriter->SetInput(femSODef);
-   SpatialWriter->SetFileName( argv[2] );
-   SpatialWriter->Update();*/
+   FEMSpatialObjectWriterPointer spatialWriter = FEMSpatialObjectWriterType::New();
+   spatialWriter->SetInput(femSODef);
+   spatialWriter->SetFileName( argv[2] );
+   spatialWriter->Update();*/
 
   std::cout << "Test PASSED!" << std::endl;
   return EXIT_SUCCESS;

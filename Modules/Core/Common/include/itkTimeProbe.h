@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,6 +44,8 @@ namespace itk
 class ITKCommon_EXPORT TimeProbe : public ResourceProbe<RealTimeClock::TimeStampType, RealTimeClock::TimeStampType>
 {
 public:
+  using Superclass = ResourceProbe<RealTimeClock::TimeStampType, RealTimeClock::TimeStampType>;
+
   /** Type for counting how many times the probe has been started and stopped.
    */
   using CountType = unsigned long;
@@ -59,17 +61,20 @@ public:
   /** Destructor */
   ~TimeProbe() override;
 
+  void
+  Print(std::ostream & os, Indent indent) const override;
+
   /** Get the current time.
    *  Warning: the returned value is not the elapsed time since the last Start() call.
    */
-  TimeStampType
+  [[nodiscard]] TimeStampType
   GetInstantValue() const override;
 
   /** Get a handle to m_RealTimeClock. */
   itkGetConstObjectMacro(RealTimeClock, RealTimeClock);
 
 private:
-  RealTimeClock::Pointer m_RealTimeClock;
+  RealTimeClock::Pointer m_RealTimeClock{};
 };
 } // end namespace itk
 

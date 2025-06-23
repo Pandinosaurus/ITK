@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 #define itkGPUContextManager_h
 
 #include "itkOpenCLUtil.h"
-#include <itkLightObject.h>
+#include "itkLightObject.h"
 
 namespace itk
 {
@@ -62,12 +62,12 @@ private:
   GPUContextManager();
   ~GPUContextManager() override;
 
-  cl_platform_id     m_Platform;
-  cl_context         m_Context;
-  cl_device_id *     m_Devices;
-  cl_command_queue * m_CommandQueue; // one queue per device
+  cl_platform_id     m_Platform{};
+  cl_context         m_Context{};
+  cl_device_id *     m_Devices{};
+  cl_command_queue * m_CommandQueue{}; // one queue per device
 
-  cl_uint m_NumberOfDevices, m_NumberOfPlatforms;
+  cl_uint m_NumberOfDevices, m_NumberOfPlatforms{};
 
   static GPUContextManager * m_Instance;
 };

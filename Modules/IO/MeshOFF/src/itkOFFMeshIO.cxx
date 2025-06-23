@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,22 +18,23 @@
 
 #include "itkOFFMeshIO.h"
 
-#include <itksys/SystemTools.hxx>
+#include "itksys/SystemTools.hxx"
+#include "itkMakeUniqueForOverwrite.h"
 
 namespace itk
 {
-OFFMeshIO ::OFFMeshIO()
+OFFMeshIO::OFFMeshIO()
+  : m_PointsStartPosition(StreamOffsetType{})
+  , m_TriangleCellType(true)
 {
   this->AddSupportedWriteExtension(".off");
   this->SetByteOrderToBigEndian();
-  m_PointsStartPosition = itk::NumericTraits<StreamOffsetType>::ZeroValue();
-  m_TriangleCellType = true;
 }
 
 OFFMeshIO::~OFFMeshIO() = default;
 
 bool
-OFFMeshIO ::CanReadFile(const char * fileName)
+OFFMeshIO::CanReadFile(const char * fileName)
 {
   if (!itksys::SystemTools::FileExists(fileName, true))
   {
@@ -49,7 +50,7 @@ OFFMeshIO ::CanReadFile(const char * fileName)
 }
 
 bool
-OFFMeshIO ::CanWriteFile(const char * fileName)
+OFFMeshIO::CanWriteFile(const char * fileName)
 {
   if (itksys::SystemTools::GetFilenameLastExtension(fileName) != ".off")
   {
@@ -60,7 +61,7 @@ OFFMeshIO ::CanWriteFile(const char * fileName)
 }
 
 void
-OFFMeshIO ::OpenFile()
+OFFMeshIO::OpenFile()
 {
   if (this->m_FileName.empty())
   {
@@ -85,7 +86,7 @@ OFFMeshIO ::OpenFile()
 }
 
 void
-OFFMeshIO ::CloseFile()
+OFFMeshIO::CloseFile()
 {
   if (m_InputFile.is_open())
   {
@@ -94,7 +95,7 @@ OFFMeshIO ::CloseFile()
 }
 
 void
-OFFMeshIO ::ReadMeshInformation()
+OFFMeshIO::ReadMeshInformation()
 {
   // Define input file stream and attach it to input file
   OpenFile();
@@ -102,11 +103,11 @@ OFFMeshIO ::ReadMeshInformation()
   // Read and analyze the first line in the file
   std::string line;
 
-  // The OFF file must containe "OFF"
+  // The OFF file must contain "OFF"
   std::getline(m_InputFile, line, '\n'); // delimiter is '\n'
   if (line.find("OFF") == std::string::npos)
   {
-    itkExceptionMacro(<< "Error, the file doesn't begin with keyword \"OFF\" ");
+    itkExceptionMacro("Error, the file doesn't begin with keyword \"OFF\" ");
   }
 
   // If the file is binary file, it contains "BINARY"
@@ -123,7 +124,7 @@ OFFMeshIO ::ReadMeshInformation()
   if (line.find("nOFF") != std::string::npos)
   {
     m_InputFile >> this->m_PointDimension;
-    m_PointDimension++;
+    ++m_PointDimension;
   }
   else if (line.find("4OFF") != std::string::npos)
   {
@@ -136,7 +137,7 @@ OFFMeshIO ::ReadMeshInformation()
 
   // Ignore comment lines
   std::getline(m_InputFile, line, '\n');
-  while (line.find("#") != std::string::npos)
+  while (line.find('#') != std::string::npos)
   {
     std::getline(m_InputFile, line, '\n');
   }
@@ -161,7 +162,7 @@ OFFMeshIO ::ReadMeshInformation()
     // Read points start position in the file
     m_PointsStartPosition = m_InputFile.tellg();
 
-    for (SizeValueType id = 0; id < this->m_NumberOfPoints; id++)
+    for (SizeValueType id = 0; id < this->m_NumberOfPoints; ++id)
     {
       std::getline(m_InputFile, line, '\n');
     }
@@ -171,7 +172,7 @@ OFFMeshIO ::ReadMeshInformation()
 
     // Read each ecll's number of points and put them to cell buffer size
     unsigned int numberOfCellPoints = 0;
-    for (SizeValueType id = 0; id < this->m_NumberOfCells; id++)
+    for (SizeValueType id = 0; id < this->m_NumberOfCells; ++id)
     {
       m_InputFile >> numberOfCellPoints;
       this->m_CellBufferSize += numberOfCellPoints;
@@ -187,44 +188,44 @@ OFFMeshIO ::ReadMeshInformation()
   else if (this->m_FileType == IOFileEnum::BINARY)
   {
     // Read the number of points
-    itk::uint32_t numberOfPoints;
+    itk::uint32_t numberOfPoints = 0;
     this->ReadBufferAsBinary(&numberOfPoints, m_InputFile, 1);
     this->m_NumberOfPoints = numberOfPoints;
 
     // Read the number of cells
-    itk::uint32_t numberOfCells;
+    itk::uint32_t numberOfCells = 0;
     this->ReadBufferAsBinary(&numberOfCells, m_InputFile, 1);
     this->m_NumberOfCells = numberOfCells;
 
     // Read number of edges
-    itk::uint32_t numberOfEdges;
+    itk::uint32_t numberOfEdges = 0;
     this->ReadBufferAsBinary(&numberOfEdges, m_InputFile, 1);
 
     // Get points start position
     m_PointsStartPosition = m_InputFile.tellg();
 
     // Read points
-    auto * pointsBuffer = new float[this->m_NumberOfPoints * this->m_PointDimension];
-    this->ReadBufferAsBinary(pointsBuffer, m_InputFile, this->m_NumberOfPoints * this->m_PointDimension);
-    delete[] pointsBuffer;
+    const auto numberOfCoordinates = this->m_NumberOfPoints * this->m_PointDimension;
+    this->ReadBufferAsBinary(make_unique_for_overwrite<float[]>(numberOfCoordinates).get(),
+                             m_InputFile,
+                             this->m_NumberOfPoints * this->m_PointDimension);
 
     // Set default cell component type
     this->m_CellBufferSize = this->m_NumberOfCells * 2;
 
     // Read cells
     itk::uint32_t numberOfCellPoints = 0;
-    auto *        cellsBuffer = new itk::uint32_t[this->m_NumberOfCells];
-    for (unsigned long id = 0; id < this->m_NumberOfCells; id++)
+    const auto    cellsBuffer = make_unique_for_overwrite<itk::uint32_t[]>(this->m_NumberOfCells);
+    for (unsigned long id = 0; id < this->m_NumberOfCells; ++id)
     {
       this->ReadBufferAsBinary(&numberOfCellPoints, m_InputFile, 1);
       this->m_CellBufferSize += numberOfCellPoints;
-      this->ReadBufferAsBinary(cellsBuffer, m_InputFile, numberOfCellPoints);
+      this->ReadBufferAsBinary(cellsBuffer.get(), m_InputFile, numberOfCellPoints);
       if (numberOfCellPoints != 3)
       {
         m_TriangleCellType = false;
       }
     }
-    delete[] cellsBuffer;
   }
 
   // Set default point component type
@@ -249,17 +250,17 @@ OFFMeshIO ::ReadMeshInformation()
   this->m_PointPixelComponentType = IOComponentEnum::FLOAT;
   this->m_PointPixelType = IOPixelEnum::SCALAR;
   this->m_UpdatePointData = false;
-  this->m_NumberOfPointPixelComponents = itk::NumericTraits<unsigned int>::OneValue();
+  this->m_NumberOfPointPixelComponents = 1;
 
   // Set default cell pixel component and point pixel type
   this->m_CellPixelComponentType = IOComponentEnum::FLOAT;
   this->m_CellPixelType = IOPixelEnum::SCALAR;
   this->m_UpdateCellData = false;
-  this->m_NumberOfCellPixelComponents = itk::NumericTraits<unsigned int>::OneValue();
+  this->m_NumberOfCellPixelComponents = 1;
 }
 
 void
-OFFMeshIO ::ReadPoints(void * buffer)
+OFFMeshIO::ReadPoints(void * buffer)
 {
   // Set file position to points start position
   m_InputFile.seekg(m_PointsStartPosition, std::ios::beg);
@@ -276,26 +277,26 @@ OFFMeshIO ::ReadPoints(void * buffer)
   }
   else
   {
-    itkExceptionMacro(<< "Invalid file type (not ASCII or BINARY)");
+    itkExceptionMacro("Invalid file type (not ASCII or BINARY)");
   }
 }
 
 void
-OFFMeshIO ::ReadCells(void * buffer)
+OFFMeshIO::ReadCells(void * buffer)
 {
-  auto * data = new itk::uint32_t[this->m_CellBufferSize - this->m_NumberOfCells];
+  const auto data = make_unique_for_overwrite<itk::uint32_t[]>(this->m_CellBufferSize - this->m_NumberOfCells);
 
   if (this->m_FileType == IOFileEnum::ASCII)
   {
-    this->ReadCellsBufferAsAscii(data, m_InputFile);
+    this->ReadCellsBufferAsAscii(data.get(), m_InputFile);
   }
   else if (this->m_FileType == IOFileEnum::BINARY)
   {
-    this->ReadBufferAsBinary(data, m_InputFile, this->m_CellBufferSize - this->m_NumberOfCells);
+    this->ReadBufferAsBinary(data.get(), m_InputFile, this->m_CellBufferSize - this->m_NumberOfCells);
   }
   else
   {
-    itkExceptionMacro(<< "Invalid file type (not ASCII or BINARY)");
+    itkExceptionMacro("Invalid file type (not ASCII or BINARY)");
   }
 
   CloseFile();
@@ -303,27 +304,25 @@ OFFMeshIO ::ReadCells(void * buffer)
   if (m_TriangleCellType)
   {
     this->WriteCellsBuffer(
-      data, static_cast<unsigned int *>(buffer), CellGeometryEnum::TRIANGLE_CELL, this->m_NumberOfCells);
+      data.get(), static_cast<unsigned int *>(buffer), CellGeometryEnum::TRIANGLE_CELL, this->m_NumberOfCells);
   }
   else
   {
     this->WriteCellsBuffer(
-      data, static_cast<unsigned int *>(buffer), CellGeometryEnum::POLYGON_CELL, this->m_NumberOfCells);
+      data.get(), static_cast<unsigned int *>(buffer), CellGeometryEnum::POLYGON_CELL, this->m_NumberOfCells);
   }
-
-  delete[] data;
 }
 
 void
-OFFMeshIO ::ReadPointData(void * itkNotUsed(buffer))
+OFFMeshIO::ReadPointData(void * itkNotUsed(buffer))
 {}
 
 void
-OFFMeshIO ::ReadCellData(void * itkNotUsed(buffer))
+OFFMeshIO::ReadCellData(void * itkNotUsed(buffer))
 {}
 
 void
-OFFMeshIO ::WriteMeshInformation()
+OFFMeshIO::WriteMeshInformation()
 {
   // Check file name
   if (this->m_FileName.empty())
@@ -362,7 +361,7 @@ OFFMeshIO ::WriteMeshInformation()
     outputFile << this->m_NumberOfCells << "    ";
 
     // Write number of edges
-    unsigned int numberOfEdges = 0;
+    constexpr unsigned int numberOfEdges = 0;
     outputFile << numberOfEdges << std::endl;
   }
   else if (this->m_FileType == IOFileEnum::BINARY)
@@ -384,7 +383,7 @@ OFFMeshIO ::WriteMeshInformation()
 }
 
 void
-OFFMeshIO ::WritePoints(void * buffer)
+OFFMeshIO::WritePoints(void * buffer)
 {
   // check file name
   if (this->m_FileName.empty())
@@ -494,7 +493,7 @@ OFFMeshIO ::WritePoints(void * buffer)
       }
       default:
       {
-        itkExceptionMacro(<< "Unknown point pixel component type" << std::endl);
+        itkExceptionMacro("Unknown point pixel component type" << std::endl);
       }
     }
   }
@@ -586,7 +585,7 @@ OFFMeshIO ::WritePoints(void * buffer)
       }
       default:
       {
-        itkExceptionMacro(<< "Unknown point pixel component type" << std::endl);
+        itkExceptionMacro("Unknown point pixel component type" << std::endl);
       }
     }
   }
@@ -595,7 +594,7 @@ OFFMeshIO ::WritePoints(void * buffer)
 }
 
 void
-OFFMeshIO ::WriteCells(void * buffer)
+OFFMeshIO::WriteCells(void * buffer)
 {
   // Check file name
   if (this->m_FileName.empty())
@@ -706,7 +705,7 @@ OFFMeshIO ::WriteCells(void * buffer)
       }
       default:
       {
-        itkExceptionMacro(<< "Unknown cell pixel component type" << std::endl);
+        itkExceptionMacro("Unknown cell pixel component type" << std::endl);
       }
     }
   }
@@ -794,7 +793,7 @@ OFFMeshIO ::WriteCells(void * buffer)
       }
       default:
       {
-        itkExceptionMacro(<< "Unknown cell pixel component type" << std::endl);
+        itkExceptionMacro("Unknown cell pixel component type" << std::endl);
       }
     }
   }
@@ -803,19 +802,19 @@ OFFMeshIO ::WriteCells(void * buffer)
 }
 
 void
-OFFMeshIO ::WritePointData(void * itkNotUsed(buffer))
+OFFMeshIO::WritePointData(void * itkNotUsed(buffer))
 {}
 
 void
-OFFMeshIO ::WriteCellData(void * itkNotUsed(buffer))
+OFFMeshIO::WriteCellData(void * itkNotUsed(buffer))
 {}
 
 void
-OFFMeshIO ::Write()
+OFFMeshIO::Write()
 {}
 
 void
-OFFMeshIO ::PrintSelf(std::ostream & os, Indent indent) const
+OFFMeshIO::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }

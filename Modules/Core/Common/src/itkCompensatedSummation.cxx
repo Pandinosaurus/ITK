@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +20,18 @@
 #define itkCompensatedSummation_cxx
 
 #include "itkNumericTraits.h"
-#include "itkCompensatedSummation.hxx"
+#include "itkCompensatedSummation.h"
 
 namespace itk
 {
 
 void ITKCommon_EXPORT
-     CompensatedSummationAddElement(float & compensation, float & sum, const float & element)
+CompensatedSummationAddElement(float & compensation, float & sum, const float element)
 {
   CompensatedSummationAddElement(compensation, sum, element, 1);
 }
 void ITKCommon_EXPORT
-     CompensatedSummationAddElement(double & compensation, double & sum, const double & element)
+CompensatedSummationAddElement(double & compensation, double & sum, const double element)
 {
   CompensatedSummationAddElement(compensation, sum, element, 1);
 }

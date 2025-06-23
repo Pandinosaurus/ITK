@@ -14,8 +14,8 @@
 #include "gdcmTransferSyntax.h"
 #include "gdcmTrace.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include <string>
 #include <iostream>
@@ -81,16 +81,22 @@ static const char *TSStrings[] = {
   "1.2.840.10008.1.2.4.102",
   // MPEG-4 AVC/H.264 BD-compatible High Profile / Level 4.1
   "1.2.840.10008.1.2.4.103",
+  // High-Throughput JPEG 2000 Image Compression (Lossless Only)
+  "1.2.840.10008.1.2.4.201",
+  // High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)
+  "1.2.840.10008.1.2.4.202",
+  // High-Throughput JPEG 2000 Image Compression
+  "1.2.840.10008.1.2.4.203",
   // Unknown
-  "Unknown Transfer Syntax", // Pretty sure we never use this case...
-  nullptr // Compilers have no obligation to finish by NULL, do it ourself
+  "Unknown Transfer Syntax", // Pretty sure we never use this case... until a new transfer syntax is added
+  nullptr // Compilers have no obligation to finish by NULL, do it ourselves
 };
 
 TransferSyntax::TSType TransferSyntax::GetTSType(const char *cstr)
 {
   // trim trailing whitespace
   std::string str = cstr;
-  std::string::size_type notspace = str.find_last_not_of(" ") + 1;
+  std::string::size_type notspace = str.find_last_not_of(' ') + 1;
   if( notspace != str.size() )
     {
     gdcmDebugMacro( "BUGGY HEADER: TS contains " <<
@@ -162,7 +168,8 @@ bool TransferSyntax::IsLossy() const
     TSField == MPEG2MainProfile ||
     TSField == MPEG2MainProfileHighLevel ||
     TSField == MPEG4AVCH264HighProfileLevel4_1 ||
-    TSField == MPEG4AVCH264BDcompatibleHighProfileLevel4_1
+    TSField == MPEG4AVCH264BDcompatibleHighProfileLevel4_1 ||
+    TSField == HTJ2K
   )
     {
     return true;
@@ -175,7 +182,7 @@ bool TransferSyntax::IsLossy() const
 // transfer syntax.  If you use the JPEG compression algorithm (ITU-T T.81,
 // ISO/IEC IS 10918-1), You will not be able to declare a lossy compress pixel
 // data using JPEGLosslessProcess14_1 For the same reason using J2K (ITU-T
-// T.800, ISO/IEC IS 15444-1), you shoult not be allowed to stored an
+// T.800, ISO/IEC IS 15444-1), you should not be allowed to stored an
 // irreversible wavelet compressed pixel data in a file declared with transfer
 // syntax JPEG2000Lossless.
 // Same goes for JPEG-LS (ITU-T T.87, ISO/IEC IS 14495-1), and to some extent
@@ -211,7 +218,8 @@ bool TransferSyntax::IsLossless() const
     TSField == MPEG2MainProfile ||
     TSField == MPEG2MainProfileHighLevel ||
     TSField == MPEG4AVCH264HighProfileLevel4_1 ||
-    TSField == MPEG4AVCH264BDcompatibleHighProfileLevel4_1
+    TSField == MPEG4AVCH264BDcompatibleHighProfileLevel4_1 ||
+    TSField == HTJ2K
   )
     {
     return false;
@@ -300,6 +308,10 @@ bool TransferSyntax::IsEncapsulated() const
   case MPEG4AVCH264BDcompatibleHighProfileLevel4_1:
   //case ImplicitVRBigEndianACRNEMA:
   //case WeirdPapryus:
+  case HTJ2KLossless:
+  case HTJ2KRPCLLossless:
+  case HTJ2K:
+
     ret = true;
     break;
   default:

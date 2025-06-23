@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkThresholdMaximumConnectedComponentsImageFilter_hxx
 #define itkThresholdMaximumConnectedComponentsImageFilter_hxx
 
-#include "itkThresholdMaximumConnectedComponentsImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
@@ -26,21 +25,18 @@
 
 namespace itk
 {
-/** Constructor
- *
- */
+
 template <typename TInputImage, typename TOutputImage>
 ThresholdMaximumConnectedComponentsImageFilter<TInputImage,
                                                TOutputImage>::ThresholdMaximumConnectedComponentsImageFilter()
+  : m_ThresholdFilter(ThresholdFilterType::New())
+  , m_ConnectedComponent(ConnectedFilterType::New())
+  , m_LabeledComponent(RelabelFilterType::New())
+  , m_MinMaxCalculator(MinMaxCalculatorType::New())
+  , m_OutsideValue(OutputPixelType{})
+  , m_InsideValue(NumericTraits<OutputPixelType>::max())
+
 {
-  m_ThresholdFilter = ThresholdFilterType::New();
-
-  m_ConnectedComponent = ConnectedFilterType::New();
-
-  m_LabeledComponent = RelabelFilterType::New();
-
-  m_MinMaxCalculator = MinMaxCalculatorType::New();
-
   //
   // Connecting the internal pipeline.
   //
@@ -51,17 +47,12 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage,
   const typename NumericTraits<PixelType>::AccumulateType minLabel = NumericTraits<PixelType>::NonpositiveMin();
 
   // Default. Use ITK set macro "SetMinimumObjectSizeInPixels" to change
-  m_MinimumObjectSizeInPixels = 0;
 
   m_ThresholdValue = static_cast<PixelType>((maxLabel + minLabel) / 2);
 
   // Initialize values for the threshold filters
   // Default. Use ITK set macro "SetOutsideValue" to change
-  m_OutsideValue = NumericTraits<OutputPixelType>::ZeroValue();
-
   // Default. Use ITK set macro "SetInsideValue" to change
-  m_InsideValue = NumericTraits<OutputPixelType>::max();
-
   m_LowerBoundary = m_ThresholdValue;
 
   // Default. Use ITK set macro "SetUpperBoundary" to change
@@ -69,12 +60,8 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage,
 
   // Initialize the counter for the number of connected components
   // (objects) in the image.
-  m_NumberOfObjects = 0;
 } // end of the constructor
 
-/**
- *
- */
 template <typename TInputImage, typename TOutputImage>
 SizeValueType
 ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::ComputeConnectedComponents()
@@ -87,17 +74,6 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::Compu
   return m_LabeledComponent->GetNumberOfObjects();
 } //  end of ComputeConnectedComponents()
 
-/**
- * This is the meat of the filter. It essentially uses a bisection
- * method to search for the threshold setPt that maximizes the number
- * of connected components in the image. The
- * "ComputeConnectedComponents" does the threshold and then a
- * connected components object count. It is removed from "GenerateData"
- * to make this all easier to read.
- *
- * Remove the comments on the output statements to see how the search
- * strategy works.
- */
 template <typename TInputImage, typename TOutputImage>
 void
 ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::GenerateData()
@@ -105,7 +81,7 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::Gener
   //
   //  Setup pointers to get input image and send info to output image
   //
-  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
+  const typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
 
   // Find the min and max of the image.
   m_MinMaxCalculator->SetImage(this->GetInput());
@@ -175,9 +151,9 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::Gener
                                     << std::endl);
     itkDebugMacro("Iteration #:" << iterationCounter);
 
-    iterationCounter++;
+    ++iterationCounter;
 #endif
-  } // end of the thresholdloop
+  } // end of the threshold loop
 
   //
   //  The two output values
@@ -193,9 +169,6 @@ ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::Gener
   this->GraftOutput(m_ThresholdFilter->GetOutput());
 } // end of GenerateData Process
 
-/** Standard Run of the mill PrintSelf
- *
- */
 template <typename TInputImage, typename TOutputImage>
 void
 ThresholdMaximumConnectedComponentsImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os,

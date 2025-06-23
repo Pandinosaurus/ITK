@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,7 @@
 #ifndef itkListSample_hxx
 #define itkListSample_hxx
 
-#include "itkListSample.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TMeasurementVector>
 void
@@ -52,24 +48,25 @@ ListSample<TMeasurementVector>::PushBack(const MeasurementVectorType & mv)
 }
 
 template <typename TMeasurementVector>
-typename ListSample<TMeasurementVector>::InstanceIdentifier
-ListSample<TMeasurementVector>::Size() const
+auto
+ListSample<TMeasurementVector>::Size() const -> InstanceIdentifier
 {
   return static_cast<InstanceIdentifier>(this->m_InternalContainer.size());
 }
 
 template <typename TMeasurementVector>
-typename ListSample<TMeasurementVector>::TotalAbsoluteFrequencyType
-ListSample<TMeasurementVector>::GetTotalFrequency() const
+auto
+ListSample<TMeasurementVector>::GetTotalFrequency() const -> TotalAbsoluteFrequencyType
 {
   // Since the entries are unique, the total
-  // frequency is equal to the numbe of entries.
+  // frequency is equal to the number of entries.
   return this->Size();
 }
 
 template <typename TMeasurementVector>
-const typename ListSample<TMeasurementVector>::MeasurementVectorType &
+auto
 ListSample<TMeasurementVector>::GetMeasurementVector(InstanceIdentifier instanceId) const
+  -> const MeasurementVectorType &
 {
   if (instanceId < m_InternalContainer.size())
   {
@@ -101,17 +98,15 @@ ListSample<TMeasurementVector>::SetMeasurementVector(InstanceIdentifier instance
 }
 
 template <typename TMeasurementVector>
-typename ListSample<TMeasurementVector>::AbsoluteFrequencyType
-ListSample<TMeasurementVector>::GetFrequency(InstanceIdentifier instanceId) const
+auto
+ListSample<TMeasurementVector>::GetFrequency(InstanceIdentifier instanceId) const -> AbsoluteFrequencyType
 {
   if (instanceId < m_InternalContainer.size())
   {
     return 1;
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 template <typename TMeasurementVector>
@@ -134,10 +129,8 @@ ListSample<TMeasurementVector>::PrintSelf(std::ostream & os, Indent indent) cons
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Internal Data Container: " << &m_InternalContainer << std::endl;
-  os << indent << "Number of samples: " << this->m_InternalContainer.size() << std::endl;
+  os << indent << "InternalContainer: " << &m_InternalContainer << std::endl;
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

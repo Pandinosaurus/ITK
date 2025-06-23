@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,26 +37,21 @@ operator<<(std::basic_ostream<CharType, TraitsType> & os, const std::vector<Memb
 int
 itkDecoratorTest(int, char *[])
 {
-  int status = 0;
-
-  std::cout << "----------------------------------------------------" << std::endl;
 
   using FloatObjectType = itk::SimpleDataObjectDecorator<float>;
 
-  FloatObjectType::Pointer f = FloatObjectType::New();
+  auto f = FloatObjectType::New();
   f->Set(5.0);
 
   std::cout << "Value of f: " << f->Get() << std::endl;
   std::cout << "FloatDataObject: " << f << std::endl;
 
-  std::cout << "----------------------------------------------------" << std::endl;
-
   using TransformType = itk::AffineTransform<double, 3>;
   using TransformObjectType = itk::DataObjectDecorator<TransformType>;
 
-  TransformObjectType::Pointer decoratedTransform = TransformObjectType::New();
-  TransformType::Pointer       transformObject = TransformType::New();
-  const TransformType *        constTransformObject = transformObject;
+  auto                  decoratedTransform = TransformObjectType::New();
+  auto                  transformObject = TransformType::New();
+  const TransformType * constTransformObject = transformObject;
 
   transformObject->Scale(5.0);
 
@@ -66,7 +61,7 @@ itkDecoratorTest(int, char *[])
   transformObject->Modified();
   ITK_TEST_EXPECT_TRUE(t1 < decoratedTransform->GetMTime());
 
-  TransformObjectType::Pointer decoratedTransform2 = TransformObjectType::New();
+  auto decoratedTransform2 = TransformObjectType::New();
   decoratedTransform2->Graft(decoratedTransform);
 
   ITK_TEST_EXPECT_EQUAL(decoratedTransform2->Get(), decoratedTransform->Get());
@@ -83,7 +78,7 @@ itkDecoratorTest(int, char *[])
   using TransformBaseType = itk::Transform<double, 3>;
   using TransformBaseObjectType = itk::DataObjectDecorator<TransformBaseType>;
 
-  TransformBaseObjectType::Pointer decoratedBaseTransform = TransformBaseObjectType::New();
+  auto decoratedBaseTransform = TransformBaseObjectType::New();
   // NOTE: GetPointer is needed to force selection of the correct overloaded function signature.
   decoratedBaseTransform->Graft(decoratedTransform.GetPointer());
   ITK_TEST_EXPECT_TRUE(decoratedBaseTransform->Get() != nullptr);
@@ -106,37 +101,35 @@ itkDecoratorTest(int, char *[])
   decoratedTransform->Graft(decoratedBaseTransform);
   ITK_TEST_EXPECT_TRUE(decoratedTransform->Get() == nullptr);
 
-  std::cout << "----------------------------------------------------" << std::endl;
-
   using VectorType = std::vector<float>;
-  using VectorPointer = VectorType *;
   using VectorObjectType = itk::SimpleDataObjectDecorator<VectorType>;
   using VectorPointerObjectType = itk::AutoPointerDataObjectDecorator<VectorType>;
 
   VectorType v;
   v.resize(5);
   std::cout << v << std::endl;
-  VectorObjectType::Pointer vo = VectorObjectType::New();
+  auto vo = VectorObjectType::New();
   vo->Set(v);
-  std::cout << vo;
-  std::cout << "----------------------------------------------------" << std::endl;
+  std::cout << vo << std::endl;
 
   // The following code block will NOT cause a memory leak because the
   // ownership of the dynamically allocated memory is passed to the
   // AutoPointerDataObjectDecorator
   {
-    VectorPointer vp;
-    vp = new VectorType;
+    auto vp = new VectorType;
     vp->resize(3);
     std::cout << *vp << std::endl;
 
-    VectorPointerObjectType::Pointer vop = VectorPointerObjectType::New();
+    auto vop = VectorPointerObjectType::New();
     vop->Set(vp);
 
     std::cout << vop;
-  }
 
-  std::cout << "----------------------------------------------------" << std::endl;
+    VectorType *       vec = vop->Get();
+    const VectorType * constVec = vop->Get();
+    std::cout << "AutoPointerDataObjectDecorator::Get: " << vec << std::endl;
+    std::cout << "AutoPointerDataObjectDecorator::Get const: " << constVec << std::endl;
+  }
 
   // The following code block will cause a memory leak because the
   // decorator does not deallocate the memory that was passed in on a
@@ -148,11 +141,13 @@ itkDecoratorTest(int, char *[])
   // vp2->resize(4);
   // std::cout << *vp2 << std::endl;
 
-  // VectorPointerObjectType2::Pointer vop2 = VectorPointerObjectType2::New();
+  // auto vop2 = VectorPointerObjectType2::New();
   // vop2->Set(vp2);
 
   // std::cout << vop2;
   //}
 
-  return status;
+
+  std::cout << "Test finished." << std::endl;
+  return EXIT_SUCCESS;
 }

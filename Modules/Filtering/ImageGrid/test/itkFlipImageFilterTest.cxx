@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +41,9 @@ itkFlipImageFilterTest(int argc, char * argv[])
   using FlipperType = itk::FlipImageFilter<ImageType>;
 
   // Define a small input image
-  ImageType::IndexType  index = { { 10, 20, 30 } };
-  ImageType::SizeType   size = { { 5, 4, 3 } };
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  constexpr ImageType::IndexType index = { { 10, 20, 30 } };
+  constexpr ImageType::SizeType  size = { { 5, 4, 3 } };
+  const ImageType::RegionType    region{ index, size };
 
   ImageType::SpacingType spacing;
   spacing[0] = 1.1;
@@ -56,7 +54,7 @@ itkFlipImageFilterTest(int argc, char * argv[])
   origin[1] = 0.4;
   origin[2] = 0.3;
 
-  ImageType::Pointer inputImage = ImageType::New();
+  auto inputImage = ImageType::New();
   inputImage->SetLargestPossibleRegion(region);
   inputImage->SetBufferedRegion(region);
   inputImage->Allocate();
@@ -77,11 +75,11 @@ itkFlipImageFilterTest(int argc, char * argv[])
 
 
   // Flip the image
-  FlipperType::Pointer flipper = FlipperType::New();
+  auto flipper = FlipperType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(flipper, FlipImageFilter, ImageToImageFilter);
 
-  itk::SimpleFilterWatcher watcher(flipper, "FlipImageFilter");
+  const itk::SimpleFilterWatcher watcher(flipper, "FlipImageFilter");
 
   bool                           bArray[ImageDimension] = { true, false, true };
   FlipperType::FlipAxesArrayType flipAxes(bArray);
@@ -97,7 +95,7 @@ itkFlipImageFilterTest(int argc, char * argv[])
   flipper->Update();
 
   // Check the output
-  ImageType::Pointer outputImage = flipper->GetOutput();
+  const ImageType::Pointer outputImage = flipper->GetOutput();
 
   const ImageType::SpacingType & inputSpacing = inputImage->GetSpacing();
   const ImageType::PointType &   inputOrigin = inputImage->GetOrigin();
@@ -114,16 +112,17 @@ itkFlipImageFilterTest(int argc, char * argv[])
     IndexType inputIndex = inputIter.GetIndex();
     IndexType outputIndex;
 
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       if (flipAxes[j])
       {
-        int sign = flipAboutOrigin ? -1 : 1;
+        const int sign = flipAboutOrigin ? -1 : 1;
 
-        ImageType::PointType::ValueType temp =
+        const ImageType::PointType::ValueType temp =
           sign * (static_cast<double>(inputIndex[j]) * inputSpacing[j] + inputOrigin[j]);
 
-        ImageType::PointType::ValueType outputPoint = flipAboutOrigin ? temp - outputOrigin[j] : outputOrigin[j] - temp;
+        const ImageType::PointType::ValueType outputPoint =
+          flipAboutOrigin ? temp - outputOrigin[j] : outputOrigin[j] - temp;
 
         outputIndex[j] = itk::Math::Round<IndexValueType>(outputPoint / outputSpacing[j]);
       }
@@ -138,9 +137,10 @@ itkFlipImageFilterTest(int argc, char * argv[])
       passed = false;
       std::cout << "Mismatch at index: in: " << inputIndex;
       std::cout << "; out: " << outputIndex << std::endl;
-      std::cout << "Expected pixel value: " << itk::NumericTraits<IteratorType::PixelType>::PrintType(inputIter.Get())
-                << ", but got: "
-                << itk::NumericTraits<IteratorType::PixelType>::PrintType(outputImage->GetPixel(outputIndex))
+      std::cout << "Expected pixel value: "
+                << static_cast<itk::NumericTraits<IteratorType::PixelType>::PrintType>(inputIter.Get()) << ", but got: "
+                << static_cast<itk::NumericTraits<IteratorType::PixelType>::PrintType>(
+                     outputImage->GetPixel(outputIndex))
                 << std::endl;
     }
 

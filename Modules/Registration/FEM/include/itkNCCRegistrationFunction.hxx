@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkNCCRegistrationFunction_hxx
 #define itkNCCRegistrationFunction_hxx
 
-#include "itkNCCRegistrationFunction.h"
 #include "itkMacro.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkMath.h"
@@ -35,7 +34,7 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::NCCRegis
 
   RadiusType r;
 
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     r[j] = 1;
   }
@@ -46,7 +45,7 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::NCCRegis
 
   m_FixedImageSpacing.Fill(1.0);
 
-  typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
+  auto interp = DefaultInterpolatorType::New();
 
   m_MovingImageInterpolator = static_cast<InterpolatorType *>(interp.GetPointer());
 }
@@ -57,7 +56,7 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Initiali
 {
   if (!this->m_MovingImage || !this->m_FixedImage || !m_MovingImageInterpolator)
   {
-    itkExceptionMacro(<< "MovingImage, FixedImage and/or Interpolator not set");
+    itkExceptionMacro("MovingImage, FixedImage and/or Interpolator not set");
   }
 
   // Cache fixed image information
@@ -76,11 +75,11 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Initiali
 }
 
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-typename NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::PixelType
+auto
 NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeUpdate(
   const NeighborhoodType & it,
   void *                   itkNotUsed(globalData),
-  const FloatOffsetType &  itkNotUsed(offset))
+  const FloatOffsetType &  itkNotUsed(offset)) -> PixelType
 {
   const IndexType oindex = it.GetIndex();
 
@@ -97,18 +96,18 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeU
 
   double derivativeF[ImageDimension];
   double derivativeM[ImageDimension];
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     derivativeF[j] = 0;
     derivativeM[j] = 0;
   }
 
   unsigned int hoodlen = hoodIt.Size();
-  for (unsigned int indct = 0; indct < hoodlen - 1; indct++)
+  for (unsigned int indct = 0; indct < hoodlen - 1; ++indct)
   {
     const IndexType index = hoodIt.GetIndex(indct);
     bool            inimage = true;
-    for (unsigned int dd = 0; dd < ImageDimension; dd++)
+    for (unsigned int dd = 0; dd < ImageDimension; ++dd)
     {
       if (index[dd] < 0 || index[dd] > static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1))
       {
@@ -120,10 +119,10 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeU
       // Get fixed image related information.
       // Note: no need to check the index is within fixed image buffer.
       // This is done by the external filter.
-      const auto                fixedValue = (double)this->m_FixedImage->GetPixel(index);
+      const auto                fixedValue = static_cast<double>(this->m_FixedImage->GetPixel(index));
       const CovariantVectorType fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
       double                    fixedGradientSquaredMagnitude = 0;
-      for (unsigned int j = 0; j < ImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; ++j)
       {
         fixedGradientSquaredMagnitude += itk::Math::sqr(fixedGradient[j]) * m_FixedImageSpacing[j];
       }
@@ -133,7 +132,7 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeU
       const DeformationPixelType vec = this->GetDisplacementField()->GetPixel(index);
       PointType                  mappedPoint;
       this->GetFixedImage()->TransformIndexToPhysicalPoint(index, mappedPoint);
-      for (unsigned int j = 0; j < ImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; ++j)
       {
         mappedPoint[j] += vec[j];
       }
@@ -147,7 +146,7 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeU
       smm += movingValue * movingValue;
       sfm += fixedValue * movingValue;
 
-      for (unsigned int dim = 0; dim < ImageDimension; dim++)
+      for (unsigned int dim = 0; dim < ImageDimension; ++dim)
       {
         const double differential = fixedGradient[dim];
         derivativeF[dim] += fixedValue * differential;
@@ -156,13 +155,12 @@ NCCRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeU
     }
   }
 
-  PixelType update;
-  update.Fill(0.0);
-  double updatenorm = 0.0;
+  PixelType update{};
+  double    updatenorm = 0.0;
   if ((sff * smm) != 0.0)
   {
     const double factor = 1.0 / std::sqrt(sff * smm);
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       update[i] = factor * (derivativeF[i] - (sfm / smm) * derivativeM[i]);
       updatenorm += (update[i] * update[i]);

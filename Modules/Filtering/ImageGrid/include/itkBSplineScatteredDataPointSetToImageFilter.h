@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -106,25 +106,15 @@ namespace itk
  *
  * \author Nicholas J. Tustison
  *
- * This code was contributed in the Insight Journal paper:
- * "N-D C^k B-Spline Scattered Data Approximation"
- * by Nicholas J. Tustison, James C. Gee
- * https://www.insight-journal.org/browse/publication/57
+ * This code was contributed in the Insight Journal paper
+ * \cite Tustison_2005.
  *
- *
- * \par REFERENCE
- * S. Lee, G. Wolberg, and S. Y. Shin, "Scattered Data Interpolation
- * with Multilevel B-Splines", IEEE Transactions on Visualization and
- * Computer Graphics, 3(3):228-244, 1997.
- *
- * \par REFERENCE
- * N.J. Tustison and J.C. Gee, "Generalized n-D C^k Scattered Data Approximation
- * with Confidence Values", Proceedings of the MIAR conference, August 2006.
+ * For additional information see \cite lee1997 and \cite tustison2006.
  *
  * \ingroup ITKImageGrid
  *
  * \sphinx
- * \sphinxexample{Filtering/ImageGrid/FitSplineIntoPointSet,}
+ * \sphinxexample{Filtering/ImageGrid/FitSplineIntoPointSet,Fit Spline Into Point Set}
  * \endsphinx
  */
 
@@ -144,8 +134,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineScatteredDataPointSetToImageFilter, PointSetToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineScatteredDataPointSetToImageFilter);
 
   /** Extract dimension from the output image. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -165,17 +155,18 @@ public:
   using PointSetPointer = typename PointSetType::Pointer;
   using PointDataType = typename PointSetType::PixelType;
   using PointDataContainerType = typename PointSetType::PointDataContainer;
+  using PointDataContainerPointer = typename PointDataContainerType::Pointer;
 
   /** Other type alias. */
   using RealType = float;
-  using WeightsContainerType = VectorContainer<unsigned, RealType>;
+  using WeightsContainerType = VectorContainer<unsigned int, RealType>;
 
   /** Image types. */
   using PointDataImageType = Image<PointDataType, Self::ImageDimension>;
   using RealImageType = Image<RealType, Self::ImageDimension>;
   using RealImagePointer = typename RealImageType::Pointer;
   using PointDataImagePointer = typename PointDataImageType::Pointer;
-  using ArrayType = FixedArray<unsigned, Self::ImageDimension>;
+  using ArrayType = FixedArray<unsigned int, Self::ImageDimension>;
   using RealArrayType = FixedArray<RealType, Self::ImageDimension>;
 
   /** Interpolation kernel type (default spline order = 3). */
@@ -208,9 +199,10 @@ public:
    * initial fitting level. The B-spline mesh size is equal to the number
    * of control points minus the spline order. Default = 4 in each dimension.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfControlPoints, ArrayType);
   itkGetConstReferenceMacro(NumberOfControlPoints, ArrayType);
-
+  /** @ITKEndGrouping */
   /** Get the number of current control points for each parametric dimension at
    * the current fitting level. The B-spline mesh size is equal to the number
    * of control points minus the spline order. Default = 4 in each dimension.
@@ -243,9 +235,10 @@ public:
    * the image domain to be co-extensive with the parametric domain. We use
    * the B-spline epsilon to push the edge of the image boundary inside the
    * B-spline parametric domain. */
+  /** @ITKStartGrouping */
   itkSetMacro(BSplineEpsilon, RealType);
   itkGetConstMacro(BSplineEpsilon, RealType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the array to define the periodicity of the dimensions in the
    * parametric space is to be.
    * This array of 0/1 values defines whether a particular dimension of the
@@ -262,9 +255,10 @@ public:
    * they were also located at the end of the domain. The number of points to
    * be reused will depend on the spline order. As a user, you don't need to
    * replicate the points, the filter will do this for you. */
+  /** @ITKStartGrouping */
   itkSetMacro(CloseDimension, ArrayType);
   itkGetConstReferenceMacro(CloseDimension, ArrayType);
-
+  /** @ITKEndGrouping */
   /** A weighted fitting is possible where each input point is assigned a
    * relative weighting. */
   void
@@ -273,10 +267,11 @@ public:
   /** Set/Get whether or not the sampled output B-spline object is constructed.
    * The result of the fitting process is an n-D grid of control points which
    * describe the continuous B-spline object. */
+  /** @ITKStartGrouping */
   itkSetMacro(GenerateOutputImage, bool);
   itkGetConstReferenceMacro(GenerateOutputImage, bool);
   itkBooleanMacro(GenerateOutputImage);
-
+  /** @ITKEndGrouping */
   /** Get the control point lattice produced by the fitting process. */
   PointDataImagePointer
   GetPhiLattice()
@@ -318,10 +313,6 @@ private:
   void
   RefineControlPointLattice();
 
-  /** Determine the residuals after fitting to one level. */
-  void
-  UpdatePointSet();
-
   /** This function is not used as it requires an evaluation of all
    * (SplineOrder+1)^ImageDimensions B-spline weights for each evaluation. */
   void
@@ -334,6 +325,10 @@ private:
   /** Function used to generate the sampled B-spline object quickly. */
   void
   ThreadedGenerateDataForReconstruction(const RegionType &, ThreadIdType);
+
+  /** Update the residuals for multi-level fitting. */
+  void
+  ThreadedGenerateDataForUpdatingResidualValues(const RegionType &, ThreadIdType);
 
   /** Sub-function used by GenerateOutputImageFast() to generate the sampled
    * B-spline object quickly. */
@@ -355,34 +350,34 @@ private:
   bool         m_UsePointWeights{ false };
   unsigned int m_MaximumNumberOfLevels{ 1 };
   unsigned int m_CurrentLevel{ 0 };
-  ArrayType    m_NumberOfControlPoints;
-  ArrayType    m_CurrentNumberOfControlPoints;
-  ArrayType    m_CloseDimension;
-  ArrayType    m_SplineOrder;
-  ArrayType    m_NumberOfLevels;
+  ArrayType    m_NumberOfControlPoints{};
+  ArrayType    m_CurrentNumberOfControlPoints{};
+  ArrayType    m_CloseDimension{};
+  ArrayType    m_SplineOrder{};
+  ArrayType    m_NumberOfLevels{};
 
-  typename WeightsContainerType::Pointer m_PointWeights;
+  typename WeightsContainerType::Pointer m_PointWeights{};
 
-  typename PointDataImageType::Pointer m_PhiLattice;
-  typename PointDataImageType::Pointer m_PsiLattice;
+  typename PointDataImageType::Pointer m_PhiLattice{};
+  typename PointDataImageType::Pointer m_PsiLattice{};
 
-  vnl_matrix<RealType> m_RefinedLatticeCoefficients[ImageDimension];
+  vnl_matrix<RealType> m_RefinedLatticeCoefficients[ImageDimension]{};
 
-  typename PointDataContainerType::Pointer m_InputPointData;
-  typename PointDataContainerType::Pointer m_OutputPointData;
+  PointDataContainerPointer m_ResidualPointSetValues{};
 
-  typename KernelType::Pointer m_Kernel[ImageDimension];
+  typename KernelType::Pointer m_Kernel[ImageDimension]{};
 
-  typename KernelOrder0Type::Pointer m_KernelOrder0;
-  typename KernelOrder1Type::Pointer m_KernelOrder1;
-  typename KernelOrder2Type::Pointer m_KernelOrder2;
-  typename KernelOrder3Type::Pointer m_KernelOrder3;
+  typename KernelOrder0Type::Pointer m_KernelOrder0{};
+  typename KernelOrder1Type::Pointer m_KernelOrder1{};
+  typename KernelOrder2Type::Pointer m_KernelOrder2{};
+  typename KernelOrder3Type::Pointer m_KernelOrder3{};
 
-  std::vector<RealImagePointer>      m_OmegaLatticePerThread;
-  std::vector<PointDataImagePointer> m_DeltaLatticePerThread;
+  std::vector<RealImagePointer>      m_OmegaLatticePerThread{};
+  std::vector<PointDataImagePointer> m_DeltaLatticePerThread{};
 
   RealType m_BSplineEpsilon{ static_cast<RealType>(1e-3) };
   bool     m_IsFittingComplete{ false };
+  bool     m_DoUpdateResidualValues{ false };
 };
 } // end namespace itk
 

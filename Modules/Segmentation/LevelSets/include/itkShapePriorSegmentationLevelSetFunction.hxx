@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,48 +18,42 @@
 #ifndef itkShapePriorSegmentationLevelSetFunction_hxx
 #define itkShapePriorSegmentationLevelSetFunction_hxx
 
-#include "itkShapePriorSegmentationLevelSetFunction.h"
 #include "itkMath.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TImageType, typename TFeatureImageType>
 ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ShapePriorSegmentationLevelSetFunction()
-{
-  m_ShapeFunction = nullptr;
-  m_ShapePriorWeight = NumericTraits<ScalarValueType>::ZeroValue();
-}
+  : m_ShapeFunction(nullptr)
+  , m_ShapePriorWeight(ScalarValueType{})
+{}
 
-/**
- * PrintSelf
- */
 template <typename TImageType, typename TFeatureImageType>
 void
 ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "ShapeFunction: " << m_ShapeFunction.GetPointer() << std::endl;
-  os << indent << "ShapePriorWeight: " << m_ShapePriorWeight << std::endl;
+
+  itkPrintSelfObjectMacro(ShapeFunction);
+
+  os << indent
+     << "ShapePriorWeight: " << static_cast<typename NumericTraits<ScalarValueType>::PrintType>(m_ShapePriorWeight)
+     << std::endl;
 }
 
-/**
- * Compute the equation value.
- */
 template <typename TImageType, typename TFeatureImageType>
-typename ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::PixelType
+auto
 ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ComputeUpdate(
   const NeighborhoodType & neighborhood,
   void *                   gd,
-  const FloatOffsetType &  offset)
+  const FloatOffsetType &  offset) -> PixelType
 {
   // Compute the generic level set update using superclass
   PixelType value = this->Superclass::ComputeUpdate(neighborhood, gd, offset);
 
   // Add the shape prior term
-  if (m_ShapeFunction && Math::NotExactlyEquals(m_ShapePriorWeight, NumericTraits<ScalarValueType>::ZeroValue()))
+  if (m_ShapeFunction && Math::NotExactlyEquals(m_ShapePriorWeight, ScalarValueType{}))
   {
     IndexType                               idx = neighborhood.GetIndex();
     ContinuousIndex<double, ImageDimension> cdx;
@@ -70,7 +64,7 @@ ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ComputeUp
     typename ShapeFunctionType::PointType point;
     this->GetFeatureImage()->TransformContinuousIndexToPhysicalPoint(cdx, point);
 
-    ScalarValueType shape_term =
+    const ScalarValueType shape_term =
       m_ShapePriorWeight * (m_ShapeFunction->Evaluate(point) - neighborhood.GetCenterPixel());
 
     value += shape_term;
@@ -83,12 +77,10 @@ ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ComputeUp
   return value;
 }
 
-/**
- * Compute the global time step.
- */
 template <typename TImageType, typename TFeatureImageType>
-typename ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::TimeStepType
+auto
 ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ComputeGlobalTimeStep(void * gd) const
+  -> TimeStepType
 {
   TimeStepType dt;
 
@@ -120,7 +112,7 @@ ShapePriorSegmentationLevelSetFunction<TImageType, TFeatureImageType>::ComputeGl
   }
 
   double maxScaleCoefficient = 0.0;
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     maxScaleCoefficient = std::max(this->m_ScaleCoefficients[i], maxScaleCoefficient);
   }

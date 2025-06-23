@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,19 +33,13 @@ template <typename TInput1, typename TInput2, typename TOutput>
 class Modulus2
 {
 public:
-  Modulus2() = default;
-  ~Modulus2() = default;
   bool
-  operator!=(const Modulus2 &) const
+  operator==(const Modulus2 &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const Modulus2 & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Modulus2);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
@@ -59,7 +53,7 @@ public:
 } // namespace Functor
 
 /**
- *\class BinaryMagnitudeImageFilter
+ * \class BinaryMagnitudeImageFilter
  * \brief Computes the square root of the sum of squares of corresponding input pixels.
  *
  * This filter is templated over the types of the two
@@ -85,7 +79,8 @@ public:
  * \ingroup ITKImageIntensity
  */
 template <typename TInputImage1, typename TInputImage2, typename TOutputImage>
-class BinaryMagnitudeImageFilter : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
+class ITK_TEMPLATE_EXPORT BinaryMagnitudeImageFilter
+  : public BinaryGeneratorImageFilter<TInputImage1, TInputImage2, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(BinaryMagnitudeImageFilter);
@@ -101,16 +96,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(BinaryMagnitudeImageFilter, BinaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMagnitudeImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(Input1ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage1::PixelType, double>));
   itkConceptMacro(Input2ConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage2::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   BinaryMagnitudeImageFilter()

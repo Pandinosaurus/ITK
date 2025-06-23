@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,17 +47,10 @@ GE4ImageIOFactory::GetDescription() const
 
 // Undocumented API used to register during static initialization.
 // DO NOT CALL DIRECTLY.
-
-static bool GE4ImageIOFactoryHasBeenRegistered;
-
 void ITKIOGE_EXPORT
-     GE4ImageIOFactoryRegister__Private()
+GE4ImageIOFactoryRegister__Private()
 {
-  if (!GE4ImageIOFactoryHasBeenRegistered)
-  {
-    GE4ImageIOFactoryHasBeenRegistered = true;
-    GE4ImageIOFactory::RegisterOneFactory();
-  }
+  ObjectFactoryBase::RegisterInternalFactoryOnce<GE4ImageIOFactory>();
 }
 
 } // end namespace itk

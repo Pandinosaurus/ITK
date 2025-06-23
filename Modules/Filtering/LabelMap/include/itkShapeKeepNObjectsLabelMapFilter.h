@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,14 @@
 namespace itk
 {
 /**
- *\class ShapeKeepNObjectsLabelMapFilter
+ * \class ShapeKeepNObjectsLabelMapFilter
  * \brief Keep N objects according to their shape attributes.
  *
  * The ShapeKeepNObjectsLabelMapFilter keeps N objects in a label collection image with the
  * highest (or lowest) attribute value. The attributes values are those of the ShapeLabelObject.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -68,42 +68,41 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(ShapeKeepNObjectsLabelMapFilter, InPlaceLabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeKeepNObjectsLabelMapFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-/*  itkConceptMacro(InputEqualityComparableCheck,
+  /*itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
   itkConceptMacro(InputOStreamWritableCheck,
     (Concept::OStreamWritable<InputImagePixelType>));*/
-// End concept checking
-#endif
 
   /**
    * Set/Get the ordering of the objects. By default, the ones with the
    * highest value are kept. Turning ReverseOrdering to true make this filter
    * keep the objects with the smallest values
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ReverseOrdering, bool);
   itkGetConstReferenceMacro(ReverseOrdering, bool);
   itkBooleanMacro(ReverseOrdering);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the number of objects to keep
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfObjects, SizeValueType);
   itkGetConstReferenceMacro(NumberOfObjects, SizeValueType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the attribute to use to select the object to keep.
    * Default is "Size".
    */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Attribute, AttributeType);
   itkSetMacro(Attribute, AttributeType);
-
+  /** @ITKEndGrouping */
   void
   SetAttribute(const std::string & s)
   {
@@ -153,18 +152,18 @@ protected:
       auto end = labelObjects.begin() + m_NumberOfObjects;
       if (m_ReverseOrdering)
       {
-        Functor::LabelObjectReverseComparator<LabelObjectType, TAttributeAccessor> comparator;
+        const Functor::LabelObjectReverseComparator<LabelObjectType, TAttributeAccessor> comparator{};
         std::nth_element(labelObjects.begin(), end, labelObjects.end(), comparator);
       }
       else
       {
-        Functor::LabelObjectComparator<LabelObjectType, TAttributeAccessor> comparator;
+        const Functor::LabelObjectComparator<LabelObjectType, TAttributeAccessor> comparator{};
         std::nth_element(labelObjects.begin(), end, labelObjects.end(), comparator);
       }
       progress.CompletedPixel();
 
       // and remove the last objects of the map
-      for (typename VectorType::const_iterator it2 = end; it2 != labelObjects.end(); it2++)
+      for (auto it2 = end; it2 != labelObjects.end(); ++it2)
       {
         output2->AddLabelObject(*it2);
         output->RemoveLabelObject(*it2);
@@ -176,10 +175,10 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  bool m_ReverseOrdering;
+  bool m_ReverseOrdering{};
 
-  SizeValueType m_NumberOfObjects;
-  AttributeType m_Attribute;
+  SizeValueType m_NumberOfObjects{};
+  AttributeType m_Attribute{};
 }; // end of class
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkMeanImageFilter_hxx
 #define itkMeanImageFilter_hxx
-#include "itkMeanImageFilter.h"
 
 #include "itkBufferedImageNeighborhoodPixelAccessPolicy.h"
 #include "itkImageNeighborhoodOffsets.h"
@@ -41,8 +40,8 @@ void
 MeanImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  typename OutputImageType::Pointer     output = this->GetOutput();
-  typename InputImageType::ConstPointer input = this->GetInput();
+  const typename OutputImageType::Pointer     output = this->GetOutput();
+  const typename InputImageType::ConstPointer input = this->GetInput();
 
   const auto radius = this->GetRadius();
 
@@ -90,7 +89,7 @@ MeanImageFilter<TInputImage, TOutputImage>::GenerateDataInSubregion(
   {
     neighborhoodRange.SetLocation(index);
 
-    auto sum = NumericTraits<InputRealType>::ZeroValue();
+    InputRealType sum{};
 
     for (const InputPixelType pixelValue : neighborhoodRange)
     {

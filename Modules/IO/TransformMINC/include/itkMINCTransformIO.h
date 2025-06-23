@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,9 @@ namespace itk
 
 /** \class MINCTransformIOTemplate
  *
- * \brief Read and write transforms in Minc XFM Format
+ * \brief Read and write transforms in MINC format (.xfm).
+ *        Takes into account PositiveCoordinateOrientation RAS to PositiveCoordinateOrientation LPS conversion
+ *        flag to convert from internal MINC to ITK conventions and back, if enabled.
  *
  * \author Vladimir S. FONOV
  *         Brain Imaging Center, Montreal Neurological Institute, McGill University, Montreal Canada 2012
@@ -40,7 +42,7 @@ namespace itk
  * \ingroup ITKIOTransformMINC
  */
 template <typename TParametersValueType>
-class ITKIOTransformMINC_EXPORT MINCTransformIOTemplate : public TransformIOBaseTemplate<TParametersValueType>
+class ITK_TEMPLATE_EXPORT MINCTransformIOTemplate : public TransformIOBaseTemplate<TParametersValueType>
 {
 public:
   using Self = MINCTransformIOTemplate;
@@ -48,10 +50,10 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformListType = typename Superclass::TransformListType;
-  using ConstTransformListType = typename Superclass::ConstTransformListType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformListType;
+  using typename Superclass::ConstTransformListType;
   using ParametersType = typename TransformType::ParametersType;
 
   using MatrixOffsetTransformBaseType = MatrixOffsetTransformBase<TParametersValueType, 3, 3>;
@@ -59,8 +61,8 @@ public:
   using MatrixType = typename MatrixOffsetTransformBaseType::MatrixType;
   using OffsetType = typename MatrixOffsetTransformBaseType::OffsetType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MINCTransformIOTemplate, TransformIOBaseTemplate);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MINCTransformIOTemplate);
   itkNewMacro(Self);
 
   /** Determine the file type. Returns true if this ImageIO can read the
@@ -80,12 +82,17 @@ public:
   void
   Write() override;
 
+  /** Set to automatically convert from RAS PositiveCoordinateOrientation to LPS PositiveCoordinateOrientation*/
+  itkSetMacro(RAStoLPS, bool);
+  itkGetConstMacro(RAStoLPS, bool);
+  itkBooleanMacro(RAStoLPS);
+
 protected:
   MINCTransformIOTemplate();
   ~MINCTransformIOTemplate() override;
 
-  VIO_General_transform m_XFM;
-  bool                  m_XFM_initialized;
+  VIO_General_transform m_XFM{};
+  bool                  m_XFM_initialized{};
 
 private:
   void
@@ -98,7 +105,8 @@ private:
                     int &                                serial);
 
   void
-  ReadOneTransform(VIO_General_transform * xfm);
+       ReadOneTransform(VIO_General_transform * xfm);
+  bool m_RAStoLPS{ false };
 };
 
 /** This helps to meet backward compatibility */

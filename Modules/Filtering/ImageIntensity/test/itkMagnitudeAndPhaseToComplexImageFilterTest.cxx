@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,15 +57,15 @@ itkMagnitudeAndPhaseToComplexImageFilterTest(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer magnitudeReader = ReaderType::New();
-  ReaderType::Pointer phaseReader = ReaderType::New();
+  auto magnitudeReader = ReaderType::New();
+  auto phaseReader = ReaderType::New();
   magnitudeReader->SetFileName(magnitudeImageFileName);
   phaseReader->SetFileName(phaseImageFileName);
 
   using MagnitudeAndPhaseToComplexFilterType =
     itk::MagnitudeAndPhaseToComplexImageFilter<InputImageType, InputImageType, OutputImageType>;
 
-  MagnitudeAndPhaseToComplexFilterType::Pointer magnitudeAndPhaseToComplexFilter =
+  const MagnitudeAndPhaseToComplexFilterType::Pointer magnitudeAndPhaseToComplexFilter =
     MagnitudeAndPhaseToComplexFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(
@@ -75,7 +75,7 @@ itkMagnitudeAndPhaseToComplexImageFilterTest(int argc, char * argv[])
   magnitudeAndPhaseToComplexFilter->SetInput2(phaseReader->GetOutput());
 
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(complexImageFileName);
   writer->SetInput(magnitudeAndPhaseToComplexFilter->GetOutput());
 
@@ -83,7 +83,7 @@ itkMagnitudeAndPhaseToComplexImageFilterTest(int argc, char * argv[])
 
   // Check that the default template parameters work
   using DefaultParametersFilterType = itk::MagnitudeAndPhaseToComplexImageFilter<InputImageType>;
-  DefaultParametersFilterType::Pointer temp = DefaultParametersFilterType::New();
+  auto temp = DefaultParametersFilterType::New();
   if (temp.IsNull())
   {
     return EXIT_FAILURE;

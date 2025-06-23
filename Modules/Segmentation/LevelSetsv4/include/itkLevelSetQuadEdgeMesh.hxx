@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,13 +19,12 @@
 #ifndef itkLevelSetQuadEdgeMesh_hxx
 #define itkLevelSetQuadEdgeMesh_hxx
 
-#include "itkLevelSetQuadEdgeMesh.h"
 
 namespace itk
 {
 template <typename TMesh>
-typename LevelSetQuadEdgeMesh<TMesh>::OutputType
-LevelSetQuadEdgeMesh<TMesh>::Evaluate(const InputType & iP) const
+auto
+LevelSetQuadEdgeMesh<TMesh>::Evaluate(const InputType & iP) const -> OutputType
 {
   OutputType oValue = 0.;
   this->m_Mesh->GetPointData(iP, &oValue);
@@ -33,19 +32,19 @@ LevelSetQuadEdgeMesh<TMesh>::Evaluate(const InputType & iP) const
 }
 
 template <typename TMesh>
-typename LevelSetQuadEdgeMesh<TMesh>::GradientType
-LevelSetQuadEdgeMesh<TMesh>::EvaluateGradient(const InputType & itkNotUsed(iP)) const
+auto
+LevelSetQuadEdgeMesh<TMesh>::EvaluateGradient(const InputType & itkNotUsed(iP)) const -> GradientType
 {
-  itkWarningMacro(<< "to be implemented");
+  itkWarningMacro("to be implemented");
   return Self::GradientType(); // Create a new object with default initializer
 }
 
 template <typename TMesh>
-typename LevelSetQuadEdgeMesh<TMesh>::HessianType
-LevelSetQuadEdgeMesh<TMesh>::EvaluateHessian(const InputType & itkNotUsed(iP)) const
+auto
+LevelSetQuadEdgeMesh<TMesh>::EvaluateHessian(const InputType & itkNotUsed(iP)) const -> HessianType
 {
-  itkWarningMacro(<< "to be implemented");
-  return Self::HessianType(); // Create a new objet with default initializer
+  itkWarningMacro("to be implemented");
+  return Self::HessianType(); // Create a new object with default initializer
 }
 
 template <typename TMesh>
@@ -108,8 +107,8 @@ LevelSetQuadEdgeMesh<TMesh>::CopyInformation(const DataObject * data)
   if (!levelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::LevelSetQuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::LevelSetQuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                                  << typeid(Self *).name());
   }
 }
 
@@ -123,8 +122,8 @@ LevelSetQuadEdgeMesh<TMesh>::Graft(const DataObject * data)
   if (!levelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::LevelSetQuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::LevelSetQuadEdgeMesh::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                                  << typeid(Self *).name());
   }
 
   this->m_Mesh = levelSet->m_Mesh;

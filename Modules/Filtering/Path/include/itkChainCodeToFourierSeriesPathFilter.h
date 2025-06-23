@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class ChainCodeToFourierSeriesPathFilter
+ * \class ChainCodeToFourierSeriesPathFilter
  * \brief Filter that produces a Fourier series version of a chain code path
  *
  * ChainCodeToFourierSeriesPathFilter produces a Fourier series representation
@@ -55,8 +55,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ChainCodeToFourierSeriesPathFilter, PathToPathFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ChainCodeToFourierSeriesPathFilter);
 
   /** Some convenient type alias. */
   using InputPathType = TInputChainCodePath;
@@ -88,7 +88,7 @@ protected:
   GenerateData() override;
 
 private:
-  unsigned int m_NumberOfHarmonics;
+  unsigned int m_NumberOfHarmonics{};
 };
 } // end namespace itk
 

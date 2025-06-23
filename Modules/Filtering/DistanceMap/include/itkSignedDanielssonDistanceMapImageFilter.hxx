@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSignedDanielssonDistanceMapImageFilter_hxx
 #define itkSignedDanielssonDistanceMapImageFilter_hxx
 
-#include "itkSignedDanielssonDistanceMapImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryDilateImageFilter.h"
@@ -32,30 +31,17 @@ namespace itk
 template <typename TInputImage, typename TOutputImage, typename TVoronoiImage>
 SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::
   SignedDanielssonDistanceMapImageFilter()
+
 {
-  this->SetNumberOfRequiredOutputs(3);
-
-  // distance map
-  this->SetNthOutput(0, static_cast<OutputImageType *>(this->MakeOutput(0).GetPointer()));
-
-  // voronoi map
-  this->SetNthOutput(1, static_cast<VoronoiImageType *>(this->MakeOutput(1).GetPointer()));
-
-  // distance vectors
-  this->SetNthOutput(2, static_cast<VectorImageType *>(this->MakeOutput(2).GetPointer()));
-
-  // Default values
-  this->m_SquaredDistance = false; // Should we remove this ?
-                                   // doesn't make sense in a SignedDaniel
-  this->m_UseImageSpacing = true;
-  this->m_InsideIsPositive = false;
+  // Make the outputs (distance map, voronoi map, distance vectors).
+  ProcessObject::MakeRequiredOutputs(*this, 3);
 }
 
 /** This is overloaded to create the VectorDistanceMap output image */
 template <typename TInputImage, typename TOutputImage, typename TVoronoiImage>
-typename SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::DataObjectPointer
+auto
 SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::MakeOutput(
-  DataObjectPointerArraySizeType idx)
+  DataObjectPointerArraySizeType idx) -> DataObjectPointer
 {
   if (idx == 1)
   {
@@ -72,8 +58,8 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
  *  Return the distance map Image pointer
  */
 template <typename TInputImage, typename TOutputImage, typename TVoronoiImage>
-typename SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::OutputImageType *
-SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GetDistanceMap()
+auto
+SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GetDistanceMap() -> OutputImageType *
 {
   return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
 }
@@ -82,8 +68,8 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
  *  Return Closest Points Map
  */
 template <typename TInputImage, typename TOutputImage, typename TVoronoiImage>
-typename SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::VoronoiImageType *
-SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GetVoronoiMap()
+auto
+SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GetVoronoiMap() -> VoronoiImageType *
 {
   return dynamic_cast<VoronoiImageType *>(this->ProcessObject::GetOutput(1));
 }
@@ -92,8 +78,9 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
  *  Return the distance vectors
  */
 template <typename TInputImage, typename TOutputImage, typename TVoronoiImage>
-typename SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::VectorImageType *
+auto
 SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GetVectorDistanceMap()
+  -> VectorImageType *
 {
   return dynamic_cast<VectorImageType *>(this->ProcessObject::GetOutput(2));
 }
@@ -107,12 +94,12 @@ void
 SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>::GenerateData()
 {
   // Set up mini pipeline filter
-  typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   using FilterType = DanielssonDistanceMapImageFilter<InputImageType, OutputImageType, VoronoiImageType>;
-  typename FilterType::Pointer filter1 = FilterType::New();
-  typename FilterType::Pointer filter2 = FilterType::New();
+  auto filter1 = FilterType::New();
+  auto filter2 = FilterType::New();
 
   filter1->SetUseImageSpacing(m_UseImageSpacing);
   filter2->SetUseImageSpacing(m_UseImageSpacing);
@@ -124,7 +111,7 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
   using FunctorType = Functor::InvertIntensityFunctor<InputPixelType>;
   using InverterType = UnaryFunctorImageFilter<InputImageType, InputImageType, FunctorType>;
 
-  typename InverterType::Pointer inverter = InverterType::New();
+  auto inverter = InverterType::New();
 
   inverter->SetInput(this->GetInput());
 
@@ -135,7 +122,7 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
 
   using DilatorType = BinaryDilateImageFilter<InputImageType, InputImageType, StructuringElementType>;
 
-  typename DilatorType::Pointer dilator = DilatorType::New();
+  auto dilator = DilatorType::New();
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(1); // 3x3 structuring element
@@ -150,7 +137,7 @@ SignedDanielssonDistanceMapImageFilter<TInputImage, TOutputImage, TVoronoiImage>
   // Subtract Distance maps results of the two Danielsson filters
   using SubtracterType = SubtractImageFilter<OutputImageType, OutputImageType, OutputImageType>;
 
-  typename SubtracterType::Pointer subtracter = SubtracterType::New();
+  auto subtracter = SubtracterType::New();
 
   if (m_InsideIsPositive)
   {

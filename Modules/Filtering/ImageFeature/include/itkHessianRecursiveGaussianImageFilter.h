@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class HessianRecursiveGaussianImageFilter
+ * \class HessianRecursiveGaussianImageFilter
  * \brief Computes the Hessian matrix of an image by convolution
  *        with the Second and Cross derivatives of a Gaussian.
  *
@@ -106,25 +106,28 @@ public:
   using OutputPixelType = typename OutputImageType::PixelType;
   using OutputComponentType = typename PixelTraits<OutputPixelType>::ValueType;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(HessianRecursiveGaussianImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HessianRecursiveGaussianImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Set Sigma value. Sigma is measured in the units of image spacing.  */
+  /** Set/Get Sigma value. Sigma is measured in the units of image spacing.  */
+  /** @ITKStartGrouping */
   void
   SetSigma(RealType sigma);
   RealType
   GetSigma() const;
-
+  /** @ITKEndGrouping */
   /** Define which normalization factor will be used for the Gaussian
    *  \sa  RecursiveGaussianImageFilter::SetNormalizeAcrossScale
    */
+  /** @ITKStartGrouping */
   void
   SetNormalizeAcrossScale(bool normalize);
   itkGetConstMacro(NormalizeAcrossScale, bool);
-
+  itkBooleanMacro(NormalizeAcrossScale);
+  /** @ITKEndGrouping */
   /** HessianRecursiveGaussianImageFilter needs all of the input to produce an
    * output. Therefore, HessianRecursiveGaussianImageFilter needs to provide
    * an implementation for GenerateInputRequestedRegion in order to inform
@@ -133,12 +136,8 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<PixelType>));
   itkConceptMacro(OutputHasPixelTraitsCheck, (Concept::HasPixelTraits<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   HessianRecursiveGaussianImageFilter();
@@ -155,13 +154,13 @@ protected:
   EnlargeOutputRequestedRegion(DataObject * output) override;
 
 private:
-  GaussianFiltersArray      m_SmoothingFilters;
-  DerivativeFilterAPointer  m_DerivativeFilterA;
-  DerivativeFilterBPointer  m_DerivativeFilterB;
-  OutputImageAdaptorPointer m_ImageAdaptor;
+  GaussianFiltersArray      m_SmoothingFilters{};
+  DerivativeFilterAPointer  m_DerivativeFilterA{};
+  DerivativeFilterBPointer  m_DerivativeFilterB{};
+  OutputImageAdaptorPointer m_ImageAdaptor{};
 
   /** Normalize the image across scale space */
-  bool m_NormalizeAcrossScale;
+  bool m_NormalizeAcrossScale{};
 };
 } // end namespace itk
 

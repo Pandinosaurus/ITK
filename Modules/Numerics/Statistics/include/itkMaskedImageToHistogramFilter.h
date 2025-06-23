@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,10 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkSimpleDataObjectDecorator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class MaskedImageToHistogramFilter
+ * \class MaskedImageToHistogramFilter
  *  \brief Generate a histogram from the masked pixels of an image.
  *
  * This class expands the features of the ImageToHistogramFilter by
@@ -54,8 +52,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MaskedImageToHistogramFilter, ImageToHistogramFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaskedImageToHistogramFilter);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -77,9 +75,10 @@ public:
   using MaskPixelType = typename MaskImageType::PixelType;
 
   /** Method to set/get the mask */
+  /** @ITKStartGrouping */
   itkSetInputMacro(MaskImage, MaskImageType);
   itkGetInputMacro(MaskImage, MaskImageType);
-
+  /** @ITKEndGrouping */
   /** Set the pixel value treated as on in the mask.
    * Only pixels with this value will be added to the histogram.
    */
@@ -94,8 +93,7 @@ protected:
   void
   ThreadedComputeMinimumAndMaximum(const RegionType & inputRegionForThread) override;
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMaskedImageToHistogramFilter.hxx"

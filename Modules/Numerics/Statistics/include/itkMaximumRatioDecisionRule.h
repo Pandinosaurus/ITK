@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,11 @@
 #include "itkDecisionRule.h"
 #include "ITKStatisticsExport.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class MaximumRatioDecisionRule
- *  \brief A decision rule that operates as a frequentist's
+ * \class MaximumRatioDecisionRule
+ *  \brief A decision rule that operates as a frequentest's
  *  approximation to Bayes rule.
  *
  * MaximumRatioDecisionRule returns the class label using a Bayesian
@@ -66,8 +64,8 @@ public:
   using Superclass = DecisionRule;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(MaximumRatioDecisionRule, DecisionRule);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MaximumRatioDecisionRule);
 
   /** Standard New() method support */
   itkNewMacro(Self);
@@ -111,9 +109,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  PriorProbabilityVectorType m_PriorProbabilities;
+  PriorProbabilityVectorType m_PriorProbabilities{};
 
 }; // end of class
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics
+
 #endif

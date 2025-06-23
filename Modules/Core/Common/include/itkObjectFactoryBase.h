@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@
 #include "itkSingletonMacro.h"
 #include "itkCommonEnums.h"
 #include <list>
+#include <memory> // For unique_ptr.
 #include <vector>
 
 namespace itk
@@ -41,7 +42,7 @@ namespace itk
  *
  * ObjectFactoryBase is used to create itk objects. The base class
  * ObjectFactoryBase contains a static method CreateInstance() that is
- * used to create itk objects from the list of registerd ObjectFactoryBase
+ * used to create itk objects from the list of registered ObjectFactoryBase
  * sub-classes.  The first time CreateInstance() is called, all dll's or
  * shared libraries in the environment variable ITK_AUTOLOAD_PATH are loaded
  * into the current process.  The C function itkLoad is called on each dll.
@@ -55,10 +56,6 @@ namespace itk
  * \ingroup ITKCommon
  */
 
-// Forward reference because of private implementation
-class OverRideMap;
-struct ObjectFactoryBasePrivate;
-
 class ITKCommon_EXPORT ObjectFactoryBase : public Object
 {
 public:
@@ -70,13 +67,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectFactoryBase, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectFactoryBase);
 
   /** Create and return an instance of the named itk object.
    * Each loaded ObjectFactoryBase will be asked in the order
    * the factory was in the ITK_AUTOLOAD_PATH.  After the
-   * first factory returns the object no other factories are asked. */
+   * first factory returns the object no other factories are asked.
+   *
+   * \note The object returned by `CreateInstance` will have a reference count of 2, instead of 1. So in order to avoid
+   * memory leaks, one may need to call `object->UnRegister()`.
+   */
   static LightObject::Pointer
   CreateInstance(const char * itkclassname);
 
@@ -160,6 +161,7 @@ public:
    * versions do not match, an exception will be thrown. When this is false, and
    * the versions do not match, only a warning message is printed out in the
    * console, and the factory is still registered. */
+  /** @ITKStartGrouping */
   static void
   SetStrictVersionChecking(bool);
   static void
@@ -168,7 +170,7 @@ public:
   StrictVersionCheckingOff();
   static bool
   GetStrictVersionChecking();
-
+  /** @ITKEndGrouping */
   /** Return a descriptive string describing the factory. */
   virtual const char *
   GetDescription() const = 0;
@@ -207,17 +209,25 @@ public:
   const char *
   GetLibraryPath();
 
-  /** \class OverrideInformation
-   * \brief Internal implementation class for ObjectFactorBase.
-   * \ingroup ITKCommon
-   */
-  struct OverrideInformation
+  /** Registers the specified internal factory only once, even when `RegisterInternalFactoryOnce<TFactory>()` is called
+   * multiple times (possibly even by multiple threads) for the very same factory. */
+  template <typename TFactory>
+  static void
+  RegisterInternalFactoryOnce()
   {
-    std::string                       m_Description;
-    std::string                       m_OverrideWithName;
-    bool                              m_EnabledFlag;
-    CreateObjectFunctionBase::Pointer m_CreateObject;
-  };
+    struct FactoryRegistration
+    {};
+
+    // Factory registration, made thread-safe by "magic statics" (as introduced with C++11).
+    [[maybe_unused]] static const FactoryRegistration staticFactoryRegistration = [] {
+      RegisterFactoryInternal(TFactory::New());
+      return FactoryRegistration{};
+    }();
+  }
+
+  /** Initialize the static members of ObjectFactoryBase. */
+  static void
+  Initialize();
 
 protected:
   void
@@ -247,26 +257,18 @@ protected:
   ~ObjectFactoryBase() override;
 
 private:
+  // Forward reference because of private implementation
+  class OverrideMap;
+  class ObjectFactoryBasePrivate;
+
   /** Set/Get the pointer to ObjectFactoryBasePrivate.
    * No concurrent thread safe. */
+  /** @ITKStartGrouping */
   static void
   SynchronizeObjectFactoryBase(void * objectFactoryBasePrivate);
   itkGetGlobalDeclarationMacro(ObjectFactoryBasePrivate, PimplGlobals);
-
-  OverRideMap * m_OverrideMap;
-
-  /** Initialize the static list of Factories. */
-  static void
-  InitializeFactoryList();
-
-  /** Initialize the static members of ObjectFactoryBase.
-   *  RegisterInternal() and InitializeFactoryList() are called here. */
-  static void
-  Initialize();
-
-  /** Register default factories which are not loaded at run time. */
-  static void
-  RegisterInternal();
+  /** @ITKEndGrouping */
+  const std::unique_ptr<OverrideMap> m_OverrideMap;
 
   /** Load dynamic factories from the ITK_AUTOLOAD_PATH */
   static void
@@ -281,9 +283,9 @@ private:
 
   /** Member variables for a factory set by the base class
    * at load or register time */
-  void *        m_LibraryHandle;
-  unsigned long m_LibraryDate;
-  std::string   m_LibraryPath;
+  void *        m_LibraryHandle{};
+  unsigned long m_LibraryDate{};
+  std::string   m_LibraryPath{};
 
   static ObjectFactoryBasePrivate * m_PimplGlobals;
 };

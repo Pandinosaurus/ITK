@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkQuadEdgeMeshFrontIterator_hxx
 #define itkQuadEdgeMeshFrontIterator_hxx
 
-#include "itkQuadEdgeMeshFrontIterator.h"
 
 namespace itk
 {
@@ -88,7 +87,7 @@ QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::operator++()
 
   // Traverse the Onext ring in search of an unvisited Origin:
   using QEIterator = typename QEType::IteratorGeom;
-  for (QEIterator qit = edge->BeginGeomOnext(); qit != edge->EndGeomOnext(); qit++)
+  for (QEIterator qit = edge->BeginGeomOnext(); qit != edge->EndGeomOnext(); ++qit)
   {
     QEType * oEdge = qit.Value();
     // Things are quite straightforward except when QEType
@@ -100,21 +99,19 @@ QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::operator++()
     {
       continue;
     }
-    else
-    {
-      // Mark the destination as visited:
-      m_IsPointVisited->SetElement(oEdge->GetDestination(), true);
 
-      // Compute the Cost of the new OriginType:
-      CoordRepType oCost = this->GetCost(oEdge) + fit->m_Cost;
+    // Mark the destination as visited:
+    m_IsPointVisited->SetElement(oEdge->GetDestination(), true);
 
-      // Push the Sym() on the front:
-      m_Front->push_back(FrontAtom(oEdge->GetSym(), oCost));
+    // Compute the Cost of the new OriginType:
+    const CoordinateType oCost = this->GetCost(oEdge) + fit->m_Cost;
 
-      // We still want to handle oEdge
-      m_CurrentEdge = oEdge;
-      return (*this);
-    }
+    // Push the Sym() on the front:
+    m_Front->push_back(FrontAtom(oEdge->GetSym(), oCost));
+
+    // We still want to handle oEdge
+    m_CurrentEdge = oEdge;
+    return (*this);
   }
 
   // All the edge->Origin() neighbours were already visited. Remove
@@ -129,8 +126,8 @@ QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::operator++()
  * QEType.
  */
 template <typename TMesh, typename TQE>
-typename QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::QEType *
-QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::FindDefaultSeed()
+auto
+QuadEdgeMeshFrontBaseIterator<TMesh, TQE>::FindDefaultSeed() -> QEType *
 {
   if (auto * edge = dynamic_cast<QEType *>(m_Mesh->GetEdge()))
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,17 +33,13 @@ namespace itk
  * independently.
  *
  * This class implements the recursive filtering
- * method proposed by R.Deriche in IEEE-PAMI
- * Vol.12, No.1, January 1990, pp 78-87.
+ * method described in \cite deriche1990.
  *
  * Details of the implementation are described in the technical report:
  * R. Deriche, "Recursively Implementing The Gaussian and Its Derivatives",
  * INRIA, 1993, ftp://ftp.inria.fr/INRIA/tech-reports/RR/RR-1893.ps.gz
  *
- * Further improvements of the algorithm are described in:
- * G. Farnebäck & C.-F. Westin, "Improving Deriche-style Recursive Gaussian
- * Filters". J Math Imaging Vis 26, 293–299 (2006).
- * https://doi.org/10.1007/s10851-006-8464-z
+ * Further improvements of the algorithm are described in \cite farneback2006.
  *
  * \ingroup ImageFilters
  * \ingroup ITKImageFilterBase
@@ -60,8 +56,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Type macro that defines a name for this class. */
-  itkTypeMacro(RecursiveSeparableImageFilter, InPlaceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RecursiveSeparableImageFilter);
 
   /** Smart pointer type alias support  */
   using InputImagePointer = typename TInputImage::Pointer;
@@ -142,36 +138,36 @@ protected:
 
 protected:
   /** Causal coefficients that multiply the input data. */
-  ScalarRealType m_N0;
-  ScalarRealType m_N1;
-  ScalarRealType m_N2;
-  ScalarRealType m_N3;
+  ScalarRealType m_N0{};
+  ScalarRealType m_N1{};
+  ScalarRealType m_N2{};
+  ScalarRealType m_N3{};
 
   /** Recursive coefficients that multiply previously computed values
    * at the output. These are the same for the causal and
    * anti-causal parts of the filter. */
-  ScalarRealType m_D1;
-  ScalarRealType m_D2;
-  ScalarRealType m_D3;
-  ScalarRealType m_D4;
+  ScalarRealType m_D1{};
+  ScalarRealType m_D2{};
+  ScalarRealType m_D3{};
+  ScalarRealType m_D4{};
 
   /** Anti-causal coefficients that multiply the input data. */
-  ScalarRealType m_M1;
-  ScalarRealType m_M2;
-  ScalarRealType m_M3;
-  ScalarRealType m_M4;
+  ScalarRealType m_M1{};
+  ScalarRealType m_M2{};
+  ScalarRealType m_M3{};
+  ScalarRealType m_M4{};
 
   /** Recursive coefficients to be used at the boundaries to simulate
    * edge extension boundary conditions. */
-  ScalarRealType m_BN1;
-  ScalarRealType m_BN2;
-  ScalarRealType m_BN3;
-  ScalarRealType m_BN4;
+  ScalarRealType m_BN1{};
+  ScalarRealType m_BN2{};
+  ScalarRealType m_BN3{};
+  ScalarRealType m_BN4{};
 
-  ScalarRealType m_BM1;
-  ScalarRealType m_BM2;
-  ScalarRealType m_BM3;
-  ScalarRealType m_BM4;
+  ScalarRealType m_BM1{};
+  ScalarRealType m_BM2{};
+  ScalarRealType m_BM3{};
+  ScalarRealType m_BM4{};
 
 
   template <typename T1, typename T2>

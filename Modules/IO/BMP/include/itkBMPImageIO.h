@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@
 namespace itk
 {
 /**
- *\class BMPImageIO
+ * \class BMPImageIO
  *
  *  \brief Read BMPImage file format.
  *
@@ -52,8 +52,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BMPImageIO, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BMPImageIO);
 
   /** Getter for the FileLowerLeft attribute. */
   itkGetConstMacro(FileLowerLeft, bool);
@@ -114,8 +114,8 @@ private:
   RGBPixelType
   GetColorPaletteEntry(const unsigned char entry) const;
 
-  std::ifstream  m_Ifstream;
-  std::ofstream  m_Ofstream;
+  std::ifstream  m_Ifstream{};
+  std::ofstream  m_Ofstream{};
   long           m_BitMapOffset{ 0 };
   bool           m_FileLowerLeft{ false };
   short          m_Depth{ 8 };
@@ -123,7 +123,7 @@ private:
   unsigned int   m_ColorPaletteSize{ 0 };
   long           m_BMPCompression{ 0 };
   unsigned long  m_BMPDataSize{ 0 };
-  PaletteType    m_ColorPalette;
+  PaletteType    m_ColorPalette{};
 };
 } // end namespace itk
 

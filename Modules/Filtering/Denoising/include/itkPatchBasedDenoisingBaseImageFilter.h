@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,14 +32,14 @@
 
 namespace itk
 {
-/**\class PatchBasedDenoisingBaseImageFilterEnums
+/** \class PatchBasedDenoisingBaseImageFilterEnums
  * \brief Contains all enum classes used by the PatchBasedDenoisingBaseImageFilter class.
  * \ingroup ITKDenoising
  */
 class PatchBasedDenoisingBaseImageFilterEnums
 {
 public:
-  /**\class NoiseModel
+  /** \class NoiseModel
    * \ingroup Filtering
    * \ingroup ITKDenoising
    * Type definition for selecting the noise model. */
@@ -51,7 +51,7 @@ public:
     POISSON = 3
   };
 
-  /**\class ComponentState
+  /** \class ComponentState
    * \ingroup Filtering
    * \ingroup ITKDenoising
    * Type definition to determine which space to do calculations in.
@@ -63,7 +63,7 @@ public:
     RIEMANNIAN = 1
   };
 
-  /**\class FilterState
+  /** \class FilterState
    * \ingroup Filtering
    * \ingroup ITKDenoising
    * State that the filter is in, i.e. UNINITIALIZED or INITIALIZED. */
@@ -75,14 +75,14 @@ public:
 };
 // Define how to print enumeration
 extern ITKDenoising_EXPORT std::ostream &
-                           operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::NoiseModel value);
+operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::NoiseModel value);
 extern ITKDenoising_EXPORT std::ostream &
-                           operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::ComponentSpace value);
+operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::ComponentSpace value);
 // Define how to print enumeration
 extern ITKDenoising_EXPORT std::ostream &
-                           operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::FilterState value);
+operator<<(std::ostream & out, const PatchBasedDenoisingBaseImageFilterEnums::FilterState value);
 /**
- *\class PatchBasedDenoisingBaseImageFilter
+ * \class PatchBasedDenoisingBaseImageFilter
  * \brief Base class for patch-based denoising algorithms.
  *
  * Implementation of a denoising filter that uses iterative non-local, or semi-local, weighted
@@ -101,27 +101,13 @@ extern ITKDenoising_EXPORT std::ostream &
  * image, and the weights balancing the regularization and data fidelity when the noise model is
  * known.
  *
- * This class of methods stems from the following two independent and simultaneous publications:
- *
- * Suyash P. Awate, Ross T. Whitaker.
- * Higher-Order Image Statistics for Unsupervised, Information-Theoretic, Adaptive, Image Filtering.
- * IEEE Int. Conf. Computer Vision and Pattern Recognition (CVPR) 2005; (2):44-51.
- *
- * Antoni Buades, Bartomeu Coll, Jean-Michel Morel.
- * A Non-Local Algorithm for Image Denoising.
- * IEEE Int. Conf. Computer Vision and Pattern Recognition (CVPR) 2005; (2):60-65.
+ * This class of methods stems from the following two independent and
+ * simultaneous publications \cite awate2005 and \cite buades2005.
  *
  * While the former work considers the denoising algorithm as performing entropy reduction using
  * nonparametric density estimation, the latter work treats it as nonparametric regression. Details
- * underlying this class of methods appear in:
- *
- * Suyash P. Awate, Ross T. Whitaker.
- * Unsupervised, Information-Theoretic, Adaptive Image Filtering for Image Restoration.
- * IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI) 2006; 28(3):364-376.
- *
- * Antoni Buades, Bartomeu Coll, Jean-Michel Morel.
- * Nonlocal Image and Movie Denoising.
- * International Journal of Computer Vision (IJCV) 2008; 76(2):123-139.
+ * underlying this class of methods appear in \cite awate2006 and
+ * \cite buades2008.
  *
  * This class provides the base software framework for implementing patch-based denoising methods
  * for multi-dimensional and multi-channel (i.e. vector-valued pixels) images. This framework is
@@ -152,8 +138,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PatchBasedDenoisingBaseImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PatchBasedDenoisingBaseImageFilter);
 
   /** Input and output image types. */
   using InputImageType = TInputImage;
@@ -194,12 +180,13 @@ public:
    *  make the patch more isotropic and less rectangular.
    */
   using PatchWeightsType = Array<float>;
+
   /** This data structure type is used for efficiently accessing patch values
    *  from the image data structure.
    */
   using BoundaryConditionType = ZeroFluxNeumannBoundaryCondition<OutputImageType>;
   using ListAdaptorType =
-    typename ::itk::Statistics::ImageToNeighborhoodSampleAdaptor<OutputImageType, BoundaryConditionType>;
+    typename itk::Statistics::ImageToNeighborhoodSampleAdaptor<OutputImageType, BoundaryConditionType>;
   using PatchRadiusType = typename ListAdaptorType::NeighborhoodRadiusType;
   using InputImagePatchIterator = ConstNeighborhoodIterator<InputImageType, BoundaryConditionType>;
 
@@ -208,9 +195,10 @@ public:
    * Currently, only isotropic patches in physical space are allowed;
    * patches can be anisotropic in voxel space.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(PatchRadius, unsigned int);
   itkGetConstMacro(PatchRadius, unsigned int);
-
+  /** @ITKEndGrouping */
   PatchRadiusType
   GetPatchRadiusInVoxels() const;
 
@@ -227,56 +215,62 @@ public:
   void
   SetPatchWeights(const PatchWeightsType & weights);
 
-  PatchWeightsType
+  [[nodiscard]] PatchWeightsType
   GetPatchWeights() const;
 
   /** Set/Get the noise model type.
    * Defaults to NOMODEL.
    * To use the noise model during denoising, NoiseModelFidelityWeight must be positive.
    */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(NoiseModel, NoiseModelEnum);
   itkGetConstMacro(NoiseModel, NoiseModelEnum);
-
+  /** @ITKEndGrouping */
   /** Set/Get the weight on the smoothing term.
    *  This option is used when a noise model is specified.
    *  This weight controls the balance between the smoothing and the closeness to the noisy data.
-   *  Large stepsizes may cause instabilities.
+   *  Large step sizes may cause instabilities.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(SmoothingWeight, double, 0.0, 1.0);
   itkGetConstMacro(SmoothingWeight, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the weight on the fidelity term (penalizes deviations from the noisy data).
    *  This option is used when a noise model is specified.
    *  This weight controls the balance between the smoothing and the closeness to the noisy data.
    *  Use a positive weight to prevent oversmoothing.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NoiseModelFidelityWeight, double, 0.0, 1.0);
   itkGetConstMacro(NoiseModelFidelityWeight, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get flag indicating whether kernel-bandwidth should be estimated
    *  automatically from the image data.
    *  Defaults to false.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(KernelBandwidthEstimation, bool);
   itkBooleanMacro(KernelBandwidthEstimation);
   itkGetConstMacro(KernelBandwidthEstimation, bool);
-
+  /** @ITKEndGrouping */
   /** Set/Get the update frequency for the kernel bandwidth estimation.
    *  An optimal bandwidth will be re-estimated
    *  based on the denoised image after every 'n' iterations.
    *  Must be a positive integer.
    *  Defaults to 3, i.e. bandwidth updated after every 3 denoising iteration.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(KernelBandwidthUpdateFrequency, unsigned int, 1, NumericTraits<unsigned int>::max());
   itkGetConstMacro(KernelBandwidthUpdateFrequency, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of denoising iterations to perform.
    *  Must be a positive integer.
    *  Defaults to 1.
    */
+  /** @ITKStartGrouping */
   itkSetClampMacro(NumberOfIterations, unsigned int, 1, NumericTraits<unsigned int>::max());
   itkGetConstReferenceMacro(NumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Get the number of elapsed iterations of the filter. */
   itkGetConstReferenceMacro(ElapsedIterations, unsigned int);
 
@@ -284,10 +278,11 @@ public:
    * as if they are in euclidean space regardless of pixel type.
    * Defaults to false.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(AlwaysTreatComponentsAsEuclidean, bool);
   itkBooleanMacro(AlwaysTreatComponentsAsEuclidean);
   itkGetConstMacro(AlwaysTreatComponentsAsEuclidean, bool);
-
+  /** @ITKEndGrouping */
   /** Set the state of the filter to INITIALIZED. */
   virtual void
   SetStateToInitialized();
@@ -297,19 +292,21 @@ public:
   SetStateToUninitialized();
 
   /** Set/Get the state of the filter. */
+  /** @ITKStartGrouping */
 #if !defined(ITK_WRAPPING_PARSER)
   itkSetEnumMacro(State, FilterStateEnum);
   itkGetConstReferenceMacro(State, FilterStateEnum);
 #endif
-
+  /** @ITKEndGrouping */
   /** Indicates whether the filter automatically resets to UNINITIALIZED state
    * after completing, or whether filter must be manually reset.
    * Require the filter to be manually reinitialized (by calling
    * SetStateToUninitialized(). */
+  /** @ITKStartGrouping */
   itkSetMacro(ManualReinitialization, bool);
   itkGetConstReferenceMacro(ManualReinitialization, bool);
   itkBooleanMacro(ManualReinitialization);
-
+  /** @ITKEndGrouping */
 protected:
   PatchBasedDenoisingBaseImageFilter();
   ~PatchBasedDenoisingBaseImageFilter() override = default;
@@ -400,18 +397,19 @@ protected:
   }
 
   /** Set/Get the component space type. */
+  /** @ITKStartGrouping */
   itkSetEnumMacro(ComponentSpace, ComponentSpaceEnum);
   itkGetConstMacro(ComponentSpace, ComponentSpaceEnum);
-
+  /** @ITKEndGrouping */
   // Cache input and output pointer to get rid of thousands of calls
   // to GetInput and GetOutput.
-  const InputImageType * m_InputImage;
-  OutputImageType *      m_OutputImage;
+  const InputImageType * m_InputImage{};
+  OutputImageType *      m_OutputImage{};
 
 private:
   /** Parameters that define patch size and patch weights (mask). */
   unsigned int     m_PatchRadius{ 4 };
-  PatchWeightsType m_PatchWeights;
+  PatchWeightsType m_PatchWeights{};
 
   /** Parameters that define the strategy for kernel-bandwidth estimation. */
   bool         m_KernelBandwidthEstimation{ false };

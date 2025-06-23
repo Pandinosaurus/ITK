@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,15 +49,8 @@ namespace itk
  * reasonable choice of structuring element is
  * itk::BinaryBallStructuringElement.
  *
- * This implementation is based on the papers:
- *
- * L.Vincent "Morphological transformations of binary images with
- * arbitrary structuring elements", and
- *
- * N.Nikopoulos et al. "An efficient algorithm for 3d binary
- * morphological transformations with 3d structuring elements
- * for arbitrary size and shape". IEEE Transactions on Image
- * Processing. Vol. 9. No. 3. 2000. pp. 283-286.
+ * This implementation is based on the papers \cite vincent1991 and
+ * \cite nikopoulos1997.
  *
  * \sa ImageToImageFilter BinaryErodeImageFilter BinaryMorphologyImageFilter
  * \ingroup ITKBinaryMathematicalMorphology
@@ -95,8 +88,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryDilateImageFilter, BinaryMorphologyImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryDilateImageFilter);
 
   /** Kernel (structuring element) iterator. */
   using KernelIteratorType = typename KernelType::ConstIterator;
@@ -140,7 +133,7 @@ protected:
   GenerateData() override;
 
   // type inherited from the superclass
-  using NeighborIndexContainer = typename Superclass::NeighborIndexContainer;
+  using typename Superclass::NeighborIndexContainer;
 };
 } // end namespace itk
 

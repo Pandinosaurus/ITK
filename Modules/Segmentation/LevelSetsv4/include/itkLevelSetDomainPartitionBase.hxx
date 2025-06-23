@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLevelSetDomainPartitionBase_hxx
 #define itkLevelSetDomainPartitionBase_hxx
 
-#include "itkLevelSetDomainPartitionBase.h"
 #include "itkNumericTraits.h"
 
 namespace itk
@@ -26,9 +25,8 @@ namespace itk
 
 template <typename TDomain>
 LevelSetDomainPartitionBase<TDomain>::LevelSetDomainPartitionBase()
-{
-  this->m_NumberOfLevelSetFunctions = NumericTraits<IdentifierType>::OneValue();
-}
+  : m_NumberOfLevelSetFunctions(NumericTraits<IdentifierType>::OneValue())
+{}
 } // end namespace itk
 
 #endif

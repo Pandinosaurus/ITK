@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,14 +53,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianDerivativeSpatialFunction, SpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianDerivativeSpatialFunction);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Type used to store derivatives parameters. */
   using ArrayType = FixedArray<double, VImageDimension>;
@@ -79,6 +79,7 @@ public:
   EvaluateVector(const TInput & position) const;
 
   /** Gets and sets for gaussian parameters */
+  /** @ITKStartGrouping */
   itkSetMacro(Scale, double);
   itkGetConstMacro(Scale, double);
   itkSetMacro(Normalized, bool);
@@ -89,28 +90,28 @@ public:
   itkGetConstMacro(Mean, ArrayType);
   itkSetMacro(Direction, unsigned int);
   itkGetConstMacro(Direction, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
-  GaussianDerivativeSpatialFunction();
+  GaussianDerivativeSpatialFunction() = default;
   ~GaussianDerivativeSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   /** Current direction */
-  mutable unsigned int m_Direction;
+  mutable unsigned int m_Direction{};
 
   /** The standard deviation in each direction. */
-  ArrayType m_Sigma;
+  ArrayType m_Sigma{ ArrayType::Filled(1.0) };
 
   /** The mean in each direction. */
-  ArrayType m_Mean;
+  ArrayType m_Mean{};
 
   /** A scale factor multiplied by the true value of the Gaussian. */
-  double m_Scale;
+  double m_Scale{ 1.0 };
 
   /** Whether or not to normalize the Gaussian. */
-  bool m_Normalized;
+  bool m_Normalized{};
 };
 } // end namespace itk
 

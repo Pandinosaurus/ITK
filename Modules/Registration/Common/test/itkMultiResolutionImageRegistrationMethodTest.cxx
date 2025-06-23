@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkRegularStepGradientDescentOptimizer.h"
 
 #include "itkTextOutput.h"
+#include "itkTestingMacros.h"
 
 
 /**
@@ -36,8 +37,6 @@ itkMultiResolutionImageRegistrationMethodTest(int, char *[])
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New().GetPointer());
-
-  bool pass;
 
   constexpr unsigned int dimension = 3;
 
@@ -71,20 +70,23 @@ itkMultiResolutionImageRegistrationMethodTest(int, char *[])
   using RegistrationType = itk::MultiResolutionImageRegistrationMethod<FixedImageType, MovingImageType>;
 
 
-  MetricType::Pointer             metric = MetricType::New();
-  TransformType::Pointer          transform = TransformType::New();
-  OptimizerType::Pointer          optimizer = OptimizerType::New();
-  FixedImageType::Pointer         fixedImage = FixedImageType::New();
-  MovingImageType::Pointer        movingImage = MovingImageType::New();
-  InterpolatorType::Pointer       interpolator = InterpolatorType::New();
-  FixedImagePyramidType::Pointer  fixedImagePyramid = FixedImagePyramidType::New();
-  MovingImagePyramidType::Pointer movingImagePyramid = MovingImagePyramidType::New();
-  RegistrationType::Pointer       registration = RegistrationType::New();
+  auto metric = MetricType::New();
+  auto transform = TransformType::New();
+  auto optimizer = OptimizerType::New();
+  auto fixedImage = FixedImageType::New();
+  auto movingImage = MovingImageType::New();
+  auto interpolator = InterpolatorType::New();
+  auto fixedImagePyramid = FixedImagePyramidType::New();
+  auto movingImagePyramid = MovingImagePyramidType::New();
 
-  FixedImageType::SizeType size;
-  size.Fill(8);
+  auto registration = RegistrationType::New();
 
-  FixedImageType::RegionType region(size);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(registration, MultiResolutionImageRegistrationMethod, ProcessObject);
+
+
+  auto size = FixedImageType::SizeType::Filled(8);
+
+  const FixedImageType::RegionType region(size);
   fixedImage->SetRegions(region);
   fixedImage->Allocate();
   fixedImage->FillBuffer(3.0);
@@ -94,68 +96,76 @@ itkMultiResolutionImageRegistrationMethodTest(int, char *[])
   movingImage->FillBuffer(4.0);
 
   registration->SetMetric(metric);
+  ITK_TEST_SET_GET_VALUE(metric, registration->GetMetric());
+
   registration->SetOptimizer(optimizer);
+  ITK_TEST_SET_GET_VALUE(optimizer, registration->GetOptimizer());
+
   registration->SetTransform(transform);
+  ITK_TEST_SET_GET_VALUE(transform, registration->GetTransform());
+
   registration->SetFixedImage(fixedImage);
+  ITK_TEST_SET_GET_VALUE(fixedImage, registration->GetFixedImage());
+
   registration->SetMovingImage(movingImage);
+  ITK_TEST_SET_GET_VALUE(movingImage, registration->GetMovingImage());
+
   registration->SetInterpolator(interpolator);
+  ITK_TEST_SET_GET_VALUE(interpolator, registration->GetInterpolator());
+
   registration->SetFixedImagePyramid(fixedImagePyramid);
+  ITK_TEST_SET_GET_VALUE(fixedImagePyramid, registration->GetFixedImagePyramid());
+
   registration->SetMovingImagePyramid(movingImagePyramid);
+  ITK_TEST_SET_GET_VALUE(movingImagePyramid, registration->GetMovingImagePyramid());
+
   registration->SetFixedImageRegion(fixedImage->GetBufferedRegion());
+  ITK_TEST_SET_GET_VALUE(fixedImage->GetBufferedRegion(), registration->GetFixedImageRegion());
+
+  constexpr itk::SizeValueType numberOfLevels = 2;
+  registration->SetNumberOfLevels(numberOfLevels);
+  ITK_TEST_SET_GET_VALUE(numberOfLevels, registration->GetNumberOfLevels());
 
   using ParametersType = RegistrationType::ParametersType;
   ParametersType initialParameters(transform->GetNumberOfParameters());
   initialParameters.Fill(0);
-
   registration->SetInitialTransformParameters(initialParameters);
+  ITK_TEST_SET_GET_VALUE(initialParameters, registration->GetInitialTransformParameters());
 
-  registration->SetNumberOfLevels(2);
-
-  registration->Print(std::cout);
-
+  constexpr typename ParametersType::ValueType initialTransformParametersOfNextLevelVal(0.0);
+  const ParametersType initialTransformParametersOfNextLevel(1, initialTransformParametersOfNextLevelVal);
+  registration->SetInitialTransformParametersOfNextLevel(initialTransformParametersOfNextLevel);
+  ITK_TEST_SET_GET_VALUE(initialTransformParametersOfNextLevel,
+                         registration->GetInitialTransformParametersOfNextLevel());
 
   // Exercise Get methods
-  std::cout << "metric: " << registration->GetMetric() << std::endl;
-  std::cout << "optimizer: " << registration->GetOptimizer() << std::endl;
-  std::cout << "transform: " << registration->GetTransform() << std::endl;
-  std::cout << "fixed image: " << registration->GetFixedImage() << std::endl;
-  std::cout << "moving image: " << registration->GetMovingImage() << std::endl;
-  std::cout << "interpolator: " << registration->GetInterpolator() << std::endl;
-  std::cout << "fixed image region: " << registration->GetFixedImageRegion() << std::endl;
-  std::cout << "fixed image pyramid: " << registration->GetFixedImagePyramid() << std::endl;
-  std::cout << "moving image pyramid: " << registration->GetMovingImagePyramid() << std::endl;
-
-  std::cout << "initial parameters: ";
-  std::cout << registration->GetInitialTransformParameters() << std::endl;
-
-  std::cout << "no. levels: " << registration->GetNumberOfLevels() << std::endl;
-  std::cout << "current level: " << registration->GetCurrentLevel() << std::endl;
+  std::cout << "CurrentLevel: " << registration->GetCurrentLevel() << std::endl;
 
 
   /****************************************************
    * Test out initialization errors
    ****************************************************/
-
-#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent)                                          \
-  registration->Set##ComponentName(badComponent);                                                                      \
-  try                                                                                                                  \
-  {                                                                                                                    \
-    pass = false;                                                                                                      \
-    registration->Update();                                                                                            \
-  }                                                                                                                    \
-  catch (const itk::ExceptionObject & err)                                                                             \
-  {                                                                                                                    \
-    std::cout << "Caught expected ExceptionObject" << std::endl;                                                       \
-    std::cout << err << std::endl;                                                                                     \
-    pass = true;                                                                                                       \
-  }                                                                                                                    \
-  registration->Set##ComponentName(goodComponent);                                                                     \
-                                                                                                                       \
-  if (!pass)                                                                                                           \
-  {                                                                                                                    \
-    std::cout << "Test failed." << std::endl;                                                                          \
-    return EXIT_FAILURE;                                                                                               \
-  }                                                                                                                    \
+  bool pass = false;
+#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent) \
+  registration->Set##ComponentName(badComponent);                             \
+  try                                                                         \
+  {                                                                           \
+    pass = false;                                                             \
+    registration->Update();                                                   \
+  }                                                                           \
+  catch (const itk::ExceptionObject & err)                                    \
+  {                                                                           \
+    std::cout << "Caught expected ExceptionObject" << std::endl;              \
+    std::cout << err << std::endl;                                            \
+    pass = true;                                                              \
+  }                                                                           \
+  registration->Set##ComponentName(goodComponent);                            \
+                                                                              \
+  if (!pass)                                                                  \
+  {                                                                           \
+    std::cout << "Test failed." << std::endl;                                 \
+    return EXIT_FAILURE;                                                      \
+  }                                                                           \
   ITK_MACROEND_NOOP_STATEMENT
 
   TEST_INITIALIZATION_ERROR(Metric, nullptr, metric);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,14 +21,11 @@
 #include "itkNumericTraits.h"
 #include "itkMath.h"
 
-
-namespace itk
-{
-namespace Functor
+namespace itk::Functor
 {
 
 /**
- *\class LogicOpBase
+ * \class LogicOpBase
  * \brief Base class for some logic functors. Provides the Foreground
  * and background setting methods.
  *
@@ -55,30 +52,26 @@ namespace Functor
  *
  * \ingroup ITKImageIntensity
  */
+
 template <typename TInput1, typename TInput2 = TInput1, typename TOutput = TInput1>
 class ITK_TEMPLATE_EXPORT LogicOpBase
 {
 public:
   using Self = LogicOpBase;
   LogicOpBase()
-  {
-    m_ForegroundValue = itk::NumericTraits<TOutput>::OneValue();
-    m_BackgroundValue = itk::NumericTraits<TOutput>::ZeroValue();
-  }
+    : m_ForegroundValue(itk::NumericTraits<TOutput>::OneValue())
+    , m_BackgroundValue(TOutput{})
+  {}
 
   ~LogicOpBase() = default;
 
+  bool
+  operator==(const Self &) const
+  {
+    return true;
+  }
 
-  bool
-  operator!=(const Self &) const
-  {
-    return false;
-  }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   void
   SetForegroundValue(const TOutput & FG)
@@ -91,12 +84,12 @@ public:
     m_BackgroundValue = BG;
   }
 
-  TOutput
+  [[nodiscard]] TOutput
   GetForegroundValue() const
   {
     return (m_ForegroundValue);
   }
-  TOutput
+  [[nodiscard]] TOutput
   GetBackgroundValue() const
   {
     return (m_BackgroundValue);
@@ -108,7 +101,7 @@ protected:
 };
 
 /**
- *\class Equal
+ * \class Equal
  * \brief Functor for == operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -123,19 +116,14 @@ class ITK_TEMPLATE_EXPORT Equal : public LogicOpBase<TInput1, TInput2, TOutput>
 public:
   using Self = Equal;
 
-  Equal() = default;
-  ~Equal() = default;
+  bool
+  operator==(const Self &) const
+  {
+    return true;
+  }
 
-  bool
-  operator!=(const Self &) const
-  {
-    return false;
-  }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -147,7 +135,7 @@ public:
   }
 };
 /**
- *\class NotEqual
+ * \class NotEqual
  * \brief Functor for != operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -162,18 +150,14 @@ class ITK_TEMPLATE_EXPORT NotEqual : public LogicOpBase<TInput1, TInput2, TOutpu
 public:
   using Self = NotEqual;
 
-  NotEqual() = default;
-  ~NotEqual() = default;
   bool
-  operator!=(const Self &) const
+  operator==(const Self &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -186,7 +170,7 @@ public:
 };
 
 /**
- *\class GreaterEqual
+ * \class GreaterEqual
  * \brief Functor for >= operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -200,19 +184,15 @@ class ITK_TEMPLATE_EXPORT GreaterEqual : public LogicOpBase<TInput1, TInput2, TO
 {
 public:
   using Self = GreaterEqual;
-  GreaterEqual() = default;
-  ~GreaterEqual() = default;
 
   bool
-  operator!=(const Self &) const
+  operator==(const Self &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -226,7 +206,7 @@ public:
 
 
 /**
- *\class Greater
+ * \class Greater
  * \brief Functor for > operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -239,18 +219,15 @@ class ITK_TEMPLATE_EXPORT Greater : public LogicOpBase<TInput1, TInput2, TOutput
 {
 public:
   using Self = Greater;
-  Greater() = default;
-  ~Greater() = default;
+
   bool
-  operator!=(const Self &) const
+  operator==(const Self &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -264,7 +241,7 @@ public:
 
 
 /**
- *\class LessEqual
+ * \class LessEqual
  * \brief Functor for <= operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -278,18 +255,14 @@ class ITK_TEMPLATE_EXPORT LessEqual : public LogicOpBase<TInput1, TInput2, TOutp
 public:
   using Self = LessEqual;
 
-  LessEqual() = default;
-  ~LessEqual() = default;
   bool
-  operator!=(const Self &) const
+  operator==(const Self &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -303,7 +276,7 @@ public:
 
 
 /**
- *\class Less
+ * \class Less
  * \brief Functor for < operation on images and constants.
  *
  * Operations by c++ casting defaults. Foreground and background
@@ -316,18 +289,15 @@ class ITK_TEMPLATE_EXPORT Less : public LogicOpBase<TInput1, TInput2, TOutput>
 {
 public:
   using Self = Less;
-  Less() = default;
-  ~Less() = default;
+
   bool
-  operator!=(const Self &) const
+  operator==(const Self &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const Self & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
+
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B) const
   {
@@ -349,19 +319,13 @@ template <typename TInput, typename TOutput = TInput>
 class ITK_TEMPLATE_EXPORT NOT : public LogicOpBase<TInput, TInput, TOutput>
 {
 public:
-  NOT() = default;
-  ~NOT() = default;
   bool
-  operator!=(const NOT &) const
+  operator==(const NOT &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const NOT & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(NOT);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -383,19 +347,13 @@ template <typename TInput1, typename TInput2, typename TInput3, typename TOutput
 class ITK_TEMPLATE_EXPORT TernaryOperator
 {
 public:
-  TernaryOperator() = default;
-  ~TernaryOperator() = default;
   bool
-  operator!=(const TernaryOperator &) const
+  operator==(const TernaryOperator &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const TernaryOperator & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(TernaryOperator);
 
   inline TOutput
   operator()(const TInput1 & A, const TInput2 & B, const TInput3 & C) const
@@ -404,14 +362,12 @@ public:
     {
       return static_cast<TOutput>(B);
     }
-    else
-    {
-      return static_cast<TOutput>(C);
-    }
+
+    return static_cast<TOutput>(C);
   }
 };
 
-} // namespace Functor
-} // namespace itk
+} // namespace itk::Functor
+
 
 #endif

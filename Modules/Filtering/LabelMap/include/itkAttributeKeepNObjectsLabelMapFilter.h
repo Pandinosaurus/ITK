@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class AttributeKeepNObjectsLabelMapFilter
+ * \class AttributeKeepNObjectsLabelMapFilter
  * \brief keep N objects according to their attribute value
  *
  * AttributeKeepNObjectsLabelMapFilter keeps the N objects in a label collection image
@@ -32,7 +32,7 @@ namespace itk
  * attribute accessor given in template parameter.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -70,35 +70,33 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(AttributeKeepNObjectsLabelMapFilter, InPlaceLabelMapFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AttributeKeepNObjectsLabelMapFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-  /*  itkConceptMacro(InputEqualityComparableCheck,
+  /*itkConceptMacro(InputEqualityComparableCheck,
       (Concept::EqualityComparable<InputImagePixelType>));
     itkConceptMacro(IntConvertibleToInputCheck,
       (Concept::Convertible<int, InputImagePixelType>));
     itkConceptMacro(InputOStreamWritableCheck,
       (Concept::OStreamWritable<InputImagePixelType>));*/
-  // End concept checking
-#endif
 
   /**
    * Set/Get the ordering of the objects. By default, the ones with the
    * highest value are kept. Turming ReverseOrdering to true make this filter
    * keep the objects with the smallest values
    */
+  /** @ITKStartGrouping */
   itkSetMacro(ReverseOrdering, bool);
   itkGetConstReferenceMacro(ReverseOrdering, bool);
   itkBooleanMacro(ReverseOrdering);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the number of objects to keep
    */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfObjects, SizeValueType);
   itkGetConstReferenceMacro(NumberOfObjects, SizeValueType);
-
+  /** @ITKEndGrouping */
 protected:
   AttributeKeepNObjectsLabelMapFilter();
   ~AttributeKeepNObjectsLabelMapFilter() override = default;
@@ -142,8 +140,8 @@ protected:
   };
 
 private:
-  bool          m_ReverseOrdering;
-  SizeValueType m_NumberOfObjects;
+  bool          m_ReverseOrdering{};
+  SizeValueType m_NumberOfObjects{};
 
 }; // end of class
 

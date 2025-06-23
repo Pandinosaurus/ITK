@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +20,19 @@
 
 #include "itkIntTypes.h"
 #include "itkMacro.h"
-#include <algorithm> // For copy_n.
-#include <type_traits>
+#include "itkMakeFilled.h"
+#include <algorithm>   // For copy_n.
+#include <cstddef>     // For ptrdiff_t.
+#include <type_traits> // For is_integral.
 #include <memory>
 
 namespace itk
 {
 
-/** \struct Size
- * \brief Represent a n-dimensional size (bounds) of a n-dimensional image.
+/** \brief Represent a n-dimensional size (bounds) of a n-dimensional image.
  *
  * Size is a templated class to represent multi-dimensional array bounds,
- * i.e. (I,J,K,...).  Size is templated over teh dimension of the bounds.
+ * i.e. (I,J,K,...).  Size is templated over the dimension of the bounds.
  * ITK assumes the first element of a size (bounds) is the fastest moving index.
  *
  * For efficiency, Size does not define a default constructor, a
@@ -76,7 +77,7 @@ public:
 
   /** Compatible Size and value type alias */
   using SizeType = Size<VDimension>;
-  using SizeValueType = ::itk::SizeValueType;
+  using SizeValueType = itk::SizeValueType;
 
   /** Dimension constant */
   static constexpr unsigned int Dimension = VDimension;
@@ -137,7 +138,8 @@ public:
   }
 
   /** Multiply two sizes (elementwise product).  */
-  const Self operator*(const Self & vec) const
+  const Self
+  operator*(const Self & vec) const
   {
     Self result;
 
@@ -161,7 +163,7 @@ public:
 
   /** Get the size. This provides a read only pointer to the size.
    * \sa SetSize */
-  const SizeValueType *
+  [[nodiscard]] const SizeValueType *
   GetSize() const
   {
     return m_InternalArray;
@@ -195,7 +197,7 @@ public:
    * \warning No bound checking is performed
    * \sa GetSize()
    * \sa SetElement() */
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetElement(unsigned long element) const
   {
     return m_InternalArray[element];
@@ -208,6 +210,19 @@ public:
   {
     std::fill_n(begin(), size(), value);
   } // MATCH std::array assign, ITK Fill
+
+  /** Multiplies all elements. Yields the number of pixels of an image of this size. */
+  [[nodiscard]] constexpr SizeValueType
+  CalculateProductOfElements() const
+  {
+    SizeValueType product{ 1 };
+
+    for (const SizeValueType value : m_InternalArray)
+    {
+      product *= value;
+    }
+    return product;
+  }
 
   /** Size is an "aggregate" class.  Its data is public (m_InternalArray)
    * allowing for fast and convenient instantiations/assignments.
@@ -232,13 +247,13 @@ public:
    * so that the Size class can be treated as a container
    * class in a way that is similar to the std::array.
    */
-  using value_type = ::itk::SizeValueType;
+  using value_type = itk::SizeValueType;
   using reference = value_type &;
   using const_reference = const value_type &;
   using iterator = value_type *;
   using const_iterator = const value_type *;
   using size_type = unsigned int;
-  using difference_type = std::ptrdiff_t;
+  using difference_type = ptrdiff_t;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -253,33 +268,45 @@ public:
   }
 
   void
-  swap(Size & other)
+  swap(Size & other) noexcept
   {
     std::swap(m_InternalArray, other.m_InternalArray);
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cbegin() const
+  {
+    return &m_InternalArray[0];
+  }
+
+  constexpr iterator
   begin()
   {
-    return iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   begin() const
   {
-    return const_iterator(&m_InternalArray[0]);
+    return &m_InternalArray[0];
   }
 
-  iterator
+  [[nodiscard]] constexpr const_iterator
+  cend() const
+  {
+    return &m_InternalArray[VDimension];
+  }
+
+  constexpr iterator
   end()
   {
-    return iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
-  const_iterator
+  [[nodiscard]] constexpr const_iterator
   end() const
   {
-    return const_iterator(&m_InternalArray[VDimension]);
+    return &m_InternalArray[VDimension];
   }
 
   reverse_iterator
@@ -288,7 +315,7 @@ public:
     return reverse_iterator(end());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rbegin() const
   {
     return const_reverse_iterator(end());
@@ -300,33 +327,41 @@ public:
     return reverse_iterator(begin());
   }
 
-  const_reverse_iterator
+  [[nodiscard]] const_reverse_iterator
   rend() const
   {
     return const_reverse_iterator(begin());
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   size() const
   {
     return VDimension;
   }
 
-  constexpr size_type
+  [[nodiscard]] constexpr size_type
   max_size() const
   {
     return VDimension;
   }
 
-  constexpr bool
+  [[nodiscard]] constexpr bool
   empty() const
   {
     return false;
   }
 
-  reference operator[](size_type pos) { return m_InternalArray[pos]; }
+  constexpr reference
+  operator[](size_type pos)
+  {
+    return m_InternalArray[pos];
+  }
 
-  const_reference operator[](size_type pos) const { return m_InternalArray[pos]; }
+  constexpr const_reference
+  operator[](size_type pos) const
+  {
+    return m_InternalArray[pos];
+  }
 
   reference
   at(size_type pos)
@@ -335,32 +370,32 @@ public:
     return m_InternalArray[pos];
   }
 
-  const_reference
+  [[nodiscard]] const_reference
   at(size_type pos) const
   {
     ExceptionThrowingBoundsCheck(pos);
     return m_InternalArray[pos];
   }
 
-  reference
+  constexpr reference
   front()
   {
     return *begin();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   front() const
   {
     return *begin();
   }
 
-  reference
+  constexpr reference
   back()
   {
     return VDimension ? *(end() - 1) : *end();
   }
 
-  const_reference
+  [[nodiscard]] constexpr const_reference
   back() const
   {
     return VDimension ? *(end() - 1) : *end();
@@ -372,7 +407,7 @@ public:
     return &m_InternalArray[0];
   }
 
-  const SizeValueType *
+  [[nodiscard]] const SizeValueType *
   data() const
   {
     return &m_InternalArray[0];
@@ -391,12 +426,10 @@ private:
 public:
   /** Returns a Size object, filled with the specified value for each element.
    */
-  static Self
+  static constexpr Self
   Filled(const SizeValueType value)
   {
-    Self result;
-    result.Fill(value);
-    return result;
+    return MakeFilled<Self>(value);
   }
 
 }; //------------ End struct Size
@@ -406,16 +439,16 @@ template <unsigned int VDimension>
 std::ostream &
 operator<<(std::ostream & os, const Size<VDimension> & obj)
 {
-  os << "[";
+  os << '[';
   for (unsigned int i = 0; i + 1 < VDimension; ++i)
   {
     os << obj[i] << ", ";
   }
-  if (VDimension >= 1)
+  if constexpr (VDimension >= 1)
   {
     os << obj[VDimension - 1];
   }
-  os << "]";
+  os << ']';
   return os;
 }
 
@@ -466,14 +499,23 @@ operator>=(const Size<VDimension> & one, const Size<VDimension> & two)
 // Specialized algorithms [6.2.2.2].
 template <unsigned int VDimension>
 inline void
-swap(Size<VDimension> & one, Size<VDimension> & two)
+swap(Size<VDimension> & one, Size<VDimension> & two) noexcept
 {
   std::swap(one.m_InternalArray, two.m_InternalArray);
 }
 
-// static constexpr definition explicitly needed in C++11
-template <unsigned int VDimension>
-constexpr unsigned int Size<VDimension>::Dimension;
+
+/** Makes a Size object, having the specified size values. */
+template <typename... T>
+auto
+MakeSize(const T... values)
+{
+  const auto toValueType = [](const auto value) {
+    static_assert(std::is_integral_v<decltype(value)>, "Each value must have an integral type!");
+    return static_cast<SizeValueType>(value);
+  };
+  return Size<sizeof...(T)>{ { toValueType(values)... } };
+}
 
 } // end namespace itk
 

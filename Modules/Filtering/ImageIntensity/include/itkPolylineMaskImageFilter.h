@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class PolylineMaskImageFilter
+ * \class PolylineMaskImageFilter
  * \brief Implements image masking operation constrained by a polyline on a plane
  * perpendicular to certain viewing direction.
  *
@@ -49,8 +49,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PolylineMaskImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PolylineMaskImageFilter);
 
   /** Number of dimensions. */
   static constexpr unsigned int NDimensions = TInputImage::ImageDimension;
@@ -89,25 +89,30 @@ public:
   SetInput2(const PolylineType * input);
 
   /** Set/Get viewing direction vector. */
+  /** @ITKStartGrouping */
   itkSetMacro(ViewVector, VectorType);
   itkGetConstMacro(ViewVector, VectorType);
-
+  /** @ITKEndGrouping */
   /** Set/Get up direction vector. */
+  /** @ITKStartGrouping */
   itkSetMacro(UpVector, VectorType);
   itkGetConstMacro(UpVector, VectorType);
-
+  /** @ITKEndGrouping */
   /** Set/Get camera center point. */
+  /** @ITKStartGrouping */
   itkSetMacro(CameraCenterPoint, PointType);
   itkGetConstMacro(CameraCenterPoint, PointType);
-
+  /** @ITKEndGrouping */
   /** Set/Get focal distance of the camera. */
+  /** @ITKStartGrouping */
   itkSetMacro(FocalDistance, double);
   itkGetConstMacro(FocalDistance, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get camera focal point on the projection plane. */
+  /** @ITKStartGrouping */
   itkSetMacro(FocalPoint, ProjPlanePointType);
   itkGetConstMacro(FocalPoint, ProjPlanePointType);
-
+  /** @ITKEndGrouping */
   /** Generate 3D rotation matrix using the viewing and up vectors. */
   void
   GenerateRotationMatrix();
@@ -116,11 +121,7 @@ public:
   ProjPlanePointType
   TransformProjectPoint(PointType inputPoint);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(VectorHasNumericTraitsCheck, (Concept::HasNumericTraits<typename VectorType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   PolylineMaskImageFilter();
@@ -132,14 +133,14 @@ protected:
   GenerateData() override;
 
 private:
-  VectorType m_ViewVector;
-  VectorType m_UpVector;
+  VectorType m_ViewVector{};
+  VectorType m_UpVector{};
 
-  MatrixType m_RotationMatrix;
+  MatrixType m_RotationMatrix{};
 
-  PointType m_CameraCenterPoint;
+  PointType m_CameraCenterPoint{};
 
-  ProjPlanePointType m_FocalPoint;
+  ProjPlanePointType m_FocalPoint{};
 
   double m_FocalDistance{ 0.0 };
 };

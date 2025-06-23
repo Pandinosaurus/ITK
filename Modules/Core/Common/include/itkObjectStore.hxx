@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,12 @@
 #ifndef itkObjectStore_hxx
 #define itkObjectStore_hxx
 
-#include "itkObjectStore.h"
+#include "itkNumericTraits.h"
+#include "itkPrintHelper.h"
+
 
 namespace itk
 {
-template <typename TObjectType>
-ObjectStore<TObjectType>::ObjectStore()
-{
-  m_Size = 0;
-  m_LinearGrowthSize = 1024;
-  m_GrowthStrategy = GrowthStrategyEnum::EXPONENTIAL_GROWTH;
-}
-
 template <typename TObjectType>
 ObjectStore<TObjectType>::~ObjectStore()
 {
@@ -48,7 +42,7 @@ ObjectStore<TObjectType>::Reserve(SizeValueType n)
 
   // Need to grow.  Allocate a new block of memory and copy that block's
   // pointers into the m_FreeList.  Updates m_Size appropriately.
-  MemoryBlock new_block(n - m_Size);
+  const MemoryBlock new_block(n - m_Size);
   m_Store.push_back(new_block);
 
   m_FreeList.reserve(n);
@@ -60,16 +54,14 @@ ObjectStore<TObjectType>::Reserve(SizeValueType n)
 }
 
 template <typename TObjectType>
-typename ObjectStore<TObjectType>::ObjectType *
-ObjectStore<TObjectType>::Borrow()
+auto
+ObjectStore<TObjectType>::Borrow() -> ObjectType *
 {
-  ObjectType * p;
-
   if (m_FreeList.empty()) // must allocate more memory
   {
     this->Reserve(m_Size + this->GetGrowthSize());
   }
-  p = m_FreeList.back();
+  ObjectType * p = m_FreeList.back();
   m_FreeList.pop_back();
   return p;
 
@@ -137,14 +129,16 @@ template <typename TObjectType>
 void
 ObjectStore<TObjectType>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "m_GrowthStrategy: " << m_GrowthStrategy << std::endl;
-  os << indent << "m_Size: " << m_Size << std::endl;
-  os << indent << "m_LinearGrowthSize: " << static_cast<SizeValueType>(m_LinearGrowthSize) << std::endl;
-  os << indent << "Free list size: " << static_cast<SizeValueType>(m_FreeList.size()) << std::endl;
-  os << indent << "Free list capacity: " << static_cast<SizeValueType>(m_FreeList.capacity()) << std::endl;
-  os << indent << "Number of blocks in store: " << static_cast<SizeValueType>(m_Store.size()) << std::endl;
+  os << indent << "GrowthStrategy: " << m_GrowthStrategy << std::endl;
+  os << indent << "Size: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_Size) << std::endl;
+  os << indent
+     << "LinearGrowthSize: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_LinearGrowthSize)
+     << std::endl;
+  os << indent << "FreeList: " << m_FreeList << std::endl;
 }
 } // end namespace itk
 

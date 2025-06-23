@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,8 +29,8 @@ struct TestObject
 int
 itkObjectStoreTest(int, char *[])
 {
-  unsigned                              i, j;
-  itk::ObjectStore<TestObject>::Pointer store = itk::ObjectStore<TestObject>::New();
+
+  const itk::ObjectStore<TestObject>::Pointer store = itk::ObjectStore<TestObject>::New();
 
   std::list<TestObject *> borrowed_list;
   store->SetGrowthStrategyToExponential();
@@ -41,21 +41,21 @@ itkObjectStoreTest(int, char *[])
   store->SetGrowthStrategy(store->GetGrowthStrategy());
 
 
-  for (j = 0; j < 2; ++j)
+  for (unsigned int j = 0; j < 2; ++j)
   {
     std::cout << "_______________________" << std::endl;
     store->Print(std::cout);
 
 
     // Borrow some items
-    for (i = 0; i < 30000; ++i)
+    for (unsigned int i = 0; i < 30000; ++i)
     {
       borrowed_list.push_back(store->Borrow());
     }
     store->Print(std::cout);
 
     // Force allocation of a more memory
-    for (i = 0; i < 1000000; ++i)
+    for (unsigned int i = 0; i < 1000000; ++i)
     {
       borrowed_list.push_back(store->Borrow());
     }
@@ -63,7 +63,7 @@ itkObjectStoreTest(int, char *[])
 
     // Return all items
     auto sz = static_cast<unsigned int>(borrowed_list.size());
-    for (i = 0; i < sz; ++i)
+    for (unsigned int i = 0; i < sz; ++i)
     {
       store->Return(borrowed_list.back());
       borrowed_list.pop_back();

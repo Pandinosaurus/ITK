@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,40 +24,41 @@ int
 itkGaborKernelFunctionTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
 {
   using KernelFunctionType = itk::GaborKernelFunction<double>;
-  KernelFunctionType::Pointer gabor = KernelFunctionType::New();
+  auto gabor = KernelFunctionType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(gabor, GaborKernelFunction, KernelFunctionBase);
 
-  double sigma = 1.5;
+  constexpr double sigma = 1.5;
   gabor->SetSigma(sigma);
   ITK_TEST_SET_GET_VALUE(sigma, gabor->GetSigma());
 
-  double frequency = 2.;
+  constexpr double frequency = 2.;
   gabor->SetFrequency(frequency);
   ITK_TEST_SET_GET_VALUE(frequency, gabor->GetFrequency());
 
-  double phaseOffset = 0.8;
+  constexpr double phaseOffset = 0.8;
   gabor->SetPhaseOffset(phaseOffset);
   ITK_TEST_SET_GET_VALUE(phaseOffset, gabor->GetPhaseOffset());
 
-  bool calculateImaginaryPart = true;
+  constexpr bool calculateImaginaryPart = true;
   gabor->SetCalculateImaginaryPart(calculateImaginaryPart);
   ITK_TEST_SET_GET_VALUE(calculateImaginaryPart, gabor->GetCalculateImaginaryPart());
 
   gabor->CalculateImaginaryPartOn();
   ITK_TEST_SET_GET_VALUE(true, gabor->GetCalculateImaginaryPart());
 
-  double tolerance = 1e-12;
-  double point = 2.86;
-  double expectedValue = -0.13297125073713259;
-  double result = gabor->Evaluate(point);
+  constexpr double tolerance = 1e-12;
+  constexpr double point = 2.86;
+  double           expectedValue = -0.13297125073713259;
+  double           result = gabor->Evaluate(point);
   if (!itk::Math::FloatAlmostEqual(expectedValue, result, 10, tolerance))
   {
-    std::cout.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance))));
-    std::cout << "Error in point " << point << ": ";
-    std::cout << "Expected: " << expectedValue << ", differs from: " << result << std::endl;
+    std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance))));
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in Evaluate at point " << point << std::endl;
+    std::cerr << "Expected value " << expectedValue << std::endl;
+    std::cerr << " differs from: " << result;
     std::cerr << " by more than " << tolerance << std::endl;
-    std::cout << "Test failed" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -68,14 +69,15 @@ itkGaborKernelFunctionTest(int itkNotUsed(argc), char * itkNotUsed(argv)[])
   result = gabor->Evaluate(point);
   if (!itk::Math::FloatAlmostEqual(expectedValue, result, 10, tolerance))
   {
-    std::cout.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance))));
-    std::cout << "Error in point " << point << ": ";
-    std::cout << "Expected: " << expectedValue << ", differs from: " << result << std::endl;
+    std::cerr.precision(static_cast<int>(itk::Math::abs(std::log10(tolerance))));
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in Evaluate at point " << point << std::endl;
+    std::cerr << "Expected value " << expectedValue << std::endl;
+    std::cerr << " differs from " << result << std::endl;
     std::cerr << " by more than " << tolerance << std::endl;
-    std::cout << "Test failed" << std::endl;
     return EXIT_FAILURE;
   }
 
-  std::cout << "Test finished" << std::endl;
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

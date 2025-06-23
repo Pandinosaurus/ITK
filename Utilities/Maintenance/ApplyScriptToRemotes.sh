@@ -8,7 +8,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@
 # remote module repository.
 #
 # Please, review the commit message directives at:
-# https://github.com/InsightSoftwareConsortium/ITK/blob/master/CONTRIBUTING.md
+# https://github.com/InsightSoftwareConsortium/ITK/blob/main/CONTRIBUTING.md
 
 
 # Utility functions
@@ -49,7 +49,7 @@ commits them using the provided commit message, and pushes the commit to the
 remote module repository.
 
 Please, review the commit message directives at:
-https://github.com/InsightSoftwareConsortium/ITK/blob/master/CONTRIBUTING.md
+https://github.com/InsightSoftwareConsortium/ITK/blob/main/CONTRIBUTING.md
 EOF
 }
 
@@ -92,7 +92,6 @@ remote_modules_path='../../Modules/Remote'
 # Ask for GitHub username and password once
 echo "Please provide your GitHub (https://github.com)"
 read -p "username: " username
-read -p "password: " -s password
 
 remotes=()
 
@@ -117,13 +116,13 @@ function list_candidate_remotes() {
     curr_commit=${curr_commit/*GIT_TAG /}
 
     # Read the git repository information
-    repository=$(grep -v "\s*#" $filename | grep -m 1 -o "GIT_REPOSITORY \${git_protocol}://github.com/\(\w\|\-\|_\|/\)*")
+    repository=$(grep -v "\s*#" $filename | grep -m 1 -o "GIT_REPOSITORY \https://github.com/\(\w\|\-\|_\|/\)*")
     repository=${repository/*GIT_REPOSITORY \${git_protocol\}:\/\/github.com\//}
 
     # Get the latest git commit hash of the remote module.
     # Remotes will usually not be tagged.
-    latest_commit=$(git ls-remote git://github.com/$repository refs/heads/master)
-    latest_commit=${latest_commit/[[:space:]]refs\/heads\/master/}
+    latest_commit=$(git ls-remote https://github.com/$repository refs/heads/main)
+    latest_commit=${latest_commit/[[:space:]]refs\/heads\/main/}
 
     # Skip remotes whose current commit in ITK differs from the latest
     if [ $curr_commit != $latest_commit ]; then
@@ -171,8 +170,8 @@ function apply_script_and_push_remotes() {
 
     repository_basename=$(basename -s .git `git config --get remote.origin.url`)
 
-    git checkout master
-    git checkout -b $feature_branch origin/master
+    git checkout main || git checkout main
+    git checkout -b $feature_branch origin/main || git checkout -b $feature_branch origin/main || git checkout $feature_branch
     $script
 
     # Add the files, adding filters if necessary, and redirecting stdout and
@@ -192,7 +191,11 @@ function apply_script_and_push_remotes() {
 
     # Commit and push to the feature branch
     git commit -m "$commit_message"
-    git push --quiet https://$username:$password@github.com/$username/$repository_basename $feature_branch
+
+    read -ep "Push $feature_branch changes to git@github.com:$username/$repository_basename.git? [y/n]" dopush
+    if [ $dopush = 'y' ]; then
+      git push --quiet git@github.com:$username/$repository_basename.git $feature_branch
+    fi
 
     cd ..
   done

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class FrequencyImageRegionConstIteratorWithIndex
+ * \class FrequencyImageRegionConstIteratorWithIndex
  * \brief A multi-dimensional iterator templated over image type that walks
  * pixels within a region and is specialized to keep track of its image index
  * location.
@@ -75,7 +75,7 @@ namespace itk
  *
  */
 template <typename TImage>
-class FrequencyImageRegionConstIteratorWithIndex : public ImageRegionConstIteratorWithIndex<TImage>
+class ITK_TEMPLATE_EXPORT FrequencyImageRegionConstIteratorWithIndex : public ImageRegionConstIteratorWithIndex<TImage>
 {
 public:
   /** Standard class type alias. */
@@ -83,16 +83,16 @@ public:
   using Superclass = ImageRegionConstIteratorWithIndex<TImage>;
 
   /** Types inherited from the Superclass */
-  using IndexType = typename Superclass::IndexType;
-  using SizeType = typename Superclass::SizeType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
-  using ImageType = typename Superclass::ImageType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using PixelContainerPointer = typename Superclass::PixelContainerPointer;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using PixelType = typename Superclass::PixelType;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::IndexType;
+  using typename Superclass::SizeType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
+  using typename Superclass::ImageType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::PixelContainerPointer;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::PixelType;
+  using typename Superclass::AccessorType;
 
   using FrequencyType = typename ImageType::SpacingType;
   using FrequencyValueType = typename ImageType::SpacingValueType;
@@ -126,7 +126,7 @@ public:
   /*
    * The image is in the frequency domain already, return the index.
    */
-  IndexType
+  [[nodiscard]] IndexType
   GetFrequencyBin() const
   {
     return this->GetIndex();
@@ -135,26 +135,26 @@ public:
   /* Similar to TransformIndexToPhysicalPoint on GetIndex(),
    * but the result is cast to FrequencyType. And direction is not taken into account.
    */
-  FrequencyType
+  [[nodiscard]] FrequencyType
   GetFrequency() const
   {
     FrequencyType freq;
     IndexType     freqInd = this->GetFrequencyBin();
     // FrequencyType freq;
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       freq[dim] = this->m_FrequencyOrigin[dim] + this->m_FrequencySpacing[dim] * freqInd[dim];
     }
     return freq;
   }
 
-  FrequencyValueType
+  [[nodiscard]] FrequencyValueType
   GetFrequencyModuloSquare() const
   {
     FrequencyValueType w2(0);
     FrequencyType      w(this->GetFrequency());
 
-    for (unsigned int dim = 0; dim < TImage::ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < TImage::ImageDimension; ++dim)
     {
       w2 += w[dim] * w[dim];
     }
@@ -174,8 +174,11 @@ private:
   void
   Init()
   {
-    this->m_FrequencyOrigin = this->m_Image->GetOrigin();
-    this->m_FrequencySpacing = this->m_Image->GetSpacing();
+    for (unsigned int dim = 0; dim < ImageType::ImageDimension; ++dim)
+    {
+      this->m_FrequencyOrigin[dim] = this->m_Image->GetOrigin()[dim];
+      this->m_FrequencySpacing[dim] = this->m_Image->GetSpacing()[dim];
+    }
   }
 
   FrequencyType m_FrequencyOrigin;

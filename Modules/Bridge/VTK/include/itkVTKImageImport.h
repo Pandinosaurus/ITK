@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,21 +21,21 @@
 #include "itkImageSource.h"
 #include "itkImportImageContainer.h"
 
-#define itkSetMacro2(name, type)                                                                                       \
-  virtual void Set##name(type _arg)                                                                                    \
-  {                                                                                                                    \
-    itkDebugMacro("setting " #name " to " << _arg);                                                                    \
-    if (this->m_##name != _arg)                                                                                        \
-    {                                                                                                                  \
-      this->m_##name = _arg;                                                                                           \
-      this->Modified();                                                                                                \
-    }                                                                                                                  \
+#define itkSetMacro2(name, type)                    \
+  virtual void Set##name(type _arg)                 \
+  {                                                 \
+    itkDebugMacro("setting " #name " to " << _arg); \
+    if (this->m_##name != _arg)                     \
+    {                                               \
+      this->m_##name = _arg;                        \
+      this->Modified();                             \
+    }                                               \
   }
 
 namespace itk
 {
 /**
- *\class VTKImageImport
+ * \class VTKImageImport
  * \brief Connect the end of an VTK pipeline to an ITK image pipeline.
  *
  * VTKImageImport can be used at the beginning of an ITK image pipeline to
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VTKImageImport, ImageSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VTKImageImport);
 
   /** Convenient type alias from the output image. */
   using OutputImageType = TOutputImage;
@@ -83,6 +83,7 @@ public:
 
   /** These are function pointer types for the pipeline connection
    * callbacks. */
+  /** @ITKStartGrouping */
   using UpdateInformationCallbackType = void (*)(void *);
   using PipelineModifiedCallbackType = int (*)(void *);
   using WholeExtentCallbackType = int * (*)(void *);
@@ -95,24 +96,29 @@ public:
   using UpdateDataCallbackType = void (*)(void *);
   using DataExtentCallbackType = int * (*)(void *);
   using BufferPointerCallbackType = void * (*)(void *);
-
+  /** @ITKEndGrouping */
   /** Compatibility for VTK older than 4.4.  */
+  /** @ITKStartGrouping */
   using FloatSpacingCallbackType = float * (*)(void *);
   using FloatOriginCallbackType = float * (*)(void *);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving UpdateInformation(). */
+  /** @ITKStartGrouping */
   itkSetMacro(UpdateInformationCallback, UpdateInformationCallbackType);
   itkGetConstMacro(UpdateInformationCallback, UpdateInformationCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving PipelineModified(). */
+  /** @ITKStartGrouping */
   itkSetMacro(PipelineModifiedCallback, PipelineModifiedCallbackType);
   itkGetConstMacro(PipelineModifiedCallback, PipelineModifiedCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving SetWholeExtent(). */
+  /** @ITKStartGrouping */
   itkSetMacro(WholeExtentCallback, WholeExtentCallbackType);
   itkGetConstMacro(WholeExtentCallback, WholeExtentCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving SetSpacing(). */
+  /** @ITKStartGrouping */
   itkSetMacro(SpacingCallback, SpacingCallbackType);
   itkGetConstMacro(SpacingCallback, SpacingCallbackType);
   itkSetMacro(FloatSpacingCallback, FloatSpacingCallbackType);
@@ -122,8 +128,9 @@ public:
   {
     this->SetFloatSpacingCallback(f);
   }
-
+  /** @ITKEndGrouping */
   /** What to do when receiving SetOrigin(). */
+  /** @ITKStartGrouping */
   itkSetMacro(OriginCallback, OriginCallbackType);
   itkGetConstMacro(OriginCallback, OriginCallbackType);
   itkSetMacro(FloatOriginCallback, FloatOriginCallbackType);
@@ -133,39 +140,47 @@ public:
   {
     this->SetFloatOriginCallback(f);
   }
-
+  /** @ITKEndGrouping */
   /** What to do when receiving SetDirection(). */
+  /** @ITKStartGrouping */
   itkSetMacro(DirectionCallback, DirectionCallbackType);
   itkGetConstMacro(DirectionCallback, DirectionCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving UpdateInformation(). */
+  /** @ITKStartGrouping */
   itkSetMacro(ScalarTypeCallback, ScalarTypeCallbackType);
   itkGetConstMacro(ScalarTypeCallback, ScalarTypeCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving SetNumberOfComponents(). */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfComponentsCallback, NumberOfComponentsCallbackType);
   itkGetConstMacro(NumberOfComponentsCallback, NumberOfComponentsCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving PropagateUpdateExtent(). */
+  /** @ITKStartGrouping */
   itkSetMacro(PropagateUpdateExtentCallback, PropagateUpdateExtentCallbackType);
   itkGetConstMacro(PropagateUpdateExtentCallback, PropagateUpdateExtentCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving UpdateData(). */
+  /** @ITKStartGrouping */
   itkSetMacro(UpdateDataCallback, UpdateDataCallbackType);
   itkGetConstMacro(UpdateDataCallback, UpdateDataCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving DataExtent(). */
+  /** @ITKStartGrouping */
   itkSetMacro(DataExtentCallback, DataExtentCallbackType);
   itkGetConstMacro(DataExtentCallback, DataExtentCallbackType);
-
+  /** @ITKEndGrouping */
   /** What to do when receiving BufferPointer(). */
+  /** @ITKStartGrouping */
   itkSetMacro(BufferPointerCallback, BufferPointerCallbackType);
   itkGetConstMacro(BufferPointerCallback, BufferPointerCallbackType);
-
+  /** @ITKEndGrouping */
   /** Specify callback data. */
+  /** @ITKStartGrouping */
   itkSetMacro2(CallbackUserData, void *);
   itkGetConstMacro(CallbackUserData, void *);
-
+  /** @ITKEndGrouping */
 protected:
   VTKImageImport();
   ~VTKImageImport() override = default;
@@ -185,23 +200,23 @@ protected:
   GenerateOutputInformation() override;
 
 private:
-  void *                            m_CallbackUserData;
-  UpdateInformationCallbackType     m_UpdateInformationCallback;
-  PipelineModifiedCallbackType      m_PipelineModifiedCallback;
-  WholeExtentCallbackType           m_WholeExtentCallback;
-  SpacingCallbackType               m_SpacingCallback;
-  FloatSpacingCallbackType          m_FloatSpacingCallback;
-  OriginCallbackType                m_OriginCallback;
-  FloatOriginCallbackType           m_FloatOriginCallback;
-  DirectionCallbackType             m_DirectionCallback;
-  ScalarTypeCallbackType            m_ScalarTypeCallback;
-  NumberOfComponentsCallbackType    m_NumberOfComponentsCallback;
-  PropagateUpdateExtentCallbackType m_PropagateUpdateExtentCallback;
-  UpdateDataCallbackType            m_UpdateDataCallback;
-  DataExtentCallbackType            m_DataExtentCallback;
-  BufferPointerCallbackType         m_BufferPointerCallback;
+  void *                            m_CallbackUserData{ nullptr };
+  UpdateInformationCallbackType     m_UpdateInformationCallback{ nullptr };
+  PipelineModifiedCallbackType      m_PipelineModifiedCallback{ nullptr };
+  WholeExtentCallbackType           m_WholeExtentCallback{ nullptr };
+  SpacingCallbackType               m_SpacingCallback{ nullptr };
+  FloatSpacingCallbackType          m_FloatSpacingCallback{ nullptr };
+  OriginCallbackType                m_OriginCallback{ nullptr };
+  FloatOriginCallbackType           m_FloatOriginCallback{ nullptr };
+  DirectionCallbackType             m_DirectionCallback{ nullptr };
+  ScalarTypeCallbackType            m_ScalarTypeCallback{ nullptr };
+  NumberOfComponentsCallbackType    m_NumberOfComponentsCallback{ nullptr };
+  PropagateUpdateExtentCallbackType m_PropagateUpdateExtentCallback{ nullptr };
+  UpdateDataCallbackType            m_UpdateDataCallback{ nullptr };
+  DataExtentCallbackType            m_DataExtentCallback{ nullptr };
+  BufferPointerCallbackType         m_BufferPointerCallback{ nullptr };
 
-  std::string m_ScalarTypeName;
+  std::string m_ScalarTypeName{};
 };
 } // namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkOtsuMultipleThresholdsImageFilter_hxx
 #define itkOtsuMultipleThresholdsImageFilter_hxx
 
-#include "itkOtsuMultipleThresholdsImageFilter.h"
 #include "itkThresholdLabelerImageFilter.h"
 #include "itkProgressAccumulator.h"
 
@@ -26,7 +25,7 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 OtsuMultipleThresholdsImageFilter<TInputImage, TOutputImage>::OtsuMultipleThresholdsImageFilter()
-  : m_LabelOffset(NumericTraits<OutputPixelType>::ZeroValue())
+  : m_LabelOffset(OutputPixelType{})
 
 {
   m_Thresholds.clear();
@@ -36,17 +35,17 @@ template <typename TInputImage, typename TOutputImage>
 void
 OtsuMultipleThresholdsImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Create a histogram of the image intensities
-  typename HistogramGeneratorType::Pointer histogramGenerator = HistogramGeneratorType::New();
+  auto histogramGenerator = HistogramGeneratorType::New();
   histogramGenerator->SetInput(this->GetInput());
   histogramGenerator->SetNumberOfBins(m_NumberOfHistogramBins);
   histogramGenerator->Compute();
 
   // Compute the multiple Otsu Thresholds for the input image
-  typename OtsuCalculatorType::Pointer otsuHistogramThresholdCalculator = OtsuCalculatorType::New();
+  auto otsuHistogramThresholdCalculator = OtsuCalculatorType::New();
   otsuHistogramThresholdCalculator->SetInputHistogram(histogramGenerator->GetOutput());
   otsuHistogramThresholdCalculator->SetNumberOfThresholds(m_NumberOfThresholds);
   otsuHistogramThresholdCalculator->SetValleyEmphasis(m_ValleyEmphasis);
@@ -55,8 +54,7 @@ OtsuMultipleThresholdsImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   m_Thresholds = otsuHistogramThresholdCalculator->GetOutput();
 
-  typename ThresholdLabelerImageFilter<TInputImage, TOutputImage>::Pointer threshold =
-    ThresholdLabelerImageFilter<TInputImage, TOutputImage>::New();
+  auto threshold = ThresholdLabelerImageFilter<TInputImage, TOutputImage>::New();
 
   progress->RegisterInternalFilter(threshold, 1.0f);
   threshold->GraftOutput(this->GetOutput());
@@ -90,9 +88,9 @@ OtsuMultipleThresholdsImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ost
   os << indent << "NumberOfThresholds: " << m_NumberOfThresholds << std::endl;
   os << indent << "LabelOffset: " << m_LabelOffset << std::endl;
   os << indent << "Thresholds: " << std::endl;
-  for (SizeValueType j = 0; j < m_Thresholds.size(); j++)
+  for (SizeValueType j = 0; j < m_Thresholds.size(); ++j)
   {
-    os << "\tThreshold #" << j << ": "
+    os << indent << "\tThreshold #" << j << ": "
        << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_Thresholds[j]) << std::endl;
   }
 }

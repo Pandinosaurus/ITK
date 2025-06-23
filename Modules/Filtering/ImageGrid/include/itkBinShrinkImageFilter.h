@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class BinShrinkImageFilter
+ * \class BinShrinkImageFilter
  * \brief Reduce the size of an image by an integer factor in each
  * dimension while performing averaging of an input neighborhood.
  *
@@ -49,7 +49,7 @@ namespace itk
  * This code was contributed in the Insight Journal paper:
  * "BinShrink: A multi-resolution filter with cache efficient averaging"
  * by Lowekamp B., Chen D.
- * https://www.insight-journal.org/browse/publication/912
+ * https://doi.org/10.54294/p39qox
  *
  * \ingroup ITKImageGrid
  * \ingroup Streamed
@@ -69,8 +69,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinShrinkImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinShrinkImageFilter);
 
   /** Typedef to images */
   using OutputImageType = TOutputImage;
@@ -94,12 +94,13 @@ public:
 
   /** Set the shrink factors. Values are clamped to
    * a minimum value of 1. Default is 1 for all dimensions. */
+  /** @ITKStartGrouping */
   itkSetMacro(ShrinkFactors, ShrinkFactorsType);
   void
   SetShrinkFactors(unsigned int factor);
   void
   SetShrinkFactor(unsigned int i, unsigned int factor);
-
+  /** @ITKEndGrouping */
   /** Get the shrink factors. */
   itkGetConstReferenceMacro(ShrinkFactors, ShrinkFactorsType);
 
@@ -115,13 +116,9 @@ public:
   GenerateInputRequestedRegion() override;
 
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
-  /** End concept checking */
-#endif
 
 protected:
   BinShrinkImageFilter();
@@ -132,11 +129,11 @@ protected:
   DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) override;
 
 private:
-  ShrinkFactorsType m_ShrinkFactors;
+  ShrinkFactorsType m_ShrinkFactors{};
 
   /** Round different pixel types. */
   template <class TOutputType, class TInputType>
-  typename std::enable_if<std::numeric_limits<TOutputType>::is_integer, TOutputType>::type
+  std::enable_if_t<std::numeric_limits<TOutputType>::is_integer, TOutputType>
   RoundIfInteger(TInputType input)
   {
     return Math::Round<TOutputType>(input);
@@ -145,7 +142,7 @@ private:
   // For Non-fundamental types numeric_limits is not specialized, and
   // is_integer defaults to false.
   template <class TOutputType, class TInputType>
-  typename std::enable_if<!std::numeric_limits<TOutputType>::is_integer, TOutputType>::type
+  std::enable_if_t<!std::numeric_limits<TOutputType>::is_integer, TOutputType>
   RoundIfInteger(const TInputType & input, ...)
   {
     return static_cast<TOutputType>(input);

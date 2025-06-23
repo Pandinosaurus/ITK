@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,11 +52,10 @@ protected:
       // Create an image of all 1s with a random 0, and 2 valued pixel
       //
 
-      typename ImageType::Pointer image = ImageType::New();
+      auto image = ImageType::New();
 
-      typename ImageType::SizeType imageSize;
-      imageSize.Fill(m_ImageSize);
-      typename ImageType::RegionType region(imageSize);
+      auto                                 imageSize = ImageType::SizeType::Filled(m_ImageSize);
+      const typename ImageType::RegionType region(imageSize);
       image->SetRegions(region);
       image->Allocate();
       image->FillBuffer(1);
@@ -121,7 +120,7 @@ protected:
   Utils::ImageType::Pointer  m_Image;
   Utils::SourceType::Pointer m_Source;
 
-  static const itk::SizeValueType m_ImageSize{ 128 };
+  static constexpr itk::SizeValueType m_ImageSize{ 128 };
 };
 
 } // namespace

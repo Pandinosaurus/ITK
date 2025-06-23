@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,19 +43,13 @@ template <typename TInput, typename TOutput>
 class EdgePotential
 {
 public:
-  EdgePotential() = default;
-  ~EdgePotential() = default;
   bool
-  operator!=(const EdgePotential &) const
+  operator==(const EdgePotential &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const EdgePotential & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(EdgePotential);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -66,7 +60,7 @@ public:
 } // namespace Functor
 
 template <typename TInputImage, typename TOutputImage>
-class EdgePotentialImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
+class ITK_TEMPLATE_EXPORT EdgePotentialImageFilter : public UnaryGeneratorImageFilter<TInputImage, TOutputImage>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(EdgePotentialImageFilter);
@@ -81,14 +75,10 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(EdgePotentialImageFilter, UnaryGeneratorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(EdgePotentialImageFilter);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType::ValueType>));
-  // End concept checking
-#endif
 
 protected:
   EdgePotentialImageFilter()

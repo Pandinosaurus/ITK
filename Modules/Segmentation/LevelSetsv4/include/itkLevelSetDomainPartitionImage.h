@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class LevelSetDomainPartitionImage
+ * \class LevelSetDomainPartitionImage
  *
  * \brief Helper class used to partition domain and efficiently compute overlap.
  * \ingroup ITKLevelSetsv4
@@ -45,7 +45,7 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkTypeMacro(LevelSetDomainPartitionImage, LevelSetDomainPartitionBase);
+  itkOverrideGetNameOfClassMacro(LevelSetDomainPartitionImage);
 
   using ImageType = TImage;
   using ImagePointer = typename ImageType::Pointer;
@@ -59,7 +59,7 @@ public:
   using IndexValueType = typename IndexType::IndexValueType;
   using PointType = typename ImageType::PointType;
 
-  using IdentifierListType = typename Superclass::IdentifierListType;
+  using typename Superclass::IdentifierListType;
 
   using ListImageType = Image<IdentifierListType, ImageDimension>;
   using ListImagePointer = typename ListImageType::Pointer;
@@ -77,9 +77,10 @@ public:
 
   /** Set the input image that will be used to compute an image with the list
    * of level sets domain overlaps. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(Image, ImageType);
   itkGetConstObjectMacro(Image, ImageType);
-
+  /** @ITKEndGrouping */
   /** Get the image with the list of level set domains. */
   itkGetModifiableObjectMacro(ListDomain, ListImageType);
 
@@ -102,9 +103,9 @@ protected:
   void
   AllocateListDomain() override;
 
-  ImageConstPointer              m_Image;
-  ListImagePointer               m_ListDomain;
-  LevelSetDomainRegionVectorType m_LevelSetDomainRegionVector;
+  ImageConstPointer              m_Image{};
+  ListImagePointer               m_ListDomain{};
+  LevelSetDomainRegionVectorType m_LevelSetDomainRegionVector{};
 };
 } // end namespace itk
 

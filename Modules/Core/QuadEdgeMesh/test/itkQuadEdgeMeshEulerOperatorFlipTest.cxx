@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,9 @@ itkQuadEdgeMeshEulerOperatorFlipTest(int, char *[])
 
   using FlipEdge = itk::QuadEdgeMeshEulerOperatorFlipEdgeFunction<MeshType, QEType>;
 
-  MeshPointer mesh = MeshType::New();
+  const MeshPointer mesh = MeshType::New();
   CreateSquareTriangularMesh<MeshType>(mesh);
-  FlipEdge::Pointer flipEdge = FlipEdge::New();
+  auto flipEdge = FlipEdge::New();
   std::cout << flipEdge << std::endl;
 
 #ifndef NDEBUG
@@ -50,7 +50,7 @@ itkQuadEdgeMeshEulerOperatorFlipTest(int, char *[])
 #ifndef NDEBUG
   std::cout << "     "
             << "Test QE Input not internal";
-  QEType * dummy = new QEType;
+  auto * dummy = new QEType;
   if (flipEdge->Evaluate(dummy))
   {
     std::cout << "FAILED." << std::endl;
@@ -115,7 +115,7 @@ itkQuadEdgeMeshEulerOperatorFlipTest(int, char *[])
     return EXIT_FAILURE;
   }
   std::cout << ".OK" << std::endl;
-  // Checking invariance (i.e. FlipEdge is it's own inverse):
+  // Checking invariance (i.e. FlipEdge is its own inverse):
   std::cout << "     "
             << "Check FlipEdge(FlipEdge()) invariance (possible for triangles).";
   if (!flipEdge->Evaluate(tempFlippedEdge))

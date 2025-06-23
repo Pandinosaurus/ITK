@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkTimeVaryingVelocityFieldTransformParametersAdaptor_hxx
 #define itkTimeVaryingVelocityFieldTransformParametersAdaptor_hxx
 
-#include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
 
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
@@ -40,7 +39,7 @@ void
 TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredSize(const SizeType & size)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[d], size[d]))
     {
@@ -57,11 +56,11 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredSize(
 }
 
 template <typename TTransform>
-const typename TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SizeType
-TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredSize() const
+auto
+TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredSize() const -> const SizeType
 {
   SizeType size;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     size[d] = static_cast<SizeValueType>(this->m_RequiredFixedParameters[d]);
   }
@@ -73,7 +72,7 @@ void
 TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredOrigin(const PointType & origin)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[TotalDimension + d], origin[d]))
     {
@@ -90,11 +89,11 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredOrigi
 }
 
 template <typename TTransform>
-const typename TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::PointType
-TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredOrigin() const
+auto
+TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredOrigin() const -> const PointType
 {
   PointType origin;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     origin[d] = this->m_RequiredFixedParameters[TotalDimension + d];
   }
@@ -106,7 +105,7 @@ void
 TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredSpacing(const SpacingType & spacing)
 {
   bool isModified = false;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[2 * TotalDimension + d], spacing[d]))
     {
@@ -123,11 +122,11 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredSpaci
 }
 
 template <typename TTransform>
-const typename TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SpacingType
-TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredSpacing() const
+auto
+TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredSpacing() const -> const SpacingType
 {
   SpacingType spacing;
-  for (SizeValueType d = 0; d < TotalDimension; d++)
+  for (SizeValueType d = 0; d < TotalDimension; ++d)
   {
     spacing[d] = this->m_RequiredFixedParameters[2 * TotalDimension + d];
   }
@@ -139,9 +138,9 @@ void
 TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredDirection(const DirectionType & direction)
 {
   bool isModified = false;
-  for (SizeValueType di = 0; di < TotalDimension; di++)
+  for (SizeValueType di = 0; di < TotalDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < TotalDimension; dj++)
+    for (SizeValueType dj = 0; dj < TotalDimension; ++dj)
     {
       if (Math::NotExactlyEquals(this->m_RequiredFixedParameters[3 * TotalDimension + (di * TotalDimension + dj)],
                                  direction[di][dj]))
@@ -160,13 +159,13 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::SetRequiredDirec
 }
 
 template <typename TTransform>
-const typename TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::DirectionType
-TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredDirection() const
+auto
+TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::GetRequiredDirection() const -> const DirectionType
 {
   DirectionType direction;
-  for (SizeValueType di = 0; di < TotalDimension; di++)
+  for (SizeValueType di = 0; di < TotalDimension; ++di)
   {
-    for (SizeValueType dj = 0; dj < TotalDimension; dj++)
+    for (SizeValueType dj = 0; dj < TotalDimension; ++dj)
     {
       direction[di][dj] = this->m_RequiredFixedParameters[3 * TotalDimension + (di * TotalDimension + dj)];
     }
@@ -181,7 +180,6 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTransformPa
   if (!this->m_Transform)
   {
     itkExceptionMacro("Transform has not been set.");
-    return;
   }
 
   if (this->m_RequiredFixedParameters == this->m_Transform->GetFixedParameters())
@@ -195,16 +193,16 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTransformPa
   const DirectionType newFieldDirection = this->GetRequiredDirection();
 
   using IdentityTransformType = IdentityTransform<ParametersValueType, TotalDimension>;
-  typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+  auto identityTransform = IdentityTransformType::New();
   identityTransform->SetIdentity();
 
   using LinearInterpolatorType = LinearInterpolateImageFunction<TimeVaryingVelocityFieldType, ParametersValueType>;
-  typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
+  auto interpolator = LinearInterpolatorType::New();
   interpolator->SetInputImage(this->m_Transform->GetVelocityField());
 
   using ResamplerType =
     ResampleImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType, ParametersValueType>;
-  typename ResamplerType::Pointer resampler = ResamplerType::New();
+  auto resampler = ResamplerType::New();
   resampler->SetInput(this->m_Transform->GetVelocityField());
   resampler->SetOutputDirection(newFieldDirection);
   resampler->SetOutputOrigin(newFieldOrigin);
@@ -213,7 +211,7 @@ TimeVaryingVelocityFieldTransformParametersAdaptor<TTransform>::AdaptTransformPa
   resampler->SetTransform(identityTransform);
   resampler->SetInterpolator(interpolator);
 
-  typename TimeVaryingVelocityFieldType::Pointer newTimeVaryingVelocityField = resampler->GetOutput();
+  const typename TimeVaryingVelocityFieldType::Pointer newTimeVaryingVelocityField = resampler->GetOutput();
   newTimeVaryingVelocityField->Update();
   newTimeVaryingVelocityField->DisconnectPipeline();
 

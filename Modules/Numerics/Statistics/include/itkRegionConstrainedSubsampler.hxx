@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,19 +17,15 @@
  *=========================================================================*/
 #ifndef itkRegionConstrainedSubsampler_hxx
 #define itkRegionConstrainedSubsampler_hxx
-#include "itkRegionConstrainedSubsampler.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 template <typename TSample, typename TRegion>
 RegionConstrainedSubsampler<TSample, TRegion>::RegionConstrainedSubsampler()
+
 {
   this->m_RequestMaximumNumberOfResults = true;
-  this->m_RegionConstraintInitialized = false;
-  this->m_SampleRegionInitialized = false;
 }
 
 template <typename TSample, typename TRegion>
@@ -38,10 +34,10 @@ RegionConstrainedSubsampler<TSample, TRegion>::InternalClone() const
 {
   typename LightObject::Pointer loPtr = Superclass::InternalClone();
 
-  typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
+  const typename Self::Pointer rval = dynamic_cast<Self *>(loPtr.GetPointer());
   if (rval.IsNull())
   {
-    itkExceptionMacro(<< "downcast to type " << this->GetNameOfClass() << " failed.");
+    itkExceptionMacro("downcast to type " << this->GetNameOfClass() << " failed.");
   }
 
   if (this->GetRegionConstraintInitialized())
@@ -116,7 +112,6 @@ RegionConstrainedSubsampler<TSample, TRegion>::PrintSelf(std::ostream & os, Inde
   os << std::endl;
 }
 
-} // end namespace Statistics
-} // end namespace itk
+} // namespace itk::Statistics
 
 #endif

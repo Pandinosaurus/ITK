@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,11 +75,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(NotImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NotImageFilter);
 
   /** Set/Get the value used to mark the false pixels of the result of
    * the operator. Defaults to 0 */
+  /** @ITKStartGrouping */
   void
   SetBackgroundValue(const typename TOutputImage::PixelType & backgroundValue)
   {
@@ -94,10 +95,11 @@ public:
   {
     return this->GetFunctor().GetBackgroundValue();
   }
-
+  /** @ITKEndGrouping */
 
   /** Set/Get the value used to mark the false pixels of the result of
    * the operator. Defaults to 1 */
+  /** @ITKStartGrouping */
   void
   SetForegroundValue(const typename TOutputImage::PixelType & foregroundValue)
   {
@@ -114,15 +116,11 @@ public:
   {
     return this->GetFunctor().GetForegroundValue();
   }
+  /** @ITKEndGrouping */
 
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<typename TInputImage::PixelType, bool>));
   itkConceptMacro(OutputConvertibleToOutputCheck, (Concept::Convertible<bool, typename TOutputImage::PixelType>));
   itkConceptMacro(InputNotOperatorCheck, (Concept::NotOperator<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   NotImageFilter()

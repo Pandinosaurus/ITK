@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkPointSetToSpatialObjectDemonsRegistration.h"
 
 #include "itkRegularSphereMeshSource.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -29,8 +30,8 @@ itkPointSetToSpatialObjectDemonsRegistrationTest(int, char *[])
 
   using EllipseType = itk::EllipseSpatialObject<Dimension>;
 
-  // Create a ellipse.
-  EllipseType::Pointer ellipse = EllipseType::New();
+  // Create an ellipse.
+  auto ellipse = EllipseType::New();
 
   // Set the radius
   ellipse->SetRadiusInObjectSpace(50);
@@ -47,28 +48,25 @@ itkPointSetToSpatialObjectDemonsRegistrationTest(int, char *[])
 
   using SphereType = itk::RegularSphereMeshSource<PointSetType>;
 
-  SphereType::Pointer sphereSource = SphereType::New();
+  auto sphereSource = SphereType::New();
 
   sphereSource->Update();
 
 
   using DemonsRegistrationType = itk::PointSetToSpatialObjectDemonsRegistration<PointSetType, EllipseType>;
 
-  DemonsRegistrationType::Pointer demonsRegistration = DemonsRegistrationType::New();
+  auto demonsRegistration = DemonsRegistrationType::New();
 
-  demonsRegistration->SetFixedPointSet(sphereSource->GetOutput());
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(demonsRegistration, PointSetToSpatialObjectDemonsRegistration, ProcessObject);
+
+  auto fixedPointSet = sphereSource->GetOutput();
+  demonsRegistration->SetFixedPointSet(fixedPointSet);
+  ITK_TEST_SET_GET_VALUE(fixedPointSet, demonsRegistration->GetFixedPointSet());
+
   demonsRegistration->SetMovingSpatialObject(ellipse);
+  ITK_TEST_SET_GET_VALUE(ellipse, demonsRegistration->GetMovingSpatialObject());
 
-
-  try
-  {
-    demonsRegistration->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception thrown during the registration process" << std::endl;
-    std::cerr << excp << std::endl;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(demonsRegistration->Update());
 
 
   std::cout << "Test Succeed!" << std::endl;

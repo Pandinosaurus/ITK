@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class CoxDeBoorBSplineKernelFunction
+ * \class CoxDeBoorBSplineKernelFunction
  * \brief BSpline kernel used for density estimation and nonparametric
  *  regression.
  *
@@ -43,11 +43,8 @@ namespace itk
  *
  * \author Nicholas J. Tustison
  *
- * This code was contributed in the Insight Journal paper:
- * "N-D C^k B-Spline Scattered Data Approximation"
- * by Nicholas J. Tustison, James C. Gee
- * https://www.insight-journal.org/browse/publication/57
- *
+ * This code was contributed in the Insight Journal paper
+ * \cite Tustison_2005.
  *
  * \sa KernelFunctionBase
  *
@@ -65,13 +62,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using RealType = typename Superclass::RealType;
+  using typename Superclass::RealType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CoxDeBoorBSplineKernelFunction, KernelFunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CoxDeBoorBSplineKernelFunction);
 
   using VectorType = vnl_vector<TRealValueType>;
   using PolynomialType = vnl_real_polynomial;
@@ -128,14 +125,13 @@ private:
   /**
    * Use the CoxDeBoor recursion relation to generate the piecewise
    * polynomials which compose the basis function.
-   * See, for example, L. Piegl, L. Tiller, "The NURBS Book,"
-   * Springer 1997, p. 50.
+   * See, for example, \cite piegl1997 p. 50.
    */
   PolynomialType
   CoxDeBoor(const unsigned short, const VectorType, const unsigned int, const unsigned int);
 
-  MatrixType   m_BSplineShapeFunctions;
-  unsigned int m_SplineOrder;
+  MatrixType   m_BSplineShapeFunctions{};
+  unsigned int m_SplineOrder{};
 };
 } // end namespace itk
 

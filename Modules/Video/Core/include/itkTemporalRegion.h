@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@
 namespace itk
 {
 /**
- *\class TemporalRegion
+ * \class TemporalRegion
  * \brief Region subclass that holds a region in time
  *
  * A temporal region is represented using a starting point and a duration. Here
@@ -47,37 +47,41 @@ public:
   using Self = TemporalRegion;
   using Superclass = Region;
 
-  itkTypeMacro(TemporalRegion, Region);
+  itkOverrideGetNameOfClassMacro(TemporalRegion);
 
   /** Typedef for frame offsets */
-  using FrameOffsetType = ::itk::SizeValueType;
+  using FrameOffsetType = itk::SizeValueType;
 
   /** Get/Set RealStart */
+  /** @ITKStartGrouping */
   void
   SetRealStart(const RealTimeStamp s);
-  RealTimeStamp
+  [[nodiscard]] RealTimeStamp
   GetRealStart() const;
-
+  /** @ITKEndGrouping */
   /** Get/Set RealDuration */
+  /** @ITKStartGrouping */
   void
   SetRealDuration(const RealTimeInterval d);
-  RealTimeInterval
+  [[nodiscard]] RealTimeInterval
   GetRealDuration() const;
-
+  /** @ITKEndGrouping */
   /** Get/Set FrameStart */
+  /** @ITKStartGrouping */
   void
   SetFrameStart(const FrameOffsetType s);
-  FrameOffsetType
+  [[nodiscard]] FrameOffsetType
   GetFrameStart() const;
-
+  /** @ITKEndGrouping */
   /** Get/Set FrameDuration */
+  /** @ITKStartGrouping */
   void
   SetFrameDuration(const FrameOffsetType d);
-  FrameOffsetType
+  [[nodiscard]] FrameOffsetType
   GetFrameDuration() const;
-
+  /** @ITKEndGrouping */
   /** Return RegionType (SRUCTURED_REGION) */
-  RegionEnum
+  [[nodiscard]] RegionEnum
   GetRegionType() const override;
 
   /** Constructor */
@@ -87,29 +91,37 @@ public:
   ~TemporalRegion() override;
 
   /** Compare two temporal regions in Frame space */
-  virtual bool
+  [[nodiscard]] virtual bool
   IsEqualInFrames(const Self & region) const;
 
   /** Compare two temporal regions in Frame space */
-  bool
+  [[nodiscard]] bool
   IsEqualInRealTime(const Self & region) const;
 
   /** Compare two temporal regions. (Both Frame and RealTime) */
   bool
   operator==(const Self & region) const;
 
-  bool
-  operator!=(const Self & region) const;
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
 protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Time boundaries */
-  RealTimeStamp    m_RealStart;
-  RealTimeInterval m_RealDuration;
-  FrameOffsetType  m_FrameStart{ 0 };
-  FrameOffsetType  m_FrameDuration{ 0 };
+
+  /** Timestamp corresponding to the first frame in the region. */
+  RealTimeStamp m_RealStart{};
+
+  /** Time interval corresponding to the entire length of time
+   *  represented by the region over ALL frames */
+  RealTimeInterval m_RealDuration{};
+
+  /** Index of the first frame in the region */
+  FrameOffsetType m_FrameStart{ 0 };
+
+  /** Total number of frames represented by the region (NOT individual frame duration) */
+  FrameOffsetType m_FrameDuration{ 0 };
 
 }; // end class TemporalRegion
 

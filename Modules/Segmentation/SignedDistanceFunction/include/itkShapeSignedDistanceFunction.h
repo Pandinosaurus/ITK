@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ShapeSignedDistanceFunction
+ * \class ShapeSignedDistanceFunction
  * \brief Base class for functions which evaluates the signed distance
  * from a shape.
  *
@@ -49,33 +49,38 @@ namespace itk
  *
  * \ingroup ITKSignedDistanceFunction
  */
-template <typename TCoordRep, unsigned int VSpaceDimension>
-class ShapeSignedDistanceFunction : public SpatialFunction<double, VSpaceDimension, Point<TCoordRep, VSpaceDimension>>
+template <typename TCoordinate, unsigned int VSpaceDimension>
+class ITK_TEMPLATE_EXPORT ShapeSignedDistanceFunction
+  : public SpatialFunction<double, VSpaceDimension, Point<TCoordinate, VSpaceDimension>>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ShapeSignedDistanceFunction);
 
   /** Standard class type aliases. */
   using Self = ShapeSignedDistanceFunction;
-  using Superclass = SpatialFunction<double, VSpaceDimension, Point<TCoordRep, VSpaceDimension>>;
+  using Superclass = SpatialFunction<double, VSpaceDimension, Point<TCoordinate, VSpaceDimension>>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ShapeSignedDistanceFunction, SpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ShapeSignedDistanceFunction);
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputType type alias support */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Dimension underlying input image. */
   static constexpr unsigned int SpaceDimension = VSpaceDimension;
 
   /** CoordRep type alias support */
-  using CoordRepType = TCoordRep;
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
 
   /** Point type alias support */
   using PointType = InputType;
@@ -92,13 +97,13 @@ public:
   {
     return m_Parameters;
   }
-  virtual unsigned int
+  [[nodiscard]] virtual unsigned int
   GetNumberOfShapeParameters() const = 0;
 
-  virtual unsigned int
+  [[nodiscard]] virtual unsigned int
   GetNumberOfPoseParameters() const = 0;
 
-  virtual unsigned int
+  [[nodiscard]] virtual unsigned int
   GetNumberOfParameters() const
   {
     return this->GetNumberOfShapeParameters() + this->GetNumberOfPoseParameters();
@@ -126,7 +131,7 @@ protected:
     // FIX    os << indent << "Parameters: " << m_Parameters << std::endl;
   }
 
-  ParametersType m_Parameters;
+  ParametersType m_Parameters{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +26,11 @@
 int
 itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 5)
+  if (argc < 6)
   {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
-              << " Inputimage OutputImage Radius PreserveIntensities(0,1) [Diffmage]" << std::endl;
+              << " Inputimage OutputImage Radius PreserveIntensities(0,1) fullyConnected [DiffImage]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -47,7 +47,7 @@ itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
     itk::OpeningByReconstructionImageFilter<InputImageType, OutputImageType, StructuringElementType>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   reader->SetFileName(argv[1]);
 
@@ -55,7 +55,7 @@ itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
 
 
   // Create the filter
-  MorphologicalFilterType::Pointer filter = MorphologicalFilterType::New();
+  auto filter = MorphologicalFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, OpeningByReconstructionImageFilter, ImageToImageFilter);
 
@@ -71,8 +71,11 @@ itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
   filter->SetKernel(structuringElement);
   ITK_TEST_SET_GET_VALUE(structuringElement, filter->GetKernel());
 
-  bool preserveIntensities = static_cast<bool>(std::stoi(argv[4]));
+  const bool preserveIntensities = static_cast<bool>(std::stoi(argv[4]));
   ITK_TEST_SET_GET_BOOLEAN(filter, PreserveIntensities, preserveIntensities);
+
+  const bool fullyConnected = static_cast<bool>(std::stoi(argv[5]));
+  ITK_TEST_SET_GET_BOOLEAN(filter, FullyConnected, fullyConnected);
 
   filter->SetInput(reader->GetOutput());
 
@@ -81,7 +84,7 @@ itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
 
   // Write the output
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
   writer->SetInput(filter->GetOutput());
@@ -90,14 +93,14 @@ itkOpeningByReconstructionImageFilterTest(int argc, char * argv[])
 
 
   // Create a difference image if one is requested
-  if (argc == 6)
+  if (argc == 7)
   {
-    itk::SubtractImageFilter<InputImageType, OutputImageType, OutputImageType>::Pointer subtract =
+    const itk::SubtractImageFilter<InputImageType, OutputImageType, OutputImageType>::Pointer subtract =
       itk::SubtractImageFilter<InputImageType, OutputImageType, OutputImageType>::New();
     subtract->SetInput(0, reader->GetOutput());
     subtract->SetInput(1, filter->GetOutput());
 
-    writer->SetFileName(argv[5]);
+    writer->SetFileName(argv[6]);
     writer->SetInput(subtract->GetOutput());
 
     ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());

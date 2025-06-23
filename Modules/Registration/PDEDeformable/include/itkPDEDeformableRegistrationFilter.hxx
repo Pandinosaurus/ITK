@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkPDEDeformableRegistrationFilter_hxx
 #define itkPDEDeformableRegistrationFilter_hxx
 
-#include "itkPDEDeformableRegistrationFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageLinearIteratorWithIndex.h"
@@ -28,13 +27,10 @@
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 
 #include "itkMath.h"
-#include "itkMath.h"
 
 namespace itk
 {
-/**
- * Default constructor
- */
+
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::PDEDeformableRegistrationFilter()
 {
@@ -50,9 +46,7 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   Self::AddRequiredInputName("MovingImage", 2);
 
   this->SetNumberOfIterations(10);
-
-  unsigned int j;
-  for (j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     m_StandardDeviations[j] = 1.0;
     m_UpdateFieldStandardDeviations[j] = 1.0;
@@ -67,9 +61,6 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   m_SmoothUpdateField = false;
 }
 
-/*
- *
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 std::vector<SmartPointer<DataObject>>::size_type
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::GetNumberOfValidRequiredInputs() const
@@ -78,40 +69,24 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
 
   if (this->GetFixedImage())
   {
-    num++;
+    ++num;
   }
 
   if (this->GetMovingImage())
   {
-    num++;
+    ++num;
   }
 
   return num;
 }
 
-/**
- * Set the standard deviations.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::SetStandardDeviations(double value)
 {
-  unsigned int j;
-
-  for (j = 0; j < ImageDimension; j++)
-  {
-    if (Math::NotExactlyEquals(value, m_StandardDeviations[j]))
-    {
-      break;
-    }
-  }
-  if (j < ImageDimension)
+  if (ContainerFillWithCheck(m_StandardDeviations, value, ImageDimension))
   {
     this->Modified();
-    for (j = 0; j < ImageDimension; j++)
-    {
-      m_StandardDeviations[j] = value;
-    }
   }
 }
 
@@ -123,71 +98,42 @@ void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::SetUpdateFieldStandardDeviations(
   double value)
 {
-  unsigned int j;
-
-  for (j = 0; j < ImageDimension; j++)
-  {
-    if (Math::NotExactlyEquals(value, m_UpdateFieldStandardDeviations[j]))
-    {
-      break;
-    }
-  }
-  if (j < ImageDimension)
+  if (ContainerFillWithCheck(m_StandardDeviations, value, ImageDimension))
   {
     this->Modified();
-    for (j = 0; j < ImageDimension; j++)
-    {
-      m_UpdateFieldStandardDeviations[j] = value;
-    }
   }
 }
 
-/*
- * Standard PrintSelf method.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::PrintSelf(std::ostream & os,
                                                                                           Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Smooth deformation field: " << (m_SmoothDisplacementField ? "on" : "off") << std::endl;
-  unsigned int j = 0;
-  os << indent << "Standard deviations: [" << m_StandardDeviations[j];
-  for (j = 1; j < ImageDimension; j++)
-  {
-    os << ", " << m_StandardDeviations[j];
-  }
-  os << "]" << std::endl;
-  os << indent << "Smooth update field: " << (m_SmoothUpdateField ? "on" : "off") << std::endl;
-  j = 0;
-  os << indent << "Update field standard deviations: [" << m_UpdateFieldStandardDeviations[j];
-  for (j = 1; j < ImageDimension; j++)
-  {
-    os << ", " << m_UpdateFieldStandardDeviations[j];
-  }
-  os << "]" << std::endl;
-  os << indent << "StopRegistrationFlag: ";
-  os << m_StopRegistrationFlag << std::endl;
-  os << indent << "MaximumError: ";
-  os << m_MaximumError << std::endl;
-  os << indent << "MaximumKernelWidth: ";
-  os << m_MaximumKernelWidth << std::endl;
+
+  os << indent << "StandardDeviations: " << m_StandardDeviations << std::endl;
+  os << indent << "UpdateFieldStandardDeviations: " << m_UpdateFieldStandardDeviations << std::endl;
+
+  itkPrintSelfBooleanMacro(SmoothDisplacementField);
+  itkPrintSelfBooleanMacro(SmoothUpdateField);
+
+  itkPrintSelfObjectMacro(TempField);
+
+  os << indent << "MaximumError: " << m_MaximumError << std::endl;
+  os << indent << "MaximumKernelWidth: " << m_MaximumKernelWidth << std::endl;
+  itkPrintSelfBooleanMacro(StopRegistrationFlag);
 }
 
-/*
- * Set the function state values before each iteration
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::InitializeIteration()
 {
-  MovingImageConstPointer movingPtr = this->GetMovingImage();
-  FixedImageConstPointer  fixedPtr = this->GetFixedImage();
+  const MovingImageConstPointer movingPtr = this->GetMovingImage();
+  const FixedImageConstPointer  fixedPtr = this->GetFixedImage();
 
   if (!movingPtr || !fixedPtr)
   {
-    itkExceptionMacro(<< "Fixed and/or moving image not set");
+    itkExceptionMacro("Fixed and/or moving image not set");
   }
 
   // update variables in the equation object
@@ -195,7 +141,7 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
 
   if (!f)
   {
-    itkExceptionMacro(<< "FiniteDifferenceFunction not of type PDEDeformableRegistrationFilterFunction");
+    itkExceptionMacro("FiniteDifferenceFunction not of type PDEDeformableRegistrationFilterFunction");
   }
 
   f->SetFixedImage(fixedPtr);
@@ -204,17 +150,11 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   this->Superclass::InitializeIteration();
 }
 
-/*
- * Override the default implementation for the case when the
- * initial deformation is not set.
- * If the initial deformation is not set, the output is
- * fill with zero vectors.
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::CopyInputToOutput()
 {
-  typename Superclass::InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename Superclass::InputImageType::ConstPointer inputPtr = this->GetInput();
 
   if (inputPtr)
   {
@@ -223,12 +163,12 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   else
   {
     typename Superclass::PixelType zeros;
-    for (unsigned int j = 0; j < ImageDimension; j++)
+    for (unsigned int j = 0; j < ImageDimension; ++j)
     {
       zeros[j] = 0;
     }
 
-    typename OutputImageType::Pointer output = this->GetOutput();
+    const typename OutputImageType::Pointer output = this->GetOutput();
 
     ImageRegionIterator<OutputImageType> out(output, output->GetRequestedRegion());
 
@@ -254,7 +194,7 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   }
   else if (this->GetFixedImage())
   {
-    // Initial deforamtion field is not set.
+    // Initial deformation field is not set.
     // Copy information from the fixed image.
     for (unsigned int idx = 0; idx < this->GetNumberOfIndexedOutputs(); ++idx)
     {
@@ -275,7 +215,7 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   Superclass::GenerateInputRequestedRegion();
 
   // request the largest possible region for the moving image
-  MovingImagePointer movingPtr = const_cast<MovingImageType *>(this->GetMovingImage());
+  const MovingImagePointer movingPtr = const_cast<MovingImageType *>(this->GetMovingImage());
   if (movingPtr)
   {
     movingPtr->SetRequestedRegionToLargestPossibleRegion();
@@ -283,9 +223,9 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
 
   // just propagate up the output requested region for
   // the fixed image and initial deformation field.
-  DisplacementFieldPointer inputPtr = const_cast<DisplacementFieldType *>(this->GetInput());
-  DisplacementFieldPointer outputPtr = this->GetOutput();
-  FixedImagePointer        fixedPtr = const_cast<FixedImageType *>(this->GetFixedImage());
+  const DisplacementFieldPointer inputPtr = const_cast<DisplacementFieldType *>(this->GetInput());
+  const DisplacementFieldPointer outputPtr = this->GetOutput();
+  const FixedImagePointer        fixedPtr = const_cast<FixedImageType *>(this->GetFixedImage());
 
   if (inputPtr)
   {
@@ -298,9 +238,6 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   }
 }
 
-/*
- * Release memory of internal buffers
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::PostProcessOutput()
@@ -309,9 +246,6 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   m_TempField->Initialize();
 }
 
-/*
- * Initialize flags
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::Initialize()
@@ -320,14 +254,11 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   m_StopRegistrationFlag = false;
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::SmoothDisplacementField()
 {
-  DisplacementFieldPointer field = this->GetOutput();
+  const DisplacementFieldPointer field = this->GetOutput();
 
   // copy field to TempField
   m_TempField->SetOrigin(field->GetOrigin());
@@ -343,8 +274,8 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   using OperatorType = GaussianOperator<ScalarType, ImageDimension>;
   using SmootherType = VectorNeighborhoodOperatorImageFilter<DisplacementFieldType, DisplacementFieldType>;
 
-  auto *                         oper = new OperatorType;
-  typename SmootherType::Pointer smoother = SmootherType::New();
+  OperatorType oper;
+  auto         smoother = SmootherType::New();
 
   using PixelContainerPointer = typename DisplacementFieldType::PixelContainerPointer;
   PixelContainerPointer swapPtr;
@@ -352,18 +283,18 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   // graft the output field onto the mini-pipeline
   smoother->GraftOutput(m_TempField);
 
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     // smooth along this dimension
-    oper->SetDirection(j);
-    double variance = itk::Math::sqr(m_StandardDeviations[j]);
-    oper->SetVariance(variance);
-    oper->SetMaximumError(m_MaximumError);
-    oper->SetMaximumKernelWidth(m_MaximumKernelWidth);
-    oper->CreateDirectional();
+    oper.SetDirection(j);
+    const double variance = itk::Math::sqr(m_StandardDeviations[j]);
+    oper.SetVariance(variance);
+    oper.SetMaximumError(m_MaximumError);
+    oper.SetMaximumKernelWidth(m_MaximumKernelWidth);
+    oper.CreateDirectional();
 
     // todo: make sure we only smooth within the buffered region
-    smoother->SetOperator(*oper);
+    smoother->SetOperator(oper);
     smoother->SetInput(field);
     smoother->Update();
 
@@ -380,19 +311,14 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   // graft the output back to this filter
   m_TempField->SetPixelContainer(field->GetPixelContainer());
   this->GraftOutput(smoother->GetOutput());
-
-  delete oper;
 }
 
-/*
- * Smooth deformation using a separable Gaussian kernel
- */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::SmoothUpdateField()
 {
   // The update buffer will be overwritten with new data.
-  DisplacementFieldPointer field = this->GetUpdateBuffer();
+  const DisplacementFieldPointer field = this->GetUpdateBuffer();
 
   using VectorType = typename DisplacementFieldType::PixelType;
   using ScalarType = typename VectorType::ValueType;
@@ -402,11 +328,11 @@ PDEDeformableRegistrationFilter<TFixedImage, TMovingImage, TDisplacementField>::
   OperatorType                   opers[ImageDimension];
   typename SmootherType::Pointer smoothers[ImageDimension];
 
-  for (unsigned int j = 0; j < ImageDimension; j++)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     // smooth along this dimension
     opers[j].SetDirection(j);
-    double variance = itk::Math::sqr(this->GetUpdateFieldStandardDeviations()[j]);
+    const double variance = itk::Math::sqr(this->GetUpdateFieldStandardDeviations()[j]);
     // double variance = itk::Math::sqr( 1.0 );
     opers[j].SetVariance(variance);
     opers[j].SetMaximumError(this->GetMaximumError());

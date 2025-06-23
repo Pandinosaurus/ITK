@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ public:
   TIndexType  m_Index;
   signed char m_NodeState{ 0 };
   BandNode()
-    : m_Data(NumericTraits<TDataType>::ZeroValue())
+    : m_Data(TDataType{})
   {}
 };
 
@@ -62,8 +62,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NarrowBand, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NarrowBand);
 
   using NodeContainerType = std::vector<NodeType>;
   using SizeType = typename NodeContainerType::size_type;
@@ -72,7 +72,7 @@ public:
 
   /** Begin is the first valid iterator position within the region.  End is ONE
       PAST the last valid iterator position in the region. */
-  using RegionType = struct
+  struct RegionType
   {
     Iterator Begin;
     Iterator End;
@@ -153,15 +153,23 @@ public:
     m_NodeContainer.resize(n);
   }
 
-  NodeType & operator[](SizeType n) { return m_NodeContainer[n]; }
+  NodeType &
+  operator[](SizeType n)
+  {
+    return m_NodeContainer[n];
+  }
 
-  const NodeType & operator[](SizeType n) const { return m_NodeContainer[n]; }
+  const NodeType &
+  operator[](SizeType n) const
+  {
+    return m_NodeContainer[n];
+  }
 
   /** Set/Get the narrow band total radius. The narrow band width will be twice
   this value (positive and negative distance to the zero level set).
   The user of the narrow band container should set up this value properly. */
   void
-  SetTotalRadius(const float & val)
+  SetTotalRadius(const float val)
   {
     m_TotalRadius = val;
   }
@@ -175,7 +183,7 @@ public:
   /** Set/Get the narrow band inner radius. The inner radius is the safe are
   where the level set can be computed.*/
   void
-  SetInnerRadius(const float & val)
+  SetInnerRadius(const float val)
   {
     m_InnerRadius = val;
   }
@@ -193,7 +201,7 @@ protected:
   float m_InnerRadius{ 0.0 };
 
 private:
-  NodeContainerType m_NodeContainer;
+  NodeContainerType m_NodeContainer{};
 };
 } // end namespace itk
 

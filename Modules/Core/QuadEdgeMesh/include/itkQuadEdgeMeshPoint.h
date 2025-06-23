@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,36 +31,30 @@ namespace itk
  * to an entry in the edge ring.
  * \ingroup ITKQuadEdgeMesh
  */
-template <typename TCoordRep,
+template <typename TCoordinate,
           unsigned int VPointDimension,
           typename TQuadEdge = GeometricalQuadEdge<unsigned long, unsigned long, bool, bool, true>>
-class ITK_TEMPLATE_EXPORT QuadEdgeMeshPoint : public Point<TCoordRep, VPointDimension>
+class ITK_TEMPLATE_EXPORT QuadEdgeMeshPoint : public Point<TCoordinate, VPointDimension>
 {
 public:
   /** Standard type alias. */
   using Self = QuadEdgeMeshPoint;
-  using Superclass = Point<TCoordRep, VPointDimension>;
+  using Superclass = Point<TCoordinate, VPointDimension>;
 
   /** Types & values defined in superclass. */
   static constexpr unsigned int PointDimension = VPointDimension;
 
-  using ValueType = typename Superclass::ValueType;
-  using CoordRepType = typename Superclass::CoordRepType;
-  using RealType = typename Superclass::RealType;
-  using BaseArray = typename Superclass::BaseArray;
-  using Iterator = typename Superclass::Iterator;
-  using ConstIterator = typename Superclass::ConstIterator;
-  using VectorType = typename Superclass::VectorType;
+  using typename Superclass::ValueType;
+  using typename Superclass::CoordinateType;
+  using typename Superclass::RealType;
+  using typename Superclass::Iterator;
+  using typename Superclass::ConstIterator;
+  using typename Superclass::VectorType;
 
   using ValueArrayType = ValueType[Self::PointDimension];
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-  // End concept checking
-#endif
-
 public:
-  QuadEdgeMeshPoint();
+  QuadEdgeMeshPoint() = default;
   QuadEdgeMeshPoint(const Self &) = default;
   QuadEdgeMeshPoint(QuadEdgeMeshPoint &&) = default;
   QuadEdgeMeshPoint &
@@ -96,13 +90,13 @@ public:
   TQuadEdge *
   GetEdge();
 
-  TQuadEdge *
+  [[nodiscard]] [[nodiscard]] TQuadEdge *
   GetEdge() const;
 
   /** Return IsOriginalInternal of the edge.
    * @sa GeometricalQuadEdge::isOriginInternal
    */
-  bool
+  [[nodiscard]] [[nodiscard]] bool
   IsInternal() const;
 
   /** Return the valence of this QuadEdgeMeshPoint i.e. the number of edges constituting
@@ -110,7 +104,7 @@ public:
    *  @return the valence when an entry in the Onext ring is present,
    *          and -1 otherwise.
    */
-  int
+  [[nodiscard]] [[nodiscard]] int
   GetValence() const;
 
 protected:
@@ -119,7 +113,7 @@ protected:
   Initialize();
 
 protected:
-  TQuadEdge * m_Edge; /**< Entry edge for this point into an Onext ring */
+  TQuadEdge * m_Edge{}; /**< Entry edge for this point into an Onext ring */
 };
 } // end namespace itk
 

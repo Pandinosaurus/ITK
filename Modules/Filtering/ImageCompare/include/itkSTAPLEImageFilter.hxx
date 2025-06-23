@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,10 @@
  *=========================================================================*/
 #ifndef itkSTAPLEImageFilter_hxx
 #define itkSTAPLEImageFilter_hxx
-#include "itkSTAPLEImageFilter.h"
 
 #include "itkImageScanlineIterator.h"
+#include "itkMakeUniqueForOverwrite.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
@@ -27,47 +28,52 @@ template <typename TInputImage, typename TOutputImage>
 void
 STAPLEImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
-  os << indent << "m_MaximumIterations = " << m_MaximumIterations << std::endl;
-  os << indent << "m_ForegroundValue = " << m_ForegroundValue << std::endl;
-  os << indent << "m_ConfidenceWeight = " << m_ConfidenceWeight << std::endl;
-  os << indent << "m_ElapsedIterations = " << m_ElapsedIterations << std::endl;
+
+  os << indent
+     << "ForegroundValue: " << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_ForegroundValue)
+     << std::endl;
+  os << indent << "ElapsedIterations: " << m_ElapsedIterations << std::endl;
+  os << indent << "MaximumIterations: " << m_MaximumIterations << std::endl;
+  os << indent << "ConfidenceWeight: " << m_ConfidenceWeight << std::endl;
+
+  os << indent << "Sensitivity: " << m_Sensitivity << std::endl;
+  os << indent << "Specificity: " << m_Specificity << std::endl;
 }
 
 template <typename TInputImage, typename TOutputImage>
 void
 STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  const double epsilon = 1.0e-10;
+  constexpr double epsilon = 1.0e-10;
 
   using IteratorType = ImageScanlineConstIterator<TInputImage>;
   using FuzzyIteratorType = ImageScanlineIterator<TOutputImage>;
 
-  const double min_rms_error = 1.0e-14; // 7 digits of precision
-
-  unsigned int                                  i, iter;
-  ProcessObject::DataObjectPointerArraySizeType number_of_input_files;
+  constexpr double min_rms_error = 1.0e-14; // 7 digits of precision
 
   // Allocate the output "fuzzy" image.
   this->GetOutput()->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
   this->GetOutput()->Allocate();
-  typename TOutputImage::Pointer W = this->GetOutput();
+  const typename TOutputImage::Pointer W = this->GetOutput();
 
   // Initialize the output to all 0's
   W->FillBuffer(0.0);
 
   // Record the number of input files.
-  number_of_input_files = this->GetNumberOfIndexedInputs();
+  const ProcessObject::DataObjectPointerArraySizeType number_of_input_files = this->GetNumberOfIndexedInputs();
 
-  auto * D_it = new IteratorType[number_of_input_files];
+  const auto D_it = make_unique_for_overwrite<IteratorType[]>(number_of_input_files);
 
-  auto * p = new double[number_of_input_files]; // sensitivity
-  auto * q = new double[number_of_input_files]; // specificity
+  const auto p = make_unique_for_overwrite<double[]>(number_of_input_files); // sensitivity
+  const auto q = make_unique_for_overwrite<double[]>(number_of_input_files); // specificity
 
-  auto * last_q = new double[number_of_input_files];
-  auto * last_p = new double[number_of_input_files];
+  const auto last_q = make_unique_for_overwrite<double[]>(number_of_input_files);
+  const auto last_p = make_unique_for_overwrite<double[]>(number_of_input_files);
 
-  for (i = 0; i < number_of_input_files; ++i)
+  for (unsigned int i = 0; i < number_of_input_files; ++i)
   {
     last_p[i] = -10.0;
     last_q[i] = -10.0;
@@ -75,17 +81,15 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // Come up with an initial Wi which is simply the average of
   // all the segmentations.
-  IteratorType      in;
-  FuzzyIteratorType out;
-  for (i = 0; i < number_of_input_files; ++i)
+  for (unsigned int i = 0; i < number_of_input_files; ++i)
   {
     if (this->GetInput(i)->GetRequestedRegion() != W->GetRequestedRegion())
     {
-      itkExceptionMacro(<< "One or more input images do not contain matching RequestedRegions");
+      itkExceptionMacro("One or more input images do not contain matching RequestedRegions");
     }
 
-    in = IteratorType(this->GetInput(i), W->GetRequestedRegion());
-    out = FuzzyIteratorType(W, W->GetRequestedRegion());
+    IteratorType      in = IteratorType(this->GetInput(i), W->GetRequestedRegion());
+    FuzzyIteratorType out = FuzzyIteratorType(W, W->GetRequestedRegion());
 
     while (!in.IsAtEnd())
     {
@@ -104,33 +108,37 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
   }
 
   // Divide sum by num of files, calculate the estimate of g_t
+
   double N = 0.0;
   double g_t = 0.0;
-  out.GoToBegin();
-  while (!out.IsAtEnd())
   {
-    while (!out.IsAtEndOfLine())
+    FuzzyIteratorType out = FuzzyIteratorType(W, W->GetRequestedRegion());
+    while (!out.IsAtEnd())
     {
-      out.Set(out.Get() / static_cast<double>(number_of_input_files));
-      g_t += out.Get();
-      N = N + 1.0;
-      ++out;
-    } // end of scanline
-    out.NextLine();
+      while (!out.IsAtEndOfLine())
+      {
+        out.Set(out.Get() / static_cast<double>(number_of_input_files));
+        g_t += out.Get();
+        N = N + 1.0;
+        ++out;
+      } // end of scanline
+      out.NextLine();
+    }
+    g_t = (g_t / N) * m_ConfidenceWeight;
   }
-  g_t = (g_t / N) * m_ConfidenceWeight;
-
-  double p_num, p_denom, q_num, q_denom;
-
-  for (iter = 0; iter < m_MaximumIterations; ++iter)
+  unsigned int iter = 0;
+  for (; iter < m_MaximumIterations; ++iter)
   {
     // Now iterate on estimating specificity and sensitivity
-    for (i = 0; i < number_of_input_files; ++i)
+    for (unsigned int i = 0; i < number_of_input_files; ++i)
     {
-      in = IteratorType(this->GetInput(i), W->GetRequestedRegion());
-      out = FuzzyIteratorType(W, W->GetRequestedRegion());
+      IteratorType      in = IteratorType(this->GetInput(i), W->GetRequestedRegion());
+      FuzzyIteratorType out = FuzzyIteratorType(W, W->GetRequestedRegion());
 
-      p_num = p_denom = q_num = q_denom = 0.0;
+      double p_num{};
+      double p_denom{};
+      double q_num{};
+      double q_denom{};
 
       // Sensitivity and specificity of this user
       while (!in.IsAtEnd())
@@ -160,24 +168,21 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
 
     // Now recreate W using the new p's and q's
     // Need an iterator on each D
-    // const double g_t = 0.1;  // prior likelihood that a pixel is incl.in
+    // constexpr double g_t = 0.1;  // prior likelihood that a pixel is incl.in
     // segmentation
-    double alpha1, beta1;
-
-    for (i = 0; i < number_of_input_files; ++i)
+    for (unsigned int i = 0; i < number_of_input_files; ++i)
     {
       D_it[i] = IteratorType(this->GetInput(i), W->GetRequestedRegion());
     }
 
-    out = FuzzyIteratorType(W, W->GetRequestedRegion());
-
-    out.GoToBegin();
+    FuzzyIteratorType out = FuzzyIteratorType(W, W->GetRequestedRegion());
     while (!out.IsAtEnd())
     {
       while (!out.IsAtEndOfLine())
       {
-        alpha1 = beta1 = 1.0;
-        for (i = 0; i < number_of_input_files; ++i)
+        double alpha1{ 1.0 };
+        double beta1{ 1.0 };
+        for (unsigned int i = 0; i < number_of_input_files; ++i)
         {
           if (D_it[i].Get() > m_ForegroundValue - epsilon && D_it[i].Get() < m_ForegroundValue + epsilon)
           // Dij == 1
@@ -195,7 +200,7 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
         out.Set(g_t * alpha1 / (g_t * alpha1 + (1.0 - g_t) * beta1));
         ++out;
       } // end scanline
-      for (i = 0; i < number_of_input_files; ++i)
+      for (unsigned int i = 0; i < number_of_input_files; ++i)
       {
         D_it[i].NextLine();
       }
@@ -209,7 +214,7 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
     if (iter != 0) // not on the first iteration
     {
       flag = true;
-      for (i = 0; i < number_of_input_files; ++i)
+      for (unsigned int i = 0; i < number_of_input_files; ++i)
       {
         if (((p[i] - last_p[i]) * (p[i] - last_p[i])) > min_rms_error)
         {
@@ -223,7 +228,7 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
         }
       }
     }
-    for (i = 0; i < number_of_input_files; ++i)
+    for (unsigned int i = 0; i < number_of_input_files; ++i)
     {
       last_p[i] = p[i];
       last_q[i] = q[i];
@@ -235,7 +240,7 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
       flag = true;
     }
 
-    if (flag == true)
+    if (flag)
     {
       break;
     }
@@ -245,18 +250,12 @@ STAPLEImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   m_Sensitivity.clear();
   m_Specificity.clear();
-  for (i = 0; i < number_of_input_files; i++)
+  for (unsigned int i = 0; i < number_of_input_files; ++i)
   {
     m_Sensitivity.push_back(p[i]);
     m_Specificity.push_back(q[i]);
   }
   m_ElapsedIterations = iter;
-
-  delete[] q;
-  delete[] p;
-  delete[] last_q;
-  delete[] last_p;
-  delete[] D_it;
 }
 } // end namespace itk
 

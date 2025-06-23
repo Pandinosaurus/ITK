@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,14 @@ This program tests operations of itk::FileTools.
 #include <iostream>
 #include <string>
 #include "itkMacro.h"
+#include "itkTestingMacros.h"
 
 int
 itkDOMTest8(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "arguments expected: <OutputFolder> <OutputFile>" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " <OutputFolder> <OutputFile>" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -43,7 +44,7 @@ itkDOMTest8(int argc, char * argv[])
     // create the file in the directory
     std::string fn(argv[1]);
     fn.append(argv[2]);
-    itk::FileTools::CreateFile(fn.c_str());
+    itk::FileTools::CreateFile(fn);
 
     // the testings are successful if reached here
   }

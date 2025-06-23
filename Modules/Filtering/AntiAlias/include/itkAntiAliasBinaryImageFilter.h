@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,14 +52,9 @@ namespace itk
  *
  * \par NOTES
  * This implementation uses a sparse field level set solver instead of the
- * narrow band implementation described in the reference below, which may
+ * narrow band implementation described in \cite whitaker2000, which may
  * introduce some differences in how fast and how accurately (in terms of RMS
  * error) the solution converges.
- *
- * \par REFERENCES
- * Whitaker, Ross.  "Reducing Aliasing Artifacts In Iso-Surfaces of Binary
- * Volumes"  IEEE Volume Visualization and Graphics Symposium, October 2000,
- * pp.23-32.
  *
  * \par PARAMETERS
  *  The MaximumRMSChange parameter is used to determine when the solution has
@@ -116,11 +111,11 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Inherited type alias from the superclass. */
-  using ValueType = typename Superclass::ValueType;
-  using IndexType = typename Superclass::IndexType;
-  using TimeStepType = typename Superclass::TimeStepType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::ValueType;
+  using typename Superclass::IndexType;
+  using typename Superclass::TimeStepType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::InputImageType;
 
   /** The function type which will calculate the curvature flow */
   using CurvatureFunctionType = CurvatureFlowFunction<OutputImageType>;
@@ -131,13 +126,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AntiAliasBinaryImageFilter, SparseFieldLevelSetImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AntiAliasBinaryImageFilter);
 
   /** Get the upper and lower binary values in the input image. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(UpperBinaryValue, BinaryValueType);
   itkGetConstMacro(LowerBinaryValue, BinaryValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the maximum number of iterations allowed for the solver.  This
    *  prevents infinite loops if a solution "bounces". */
   void
@@ -154,12 +150,8 @@ public:
     return this->GetNumberOfIterations();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<typename TInputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   AntiAliasBinaryImageFilter();
@@ -181,12 +173,12 @@ protected:
   GenerateData() override;
 
 private:
-  BinaryValueType m_UpperBinaryValue;
-  BinaryValueType m_LowerBinaryValue;
+  BinaryValueType m_UpperBinaryValue{};
+  BinaryValueType m_LowerBinaryValue{};
 
-  typename CurvatureFunctionType::Pointer m_CurvatureFunction;
+  typename CurvatureFunctionType::Pointer m_CurvatureFunction{};
 
-  const TInputImage * m_InputImage;
+  const TInputImage * m_InputImage{};
 };
 } // end namespace itk
 

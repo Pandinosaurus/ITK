@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,8 @@ namespace itk
  * \ingroup ITKQuadEdgeMeshFiltering
  */
 template <typename TInputMesh, typename TOutputMesh = TInputMesh>
-class DiscreteCurvatureTensorQuadEdgeMeshFilter : public QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
+class ITK_TEMPLATE_EXPORT DiscreteCurvatureTensorQuadEdgeMeshFilter
+  : public QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(DiscreteCurvatureTensorQuadEdgeMeshFilter);
@@ -40,26 +41,22 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using Superclass = QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(DiscreteCurvatureTensorQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DiscreteCurvatureTensorQuadEdgeMeshFilter);
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro(Self);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-//  itkConceptMacro( OutputIsFloatingPointCheck,
-//                   ( Concept::IsFloatingPoint< OutputCurvatureType > ) );
-// End concept checking
-#endif
+  // itkConceptMacro( OutputIsFloatingPointCheck,
+  //                  ( Concept::IsFloatingPoint< OutputCurvatureType > ) );
 
 protected:
   DiscreteCurvatureTensorQuadEdgeMeshFilter() = default;
-  ~DiscreteCurvatureTensorQuadEdgeMeshFilter() = default;
+  ~DiscreteCurvatureTensorQuadEdgeMeshFilter() override = default;
 
   /// TODO to be implemented
-  virtual void
-  GenerateData()
+  void
+  GenerateData() override
   {}
 };
 } // namespace itk

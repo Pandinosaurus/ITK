@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,7 @@
 #include "itkHistogram.h"
 #include "itkMahalanobisDistanceMetric.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 class MyCovarianceSampleFilter : public CovarianceSampleFilter<TSample>
@@ -43,10 +41,10 @@ public:
   void
   CreateInvalidOutput()
   {
-    unsigned int index = 3;
+    constexpr unsigned int index = 3;
     Superclass::MakeOutput(index);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetMeasurementVectorSize() const
   {
     return this->Superclass::GetMeasurementVectorSize();
@@ -56,8 +54,8 @@ private:
   MyCovarianceSampleFilter() = default;
   ~MyCovarianceSampleFilter() override = default;
 };
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics
+
 
 int
 itkCovarianceSampleFilterTest3(int, char *[])
@@ -71,7 +69,7 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
   using SampleType = HistogramType;
 
-  HistogramType::Pointer histogram = HistogramType::New();
+  auto histogram = HistogramType::New();
 
   HistogramType::SizeType              size(MeasurementVectorSize);
   HistogramType::MeasurementVectorType lowerBound(MeasurementVectorSize);
@@ -87,7 +85,7 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
   using MembershipFunctionType = itk::Statistics::MahalanobisDistanceMetric<HistogramType::MeasurementVectorType>;
 
-  MembershipFunctionType::Pointer memberFunction = MembershipFunctionType::New();
+  auto memberFunction = MembershipFunctionType::New();
 
 
   using MeanVectorType = MembershipFunctionType::MeanVectorType;
@@ -106,9 +104,9 @@ itkCovarianceSampleFilterTest3(int, char *[])
   covariance[2][2] = 6000.0;
 
 
-  for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+  for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
   {
-    for (unsigned int j = i; j < MeasurementVectorSize; j++)
+    for (unsigned int j = i; j < MeasurementVectorSize; ++j)
     {
       covariance[j][i] = covariance[i][j];
     }
@@ -120,8 +118,8 @@ itkCovarianceSampleFilterTest3(int, char *[])
   memberFunction->SetMean(mean);
   memberFunction->SetCovariance(covariance);
 
-  HistogramType::Iterator itr = histogram->Begin();
-  HistogramType::Iterator end = histogram->End();
+  HistogramType::Iterator       itr = histogram->Begin();
+  const HistogramType::Iterator end = histogram->End();
 
   using AbsoluteFrequencyType = HistogramType::AbsoluteFrequencyType;
 
@@ -131,7 +129,7 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
     const double MahalanobisDistance2 = MahalanobisDistance * MahalanobisDistance;
 
-    auto frequency = (AbsoluteFrequencyType)std::floor(1e5 * std::exp(-0.5 * MahalanobisDistance2));
+    auto frequency = static_cast<AbsoluteFrequencyType>(std::floor(1e5 * std::exp(-0.5 * MahalanobisDistance2)));
 
     itr.SetFrequency(frequency);
     ++itr;
@@ -140,7 +138,7 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
   using FilterType = itk::Statistics::MyCovarianceSampleFilter<SampleType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
 
   // test if exception is thrown if a derived class tries to create
@@ -179,9 +177,9 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
   double epsilon = 1;
 
-  for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+  for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
   {
-    if (std::fabs(meanOutput[i] - mean[i]) > epsilon)
+    if (itk::Math::abs(meanOutput[i] - mean[i]) > epsilon)
     {
       std::cerr << "The computed mean value is incorrect" << std::endl;
       std::cerr << "computed mean = " << meanOutput << std::endl;
@@ -192,14 +190,14 @@ itkCovarianceSampleFilterTest3(int, char *[])
 
   epsilon = 35;
 
-  for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+  for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
   {
-    for (unsigned int j = 0; j < MeasurementVectorSize; j++)
+    for (unsigned int j = 0; j < MeasurementVectorSize; ++j)
     {
-      if (std::fabs(covariance[i][j] - covarianceOutput[i][j]) > epsilon)
+      if (itk::Math::abs(covariance[i][j] - covarianceOutput[i][j]) > epsilon)
       {
-        std::cerr << "Computed covariance matrix value is incorrrect:" << i << "," << j << "=" << covariance[i][j]
-                  << "," << covarianceOutput[i][j] << std::endl;
+        std::cerr << "Computed covariance matrix value is incorrect:" << i << ',' << j << '=' << covariance[i][j] << ','
+                  << covarianceOutput[i][j] << std::endl;
         return EXIT_FAILURE;
       }
     }

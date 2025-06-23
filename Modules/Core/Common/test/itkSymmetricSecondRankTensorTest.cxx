@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
   pixelArray[1] = pixelInit1;
 
   std::cout << "sizeof(pixel) = " << sizeof(pixel) << std::endl;
-  if (sizeof(pixel) != 6 * sizeof(Float3DTensorType::ComponentType))
+  if constexpr (sizeof(pixel) != 6 * sizeof(Float3DTensorType::ComponentType))
   {
     std::cerr << "ERROR: sizeof(pixel) == " << sizeof(pixel) << " but is should be "
               << 6 * sizeof(Float3DTensorType::ComponentType) << std::endl;
@@ -87,7 +87,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
   }
 
   std::cout << "std::cout << pixel << std::endl;" << std::endl;
-  std::cout << "\t" << pixel << std::endl;
+  std::cout << '\t' << pixel << std::endl;
 
   for (unsigned int j = 0; j < 2; ++j)
   {
@@ -140,7 +140,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
   using PixelType = Float3DTensorType;
   using ImageType = itk::Image<PixelType, 3>;
 
-  ImageType::Pointer dti = ImageType::New();
+  auto dti = ImageType::New();
 
   ImageType::SizeType   size;
   ImageType::IndexType  start;
@@ -232,7 +232,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
     std::cout << "EigenVectors = " << std::endl;
     std::cout << eigenVectors << std::endl;
 
-    const double tolerance = 1e-4;
+    constexpr double tolerance = 1e-4;
 
     {
       Double3DTensorType::EigenValuesArrayType expectedValues;
@@ -242,7 +242,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(expectedValues[i] - eigenValues[i]) > tolerance)
+        if (itk::Math::abs(expectedValues[i] - eigenValues[i]) > tolerance)
         {
           std::cerr << "EigenAnalysis computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -253,7 +253,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int j = 0; j < 3; ++j)
       {
-        if (std::fabs(expectedValues[j] - eigenValues2[j]) > tolerance)
+        if (itk::Math::abs(expectedValues[j] - eigenValues2[j]) > tolerance)
         {
           std::cerr << "EigenValues computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -294,7 +294,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(expectedValues[i] - eigenValues[i]) > tolerance)
+        if (itk::Math::abs(expectedValues[i] - eigenValues[i]) > tolerance)
         {
           std::cerr << "EigenAnalysis computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -305,7 +305,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int j = 0; j < 3; ++j)
       {
-        if (std::fabs(expectedValues[j] - eigenValues2[j]) > tolerance)
+        if (itk::Math::abs(expectedValues[j] - eigenValues2[j]) > tolerance)
         {
           std::cerr << "EigenValues computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -346,7 +346,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(expectedValues[i] - eigenValues[i]) > tolerance)
+        if (itk::Math::abs(expectedValues[i] - eigenValues[i]) > tolerance)
         {
           std::cerr << "Eigenvalue computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -357,7 +357,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
 
       for (unsigned int j = 0; j < 3; ++j)
       {
-        if (std::fabs(expectedValues[j] - eigenValues2[j]) > tolerance)
+        if (itk::Math::abs(expectedValues[j] - eigenValues2[j]) > tolerance)
         {
           std::cerr << "EigenValues computation failed" << std::endl;
           std::cerr << "expectedValues = " << expectedValues << std::endl;
@@ -388,16 +388,16 @@ itkSymmetricSecondRankTensorTest(int, char *[])
     tensor3D(2, 1) = 0.0; // overrides (1,2)
     tensor3D(2, 2) = 29.0;
 
-    AccumulateValueType expectedTrace = itk::NumericTraits<AccumulateValueType>::ZeroValue();
+    AccumulateValueType expectedTrace{};
 
     expectedTrace += tensor3D(0, 0);
     expectedTrace += tensor3D(1, 1);
     expectedTrace += tensor3D(2, 2);
 
-    const double tolerance = 1e-4;
+    constexpr double tolerance = 1e-4;
 
-    AccumulateValueType computedTrace = tensor3D.GetTrace();
-    if (std::fabs(computedTrace - expectedTrace) > tolerance)
+    const AccumulateValueType computedTrace = tensor3D.GetTrace();
+    if (itk::Math::abs(computedTrace - expectedTrace) > tolerance)
     {
       std::cerr << "Error computing the Trace" << std::endl;
       std::cerr << "Expected trace = " << expectedTrace << std::endl;
@@ -426,8 +426,7 @@ itkSymmetricSecondRankTensorTest(int, char *[])
     tensor3D(2, 1) = 0.0; // overrides (1,2)
     tensor3D(2, 2) = 29.0;
 
-    Double3DMatrixType matrix3D;
-    matrix3D.Fill(1.0);
+    auto                matrix3D = itk::MakeFilled<Double3DMatrixType>(1.0);
     std::vector<double> ans;
     ans.push_back(26);
     ans.push_back(23);
@@ -487,10 +486,10 @@ itkSymmetricSecondRankTensorTest(int, char *[])
     Float3DTensorType floatTensor2 = intTensor;
 
     // Test casting
-    Float3DTensorType floatTensor3 = static_cast<Float3DTensorType>(intTensor);
+    auto floatTensor3 = static_cast<Float3DTensorType>(intTensor);
 
     // Check that all floatTensors have are the same
-    float precision = 1e-6;
+    constexpr float precision = 1e-6;
     for (unsigned int i = 0; i < Float3DTensorType::InternalDimension; ++i)
     {
       auto intVal = static_cast<float>(intTensor[i]);

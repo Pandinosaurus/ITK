@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDiscreteGaussianImageFilter_hxx
 #define itkDiscreteGaussianImageFilter_hxx
 
-#include "itkDiscreteGaussianImageFilter.h"
 #include "itkNeighborhoodOperatorImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkImageRegionIterator.h"
@@ -29,6 +28,84 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 void
+DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateKernel(const unsigned int dimension,
+                                                                       KernelType &       oper) const
+{
+  // Determine the size of the operator in this dimension.  Note that the
+  // Gaussian is built as a 1D operator in each of the specified directions.
+  oper.SetDirection(dimension);
+  oper.SetMaximumError(m_MaximumError[dimension]);
+  oper.SetMaximumKernelWidth(m_MaximumKernelWidth);
+
+  oper.SetVariance(this->GetKernelVarianceArray()[dimension]);
+
+  oper.CreateDirectional();
+}
+
+template <typename TInputImage, typename TOutputImage>
+unsigned int
+DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GetKernelRadius(const unsigned int dimension) const
+{
+  KernelType oper;
+  this->GenerateKernel(dimension, oper);
+  return oper.GetRadius(dimension);
+}
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GetKernelRadius() const -> ArrayType
+{
+  ArrayType kernelRadius;
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
+  {
+    kernelRadius[dim] = this->GetKernelRadius(dim);
+  }
+  return kernelRadius;
+}
+
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GetKernelSize() const -> ArrayType
+{
+  ArrayType kernelSize;
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
+  {
+    kernelSize[dim] = this->GetKernelRadius(dim) * 2 + 1;
+  }
+  return kernelSize;
+}
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GetKernelVarianceArray() const -> ArrayType
+{
+  if (m_UseImageSpacing)
+  {
+    if (this->GetInput() == nullptr)
+    {
+      itkExceptionMacro("Could not get kernel variance! UseImageSpacing is ON but no input image was provided");
+    }
+
+    const auto & spacing = this->GetInput()->GetSpacing();
+
+    ArrayType adjustedVariance;
+    // Adjusted variance = var / (spacing ^ 2)
+    for (unsigned int dim = 0; dim < ImageDimension; ++dim)
+    {
+      // convert the variance from physical units to pixels
+      double s = spacing[dim];
+      s = s * s;
+      adjustedVariance[dim] = m_Variance[dim] / s;
+    }
+    return adjustedVariance;
+  }
+
+  return this->GetVariance();
+}
+
+template <typename TInputImage, typename TOutputImage>
+void
 DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method. this should
@@ -36,77 +113,38 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRe
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  typename Superclass::InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const typename Superclass::InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
 
   if (!inputPtr)
   {
     return;
   }
 
-  // Build an operator so that we can determine the kernel size
-  GaussianOperator<OutputPixelValueType, ImageDimension> oper;
-
-  typename TInputImage::SizeType radius;
-
-  for (unsigned int i = 0; i < TInputImage::ImageDimension; i++)
+  // Determine the kernel size in each direction
+  RadiusType radius;
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
-    // Determine the size of the operator in this dimension.  Note that the
-    // Gaussian is built as a 1D operator in each of the specified directions.
-    oper.SetDirection(i);
-    if (m_UseImageSpacing == true)
+    if (i < m_FilterDimensionality)
     {
-      if (this->GetInput()->GetSpacing()[i] == 0.0)
-      {
-        itkExceptionMacro(<< "Pixel spacing cannot be zero");
-      }
-      else
-      {
-        // convert the variance from physical units to pixels
-        double s = this->GetInput()->GetSpacing()[i];
-        s = s * s;
-        oper.SetVariance(m_Variance[i] / s);
-      }
+      radius[i] = GetKernelRadius(i);
     }
     else
     {
-      oper.SetVariance(m_Variance[i]);
+      radius[i] = 0;
     }
-    oper.SetMaximumError(m_MaximumError[i]);
-    oper.SetMaximumKernelWidth(m_MaximumKernelWidth);
-    oper.CreateDirectional();
-
-    radius[i] = oper.GetRadius(i);
   }
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius(radius);
 
   // crop the input requested region at the input's largest possible region
-  if (inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion()))
-  {
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
-    return;
-  }
-  else
-  {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
+  inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion());
 
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
-
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    e.SetLocation(ITK_LOCATION);
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-  }
+  inputPtr->SetRequestedRegion(inputRequestedRegion);
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -118,10 +156,10 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   output->SetBufferedRegion(output->GetRequestedRegion());
   output->Allocate();
 
-  // Create an internal image to protect the input image's metdata
+  // Create an internal image to protect the input image's metadata
   // (e.g. RequestedRegion). The StreamingImageFilter changes the
   // requested region as part of its normal processing.
-  typename TInputImage::Pointer localInput = TInputImage::New();
+  auto localInput = TInputImage::New();
   localInput->Graft(this->GetInput());
 
   // Determine the dimensionality to filter
@@ -161,47 +199,22 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   using SingleFilterPointer = typename SingleFilterType::Pointer;
 
   // Create a series of operators
-  using OperatorType = GaussianOperator<RealOutputPixelValueType, ImageDimension>;
 
-  std::vector<OperatorType> oper;
+  std::vector<KernelType> oper;
   oper.resize(filterDimensionality);
 
   // Create a process accumulator for tracking the progress of minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Set up the operators
-  unsigned int i;
-  for (i = 0; i < filterDimensionality; ++i)
+  for (unsigned int i = 0; i < filterDimensionality; ++i)
   {
     // we reverse the direction to minimize computation while, because
     // the largest dimension will be split slice wise for streaming
-    unsigned int reverse_i = filterDimensionality - i - 1;
+    const unsigned int reverse_i = filterDimensionality - i - 1;
 
-    // Set up the operator for this dimension
-    oper[reverse_i].SetDirection(i);
-    if (m_UseImageSpacing == true)
-    {
-      if (localInput->GetSpacing()[i] == 0.0)
-      {
-        itkExceptionMacro(<< "Pixel spacing cannot be zero");
-      }
-      else
-      {
-        // convert the variance from physical units to pixels
-        double s = localInput->GetSpacing()[i];
-        s = s * s;
-        oper[reverse_i].SetVariance(m_Variance[i] / s);
-      }
-    }
-    else
-    {
-      oper[reverse_i].SetVariance(m_Variance[i]);
-    }
-
-    oper[reverse_i].SetMaximumKernelWidth(m_MaximumKernelWidth);
-    oper[reverse_i].SetMaximumError(m_MaximumError[i]);
-    oper[reverse_i].CreateDirectional();
+    this->GenerateKernel(i, oper[reverse_i]);
   }
 
   // Create a chain of filters
@@ -211,7 +224,7 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
   if (filterDimensionality == 1)
   {
     // Use just a single filter
-    SingleFilterPointer singleFilter = SingleFilterType::New();
+    const SingleFilterPointer singleFilter = SingleFilterType::New();
     singleFilter->SetOperator(oper[0]);
     singleFilter->SetInput(localInput);
     singleFilter->OverrideBoundaryCondition(m_InputBoundaryCondition);
@@ -237,7 +250,7 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
     const unsigned int numberOfStages = filterDimensionality;
 
     // First filter convolves and changes type from input type to real type
-    FirstFilterPointer firstFilter = FirstFilterType::New();
+    const FirstFilterPointer firstFilter = FirstFilterType::New();
     firstFilter->SetOperator(oper[0]);
     firstFilter->ReleaseDataFlagOn();
     firstFilter->SetInput(localInput);
@@ -248,9 +261,9 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
     std::vector<IntermediateFilterPointer> intermediateFilters;
     if (filterDimensionality > 2)
     {
-      for (i = 1; i < filterDimensionality - 1; ++i)
+      for (unsigned int i = 1; i < filterDimensionality - 1; ++i)
       {
-        IntermediateFilterPointer f = IntermediateFilterType::New();
+        const IntermediateFilterPointer f = IntermediateFilterType::New();
         f->SetOperator(oper[i]);
         f->ReleaseDataFlagOn();
 
@@ -272,7 +285,7 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::GenerateData()
     }
 
     // Last filter convolves and changes type from real type to output type
-    LastFilterPointer lastFilter = LastFilterType::New();
+    const LastFilterPointer lastFilter = LastFilterType::New();
     lastFilter->SetOperator(oper[filterDimensionality - 1]);
     lastFilter->OverrideBoundaryCondition(m_RealBoundaryCondition);
     if (filterDimensionality > 2)
@@ -328,7 +341,7 @@ DiscreteGaussianImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream &
   os << indent << "MaximumError: " << m_MaximumError << std::endl;
   os << indent << "MaximumKernelWidth: " << m_MaximumKernelWidth << std::endl;
   os << indent << "FilterDimensionality: " << m_FilterDimensionality << std::endl;
-  os << indent << "UseImageSpacing: " << m_UseImageSpacing << std::endl;
+  itkPrintSelfBooleanMacro(UseImageSpacing);
   os << indent << "RealBoundaryCondition: " << m_RealBoundaryCondition << std::endl;
 }
 } // end namespace itk

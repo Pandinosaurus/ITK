@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -104,15 +104,15 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using PointSetType = itk::PointSet<float, Dimension>;
 
-  PointSetType::Pointer fixedPointSet = PointSetType::New();
-  PointSetType::Pointer movingPointSet = PointSetType::New();
+  auto fixedPointSet = PointSetType::New();
+  auto movingPointSet = PointSetType::New();
 
   using PointType = PointSetType::PointType;
 
   using PointsContainer = PointSetType::PointsContainer;
 
-  PointsContainer::Pointer fixedPointContainer = PointsContainer::New();
-  PointsContainer::Pointer movingPointContainer = PointsContainer::New();
+  auto fixedPointContainer = PointsContainer::New();
+  auto movingPointContainer = PointsContainer::New();
 
   PointType fixedPoint;
   PointType movingPoint;
@@ -174,25 +174,25 @@ main(int argc, char * argv[])
   using MetricType =
     itk::EuclideanDistancePointMetric<PointSetType, PointSetType>;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
   //
-  // Next, setup the tranform, optimizers, and registration.
+  // Next, setup the transform, optimizers, and registration.
   //
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
   using TransformType = itk::Euler3DTransform<double>;
 
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
 
   // Optimizer Type
   using OptimizerType = itk::LevenbergMarquardtOptimizer;
 
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetUseCostFunctionGradient(false);
 
   // Registration Method
@@ -200,7 +200,7 @@ main(int argc, char * argv[])
     itk::PointSetToPointSetRegistrationMethod<PointSetType, PointSetType>;
 
 
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -232,10 +232,10 @@ main(int argc, char * argv[])
   scales[4] = 1.0 / translationScale;
   scales[5] = 1.0 / translationScale;
 
-  unsigned long numberOfIterations = 2000;
-  double        gradientTolerance = 1e-4; // convergence criterion
-  double        valueTolerance = 1e-4;    // convergence criterion
-  double        epsilonFunction = 1e-5;   // convergence criterion
+  constexpr unsigned long numberOfIterations = 2000;
+  constexpr double        gradientTolerance = 1e-4; // convergence criterion
+  constexpr double        valueTolerance = 1e-4;    // convergence criterion
+  constexpr double        epsilonFunction = 1e-5;   // convergence criterion
 
 
   optimizer->SetScales(scales);
@@ -273,7 +273,7 @@ main(int argc, char * argv[])
   // Software Guide : EndCodeSnippet
   //
   // Connect an observer
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  auto observer = CommandIterationUpdate::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   try

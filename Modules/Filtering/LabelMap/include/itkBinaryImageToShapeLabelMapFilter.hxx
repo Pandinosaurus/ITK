@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,16 @@
 #ifndef itkBinaryImageToShapeLabelMapFilter_hxx
 #define itkBinaryImageToShapeLabelMapFilter_hxx
 
-#include "itkBinaryImageToShapeLabelMapFilter.h"
 #include "itkProgressAccumulator.h"
 
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>::BinaryImageToShapeLabelMapFilter()
-{
-  m_OutputBackgroundValue = NumericTraits<OutputImagePixelType>::NonpositiveMin();
-  m_InputForegroundValue = NumericTraits<InputImagePixelType>::max();
-  m_FullyConnected = false;
-  m_ComputeFeretDiameter = false;
-  m_ComputePerimeter = true;
-  m_ComputeOrientedBoundingBox = false;
-}
+  : m_OutputBackgroundValue(NumericTraits<OutputImagePixelType>::NonpositiveMin())
+  , m_InputForegroundValue(NumericTraits<InputImagePixelType>::max())
+  , m_ComputePerimeter(true)
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -42,7 +37,7 @@ BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>::GenerateInputReques
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the inputs.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (input)
   {
     input->SetRequestedRegion(input->GetLargestPossibleRegion());
@@ -61,14 +56,14 @@ void
 BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
 
   progress->SetMiniPipelineFilter(this);
 
   // Allocate the output
   this->AllocateOutputs();
 
-  typename LabelizerType::Pointer labelizer = LabelizerType::New();
+  auto labelizer = LabelizerType::New();
   labelizer->SetInput(this->GetInput());
   labelizer->SetInputForegroundValue(m_InputForegroundValue);
   labelizer->SetOutputBackgroundValue(m_OutputBackgroundValue);
@@ -76,7 +71,7 @@ BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>::GenerateData()
   labelizer->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   progress->RegisterInternalFilter(labelizer, .5f);
 
-  typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
+  auto valuator = LabelObjectValuatorType::New();
   valuator->SetInput(labelizer->GetOutput());
   valuator->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
   valuator->SetComputePerimeter(m_ComputePerimeter);
@@ -95,7 +90,7 @@ BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>::PrintSelf(std::ostr
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "FullyConnected: " << m_FullyConnected << std::endl;
+  itkPrintSelfBooleanMacro(FullyConnected);
   os << indent << "BackgroundValue: "
      << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(m_OutputBackgroundValue) << std::endl;
   os << indent << "ForegroundValue: "

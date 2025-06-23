@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSobelOperator_hxx
 #define itkSobelOperator_hxx
 
-#include "itkSobelOperator.h"
 #include "itkObject.h"
 
 namespace itk
@@ -29,55 +28,63 @@ SobelOperator<TPixel, VDimension, TAllocator>::Fill(const CoefficientVector & co
 {
   this->InitializeToZero();
 
-  // Note that this code is only good for 2d and 3d operators.  Places the
-  // coefficients in the exact center of the neighborhood
-  unsigned int i;
-  int          x, y, z, pos;
-  unsigned int center = this->GetCenterNeighborhoodIndex();
-
-  if (VDimension == 3)
+  if constexpr (VDimension == 2 || VDimension == 3)
   {
-    i = 0;
-    for (z = -1; z <= 1; ++z)
-    {
-      for (y = -1; y <= 1; ++y)
-      {
-        for (x = -1; x <= 1; ++x)
-        {
-          pos = center + z * this->GetStride(2) + y * this->GetStride(1) + x * this->GetStride(0);
-          this->operator[](pos) = static_cast<TPixel>(coeff[i]);
+    // Note that this code is only good for 2d and 3d operators.  Places the
+    // coefficients in the exact center of the neighborhood
+    const unsigned int center = this->GetCenterNeighborhoodIndex();
 
-          i++;
+    if constexpr (VDimension == 3)
+    {
+      unsigned int coeff_index = 0;
+      for (int z = -1; z <= 1; ++z)
+      {
+        for (int y = -1; y <= 1; ++y)
+        {
+          for (int x = -1; x <= 1; ++x)
+          {
+            const int pos = center + z * this->GetStride(2) + y * this->GetStride(1) + x * this->GetStride(0);
+
+            this->operator[](pos) = static_cast<TPixel>(coeff[coeff_index]);
+
+            ++coeff_index;
+          }
         }
       }
     }
-  }
-  else if (VDimension == 2)
-  {
-    i = 0;
-    for (y = -1; y <= 1; ++y)
+    else // So now VDimension == 2
     {
-      for (x = -1; x <= 1; ++x)
+      unsigned int coeff_index = 0;
+      for (int y = -1; y <= 1; ++y)
       {
-        pos = center + y * this->GetStride(1) + x * this->GetStride(0);
-        this->operator[](pos) = static_cast<TPixel>(coeff[i]);
+        for (int x = -1; x <= 1; ++x)
+        {
+          const int pos = center + y * this->GetStride(1) + x * this->GetStride(0);
+          // Note, The following line copies the double precision
+          // coefficients of SobelOperator to the pixel type
+          // of the neighborhood operator which may not support
+          // negative numbers, or floating point numbers.
+          this->operator[](pos) = static_cast<TPixel>(coeff[coeff_index]);
 
-        i++;
+          ++coeff_index;
+        }
       }
     }
   }
   else
   {
-    itkExceptionMacro(<< "The ND version of the Sobel operator is not yet implemented.  Currently only the 2D and 3D "
-                         "versions are available.");
+    itkExceptionMacro("The ND version of the Sobel operator is not yet implemented.  Currently only the 2D and 3D "
+                      "versions are available.");
   }
 }
 
 template <typename TPixel, unsigned int VDimension, typename TAllocator>
-typename SobelOperator<TPixel, VDimension, TAllocator>::CoefficientVector
-SobelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
+auto
+SobelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients() -> CoefficientVector
 {
-  std::vector<double> coeff;
+  CoefficientVector     coeff;
+  constexpr std::size_t coeff_size = (VDimension == 2) ? 9 : 27;
+  coeff.reserve(coeff_size);
   if (VDimension == 2 && this->GetDirection() == 0)
   {
     coeff.push_back(-1.0);
@@ -200,8 +207,8 @@ SobelOperator<TPixel, VDimension, TAllocator>::GenerateCoefficients()
   }
   else
   {
-    itkExceptionMacro(<< "The ND version of the Sobel operator has not been implemented.  Currently only 2D and 3D "
-                         "versions are available.");
+    itkExceptionMacro("The ND version of the Sobel operator has not been implemented.  Currently only 2D and 3D "
+                      "versions are available.");
   }
 
   return coeff;

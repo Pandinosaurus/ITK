@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkQuadEdgeMesh.h"
+#include "itkTestingMacros.h"
 
 #include <iostream>
 
@@ -61,14 +62,14 @@ itkQuadEdgeMeshPolygonCellTest(int, char *[])
   /**
    * Create the mesh through its object factory.
    */
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
   mesh->DebugOn();
 
   /**
    * Define the 3d geometric positions for 8 points in a cube.
    */
-  MeshType::CoordRepType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
-                                                   { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
+  MeshType::CoordinateType testPointCoords[8][3] = { { 0, 0, 0 }, { 9, 0, 0 }, { 9, 0, 9 }, { 0, 0, 9 },
+                                                     { 0, 9, 0 }, { 9, 9, 0 }, { 9, 9, 9 }, { 0, 9, 9 } };
 
   /**
    * Add our test points to the mesh.
@@ -85,6 +86,20 @@ itkQuadEdgeMeshPolygonCellTest(int, char *[])
    * Specify the method used for allocating cells
    */
   mesh->SetCellsAllocationMethod(itk::MeshEnums::MeshClassCellsAllocationMethod::CellsAllocatedDynamicallyCellByCell);
+
+
+  // Test point container iterators
+  PolygonCellType quadEdgeMeshPolygonCell{};
+
+  PolygonCellType::PointIdIterator pointId = quadEdgeMeshPolygonCell.PointIdsBegin();
+  PolygonCellType::PointIdIterator endId = quadEdgeMeshPolygonCell.PointIdsEnd();
+  ITK_TEST_EXPECT_TRUE(pointId);
+  ITK_TEST_EXPECT_TRUE(endId);
+
+  PolygonCellType::PointIdConstIterator constPointId = quadEdgeMeshPolygonCell.PointIdsBegin();
+  PolygonCellType::PointIdConstIterator constEndId = quadEdgeMeshPolygonCell.PointIdsEnd();
+  ITK_TEST_EXPECT_TRUE(constPointId);
+  ITK_TEST_EXPECT_TRUE(constEndId);
 
   /**
    * Create the test cell. Note that testCell is a generic auto
@@ -104,11 +119,32 @@ itkQuadEdgeMeshPolygonCellTest(int, char *[])
    * Assign the points to the tetrahedron through their identifiers.
    */
   testCell->SetPointIds(polygon1Points);
-  if (newcell->GetPointId(18) != PointIdentifier(-1))
+  if (newcell->GetPointId(18) != static_cast<PointIdentifier>(-1))
   {
     std::cerr << "Get Point should have failed !" << std::endl;
     return EXIT_FAILURE;
   }
+
+  // Test iterators
+  std::cout << "Iterator: ";
+  pointId = newcell->PointIdsBegin();
+  endId = newcell->PointIdsEnd();
+  while (pointId != endId)
+  {
+    std::cout << *pointId << ", ";
+    pointId++;
+  }
+  std::cout << std::endl;
+
+  std::cout << "Iterator const: ";
+  constPointId = newcell->PointIdsBegin();
+  constEndId = newcell->PointIdsEnd();
+  while (constPointId != constEndId)
+  {
+    std::cout << *constPointId << ", ";
+    constPointId++;
+  }
+  std::cout << std::endl;
 
   std::cout << "Test MakeCopy" << std::endl;
 
@@ -133,7 +169,7 @@ itkQuadEdgeMeshPolygonCellTest(int, char *[])
    */
   mesh->SetCell(0, testCell); // Transfer ownership to the mesh
   std::cout << "PolygonCell pointer = ";
-  std::cout << (void const *)testCell.GetPointer() << std::endl;
+  std::cout << (const void *)testCell.GetPointer() << std::endl;
   std::cout << "PolygonCell Owner   = " << testCell.IsOwner() << std::endl;
 
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,7 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#include <itkCommonEnums.h>
+#include "itkCommonEnums.h"
 #include "itkLogicOpsFunctors.h"
 #include "itkBinaryFunctorImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -37,7 +37,7 @@ public:
   float
   operator()(double d, double)
   {
-    return (float)d;
+    return static_cast<float>(d);
   }
   void
   Visit(int, Bogus *)
@@ -95,8 +95,8 @@ itkEqualTest(int, char *[])
   using myFilterTypePointer = myFilterType::Pointer;
 
   // Create two images
-  myImageType1Pointer inputImageA = myImageType1::New();
-  myImageType2Pointer inputImageB = myImageType2::New();
+  const myImageType1Pointer inputImageA = myImageType1::New();
+  const myImageType2Pointer inputImageB = myImageType2::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -109,20 +109,14 @@ itkEqualTest(int, char *[])
   start[1] = 0;
   start[2] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize Image A
-  inputImageA->SetLargestPossibleRegion(region);
-  inputImageA->SetBufferedRegion(region);
-  inputImageA->SetRequestedRegion(region);
+  inputImageA->SetRegions(region);
   inputImageA->Allocate();
 
   // Initialize Image B
-  inputImageB->SetLargestPossibleRegion(region);
-  inputImageB->SetBufferedRegion(region);
-  inputImageB->SetRequestedRegion(region);
+  inputImageB->SetRegions(region);
   inputImageB->Allocate();
 
 
@@ -155,7 +149,7 @@ itkEqualTest(int, char *[])
 
   {
     // Create a logic Filter
-    myFilterTypePointer filter = myFilterType::New();
+    const myFilterTypePointer filter = myFilterType::New();
     if (filter.IsNull())
     {
       return EXIT_FAILURE;
@@ -168,31 +162,30 @@ itkEqualTest(int, char *[])
     filter->SetFunctor(filter->GetFunctor());
 
     // Get the Smart Pointer to the Filter Output
-    myImageType3Pointer outputImage = filter->GetOutput();
+    const myImageType3Pointer outputImage = filter->GetOutput();
 
     // Execute the filter
     filter->Update();
     filter->SetFunctor(filter->GetFunctor());
 
     // check the results
-    PixelType FG = filter->GetFunctor().GetForegroundValue();
-    PixelType BG = filter->GetFunctor().GetBackgroundValue();
+    const PixelType FG = filter->GetFunctor().GetForegroundValue();
+    const PixelType BG = filter->GetFunctor().GetBackgroundValue();
 
-    int status1 = checkImOnImRes<myImageType1, myImageType2, myImageType3, std::equal_to<myImageType1::PixelType>>(
-      inputImageA, inputImageB, outputImage, FG, BG);
+    const int status1 =
+      checkImOnImRes<myImageType1, myImageType2, myImageType3, std::equal_to<myImageType1::PixelType>>(
+        inputImageA, inputImageB, outputImage, FG, BG);
     if (status1 == EXIT_FAILURE)
     {
       return (EXIT_FAILURE);
     }
-    else
-    {
-      std::cout << "Step 1 passed" << std::endl;
-    }
+
+    std::cout << "Step 1 passed" << std::endl;
   }
 
   {
     // Create a logic Filter
-    myFilterTypePointer filter = myFilterType::New();
+    const myFilterTypePointer filter = myFilterType::New();
 
     // Connect the input images
     filter->SetInput1(inputImageA);
@@ -200,29 +193,27 @@ itkEqualTest(int, char *[])
     filter->SetFunctor(filter->GetFunctor());
 
     // Get the Smart Pointer to the Filter Output
-    myImageType3Pointer outputImage = filter->GetOutput();
+    const myImageType3Pointer outputImage = filter->GetOutput();
 
     // Now try testing with constant : Im1 == 2
     filter->SetConstant(2.0);
     filter->Update();
-    PixelType FG = filter->GetFunctor().GetForegroundValue();
-    PixelType BG = filter->GetFunctor().GetBackgroundValue();
-    PixelType C = filter->GetConstant2();
-    int       status2 = checkImOnConstRes<myImageType1, PixelType, myImageType3, std::equal_to<PixelType>>(
+    const PixelType FG = filter->GetFunctor().GetForegroundValue();
+    const PixelType BG = filter->GetFunctor().GetBackgroundValue();
+    const PixelType C = filter->GetConstant2();
+    const int       status2 = checkImOnConstRes<myImageType1, PixelType, myImageType3, std::equal_to<PixelType>>(
       inputImageA, C, outputImage, FG, BG);
     if (status2 == EXIT_FAILURE)
     {
       return (EXIT_FAILURE);
     }
-    else
-    {
-      std::cout << "Step 2 passed " << std::endl;
-    }
+
+    std::cout << "Step 2 passed " << std::endl;
   }
   // Now try testing with constant : 3 == Im2
   {
     // Create a logic Filter
-    myFilterTypePointer filter = myFilterType::New();
+    const myFilterTypePointer filter = myFilterType::New();
 
 
     // Connect the input images
@@ -230,29 +221,27 @@ itkEqualTest(int, char *[])
     filter->SetFunctor(filter->GetFunctor());
 
     // Get the Smart Pointer to the Filter Output
-    myImageType3Pointer outputImage = filter->GetOutput();
+    const myImageType3Pointer outputImage = filter->GetOutput();
     filter->SetConstant1(3.0);
     filter->SetInput2(inputImageB);
     filter->Update();
-    PixelType FG = filter->GetFunctor().GetForegroundValue();
-    PixelType BG = filter->GetFunctor().GetBackgroundValue();
+    const PixelType FG = filter->GetFunctor().GetForegroundValue();
+    const PixelType BG = filter->GetFunctor().GetBackgroundValue();
 
-    int status3 = checkConstOnImRes<PixelType, myImageType2, myImageType3, std::equal_to<PixelType>>(
+    const int status3 = checkConstOnImRes<PixelType, myImageType2, myImageType3, std::equal_to<PixelType>>(
       filter->GetConstant1(), inputImageB, outputImage, FG, BG);
     if (status3 == EXIT_FAILURE)
     {
       return (EXIT_FAILURE);
     }
-    else
-    {
-      std::cout << "Step 3 passed" << std::endl;
-    }
+
+    std::cout << "Step 3 passed" << std::endl;
   }
 
   {
     // BinaryImageFilter
     using iFIB = itk::BinaryFunctorImageFilter<itk::Image<double>, itk::Image<double>, itk::Image<double>, Bogus>;
-    iFIB::Pointer FIB = iFIB::New();
+    auto FIB = iFIB::New();
     if (FIB.IsNull())
     {
       return EXIT_FAILURE;

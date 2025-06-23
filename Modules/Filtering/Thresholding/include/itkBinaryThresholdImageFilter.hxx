@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkBinaryThresholdImageFilter_hxx
 #define itkBinaryThresholdImageFilter_hxx
 
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkMath.h"
 
 namespace itk
@@ -37,16 +36,16 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 BinaryThresholdImageFilter<TInputImage, TOutputImage>::BinaryThresholdImageFilter()
   : m_InsideValue(NumericTraits<OutputPixelType>::max())
-  , m_OutsideValue(NumericTraits<OutputPixelType>::ZeroValue())
+  , m_OutsideValue(OutputPixelType{})
 {
   // We are going to create the object with a few default inputs to
   // hold the threshold values.
 
-  typename InputPixelObjectType::Pointer lower = InputPixelObjectType::New();
+  auto lower = InputPixelObjectType::New();
   lower->Set(NumericTraits<InputPixelType>::NonpositiveMin());
   this->ProcessObject::SetNthInput(1, lower);
 
-  typename InputPixelObjectType::Pointer upper = InputPixelObjectType::New();
+  auto upper = InputPixelObjectType::New();
   upper->Set(NumericTraits<InputPixelType>::max());
   this->ProcessObject::SetNthInput(2, upper);
 }
@@ -86,17 +85,17 @@ BinaryThresholdImageFilter<TInputImage, TOutputImage>::SetLowerThresholdInput(co
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelType
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThreshold() const
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThreshold() const -> InputPixelType
 {
-  typename InputPixelObjectType::Pointer lower = const_cast<Self *>(this)->GetLowerThresholdInput();
+  const typename InputPixelObjectType::Pointer lower = const_cast<Self *>(this)->GetLowerThresholdInput();
 
   return lower->Get();
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThresholdInput()
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThresholdInput() -> InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer lower = static_cast<InputPixelObjectType *>(this->ProcessObject::GetInput(1));
   if (!lower)
@@ -112,8 +111,8 @@ BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThresholdInput()
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThresholdInput() const
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetLowerThresholdInput() const -> const InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer lower =
     const_cast<InputPixelObjectType *>(static_cast<const InputPixelObjectType *>(this->ProcessObject::GetInput(1)));
@@ -165,17 +164,17 @@ BinaryThresholdImageFilter<TInputImage, TOutputImage>::SetUpperThresholdInput(co
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelType
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThreshold() const
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThreshold() const -> InputPixelType
 {
-  typename InputPixelObjectType::Pointer upper = const_cast<Self *>(this)->GetUpperThresholdInput();
+  const typename InputPixelObjectType::Pointer upper = const_cast<Self *>(this)->GetUpperThresholdInput();
 
   return upper->Get();
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThresholdInput()
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThresholdInput() -> InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer upper = static_cast<InputPixelObjectType *>(this->ProcessObject::GetInput(2));
   if (!upper)
@@ -191,8 +190,8 @@ BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThresholdInput()
 }
 
 template <typename TInputImage, typename TOutputImage>
-const typename BinaryThresholdImageFilter<TInputImage, TOutputImage>::InputPixelObjectType *
-BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThresholdInput() const
+auto
+BinaryThresholdImageFilter<TInputImage, TOutputImage>::GetUpperThresholdInput() const -> const InputPixelObjectType *
 {
   typename InputPixelObjectType::Pointer upper =
     const_cast<InputPixelObjectType *>(static_cast<const InputPixelObjectType *>(this->ProcessObject::GetInput(2)));
@@ -214,12 +213,12 @@ void
 BinaryThresholdImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
   // Set up the functor values
-  typename InputPixelObjectType::Pointer lowerThreshold = this->GetLowerThresholdInput();
-  typename InputPixelObjectType::Pointer upperThreshold = this->GetUpperThresholdInput();
+  const typename InputPixelObjectType::Pointer lowerThreshold = this->GetLowerThresholdInput();
+  const typename InputPixelObjectType::Pointer upperThreshold = this->GetUpperThresholdInput();
 
   if (lowerThreshold->Get() > upperThreshold->Get())
   {
-    itkExceptionMacro(<< "Lower threshold cannot be greater than upper threshold.");
+    itkExceptionMacro("Lower threshold cannot be greater than upper threshold.");
   }
 
   // Set up the functor

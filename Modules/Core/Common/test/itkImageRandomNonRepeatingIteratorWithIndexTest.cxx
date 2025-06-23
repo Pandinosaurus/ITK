@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,36 +40,26 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
   using RandomConstIteratorType = itk::ImageRandomNonRepeatingConstIteratorWithIndex<ImageType>;
   std::cout << "Creating images" << std::endl;
 
-  ImageType::Pointer      myImage = ImageType::New();
-  ImageType::ConstPointer myConstImage = myImage;
-  ImageType::SizeType     size0;
+  auto                          myImage = ImageType::New();
+  const ImageType::ConstPointer myConstImage = myImage;
+  ImageType::SizeType           size0;
   size0[0] = 50;
   size0[1] = 50;
   size0[2] = 50;
-  unsigned long        numberOfSamples = 10;
-  ImageType::IndexType start0;
-  start0.Fill(0);
-  ImageType::RegionType region0;
-  region0.SetIndex(start0);
-  region0.SetSize(size0);
-  myImage->SetLargestPossibleRegion(region0);
-  myImage->SetBufferedRegion(region0);
-  myImage->SetRequestedRegion(region0);
+  constexpr unsigned long        numberOfSamples = 10;
+  constexpr ImageType::IndexType start0{};
+  const ImageType::RegionType    region0{ start0, size0 };
+  myImage->SetRegions(region0);
   myImage->Allocate();
   // Make the priority image
-  PriorityImageType::Pointer  priorityImage = PriorityImageType::New();
+  auto                        priorityImage = PriorityImageType::New();
   PriorityImageType::SizeType prioritySize;
   prioritySize[0] = 50;
   prioritySize[1] = 50;
   prioritySize[2] = 50;
-  PriorityImageType::IndexType priorityStart;
-  priorityStart.Fill(0);
-  PriorityImageType::RegionType priorityRegion;
-  priorityRegion.SetIndex(priorityStart);
-  priorityRegion.SetSize(prioritySize);
-  priorityImage->SetLargestPossibleRegion(priorityRegion);
-  priorityImage->SetBufferedRegion(priorityRegion);
-  priorityImage->SetRequestedRegion(priorityRegion);
+  constexpr PriorityImageType::IndexType priorityStart{};
+  const PriorityImageType::RegionType    priorityRegion{ priorityStart, prioritySize };
+  priorityImage->SetRegions(priorityRegion);
   priorityImage->Allocate();
   // we will make most of this image ones, with a small region of
   // zeros.  Then pixels from the zero region should be selected
@@ -90,10 +80,8 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
   subsize[0] = 3;
   subsize[1] = 4;
   subsize[2] = 5;
-  PriorityImageType::RegionType subregion;
-  subregion.SetIndex(substart);
-  subregion.SetSize(subsize);
-  PriorityIteratorType subit(priorityImage, subregion);
+  const PriorityImageType::RegionType subregion{ substart, subsize };
+  PriorityIteratorType                subit(priorityImage, subregion);
   subit.GoToBegin();
   while (!subit.IsAtEnd())
   {
@@ -245,16 +233,14 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
     size[0] = 11;
     size[1] = 12;
     size[2] = 13;
-    ImageType::RegionType region;
-    region.SetIndex(start);
-    region.SetSize(size);
-    RandomIteratorType cbot(myImage, region);
+    const ImageType::RegionType region{ start, size };
+    RandomIteratorType          cbot(myImage, region);
     cbot.SetNumberOfSamples(numberOfSamples); // 0=x, 1=y, 2=z
     cbot.GoToBegin();
     while (!cbot.IsAtEnd())
     {
-      ImageType::IndexType index = cbot.GetIndex();
-      ImageType::PixelType pixel = cbot.Get();
+      const ImageType::IndexType index = cbot.GetIndex();
+      const ImageType::PixelType pixel = cbot.Get();
       if (index != pixel)
       {
         std::cerr << "Iterator in region test failed" << std::endl;
@@ -284,16 +270,14 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
     size[0] = 11;
     size[1] = 12;
     size[2] = 13;
-    ImageType::RegionType region;
-    region.SetIndex(start);
-    region.SetSize(size);
-    RandomConstIteratorType cbot(myImage, region);
+    const ImageType::RegionType region{ start, size };
+    RandomConstIteratorType     cbot(myImage, region);
     cbot.SetNumberOfSamples(numberOfSamples);
     cbot.GoToBegin();
     while (!cbot.IsAtEnd())
     {
-      ImageType::IndexType index = cbot.GetIndex();
-      ImageType::PixelType pixel = cbot.Get();
+      const ImageType::IndexType index = cbot.GetIndex();
+      const ImageType::PixelType pixel = cbot.Get();
       if (index != pixel)
       {
         std::cerr << "Iterator in region test failed" << std::endl;
@@ -325,7 +309,7 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
     unsigned int count = 0;
     while (!cbot.IsAtEnd() && count < (subsize[0] * subsize[1] * subsize[2]))
     {
-      ImageType::IndexType index = cbot.GetIndex();
+      const ImageType::IndexType index = cbot.GetIndex();
       if (!subregion.IsInside(index))
       {
         std::cerr << "Iterator in priority region test failed" << std::endl;
@@ -356,7 +340,7 @@ itkImageRandomNonRepeatingIteratorWithIndexTest(int, char *[])
     unsigned int count = 0;
     while (!cbot.IsAtEnd() && count < (subsize[0] * subsize[1] * subsize[2]))
     {
-      ImageType::IndexType index = cbot.GetIndex();
+      const ImageType::IndexType index = cbot.GetIndex();
       if (!subregion.IsInside(index))
       {
         std::cerr << "Iterator in priority region test failed" << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,32 +19,29 @@
 #include <fstream>
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 
 // Write a 2D SymmetricSecondRankTensor image to file and read it back again.
 int
-itkSymmetricSecondRankTensorImageWriteReadTest(int ac, char * av[])
+itkSymmetricSecondRankTensorImageWriteReadTest(int argc, char * argv[])
 {
-  if (ac < 1)
+  if (argc < 1)
   {
-    std::cerr << "Usage: " << av[0] << " Input\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Input\n";
     return EXIT_FAILURE;
   }
 
   using TensorPixelType = itk::SymmetricSecondRankTensor<float, 2>;
   using TensorImageType = itk::Image<TensorPixelType, 2>;
 
-  TensorImageType::Pointer tensorImageInput = TensorImageType::New();
+  auto tensorImageInput = TensorImageType::New();
 
-  TensorImageType::SizeType size;
-  size.Fill(10);
+  auto size = TensorImageType::SizeType::Filled(10);
 
-  TensorImageType::IndexType start;
-  start.Fill(0);
+  constexpr TensorImageType::IndexType start{};
 
-  TensorImageType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const TensorImageType::RegionType region{ start, size };
 
   tensorImageInput->SetRegions(region);
   tensorImageInput->Allocate();
@@ -63,17 +60,19 @@ itkSymmetricSecondRankTensorImageWriteReadTest(int ac, char * av[])
   {
     itr.Set(tensorPixelInput);
     for (unsigned int i = 0; i < 3; ++i)
+    {
       tensorPixelInput[i]++;
+    }
     ++itr;
   }
 
   try
   {
-    itk::WriteImage(tensorImageInput, av[1]);
-    const TensorImageType::ConstPointer tensorImageOutput = itk::ReadImage<TensorImageType>(av[1]);
+    itk::WriteImage(tensorImageInput, argv[1]);
+    const TensorImageType::ConstPointer tensorImageOutput = itk::ReadImage<TensorImageType>(argv[1]);
 
     // Compare the read values to the original values
-    const float tolerance = 1e-5;
+    constexpr float tolerance = 1e-5;
 
     itk::ImageRegionConstIterator<TensorImageType> inIt(tensorImageInput, region);
     itk::ImageRegionConstIterator<TensorImageType> outIt(tensorImageOutput, region);
@@ -88,7 +87,7 @@ itkSymmetricSecondRankTensorImageWriteReadTest(int ac, char * av[])
 
       for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::abs(tensorPixelInput[i] - tensorPixelOutput[i]) > tolerance)
+        if (itk::Math::abs(tensorPixelInput[i] - tensorPixelOutput[i]) > tolerance)
         {
           std::cerr << "Tensor read does not match expected values " << std::endl;
           std::cerr << "Index " << inIt.GetIndex() << std::endl;

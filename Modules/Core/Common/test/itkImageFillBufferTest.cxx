@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,10 +32,10 @@ itkImageFillBufferTest(int argc, char * argv[])
   }
 
   using ImageType = itk::Image<unsigned char, 3>;
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::SizeType size;
-  size[0] = (ImageType::SizeValueType)(std::stod(argv[1]) * 1024);
+  size[0] = static_cast<ImageType::SizeValueType>(std::stod(argv[1]) * 1024);
   size[1] = 1024;
   size[2] = 1024;
 

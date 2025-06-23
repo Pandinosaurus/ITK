@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class NthElementImageAdaptor
+ * \class NthElementImageAdaptor
  * \brief Presents an image as being composed of the N-th element of its pixels
  *
  * It assumes that the pixels are of container type and have in their API
@@ -55,7 +55,7 @@ public:
 };
 
 template <typename TImage, typename TOutputPixelType>
-class NthElementImageAdaptor : public NthElementImageAdaptorHelper<TImage, TOutputPixelType>::Super
+class ITK_TEMPLATE_EXPORT NthElementImageAdaptor : public NthElementImageAdaptorHelper<TImage, TOutputPixelType>::Super
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(NthElementImageAdaptor);
@@ -66,8 +66,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NthElementImageAdaptor, ImageAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NthElementImageAdaptor);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);

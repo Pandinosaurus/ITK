@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkTextOutput.h"
 
 #include "itkImagePCADecompositionCalculator.h"
+#include "itkTestingMacros.h"
 
 // class to support progress feedback
 
@@ -58,27 +59,26 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   using InputImageIterator = itk::ImageRegionIterator<InputImageType>;
 
 
-  InputImageType::Pointer image1 = InputImageType::New();
+  auto image1 = InputImageType::New();
 
-  InputImageType::Pointer image2 = InputImageType::New();
+  auto image2 = InputImageType::New();
 
-  InputImageType::Pointer image3 = InputImageType::New();
+  auto image3 = InputImageType::New();
 
-  InputImageType::Pointer image4 = InputImageType::New();
+  auto image4 = InputImageType::New();
 
-  InputImageType::Pointer image5 = InputImageType::New();
+  auto image5 = InputImageType::New();
 
-  InputImageType::Pointer image6 = InputImageType::New();
+  auto image6 = InputImageType::New();
 
-  InputImageType::Pointer image7 = InputImageType::New();
+  auto image7 = InputImageType::New();
 
-  InputImageType::Pointer image8 = InputImageType::New();
+  auto image8 = InputImageType::New();
 
-  InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
+  constexpr InputImageType::SizeType inputImageSize = { { IMGWIDTH, IMGHEIGHT } };
 
-  InputImageType::IndexType index;
-  index.Fill(0);
-  InputImageType::RegionType region;
+  constexpr InputImageType::IndexType index{};
+  InputImageType::RegionType          region;
 
   region.SetSize(inputImageSize);
   region.SetIndex(index);
@@ -264,7 +264,10 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   //----------------------------------------------------------------------
   using ImagePCAShapeModelEstimatorType = itk::ImagePCADecompositionCalculator<InputImageType>;
 
-  ImagePCAShapeModelEstimatorType::Pointer decomposer = ImagePCAShapeModelEstimatorType::New();
+  auto decomposer = ImagePCAShapeModelEstimatorType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(decomposer, ImagePCADecompositionCalculator, Object);
+
 
   //----------------------------------------------------------------------
   // Set the parameters of the clusterer
@@ -275,15 +278,24 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   basis.push_back(image2);
   decomposer->SetBasisImages(basis);
 
+  ImagePCAShapeModelEstimatorType::BasisImagePointerVector basisObtained = decomposer->GetBasisImages();
+
+  ITK_TEST_EXPECT_EQUAL(basis.size(), basisObtained.size());
+  for (size_t i = 0; i < basis.size(); ++i)
+  {
+    ITK_TEST_EXPECT_EQUAL(basis[i], basisObtained[i]);
+  }
+
   // compute some projections!
-  ImagePCAShapeModelEstimatorType::BasisVectorType proj3, proj4;
   decomposer->SetImage(image3);
+  ITK_TEST_SET_GET_VALUE(image3, decomposer->GetImage());
+
   decomposer->Compute();
-  proj3 = decomposer->GetProjection();
+  ImagePCAShapeModelEstimatorType::BasisVectorType proj3 = decomposer->GetProjection();
 
   decomposer->SetImage(image4);
   decomposer->Compute();
-  proj4 = decomposer->GetProjection();
+  ImagePCAShapeModelEstimatorType::BasisVectorType proj4 = decomposer->GetProjection();
 
   // get the basis images
   ImagePCAShapeModelEstimatorType::BasisImagePointerVector basis_check;
@@ -295,27 +307,26 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   basis.push_back(image7);
   decomposer->SetBasisImages(basis);
 
-  ImagePCAShapeModelEstimatorType::BasisVectorType proj3_2, proj4_2;
   // decomposer->SetImage(image4); // DON'T set image4 -- it should still
   // be cached with the decomposer. Test that this works between basis changes.
   decomposer->Compute();
-  proj4_2 = decomposer->GetProjection();
+  ImagePCAShapeModelEstimatorType::BasisVectorType proj4_2 = decomposer->GetProjection();
 
   decomposer->SetImage(image3);
   decomposer->Compute();
-  proj3_2 = decomposer->GetProjection();
+  ImagePCAShapeModelEstimatorType::BasisVectorType proj3_2 = decomposer->GetProjection();
 
-  ImagePCAShapeModelEstimatorType::BasisVectorType proj3_3, proj4_3;
   // now test it with a mean image set
   decomposer->SetMeanImage(image8);
+  ITK_TEST_SET_GET_VALUE(image8, decomposer->GetMeanImage());
 
   decomposer->SetImage(image3);
   decomposer->Compute();
-  proj3_3 = decomposer->GetProjection();
+  const ImagePCAShapeModelEstimatorType::BasisVectorType proj3_3 = decomposer->GetProjection();
 
   decomposer->SetImage(image4);
   decomposer->Compute();
-  proj4_3 = decomposer->GetProjection();
+  const ImagePCAShapeModelEstimatorType::BasisVectorType proj4_3 = decomposer->GetProjection();
 
 
   // get the basis images
@@ -329,20 +340,20 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   std::cout << "The basis of projection is: " << std::endl;
   for (const auto & basis_it : basis_check)
   {
-    std::cout << "[";
+    std::cout << '[';
     InputImageIterator basisImage_it(basis_it, basis_it->GetBufferedRegion());
     for (basisImage_it.GoToBegin(); !basisImage_it.IsAtEnd(); ++basisImage_it)
     {
-      std::cout << basisImage_it.Get() << " ";
+      std::cout << basisImage_it.Get() << ' ';
     }
-    std::cout << "]" << std::endl;
+    std::cout << ']' << std::endl;
   }
 
   // Print the projections
-  std::cout << "The projection of [0 2 2 0] is [" << proj3 << "]" << std::endl;
+  std::cout << "The projection of [0 2 2 0] is [" << proj3 << ']' << std::endl;
   std::cout << "this should be approx [-1.5412 -2.3716]" << std::endl;
 
-  std::cout << "The projection of [0 3 3 0] is [" << proj4 << "]" << std::endl;
+  std::cout << "The projection of [0 3 3 0] is [" << proj4 << ']' << std::endl;
   std::cout << "this should be approx [3.5574 -2.3119]" << std::endl;
 
   // Print the basis and projections: now the new basis
@@ -350,26 +361,26 @@ itkImagePCADecompositionCalculatorTest(int, char *[])
   std::cout << "Now the basis of projection is: " << std::endl;
   for (const auto & basis_it : basis_check_2)
   {
-    std::cout << "[";
+    std::cout << '[';
     InputImageIterator basisImage_it(basis_it, basis_it->GetBufferedRegion());
     for (basisImage_it.GoToBegin(); !basisImage_it.IsAtEnd(); ++basisImage_it)
     {
-      std::cout << basisImage_it.Get() << " ";
+      std::cout << basisImage_it.Get() << ' ';
     }
-    std::cout << "]" << std::endl;
+    std::cout << ']' << std::endl;
   }
 
   // Print the projections
-  std::cout << "The projection of [0 2 2 0] is [" << proj3_2 << "]" << std::endl;
+  std::cout << "The projection of [0 2 2 0] is [" << proj3_2 << ']' << std::endl;
   std::cout << "this should be approx [1.4142 -1.4142 0]" << std::endl;
 
-  std::cout << "The projection of [0 3 3 0] is [" << proj4_2 << "]" << std::endl;
+  std::cout << "The projection of [0 3 3 0] is [" << proj4_2 << ']' << std::endl;
   std::cout << "this should be approx [2.1213 2.1213 3.000]" << std::endl;
 
-  std::cout << "The projection of [0 2 2 0] is (mean of zero set) [" << proj3_3 << "]" << std::endl;
+  std::cout << "The projection of [0 2 2 0] is (mean of zero set) [" << proj3_3 << ']' << std::endl;
   std::cout << "this should be approx [1.4142 -1.4142 0]" << std::endl;
 
-  std::cout << "The projection of [0 3 3 0] is (mean of zero set) [" << proj4_3 << "]" << std::endl;
+  std::cout << "The projection of [0 3 3 0] is (mean of zero set) [" << proj4_3 << ']' << std::endl;
   std::cout << "this should be approx [2.1213 2.1213 3.000]" << std::endl;
 
   // Test for the eigen values for the test case precomputed using Matlab

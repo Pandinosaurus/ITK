@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkThresholdSegmentationLevelSetImageFilter.h"
+#include "itkTestingMacros.h"
 
 namespace TSIFTN
 {
@@ -31,10 +32,10 @@ constexpr int V_DEPTH = 64;
 float
 sphere(float x, float y, float z)
 {
-  float dis;
-  dis = (x - (float)V_WIDTH / 2.0) * (x - (float)V_WIDTH / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
-        (y - (float)V_HEIGHT / 2.0) * (y - (float)V_HEIGHT / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
-        (z - (float)V_DEPTH / 2.0) * (z - (float)V_DEPTH / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
+  const float dis =
+    (x - float{ V_WIDTH } / 2.0) * (x - float{ V_WIDTH } / 2.0) / ((0.2f * V_WIDTH) * (0.2f * V_WIDTH)) +
+    (y - float{ V_HEIGHT } / 2.0) * (y - float{ V_HEIGHT } / 2.0) / ((0.2f * V_HEIGHT) * (0.2f * V_HEIGHT)) +
+    (z - float{ V_DEPTH } / 2.0) * (z - float{ V_DEPTH } / 2.0) / ((0.2f * V_DEPTH) * (0.2f * V_DEPTH));
   return (1.0f - dis);
 }
 
@@ -52,7 +53,7 @@ evaluate_function(itk::Image<char, 3> * im, float (*f)(float, float, float))
       for (int x = 0; x < V_WIDTH; ++x)
       {
         idx[0] = x;
-        if (f((float)x, (float)y, (float)z) >= 0.0)
+        if (f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)) >= 0.0)
         {
           im->SetPixel(idx, 1);
         }
@@ -79,7 +80,7 @@ public:
   using Superclass = Command;
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
-  itkTypeMacro(RMSCommand, Command);
+  itkOverrideGetNameOfClassMacro(RMSCommand);
   itkNewMacro(Self);
 
   /** Standard Command virtual methods */
@@ -114,7 +115,7 @@ public:
   using Superclass = Command;
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
-  itkTypeMacro(TSIFTNProgressCommand, Command);
+  itkOverrideGetNameOfClassMacro(TSIFTNProgressCommand);
   itkNewMacro(Self);
 
   /** Standard Command virtual methods */
@@ -142,7 +143,6 @@ protected:
 int
 itkThresholdSegmentationLevelSetImageFilterTest(int, char *[])
 {
-  std::cout << "Last modified 11/08/02" << std::endl;
 
   TSIFTN::ImageType::RegionType            reg;
   TSIFTN::ImageType::RegionType::SizeType  sz;
@@ -152,8 +152,8 @@ itkThresholdSegmentationLevelSetImageFilterTest(int, char *[])
   reg.SetSize(sz);
   reg.SetIndex(idx);
 
-  TSIFTN::ImageType::Pointer     inputImage = TSIFTN::ImageType::New();
-  TSIFTN::SeedImageType::Pointer seedImage = TSIFTN::SeedImageType::New();
+  const TSIFTN::ImageType::Pointer     inputImage = TSIFTN::ImageType::New();
+  const TSIFTN::SeedImageType::Pointer seedImage = TSIFTN::SeedImageType::New();
   inputImage->SetRegions(reg);
   seedImage->SetRegions(reg);
   inputImage->Allocate();
@@ -163,83 +163,127 @@ itkThresholdSegmentationLevelSetImageFilterTest(int, char *[])
   TSIFTN::evaluate_function(seedImage, TSIFTN::sphere);
 
   // Target surface is a diamond
-  float        val;
-  unsigned int i;
   //  TSIFTN::ImageType::IndexType idx;
   for (idx[2] = 0; idx[2] < 64; idx[2]++)
     for (idx[1] = 0; idx[1] < 64; idx[1]++)
       for (idx[0] = 0; idx[0] < 64; idx[0]++)
       {
-        val = 0;
-        for (i = 0; i < 3; ++i)
+        float val = 0;
+        for (unsigned int i = 0; i < 3; ++i)
         {
           if (idx[i] < 32)
+          {
             val += idx[i];
+          }
           else
+          {
             val += 64 - idx[i];
+          }
         }
         inputImage->SetPixel(idx, val);
       }
 
   using FilterType = itk::ThresholdSegmentationLevelSetImageFilter<::TSIFTN::SeedImageType, ::TSIFTN::ImageType>;
 
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetInput(seedImage);
-  filter->SetFeatureImage(inputImage);
+  auto filter = FilterType::New();
 
-  filter->SetUpperThreshold(63);
-  filter->SetLowerThreshold(50);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ThresholdSegmentationLevelSetImageFilter, SegmentationLevelSetImageFilter);
+
+
+  filter->SetInput(seedImage);
+  ITK_TEST_SET_GET_VALUE(seedImage, filter->GetInitialImage());
+
+  filter->SetInitialImage(seedImage);
+  ITK_TEST_SET_GET_VALUE(seedImage, filter->GetInput());
+  ITK_TEST_SET_GET_VALUE(seedImage, filter->GetInitialImage());
+
+  filter->SetFeatureImage(inputImage);
+  ITK_TEST_SET_GET_VALUE(inputImage, filter->GetFeatureImage());
+
+  auto advectionImage = FilterType::SegmentationFunctionType::VectorImageType::New();
+  filter->SetAdvectionImage(advectionImage);
+  ITK_TEST_SET_GET_VALUE(advectionImage, filter->GetAdvectionImage());
+
+  constexpr typename FilterType::ValueType upperThreshold = 63;
+  filter->SetUpperThreshold(upperThreshold);
+  ITK_TEST_SET_GET_VALUE(upperThreshold, filter->GetUpperThreshold());
+
+  constexpr typename FilterType::ValueType lowerThreshold = 50;
+  filter->SetLowerThreshold(lowerThreshold);
+  ITK_TEST_SET_GET_VALUE(lowerThreshold, filter->GetLowerThreshold());
+
+  constexpr typename FilterType::ValueType edgeWeight = 0.0;
+  filter->SetEdgeWeight(edgeWeight);
+  ITK_TEST_SET_GET_VALUE(edgeWeight, filter->GetEdgeWeight());
+
+  constexpr int smoothingIterations = 5;
+  filter->SetSmoothingIterations(smoothingIterations);
+  ITK_TEST_SET_GET_VALUE(smoothingIterations, filter->GetSmoothingIterations());
+
+  constexpr typename FilterType::ValueType smoothingTimeStep = 0.1;
+  filter->SetSmoothingTimeStep(smoothingTimeStep);
+  ITK_TEST_SET_GET_VALUE(smoothingTimeStep, filter->GetSmoothingTimeStep());
+
+  constexpr typename FilterType::ValueType smoothingConductance = 0.8;
+  filter->SetSmoothingConductance(smoothingConductance);
+  ITK_TEST_SET_GET_VALUE(smoothingConductance, filter->GetSmoothingConductance());
 
   filter->SetMaximumRMSError(0.04);
   filter->SetNumberOfIterations(10);
+
+  auto reverseExpansionDirection = true;
+
+  filter->SetUseNegativeFeaturesOff();
   filter->SetUseNegativeFeaturesOn(); // Change the default behavior of the speed
                                       // function so that negative values result in
                                       // surface growth.
+  filter->SetUseNegativeFeatures(reverseExpansionDirection);
+  ITK_TEST_SET_GET_VALUE(reverseExpansionDirection, filter->GetUseNegativeFeatures());
 
-  itk::RMSCommand::Pointer c = itk::RMSCommand::New();
+  ITK_TEST_SET_GET_BOOLEAN(filter, ReverseExpansionDirection, reverseExpansionDirection);
+
+  auto autoGenerateSpeedAdvection = true;
+  ITK_TEST_SET_GET_BOOLEAN(filter, AutoGenerateSpeedAdvection, autoGenerateSpeedAdvection);
+
+  const itk::RMSCommand::Pointer c = itk::RMSCommand::New();
   filter->AddObserver(itk::IterationEvent(), c);
 
-  itk::TSIFTNProgressCommand::Pointer progress = itk::TSIFTNProgressCommand::New();
+  const itk::TSIFTNProgressCommand::Pointer progress = itk::TSIFTNProgressCommand::New();
   filter->AddObserver(itk::ProgressEvent(), progress);
 
   filter->SetIsoSurfaceValue(0.5); //<--- IMPORTANT!  Default is zero.
 
-  try
-  {
-    filter->Update();
-    std::cout << "Done first trial" << std::endl;
-    // Repeat to make sure that the filter is reinitialized properly
-    filter->SetNumberOfIterations(5);
-    filter->Update();
-    std::cout << "Done second trial" << std::endl;
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-    // Write the output for debugging purposes
-    //       itk::ImageFileWriter<TSIFTN::ImageType>::Pointer writer
-    //          = itk::ImageFileWriter<TSIFTN::ImageType>::New();
-    //        itk::RawImageIO<float, 3>::Pointer io = itk::RawImageIO<float, 3>::New();
-    //        io->SetFileTypeToBinary();
-    //        io->SetFileDimensionality(3);
-    //        io->SetByteOrderToLittleEndian();
-    //        writer->SetImageIO(io);
+  std::cout << "Done first trial" << std::endl;
+  // Repeat to make sure that the filter is reinitialized properly
+  filter->SetNumberOfIterations(5);
 
-    //        itk::CastImageFilter<TSIFTN::SeedImageType, TSIFTN::ImageType>::Pointer
-    //         caster = itk::CastImageFilter<TSIFTN::SeedImageType, TSIFTN::ImageType>::New();
-    //        caster->SetInput(seedImage);
-    //        caster->Update();
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
-    // writer->SetInput(caster->GetOutput());
-    //     writer->SetInput(filter->GetSpeedImage());
-    //        writer->SetInput(filter->GetFeatureImage());
-    // writer->SetInput(inputImage);
-    //        writer->SetInput(filter->GetOutput());
-    //       writer->SetFileName("output.raw");
-    //        writer->Write();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  std::cout << "Done second trial" << std::endl;
+
+  // Write the output for debugging purposes
+  //       itk::ImageFileWriter<TSIFTN::ImageType>::Pointer writer
+  //          = itk::ImageFileWriter<TSIFTN::ImageType>::New();
+  //        itk::RawImageIO<float, 3>::Pointer io = itk::RawImageIO<float, 3>::New();
+  //        io->SetFileTypeToBinary();
+  //        io->SetFileDimensionality(3);
+  //        io->SetByteOrderToLittleEndian();
+  //        writer->SetImageIO(io);
+
+  //        itk::CastImageFilter<TSIFTN::SeedImageType, TSIFTN::ImageType>::Pointer
+  //         caster = itk::CastImageFilter<TSIFTN::SeedImageType, TSIFTN::ImageType>::New();
+  //        caster->SetInput(seedImage);
+  //        caster->Update();
+
+  // writer->SetInput(caster->GetOutput());
+  //     writer->SetInput(filter->GetSpeedImage());
+  //        writer->SetInput(filter->GetFeatureImage());
+  // writer->SetInput(inputImage);
+  //        writer->SetInput(filter->GetOutput());
+  //       writer->SetFileName("output.raw");
+  //        writer->Write();
 
   return EXIT_SUCCESS;
 }

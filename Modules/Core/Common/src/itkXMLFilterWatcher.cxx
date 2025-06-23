@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,12 @@ XMLFilterWatcher::ShowProgress()
   if (this->GetProcess())
   {
     int steps = this->GetSteps();
-    steps++;
+    ++steps;
     this->SetSteps(steps);
     if (!this->GetQuiet())
     {
-      std::cout << "<filter-progress>" << this->GetProcess()->GetProgress() << "</filter-progress>" << std::endl;
-      std::cout << std::flush;
+      std::cout << "<filter-progress>" << this->GetProcess()->GetProgress() << "</filter-progress>" << std::endl
+                << std::flush;
     }
   }
 }
@@ -43,14 +43,13 @@ XMLFilterWatcher::StartFilter()
   this->GetTimeProbe().Start();
   if (!this->GetQuiet())
   {
-    std::cout << "<filter-start>" << std::endl;
-    std::cout << "<filter-name>" << (this->GetProcess() ? this->GetProcess()->GetNameOfClass() : "None")
+    std::cout << "<filter-start>" << std::endl
+              << "<filter-name>" << (this->GetProcess() ? this->GetProcess()->GetNameOfClass() : "None")
               << "</filter-name>" << std::endl;
     std::cout << "<filter-comment>"
               << " \"" << this->GetComment() << "\" "
               << "</filter-comment>" << std::endl;
-    std::cout << "</filter-start>" << std::endl;
-    std::cout << std::flush;
+    std::cout << "</filter-start>" << std::endl << std::flush;
   }
 }
 

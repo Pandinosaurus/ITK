@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageAndPathToImageFilter_hxx
 #define itkImageAndPathToImageFilter_hxx
 
-#include "itkImageAndPathToImageFilter.h"
 
 namespace itk
 {
@@ -46,15 +45,15 @@ ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::SetImageInput(
 }
 
 template <typename TInputImage, typename TInputPath, typename TOutputImage>
-const typename ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::InputImageType *
-ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetImageInput()
+auto
+ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetImageInput() -> const InputImageType *
 {
   return this->GetNonConstImageInput();
 }
 
 template <typename TInputImage, typename TInputPath, typename TOutputImage>
-typename ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::InputImageType *
-ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetNonConstImageInput()
+auto
+ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetNonConstImageInput() -> InputImageType *
 {
   auto * temp_return = dynamic_cast<TInputImage *>(this->ProcessObject::GetInput(0));
   if (temp_return == nullptr)
@@ -75,15 +74,15 @@ ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::SetPathInput(c
 }
 
 template <typename TInputImage, typename TInputPath, typename TOutputImage>
-const typename ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::InputPathType *
-ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetPathInput()
+auto
+ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetPathInput() -> const InputPathType *
 {
   return this->GetNonConstPathInput();
 }
 
 template <typename TInputImage, typename TInputPath, typename TOutputImage>
-typename ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::InputPathType *
-ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetNonConstPathInput()
+auto
+ImageAndPathToImageFilter<TInputImage, TInputPath, TOutputImage>::GetNonConstPathInput() -> InputPathType *
 {
   auto * temp_return = dynamic_cast<TInputPath *>(this->ProcessObject::GetInput(1));
   if (temp_return == nullptr)

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkFlatStructuringElement.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 template <class TSEType>
 void
@@ -28,10 +29,9 @@ SEToFile(const TSEType & e, const std::string & fname)
 
   using ImageType = itk::Image<unsigned char, Dimension>;
 
-  typename ImageType::Pointer img = ImageType::New();
+  auto img = ImageType::New();
 
-  typename ImageType::IndexType start;
-  start.Fill(0);
+  const typename ImageType::IndexType start{};
 
   typename ImageType::SizeType size;
   for (unsigned int i = 0; i < Dimension; ++i)
@@ -40,7 +40,7 @@ SEToFile(const TSEType & e, const std::string & fname)
   }
 
 
-  typename ImageType::RegionType region(start, size);
+  const typename ImageType::RegionType region(start, size);
   img->SetRegions(region);
   img->Allocate();
   img->FillBuffer(0);
@@ -54,7 +54,7 @@ SEToFile(const TSEType & e, const std::string & fname)
   }
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  typename WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(fname);
   writer->SetInput(img);
   writer->Update();
@@ -66,15 +66,16 @@ itkFlatStructuringElementTest3(int argc, char * argv[])
   // test polygon SEs
   if (argc < 4)
   {
-    std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage: " << argv[0] << " OutputImage Radius Lines Dimension" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " OutputImage Radius Lines Dimension" << std::endl;
     return EXIT_FAILURE;
   }
 
-  int         dimension = 2;
-  std::string outputImage = argv[1];
-  int         radius = std::stoi(argv[2]);
-  int         lines = std::stoi(argv[3]);
+  int               dimension = 2;
+  const std::string outputImage = argv[1];
+  const int         radius = std::stoi(argv[2]);
+  const int         lines = std::stoi(argv[3]);
   if (argc > 4)
   {
     dimension = std::stoi(argv[4]);
@@ -84,18 +85,16 @@ itkFlatStructuringElementTest3(int argc, char * argv[])
   {
     using SE2Type = itk::FlatStructuringElement<2>;
 
-    SE2Type::RadiusType r2;
-    r2.Fill(radius);
-    SE2Type P = SE2Type::Polygon(r2, lines);
+    auto          r2 = itk::MakeFilled<SE2Type::RadiusType>(radius);
+    const SE2Type P = SE2Type::Polygon(r2, lines);
     SEToFile(P, outputImage);
   }
   else if (dimension == 3)
   {
     using SE3Type = itk::FlatStructuringElement<3>;
 
-    SE3Type::RadiusType r3;
-    r3.Fill(radius);
-    SE3Type P = SE3Type::Polygon(r3, lines);
+    auto          r3 = itk::MakeFilled<SE3Type::RadiusType>(radius);
+    const SE3Type P = SE3Type::Polygon(r3, lines);
     SEToFile(P, outputImage);
   }
   else

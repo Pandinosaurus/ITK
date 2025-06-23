@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,9 +45,9 @@ namespace itk
  * \ingroup ImageFunctions
  * \ingroup ITKImageFunction
  */
-template <typename TInputImage, typename TCoordRep = float>
+template <typename TInputImage, typename TCoordinate = float>
 class ITK_TEMPLATE_EXPORT MeanImageFunction
-  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>
+  : public ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MeanImageFunction);
@@ -55,13 +55,13 @@ public:
   /** Standard class type aliases. */
   using Self = MeanImageFunction;
   using Superclass =
-    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordRep>;
+    ImageFunction<TInputImage, typename NumericTraits<typename TInputImage::PixelType>::RealType, TCoordinate>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeanImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeanImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -72,17 +72,17 @@ public:
   /** InputPixel type alias support */
   using typename Superclass::InputPixelType;
 
-  /** OutputType typdef support. */
-  using OutputType = typename Superclass::OutputType;
+  /** OutputType typedef support. */
+  using typename Superclass::OutputType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
   /** Size type of the underlying image. */
   using ImageSizeType = typename InputImageType::SizeType;
@@ -93,7 +93,7 @@ public:
   /** Datatype used for the mean */
   using RealType = typename NumericTraits<typename InputImageType::PixelType>::RealType;
 
-  /** Evalulate the function at specified index */
+  /** Evaluate the function at specified index */
   RealType
   EvaluateAtIndex(const IndexType & index) const override;
 
@@ -118,10 +118,11 @@ public:
 
   /** Get/Set the radius of the neighborhood over which the
       statistics are evaluated */
+  /** @ITKStartGrouping */
   void
   SetNeighborhoodRadius(unsigned int);
   itkGetConstReferenceMacro(NeighborhoodRadius, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   MeanImageFunction();
   ~MeanImageFunction() override = default;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +50,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetBase, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetBase);
 
   static constexpr unsigned int Dimension = VDimension;
 
@@ -85,7 +85,7 @@ public:
   EvaluateMeanCurvature(const InputType & iP) const = 0;
 
   /**
-   *\class DataType
+   * \class DataType
    *  \brief Internal class used for one computed characteristic
    *
    *  It holds the name of the characteristics, its value, and a boolean
@@ -139,14 +139,14 @@ public:
       , ForwardGradient("ForwardGradient")
       , BackwardGradient("BackwardGradient")
     {
-      Value.m_Value = NumericTraits<OutputType>::ZeroValue();
-      Gradient.m_Value.Fill(NumericTraits<OutputRealType>::ZeroValue());
-      Hessian.m_Value.Fill(NumericTraits<OutputRealType>::ZeroValue());
-      Laplacian.m_Value = NumericTraits<OutputRealType>::ZeroValue();
-      GradientNorm.m_Value = NumericTraits<OutputRealType>::ZeroValue();
-      MeanCurvature.m_Value = NumericTraits<OutputRealType>::ZeroValue();
-      ForwardGradient.m_Value.Fill(NumericTraits<OutputRealType>::ZeroValue());
-      BackwardGradient.m_Value.Fill(NumericTraits<OutputRealType>::ZeroValue());
+      Value.m_Value = OutputType{};
+      Gradient.m_Value.Fill(OutputRealType{});
+      Hessian.m_Value.Fill(OutputRealType{});
+      Laplacian.m_Value = OutputRealType{};
+      GradientNorm.m_Value = OutputRealType{};
+      MeanCurvature.m_Value = OutputRealType{};
+      ForwardGradient.m_Value.Fill(OutputRealType{});
+      BackwardGradient.m_Value.Fill(OutputRealType{});
     }
 
     LevelSetDataType(const LevelSetDataType & iData)

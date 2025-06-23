@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,10 +46,8 @@ namespace itk
  * domain, origin, direction, spacing).  The output of the filter is the sampled
  * B-spline object.
  *
- * This code was contributed in the Insight Journal paper:
- * "N-D C^k B-Spline Scattered Data Approximation"
- * by Nicholas J. Tustison, James C. Gee
- * https://www.insight-journal.org/browse/publication/57
+ * This code was contributed in the Insight Journal paper
+ * \cite Tustison_2005.
  *
  * \author Nicholas J. Tustison
  * \ingroup ITKImageGrid
@@ -69,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BSplineControlPointImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BSplineControlPointImageFilter);
 
   /** Extract dimension from input image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -95,7 +93,7 @@ public:
   using RealImageType = Image<RealType, Self::ImageDimension>;
   using RealImagePointer = typename RealImageType::Pointer;
 
-  using ArrayType = FixedArray<unsigned, Self::ImageDimension>;
+  using ArrayType = FixedArray<unsigned int, Self::ImageDimension>;
   using RealArrayType = FixedArray<RealType, Self::ImageDimension>;
 
   /** PointSet type alias support */
@@ -146,27 +144,31 @@ public:
    * they were also located at the end of the domain. The number of points to
    * be reused will depend on the spline order. As a user, you don't need to
    * replicate the points, the filter will do this for you. */
+  /** @ITKStartGrouping */
   itkSetMacro(CloseDimension, ArrayType);
   itkGetConstReferenceMacro(CloseDimension, ArrayType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the parametric spacing of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Spacing, SpacingType);
   itkGetConstMacro(Spacing, SpacingType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the parametric origin of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Origin, OriginType);
   itkGetConstMacro(Origin, OriginType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get the parametric size of the B-spline object domain.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Size, SizeType);
   itkGetConstMacro(Size, SizeType);
-
+  /** @ITKEndGrouping */
   /**
    * Set the sampled object direction.  Note that this is not used in any of the
    * calculations in this class.  The only reason why it is included is due
@@ -236,25 +238,25 @@ private:
   void SetNumberOfLevels(ArrayType);
 
   /** Parameters for the output image. */
-  SizeType      m_Size;
-  SpacingType   m_Spacing;
-  OriginType    m_Origin;
-  DirectionType m_Direction;
+  SizeType      m_Size{};
+  SpacingType   m_Spacing{};
+  OriginType    m_Origin{};
+  DirectionType m_Direction{};
 
   bool         m_DoMultilevel{ false };
   unsigned int m_MaximumNumberOfLevels{ 1 };
-  ArrayType    m_NumberOfControlPoints;
-  ArrayType    m_CloseDimension;
-  ArrayType    m_SplineOrder;
-  ArrayType    m_NumberOfLevels;
+  ArrayType    m_NumberOfControlPoints{};
+  ArrayType    m_CloseDimension{};
+  ArrayType    m_SplineOrder{};
+  ArrayType    m_NumberOfLevels{};
 
-  vnl_matrix<RealType> m_RefinedLatticeCoefficients[ImageDimension];
+  vnl_matrix<RealType> m_RefinedLatticeCoefficients[ImageDimension]{};
 
-  typename KernelType::Pointer       m_Kernel[ImageDimension];
-  typename KernelOrder0Type::Pointer m_KernelOrder0;
-  typename KernelOrder1Type::Pointer m_KernelOrder1;
-  typename KernelOrder2Type::Pointer m_KernelOrder2;
-  typename KernelOrder3Type::Pointer m_KernelOrder3;
+  typename KernelType::Pointer       m_Kernel[ImageDimension]{};
+  typename KernelOrder0Type::Pointer m_KernelOrder0{};
+  typename KernelOrder1Type::Pointer m_KernelOrder1{};
+  typename KernelOrder2Type::Pointer m_KernelOrder2{};
+  typename KernelOrder3Type::Pointer m_KernelOrder3{};
 
   RealType m_BSplineEpsilon{ static_cast<RealType>(1e-3) };
 
@@ -264,12 +266,12 @@ private:
     typename RealImageType::IndexType k;
     k[0] = 1;
 
-    for (unsigned int i = 1; i < ImageDimension; i++)
+    for (unsigned int i = 1; i < ImageDimension; ++i)
     {
       k[i] = size[ImageDimension - i - 1] * k[i - 1];
     }
     typename RealImageType::IndexType index;
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       index[ImageDimension - i - 1] = static_cast<unsigned int>(number / k[ImageDimension - i - 1]);
       number %= k[ImageDimension - i - 1];

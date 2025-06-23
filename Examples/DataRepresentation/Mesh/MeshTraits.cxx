@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 //  Software Guide : BeginLatex
 //
 //  This section illustrates the full power of
-//  \href{http://www.boost.org/more/generic_programming.html}{Generic
+//  \href{https://www.boost.org/more/generic_programming.html}{Generic
 //  Programming}.  This is sometimes perceived as \emph{too much of a good
 //  thing}!
 //
@@ -52,7 +52,7 @@
 //  and edit its content. Only the first approach is illustrated here. The
 //  second is discouraged unless you are familiar with Generic Programming,
 //  feel comfortable with C++ templates, and have access to an abundant supply
-//  of (Columbian) coffee.
+//  of (Colombian) coffee.
 //
 //  The first step in customizing the mesh is to include the header file of
 //  the Mesh and its static traits.
@@ -83,7 +83,7 @@ main(int, char *[])
   //  \item[PixelType.] The value type associated with every point.
   //  \item[PointDimension.] The dimension of the space in which the mesh is
   //  embedded. \item[MaxTopologicalDimension.] The highest dimension of the
-  //  mesh cells. \item[CoordRepType.] The type used to represent spacial
+  //  mesh cells. \item[CoordinateType.] The type used to represent spacial
   //  coordinates. \item[InterpolationWeightType.]  The type used to represent
   //  interpolation weights. \item[CellPixelType.] The value type associated
   //  with every cell. \end{description}
@@ -155,13 +155,13 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  MeshType::Pointer mesh = MeshType::New();
+  auto mesh = MeshType::New();
 
   using PointType = MeshType::PointType;
   PointType point;
 
   constexpr unsigned int numberOfPoints = 10;
-  for (unsigned int id = 0; id < numberOfPoints; id++)
+  for (unsigned int id = 0; id < numberOfPoints; ++id)
   {
     point[0] = 1.565; // Initialize points here
     point[1] = 3.647; // with arbitrary values
@@ -189,8 +189,8 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   CellType::CellAutoPointer line;
-  const unsigned int        numberOfCells = numberOfPoints - 1;
-  for (unsigned int cellId = 0; cellId < numberOfCells; cellId++)
+  constexpr unsigned int    numberOfCells = numberOfPoints - 1;
+  for (unsigned int cellId = 0; cellId < numberOfCells; ++cellId)
   {
     line.TakeOwnership(new LineType);
     line->SetPointId(0, cellId);     // first point
@@ -214,7 +214,7 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  for (unsigned int cellId = 0; cellId < numberOfCells; cellId++)
+  for (unsigned int cellId = 0; cellId < numberOfCells; ++cellId)
   {
     CellDataType value;
     mesh->SetCellData(cellId, value);
@@ -278,8 +278,8 @@ main(int, char *[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  CellDataIterator cellDataIterator = mesh->GetCellData()->Begin();
-  CellDataIterator end = mesh->GetCellData()->End();
+  CellDataIterator       cellDataIterator = mesh->GetCellData()->Begin();
+  const CellDataIterator end = mesh->GetCellData()->End();
   // Software Guide : EndCodeSnippet
 
 
@@ -299,7 +299,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   while (cellDataIterator != end)
   {
-    CellDataType cellValue = cellDataIterator.Value();
+    const CellDataType cellValue = cellDataIterator.Value();
     std::cout << cellValue << std::endl;
     ++cellDataIterator;
   }

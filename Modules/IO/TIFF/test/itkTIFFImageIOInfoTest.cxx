@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,23 +44,23 @@ itkTIFFImageIOInfoTest(int argc, char * argv[])
   std::cout << "Dimensions: ( ";
   for (unsigned int d = 0; d < tiffImageIO->GetNumberOfDimensions(); ++d)
   {
-    std::cout << tiffImageIO->GetDimensions(d) << " ";
+    std::cout << tiffImageIO->GetDimensions(d) << ' ';
   }
-  std::cout << ")" << std::endl;
+  std::cout << ')' << std::endl;
 
   std::cout << "Origin: ( ";
   for (unsigned int d = 0; d < tiffImageIO->GetNumberOfDimensions(); ++d)
   {
-    std::cout << tiffImageIO->GetOrigin(d) << " ";
+    std::cout << tiffImageIO->GetOrigin(d) << ' ';
   }
-  std::cout << ")" << std::endl;
+  std::cout << ')' << std::endl;
 
   std::cout << "Spacing: ( ";
   for (unsigned int d = 0; d < tiffImageIO->GetNumberOfDimensions(); ++d)
   {
-    std::cout << tiffImageIO->GetSpacing(d) << " ";
+    std::cout << tiffImageIO->GetSpacing(d) << ' ';
   }
-  std::cout << ")" << std::endl;
+  std::cout << ')' << std::endl;
 
   using DictionaryType = itk::MetaDataDictionary;
   using MetaDataStringType = itk::MetaDataObject<std::string>;
@@ -72,10 +72,10 @@ itkTIFFImageIOInfoTest(int argc, char * argv[])
   std::cout << "MetaDataDictionary" << std::endl;
   while (itr != end)
   {
-    itk::MetaDataObjectBase::Pointer entry = itr->second;
-    const std::string                tagkey = itr->first;
+    const itk::MetaDataObjectBase::Pointer entry = itr->second;
+    const std::string                      tagkey = itr->first;
 
-    MetaDataStringType::Pointer entryvalue = dynamic_cast<MetaDataStringType *>(entry.GetPointer());
+    const MetaDataStringType::Pointer entryvalue = dynamic_cast<MetaDataStringType *>(entry.GetPointer());
 
     if (entryvalue)
     {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,18 +23,10 @@ namespace itk
  * Prompting off by default
  */
 FileOutputWindow::FileOutputWindow()
-{
-  m_Flush = false;
-  m_Append = false;
-  m_Stream = nullptr;
-  m_FileName = "";
-}
+  : m_FileName("")
+{}
 
-FileOutputWindow::~FileOutputWindow()
-{
-  delete m_Stream;
-  m_Stream = nullptr;
-}
+FileOutputWindow::~FileOutputWindow() { delete m_Stream; }
 
 void
 FileOutputWindow::PrintSelf(std::ostream & os, Indent indent) const

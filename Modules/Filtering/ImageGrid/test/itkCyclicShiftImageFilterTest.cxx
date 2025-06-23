@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ itkCyclicShiftImageFilterTest(int argc, char * argv[])
   using ChangeInfoFilterType = itk::ChangeInformationImageFilter<ImageType>;
   using CyclicShiftFilterType = itk::CyclicShiftImageFilter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   // Change the origin of the image to make sure we can handle that case.
@@ -48,7 +48,7 @@ itkCyclicShiftImageFilterTest(int argc, char * argv[])
   newOrigin[0] = -52;
   newOrigin[1] = 37;
 
-  ChangeInfoFilterType::Pointer changeInfoFilter = ChangeInfoFilterType::New();
+  auto changeInfoFilter = ChangeInfoFilterType::New();
   changeInfoFilter->ChangeRegionOn();
   changeInfoFilter->SetOutputOffset(newOrigin);
   changeInfoFilter->SetInput(reader->GetOutput());
@@ -57,7 +57,7 @@ itkCyclicShiftImageFilterTest(int argc, char * argv[])
   shift[0] = std::stoi(argv[2]);
   shift[1] = std::stoi(argv[3]);
 
-  CyclicShiftFilterType::Pointer shiftFilter = CyclicShiftFilterType::New();
+  auto shiftFilter = CyclicShiftFilterType::New();
   shiftFilter->SetShift(shift);
   shiftFilter->SetInput(changeInfoFilter->GetOutput());
 
@@ -75,7 +75,7 @@ itkCyclicShiftImageFilterTest(int argc, char * argv[])
   shiftFilter->UpdateLargestPossibleRegion();
   itk::ImageRegionConstIteratorWithIndex<ImageType> inputIter(reader->GetOutput(),
                                                               reader->GetOutput()->GetLargestPossibleRegion());
-  ImageType::RegionType                             imageRegion = reader->GetOutput()->GetLargestPossibleRegion();
+  const ImageType::RegionType                       imageRegion = reader->GetOutput()->GetLargestPossibleRegion();
   ImageType::SizeType                               imageSize = imageRegion.GetSize();
   bool                                              success = true;
 
@@ -83,19 +83,21 @@ itkCyclicShiftImageFilterTest(int argc, char * argv[])
 
   for (; !inputIter.IsAtEnd(); ++inputIter)
   {
-    ImageType::IndexType             inputIndex = inputIter.GetIndex();
+    const ImageType::IndexType       inputIndex = inputIter.GetIndex();
     CyclicShiftFilterType::IndexType outputIndex(inputIndex);
 
     for (unsigned int i = 0; i < Dimension; ++i)
     {
       outputIndex[i] = (outputIndex[i] + shift[i]) % imageSize[i];
       if (outputIndex[i] < 0)
+      {
         outputIndex[i] += imageSize[i];
+      }
       outputIndex[i] += newOrigin[i];
     }
 
-    PixelType inputPixel = inputIter.Get();
-    PixelType outputPixel = shiftFilterOutput->GetPixel(outputIndex);
+    const PixelType inputPixel = inputIter.Get();
+    const PixelType outputPixel = shiftFilterOutput->GetPixel(outputIndex);
 
     if (inputPixel != outputPixel)
     {

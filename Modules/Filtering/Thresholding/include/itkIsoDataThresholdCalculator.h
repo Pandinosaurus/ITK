@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,10 @@ namespace itk
 {
 
 /**
- *\class IsoDataThresholdCalculator
+ * \class IsoDataThresholdCalculator
  * \brief Computes the IsoData threshold for an image. Aka intermeans
  *
- * Iterative procedure based on the isodata algorithm [T.W. Ridler, S. Calvard, Picture
- * thresholding using an iterative selection method, IEEE Trans. System, Man and
- * Cybernetics, SMC-8 (1978) 630-632.]
+ * Iterative procedure based on the isodata algorithm \cite ridler1978.
  * The procedure divides the image into objects and background by taking an initial threshold,
  * then the averages of the pixels at or below the threshold and pixels above are computed.
  * The averages of those two values are computed, the threshold is incremented and the
@@ -45,7 +43,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/811
+ * https://doi.org/10.54294/efycla
  *
  * \ingroup Operators
  * \ingroup ITKThresholding
@@ -65,8 +63,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(IsoDataThresholdCalculator, HistogramThresholdCalculator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IsoDataThresholdCalculator);
 
   /** Type definition for the input image. */
   using HistogramType = THistogram;

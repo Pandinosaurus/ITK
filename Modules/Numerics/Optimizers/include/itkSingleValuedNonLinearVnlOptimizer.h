@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@
 #include "itkSingleValuedVnlCostFunctionAdaptor.h"
 #include "itkCommand.h"
 #include "ITKOptimizersExport.h"
+
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -45,8 +47,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SingleValuedNonLinearVnlOptimizer, SingleValueNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SingleValuedNonLinearVnlOptimizer);
 
   /** Command observer that will interact with the ITKVNL cost-function
    * adaptor in order to generate iteration events. This will allow to overcome
@@ -68,6 +70,7 @@ public:
    * Maximization is implemented here by notifying the CostFunctionAdaptor
    * which in its turn will multiply the function values and its derivative by
    * -1.0. */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(Maximize, bool);
   itkSetMacro(Maximize, bool);
   itkBooleanMacro(Maximize);
@@ -91,15 +94,25 @@ public:
   {
     this->MaximizeOn();
   }
-
+  /** @ITKEndGrouping */
   /** Return Cached Values. These method have the advantage of not triggering a
    * recomputation of the metric value, but it has the disadvantage of returning
    * a value that may not be the one corresponding to the current parameters. For
    * GUI update purposes, this method is a good option, for mathematical
    * validation you should rather call GetValue(). */
+  /** @ITKStartGrouping */
   itkGetConstReferenceMacro(CachedValue, MeasureType);
   itkGetConstReferenceMacro(CachedDerivative, DerivativeType);
   itkGetConstReferenceMacro(CachedCurrentPosition, ParametersType);
+  /** @ITKEndGrouping */
+  /** Returns true if derived optimizer supports using scales.
+   * For optimizers that do not support scaling, this
+   * default function is overridden to return false.*/
+  virtual bool
+  CanUseScales() const
+  {
+    return true;
+  }
 
 protected:
   SingleValuedNonLinearVnlOptimizer();
@@ -130,15 +143,15 @@ private:
   void
   IterationReport(const EventObject & event);
 
-  CostFunctionAdaptorType * m_CostFunctionAdaptor;
+  std::unique_ptr<CostFunctionAdaptorType> m_CostFunctionAdaptor;
 
-  bool m_Maximize;
+  bool m_Maximize{};
 
-  CommandType::Pointer m_Command;
+  CommandType::Pointer m_Command{};
 
-  mutable ParametersType m_CachedCurrentPosition;
-  mutable MeasureType    m_CachedValue;
-  mutable DerivativeType m_CachedDerivative;
+  mutable ParametersType m_CachedCurrentPosition{};
+  mutable MeasureType    m_CachedValue{};
+  mutable DerivativeType m_CachedDerivative{};
 };
 } // end namespace itk
 

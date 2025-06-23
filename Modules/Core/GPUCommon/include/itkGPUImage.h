@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,24 +50,24 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(GPUImage, Image);
+  itkOverrideGetNameOfClassMacro(GPUImage);
 
   static constexpr unsigned int ImageDimension = VImageDimension;
 
-  using PixelType = typename Superclass::PixelType;
-  using ValueType = typename Superclass::ValueType;
-  using InternalPixelType = typename Superclass::InternalPixelType;
-  using IOPixelType = typename Superclass::IOPixelType;
-  using DirectionType = typename Superclass::DirectionType;
-  using SpacingType = typename Superclass::SpacingType;
-  using PixelContainer = typename Superclass::PixelContainer;
-  using SizeType = typename Superclass::SizeType;
-  using IndexType = typename Superclass::IndexType;
-  using OffsetType = typename Superclass::OffsetType;
-  using RegionType = typename Superclass::RegionType;
+  using typename Superclass::PixelType;
+  using typename Superclass::ValueType;
+  using typename Superclass::InternalPixelType;
+  using typename Superclass::IOPixelType;
+  using typename Superclass::DirectionType;
+  using typename Superclass::SpacingType;
+  using typename Superclass::PixelContainer;
+  using typename Superclass::SizeType;
+  using typename Superclass::IndexType;
+  using typename Superclass::OffsetType;
+  using typename Superclass::RegionType;
   using PixelContainerPointer = typename PixelContainer::Pointer;
   using PixelContainerConstPointer = typename PixelContainer::ConstPointer;
-  using AccessorType = typename Superclass::AccessorType;
+  using typename Superclass::AccessorType;
 
   using AccessorFunctorType = DefaultPixelAccessorFunctor<Self>;
 
@@ -95,9 +95,11 @@ public:
   TPixel &
   GetPixel(const IndexType & index);
 
-  const TPixel & operator[](const IndexType & index) const;
+  const TPixel &
+  operator[](const IndexType & index) const;
 
-  TPixel & operator[](const IndexType & index);
+  TPixel &
+  operator[](const IndexType & index);
 
   /** Explicit synchronize CPU/GPU buffers */
   void
@@ -150,6 +152,7 @@ public:
   SetPixelContainer(PixelContainer * container);
 
   /** Return a pointer to the container. */
+  /** @ITKStartGrouping */
   PixelContainer *
   GetPixelContainer()
   {
@@ -163,6 +166,7 @@ public:
     m_DataManager->UpdateCPUBuffer();
     return Superclass::GetPixelContainer();
   }
+  /** @ITKEndGrouping */
 
   void
   SetCurrentCommandQueue(int queueid)
@@ -209,7 +213,7 @@ protected:
   using Superclass::Graft;
 
 private:
-  typename GPUImageDataManager<GPUImage>::Pointer m_DataManager;
+  typename GPUImageDataManager<GPUImage>::Pointer m_DataManager{};
 };
 
 class ITK_TEMPLATE_EXPORT GPUImageFactory : public itk::ObjectFactoryBase
@@ -223,6 +227,7 @@ public:
   using ConstPointer = itk::SmartPointer<const Self>;
 
   /** Class methods used to interface with the registered factories. */
+  /** @ITKStartGrouping */
   const char *
   GetITKSourceVersion() const override
   {
@@ -233,28 +238,29 @@ public:
   {
     return "A Factory for GPUImage";
   }
+  /** @ITKEndGrouping */
 
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUImageFactory, itk::ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUImageFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    GPUImageFactory::Pointer factory = GPUImageFactory::New();
+    auto factory = GPUImageFactory::New();
 
     itk::ObjectFactoryBase::RegisterFactory(factory);
   }
 
 private:
-#define OverrideImageTypeMacro(pt, dm)                                                                                 \
-  this->RegisterOverride(typeid(itk::Image<pt, dm>).name(),                                                            \
-                         typeid(itk::GPUImage<pt, dm>).name(),                                                         \
-                         "GPU Image Override",                                                                         \
-                         true,                                                                                         \
+#define OverrideImageTypeMacro(pt, dm)                         \
+  this->RegisterOverride(typeid(itk::Image<pt, dm>).name(),    \
+                         typeid(itk::GPUImage<pt, dm>).name(), \
+                         "GPU Image Override",                 \
+                         true,                                 \
                          itk::CreateObjectFunction<GPUImage<pt, dm>>::New())
 
   GPUImageFactory()
@@ -293,11 +299,11 @@ public:
   using Type = T;
 };
 
-template <typename TPixelType, unsigned int NDimension>
-class ITK_TEMPLATE_EXPORT GPUTraits<Image<TPixelType, NDimension>>
+template <typename TPixelType, unsigned int VDimension>
+class ITK_TEMPLATE_EXPORT GPUTraits<Image<TPixelType, VDimension>>
 {
 public:
-  using Type = GPUImage<TPixelType, NDimension>;
+  using Type = GPUImage<TPixelType, VDimension>;
 };
 
 } // end namespace itk

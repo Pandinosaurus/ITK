@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class FrameAverageVideoFilter
+ * \class FrameAverageVideoFilter
  * \brief Average frames over a designated range in a video
  *
  * This filter computes the average of X frames at once from an input video. It
@@ -56,19 +56,21 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(FrameAverageVideoFilter, VideoToVideoFilter);
+  itkOverrideGetNameOfClassMacro(FrameAverageVideoFilter);
 
   /** Get/Set the number of frames to average over */
+  /** @ITKStartGrouping */
   void
   SetNumberOfFrames(SizeValueType numFrames);
   SizeValueType
   GetNumberOfFrames();
-
+  /** @ITKEndGrouping */
 protected:
   /** Constructor and Destructor */
+  /** @ITKStartGrouping */
   FrameAverageVideoFilter();
   ~FrameAverageVideoFilter() override = default;
-
+  /** @ITKEndGrouping */
   /** PrintSelf */
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

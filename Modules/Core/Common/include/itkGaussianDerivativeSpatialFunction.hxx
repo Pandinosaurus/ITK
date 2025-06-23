@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,28 +20,18 @@
 
 #include <cmath>
 #include "itkMath.h"
-#include "itkGaussianDerivativeSpatialFunction.h"
 
 namespace itk
 {
 template <typename TOutput, unsigned int VImageDimension, typename TInput>
-GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::GaussianDerivativeSpatialFunction()
-{
-  m_Mean = ArrayType::Filled(0.0);
-  m_Sigma = ArrayType::Filled(1.0);
-  m_Scale = 1.0;
-  m_Normalized = false;
-  m_Direction = 0;
-}
-
-template <typename TOutput, unsigned int VImageDimension, typename TInput>
-typename GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::OutputType
+auto
 GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(const TInput & position) const
+  -> OutputType
 {
   // Normalizing the Gaussian is important for statistical applications
   // but is generally not desirable for creating images because of the
   // very small numbers involved (would need to use doubles)
-  double prefixDenom;
+  double prefixDenom = 1.0;
 
   if (m_Normalized)
   {
@@ -54,10 +44,6 @@ GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(co
 
     prefixDenom *= 2 * std::pow(2 * itk::Math::pi, VImageDimension / 2.0);
   }
-  else
-  {
-    prefixDenom = 1.0;
-  }
 
   double suffixExp = 0;
 
@@ -67,7 +53,7 @@ GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(co
                  (2 * m_Sigma[m_Direction] * m_Sigma[m_Direction]);
   }
 
-  double value =
+  const double value =
     -2 * (position[m_Direction] - m_Mean[m_Direction]) * m_Scale * (1 / prefixDenom) * std::exp(-1 * suffixExp);
 
   return static_cast<TOutput>(value);
@@ -75,8 +61,9 @@ GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(co
 
 /** Evaluate the function at a given position and return a vector */
 template <typename TOutput, unsigned int VImageDimension, typename TInput>
-typename GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::VectorType
+auto
 GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::EvaluateVector(const TInput & position) const
+  -> VectorType
 {
   VectorType gradient;
 
@@ -97,7 +84,7 @@ GaussianDerivativeSpatialFunction<TOutput, VImageDimension, TInput>::PrintSelf(s
   os << indent << "Sigma: " << m_Sigma << std::endl;
   os << indent << "Mean: " << m_Mean << std::endl;
   os << indent << "Scale: " << m_Scale << std::endl;
-  os << indent << "Normalized?: " << m_Normalized << std::endl;
+  itkPrintSelfBooleanMacro(Normalized);
   os << indent << "Direction: " << m_Direction << std::endl;
 }
 } // end namespace itk

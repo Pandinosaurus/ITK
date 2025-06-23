@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkScaleVersor3DTransform_hxx
 #define itkScaleVersor3DTransform_hxx
 
-#include "itkScaleVersor3DTransform.h"
 
 namespace itk
 {
@@ -38,6 +37,7 @@ ScaleVersor3DTransform<TParametersValueType>::ScaleVersor3DTransform(unsigned in
   m_Scale.Fill(1.0);
 }
 
+#if !defined(ITK_LEGACY_REMOVE)
 // Constructor with arguments
 template <typename TParametersValueType>
 ScaleVersor3DTransform<TParametersValueType>::ScaleVersor3DTransform(const MatrixType &       matrix,
@@ -46,6 +46,7 @@ ScaleVersor3DTransform<TParametersValueType>::ScaleVersor3DTransform(const Matri
 {
   this->ComputeMatrixParameters();
 }
+#endif
 
 // Directly set the matrix
 template <typename TParametersValueType>
@@ -72,7 +73,7 @@ template <typename TParametersValueType>
 void
 ScaleVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType & parameters)
 {
-  itkDebugMacro(<< "Setting parameters " << parameters);
+  itkDebugMacro("Setting parameters " << parameters);
 
   // Save parameters. Needed for proper operation of TransformUpdateParameters.
   if (&parameters != &(this->m_Parameters))
@@ -95,7 +96,7 @@ ScaleVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType
     norm = std::sqrt(norm);
   }
 
-  const double epsilon = 1e-10;
+  constexpr double epsilon = 1e-10;
   if (norm >= 1.0 - epsilon)
   {
     axis = axis / (norm + epsilon * norm);
@@ -104,7 +105,7 @@ ScaleVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType
   newVersor.Set(axis);
   this->SetVarVersor(newVersor);
 
-  itkDebugMacro(<< "Versor is now " << newVersor);
+  itkDebugMacro("Versor is now " << newVersor);
 
   // Matrix must be defined before translation so that offset can be computed
   // from translation
@@ -125,7 +126,7 @@ ScaleVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 
-  itkDebugMacro(<< "After setting parameters ");
+  itkDebugMacro("After setting parameters ");
 }
 
 //
@@ -139,10 +140,10 @@ ScaleVersor3DTransform<TParametersValueType>::SetParameters(const ParametersType
 //
 
 template <typename TParametersValueType>
-const typename ScaleVersor3DTransform<TParametersValueType>::ParametersType &
-ScaleVersor3DTransform<TParametersValueType>::GetParameters() const
+auto
+ScaleVersor3DTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
-  itkDebugMacro(<< "Getting parameters ");
+  itkDebugMacro("Getting parameters ");
 
   this->m_Parameters[0] = this->GetVersor().GetX();
   this->m_Parameters[1] = this->GetVersor().GetY();
@@ -156,7 +157,7 @@ ScaleVersor3DTransform<TParametersValueType>::GetParameters() const
   this->m_Parameters[7] = this->GetScale()[1];
   this->m_Parameters[8] = this->GetScale()[2];
 
-  itkDebugMacro(<< "After getting parameters " << this->m_Parameters);
+  itkDebugMacro("After getting parameters " << this->m_Parameters);
 
   return this->m_Parameters;
 }
@@ -199,7 +200,7 @@ template <typename TParametersValueType>
 void
 ScaleVersor3DTransform<TParametersValueType>::ComputeMatrixParameters()
 {
-  itkExceptionMacro(<< "Setting the matrix of a ScaleVersor3D transform is not supported at this time.");
+  itkExceptionMacro("Setting the matrix of a ScaleVersor3D transform is not supported at this time.");
 }
 
 // Print self

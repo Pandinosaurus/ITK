@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  double                 nan = std::numeric_limits<double>::quiet_NaN();
+  constexpr double       nan = std::numeric_limits<double>::quiet_NaN();
   constexpr unsigned int ARows = 3;
   constexpr unsigned int ACols = 6;
 
@@ -55,9 +55,13 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
   array[2][5] = 3e+10;
 
   using Array2DWriterType = itk::CSVNumericObjectFileWriter<double, ARows, ACols>;
-  Array2DWriterType::Pointer array_writer = Array2DWriterType::New();
+  auto array_writer = Array2DWriterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(array_writer, CSVNumericObjectFileWriter, LightProcessObject);
+
+
+  constexpr char delimiterCharacter = ',';
+  array_writer->SetFieldDelimiterCharacter(delimiterCharacter);
 
   // should throw an exception as there is no input file nor any object
   // to write out
@@ -70,18 +74,17 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
   {
     caught = true;
     std::cerr << "Exception caught!" << std::endl;
-    std::cerr << "This is an expected exception as there is no input"
-              << "file provided." << std::endl;
+    std::cerr << "This is an expected exception as there is no input file provided." << std::endl;
     std::cerr << exp << std::endl;
   }
   if (!caught)
   {
-    std::cerr << "An exception should have been caught here as there"
-              << "is no input file provided. Test fails." << std::endl;
+    std::cerr << "An exception should have been caught here as there is no input file provided. Test fails."
+              << std::endl;
     return EXIT_FAILURE;
   }
 
-  std::string filename = argv[1];
+  const std::string filename = argv[1];
   array_writer->SetFileName(filename);
 
   // should throw an exception as there is no input object
@@ -100,8 +103,8 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
   }
   if (!caught)
   {
-    std::cerr << "An exception should have been caught here as there is no"
-              << "input object to write out. Test fails." << std::endl;
+    std::cerr << "An exception should have been caught here as there is no input object to write out. Test fails."
+              << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -138,7 +141,7 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
   vnlmatrix[2][3] = 5.6;
 
   using vnlMatrixWriterType = itk::CSVNumericObjectFileWriter<double, VMRows, VMCols>;
-  vnlMatrixWriterType::Pointer vnl_matrix_writer = vnlMatrixWriterType::New();
+  auto vnl_matrix_writer = vnlMatrixWriterType::New();
 
   vnl_matrix_writer->SetFileName(filename);
   vnl_matrix_writer->SetInput(&vnlmatrix);
@@ -162,10 +165,10 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  constexpr unsigned int NRows = 3;
-  constexpr unsigned int NCols = 3;
+  constexpr unsigned int VRows = 3;
+  constexpr unsigned int VColumns = 3;
 
-  using fixedMatrixType = itk::Matrix<double, NRows, NCols>;
+  using fixedMatrixType = itk::Matrix<double, VRows, VColumns>;
   fixedMatrixType fixedmatrix;
   fixedmatrix[0][0] = nan;
   fixedmatrix[0][1] = 1e+09;
@@ -187,8 +190,8 @@ itkCSVNumericObjectFileWriterTest(int argc, char * argv[])
   RowHeaders.emplace_back("Row2");
   RowHeaders.emplace_back("Row3");
 
-  using fixedMatrixWriterType = itk::CSVNumericObjectFileWriter<double, NRows, NCols>;
-  fixedMatrixWriterType::Pointer fixed_matrix_writer = fixedMatrixWriterType::New();
+  using fixedMatrixWriterType = itk::CSVNumericObjectFileWriter<double, VRows, VColumns>;
+  auto fixed_matrix_writer = fixedMatrixWriterType::New();
 
   fixed_matrix_writer->SetFileName(filename);
   fixed_matrix_writer->SetInput(&fixedmatrix);

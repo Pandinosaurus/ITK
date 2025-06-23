@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 namespace Accessor
 {
 /**
- *\class ComplexConjugatePixelAccessor
+ * \class ComplexConjugatePixelAccessor
  * \brief Provide access to the conjugate of a std::complex<> value.
  *
  * \ingroup ImageAdaptors
@@ -54,7 +54,7 @@ public:
 } // end namespace Accessor
 
 /**
- *\class ComplexConjugateImageAdaptor
+ * \class ComplexConjugateImageAdaptor
  * \brief Presents each pixel of a complex image as its complex conjugate.
  *
  * \ingroup ImageAdaptors
@@ -77,16 +77,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ComplexConjugateImageAdaptor, ImageAdaptor);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ComplexConjugateImageAdaptor);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking. */
   itkConceptMacro(InputConvertibleToComplex,
                   (Concept::Convertible<std::complex<typename NumericTraits<typename TImage::PixelType>::ValueType>,
                                         typename TImage::PixelType>));
-  // End concept checking. */
-#endif
 
 protected:
   ComplexConjugateImageAdaptor() = default;

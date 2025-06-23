@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,7 +59,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using PointSetType = itk::PointSet<PixelType, 3>;
-  PointSetType::Pointer pointSet = PointSetType::New();
+  auto pointSet = PointSetType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -80,7 +80,7 @@ main(int, char *[])
   unsigned int            pointId = 0;
   constexpr double        radius = 3.0;
 
-  for (unsigned int i = 0; i < 360; i++)
+  for (unsigned int i = 0; i < 360; ++i)
   {
     const double angle = i * itk::Math::pi / 180.0;
     point[0] = radius * std::sin(angle);
@@ -108,8 +108,8 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using PointIterator = PointSetType::PointsContainer::ConstIterator;
-  PointIterator pointIterator = pointSet->GetPoints()->Begin();
-  PointIterator pointEnd = pointSet->GetPoints()->End();
+  PointIterator       pointIterator = pointSet->GetPoints()->Begin();
+  const PointIterator pointEnd = pointSet->GetPoints()->End();
   while (pointIterator != pointEnd)
   {
     point = pointIterator.Value();
@@ -142,8 +142,8 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using PointDataIterator = PointSetType::PointDataContainer::ConstIterator;
-  PointDataIterator pixelIterator = pointSet->GetPointData()->Begin();
-  PointDataIterator pixelEnd = pointSet->GetPointData()->End();
+  PointDataIterator       pixelIterator = pointSet->GetPointData()->Begin();
+  const PointDataIterator pixelEnd = pointSet->GetPointData()->End();
   while (pixelIterator != pixelEnd)
   {
     pixel = pixelIterator.Value();

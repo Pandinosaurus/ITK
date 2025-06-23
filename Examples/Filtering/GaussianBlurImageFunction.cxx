@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,17 +39,17 @@ main(int argc, char * argv[])
   using IteratorType = itk::ImageRegionIterator<ImageType>;
   using ConstIteratorType = itk::ImageRegionConstIterator<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
   const ImageType * inputImage = reader->GetOutput();
 
-  ImageType::RegionType region = inputImage->GetBufferedRegion();
+  const ImageType::RegionType region = inputImage->GetBufferedRegion();
 
   ConstIteratorType it(inputImage, region);
 
-  ImageType::Pointer output = ImageType::New();
+  auto output = ImageType::New();
 
   output->SetRegions(region);
   output->SetOrigin(inputImage->GetOrigin());
@@ -59,11 +59,10 @@ main(int argc, char * argv[])
   IteratorType out(output, region);
 
   using GFunctionType = itk::GaussianBlurImageFunction<ImageType>;
-  GFunctionType::Pointer gaussianFunction = GFunctionType::New();
+  auto gaussianFunction = GFunctionType::New();
   gaussianFunction->SetInputImage(inputImage);
 
-  GFunctionType::ErrorArrayType setError;
-  setError.Fill(0.01);
+  auto setError = itk::MakeFilled<GFunctionType::ErrorArrayType>(0.01);
   gaussianFunction->SetMaximumError(setError);
   gaussianFunction->SetSigma(std::stod(argv[3]));
   gaussianFunction->SetMaximumKernelWidth(std::stoi(argv[4]));
@@ -79,7 +78,7 @@ main(int argc, char * argv[])
   }
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(output);
   writer->Update();

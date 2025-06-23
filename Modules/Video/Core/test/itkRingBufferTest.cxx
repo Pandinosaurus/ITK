@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "itkRingBuffer.h"
+#include "itkTestingMacros.h"
 
 /**
  * This test is basically a duplicate of RingBufferImageSetTest with a few
@@ -31,7 +32,10 @@ itkRingBufferTest(int, char *[])
   // Test instantiation
   //////
   using RingBufferType = itk::RingBuffer<itk::Object>;
-  RingBufferType::Pointer ringBuffer = RingBufferType::New();
+  auto ringBuffer = RingBufferType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(ringBuffer, RingBuffer, Object);
+
 
   // Check that the default number of buffers (3) was properly set
   if (ringBuffer->GetNumberOfBuffers() != 3)
@@ -95,7 +99,7 @@ itkRingBufferTest(int, char *[])
   }
 
   // Test looping buffer offset forward
-  unsigned int oldHeadIndex = ringBuffer->GetHeadIndex();
+  const unsigned int oldHeadIndex = ringBuffer->GetHeadIndex();
   ringBuffer->MoveHead(2 * ringBuffer->GetNumberOfBuffers());
   if (ringBuffer->GetHeadIndex() != oldHeadIndex)
   {
@@ -130,7 +134,7 @@ itkRingBufferTest(int, char *[])
   }
 
   // Create a new Object, add it at Head and make sure it is reported full
-  itk::Object::Pointer obj1 = itk::Object::New();
+  const itk::Object::Pointer obj1 = itk::Object::New();
   ringBuffer->SetBufferContents(0, obj1);
   if (!ringBuffer->BufferIsFull(0))
   {
@@ -138,8 +142,8 @@ itkRingBufferTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  // Try retreiving the object and compare time stamps
-  itk::Object::Pointer objOut = ringBuffer->GetBufferContents(0);
+  // Try retrieving the object and compare time stamps
+  const itk::Object::Pointer objOut = ringBuffer->GetBufferContents(0);
   if (obj1->GetTimeStamp() != objOut->GetTimeStamp())
   {
     std::cerr << "Returned object doesn't match input object" << std::endl;
@@ -147,7 +151,7 @@ itkRingBufferTest(int, char *[])
   }
 
   // Add another object and then check fullness of all buffers
-  itk::Object::Pointer obj2 = itk::Object::New();
+  const itk::Object::Pointer obj2 = itk::Object::New();
   ringBuffer->SetBufferContents(-1, obj2);
 
   // Everything except Head and Head-1 should be empty

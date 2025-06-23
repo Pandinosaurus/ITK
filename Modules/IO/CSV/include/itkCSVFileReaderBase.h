@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@
 namespace itk
 {
 /**
- *\class CSVFileReaderBase
+ * \class CSVFileReaderBase
  * \brief A base class that contains common methods used for parsing csv files.
  *
  * CSVFileReaderBase is a base abstract class for reading csv files. It
@@ -73,8 +73,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(CSVFileReaderBase, LightProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CSVFileReaderBase);
 
   /** Set the name of the file to be read */
   itkSetStringMacro(FileName);
@@ -117,10 +117,11 @@ public:
   /** Boolean macros for setting HasRowHeaders, HasColumnHeaders and
    *  UseStringDelimiterCharacter. They can conveniently be set by appending
    *  On() or Off() to each of the variable names. */
+  /** @ITKStartGrouping */
   itkBooleanMacro(HasRowHeaders);
   itkBooleanMacro(HasColumnHeaders);
   itkBooleanMacro(UseStringDelimiterCharacter);
-
+  /** @ITKEndGrouping */
   /** Counts the number of rows and columns in a file and prepares the file
    * for iterative reading using the GetNextField() method. */
   void
@@ -140,7 +141,7 @@ public:
    */
   template <typename TData>
   TData
-  ConvertStringToValueType(const std::string str)
+  ConvertStringToValueType(const std::string & str)
   {
     TData              value;
     std::istringstream isstream(str);
@@ -149,10 +150,8 @@ public:
     {
       return std::numeric_limits<TData>::quiet_NaN();
     }
-    else
-    {
-      return value;
-    }
+
+    return value;
   }
 
   /** This method must be defined in derived classes to parse the entire
@@ -164,15 +163,15 @@ public:
   Parse() = 0;
 
 protected:
-  std::string   m_FileName;
-  char          m_FieldDelimiterCharacter;
-  char          m_StringDelimiterCharacter;
-  bool          m_UseStringDelimiterCharacter;
-  bool          m_HasRowHeaders;
-  bool          m_HasColumnHeaders;
-  std::ifstream m_InputStream;
-  int           m_EndOfColumnHeadersLine;
-  std::string   m_Line;
+  std::string   m_FileName{};
+  char          m_FieldDelimiterCharacter{};
+  char          m_StringDelimiterCharacter{};
+  bool          m_UseStringDelimiterCharacter{};
+  bool          m_HasRowHeaders{};
+  bool          m_HasColumnHeaders{};
+  std::ifstream m_InputStream{};
+  int           m_EndOfColumnHeadersLine{};
+  std::string   m_Line{};
 
   CSVFileReaderBase();
   ~CSVFileReaderBase() override = default;

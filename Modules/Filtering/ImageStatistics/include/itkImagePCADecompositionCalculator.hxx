@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,28 +18,23 @@
 #ifndef itkImagePCADecompositionCalculator_hxx
 #define itkImagePCADecompositionCalculator_hxx
 
-#include "itkImagePCADecompositionCalculator.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TBasisImage>
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::ImagePCADecompositionCalculator()
-{
-  m_Image = nullptr;
-  m_MeanImage = nullptr;
-  m_BasisMatrixCalculated = false;
-  m_NumPixels = 0;
-}
+  : m_MeanImage(nullptr)
+  , m_Image(nullptr)
+{}
 
 template <typename TInputImage, typename TBasisImage>
 void
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::SetBasisImages(const BasisImagePointerVector & v)
 {
-  itkDebugMacro(<< "setting BasisImages");
+  itkDebugMacro("setting BasisImages");
   this->m_BasisMatrixCalculated = false;
   // We need this modified setter function so that the calculator
   // can cache the basis set between calculations. Note that computing the
@@ -51,9 +46,6 @@ ImagePCADecompositionCalculator<TInputImage, TBasisImage>::SetBasisImages(const 
   this->Modified();
 }
 
-/**
- * Compute the projection
- */
 template <typename TInputImage, typename TBasisImage>
 void
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::Compute()
@@ -66,16 +58,13 @@ ImagePCADecompositionCalculator<TInputImage, TBasisImage>::Compute()
   m_Projection = m_BasisMatrix * m_ImageAsVector;
 }
 
-/*
- * Convert a vector of basis images into a matrix. Each image is flattened into 1-D.
- */
 template <typename TInputImage, typename TBasisImage>
 void
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::CalculateBasisMatrix()
 {
   m_Size = m_BasisImages[0]->GetRequestedRegion().GetSize();
   m_NumPixels = 1;
-  for (unsigned int i = 0; i < BasisImageDimension; i++)
+  for (unsigned int i = 0; i < BasisImageDimension; ++i)
   {
     m_NumPixels *= m_Size[i];
   }
@@ -83,9 +72,7 @@ ImagePCADecompositionCalculator<TInputImage, TBasisImage>::CalculateBasisMatrix(
   m_BasisMatrix = BasisMatrixType(static_cast<unsigned int>(m_BasisImages.size()), m_NumPixels);
 
   int i = 0;
-  for (typename BasisImagePointerVector::const_iterator basis_it = m_BasisImages.begin();
-       basis_it != m_BasisImages.end();
-       ++basis_it)
+  for (auto basis_it = m_BasisImages.begin(); basis_it != m_BasisImages.end(); ++basis_it)
   {
     if ((*basis_it)->GetRequestedRegion().GetSize() != m_Size)
     {
@@ -98,15 +85,12 @@ ImagePCADecompositionCalculator<TInputImage, TBasisImage>::CalculateBasisMatrix(
     {
       m_BasisMatrix(i, j++) = image_it.Get();
     }
-    i++;
+    ++i;
   }
   m_BasisMatrixCalculated = true;
   m_ImageAsVector.set_size(m_NumPixels);
 }
 
-/**
- * Convert an image into a 1-D vector, changing the pixel type if necessary.
- */
 template <typename TInputImage, typename TBasisImage>
 void
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::CalculateRecenteredImageAsVector()
@@ -141,7 +125,7 @@ ImagePCADecompositionCalculator<TInputImage, TBasisImage>::SetBasisFromModel(Mod
   unsigned int            nImages = model->GetNumberOfPrincipalComponentsRequired();
 
   images.reserve(nImages);
-  for (unsigned int i = 1; i <= nImages; i++)
+  for (unsigned int i = 1; i <= nImages; ++i)
   {
     images.push_back(model->GetOutput(i));
   }
@@ -153,10 +137,24 @@ template <typename TInputImage, typename TBasisImage>
 void
 ImagePCADecompositionCalculator<TInputImage, TBasisImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
+
   Superclass::PrintSelf(os, indent);
+
   os << indent << "Projection: " << m_Projection << std::endl;
-  os << indent << "Image: " << m_Image.GetPointer() << std::endl;
-  os << indent << "Mean Image: " << m_MeanImage.GetPointer() << std::endl;
+  os << indent << "ImageAsVector: " << m_ImageAsVector << std::endl;
+  os << indent << "BasisImages: " << m_BasisImages << std::endl;
+
+  itkPrintSelfObjectMacro(MeanImage);
+
+  os << indent << "m_Size: " << static_cast<typename NumericTraits<BasisSizeType>::PrintType>(m_Size) << std::endl;
+
+  itkPrintSelfObjectMacro(Image);
+
+  os << indent << "BasisMatrix: " << m_BasisMatrix << std::endl;
+  itkPrintSelfBooleanMacro(BasisMatrixCalculated);
+  os << indent << "NumPixels: " << static_cast<typename NumericTraits<SizeValueType>::PrintType>(m_NumPixels)
+     << std::endl;
 }
 } // end namespace itk
 

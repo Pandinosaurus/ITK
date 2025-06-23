@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,15 +19,6 @@
 
 namespace itk
 {
-/**
- * Constructor sets up information for the image-type indepenedent
- * callbacks implemented in this superclass.
- */
-VTKImageExportBase::VTKImageExportBase()
-{
-  m_LastPipelineMTime = 0;
-}
-
 void
 VTKImageExportBase::PrintSelf(std::ostream & os, Indent indent) const
 {
@@ -136,11 +127,11 @@ VTKImageExportBase::UpdateInformationCallback()
 int
 VTKImageExportBase::PipelineModifiedCallback()
 {
-  DataObjectPointer input = this->GetInput(0);
+  const DataObjectPointer input = this->GetInput(0);
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   ModifiedTimeType pipelineMTime = input->GetPipelineMTime();
@@ -162,10 +153,8 @@ VTKImageExportBase::PipelineModifiedCallback()
     m_LastPipelineMTime = pipelineMTime;
     return 1;
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 /**
@@ -176,11 +165,11 @@ void
 VTKImageExportBase::UpdateDataCallback()
 {
   // Get the input.
-  DataObjectPointer input = this->GetInput(0);
+  const DataObjectPointer input = this->GetInput(0);
 
   if (!input)
   {
-    itkExceptionMacro(<< "Need to set an input");
+    itkExceptionMacro("Need to set an input");
   }
 
   // Notify start event observers

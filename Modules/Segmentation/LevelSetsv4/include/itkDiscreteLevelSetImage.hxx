@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,22 +19,21 @@
 #ifndef itkDiscreteLevelSetImage_hxx
 #define itkDiscreteLevelSetImage_hxx
 
-#include "itkDiscreteLevelSetImage.h"
 
 namespace itk
 {
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::GradientType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateGradient(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateGradient(const InputType & inputIndex) const -> GradientType
 {
   InputType inputIndexA = inputIndex;
   InputType inputIndexB = inputIndex;
 
   GradientType dx;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] += 1;
     inputIndexB[dim] -= 1;
@@ -65,8 +64,8 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateGradient(const InputType & i
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::GradientType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateForwardGradient(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateForwardGradient(const InputType & inputIndex) const -> GradientType
 {
   const auto centerValue = static_cast<OutputRealType>(this->Evaluate(inputIndex));
 
@@ -74,7 +73,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateForwardGradient(const InputT
 
   GradientType dx;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] += 1;
 
@@ -96,8 +95,8 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateForwardGradient(const InputT
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::GradientType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateBackwardGradient(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateBackwardGradient(const InputType & inputIndex) const -> GradientType
 {
   const auto centerValue = static_cast<OutputRealType>(this->Evaluate(inputIndex));
 
@@ -105,7 +104,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateBackwardGradient(const Input
 
   GradientType dx;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] -= 1;
 
@@ -126,8 +125,8 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateBackwardGradient(const Input
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::HessianType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & inputIndex) const -> HessianType
 {
   HessianType oHessian;
 
@@ -141,7 +140,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
   InputType inputIndexCa;
   InputType inputIndexDa;
 
-  for (unsigned int dim1 = 0; dim1 < Dimension; dim1++)
+  for (unsigned int dim1 = 0; dim1 < Dimension; ++dim1)
   {
     inputIndexA[dim1] += 1;
     inputIndexB[dim1] -= 1;
@@ -167,7 +166,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
     inputIndexCa = inputIndexA;
     inputIndexDa = inputIndexA;
 
-    for (unsigned int dim2 = dim1 + 1; dim2 < Dimension; dim2++)
+    for (unsigned int dim2 = dim1 + 1; dim2 < Dimension; ++dim2)
     {
       inputIndexAa[dim2] -= 1;
       inputIndexBa[dim2] += 1;
@@ -219,17 +218,17 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::OutputRealType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateLaplacian(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateLaplacian(const InputType & inputIndex) const -> OutputRealType
 {
-  OutputRealType oLaplacian = NumericTraits<OutputRealType>::ZeroValue();
+  OutputRealType oLaplacian{};
 
   const auto centerValue = static_cast<OutputRealType>(this->Evaluate(inputIndex));
 
   InputType inputIndexA = inputIndex;
   InputType inputIndexB = inputIndex;
 
-  for (unsigned int dim1 = 0; dim1 < Dimension; dim1++)
+  for (unsigned int dim1 = 0; dim1 < Dimension; ++dim1)
   {
     inputIndexA[dim1] += 1;
     inputIndexB[dim1] -= 1;
@@ -289,7 +288,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateGradient(const InputType &  
   InputType inputIndexA = inputIndex;
   InputType inputIndexB = inputIndex;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] += 1;
     inputIndexB[dim] -= 1;
@@ -343,10 +342,10 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
   InputType inputIndexCa;
   InputType inputIndexDa;
 
-  bool backward = data.BackwardGradient.m_Computed;
-  bool forward = data.ForwardGradient.m_Computed;
+  const bool backward = data.BackwardGradient.m_Computed;
+  const bool forward = data.ForwardGradient.m_Computed;
 
-  for (unsigned int dim1 = 0; dim1 < Dimension; dim1++)
+  for (unsigned int dim1 = 0; dim1 < Dimension; ++dim1)
   {
     inputIndexA[dim1] += 1;
     inputIndexB[dim1] -= 1;
@@ -385,7 +384,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
     inputIndexCa = inputIndexA;
     inputIndexDa = inputIndexA;
 
-    for (unsigned int dim2 = dim1 + 1; dim2 < Dimension; dim2++)
+    for (unsigned int dim2 = dim1 + 1; dim2 < Dimension; ++dim2)
     {
       inputIndexAa[dim2] -= 1;
       inputIndexBa[dim2] += 1;
@@ -438,17 +437,17 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateHessian(const InputType & in
 
 // ----------------------------------------------------------------------------
 template <typename TOutput, unsigned int VDimension>
-typename DiscreteLevelSetImage<TOutput, VDimension>::OutputRealType
-DiscreteLevelSetImage<TOutput, VDimension>::EvaluateMeanCurvature(const InputType & inputIndex) const
+auto
+DiscreteLevelSetImage<TOutput, VDimension>::EvaluateMeanCurvature(const InputType & inputIndex) const -> OutputRealType
 {
-  OutputRealType oValue = NumericTraits<OutputRealType>::ZeroValue();
+  OutputRealType oValue{};
 
   HessianType  hessian = this->EvaluateHessian(inputIndex);
   GradientType grad = this->EvaluateGradient(inputIndex);
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
       if (j != i)
       {
@@ -458,7 +457,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateMeanCurvature(const InputTyp
     }
   }
 
-  OutputRealType gradNorm = grad.GetNorm();
+  const OutputRealType gradNorm = grad.GetNorm();
 
   if (gradNorm > itk::Math::eps)
   {
@@ -494,7 +493,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateLaplacian(const InputType & 
   InputType inputIndexA = inputIndex;
   InputType inputIndexB = inputIndex;
 
-  for (unsigned int dim1 = 0; dim1 < Dimension; dim1++)
+  for (unsigned int dim1 = 0; dim1 < Dimension; ++dim1)
   {
     inputIndexA[dim1] += 1;
     inputIndexB[dim1] -= 1;
@@ -545,11 +544,11 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateMeanCurvature(const InputTyp
     }
 
     data.MeanCurvature.m_Computed = true;
-    data.MeanCurvature.m_Value = NumericTraits<OutputRealType>::ZeroValue();
+    data.MeanCurvature.m_Value = OutputRealType{};
 
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
-      for (unsigned int j = 0; j < Dimension; j++)
+      for (unsigned int j = 0; j < Dimension; ++j)
       {
         if (j != i)
         {
@@ -561,7 +560,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateMeanCurvature(const InputTyp
       }
     }
 
-    OutputRealType temp = data.GradientNorm.m_Value;
+    const OutputRealType temp = data.GradientNorm.m_Value;
 
     if (temp > itk::Math::eps)
     {
@@ -598,7 +597,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateForwardGradient(const InputT
 
   GradientType dx;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] += 1;
 
@@ -643,7 +642,7 @@ DiscreteLevelSetImage<TOutput, VDimension>::EvaluateBackwardGradient(const Input
 
   GradientType dx;
 
-  for (unsigned int dim = 0; dim < Dimension; dim++)
+  for (unsigned int dim = 0; dim < Dimension; ++dim)
   {
     inputIndexA[dim] -= 1;
 
@@ -683,8 +682,8 @@ DiscreteLevelSetImage<TOutput, VDimension>::CopyInformation(const DataObject * d
   if (!LevelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::DiscreteLevelSetImage::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::DiscreteLevelSetImage::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                                   << typeid(Self *).name());
   }
 }
 
@@ -699,8 +698,8 @@ DiscreteLevelSetImage<TOutput, VDimension>::Graft(const DataObject * data)
   if (!LevelSet)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::DiscreteLevelSetImage::CopyInformation() cannot cast " << typeid(data).name() << " to "
-                      << typeid(Self *).name());
+    itkExceptionMacro("itk::DiscreteLevelSetImage::CopyInformation() cannot cast " << typeid(data).name() << " to "
+                                                                                   << typeid(Self *).name());
   }
 
   this->m_NeighborhoodScales = LevelSet->m_NeighborhoodScales;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,7 +62,11 @@ public:
   using OutputMeshPointer = typename OutputMeshType::Pointer;
 
   /** Type for representing coordinates. */
-  using CoordRepType = typename TInputMesh::CoordRepType;
+  using CoordinateType = typename TInputMesh::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
 
   /** Type of the  transform. */
   using SpatialFunctionType = TSpatialFunction;
@@ -70,13 +74,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InteriorExteriorMeshFilter, MeshToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InteriorExteriorMeshFilter);
 
   /** Get/Set the spatial function. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(SpatialFunction, SpatialFunctionType);
   itkGetModifiableObjectMacro(SpatialFunction, SpatialFunctionType);
-
+  /** @ITKEndGrouping */
   using SpatialFunctionDataObjectType = DataObjectDecorator<SpatialFunctionType>;
   using SpatialFunctionDataObjectPointer = typename SpatialFunctionDataObjectType::Pointer;
 
@@ -91,7 +96,7 @@ protected:
   GenerateData() override;
 
   /** Transform applied to all the mesh points. */
-  typename SpatialFunctionType::Pointer m_SpatialFunction;
+  typename SpatialFunctionType::Pointer m_SpatialFunction{};
 };
 } // end namespace itk
 

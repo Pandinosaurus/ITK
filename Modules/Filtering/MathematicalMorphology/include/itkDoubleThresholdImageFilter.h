@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,19 +65,19 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DoubleThresholdImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DoubleThresholdImageFilter);
 
   /** Types from the superclass */
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputImageType;
 
   /** Pixel types. */
   using InputPixelType = typename TInputImage::PixelType;
   using OutputPixelType = typename TOutputImage::PixelType;
 
   /** Set the "outside" pixel value. The default value
-   * NumericTraits<OutputPixelType>::ZeroValue(). */
+   * OutputPixelType{}. */
   itkSetMacro(OutsideValue, OutputPixelType);
 
   /** Get the "outside" pixel value. */
@@ -95,35 +95,34 @@ public:
    * NumericTraits<InputPixelType>::NonpositiveMin(). The two upper
    * thresholds default NumericTraits<InputPixelType>::max.
    * Threshold1 <= Threshold2 <= Threshold3 <= Threshold4. */
+  /** @ITKStartGrouping */
   itkSetMacro(Threshold1, InputPixelType);
   itkSetMacro(Threshold2, InputPixelType);
   itkSetMacro(Threshold3, InputPixelType);
   itkSetMacro(Threshold4, InputPixelType);
-
+  /** @ITKEndGrouping */
   /** Get the threshold values. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Threshold1, InputPixelType);
   itkGetConstMacro(Threshold2, InputPixelType);
   itkGetConstMacro(Threshold3, InputPixelType);
   itkGetConstMacro(Threshold4, InputPixelType);
-
+  /** @ITKEndGrouping */
   /**
    * Set/Get whether the connected components are defined strictly by
    * face connectivity or by face+edge+vertex connectivity.  Default is
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(InputComparableCheck, (Concept::Comparable<InputPixelType>));
   itkConceptMacro(InputOStreamWritableCheck, (Concept::OStreamWritable<InputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputPixelType>));
-  // End concept checking
-#endif
 
 protected:
   DoubleThresholdImageFilter();
@@ -148,17 +147,17 @@ protected:
   GenerateData() override;
 
 private:
-  InputPixelType m_Threshold1;
-  InputPixelType m_Threshold2;
-  InputPixelType m_Threshold3;
-  InputPixelType m_Threshold4;
+  InputPixelType m_Threshold1{};
+  InputPixelType m_Threshold2{};
+  InputPixelType m_Threshold3{};
+  InputPixelType m_Threshold4{};
 
-  OutputPixelType m_InsideValue;
-  OutputPixelType m_OutsideValue;
+  OutputPixelType m_InsideValue{};
+  OutputPixelType m_OutsideValue{};
 
   unsigned long m_NumberOfIterationsUsed{ 1 };
 
-  bool m_FullyConnected;
+  bool m_FullyConnected{};
 };
 } // end namespace itk
 

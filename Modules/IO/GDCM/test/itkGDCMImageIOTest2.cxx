@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #include "itkGDCMImageIO.h"
 #include "itkImageSeriesReader.h"
 #include "itkImageSeriesWriter.h"
+#include "itkTestingMacros.h"
 
 #include <sstream>
 
@@ -30,7 +31,9 @@ itkGDCMImageIOTest2(int argc, char * argv[])
 {
   if (argc < 3)
   {
-    std::cerr << "Usage: " << argv[0] << " InputFile OutputDicomRoot\n";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " InputFile OutputDicomRoot" << std::endl;
     return EXIT_FAILURE;
   }
   const char * input = argv[1];
@@ -39,7 +42,7 @@ itkGDCMImageIOTest2(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<ImageType>;
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(input);
   try
   {
@@ -52,13 +55,13 @@ itkGDCMImageIOTest2(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  itk::GDCMImageIO::Pointer dicomIO = itk::GDCMImageIO::New();
+  const itk::GDCMImageIO::Pointer dicomIO = itk::GDCMImageIO::New();
   // reader->GetOutput()->Print(std::cout);
 
   itk::MetaDataDictionary & dict = dicomIO->GetMetaDataDictionary();
-  std::string               tagkey, value;
-  tagkey = "0002|0002";
-  value = "1.2.840.10008.5.1.4.1.1.4"; // Media Storage SOP Class UID
+  std::string               tagkey = "0002|0002";
+
+  std::string value = "1.2.840.10008.5.1.4.1.1.4"; // Media Storage SOP Class UID
   itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
   tagkey = "0008|0060"; // Modality
   value = "MR";
@@ -75,9 +78,9 @@ itkGDCMImageIOTest2(int argc, char * argv[])
   tagkey = "0020|1040"; // Position Reference Indicator
   value = "";
   itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
-  tagkey = "0018|0020"; // Scanning Sequence
-  value = "GR";
-  itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
+  std::string       commatagkey = "0018,0020"; // Scanning Sequence
+  const std::string commavalue = "GR";
+  itk::EncapsulateMetaData<std::string>(dict, commatagkey, commavalue);
   tagkey = "0018|0021"; // Sequence Variant
   value = "SS\\SP";
   itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
@@ -110,13 +113,13 @@ itkGDCMImageIOTest2(int argc, char * argv[])
   std::string output_raw = output;
   output_raw += "-raw.dcm";
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetImageIO(dicomIO);
   writer->SetInput(reader->GetOutput());
   writer->UseInputMetaDataDictionaryOff();
 
   // Save as JPEG 2000 Lossless
-  // Explicitely specify which compression type to use
+  // Explicitly specify which compression type to use
   dicomIO->SetCompressionType(itk::GDCMImageIO::CompressionEnum::JPEG2000);
   // Request compression of the ImageIO
   writer->UseCompressionOn();
@@ -149,16 +152,51 @@ itkGDCMImageIOTest2(int argc, char * argv[])
   // Save as raw
   writer->UseCompressionOff();
   writer->SetFileName(output_raw.c_str());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
+  // Try to read tags from the written file
+  auto outputReader = ReaderType::New();
+  outputReader->SetFileName(writer->GetFileName());
   try
   {
-    writer->Update();
+    outputReader->Update();
   }
-  catch (const itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & error)
   {
-    std::cerr << "exception in file writer " << std::endl;
-    std::cerr << e << std::endl;
+    std::cerr << "Error: exception in file reader " << std::endl;
+    std::cerr << error << std::endl;
     return EXIT_FAILURE;
   }
-
+  auto & inputDict = outputReader->GetOutput()->GetMetaDataDictionary();
+  // DICOM tags can be specified using pipe or comma separators for
+  // writing in the metadata dictionary, but are always read back with
+  // the pipe separator.
+  commatagkey[4] = '|';
+  auto tagIt = inputDict.Find(commatagkey);
+  if (tagIt == inputDict.End())
+  {
+    std::cerr << "Error: Tag " << commatagkey << " expected to be in file but missing" << std::endl;
+    return EXIT_FAILURE;
+  }
+  else
+  {
+    const itk::MetaDataObject<std::string>::ConstPointer tagvalue =
+      dynamic_cast<const itk::MetaDataObject<std::string> *>(tagIt->second.GetPointer());
+    if (tagvalue)
+    {
+      if (tagvalue->GetMetaDataObjectValue() != commavalue)
+      {
+        std::cerr << "Error: Written tag value was (" << commavalue << "), read value was ("
+                  << tagvalue->GetMetaDataObjectValue() << ")" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      std::cerr << "Error: Tag value for tag (" << commatagkey << ") is missing" << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
   return EXIT_SUCCESS;
 }

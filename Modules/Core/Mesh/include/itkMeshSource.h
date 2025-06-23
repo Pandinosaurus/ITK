@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,8 +60,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeshSource, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshSource);
 
   /** Some convenient type alias. */
   using DataObjectPointer = DataObject::Pointer;
@@ -80,10 +80,11 @@ public:
   /** Set the mesh output of this process object. This call is slated
    * to be removed from ITK. You should GraftOutput() and possible
    * DataObject::DisconnectPipeline() to properly change the output. */
+  /** @ITKStartGrouping */
   using Superclass::SetOutput;
   void
   SetOutput(TOutputMesh * output);
-
+  /** @ITKEndGrouping */
   /** Graft the specified DataObject onto this ProcessObject's output.
    * This method grabs a handle to the specified DataObject's bulk
    * data to used as its output's own bulk data. It also copies the
@@ -145,11 +146,12 @@ public:
    * SmartPointer to a DataObject. If a subclass of MeshSource has
    * multiple outputs of different types, then that class must provide
    * an implementation of MakeOutput(). */
+  /** @ITKStartGrouping */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   DataObjectPointer
   MakeOutput(DataObjectPointerArraySizeType idx) override;
-
+  /** @ITKEndGrouping */
 protected:
   MeshSource();
   ~MeshSource() override = default;
@@ -165,8 +167,8 @@ protected:
 private:
   /** Used by streaming: The requested region of the output being processed
    * by the execute method. Set in the GenerateInputRequestedRegion method. */
-  int m_GenerateDataRegion;
-  int m_GenerateDataNumberOfRegions;
+  int m_GenerateDataRegion{};
+  int m_GenerateDataNumberOfRegions{};
 };
 } // end namespace itk
 

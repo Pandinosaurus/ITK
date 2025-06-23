@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 
 #include "itkAzimuthElevationToCartesianTransform.h"
+#include "itkTestingMacros.h"
 
 template <typename TPoint>
 void
@@ -30,17 +31,54 @@ PrintPoint(const TPoint & p)
 }
 
 int
-itkAzimuthElevationToCartesianTransformTest(int, char *[])
+itkAzimuthElevationToCartesianTransformTest(int argc, char * argv[])
 {
+  if (argc != 7)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " maxAzimuth maxElevation radiusSampleSize azimuthAngularSeparation elevationAngularSeparation "
+                 "firstSampleDistance"
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+
   using CoordinateRepresentationType = double;
   using PointType = itk::Point<CoordinateRepresentationType, 3>;
 
-  const CoordinateRepresentationType ACCEPTABLE_ERROR = 1E-10;
+  constexpr CoordinateRepresentationType ACCEPTABLE_ERROR = 1E-10;
 
   using AzimuthElevationToCartesianTransformType =
     itk::AzimuthElevationToCartesianTransform<CoordinateRepresentationType>;
 
-  AzimuthElevationToCartesianTransformType::Pointer transform = AzimuthElevationToCartesianTransformType::New();
+  auto transform = AzimuthElevationToCartesianTransformType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(transform, AzimuthElevationToCartesianTransform, AffineTransform);
+
+
+  auto maxAzimuth = static_cast<long>(std::stoi(argv[1]));
+  transform->SetMaxAzimuth(maxAzimuth);
+  ITK_TEST_SET_GET_VALUE(maxAzimuth, transform->GetMaxAzimuth());
+
+  auto maxElevation = static_cast<long>(std::stoi(argv[2]));
+  transform->SetMaxElevation(maxElevation);
+  ITK_TEST_SET_GET_VALUE(maxElevation, transform->GetMaxElevation());
+
+  auto radiusSampleSize = std::stod(argv[3]);
+  transform->SetRadiusSampleSize(radiusSampleSize);
+  ITK_TEST_SET_GET_VALUE(radiusSampleSize, transform->GetRadiusSampleSize());
+
+  auto azimuthAngularSeparation = std::stod(argv[4]);
+  transform->SetAzimuthAngularSeparation(azimuthAngularSeparation);
+  ITK_TEST_SET_GET_VALUE(azimuthAngularSeparation, transform->GetAzimuthAngularSeparation());
+
+  auto elevationAngularSeparation = std::stod(argv[5]);
+  transform->SetFirstSampleDistance(elevationAngularSeparation);
+  ITK_TEST_SET_GET_VALUE(elevationAngularSeparation, transform->GetElevationAngularSeparation());
+
+  auto firstSampleDistance = std::stod(argv[6]);
+  transform->SetFirstSampleDistance(firstSampleDistance);
+  ITK_TEST_SET_GET_VALUE(firstSampleDistance, transform->GetFirstSampleDistance());
 
   transform->SetAzimuthElevationToCartesianParameters(1.0, 5.0, 45, 45);
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class vidl_itk_istream
+ * \class vidl_itk_istream
  * \brief implementation of VXL's vidl_istream using an itk VideoStream
  *
  * This implementation of VXL's vidl_istream can be placed at the end of an ITK
@@ -46,7 +46,7 @@ public:
   using VideoStreamType = TVideoStream;
   using Self = vidl_itk_istream<VideoStreamType>;
   using FrameType = typename VideoStreamType::FrameType;
-  using FrameOffsetType = ::itk::SizeValueType;
+  using FrameOffsetType = itk::SizeValueType;
   using PixelType = typename FrameType::PixelType;
   static constexpr unsigned int Dimensions = FrameType::ImageDimension;
 
@@ -59,8 +59,9 @@ public:
   /** Destructor */
   virtual ~vidl_itk_istream() {}
 
-  /** ITK's type info */
-  // Cannot use as we do not derive from ITK Object with GetNameOfClass itkTypeMacro(vidl_itk_istream, vidl_istream);
+  /** Runtime information support. */
+  // Cannot use as we do not derive from ITK Object with GetNameOfClass
+  // itkOverrideGetNameOfClassMacro(vidl_itk_istream);
   const char *
   GetNameOfClass() const
   {
@@ -103,7 +104,7 @@ public:
   virtual bool
   is_seekable() const;
 
-  /** Return the nuber of frames. Returns -1 if non-seekable */
+  /** Return the number of frames. Returns -1 if non-seekable */
   virtual int
   num_frames() const;
 

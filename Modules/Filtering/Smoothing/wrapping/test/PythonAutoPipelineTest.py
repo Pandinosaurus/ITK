@@ -6,7 +6,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itk.ImageFileReader.IUC2.New(FileName=argv[1])
 itk.MedianImageFilter.IUC2IUC2.New(Radius=eval(argv[3]))
 itk.CastImageFilter.IUC2IUC2.New()
 
-# stop the auto_pipeline and test that the next (imcompatible) filter is not
+# stop the auto_pipeline and test that the next (incompatible) filter is not
 # automatically connected, and restart the auto pipeline
 p.Stop()
 itk.CastImageFilter.IF2IF2.New()

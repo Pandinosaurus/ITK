@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,9 +57,7 @@ namespace itk
  * outside the image, and over-weights the valid part of the
  * neighborhood.
  *
- * For detail description, reference "Adaptive Image Contrast
- * Enhancement using Generalizations of Histogram Equalization."
- * J.Alex Stark. IEEE Transactions on Image Processing, May 2000.
+ * For a detailed description see \cite stark2000.
  *
  * \ingroup ImageEnhancement
  * \ingroup ITKImageStatistics
@@ -97,10 +95,10 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AdaptiveHistogramEqualizationImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AdaptiveHistogramEqualizationImageFilter);
 
-  /** Image type type alias support */
+  /** Image type alias support */
   using ImageType = TImageType;
   using InputPixelType = typename ImageType::PixelType;
   using ImageSizeType = typename ImageType::SizeType;
@@ -108,21 +106,24 @@ public:
   /** Set/Get the value of alpha. Alpha = 0 produces the adaptive
    * histogram equalization (provided beta=0). Alpha = 1 produces an
    * unsharp mask. Default is 0.3. */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha, float);
   itkGetConstMacro(Alpha, float);
-
+  /** @ITKEndGrouping */
   /** Set/Get the value of beta. If beta = 1 (and alpha = 1),
    * then the output image matches the input image. As beta
    * approaches 0, the filter behaves as an unsharp mask. Default is
    * 0.3. */
+  /** @ITKStartGrouping */
   itkSetMacro(Beta, float);
   itkGetConstMacro(Beta, float);
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_FUTURE_LEGACY_REMOVE)
   /** Set/Get whether an optimized lookup table for the intensity
    * mapping function is used.  Default is off.
    * \deprecated
    */
+  /** @ITKStartGrouping */
   virtual void
   SetUseLookupTable(const bool _arg)
   {
@@ -134,6 +135,7 @@ public:
       this->Modified();
     }
   }
+  /** @ITKEndGrouping */
   itkGetConstMacro(UseLookupTable, bool);
   itkBooleanMacro(UseLookupTable);
 #endif
@@ -147,7 +149,7 @@ public:
     h.SetMaximum(this->m_InputMaximum);
 
     typename Superclass::HistogramType::RealType kernelSize = 1;
-    for (unsigned int i = 0; i < ImageDimension; i++)
+    for (unsigned int i = 0; i < ImageDimension; ++i)
     {
       kernelSize *= (2 * this->GetRadius()[i] + 1);
     }
@@ -156,16 +158,13 @@ public:
 
 protected:
   AdaptiveHistogramEqualizationImageFilter()
+    : m_Alpha(.3)
+    , m_Beta(.3)
+    , m_InputMinimum(NumericTraits<InputPixelType>::min())
+    , m_InputMaximum(NumericTraits<InputPixelType>::max())
+
   {
-    m_Alpha = .3;
-    m_Beta = .3;
-
     this->SetRadius(5);
-
-    m_InputMinimum = NumericTraits<InputPixelType>::min();
-    m_InputMaximum = NumericTraits<InputPixelType>::max();
-
-    m_UseLookupTable = false;
   }
 
   ~AdaptiveHistogramEqualizationImageFilter() override = default;
@@ -179,13 +178,13 @@ protected:
   BeforeThreadedGenerateData() override;
 
 private:
-  float m_Alpha;
-  float m_Beta;
+  float m_Alpha{};
+  float m_Beta{};
 
-  InputPixelType m_InputMinimum;
-  InputPixelType m_InputMaximum;
+  InputPixelType m_InputMinimum{};
+  InputPixelType m_InputMaximum{};
 
-  bool m_UseLookupTable;
+  bool m_UseLookupTable{};
 };
 } // end namespace itk
 

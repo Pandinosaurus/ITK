@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,12 @@
  *  limitations under the License.
  *
  *=========================================================================*/
+
+#if !defined(ITK_LEGACY_REMOVE)
+// Suppress MSVC warnings from VS2022, saying: "warning C4996: 'std::complex<T>::complex': warning STL4037: The effect
+// of instantiating the template std::complex for any type other than float, double, or long double is unspecified."
+#  define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING
+#endif
 
 #include "itkMath.h"
 #include "itkIntTypes.h"
@@ -25,7 +31,7 @@
 #include <limits>
 #include <type_traits> // For is_same.
 
-constexpr auto maxUnsignedValue = std::numeric_limits<std::uintmax_t>::max();
+constexpr auto maxUnsignedValue = std::numeric_limits<uintmax_t>::max();
 
 using itk::Math::UnsignedPower;
 using itk::Math::UnsignedProduct;
@@ -41,15 +47,15 @@ static_assert((UnsignedPower(2, 1) == 2) && (UnsignedPower(3, 1) == 3) &&
               "Check one as exponent");
 static_assert((UnsignedPower(2, 2) == 4) && (UnsignedPower(2, 3) == 8), "Check powers of two");
 static_assert((UnsignedPower(3, 2) == 9) && (UnsignedPower(3, 3) == 27), "Check powers of three");
-static_assert(UnsignedPower(2, std::numeric_limits<std::uintmax_t>::digits - 1) ==
-                (std::uintmax_t{ 1 } << (std::numeric_limits<std::uintmax_t>::digits - 1)),
+static_assert(UnsignedPower(2, std::numeric_limits<uintmax_t>::digits - 1) ==
+                (uintmax_t{ 1 } << (std::numeric_limits<uintmax_t>::digits - 1)),
               "Check 2^63 (at least when uintmax_t is 64 bits)");
 
-static_assert(std::is_same<decltype(UnsignedPower(1, 1)), std::uintmax_t>::value,
+static_assert(std::is_same_v<decltype(UnsignedPower(1, 1)), uintmax_t>,
               "The return type of UnsignedPower should be uintmax_t by default.");
-static_assert(std::is_same<decltype(UnsignedPower<std::uint8_t>(1, 1)), std::uint8_t>::value &&
-                std::is_same<decltype(UnsignedPower<std::uint16_t>(1, 1)), std::uint16_t>::value &&
-                std::is_same<decltype(UnsignedPower<std::uint32_t>(1, 1)), std::uint32_t>::value,
+static_assert(std::is_same_v<decltype(UnsignedPower<uint8_t>(1, 1)), uint8_t> &&
+                std::is_same_v<decltype(UnsignedPower<uint16_t>(1, 1)), uint16_t> &&
+                std::is_same_v<decltype(UnsignedPower<uint32_t>(1, 1)), uint32_t>,
               "UnsignedPower allows specifying the return type by its template argument.");
 
 static_assert((UnsignedProduct(0, 0) == 0) && (UnsignedProduct(0, 1) == 0) && (UnsignedProduct(1, 0) == 0) &&
@@ -68,23 +74,23 @@ TestIntegersAreSame(const T1 & v1, const T2 & v2)
   int testPassStatus = EXIT_SUCCESS;
   if (static_cast<T2>(v1) != v2)
   {
-    std::cout << "ERROR: static cast did not perform as expected for wrap arround." << std::endl;
+    std::cout << "ERROR: static cast did not perform as expected for wrap around." << std::endl;
     std::cout << v1 << " static_cast " << static_cast<T2>(v1) << std::endl;
     std::cout << v2 << std::endl;
     testPassStatus = EXIT_FAILURE;
   }
-  if (itk::Math::AlmostEquals(v2, v1) == true)
+  if (itk::Math::AlmostEquals(v2, v1))
   {
     std::cout << "Error in "
               << "itk::Math::AlmostEquals(v2, v1) " << std::endl;
-    std::cout << __FILE__ << " " << __LINE__ << " " << v2 << " == " << v1 << std::endl;
+    std::cout << __FILE__ << ' ' << __LINE__ << ' ' << v2 << " == " << v1 << std::endl;
     testPassStatus = EXIT_FAILURE;
   }
-  if (itk::Math::AlmostEquals(v1, v2) == true)
+  if (itk::Math::AlmostEquals(v1, v2))
   {
     std::cout << "Error in "
               << "itk::Math::AlmostEquals(v1, v2) " << std::endl;
-    std::cout << __FILE__ << " " << __LINE__ << " " << v1 << " == " << v2 << std::endl;
+    std::cout << __FILE__ << ' ' << __LINE__ << ' ' << v1 << " == " << v2 << std::endl;
     testPassStatus = EXIT_FAILURE;
   }
   return testPassStatus;
@@ -138,7 +144,7 @@ main(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   std::cout << "e: " << itk::Math::e << std::endl;
   std::cout << "log2e: " << itk::Math::log2e << std::endl;
@@ -581,51 +587,49 @@ main(int, char *[])
 
   { // Test various equals operations.
     //=========================
-    const signed char sc = -1;
-    const auto        uc = static_cast<unsigned char>(-1);
+    constexpr signed char sc = -1;
+    constexpr auto        uc = static_cast<unsigned char>(-1);
     testPassStatus = (TestIntegersAreSame(sc, uc) == EXIT_SUCCESS) ? testPassStatus : EXIT_FAILURE;
     //=========================
-    const int  si = -1;
-    const auto ul = static_cast<unsigned long>(-1);
+    constexpr int  si = -1;
+    constexpr auto ul = static_cast<unsigned long>(-1);
     testPassStatus = (TestIntegersAreSame(si, ul) == EXIT_SUCCESS) ? testPassStatus : EXIT_FAILURE;
     //=========================
-    const auto ui = static_cast<unsigned int>(-1);
+    constexpr auto ui = static_cast<unsigned int>(-1);
     testPassStatus = (TestIntegersAreSame(si, ui) == EXIT_SUCCESS) ? testPassStatus : EXIT_FAILURE;
     //=========================
-    const auto ust = static_cast<size_t>(-1);
+    constexpr auto ust = static_cast<size_t>(-1);
     testPassStatus = (TestIntegersAreSame(si, ust) == EXIT_SUCCESS) ? testPassStatus : EXIT_FAILURE;
 
     //=========================
-    const float      f = -1.0f;
+    constexpr float  f = -1.0f;
     constexpr double d = 1.01;
 
     // Test AlmostEquals()
-    if (itk::Math::AlmostEquals(f, d) == true || itk::Math::AlmostEquals(d, f) == true)
+    if (itk::Math::AlmostEquals(f, d) || itk::Math::AlmostEquals(d, f))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     if (itk::Math::AlmostEquals(f, sc) == false || itk::Math::AlmostEquals(sc, f) == false ||
         itk::Math::AlmostEquals(1.0, 1.0f) == false || itk::Math::AlmostEquals(1.1, 1.1f) == false ||
-        itk::Math::AlmostEquals(1, 1.0) == false || itk::Math::AlmostEquals(2.0, 1.0) == true ||
-        itk::Math::AlmostEquals(1, 2) == true)
+        itk::Math::AlmostEquals(1, 1.0) == false || itk::Math::AlmostEquals(2.0, 1.0) || itk::Math::AlmostEquals(1, 2))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
 
     // Test ExactlyEquals()  it should detect normal inequalities
-    if (itk::Math::ExactlyEquals(f, d) == true || itk::Math::ExactlyEquals(d, f) == true)
+    if (itk::Math::ExactlyEquals(f, d) || itk::Math::ExactlyEquals(d, f))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
 
     // Test comparison values of different types
-    if (itk::Math::NotExactlyEquals(itk::NumericTraits<float>::OneValue(), itk::NumericTraits<double>::OneValue()) ||
-        itk::Math::NotExactlyEquals(itk::NumericTraits<double>::OneValue(), static_cast<float>(1)))
+    if (itk::Math::NotExactlyEquals(1.0f, 1.0) || itk::Math::NotExactlyEquals(1.0, 1.0f))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
 
@@ -633,14 +637,14 @@ main(int, char *[])
     FloatRepresentationD oneExact;
     FloatRepresentationD oneAlmost;
 
-    oneExact.asFloat = itk::NumericTraits<double>::OneValue();
-    oneAlmost.asFloat = itk::NumericTraits<double>::OneValue();
+    oneExact.asFloat = 1.0;
+    oneAlmost.asFloat = 1.0;
     oneAlmost.asInt += 1;
 
     // Very close values should be AlmostEqual
     if (itk::Math::NotAlmostEquals(oneExact.asFloat, oneAlmost.asFloat))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << oneExact.asFloat << " == " << oneAlmost.asFloat << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << oneExact.asFloat << " == " << oneAlmost.asFloat << std::endl;
       std::cout << "AlmostEquals Test Failure\n" << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
@@ -648,23 +652,21 @@ main(int, char *[])
     // Even very close values are not ExactlyEqual
     if (itk::Math::ExactlyEquals(oneExact.asFloat, oneAlmost.asFloat))
     {
-      std::cout << __FILE__ << " " << __LINE__ << " " << oneExact.asFloat << " == " << oneAlmost.asFloat << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << oneExact.asFloat << " == " << oneAlmost.asFloat << std::endl;
       std::cout << "ExactlyEquals Test Failure\n" << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
 
     // Test AlmostEquals complex comparisons
-    const std::complex<double> z1Double(1.1, 2.1);
-    const std::complex<float>  z1Float(1.1f, 2.1f);
-    const std::complex<double> z2Double(1.0, 3.0);
-    const std::complex<int>    z2Int(1, 3);
+    constexpr std::complex<double> z1Double(1.1, 2.1);
+    constexpr std::complex<float>  z1Float(1.1f, 2.1f);
 
     // Test AlmostEquals with complex numbers of the same value and different types
     std::cout << "Testing COMPLEX vs COMPLEX, DOUBLE vs FLOAT, SAME values " << std::endl;
     if (itk::Math::AlmostEquals(z1Double, z1Float) == false)
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
@@ -672,17 +674,22 @@ main(int, char *[])
       std::cout << "Test passed\n" << std::endl;
     }
 
+#if !defined(ITK_LEGACY_REMOVE)
+    constexpr std::complex<double> z2Double(1.0, 3.0);
+    constexpr std::complex<int>    z2Int(1, 3);
+
     std::cout << "Testing COMPLEX vs COMPLEX, DOUBLE vs INT, SAME values " << std::endl;
     if (itk::Math::AlmostEquals(z2Double, z2Int) == false)
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
     {
       std::cout << "Test passed\n" << std::endl;
     }
+#endif // !defined(ITK_LEGACY_REMOVE)
 
     // Test Comparisons with complex values that are very close
     FloatRepresentationD z1AlmostRealPart;
@@ -694,7 +701,7 @@ main(int, char *[])
     if (itk::Math::NotAlmostEquals(z1Double, z1DoubleAlmost))
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
@@ -703,15 +710,15 @@ main(int, char *[])
     }
 
     // Test comparison between complex and real number with the same value
-    const std::complex<double> z3Double(0.123, 0);
-    constexpr float            r3Float = 0.123;
-    constexpr double           r3Double = 0.123;
+    constexpr std::complex<double> z3Double(0.123, 0);
+    constexpr float                r3Float = 0.123;
+    constexpr double               r3Double = 0.123;
 
     std::cout << "Testing COMPLEX vs REAL, DOUBLE vs DOUBLE, SAME values " << std::endl;
     if (itk::Math::NotAlmostEquals(z3Double, r3Double))
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
@@ -723,7 +730,7 @@ main(int, char *[])
     if (itk::Math::NotAlmostEquals(z3Double, r3Float))
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
@@ -732,8 +739,8 @@ main(int, char *[])
     }
 
     // Test comparison between complex and real numbers with very close values
-    const std::complex<float> z4Float(0.123, 0);
-    FloatRepresentationF      r4FloatAlmost;
+    constexpr std::complex<float> z4Float(0.123, 0);
+    FloatRepresentationF          r4FloatAlmost;
     r4FloatAlmost.asFloat = z4Float.real();
     r4FloatAlmost.asInt += 1;
 
@@ -741,7 +748,7 @@ main(int, char *[])
     if (itk::Math::NotAlmostEquals(z4Float, r4FloatAlmost.asFloat))
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else
@@ -753,7 +760,7 @@ main(int, char *[])
     if (itk::Math::NotAlmostEquals(z3Double, r4FloatAlmost.asFloat))
     {
       std::cout << "Test FAILED!!\n" << std::endl;
-      std::cout << __FILE__ << " " << __LINE__ << " " << f << " == " << d << std::endl;
+      std::cout << __FILE__ << ' ' << __LINE__ << ' ' << f << " == " << d << std::endl;
       testPassStatus = EXIT_FAILURE;
     }
     else

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,15 @@
 #ifndef itkAccumulateImageFilter_hxx
 #define itkAccumulateImageFilter_hxx
 
-#include "itkAccumulateImageFilter.h"
 #include "itkImageRegionIterator.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
+
 template <typename TInputImage, typename TOutputImage>
 AccumulateImageFilter<TInputImage, TOutputImage>::AccumulateImageFilter()
-{
-  m_AccumulateDimension = InputImageDimension - 1;
-  m_Average = false;
-}
+  : m_AccumulateDimension(InputImageDimension - 1)
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
@@ -39,7 +34,6 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 {
   itkDebugMacro("GenerateOutputInformation Start");
 
-  typename TOutputImage::RegionType    outputRegion;
   typename TInputImage::IndexType      inputIndex;
   typename TInputImage::SizeType       inputSize;
   typename TOutputImage::SizeType      outputSize;
@@ -51,8 +45,8 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   typename TOutputImage::PointType     outOrigin;
 
   // Get pointers to the input and output
-  typename Superclass::OutputImagePointer output = this->GetOutput();
-  typename Superclass::InputImagePointer  input = const_cast<TInputImage *>(this->GetInput());
+  const typename Superclass::OutputImagePointer output = this->GetOutput();
+  const typename Superclass::InputImagePointer  input = const_cast<TInputImage *>(this->GetInput());
 
   if (!input || !output)
   {
@@ -67,7 +61,7 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
   // Set the LargestPossibleRegion of the output.
   // Reduce the size of the accumulated dimension.
-  for (unsigned int i = 0; i < InputImageDimension; i++)
+  for (unsigned int i = 0; i < InputImageDimension; ++i)
   {
     if (i != m_AccumulateDimension)
     {
@@ -85,8 +79,7 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
     }
   }
 
-  outputRegion.SetSize(outputSize);
-  outputRegion.SetIndex(outputIndex);
+  const typename TOutputImage::RegionType outputRegion(outputIndex, outputSize);
   output->SetOrigin(outOrigin);
   output->SetSpacing(outSpacing);
   output->SetDirection(outDirection);
@@ -104,20 +97,17 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 
   if (this->GetInput())
   {
-    typename TInputImage::RegionType RequestedRegion;
     typename TInputImage::SizeType   inputSize;
     typename TInputImage::IndexType  inputIndex;
     typename TInputImage::SizeType   inputLargSize;
     typename TInputImage::IndexType  inputLargIndex;
     typename TOutputImage::SizeType  outputSize;
-    typename TOutputImage::IndexType outputIndex;
-
-    outputIndex = this->GetOutput()->GetRequestedRegion().GetIndex();
+    typename TOutputImage::IndexType outputIndex = this->GetOutput()->GetRequestedRegion().GetIndex();
     outputSize = this->GetOutput()->GetRequestedRegion().GetSize();
     inputLargSize = this->GetInput()->GetLargestPossibleRegion().GetSize();
     inputLargIndex = this->GetInput()->GetLargestPossibleRegion().GetIndex();
 
-    for (unsigned int i = 0; i < TInputImage::ImageDimension; i++)
+    for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
     {
       if (i != m_AccumulateDimension)
       {
@@ -131,33 +121,29 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
       }
     }
 
-    RequestedRegion.SetSize(inputSize);
-    RequestedRegion.SetIndex(inputIndex);
-    InputImagePointer input = const_cast<TInputImage *>(this->GetInput());
+    const typename TInputImage::RegionType RequestedRegion(inputIndex, inputSize);
+    const InputImagePointer                input = const_cast<TInputImage *>(this->GetInput());
     input->SetRequestedRegion(RequestedRegion);
   }
 
   itkDebugMacro("GenerateInputRequestedRegion End");
 }
 
-/**
- * GenerateData Performs the accumulation
- */
 template <typename TInputImage, typename TOutputImage>
 void
 AccumulateImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   if (m_AccumulateDimension >= TInputImage::ImageDimension)
   {
-    itkExceptionMacro(<< "AccumulateImageFilter: invalid dimension to accumulate. AccumulateDimension = "
-                      << m_AccumulateDimension);
+    itkExceptionMacro(
+      "AccumulateImageFilter: invalid dimension to accumulate. AccumulateDimension = " << m_AccumulateDimension);
   }
 
   using OutputPixelType = typename TOutputImage::PixelType;
   using AccumulateType = typename NumericTraits<OutputPixelType>::AccumulateType;
 
-  typename Superclass::InputImageConstPointer inputImage = this->GetInput();
-  typename TOutputImage::Pointer              outputImage = this->GetOutput();
+  const typename Superclass::InputImageConstPointer inputImage = this->GetInput();
+  const typename TOutputImage::Pointer              outputImage = this->GetOutput();
   outputImage->SetBufferedRegion(outputImage->GetRequestedRegion());
   outputImage->Allocate();
 
@@ -167,26 +153,23 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateData()
   outputIterType outputIter(outputImage, outputImage->GetBufferedRegion());
   using inputIterType = ImageRegionConstIterator<TInputImage>;
 
-  typename TInputImage::RegionType AccumulatedRegion;
-  typename TInputImage::SizeType   AccumulatedSize = inputImage->GetLargestPossibleRegion().GetSize();
-  typename TInputImage::IndexType  AccumulatedIndex = inputImage->GetLargestPossibleRegion().GetIndex();
+  typename TInputImage::SizeType  AccumulatedSize = inputImage->GetLargestPossibleRegion().GetSize();
+  typename TInputImage::IndexType AccumulatedIndex = inputImage->GetLargestPossibleRegion().GetIndex();
 
-  typename TInputImage::SizeValueType  SizeAccumulateDimension = AccumulatedSize[m_AccumulateDimension];
-  const auto                           sizeAccumulateDimensionDouble = static_cast<double>(SizeAccumulateDimension);
-  typename TInputImage::IndexValueType IndexAccumulateDimension = AccumulatedIndex[m_AccumulateDimension];
-  for (unsigned int i = 0; i < InputImageDimension; i++)
+  const SizeValueType SizeAccumulateDimension = AccumulatedSize[m_AccumulateDimension];
+  const auto          sizeAccumulateDimensionDouble = static_cast<double>(SizeAccumulateDimension);
+  const typename TInputImage::IndexValueType IndexAccumulateDimension = AccumulatedIndex[m_AccumulateDimension];
+  for (unsigned int i = 0; i < InputImageDimension; ++i)
   {
     if (i != m_AccumulateDimension)
     {
       AccumulatedSize[i] = 1;
     }
   }
-  AccumulatedRegion.SetSize(AccumulatedSize);
-  outputIter.GoToBegin();
   while (!outputIter.IsAtEnd())
   {
     typename TOutputImage::IndexType OutputIndex = outputIter.GetIndex();
-    for (unsigned int i = 0; i < InputImageDimension; i++)
+    for (unsigned int i = 0; i < InputImageDimension; ++i)
     {
       if (i != m_AccumulateDimension)
       {
@@ -197,10 +180,10 @@ AccumulateImageFilter<TInputImage, TOutputImage>::GenerateData()
         AccumulatedIndex[i] = IndexAccumulateDimension;
       }
     }
-    AccumulatedRegion.SetIndex(AccumulatedIndex);
-    inputIterType inputIter(inputImage, AccumulatedRegion);
+    const typename TInputImage::RegionType AccumulatedRegion(AccumulatedIndex, AccumulatedSize);
+    inputIterType                          inputIter(inputImage, AccumulatedRegion);
     inputIter.GoToBegin();
-    AccumulateType Value = NumericTraits<AccumulateType>::ZeroValue();
+    AccumulateType Value{};
     while (!inputIter.IsAtEnd())
     {
       Value += static_cast<AccumulateType>(inputIter.Get());
@@ -225,7 +208,7 @@ AccumulateImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, I
   Superclass::PrintSelf(os, indent);
 
   os << indent << "AccumulateDimension: " << m_AccumulateDimension << std::endl;
-  os << indent << "Average: " << (m_Average ? "On" : "Off") << std::endl;
+  itkPrintSelfBooleanMacro(Average);
 }
 } // end namespace itk
 

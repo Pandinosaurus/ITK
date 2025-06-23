@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
  * is. An example is given below, where it is desired to plot the metric
  * space with respect to translations along x, y and z in a 3D registration
  * application:
- *     Here it is assumed that the transform is Euler3DTransform.
+ *     Here it is assumed that the transform is TranslationTransform.
  *
    \code
     OptimizerType::StepsType steps( m_Transform->GetNumberOfParameters() );
@@ -69,9 +69,14 @@ namespace itk
  * of [0.5 1 4] along with a step length of 2 will cause the optimizer
  * to search the metric space on a grid with x,y,z spacing of [1 2 8].
  *
- * Physical dimensions of the grid are influenced by both the scales and
- * the number of steps along each dimension, a side of the region is
- * stepLength*(2*numberOfSteps[d]+1)*scaling[d].
+ * The number of samples for each dimension of the parameter grid are
+ * influenced by both the scales and the number of steps along each
+ * dimension:
+ *
+ * parameter_samples[d] = stepLength*(2*numberOfSteps[d]+1)*scaling[d]
+ *
+ * start_parameter[d] = - stepLength * scaling[d] * numberOfSteps[d]
+ *   end_parameter[d] = + stepLength * scaling[d] * numberOfSteps[d]
  *
  * \ingroup Numerics Optimizers
  * \ingroup ITKOptimizers
@@ -95,18 +100,21 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExhaustiveOptimizer, SingleValuedNonLinearOptimizer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExhaustiveOptimizer);
 
+  /** Start optimization. */
   void
   StartOptimization() override;
 
   void
   StartWalking();
 
+  /** Resume optimization. */
   void
   ResumeWalking();
 
+  /** Stop optimization. */
   void
   StopWalking();
 
@@ -123,7 +131,7 @@ public:
   itkGetConstReferenceMacro(MaximumNumberOfIterations, SizeValueType);
 
   /** Get the reason for termination */
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
 protected:
@@ -140,32 +148,32 @@ protected:
   IncrementIndex(ParametersType & newPosition);
 
 protected:
-  MeasureType m_CurrentValue;
+  MeasureType m_CurrentValue{ 0 };
 
-  StepsType m_NumberOfSteps;
+  StepsType m_NumberOfSteps{};
 
-  SizeValueType m_CurrentIteration;
+  SizeValueType m_CurrentIteration{ 0 };
 
-  bool m_Stop;
+  bool m_Stop{ false };
 
-  unsigned int m_CurrentParameter;
+  unsigned int m_CurrentParameter{ 0 };
 
-  double m_StepLength;
+  double m_StepLength{ 1.0 };
 
-  ParametersType m_CurrentIndex;
+  ParametersType m_CurrentIndex{};
 
-  SizeValueType m_MaximumNumberOfIterations;
+  SizeValueType m_MaximumNumberOfIterations{ 1 };
 
-  MeasureType m_MaximumMetricValue;
+  MeasureType m_MaximumMetricValue{ itk::NumericTraits<MeasureType>::max() };
 
-  MeasureType m_MinimumMetricValue;
+  MeasureType m_MinimumMetricValue{ itk::NumericTraits<MeasureType>::Zero };
 
-  ParametersType m_MinimumMetricValuePosition;
+  ParametersType m_MinimumMetricValuePosition{};
 
-  ParametersType m_MaximumMetricValuePosition;
+  ParametersType m_MaximumMetricValuePosition{};
 
 private:
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,9 +45,7 @@ namespace itk
  * provided, the algorithm will only search pixels within the
  * narrowband.
  *
- * Implementation of this class is based on Chapter 11 of
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Second edition, 1999.
+ * Implementation of this class is based on \cite sethian1999b.
  *
  * \ingroup LevelSetSegmentation
  *
@@ -59,7 +57,7 @@ class ITK_TEMPLATE_EXPORT LevelSetNeighborhoodExtractor : public LightProcessObj
 public:
   ITK_DISALLOW_COPY_AND_MOVE(LevelSetNeighborhoodExtractor);
 
-  /** Standard class typdedefs. */
+  /** Standard class typedefs. */
   using Self = LevelSetNeighborhoodExtractor;
   using Superclass = LightProcessObject;
   using Pointer = SmartPointer<Self>;
@@ -68,8 +66,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LevelSetNeighborhoodExtractor, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetNeighborhoodExtractor);
 
   /** LevelSetType type alias support */
   using LevelSetType = LevelSetTypeDefault<TLevelSet>;
@@ -88,9 +86,10 @@ public:
   using IndexType = Index<Self::SetDimension>;
 
   /** Get/Set the input level set. */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(InputLevelSet, LevelSetImageType);
   itkGetConstObjectMacro(InputLevelSet, LevelSetImageType);
-
+  /** @ITKEndGrouping */
   /** Set the value of the level set to be located. Default is 0. */
   itkSetMacro(LevelSetValue, double);
 
@@ -107,15 +106,17 @@ public:
   itkSetMacro(NarrowBanding, bool);
 
   /** Get the narrowbanding flag. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(NarrowBanding, bool);
   itkBooleanMacro(NarrowBanding);
-
+  /** @ITKEndGrouping */
   /** Set/Get the input narrowband. A narrowband is represented as
    * a VectorContainer of LevelSetNodes. */
+  /** @ITKStartGrouping */
   void
   SetInputNarrowBand(NodeContainer * ptr);
   itkGetModifiableObjectMacro(InputNarrowBand, NodeContainer);
-
+  /** @ITKEndGrouping */
   /** Get the container of inside points. The inside points are
    * stored in a VectorContainer of LevelSetNodes. */
   NodeContainerPointer
@@ -179,19 +180,19 @@ private:
 
   double m_LevelSetValue{ 0.0 };
 
-  NodeContainerPointer m_InsidePoints;
-  NodeContainerPointer m_OutsidePoints;
+  NodeContainerPointer m_InsidePoints{};
+  NodeContainerPointer m_OutsidePoints{};
 
-  LevelSetConstPointer m_InputLevelSet;
+  LevelSetConstPointer m_InputLevelSet{};
 
   bool                 m_NarrowBanding{ false };
   double               m_NarrowBandwidth{ 12.0 };
-  NodeContainerPointer m_InputNarrowBand;
+  NodeContainerPointer m_InputNarrowBand{};
 
-  typename LevelSetImageType::RegionType m_ImageRegion;
-  typename LevelSetImageType::PixelType  m_LargeValue;
+  typename LevelSetImageType::RegionType m_ImageRegion{};
+  typename LevelSetImageType::PixelType  m_LargeValue{};
 
-  std::vector<NodeType> m_NodesUsed;
+  std::vector<NodeType> m_NodesUsed{};
 
   bool m_LastPointIsInside{ false };
 };

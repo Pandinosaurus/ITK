@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 
 #include "itkMath.h"
 #include "itkDerivativeOperator.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -27,7 +28,7 @@ class DerivativeOperatorTestHelper : public DerivativeOperator<TPixel, VDimensio
 {
 public:
   using Superclass = DerivativeOperator<TPixel, VDimension>;
-  using CoefficientVector = typename Superclass::CoefficientVector;
+  using typename Superclass::CoefficientVector;
 
   bool
   CheckCoefficients(const CoefficientVector & expected)
@@ -63,33 +64,31 @@ itkDerivativeOperatorTest(int, char *[])
   constexpr unsigned int Dimension = 1;
   using PixelType = float;
 
+  // Exercise object basic methods
+  using DerivativeOperatorType = itk::DerivativeOperator<PixelType, Dimension>;
+
+  DerivativeOperatorType derivativeOperator;
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS((&derivativeOperator), DerivativeOperator, NeighborhoodOperator);
+
+
+  // Test other methods using the helper
   using OperatorType = itk::DerivativeOperatorTestHelper<PixelType, Dimension>;
 
   OperatorType op1;
 
-  op1.SetOrder(1);
-  if (op1.GetOrder() != 1)
-  {
-    std::cerr << "Set/GetOrder() failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+  unsigned int order = 1;
+  op1.SetOrder(order);
+  ITK_TEST_SET_GET_VALUE(order, op1.GetOrder());
 
-  op1.SetOrder(2);
-  if (op1.GetOrder() != 2)
-  {
-    std::cerr << "Set/GetOrder() failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+  order = 2;
+  op1.SetOrder(order);
+  ITK_TEST_SET_GET_VALUE(order, op1.GetOrder());
 
-  op1.SetOrder(1);
-  if (op1.GetOrder() != 1)
-  {
-    std::cerr << "Set/GetOrder() failed" << std::endl;
-    return EXIT_FAILURE;
-  }
+  order = 1;
+  op1.SetOrder(order);
+  ITK_TEST_SET_GET_VALUE(order, op1.GetOrder());
 
-  // Exercise PrintSelf
-  op1.Print(std::cout);
 
   OperatorType::CoefficientVector expected1;
   expected1.push_back(0.5);
@@ -99,6 +98,8 @@ itkDerivativeOperatorTest(int, char *[])
   // Check actual coefficient values
   if (!op1.CheckCoefficients(expected1))
   {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in coefficients" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -108,6 +109,7 @@ itkDerivativeOperatorTest(int, char *[])
   // Check actual coefficient values
   if (!op1b.CheckCoefficients(expected1))
   {
+    std::cerr << "Test failed!" << std::endl;
     std::cerr << "Copy constructor failed" << std::endl;
     return EXIT_FAILURE;
   }
@@ -118,6 +120,7 @@ itkDerivativeOperatorTest(int, char *[])
   // Check actual coefficient values
   if (!op1c.CheckCoefficients(expected1))
   {
+    std::cerr << "Test failed!" << std::endl;
     std::cerr << "Operator assignment failed" << std::endl;
     return EXIT_FAILURE;
   }
@@ -135,9 +138,12 @@ itkDerivativeOperatorTest(int, char *[])
   // Check actual coefficient values
   if (!op2.CheckCoefficients(expected2))
   {
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Error in coefficients" << std::endl;
     return EXIT_FAILURE;
   }
 
 
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

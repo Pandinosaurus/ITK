@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,6 @@
 
 #include "itkMath.h"
 #include <iostream>
-
-#include <iostream>
-#include "itkMath.h"
 
 
 namespace
@@ -40,7 +37,7 @@ DoCastWithRangeCheckTestVerify(const T2 value, const T1 = 0)
   {
     ret = itk::Math::CastWithRangeCheck<T1>(value);
     // value should match
-    if (itk::Math::NotExactlyEquals(double(ret), double(value)))
+    if (itk::Math::NotExactlyEquals(static_cast<double>(ret), static_cast<double>(value)))
     {
       std::cout << "casting error with input value: " << static_cast<typename itk::NumericTraits<T2>::PrintType>(value)
                 << " output value: " << static_cast<typename itk::NumericTraits<T1>::PrintType>(ret) << std::endl;
@@ -51,7 +48,7 @@ DoCastWithRangeCheckTestVerify(const T2 value, const T1 = 0)
   {
     // conversion should result in some overflow problem
     auto retCheck = static_cast<T1>(value);
-    if (itk::Math::ExactlyEquals(double(retCheck), double(value)))
+    if (itk::Math::ExactlyEquals(static_cast<double>(retCheck), static_cast<double>(value)))
     {
       std::cout << "unexpected exception with value: " << value << std::endl;
       return false;
@@ -81,13 +78,13 @@ template <typename T1, typename T2>
 bool
 DoCastWithRangeCheckTest(const T1 * = nullptr, const T2 * = nullptr)
 {
-  int minus_one = -1;
+  constexpr int minus_one = -1;
 
   // test convert T2 to T1
   bool pass = true;
   pass &= DoCastWithRangeCheckTestVerify<T1, T2>(itk::NumericTraits<T2>::NonpositiveMin());
   pass &= DoCastWithRangeCheckTestVerify<T1, T2>(itk::NumericTraits<T2>::max());
-  pass &= DoCastWithRangeCheckTestVerify<T1, T2>(itk::NumericTraits<T2>::ZeroValue());
+  pass &= DoCastWithRangeCheckTestVerify<T1, T2>(T2{});
   pass &= DoCastWithRangeCheckTestVerify<T1, T2>(itk::NumericTraits<T2>::OneValue());
   pass &= DoCastWithRangeCheckTestVerify<T1, T2>(static_cast<T2>(itk::NumericTraits<T2>::OneValue() * minus_one));
 
@@ -104,14 +101,14 @@ DoCastWithRangeCheckTestForTypes(const T1 * = nullptr)
   pass &= DoCastWithRangeCheckTest<T1, unsigned char>();
   pass &= DoCastWithRangeCheckTest<T1, signed char>();
   pass &= DoCastWithRangeCheckTest<T1, unsigned short>();
-  pass &= DoCastWithRangeCheckTest<T1, signed short>();
+  pass &= DoCastWithRangeCheckTest<T1, short>();
   pass &= DoCastWithRangeCheckTest<T1, unsigned int>();
-  pass &= DoCastWithRangeCheckTest<T1, signed int>();
+  pass &= DoCastWithRangeCheckTest<T1, int>();
   pass &= DoCastWithRangeCheckTest<T1, unsigned long>();
-  pass &= DoCastWithRangeCheckTest<T1, signed long>();
+  pass &= DoCastWithRangeCheckTest<T1, long>();
 #ifdef ITK_USE_LONG_LONG
   pass &= DoCastWithRangeCheckTest<T1, unsigned long long>();
-  pass &= DoCastWithRangeCheckTest<T1, signed long long>();
+  pass &= DoCastWithRangeCheckTest<T1, long long>();
 #endif
   return pass;
 }
@@ -125,9 +122,10 @@ itkMathCastWithRangeCheckTest(int, char *[])
 
   try
   {
-    itk::Math::CastWithRangeCheck<short, int>(int(itk::NumericTraits<short>::max()) + 10);
+    itk::Math::CastWithRangeCheck<short, int>(static_cast<int>(itk::NumericTraits<short>::max()) + 10);
     pass = false;
-    std::cout << "failed to through exception with " << int(itk::NumericTraits<short>::max()) + 10 << " to int ";
+    std::cout << "failed to through exception with " << static_cast<int>(itk::NumericTraits<short>::max()) + 10
+              << " to int ";
   }
   catch (...)
   {
@@ -137,8 +135,8 @@ itkMathCastWithRangeCheckTest(int, char *[])
 
   DoCastWithRangeCheckTestExulstive<signed char, unsigned char>();
   DoCastWithRangeCheckTestExulstive<unsigned char, signed char>();
-  DoCastWithRangeCheckTestExulstive<unsigned char, signed short>();
-  DoCastWithRangeCheckTestExulstive<signed char, signed short>();
+  DoCastWithRangeCheckTestExulstive<unsigned char, short>();
+  DoCastWithRangeCheckTestExulstive<signed char, short>();
 
   DoCastWithRangeCheckTestExulstive<unsigned int, signed char>();
 
@@ -146,18 +144,20 @@ itkMathCastWithRangeCheckTest(int, char *[])
   pass &= DoCastWithRangeCheckTestForTypes<unsigned char>();
   pass &= DoCastWithRangeCheckTestForTypes<signed char>();
   pass &= DoCastWithRangeCheckTestForTypes<unsigned short>();
-  pass &= DoCastWithRangeCheckTestForTypes<signed short>();
+  pass &= DoCastWithRangeCheckTestForTypes<short>();
   pass &= DoCastWithRangeCheckTestForTypes<unsigned int>();
-  pass &= DoCastWithRangeCheckTestForTypes<signed int>();
+  pass &= DoCastWithRangeCheckTestForTypes<int>();
   pass &= DoCastWithRangeCheckTestForTypes<unsigned long>();
-  pass &= DoCastWithRangeCheckTestForTypes<signed long>();
+  pass &= DoCastWithRangeCheckTestForTypes<long>();
 #ifdef ITK_USE_LONG_LONG
   pass &= DoCastWithRangeCheckTestForTypes<unsigned long long>();
-  pass &= DoCastWithRangeCheckTestForTypes<signed long long>();
+  pass &= DoCastWithRangeCheckTestForTypes<long long>();
 #endif
 
   if (pass)
+  {
     return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
+  }
+
+  return EXIT_FAILURE;
 }

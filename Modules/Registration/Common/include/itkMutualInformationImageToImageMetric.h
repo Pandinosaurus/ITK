@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,10 +74,7 @@ namespace itk
  * The variance can be set via methods SetFixedImageStandardDeviation()
  * and SetMovingImageStandardDeviation().
  *
- * Implementaton of this class is based on:
- * Viola, P. and Wells III, W. (1997).
- * "Alignment by Maximization of Mutual Information"
- * International Journal of Computer Vision, 24(2):137-154
+ * Implementation of this class is based on \cite viola1997.
  *
  * \sa KernelFunctionBase
  * \sa GaussianKernelFunction
@@ -105,20 +102,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MutualInformationImageToImageMetric, ImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MutualInformationImageToImageMetric);
 
   /** Types inherited from Superclass. */
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using InterpolatorType = typename Superclass::InterpolatorType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using ParametersType = typename Superclass::ParametersType;
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
-  using FixedImageConstPointer = typename Superclass::FixedImageConstPointer;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::InterpolatorType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
+  using typename Superclass::FixedImageConstPointer;
   using MovingImageCosntPointer = typename Superclass::MovingImageConstPointer;
 
   /** Index and Point type alias support */
@@ -137,11 +134,11 @@ public:
   void
   GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const override;
 
-  /**  Get the value. */
+  /** Get the value. */
   MeasureType
   GetValue(const ParametersType & parameters) const override;
 
-  /**  Get the value and derivatives for single valued optimizers. */
+  /** Get the value and derivatives for single valued optimizers. */
   void
   GetValueAndDerivative(const ParametersType & parameters,
                         MeasureType &          value,
@@ -162,28 +159,31 @@ public:
    * calculation. Default value is 0.4 which works well for image intensities
    * normalized to a mean of 0 and standard deviation of 1.0.
    * Value is clamped to be always greater than zero. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(MovingImageStandardDeviation,
                    double,
                    NumericTraits<double>::NonpositiveMin(),
                    NumericTraits<double>::max());
   itkGetConstReferenceMacro(MovingImageStandardDeviation, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the fixed image intensity standard deviation. This defines
    * the kernel bandwidth used in the joint probability distribution
    * calculation. Default value is 0.4 which works well for image intensities
    * normalized to a mean of 0 and standard deviation of 1.0.
    * Value is clamped to be always greater than zero. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(FixedImageStandardDeviation,
                    double,
                    NumericTraits<double>::NonpositiveMin(),
                    NumericTraits<double>::max());
   itkGetConstMacro(FixedImageStandardDeviation, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the kernel function. This is used to calculate the joint
    * probability distribution. Default is the GaussianKernelFunction. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(KernelFunction, KernelFunctionType);
   itkGetModifiableObjectMacro(KernelFunction, KernelFunctionType);
-
+  /** @ITKEndGrouping */
 
 protected:
   MutualInformationImageToImageMetric();
@@ -213,37 +213,49 @@ private:
 
   /** Container to store sample set  A - used to approximate the probability
    * density function (pdf). */
-  mutable SpatialSampleContainer m_SampleA;
+  mutable SpatialSampleContainer m_SampleA{};
 
   /** Container to store sample set  B - used to approximate the mutual
    * information value. */
-  mutable SpatialSampleContainer m_SampleB;
+  mutable SpatialSampleContainer m_SampleB{};
 
-  unsigned int m_NumberOfSpatialSamples;
-  double       m_MovingImageStandardDeviation;
-  double       m_FixedImageStandardDeviation;
-  double       m_MinProbability;
+  unsigned int m_NumberOfSpatialSamples{};
+  double       m_MovingImageStandardDeviation{};
+  double       m_FixedImageStandardDeviation{};
+  double       m_MinProbability{};
 
-  typename KernelFunctionType::Pointer m_KernelFunction;
+  typename KernelFunctionType::Pointer m_KernelFunction{};
 
   /** Uniformly select samples from the fixed image buffer.
+   *
+   * Each sample consists of:
+   *  - the fixed image value
+   *  - the corresponding moving image value
+   *
    * \warning Note that this method has a different signature than the one in
    * the base OptImageToImageMetric and therefore they are not intended to
    * provide polymorphism. That is, this function is not overriding the one in
-   * the base class. */
+   * the base class.
+   */
   virtual void
   SampleFixedImageDomain(SpatialSampleContainer & samples) const;
 
-  /**
-   * Calculate the intensity derivatives at a point
+  /*
+   * Calculate derivatives of the image intensity at the specified point with respect to the transform parameters.
+   *
+   * \todo This should really be done by the mapper.
+   *
+   * \todo This is a temporary solution until this feature is implemented
+   * in the mapper. This solution only works for any transform
+   * that support ComputeJacobianWithRespectToParameters()
    */
   void
   CalculateDerivatives(const FixedImagePointType &, DerivativeType &, TransformJacobianType &) const;
 
-  using CoordinateRepresentationType = typename Superclass::CoordinateRepresentationType;
+  using typename Superclass::CoordinateRepresentationType;
   using DerivativeFunctionType = CentralDifferenceImageFunction<MovingImageType, CoordinateRepresentationType>;
 
-  typename DerivativeFunctionType::Pointer m_DerivativeCalculator;
+  typename DerivativeFunctionType::Pointer m_DerivativeCalculator{};
 };
 } // end namespace itk
 

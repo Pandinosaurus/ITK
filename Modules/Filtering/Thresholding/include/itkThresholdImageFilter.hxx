@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkThresholdImageFilter_hxx
 #define itkThresholdImageFilter_hxx
 
-#include "itkThresholdImageFilter.h"
 #include "itkImageScanlineIterator.h"
 #include "itkNumericTraits.h"
 #include "itkObjectFactory.h"
@@ -41,7 +40,7 @@ namespace itk
 
 template <typename TImage>
 ThresholdImageFilter<TImage>::ThresholdImageFilter()
-  : m_OutsideValue(NumericTraits<PixelType>::ZeroValue())
+  : m_OutsideValue(PixelType{})
   , m_Lower(NumericTraits<PixelType>::NonpositiveMin())
   , m_Upper(NumericTraits<PixelType>::max())
 {
@@ -52,23 +51,23 @@ ThresholdImageFilter<TImage>::ThresholdImageFilter()
 
 template <typename TImage>
 void
-ThresholdImageFilter<TImage>::ThresholdAbove(const PixelType & thresh)
+ThresholdImageFilter<TImage>::ThresholdAbove(const PixelType & threshold)
 {
-  if (Math::NotExactlyEquals(m_Upper, thresh) || m_Lower > NumericTraits<PixelType>::NonpositiveMin())
+  if (Math::NotExactlyEquals(m_Upper, threshold) || m_Lower > NumericTraits<PixelType>::NonpositiveMin())
   {
     m_Lower = NumericTraits<PixelType>::NonpositiveMin();
-    m_Upper = thresh;
+    m_Upper = threshold;
     this->Modified();
   }
 }
 
 template <typename TImage>
 void
-ThresholdImageFilter<TImage>::ThresholdBelow(const PixelType & thresh)
+ThresholdImageFilter<TImage>::ThresholdBelow(const PixelType & threshold)
 {
-  if (Math::NotExactlyEquals(m_Lower, thresh) || m_Upper < NumericTraits<PixelType>::max())
+  if (Math::NotExactlyEquals(m_Lower, threshold) || m_Upper < NumericTraits<PixelType>::max())
   {
-    m_Lower = thresh;
+    m_Lower = threshold;
     m_Upper = NumericTraits<PixelType>::max();
     this->Modified();
   }
@@ -80,8 +79,7 @@ ThresholdImageFilter<TImage>::ThresholdOutside(const PixelType & lower, const Pi
 {
   if (lower > upper)
   {
-    itkExceptionMacro(<< "Lower threshold cannot be greater than upper threshold.");
-    return;
+    itkExceptionMacro("Lower threshold cannot be greater than upper threshold.");
   }
 
   if (Math::NotExactlyEquals(m_Lower, lower) || Math::NotExactlyEquals(m_Upper, upper))
@@ -97,18 +95,15 @@ void
 ThresholdImageFilter<TImage>::DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread)
 {
   // Get the input and output pointers
-  InputImagePointer  inputPtr = this->GetInput();
-  OutputImagePointer outputPtr = this->GetOutput(0);
+  const InputImagePointer  inputPtr = this->GetInput();
+  const OutputImagePointer outputPtr = this->GetOutput(0);
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
   // Define/declare an iterator that will walk the output region for this
   // thread.
-  using InputIterator = ImageScanlineConstIterator<TImage>;
-  using OutputIterator = ImageScanlineIterator<TImage>;
-
-  InputIterator  inIt(inputPtr, outputRegionForThread);
-  OutputIterator outIt(outputPtr, outputRegionForThread);
+  ImageScanlineConstIterator inIt(inputPtr, outputRegionForThread);
+  ImageScanlineIterator      outIt(outputPtr, outputRegionForThread);
 
   // Walk the regions; threshold each pixel
   while (!outIt.IsAtEnd())

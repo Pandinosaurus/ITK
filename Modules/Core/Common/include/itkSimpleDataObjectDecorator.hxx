@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,30 +28,10 @@
 #ifndef itkSimpleDataObjectDecorator_hxx
 #define itkSimpleDataObjectDecorator_hxx
 
-#include "itkSimpleDataObjectDecorator.h"
 #include "itkMath.h"
 
 namespace itk
 {
-/**
- *
- */
-template <typename T>
-SimpleDataObjectDecorator<T>::SimpleDataObjectDecorator()
-{
-#if defined(__GNUC__) && (__GNUC__ > 6)
-  ITK_GCC_PRAGMA_DIAG_PUSH()
-  ITK_GCC_PRAGMA_DIAG(ignored "-Wmaybe-uninitialized")
-#endif                                 // defined( __GNUC__ ) && ( __GNUC__ > 6 )
-  this->m_Component = ComponentType(); // initialize here to avoid Purify UMR
-#if defined(__GNUC__) && (__GNUC__ > 6)
-  ITK_GCC_PRAGMA_DIAG_POP()
-#endif                         // defined( __GNUC__ ) && ( __GNUC__ > 6 )
-  this->m_Initialized = false; // Still needed since not all objects
-                               // are initialized at construction time.
-                               // for example the itkArray.
-}
-
 /**
  *
  */

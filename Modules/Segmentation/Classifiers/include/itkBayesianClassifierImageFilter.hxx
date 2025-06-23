@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkBayesianClassifierImageFilter_hxx
 #define itkBayesianClassifierImageFilter_hxx
 
-#include "itkBayesianClassifierImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 
 namespace itk
@@ -44,7 +43,7 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
 
 {
   this->SetNumberOfRequiredOutputs(2);
-  PosteriorsImagePointer p = static_cast<PosteriorsImageType *>(this->MakeOutput(1).GetPointer());
+  const PosteriorsImagePointer p = static_cast<PosteriorsImageType *>(this->MakeOutput(1).GetPointer());
   this->SetNthOutput(1, p.GetPointer());
 }
 
@@ -65,7 +64,6 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
   if (numberOfClasses == 0)
   {
     itkExceptionMacro("The number of components in the input Membership image is Zero !");
-    return;
   }
 
   this->AllocateOutputs();
@@ -138,10 +136,10 @@ void
 BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisionType, TPriorsPrecisionType>::
   ComputeBayesRule()
 {
-  itkDebugMacro(<< "Computing Bayes Rule");
+  itkDebugMacro("Computing Bayes Rule");
   const InputImageType * membershipImage = this->GetInput();
 
-  ImageRegionType imageRegion = membershipImage->GetBufferedRegion();
+  const ImageRegionType imageRegion = membershipImage->GetBufferedRegion();
 
   if (m_UserProvidedPriors)
   {
@@ -168,14 +166,14 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
 
     const unsigned int numberOfClasses = membershipImage->GetVectorLength();
 
-    itkDebugMacro(<< "Computing Bayes Rule nclasses in membershipImage: " << numberOfClasses);
+    itkDebugMacro("Computing Bayes Rule nclasses in membershipImage: " << numberOfClasses);
 
     while (!itrMembershipImage.IsAtEnd())
     {
       PosteriorsPixelType       posteriors(numberOfClasses);
       const PriorsPixelType     priors = itrPriorsImage.Get();
       const MembershipPixelType memberships = itrMembershipImage.Get();
-      for (unsigned int i = 0; i < numberOfClasses; i++)
+      for (unsigned int i = 0; i < numberOfClasses; ++i)
       {
         posteriors[i] = static_cast<TPosteriorsPrecisionType>(memberships[i] * priors[i]);
       }
@@ -249,7 +247,7 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
   PosteriorsPixelType p;
   const unsigned int  numberOfClasses = this->GetPosteriorImage()->GetVectorLength();
 
-  for (unsigned int iter = 0; iter < m_NumberOfSmoothingIterations; iter++)
+  for (unsigned int iter = 0; iter < m_NumberOfSmoothingIterations; ++iter)
   {
     itrPosteriorImage.GoToBegin();
     while (!itrPosteriorImage.IsAtEnd())
@@ -258,7 +256,7 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
 
       // Normalize P so the probability across components sums to 1
       TPosteriorsPrecisionType probability = 0;
-      for (unsigned int i = 0; i < numberOfClasses; i++)
+      for (unsigned int i = 0; i < numberOfClasses; ++i)
       {
         probability += p[i];
       }
@@ -274,12 +272,12 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
       ++itrPosteriorImage;
     }
 
-    for (unsigned int componentToExtract = 0; componentToExtract < numberOfClasses; componentToExtract++)
+    for (unsigned int componentToExtract = 0; componentToExtract < numberOfClasses; ++componentToExtract)
     {
       // Create an auxiliary image to store one component of the vector image.
       // Smoothing filters typically can't handle multi-component images, so we
       // will extract each component and smooth it.
-      typename ExtractedComponentImageType::Pointer extractedComponentImage = ExtractedComponentImageType::New();
+      auto extractedComponentImage = ExtractedComponentImageType::New();
       extractedComponentImage->CopyInformation(this->GetPosteriorImage());
       extractedComponentImage->SetBufferedRegion(this->GetPosteriorImage()->GetBufferedRegion());
       extractedComponentImage->SetRequestedRegion(this->GetPosteriorImage()->GetRequestedRegion());
@@ -325,9 +323,9 @@ void
 BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisionType, TPriorsPrecisionType>::
   ClassifyBasedOnPosteriors()
 {
-  OutputImagePointer labels = this->GetOutput();
+  const OutputImagePointer labels = this->GetOutput();
 
-  ImageRegionType imageRegion = labels->GetBufferedRegion();
+  const ImageRegionType imageRegion = labels->GetBufferedRegion();
 
   PosteriorsImageType * posteriorsImage = this->GetPosteriorImage();
 
@@ -339,7 +337,7 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
   OutputImageIteratorType     itrLabelsImage(labels, imageRegion);
   PosteriorsImageIteratorType itrPosteriorsImage(posteriorsImage, imageRegion);
 
-  DecisionRulePointer decisionRule = DecisionRuleType::New();
+  const DecisionRulePointer decisionRule = DecisionRuleType::New();
 
   itrLabelsImage.GoToBegin();
   itrPosteriorsImage.GoToBegin();
@@ -369,10 +367,12 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType, TPosteriorsPrecisi
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "User provided priors =  " << m_UserProvidedPriors << std::endl;
-  os << indent << "User provided smooting filter =  " << m_UserProvidedSmoothingFilter << std::endl;
-  os << indent << "Smoothing filter pointer =  " << m_SmoothingFilter.GetPointer() << std::endl;
-  os << indent << "Number of smoothing iterations =  " << m_NumberOfSmoothingIterations << std::endl;
+  itkPrintSelfBooleanMacro(UserProvidedPriors);
+  os << indent << "UserProvidedSmoothingFilter " << (m_UserProvidedSmoothingFilter ? "On" : "Off") << std::endl;
+
+  itkPrintSelfObjectMacro(SmoothingFilter);
+
+  os << indent << "NumberOfSmoothingIterations: " << m_NumberOfSmoothingIterations << std::endl;
 }
 } // end namespace itk
 

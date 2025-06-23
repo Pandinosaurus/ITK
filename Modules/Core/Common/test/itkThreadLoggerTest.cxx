@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,21 +32,21 @@ using ThreadDataVec = std::vector<ThreadDataStruct>;
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 ThreadedGenerateLogMessages(void * arg)
 {
-  const auto * threadInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(arg);
-  if (threadInfo)
+  const auto * workUnitInfo = static_cast<itk::MultiThreaderBase::WorkUnitInfo *>(arg);
+  if (workUnitInfo)
   {
-    const unsigned int threadId = threadInfo->WorkUnitID;
+    const unsigned int workUnitID = workUnitInfo->WorkUnitID;
     std::string        threadPrefix;
     {
       std::ostringstream msg;
-      msg << "<Thread " << threadId << "> ";
+      msg << "<Thread " << workUnitID << "> ";
       threadPrefix = msg.str();
     }
 
-    const ThreadDataVec * dataVec = static_cast<ThreadDataVec *>(threadInfo->UserData);
+    const ThreadDataVec * dataVec = static_cast<ThreadDataVec *>(workUnitInfo->UserData);
     if (dataVec)
     {
-      const ThreadDataStruct threadData = (*dataVec)[threadId];
+      const ThreadDataStruct threadData = (*dataVec)[workUnitID];
       {
         std::ostringstream msg;
         msg << threadPrefix << "unpacked arg\n";
@@ -79,7 +79,7 @@ create_threaded_data(int num_threads, itk::LoggerBase * logger)
   ThreadDataVec threadData;
   for (int ii = 0; ii < num_threads; ++ii)
   {
-    threadData.push_back(ThreadDataStruct());
+    threadData.emplace_back();
     threadData[ii].logger = logger;
   }
   return threadData;
@@ -97,21 +97,21 @@ itkThreadLoggerTest(int argc, char * argv[])
       return EXIT_FAILURE;
     }
 
-    int numthreads = 10;
+    int numWorkUnits = 10;
     if (argc > 2)
     {
-      numthreads = std::stoi(argv[2]);
+      numWorkUnits = std::stoi(argv[2]);
     }
 
     // Create an ITK StdStreamLogOutputs
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
     coutput->SetStream(std::cout);
     std::ofstream fout(argv[1]);
     foutput->SetStream(fout);
 
     // Create an ITK ThreadLogger
-    itk::ThreadLogger::Pointer logger = itk::ThreadLogger::New();
+    const itk::ThreadLogger::Pointer logger = itk::ThreadLogger::New();
 
     std::cout << "Testing itk::ThreadLogger" << std::endl;
 
@@ -156,10 +156,10 @@ itkThreadLoggerTest(int argc, char * argv[])
     std::cout << "  Flushing by the ThreadLogger is synchronized." << std::endl;
 
     std::cout << "Beginning multi-threaded portion of test." << std::endl;
-    ThreadDataVec                   threadData = create_threaded_data(numthreads, logger);
-    itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
-    itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(numthreads + 10);
-    threader->SetNumberOfWorkUnits(numthreads);
+    ThreadDataVec                         threadData = create_threaded_data(numWorkUnits, logger);
+    const itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+    itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(numWorkUnits + 10);
+    threader->SetNumberOfWorkUnits(numWorkUnits);
     threader->SetSingleMethod(ThreadedGenerateLogMessages, &threadData);
     threader->SingleMethodExecute();
     logger->Flush();

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,7 +48,7 @@ main(int argc, char * argv[])
 #endif
     }
     myenv += std::string(argv[3]);
-    itksys::SystemTools::PutEnv(myenv.c_str());
+    itksys::SystemTools::PutEnv(myenv);
 
     itk::ObjectFactoryBase::ReHash();
   }
@@ -58,7 +58,7 @@ main(int argc, char * argv[])
   // List all registered factories
   std::list<itk::ObjectFactoryBase *> factories =
     itk::ObjectFactoryBase::GetRegisteredFactories();
-  const std::size_t numFactories = factories.size();
+  const size_t numFactories = factories.size();
 
   std::cout << "----- Registered factories -----" << std::endl;
   std::cout << "Count: " << numFactories << std::endl;
@@ -78,16 +78,20 @@ main(int argc, char * argv[])
       std::list<std::string> descriptions =
         factory->GetClassOverrideDescriptions();
       std::list<bool> enableflags = factory->GetEnableFlags();
-      std::list<std::string>::const_iterator n = names.begin();
-      std::list<std::string>::const_iterator d = descriptions.begin();
-      std::list<bool>::const_iterator        e = enableflags.begin();
-      for (std::list<std::string>::const_iterator o = overrides.begin();
-           o != overrides.end();
-           ++o, ++n, ++d, e++)
       {
-        std::cout << "    Override " << *o << " with " << *n << std::endl
-                  << "      described as \"" << *d << "\"" << std::endl
-                  << "      enabled " << *e << std::endl;
+        auto n = names.begin();
+        auto d = descriptions.begin();
+        auto e = enableflags.begin();
+        for (auto & override : overrides)
+        {
+          std::cout << "    Override " << override << " with " << *n
+                    << std::endl
+                    << "      described as \"" << *d << "\"" << std::endl
+                    << "      enabled " << *e << std::endl;
+          ++n;
+          ++d;
+          ++e;
+        }
       }
     }
     std::cout << "----- -----" << std::endl;
@@ -104,8 +108,8 @@ main(int argc, char * argv[])
 
     using ReaderType = itk::ImageFileReader<ImageNDType>;
     using WriterType = itk::ImageFileWriter<ImageNDType>;
-    ReaderType::Pointer reader = ReaderType::New();
-    WriterType::Pointer writer = WriterType::New();
+    auto reader = ReaderType::New();
+    auto writer = WriterType::New();
 
     try
     {
@@ -169,16 +173,20 @@ main(int argc, char * argv[])
                 << std::endl;
       std::list<bool> enableflags = factory->GetEnableFlags();
       std::cout << "EnableFlags size: " << enableflags.size() << std::endl;
-      std::list<std::string>::const_iterator n = names.begin();
-      std::list<std::string>::const_iterator d = descriptions.begin();
-      std::list<bool>::const_iterator        e = enableflags.begin();
-      for (std::list<std::string>::const_iterator o = overrides.begin();
-           o != overrides.end();
-           ++o, ++n, ++d, ++e)
       {
-        std::cout << "    Override " << *o << " with " << *n << std::endl
-                  << "      described as \"" << *d << "\"" << std::endl
-                  << "      enabled " << *e << std::endl;
+        auto n = names.begin();
+        auto d = descriptions.begin();
+        auto e = enableflags.begin();
+        for (auto & override : overrides)
+        {
+          std::cout << "    Override " << override << " with " << *n
+                    << std::endl
+                    << "      described as \"" << *d << "\"" << std::endl
+                    << "      enabled " << *e << std::endl;
+          ++n;
+          ++d;
+          ++e;
+        }
       }
     }
     std::cout << "----- -----" << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,14 +18,11 @@
 #ifndef itkTestingExtractSliceImageFilter_hxx
 #define itkTestingExtractSliceImageFilter_hxx
 
-#include "itkTestingExtractSliceImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkObjectFactory.h"
 #include "itkTotalProgressReporter.h"
 
-namespace itk
-{
-namespace Testing
+namespace itk::Testing
 {
 
 template <typename TInputImage, typename TOutputImage>
@@ -54,7 +51,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::CallCopyOutputRegionToInputR
   InputImageRegionType &        destRegion,
   const OutputImageRegionType & srcRegion)
 {
-  ExtractSliceImageFilterRegionCopierType extractImageRegionCopier;
+  const ExtractSliceImageFilterRegionCopierType extractImageRegionCopier;
 
   extractImageRegionCopier(destRegion, srcRegion, m_ExtractionRegion);
 }
@@ -68,12 +65,10 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::SetExtractionRegion(InputIma
                 "InputImageDimension must be greater than OutputImageDimension");
   m_ExtractionRegion = extractRegion;
 
-  unsigned int        nonzeroSizeCount = 0;
-  InputImageSizeType  inputSize = extractRegion.GetSize();
-  OutputImageSizeType outputSize;
-  outputSize.Fill(0);
-  OutputImageIndexType outputIndex;
-  outputIndex.Fill(0);
+  unsigned int         nonzeroSizeCount = 0;
+  InputImageSizeType   inputSize = extractRegion.GetSize();
+  OutputImageSizeType  outputSize{};
+  OutputImageIndexType outputIndex{};
 
   /**
    * check to see if the number of non-zero entries in the extraction region
@@ -88,7 +83,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::SetExtractionRegion(InputIma
         outputSize[nonzeroSizeCount] = inputSize[i];
         outputIndex[nonzeroSizeCount] = extractRegion.GetIndex()[i];
       }
-      nonzeroSizeCount++;
+      ++nonzeroSizeCount;
     }
   }
   if (nonzeroSizeCount != OutputImageDimension)
@@ -125,14 +120,12 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   outputPtr->SetLargestPossibleRegion(m_OutputImageRegion);
 
   // Set the output spacing and origin
-  const ImageBase<InputImageDimension> * phyData;
-
-  phyData = dynamic_cast<const ImageBase<InputImageDimension> *>(this->GetInput());
+  const auto * phyData = dynamic_cast<const ImageBase<InputImageDimension> *>(this->GetInput());
 
   if (phyData == nullptr)
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::ExtractSliceImageFilter::GenerateOutputInformation "
+    itkExceptionMacro("itk::ExtractSliceImageFilter::GenerateOutputInformation "
                       << "cannot cast input to " << typeid(ImageBase<InputImageDimension> *).name());
   }
   // Copy what we can from the image from spacing and origin of the input
@@ -145,10 +138,9 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
   typename OutputImageType::SpacingType   outputSpacing;
   typename OutputImageType::DirectionType outputDirection;
-  typename OutputImageType::PointType     outputOrigin;
-  outputOrigin.Fill(0.0);
+  typename OutputImageType::PointType     outputOrigin{};
 
-  if (static_cast<unsigned int>(OutputImageDimension) > static_cast<unsigned int>(InputImageDimension))
+  if constexpr (OutputImageDimension > InputImageDimension)
   {
     // copy the input to the output and fill the rest of the
     // output with zeros.
@@ -174,7 +166,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   }
   else
   {
-    // copy the non-collapsed part of the input spacing and origing to the
+    // copy the non-collapsed part of the input spacing and origin to the
     // output
     outputDirection.SetIdentity();
     int nonZeroCount = 0;
@@ -193,7 +185,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
             ++nonZeroCount2;
           }
         }
-        nonZeroCount++;
+        ++nonZeroCount;
       }
     }
   }
@@ -211,7 +203,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
     {
       if (vnl_determinant(outputDirection.GetVnlMatrix()) == 0.0)
       {
-        itkExceptionMacro(<< "Invalid submatrix extracted for collapsed direction.");
+        itkExceptionMacro("Invalid submatrix extracted for collapsed direction.");
       }
     }
     break;
@@ -247,7 +239,7 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
 
-  itkDebugMacro(<< "Actually executing");
+  itkDebugMacro("Actually executing");
 
   // Get the input and output pointers
   const TInputImage * inputPtr = this->GetInput();
@@ -293,7 +285,6 @@ ExtractSliceImageFilter<TInputImage, TOutputImage>::GetInput() const
   return itkDynamicCastInDebugMode<const TInputImage *>(this->GetPrimaryInput());
 }
 
-} // end namespace Testing
-} // end namespace itk
+} // namespace itk::Testing
 
 #endif

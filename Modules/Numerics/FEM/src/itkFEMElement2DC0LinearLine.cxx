@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,10 +17,9 @@
  *=========================================================================*/
 
 #include "itkFEMElement2DC0LinearLine.h"
+#include <cmath> // For abs.
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 void
 Element2DC0LinearLine::GetIntegrationPointAndWeight(unsigned int i,
@@ -144,13 +143,7 @@ Element2DC0LinearLine::DistanceToLine(const VectorType & x,
   //
   num = p21[0] * (x[0] - p1[0]) + p21[1] * (x[1] - p1[1]) + p21[2] * (x[2] - p1[2]);
   denom = p21[0] * p21[0] + p21[1] * p21[1] + p21[2] * p21[2];
-
-  // trying to avoid an expensive fabs
-  tolerance = 1e-5 * num;
-  if (tolerance < 0.0)
-  {
-    tolerance = -tolerance;
-  }
+  tolerance = std::abs(1e-5 * num);
   if (-tolerance < denom && denom < tolerance) // numerically bad!
   {
     closest = p1; // arbitrary, point is (numerically) far away
@@ -204,5 +197,4 @@ Element2DC0LinearLine::PrintSelf(std::ostream & os, Indent indent) const
   Superclass::PrintSelf(os, indent);
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

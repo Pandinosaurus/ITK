@@ -27,7 +27,7 @@
 // See : POD value-init, see GCC #36750
 /* Test for GCC < 5.1.1 */
 /* GCC 4.2 reports: error: #pragma GCC diagnostic not allowed inside functions */
-#if GCC_VERSION < 50101
+#if defined(GCC_VERSION) && GCC_VERSION < 50101
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
@@ -502,7 +502,7 @@ bool FileAnonymizer::Write()
           {
           if( ts.GetNegociatedType() == TransferSyntax::Implicit )
             {
-            gdcmErrorMacro( "Cant write Virtual Big Endian" );
+            gdcmErrorMacro( "Cannot write Virtual Big Endian" );
             return true;
             }
           else
@@ -542,7 +542,7 @@ bool FileAnonymizer::Write()
         {
         if( ts.GetNegociatedType() == TransferSyntax::Implicit )
           {
-          gdcmErrorMacro( "Cant write Virtual Big Endian" );
+          gdcmErrorMacro( "Cannot write Virtual Big Endian" );
           return true;
           }
         else

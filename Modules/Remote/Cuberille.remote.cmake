@@ -27,12 +27,12 @@
 #--   - [X] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -43,10 +43,10 @@
 #       2020-05-25 Continuous integration and clang format linting now performed by Github Actions
 #       2020-05-25 Line coverage is 99.8%, function coverage is 98.0%
 
-
 # Contact: Matt McCormick <matt.mccormick@kitware.com>
-itk_fetch_module(Cuberille
-"This module implements cuberille implicit surface
+itk_fetch_module(
+  Cuberille
+  "This module implements cuberille implicit surface
 polygonization for ITK. This method operates by diving the surface into a
 number of small cubes called cuberilles. Each cuberille is centered at a
 pixel lying on the iso-surface and then quadrilaterals are generated for each
@@ -57,16 +57,16 @@ resultant mesh.
 A more detailed description can be found in the Insight Journal article:
 
   Mueller, D. \"Cuberille Implicit Surface Polygonization for ITK\"
-  https://www.insight-journal.org/browse/publication/740
+  https://doi.org/10.54294/df9mgw
   July-December, 2010.
 
 And the related:
 
   Mueller, D. \"Fast Marching Minimal Path Extraction in ITK\"
-  https://www.insight-journal.org/browse/publication/213
+  https://doi.org/10.54294/z5zwhh
   January-June, 2008.
 "
   MODULE_COMPLIANCE_LEVEL 3
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKCuberille.git
-  GIT_TAG aaa9fb1332f1b5025e5bcf365967e04f8a636e5b
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKCuberille.git
+  GIT_TAG 84364b1ce2f63b57f068820a300a63521e595eb1
   )

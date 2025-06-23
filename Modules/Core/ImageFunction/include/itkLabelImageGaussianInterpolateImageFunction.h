@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ namespace itk
 {
 
 /**
- *\class LabelImageGaussianInterpolateImageFunction
+ * \class LabelImageGaussianInterpolateImageFunction
  * \brief Interpolation function for multi-label images that implicitly smooths each
  * unique value in the image corresponding to each label set element and returns the
  * corresponding label set element with the largest weight.
@@ -64,25 +64,24 @@ namespace itk
  * \sphinxexample{Core/ImageFunction/ResampleSegmentedImage,Resample Segmented Image}
  * \endsphinx
  */
-
 template <typename TInputImage,
-          typename TCoordRep = double,
+          typename TCoordinate = double,
           typename TPixelCompare = std::less<typename itk::NumericTraits<typename TInputImage::PixelType>::RealType>>
 class ITK_TEMPLATE_EXPORT LabelImageGaussianInterpolateImageFunction
-  : public GaussianInterpolateImageFunction<TInputImage, TCoordRep>
+  : public GaussianInterpolateImageFunction<TInputImage, TCoordinate>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(LabelImageGaussianInterpolateImageFunction);
 
   /** Standard class type aliases. */
   using Self = LabelImageGaussianInterpolateImageFunction;
-  using Superclass = GaussianInterpolateImageFunction<TInputImage, TCoordRep>;
+  using Superclass = GaussianInterpolateImageFunction<TInputImage, TCoordinate>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   using InputPixelType = typename TInputImage::PixelType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LabelImageGaussianInterpolateImageFunction, GaussianInterpolateImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelImageGaussianInterpolateImageFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -91,22 +90,22 @@ public:
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** OutputType type alias support */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** InputImageType type alias support */
-  using InputImageType = typename Superclass::InputImageType;
+  using typename Superclass::InputImageType;
 
   /** RealType type alias support */
-  using RealType = typename Superclass::RealType;
+  using typename Superclass::RealType;
 
   /** Index type alias support */
-  using IndexType = typename Superclass::IndexType;
+  using typename Superclass::IndexType;
 
   /** ContinuousIndex type alias support */
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Array type alias support */
-  using ArrayType = typename Superclass::ArrayType;
+  using typename Superclass::ArrayType;
 
   /**
    * Evaluate at the given index

@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -42,14 +42,15 @@
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
 # Contact: Johan Andruejol <johan.andruejol@kitware.com>
-itk_fetch_module(PrincipalComponentsAnalysis
-"An ITK_-based implementation of principal components analysis.
+itk_fetch_module(
+  PrincipalComponentsAnalysis
+  "An ITK_-based implementation of principal components analysis.
 A more detailed description can be found in the Insight Journal article:
   Bowers M., Younes L. ''Principal Components Analysis of Scalar, Vector, and Mesh Vertex Data.''
-    https://www.insight-journal.org/browse/publication/878
+    https://doi.org/10.54294/loekqj
     August, 2013.
 "
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKPrincipalComponentsAnalysis.git
-  GIT_TAG d5bce054ef015548b18407d92cb6fbc91b8ad8aa
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKPrincipalComponentsAnalysis.git
+  GIT_TAG 88e3f65aabdc9cf2c11f03907975a4e605676504
   )

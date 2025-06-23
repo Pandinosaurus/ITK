@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,23 +19,20 @@
 #define itkWatershedRelabeler_hxx
 
 #include "itkImageRegionIterator.h"
-#include "itkWatershedRelabeler.h"
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 template <typename TScalar, unsigned int TImageDimension>
 Relabeler<TScalar, TImageDimension>::Relabeler()
 {
-  typename ImageType::Pointer img = static_cast<ImageType *>(this->MakeOutput(0).GetPointer());
+  const typename ImageType::Pointer img = static_cast<ImageType *>(this->MakeOutput(0).GetPointer());
   this->SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, img.GetPointer());
 }
 
 template <typename TScalar, unsigned int TImageDimension>
-typename Relabeler<TScalar, TImageDimension>::DataObjectPointer
-Relabeler<TScalar, TImageDimension>::MakeOutput(DataObjectPointerArraySizeType itkNotUsed(idx))
+auto
+Relabeler<TScalar, TImageDimension>::MakeOutput(DataObjectPointerArraySizeType itkNotUsed(idx)) -> DataObjectPointer
 {
   return ImageType::New().GetPointer();
 }
@@ -45,12 +42,12 @@ void
 Relabeler<TScalar, TImageDimension>::GenerateData()
 {
   this->UpdateProgress(0.0);
-  typename ImageType::Pointer input = this->GetInputImage();
-  typename ImageType::Pointer output = this->GetOutputImage();
+  const typename ImageType::Pointer input = this->GetInputImage();
+  const typename ImageType::Pointer output = this->GetOutputImage();
 
-  typename SegmentTreeType::Pointer  tree = this->GetInputSegmentTree();
-  typename SegmentTreeType::Iterator it;
-  EquivalencyTable::Pointer          eqT = EquivalencyTable::New();
+  const typename SegmentTreeType::Pointer tree = this->GetInputSegmentTree();
+  typename SegmentTreeType::Iterator      it;
+  auto                                    eqT = EquivalencyTable::New();
 
   output->SetBufferedRegion(output->GetRequestedRegion());
   output->Allocate();
@@ -72,21 +69,21 @@ Relabeler<TScalar, TImageDimension>::GenerateData()
   //
   // Extract the merges up the requested level
   //
-  if (tree->Empty() == true)
+  if (tree->Empty())
   {
     // itkWarningMacro("Empty input.  No relabeling was done.");
     return;
   }
-  ScalarType max = tree->Back().saliency;
-  auto       mergeLimit = static_cast<ScalarType>(m_FloodLevel * max);
+  const ScalarType max = tree->Back().saliency;
+  auto             mergeLimit = static_cast<ScalarType>(m_FloodLevel * max);
 
   this->UpdateProgress(0.5);
 
   it = tree->Begin();
-  while (it != tree->End() && (*it).saliency <= mergeLimit)
+  while (it != tree->End() && it->saliency <= mergeLimit)
   {
-    eqT->Add((*it).from, (*it).to);
-    it++;
+    eqT->Add(it->from, it->to);
+    ++it;
   }
 
   SegmenterType::RelabelImage(output, output->GetRequestedRegion(), eqT);
@@ -101,8 +98,8 @@ Relabeler<TScalar, VImageDimension>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  typename ImageType::Pointer inputPtr = this->GetInputImage();
-  typename ImageType::Pointer outputPtr = this->GetOutputImage();
+  const typename ImageType::Pointer inputPtr = this->GetInputImage();
+  const typename ImageType::Pointer outputPtr = this->GetOutputImage();
 
   if (!inputPtr || !outputPtr)
   {
@@ -123,18 +120,16 @@ Relabeler<TScalar, TImageDimension>::GenerateOutputRequestedRegion(DataObject * 
   // No choice but to use RTTI here.
   // All Image outputs set to the same RequestedRegion  other
   // outputs ignored.
-  ImageBase<ImageDimension> * imgData;
-  ImageBase<ImageDimension> * op;
-  imgData = dynamic_cast<ImageBase<ImageDimension> *>(output);
 
+  auto * imgData = dynamic_cast<ImageBase<ImageDimension> *>(output);
   if (imgData)
   {
-    std::vector<ProcessObject::DataObjectPointer>::size_type idx;
+    std::vector<ProcessObject::DataObjectPointer>::size_type idx = 0;
     for (idx = 0; idx < this->GetNumberOfIndexedOutputs(); ++idx)
     {
       if (this->GetOutput(idx) && this->GetOutput(idx) != output)
       {
-        op = dynamic_cast<ImageBase<ImageDimension> *>(this->GetOutput(idx));
+        auto * op = dynamic_cast<ImageBase<ImageDimension> *>(this->GetOutput(idx));
         if (op)
         {
           this->GetOutput(idx)->SetRequestedRegion(output);
@@ -159,7 +154,7 @@ Relabeler<TScalar, TImageDimension>::GraftNthOutput(unsigned int idx, ImageType 
 
   if (idx < this->GetNumberOfIndexedOutputs())
   {
-    OutputImagePointer output = this->GetOutputImage();
+    const OutputImagePointer output = this->GetOutputImage();
 
     if (output && graft)
     {
@@ -184,7 +179,6 @@ Relabeler<TScalar, TImageDimension>::PrintSelf(std::ostream & os, Indent indent)
   Superclass::PrintSelf(os, indent);
   os << indent << "FloodLevel: " << m_FloodLevel << std::endl;
 }
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #endif

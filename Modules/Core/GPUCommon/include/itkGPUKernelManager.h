@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,8 @@
 #define itkGPUKernelManager_h
 
 #include <vector>
-#include <itkLightObject.h>
-#include <itkObjectFactory.h>
+#include "itkLightObject.h"
+#include "itkObjectFactory.h"
 #include "itkOpenCLUtil.h"
 #include "itkGPUImage.h"
 #include "itkGPUContextManager.h"
@@ -58,7 +58,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   itkNewMacro(Self);
-  itkTypeMacro(GPUKernelManager, LightObject);
+  itkOverrideGetNameOfClassMacro(GPUKernelManager);
 
   bool
   LoadProgramFromFile(const char * filename, const char * cPreamble = "");
@@ -119,17 +119,17 @@ public:
   bool
   SetKernelArgWithImageAndBufferedRegion(int kernelIdx, cl_uint & argIdx, TGPUImageDataManager * manager)
   {
-    if (kernelIdx < 0 || kernelIdx >= (int)m_KernelContainer.size())
+    if (kernelIdx < 0 || kernelIdx >= static_cast<int>(m_KernelContainer.size()))
+    {
       return false;
+    }
 
-    cl_int errid;
-
-    errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, sizeof(cl_mem), manager->GetGPUBufferPointer());
+    cl_int errid = clSetKernelArg(m_KernelContainer[kernelIdx], argIdx, sizeof(cl_mem), manager->GetGPUBufferPointer());
     OpenCLCheckError(errid, __FILE__, __LINE__, ITK_LOCATION);
 
     m_KernelArgumentReady[kernelIdx][argIdx].m_IsReady = true;
     m_KernelArgumentReady[kernelIdx][argIdx].m_GPUDataManager = manager;
-    argIdx++;
+    ++argIdx;
 
     // this->SetKernelArg(kernelIdx, argIdx++, sizeof(int), &(TGPUImageDataManager::ImageDimension) );
 
@@ -142,7 +142,7 @@ public:
 
     m_KernelArgumentReady[kernelIdx][argIdx].m_IsReady = true;
     m_KernelArgumentReady[kernelIdx][argIdx].m_GPUDataManager = manager->GetModifiableGPUBufferedRegionIndex();
-    argIdx++;
+    ++argIdx;
 
     // the size for the buffered region
     errid = clSetKernelArg(m_KernelContainer[kernelIdx],
@@ -153,7 +153,7 @@ public:
 
     m_KernelArgumentReady[kernelIdx][argIdx].m_IsReady = true;
     m_KernelArgumentReady[kernelIdx][argIdx].m_GPUDataManager = manager->GetModifiableGPUBufferedRegionSize();
-    argIdx++;
+    ++argIdx;
 
     return true;
   }
@@ -197,13 +197,13 @@ protected:
   ResetArguments(int kernelIdx);
 
 private:
-  cl_program m_Program;
+  cl_program m_Program{};
 
-  GPUContextManager * m_Manager;
-  int                 m_CommandQueueId;
+  GPUContextManager * m_Manager{};
+  int                 m_CommandQueueId{};
 
-  std::vector<cl_kernel>                       m_KernelContainer;
-  std::vector<std::vector<KernelArgumentList>> m_KernelArgumentReady;
+  std::vector<cl_kernel>                       m_KernelContainer{};
+  std::vector<std::vector<KernelArgumentList>> m_KernelArgumentReady{};
 
   template <typename TArg>
   bool

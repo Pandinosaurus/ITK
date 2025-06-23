@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,10 @@
 #include <deque>
 #include <functional>
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /**
- *\class SegmentTree
+ * \class SegmentTree
  * A data structure for storing segment merge information used in filters of
  * the watershed segmentation algorithm.  See itk::WatershedImageFilter for an
  * overview.
@@ -48,15 +46,19 @@ template <typename TScalar>
 class ITK_TEMPLATE_EXPORT SegmentTree : public DataObject
 {
 public:
+  ITK_DISALLOW_COPY_AND_MOVE(SegmentTree);
+
   /** Define itk Smart Pointers for this object */
+  /** @ITKStartGrouping */
   using Self = SegmentTree;
   using Superclass = DataObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(WatershedSegmentTree, DataObject);
+  itkOverrideGetNameOfClassMacro(SegmentTree);
   using ScalarType = TScalar;
 
+  /** @ITKEndGrouping */
   /** Elements of the list (nodes of the tree).  A record of a merge
    * between two segments (IdentifierType labels) at a particular
    * saliency.   */
@@ -212,17 +214,13 @@ public:
 protected:
   SegmentTree() = default;
   ~SegmentTree() override = default;
-  SegmentTree(const Self &) {}
-  void
-  operator=(const Self &)
-  {}
+
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  DequeType m_Deque;
+  DequeType m_Deque{};
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedSegmentTree.hxx"

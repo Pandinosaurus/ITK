@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,23 +31,17 @@ namespace itk
 class ITKIOImageBase_EXPORT ImageFileReaderException : public ExceptionObject
 {
 public:
-  /** Run-time information. */
-  itkTypeMacro(ImageFileReaderException, ExceptionObject);
+  ITK_DEFAULT_COPY_AND_MOVE(ImageFileReaderException);
+
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageFileReaderException);
 
   /** Constructor. */
-  ImageFileReaderException(const char * file,
+  ImageFileReaderException(std::string  file,
                            unsigned int line,
-                           const char * message = "Error in IO",
-                           const char * loc = "Unknown")
-    : ExceptionObject(file, line, message, loc)
-  {}
-
-  /** Constructor. */
-  ImageFileReaderException(const std::string & file,
-                           unsigned int        line,
-                           const char *        message = "Error in IO",
-                           const char *        loc = "Unknown")
-    : ExceptionObject(file, line, message, loc)
+                           std::string  message = "Error in IO",
+                           std::string  location = {})
+    : ExceptionObject(std::move(file), line, std::move(message), std::move(location))
   {}
 
   /** Has to have empty throw(). */

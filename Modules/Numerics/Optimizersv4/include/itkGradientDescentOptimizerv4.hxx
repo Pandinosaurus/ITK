@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGradientDescentOptimizerv4_hxx
 #define itkGradientDescentOptimizerv4_hxx
 
-#include "itkGradientDescentOptimizerv4.h"
 
 namespace itk
 {
@@ -31,7 +30,7 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::GradientDesce
   , m_CurrentBestValue(NumericTraits<MeasureType>::max())
 
 {
-  this->m_PreviousGradient.Fill(NumericTraits<TInternalComputationValueType>::ZeroValue());
+  this->m_PreviousGradient.Fill(TInternalComputationValueType{});
 }
 
 template <typename TInternalComputationValueType>
@@ -99,14 +98,14 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::ResumeOptimiz
       // proper size, no new allocation is done.
       this->m_Metric->GetValueAndDerivative(this->m_CurrentMetricValue, this->m_Gradient);
     }
-    catch (ExceptionObject & err)
+    catch (const ExceptionObject &)
     {
       this->m_StopCondition = StopConditionObjectToObjectOptimizerEnum::COSTFUNCTION_ERROR;
       this->m_StopConditionDescription << "Metric error during optimization";
       this->StopOptimization();
 
       // Pass exception to caller
-      throw err;
+      throw;
     }
 
     // Check if optimization has been stopped externally.
@@ -128,14 +127,14 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::ResumeOptimiz
         {
           this->m_StopCondition = StopConditionObjectToObjectOptimizerEnum::CONVERGENCE_CHECKER_PASSED;
           this->m_StopConditionDescription << "Convergence checker passed at iteration " << this->m_CurrentIteration
-                                           << ".";
+                                           << '.';
           this->StopOptimization();
           break;
         }
       }
-      catch (std::exception & e)
+      catch (const std::exception & e)
       {
-        itkWarningMacro(<< "GetConvergenceValue() failed with exception: " << e.what() << std::endl);
+        itkWarningMacro("GetConvergenceValue() failed with exception: " << e.what() << std::endl);
       }
     }
 
@@ -176,14 +175,14 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::AdvanceOneSte
     // Pass gradient to transform and let it do its own updating
     this->m_Metric->UpdateTransformParameters(this->m_Gradient);
   }
-  catch (ExceptionObject & err)
+  catch (const ExceptionObject &)
   {
     this->m_StopCondition = StopConditionObjectToObjectOptimizerEnum::UPDATE_PARAMETERS_ERROR;
     this->m_StopConditionDescription << "UpdateTransformParameters error";
     this->StopOptimization();
 
     // Pass exception to caller
-    throw err;
+    throw;
   }
 
   this->InvokeEvent(IterationEvent());
@@ -201,28 +200,28 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::ModifyGradien
 
   if (this->GetWeightsAreIdentity())
   {
-    for (SizeValueType i = 0; i < factor.Size(); i++)
+    for (SizeValueType i = 0; i < factor.Size(); ++i)
     {
       factor[i] = NumericTraits<typename ScalesType::ValueType>::OneValue() / scales[i];
     }
   }
   else
   {
-    for (SizeValueType i = 0; i < factor.Size(); i++)
+    for (SizeValueType i = 0; i < factor.Size(); ++i)
     {
       factor[i] = weights[i] / scales[i];
     }
   }
 
   // Loop over the range. It is inclusive.
-  for (IndexValueType j = subrange[0]; j <= subrange[1]; j++)
+  for (IndexValueType j = subrange[0]; j <= subrange[1]; ++j)
   {
-    // scales is checked during StartOptmization for values <=
+    // scales is checked during StartOptimization for values <=
     // machine epsilon.
     // Take the modulo of the index to handle gradients from transforms
     // with local support. The gradient array stores the gradient of local
     // parameters at each local index with linear packing.
-    IndexValueType index = j % scales.Size();
+    const IndexValueType index = j % scales.Size();
     this->m_Gradient[j] = this->m_Gradient[j] * factor[index];
   }
 }
@@ -233,7 +232,7 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::ModifyGradien
   const IndexRangeType & subrange)
 {
   // Loop over the range. It is inclusive.
-  for (IndexValueType j = subrange[0]; j <= subrange[1]; j++)
+  for (IndexValueType j = subrange[0]; j <= subrange[1]; ++j)
   {
     this->m_Gradient[j] = this->m_Gradient[j] * this->m_LearningRate;
   }
@@ -282,8 +281,7 @@ GradientDescentOptimizerv4Template<TInternalComputationValueType>::PrintSelf(std
   os << indent
      << "BestParameters: " << static_cast<typename NumericTraits<ParametersType>::PrintType>(this->m_BestParameters)
      << std::endl;
-  os << indent << "ReturnBestParametersAndValue: " << (this->m_ReturnBestParametersAndValue ? "On" : "Off")
-     << std::endl;
+  itkPrintSelfBooleanMacro(ReturnBestParametersAndValue);
   os << indent
      << "PreviousGradient: " << static_cast<typename NumericTraits<DerivativeType>::PrintType>(this->m_PreviousGradient)
      << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,12 @@
 #define itkWienerDeconvolutionImageFilter_h
 
 #include "itkInverseDeconvolutionImageFilter.h"
+#include "itkMath.h"
 
 namespace itk
 {
 /**
- *\class WienerDeconvolutionImageFilter
+ * \class WienerDeconvolutionImageFilter
  * \brief The Wiener deconvolution image filter is designed to restore an
  * image convolved with a blurring kernel while keeping noise
  * enhancement to a minimum.
@@ -63,7 +64,7 @@ namespace itk
  * and uses the result as the estimate of \f$P_f(\omega)\f$.
  *
  * For further information on the Wiener deconvolution filter, please see
- * "Digital Signal Processing" by Kenneth R. Castleman, Prentice Hall, 1995
+ * \cite castleman1995.
  *
  * \author Gaetan Lehmann, Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France
  * \author Chris Mullins, The University of North Carolina at Chapel Hill
@@ -90,8 +91,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information ( and related methods ) */
-  itkTypeMacro(WienerDeconvolutionImageFilter, InverseDeconvolutionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WienerDeconvolutionImageFilter);
 
   /** Dimensionality of input and output data is assumed to be the same. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -99,32 +100,33 @@ public:
   using InputImageType = TInputImage;
   using OutputImageType = TOutputImage;
   using KernelImageType = TKernelImage;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using KernelPixelType = typename Superclass::KernelPixelType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using OutputIndexType = typename Superclass::OutputIndexType;
-  using KernelIndexType = typename Superclass::KernelIndexType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using OutputSizeType = typename Superclass::OutputSizeType;
-  using KernelSizeType = typename Superclass::KernelSizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using OutputRegionType = typename Superclass::OutputRegionType;
-  using KernelRegionType = typename Superclass::KernelRegionType;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::KernelPixelType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::OutputIndexType;
+  using typename Superclass::KernelIndexType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::OutputSizeType;
+  using typename Superclass::KernelSizeType;
+  using typename Superclass::SizeValueType;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::OutputRegionType;
+  using typename Superclass::KernelRegionType;
 
   /** Internal image types. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
   /** Set/get the variance of the zero-mean Gaussian white noise
    * assumed to be added to the input. */
+  /** @ITKStartGrouping */
   itkSetMacro(NoiseVariance, double);
   itkGetConstMacro(NoiseVariance, double);
-
+  /** @ITKEndGrouping */
 protected:
   WienerDeconvolutionImageFilter();
   ~WienerDeconvolutionImageFilter() override = default;
@@ -137,7 +139,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_NoiseVariance;
+  double m_NoiseVariance{};
 };
 
 namespace Functor
@@ -148,21 +150,16 @@ class ITK_TEMPLATE_EXPORT WienerDeconvolutionFunctor
 public:
   WienerDeconvolutionFunctor() = default;
   ~WienerDeconvolutionFunctor() = default;
-  WienerDeconvolutionFunctor(const WienerDeconvolutionFunctor & f)
-    : m_NoisePowerSpectralDensityConstant(f.m_NoisePowerSpectralDensityConstant)
-    , m_KernelZeroMagnitudeThreshold(f.m_KernelZeroMagnitudeThreshold)
-  {}
+  WienerDeconvolutionFunctor(const WienerDeconvolutionFunctor & f) = default;
 
   bool
-  operator!=(const WienerDeconvolutionFunctor &) const
+  operator==(const WienerDeconvolutionFunctor &) const
   {
-    return false;
+    return true;
   }
-  bool
-  operator==(const WienerDeconvolutionFunctor & other) const
-  {
-    return !(*this != other);
-  }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(WienerDeconvolutionFunctor);
+
   inline TPixel
   operator()(const TPixel & I, const TPixel & H) const
   {
@@ -174,8 +171,8 @@ public:
     TPixel Pf = std::norm(I);
 
     TPixel denominator = std::norm(H) + (Pn / (Pf - Pn));
-    TPixel value = NumericTraits<TPixel>::ZeroValue();
-    if (std::abs(denominator) >= m_KernelZeroMagnitudeThreshold)
+    TPixel value{};
+    if (itk::Math::abs(denominator) >= m_KernelZeroMagnitudeThreshold)
     {
       value = I * (std::conj(H) / denominator);
     }
@@ -185,30 +182,32 @@ public:
 
   /** Set/get the constant defining the noise power spectral density
    * constant. */
+  /** @ITKStartGrouping */
   void
   SetNoisePowerSpectralDensityConstant(double constant)
   {
     m_NoisePowerSpectralDensityConstant = constant;
   }
-  double
+  [[nodiscard]] double
   GetNoisePowerSpectralDensityConstant() const
   {
     return m_NoisePowerSpectralDensityConstant;
   }
-
+  /** @ITKEndGrouping */
   /** Set/get the threshold value below which complex magnitudes are considered
    * to be zero. */
+  /** @ITKStartGrouping */
   void
   SetKernelZeroMagnitudeThreshold(double mu)
   {
     m_KernelZeroMagnitudeThreshold = mu;
   }
-  double
+  [[nodiscard]] double
   GetKernelZeroMagnitudeThreshold() const
   {
     return m_KernelZeroMagnitudeThreshold;
   }
-
+  /** @ITKEndGrouping */
 private:
   double m_NoisePowerSpectralDensityConstant = 0.0;
   double m_KernelZeroMagnitudeThreshold = 0.0;

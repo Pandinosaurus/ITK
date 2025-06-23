@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,15 +58,8 @@ namespace itk
  * and redefining the copy constructor and initializing constructor and the Get/Set functions
  * to work around those deficiencies.
  *
- * The behavior of the MetaDataObject<Type>::Print() function has many plausible
- * application dependent implementations.  The default implementation prints the
- * string "[UNKNOWN PRINT CHARACTERISTICS]" that works for all possible
- * MetaDataObject types.
- *
- * The application developer may overload the default implementation to provide
- * a specialized Print() characteristics to produce results desirable for their application.
- * A set of very crude Macros {NATIVE_TYPE_METADATAPRINT, ITK_OBJECT_TYPE_METADATAPRINT_1COMMA,
- * ITK_IMAGE_TYPE_METADATAPRINT  } are provided to facilitate a very simple implementation, and as an example.
+ * The default implementation prints uses the MetaDataObjectType's Print or operator<< if available. Otherwise, it
+ * prints string "[UNKNOWN PRINT CHARACTERISTICS]".
  *
  * \ingroup ITKCommon
  *
@@ -86,8 +79,8 @@ public:
   /** Method for creation through the object factory. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MetaDataObject, MetaDataObjectBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MetaDataObject);
 
   /**
    * The definition of this function is necessary to fulfill
@@ -130,32 +123,98 @@ public:
   void
   Print(std::ostream & os) const override;
 
+  /** Returns (metaDataObject1 == metaDataObject2). */
+  friend bool
+  operator==(const Self & lhs, const Self & rhs)
+  {
+    return Self::EqualValues(lhs.m_MetaDataObjectValue, rhs.m_MetaDataObjectValue);
+  }
+
+  /** Returns (metaDataObject1 != metaDataObject2). */
+  friend bool
+  operator!=(const Self & lhs, const Self & rhs)
+  {
+    return !(lhs == rhs);
+  }
+
 protected:
   MetaDataObject() = default;
   ~MetaDataObject() override = default;
 
 private:
+  /** Assigns the value of `source` to `target`.
+   * \note The trailing return type is there, just to enable SFINAE.*/
+  template <typename TValue>
+  static auto
+  Assign(TValue & target, const TValue & source) -> decltype(target = source)
+  {
+    return target = source;
+  }
+
+  /** `Assign` overload for C-style arrays (as well as arrays of arrays). */
+  template <typename TValue, size_t VNumberOfElements>
+  static void
+  Assign(TValue (&target)[VNumberOfElements], const TValue (&source)[VNumberOfElements])
+  {
+    for (size_t i = 0; i < VNumberOfElements; ++i)
+    {
+      Self::Assign(target[i], source[i]);
+    }
+  }
+
+
+  /** Tells whether the specified arguments compare equal.
+   * \note The trailing return type is there, just to enable SFINAE.*/
+  template <typename TValue>
+  static auto
+  EqualValues(const TValue & lhs, const TValue & rhs) -> decltype(lhs == rhs)
+  {
+    return lhs == rhs;
+  }
+
+  /** `EqualValues` overload for C-style arrays (as well as arrays of arrays). */
+  template <typename TValue, size_t VNumberOfElements>
+  static bool
+  EqualValues(const TValue (&lhs)[VNumberOfElements], const TValue (&rhs)[VNumberOfElements])
+  {
+    for (size_t i = 0; i < VNumberOfElements; ++i)
+    {
+      if (!Self::EqualValues(lhs[i], rhs[i]))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
+  /** Internal helper function used to implement operator== for MetaDataObjectBase. */
+  bool
+  Equal(const MetaDataObjectBase & metaDataObjectBase) const override
+  {
+    const auto metaDataObject = dynamic_cast<const Self *>(&metaDataObjectBase);
+    return (metaDataObject != nullptr) && (*this == *metaDataObject);
+  }
+
   /**
    * A variable to store this derived type.
    * \author Hans J. Johnson
    */
-  MetaDataObjectType m_MetaDataObjectValue;
+  MetaDataObjectType m_MetaDataObjectValue{};
 };
 
 /**
  * EncapsulateMetaData is a convenience function that encapsulates raw MetaData into a
  * MetaDataObject that can be put into the MetaDataDictionary.
- * \param Dictionary TODO
- * \param key TODO
+ * \param Dictionary reference to a dictionary
+ * \param key string identifier for this object
  * \param invalue the value of type T that is to be encapsulated.
- * \return A smartpointer ot a MetaDataObject that is suitable for
- * insertion into a MetaDataDictionary.
  */
 template <typename T>
 inline void
 EncapsulateMetaData(MetaDataDictionary & Dictionary, const std::string & key, const T & invalue)
 {
-  typename MetaDataObject<T>::Pointer temp = MetaDataObject<T>::New();
+  auto temp = MetaDataObject<T>::New();
   temp->SetMetaDataObjectValue(invalue);
   Dictionary[key] = temp;
 }
@@ -186,7 +245,7 @@ ExposeMetaData(const MetaDataDictionary & Dictionary, const std::string key, T &
     return false;
   }
 
-  auto const * const TempMetaDataObject = dynamic_cast<MetaDataObject<T> const *>(keyIter->second.GetPointer());
+  const auto * const TempMetaDataObject = dynamic_cast<const MetaDataObject<T> *>(keyIter->second.GetPointer());
   if (TempMetaDataObject == nullptr)
   {
     return false;
@@ -197,52 +256,6 @@ ExposeMetaData(const MetaDataDictionary & Dictionary, const std::string key, T &
 }
 
 } // end namespace itk
-
-/**
- * \def ITK_NATIVE_TYPE_METADATAPRINT( TYPE_NAME )
- * \brief An ugly macro to facilitate creating a simple implementation of
- * the MetaDataObject<Type>::Print() function for types that
- * have operator<< defined.
- * \param TYPE_NAME the native type parameter type
- */
-#define ITK_NATIVE_TYPE_METADATAPRINT(TYPE_NAME)                                                                       \
-  template <>                                                                                                          \
-  void ::itk::MetaDataObject<TYPE_NAME>::Print(std::ostream & os) const                                                \
-  {                                                                                                                    \
-    os << this->m_MetaDataObjectValue << std::endl;                                                                    \
-  }
-
-/**
- * \def ITK_OBJECT_TYPE_METADATAPRINT_1COMMA( TYPE_NAME_PART1, TYPE_NAME_PART2 )
- * \brief An ugly macro to facilitate creating a simple implementation of
- * the MetaDataObject< Type >::Print() function for
- * itk::Objects that have 1 comma in their type definition
- * \param TYPE_NAME_PART1
- * \param TYPE_NAME_PART2
- */
-#define ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(TYPE_NAME_PART1, TYPE_NAME_PART2)                                         \
-  template <>                                                                                                          \
-  void itk::MetaDataObject<TYPE_NAME_PART1, TYPE_NAME_PART2>::Print(std::ostream & os) const                           \
-  {                                                                                                                    \
-    this->m_MetaDataObjectValue->Print(os);                                                                            \
-  }
-
-/**
- * \def ITK_IMAGE_TYPE_METADATAPRINT( STORAGE_TYPE )
- * An ugly macro to facilitate creating a simple implementation of
- * the MetaDataObject<Type>::Print() function for
- * itk::Image\<STORAGE_TYPE,[1-8]\>\::Pointer
- * \param STORAGE_TYPE The storage type of the image type to print.
- */
-#define ITK_IMAGE_TYPE_METADATAPRINT(STORAGE_TYPE)                                                                     \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 1>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 2>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 3>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 4>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 5>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 6>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 7>::Pointer)                                           \
-  ITK_OBJECT_TYPE_METADATAPRINT_1COMMA(itk::Image<STORAGE_TYPE, 8>::Pointer)
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkMetaDataObject.hxx"
@@ -296,6 +309,7 @@ extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Array<char>>;
 extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Array<int>>;
 extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Array<float>>;
 extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Array<double>>;
+extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Matrix<float, 4, 4>>;
 extern template class ITKCommon_EXPORT_EXPLICIT MetaDataObject<Matrix<double>>;
 
 ITK_GCC_PRAGMA_DIAG_POP()

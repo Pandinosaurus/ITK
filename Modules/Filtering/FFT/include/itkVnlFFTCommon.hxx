@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkVnlFFTCommon_hxx
 #define itkVnlFFTCommon_hxx
 
-#include "itkVnlFFTCommon.h"
 
 namespace itk
 {
@@ -29,7 +28,7 @@ VnlFFTCommon::IsDimensionSizeLegal(TSizeValue n)
 {
   int ifac = 2;
 
-  for (int l = 1; l <= 3; l++)
+  for (int l = 1; l <= 3; ++l)
   {
     for (; n % ifac == 0;)
     {
@@ -43,7 +42,7 @@ VnlFFTCommon::IsDimensionSizeLegal(TSizeValue n)
 template <typename TImage>
 VnlFFTCommon::VnlFFTTransform<TImage>::VnlFFTTransform(const typename TImage::SizeType & s)
 {
-  for (unsigned int i = 0; i < TImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TImage::ImageDimension; ++i)
   {
     Base::factors_[TImage::ImageDimension - i - 1].resize(s[i]);
   }

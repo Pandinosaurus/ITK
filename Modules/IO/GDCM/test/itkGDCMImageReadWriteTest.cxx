@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,7 @@ ReadWrite(const std::string & inputImage, const std::string & outputImage)
   return EXIT_SUCCESS;
 }
 
-template <unsigned Dimension>
+template <unsigned int Dimension>
 int
 internalMain(const std::string &       inputImage,
              const std::string &       outputImage,
@@ -62,26 +62,27 @@ internalMain(const std::string &       inputImage,
 {
   const unsigned int numberOfComponents = gdcmImageIO->GetNumberOfComponents();
   using IOPixelType = itk::IOPixelEnum;
-  IOPixelType pixelType = gdcmImageIO->GetPixelType();
+  const IOPixelType pixelType = gdcmImageIO->GetPixelType();
 
   switch (pixelType)
   {
     case IOPixelType::SCALAR:
       ITK_TEST_EXPECT_EQUAL(numberOfComponents, 1);
-      ITK_TEST_EXPECT_EQUAL(gdcmImageIO->GetPixelTypeAsString(pixelType), expectedPixelType);
+      ITK_TEST_EXPECT_EQUAL(itk::ImageIOBase::GetPixelTypeAsString(pixelType), expectedPixelType);
       return ReadWrite<itk::Image<float, Dimension>>(inputImage, outputImage);
 
     case IOPixelType::RGB:
       ITK_TEST_EXPECT_EQUAL(numberOfComponents, 3);
-      ITK_TEST_EXPECT_EQUAL(gdcmImageIO->GetPixelTypeAsString(pixelType), expectedPixelType);
+      ITK_TEST_EXPECT_EQUAL(itk::ImageIOBase::GetPixelTypeAsString(pixelType), expectedPixelType);
       return ReadWrite<itk::Image<itk::RGBPixel<unsigned char>, Dimension>>(inputImage, outputImage);
 
     case IOPixelType::VECTOR:
-      ITK_TEST_EXPECT_EQUAL(gdcmImageIO->GetPixelTypeAsString(pixelType), expectedPixelType);
+      ITK_TEST_EXPECT_EQUAL(itk::ImageIOBase::GetPixelTypeAsString(pixelType), expectedPixelType);
       return ReadWrite<itk::VectorImage<float, Dimension>>(inputImage, outputImage);
 
     default:
-      std::cerr << "Test does not support pixel type of " << gdcmImageIO->GetPixelTypeAsString(pixelType) << std::endl;
+      std::cerr << "Test does not support pixel type of " << itk::ImageIOBase::GetPixelTypeAsString(pixelType)
+                << std::endl;
       return EXIT_FAILURE;
   }
 }
@@ -108,7 +109,7 @@ itkGDCMImageReadWriteTest(int argc, char * argv[])
 
   std::cout << gdcmImageIO << std::endl;
 
-  unsigned dimension = gdcmImageIO->GetNumberOfDimensions();
+  const unsigned int dimension = gdcmImageIO->GetNumberOfDimensions();
 
   switch (dimension)
   {

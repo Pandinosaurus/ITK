@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +58,7 @@ main(int, char *[])
   // Software Guide : BeginCodeSnippet
   using DensityFunctionType =
     itk::Statistics::GaussianMembershipFunction<MeasurementVectorType>;
-  DensityFunctionType::Pointer densityFunction = DensityFunctionType::New();
+  auto densityFunction = DensityFunctionType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -99,8 +99,7 @@ main(int, char *[])
   densityFunction->SetMean(mean);
   densityFunction->SetCovariance(cov);
 
-  MeasurementVectorType mv;
-  mv.Fill(0);
+  constexpr MeasurementVectorType mv{};
 
   std::cout << densityFunction->Evaluate(mv) << std::endl;
   // Software Guide : EndCodeSnippet

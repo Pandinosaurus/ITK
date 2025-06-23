@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(StreamingImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StreamingImageFilter);
 
   /** Some type alias for the input and output. */
   using InputImageType = TInputImage;
@@ -68,7 +68,7 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
   using OutputImageRegionType = typename OutputImageType::RegionType;
   using OutputImagePixelType = typename OutputImageType::PixelType;
-  using DataObjectPointer = typename Superclass::DataObjectPointer;
+  using typename Superclass::DataObjectPointer;
 
   /** Dimension of input image. */
   static constexpr unsigned int InputImageDimension = InputImageType::ImageDimension;
@@ -87,9 +87,10 @@ public:
   itkGetConstReferenceMacro(NumberOfStreamDivisions, unsigned int);
 
   /** Get/Set the helper class for dividing the input into chunks. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(RegionSplitter, SplitterType);
   itkGetModifiableObjectMacro(RegionSplitter, SplitterType);
-
+  /** @ITKEndGrouping */
   /** Override UpdateOutputData() from ProcessObject to divide upstream
    * updates into pieces. This filter does not have a GenerateData()
    * or ThreadedGenerateData() method.  Instead, all the work is done
@@ -100,17 +101,13 @@ public:
 
   /** Override PropagateRequestedRegion from ProcessObject
    *  Since inside UpdateOutputData we iterate over streaming pieces
-   *  we don't need to proapage up the pipeline
+   *  we don't need to propagate up the pipeline
    */
   void
   PropagateRequestedRegion(DataObject * output) override;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   StreamingImageFilter();
@@ -119,8 +116,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int          m_NumberOfStreamDivisions;
-  RegionSplitterPointer m_RegionSplitter;
+  unsigned int          m_NumberOfStreamDivisions{};
+  RegionSplitterPointer m_RegionSplitter{};
 };
 } // end namespace itk
 

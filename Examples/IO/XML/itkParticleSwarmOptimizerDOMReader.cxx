@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ ParticleSwarmOptimizerDOMReader::GenerateData(const DOMNodeType * inputdom,
   if (output == nullptr)
   {
     logger->Info("creating the output PSO object ...\n");
-    OutputType::Pointer object = OutputType::New();
+    auto object = OutputType::New();
     output = (OutputType *)object;
     this->SetOutput(output);
   }
@@ -111,7 +111,7 @@ ParticleSwarmOptimizerDOMReader::GenerateData(const DOMNodeType * inputdom,
     s.ToData(ubound); // read all data elements in the string
     // combine the two
     ParticleSwarmOptimizer::ParameterBoundsType bounds;
-    for (size_t i = 0; i < lbound.size(); i++)
+    for (size_t i = 0; i < lbound.size(); ++i)
     {
       std::pair<double, double> value;
       value.first = lbound[i];

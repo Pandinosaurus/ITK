@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,7 @@
 
 #include "itkRGBPixel.h"
 
-namespace itk
-{
-namespace Functor
+namespace itk::Functor
 {
 /**
  * \class ScalarToRGBPixelFunctor
@@ -72,7 +70,7 @@ public:
     m_UseMSBForHashing = value;
   }
 
-  bool
+  [[nodiscard]] bool
   GetUseMSBForHashing() const
   {
     return m_UseMSBForHashing;
@@ -95,8 +93,7 @@ private:
   bool         m_UseMSBForHashing;
   unsigned int m_ColorIndex[3];
 };
-} // end namespace Functor
-} // end namespace itk
+} // namespace itk::Functor
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkScalarToRGBPixelFunctor.hxx"

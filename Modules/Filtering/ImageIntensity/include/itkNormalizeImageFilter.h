@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 namespace itk
 {
 /**
- *\class NormalizeImageFilter
+ * \class NormalizeImageFilter
  * \brief Normalize an image by setting its mean to zero and variance to one.
  *
  * NormalizeImageFilter shifts and scales an image so that the pixels
@@ -65,8 +65,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(NormalizeImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NormalizeImageFilter);
 
   /** Image related type alias. */
   using InputImagePointer = typename TInputImage::Pointer;
@@ -88,9 +88,9 @@ protected:
   GenerateInputRequestedRegion() override;
 
 private:
-  typename StatisticsImageFilter<TInputImage>::Pointer m_StatisticsFilter;
+  typename StatisticsImageFilter<TInputImage>::Pointer m_StatisticsFilter{};
 
-  typename ShiftScaleImageFilter<TInputImage, TOutputImage>::Pointer m_ShiftScaleFilter;
+  typename ShiftScaleImageFilter<TInputImage, TOutputImage>::Pointer m_ShiftScaleFilter{};
 }; // end of class
 } // end namespace itk
 

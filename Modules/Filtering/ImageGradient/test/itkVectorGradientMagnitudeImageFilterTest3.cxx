@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 #include "itkTestingMacros.h"
 
 int
-itkVectorGradientMagnitudeImageFilterTest3(int ac, char * av[])
+itkVectorGradientMagnitudeImageFilterTest3(int argc, char * argv[])
 {
   using RGBPixelType = itk::RGBPixel<unsigned char>;
   using RGBImageType = itk::Image<RGBPixelType, 3>;
@@ -35,27 +35,27 @@ itkVectorGradientMagnitudeImageFilterTest3(int ac, char * av[])
   using Monitor2Filter = itk::PipelineMonitorImageFilter<FilterType::OutputImageType>;
   using WriterType = itk::ImageFileWriter<FilterType::OutputImageType>;
 
-  if (ac < 4)
+  if (argc < 4)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage OutputImage Mode\n";
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " InputImage OutputImage Mode\n";
     return EXIT_FAILURE;
   }
 
   // Create a reader and filter
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
 
-  Monitor1Filter::Pointer monitor1 = Monitor1Filter::New();
+  auto monitor1 = Monitor1Filter::New();
   monitor1->SetInput(reader->GetOutput());
   monitor1->ClearPipelineOnGenerateOutputInformationOff();
 
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
   adaptor->SetImage(monitor1->GetOutput());
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(adaptor);
 
-  auto mode = static_cast<bool>(std::stoi(av[3]));
+  auto mode = static_cast<bool>(std::stoi(argv[3]));
 #if !defined(ITK_FUTURE_LEGACY_REMOVE)
   if (mode)
   {
@@ -68,11 +68,11 @@ itkVectorGradientMagnitudeImageFilterTest3(int ac, char * av[])
 #endif
   ITK_TEST_SET_GET_BOOLEAN(filter, UsePrincipleComponents, mode);
 
-  Monitor2Filter::Pointer monitor2 = Monitor2Filter::New();
+  auto monitor2 = Monitor2Filter::New();
   monitor2->SetInput(filter->GetOutput());
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(av[2]);
+  auto writer = WriterType::New();
+  writer->SetFileName(argv[2]);
   writer->SetInput(monitor2->GetOutput());
   writer->SetNumberOfStreamDivisions(4);
 
@@ -98,7 +98,7 @@ itkVectorGradientMagnitudeImageFilterTest3(int ac, char * av[])
     return EXIT_FAILURE;
   }
 
-  // this verifies that the pipeline was executed as expected allong
+  // this verifies that the pipeline was executed as expected along
   // with correct region propagation and output information
   if (!monitor2->VerifyAllInputCanStream(4))
   {

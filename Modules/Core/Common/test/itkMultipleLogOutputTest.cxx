@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,9 +36,9 @@ itkMultipleLogOutputTest(int argc, char * argv[])
 
 
     // Create an ITK StdStreamLogOutput
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
-    itk::MultipleLogOutput::Pointer  m_output = itk::MultipleLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::MultipleLogOutput::Pointer  output = itk::MultipleLogOutput::New();
 
     std::cout << "Testing itk::MultipleLogOutput" << std::endl;
     coutput->SetStream(std::cout);
@@ -46,18 +46,18 @@ itkMultipleLogOutputTest(int argc, char * argv[])
     foutput->SetStream(fout);
 
     std::cout << "  Adding console and file stream LogOutputs" << std::endl;
-    m_output->AddLogOutput(coutput);
-    m_output->AddLogOutput(foutput);
+    output->AddLogOutput(coutput);
+    output->AddLogOutput(foutput);
 
     std::cout << "  Writing by itk::MultipleLogOutput" << std::endl;
-    m_output->Write(1.2345);
-    m_output->Write("This is the test message.\n");
-    m_output->Write("This is the second test message.\n", 1.2345);
-    m_output->Flush();
+    output->Write(1.2345);
+    output->Write("This is the test message.\n");
+    output->Write("This is the second test message.\n", 1.2345);
+    output->Flush();
   }
   catch (...)
   {
-    std::cerr << "Exception catched !!" << std::endl;
+    std::cerr << "Exception caught !!" << std::endl;
     return EXIT_FAILURE;
   }
 

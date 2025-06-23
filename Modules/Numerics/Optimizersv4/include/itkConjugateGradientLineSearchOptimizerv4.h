@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class ConjugateGradientLineSearchOptimizerv4Template
+ * \class ConjugateGradientLineSearchOptimizerv4Template
  *  \brief Conjugate gradient descent optimizer with a golden section line search for nonlinear optimization.
  *
  * ConjugateGradientLineSearchOptimizer implements a conjugate gradient descent optimizer
@@ -57,8 +57,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ConjugateGradientLineSearchOptimizerv4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ConjugateGradientLineSearchOptimizerv4Template);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
@@ -67,16 +67,38 @@ public:
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Metric type over which this class is templated */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /** Type for the convergence checker */
   using ConvergenceMonitoringType = itk::Function::WindowConvergenceMonitoringFunction<TInternalComputationValueType>;
 
   void
   StartOptimization(bool doOnlyInitialization = false) override;
+
+  /**
+   * Set the learning rate for optimization. It is overridden by
+   * automatic learning rate estimation if enabled via a ScalesEstimator.
+   * The learning rate is updated during optimization according to the golden
+   * section line search, even if no ScalesEstimator is set.
+   *
+   * The learning rate set by this method is stored and re-used in subsequent
+   * calls to StartOptimization() unless overridden by automatic learning rate
+   * estimation.
+   */
+  void
+  SetLearningRate(TInternalComputationValueType learningRate) override;
+
+  /**
+   * Set/Get the initial learning rate, which is used in the first iteration of
+   * optimization unless overridden by automatic learning rate estimation.
+   * Setting the learning rate via SetLearningRate() will also change the initial
+   * learning rate for future optimizations.
+   */
+  itkSetMacro(InitialLearningRate, TInternalComputationValueType);
+  itkGetConstReferenceMacro(InitialLearningRate, TInternalComputationValueType);
 
 protected:
   /** Advance one Step following the gradient direction.
@@ -94,8 +116,9 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  DerivativeType m_LastGradient;
-  DerivativeType m_ConjugateGradient;
+  DerivativeType                m_LastGradient{};
+  DerivativeType                m_ConjugateGradient{};
+  TInternalComputationValueType m_InitialLearningRate{ 1 };
 };
 
 /** This helps to meet backward compatibility */

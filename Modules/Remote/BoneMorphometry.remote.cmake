@@ -27,12 +27,12 @@
 #--   - [X] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,15 +41,16 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-itk_fetch_module(BoneMorphometry
+itk_fetch_module(
+  BoneMorphometry
   "An Insight Toolkit (ITK) based implementation for bone morphometry quantification from computed tomography (CT) images.
   A more detailed description can be found in the Insight Journal (IJ) article:
   Vimort J., McCormick M., Paniagua B.
   Computing Bone Morphometric Feature Maps from 3-Dimensional Images
   The Insight Journal. January-December. 2017.
-  https://www.insight-journal.org/browse/publication/988
+  https://doi.org/10.54294/vctqy4
   "
   MODULE_COMPLIANCE_LEVEL 3
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKBoneMorphometry.git
-  GIT_TAG b9a1292e1b3413f25fef01a07b7e16661d61ca3d
-)
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKBoneMorphometry.git
+  GIT_TAG cb6e14eae2cfcbb046082341240d8f5ce84f16e8
+  )

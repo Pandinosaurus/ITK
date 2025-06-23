@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,19 +36,17 @@ MakeChainCodeTracePath(TChainCodePath & chainPath, const TPathInput & inPath, bo
   using ChainInputType = typename TChainCodePath::InputType;
   using InPathInputType = typename TPathInput::InputType;
 
-  OffsetType      offset, tempOffset, zeroOffset;
-  InPathInputType inPathInput;
-  int             dimension = OffsetType::GetOffsetDimension();
+  const int dimension = OffsetType::GetOffsetDimension();
 
-  zeroOffset.Fill(0);
+  constexpr OffsetType zeroOffset{};
 
   chainPath.Clear();
-  inPathInput = inPath.StartOfInput();
+  InPathInputType inPathInput = inPath.StartOfInput();
   chainPath.SetStart(inPath.EvaluateToIndex(inPathInput));
 
   for (ChainInputType chainInput = 0;;)
   {
-    offset = inPath.IncrementInput(inPathInput);
+    OffsetType offset = inPath.IncrementInput(inPathInput);
     if (zeroOffset == offset)
     {
       break;
@@ -60,9 +58,9 @@ MakeChainCodeTracePath(TChainCodePath & chainPath, const TPathInput & inPath, bo
     }
     else
     {
-      for (int d = 0; d < dimension; d++)
+      for (int d = 0; d < dimension; ++d)
       {
-        tempOffset.Fill(0);
+        OffsetType tempOffset{};
         tempOffset[d] = offset[d];
         chainPath.InsertStep(chainInput++, tempOffset);
       }
@@ -89,13 +87,8 @@ MakeFourierSeriesPathTraceChainCode(TFourierSeriesPath &   FSPath,
   using FSInputType = typename TFourierSeriesPath::InputType;
   using ChainInputType = typename TChainCodePath::InputType;
 
-  IndexType   index;
-  VectorType  indexVector;
-  VectorType  cosCoefficient;
-  VectorType  sinCoefficient;
-  FSInputType theta;
-  int         dimension = OffsetType::GetOffsetDimension();
-  size_t      numSteps = chainPath.NumberOfSteps();
+  const int    dimension = OffsetType::GetOffsetDimension();
+  const size_t numSteps = chainPath.NumberOfSteps();
 
   const double PI = 4.0 * std::atan(1.0);
 
@@ -111,19 +104,20 @@ MakeFourierSeriesPathTraceChainCode(TFourierSeriesPath &   FSPath,
     numHarmonics = numSteps / 2;
   }
 
-  for (unsigned n = 0; n < numHarmonics; n++)
+  for (unsigned int n = 0; n < numHarmonics; ++n)
   {
-    index = chainPath.GetStart();
-    cosCoefficient.Fill(0.0);
-    sinCoefficient.Fill(0.0);
+    IndexType  index = chainPath.GetStart();
+    VectorType cosCoefficient{};
+    VectorType sinCoefficient{};
 
-    for (ChainInputType step = 0; step < numSteps; step++)
+    for (ChainInputType step = 0; step < numSteps; ++step)
     {
       index += chainPath.Evaluate(step);
-      theta = 2 * n * PI * (double(step + 1)) / numSteps;
+      const FSInputType theta = 2 * n * PI * (static_cast<double>(step + 1)) / numSteps;
 
       // turn the current index into a vector
-      for (int d = 0; d < dimension; d++)
+      VectorType indexVector;
+      for (int d = 0; d < dimension; ++d)
       {
         indexVector[d] = index[d];
       }

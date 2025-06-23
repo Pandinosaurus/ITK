@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,19 +32,13 @@ class TensorFractionalAnisotropyFunction
 {
 public:
   using RealValueType = typename TInput::RealValueType;
-  TensorFractionalAnisotropyFunction() = default;
-  ~TensorFractionalAnisotropyFunction() = default;
   bool
-  operator!=(const TensorFractionalAnisotropyFunction &) const
+  operator==(const TensorFractionalAnisotropyFunction &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const TensorFractionalAnisotropyFunction & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(TensorFractionalAnisotropyFunction);
 
   inline RealValueType
   operator()(const TInput & x) const
@@ -90,13 +84,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::OutputImageType;
   using OutputPixelType = typename TOutputImage::PixelType;
   using InputPixelType = typename TInputImage::PixelType;
   using InputValueType = typename InputPixelType::ValueType;
 
-  /** Run-time type information (and related methods).   */
-  itkTypeMacro(TensorFractionalAnisotropyImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TensorFractionalAnisotropyImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -108,11 +102,7 @@ public:
     this->Superclass::PrintSelf(os, indent);
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputValueType>));
-  // End concept checking
-#endif
 
 protected:
   TensorFractionalAnisotropyImageFilter() = default;

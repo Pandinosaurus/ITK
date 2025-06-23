@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ main()
   // Software Guide : BeginCodeSnippet
   using MeasurementVectorType = itk::Vector<float, 3>;
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  SampleType::Pointer   sample = SampleType::New();
+  auto                  sample = SampleType::New();
   MeasurementVectorType mv;
   mv[0] = 1.0;
   mv[1] = 2.0;
@@ -110,8 +110,7 @@ main()
   // Software Guide : BeginCodeSnippet
   using MembershipSampleType = itk::Statistics::MembershipSample<SampleType>;
 
-  MembershipSampleType::Pointer membershipSample =
-    MembershipSampleType::New();
+  auto membershipSample = MembershipSampleType::New();
 
   membershipSample->SetSample(sample);
   membershipSample->SetNumberOfClasses(2);

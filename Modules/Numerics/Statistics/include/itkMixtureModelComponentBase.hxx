@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,15 @@
 #ifndef itkMixtureModelComponentBase_hxx
 #define itkMixtureModelComponentBase_hxx
 
-#include "itkMixtureModelComponentBase.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample>
 MixtureModelComponentBase<TSample>::MixtureModelComponentBase()
-{
-  m_Sample = nullptr;
-  m_MembershipFunction = nullptr;
-  m_MinimalParametersChange = 1.0e-06;
-  m_ParametersModified = true;
-}
+  : m_Sample(nullptr)
+  , m_MinimalParametersChange(1.0e-06)
+  , m_MembershipFunction(nullptr)
+  , m_ParametersModified(true)
+{}
 
 template <typename TSample>
 void
@@ -113,8 +108,8 @@ MixtureModelComponentBase<TSample>::SetMembershipFunction(MembershipFunctionType
 }
 
 template <typename TSample>
-typename MixtureModelComponentBase<TSample>::MembershipFunctionType *
-MixtureModelComponentBase<TSample>::GetMembershipFunction()
+auto
+MixtureModelComponentBase<TSample>::GetMembershipFunction() -> MembershipFunctionType *
 {
   return m_MembershipFunction;
 }
@@ -148,10 +143,8 @@ MixtureModelComponentBase<TSample>::GetWeight(unsigned int index) const
   {
     return m_Weights[index];
   }
-  else
-  {
-    itkExceptionMacro("Weight array is not allocated.");
-  }
+
+  itkExceptionMacro("Weight array is not allocated.");
 }
 
 template <typename TSample>
@@ -160,7 +153,6 @@ MixtureModelComponentBase<TSample>::Update()
 {
   this->GenerateData();
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

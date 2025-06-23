@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,20 +18,17 @@
 #ifndef itkPointSetToPointSetMetric_hxx
 #define itkPointSetToPointSetMetric_hxx
 
-#include "itkPointSetToPointSetMetric.h"
 
 namespace itk
 {
-/** Constructor */
+
 template <typename TFixedPointSet, typename TMovingPointSet>
 PointSetToPointSetMetric<TFixedPointSet, TMovingPointSet>::PointSetToPointSetMetric()
-{
-  m_FixedPointSet = nullptr;  // has to be provided by the user.
-  m_MovingPointSet = nullptr; // has to be provided by the user.
-  m_Transform = nullptr;      // has to be provided by the user.
-}
+  : m_FixedPointSet(nullptr)
+  , m_MovingPointSet(nullptr)
+  , m_Transform(nullptr)
+{}
 
-/** Set the parameters that define a unique transform */
 template <typename TFixedPointSet, typename TMovingPointSet>
 void
 PointSetToPointSetMetric<TFixedPointSet, TMovingPointSet>::SetTransformParameters(
@@ -39,53 +36,46 @@ PointSetToPointSetMetric<TFixedPointSet, TMovingPointSet>::SetTransformParameter
 {
   if (!m_Transform)
   {
-    itkExceptionMacro(<< "Transform has not been assigned");
+    itkExceptionMacro("Transform has not been assigned");
   }
   m_Transform->SetParameters(parameters);
 }
 
-/** Initialize the metric */
 template <typename TFixedPointSet, typename TMovingPointSet>
 void
 PointSetToPointSetMetric<TFixedPointSet, TMovingPointSet>::Initialize()
 {
   if (!m_Transform)
   {
-    itkExceptionMacro(<< "Transform is not present");
+    itkExceptionMacro("Transform is not present");
   }
 
   if (!m_MovingPointSet)
   {
-    itkExceptionMacro(<< "MovingPointSet is not present");
+    itkExceptionMacro("MovingPointSet is not present");
   }
 
   if (!m_FixedPointSet)
   {
-    itkExceptionMacro(<< "FixedPointSet is not present");
+    itkExceptionMacro("FixedPointSet is not present");
   }
 
   // If the PointSet is provided by a source, update the source.
-  if (m_MovingPointSet->GetSource())
-  {
-    m_MovingPointSet->GetSource()->Update();
-  }
+  m_MovingPointSet->UpdateSource();
 
   // If the point set is provided by a source, update the source.
-  if (m_FixedPointSet->GetSource())
-  {
-    m_FixedPointSet->GetSource()->Update();
-  }
+  m_FixedPointSet->UpdateSource();
 }
 
-/** PrintSelf */
 template <typename TFixedPointSet, typename TMovingPointSet>
 void
 PointSetToPointSetMetric<TFixedPointSet, TMovingPointSet>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Moving PointSet: " << m_MovingPointSet.GetPointer() << std::endl;
-  os << indent << "Fixed  PointSet: " << m_FixedPointSet.GetPointer() << std::endl;
-  os << indent << "Transform:    " << m_Transform.GetPointer() << std::endl;
+
+  itkPrintSelfObjectMacro(MovingPointSet);
+  itkPrintSelfObjectMacro(FixedPointSet);
+  itkPrintSelfObjectMacro(Transform);
 }
 } // end namespace itk
 

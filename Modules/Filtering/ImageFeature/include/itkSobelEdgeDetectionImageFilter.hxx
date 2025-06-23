@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkSobelEdgeDetectionImageFilter_hxx
 #define itkSobelEdgeDetectionImageFilter_hxx
-#include "itkSobelEdgeDetectionImageFilter.h"
 
 #include "itkNeighborhoodOperatorImageFilter.h"
 #include "itkSobelOperator.h"
@@ -36,7 +35,7 @@ SobelEdgeDetectionImageFilter<TInputImage, TOutputImage>::GenerateInputRequested
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
 
   if (!inputPtr)
   {
@@ -49,8 +48,7 @@ SobelEdgeDetectionImageFilter<TInputImage, TOutputImage>::GenerateInputRequested
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius(oper.GetRadius());
@@ -61,21 +59,19 @@ SobelEdgeDetectionImageFilter<TInputImage, TOutputImage>::GenerateInputRequested
     inputPtr->SetRequestedRegion(inputRequestedRegion);
     return;
   }
-  else
-  {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
 
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
+  // Couldn't crop the region (requested region is outside the largest
+  // possible region).  Throw an exception.
 
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    e.SetLocation(ITK_LOCATION);
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-  }
+  // store what we tried to request (prior to trying to crop)
+  inputPtr->SetRequestedRegion(inputRequestedRegion);
+
+  // build an exception
+  InvalidRequestedRegionError e(__FILE__, __LINE__);
+  e.SetLocation(ITK_LOCATION);
+  e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
+  e.SetDataObject(inputPtr);
+  throw e;
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -95,22 +91,20 @@ SobelEdgeDetectionImageFilter<TInputImage, TOutputImage>::GenerateData()
   using AddFilter = NaryAddImageFilter<OutputImageType, OutputImageType>;
   using SqrtFilter = SqrtImageFilter<OutputImageType, OutputImageType>;
 
-  unsigned int i;
-
-  typename TOutputImage::Pointer output = this->GetOutput();
+  const typename TOutputImage::Pointer output = this->GetOutput();
   output->SetBufferedRegion(output->GetRequestedRegion());
   output->Allocate();
 
-  // Create the sobel operator
+  // Create the Sobel operator
   SobelOperator<OutputPixelType, ImageDimension> opers[ImageDimension];
   ZeroFluxNeumannBoundaryCondition<TInputImage>  nbc;
 
   // Setup mini-pipelines along each axis.
   typename OpFilter::Pointer   opFilter[ImageDimension];
   typename MultFilter::Pointer multFilter[ImageDimension];
-  typename AddFilter::Pointer  addFilter = AddFilter::New();
-  typename SqrtFilter::Pointer sqrtFilter = SqrtFilter::New();
-  for (i = 0; i < ImageDimension; ++i)
+  auto                         addFilter = AddFilter::New();
+  auto                         sqrtFilter = SqrtFilter::New();
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     // Create the filters for this axis.
     opFilter[i] = OpFilter::New();

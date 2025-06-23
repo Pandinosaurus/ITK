@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFFTWComplexToComplexFFTImageFilter_hxx
 #define itkFFTWComplexToComplexFFTImageFilter_hxx
 
-#include "itkFFTWComplexToComplexFFTImageFilter.h"
 #include "itkIndent.h"
 #include "itkMetaDataObject.h"
 #include "itkImageRegionIterator.h"
@@ -30,15 +29,15 @@
  * This code was contributed in the Insight Journal paper:
  * "FFT Complex to Complex filters and helper classes"
  * by Warfield S.
- * https://www.insight-journal.org/browse/publication/128
+ * https://doi.org/10.54294/h4j7t7
  *
  */
 
 namespace itk
 {
 
-template <typename TImage>
-FFTWComplexToComplexFFTImageFilter<TImage>::FFTWComplexToComplexFFTImageFilter()
+template <typename TInputImage, typename TOutputImage>
+FFTWComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::FFTWComplexToComplexFFTImageFilter()
 #ifndef ITK_USE_CUFFTW
   : m_PlanRigor(FFTWGlobalConfiguration::GetPlanRigor())
 #endif
@@ -47,9 +46,9 @@ FFTWComplexToComplexFFTImageFilter<TImage>::FFTWComplexToComplexFFTImageFilter()
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-FFTWComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
+FFTWComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
   // get pointers to the input and output
   const InputImageType * input = this->GetInput();
@@ -62,7 +61,7 @@ FFTWComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
 
   // we don't have a nice progress to report, but at least this simple line
   // reports the beginning and the end of the process
-  ProgressReporter progress(this, 0, 1);
+  const ProgressReporter progress(this, 0, 1);
 
   // allocate output buffer memory
   output->SetBufferedRegion(output->GetRequestedRegion());
@@ -89,7 +88,7 @@ FFTWComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
   }
 
   int sizes[ImageDimension];
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     sizes[(ImageDimension - 1) - i] = inputSize[i];
   }
@@ -102,17 +101,17 @@ FFTWComplexToComplexFFTImageFilter<TImage>::BeforeThreadedGenerateData()
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-FFTWComplexToComplexFFTImageFilter<TImage>::DynamicThreadedGenerateData(
+FFTWComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
   // Normalize the output if backward transform
   if (this->GetTransformDirection() == Superclass::TransformDirectionEnum::INVERSE)
   {
     using IteratorType = ImageRegionIterator<OutputImageType>;
-    SizeValueType totalOutputSize = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
-    IteratorType  it(this->GetOutput(), outputRegionForThread);
+    const SizeValueType totalOutputSize = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
+    IteratorType        it(this->GetOutput(), outputRegionForThread);
     while (!it.IsAtEnd())
     {
       PixelType val = it.Value();
@@ -124,9 +123,9 @@ FFTWComplexToComplexFFTImageFilter<TImage>::DynamicThreadedGenerateData(
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-FFTWComplexToComplexFFTImageFilter<TImage>::UpdateOutputData(DataObject * output)
+FFTWComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::UpdateOutputData(DataObject * output)
 {
   // we need to catch that information now, because it is changed later
   // during the pipeline execution, and thus can't be grabbed in
@@ -136,14 +135,14 @@ FFTWComplexToComplexFFTImageFilter<TImage>::UpdateOutputData(DataObject * output
 }
 
 
-template <typename TImage>
+template <typename TInputImage, typename TOutputImage>
 void
-FFTWComplexToComplexFFTImageFilter<TImage>::PrintSelf(std::ostream & os, Indent indent) const
+FFTWComplexToComplexFFTImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
 #ifndef ITK_USE_CUFFTW
-  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ")"
+  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ')'
      << std::endl;
 #endif
 }

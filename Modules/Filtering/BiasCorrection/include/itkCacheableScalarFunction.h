@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class CacheableScalarFunction
+ * \class CacheableScalarFunction
  * \brief function cache implementation
  *
  * This is the base class for continuous scalar functions which
@@ -72,28 +72,28 @@ public:
 
   /** Get the number of samples between the lower-bound and upper-bound
    * of the cache table. */
-  SizeValueType
+  [[nodiscard]] SizeValueType
   GetNumberOfSamples() const
   {
     return m_NumberOfSamples;
   }
 
   /** Check if the internal cache table and its values are valid. */
-  bool
+  [[nodiscard]] bool
   IsCacheAvailable() const
   {
     return m_CacheAvailable;
   }
 
   /** Get the upper-bound of domain that is used for filling the cache table. */
-  double
+  [[nodiscard]] double
   GetCacheUpperBound() const
   {
     return m_CacheUpperBound;
   }
 
   /** Get the lower-bound of domain that is used for filling the cache table. */
-  double
+  [[nodiscard]] double
   GetCacheLowerBound() const
   {
     return m_CacheLowerBound;
@@ -106,7 +106,7 @@ public:
   Evaluate(MeasureType x);
 
   /** Gets the interval of each cell between the upper and lower bound */
-  double
+  [[nodiscard]] double
   GetInterval() const
   {
     return m_TableInc;
@@ -125,7 +125,7 @@ public:
       throw ExceptionObject(__FILE__, __LINE__);
     }
     // access table
-    auto index = (int)((x - m_CacheLowerBound) / m_TableInc);
+    auto index = static_cast<int>((x - m_CacheLowerBound) / m_TableInc);
     return m_CacheTable[index];
   }
 
@@ -141,7 +141,7 @@ private:
   SizeValueType m_NumberOfSamples{ 0 };
 
   /** Storage for the precalculated function values. */
-  MeasureArrayType m_CacheTable;
+  MeasureArrayType m_CacheTable{};
 
   /** The upper-bound of domain that is used for filling the cache table. */
   double m_CacheUpperBound{ 0.0 };

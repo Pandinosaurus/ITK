@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,14 +36,14 @@ itkLoggerOutputTest(int argc, char * argv[])
 
 
     // Create an ITK StdStreamLogOutputs
-    itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-    itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
+    const itk::StdStreamLogOutput::Pointer foutput = itk::StdStreamLogOutput::New();
     coutput->SetStream(std::cout);
     std::ofstream fout(argv[1]);
     foutput->SetStream(fout);
 
     // Create an ITK Logger
-    itk::Logger::Pointer logger = itk::Logger::New();
+    const itk::Logger::Pointer logger = itk::Logger::New();
 
     std::cout << "Testing itk::LoggerOutput" << std::endl;
 
@@ -62,9 +62,14 @@ itkLoggerOutputTest(int argc, char * argv[])
     std::cout << "  Level For Flushing: " << logger->GetLevelForFlushing() << std::endl;
 
     // Create an ITK LoggerOutput and then test it.
-    itk::LoggerOutput::Pointer pOver = itk::LoggerOutput::New();
+    const itk::LoggerOutput::Pointer pOver = itk::LoggerOutput::New();
+
+    ITK_EXERCISE_BASIC_OBJECT_METHODS(pOver, LoggerOutput, OutputWindow);
+
+
     pOver->OverrideITKWindow();
     pOver->SetLogger(logger); // redirect messages from ITK OutputWindow -> logger2
+    ITK_TEST_SET_GET_VALUE(logger, pOver->GetLogger());
 
     // test message for ITK OutputWindow
     itk::OutputWindow::GetInstance()->DisplayText("** This is from ITK OutputWindow **\n");
@@ -75,7 +80,7 @@ itkLoggerOutputTest(int argc, char * argv[])
   }
   catch (...)
   {
-    std::cerr << "Exception catched !!" << std::endl;
+    std::cerr << "Exception caught !!" << std::endl;
     return EXIT_FAILURE;
   }
 

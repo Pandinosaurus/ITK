@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class CovariantVector
+ * \class CovariantVector
  * \brief A templated class holding a n-Dimensional covariant vector.
  *
  * CovariantVector is a templated class that holds a single vector
@@ -33,7 +33,7 @@ namespace itk
  * type held at each pixel in an Image or at each vertex of an Mesh.
  * The template parameter T can be any data type that behaves like a
  * primitive (or atomic) data type (int, short, float, complex).
- * The NVectorDimension defines the number of components in the vector array.
+ * The VVectorDimension defines the number of components in the vector array.
  *
  * CovariantVector is not a dynamically extendible array like std::vector. It is
  * intended to be used like a mathematical vector.
@@ -64,14 +64,13 @@ namespace itk
  * \sphinxexample{Core/Common/CovariantVectorDotProduct, Covariant Vector Dot Product}
  * \endsphinx
  */
-
-template <typename T, unsigned int NVectorDimension = 3>
-class ITK_TEMPLATE_EXPORT CovariantVector : public FixedArray<T, NVectorDimension>
+template <typename T, unsigned int VVectorDimension = 3>
+class ITK_TEMPLATE_EXPORT CovariantVector : public FixedArray<T, VVectorDimension>
 {
 public:
   /** Standard class type aliases. */
   using Self = CovariantVector;
-  using Superclass = FixedArray<T, NVectorDimension>;
+  using Superclass = FixedArray<T, VVectorDimension>;
 
   /** ValueType can be used to declare a variable that is the same type
    * as a data element held in an CovariantVector.   */
@@ -82,19 +81,19 @@ public:
   using ComponentType = T;
 
   /** Dimension of the Space */
-  static constexpr unsigned int Dimension = NVectorDimension;
+  static constexpr unsigned int Dimension = VVectorDimension;
 
   /** I am a covariant vector. */
   using CovariantVectorType = Self;
 
   /** The Array type from which this CovariantVector is derived. */
-  using BaseArray = FixedArray<T, NVectorDimension>;
+  using BaseArray = FixedArray<T, VVectorDimension>;
 
   /** Get the dimension (size) of the vector. */
   static unsigned int
   GetCovariantVectorDimension()
   {
-    return NVectorDimension;
+    return VVectorDimension;
   }
 
   /** Set a vnl_vector_ref referencing the same memory block. */
@@ -106,18 +105,12 @@ public:
   GetVnlVector();
 
   /** Get a vnl_vector with a copy of the internal memory block. */
-  vnl_vector<T>
+  [[nodiscard]] vnl_vector<T>
   GetVnlVector() const;
 
-  /** Default constructor. */
+  /** Default-constructor.
+   * \note The other five "special member functions" are defaulted implicitly, following the C++ "Rule of Zero". */
   CovariantVector() = default;
-  CovariantVector(const CovariantVector &) = default;
-  CovariantVector(CovariantVector &&) = default;
-  CovariantVector &
-  operator=(const CovariantVector &) = default;
-  CovariantVector &
-  operator=(CovariantVector &&) = default;
-  ~CovariantVector() = default;
 
   /**
    * Constructor to initialize entire vector to one value.
@@ -127,7 +120,7 @@ public:
   /** Pass-through constructor for the Array base class. Implicit casting is
    * performed to initialize constructor from any another one of datatype. */
   template <typename TVectorValueType>
-  CovariantVector(const CovariantVector<TVectorValueType, NVectorDimension> & r)
+  CovariantVector(const CovariantVector<TVectorValueType, VVectorDimension> & r)
     : BaseArray(r)
   {}
   CovariantVector(const ValueType r[Dimension])
@@ -137,7 +130,7 @@ public:
   /** Assignment operator with implicit casting from another data type */
   template <typename TCovariantVectorValueType>
   Self &
-  operator=(const CovariantVector<TCovariantVectorValueType, NVectorDimension> & r)
+  operator=(const CovariantVector<TCovariantVectorValueType, VVectorDimension> & r)
   {
     BaseArray::operator=(r);
     return *this;
@@ -145,14 +138,14 @@ public:
 
   /** Pass-through assignment operator for the Array base class. */
   CovariantVector &
-  operator=(const ValueType r[NVectorDimension]);
+  operator=(const ValueType r[VVectorDimension]);
 
   /** Scalar operator*=.  Scales elements by a scalar. */
   template <typename Tt>
   inline const Self &
   operator*=(const Tt & value)
   {
-    for (unsigned int i = 0; i < NVectorDimension; ++i)
+    for (unsigned int i = 0; i < VVectorDimension; ++i)
     {
       (*this)[i] = static_cast<ValueType>((*this)[i] * value);
     }
@@ -164,7 +157,7 @@ public:
   const Self &
   operator/=(const Tt & value)
   {
-    for (unsigned int i = 0; i < NVectorDimension; ++i)
+    for (unsigned int i = 0; i < VVectorDimension; ++i)
     {
       (*this)[i] = static_cast<ValueType>((*this)[i] / value);
     }
@@ -196,19 +189,22 @@ public:
    * Performs the inner product of two covariant vectors.
    * \warning This is equivalent to the scalar product only if the reference
    * system has orthogonal axis and equal scales.  */
-  ValueType operator*(const Self & other) const;
+  ValueType
+  operator*(const Self & other) const;
 
   /** operator*.  Performs the scalar product with a vector (contravariant).
    * This scalar product is invariant under affine transformations */
-  ValueType operator*(const Vector<T, NVectorDimension> & other) const;
+  ValueType
+  operator*(const Vector<T, VVectorDimension> & other) const;
 
   /** Scalar operator*. Scale the elements of a vector by a scalar.
    * Return a new vector. */
-  inline Self operator*(const ValueType & val) const
+  inline Self
+  operator*(const ValueType & val) const
   {
     Self result;
 
-    for (unsigned int i = 0; i < NVectorDimension; ++i)
+    for (unsigned int i = 0; i < VVectorDimension; ++i)
     {
       result[i] = static_cast<ValueType>((*this)[i] * val);
     }
@@ -223,7 +219,7 @@ public:
   {
     Self result;
 
-    for (unsigned int i = 0; i < NVectorDimension; ++i)
+    for (unsigned int i = 0; i < VVectorDimension; ++i)
     {
       result[i] = static_cast<ValueType>((*this)[i] / val);
     }
@@ -231,14 +227,14 @@ public:
   }
 
   /** Returns the Euclidean Norm of the vector  */
-  RealValueType
+  [[nodiscard]] RealValueType
   GetNorm() const;
 
   /** Returns the number of components in this vector type */
   static unsigned int
   GetNumberOfComponents()
   {
-    return NVectorDimension;
+    return VVectorDimension;
   }
 
   /** Divides the covariant vector components by the norm and return the norm */
@@ -246,16 +242,16 @@ public:
   Normalize();
 
   /** Returns vector's Squared Euclidean Norm  */
-  RealValueType
+  [[nodiscard]] RealValueType
   GetSquaredNorm() const;
 
   /** Copy from another CovariantVector with a different representation type.
    *  Casting is done with C-Like rules  */
-  template <typename TCoordRepB>
+  template <typename TCoordinateB>
   void
-  CastFrom(const CovariantVector<TCoordRepB, NVectorDimension> & pa)
+  CastFrom(const CovariantVector<TCoordinateB, VVectorDimension> & pa)
   {
-    for (unsigned int i = 0; i < NVectorDimension; ++i)
+    for (unsigned int i = 0; i < VVectorDimension; ++i)
     {
       (*this)[i] = static_cast<T>(pa[i]);
     }
@@ -264,17 +260,18 @@ public:
 
 /** Premultiply Operator for product of a vector and a scalar.
  *  CovariantVector< T, N >  =  T * CovariantVector< T,N > */
-template <typename T, unsigned int NVectorDimension>
-inline CovariantVector<T, NVectorDimension> operator*(const T & scalar, const CovariantVector<T, NVectorDimension> & v)
+template <typename T, unsigned int VVectorDimension>
+inline CovariantVector<T, VVectorDimension>
+operator*(const T & scalar, const CovariantVector<T, VVectorDimension> & v)
 {
   return v.operator*(scalar);
 }
 
 /** Performs the scalar product of a covariant with a contravariant.
  * This scalar product is invariant under affine transformations */
-template <typename T, unsigned int NVectorDimension>
-inline T operator*(const Vector<T, NVectorDimension> &          contravariant,
-                   const CovariantVector<T, NVectorDimension> & covariant)
+template <typename T, unsigned int VVectorDimension>
+inline T
+operator*(const Vector<T, VVectorDimension> & contravariant, const CovariantVector<T, VVectorDimension> & covariant)
 {
   return covariant.operator*(contravariant);
 }
@@ -289,9 +286,9 @@ ITKCommon_EXPORT void
 CrossProduct(CovariantVector<int, 3>, const Vector<int, 3> &, const Vector<int, 3> &);
 
 
-template <typename T, unsigned int NVectorDimension>
+template <typename T, unsigned int VVectorDimension>
 inline void
-swap(CovariantVector<T, NVectorDimension> & a, CovariantVector<T, NVectorDimension> & b)
+swap(CovariantVector<T, VVectorDimension> & a, CovariantVector<T, VVectorDimension> & b) noexcept
 {
   a.swap(b);
 }

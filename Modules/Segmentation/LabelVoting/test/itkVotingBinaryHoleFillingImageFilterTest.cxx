@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,15 +47,15 @@ itkVotingBinaryHoleFillingImageFilterTest(int argc, char * argv[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
   using WriterType = itk::ImageFileWriter<OutputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  InputImageType::PixelType foreground = 97; // Prime numbers are good testers
-  InputImageType::PixelType background = 29;
+  constexpr InputImageType::PixelType foreground = 97; // Prime numbers are good testers
+  constexpr InputImageType::PixelType background = 29;
 
-  itk::BinaryThresholdImageFilter<InputImageType, InputImageType>::Pointer thresholder =
+  const itk::BinaryThresholdImageFilter<InputImageType, InputImageType>::Pointer thresholder =
     itk::BinaryThresholdImageFilter<InputImageType, InputImageType>::New();
 
   thresholder->SetInput(reader->GetOutput());
@@ -68,7 +68,7 @@ itkVotingBinaryHoleFillingImageFilterTest(int argc, char * argv[])
   using VotingBinaryHoleFillingImageFilterType =
     itk::VotingBinaryHoleFillingImageFilter<InputImageType, OutputImageType>;
 
-  VotingBinaryHoleFillingImageFilterType::Pointer voting = VotingBinaryHoleFillingImageFilterType::New();
+  auto voting = VotingBinaryHoleFillingImageFilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(voting, VotingBinaryHoleFillingImageFilter, VotingBinaryImageFilter);
 
@@ -80,7 +80,7 @@ itkVotingBinaryHoleFillingImageFilterTest(int argc, char * argv[])
 
   // Set the number of pixels over 50% that will tip the decision about
   // switching a pixel
-  unsigned int majorityThreshold = 1;
+  constexpr unsigned int majorityThreshold = 1;
   voting->SetMajorityThreshold(majorityThreshold);
   ITK_TEST_SET_GET_VALUE(majorityThreshold, voting->GetMajorityThreshold());
 
@@ -95,7 +95,7 @@ itkVotingBinaryHoleFillingImageFilterTest(int argc, char * argv[])
 
   std::cout << "Number of pixels changed: " << voting->GetNumberOfPixelsChanged() << std::endl;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(voting->GetOutput());
   writer->SetFileName(argv[2]);
 

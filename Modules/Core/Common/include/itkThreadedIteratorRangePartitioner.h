@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,16 +45,14 @@ public:
   ThreadedIteratorRangePartitionerDomain() = default;
 
   ThreadedIteratorRangePartitionerDomain(const IteratorType & begin, const IteratorType & end)
-  {
-    this->m_Begin = begin;
-    this->m_End = end;
-  }
+    : m_Begin(begin)
+    , m_End(end)
+  {}
 
   ThreadedIteratorRangePartitionerDomain(const Self & rhs)
-  {
-    this->m_Begin = rhs.m_Begin;
-    this->m_End = rhs.m_End;
-  }
+    : m_Begin(rhs.m_Begin)
+    , m_End(rhs.m_End)
+  {}
 
   void
   operator=(const Self & rhs)
@@ -67,12 +65,12 @@ public:
     this->m_End = rhs.m_End;
   }
 
-  const IteratorType &
+  [[nodiscard]] const IteratorType &
   Begin() const
   {
     return this->m_Begin;
   }
-  const IteratorType &
+  [[nodiscard]] const IteratorType &
   End() const
   {
     return this->m_End;
@@ -124,11 +122,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ThreadedIteratorRangePartitioner, ThreadedDomainPartitioner);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ThreadedIteratorRangePartitioner);
 
   /** Type for convenience of base class methods */
-  using DomainType = typename Superclass::DomainType;
+  using typename Superclass::DomainType;
 
   using IteratorType = TIterator;
 

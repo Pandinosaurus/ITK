@@ -36,7 +36,14 @@ macro(_itk_module_config_recurse ns mod)
     if(${mod}_FACTORY_NAMES)
       foreach(_factory_format ${${mod}_FACTORY_NAMES})
         # Split <factory_name>::<format>
-        string(REGEX REPLACE "^(.*)::(.*)$" "\\1" _factory_name "${_factory_format}")
+        string(
+          REGEX
+          REPLACE
+          "^(.*)::(.*)$"
+          "\\1"
+          _factory_name
+          "${_factory_format}"
+        )
         string(REGEX REPLACE "^(.*)::(.*)$" "\\2" _format "${_factory_format}")
         list(APPEND ${ns}_${_factory_name} ${_format})
         list(APPEND ${ns}_FACTORY_NAMES ${mod}::${_factory_format})
@@ -104,7 +111,7 @@ endmacro()
 # modules invoking the corresponding factory) in TRANSITIVE_DEPENDS modules.
 #
 # `itk_module_config()` can be called with a <namespace> that is different from
-# the default one (ITK) to avoid overwritting the regular ITK_* variables.
+# the default one (ITK) to avoid overwriting the regular ITK_* variables.
 #
 # This first call of `itk_module_config()` will create the meta-modules. This
 # is done when calling `find_package(ITK)`.
@@ -133,8 +140,15 @@ macro(itk_module_config ns)
   endforeach()
   unset(_${ns}_USED_MODULES)
 
-  foreach(v ${ns}_LIBRARIES ${ns}_INCLUDE_DIRS ${ns}_LIBRARY_DIRS
-            ${ns}_RUNTIME_LIBRARY_DIRS ${ns}_FACTORY_NAMES ${ns}_FACTORY_LIST)
+  foreach(
+    v
+    ${ns}_LIBRARIES
+    ${ns}_INCLUDE_DIRS
+    ${ns}_LIBRARY_DIRS
+    ${ns}_RUNTIME_LIBRARY_DIRS
+    ${ns}_FACTORY_NAMES
+    ${ns}_FACTORY_LIST
+  )
     if(${v})
       list(REMOVE_DUPLICATES ${v})
     endif()

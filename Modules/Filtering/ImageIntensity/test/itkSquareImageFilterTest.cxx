@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,7 +48,7 @@ itkSquareImageFilterTest(int, char *[])
   using RegionType = itk::ImageRegion<ImageDimension>;
 
   // Create two images
-  InputImageType::Pointer inputImage = InputImageType::New();
+  auto inputImage = InputImageType::New();
 
   // Define their size, and start index
   SizeType size;
@@ -66,9 +66,7 @@ itkSquareImageFilterTest(int, char *[])
   region.SetSize(size);
 
   // Initialize Image A
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
   // Create one iterator for the Input Image (this is a light object)
   InputIteratorType it(inputImage, inputImage->GetBufferedRegion());
@@ -88,7 +86,7 @@ itkSquareImageFilterTest(int, char *[])
   using FilterType = itk::SquareImageFilter<InputImageType, OutputImageType>;
 
   // Create a Filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, SquareImageFilter, UnaryGeneratorImageFilter);
 
@@ -100,14 +98,14 @@ itkSquareImageFilterTest(int, char *[])
   filter->Update();
 
   // Get the Smart Pointer to the filter output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
   // Create an iterator for going through the image output
   OutputIteratorType ot(outputImage, outputImage->GetRequestedRegion());
 
   //  Check the content of the result image
 
-  const OutputImageType::PixelType epsilon = 1e-6;
+  constexpr OutputImageType::PixelType epsilon = 1e-6;
   ot.GoToBegin();
   it.GoToBegin();
   while (!ot.IsAtEnd())
@@ -119,7 +117,7 @@ itkSquareImageFilterTest(int, char *[])
     const auto                       square = static_cast<OutputImageType::PixelType>(x2);
     if (!itk::Math::FloatAlmostEqual(square, output, 10, epsilon))
     {
-      std::cerr.precision(unsigned(itk::Math::abs(std::log10(epsilon))));
+      std::cerr.precision(static_cast<unsigned int>(itk::Math::abs(std::log10(epsilon))));
       std::cerr << "Error in itkSquareImageFilterTest " << std::endl;
       std::cerr << " square( " << input << ") = " << square << std::endl;
       std::cerr << " differs from " << output;

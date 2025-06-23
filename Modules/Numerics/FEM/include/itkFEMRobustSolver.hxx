@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkFEMRobustSolver_hxx
 #define itkFEMRobustSolver_hxx
 
-#include "itkFEMRobustSolver.h"
 
 #include "itkFEMLoadNode.h"
 #include "itkFEMLoadElementBase.h"
@@ -27,33 +26,23 @@
 #include "itkFEMLoadLandmark.h"
 #include "itkMath.h"
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 
 template <unsigned int VDimension>
 RobustSolver<VDimension>::RobustSolver()
-{
-  this->m_ForceIndex = 0;
-  this->m_LandmarkForceIndex = 1;
-  this->m_ExternalForceIndex = 2;
-  this->m_SolutionIndex = 0;
-  this->m_MeshStiffnessMatrixIndex = 1;
-  this->m_LandmarkStiffnessMatrixIndex = 2;
-  this->m_StiffnessMatrixIndex = 0;
-
-  this->m_OutlierRejectionSteps = 5;
-  this->m_ApproximationSteps = 5;
-
-  this->m_ToleranceToLargestDisplacement = 1.0;
-  this->m_ConjugateGradientPrecision = 1e-3;
-  this->m_FractionErrorRejected = .25;
-
-  this->m_TradeOffImageMeshEnergy = 1.0;
-
-  this->m_UseInterpolationGrid = true;
-}
+  : m_OutlierRejectionSteps(5)
+  , m_ApproximationSteps(5)
+  , m_LandmarkForceIndex(1)
+  , m_ExternalForceIndex(2)
+  , m_MeshStiffnessMatrixIndex(1)
+  , m_LandmarkStiffnessMatrixIndex(2)
+  , m_TradeOffImageMeshEnergy(1.0)
+  , m_ToleranceToLargestDisplacement(1.0)
+  , m_ConjugateGradientPrecision(1e-3)
+  , m_FractionErrorRejected(.25)
+  , m_UseInterpolationGrid(true)
+{}
 
 template <unsigned int VDimension>
 RobustSolver<VDimension>::~RobustSolver() = default;
@@ -120,7 +109,7 @@ RobustSolver<VDimension>::InitializeLandmarks()
     const VectorType & globalPosition = landmark->GetSource();
 
     InterpolationGridPointType point;
-    for (unsigned int i = 0; i < this->FEMDimension; i++)
+    for (unsigned int i = 0; i < this->FEMDimension; ++i)
     {
       point[i] = globalPosition[i];
     }
@@ -415,12 +404,12 @@ RobustSolver<VDimension>::ComputeLandmarkTensor()
 
       for (FEMIndexType nodeId = 0; nodeId < numberOfNodes; ++nodeId)
       {
-        for (FEMIndexType dofXId = 0; dofXId < numberOfDOFs; dofXId++)
+        for (FEMIndexType dofXId = 0; dofXId < numberOfDOFs; ++dofXId)
         {
-          for (FEMIndexType dofYId = 0; dofYId < numberOfDOFs; dofYId++)
+          for (FEMIndexType dofYId = 0; dofYId < numberOfDOFs; ++dofYId)
           {
-            unsigned nx = element->GetDegreeOfFreedom(nodeId * numberOfDOFs + dofXId);
-            unsigned ny = element->GetDegreeOfFreedom(nodeId * numberOfDOFs + dofYId);
+            unsigned int nx = element->GetDegreeOfFreedom(nodeId * numberOfDOFs + dofXId);
+            unsigned int ny = element->GetDegreeOfFreedom(nodeId * numberOfDOFs + dofYId);
             nodeTensor[dofXId][dofYId] = this->m_LinearSystem->GetMatrixValue(nx, ny, m_MeshStiffnessMatrixIndex);
           }
         }
@@ -488,14 +477,13 @@ RobustSolver<VDimension>::UnselectLandmarks(unsigned int nUnselected)
 
   LoadVectorType & loadVector = container->CastToSTLContainer();
 
-  LoadVectorType::iterator it;
-  it = loadVector.begin();
+  auto it = loadVector.begin();
   std::advance(it, nUnselected - 1);
   auto nth = it;
 
-  for (it = loadVector.begin(); it <= nth; it++)
+  for (it = loadVector.begin(); it <= nth; ++it)
   {
-    auto * landmark = dynamic_cast<LoadNoisyLandmark *>((*it).GetPointer());
+    auto * landmark = dynamic_cast<LoadNoisyLandmark *>(it->GetPointer());
     itkAssertInDebugAndIgnoreInReleaseMacro(landmark != nullptr);
 
     landmark->SetOutlier(true);
@@ -523,8 +511,7 @@ RobustSolver<VDimension>::DeleteFromLandmarkBeginning(unsigned int nDeleted)
 
   LoadVectorType & loadVector = container->CastToSTLContainer();
 
-  LoadVectorType::iterator it;
-  it = loadVector.begin();
+  auto it = loadVector.begin();
   std::advance(it, nDeleted);
   auto nth = it;
   loadVector.erase(loadVector.begin(), nth);
@@ -538,9 +525,9 @@ RobustSolver<VDimension>::DeleteLandmarksOutOfMesh()
   using LoadIdentifier = typename FEMObjectType::LoadIdentifier;
 
   using VectorContainerType = itk::VectorContainer<LoadIdentifier, Load::Pointer>;
-  typename VectorContainerType::Pointer newLoadContainer = VectorContainerType::New();
+  auto newLoadContainer = VectorContainerType::New();
 
-  LoadIdentifier numToRemoveLoads = NumericTraits<LoadIdentifier>::ZeroValue();
+  LoadIdentifier numToRemoveLoads{};
 
   LoadContainerType * container = this->m_FEMObject->GetModifiableLoadContainer();
 
@@ -562,7 +549,7 @@ RobustSolver<VDimension>::DeleteLandmarksOutOfMesh()
 
     if (landmark->IsOutOfMesh())
     {
-      numToRemoveLoads++;
+      ++numToRemoveLoads;
     }
     else
     {
@@ -614,7 +601,7 @@ RobustSolver<VDimension>::AssembleMeshStiffnessMatrix()
 
   // Assemble the mechanical matrix by stepping over all elements
   FEMIndexType numberOfElements = this->m_FEMObject->GetNumberOfElements();
-  for (FEMIndexType i = 0; i < numberOfElements; i++)
+  for (FEMIndexType i = 0; i < numberOfElements; ++i)
   {
     // Call the function that actually moves the element matrix to the master matrix.
     Element::Pointer element = this->m_FEMObject->GetElement(i);
@@ -637,10 +624,10 @@ RobustSolver<VDimension>::AssembleElementMatrixWithID(const Element::Pointer & e
   const FEMIndexType numberOfDOFs = element->GetNumberOfDegreesOfFreedom();
 
   // Step over all rows in element matrix
-  for (FEMIndexType j = 0; j < numberOfDOFs; j++)
+  for (FEMIndexType j = 0; j < numberOfDOFs; ++j)
   {
     // Step over all columns in element matrix
-    for (FEMIndexType k = 0; k < numberOfDOFs; k++)
+    for (FEMIndexType k = 0; k < numberOfDOFs; ++k)
     {
       // Error checking. all GFN should be >= 0 and < NGFN
       const unsigned int dofj = element->GetDegreeOfFreedom(j);
@@ -704,14 +691,14 @@ RobustSolver<VDimension>::AssembleLandmarkStiffnessMatrix()
       {
         const double barCoor = shape[k] * shape[k];
 
-        for (FEMIndexType n = 0; n < numberOfDOFs; n++)
+        for (FEMIndexType n = 0; n < numberOfDOFs; ++n)
         {
-          for (FEMIndexType m = 0; m < numberOfDOFs; m++)
+          for (FEMIndexType m = 0; m < numberOfDOFs; ++m)
           {
             const int  dofn = element->GetDegreeOfFreedom(k * numberOfDOFs + n);
             const int  dofm = element->GetDegreeOfFreedom(k * numberOfDOFs + m);
             const auto value = static_cast<float>(barCoor * m_TradeOffImageMeshEnergy * pointTensorPonderation *
-                                                  (tens(n, m)) * confidence);
+                                                  (tens(n, m))*confidence);
 
             this->m_LinearSystem->AddMatrixValue(dofn, dofm, value, m_LandmarkStiffnessMatrixIndex);
           }
@@ -719,20 +706,20 @@ RobustSolver<VDimension>::AssembleLandmarkStiffnessMatrix()
       }
 
       // Fill the extradiagonal matrices
-      for (FEMIndexType i = 0; i < numberOfNodes - 1; i++)
+      for (FEMIndexType i = 0; i < numberOfNodes - 1; ++i)
       {
-        for (FEMIndexType j = i + 1; j < numberOfNodes; j++)
+        for (FEMIndexType j = i + 1; j < numberOfNodes; ++j)
         {
           const double barCoor = shape[i] * shape[j];
 
-          for (FEMIndexType n = 0; n < numberOfDOFs; n++)
+          for (FEMIndexType n = 0; n < numberOfDOFs; ++n)
           {
-            for (FEMIndexType m = 0; m < numberOfDOFs; m++)
+            for (FEMIndexType m = 0; m < numberOfDOFs; ++m)
             {
               const int  dofn = element->GetDegreeOfFreedom(i * numberOfDOFs + n);
               const int  dofm = element->GetDegreeOfFreedom(j * numberOfDOFs + m);
               const auto value = static_cast<float>(barCoor * m_TradeOffImageMeshEnergy * pointTensorPonderation *
-                                                    (tens(n, m)) * confidence);
+                                                    (tens(n, m))*confidence);
 
               this->m_LinearSystem->AddMatrixValue(dofn, dofm, value, m_LandmarkStiffnessMatrixIndex);
               this->m_LinearSystem->AddMatrixValue(dofm, dofn, value, m_LandmarkStiffnessMatrixIndex);
@@ -753,8 +740,7 @@ RobustSolver<VDimension>::RemoveUnselectedLandmarkContributionInPointStiffnessMa
 
   const double pointTensorPonderation = GetLandmarkTensorPonderation();
 
-  itkDebugMacro("Removing unselected blocks contribution, "
-                << "pointTensorPonderation is " << pointTensorPonderation);
+  itkDebugMacro("Removing unselected blocks contribution, pointTensorPonderation is " << pointTensorPonderation);
 
   LoadContainerType * container = this->m_FEMObject->GetModifiableLoadContainer();
 
@@ -790,34 +776,34 @@ RobustSolver<VDimension>::RemoveUnselectedLandmarkContributionInPointStiffnessMa
       {
         const double barCoor = shape[k] * shape[k];
 
-        for (FEMIndexType n = 0; n < numberOfDOFs; n++)
+        for (FEMIndexType n = 0; n < numberOfDOFs; ++n)
         {
-          for (FEMIndexType m = 0; m < numberOfDOFs; m++)
+          for (FEMIndexType m = 0; m < numberOfDOFs; ++m)
           {
             const int  dofn = element->GetDegreeOfFreedom(k * numberOfDOFs + n);
             const int  dofm = element->GetDegreeOfFreedom(k * numberOfDOFs + m);
             const auto value = static_cast<float>(-barCoor * m_TradeOffImageMeshEnergy * pointTensorPonderation *
-                                                  (tens(n, m)) * confidence);
+                                                  (tens(n, m))*confidence);
 
             this->m_LinearSystem->AddMatrixValue(dofn, dofm, value, m_LandmarkStiffnessMatrixIndex);
           }
         }
       }
 
-      for (FEMIndexType i = 0; i < numberOfNodes - 1; i++)
+      for (FEMIndexType i = 0; i < numberOfNodes - 1; ++i)
       {
-        for (FEMIndexType j = i + 1; j < numberOfNodes; j++)
+        for (FEMIndexType j = i + 1; j < numberOfNodes; ++j)
         {
           const double barCoor = shape[i] * shape[j];
 
-          for (FEMIndexType n = 0; n < numberOfDOFs; n++)
+          for (FEMIndexType n = 0; n < numberOfDOFs; ++n)
           {
-            for (FEMIndexType m = 0; m < numberOfDOFs; m++)
+            for (FEMIndexType m = 0; m < numberOfDOFs; ++m)
             {
               const int  dofn = element->GetDegreeOfFreedom(i * numberOfDOFs + n);
               const int  dofm = element->GetDegreeOfFreedom(j * numberOfDOFs + m);
               const auto value = static_cast<float>(-barCoor * m_TradeOffImageMeshEnergy * pointTensorPonderation *
-                                                    (tens(n, m)) * confidence);
+                                                    (tens(n, m))*confidence);
 
               this->m_LinearSystem->AddMatrixValue(dofn, dofm, value, m_LandmarkStiffnessMatrixIndex);
               this->m_LinearSystem->AddMatrixValue(dofm, dofn, value, m_LandmarkStiffnessMatrixIndex);
@@ -957,7 +943,7 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
 {
   const InterpolationGridRegionType & region = this->GetRegion();
   InterpolationGridSizeType           size = region.GetSize();
-  for (unsigned int i = 0; i < this->FEMDimension; i++)
+  for (unsigned int i = 0; i < this->FEMDimension; ++i)
   {
     if (size[i] == 0)
     {
@@ -977,7 +963,7 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
 
   // Fill the interpolation grid with proper pointers to elements
   FEMIndexType numberOfElements = this->m_FEMObject->GetNumberOfElements();
-  for (FEMIndexType index = 0; index < numberOfElements; index++)
+  for (FEMIndexType index = 0; index < numberOfElements; ++index)
   {
     const Element * element = this->m_FEMObject->GetElement(index);
     // Get square boundary box of an element
@@ -985,10 +971,10 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
     VectorType v2 = v1;                             // upper right corner
 
     const FEMIndexType NumberOfDimensions = element->GetNumberOfSpatialDimensions();
-    for (FEMIndexType n = 1; n < element->GetNumberOfNodes(); n++)
+    for (FEMIndexType n = 1; n < element->GetNumberOfNodes(); ++n)
     {
       const VectorType & v = element->GetNodeCoordinates(n);
-      for (FEMIndexType d = 0; d < NumberOfDimensions; d++)
+      for (FEMIndexType d = 0; d < NumberOfDimensions; ++d)
       {
         if (v[d] < v1[d])
         {
@@ -1009,7 +995,7 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
     PointType vp1;
     PointType vp2;
     PointType pt;
-    for (unsigned int i = 0; i < FEMDimension; i++)
+    for (unsigned int i = 0; i < FEMDimension; ++i)
     {
       vp1[i] = v1[i];
       vp2[i] = v2[i];
@@ -1027,7 +1013,7 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
     }
 
     InterpolationGridSizeType region_size;
-    for (unsigned int i = 0; i < FEMDimension; i++)
+    for (unsigned int i = 0; i < FEMDimension; ++i)
     {
       region_size[i] = vi2[i] - vi1[i] + 1;
     }
@@ -1046,10 +1032,10 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
     // Step over all points within the region
     for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
     {
-      // Note: Iteratior is guarantied to be within image, since the
+      // Note: Iterator is guaranteed to be within image, since the
       // elements with BB outside are skipped before.
       this->m_InterpolationGrid->TransformIndexToPhysicalPoint(iter.GetIndex(), pt);
-      for (FEMIndexType d = 0; d < NumberOfDimensions; d++)
+      for (FEMIndexType d = 0; d < NumberOfDimensions; ++d)
       {
         global_point[d] = pt[d];
       }
@@ -1061,10 +1047,9 @@ RobustSolver<VDimension>::InitializeInterpolationGrid()
         iter.Set(element);
       }
     } // next point in region
-  }   // next element
+  } // next element
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #endif

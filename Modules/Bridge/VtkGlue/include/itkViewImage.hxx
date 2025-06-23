@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,6 @@
 #include "itkImageToVTKImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkFixedArray.h"
-#include "itkViewImage.h"
 
 namespace itk
 {
@@ -74,7 +73,7 @@ ViewImage<TImage>::View(const ImageType * img, const std::string & winTitle, siz
   double level = minIntensity + window / 2;
   /** SLICES */
   FixedArray<vtkSmartPointer<vtkImagePlaneWidget>, 3> slicePlanes;
-  for (unsigned i = 0; i < 3; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     slicePlanes[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
     slicePlanes[i]->SetResliceInterpolateToCubic();
@@ -102,8 +101,8 @@ ViewImage<TImage>::View(const ImageType * img, const std::string & winTitle, siz
   cam->GetViewUp(vup);
   for (unsigned int i = 0; i < 3; ++i)
   {
-    pos[i] = -pos[i];
-    vup[i] = -vup[i];
+    pos[i] *= -1;
+    vup[i] *= -1;
   }
   cam->SetPosition(pos);
   cam->SetViewUp(vup);

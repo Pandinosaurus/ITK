@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LabeledPointSetToPointSetMetricv4, PointSetToPointSetMetricv4);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabeledPointSetToPointSetMetricv4);
 
   using FixedPointSetType = TFixedPointSet;
   using FixedPointSetPointer = typename FixedPointSetType::Pointer;
@@ -76,11 +76,11 @@ public:
   using MovingPointSetPointer = typename MovingPointSetType::Pointer;
 
   /** Types transferred from the base class */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using LocalDerivativeType = typename Superclass::LocalDerivativeType;
-  using PointType = typename Superclass::PointType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::LocalDerivativeType;
+  using typename Superclass::PointType;
+  using typename Superclass::PointIdentifier;
 
   using LabelType = typename Superclass::PixelType;
   using LabelSetType = std::vector<LabelType>;
@@ -116,9 +116,10 @@ public:
    * Set/get the specific unlabeled point set metric type.  Default is
    * the \c EuclideanDistancePointSetToPointSetMetricv4.
    */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(PointSetMetric, PointSetMetricType);
   itkGetModifiableObjectMacro(PointSetMetric, PointSetMetricType);
-
+  /** @ITKEndGrouping */
   /**
    * Ensure label type is an integer type
    */
@@ -154,12 +155,12 @@ private:
   MovingPointSetPointer
   GetLabeledMovingPointSet(const LabelType) const;
 
-  PointSetMetricPointer              m_PointSetMetric;
-  std::vector<PointSetMetricPointer> m_PointSetMetricClones;
+  PointSetMetricPointer              m_PointSetMetric{};
+  std::vector<PointSetMetricPointer> m_PointSetMetricClones{};
 
-  LabelSetType m_FixedPointSetLabels;
-  LabelSetType m_MovingPointSetLabels;
-  LabelSetType m_CommonPointSetLabels;
+  LabelSetType m_FixedPointSetLabels{};
+  LabelSetType m_MovingPointSetLabels{};
+  LabelSetType m_CommonPointSetLabels{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkListSample.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class ImageJointDomainTraits
  *  \brief This class provides the type definition for the measurement
@@ -107,8 +105,8 @@ public:
   using PointType = typename ImageJointDomainTraitsType::PointType;
   using CoordinateRepType = typename ImageJointDomainTraitsType::CoordinateRepType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(JointDomainImageToListSampleAdaptor, ListSample);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(JointDomainImageToListSampleAdaptor);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -116,13 +114,13 @@ public:
   /** the number of components in a measurement vector */
   static constexpr unsigned int MeasurementVectorSize = ImageJointDomainTraitsType::Dimension;
 
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MeasurementVectorSizeType;
 
   /** type alias for Measurement vector, measurement,
    * Instance Identifier, frequency, size, size element value */
-  using AbsoluteFrequencyType = typename Superclass::AbsoluteFrequencyType;
-  using TotalAbsoluteFrequencyType = typename Superclass::TotalAbsoluteFrequencyType;
-  using InstanceIdentifier = typename Superclass::InstanceIdentifier;
+  using typename Superclass::AbsoluteFrequencyType;
+  using typename Superclass::TotalAbsoluteFrequencyType;
+  using typename Superclass::InstanceIdentifier;
 
   /** Image type alias */
   using ImageType = TImage;
@@ -175,10 +173,11 @@ public:
   GetMeasurementVector(InstanceIdentifier id) const override;
 
   /** Method to set UsePixelContainer flag */
+  /** @ITKStartGrouping */
   itkSetMacro(UsePixelContainer, bool);
   itkGetConstMacro(UsePixelContainer, bool);
   itkBooleanMacro(UsePixelContainer);
-
+  /** @ITKEndGrouping */
   //  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** \class ConstIterator
@@ -195,10 +194,9 @@ public:
     ConstIterator(const JointDomainImageToListSampleAdaptor * adaptor) { *this = adaptor->Begin(); }
 
     ConstIterator(const ConstIterator & iter)
-    {
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      m_Adaptor = iter.m_Adaptor;
-    }
+      : m_InstanceIdentifier(iter.m_InstanceIdentifier)
+      , m_Adaptor(iter.m_Adaptor)
+    {}
 
     ConstIterator &
     operator=(const ConstIterator & iter)
@@ -234,24 +232,19 @@ public:
     }
 
     bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_InstanceIdentifier != it.m_InstanceIdentifier);
-    }
-
-    bool
     operator==(const ConstIterator & it) const
     {
       return (m_InstanceIdentifier == it.m_InstanceIdentifier);
     }
 
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
   protected:
     // This method should only be available to the ListSample class
     ConstIterator(const JointDomainImageToListSampleAdaptor * adaptor, InstanceIdentifier iid)
-    {
-      m_Adaptor = adaptor;
-      m_InstanceIdentifier = iid;
-    }
+      : m_InstanceIdentifier(iid)
+      , m_Adaptor(adaptor)
+    {}
 
   private:
     mutable MeasurementVectorType               m_MeasurementVectorCache;
@@ -299,7 +292,7 @@ public:
   Iterator
   Begin()
   {
-    Iterator iter(this, 0);
+    const Iterator iter(this, 0);
 
     return iter;
   }
@@ -308,7 +301,7 @@ public:
   Iterator
   End()
   {
-    Iterator iter(this, m_Image->GetPixelContainer()->Size());
+    const Iterator iter(this, m_Image->GetPixelContainer()->Size());
 
     return iter;
   }
@@ -338,18 +331,17 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  NormalizationFactorsType                 m_NormalizationFactors;
-  mutable MeasurementVectorType            m_TempVector;
-  mutable PointType                        m_TempPoint;
-  mutable ImageIndexType                   m_TempIndex;
-  mutable RangeDomainMeasurementVectorType m_TempRangeVector;
-  ImageConstPointer                        m_Image;
-  bool                                     m_UsePixelContainer;
+  NormalizationFactorsType                 m_NormalizationFactors{};
+  mutable MeasurementVectorType            m_TempVector{};
+  mutable PointType                        m_TempPoint{};
+  mutable ImageIndexType                   m_TempIndex{};
+  mutable RangeDomainMeasurementVectorType m_TempRangeVector{};
+  ImageConstPointer                        m_Image{};
+  bool                                     m_UsePixelContainer{};
 
-  PixelContainerConstPointer m_PixelContainer;
+  PixelContainerConstPointer m_PixelContainer{};
 }; // end of class JointDomainImageToListSampleAdaptor
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkJointDomainImageToListSampleAdaptor.hxx"

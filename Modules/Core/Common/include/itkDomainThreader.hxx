@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkDomainThreader_hxx
 #define itkDomainThreader_hxx
 
-#include "itkDomainThreader.h"
 
 namespace itk
 {
@@ -26,9 +25,9 @@ namespace itk
 template <typename TDomainPartitioner, typename TAssociate>
 DomainThreader<TDomainPartitioner, TAssociate>::DomainThreader()
   : m_Associate(nullptr)
+  , m_DomainPartitioner(DomainPartitionerType::New())
 
 {
-  this->m_DomainPartitioner = DomainPartitionerType::New();
   this->m_MultiThreader = MultiThreaderBase::New();
   this->m_NumberOfWorkUnits = this->m_MultiThreader->GetNumberOfWorkUnits();
 }
@@ -72,7 +71,7 @@ template <typename TDomainPartitioner, typename TAssociate>
 void
 DomainThreader<TDomainPartitioner, TAssociate>::DetermineNumberOfWorkUnitsUsed()
 {
-  ThreadIdType numberOfWorkUnits = this->GetNumberOfWorkUnits();
+  const ThreadIdType numberOfWorkUnits = this->GetNumberOfWorkUnits();
 
   // Attempt a single dummy partition, just to get the number of subdomains actually created
   DomainType subdomain;
@@ -83,8 +82,8 @@ DomainThreader<TDomainPartitioner, TAssociate>::DetermineNumberOfWorkUnitsUsed()
 
   if (this->m_NumberOfWorkUnitsUsed > numberOfWorkUnits)
   {
-    itkExceptionMacro("A subclass of ThreadedDomainPartitioner::PartitionDomain"
-                      << "returned more subdomains than were requested");
+    itkExceptionMacro(
+      "A subclass of ThreadedDomainPartitioner::PartitionDomain returned more subdomains than were requested");
   }
 }
 
@@ -96,11 +95,7 @@ DomainThreader<TDomainPartitioner, TAssociate>::StartThreadingSequence()
   ThreadStruct str;
   str.domainThreader = this;
 
-  MultiThreaderBase * multiThreader = this->GetMultiThreader();
-  multiThreader->SetSingleMethod(this->ThreaderCallback, &str);
-
-  // multithread the execution
-  multiThreader->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->ThreaderCallback, &str);
 }
 
 template <typename TDomainPartitioner, typename TAssociate>
@@ -110,22 +105,22 @@ DomainThreader<TDomainPartitioner, TAssociate>::ThreaderCallback(void * arg)
   auto *             info = static_cast<MultiThreaderBase::WorkUnitInfo *>(arg);
   auto *             str = static_cast<ThreadStruct *>(info->UserData);
   DomainThreader *   thisDomainThreader = str->domainThreader;
-  const ThreadIdType threadId = info->WorkUnitID;
-  const ThreadIdType threadCount = info->NumberOfWorkUnits;
+  const ThreadIdType workUnitID = info->WorkUnitID;
+  const ThreadIdType workUnitCount = info->NumberOfWorkUnits;
 
   // Get the sub-domain to process for this thread.
   DomainType         subdomain;
   const ThreadIdType total = thisDomainThreader->GetDomainPartitioner()->PartitionDomain(
-    threadId, threadCount, thisDomainThreader->m_CompleteDomain, subdomain);
+    workUnitID, workUnitCount, thisDomainThreader->m_CompleteDomain, subdomain);
 
   // Execute the actual method with appropriate sub-domain.
-  // If the threadId is greater than the total number of regions
+  // If the work unit ID is greater than the total number of regions
   // that PartitionDomain will create, don't use this thread.
-  // Sometimes the threads dont break up very well and it is just
+  // Sometimes the threads don't break up very well and it is just
   // as efficient to leave a few threads idle.
-  if (threadId < total)
+  if (workUnitID < total)
   {
-    thisDomainThreader->ThreadedExecution(subdomain, threadId);
+    thisDomainThreader->ThreadedExecution(subdomain, workUnitID);
   }
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;

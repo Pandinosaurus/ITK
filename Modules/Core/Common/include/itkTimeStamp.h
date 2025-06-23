@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,11 +70,7 @@ public:
   static Self *
   New();
 
-  /** Constructor must remain public because classes instantiate
-   * TimeStamps implicitly in their construction.  */
-  TimeStamp() { m_ModifiedTime = 0; }
-
-  /** Destoy this instance. */
+  /** Destroy this instance. */
   void
   Delete()
   {
@@ -99,13 +95,14 @@ public:
   Modified();
 
   /** Return this object's Modified time.  */
-  ModifiedTimeType
+  [[nodiscard]] ModifiedTimeType
   GetMTime() const
   {
     return m_ModifiedTime;
   }
 
   /** Support comparisons of time stamp objects directly.  */
+  /** @ITKStartGrouping */
   bool
   operator>(TimeStamp & ts) const
   {
@@ -116,21 +113,16 @@ public:
   {
     return (m_ModifiedTime < ts.m_ModifiedTime);
   }
-
+  /** @ITKEndGrouping */
   /** Allow for typecasting to unsigned long.  */
   operator ModifiedTimeType() const { return m_ModifiedTime; }
-
-  /** Assignment operator, allows to initialize one time stamp by copying from
-   * another. */
-  Self &
-  operator=(const Self & other) = default;
 
 private:
   /** Set/Get the pointer to GlobalTimeStamp.
    * Note that SetGlobalTimeStamp is not concurrent thread safe. */
   itkGetGlobalDeclarationMacro(GlobalTimeStampType, GlobalTimeStamp);
 
-  ModifiedTimeType m_ModifiedTime;
+  ModifiedTimeType m_ModifiedTime{ 0 };
 
   /** The static GlobalTimeStamp. This is initialized to NULL as the first
    * stage of static initialization. It is then populated on the first call to

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,10 +59,10 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  using NeighborhoodType = typename Superclass::NeighborhoodType;
-  using FloatOffsetType = typename Superclass::FloatOffsetType;
-  using PixelType = typename Superclass::PixelType;
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::NeighborhoodType;
+  using typename Superclass::FloatOffsetType;
+  using typename Superclass::PixelType;
+  using typename Superclass::TimeStepType;
 
   PixelType
   ComputeUpdate(const NeighborhoodType &, void *, const FloatOffsetType &) override
@@ -76,7 +76,7 @@ public:
     return 0;
   }
 
-  void *
+  [[nodiscard]] void *
   GetGlobalDataPointer() const override
   {
     return nullptr;
@@ -119,7 +119,7 @@ itkCurvatureFlowTest(int argc, char * argv[])
 
   std::cout << "Test error handling." << std::endl;
   using FilterType = itk::CurvatureFlowImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(nullptr);
 
   bool passed = false;
@@ -148,11 +148,10 @@ itkCurvatureFlowTest(int argc, char * argv[])
     std::cout << "Test when wrong function type." << std::endl;
     using FunctionType = itk::DummyFunction<ImageType>;
     filter = FilterType::New();
-    FunctionType::Pointer function = FunctionType::New();
-    ImageType::Pointer    dummy = ImageType::New();
-    ImageType::SizeType   size;
-    size.Fill(3);
-    ImageType::RegionType region(size);
+    auto                        function = FunctionType::New();
+    auto                        dummy = ImageType::New();
+    auto                        size = ImageType::SizeType::Filled(3);
+    const ImageType::RegionType region(size);
     dummy->SetRegions(region);
     dummy->Allocate();
     dummy->FillBuffer(0.2);
@@ -173,7 +172,7 @@ itkCurvatureFlowTest(int argc, char * argv[])
   std::cout << "Create input image using RandomImageSource" << std::endl;
   using SourceType = itk::RandomImageSource<ImageType>;
 
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
   ImageType::SizeValueType size[ImageDimension] = { 64, 64 };
   source->SetSize(size);
@@ -185,15 +184,15 @@ itkCurvatureFlowTest(int argc, char * argv[])
   std::cout << "Run CurvatureFlowImageFiler with progress cout's" << std::endl;
   using DenoiserType = itk::CurvatureFlowImageFilter<ImageType, ImageType>;
 
-  DenoiserType::Pointer denoiser = DenoiserType::New();
+  auto denoiser = DenoiserType::New();
 
   denoiser->SetInput(source->GetOutput());
   denoiser->SetTimeStep(0.05);
   denoiser->SetNumberOfIterations(8);
 
-  ShowProgressObject                                    progressWatch(denoiser);
-  itk::SimpleMemberCommand<ShowProgressObject>::Pointer command;
-  command = itk::SimpleMemberCommand<ShowProgressObject>::New();
+  ShowProgressObject                                          progressWatch(denoiser);
+  const itk::SimpleMemberCommand<ShowProgressObject>::Pointer command =
+    itk::SimpleMemberCommand<ShowProgressObject>::New();
   command->SetCallbackFunction(&progressWatch, &ShowProgressObject::ShowProgress);
   denoiser->AddObserver(itk::ProgressEvent(), command);
 
@@ -201,16 +200,16 @@ itkCurvatureFlowTest(int argc, char * argv[])
 
   std::cout << "Run CurvatureFlowImageFilter using streamer" << std::endl;
   using CasterType = itk::CastImageFilter<ImageType, ImageType>;
-  CasterType::Pointer caster = CasterType::New();
+  auto caster = CasterType::New();
   caster->SetInput(denoiser->GetInput());
 
-  DenoiserType::Pointer denoiser2 = DenoiserType::New();
+  auto denoiser2 = DenoiserType::New();
   denoiser2->SetInput(caster->GetOutput());
   denoiser2->SetTimeStep(denoiser->GetTimeStep());
   denoiser2->SetNumberOfIterations(denoiser->GetNumberOfIterations());
 
   using StreamerType = itk::StreamingImageFilter<ImageType, ImageType>;
-  StreamerType::Pointer streamer = StreamerType::New();
+  auto streamer = StreamerType::New();
   streamer->SetInput(denoiser2->GetOutput());
   streamer->SetNumberOfStreamDivisions(3);
   streamer->Update();
@@ -247,11 +246,10 @@ itkCurvatureFlowTest(int argc, char * argv[])
   // Exercise other member functions here
   denoiser->Print(std::cout);
 
-  itk::VTKImageIO::Pointer vtkIO;
-  vtkIO = itk::VTKImageIO::New();
+  const itk::VTKImageIO::Pointer vtkIO = itk::VTKImageIO::New();
   using WriterType = itk::ImageFileWriter<ImageType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(streamer->GetOutput());
   writer->SetFileName(argv[1]);
   writer->SetImageIO(vtkIO);

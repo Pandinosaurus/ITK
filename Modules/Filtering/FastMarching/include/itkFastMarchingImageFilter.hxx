@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,48 +18,34 @@
 #ifndef itkFastMarchingImageFilter_hxx
 #define itkFastMarchingImageFilter_hxx
 
-#include "itkFastMarchingImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
-#include "itkMath.h"
 #include <algorithm>
-#include "itkMath.h"
 
 namespace itk
 {
 template <typename TLevelSet, typename TSpeedImage>
 FastMarchingImageFilter<TLevelSet, TSpeedImage>::FastMarchingImageFilter()
-  : m_TrialHeap()
+  : m_AlivePoints(nullptr)
+  , m_TrialPoints(nullptr)
+  , m_OutsidePoints(nullptr)
+  , m_LabelImage(LabelImageType::New())
+  , m_SpeedConstant(1.0)
+  , m_InverseSpeed(-1.0)
+  , m_ProcessedPoints(nullptr)
+  , m_LargeValue(static_cast<PixelType>(NumericTraits<PixelType>::max() / 2.0))
+  , m_TrialHeap()
+  , m_NormalizationFactor(1.0)
 {
   this->ProcessObject::SetNumberOfRequiredInputs(0);
 
-  OutputSizeType outputSize;
-  outputSize.Fill(16);
-  typename LevelSetImageType::IndexType outputIndex;
-  outputIndex.Fill(0);
-
-  m_OutputRegion.SetSize(outputSize);
-  m_OutputRegion.SetIndex(outputIndex);
+  m_OutputRegion.SetSize(OutputSizeType::Filled(16));
+  m_OutputRegion.SetIndex({ { 0 } });
 
   m_OutputOrigin.Fill(0.0);
   m_OutputSpacing.Fill(1.0);
   m_OutputDirection.SetIdentity();
-  m_OverrideOutputInformation = false;
-
-  m_AlivePoints = nullptr;
-  m_OutsidePoints = nullptr;
-  m_TrialPoints = nullptr;
-  m_ProcessedPoints = nullptr;
-
-  m_SpeedConstant = 1.0;
-  m_InverseSpeed = -1.0;
-  m_LabelImage = LabelImageType::New();
-
-  m_LargeValue = static_cast<PixelType>(NumericTraits<PixelType>::max() / 2.0);
   m_StoppingValue = static_cast<double>(m_LargeValue);
-  m_CollectPoints = false;
-
-  m_NormalizationFactor = 1.0;
 }
 
 template <typename TLevelSet, typename TSpeedImage>
@@ -93,7 +79,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateOutputInformation()
   // use user-specified output information
   if (this->GetInput() == nullptr || m_OverrideOutputInformation)
   {
-    LevelSetPointer output = this->GetOutput();
+    const LevelSetPointer output = this->GetOutput();
     output->SetLargestPossibleRegion(m_OutputRegion);
     output->SetOrigin(m_OutputOrigin);
     output->SetSpacing(m_OutputSpacing);
@@ -107,9 +93,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::EnlargeOutputRequestedRegion(Da
 {
   // enlarge the requested region of the output
   // to the whole data set
-  TLevelSet * imgData;
-
-  imgData = dynamic_cast<TLevelSet *>(output);
+  auto * imgData = dynamic_cast<TLevelSet *>(output);
   if (imgData)
   {
     imgData->SetRequestedRegionToLargestPossibleRegion();
@@ -117,9 +101,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::EnlargeOutputRequestedRegion(Da
   else
   {
     // Pointer could not be cast to TLevelSet *
-    itkWarningMacro(<< "itk::FastMarchingImageFilter"
-                    << "::EnlargeOutputRequestedRegion cannot cast " << typeid(output).name() << " to "
-                    << typeid(TLevelSet *).name());
+    itkWarningMacro("itk::FastMarchingImageFilter::EnlargeOutputRequestedRegion cannot cast "
+                    << typeid(output).name() << " to " << typeid(TLevelSet *).name());
   }
 }
 
@@ -135,8 +118,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
   m_BufferedRegion = output->GetBufferedRegion();
   m_StartIndex = m_BufferedRegion.GetIndex();
   m_LastIndex = m_StartIndex + m_BufferedRegion.GetSize();
-  typename LevelSetImageType::OffsetType offset;
-  offset.Fill(1);
+  constexpr auto offset = MakeFilled<typename LevelSetImageType::OffsetType>(1);
   m_LastIndex -= offset;
 
   // allocate memory for the PointTypeImage
@@ -147,17 +129,11 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
   // set all output value to infinity
   using OutputIterator = ImageRegionIterator<LevelSetImageType>;
 
-  OutputIterator outIt(output, output->GetBufferedRegion());
+  PixelType outputPixel = m_LargeValue;
 
-  PixelType outputPixel;
-  outputPixel = m_LargeValue;
-
-  outIt.GoToBegin();
-
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(output, output->GetBufferedRegion()); !outIt.IsAtEnd(); ++outIt)
   {
     outIt.Set(outputPixel);
-    ++outIt;
   }
 
   // set all points type to FarPoint
@@ -165,8 +141,6 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
 
   LabelIterator typeIt(m_LabelImage, m_LabelImage->GetBufferedRegion());
 
-
-  typeIt.GoToBegin();
   while (!typeIt.IsAtEnd())
   {
     typeIt.Set(LabelEnum::FarPoint);
@@ -179,8 +153,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
 
   if (m_AlivePoints)
   {
-    typename NodeContainer::ConstIterator pointsIter = m_AlivePoints->Begin();
-    typename NodeContainer::ConstIterator pointsEnd = m_AlivePoints->End();
+    typename NodeContainer::ConstIterator       pointsIter = m_AlivePoints->Begin();
+    const typename NodeContainer::ConstIterator pointsEnd = m_AlivePoints->End();
 
     while (pointsIter != pointsEnd)
     {
@@ -204,8 +178,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
 
   if (m_OutsidePoints)
   {
-    typename NodeContainer::ConstIterator pointsIter = m_OutsidePoints->Begin();
-    typename NodeContainer::ConstIterator pointsEnd = m_OutsidePoints->End();
+    typename NodeContainer::ConstIterator       pointsIter = m_OutsidePoints->Begin();
+    const typename NodeContainer::ConstIterator pointsEnd = m_OutsidePoints->End();
 
     while (pointsIter != pointsEnd)
     {
@@ -236,8 +210,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * 
   // process the input trial points
   if (m_TrialPoints)
   {
-    typename NodeContainer::ConstIterator pointsIter = m_TrialPoints->Begin();
-    typename NodeContainer::ConstIterator pointsEnd = m_TrialPoints->End();
+    typename NodeContainer::ConstIterator       pointsIter = m_TrialPoints->Begin();
+    const typename NodeContainer::ConstIterator pointsEnd = m_TrialPoints->End();
 
     while (pointsIter != pointsEnd)
     {
@@ -273,8 +247,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateData()
     throw err;
   }
 
-  LevelSetPointer        output = this->GetOutput();
-  SpeedImageConstPointer speedImage = this->GetInput();
+  const LevelSetPointer        output = this->GetOutput();
+  const SpeedImageConstPointer speedImage = this->GetInput();
 
   this->Initialize(output);
 
@@ -284,9 +258,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateData()
   }
 
   // process points on the heap
-  AxisNodeType node;
-  double       currentValue;
-  double       oldProgress = 0;
+  double oldProgress = 0;
 
   this->UpdateProgress(0.0); // Send first progress event
 
@@ -294,11 +266,11 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateData()
   while (!m_TrialHeap.empty())
   {
     // get the node with the smallest value
-    node = m_TrialHeap.top();
+    AxisNodeType node = m_TrialHeap.top();
     m_TrialHeap.pop();
 
     // does this node contain the current value ?
-    currentValue = static_cast<double>(output->GetPixel(node.GetIndex()));
+    auto currentValue = static_cast<double>(output->GetPixel(node.GetIndex()));
 
     if (Math::ExactlyEquals(node.GetValue(), currentValue))
     {
@@ -352,7 +324,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::UpdateNeighbors(const IndexType
   IndexType neighIndex = index;
 
 
-  for (unsigned int j = 0; j < SetDimension; j++)
+  for (unsigned int j = 0; j < SetDimension; ++j)
   {
     // update left neighbor
     if (index[j] > m_StartIndex[j])
@@ -401,7 +373,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::UpdateValue(const IndexType &  
   AxisNodeType node;
   node.SetIndex(index);
 
-  for (unsigned int j = 0; j < SetDimension; j++)
+  for (unsigned int j = 0; j < SetDimension; ++j)
   {
     node.SetValue(m_LargeValue);
 
@@ -455,9 +427,9 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>::UpdateValue(const IndexType &  
 
   OutputSpacingType spacing = /* this->GetOutput() */ output->GetSpacing();
 
-  double discrim;
+  double discrim = NAN;
 
-  for (unsigned int j = 0; j < SetDimension; j++)
+  for (unsigned int j = 0; j < SetDimension; ++j)
   {
     node = m_NodesUsed[j];
     const auto value = static_cast<double>(node.GetValue());

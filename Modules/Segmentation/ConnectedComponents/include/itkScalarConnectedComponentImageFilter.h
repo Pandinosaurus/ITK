@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@
 namespace itk
 {
 /**
- *\class ScalarConnectedComponentImageFilter
+ * \class ScalarConnectedComponentImageFilter
  *
  *  \brief A connected components filter that labels the
  *         objects in an arbitrary image.  Two pixels are
@@ -54,25 +54,19 @@ template <typename TInput>
 class SimilarPixelsFunctor
 {
 public:
-  SimilarPixelsFunctor() { m_Threshold = NumericTraits<TInput>::ZeroValue(); }
+  SimilarPixelsFunctor()
+    : m_Threshold(TInput{})
+  {}
 
   ~SimilarPixelsFunctor() = default;
 
   bool
-  operator!=(const SimilarPixelsFunctor & other) const
-  {
-    if (m_Threshold != other.m_Threshold)
-    {
-      return true;
-    }
-    return false;
-  }
-
-  bool
   operator==(const SimilarPixelsFunctor & other) const
   {
-    return !(*this != other);
+    return m_Threshold == other.m_Threshold;
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(SimilarPixelsFunctor);
 
   void
   SetDistanceThreshold(const TInput & thresh)
@@ -96,10 +90,8 @@ public:
     {
       return true;
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
 protected:
@@ -131,8 +123,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarConnectedComponentImageFilter, ConnectedComponentFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarConnectedComponentImageFilter);
 
   using InputPixelType = typename TInputImage::PixelType;
 
@@ -148,15 +140,11 @@ public:
     return (this->GetFunctor().GetDistanceThreshold());
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(MaskEqualityComparableCheck, (Concept::EqualityComparable<typename TMaskImage::PixelType>));
   itkConceptMacro(OutputIncrementDecrementOperatorsCheck,
                   (Concept::IncrementDecrementOperators<typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   ScalarConnectedComponentImageFilter() = default;

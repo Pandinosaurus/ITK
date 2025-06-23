@@ -6,7 +6,7 @@
 # to load ITK's settings for an external project.
 #
 # ITK components can be specified when using the CMake function `find_package()`
-# E.g. find_package(ITK COMPONENTS ITKCommon ITKIOImageBase ITKIONRRD ITKImageGradient)
+# E.g. find_package(ITK COMPONENTS ITKCommon ITKIOImageBase OPTIONAL_COMPONENTS ITKIONRRD )
 #
 # The components listed in this call must be ITK module names or factories
 # (e.g. ITKImageIO, ITKTransformIO). Factories allow the user to load all the
@@ -25,9 +25,6 @@ set(ITK_REQUIRED_LINK_FLAGS "@ITK_REQUIRED_LINK_FLAGS@")
 set(ITK_VERSION_MAJOR "@ITK_VERSION_MAJOR@")
 set(ITK_VERSION_MINOR "@ITK_VERSION_MINOR@")
 set(ITK_VERSION_PATCH "@ITK_VERSION_PATCH@")
-
-# If ITK was built with version 4 compatibility features.
-set(ITKV4_COMPATIBILITY "@ITKV4_COMPATIBILITY@")
 
 # Remove all legacy code completely.
 set(ITK_LEGACY_REMOVE "@ITK_LEGACY_REMOVE@")
@@ -49,6 +46,9 @@ set(ITK_BUILD_SHARED "@ITK_BUILD_SHARED_LIBS@")
 
 # Export the library build type (SHARED or STATIC) for external builds
 set(ITK_LIBRARY_BUILD_TYPE "@ITK_LIBRARY_BUILD_TYPE@")
+
+# Whether ITK links to MSVC's static CRT (/MT and /MTd).
+set(ITK_MSVC_STATIC_CRT "@ITK_MSVC_STATIC_CRT@")
 
 # Whether ITK examples were built.
 set(ITK_BUILD_EXAMPLES "@BUILD_EXAMPLES@")
@@ -80,12 +80,20 @@ itk_module_config(ITK ${ITK_MODULES_ENABLED})
 
 # Compute set of requested modules.
 if(ITK_FIND_COMPONENTS)
-  set(ITK_MODULES_REQUESTED ${ITK_FIND_COMPONENTS})
-  # Specific modules requested by find_package(ITK).
+  # Specific modules required by find_package(ITK) or optional and available.
+  set(ITK_MODULES_REQUESTED "")
+  foreach(M ${ITK_FIND_COMPONENTS})
+    if(ITK_FIND_REQUIRED_${M} OR M IN_LIST ITK_MODULES_ENABLED)
+      LIST(APPEND ITK_MODULES_REQUESTED "${M}")
+    endif()
+  endforeach()
   itk_module_config(ITK ${ITK_MODULES_REQUESTED})
 else()
   set(ITK_MODULES_REQUESTED ${ITK_MODULES_ENABLED})
 endif()
+
+# Load factory registration manager functions
+include( "${ITK_CMAKE_DIR}/ITKFactoryRegistration.cmake" )
 
 # Add configuration with FFTW
 set(ITK_USE_FFTWD "@ITK_USE_FFTWD@")
@@ -105,25 +113,13 @@ set(ITK_USE_GPU "@ITK_USE_GPU@")
 
 # Wrapping
 set(ITK_WRAPPING "@ITK_WRAPPING@")
-# ITK_WRAP_SWIGINTERFACE and ITK_WRAP_CASTXML are set
-# to ITK_WRAPPING value.
-# ITK_WRAP_DOC and ITK_WRAP_EXPLICIT are disabled by
-# default.
+# ITK_WRAP_DOC is disabled by default.
+
+# expose C++ standard used to build ITK for supporting external packages
+set(ITK_CXX_STANDARD CMAKE_CXX_STANDARD)
 
 if( NOT DEFINED ITK_WRAP_PYTHON)
   set(ITK_WRAP_PYTHON "@ITK_WRAP_PYTHON@")
-endif()
-if( NOT DEFINED ITK_WRAP_JAVA)
-  set(ITK_WRAP_JAVA "@ITK_WRAP_JAVA@")
-endif()
-if(NOT DEFINED ITK_WRAP_RUBY)
-  set(ITK_WRAP_RUBY "@ITK_WRAP_RUBY@")
-endif()
-if( NOT DEFINED ITK_WRAP_PERL)
-  set(ITK_WRAP_PERL "@ITK_WRAP_PERL@")
-endif()
-if(NOT DEFINED ITK_WRAP_TCL)
-  set(ITK_WRAP_TCL "@ITK_WRAP_TCL@")
 endif()
 
 # Set up the rest of the variables that WrapITK was built with.
@@ -150,4 +146,4 @@ set(ITK_WRAP_complex_double @ITK_WRAP_complex_double@)
 set(ITK_WRAP_IMAGE_DIMS "@ITK_WRAP_IMAGE_DIMS@")
 set(ITK_WRAP_VECTOR_COMPONENTS "@ITK_WRAP_VECTOR_COMPONENTS@")
 
-set(ITK_WRAP_PYTHON_VERSION "@PYTHON_VERSION_STRING@")
+set(ITK_WRAP_PYTHON_VERSION "@ITK_WRAP_PYTHON_VERSION@")

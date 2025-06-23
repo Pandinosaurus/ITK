@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,21 +20,12 @@
 
 #include <cmath>
 #include "itkMath.h"
-#include "itkGaussianSpatialFunction.h"
 
 namespace itk
 {
 template <typename TOutput, unsigned int VImageDimension, typename TInput>
-GaussianSpatialFunction<TOutput, VImageDimension, TInput>::GaussianSpatialFunction()
-
-{
-  m_Mean = ArrayType::Filled(10.0);
-  m_Sigma = ArrayType::Filled(5.0);
-}
-
-template <typename TOutput, unsigned int VImageDimension, typename TInput>
-typename GaussianSpatialFunction<TOutput, VImageDimension, TInput>::OutputType
-GaussianSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(const TInput & position) const
+auto
+GaussianSpatialFunction<TOutput, VImageDimension, TInput>::Evaluate(const TInput & position) const -> OutputType
 {
   // We have to compute the Gaussian in several stages, because of the
   // n-dimensional generalization
@@ -75,7 +66,7 @@ GaussianSpatialFunction<TOutput, VImageDimension, TInput>::PrintSelf(std::ostrea
   os << indent << "Sigma: " << m_Sigma << std::endl;
   os << indent << "Mean: " << m_Mean << std::endl;
   os << indent << "Scale: " << m_Scale << std::endl;
-  os << indent << "Normalized?: " << m_Normalized << std::endl;
+  itkPrintSelfBooleanMacro(Normalized);
 }
 } // end namespace itk
 

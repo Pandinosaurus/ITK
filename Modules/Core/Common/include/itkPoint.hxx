@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkPoint_hxx
 #define itkPoint_hxx
-#include "itkPoint.h"
 #include "itkNumericTraitsPointPixel.h"
 #include "itkMath.h"
 #include "itkObject.h"
@@ -128,16 +127,12 @@ template <typename T, unsigned int TPointDimension>
 vnl_vector<T>
 Point<T, TPointDimension>::GetVnlVector() const
 {
-  // Return a vector_ref<>.  This will be automatically converted to a
-  // vnl_vector<>.  We have to use a const_cast<> which would normally
-  // be prohibited in a const method, but it is safe to do here
-  // because the cast to vnl_vector<> will ultimately copy the data.
-  return vnl_vector_ref<T>(TPointDimension, const_cast<T *>(this->GetDataPointer()));
+  return vnl_vector<T>(this->GetDataPointer(), TPointDimension);
 }
 
 template <typename T, unsigned int TPointDimension>
-typename Point<T, TPointDimension>::VectorType
-Point<T, TPointDimension>::GetVectorFromOrigin() const
+auto
+Point<T, TPointDimension>::GetVectorFromOrigin() const -> VectorType
 {
   // VectorType knows how to construct from ValueType*.
   return &(*this)[0];
@@ -198,7 +193,7 @@ template <typename T, unsigned int TPointDimension>
 void
 Point<T, TPointDimension>::SetToBarycentricCombination(const Self * P, const double * weights, unsigned int N)
 {
-  this->Fill(NumericTraits<T>::ZeroValue()); // put this point to null
+  this->Fill(T{}); // put this point to null
   double weightSum = 0.0;
   for (unsigned int j = 0; j < N - 1; ++j)
   {
@@ -220,17 +215,15 @@ Point<T, TPointDimension>::SetToBarycentricCombination(const Self * P, const dou
  * Set the point to the barycentric combination of N points in a Container
  */
 template <typename TPointContainer, typename TWeightContainer>
-typename BarycentricCombination<TPointContainer, TWeightContainer>::PointType
+auto
 BarycentricCombination<TPointContainer, TWeightContainer>::Evaluate(const PointContainerPointer & points,
-                                                                    const WeightContainerType &   weights)
+                                                                    const WeightContainerType &   weights) -> PointType
 {
-  using ValueType = typename PointType::ValueType;
-  PointType barycentre;
-  barycentre.Fill(NumericTraits<ValueType>::ZeroValue()); // set to null
+  PointType barycentre{}; // set to null
 
-  typename TPointContainer::Iterator point = points->Begin();
-  typename TPointContainer::Iterator final = points->End();
-  typename TPointContainer::Iterator last = final;
+  typename TPointContainer::Iterator       point = points->Begin();
+  const typename TPointContainer::Iterator final = points->End();
+  typename TPointContainer::Iterator       last = final;
   --last; // move to the (N)th point
 
   double weightSum = 0.0;
@@ -267,8 +260,8 @@ template <typename T, unsigned int TPointDimension>
 std::ostream &
 operator<<(std::ostream & os, const Point<T, TPointDimension> & vct)
 {
-  os << "[";
-  if (TPointDimension == 1)
+  os << '[';
+  if constexpr (TPointDimension == 1)
   {
     os << vct[0];
   }
@@ -280,7 +273,7 @@ operator<<(std::ostream & os, const Point<T, TPointDimension> & vct)
     }
     os << vct[TPointDimension - 1];
   }
-  os << "]";
+  os << ']';
   return os;
 }
 

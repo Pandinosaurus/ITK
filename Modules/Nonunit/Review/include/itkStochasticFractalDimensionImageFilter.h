@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
 /** \class StochasticFractalDimensionImageFilter
  *  \brief This filter computes the stochastic fractal dimension of the input image.
  *
- * The methodology is based on Madelbrot's fractal theory and the concept of
+ * The methodology is based on Mandelbrot's fractal theory and the concept of
  * fractional Brownian motion and yields images which have been used for
  * classification and edge enhancement.
  *
@@ -42,8 +42,7 @@ namespace itk
  * as an paper to the Insight Journal:
  *
  *  "Stochastic Fractal Dimension Image"
- *  https://hdl.handle.net/1926/1525
- *  http://www.insight-journal.org/browse/publication/318
+ *  https://doi.org/10.54294/ne109t
  *
  * \author Nick Tustison
  *
@@ -75,8 +74,8 @@ public:
   using MaskImageType = TMaskImage;
   using OutputImageType = TOutputImage;
 
-  /** Runtime information support. */
-  itkTypeMacro(StochasticFractalDimensionImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(StochasticFractalDimensionImageFilter);
 
   /** Set/Get the input mask image that will constraint the computation of the
    * fractal dimension to pixels that are on in the mask. This is intended to
@@ -107,9 +106,9 @@ protected:
   GenerateData() override;
 
 private:
-  RadiusType m_NeighborhoodRadius;
+  RadiusType m_NeighborhoodRadius{};
 
-  typename MaskImageType::Pointer m_MaskImage;
+  typename MaskImageType::Pointer m_MaskImage{};
 }; // end of class
 } // end namespace itk
 

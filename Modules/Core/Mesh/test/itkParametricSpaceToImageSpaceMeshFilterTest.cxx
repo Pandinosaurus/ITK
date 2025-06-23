@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,6 @@ struct helper
 template <unsigned int VDimension>
 struct helper<itk::Index<VDimension>>
 {
-  static constexpr unsigned int Dimension = VDimension;
   using PositionType = itk::Index<VDimension>;
 
   template <class TImage, class TIterator>
@@ -43,7 +42,6 @@ struct helper<itk::Index<VDimension>>
 template <typename TCoord, unsigned int VDimension>
 struct helper<itk::Point<TCoord, VDimension>>
 {
-  static constexpr unsigned int Dimension = VDimension;
   using PositionType = itk::Point<TCoord, VDimension>;
 
   template <class TImage, class TIterator>
@@ -85,37 +83,28 @@ InternalTest(int argc, char * argv[])
 
   // Read the input image
   using ReaderType = itk::ImageFileReader<ImageType>;
-  typename ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cout << "ExceptionObject caught !" << std::endl;
-    std::cout << err << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   // Store the input image for convenience
-  typename ImageType::Pointer image = reader->GetOutput();
+  const typename ImageType::Pointer image = reader->GetOutput();
 
-  typename InputMeshType::Pointer mesh = InputMeshType::New();
+  auto mesh = InputMeshType::New();
 
   // Get the input image indexes for the mesh filter
   itk::ImageRegionConstIterator<ImageType> imageIterator(image, image->GetBufferedRegion());
   imageIterator.GoToBegin();
 
   using PointType = typename InputMeshType::PointType;
-  PointType point;
-  point.Fill(0.);
+  PointType point{};
 
   using PointDataContainer = typename InputMeshType::PointDataContainer;
   using PointDataContainerPointer = typename InputMeshType::PointDataContainerPointer;
 
-  PointDataContainerPointer pointData = PointDataContainer::New();
+  const PointDataContainerPointer pointData = PointDataContainer::New();
 
   // Define arbitrary initial value for mesh point data
   typename InputMeshType::PointIdentifier pointId = 0;
@@ -128,14 +117,14 @@ InternalTest(int argc, char * argv[])
     // Convert the pixel position into a Point
     ImagePointType p = helper<ImagePointType>::GetPosition(image.GetPointer(), imageIterator);
 
-    for (unsigned int dim = 0; dim < ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
       point[dim] = p[dim];
     }
     mesh->SetPoint(pointId, point);
 
     // Transfer the data to the value associated with the elementId
-    PositionType position = helper<PositionType>::GetPosition(image.GetPointer(), imageIterator);
+    const PositionType position = helper<PositionType>::GetPosition(image.GetPointer(), imageIterator);
     pointData->InsertElement(pointId, position);
     ++imageIterator;
     ++pointId;
@@ -145,25 +134,24 @@ InternalTest(int argc, char * argv[])
 
   using ParametricFilterType = itk::ParametricSpaceToImageSpaceMeshFilter<InputMeshType, OutputMeshType>;
 
-  typename ParametricFilterType::Pointer parametricFilter = ParametricFilterType::New();
+  auto parametricFilter = ParametricFilterType::New();
 
   if (parametricFilter.IsNull())
   {
     return EXIT_FAILURE;
   }
 
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(parametricFilter, ParametricSpaceToImageSpaceMeshFilter, MeshToMeshFilter);
+
+
+  ITK_TRY_EXPECT_EXCEPTION(parametricFilter->Update());
+
+
   // Set the input mesh for the parametric filter
   parametricFilter->SetInput(mesh);
 
-  try
-  {
-    parametricFilter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Error: " << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(parametricFilter->Update());
+
 
   if (parametricFilter->GetOutput()->GetNumberOfPoints() != mesh->GetNumberOfPoints())
   {
@@ -188,7 +176,7 @@ InternalTest(int argc, char * argv[])
     typename OutputMeshType::PointType position = parametricFilter->GetOutput()->GetPoints()->ElementAt(pointId);
     PositionType                       refPoint = helper<PositionType>::GetPosition(image.GetPointer(), imageIterator);
 
-    for (unsigned int dim = 0; dim < ImageDimension; dim++)
+    for (unsigned int dim = 0; dim < ImageDimension; ++dim)
     {
       if (static_cast<double>(position[dim]) != static_cast<double>(refPoint[dim]))
       {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -90,7 +90,7 @@ namespace itk
  * triangles sharing an edge.
    \code
     using MeshSourceType = itk::AutomaticTopologyMeshSource< MeshType >;
-    MeshSourceType::Pointer meshSource = MeshSourceType::New();
+    auto meshSource = MeshSourceType::New();
     meshSource->AddTriangle(
       meshSource->AddPoint(0, 0, 0),
       meshSource->AddPoint(1, 0, 0),
@@ -125,20 +125,20 @@ public:
   using PointType = typename MeshType::PointType;
   using CellType = typename MeshType::CellType;
   using MeshPointer = typename MeshType::Pointer;
-  using CoordinateType = typename PointType::CoordRepType;
+  using CoordinateType = typename PointType::CoordinateType;
   using CellAutoPointer = typename CellType::CellAutoPointer;
 
   /** Different kinds of cells. */
-  using VertexCell = ::itk::VertexCell<CellType>;
-  using LineCell = ::itk::LineCell<CellType>;
-  using TriangleCell = ::itk::TriangleCell<CellType>;
-  using QuadrilateralCell = ::itk::QuadrilateralCell<CellType>;
-  using TetrahedronCell = ::itk::TetrahedronCell<CellType>;
-  using HexahedronCell = ::itk::HexahedronCell<CellType>;
+  using VertexCell = itk::VertexCell<CellType>;
+  using LineCell = itk::LineCell<CellType>;
+  using TriangleCell = itk::TriangleCell<CellType>;
+  using QuadrilateralCell = itk::QuadrilateralCell<CellType>;
+  using TetrahedronCell = itk::TetrahedronCell<CellType>;
+  using HexahedronCell = itk::HexahedronCell<CellType>;
 
-  /** This class requires that the mesh being built use ::itk::IdentifierType
+  /** This class requires that the mesh being built use itk::IdentifierType
    * as the identifier type for all its elements. */
-  using IdentifierType = ::itk::IdentifierType;
+  using IdentifierType = itk::IdentifierType;
 
   /** Array of IdentifierType objects used to specify cells. */
   using IdentifierArrayType = Array<IdentifierType>;
@@ -154,8 +154,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AutomaticTopologyMeshSource, MeshSource);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AutomaticTopologyMeshSource);
 
   /** Add the point p0 if it's not already there, and return its ID. */
   IdentifierType
@@ -384,8 +384,8 @@ public:
     {
       using IdType = IdentifierType;
 
-      IdType size1 = identifierArray1.Size();
-      IdType size2 = identifierArray2.Size();
+      const IdType size1 = identifierArray1.Size();
+      const IdType size2 = identifierArray2.Size();
 
       if (size1 != size2)
       {
@@ -412,9 +412,9 @@ private:
   using CellHashMap = std::
     unordered_map<Array<IdentifierType>, IdentifierType, IdentifierArrayHashFunction, IdentifierArrayEqualsFunction>;
 
-  PointHashMap m_PointsHashTable;
-  CellHashMap  m_CellsHashTable;
-  MeshPointer  m_OutputMesh; // Retained for convenience.
+  PointHashMap m_PointsHashTable{};
+  CellHashMap  m_CellsHashTable{};
+  MeshPointer  m_OutputMesh{}; // Retained for convenience.
 };
 } // end namespace itk
 

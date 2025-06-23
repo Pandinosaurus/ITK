@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,12 +40,14 @@ public:
     , m_Description(std::move(description))
     , m_File(std::move(file))
     , m_Line(line)
+    , m_What(m_File)
   {
-    std::ostringstream loc;
-
-    loc << ":" << m_Line << ":\n";
-    m_What = m_File;
-    m_What += loc.str();
+    m_What += ':' + std::to_string(m_Line) + ':';
+    if (!m_Location.empty())
+    {
+      m_What += " in '" + m_Location + "':";
+    }
+    m_What += '\n';
     m_What += m_Description;
   }
 
@@ -63,15 +65,12 @@ private:
 };
 
 
-ExceptionObject::ExceptionObject(const char * file, unsigned int lineNumber, const char * desc, const char * loc)
-  : m_ExceptionData(std::make_shared<const ExceptionData>(file == nullptr ? "" : file,
-                                                          lineNumber,
-                                                          desc == nullptr ? "" : desc,
-                                                          loc == nullptr ? "" : loc))
-{}
-
-ExceptionObject::ExceptionObject(std::string file, unsigned int lineNumber, std::string desc, std::string loc)
-  : m_ExceptionData(std::make_shared<const ExceptionData>(std::move(file), lineNumber, std::move(desc), std::move(loc)))
+ExceptionObject::ExceptionObject(std::string  file,
+                                 unsigned int lineNumber,
+                                 std::string  description,
+                                 std::string  location)
+  : m_ExceptionData(
+      std::make_shared<const ExceptionData>(std::move(file), lineNumber, std::move(description), std::move(location)))
 {}
 
 
@@ -91,12 +90,10 @@ ExceptionObject::operator==(const ExceptionObject & orig) const
   {
     return true;
   }
-  else
-  {
-    return (thisData != nullptr) && (origData != nullptr) && thisData->m_Location == origData->m_Location &&
-           thisData->m_Description == origData->m_Description && thisData->m_File == origData->m_File &&
-           thisData->m_Line == origData->m_Line;
-  }
+
+  return (thisData != nullptr) && (origData != nullptr) && thisData->m_Location == origData->m_Location &&
+         thisData->m_Description == origData->m_Description && thisData->m_File == origData->m_File &&
+         thisData->m_Line == origData->m_Line;
 }
 
 void
@@ -178,15 +175,13 @@ ExceptionObject::what() const noexcept
 void
 ExceptionObject::Print(std::ostream & os) const
 {
-  Indent indent;
+  const Indent indent;
 
   // Print header
   os << std::endl;
   os << indent << "itk::" << this->GetNameOfClass() << " (" << this << ")\n";
 
   // Print self
-  indent.GetNextIndent();
-
   if (m_ExceptionData != nullptr)
   {
     const ExceptionData & data = *(m_ExceptionData);

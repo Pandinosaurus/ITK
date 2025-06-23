@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,12 @@
 #ifndef itkPointSetToListSampleAdaptor_hxx
 #define itkPointSetToListSampleAdaptor_hxx
 
-#include "itkPointSetToListSampleAdaptor.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TPointSet>
 PointSetToListSampleAdaptor<TPointSet>::PointSetToListSampleAdaptor()
+  : m_PointSet(nullptr)
 {
-  this->m_PointSet = nullptr;
   this->SetMeasurementVectorSize(TPointSet::PointDimension);
 }
 
@@ -72,8 +68,8 @@ PointSetToListSampleAdaptor<TPointSet>::GetPointSet()
 
 /** returns the number of measurement vectors in this container*/
 template <typename TPointSet>
-typename PointSetToListSampleAdaptor<TPointSet>::InstanceIdentifier
-PointSetToListSampleAdaptor<TPointSet>::Size() const
+auto
+PointSetToListSampleAdaptor<TPointSet>::Size() const -> InstanceIdentifier
 {
   if (m_PointSet.IsNull())
   {
@@ -97,8 +93,8 @@ PointSetToListSampleAdaptor<TPointSet>::GetMeasurementVector(InstanceIdentifier 
 }
 
 template <typename TPointSet>
-inline typename PointSetToListSampleAdaptor<TPointSet>::AbsoluteFrequencyType
-  PointSetToListSampleAdaptor<TPointSet>::GetFrequency(InstanceIdentifier) const
+inline auto
+PointSetToListSampleAdaptor<TPointSet>::GetFrequency(InstanceIdentifier) const -> AbsoluteFrequencyType
 {
   if (m_PointSet.IsNull())
   {
@@ -109,8 +105,8 @@ inline typename PointSetToListSampleAdaptor<TPointSet>::AbsoluteFrequencyType
 }
 
 template <typename TPointSet>
-typename PointSetToListSampleAdaptor<TPointSet>::TotalAbsoluteFrequencyType
-PointSetToListSampleAdaptor<TPointSet>::GetTotalFrequency() const
+auto
+PointSetToListSampleAdaptor<TPointSet>::GetTotalFrequency() const -> TotalAbsoluteFrequencyType
 {
   if (m_PointSet.IsNull())
   {
@@ -119,7 +115,6 @@ PointSetToListSampleAdaptor<TPointSet>::GetTotalFrequency() const
 
   return this->Size();
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

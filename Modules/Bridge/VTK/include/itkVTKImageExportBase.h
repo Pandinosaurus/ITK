@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class VTKImageExportBase
+ * \class VTKImageExportBase
  * \brief Superclass for VTKImageExport instantiations.
  *
  * VTKImageExportBase provides the functions that serve as callbacks
@@ -46,14 +46,15 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VTKImageExportBase, ProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VTKImageExportBase);
 
   /** Returns the user data to set for the vtkImageImport callbacks. */
   void *
   GetCallbackUserData();
 
   /** The function pointer type expected for a callback. */
+  /** @ITKStartGrouping */
   using UpdateInformationCallbackType = void (*)(void *);
   using PipelineModifiedCallbackType = int (*)(void *);
   using WholeExtentCallbackType = int * (*)(void *);
@@ -66,13 +67,14 @@ public:
   using UpdateDataCallbackType = void (*)(void *);
   using DataExtentCallbackType = int * (*)(void *);
   using BufferPointerCallbackType = void * (*)(void *);
-
+  /** @ITKEndGrouping */
   /** Compatibility for VTK older than 4.4.  */
+  /** @ITKStartGrouping */
   using FloatSpacingCallbackType = float * (*)(void *);
   using FloatOriginCallbackType = float * (*)(void *);
-
+  /** @ITKEndGrouping */
   /**
-   *\class CallbackTypeProxy
+   * \class CallbackTypeProxy
    * \brief Provide compatibility between VTK 4.4 and earlier versions.
    * \ingroup ITKVTK
    */
@@ -132,7 +134,11 @@ public:
   GetBufferPointerCallback() const;
 
 protected:
-  VTKImageExportBase();
+  /**
+   * Constructor sets up information for the image-type independent
+   * callbacks implemented in this superclass.
+   */
+  VTKImageExportBase() = default;
   ~VTKImageExportBase() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -231,7 +237,7 @@ private:
 
 private:
   /** PipelineMTime from the last call to PipelineModifiedCallback. */
-  ModifiedTimeType m_LastPipelineMTime;
+  ModifiedTimeType m_LastPipelineMTime{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,9 @@ namespace itk
  * final combinations. In the first table, we record the final combination that
  * can be transformed from the current combination. The entries of the second
  * table are made up of the transforming sequence that is necessary for the
- * current combination transform to one of the final combinations.
+ * current combination transform to one of the final combinations. For
+ * more details see \cite lorensen1987.
+ *
  *
  * \par
  * We then go through the 3D volume voxel by voxel, using those two tables we have defined
@@ -57,10 +59,6 @@ namespace itk
  * The ObjectValue parameter is used to identify the object. In most applications,
  * pixels in the object region are assigned to "1", so the default value of ObjectValue is
  * set to "1"
- *
- * \par REFERENCE
- * W. Lorensen and H. Cline, "Marching Cubes: A High Resolution 3D Surface Construction Algorithm",
- * Computer Graphics 21, pp. 163-169, 1987.
  *
  * \par INPUT
  * The input should be a 3D binary image.
@@ -82,8 +80,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryMask3DMeshSource, ImageToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMask3DMeshSource);
 
   /** Hold on to the type information specified by the template parameters. */
   using OutputMeshType = TOutputMesh;
@@ -159,7 +157,7 @@ protected:
 
 
   bool       m_RegionOfInterestProvidedByUser{ false };
-  RegionType m_RegionOfInterest;
+  RegionType m_RegionOfInterest{};
 
   void
   GenerateOutputInformation() override
@@ -215,10 +213,10 @@ private:
   IdentifierType
   SearchThroughLastFrame(int index, int start, int end);
 
-  unsigned char m_LUT[256][2]; // the two lookup tables
+  unsigned char m_LUT[256][2]{}; // the two lookup tables
 
-  IdentifierType m_LastVoxel[14];
-  IdentifierType m_CurrentVoxel[14];
+  IdentifierType m_LastVoxel[14]{};
+  IdentifierType m_CurrentVoxel[14]{};
 
   IdentifierType ** m_LastRow{ nullptr };
   IdentifierType ** m_LastFrame{ nullptr };
@@ -231,9 +229,9 @@ private:
   int           m_LastFrameNum{ 0 };
   int           m_CurrentRowNum{ 200 };
   int           m_CurrentFrameNum{ 2000 };
-  unsigned char m_AvailableNodes[14];
+  unsigned char m_AvailableNodes[14]{};
 
-  double m_LocationOffset[14][3];
+  double m_LocationOffset[14][3]{};
 
   SizeValueType m_NumberOfNodes{ 0 };
   SizeValueType m_NumberOfCells{ 0 };
@@ -251,13 +249,13 @@ private:
   int m_LastFrameIndex{ 0 };
 
   unsigned char  m_PointFound{ 0 };
-  InputPixelType m_ObjectValue;
+  InputPixelType m_ObjectValue{};
 
   /** temporary variables used in CreateMesh to avoid thousands of
    *  calls to GetInput() and GetOutput()
    */
-  OutputMeshType *       m_OutputMesh;
-  const InputImageType * m_InputImage;
+  OutputMeshType *       m_OutputMesh{};
+  const InputImageType * m_InputImage{};
 };
 } // end namespace itk
 

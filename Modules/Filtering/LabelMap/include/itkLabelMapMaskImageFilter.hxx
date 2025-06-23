@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLabelMapMaskImageFilter_hxx
 #define itkLabelMapMaskImageFilter_hxx
 
-#include "itkLabelMapMaskImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionConstIterator.h"
@@ -31,7 +30,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 LabelMapMaskImageFilter<TInputImage, TOutputImage>::LabelMapMaskImageFilter()
   : m_Label(NumericTraits<InputImagePixelType>::OneValue())
-  , m_BackgroundValue(NumericTraits<OutputImagePixelType>::ZeroValue())
+  , m_BackgroundValue(OutputImagePixelType{})
 
 {
   this->SetNumberOfRequiredInputs(2);
@@ -47,7 +46,7 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion
   Superclass::GenerateInputRequestedRegion();
 
   // We need the whole input
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  const InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if (!input)
   {
     return;
@@ -105,10 +104,8 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
       else
       {
         // Compute the bounding box of all the objects which don't have that label
-        IndexType mins;
-        mins.Fill(NumericTraits<IndexValueType>::max());
-        IndexType maxs;
-        maxs.Fill(NumericTraits<IndexValueType>::NonpositiveMin());
+        auto mins = IndexType::Filled(NumericTraits<IndexValueType>::max());
+        auto maxs = IndexType::Filled(NumericTraits<IndexValueType>::NonpositiveMin());
         for (typename InputImageType::ConstIterator loit(this->GetInput()); !loit.IsAtEnd(); ++loit)
         {
           if (loit.GetLabel() != m_Label)
@@ -118,10 +115,10 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
             while (!lit.IsAtEnd())
             {
               const IndexType & idx = lit.GetLine().GetIndex();
-              LengthType        length = lit.GetLine().GetLength();
+              const LengthType  length = lit.GetLine().GetLength();
 
               // Update the mins and maxs
-              for (unsigned int i = 0; i < ImageDimension; i++)
+              for (unsigned int i = 0; i < ImageDimension; ++i)
               {
                 if (idx[i] < mins[i])
                 {
@@ -144,7 +141,7 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
         // Final computation
         SizeType regionSize;
-        for (unsigned int i = 0; i < ImageDimension; i++)
+        for (unsigned int i = 0; i < ImageDimension; ++i)
         {
           regionSize[i] = maxs[i] - mins[i] + 1;
         }
@@ -169,19 +166,17 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
         // Just find the bounding box of the object with that label
 
         const LabelObjectType * labelObject = input->GetLabelObject(m_Label);
-        IndexType               mins;
-        mins.Fill(NumericTraits<IndexValueType>::max());
-        IndexType maxs;
-        maxs.Fill(NumericTraits<IndexValueType>::NonpositiveMin());
+        auto                    mins = IndexType::Filled(NumericTraits<IndexValueType>::max());
+        auto                    maxs = IndexType::Filled(NumericTraits<IndexValueType>::NonpositiveMin());
         // Iterate over all the lines
         typename LabelObjectType::ConstLineIterator lit(labelObject);
         while (!lit.IsAtEnd())
         {
           const IndexType & idx = lit.GetLine().GetIndex();
-          LengthType        length = lit.GetLine().GetLength();
+          const LengthType  length = lit.GetLine().GetLength();
 
           // Update the mins and maxs
-          for (unsigned int i = 0; i < ImageDimension; i++)
+          for (unsigned int i = 0; i < ImageDimension; ++i)
           {
             if (idx[i] < mins[i])
             {
@@ -201,7 +196,7 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
         }
         // Final computation
         SizeType regionSize;
-        for (unsigned int i = 0; i < ImageDimension; i++)
+        for (unsigned int i = 0; i < ImageDimension; ++i)
         {
           regionSize[i] = maxs[i] - mins[i] + 1;
         }
@@ -284,8 +279,8 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::GenerateData()
       // And mark the label object as background
 
       // Should we take care to not write outside the image ?
-      bool       testIdxIsInside = m_Crop && (inImage->GetBackgroundValue() == m_Label) ^ m_Negated;
-      RegionType outputRegion = output->GetLargestPossibleRegion();
+      const bool       testIdxIsInside = m_Crop && (inImage->GetBackgroundValue() == m_Label) ^ m_Negated;
+      const RegionType outputRegion = output->GetLargestPossibleRegion();
 
       typename LabelObjectType::ConstIndexIterator it(labelObject);
       while (!it.IsAtEnd())
@@ -349,8 +344,8 @@ LabelMapMaskImageFilter<TInputImage, TOutputImage>::ThreadedProcessLabelObject(L
     // equals the label given by the user. The other pixels are set to the background value.
 
     // Should we take care to not write outside the image ?
-    bool       testIdxIsInside = m_Crop && (input->GetBackgroundValue() == m_Label) ^ m_Negated;
-    RegionType outputRegion = output->GetLargestPossibleRegion();
+    const bool       testIdxIsInside = m_Crop && (input->GetBackgroundValue() == m_Label) ^ m_Negated;
+    const RegionType outputRegion = output->GetLargestPossibleRegion();
 
     // The user wants the mask to be the background of the label collection image
     typename LabelObjectType::ConstIndexIterator it(labelObject);

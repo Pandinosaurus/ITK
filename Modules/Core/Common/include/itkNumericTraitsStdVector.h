@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@
 
 namespace itk
 {
-/**\class NumericTraits
+/** \class NumericTraits
  * \brief Define numeric traits for std::vector.
  * \tparam T Component type of std::vector
  *
@@ -96,6 +96,7 @@ public:
    * \note minimum value for floating pointer types is defined as
    * minimum positive normalize value.
    */
+  /** @ITKStartGrouping */
   static const Self
   max(const Self & a)
   {
@@ -113,7 +114,7 @@ public:
   static const Self
   ZeroValue(const Self & a)
   {
-    Self b(a.Size(), NumericTraits<T>::ZeroValue());
+    Self b(a.Size(), T{});
     return b;
   }
 
@@ -130,9 +131,10 @@ public:
     Self b(a.Size(), NumericTraits<T>::NonpositiveMin());
     return b;
   }
+  /** @ITKEndGrouping */
 
-  static constexpr bool IsSigned = NumericTraits<ValueType>::IsSigned;
-  static constexpr bool IsInteger = NumericTraits<ValueType>::IsInteger;
+  static constexpr bool IsSigned = std::is_signed_v<ValueType>;
+  static constexpr bool IsInteger = std::is_integral_v<ValueType>;
   static constexpr bool IsComplex = NumericTraits<ValueType>::IsComplex;
 
   /** Resize the input vector to the specified size */

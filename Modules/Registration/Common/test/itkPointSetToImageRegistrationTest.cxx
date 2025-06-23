@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ itkPointSetToImageRegistrationTest(int, char *[])
 
   using ImageSourceType = itk::testhelper::ImageRegistrationMethodImageSource<PixelType, PixelType, ImageDimension>;
 
-  ImageSourceType::Pointer imageSource = ImageSourceType::New();
+  auto imageSource = ImageSourceType::New();
 
   itk::Size<ImageDimension> size;
   size[0] = 100;
@@ -59,14 +59,14 @@ itkPointSetToImageRegistrationTest(int, char *[])
   imageSource->GenerateImages(size);
 
   // Create the two images
-  MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
-  FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
+  const MovingImageType::ConstPointer movingImage = imageSource->GetMovingImage();
+  const FixedImageType::ConstPointer  fixedImage = imageSource->GetFixedImage();
 
   // Create the point set and load it with data by sampling
   // the fixed image.
   //
   using FixedPointSetType = itk::PointSet<float, ImageDimension>;
-  FixedPointSetType::Pointer fixedPointSet = FixedPointSetType::New();
+  auto fixedPointSet = FixedPointSetType::New();
 
   constexpr unsigned int numberOfPoints = 10000;
 
@@ -111,46 +111,46 @@ itkPointSetToImageRegistrationTest(int, char *[])
   using TransformBaseType = MetricType::TransformType;
   using ParametersType = TransformBaseType::ParametersType;
 
-  MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   // Set up the Transform
   using TransformType = itk::TranslationTransform<CoordinateRepresentationType, ImageDimension>;
-  TransformType::Pointer transform = TransformType::New();
+  auto transform = TransformType::New();
 
   // Set up the Interpolator
   using InterpolatorType = itk::LinearInterpolateImageFunction<MovingImageType, double>;
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   // Set up the Optimizer
   using OptimizerType = itk::RegularStepGradientDescentOptimizer;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   // Set up the Registration method
   using RegistrationType = itk::PointSetToImageRegistrationMethod<FixedPointSetType, MovingImageType>;
 
-  RegistrationType::Pointer registration = RegistrationType::New();
+  auto registration = RegistrationType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(registration, PointSetToImageRegistrationMethod, ProcessObject);
 
   using CommandIterationType = itk::CommandIterationUpdate<OptimizerType>;
 
   // Instantiate an Observer to report the progress of the Optimization
-  CommandIterationType::Pointer iterationCommand = CommandIterationType::New();
+  auto iterationCommand = CommandIterationType::New();
   iterationCommand->SetOptimizer(optimizer);
 
   // Scale the translation components of the Transform in the Optimizer
   OptimizerType::ScalesType scales(transform->GetNumberOfParameters());
   scales.Fill(1.0);
 
-  unsigned long numberOfIterations = 50;
-  double        maximumStepLenght = 1.0; // no step will be larger than this
-  double        minimumStepLenght = 0.01;
-  double        gradientTolerance = 1e-6; // convergence criterion
+  constexpr unsigned long numberOfIterations = 50;
+  constexpr double        maximumStepLength = 1.0; // no step will be larger than this
+  constexpr double        minimumStepLength = 0.01;
+  constexpr double        gradientTolerance = 1e-6; // convergence criterion
 
   optimizer->SetScales(scales);
   optimizer->SetNumberOfIterations(numberOfIterations);
-  optimizer->SetMinimumStepLength(minimumStepLenght);
-  optimizer->SetMaximumStepLength(maximumStepLenght);
+  optimizer->SetMinimumStepLength(minimumStepLength);
+  optimizer->SetMaximumStepLength(maximumStepLength);
   optimizer->SetGradientMagnitudeTolerance(gradientTolerance);
   optimizer->MinimizeOn();
 
@@ -177,9 +177,9 @@ itkPointSetToImageRegistrationTest(int, char *[])
   ParametersType parameters(transform->GetNumberOfParameters());
 
   // Initialize the offset/vector part
-  for (unsigned int k = 0; k < parameters.size(); k++)
+  for (double & parameter : parameters)
   {
-    parameters[k] = 0.0f;
+    parameter = 0.0f;
   }
   transform->SetParameters(parameters);
   registration->SetInitialTransformParameters(transform->GetParameters());

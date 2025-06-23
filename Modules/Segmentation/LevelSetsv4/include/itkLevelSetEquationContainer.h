@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,8 +68,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEquationContainer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEquationContainer);
 
   using TermContainerType = TTermContainer;
   using TermContainerPointer = typename TermContainerType::Pointer;
@@ -112,9 +112,10 @@ public:
   ComputeCFLContribution() const;
 
   /** Set/Get the input speed or feature image */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Input, InputImageType);
   itkGetModifiableObjectMacro(Input, InputImageType);
-
+  /** @ITKEndGrouping */
   itkSetObjectMacro(LevelSetContainer, LevelSetContainerType);
   itkGetModifiableObjectMacro(LevelSetContainer, LevelSetContainerType);
 
@@ -138,8 +139,16 @@ public:
     ConstIterator(const Iterator & it)
       : m_Iterator(it.m_Iterator)
     {}
-    ConstIterator & operator*() { return *this; }
-    ConstIterator * operator->() { return this; }
+    ConstIterator &
+    operator*()
+    {
+      return *this;
+    }
+    ConstIterator *
+    operator->()
+    {
+      return this;
+    }
     ConstIterator &
     operator++()
     {
@@ -171,28 +180,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
-    LevelSetIdentifierType
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] LevelSetIdentifierType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    TermContainerType *
+    [[nodiscard]] TermContainerType *
     GetEquation() const
     {
       return m_Iterator->second;
@@ -215,8 +220,16 @@ public:
     {}
     ~Iterator() = default;
 
-    Iterator & operator*() { return *this; }
-    Iterator * operator->() { return this; }
+    Iterator &
+    operator*()
+    {
+      return *this;
+    }
+    Iterator *
+    operator->()
+    {
+      return this;
+    }
 
     Iterator &
     operator++()
@@ -250,28 +263,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
-    LevelSetIdentifierType
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] LevelSetIdentifierType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    TermContainerType *
+    [[nodiscard]] TermContainerType *
     GetEquation() const
     {
       return m_Iterator->second;
@@ -296,9 +305,9 @@ protected:
   LevelSetEquationContainer() = default;
   ~LevelSetEquationContainer() override = default;
 
-  LevelSetContainerPointer m_LevelSetContainer;
-  MapContainerType         m_Container;
-  InputImagePointer        m_Input;
+  LevelSetContainerPointer m_LevelSetContainer{};
+  MapContainerType         m_Container{};
+  InputImagePointer        m_Input{};
 };
 } // namespace itk
 

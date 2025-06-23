@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class LabelMapOverlayImageFilter
+ * \class LabelMapOverlayImageFilter
  * \brief Apply a colormap to a label map and superimpose it on an image.
  *
  * Apply a colormap to a label map and put it on top of the feature
@@ -42,7 +42,7 @@ namespace itk
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/176
+ * https://doi.org/10.54294/q6auw4
  *
  * \sa LabelOverlayImageFilter, LabelOverlayFunctor
  * \sa LabelMapToRGBImageFilter, LabelMapToBinaryImageFilter, LabelMapToLabelImageFilter
@@ -103,8 +103,8 @@ public:
   /** Standard New method. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(LabelMapOverlayImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelMapOverlayImageFilter);
 
   /** Set the feature image */
   void
@@ -138,12 +138,14 @@ public:
   /** Set/Get the opacity of the colored label image. The value must be
    * between 0 and 1
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Opacity, double);
   itkGetConstReferenceMacro(Opacity, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the overlay functor - defaults to a reasonable set of colors.
    * This can be used to apply a different colormap.
    */
+  /** @ITKStartGrouping */
   virtual void
   SetFunctor(const FunctorType & functor)
   {
@@ -163,7 +165,7 @@ public:
   {
     return m_Functor;
   }
-
+  /** @ITKEndGrouping */
 protected:
   LabelMapOverlayImageFilter();
   ~LabelMapOverlayImageFilter() override = default;
@@ -201,8 +203,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double      m_Opacity;
-  FunctorType m_Functor;
+  double      m_Opacity{};
+  FunctorType m_Functor{};
 
 }; // end of class
 

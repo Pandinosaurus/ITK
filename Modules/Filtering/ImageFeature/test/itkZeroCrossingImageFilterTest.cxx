@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,23 +24,35 @@
 inline std::ostream &
 operator<<(std::ostream & o, const itk::Vector<float, 3> & v)
 {
-  o << "[" << v[0] << " " << v[1] << " " << v[2] << "]";
+  o << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ']';
   return o;
 }
 
 int
 itkZeroCrossingImageFilterTest(int, char *[])
 {
-  using ImageType = itk::Image<float, 2>;
+
+  constexpr unsigned int Dimension = 2;
+  using PixelType = float;
+
+  using ImageType = itk::Image<PixelType, Dimension>;
+  using FilterType = itk::ZeroCrossingImageFilter<ImageType, ImageType>;
 
   // Set up filter
-  itk::ZeroCrossingImageFilter<ImageType, ImageType>::Pointer filter =
-    itk::ZeroCrossingImageFilter<ImageType, ImageType>::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ZeroCrossingImageFilter, ImageToImageFilter);
 
 
-  std::cout << "filter: " << filter;
+  constexpr typename FilterType::OutputImagePixelType foregroundValue =
+    itk::NumericTraits<typename FilterType::OutputImagePixelType>::OneValue();
+  filter->SetForegroundValue(foregroundValue);
+  ITK_TEST_SET_GET_VALUE(foregroundValue, filter->GetForegroundValue());
+
+  constexpr typename FilterType::OutputImagePixelType backgroundValue{};
+  filter->SetBackgroundValue(backgroundValue);
+  ITK_TEST_SET_GET_VALUE(backgroundValue, filter->GetBackgroundValue());
+
   // Run Test
   itk::Size<2> sz;
   sz[0] = 100;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +17,18 @@
  *=========================================================================*/
 
 // Enable testing legacy member functions rBegin() and rEnd().
-#define ITK_LEGACY_TEST
+#ifndef ITK_LEGACY_REMOVE
+#  define ITK_LEGACY_TEST
+#endif
 
 // First include the header file to be tested:
 #include "itkFixedArray.h"
+#include "itkRangeGTestUtilities.h"
 #include <gtest/gtest.h>
 
 #include <array>
-#include <numeric> // For iota.
+#include <numeric>     // For iota.
+#include <type_traits> // For remove_reference_t.
 
 
 namespace
@@ -54,7 +58,7 @@ Check_FixedArray_supports_retrieving_values_by_range_based_for_loop()
   EXPECT_EQ(stdArrayIterator, stdArray.cend());
 
   // Now test retrieving the values from a non-const FixedArray:
-  itk::FixedArray<TValue, VLength> nonConstFixedArray{ stdArray };
+  const itk::FixedArray<TValue, VLength> nonConstFixedArray{ stdArray };
 
   stdArrayIterator = stdArray.cbegin();
 
@@ -88,7 +92,7 @@ Check_FixedArray_supports_modifying_elements_by_range_based_for_loop()
   // Now check if the array has got the expected values.
   TValue expectedValue{};
 
-  for (std::size_t i = 0; i < VLength; ++i)
+  for (unsigned int i = 0; i < VLength; ++i)
   {
     ++expectedValue;
     EXPECT_EQ(fixedArray[i], expectedValue);
@@ -132,7 +136,7 @@ Check_const_and_non_const_reverse_iterators_retrieve_same_values()
   using ConstIteratorType = typename FixedArrayType::const_reverse_iterator;
   using NonConstIteratorType = typename FixedArrayType::reverse_iterator;
 
-  static_assert(!std::is_same<ConstIteratorType, NonConstIteratorType>::value,
+  static_assert(!std::is_same_v<ConstIteratorType, NonConstIteratorType>,
                 "Const and non-const reverse_iterator types must be different!");
 
   FixedArrayType fixedArray{};
@@ -222,7 +226,46 @@ Check_iterators_increment_return_value()
   }
 }
 
+template <int VFillValue>
+constexpr bool
+Is_Filled_FixedArray_correctly_filled()
+{
+  using FixedArrayType = itk::FixedArray<int>;
+
+  constexpr auto filledFixedArray = FixedArrayType::Filled(VFillValue);
+
+  for (unsigned int i{}; i < FixedArrayType::Length; ++i)
+  {
+    if (filledFixedArray[i] != VFillValue)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+template <typename TValue>
+constexpr bool
+Check_FixedArray_value_type()
+{
+  static_assert(std::is_same_v<typename itk::FixedArray<TValue>::value_type, TValue>);
+  return true;
+}
+
 } // End of namespace
+
+static_assert(Is_Filled_FixedArray_correctly_filled<0>() && Is_Filled_FixedArray_correctly_filled<1>() &&
+                Is_Filled_FixedArray_correctly_filled<std::numeric_limits<int>::min()>() &&
+                Is_Filled_FixedArray_correctly_filled<std::numeric_limits<int>::max()>(),
+              "itk::FixedArray::Filled(value) should be correctly filled at compile-time");
+
+static_assert(itk::RangeGTestUtilities::CheckConstexprBeginAndEndOfContainer<itk::FixedArray<int>>() &&
+                itk::RangeGTestUtilities::CheckConstexprBeginAndEndOfContainer<itk::FixedArray<double, 1>>(),
+              "Check constexpr begin() and end() of FixedArray.");
+
+
+static_assert(Check_FixedArray_value_type<int>() && Check_FixedArray_value_type<double>());
 
 
 // Tests that the values of a FixedArray (either const or non-const) can be retrieved by a
@@ -294,4 +337,23 @@ TEST(FixedArray, StdMemberFunctionsWork)
   EXPECT_EQ(cdata[0], 1);
   d3arr.data()[0] = 10;
   EXPECT_EQ(cdata[0], 10);
+}
+
+
+// Tests that each element of a value-initialized FixedArray is itself value-initialized. By definition,
+// "value-initialization" is performed when an object is constructed with an empty {} initializer.
+TEST(FixedArray, ValueInitialized)
+{
+  const auto expectEachElementValueInitialized = [](const auto & fixedArray) {
+    for (const auto & element : fixedArray)
+    {
+      using ValueType = std::remove_reference_t<decltype(element)>;
+
+      EXPECT_EQ(element, ValueType{});
+    }
+  };
+
+  expectEachElementValueInitialized(itk::FixedArray<int, 3>{});
+  expectEachElementValueInitialized(itk::FixedArray<float, 3>{});
+  expectEachElementValueInitialized(itk::FixedArray<void *, 3>{});
 }

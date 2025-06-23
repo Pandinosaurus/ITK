@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,17 +19,18 @@
 #include <iostream>
 
 #include "itkMaximumRatioDecisionRule.h"
+#include "itkTestingMacros.h"
 
 
 int
 itkMaximumRatioDecisionRuleTest(int, char *[])
 {
 
-  std::cout << "==================================" << std::endl;
-  std::cout << "Testing MaximumRatioDecionRule " << std::endl << std::endl;
-
   using DecisionRuleType = itk::Statistics::MaximumRatioDecisionRule;
-  DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
+  auto decisionRule = DecisionRuleType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(decisionRule, MaximumRatioDecisionRule, DecisionRule);
+
 
   DecisionRuleType::MembershipVectorType discriminantScores;
   discriminantScores.resize(3);
@@ -46,6 +47,11 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
   aPrioris[2] = 0.6;
 
   decisionRule->SetPriorProbabilities(aPrioris);
+  for (auto & value : aPrioris)
+  {
+    auto index = &value - &aPrioris.front();
+    ITK_TEST_SET_GET_VALUE(value, decisionRule->GetPriorProbabilities()[index]);
+  }
 
   if (decisionRule->Evaluate(discriminantScores) != 2)
   {
@@ -56,6 +62,11 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
   // run with uniform prior
   aPrioris.clear();
   decisionRule->SetPriorProbabilities(aPrioris);
+  for (auto & value : aPrioris)
+  {
+    auto index = &value - &aPrioris.front();
+    ITK_TEST_SET_GET_VALUE(value, decisionRule->GetPriorProbabilities()[index]);
+  }
 
   if (decisionRule->Evaluate(discriminantScores) != 1)
   {
@@ -63,6 +74,6 @@ itkMaximumRatioDecisionRuleTest(int, char *[])
     return EXIT_FAILURE;
   }
 
-  std::cout << "[SUCCEEDED]" << std::endl;
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

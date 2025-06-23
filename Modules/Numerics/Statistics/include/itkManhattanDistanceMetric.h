@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,10 @@
 
 #include "itkDistanceMetric.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ManhattanDistanceMetric
+ * \class ManhattanDistanceMetric
  * \brief Euclidean distance function.
  *
  * \sa DistanceMetric
@@ -44,12 +42,12 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementVectorType;
 
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MeasurementVectorSizeType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ManhattanDistanceMetric, DistanceMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ManhattanDistanceMetric);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -66,8 +64,7 @@ protected:
   ManhattanDistanceMetric() = default;
   ~ManhattanDistanceMetric() override = default;
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkManhattanDistanceMetric.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +28,13 @@ itkBinShrinkImageFilterTest1(int, char *[])
 
   // type alias to simplify the syntax
   using InputImageType = itk::Image<int, 2>;
-  using OutputImageType = itk::Image<long int, 2>;
-  InputImageType::Pointer sourceImage = InputImageType::New();
+  using OutputImageType = itk::Image<long, 2>;
+  auto sourceImage = InputImageType::New();
 
   // fill in an image
   InputImageType::IndexType  index = { { 100, 100 } };
   InputImageType::SizeType   size = { { 12, 20 } };
-  InputImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  InputImageType::RegionType region{ index, size };
   sourceImage->SetRegions(region);
   sourceImage->Allocate();
 
@@ -49,13 +47,13 @@ itkBinShrinkImageFilterTest1(int, char *[])
     }
   }
 
-  // assemple pipeline
+  // assemble pipeline
   using InputMonitorFilterType = itk::PipelineMonitorImageFilter<InputImageType>;
-  InputMonitorFilterType::Pointer monitor1 = InputMonitorFilterType::New();
+  auto monitor1 = InputMonitorFilterType::New();
   monitor1->SetInput(sourceImage);
 
   using BinShrinkFilterType = itk::BinShrinkImageFilter<InputImageType, OutputImageType>;
-  BinShrinkFilterType::Pointer bin = BinShrinkFilterType::New();
+  auto bin = BinShrinkFilterType::New();
 
   // Exercise some methods for coverage
   ITK_EXERCISE_BASIC_OBJECT_METHODS(bin, BinShrinkImageFilter, ImageToImageFilter);
@@ -89,7 +87,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
 
 
   using OutputMonitorFilterType = itk::PipelineMonitorImageFilter<OutputImageType>;
-  OutputMonitorFilterType::Pointer monitor2 = OutputMonitorFilterType::New();
+  auto monitor2 = OutputMonitorFilterType::New();
   monitor2->SetInput(bin->GetOutput());
 
   bool failed = false;
@@ -99,7 +97,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 1,1 shrink factor
     unsigned int factors[2] = { 1, 1 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->Update();
 
@@ -125,7 +123,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 2,1 shrink factor
     unsigned int factors[2] = { 2, 1 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->UpdateLargestPossibleRegion();
 
@@ -151,7 +149,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 2,2 shrink factor
     unsigned int factors[2] = { 2, 2 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->UpdateLargestPossibleRegion();
 
@@ -177,7 +175,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 5,2 shrink factor
     unsigned int factors[2] = { 5, 2 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->UpdateLargestPossibleRegion();
 
@@ -221,7 +219,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 2,1 shrink factor
     unsigned int factors[2] = { 2, 1 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->UpdateLargestPossibleRegion();
 
@@ -247,7 +245,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 3,1 shrink factor
     unsigned int factors[2] = { 3, 1 };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
     bin->SetShrinkFactors(factors);
     monitor2->UpdateLargestPossibleRegion();
 
@@ -277,7 +275,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
   {
     // update with 3,1 shrink factor
     unsigned int factors[2] = { 1, shrink };
-    std::cout << "== Testing with shrink factors " << factors[0] << " " << factors[1] << " == " << std::endl;
+    std::cout << "== Testing with shrink factors " << factors[0] << ' ' << factors[1] << " == " << std::endl;
 
     for (unsigned int x = 1; x < 10; ++x)
       for (unsigned int y = 2 * shrink; y < 20; ++y)
@@ -289,7 +287,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
         sourceImage->SetRegions(region);
         sourceImage->Allocate();
 
-        std::cout << "--Resolution " << x << " " << y << "--" << std::endl;
+        std::cout << "--Resolution " << x << ' ' << y << "--" << std::endl;
 
         itk::ImageRegionIteratorWithIndex<InputImageType> outIt(sourceImage, region);
         for (outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt)
@@ -308,12 +306,12 @@ itkBinShrinkImageFilterTest1(int, char *[])
           bool lfailed = false;
           for (inIt.GoToBegin(); !inIt.IsAtEnd(); ++inIt)
           {
-            int expectedValue = inIt.GetIndex()[0] * 10;
+            const int expectedValue = inIt.GetIndex()[0] * 10;
             if (inIt.Get() != expectedValue)
             {
               if (!lfailed)
               {
-                std::cout << "--Resolution " << x << " " << y << "--" << std::endl;
+                std::cout << "--Resolution " << x << ' ' << y << "--" << std::endl;
               }
               std::cout << "Wrong pixel value at " << inIt.GetIndex() << " of " << inIt.Get()
                         << ", expected: " << expectedValue << std::endl;
@@ -323,7 +321,7 @@ itkBinShrinkImageFilterTest1(int, char *[])
           if (lfailed)
           {
             monitor2->GetOutput()->Print(std::cout);
-            exit(1);
+            return EXIT_FAILURE;
           }
         }
         catch (const itk::ExceptionObject & e)

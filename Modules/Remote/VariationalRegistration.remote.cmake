@@ -27,12 +27,12 @@
 #--   - [ ] Some tests exist and pass on at least some platform
 #--   - [X] All requirements of Levels 2,1
 #--
-#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/exectution environment dependance )
+#-- ## Compliance Level 2 star (Alpha code feature API development or niche community/execution environment dependance )
 #--   - [X] Compiles for at least 1 niche set of execution envirionments, and perhaps others
 #--         (may depend on specific external tools like a java environment, or specific external libraries to work )
 #--   - [X] All requirements of Levels 1
 #--
-#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unkown quality)
+#-- ## Compliance Level 1 star (Pre-alpha features under development and code of unknown quality)
 #--   - [X] Code complies on at least 1 platform
 #--
 #-- ## Compliance Level 0 star ( Code/Feature of known poor-quality or deprecated status )
@@ -41,13 +41,14 @@
 #-- ### Please document here any justification for the criteria above
 #       Code style enforced by clang-format on 2020-02-19, and clang-tidy modernizations completed
 
-# Insight Journal article: https://www.insight-journal.org/browse/publication/917
+# Insight Journal article: https://doi.org/10.54294/ts6kgm
 # Contact: Alexander Schmidt-Richberg <a.schmidt-richberg@imperial.ac.uk>
 #          Jan Ehrhardt <ehrhardt@imi.uni-luebeck.de>
 #          Rene Werner <r.werner@uke.de>
-itk_fetch_module(VariationalRegistration
-  "A module to perform variational image registration. https://www.insight-journal.org/browse/publication/917"
+itk_fetch_module(
+  VariationalRegistration
+  "A module to perform variational image registration. https://doi.org/10.54294/ts6kgm"
   MODULE_COMPLIANCE_LEVEL 2
-  GIT_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITKVariationalRegistration.git
-  GIT_TAG f9db4b9a0149e3b0164dd524af124f0827c04b78
+  GIT_REPOSITORY https://github.com/InsightSoftwareConsortium/ITKVariationalRegistration.git
+  GIT_TAG b8e3af90e9dea45fad7db81958ab2fd305a72b3e
   )

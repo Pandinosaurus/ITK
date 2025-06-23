@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #define itkQuasiNewtonOptimizerv4_h
 
 #include "itkArray2D.h"
+#include "itkBooleanStdVector.h"
 #include "itkGradientDescentOptimizerv4.h"
 
 #include "vnl/algo/vnl_matrix_inverse.h"
@@ -27,7 +28,7 @@
 namespace itk
 {
 /**
- *\class QuasiNewtonOptimizerv4Template
+ * \class QuasiNewtonOptimizerv4Template
  * \brief Implement a Quasi-Newton optimizer with BFGS Hessian estimation.
  *
  * Second order approximation of the cost function is usually more efficient
@@ -72,16 +73,16 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(QuasiNewtonOptimizerv4Template, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(QuasiNewtonOptimizerv4Template);
 
   /** It should be possible to derive the internal computation type from the class object. */
   using InternalComputationValueType = TInternalComputationValueType;
 
-  using ParametersType = typename Superclass::ParametersType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using IndexRangeType = typename Superclass::IndexRangeType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::IndexRangeType;
 
   /** Type for Hessian matrix in the Quasi-Newton method */
   using HessianType = itk::Array2D<TInternalComputationValueType>;
@@ -127,32 +128,33 @@ protected:
   SizeValueType m_MaximumIterationsWithoutProgress{ 30 };
 
   /** The information about the current step */
-  ParametersType m_CurrentPosition;
-  ParametersType m_OptimalStep;
+  ParametersType m_CurrentPosition{};
+  ParametersType m_OptimalStep{};
 
   /** The information about the previous step */
-  MeasureType    m_PreviousValue;
-  ParametersType m_PreviousPosition;
+  MeasureType    m_PreviousValue{};
+  ParametersType m_PreviousPosition{};
 
   /** The best value so far and relevant information */
-  MeasureType    m_BestValue;
-  ParametersType m_BestPosition;
+  MeasureType    m_BestValue{};
+  ParametersType m_BestPosition{};
   SizeValueType  m_BestIteration{ 0 };
 
   /** The Quasi-Newton step */
-  DerivativeType m_NewtonStep;
+  DerivativeType m_NewtonStep{};
 
   /** Warning message during Quasi-Newton step estimation */
-  std::string m_NewtonStepWarning;
+  std::string m_NewtonStepWarning{};
 
   /** The maximum Quasi-Newton step size to restrict learning rates. */
-  TInternalComputationValueType m_MaximumNewtonStepSizeInPhysicalUnits;
+  TInternalComputationValueType m_MaximumNewtonStepSizeInPhysicalUnits{};
 
   /** The Hessian with local support */
-  HessianArrayType m_HessianArray;
+  HessianArrayType m_HessianArray{};
 
-  /** Valid flag for the Quasi-Newton steps */
-  std::vector<bool> m_NewtonStepValidFlags;
+  /** Valid flag for the Quasi-Newton steps.
+   */
+  BooleanStdVectorType m_NewtonStepValidFlags{};
 
   /** Estimate a Newton step */
   virtual void
@@ -160,7 +162,7 @@ protected:
 
   /** Estimate the next Hessian and step with BFGS method.
    *  The details of the method are described at
-   *  http://en.wikipedia.org/wiki/BFGS_method .
+   *  https://en.wikipedia.org/wiki/BFGS_method .
    */
   virtual bool
   ComputeHessianAndStepWithBFGS(IndexValueType loc);
@@ -202,7 +204,7 @@ protected:
 
 private:
   /** Threader for Newton step estimation. */
-  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_EstimateNewtonStepThreader;
+  typename DomainThreader<ThreadedIndexedContainerPartitioner, Self>::Pointer m_EstimateNewtonStepThreader{};
 };
 
 /** This helps to meet backward compatibility */

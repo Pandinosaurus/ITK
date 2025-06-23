@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace itk
  *
  * This class is templated over the type of the two point-sets.  It
  * expects a Transform to be plugged in for each of fixed and moving
- * point sets. The transforms default to IdenityTransform types. This particular
+ * point sets. The transforms default to IdentityTransform types. This particular
  * class is the base class for a hierarchy of point-set to point-set metrics.
  *
  * This class computes a value that measures the similarity between the fixed
@@ -87,43 +87,43 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToPointSetMetricWithIndexv4, ObjectToObjectMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToPointSetMetricWithIndexv4);
 
   /**  Type of the measure. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::NumberOfParametersType;
 
   /**  Type of the derivative. */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Transform types from Superclass*/
-  using FixedTransformType = typename Superclass::FixedTransformType;
-  using FixedTransformPointer = typename Superclass::FixedTransformPointer;
-  using FixedInputPointType = typename Superclass::FixedInputPointType;
-  using FixedOutputPointType = typename Superclass::FixedOutputPointType;
-  using FixedTransformParametersType = typename Superclass::FixedTransformParametersType;
+  using typename Superclass::FixedTransformType;
+  using typename Superclass::FixedTransformPointer;
+  using typename Superclass::FixedInputPointType;
+  using typename Superclass::FixedOutputPointType;
+  using typename Superclass::FixedTransformParametersType;
 
-  using MovingTransformType = typename Superclass::MovingTransformType;
-  using MovingTransformPointer = typename Superclass::MovingTransformPointer;
-  using MovingInputPointType = typename Superclass::MovingInputPointType;
-  using MovingOutputPointType = typename Superclass::MovingOutputPointType;
-  using MovingTransformParametersType = typename Superclass::MovingTransformParametersType;
+  using typename Superclass::MovingTransformType;
+  using typename Superclass::MovingTransformPointer;
+  using typename Superclass::MovingInputPointType;
+  using typename Superclass::MovingOutputPointType;
+  using typename Superclass::MovingTransformParametersType;
 
-  using JacobianType = typename Superclass::JacobianType;
-  using FixedTransformJacobianType = typename Superclass::FixedTransformJacobianType;
-  using MovingTransformJacobianType = typename Superclass::MovingTransformJacobianType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::FixedTransformJacobianType;
+  using typename Superclass::MovingTransformJacobianType;
 
   using DisplacementFieldTransformType = typename Superclass::MovingDisplacementFieldTransformType;
 
   using ObjectType = typename Superclass::ObjectType;
 
   /** Dimension type */
-  using DimensionType = typename Superclass::DimensionType;
+  using typename Superclass::DimensionType;
 
   /**  Type of the fixed point set. */
   using FixedPointSetType = TFixedPointSet;
@@ -151,7 +151,11 @@ public:
 
   using PointType = FixedPointType;
   using PixelType = FixedPixelType;
-  using CoordRepType = typename PointType::CoordRepType;
+  using CoordinateType = typename PointType::CoordinateType;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
   using PointsContainer = FixedPointsContainer;
   using PointsConstIterator = typename PointsContainer::ConstIterator;
   using PointIdentifier = typename PointsContainer::ElementIdentifier;
@@ -168,18 +172,18 @@ public:
 
   /** Types for the virtual domain */
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using VirtualImagePointer = typename Superclass::VirtualImagePointer;
-  using VirtualPixelType = typename Superclass::VirtualPixelType;
-  using VirtualRegionType = typename Superclass::VirtualRegionType;
-  using VirtualSizeType = typename Superclass::VirtualSizeType;
-  using VirtualSpacingType = typename Superclass::VirtualSpacingType;
+  using typename Superclass::VirtualImagePointer;
+  using typename Superclass::VirtualPixelType;
+  using typename Superclass::VirtualRegionType;
+  using typename Superclass::VirtualSizeType;
+  using typename Superclass::VirtualSpacingType;
   using VirtualOriginType = typename Superclass::VirtualPointType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualDirectionType = typename Superclass::VirtualDirectionType;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualDirectionType;
   using VirtualRadiusType = typename Superclass::VirtualSizeType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using VirtualPointSetType = typename Superclass::VirtualPointSetType;
-  using VirtualPointSetPointer = typename Superclass::VirtualPointSetPointer;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::VirtualPointSetType;
+  using typename Superclass::VirtualPointSetPointer;
 
   /** Set fixed point set*/
   void
@@ -212,15 +216,19 @@ public:
   }
 
   /** Get/Set the fixed pointset.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedPointSet, FixedPointSetType);
   itkGetConstObjectMacro(FixedPointSet, FixedPointSetType);
+  /** @ITKEndGrouping */
 
   /** Get the fixed transformed point set.  */
   itkGetModifiableObjectMacro(FixedTransformedPointSet, FixedTransformedPointSetType);
 
   /** Get/Set the moving point set.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingPointSet, MovingPointSetType);
   itkGetConstObjectMacro(MovingPointSet, MovingPointSetType);
+  /** @ITKEndGrouping */
 
   /** Get the moving transformed point set.  */
   itkGetModifiableObjectMacro(MovingTransformedPointSet, MovingTransformedPointSetType);
@@ -303,16 +311,20 @@ public:
    * If this variable is set to false, then the derivative array will be of length
    * = PointDimension * m_FixedPointSet->GetNumberOfPoints().
    */
+  /** @ITKStartGrouping */
   itkSetMacro(StoreDerivativeAsSparseFieldForLocalSupportTransforms, bool);
   itkGetConstMacro(StoreDerivativeAsSparseFieldForLocalSupportTransforms, bool);
   itkBooleanMacro(StoreDerivativeAsSparseFieldForLocalSupportTransforms);
+  /** @ITKEndGrouping */
 
   /**
    *
    */
+  /** @ITKStartGrouping */
   itkSetMacro(CalculateValueAndDerivativeInTangentSpace, bool);
   itkGetConstMacro(CalculateValueAndDerivativeInTangentSpace, bool);
   itkBooleanMacro(CalculateValueAndDerivativeInTangentSpace);
+  /** @ITKEndGrouping */
 
 protected:
   PointSetToPointSetMetricWithIndexv4();
@@ -320,24 +332,24 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename FixedPointSetType::ConstPointer               m_FixedPointSet;
-  mutable typename FixedTransformedPointSetType::Pointer m_FixedTransformedPointSet;
+  typename FixedPointSetType::ConstPointer               m_FixedPointSet{};
+  mutable typename FixedTransformedPointSetType::Pointer m_FixedTransformedPointSet{};
 
-  mutable typename PointsLocatorType::Pointer m_FixedTransformedPointsLocator;
+  mutable typename PointsLocatorType::Pointer m_FixedTransformedPointsLocator{};
 
-  typename MovingPointSetType::ConstPointer               m_MovingPointSet;
-  mutable typename MovingTransformedPointSetType::Pointer m_MovingTransformedPointSet;
+  typename MovingPointSetType::ConstPointer               m_MovingPointSet{};
+  mutable typename MovingTransformedPointSetType::Pointer m_MovingTransformedPointSet{};
 
-  mutable typename PointsLocatorType::Pointer m_MovingTransformedPointsLocator;
+  mutable typename PointsLocatorType::Pointer m_MovingTransformedPointsLocator{};
 
   /** Holds the fixed points after transformation into virtual domain. */
-  mutable VirtualPointSetPointer m_VirtualTransformedPointSet;
+  mutable VirtualPointSetPointer m_VirtualTransformedPointSet{};
 
   /**
    * Bool set by derived classes on whether the point set data (i.e. \c PixelType)
    * should be used.  Default = false.
    */
-  bool m_UsePointSetData;
+  bool m_UsePointSetData{};
 
   /**
    * Flag to calculate value and/or derivative at tangent space.  This is needed
@@ -346,7 +358,7 @@ protected:
    * set metrics might have associated gradient information which will need to be
    * warped if this flag is true.  Default = false.
    */
-  bool m_CalculateValueAndDerivativeInTangentSpace;
+  bool m_CalculateValueAndDerivativeInTangentSpace{};
 
   /**
    * Prepare point sets for use. */
@@ -405,7 +417,7 @@ protected:
   void
   StorePointDerivative(const VirtualPointType &, const DerivativeType &, DerivativeType &) const;
 
-  using MetricCategoryType = typename Superclass::MetricCategoryType;
+  using typename Superclass::MetricCategoryType;
 
   /** Get metric category */
   MetricCategoryType
@@ -418,13 +430,13 @@ protected:
   RequiresMovingPointsLocator() const
   {
     return true;
-  };
+  }
 
   virtual bool
   RequiresFixedPointsLocator() const
   {
     return true;
-  };
+  }
 
   /**
    * Function to be defined in the appropriate derived classes.  Calculates
@@ -433,6 +445,7 @@ protected:
    */
   virtual MeasureType
   GetLocalNeighborhoodValueWithIndex(const PointIdentifier &, const PointType &, const PixelType & pixel) const = 0;
+
   /**
    * Function to be defined in the appropriate derived classes.  Calculates
    * the local metric value for a single point.  The \c PixelType may or
@@ -455,19 +468,19 @@ protected:
                                                   const PixelType & pixel) const = 0;
 
 private:
-  mutable bool m_MovingTransformPointLocatorsNeedInitialization;
-  mutable bool m_FixedTransformPointLocatorsNeedInitialization;
+  mutable bool m_MovingTransformPointLocatorsNeedInitialization{};
+  mutable bool m_FixedTransformPointLocatorsNeedInitialization{};
 
   // Flag to keep track of whether a warning has already been issued
   // regarding the number of valid points.
-  mutable bool m_HaveWarnedAboutNumberOfValidPoints;
+  mutable bool m_HaveWarnedAboutNumberOfValidPoints{};
 
   // Flag to store derivatives at fixed point locations with the rest being zero gradient
   // (default = true).
-  bool m_StoreDerivativeAsSparseFieldForLocalSupportTransforms;
+  bool m_StoreDerivativeAsSparseFieldForLocalSupportTransforms{};
 
-  mutable ModifiedTimeType m_MovingTransformedPointSetTime;
-  mutable ModifiedTimeType m_FixedTransformedPointSetTime;
+  mutable ModifiedTimeType m_MovingTransformedPointSetTime{};
+  mutable ModifiedTimeType m_FixedTransformedPointSetTime{};
 
   // Create ranges over the point set for multithreaded computation of value and derivatives
   using PointIdentifierPair = std::pair<PointIdentifier, PointIdentifier>;

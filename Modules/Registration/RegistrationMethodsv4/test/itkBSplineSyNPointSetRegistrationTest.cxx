@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   using PointSetType = itk::PointSet<unsigned int, Dimension>;
 
   using PointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType>;
-  PointSetMetricType::Pointer metric = PointSetMetricType::New();
+  auto metric = PointSetMetricType::New();
 
   using PointSetType = PointSetMetricType::FixedPointSetType;
   using PointType = PointSetType::PointType;
@@ -39,15 +39,13 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   using MovingImageType = itk::Image<PixelType, Dimension>;
 
 
-  PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
   // two circles with a small offset
   PointType offset;
-  for (unsigned int d = 0; d < PointSetType::PointDimension; d++)
+  for (unsigned int d = 0; d < PointSetType::PointDimension; ++d)
   {
     offset[d] = 2.0;
   }
@@ -56,11 +54,11 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   {
     auto label = static_cast<unsigned int>(1.5 + count / 100);
 
-    PointType fixedPoint;
-    float     radius = 100.0;
+    PointType       fixedPoint;
+    constexpr float radius = 100.0;
     fixedPoint[0] = radius * std::cos(theta);
     fixedPoint[1] = radius * std::sin(theta);
-    if (PointSetType::PointDimension > 2)
+    if constexpr (PointSetType::PointDimension > 2)
     {
       fixedPoint[2] = radius * std::sin(theta);
     }
@@ -70,7 +68,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
     PointType movingPoint;
     movingPoint[0] = fixedPoint[0] + offset[0];
     movingPoint[1] = fixedPoint[1] + offset[1];
-    if (PointSetType::PointDimension > 2)
+    if constexpr (PointSetType::PointDimension > 2)
     {
       movingPoint[2] = fixedPoint[2] + offset[2];
     }
@@ -92,7 +90,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   fixedImageDirection.SetIdentity();
   fixedImageSpacing.Fill(1);
 
-  FixedImageType::Pointer fixedImage = FixedImageType::New();
+  auto fixedImage = FixedImageType::New();
   fixedImage->SetRegions(fixedImageSize);
   fixedImage->SetOrigin(fixedImageOrigin);
   fixedImage->SetDirection(fixedImageDirection);
@@ -100,7 +98,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   fixedImage->Allocate();
 
   using AffineTransformType = itk::AffineTransform<double, PointSetType::PointDimension>;
-  AffineTransformType::Pointer transform = AffineTransformType::New();
+  auto transform = AffineTransformType::New();
   transform->SetIdentity();
 
   metric->SetFixedPointSet(fixedPoints);
@@ -112,26 +110,26 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   // Create the SyN deformable registration method
 
   using VectorType = itk::Vector<double, Dimension>;
-  VectorType zeroVector(0.0);
+  constexpr VectorType zeroVector{};
 
   using DisplacementFieldType = itk::Image<VectorType, Dimension>;
-  DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
+  auto displacementField = DisplacementFieldType::New();
   displacementField->CopyInformation(fixedImage);
   displacementField->SetRegions(fixedImage->GetBufferedRegion());
   displacementField->Allocate();
   displacementField->FillBuffer(zeroVector);
 
-  DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
+  auto inverseDisplacementField = DisplacementFieldType::New();
   inverseDisplacementField->CopyInformation(fixedImage);
   inverseDisplacementField->SetRegions(fixedImage->GetBufferedRegion());
   inverseDisplacementField->Allocate();
   inverseDisplacementField->FillBuffer(zeroVector);
 
   using DisplacementFieldRegistrationType = itk::BSplineSyNImageRegistrationMethod<FixedImageType, MovingImageType>;
-  DisplacementFieldRegistrationType::Pointer displacementFieldRegistration = DisplacementFieldRegistrationType::New();
+  auto displacementFieldRegistration = DisplacementFieldRegistrationType::New();
 
   using OutputTransformType = DisplacementFieldRegistrationType::OutputTransformType;
-  OutputTransformType::Pointer outputTransform = OutputTransformType::New();
+  auto outputTransform = OutputTransformType::New();
   outputTransform->SetDisplacementField(displacementField);
   outputTransform->SetInverseDisplacementField(inverseDisplacementField);
 
@@ -144,7 +142,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
 
   OutputTransformType::ArrayType updateMeshSize;
   OutputTransformType::ArrayType totalMeshSize;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     updateMeshSize[d] = 10;
     totalMeshSize[d] = 0;
@@ -156,7 +154,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   // if the user wishes to add that option, they can use the class
   // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
 
-  unsigned int numberOfLevels = 3;
+  constexpr unsigned int numberOfLevels = 3;
 
   DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
   numberOfIterationsPerLevel.SetSize(3);
@@ -172,19 +170,19 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
   smoothingSigmasPerLevel.SetSize(3);
   smoothingSigmasPerLevel.Fill(0);
 
-  for (unsigned int level = 0; level < numberOfLevels; level++)
+  for (unsigned int level = 0; level < numberOfLevels; ++level)
   {
     // We use the shrink image filter to calculate the fixed parameters of the virtual
     // domain at each level.  To speed up calculation and avoid unnecessary memory
     // usage, we could calculate these fixed parameters directly.
 
     using ShrinkFilterType = itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType>;
-    ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(displacementField);
     shrinkFilter->Update();
 
-    DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor = DisplacementFieldTransformAdaptorType::New();
+    auto fieldTransformAdaptor = DisplacementFieldTransformAdaptorType::New();
     fieldTransformAdaptor->SetRequiredSpacing(shrinkFilter->GetOutput()->GetSpacing());
     fieldTransformAdaptor->SetRequiredSize(shrinkFilter->GetOutput()->GetBufferedRegion().GetSize());
     fieldTransformAdaptor->SetRequiredDirection(shrinkFilter->GetOutput()->GetDirection());
@@ -194,7 +192,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
     // A good heuristic is to double the b-spline mesh resolution at each level
     OutputTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
     OutputTransformType::ArrayType newTotalMeshSize = totalMeshSize;
-    for (unsigned int d = 0; d < Dimension; d++)
+    for (unsigned int d = 0; d < Dimension; ++d)
     {
       newUpdateMeshSize[d] = newUpdateMeshSize[d] << (level);
       newTotalMeshSize[d] = newTotalMeshSize[d] << (level);
@@ -202,7 +200,7 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
     fieldTransformAdaptor->SetMeshSizeForTheUpdateField(newUpdateMeshSize);
     fieldTransformAdaptor->SetMeshSizeForTheTotalField(newTotalMeshSize);
 
-    adaptors.push_back(fieldTransformAdaptor);
+    adaptors.emplace_back(fieldTransformAdaptor);
   }
 
   displacementFieldRegistration->SetFixedPointSet(fixedPoints);
@@ -234,28 +232,28 @@ itkBSplineSyNPointSetRegistrationTest(int itkNotUsed(argc), char * itkNotUsed(ar
 
   // applying the resultant transform to moving points and verify result
   std::cout << "Fixed\tMoving\tMovingTransformed\tFixedTransformed\tDiff" << std::endl;
-  PointType::ValueType tolerance = 0.01;
+  constexpr PointType::ValueType tolerance = 0.01;
 
   float averageError = 0.0;
-  for (unsigned int n = 0; n < movingPoints->GetNumberOfPoints(); n++)
+  for (unsigned int n = 0; n < movingPoints->GetNumberOfPoints(); ++n)
   {
     // compare the points in virtual domain
     PointType transformedMovingPoint =
       displacementFieldRegistration->GetModifiableTransform()->GetInverseTransform()->TransformPoint(
         movingPoints->GetPoint(n));
-    PointType fixedPoint = fixedPoints->GetPoint(n);
-    PointType transformedFixedPoint =
+    PointType       fixedPoint = fixedPoints->GetPoint(n);
+    const PointType transformedFixedPoint =
       displacementFieldRegistration->GetModifiableTransform()->TransformPoint(fixedPoints->GetPoint(n));
     PointType difference;
     difference[0] = transformedMovingPoint[0] - fixedPoint[0];
     difference[1] = transformedMovingPoint[1] - fixedPoint[1];
-    std::cout << fixedPoints->GetPoint(n) << "\t" << movingPoints->GetPoint(n) << "\t" << transformedMovingPoint << "\t"
-              << transformedFixedPoint << "\t" << difference << std::endl;
+    std::cout << fixedPoints->GetPoint(n) << '\t' << movingPoints->GetPoint(n) << '\t' << transformedMovingPoint << '\t'
+              << transformedFixedPoint << '\t' << difference << std::endl;
 
     averageError += ((difference.GetVectorFromOrigin()).GetSquaredNorm());
   }
 
-  unsigned int numberOfPoints = movingPoints->GetNumberOfPoints();
+  const unsigned int numberOfPoints = movingPoints->GetNumberOfPoints();
   if (numberOfPoints > 0)
   {
     averageError /= static_cast<float>(numberOfPoints);

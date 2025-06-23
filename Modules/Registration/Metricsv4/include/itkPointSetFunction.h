@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,7 +52,7 @@ namespace itk
  *
  * \ingroup ITKMetricsv4
  */
-template <typename TInputPointSet, typename TOutput, typename TCoordRep = float>
+template <typename TInputPointSet, typename TOutput, typename TCoordinate = float>
 class ITK_TEMPLATE_EXPORT PointSetFunction : public FunctionBase<typename TInputPointSet::PointType, TOutput>
 {
 public:
@@ -67,8 +67,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetFunction, FunctionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetFunction);
 
   /** InputPointSetType type alias support */
   using InputPointSetType = TInputPointSet;
@@ -83,8 +83,12 @@ public:
   /** OutputType type alias support */
   using OutputType = TOutput;
 
-  /** CoordRepType type alias support */
-  using CoordRepType = TCoordRep;
+  /** CoordinateType type alias support */
+  using CoordinateType = TCoordinate;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
 
   /** Set the input point set.
    * \warning this method caches BufferedRegion information.
@@ -112,20 +116,20 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Const pointer to the input image. */
-  InputPointSetConstPointer m_PointSet;
+  InputPointSetConstPointer m_PointSet{};
 };
 
 } // end namespace itk
 
 // Define instantiation macro for this template.
-#define ITK_TEMPLATE_PointSetFunction(_, EXPORT, x, y)                                                                 \
-  namespace itk                                                                                                        \
-  {                                                                                                                    \
-  _(3(class EXPORT PointSetFunction<ITK_TEMPLATE_3 x>))                                                                \
-  namespace Templates                                                                                                  \
-  {                                                                                                                    \
-  using PointSetFunction##y = PointSetFunction<ITK_TEMPLATE_3 x>;                                                      \
-  }                                                                                                                    \
+#define ITK_TEMPLATE_PointSetFunction(_, EXPORT, x, y)            \
+  namespace itk                                                   \
+  {                                                               \
+  _(3(class EXPORT PointSetFunction<ITK_TEMPLATE_3 x>))           \
+  namespace Templates                                             \
+  {                                                               \
+  using PointSetFunction##y = PointSetFunction<ITK_TEMPLATE_3 x>; \
+  }                                                               \
   }
 
 

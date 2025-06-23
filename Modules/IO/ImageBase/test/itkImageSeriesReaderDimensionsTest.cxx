@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,15 +17,16 @@
  *=========================================================================*/
 
 #include "itkImageSeriesReader.h"
+#include "itkTestingMacros.h"
 
 
 int
-itkImageSeriesReaderDimensionsTest(int ac, char * av[])
+itkImageSeriesReaderDimensionsTest(int argc, char * argv[])
 {
 
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "usage: itkIOTests itkImageSeriesReaderDimensionsTest inputFileName(s)" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " inputFileName(s)" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -41,17 +42,19 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   using Reader5DType = itk::ImageSeriesReader<Image5DType>;
 
   Reader2DType::FileNamesContainer fname;
-  fname.push_back(av[1]);
+  fname.emplace_back(argv[1]);
 
   Reader2DType::FileNamesContainer fnames;
-  for (int i = 1; i < ac; ++i)
-    fnames.push_back(av[i]);
+  for (int i = 1; i < argc; ++i)
+  {
+    fnames.emplace_back(argv[i]);
+  }
 
 
   std::cout << "testing reading a single 2D image to 2D" << std::endl;
   try
   {
-    Reader2DType::Pointer reader = Reader2DType::New();
+    auto reader = Reader2DType::New();
     reader->SetFileNames(fname);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -65,7 +68,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a single 2D image to 3D" << std::endl;
   try
   {
-    Reader3DType::Pointer reader = Reader3DType::New();
+    auto reader = Reader3DType::New();
     reader->SetFileNames(fname);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -79,7 +82,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a single 2D image to 4D" << std::endl;
   try
   {
-    Reader4DType::Pointer reader = Reader4DType::New();
+    auto reader = Reader4DType::New();
     reader->SetFileNames(fname);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -95,7 +98,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a series of 2D images to 2D" << std::endl;
   try
   {
-    Reader2DType::Pointer reader = Reader2DType::New();
+    auto reader = Reader2DType::New();
     reader->SetFileNames(fnames);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -109,7 +112,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a series of 2D images to 3D" << std::endl;
   try
   {
-    Reader3DType::Pointer reader = Reader3DType::New();
+    auto reader = Reader3DType::New();
     reader->SetFileNames(fnames);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -123,7 +126,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a series of 2D images to 4D" << std::endl;
   try
   {
-    Reader4DType::Pointer reader = Reader4DType::New();
+    auto reader = Reader4DType::New();
     reader->SetFileNames(fnames);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -137,7 +140,7 @@ itkImageSeriesReaderDimensionsTest(int ac, char * av[])
   std::cout << "testing reading a series of 2D images to 5D" << std::endl;
   try
   {
-    Reader5DType::Pointer reader = Reader5DType::New();
+    auto reader = Reader5DType::New();
     reader->SetFileNames(fnames);
     reader->Update();
     std::cout << "output image size:: " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;

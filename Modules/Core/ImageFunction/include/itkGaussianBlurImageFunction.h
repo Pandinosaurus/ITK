@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,9 +34,6 @@ namespace itk
  * \sa ImageFunction
  * \ingroup ITKImageFunction
  *
- * \sphinx
- * \sphinxexample{Core/ImageFunction/GaussianBlueImageFunction,GaussianBlurImageFunction}
- * \endsphinx
  */
 template <typename TInputImage, typename TOutput = double>
 class ITK_TEMPLATE_EXPORT GaussianBlurImageFunction : public ImageFunction<TInputImage, TOutput>
@@ -57,14 +54,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GaussianBlurImageFunction, ImageFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GaussianBlurImageFunction);
 
   /** InputImageType type alias support */
   using InputImageType = TInputImage;
   using InputPixelType = typename InputImageType::PixelType;
-  using IndexType = typename Superclass::IndexType;
-  using ContinuousIndexType = typename Superclass::ContinuousIndexType;
+  using typename Superclass::IndexType;
+  using typename Superclass::ContinuousIndexType;
 
   /** Dimension of the underlying image. */
   static constexpr unsigned int ImageDimension = InputImageType::ImageDimension;
@@ -90,9 +87,9 @@ public:
   using SigmaArrayType = itk::FixedArray<double, Self::ImageDimension>;
 
   /** Point type alias support */
-  using PointType = typename Superclass::PointType;
+  using typename Superclass::PointType;
 
-  /** Evalutate the  in the given dimension at specified point */
+  /** Evaluate the function in the given dimension at specified point */
   TOutput
   Evaluate(const PointType & point) const override;
 
@@ -132,36 +129,40 @@ public:
   /** Set/Get the Extent of the array holding the coefficients
    *  of the Gaussian kernel computed by the GaussianOperator.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(Extent, ExtentArrayType);
   itkGetConstReferenceMacro(Extent, ExtentArrayType);
   void
   SetExtent(const double * extent);
-
+  /** @ITKEndGrouping */
   void
   SetExtent(const double extent);
 
   /** Set/Get the maximum error acceptable for the approximation
    *  of the Gaussian kernel with the GaussianOperator.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumError, ErrorArrayType);
   itkGetConstReferenceMacro(MaximumError, ErrorArrayType);
-
+  /** @ITKEndGrouping */
   /** Set/GetMaximumKernelWidth() This value is used by the underling
    *  GaussianOperator for computing the number of coefficients to be
    *  used in the Gaussian kernel
    */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumKernelWidth, int);
   itkGetConstMacro(MaximumKernelWidth, int);
-
+  /** @ITKEndGrouping */
   /** Set/GetUseImageSpacing() This flag is used by the underling
    *  GaussianOperator to decide if the image spacing should be used
    *  to scale the value of sigma or not. The methods UseImageSpacingOn()
    *  and UseImageSpacingOff() provide a similar functionality.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
-
+  /** @ITKEndGrouping */
 protected:
   GaussianBlurImageFunction();
   ~GaussianBlurImageFunction() override = default;
@@ -179,31 +180,31 @@ private:
   virtual TOutput
   EvaluateAtIndex(const IndexType & index, const OperatorArrayType & operatorArray) const;
 
-  SigmaArrayType                       m_Sigma;
-  OperatorImageFunctionPointer         m_OperatorImageFunction;
-  OperatorInternalImageFunctionPointer m_OperatorInternalImageFunction;
-  mutable OperatorArrayType            m_OperatorArray;
-  mutable OperatorArrayType            m_ContinuousOperatorArray;
-  InternalImagePointer                 m_InternalImage;
+  SigmaArrayType                       m_Sigma{};
+  OperatorImageFunctionPointer         m_OperatorImageFunction{};
+  OperatorInternalImageFunctionPointer m_OperatorInternalImageFunction{};
+  mutable OperatorArrayType            m_OperatorArray{};
+  mutable OperatorArrayType            m_ContinuousOperatorArray{};
+  InternalImagePointer                 m_InternalImage{};
 
   /** The maximum error of the gaussian blurring kernel in each dimensional
    * direction. For definition of maximum error, see GaussianOperator.
    * \sa GaussianOperator */
-  ErrorArrayType  m_MaximumError;
-  ExtentArrayType m_Extent;
+  ErrorArrayType  m_MaximumError{};
+  ExtentArrayType m_Extent{};
 
   /** Maximum allowed kernel width for any dimension of the discrete Gaussian
       approximation */
-  int m_MaximumKernelWidth;
+  int m_MaximumKernelWidth{};
 
   /** Number of dimensions to process. Default is all dimensions */
-  unsigned int m_FilterDimensionality;
+  unsigned int m_FilterDimensionality{};
 
   /** Flag to indicate whether to use image spacing */
-  bool m_UseImageSpacing;
+  bool m_UseImageSpacing{ true };
 
   /** Neighborhood Image Function */
-  GaussianFunctionPointer m_GaussianFunction;
+  GaussianFunctionPointer m_GaussianFunction{};
 };
 } // end namespace itk
 

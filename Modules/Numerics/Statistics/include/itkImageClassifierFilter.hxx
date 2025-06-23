@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,24 +18,17 @@
 #ifndef itkImageClassifierFilter_hxx
 #define itkImageClassifierFilter_hxx
 
-#include "itkImageClassifierFilter.h"
 #include "itkImageRegionIterator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TSample, typename TInputImage, typename TOutputImage>
 ImageClassifierFilter<TSample, TInputImage, TOutputImage>::ImageClassifierFilter()
+  /** Initialize decision rule */
+  : m_DecisionRule(nullptr)
 {
-  this->m_NumberOfClasses = 0;
   this->SetNumberOfRequiredInputs(3);
   this->SetNumberOfRequiredOutputs(1);
-
-  /** Initialize decision rule */
-  m_DecisionRule = nullptr;
-
-  m_NumberOfClasses = 0;
 }
 
 template <typename TSample, typename TInputImage, typename TOutputImage>
@@ -139,8 +132,7 @@ ImageClassifierFilter<TSample, TInputImage, TOutputImage>::GenerateData()
 
   if (membershipFunctionsWeightsArray.Size() != this->m_NumberOfClasses)
   {
-    itkExceptionMacro("Membership functions weight array size does not match the\
-                      number of classes ");
+    itkExceptionMacro("Membership functions weight array size does not match the number of classes ");
   }
 
   const auto * inputImage = static_cast<const InputImageType *>(this->ProcessObject::GetInput(0));
@@ -166,13 +158,12 @@ ImageClassifierFilter<TSample, TInputImage, TOutputImage>::GenerateData()
 
     MeasurementVectorTraits::Assign(measurements, inpItr.Get());
 
-    for (unsigned int i = 0; i < this->m_NumberOfClasses; i++)
+    for (unsigned int i = 0; i < this->m_NumberOfClasses; ++i)
     {
       discriminantScores[i] = membershipFunctionsWeightsArray[i] * membershipFunctions[i]->Evaluate(measurements);
     }
 
-    unsigned int classIndex;
-    classIndex = static_cast<unsigned int>(m_DecisionRule->Evaluate(discriminantScores));
+    const auto classIndex = static_cast<unsigned int>(m_DecisionRule->Evaluate(discriminantScores));
 
     auto value = static_cast<OutputPixelType>(classLabels[classIndex]);
     outItr.Set(value);
@@ -181,7 +172,6 @@ ImageClassifierFilter<TSample, TInputImage, TOutputImage>::GenerateData()
     ++outItr;
   }
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

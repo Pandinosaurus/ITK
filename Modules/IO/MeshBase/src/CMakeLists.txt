@@ -1,4 +1,5 @@
-set(ITKIOMeshBase_SRCS
+set(
+  ITKIOMeshBase_SRCS
   itkMeshFileReaderException.cxx
   itkMeshFileWriterException.cxx
   itkMeshIOBase.cxx

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,9 @@ itkPNGImageIOTestPalette(int argc, char * argv[])
 {
   if (argc != 5)
   {
-    std::cerr << "Usage: " << argv[0] << " input"
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " input"
               << " output"
               << " expandRGBPalette"
               << " isPaletteImage" << std::endl;
@@ -52,17 +54,17 @@ itkPNGImageIOTestPalette(int argc, char * argv[])
   using WriterType = itk::ImageFileWriter<ScalarImageType>;
   using IOType = itk::PNGImageIO;
 
-  IOType::Pointer io = IOType::New();
+  auto io = IOType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(io, PNGImageIO, ImageIOBase);
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   ITK_TEST_SET_GET_BOOLEAN(io, ExpandRGBPalette, expandRGBPalette);
 
   // Exercise exception cases
-  size_t sizeOfActualIORegion =
+  const size_t sizeOfActualIORegion =
     io->GetIORegion().GetNumberOfPixels() * (io->GetComponentSize() * io->GetNumberOfComponents());
   auto * loadBuffer = new char[sizeOfActualIORegion];
 
@@ -171,10 +173,10 @@ itkPNGImageIOTestPalette(int argc, char * argv[])
     // case not possible here
   }
 
-  ScalarImageType::Pointer inputImage = reader->GetOutput();
+  const ScalarImageType::Pointer inputImage = reader->GetOutput();
 
   // test writing palette
-  bool writePalette = !expandRGBPalette && isPaletteImage;
+  const bool writePalette = !expandRGBPalette && isPaletteImage;
   std::cerr << "Trying to write the image as " << ((writePalette) ? "palette" : "expanded palette") << std::endl;
   ITK_TEST_SET_GET_BOOLEAN(io, WritePalette, writePalette);
 
@@ -209,34 +211,34 @@ itkPNGImageIOTestPalette(int argc, char * argv[])
     {
       std::cerr << "Test failed!" << std::endl;
       std::cerr << "Read and written palette don't have the same size ( " << palette_read.size() << " vs "
-                << palette_written.size() << ")" << std::endl;
+                << palette_written.size() << ')' << std::endl;
       return EXIT_FAILURE;
     }
-    bool   palette_equal = true;
-    size_t i;
-    for (i = 0; i < palette_written.size(); ++i)
     {
-      if (palette_written[i] != palette_read[i])
+      bool   palette_equal = true;
+      size_t i = 0;
+      for (; i < palette_written.size(); ++i)
       {
-        palette_equal = false;
-        break;
+        if (palette_written[i] != palette_read[i])
+        {
+          palette_equal = false;
+          break;
+        }
+      }
+      if (!palette_equal)
+      {
+        std::cerr << "Test failed!" << std::endl;
+        std::cerr << "Palette not written as it was read at position [" << i << "]." << std::endl;
+        return EXIT_FAILURE;
       }
     }
-    if (!palette_equal)
-    {
-      std::cerr << "Test failed!" << std::endl;
-      std::cerr << "Palette not written as it was read at position [" << i << "]." << std::endl;
-      return EXIT_FAILURE;
-    }
-    else
-    {
-      std::cout << "Read and written palette are equal" << std::endl;
-    }
+    std::cout << "Read and written palette are equal" << std::endl;
   }
 
   // Exercise other methods
-  itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
-  std::cout << "PixelStride: " << itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType(pixelStride) << std::endl;
+  const itk::ImageIOBase::SizeType pixelStride = io->GetPixelStride();
+  std::cout << "PixelStride: " << static_cast<itk::NumericTraits<itk::ImageIOBase::SizeType>::PrintType>(pixelStride)
+            << std::endl;
 
   // ToDo
   // When the palette has made into the Metadata Dictionary (as opposed to the ImageIO):

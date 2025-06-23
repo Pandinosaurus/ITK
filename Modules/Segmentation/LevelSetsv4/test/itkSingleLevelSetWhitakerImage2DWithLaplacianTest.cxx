@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,17 +73,17 @@ itkSingleLevelSetWhitakerImage2DWithLaplacianTest(int argc, char * argv[])
   using InputIteratorType = itk::ImageRegionIteratorWithIndex<InputImageType>;
 
   // load binary mask
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
-  InputImageType::Pointer input = reader->GetOutput();
+  const InputImageType::Pointer input = reader->GetOutput();
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(input->GetLargestPossibleRegion());
   binary->CopyInformation(input);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
   InputImageType::RegionType region;
   InputImageType::IndexType  index;
@@ -104,22 +104,22 @@ itkSingleLevelSetWhitakerImage2DWithLaplacianTest(int argc, char * argv[])
   }
 
   // Convert binary mask to sparse level set
-  BinaryToSparseAdaptorType::Pointer adaptor = BinaryToSparseAdaptorType::New();
+  auto adaptor = BinaryToSparseAdaptorType::New();
   adaptor->SetInputImage(binary);
   adaptor->Initialize();
   std::cout << "Finished converting to sparse format" << std::endl;
 
-  SparseLevelSetType::Pointer level_set = adaptor->GetModifiableLevelSet();
+  const SparseLevelSetType::Pointer level_set = adaptor->GetModifiableLevelSet();
 
   // Define the Heaviside function
-  HeavisideFunctionBaseType::Pointer heaviside = HeavisideFunctionBaseType::New();
+  auto heaviside = HeavisideFunctionBaseType::New();
   heaviside->SetEpsilon(1.0);
 
   // Insert the levelsets in a levelset container
-  LevelSetContainerType::Pointer lscontainer = LevelSetContainerType::New();
+  auto lscontainer = LevelSetContainerType::New();
   lscontainer->SetHeaviside(heaviside);
 
-  bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set, false);
+  const bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set, false);
   if (!LevelSetNotYetAdded)
   {
     return EXIT_FAILURE;
@@ -132,31 +132,31 @@ itkSingleLevelSetWhitakerImage2DWithLaplacianTest(int argc, char * argv[])
   // *** 1st Level Set phi ***
 
   // Create ChanAndVese internal term for phi_{1}
-  ChanAndVeseInternalTermType::Pointer cvInternalTerm0 = ChanAndVeseInternalTermType::New();
+  auto cvInternalTerm0 = ChanAndVeseInternalTermType::New();
   cvInternalTerm0->SetInput(input);
   cvInternalTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: CV internal term created" << std::endl;
 
   // Create ChanAndVese external term for phi_{1}
-  ChanAndVeseExternalTermType::Pointer cvExternalTerm0 = ChanAndVeseExternalTermType::New();
+  auto cvExternalTerm0 = ChanAndVeseExternalTermType::New();
   cvExternalTerm0->SetInput(input);
   cvExternalTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: CV external term created" << std::endl;
 
   // Create ChanAndVese curvature term for phi_{1}
-  CurvatureTermType::Pointer curvatureTerm0 = CurvatureTermType::New();
+  auto curvatureTerm0 = CurvatureTermType::New();
   curvatureTerm0->SetInput(input);
   curvatureTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: Curvature term created" << std::endl;
 
   // Create ChanAndVese curvature term for phi_{1}
-  PropagationTermType::Pointer propagationTerm0 = PropagationTermType::New();
+  auto propagationTerm0 = PropagationTermType::New();
   propagationTerm0->SetInput(input);
   propagationTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: Propagation term created" << std::endl;
 
   // Create ChanAndVese curvature term for phi_{1}
-  LaplacianTermType::Pointer laplacianTerm0 = LaplacianTermType::New();
+  auto laplacianTerm0 = LaplacianTermType::New();
   laplacianTerm0->SetInput(input);
   laplacianTerm0->SetCoefficient(1.0);
   std::cout << "LevelSet 1: Laplacian term created" << std::endl;
@@ -164,7 +164,7 @@ itkSingleLevelSetWhitakerImage2DWithLaplacianTest(int argc, char * argv[])
   // **************** CREATE ALL EQUATIONS ****************
 
   // Create Term Container
-  TermContainerType::Pointer termContainer0 = TermContainerType::New();
+  auto termContainer0 = TermContainerType::New();
   termContainer0->SetInput(input);
   termContainer0->SetCurrentLevelSetId(0);
   termContainer0->SetLevelSetContainer(lscontainer);
@@ -177,14 +177,14 @@ itkSingleLevelSetWhitakerImage2DWithLaplacianTest(int argc, char * argv[])
 
   std::cout << "Term container 0 created" << std::endl;
 
-  EquationContainerType::Pointer equationContainer = EquationContainerType::New();
+  auto equationContainer = EquationContainerType::New();
   equationContainer->AddEquation(0, termContainer0);
 
   using StoppingCriterionType = itk::LevelSetEvolutionNumberOfIterationsStoppingCriterion<LevelSetContainerType>;
-  StoppingCriterionType::Pointer criterion = StoppingCriterionType::New();
+  auto criterion = StoppingCriterionType::New();
   criterion->SetNumberOfIterations(5);
 
-  LevelSetEvolutionType::Pointer evolution = LevelSetEvolutionType::New();
+  auto evolution = LevelSetEvolutionType::New();
   evolution->SetEquationContainer(equationContainer);
   evolution->SetStoppingCriterion(criterion);
   evolution->SetLevelSetContainer(lscontainer);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@
 #include "itkRawImageIO.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 
 // Specific ImageIO test
@@ -39,11 +40,9 @@ public:
   {
     m_Image = ImageType::New();
 
-    typename ImageType::RegionType region;
-    typename ImageType::SizeType   size;
-    typename ImageType::IndexType  start;
-
-    start.Fill(0);
+    typename ImageType::RegionType          region;
+    typename ImageType::SizeType            size;
+    constexpr typename ImageType::IndexType start{};
     size[0] = 16; // To fill the range of 8 bits image
     size[1] = 16;
 
@@ -53,7 +52,7 @@ public:
     m_Image->SetRegions(region);
     m_Image->Allocate();
 
-    PixelType value = itk::NumericTraits<PixelType>::ZeroValue();
+    PixelType value{};
 
     // Fill the image with incremental values.
     using IteratorType = itk::ImageRegionIterator<ImageType>;
@@ -75,12 +74,12 @@ public:
   Write()
   {
     using WriterType = itk::ImageFileWriter<ImageType>;
-    WriterType::Pointer writer = WriterType::New();
+    auto writer = WriterType::New();
 
     writer->SetFileName(m_FileName.c_str());
     writer->SetInput(m_Image);
 
-    RawImageIOType::Pointer rawImageIO = RawImageIOType::New();
+    auto rawImageIO = RawImageIOType::New();
     writer->SetImageIO(rawImageIO);
 
     writer->Update();
@@ -90,17 +89,17 @@ public:
   Read()
   {
     using ReaderType = itk::ImageFileReader<ImageType>;
-    ReaderType::Pointer reader = ReaderType::New();
+    auto reader = ReaderType::New();
     reader->SetFileName(m_FileName.c_str());
 
-    RawImageIOType::Pointer rawImageIO = RawImageIOType::New();
+    auto rawImageIO = RawImageIOType::New();
     reader->SetImageIO(rawImageIO);
 
-    unsigned int dim[2] = { 16, 16 };
-    double       spacing[2] = { 1.0, 1.0 };
-    double       origin[2] = { 0.0, 0.0 };
+    constexpr unsigned int dim[2] = { 16, 16 };
+    constexpr double       spacing[2] = { 1.0, 1.0 };
+    constexpr double       origin[2] = { 0.0, 0.0 };
 
-    for (unsigned int i = 0; i < 2; i++)
+    for (unsigned int i = 0; i < 2; ++i)
     {
       rawImageIO->SetDimensions(i, dim[i]);
       rawImageIO->SetSpacing(i, spacing[i]);
@@ -113,7 +112,7 @@ public:
 
     reader->Update();
 
-    ImageType::ConstPointer image = reader->GetOutput();
+    const ImageType::ConstPointer image = reader->GetOutput();
 
 
     //
@@ -147,7 +146,7 @@ public:
     m_FileName = filename;
   }
 
-  bool
+  [[nodiscard]] bool
   GetError() const
   {
     return m_Error;
@@ -167,13 +166,14 @@ itkRawImageIOTest5(int argc, char * argv[])
 
   if (argc < 2)
   {
+    std::cerr << "Missing Parameters." << std::endl;
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " TemporaryDirectoryName" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " TemporaryDirectoryName" << std::endl;
     return EXIT_FAILURE;
   }
 
 
-  std::string directory = argv[1];
+  const std::string directory = argv[1];
 
 
   //
@@ -189,29 +189,10 @@ itkRawImageIOTest5(int argc, char * argv[])
 
   tester1.SetFileName(filename);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester1.Write());
 
-  try
-  {
-    tester1.Write();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while writing char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester1.Read());
 
-
-  try
-  {
-    tester1.Read();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while reading char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
 
   if (tester1.GetError())
   {
@@ -230,29 +211,9 @@ itkRawImageIOTest5(int argc, char * argv[])
 
   tester2.SetFileName(filename);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester2.Write());
 
-  try
-  {
-    tester2.Write();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while writing signed char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-
-  try
-  {
-    tester2.Read();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while reading signed char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester2.Read());
 
   if (tester2.GetError())
   {
@@ -272,29 +233,9 @@ itkRawImageIOTest5(int argc, char * argv[])
 
   tester3.SetFileName(filename);
 
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester3.Write());
 
-  try
-  {
-    tester3.Write();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while writing unsigned char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
-
-
-  try
-  {
-    tester3.Read();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught while reading unsigned char type." << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(tester3.Read());
 
   if (tester3.GetError())
   {

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@ namespace itk
 {
 
 /**
- *\class MRCHeaderObject
+ * \class MRCHeaderObject
  * \brief This class is a light wrapper for a couple of plain old data
  * structures, so that they can be utilized in a MetaDataDictionary.
  *
@@ -40,7 +40,7 @@ namespace itk
  *  This code was contributed in the Insight Journal paper:
  *  "A Streaming IO Base Class and Support for Streaming the MRC and VTK File Format"
  *  by Lowekamp B., Chen D.
- *  https://www.insight-journal.org/browse/publication/729
+ *  https://doi.org/10.54294/ufs19w
  *
  * \sa MetaDataDictionary
  * \ingroup ITKIOMRC
@@ -60,7 +60,7 @@ public:
    * header must be 1024 bytes.
    *
    * The structure of the MRC header taken from:
-   * http://bio3d.colorado.edu/imod/doc/mrc_format.txt with permission
+   * https://bio3d.colorado.edu/imod/doc/mrc_format.txt with permission
    * from David Mastronarde on 8/21/2009
    */
   struct Header
@@ -71,7 +71,7 @@ public:
 
     /** Types of pixel in image.  Values used by IMOD:
      * 0 = unsigned bytes,
-     * 1 = signed short integers (16 bits),
+     * 1 = short integers (16 bits),
      * 2 = float,
      * 3 = short * 2, (used for complex data)
      * 4 = float * 2, (used for complex data)
@@ -164,8 +164,8 @@ public:
     float zorg;
 
     char cmap[4];  /**< Contains "MAP "  */
-    char stamp[4]; /**< First byte has 17 for big- or 68 for
-                     little-endian  */
+    char stamp[4]; /**< First two bytes have 17 and 17 for big-endian or
+                        68 and 68 for little-endian */
     float rms;
 
     // ALL HEADERS:
@@ -217,8 +217,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MRCHeaderObject, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MRCHeaderObject);
 
   void
   DeepCopy(ConstPointer h);
@@ -270,8 +270,8 @@ public:
   IsOriginalHeaderBigEndian() const;
 
   /** Public available data : FIXME : NO MEMBER VARIABLES SHOULD BE PUBLIC. */
-  Header m_Header; // FIXME : This should be private and
-                   // should have Get/Set Methods.
+  Header m_Header{}; // FIXME : This should be private and
+                     // should have Get/Set Methods.
 
 protected:
   MRCHeaderObject();
@@ -291,7 +291,7 @@ private:
 
   FeiExtendedHeader * m_ExtendedFeiHeader{ nullptr };
 
-  bool m_BigEndianHeader;
+  bool m_BigEndianHeader{};
 };
 } // namespace itk
 

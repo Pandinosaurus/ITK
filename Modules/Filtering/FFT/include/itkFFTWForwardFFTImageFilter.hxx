@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #define itkFFTWForwardFFTImageFilter_hxx
 
 #include "itkHalfToFullHermitianImageFilter.h"
-#include "itkFFTWForwardFFTImageFilter.h"
 #include "itkIndent.h"
 #include "itkMetaDataObject.h"
 #include "itkProgressReporter.h"
@@ -47,8 +46,8 @@ void
 FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   // Get pointers to the input and output.
-  typename InputImageType::ConstPointer inputPtr = this->GetInput();
-  typename OutputImageType::Pointer     outputPtr = this->GetOutput();
+  const typename InputImageType::ConstPointer inputPtr = this->GetInput();
+  const typename OutputImageType::Pointer     outputPtr = this->GetOutput();
 
   if (!inputPtr || !outputPtr)
   {
@@ -57,7 +56,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // We don't have a nice progress to report, but at least this simple line
   // reports the beginning and the end of the process.
-  ProgressReporter progress(this, 0, 1);
+  const ProgressReporter progress(this, 0, 1);
 
   // allocate output buffer memory
   outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
@@ -73,7 +72,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
   unsigned int totalInputSize = 1;
   unsigned int totalOutputSize = 1;
 
-  for (unsigned i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     totalInputSize *= inputSize[i];
     totalOutputSize *= outputSize[i];
@@ -85,7 +84,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
   typename OutputImageType::RegionType fftwOutputRegion(outputPtr->GetLargestPossibleRegion());
   fftwOutputRegion.SetSize(fftwOutputSize);
 
-  typename OutputImageType::Pointer fftwOutput = OutputImageType::New();
+  auto fftwOutput = OutputImageType::New();
   // The information is copied to the half image so that it will then
   // be copied to the final output of this filter.
   fftwOutput->CopyInformation(inputPtr);
@@ -103,7 +102,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
     flags = flags | FFTW_PRESERVE_INPUT;
   }
   int sizes[ImageDimension];
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     sizes[(ImageDimension - 1) - i] = inputSize[i];
   }
@@ -119,7 +118,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // Expand the half image to the full image size
   using HalfToFullFilterType = HalfToFullHermitianImageFilter<OutputImageType>;
-  typename HalfToFullFilterType::Pointer halfToFullFilter = HalfToFullFilterType::New();
+  auto halfToFullFilter = HalfToFullFilterType::New();
   halfToFullFilter->SetActualXDimensionIsOdd(inputSize[0] % 2 != 0);
   halfToFullFilter->SetInput(fftwOutput);
   halfToFullFilter->GraftOutput(this->GetOutput());
@@ -146,7 +145,7 @@ FFTWForwardFFTImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & o
   Superclass::PrintSelf(os, indent);
 
 #ifndef ITK_USE_CUFFTW
-  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ")"
+  os << indent << "PlanRigor: " << FFTWGlobalConfiguration::GetPlanRigorName(m_PlanRigor) << " (" << m_PlanRigor << ')'
      << std::endl;
 #endif
 }

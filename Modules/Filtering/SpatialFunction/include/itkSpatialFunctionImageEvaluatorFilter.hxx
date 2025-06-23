@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,34 +19,31 @@
 #define itkSpatialFunctionImageEvaluatorFilter_hxx
 
 #include "itkImageRegion.h"
-#include "itkSpatialFunctionImageEvaluatorFilter.h"
 
 namespace itk
 {
 template <typename TSpatialFunction, typename TInputImage, typename TOutputImage>
 SpatialFunctionImageEvaluatorFilter<TSpatialFunction, TInputImage, TOutputImage>::SpatialFunctionImageEvaluatorFilter()
+  : m_PixelFunction(nullptr) // Set the internal function to null
 {
-  itkDebugMacro(<< "SpatialFunctionImageEvaluatorFilter::SpatialFunctionImageEvaluatorFilter() called");
-
-  // Set the internal function to null
-  this->m_PixelFunction = nullptr;
+  itkDebugMacro("SpatialFunctionImageEvaluatorFilter::SpatialFunctionImageEvaluatorFilter() called");
 }
 
 template <typename TSpatialFunction, typename TInputImage, typename TOutputImage>
 void
 SpatialFunctionImageEvaluatorFilter<TSpatialFunction, TInputImage, TOutputImage>::GenerateData()
 {
-  itkDebugMacro(<< "SpatialFunctionImageEvaluatorFilter::GenerateData() called");
+  itkDebugMacro("SpatialFunctionImageEvaluatorFilter::GenerateData() called");
 
   // Allocate the output image
-  typename TOutputImage::Pointer outputPtr = this->GetOutput();
+  const typename TOutputImage::Pointer outputPtr = this->GetOutput();
   outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
   outputPtr->Allocate();
 
   // Create an iterator that will walk the output region
   using OutputIterator = ImageRegionIterator<TOutputImage>;
 
-  OutputIterator outIt = OutputIterator(outputPtr, outputPtr->GetRequestedRegion());
+  OutputIterator outIt(outputPtr, outputPtr->GetRequestedRegion());
 
   // The value produced by the spatial function
   // The type is the range of the spatial function
@@ -59,7 +56,7 @@ SpatialFunctionImageEvaluatorFilter<TSpatialFunction, TInputImage, TOutputImage>
   // Walk the output image, evaluating the spatial function at each pixel
   for (; !outIt.IsAtEnd(); ++outIt)
   {
-    typename TOutputImage::IndexType index = outIt.GetIndex();
+    const typename TOutputImage::IndexType index = outIt.GetIndex();
     outputPtr->TransformIndexToPhysicalPoint(index, evalPoint);
     value = m_PixelFunction->Evaluate(evalPoint);
 
@@ -67,7 +64,7 @@ SpatialFunctionImageEvaluatorFilter<TSpatialFunction, TInputImage, TOutputImage>
     outIt.Set((PixelType)value);
   }
 
-  itkDebugMacro(<< "SpatialFunctionImageEvaluatorFilter::GenerateData() finished");
+  itkDebugMacro("SpatialFunctionImageEvaluatorFilter::GenerateData() finished");
 }
 
 template <typename TSpatialFunction, typename TInputImage, typename TOutputImage>

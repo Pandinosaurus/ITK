@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,10 +49,9 @@ itkShapedFloodFilledImageFunctionConditionalConstIteratorTest2(int, char *[])
     region.SetIndex(0, 0);
     region.SetIndex(1, 0);
 
-    ImageType::Pointer inputImage = ImageType::New();
+    auto inputImage = ImageType::New();
     inputImage->SetRegions(region);
-    inputImage->Allocate(true); // initialize
-                                // buffer to zero
+    inputImage->AllocateInitialized();
 
     itk::ImageLinearIteratorWithIndex<ImageType> it(inputImage, region);
 
@@ -88,7 +87,7 @@ itkShapedFloodFilledImageFunctionConditionalConstIteratorTest2(int, char *[])
       }
     }
 
-    FunctionType::Pointer function = FunctionType::New();
+    auto function = FunctionType::New();
 
     function->SetInputImage(inputImage);
     function->ThresholdAbove(1); // >= 1

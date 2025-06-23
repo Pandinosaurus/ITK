@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,23 +27,23 @@ itkCompensatedSummationTest(int, char *[])
   // Save the format stream variables for std::cout
   // They will be restored when coutState goes out of scope
   // scope.
-  itk::StdStreamStateSave coutState(std::cout);
+  const itk::StdStreamStateSave coutState(std::cout);
 
   using FloatType = float;
-  long int seedValue = 17;
+  constexpr long seedValue = 17;
 
   constexpr FloatType expectedMean = 0.5;
 
   constexpr itk::SizeValueType accumSize = 50000000;
 
   using GeneratorType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
-  GeneratorType::Pointer generator = GeneratorType::New();
-  generator->Initialize(seedValue);
+  auto generator = GeneratorType::New();
+  generator->SetSeed(seedValue);
 
   FloatType vanillaSum = 0.0;
   using CompensatedSummationType = itk::CompensatedSummation<FloatType>;
   CompensatedSummationType floatAccumulator;
-  FloatType                randomNumber;
+  FloatType                randomNumber = NAN;
   for (itk::SizeValueType ii = 0; ii < accumSize; ++ii)
   {
     randomNumber = generator->GetVariate();
@@ -73,15 +73,14 @@ itkCompensatedSummationTest(int, char *[])
   }
 
   // exercise other methods
-  CompensatedSummationType floatAccumulatorCopy = floatAccumulator;
+  const CompensatedSummationType floatAccumulatorCopy = floatAccumulator;
   if (itk::Math::NotExactlyEquals(floatAccumulatorCopy.GetSum(), floatAccumulator.GetSum()))
   {
     std::cerr << "The copy constructor failed." << std::endl;
     return EXIT_FAILURE;
   }
 
-  CompensatedSummationType floatAccumulatorCopy2;
-  floatAccumulatorCopy2 = floatAccumulator;
+  const CompensatedSummationType floatAccumulatorCopy2 = floatAccumulator;
   if (itk::Math::NotExactlyEquals(floatAccumulatorCopy2.GetSum(), floatAccumulator.GetSum()))
   {
     std::cerr << "The assignment operator failed." << std::endl;
@@ -105,7 +104,7 @@ itkCompensatedSummationTest(int, char *[])
   }
 
   floatAccumulator.ResetToZero();
-  if (itk::Math::NotAlmostEquals(floatAccumulator.GetSum(), itk::NumericTraits<FloatType>::ZeroValue()))
+  if (itk::Math::NotAlmostEquals(floatAccumulator.GetSum(), FloatType{}))
   {
     std::cerr << "GetSize() did return the correct value!" << std::endl;
     return EXIT_FAILURE;

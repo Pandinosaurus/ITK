@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
  *=========================================================================*/
 #include "itkXMLFile.h"
 #include "itksys/SystemTools.hxx"
+#include "itkMakeUniqueForOverwrite.h"
 #include <fstream>
 #include "expat.h"
 
@@ -29,7 +30,7 @@ extern "C"
   itkXMLParserStartElement(void * parser, const char * name, const char ** atts)
   {
     // Begin element handler that is registered with the XML_Parser.
-    // This just casts the user data to a itkXMLParser and calls
+    // This just casts the user data to an itkXMLParser and calls
     // StartElement.
     static_cast<XMLReaderBase *>(parser)->StartElement(name, atts);
   }
@@ -42,7 +43,7 @@ extern "C"
   itkXMLParserEndElement(void * parser, const char * name)
   {
     // End element handler that is registered with the XML_Parser.  This
-    // just casts the user data to a itkXMLParser and calls EndElement.
+    // just casts the user data to an itkXMLParser and calls EndElement.
     static_cast<XMLReaderBase *>(parser)->EndElement(name);
   }
 }
@@ -54,7 +55,7 @@ extern "C"
   itkXMLParserCharacterDataHandler(void * parser, const char * data, int length)
   {
     // Character data handler that is registered with the XML_Parser.
-    // This just casts the user data to a itkXMLParser and calls
+    // This just casts the user data to an itkXMLParser and calls
     // CharacterDataHandler.
     static_cast<XMLReaderBase *>(parser)->CharacterDataHandler(data, length);
   }
@@ -84,11 +85,11 @@ XMLReaderBase::parse()
   }
 
   // Default stream parser just reads a block at a time.
-  std::streamsize filesize = itksys::SystemTools::FileLength(m_Filename.c_str());
+  const std::streamsize filesize = itksys::SystemTools::FileLength(m_Filename);
 
-  auto * buffer = new char[filesize];
+  const auto buffer = make_unique_for_overwrite<char[]>(filesize);
 
-  inputstream.read(buffer, filesize);
+  inputstream.read(buffer.get(), filesize);
 
   if (static_cast<std::streamsize>(inputstream.gcount()) != filesize)
   {
@@ -96,8 +97,7 @@ XMLReaderBase::parse()
     exception.SetDescription("File Read Error");
     throw exception;
   }
-  const auto result = XML_Parse(Parser, buffer, inputstream.gcount(), false);
-  delete[] buffer;
+  const auto result = XML_Parse(Parser, buffer.get(), inputstream.gcount(), false);
   if (!result)
   {
     ExceptionObject exception(__FILE__, __LINE__);

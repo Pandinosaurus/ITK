@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,10 @@
 #include "itkSimpleDataObjectDecorator.h"
 #include "itkNumericTraitsArrayPixel.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class KdTreeBasedKmeansEstimator
+ * \class KdTreeBasedKmeansEstimator
  * \brief fast k-means algorithm implementation using k-d tree structure
  *
  * It returns k mean vectors that are centroids of k-clusters
@@ -83,8 +81,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(KdTreeBasedKmeansEstimator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(KdTreeBasedKmeansEstimator);
 
   /** Types for the KdTree data structure */
   using KdTreeNodeType = typename TKdTree::KdTreeNodeType;
@@ -121,17 +119,22 @@ public:
   GetOutput() const;
 
   /**  Set the position to initialize the optimization. */
+  /** @ITKStartGrouping */
   itkSetMacro(Parameters, ParametersType);
   itkGetConstMacro(Parameters, ParametersType);
+  /** @ITKEndGrouping */
 
   /** Set/Get maximum iteration limit. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumIteration, int);
   itkGetConstMacro(MaximumIteration, int);
+  /** @ITKEndGrouping */
 
   /** Set/Get the termination threshold for the squared sum
    * of changes in centroid positions after one iteration */
   itkSetMacro(CentroidPositionChangesThreshold, double);
   itkGetConstMacro(CentroidPositionChangesThreshold, double);
+
   /** Set/Get the pointer to the KdTree */
   void
   SetKdTree(TKdTree * tree);
@@ -156,6 +159,7 @@ public:
 
   itkSetMacro(UseClusterLabels, bool);
   itkGetConstMacro(UseClusterLabels, bool);
+  itkBooleanMacro(UseClusterLabels);
 
 protected:
   KdTreeBasedKmeansEstimator();
@@ -168,7 +172,7 @@ protected:
   FillClusterLabels(KdTreeNodeType * node, int closestIndex);
 
   /**
-   *\class CandidateVector
+   * \class CandidateVector
    * \brief Candidate Vector
    * \ingroup ITKStatistics
    */
@@ -187,7 +191,7 @@ protected:
     virtual ~CandidateVector() = default;
 
     /** returns the number of candidate = k */
-    int
+    [[nodiscard]] int
     Size() const
     {
       return static_cast<int>(m_Candidates.size());
@@ -200,7 +204,7 @@ protected:
     {
       this->m_MeasurementVectorSize = NumericTraits<ParameterType>::GetLength(centroids[0]);
       m_Candidates.resize(centroids.size());
-      for (unsigned int i = 0; i < centroids.size(); i++)
+      for (unsigned int i = 0; i < centroids.size(); ++i)
       {
         Candidate candidate;
         candidate.Centroid = centroids[i];
@@ -215,10 +219,8 @@ protected:
     void
     GetCentroids(InternalParametersType & centroids)
     {
-      unsigned int i;
-
       centroids.resize(this->Size());
-      for (i = 0; i < (unsigned int)this->Size(); i++)
+      for (unsigned int i = 0; i < static_cast<unsigned int>(this->Size()); ++i)
       {
         centroids[i] = m_Candidates[i].Centroid;
       }
@@ -229,22 +231,25 @@ protected:
     void
     UpdateCentroids()
     {
-      unsigned int i, j;
-
-      for (i = 0; i < (unsigned int)this->Size(); i++)
+      for (unsigned int i = 0; i < static_cast<unsigned int>(this->Size()); ++i)
       {
         if (m_Candidates[i].Size > 0)
         {
-          for (j = 0; j < m_MeasurementVectorSize; j++)
+          for (unsigned int j = 0; j < m_MeasurementVectorSize; ++j)
           {
-            m_Candidates[i].Centroid[j] = m_Candidates[i].WeightedCentroid[j] / double(m_Candidates[i].Size);
+            m_Candidates[i].Centroid[j] =
+              m_Candidates[i].WeightedCentroid[j] / static_cast<double>(m_Candidates[i].Size);
           }
         }
       }
     }
 
     /** gets the index-th candidates */
-    Candidate & operator[](int index) { return m_Candidates[index]; }
+    Candidate &
+    operator[](int index)
+    {
+      return m_Candidates[index];
+    }
 
   private:
     /** internal storage for the candidates */
@@ -304,33 +309,37 @@ protected:
 private:
   /** current number of iteration */
   int m_CurrentIteration{ 0 };
+
   /** maximum number of iteration. termination criterion */
   int m_MaximumIteration{ 100 };
+
   /** sum of squared centroid position changes at the current iteration */
   double m_CentroidPositionChanges{ 0.0 };
+
   /** threshold for the sum of squared centroid position changes.
    * termination criterion */
   double m_CentroidPositionChangesThreshold{ 0.0 };
+
   /** pointer to the k-d tree */
-  typename TKdTree::Pointer m_KdTree;
+  typename TKdTree::Pointer m_KdTree{};
+
   /** pointer to the euclidean distance function */
-  typename EuclideanDistanceMetric<ParameterType>::Pointer m_DistanceMetric;
+  typename EuclideanDistanceMetric<ParameterType>::Pointer m_DistanceMetric{};
 
   /** k-means */
-  ParametersType m_Parameters;
+  ParametersType m_Parameters{};
 
-  CandidateVector m_CandidateVector;
+  CandidateVector m_CandidateVector{};
 
-  ParameterType m_TempVertex;
+  ParameterType m_TempVertex{};
 
   bool                                  m_UseClusterLabels{ false };
   bool                                  m_GenerateClusterLabels{ false };
-  ClusterLabelsType                     m_ClusterLabels;
+  ClusterLabelsType                     m_ClusterLabels{};
   MeasurementVectorSizeType             m_MeasurementVectorSize{ 0 };
-  MembershipFunctionVectorObjectPointer m_MembershipFunctionsObject;
+  MembershipFunctionVectorObjectPointer m_MembershipFunctionsObject{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkKdTreeBasedKmeansEstimator.hxx"

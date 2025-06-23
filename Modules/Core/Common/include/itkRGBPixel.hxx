@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkRGBPixel_hxx
 #define itkRGBPixel_hxx
-#include "itkRGBPixel.h"
 #include "itkNumericTraits.h"
 #include "itkMath.h"
 #include <algorithm>
@@ -104,7 +103,8 @@ RGBPixel<T>::operator/=(const ComponentType & r)
 }
 
 template <typename T>
-RGBPixel<T> RGBPixel<T>::operator*(const ComponentType & r) const
+RGBPixel<T>
+RGBPixel<T>::operator*(const ComponentType & r) const
 {
   Self result;
 
@@ -132,14 +132,7 @@ template <typename T>
 bool
 RGBPixel<T>::operator==(const Self & r) const
 {
-  for (unsigned int i = 0; i < 3; ++i)
-  {
-    if (Math::NotExactlyEquals((*this)[i], r[i]))
-    {
-      return false;
-    }
-  }
-  return true;
+  return this->BaseArray::operator==(r);
 }
 
 template <typename T>
@@ -150,8 +143,8 @@ RGBPixel<T>::operator<(const Self & r) const
 }
 
 template <typename T>
-typename RGBPixel<T>::LuminanceType
-RGBPixel<T>::GetLuminance() const
+auto
+RGBPixel<T>::GetLuminance() const -> LuminanceType
 {
   const LuminanceType luminance = 0.30 * static_cast<LuminanceType>(this->GetRed()) +
                                   0.59 * static_cast<LuminanceType>(this->GetGreen()) +

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkSubsample.h"
 #include "itkKdTreeGenerator.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class WeightedCentroidKdTreeGenerator
+ * \class WeightedCentroidKdTreeGenerator
  *  \brief This class generates a KdTree object with centroid information.
  *
  * The KdTree object stores measurement vectors in a k-d tree structure
@@ -75,19 +73,19 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(WeightedCentroidKdTreeGenerator, KdTreeGenerator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WeightedCentroidKdTreeGenerator);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** type alias alias for the source data container */
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
-  using MeasurementType = typename Superclass::MeasurementType;
-  using SubsampleType = typename Superclass::SubsampleType;
-  using SubsamplePointer = typename Superclass::SubsamplePointer;
-  using KdTreeType = typename Superclass::KdTreeType;
-  using KdTreeNodeType = typename Superclass::KdTreeNodeType;
+  using typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementType;
+  using typename Superclass::SubsampleType;
+  using typename Superclass::SubsamplePointer;
+  using typename Superclass::KdTreeType;
+  using typename Superclass::KdTreeNodeType;
 
 protected:
   /** Constructor */
@@ -108,12 +106,11 @@ protected:
                           unsigned int            level) override;
 
 private:
-  MeasurementVectorType m_TempLowerBound;
-  MeasurementVectorType m_TempUpperBound;
-  MeasurementVectorType m_TempMean;
+  MeasurementVectorType m_TempLowerBound{};
+  MeasurementVectorType m_TempUpperBound{};
+  MeasurementVectorType m_TempMean{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWeightedCentroidKdTreeGenerator.hxx"

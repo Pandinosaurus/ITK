@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,15 +39,15 @@ public:
   static constexpr unsigned int ImageDimension = VImageDimension;
 
   // Returns the number of offsets needed to represent this shape.
-  constexpr std::size_t
-  GetNumberOfOffsets() const ITK_NOEXCEPT
+  [[nodiscard]] constexpr size_t
+  GetNumberOfOffsets() const noexcept
   {
     return 0;
   }
 
   // Fills the specified buffer with the offsets for this shape.
   void
-  FillOffsets(itk::Offset<ImageDimension> *) const ITK_NOEXCEPT
+  FillOffsets(itk::Offset<ImageDimension> *) const noexcept
   {
     // The shape is empty, so just do nothing!
   }
@@ -58,9 +58,9 @@ public:
 
 TEST(ImageNeighborhoodOffsets, GenerateImageNeighborhoodOffsetsReturnsEmptyVectorForEmptyShape)
 {
-  constexpr unsigned int                            ImageDimension = 2;
-  const EmptyImageNeighborhoodShape<ImageDimension> shape = {};
-  const std::vector<itk::Offset<>>                  offsets = itk::GenerateImageNeighborhoodOffsets(shape);
+  constexpr unsigned int                                ImageDimension = 2;
+  constexpr EmptyImageNeighborhoodShape<ImageDimension> shape = {};
+  const std::vector<itk::Offset<>>                      offsets = itk::GenerateImageNeighborhoodOffsets(shape);
 
   EXPECT_EQ(offsets, std::vector<itk::Offset<>>());
 }
@@ -68,7 +68,7 @@ TEST(ImageNeighborhoodOffsets, GenerateImageNeighborhoodOffsetsReturnsEmptyVecto
 
 TEST(ImageNeighborhoodOffsets, GenerateRectangularImageNeighborhoodOffsetsReturnsOneOffsetForDefaultRadius)
 {
-  const itk::Size<>                radius = { {} };
+  constexpr itk::Size<>            radius = { {} };
   const std::vector<itk::Offset<>> offsets = itk::GenerateRectangularImageNeighborhoodOffsets(radius);
 
   EXPECT_EQ(offsets, std::vector<itk::Offset<>>(1));
@@ -77,7 +77,7 @@ TEST(ImageNeighborhoodOffsets, GenerateRectangularImageNeighborhoodOffsetsReturn
 
 TEST(ImageNeighborhoodOffsets, GenerateRectangularImageNeighborhoodOffsetsForSmallestHorizontalNeigborhood)
 {
-  const itk::Size<>                radius = { { 1, 0 } };
+  constexpr itk::Size<>            radius = { { 1, 0 } };
   const std::vector<itk::Offset<>> offsets = itk::GenerateRectangularImageNeighborhoodOffsets(radius);
 
   EXPECT_EQ(offsets, (std::vector<itk::Offset<>>{ { { -1, 0 } }, { { 0, 0 } }, { { 1, 0 } } }));
@@ -86,7 +86,7 @@ TEST(ImageNeighborhoodOffsets, GenerateRectangularImageNeighborhoodOffsetsForSma
 
 TEST(ImageNeighborhoodOffsets, GenerateRectangularImageNeighborhoodOffsetsForSmallestVerticalNeigborhood)
 {
-  const itk::Size<>                radius = { { 0, 1 } };
+  constexpr itk::Size<>            radius = { { 0, 1 } };
   const std::vector<itk::Offset<>> offsets = itk::GenerateRectangularImageNeighborhoodOffsets(radius);
 
   EXPECT_EQ(offsets, (std::vector<itk::Offset<>>{ { { 0, -1 } }, { { 0, 0 } }, { { 0, 1 } } }));

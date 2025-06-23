@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class MeshFileWriterException.
+ * \class MeshFileWriterException.
  * \brief Base exception class for IO problems during writing.
  *
  * \ingroup ITKIOMeshBase
@@ -32,23 +32,19 @@ namespace itk
 class ITKIOMeshBase_EXPORT MeshFileWriterException : public ExceptionObject
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(MeshFileWriterException);
+
   /** Has to have empty throw(). */
   ~MeshFileWriterException() noexcept override;
 
-  /** Run-time information. */
-  itkTypeMacro(MeshFileWriterException, ExceptionObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MeshFileWriterException);
 
   /** Constructor. */
-  MeshFileWriterException(const char * file,
+  MeshFileWriterException(std::string  file,
                           unsigned int line,
-                          const char * message = "Error in IO",
-                          const char * loc = "Unknown");
-
-  /** Constructor. */
-  MeshFileWriterException(const std::string & file,
-                          unsigned int        line,
-                          const char *        message = "Error in IO",
-                          const char *        loc = "Unknown");
+                          std::string  message = "Error in IO",
+                          std::string  location = {});
 };
 } // end namespace itk
 

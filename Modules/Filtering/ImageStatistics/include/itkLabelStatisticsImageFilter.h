@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@
 #include "itkNumericTraits.h"
 #include "itkSimpleDataObjectDecorator.h"
 #include "itkHistogram.h"
+#include "itkPrintHelper.h"
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -37,7 +38,7 @@ namespace itk
  * the regions are defined via a label map (a second input).  The
  * label image should be integral type. The filter needs all of its
  * input image.  It behaves as a filter with an input and output. Thus
- * it can be inserted in a pipline with other filters and the
+ * it can be inserted in a pipeline with other filters and the
  * statistics will only be recomputed if a downstream filter changes.
  *
  * Optionally, the filter also computes intensity histograms on each
@@ -73,8 +74,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(LabelStatisticsImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LabelStatisticsImageFilter);
 
   /** Image related type alias. */
   using InputImagePointer = typename TInputImage::Pointer;
@@ -119,20 +120,17 @@ public:
   public:
     // default constructor
     LabelStatistics()
-    {
       // initialized to the default values
-      m_Count = NumericTraits<IdentifierType>::ZeroValue();
-      m_Sum = NumericTraits<RealType>::ZeroValue();
-      m_SumOfSquares = NumericTraits<RealType>::ZeroValue();
-
+      : m_Count(IdentifierType{})
+      , m_Minimum(NumericTraits<RealType>::max())
+      , m_Maximum(NumericTraits<RealType>::NonpositiveMin())
+      , m_Mean(RealType{})
+      , m_Sum(RealType{})
+      , m_SumOfSquares(RealType{})
+      , m_Sigma(RealType{})
+      , m_Variance(RealType{})
+    {
       // Set such that the first pixel encountered can be compared
-      m_Minimum = NumericTraits<RealType>::max();
-      m_Maximum = NumericTraits<RealType>::NonpositiveMin();
-
-      // Default these to zero
-      m_Mean = NumericTraits<RealType>::ZeroValue();
-      m_Sigma = NumericTraits<RealType>::ZeroValue();
-      m_Variance = NumericTraits<RealType>::ZeroValue();
 
       const unsigned int imageDimension = Self::ImageDimension;
       m_BoundingBox.resize(imageDimension * 2);
@@ -146,21 +144,16 @@ public:
 
     // constructor with histogram enabled
     LabelStatistics(int size, RealType lowerBound, RealType upperBound)
+      : m_Count(IdentifierType{})
+      , m_Minimum(NumericTraits<RealType>::max())
+      , m_Maximum(NumericTraits<RealType>::NonpositiveMin())
+      , m_Mean(RealType{})
+      , m_Sum(RealType{})
+      , m_SumOfSquares(RealType{})
+      , m_Sigma(RealType{})
+      , m_Variance(RealType{})
     {
-      // initialized to the default values
-      m_Count = NumericTraits<IdentifierType>::ZeroValue();
-      m_Sum = NumericTraits<RealType>::ZeroValue();
-      m_SumOfSquares = NumericTraits<RealType>::ZeroValue();
-
       // Set such that the first pixel encountered can be compared
-      m_Minimum = NumericTraits<RealType>::max();
-      m_Maximum = NumericTraits<RealType>::NonpositiveMin();
-
-      // Default these to zero
-      m_Mean = NumericTraits<RealType>::ZeroValue();
-      m_Sigma = NumericTraits<RealType>::ZeroValue();
-      m_Variance = NumericTraits<RealType>::ZeroValue();
-
       const unsigned int imageDimension = Self::ImageDimension;
       m_BoundingBox.resize(imageDimension * 2);
       for (unsigned int i = 0; i < imageDimension * 2; i += 2)
@@ -186,18 +179,17 @@ public:
 
     // need copy constructor because of smart pointer to histogram
     LabelStatistics(const LabelStatistics & l)
-    {
-      m_Count = l.m_Count;
-      m_Minimum = l.m_Minimum;
-      m_Maximum = l.m_Maximum;
-      m_Mean = l.m_Mean;
-      m_Sum = l.m_Sum;
-      m_SumOfSquares = l.m_SumOfSquares;
-      m_Sigma = l.m_Sigma;
-      m_Variance = l.m_Variance;
-      m_BoundingBox = l.m_BoundingBox;
-      m_Histogram = l.m_Histogram;
-    }
+      : m_Count(l.m_Count)
+      , m_BoundingBox(l.m_BoundingBox)
+      , m_Histogram(l.m_Histogram)
+      , m_Maximum(l.m_Maximum)
+      , m_Mean(l.m_Mean)
+      , m_Minimum(l.m_Minimum)
+      , m_Sigma(l.m_Sigma)
+      , m_Sum(l.m_Sum)
+      , m_SumOfSquares(l.m_SumOfSquares)
+      , m_Variance(l.m_Variance)
+    {}
 
     LabelStatistics(LabelStatistics &&) = default;
 
@@ -219,6 +211,39 @@ public:
         m_Histogram = l.m_Histogram;
       }
       return *this;
+    }
+
+    friend std::ostream &
+    operator<<(std::ostream & os, const LabelStatistics & labelStatistics)
+    {
+      using namespace print_helper;
+
+      os << "Count: " << static_cast<typename NumericTraits<IdentifierType>::PrintType>(labelStatistics.m_Count)
+         << std::endl;
+      os << "Minimum: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Minimum)
+         << std::endl;
+      os << "Maximum: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Maximum)
+         << std::endl;
+      os << "Mean: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Mean) << std::endl;
+      os << "Sum: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Sum) << std::endl;
+      os << "SumOfSquares: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_SumOfSquares)
+         << std::endl;
+      os << "Sigma: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Sigma) << std::endl;
+      os << "Variance: " << static_cast<typename NumericTraits<RealType>::PrintType>(labelStatistics.m_Variance)
+         << std::endl;
+      os << "BoundingBox: " << labelStatistics.m_BoundingBox << std::endl;
+
+      os << "Histogram: ";
+      if (labelStatistics.m_Histogram)
+      {
+        labelStatistics.m_Histogram->Print(os);
+      }
+      else
+      {
+        os << "nullptr" << std::endl;
+      }
+
+      return os;
     }
 
     IdentifierType                  m_Count;
@@ -255,9 +280,10 @@ public:
   }
 
   /** Set the label image */
+  /** @ITKStartGrouping */
   itkSetInputMacro(LabelInput, TLabelImage);
   itkGetInputMacro(LabelInput, TLabelImage);
-
+  /** @ITKEndGrouping */
   /** Does the specified label exist? Can only be called after a call
    * a call to Update(). */
   bool
@@ -267,13 +293,13 @@ public:
   }
 
   /** Get the number of labels used */
-  MapSizeType
+  [[nodiscard]] MapSizeType
   GetNumberOfObjects() const
   {
     return static_cast<MapSizeType>(m_LabelStatistics.size());
   }
 
-  MapSizeType
+  [[nodiscard]] MapSizeType
   GetNumberOfLabels() const
   {
     return static_cast<MapSizeType>(this->GetNumberOfObjects());
@@ -337,18 +363,13 @@ public:
   {
     Superclass::SetNumberOfStreamDivisions(n);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfStreamDivisions() const override
   {
     return Superclass::GetNumberOfStreamDivisions();
   }
 
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<PixelType>));
-  // End concept checking
-#endif
 
 protected:
   LabelStatisticsImageFilter();
@@ -375,17 +396,17 @@ private:
   void
   MergeMap(MapType &, MapType &) const;
 
-  MapType                       m_LabelStatistics;
-  ValidLabelValuesContainerType m_ValidLabelValues;
+  MapType                       m_LabelStatistics{};
+  ValidLabelValuesContainerType m_ValidLabelValues{};
 
-  bool m_UseHistograms;
+  bool m_UseHistograms{};
 
-  typename HistogramType::SizeType m_NumBins;
+  typename HistogramType::SizeType m_NumBins{};
 
-  RealType m_LowerBound;
-  RealType m_UpperBound;
+  RealType m_LowerBound{};
+  RealType m_UpperBound{};
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 
 }; // end of class
 } // end namespace itk

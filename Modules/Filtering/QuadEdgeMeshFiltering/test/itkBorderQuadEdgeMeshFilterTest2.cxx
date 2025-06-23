@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,11 +30,9 @@ itkBorderQuadEdgeMeshFilterTest2(int argc, char * argv[])
   // ** ERROR MESSAGE AND HELP ** //
   if (argc != 2)
   {
-    std::cout << "Requires 1 arguments: " << std::endl;
-    std::cout << "- Border Pick" << std::endl;
-    std::cout << "   * 0: LONGEST" << std::endl;
-    std::cout << "   * 1: LARGEST" << std::endl;
-
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " borderPick (0: LONGEST; 1: LARGEST)" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -46,10 +44,10 @@ itkBorderQuadEdgeMeshFilterTest2(int argc, char * argv[])
   using SourceType = itk::RegularSphereMeshSource<MeshType>;
   using BorderTransformType = itk::BorderQuadEdgeMeshFilter<MeshType, MeshType>;
 
-  SourceType::Pointer source = SourceType::New();
+  auto source = SourceType::New();
 
   // ** CHOSE< COMPUTE AND SET BORDER TRANSFORM **
-  BorderTransformType::Pointer border_transform = BorderTransformType::New();
+  auto border_transform = BorderTransformType::New();
   border_transform->SetInput(source->GetOutput());
   border_transform->SetTransformType(BorderTransformType::BorderTransformEnum::SQUARE_BORDER_TRANSFORM);
 

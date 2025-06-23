@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,12 +32,13 @@ template <typename TPixel>
 void
 printn(itk::NeighborhoodAllocator<TPixel> & n, const itk::Size<2> & sz)
 {
-  unsigned int i, j, k;
-  k = 0;
-  for (j = 0; j < sz[1]; ++j)
+  unsigned int k = 0;
+  for (unsigned int j = 0; j < sz[1]; ++j)
   {
-    for (i = 0; i < sz[0]; ++i, ++k)
-      std::cout << n[k] << " ";
+    for (unsigned int i = 0; i < sz[0]; ++i, ++k)
+    {
+      std::cout << n[k] << ' ';
+    }
     std::cout << std::endl;
   }
 }
@@ -45,8 +46,8 @@ printn(itk::NeighborhoodAllocator<TPixel> & n, const itk::Size<2> & sz)
 void
 filln(itk::Image<float, 2> * img)
 {
-  float i, j;
-  i = j = 0.0f;
+  float i = 0.0f;
+  float j = 0.0f;
 
   itk::ImageRegionIterator<itk::Image<float, 2>> it(img, img->GetRequestedRegion());
 
@@ -55,7 +56,7 @@ filln(itk::Image<float, 2> * img)
     it.Set(100.0 * j + i);
     ++it;
     i = i + 1.0f;
-    if ((unsigned long)i % img->GetRequestedRegion().GetSize()[0] == 0)
+    if (static_cast<unsigned long>(i) % img->GetRequestedRegion().GetSize()[0] == 0)
     {
       j = j + 1.0f;
       i = 0.0f;
@@ -116,38 +117,34 @@ itkBoundaryConditionTest(int, char *[])
   Region3D.SetIndex(orig3D);
   RegionND.SetIndex(origND);
 
-  ImageType2D::Pointer image2D = ImageType2D::New();
-  ImageType3D::Pointer image3D = ImageType3D::New();
-  ImageTypeND::Pointer imageND = ImageTypeND::New();
+  auto image2D = ImageType2D::New();
+  auto image3D = ImageType3D::New();
+  auto imageND = ImageTypeND::New();
 
-  image2D->SetLargestPossibleRegion(Region2D);
-  image3D->SetLargestPossibleRegion(Region3D);
-  imageND->SetLargestPossibleRegion(RegionND);
-
-  image2D->SetBufferedRegion(Region2D);
-  image3D->SetBufferedRegion(Region3D);
-  imageND->SetBufferedRegion(RegionND);
-
-  image2D->SetRequestedRegion(Region2D);
-  image3D->SetRequestedRegion(Region3D);
-  imageND->SetRequestedRegion(RegionND);
+  image2D->SetRegions(Region2D);
+  image3D->SetRegions(Region3D);
+  imageND->SetRegions(RegionND);
 
   image2D->Allocate();
   image3D->Allocate();
   imageND->Allocate();
 
-  itk::ImageRegionIterator<ImageType2D> it2D(image2D, image2D->GetRequestedRegion());
-  itk::ImageRegionIterator<ImageType3D> it3D(image3D, image3D->GetRequestedRegion());
-  itk::ImageRegionIterator<ImageTypeND> itND(imageND, imageND->GetRequestedRegion());
+  const itk::ImageRegionIterator<ImageType2D> it2D(image2D, image2D->GetRequestedRegion());
+  itk::ImageRegionIterator<ImageType3D>       it3D(image3D, image3D->GetRequestedRegion());
+  itk::ImageRegionIterator<ImageTypeND>       itND(imageND, imageND->GetRequestedRegion());
 
   println("Initializing some images");
 
   //  for (; !it2D.IsAtEnd(); ++it2D) *it2D = 1.0f;
   filln(image2D);
   for (; !it3D.IsAtEnd(); ++it3D)
+  {
     it3D.Set(1.0f);
+  }
   for (; !itND.IsAtEnd(); ++itND)
+  {
     itND.Set(1.0f);
+  }
 
   println("Initializing smart neighborhood iterators");
   itk::Size<2> sz2;
@@ -170,7 +167,7 @@ itkBoundaryConditionTest(int, char *[])
   SmartIteratorType it2d(sz2, image2D, image2D->GetRequestedRegion());
 
   itk::ConstantBoundaryCondition<ImageType2D> cbc;
-  cbc.SetConstant(itk::NumericTraits<float>::ZeroValue());
+  cbc.SetConstant(0.0f);
   it2d.OverrideBoundaryCondition(&cbc);
 
   SmartIteratorType::NeighborhoodType tempN;

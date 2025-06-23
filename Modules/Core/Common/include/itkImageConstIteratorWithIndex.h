@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -116,7 +116,7 @@ public:
   using ImageType = TImage;
 
   /** PixelContainer type alias support Used to refer to the container for
-   * the pixel data. While this was already typdef'ed in the superclass,
+   * the pixel data. While this was already typedef'ed in the superclass,
    * it needs to be redone here for this subclass to compile properly with gcc. */
   using PixelContainer = typename TImage::PixelContainer;
   using PixelContainerPointer = typename PixelContainer::Pointer;
@@ -138,14 +138,14 @@ public:
 
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
-  ImageConstIteratorWithIndex();
+  ImageConstIteratorWithIndex() = default;
 
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageConstIteratorWithIndex(const Self & it);
 
-  /** Constructor establishes an iterator to walk a particular image and a
-   * particular region of that image. */
+  /** Constructor establishes an iterator to walk a particular image and a particular region of that image. Initializes
+   * the iterator at the begin of the region. */
   ImageConstIteratorWithIndex(const TImage * ptr, const RegionType & region);
 
   /** Default Destructor. */
@@ -157,19 +157,10 @@ public:
   operator=(const Self & it);
 
   /** Get the dimension (size) of the index. */
-  static unsigned int
+  static constexpr unsigned int
   GetImageDimension()
   {
     return ImageDimension;
-  }
-
-  /** Comparison operator. Two iterators are the same if they "point to" the
-   * same memory location */
-  bool
-  operator!=(const Self & it) const
-  {
-    // two iterators are the same if they "point to" the same memory location
-    return (m_Position) != (it.m_Position);
   }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
@@ -180,6 +171,8 @@ public:
     // two iterators are the same if they "point to" the same memory location
     return (m_Position) == (it.m_Position);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Self);
 
   /** Comparison operator. An iterator is "less than" another if it "points to"
    * a lower memory location. */
@@ -223,7 +216,7 @@ public:
 
   /** Get the index. This provides a read only reference to the index.
    * \sa SetIndex */
-  const IndexType &
+  [[nodiscard]] const IndexType &
   GetIndex() const
   {
     return m_PositionIndex;
@@ -231,7 +224,7 @@ public:
 
   /** Get the region that this iterator walks. ImageIterators know the
    * beginning and the end of the region of the image to iterate over. */
-  const RegionType &
+  [[nodiscard]] const RegionType &
   GetRegion() const
   {
     return m_Region;
@@ -247,7 +240,7 @@ public:
   }
 
   /** Get the pixel value */
-  PixelType
+  [[nodiscard]] PixelType
   Get() const
   {
     return m_PixelAccessorFunctor.Get(*m_Position);
@@ -256,7 +249,7 @@ public:
   /** Return a const reference to the pixel
    * This method will provide the fastest access to pixel
    * data, but it will NOT support ImageAdaptors. */
-  const PixelType &
+  [[nodiscard]] const PixelType &
   Value() const
   {
     return *m_Position;
@@ -271,14 +264,14 @@ public:
   GoToReverseBegin();
 
   /** Is the iterator at the beginning of the region? */
-  bool
+  [[nodiscard]] bool
   IsAtReverseEnd() const
   {
     return !m_Remaining;
   }
 
   /** Is the iterator at the end of the region? */
-  bool
+  [[nodiscard]] bool
   IsAtEnd() const
   {
     return !m_Remaining;
@@ -292,26 +285,26 @@ public:
   }
 
 protected: // made protected so other iterators can access
-  typename TImage::ConstWeakPointer m_Image;
+  typename TImage::ConstWeakPointer m_Image{};
 
-  IndexType m_PositionIndex; // Index where we currently are
-  IndexType m_BeginIndex;    // Index to start iterating over
-  IndexType m_EndIndex;      // Index to finish iterating:
-                             // one pixel past the end of each
-                             // row, col, slice, etc....
+  IndexType m_PositionIndex{ { 0 } }; // Index where we currently are
+  IndexType m_BeginIndex{ { 0 } };    // Index to start iterating over
+  IndexType m_EndIndex{ { 0 } };      // Index to finish iterating:
+                                      // one pixel past the end of each
+                                      // row, col, slice, etc....
 
-  RegionType m_Region; // region to iterate over
+  RegionType m_Region{}; // region to iterate over
 
-  OffsetValueType m_OffsetTable[ImageDimension + 1];
+  OffsetValueType m_OffsetTable[ImageDimension + 1]{};
 
-  const InternalPixelType * m_Position;
-  const InternalPixelType * m_Begin;
-  const InternalPixelType * m_End;
+  const InternalPixelType * m_Position{ nullptr };
+  const InternalPixelType * m_Begin{ nullptr };
+  const InternalPixelType * m_End{ nullptr };
 
-  bool m_Remaining;
+  bool m_Remaining{ false };
 
-  AccessorType        m_PixelAccessor;
-  AccessorFunctorType m_PixelAccessorFunctor;
+  AccessorType        m_PixelAccessor{};
+  AccessorFunctorType m_PixelAccessorFunctor{};
 };
 } // end namespace itk
 

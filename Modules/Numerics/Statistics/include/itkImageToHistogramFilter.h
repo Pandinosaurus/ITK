@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,12 +25,10 @@
 #include "itkSimpleDataObjectDecorator.h"
 #include "itkProgressReporter.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class ImageToHistogramFilter
+ * \class ImageToHistogramFilter
  *  \brief This class generates a histogram from an image.
  *
  *  The concept of Histogram in ITK is quite generic. It has been designed to
@@ -58,8 +56,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToHistogramFilter, ImageSink);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageToHistogramFilter);
 
   /** standard New() method support */
   itkNewMacro(Self);
@@ -79,11 +77,12 @@ public:
 
 public:
   /** Return the output histogram. */
+  /** @ITKStartGrouping */
   const HistogramType *
   GetOutput() const;
   HistogramType *
   GetOutput();
-
+  /** @ITKEndGrouping */
   /** Type of DataObjects to use for Size inputs */
   using InputHistogramSizeObjectType = SimpleDataObjectDecorator<HistogramSizeType>;
 
@@ -112,15 +111,17 @@ public:
 
   /** Methods for setting and getting the Minimum and Maximum values of the
    * histogram bins. */
+  /** @ITKStartGrouping */
   itkSetGetDecoratedInputMacro(HistogramBinMinimum, HistogramMeasurementVectorType);
   itkSetGetDecoratedInputMacro(HistogramBinMaximum, HistogramMeasurementVectorType);
-
+  /** @ITKEndGrouping */
   /** Methods for setting and getting the boolean flag that defines whether the
    * minimum and maximum of the histogram are going to be computed
    * automatically from the values of the sample */
+  /** @ITKStartGrouping */
   itkSetGetDecoratedInputMacro(AutoMinimumMaximum, bool);
   itkBooleanMacro(AutoMinimumMaximum);
-
+  /** @ITKEndGrouping */
   /** Method that facilitates the use of this filter in the internal
    * pipeline of another filter. */
   virtual void
@@ -134,7 +135,7 @@ public:
   {
     Superclass::SetNumberOfStreamDivisions(n);
   }
-  unsigned int
+  [[nodiscard]] unsigned int
   GetNumberOfStreamDivisions() const override
   {
     return Superclass::GetNumberOfStreamDivisions();
@@ -173,12 +174,12 @@ protected:
   virtual void
   ThreadedMergeHistogram(HistogramPointer && histogram);
 
-  std::mutex m_Mutex;
+  std::mutex m_Mutex{};
 
-  HistogramPointer m_MergeHistogram;
+  HistogramPointer m_MergeHistogram{};
 
-  HistogramMeasurementVectorType m_Minimum;
-  HistogramMeasurementVectorType m_Maximum;
+  HistogramMeasurementVectorType m_Minimum{};
+  HistogramMeasurementVectorType m_Maximum{};
 
 private:
   void
@@ -186,8 +187,7 @@ private:
                      HistogramMeasurementVectorType & max,
                      HistogramSizeType &              size);
 };
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkImageToHistogramFilter.hxx"

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,19 +82,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(DataObjectDecorator, DataObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(DataObjectDecorator);
 
   /** Set the contained object */
   virtual void
   Set(const ComponentType * val);
 
   /** Get the contained object */
+  /** @ITKStartGrouping */
   virtual const ComponentType *
   Get() const;
   virtual ComponentType *
   GetModifiable();
-
+  /** @ITKEndGrouping */
   /** The most recent MTime of this object and the held component */
   ModifiedTimeType
   GetMTime() const override;
@@ -141,7 +142,7 @@ protected:
 
 protected:
 private:
-  ComponentPointer m_Component;
+  ComponentPointer m_Component{};
 };
 } // end namespace itk
 

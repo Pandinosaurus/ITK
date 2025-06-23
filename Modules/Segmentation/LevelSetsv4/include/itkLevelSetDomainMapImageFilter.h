@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,8 +52,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetDomainMapImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetDomainMapImageFilter);
 
   using InputImageType = TInputImage;
   using InputImageConstPointer = typename InputImageType::ConstPointer;
@@ -77,7 +77,7 @@ public:
   using OutputIteratorType = ImageRegionIterator<OutputImageType>;
 
   /**
-   *\class LevelSetDomain
+   * \class LevelSetDomain
    * \brief Specifies an image region where an unique std::list of level sets Id's are defined.
    * \ingroup ITKLevelSetsv4 */
   class LevelSetDomain
@@ -90,13 +90,13 @@ public:
       , m_IdList(std::move(iList))
     {}
 
-    const InputImageRegionType *
+    [[nodiscard]] const InputImageRegionType *
     GetRegion() const
     {
       return &(this->m_Region);
     }
 
-    const InputImagePixelType *
+    [[nodiscard]] const InputImagePixelType *
     GetIdList() const
     {
       return &(this->m_IdList);
@@ -135,10 +135,10 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  DomainMapType m_DomainMap;
+  DomainMapType m_DomainMap{};
 
-  const InputImageType * m_InputImage;
-  OutputImageType *      m_OutputImage;
+  const InputImageType * m_InputImage{};
+  OutputImageType *      m_OutputImage{};
 };
 
 } /* namespace itk */

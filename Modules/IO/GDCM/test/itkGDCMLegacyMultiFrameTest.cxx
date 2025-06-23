@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,13 +43,13 @@ itkGDCMLegacyMultiFrameTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer       reader = ReaderType::New();
-  itk::GDCMImageIO::Pointer imageIO = itk::GDCMImageIO::New();
+  auto                            reader = ReaderType::New();
+  const itk::GDCMImageIO::Pointer imageIO = itk::GDCMImageIO::New();
   reader->SetImageIO(imageIO);
   reader->SetFileName(inputFileName);
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(reader->GetOutput());
   writer->SetFileName(outputFileName);
   try

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class RegistrationParameterScalesFromShiftBase
+ * \class RegistrationParameterScalesFromShiftBase
  *  \brief Registration helper base class for estimating scales of
  * transform parameters from the maximum voxel shift caused by a parameter
  * change.
@@ -53,23 +53,25 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationParameterScalesFromShiftBase, RegistrationParameterScalesEstimator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegistrationParameterScalesFromShiftBase);
 
   /** Type of scales */
-  using ScalesType = typename Superclass::ScalesType;
-  /** Type of parameters of the optimizer */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename ParametersType::ValueType;
-  /** Type of float */
-  using FloatType = typename Superclass::FloatType;
+  using typename Superclass::ScalesType;
 
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using MovingTransformType = typename Superclass::MovingTransformType;
-  using FixedTransformType = typename Superclass::FixedTransformType;
-  using JacobianType = typename Superclass::JacobianType;
-  using VirtualImageConstPointer = typename Superclass::VirtualImageConstPointer;
+  /** Type of parameters of the optimizer */
+  using typename Superclass::ParametersType;
+  using ParametersValueType = typename ParametersType::ValueType;
+
+  /** Type of float */
+  using typename Superclass::FloatType;
+
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::MovingTransformType;
+  using typename Superclass::FixedTransformType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::VirtualImageConstPointer;
 
   /** Estimate parameter scales */
   void
@@ -84,9 +86,10 @@ public:
   EstimateLocalStepScales(const ParametersType & step, ScalesType & localStepScales) override;
 
   /** Set/get small parameter variation */
+  /** @ITKStartGrouping */
   itkSetMacro(SmallParameterVariation, ParametersValueType);
   itkGetConstMacro(SmallParameterVariation, ParametersValueType);
-
+  /** @ITKEndGrouping */
 protected:
   RegistrationParameterScalesFromShiftBase();
   ~RegistrationParameterScalesFromShiftBase() override = default;
@@ -106,7 +109,7 @@ protected:
 
 private:
   // A small variation of parameters
-  ParametersValueType m_SmallParameterVariation;
+  ParametersValueType m_SmallParameterVariation{};
 
 }; // class RegistrationParameterScalesFromShiftBase
 

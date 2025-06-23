@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,10 +30,11 @@
 int
 itkGrayscaleGeodesicErodeDilateImageFilterTest(int argc, char * argv[])
 {
-  if (argc < 4)
+  if (argc < 6)
   {
     std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " Inputimage OutputImage Height" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " Inputimage OutputImage Height fullyConnected runOneIteration" << std::endl;
     return EXIT_FAILURE;
   }
   constexpr int Dimension = 2;
@@ -48,12 +49,19 @@ itkGrayscaleGeodesicErodeDilateImageFilterTest(int argc, char * argv[])
   using DilateFilterType = itk::GrayscaleGeodesicDilateImageFilter<InputImageType, OutputImageType>;
   using ErodeFilterType = itk::GrayscaleGeodesicErodeImageFilter<InputImageType, OutputImageType>;
 
-  ReaderType::Pointer       reader = ReaderType::New();
-  WriterType::Pointer       writer = WriterType::New();
-  ShiftFilterType::Pointer  shiftErode = ShiftFilterType::New();
-  ShiftFilterType::Pointer  shiftDilate = ShiftFilterType::New();
-  ErodeFilterType::Pointer  erode = ErodeFilterType::New();
-  DilateFilterType::Pointer dilate = DilateFilterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto shiftErode = ShiftFilterType::New();
+  auto shiftDilate = ShiftFilterType::New();
+
+  auto erode = ErodeFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(erode, GrayscaleGeodesicErodeImageFilter, ImageToImageFilter);
+
+
+  auto dilate = DilateFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(dilate, GrayscaleGeodesicDilateImageFilter, ImageToImageFilter);
 
   // Create the reader and writer
   reader->SetFileName(argv[1]);
@@ -66,7 +74,17 @@ itkGrayscaleGeodesicErodeDilateImageFilterTest(int argc, char * argv[])
   // Dilate
   dilate->SetMarkerImage(shiftDilate->GetOutput());
   dilate->SetMaskImage(reader->GetOutput());
-  dilate->FullyConnectedOn();
+  auto fullyConnected = static_cast<bool>(std::stoi(argv[4]));
+
+  ITK_TEST_SET_GET_BOOLEAN(dilate, FullyConnected, fullyConnected);
+
+  auto runOneIteration = static_cast<bool>(std::stoi(argv[5]));
+
+  ITK_TEST_SET_GET_BOOLEAN(dilate, RunOneIteration, runOneIteration);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(dilate->Update());
+
+  std::cout << "Dilate filter NumberOfIterationsUsed: " << dilate->GetNumberOfIterationsUsed() << std::endl;
 
   // Create the marker image for erode
   shiftErode->SetInput(dilate->GetOutput());
@@ -75,23 +93,23 @@ itkGrayscaleGeodesicErodeDilateImageFilterTest(int argc, char * argv[])
   // Erode
   erode->SetMarkerImage(shiftErode->GetOutput());
   erode->SetMaskImage(dilate->GetOutput());
-  erode->FullyConnectedOn();
+
+  ITK_TEST_SET_GET_BOOLEAN(erode, FullyConnected, fullyConnected);
+
+  ITK_TEST_SET_GET_BOOLEAN(erode, RunOneIteration, runOneIteration);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(erode->Update());
+
+  std::cout << "Erode filter NumberOfIterationsUsed: " << erode->GetNumberOfIterationsUsed() << std::endl;
 
   writer->SetInput(erode->GetOutput());
 
-  itk::SimpleFilterWatcher watchDilate(dilate);
-  itk::SimpleFilterWatcher watchErode(erode);
+  const itk::SimpleFilterWatcher watchDilate(dilate);
+  const itk::SimpleFilterWatcher watchErode(erode);
 
-  // Execute the filter
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception caught:" << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

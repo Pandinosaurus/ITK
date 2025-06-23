@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class VectorConfidenceConnectedImageFilter
+ * \class VectorConfidenceConnectedImageFilter
  * \brief Segment pixels with similar statistics using connectivity
  *
  * This filter extracts a connected set of pixels whose pixel
@@ -44,7 +44,7 @@ namespace itk
  * variance are re-calculated. All the pixels in the previous
  * segmentation are used to calculate the mean the standard deviation
  * (as opposed to using the pixels in the neighborhood of the seed
- * point).  The segmentation is then recalculted using these refined
+ * point).  The segmentation is then recalculated using these refined
  * estimates for the mean and variance of the pixel values.  This
  * process is repeated for the specified number of iterations.
  * Setting the "NumberOfIterations" to zero stops the algorithm
@@ -71,8 +71,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods).  */
-  itkTypeMacro(VectorConfidenceConnectedImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VectorConfidenceConnectedImageFilter);
 
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
@@ -112,22 +112,26 @@ public:
 
   /** Set/Get the multiplier to define the confidence interval.  Multiplier
    * can be anything greater than zero. A typical value is 2.5 */
+  /** @ITKStartGrouping */
   itkSetMacro(Multiplier, double);
   itkGetConstMacro(Multiplier, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the number of iterations */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfIterations, unsigned int);
   itkGetConstMacro(NumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Set/Get value to replace thresholded pixels */
+  /** @ITKStartGrouping */
   itkSetMacro(ReplaceValue, OutputImagePixelType);
   itkGetConstMacro(ReplaceValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the radius of the neighborhood over which the
       statistics are evaluated */
+  /** @ITKStartGrouping */
   itkSetMacro(InitialNeighborhoodRadius, unsigned int);
   itkGetConstReferenceMacro(InitialNeighborhoodRadius, unsigned int);
-
+  /** @ITKEndGrouping */
   /** Get the Mean Vector computed during the segmentation */
   const MeanVectorType &
   GetMean() const;
@@ -140,14 +144,9 @@ public:
   virtual const SeedsContainerType &
   GetSeeds() const;
 
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename InputImagePixelType::ValueType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   VectorConfidenceConnectedImageFilter();
@@ -164,13 +163,13 @@ protected:
   GenerateData() override;
 
 private:
-  SeedsContainerType   m_Seeds;
-  double               m_Multiplier;
-  unsigned int         m_NumberOfIterations;
-  OutputImagePixelType m_ReplaceValue;
-  unsigned int         m_InitialNeighborhoodRadius;
+  SeedsContainerType   m_Seeds{};
+  double               m_Multiplier{};
+  unsigned int         m_NumberOfIterations{};
+  OutputImagePixelType m_ReplaceValue{};
+  unsigned int         m_InitialNeighborhoodRadius{};
 
-  DistanceThresholdFunctionPointer m_ThresholdFunction;
+  DistanceThresholdFunctionPointer m_ThresholdFunction{};
 };
 } // end namespace itk
 

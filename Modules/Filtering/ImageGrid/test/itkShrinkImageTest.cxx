@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,14 @@
 int
 itkShrinkImageTest(int, char *[])
 {
-  itk::FileOutputWindow::Pointer fow = itk::FileOutputWindow::New();
+  const itk::FileOutputWindow::Pointer fow = itk::FileOutputWindow::New();
   fow->SetInstance(fow);
 
   std::cout << "Shrink an image by (2,3)" << std::endl;
 
   // type alias to simplify the syntax
   using SimpleImage = itk::Image<short, 2>;
-  SimpleImage::Pointer simpleImage = SimpleImage::New();
+  auto simpleImage = SimpleImage::New();
   std::cout << "Simple image spacing: " << simpleImage->GetSpacing()[0] << ", " << simpleImage->GetSpacing()[1]
             << std::endl;
   std::cout << std::flush;
@@ -41,14 +41,12 @@ itkShrinkImageTest(int, char *[])
   using ShortImage = itk::Image<short, 2>;
 
   // Test the creation of an image with native type
-  ShortImage::Pointer if2 = ShortImage::New();
+  auto if2 = ShortImage::New();
 
   // fill in an image
-  ShortImage::IndexType  index = { { 0, 0 } };
-  ShortImage::SizeType   size = { { 8, 12 } };
-  ShortImage::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  constexpr ShortImage::IndexType index = { { 0, 0 } };
+  constexpr ShortImage::SizeType  size = { { 8, 12 } };
+  const ShortImage::RegionType    region{ index, size };
   if2->SetLargestPossibleRegion(region);
   if2->SetBufferedRegion(region);
   if2->Allocate();
@@ -118,7 +116,7 @@ itkShrinkImageTest(int, char *[])
     auto row = itk::Math::RoundHalfIntegerUp<short>(shrink->GetShrinkFactors()[1] * iterator2.GetIndex()[1] +
                                                     (shrink->GetShrinkFactors()[1] - 1.0) / 2.0);
     row += rowOffset;
-    short trueValue = col + region.GetSize()[0] * row;
+    const short trueValue = col + region.GetSize()[0] * row;
 
     if (iterator2.Get() != trueValue)
     {
@@ -151,7 +149,7 @@ itkShrinkImageTest(int, char *[])
     // this should fail due to a bad requested region
     shrink->Update();
   }
-  catch (itk::InvalidRequestedRegionError & e)
+  catch (const itk::InvalidRequestedRegionError & e)
   {
     std::cout << e << std::endl;
     std::cout << std::endl << std::endl << "Exception caught, updating largest possible region instead." << std::endl;
@@ -196,11 +194,12 @@ itkShrinkImageTest(int, char *[])
     std::cout << "Pixel " << iterator2.GetIndex() << " = " << iterator2.Get() << std::endl;
     std::cout << std::flush;
 
-    short trueValue = itk::Math::RoundHalfIntegerUp<int>((shrink->GetShrinkFactors()[0] * iterator2.GetIndex()[0] +
-                                                          (shrink->GetShrinkFactors()[0] - 1.0) / 2.0)) +
-                      (region.GetSize()[0] *
-                       itk::Math::RoundHalfIntegerUp<int>((shrink->GetShrinkFactors()[1] * iterator2.GetIndex()[1] +
-                                                           (shrink->GetShrinkFactors()[1] - 1.0) / 2.0)));
+    const short trueValue =
+      itk::Math::RoundHalfIntegerUp<int>(
+        (shrink->GetShrinkFactors()[0] * iterator2.GetIndex()[0] + (shrink->GetShrinkFactors()[0] - 1.0) / 2.0)) +
+      (region.GetSize()[0] *
+       itk::Math::RoundHalfIntegerUp<int>(
+         (shrink->GetShrinkFactors()[1] * iterator2.GetIndex()[1] + (shrink->GetShrinkFactors()[1] - 1.0) / 2.0)));
     if (iterator2.Get() != trueValue)
     {
       std::cout << "B) Pixel " << iterator2.GetIndex() << " expected " << trueValue << " but got " << iterator2.Get()
@@ -218,10 +217,8 @@ itkShrinkImageTest(int, char *[])
     std::cout << std::flush;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    std::cout << "ShrinkImageFilter test failed." << std::endl;
-    std::cout << std::flush;
-    return EXIT_FAILURE;
-  }
+
+  std::cout << "ShrinkImageFilter test failed." << std::endl;
+  std::cout << std::flush;
+  return EXIT_FAILURE;
 }

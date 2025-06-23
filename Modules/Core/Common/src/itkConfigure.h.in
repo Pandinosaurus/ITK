@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,6 @@
  *=========================================================================*/
 #ifndef itkConfigure_h
 #define itkConfigure_h
-
-/* Define granular compiler features. */
-#include "itk_compiler_detection.h"
 
 /*
  * here is where system computed values get stored these values should only
@@ -51,7 +48,7 @@
 /* Test external applications to ensure that compatible compiler C++ standard API are used
  * by assuming that compiler standards are backwards (but not forwards) compatible with each
  * other. Strange behaviors may occur if external applications do not use the same compiler
- * and compiler language featues (i.e. compiler flags).
+ * and compiler language features (i.e. compiler flags).
  * The warning is disabled for NVCC (NVidia CUDA) for use of ITK macros with CUDA versions
  * prior to v7. */
 #if !defined(__CUDACC__)
@@ -62,7 +59,6 @@
 
 /* what threading system are we using */
 #cmakedefine ITK_USE_PTHREADS
-#cmakedefine ITK_HP_PTHREADS
 #cmakedefine ITK_USE_WIN32_THREADS
 
 #cmakedefine ITK_WINDOWS_EXPORT_ALL_SYMBOLS
@@ -74,11 +70,9 @@
 #endif
 #cmakedefine ITK_DYNAMIC_LOADING
 
-#cmakedefine ITKV4_COMPATIBILITY
 #cmakedefine ITK_LEGACY_REMOVE
 #cmakedefine ITK_LEGACY_SILENT
 #cmakedefine ITK_FUTURE_LEGACY_REMOVE
-#cmakedefine ITK_USE_CONCEPT_CHECKING
 #cmakedefine ITK_USE_FFTWF
 #cmakedefine ITK_USE_FFTWD
 #cmakedefine ITK_USE_CUFFTW
@@ -99,11 +93,13 @@
 # define ITK_HAS_CPP11_TYPETRAITS
 #endif
 
-// defined if the compiler support GNU's __attribute__(( algined(x) )) extension
+// defined if the compiler support GNU's __attribute__(( aligned(x) )) extension
 #cmakedefine ITK_HAS_GNU_ATTRIBUTE_ALIGNED
 
 // defined if the C library as the mallinfo struct
 #cmakedefine ITK_HAS_MALLINFO
+// defined if the C library as the mallinfo2 struct
+#cmakedefine ITK_HAS_MALLINFO2
 // defined if feenableexcept is available
 #cmakedefine ITK_HAS_FEENABLEEXCEPT
 
@@ -183,14 +179,15 @@
 // For 32 bit Intel with MSVC, check _M_IX86_FP.
 // 64 bit Intel x86 always supports both 32 and 64 bit SSE2.
 
-#if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64) || defined(__amd64)
+#if defined(__x86_64__) || defined(__amd64__) || (defined(_M_AMD64) && !defined(_M_ARM64EC))
+#  define ITK_COMPILER_SUPPORTS_SSE2_32
 #  define ITK_COMPILER_SUPPORTS_SSE2_64
+#else
+#  if defined(__SSE2__) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 2))
+#    define ITK_COMPILER_SUPPORTS_SSE2_32
+#  endif
 #endif
 
-#if defined(ITK_COMPILER_SUPPORTS_SSE2_64) || \
-    defined(__i386__) || \
-    (defined(_M_IX86_FP) && (_M_IX86_FP >= 2))
-#  define ITK_COMPILER_SUPPORTS_SSE2_32
-#endif
+#cmakedefine ITK_HAS_SCHED_GETAFFINITY
 
 #endif //itkConfigure_h

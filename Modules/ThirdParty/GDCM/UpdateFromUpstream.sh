@@ -8,9 +8,11 @@ readonly name="GDCM"
 readonly ownership="GDCM Upstream <gdcm-developers@lists.sourceforge.net>"
 readonly subtree="Modules/ThirdParty/GDCM/src/gdcm"
 readonly repo="https://github.com/malaterre/GDCM.git"
-readonly tag="release"
+readonly tag="v3.0.25"
 readonly shortlog=false
 readonly paths="
+  .gitattributes
+  .codespellrc
   CMake/UseCopyright.cmake
   CMake/InstallMacros.cmake
   CMake/COPYING-CMAKE-SCRIPTS
@@ -21,6 +23,7 @@ readonly paths="
   Utilities/gdcmcharls
   Utilities/gdcm_charls.h
   Utilities/gdcm_expat.h
+  Utilities/gdcmext
   Utilities/gdcmjpeg
   Utilities/gdcm_ljpeg12.h
   Utilities/gdcm_ljpeg16.h
@@ -28,7 +31,6 @@ readonly paths="
   Utilities/gdcmmd5
   Utilities/gdcm_md5.h
   Utilities/gdcm_openjpeg.h
-  Utilities/gdcmopenjpeg
   Utilities/gdcmrle
   Utilities/gdcmutfcpp
   Utilities/gdcmuuid
@@ -40,7 +42,6 @@ readonly paths="
 extract_source () {
     git_archive
     pushd "${extractdir}/${name}-reduced"
-    echo "* -whitespace" > .gitattributes
     popd
 }
 

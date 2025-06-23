@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ bool onAbortCalled = false;
 void
 onProgress(itk::Object * obj, const itk::EventObject &, void *)
 {
-  itk::ProcessObject::Pointer p(dynamic_cast<itk::ProcessObject *>(obj));
+  const itk::ProcessObject::Pointer p(dynamic_cast<itk::ProcessObject *>(obj));
   if (p.IsNull())
   {
     return;
@@ -61,14 +61,12 @@ itkAbortProcessObjectTest(int, char *[])
 {
   // type alias to simplify the syntax
   using ShortImage = itk::Image<short, 2>;
-  ShortImage::Pointer img = ShortImage::New();
+  auto img = ShortImage::New();
 
   // fill in an image
-  const ShortImage::IndexType index = { { 0, 0 } };
-  const ShortImage::SizeType  size = { { 100, 100 } };
-  ShortImage::RegionType      region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  constexpr ShortImage::IndexType index = { { 0, 0 } };
+  constexpr ShortImage::SizeType  size = { { 100, 100 } };
+  const ShortImage::RegionType    region{ index, size };
   img->SetRegions(region);
   img->Allocate();
 
@@ -82,24 +80,22 @@ itkAbortProcessObjectTest(int, char *[])
   }
 
   // Create a filter
-  itk::ExtractImageFilter<ShortImage, ShortImage>::Pointer extract;
-  extract = itk::ExtractImageFilter<ShortImage, ShortImage>::New();
+  const itk::ExtractImageFilter<ShortImage, ShortImage>::Pointer extract =
+    itk::ExtractImageFilter<ShortImage, ShortImage>::New();
   extract->SetInput(img);
 
   // fill in an image
-  ShortImage::IndexType  extractIndex = { { 0, 0 } };
-  ShortImage::SizeType   extractSize = { { 99, 99 } };
-  ShortImage::RegionType extractRegion;
-  extractRegion.SetSize(extractSize);
-  extractRegion.SetIndex(extractIndex);
+  constexpr ShortImage::IndexType extractIndex = { { 0, 0 } };
+  constexpr ShortImage::SizeType  extractSize = { { 99, 99 } };
+  const ShortImage::RegionType    extractRegion{ extractIndex, extractSize };
   extract->SetExtractionRegion(extractRegion);
 
-  itk::CStyleCommand::Pointer progressCmd = itk::CStyleCommand::New();
+  const itk::CStyleCommand::Pointer progressCmd = itk::CStyleCommand::New();
   progressCmd->SetCallback(onProgress);
   progressCmd->SetObjectName("Progress Event");
   extract->AddObserver(itk::ProgressEvent(), progressCmd);
 
-  itk::CStyleCommand::Pointer abortCmd = itk::CStyleCommand::New();
+  const itk::CStyleCommand::Pointer abortCmd = itk::CStyleCommand::New();
   abortCmd->SetCallback(onAbort);
   abortCmd->SetObjectName("Abort Event");
   extract->AddObserver(itk::AbortEvent(), abortCmd);
@@ -109,7 +105,7 @@ itkAbortProcessObjectTest(int, char *[])
   {
     extract->UpdateLargestPossibleRegion();
   }
-  catch (itk::ProcessAborted &)
+  catch (const itk::ProcessAborted &)
   {
     if (onAbortCalled)
     {

@@ -24,7 +24,6 @@ namespace METAIO_NAMESPACE
 // MedImage Constructors
 //
 MetaGroup::MetaGroup()
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGroup()" );
   MetaGroup::Clear();
@@ -32,7 +31,6 @@ MetaGroup::MetaGroup()
 
 //
 MetaGroup::MetaGroup(const char * _headerName)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGroup()" );
   MetaGroup::Clear();
@@ -41,7 +39,6 @@ MetaGroup::MetaGroup(const char * _headerName)
 
 //
 MetaGroup::MetaGroup(const MetaGroup * _group)
-  : MetaObject()
 {
   META_DEBUG_PRINT( "MetaGroup()" );
   MetaGroup::Clear();
@@ -120,7 +117,7 @@ MetaGroup::M_Read()
 
   if (!MetaObject::M_Read())
   {
-    std::cout << "MetaGroup: M_Read: Error parsing file" << std::endl;
+    std::cout << "MetaGroup: M_Read: Error parsing file" << '\n';
     return false;
   }
 

@@ -1,67 +1,108 @@
 # Commit prefix regexes
 type:Compiler:
-    title: "^COMP:.*"
+  title: "^COMP:.*"
 
 type:Bug:
-    title: "^BUG:.*"
+  title: "^BUG:.*"
 
-area:Documentation:
-    title: "^DOC:.*"
+type:Documentation:
+  title: "^DOC:.*"
 
 type:Enhancement:
-    title: "^ENH:.*"
+  title: "^ENH:.*"
 
 type:Performance:
-    title: "^PERF:.*"
+  title: "^PERF:.*"
 
 type:Style:
-    title: "^STYLE:.*"
+  title: "^STYLE:.*"
 
-# Modified filename regexes
+type:Coverage:
+  title: "coverage"
+
+type:Design:
+  title: "design"
+
+# Filename regexes
 area:Bridge:
-    file: "Modules/Bridge/*"
+  files:
+    - "Modules/Bridge/*"
 
 area:Core:
-    file: "Modules/Core/*"
+  files:
+    - "Modules/Core/*"
 
 area:Documentation:
-    file: "Documentation/*"
+  files:
+    - "Documentation/*"
+    - "Utilities/Doxygen/*"
 
 area:Examples:
-    file: "Examples/*"
+  files:
+    - "Examples/*"
 
 area:Filtering:
-    file: "Modules/Filtering/*"
+  files:
+    - "Modules/Filtering/*"
 
 area:IO:
-    file: "Modules/IO/*"
+  files:
+    - "Modules/IO/*"
 
 area:Numerics:
-    file: "Modules/Numerics/*"
+  files:
+    - "Modules/Numerics/*"
+
+area:Nonunit:
+  files:
+    - "src/Nonunit/*"
 
 area:Python wrapping:
-    file: "*.py*"
+  files:
+    - "Modules/Generators/Python/*"
+    - "Modules/.*/wrapping/*"
+    - ".*.notwrapped"
+    - ".*.py.*"
+    - ".*.wrap"
 
 area:Registration:
-    file: "Modules/Registration/*"
+  files:
+    - "Modules/Registration/*"
 
 area:Remotes:
-    file: "Modules/Remote/*"
+  files:
+    - "Modules/Remote/*"
 
 area:Segmentation:
-    file: "Modules/Segmentation/*"
+  files:
+    - "Modules/Segmentation/*"
 
 area:ThirdParty:
-    file: "Modules/ThirdParty/*"
+  files:
+    - "Modules/ThirdParty/*"
 
 area:Video:
-    file: "Modules/Video/*"
+  files:
+    - "Modules/Video/*"
+
+type:Data:
+  files:
+    - ".*.jpeg"
+    - ".*.jpg"
+    - ".*.md5"
+    - ".*.png"
+    - ".*.sha512"
 
 type:Testing:
-    file: "Testing/*"
+  files:
+    - "Testing/*"
+    - ".*Test.*.cxx"
+    - ".*Test.*.h.*"
+    - ".*Test.*.py"
 
-type:Testing:
-    file: "*Test*.cxx"
-
-type:Testing:
-    file: "*Test*.py"
+type:Infrastructure:
+  files:
+    - ".github/*"
+    - "CMake/*"
+    - "Testing/ContinuousIntegration/*"
+    - "Utilities/*"

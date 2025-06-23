@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,8 +43,8 @@ namespace fftw
  * \class Interface
  * \brief Wrapper for FFTW API
  *
- * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/717
+ * This implementation was taken from the Insight Journal paper
+ * \cite Lehmann_2010_b.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -82,7 +82,7 @@ public:
   Plan_dft_c2r_1d(int           n,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
@@ -94,15 +94,14 @@ public:
                   int           ny,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft_c2r(2, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -112,37 +111,34 @@ public:
                   int           nz,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft_c2r(3, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft_c2r(int           rank,
-               const int *   n,
-               ComplexType * in,
-               PixelType *   out,
-               unsigned      flags,
-               int           threads = 1,
-               bool          canDestroyInput = false)
+  Plan_dft_c2r(int                  rank,
+               const int *          n,
+               ComplexType *        in,
+               PixelType *          out,
+               unsigned int         flags,
+               [[maybe_unused]] int threads = 1,
+               bool                 canDestroyInput = false)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftwf_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -160,7 +156,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -183,7 +179,7 @@ public:
   Plan_dft_r2c_1d(int           n,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
@@ -195,15 +191,14 @@ public:
                   int           ny,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft_r2c(2, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -213,38 +208,35 @@ public:
                   int           nz,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft_r2c(3, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft_r2c(int           rank,
-               const int *   n,
-               PixelType *   in,
-               ComplexType * out,
-               unsigned      flags,
-               int           threads = 1,
-               bool          canDestroyInput = false)
+  Plan_dft_r2c(int                  rank,
+               const int *          n,
+               PixelType *          in,
+               ComplexType *        out,
+               unsigned int         flags,
+               [[maybe_unused]] int threads = 1,
+               bool                 canDestroyInput = false)
   {
     //
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftwf_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -262,7 +254,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -285,7 +277,7 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
@@ -298,15 +290,14 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft(2, sizes, in, out, sign, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -317,38 +308,35 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft(3, sizes, in, out, sign, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft(int           rank,
-           const int *   n,
-           ComplexType * in,
-           ComplexType * out,
-           int           sign,
-           unsigned      flags,
-           int           threads = 1,
-           bool          canDestroyInput = false)
+  Plan_dft(int                  rank,
+           const int *          n,
+           ComplexType *        in,
+           ComplexType *        out,
+           int                  sign,
+           unsigned int         flags,
+           [[maybe_unused]] int threads = 1,
+           bool                 canDestroyInput = false)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftwf_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -366,7 +354,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -394,7 +382,7 @@ public:
   DestroyPlan(PlanType p)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
 #  endif
     fftwf_destroy_plan(p);
   }
@@ -424,7 +412,7 @@ public:
   Plan_dft_c2r_1d(int           n,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
@@ -436,15 +424,14 @@ public:
                   int           ny,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft_c2r(2, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -454,37 +441,34 @@ public:
                   int           nz,
                   ComplexType * in,
                   PixelType *   out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft_c2r(3, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft_c2r(int           rank,
-               const int *   n,
-               ComplexType * in,
-               PixelType *   out,
-               unsigned      flags,
-               int           threads = 1,
-               bool          canDestroyInput = false)
+  Plan_dft_c2r(int                  rank,
+               const int *          n,
+               ComplexType *        in,
+               PixelType *          out,
+               unsigned int         flags,
+               [[maybe_unused]] int threads = 1,
+               bool                 canDestroyInput = false)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftw_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -502,7 +486,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -525,7 +509,7 @@ public:
   Plan_dft_r2c_1d(int           n,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
@@ -537,15 +521,14 @@ public:
                   int           ny,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft_r2c(2, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -555,37 +538,34 @@ public:
                   int           nz,
                   PixelType *   in,
                   ComplexType * out,
-                  unsigned      flags,
+                  unsigned int  flags,
                   int           threads = 1,
                   bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft_r2c(3, sizes, in, out, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft_r2c(int           rank,
-               const int *   n,
-               PixelType *   in,
-               ComplexType * out,
-               unsigned      flags,
-               int           threads = 1,
-               bool          canDestroyInput = false)
+  Plan_dft_r2c(int                  rank,
+               const int *          n,
+               PixelType *          in,
+               ComplexType *        out,
+               unsigned int         flags,
+               [[maybe_unused]] int threads = 1,
+               bool                 canDestroyInput = false)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftw_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -603,7 +583,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -626,7 +606,7 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
@@ -639,15 +619,14 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
-    auto * sizes = new int[2];
+    int sizes[2];
     sizes[0] = nx;
     sizes[1] = ny;
     PlanType plan = Plan_dft(2, sizes, in, out, sign, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
@@ -658,38 +637,35 @@ public:
               ComplexType * in,
               ComplexType * out,
               int           sign,
-              unsigned      flags,
+              unsigned int  flags,
               int           threads = 1,
               bool          canDestroyInput = false)
   {
-    auto * sizes = new int[3];
+    int sizes[3];
     sizes[0] = nx;
     sizes[1] = ny;
     sizes[2] = nz;
     PlanType plan = Plan_dft(3, sizes, in, out, sign, flags, threads, canDestroyInput);
-    delete[] sizes;
     return plan;
   }
 
   static PlanType
-  Plan_dft(int           rank,
-           const int *   n,
-           ComplexType * in,
-           ComplexType * out,
-           int           sign,
-           unsigned      flags,
-           int           threads = 1,
-           bool          canDestroyInput = false)
+  Plan_dft(int                  rank,
+           const int *          n,
+           ComplexType *        in,
+           ComplexType *        out,
+           int                  sign,
+           unsigned int         flags,
+           [[maybe_unused]] int threads = 1,
+           bool                 canDestroyInput = false)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
     fftw_plan_with_nthreads(threads);
-#  else
-    (void)threads;
 #  endif
     // don't add FFTW_WISDOM_ONLY if the plan rigor is FFTW_ESTIMATE
     // because FFTW_ESTIMATE guarantee to not destroy the input
-    unsigned roflags = flags;
+    unsigned int roflags = flags;
     if (!(flags & FFTW_ESTIMATE))
     {
       roflags = flags | FFTW_WISDOM_ONLY;
@@ -707,7 +683,7 @@ public:
       {
         // lets create a plan with a fake input to generate the wisdom
         int total = 1;
-        for (int i = 0; i < rank; i++)
+        for (int i = 0; i < rank; ++i)
         {
           total *= n[i];
         }
@@ -735,7 +711,7 @@ public:
   DestroyPlan(PlanType p)
   {
 #  ifndef ITK_USE_CUFFTW
-    std::lock_guard<FFTWGlobalConfiguration::MutexType> lock(FFTWGlobalConfiguration::GetLockMutex());
+    const std::lock_guard<FFTWGlobalConfiguration::MutexType> lockGuard(FFTWGlobalConfiguration::GetLockMutex());
 #  endif
     fftw_destroy_plan(p);
   }

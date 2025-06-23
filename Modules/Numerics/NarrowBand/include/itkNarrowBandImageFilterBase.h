@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 #ifndef itkNarrowBandImageFilterBase_h
 #define itkNarrowBandImageFilterBase_h
 
+#include "itkBooleanStdVector.h"
 #include "itkFiniteDifferenceImageFilter.h"
 #include "itkMultiThreaderBase.h"
 #include "itkNarrowBand.h"
@@ -60,8 +61,7 @@ namespace itk
  *  FiniteDifferenceFunction to use for calculations.  This is set using the
  *  method SetDifferenceFunction in the parent class.
  *
- * \par REFERENCES
- * Sethian, J.A. Level Set Methods. Cambridge University Press. 1996.
+ * For algorithmic details see \cite sethian1996.
  *
  * \ingroup ITKNarrowBand
  */
@@ -77,13 +77,13 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(NarrowBandImageFilterBase, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(NarrowBandImageFilterBase);
 
   /**Typedefs from the superclass */
-  using InputImageType = typename Superclass::InputImageType;
-  using OutputImageType = typename Superclass::OutputImageType;
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::FiniteDifferenceFunctionType;
 
   /** Dimensionality of input and output data is assumed to be the same.
    * It is inherited from the superclass. */
@@ -91,10 +91,10 @@ public:
 
   /** The pixel type of the output image will be used in computations.
    * Inherited from the superclass. */
-  using PixelType = typename Superclass::PixelType;
+  using typename Superclass::PixelType;
 
   /** The value type of a time step.  Inherited from the superclass. */
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::TimeStepType;
 
   /** The index type for the output image. */
   using IndexType = typename OutputImageType::IndexType;
@@ -113,8 +113,10 @@ public:
   using NarrowBandIterator = typename NarrowBandType::Iterator;
 
   /** Set/Get IsoSurfaceValue to use in the input image */
+  /** @ITKStartGrouping */
   itkSetMacro(IsoSurfaceValue, ValueType);
   itkGetConstMacro(IsoSurfaceValue, ValueType);
+  /** @ITKEndGrouping */
 
   /** Root Mean Square Change between successive iterations */
   //  itkGetConstMacro( RMSChange, ValueType);
@@ -123,6 +125,7 @@ public:
    *   entire narrow band can be constructed using this method.  Usually,
    *   however, the narrow band is initialized and reinitialized automatically
    *   by the subclass. */
+  /** @ITKStartGrouping */
   void
   InsertNarrowBandNode(const BandNodeType & node)
   {
@@ -141,7 +144,7 @@ public:
   }
 
   void
-  InsertNarrowBandNode(const IndexType & index, const PixelType & value, const signed char & nodestate)
+  InsertNarrowBandNode(const IndexType & index, const PixelType & value, const signed char nodestate)
   {
     BandNodeType tmpnode;
 
@@ -152,12 +155,13 @@ public:
     m_NarrowBand->PushBack(tmpnode);
     this->Modified();
   }
+  /** @ITKEndGrouping */
 
   /** Set the narrow band total radius. The narrow band width will be
    * twice this value (positive and negative distance to the zero level
    * set). The default value is 3. */
   void
-  SetNarrowBandTotalRadius(const float & val)
+  SetNarrowBandTotalRadius(const float val)
   {
     if (m_NarrowBand->GetTotalRadius() != val)
     {
@@ -167,7 +171,7 @@ public:
   }
 
   /** Get the narrow band total radius. */
-  float
+  [[nodiscard]] float
   GetNarrowBandTotalRadius() const
   {
     return m_NarrowBand->GetTotalRadius();
@@ -176,7 +180,7 @@ public:
   /** Set the narrow band inner radius. The inner radius is the safe
    * are where the level set can be computed. The default value is 1. */
   void
-  SetNarrowBandInnerRadius(const float & val)
+  SetNarrowBandInnerRadius(const float val)
   {
     if (m_NarrowBand->GetInnerRadius() != val)
     {
@@ -186,7 +190,7 @@ public:
   }
 
   /** Get the narrow band inner radius. */
-  float
+  [[nodiscard]] float
   GetNarrowBandInnerRadius() const
   {
     return m_NarrowBand->GetInnerRadius();
@@ -216,27 +220,26 @@ public:
 
 protected:
   NarrowBandImageFilterBase()
+    : m_NarrowBand(NarrowBandType::New())
+    , m_ReinitializationFrequency(6)
+    , m_IsoSurfaceValue(0.0)
   {
-    m_NarrowBand = NarrowBandType::New();
     m_NarrowBand->SetTotalRadius(4);
     m_NarrowBand->SetInnerRadius(2);
-    m_ReinitializationFrequency = 6;
-    m_IsoSurfaceValue = 0.0;
-    m_Step = 0;
-    m_Touched = false;
   }
 
   ~NarrowBandImageFilterBase() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  NarrowBandPointer m_NarrowBand;
+  NarrowBandPointer m_NarrowBand{};
 
   /** \struct ThreadRegionType
   The type of region used in multithreading.
   Defines a subregion of the narrowband. */
   struct ThreadRegionType
   {
+
     /** this is the actual first element */
     NarrowBandIterator first;
 
@@ -246,7 +249,7 @@ protected:
 
   /** A list of subregions of the narrowband which are passed to each thread
    * for parallel processing. */
-  std::vector<RegionType> m_RegionList;
+  std::vector<RegionType> m_RegionList{};
 
   /** This function returns a single region (of the narrow band list) for use
       in multi-threading */
@@ -270,7 +273,8 @@ protected:
   /** This method allows deallocation of data and further post processing
    */
   void
-  PostProcessOutput() override;
+  PostProcessOutput() override
+  {}
 
   /* This function clears all pixels from the narrow band */
   void
@@ -287,14 +291,14 @@ protected:
   GenerateData() override;
 
   /* Variables to control reinitialization */
-  IdentifierType m_ReinitializationFrequency;
-  IdentifierType m_Step;
+  IdentifierType m_ReinitializationFrequency{};
+  IdentifierType m_Step{};
 
-  bool m_Touched;
+  bool m_Touched{};
 
-  std::vector<bool> m_TouchedForThread;
+  BooleanStdVectorType m_TouchedForThread{};
 
-  ValueType m_IsoSurfaceValue;
+  ValueType m_IsoSurfaceValue{};
 
 private:
   /* This class does not use AllocateUpdateBuffer to allocate memory for its

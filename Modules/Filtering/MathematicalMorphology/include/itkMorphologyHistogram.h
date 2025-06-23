@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "itkIntTypes.h"
 #include "itkNumericTraits.h"
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TInputPixel, typename TCompare>
 class MorphologyHistogram
@@ -74,12 +72,12 @@ public:
         // value
         // or the iterator is invalidated.
         TInputPixel toErase = mapIt->first;
-        mapIt++;
+        ++mapIt;
         m_Map.erase(toErase);
       }
       else
       {
-        mapIt++;
+        ++mapIt;
         // don't remove all the zero value found, just remove the one before the
         // current maximum value
         // the histogram may become quite big on real type image, but it's an
@@ -199,7 +197,7 @@ public:
   TInputPixel                 m_InitValue;
   TInputPixel                 m_CurrentValue;
   TCompare                    m_Compare;
-  signed int                  m_Direction;
+  int                         m_Direction;
   TInputPixel                 m_Boundary;
 };
 
@@ -222,7 +220,6 @@ class MorphologyHistogram<bool, TCompare> : public VectorMorphologyHistogram<boo
 
 /// \endcond
 
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

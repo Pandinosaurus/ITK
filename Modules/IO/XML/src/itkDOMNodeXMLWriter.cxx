@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,13 +49,13 @@ DOMNodeXMLWriter::Update(std::ostream & os, std::string indent)
   }
 
   // write the start tag name
-  os << indent << "<" << input->GetName();
+  os << indent << '<' << input->GetName();
 
   // write the "id" attribute if it is present
-  std::string id = input->GetID();
+  const std::string id = input->GetID();
   if (!id.empty())
   {
-    os << " id=\"" << id << "\"";
+    os << " id=\"" << id << '"';
   }
 
   // write other attributes
@@ -64,7 +64,7 @@ DOMNodeXMLWriter::Update(std::ostream & os, std::string indent)
   input->GetAllAttributes(attributes);
   for (auto & attribute : attributes)
   {
-    os << " " << attribute.first << "=\"" << attribute.second << "\"";
+    os << ' ' << attribute.first << "=\"" << attribute.second << '"';
   }
 
   // write the ending of the start tag, and all children if applicable
@@ -74,7 +74,7 @@ DOMNodeXMLWriter::Update(std::ostream & os, std::string indent)
   if (!children.empty())
   {
     // write the closing bracket for the start tag
-    os << ">" << std::endl;
+    os << '>' << std::endl;
     // write the children
     for (auto & i : children)
     {
@@ -83,7 +83,7 @@ DOMNodeXMLWriter::Update(std::ostream & os, std::string indent)
       this->SetInput(input);
     }
     // write the end tag
-    os << indent << "</" << input->GetName() << ">" << std::endl;
+    os << indent << "</" << input->GetName() << '>' << std::endl;
   }
   else
   {
@@ -101,7 +101,7 @@ DOMNodeXMLWriter::Update()
   std::ofstream os(this->m_FileName.c_str());
   if (!os.is_open())
   {
-    itkExceptionMacro("failed openning the output XML file");
+    itkExceptionMacro("failed opening the output XML file");
   }
 
   this->Update(os);

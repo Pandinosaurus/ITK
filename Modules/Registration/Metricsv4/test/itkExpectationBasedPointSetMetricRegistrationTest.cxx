@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,11 +74,9 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
 
   using PointType = PointSetType::PointType;
 
-  PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
 
   // two ellipses, one rotated slightly
@@ -104,18 +102,18 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
 
   // two circles with a small offset
   PointType offset;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     offset[d] = 2.0;
   }
   unsigned long count = 0;
   for (float theta = 0; theta < 2.0 * itk::Math::pi; theta += 0.1)
   {
-    PointType fixedPoint;
-    float     radius = 100.0;
+    PointType       fixedPoint;
+    constexpr float radius = 100.0;
     fixedPoint[0] = radius * std::cos(theta);
     fixedPoint[1] = radius * std::sin(theta);
-    if (Dimension > 2)
+    if constexpr (Dimension > 2)
     {
       fixedPoint[2] = radius * std::sin(theta);
     }
@@ -124,7 +122,7 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
     PointType movingPoint;
     movingPoint[0] = fixedPoint[0] + offset[0];
     movingPoint[1] = fixedPoint[1] + offset[1];
-    if (Dimension > 2)
+    if constexpr (Dimension > 2)
     {
       movingPoint[2] = fixedPoint[2] + offset[2];
     }
@@ -134,12 +132,12 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
   }
 
   using AffineTransformType = itk::AffineTransform<double, Dimension>;
-  AffineTransformType::Pointer transform = AffineTransformType::New();
+  auto transform = AffineTransformType::New();
   transform->SetIdentity();
 
   // Instantiate the metric
   using PointSetMetricType = itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType>;
-  PointSetMetricType::Pointer metric = PointSetMetricType::New();
+  auto metric = PointSetMetricType::New();
   metric->SetFixedPointSet(fixedPoints);
   metric->SetMovingPointSet(movingPoints);
   metric->SetPointSetSigma(2.0);
@@ -150,7 +148,7 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
   // scales estimator
   using RegistrationParameterScalesFromShiftType =
     itk::RegistrationParameterScalesFromPhysicalShift<PointSetMetricType>;
-  RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+  const RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric(metric);
   // needed with pointset metrics
@@ -158,14 +156,14 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
 
   // optimizer
   using OptimizerType = itk::GradientDescentOptimizerv4;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
   optimizer->SetMetric(metric);
   optimizer->SetNumberOfIterations(numberOfIterations);
   optimizer->SetScalesEstimator(shiftScaleEstimator);
   optimizer->SetMaximumStepSizeInPhysicalUnits(3.0);
 
   using CommandType = itkExpectationBasedPointSetMetricRegistrationTestCommandIterationUpdate<OptimizerType>;
-  CommandType::Pointer observer = CommandType::New();
+  auto observer = CommandType::New();
   optimizer->AddObserver(itk::IterationEvent(), observer);
 
   optimizer->SetMinimumConvergenceValue(0.0);
@@ -180,11 +178,13 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
 
   // applying the resultant transform to moving points and verify result
   std::cout << "Fixed\tMoving\tMovingTransformed\tFixedTransformed\tDiff" << std::endl;
-  bool                                             passed = true;
-  PointType::ValueType                             tolerance = 1e-4;
-  AffineTransformType::InverseTransformBasePointer movingInverse = metric->GetMovingTransform()->GetInverseTransform();
-  AffineTransformType::InverseTransformBasePointer fixedInverse = metric->GetFixedTransform()->GetInverseTransform();
-  for (unsigned int n = 0; n < metric->GetNumberOfComponents(); n++)
+  bool                                                   passed = true;
+  constexpr PointType::ValueType                         tolerance = 1e-4;
+  const AffineTransformType::InverseTransformBasePointer movingInverse =
+    metric->GetMovingTransform()->GetInverseTransform();
+  const AffineTransformType::InverseTransformBasePointer fixedInverse =
+    metric->GetFixedTransform()->GetInverseTransform();
+  for (unsigned int n = 0; n < metric->GetNumberOfComponents(); ++n)
   {
     // compare the points in virtual domain
     PointType transformedMovingPoint = movingInverse->TransformPoint(movingPoints->GetPoint(n));
@@ -192,9 +192,9 @@ itkExpectationBasedPointSetMetricRegistrationTest(int argc, char * argv[])
     PointType difference;
     difference[0] = transformedMovingPoint[0] - transformedFixedPoint[0];
     difference[1] = transformedMovingPoint[1] - transformedFixedPoint[1];
-    std::cout << fixedPoints->GetPoint(n) << "\t" << movingPoints->GetPoint(n) << "\t" << transformedMovingPoint << "\t"
-              << transformedFixedPoint << "\t" << difference << std::endl;
-    if (fabs(difference[0]) > tolerance || fabs(difference[1]) > tolerance)
+    std::cout << fixedPoints->GetPoint(n) << '\t' << movingPoints->GetPoint(n) << '\t' << transformedMovingPoint << '\t'
+              << transformedFixedPoint << '\t' << difference << std::endl;
+    if (itk::Math::abs(difference[0]) > tolerance || itk::Math::abs(difference[1]) > tolerance)
     {
       passed = false;
     }

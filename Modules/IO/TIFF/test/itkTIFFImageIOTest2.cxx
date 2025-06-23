@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,9 @@ itkTIFFImageIOTest2(int argc, char * argv[])
 
   if (argc != 2)
   {
-    std::cerr << "Usage: " << argv[0] << " outputFilename" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " outputFilename" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -34,7 +36,7 @@ itkTIFFImageIOTest2(int argc, char * argv[])
   using PixelType = unsigned char;
   using ImageType = itk::Image<PixelType, Dimension>;
 
-  ImageType::Pointer image = ImageType::New();
+  auto image = ImageType::New();
 
   ImageType::RegionType region;
   ImageType::IndexType  start;
@@ -50,7 +52,7 @@ itkTIFFImageIOTest2(int argc, char * argv[])
   region.SetIndex(start);
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer to zero
+  image->AllocateInitialized();
 
   ImageType::SpacingType spacing;
 
@@ -60,7 +62,7 @@ itkTIFFImageIOTest2(int argc, char * argv[])
   image->SetSpacing(spacing);
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[1]);
 
   writer->SetInput(image);
@@ -68,7 +70,7 @@ itkTIFFImageIOTest2(int argc, char * argv[])
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
@@ -77,7 +79,7 @@ itkTIFFImageIOTest2(int argc, char * argv[])
 
   ImageType::SpacingType readSpacing = readImage->GetSpacing();
 
-  const double tolerance = 1e-5;
+  constexpr double tolerance = 1e-5;
 
   for (unsigned int i = 0; i < ImageType::SpacingType::Dimension; ++i)
   {

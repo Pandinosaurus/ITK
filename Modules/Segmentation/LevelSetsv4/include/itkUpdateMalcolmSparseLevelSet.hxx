@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,6 @@
 
 #include "itkConnectedImageNeighborhoodShape.h"
 #include "itkMath.h"
-#include "itkUpdateMalcolmSparseLevelSet.h"
 
 
 namespace itk
@@ -29,12 +28,11 @@ namespace itk
 
 template <unsigned int VDimension, typename TEquationContainer>
 UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::UpdateMalcolmSparseLevelSet()
-  : m_CurrentLevelSetId(NumericTraits<IdentifierType>::ZeroValue())
-  , m_RMSChangeAccumulator(NumericTraits<LevelSetOutputRealType>::ZeroValue())
-
+  : m_OutputLevelSet(LevelSetType::New())
+  , m_CurrentLevelSetId(IdentifierType{})
+  , m_RMSChangeAccumulator(LevelSetOutputRealType{})
 {
   this->m_Offset.Fill(0);
-  this->m_OutputLevelSet = LevelSetType::New();
 }
 
 template <unsigned int VDimension, typename TEquationContainer>
@@ -43,7 +41,7 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::Update()
 {
   if (this->m_InputLevelSet.IsNull())
   {
-    itkGenericExceptionMacro(<< "m_InputLevelSet is nullptr");
+    itkGenericExceptionMacro("m_InputLevelSet is nullptr");
   }
 
   this->m_Offset = this->m_InputLevelSet->GetDomainOffset();
@@ -54,7 +52,7 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::Update()
   this->m_OutputLevelSet->SetDomainOffset(this->m_Offset);
 
   using LabelMapToLabelImageFilterType = LabelMapToLabelImageFilter<LevelSetLabelMapType, LabelImageType>;
-  typename LabelMapToLabelImageFilterType::Pointer labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
+  auto labelMapToLabelImageFilter = LabelMapToLabelImageFilterType::New();
   labelMapToLabelImageFilter->SetInput(this->m_InputLevelSet->GetLabelMap());
   labelMapToLabelImageFilter->Update();
 
@@ -114,12 +112,12 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::Update()
   }
 
   using LabelImageToLabelMapFilterType = LabelImageToLabelMapFilter<LabelImageType, LevelSetLabelMapType>;
-  typename LabelImageToLabelMapFilterType::Pointer labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
+  auto labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
   labelImageToLabelMapFilter->SetInput(this->m_InternalImage);
   labelImageToLabelMapFilter->SetBackgroundValue(LevelSetType::PlusOneLayer());
   labelImageToLabelMapFilter->Update();
 
-  LevelSetLabelMapPointer outputLabelMap = this->m_OutputLevelSet->GetModifiableLabelMap();
+  const LevelSetLabelMapPointer outputLabelMap = this->m_OutputLevelSet->GetModifiableLabelMap();
   outputLabelMap->Graft(labelImageToLabelMapFilter->GetOutput());
 }
 
@@ -132,7 +130,7 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::FillUpdateContainer
   auto nodeIt = levelZero.begin();
   auto nodeEnd = levelZero.end();
 
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetInputType inputIndex;
   while (nodeIt != nodeEnd)
@@ -142,13 +140,13 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::FillUpdateContainer
 
     const LevelSetOutputRealType update = termContainer->Evaluate(inputIndex);
 
-    LevelSetOutputType value = NumericTraits<LevelSetOutputType>::ZeroValue();
+    LevelSetOutputType value{};
 
-    if (update > NumericTraits<LevelSetOutputRealType>::ZeroValue())
+    if (update > LevelSetOutputRealType{})
     {
       value = NumericTraits<LevelSetOutputType>::OneValue();
     }
-    if (update < NumericTraits<LevelSetOutputRealType>::ZeroValue())
+    if (update < LevelSetOutputRealType{})
     {
       value = -NumericTraits<LevelSetOutputType>::OneValue();
     }
@@ -170,15 +168,14 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithUnPhasedP
   // neighborhood iterator
   ZeroFluxNeumannBoundaryCondition<LabelImageType> sp_nbc;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
   neighIt.OverrideBoundaryCondition(&sp_nbc);
   neighIt.ActivateOffsets(GenerateConnectedImageNeighborhoodShapeOffsets<ImageDimension, 1, false>());
 
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetLayerType insertList;
 
@@ -197,11 +194,11 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithUnPhasedP
 
     const LevelSetOutputType update = upIt->second;
 
-    if (update != NumericTraits<LevelSetOutputType>::ZeroValue())
+    if (update != LevelSetOutputType{})
     {
       oldValue = LevelSetType::ZeroLayer();
 
-      if (update > NumericTraits<LevelSetOutputType>::ZeroValue())
+      if (update > LevelSetOutputType{})
       {
         newValue = LevelSetType::PlusOneLayer();
       }
@@ -222,10 +219,10 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithUnPhasedP
 
       for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
       {
-        LevelSetOutputType tempValue = i.Get();
+        const LevelSetOutputType tempValue = i.Get();
         if (tempValue * newValue == -1)
         {
-          LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
+          const LevelSetInputType tempIndex = neighIt.GetIndex(i.GetNeighborhoodOffset());
 
           insertList.insert(NodePairType(tempIndex, tempValue));
         }
@@ -254,21 +251,20 @@ template <unsigned int VDimension, typename TEquationContainer>
 void
 UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithPhasedPropagation(LevelSetLayerType & ioList,
                                                                                          LevelSetLayerType & ioUpdate,
-                                                                                         const bool & iContraction)
+                                                                                         const bool iContraction)
 {
   itkAssertInDebugAndIgnoreInReleaseMacro(ioList.size() == ioUpdate.size());
 
   ZeroFluxNeumannBoundaryCondition<LabelImageType> sp_nbc;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
   neighIt.OverrideBoundaryCondition(&sp_nbc);
   neighIt.ActivateOffsets(GenerateConnectedImageNeighborhoodShapeOffsets<ImageDimension, 1, false>());
 
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetLayerType insertList;
 
@@ -283,14 +279,14 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithPhasedPro
   {
     itkAssertInDebugAndIgnoreInReleaseMacro(nodeIt->first == upIt->first);
 
-    LevelSetOutputType oldValue = LevelSetType::ZeroLayer();
-    LevelSetOutputType newValue;
+    const LevelSetOutputType oldValue = LevelSetType::ZeroLayer();
+    LevelSetOutputType       newValue;
 
-    LevelSetOutputType update = upIt->second;
-    LevelSetInputType  currentIdx = nodeIt->first;
-    LevelSetInputType  inputIndex = currentIdx + this->m_Offset;
+    const LevelSetOutputType update = upIt->second;
+    const LevelSetInputType  currentIdx = nodeIt->first;
+    const LevelSetInputType  inputIndex = currentIdx + this->m_Offset;
 
-    if (Math::NotAlmostEquals(update, NumericTraits<LevelSetOutputRealType>::ZeroValue()))
+    if (Math::NotAlmostEquals(update, LevelSetOutputRealType{}))
     {
       // only allow positiveUpdate forces
       if (iContraction)
@@ -316,11 +312,11 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::EvolveWithPhasedPro
 
       for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
       {
-        LevelSetOutputType tempValue = i.Get();
+        const LevelSetOutputType tempValue = i.Get();
 
         if (tempValue * newValue == -1)
         {
-          LevelSetInputType tempIdx = neighIt.GetIndex(i.GetNeighborhoodOffset());
+          const LevelSetInputType tempIdx = neighIt.GetIndex(i.GetNeighborhoodOffset());
 
           insertList.insert(NodePairType(tempIdx, tempValue));
         }
@@ -355,8 +351,7 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::CompactLayersToSing
 
   ZeroFluxNeumannBoundaryCondition<LabelImageType> sp_nbc;
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename NeighborhoodIteratorType::RadiusType>(1);
 
   NeighborhoodIteratorType neighIt(radius, this->m_InternalImage, this->m_InternalImage->GetLargestPossibleRegion());
 
@@ -366,12 +361,12 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::CompactLayersToSing
   auto nodeIt = listZero.begin();
   auto nodeEnd = listZero.end();
 
-  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
+  const TermContainerPointer termContainer = this->m_EquationContainer->GetEquation(this->m_CurrentLevelSetId);
 
   LevelSetInputType inputIndex;
   while (nodeIt != nodeEnd)
   {
-    LevelSetInputType currentIdx = nodeIt->first;
+    const LevelSetInputType currentIdx = nodeIt->first;
     inputIndex = currentIdx + this->m_Offset;
 
     neighIt.SetLocation(currentIdx);
@@ -379,10 +374,10 @@ UpdateMalcolmSparseLevelSet<VDimension, TEquationContainer>::CompactLayersToSing
     bool positiveUpdate = false;
     bool negativeUpdate = false;
 
-    LevelSetOutputRealType oldValue = LevelSetType::ZeroLayer();
+    const LevelSetOutputRealType oldValue = LevelSetType::ZeroLayer();
     for (typename NeighborhoodIteratorType::Iterator i = neighIt.Begin(); !i.IsAtEnd(); ++i)
     {
-      LevelSetOutputType tempValue = i.Get();
+      const LevelSetOutputType tempValue = i.Get();
       if (tempValue == LevelSetType::MinusOneLayer())
       {
         negativeUpdate = true;

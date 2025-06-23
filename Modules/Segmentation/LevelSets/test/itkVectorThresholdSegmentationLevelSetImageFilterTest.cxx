@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,20 +19,23 @@
 #include <fstream>
 #include "itkVectorThresholdSegmentationLevelSetImageFilter.h"
 #include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
 #include "itkTextOutput.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkMath.h"
+#include "itkTestingMacros.h"
 
 int
-itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
+itkVectorThresholdSegmentationLevelSetImageFilterTest(int argc, char * argv[])
 {
   // Comment the following if you want to use the itk text output window
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  if (ac < 6)
+  if (argc < 6)
   {
-    std::cerr << "Usage: " << av[0] << " InputInitialImage InputColorImage BaselineImage threshold curvatureScaling\n";
-    return -1;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " InputInitialImage InputColorImage BaselineImage threshold curvatureScaling\n";
+    return EXIT_FAILURE;
   }
 
   constexpr unsigned int Dimension = 2;
@@ -51,16 +54,20 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
   using InputReaderType = itk::ImageFileReader<InputImageType>;
   using RGBReaderType = itk::ImageFileReader<RGBImageType>;
 
-  RGBReaderType::Pointer   rgbReader = RGBReaderType::New();
-  InputReaderType::Pointer inputReader = InputReaderType::New();
+  auto rgbReader = RGBReaderType::New();
+  auto inputReader = InputReaderType::New();
 
-  inputReader->SetFileName(av[1]);
-  rgbReader->SetFileName(av[2]);
+  inputReader->SetFileName(argv[1]);
+  rgbReader->SetFileName(argv[2]);
 
   // Create a filter
   using FilterType = itk::VectorThresholdSegmentationLevelSetImageFilter<InputImageType, RGBImageType, OutputPixelType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(
+    filter, VectorThresholdSegmentationLevelSetImageFilter, SegmentationLevelSetImageFilter);
+
 
   filter->SetInput(inputReader->GetOutput());
 
@@ -68,7 +75,7 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
 
   // Mean values hand coded for the VisibleWomanSlice.png color file
   using MeanVectorType = FilterType::MeanVectorType;
-  MeanVectorType mean = MeanVectorType(3);
+  MeanVectorType mean(3);
 
   mean[0] = 44.7504;
   mean[1] = 37.5443;
@@ -78,7 +85,7 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
 
   // Covariance values hand coded for the VisibleWomanSlice.png color file
   using CovarianceMatrixType = FilterType::CovarianceMatrixType;
-  CovarianceMatrixType covariance = CovarianceMatrixType(3, 3);
+  CovarianceMatrixType covariance(3, 3);
 
   covariance[0][0] = 79.2225;
   covariance[1][1] = 81.0314;
@@ -92,24 +99,18 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
 
   filter->SetCovariance(covariance);
 
-  const double threshold = std::stod(av[4]);
+  const double threshold = std::stod(argv[4]);
 
   filter->SetThreshold(threshold);
 
-  const double curvatureScaling = std::stod(av[5]);
+  const double curvatureScaling = std::stod(argv[5]);
 
   filter->SetCurvatureScaling(curvatureScaling);
 
-  try
-  {
-    rgbReader->Update();
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return -1;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(rgbReader->Update());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
 
   // Test the GetMacros
   if (itk::Math::NotExactlyEquals(filter->GetThreshold(), threshold))
@@ -123,7 +124,7 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
 
 
   using RescalerType = itk::RescaleIntensityImageFilter<OutputImageType, WriteImageType>;
-  RescalerType::Pointer rescaler = RescalerType::New();
+  auto rescaler = RescalerType::New();
 
   rescaler->SetInput(filter->GetOutput());
 
@@ -132,10 +133,10 @@ itkVectorThresholdSegmentationLevelSetImageFilterTest(int ac, char * av[])
 
   // Generate test image
   using WriterType = itk::ImageFileWriter<WriteImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(rescaler->GetOutput());
-  writer->SetFileName(av[3]);
+  writer->SetFileName(argv[3]);
   writer->Update();
 
   std::cout << "Test PASSED !" << std::endl;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,14 +24,14 @@
 
 namespace itk
 {
-/**\class ScalarToRGBColormapImageFilterEnums
+/** \class ScalarToRGBColormapImageFilterEnums
  * \brief Contains all enum classes for ScalarToRGBColormapImageFilter class
  * \ingroup ITKColormap
  */
 class ScalarToRGBColormapImageFilterEnums
 {
 public:
-  /**\class RGBColormapFilter
+  /** \class RGBColormapFilter
    * \ingroup ITKColormap
    * Enum type that provides for an easy interface to existing colormaps. */
   enum class RGBColormapFilter : uint8_t
@@ -74,9 +74,10 @@ static constexpr RGBColormapFilterEnum OverUnder = RGBColormapFilterEnum::OverUn
 #endif
 /** Define how to print enumerations */
 extern ITKColormap_EXPORT std::ostream &
-                          operator<<(std::ostream & out, const ScalarToRGBColormapImageFilterEnums::RGBColormapFilter value);
+operator<<(std::ostream & out, const ScalarToRGBColormapImageFilterEnums::RGBColormapFilter value);
+
 /**
- *\class ScalarToRGBColormapImageFilter
+ * \class ScalarToRGBColormapImageFilter
  * \brief Implements pixel-wise intensity->rgb mapping operation on one image.
  *
  * This class is parameterized over the type of the input image and
@@ -86,7 +87,7 @@ extern ITKColormap_EXPORT std::ostream &
  * The color map is specified by passing the SetColormap function one of the
  * predefined maps. The following selects the "RGBColormapFilterEnum::Hot" colormap:
    \code
-   RGBFilterType::Pointer colormapImageFilter = RGBFilterType::New();
+   auto colormapImageFilter = RGBFilterType::New();
    colormapImageFilter->SetColormap( RGBFilterType::Hot );
    \endcode
  *
@@ -100,7 +101,7 @@ extern ITKColormap_EXPORT std::ostream &
    // Create the custom colormap
    using ColormapType = itk::Function::CustomColormapFunction<RealImageType::PixelType,
    RGBImageType::PixelType>;
-   ColormapType::Pointer colormap = ColormapType::New();
+   auto colormap = ColormapType::New();
    // Setup the red channel of the colormap
    ColormapType::ChannelType redChannel;
    redChannel.push_back(0); redChannel.push_back(255);
@@ -113,7 +114,7 @@ extern ITKColormap_EXPORT std::ostream &
  * This code was contributed in the Insight Journal paper:
  * "Meeting Andy Warhol Somewhere Over the Rainbow: RGB Colormapping and ITK"
  * by Tustison N., Zhang H., Lehmann G., Yushkevich P., Gee J.
- * https://www.insight-journal.org/browse/publication/285
+ * https://doi.org/10.54294/tmojbk
  *
  * \sa BinaryFunctionImageFilter TernaryFunctionImageFilter
  *
@@ -140,8 +141,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarToRGBColormapImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ScalarToRGBColormapImageFilter);
 
   /** Some type alias. */
   using InputImageType = TInputImage;
@@ -181,18 +182,20 @@ public:
 #endif
 
   /** Set/Get the colormap object. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Colormap, ColormapType);
   itkGetModifiableObjectMacro(Colormap, ColormapType);
-
+  /** @ITKEndGrouping */
   void SetColormap(RGBColormapFilterEnum);
 
   /** Set/Get UseInputImageExtremaForScaling. If true, the colormap uses the
    * min and max values from the image to scale appropriately. Otherwise,
    * these values can be set in the colormap manually. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseInputImageExtremaForScaling, bool);
   itkGetConstMacro(UseInputImageExtremaForScaling, bool);
   itkBooleanMacro(UseInputImageExtremaForScaling);
-
+  /** @ITKEndGrouping */
 protected:
   ScalarToRGBColormapImageFilter();
   ~ScalarToRGBColormapImageFilter() override = default;
@@ -239,9 +242,9 @@ protected:
 
 private:
 private:
-  typename ColormapType::Pointer m_Colormap;
+  typename ColormapType::Pointer m_Colormap{};
 
-  bool m_UseInputImageExtremaForScaling;
+  bool m_UseInputImageExtremaForScaling{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,15 @@
 // template argument and the size of these dimensions are taken from
 // the array. The data types used are float and double.
 int
-itkVnlFFTWF_RealFFTTest(int argc, char * argv[])
+itkVnlFFTWF_RealFFTTest(
+#  ifndef ITK_USE_CUFFTW
+  int    argc,
+  char * argv[]
+#  else
+  int    itkNotUsed(argc),
+  char * itkNotUsed(argv)[]
+#  endif
+)
 {
   using ImageF1 = itk::Image<float, 1>;
   using ImageF2 = itk::Image<float, 2>;
@@ -47,9 +55,6 @@ itkVnlFFTWF_RealFFTTest(int argc, char * argv[])
   std::cout << "WisdomCacheBase " << itk::FFTWGlobalConfiguration::GetWisdomCacheBase() << std::endl;
   std::cout << "WisdomeFile     " << itk::FFTWGlobalConfiguration::GetWisdomFileDefaultBaseName() << std::endl;
 #  endif
-  // Avoid unused parameter warnings.
-  (void)argc;
-  (void)argv;
 
   unsigned int SizeOfDimensions1[] = { 4, 4, 4 };
   unsigned int SizeOfDimensions2[] = { 3, 5, 4 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,13 +59,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GetAverageSliceImageFilter, AccumulateImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GetAverageSliceImageFilter);
 
   /** Set the direction in which to reflect the data. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(AveragedOutDimension, unsigned int);
   itkSetMacro(AveragedOutDimension, unsigned int);
-
+  /** @ITKEndGrouping */
 protected:
   GetAverageSliceImageFilter();
   ~GetAverageSliceImageFilter() override = default;
@@ -73,7 +74,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  unsigned int m_AveragedOutDimension;
+  unsigned int m_AveragedOutDimension{};
 };
 } // end namespace itk
 

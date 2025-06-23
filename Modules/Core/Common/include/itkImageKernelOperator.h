@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ namespace itk
  *
  * "Image Kernel Convolution"
  * by Tustison N., Gee J.
- * https://www.insight-journal.org/browse/publication/208
+ * https://doi.org/10.54294/e292kx
  *
  *
  * \note ImageKernelOperator does not have any user-declared "special member function",
@@ -54,10 +54,9 @@ public:
   using Superclass = NeighborhoodOperator<TPixel, VDimension, TAllocator>;
 
   using ImageType = Image<TPixel, VDimension>;
-  using SizeType = typename Superclass::SizeType;
-  using CoefficientVector = typename Superclass::CoefficientVector;
 
-  itkTypeMacro(ImageKernelOperator, NeighborhoodOperator);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImageKernelOperator);
 
   /** Set the image kernel. Only images with odd size in all
    * dimensions are allowed. If an image with an even size is passed
@@ -66,18 +65,19 @@ public:
   SetImageKernel(const ImageType * kernel);
 
   /** Get the image kernel. */
-  const ImageType *
+  [[nodiscard]] const ImageType *
   GetImageKernel() const;
 
-  /** Prints information about the object. */
   void
-  PrintSelf(std::ostream & os, Indent i) const override
+  PrintSelf(std::ostream & os, Indent indent) const override
   {
-    os << i << "ImageKernelOperator { this=" << this << "} " << std::endl;
-    Superclass::PrintSelf(os, i.GetNextIndent());
+    Superclass::PrintSelf(os, indent);
   }
 
 protected:
+  /** Type alias support for coefficient vector type.*/
+  using typename Superclass::CoefficientVector;
+
   /** Calculates operator coefficients. */
   CoefficientVector
   GenerateCoefficients() override;
@@ -87,7 +87,7 @@ protected:
   Fill(const CoefficientVector & coeff) override;
 
 private:
-  typename ImageType::ConstPointer m_ImageKernel;
+  typename ImageType::ConstPointer m_ImageKernel{};
 };
 } // namespace itk
 

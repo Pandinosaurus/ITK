@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkMergeLabelMapFilter_hxx
 #define itkMergeLabelMapFilter_hxx
 
-#include "itkMergeLabelMapFilter.h"
 #include "itkProgressReporter.h"
 #include <deque>
 
@@ -26,9 +25,8 @@ namespace itk
 {
 template <typename TImage>
 MergeLabelMapFilter<TImage>::MergeLabelMapFilter()
-{
-  this->m_Method = ChoiceMethodEnum::KEEP;
-}
+  : m_Method(ChoiceMethodEnum::KEEP)
+{}
 
 template <typename TImage>
 void
@@ -61,7 +59,7 @@ MergeLabelMapFilter<TImage>::GenerateData()
     }
     default:
     {
-      itkExceptionMacro(<< "No such method: " << this->m_Method);
+      itkExceptionMacro("No such method: " << this->m_Method);
     }
   }
 }
@@ -77,13 +75,13 @@ MergeLabelMapFilter<TImage>::MergeWithKeep()
 
   ProgressReporter progress(this, 0, 1);
 
-  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); i++)
+  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); ++i)
   {
     typename ImageType::ConstIterator it2(this->GetInput(i));
     while (!it2.IsAtEnd())
     {
-      const LabelObjectType * lo = it2.GetLabelObject();
-      LabelObjectPointer      newLo = LabelObjectType::New();
+      const LabelObjectType *  lo = it2.GetLabelObject();
+      const LabelObjectPointer newLo = LabelObjectType::New();
       newLo->template CopyAllFrom<LabelObjectType>(lo);
 
       if ((output->GetBackgroundValue() != newLo->GetLabel()) && (!output->HasLabel(newLo->GetLabel())))
@@ -120,13 +118,13 @@ MergeLabelMapFilter<TImage>::MergeWithStrict()
 
   ProgressReporter progress(this, 0, 1);
 
-  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); i++)
+  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); ++i)
   {
     typename ImageType::ConstIterator it2(this->GetInput(i));
     while (!it2.IsAtEnd())
     {
-      const LabelObjectType * lo = it2.GetLabelObject();
-      LabelObjectPointer      newLo = LabelObjectType::New();
+      const LabelObjectType *  lo = it2.GetLabelObject();
+      const LabelObjectPointer newLo = LabelObjectType::New();
       newLo->template CopyAllFrom<LabelObjectType>(lo);
 
       if (output->GetBackgroundValue() != newLo->GetLabel())
@@ -138,14 +136,14 @@ MergeLabelMapFilter<TImage>::MergeWithStrict()
         }
         else
         {
-          itkExceptionMacro(<< "Label "
-                            << static_cast<typename itk::NumericTraits<PixelType>::PrintType>(newLo->GetLabel())
-                            << " from input " << i << " is already in use.");
+          itkExceptionMacro(
+            "Label " << static_cast<typename itk::NumericTraits<PixelType>::PrintType>(newLo->GetLabel())
+                     << " from input " << i << " is already in use.");
         }
       }
       else
       {
-        itkGenericExceptionMacro(<< "Label "
+        itkGenericExceptionMacro("Label "
                                  << static_cast<typename itk::NumericTraits<PixelType>::PrintType>(newLo->GetLabel())
                                  << " from input " << i << " is output background value.");
       }
@@ -165,18 +163,18 @@ MergeLabelMapFilter<TImage>::MergeWithAggregate()
 
   ProgressReporter progress(this, 0, 1);
 
-  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); i++)
+  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); ++i)
   {
     typename ImageType::ConstIterator it2(this->GetInput(i));
     while (!it2.IsAtEnd())
     {
       const LabelObjectType * lo = it2.GetLabelObject();
 
-      bool hasLabel = output->HasLabel(lo->GetLabel());
+      const bool hasLabel = output->HasLabel(lo->GetLabel());
       if (!hasLabel && (lo->GetLabel() != output->GetBackgroundValue()))
       {
         // we can keep the label
-        LabelObjectPointer newLo = LabelObjectType::New();
+        const LabelObjectPointer newLo = LabelObjectType::New();
         newLo->template CopyAllFrom<LabelObjectType>(lo);
         output->AddLabelObject(newLo);
       }
@@ -227,17 +225,17 @@ MergeLabelMapFilter<TImage>::MergeWithPack()
 
     // go to the next label
     progress.CompletedPixel();
-    it++;
+    ++it;
   }
 
   // now, the next images
-  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); i++)
+  for (unsigned int i = 1; i < this->GetNumberOfIndexedInputs(); ++i)
   {
     typename ImageType::ConstIterator it2(this->GetInput(i));
     while (!it2.IsAtEnd())
     {
-      const LabelObjectType * lo = it2.GetLabelObject();
-      LabelObjectPointer      newLo = LabelObjectType::New();
+      const LabelObjectType *  lo = it2.GetLabelObject();
+      const LabelObjectPointer newLo = LabelObjectType::New();
       newLo->template CopyAllFrom<LabelObjectType>(lo);
       output->PushLabelObject(newLo);
 

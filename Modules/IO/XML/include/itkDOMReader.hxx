@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@
 #ifndef itkDOMReader_hxx
 #define itkDOMReader_hxx
 
-#include "itkDOMReader.h"
 #include "itksys/SystemTools.hxx"
 #include "itkStdStreamLogOutput.h"
 
@@ -33,7 +32,7 @@ DOMReader<TOutput>::DOMReader()
   // Create the logger.
   this->m_Logger = LoggerType::New();
   // by default logged messages go to the console
-  typename StdStreamLogOutput::Pointer defout = StdStreamLogOutput::New();
+  auto defout = StdStreamLogOutput::New();
   defout->SetStream(std::cout);
   this->m_Logger->AddLogOutput(defout);
   // settings that may be important
@@ -61,16 +60,16 @@ DOMReader<TOutput>::SetOutput(OutputType * output)
 
 /** Get the output object for full access. */
 template <typename TOutput>
-typename DOMReader<TOutput>::OutputType *
-DOMReader<TOutput>::GetOutput()
+auto
+DOMReader<TOutput>::GetOutput() -> OutputType *
 {
   return this->m_Output;
 }
 
 /** Get the output object for read-only access. */
 template <typename TOutput>
-const typename DOMReader<TOutput>::OutputType *
-DOMReader<TOutput>::GetOutput() const
+auto
+DOMReader<TOutput>::GetOutput() const -> const OutputType *
 {
   return this->m_Output;
 }
@@ -93,8 +92,8 @@ DOMReader<TOutput>::Update(const DOMNodeType * inputdom, const void * userdata)
   this->GetLogger()->SetName(this->GetNameOfClass());
 
   // variable/info needed for logging
-  FancyString info;
-  FancyString tagname = inputdom->GetName();
+  FancyString       info;
+  const FancyString tagname = inputdom->GetName();
 
   // log start of reading
   info << ClearContent << "Reading \"" << tagname << "\" ...\n";
@@ -123,24 +122,24 @@ DOMReader<TOutput>::Update()
   // create the intermediate DOM object if it is not set
   if (this->m_IntermediateDOM.IsNull())
   {
-    DOMNodePointer node = DOMNodeType::New();
+    const DOMNodePointer node = DOMNodeType::New();
     this->SetIntermediateDOM(node);
   }
 
-  FancyString fn(this->m_FileName);
+  const FancyString fn(this->m_FileName);
 
   // remove previous data from the DOM object
   this->m_IntermediateDOM->RemoveAllAttributesAndChildren();
 
   // read the input XML file and update the DOM object
-  typename DOMNodeXMLReader::Pointer reader = DOMNodeXMLReader::New();
+  auto reader = DOMNodeXMLReader::New();
   reader->SetDOMNodeXML(this->m_IntermediateDOM);
   reader->SetFileName(fn.ToString());
   reader->Update();
 
   // save the current working directory (WD), and change the WD to where the XML file is located
-  FancyString sOldWorkingDir = itksys::SystemTools::GetCurrentWorkingDirectory();
-  FancyString sNewWorkingDir = itksys::SystemTools::GetFilenamePath(fn);
+  const FancyString sOldWorkingDir = itksys::SystemTools::GetCurrentWorkingDirectory();
+  const FancyString sNewWorkingDir = itksys::SystemTools::GetFilenamePath(fn);
   itksys::SystemTools::ChangeDirectory(sNewWorkingDir);
 
   this->Update(this->m_IntermediateDOM);

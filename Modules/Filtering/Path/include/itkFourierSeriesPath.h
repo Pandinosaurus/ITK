@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class FourierSeriesPath
+ * \class FourierSeriesPath
  * \brief  Represent a closed path through ND Space by its frequency components
  *
  * This class is intended to represent closed parametric paths through an image
@@ -67,21 +67,21 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FourierSeriesPath, ParametricPath);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FourierSeriesPath);
 
   /** Input type */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Basic data-structure types used */
   using ContinuousIndexType = ContinuousIndex<double, VDimension>;
   using IndexType = Index<VDimension>;
   using OffsetType = Offset<VDimension>;
   using VectorType = Vector<double, VDimension>;
-  using CoefficientsType = VectorContainer<unsigned, VectorType>;
+  using CoefficientsType = VectorContainer<unsigned int, VectorType>;
   using CoefficientsPointer = typename CoefficientsType::Pointer;
 
   /** Return the location of the parametric path at the specified location. */
@@ -123,8 +123,8 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  CoefficientsPointer m_CosCoefficients;
-  CoefficientsPointer m_SinCoefficients;
+  CoefficientsPointer m_CosCoefficients{};
+  CoefficientsPointer m_SinCoefficients{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,23 +47,23 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HistogramImageToImageMetric, ImageToImageMetric);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HistogramImageToImageMetric);
 
   /** Types transferred from the base class */
-  using RealType = typename Superclass::RealType;
-  using TransformType = typename Superclass::TransformType;
-  using TransformPointer = typename Superclass::TransformPointer;
-  using TransformParametersType = typename Superclass::TransformParametersType;
-  using TransformJacobianType = typename Superclass::TransformJacobianType;
-  using GradientPixelType = typename Superclass::GradientPixelType;
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using FixedImageType = typename Superclass::FixedImageType;
+  using typename Superclass::RealType;
+  using typename Superclass::TransformType;
+  using typename Superclass::TransformPointer;
+  using typename Superclass::TransformParametersType;
+  using typename Superclass::TransformJacobianType;
+  using typename Superclass::GradientPixelType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::FixedImageType;
   using FixedImagePixelType = typename Superclass::FixedImageType::PixelType;
-  using MovingImageType = typename Superclass::MovingImageType;
+  using typename Superclass::MovingImageType;
   using MovingImagePixelType = typename Superclass::MovingImageType::PixelType;
   using FixedImageConstPointerType = typename Superclass::FixedImageConstPointer;
   using MovingImageConstPointerType = typename Superclass::MovingImageConstPointer;
@@ -95,9 +95,10 @@ public:
 
   /** Factor to increase the upper bound for the samples in the histogram.
       Default value is 0.001 */
+  /** @ITKStartGrouping */
   itkSetMacro(UpperBoundIncreaseFactor, double);
   itkGetConstMacro(UpperBoundIncreaseFactor, double);
-
+  /** @ITKEndGrouping */
   /** The padding value. */
   itkSetMacro(PaddingValue, FixedImagePixelType);
 
@@ -112,9 +113,10 @@ public:
   /** Set whether the padding value should be used to determine which pixels
       should be ignored when calculating the similarity measure. Those pixels
       in the fixed image which have the padding value will be ignored. */
+  /** @ITKStartGrouping */
   itkSetMacro(UsePaddingValue, bool);
   itkGetConstMacro(UsePaddingValue, bool);
-
+  /** @ITKEndGrouping */
   /** Sets the step length used to calculate the derivative. */
   itkSetMacro(DerivativeStepLength, double);
 
@@ -167,25 +169,29 @@ public:
 protected:
   /** Constructor is protected to ensure that \c New() function is used to
       create instances. */
+  /** @ITKStartGrouping */
   HistogramImageToImageMetric();
   ~HistogramImageToImageMetric() override = default;
-
+  /** @ITKEndGrouping */
   /** The histogram size. */
-  HistogramSizeType m_HistogramSize;
+  HistogramSizeType m_HistogramSize{};
+
   /** The lower bound for samples in the histogram. */
-  mutable MeasurementVectorType m_LowerBound;
+  mutable MeasurementVectorType m_LowerBound{};
+
   /** The upper bound for samples in the histogram. */
-  mutable MeasurementVectorType m_UpperBound;
+  mutable MeasurementVectorType m_UpperBound{};
+
   /** The increase in the upper bound. */
-  double m_UpperBoundIncreaseFactor;
+  double m_UpperBoundIncreaseFactor{};
 
   /** Boolean flag to indicate whether the user supplied lower bounds or
    * whether they should be computed from the min of image intensities */
-  bool m_LowerBoundSetByUser;
+  bool m_LowerBoundSetByUser{};
 
   /** Boolean flag to indicate whether the user supplied upper bounds or
    * whether they should be computed from the max of image intensities */
-  bool m_UpperBoundSetByUser;
+  bool m_UpperBoundSetByUser{};
 
   /** Computes the joint histogram from the transformation parameters
       passed to the function. */
@@ -215,22 +221,22 @@ protected:
 
 private:
   /** The padding value. */
-  FixedImagePixelType m_PaddingValue;
+  FixedImagePixelType m_PaddingValue{};
 
   /** True if those pixels in the fixed image with the same value as the
       padding value should be ignored when calculating the similarity
       measure. */
-  bool m_UsePaddingValue;
+  bool m_UsePaddingValue{};
 
   /** The step length used to calculate the derivative. */
-  double m_DerivativeStepLength;
+  double m_DerivativeStepLength{};
 
   /** The derivative step length scales. */
-  ScalesType m_DerivativeStepLengthScales;
+  ScalesType m_DerivativeStepLengthScales{};
 
   /** Pointer to the joint histogram. This is updated during every call to
    * GetValue() */
-  HistogramPointer m_Histogram;
+  HistogramPointer m_Histogram{};
 };
 } // end namespace itk
 

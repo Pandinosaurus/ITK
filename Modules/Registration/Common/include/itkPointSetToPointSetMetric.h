@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ public:
   /** Type used for representing point components  */
   using CoordinateRepresentationType = Superclass::ParametersValueType;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetToPointSetMetric, MultipleValuedCostFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PointSetToPointSetMetric);
 
   /**  Type of the moving Pointset. */
   using MovingPointSetType = TMovingPointSet;
@@ -98,17 +98,19 @@ public:
   using ParametersType = Superclass::ParametersType;
 
   /** Get/Set the Fixed Pointset.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(FixedPointSet, FixedPointSetType);
   itkGetConstObjectMacro(FixedPointSet, FixedPointSetType);
-
+  /** @ITKEndGrouping */
   /** Get/Set the Moving Pointset.  */
+  /** @ITKStartGrouping */
   itkSetConstObjectMacro(MovingPointSet, MovingPointSetType);
   itkGetConstObjectMacro(MovingPointSet, MovingPointSetType);
-
+  /** @ITKEndGrouping */
   /** Connect the Transform. */
   itkSetObjectMacro(Transform, TransformType);
 
-  /** Get a pointer to the Transform.  */
+  /** Get a pointer to the Transform. */
   itkGetModifiableObjectMacro(Transform, TransformType);
 
   /** Set the parameters defining the Transform. */
@@ -122,8 +124,7 @@ public:
     return m_Transform->GetNumberOfParameters();
   }
 
-  /** Initialize the Metric by making sure that all the components
-   *  are present and plugged together correctly     */
+  /** Initialize the Metric by making sure that all the components are present and plugged together correctly. */
   virtual void
   Initialize();
 
@@ -133,11 +134,11 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  FixedPointSetConstPointer m_FixedPointSet;
+  FixedPointSetConstPointer m_FixedPointSet{};
 
-  MovingPointSetConstPointer m_MovingPointSet;
+  MovingPointSetConstPointer m_MovingPointSet{};
 
-  mutable TransformPointer m_Transform;
+  mutable TransformPointer m_Transform{};
 };
 } // end namespace itk
 

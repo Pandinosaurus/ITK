@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@
 namespace itk
 {
 /**
- *\class IsolatedConnectedImageFilter
+ * \class IsolatedConnectedImageFilter
  * \brief Label pixels that are connected to one set of seeds but not
  * another.
  *
@@ -83,8 +83,9 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods).  */
-  itkTypeMacro(IsolatedConnectedImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(IsolatedConnectedImageFilter);
   using InputImageType = TInputImage;
   using InputImagePointer = typename InputImageType::Pointer;
   using InputImageConstPointer = typename InputImageType::ConstPointer;
@@ -92,7 +93,7 @@ public:
   using InputImagePixelType = typename InputImageType::PixelType;
   using IndexType = typename InputImageType::IndexType;
   using SizeType = typename InputImageType::SizeType;
-
+  /** @ITKEndGrouping */
   using OutputImageType = TOutputImage;
   using OutputImagePointer = typename OutputImageType::Pointer;
   using OutputImageRegionType = typename OutputImageType::RegionType;
@@ -114,6 +115,8 @@ public:
    *
    * This seed will be isolated from Seed2 (if possible). All pixels
    * connected to this seed will be replaced with ReplaceValue.
+   *
+   * \deprecated Please use AddSeed1.
    */
   void
   SetSeed1(const IndexType & seed);
@@ -129,6 +132,8 @@ public:
   /**  Set a single seed point 2.
    *
    * This seed will be isolated from Seed1 (if possible).
+   *
+   * \deprecated Please use AddSeed2.
    */
   void
   SetSeed2(const IndexType & seed);
@@ -138,21 +143,24 @@ public:
   ClearSeeds2();
 
   /** Method to access seed container */
+  /** @ITKStartGrouping */
   virtual const SeedsContainerType &
   GetSeeds1() const;
   virtual const SeedsContainerType &
   GetSeeds2() const;
-
+  /** @ITKEndGrouping */
   /** Set/Get the limit on the lower threshold value. The default is
    * the NonpositiveMin() for the InputPixelType. */
+  /** @ITKStartGrouping */
   itkSetMacro(Lower, InputImagePixelType);
   itkGetConstReferenceMacro(Lower, InputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the limit on the upper threshold value. The default is
    * the max() for the InputPixelType. */
+  /** @ITKStartGrouping */
   itkSetMacro(Upper, InputImagePixelType);
   itkGetConstReferenceMacro(Upper, InputImagePixelType);
-
+  /** @ITKEndGrouping */
 #if !defined(ITK_LEGACY_REMOVE)
   /** \deprecated
    * Set/Get the limit on the upper threshold value. The default is
@@ -173,50 +181,49 @@ public:
 
   /** Set/Get the precision required for the intensity threshold
    * value. The default is 1. */
+  /** @ITKStartGrouping */
   itkSetMacro(IsolatedValueTolerance, InputImagePixelType);
   itkGetConstReferenceMacro(IsolatedValueTolerance, InputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Set/Get value to replace thresholded pixels. Pixels that lie
    *  within the thresholds will be replaced with this value. The
    *  default is 1. */
+  /** @ITKStartGrouping */
   itkSetMacro(ReplaceValue, OutputImagePixelType);
   itkGetConstReferenceMacro(ReplaceValue, OutputImagePixelType);
-
+  /** @ITKEndGrouping */
   /** Get value that isolates the two seeds. */
   itkGetConstReferenceMacro(IsolatedValue, InputImagePixelType);
 
   /** Set/Get whether to find an upper threshold (separating two dark
    * regions) or a lower threshold (separating two bright regions). */
+  /** @ITKStartGrouping */
   itkSetMacro(FindUpperThreshold, bool);
   itkBooleanMacro(FindUpperThreshold);
   itkGetConstReferenceMacro(FindUpperThreshold, bool);
-
+  /** @ITKEndGrouping */
   /** Get the flag that tells whether the algorithm failed to find a
    * threshold. */
   itkGetConstReferenceMacro(ThresholdingFailed, bool);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<InputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   IsolatedConnectedImageFilter();
   ~IsolatedConnectedImageFilter() override = default;
-  SeedsContainerType m_Seeds1;
-  SeedsContainerType m_Seeds2;
+  SeedsContainerType m_Seeds1{};
+  SeedsContainerType m_Seeds2{};
 
-  InputImagePixelType m_Lower;
-  InputImagePixelType m_Upper;
+  InputImagePixelType m_Lower{};
+  InputImagePixelType m_Upper{};
 
-  OutputImagePixelType m_ReplaceValue;
+  OutputImagePixelType m_ReplaceValue{};
 
-  InputImagePixelType m_IsolatedValue;
-  InputImagePixelType m_IsolatedValueTolerance;
+  InputImagePixelType m_IsolatedValue{};
+  InputImagePixelType m_IsolatedValueTolerance{};
 
-  bool m_FindUpperThreshold;
-  bool m_ThresholdingFailed;
+  bool m_FindUpperThreshold{};
+  bool m_ThresholdingFailed{};
 
   // Override since the filter needs all the data for the algorithm
   void

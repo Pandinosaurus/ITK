@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,20 +31,20 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  using NodeType = typename Superclass::NodeType;
+  using typename Superclass::NodeType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingStoppingCriterionBaseHelperTest, FastMarchingStoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingStoppingCriterionBaseHelperTest);
 
-  bool
+  [[nodiscard]] bool
   IsSatisfied() const override
   {
     return true;
   }
-  std::string
+  [[nodiscard]] std::string
   GetDescription() const override
   {
     return "Description";
@@ -69,22 +69,26 @@ protected:
 int
 itkFastMarchingStoppingCriterionBaseTest(int, char *[])
 {
-  using ImageType = itk::Image<float, 2>;
+  using PixelType = float;
+  constexpr unsigned int Dimension2D = 2;
+
+  using ImageType = itk::Image<PixelType, Dimension2D>;
 
   using ImageStoppingCriterionType = itk::FastMarchingStoppingCriterionBaseHelperTest<ImageType, ImageType>;
 
-  ImageStoppingCriterionType::Pointer image_criterion = ImageStoppingCriterionType::New();
-  if (image_criterion.IsNull())
+  auto imageCriterion = ImageStoppingCriterionType::New();
+  if (imageCriterion.IsNull())
   {
     return EXIT_FAILURE;
   }
 
-  using MeshType = itk::QuadEdgeMesh<float, 3>;
+  constexpr unsigned int Dimension3D = 3;
+  using MeshType = itk::QuadEdgeMesh<PixelType, Dimension3D>;
 
   using MeshStoppingCriterionType = itk::FastMarchingStoppingCriterionBaseHelperTest<MeshType, MeshType>;
 
-  MeshStoppingCriterionType::Pointer mesh_criterion = MeshStoppingCriterionType::New();
-  if (mesh_criterion.IsNull())
+  auto meshCriterion = MeshStoppingCriterionType::New();
+  if (meshCriterion.IsNull())
   {
     return EXIT_FAILURE;
   }

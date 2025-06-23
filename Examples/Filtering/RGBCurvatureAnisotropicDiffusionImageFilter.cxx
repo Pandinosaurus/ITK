@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -118,7 +118,7 @@ main(int argc, char * argv[])
   using FilterType =
     itk::VectorCurvatureAnisotropicDiffusionImageFilter<InputImageType,
                                                         InputImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -131,7 +131,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   filter->SetInput(reader->GetOutput());
   // Software Guide : EndCodeSnippet
@@ -179,7 +179,7 @@ main(int argc, char * argv[])
   using WritePixelType = itk::RGBPixel<unsigned char>;
   using WriteImageType = itk::Image<WritePixelType, 2>;
   using CasterType = itk::CastImageFilter<InputImageType, WriteImageType>;
-  CasterType::Pointer caster = CasterType::New();
+  auto caster = CasterType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -191,7 +191,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::ImageFileWriter<WriteImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   caster->SetInput(filter->GetOutput());
   writer->SetInput(caster->GetOutput());
   writer->SetFileName(argv[2]);
@@ -229,10 +229,10 @@ main(int argc, char * argv[])
   // \itkcaption[Various Anisotropic Diffusion compared] {Comparison between
   // the gradient (center) and curvature (right) Anisotropic Diffusion
   // filters. Original image at left.}
-  // \label{fig:ComparisionGradientCurvatureRGBAnisotropicDiffusion}
+  // \label{fig:ComparisonGradientCurvatureRGBAnisotropicDiffusion}
   // \end{figure}
   //
-  //  Figure \ref{fig:ComparisionGradientCurvatureRGBAnisotropicDiffusion}
+  //  Figure \ref{fig:ComparisonGradientCurvatureRGBAnisotropicDiffusion}
   //  compares the effect of the gradient and curvature anisotropic diffusion
   //  filters on a small region of the same cryogenic slice used in Figure
   //  \ref{fig:RGBVectorCurvatureAnisotropicDiffusionImageFilterInputOutput}.

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,9 +29,7 @@
 
 #include <cmath>
 
-namespace itk
-{
-namespace fem
+namespace itk::fem
 {
 /**
  * \class FEMRobustSolver
@@ -41,10 +39,10 @@ namespace fem
  *
    \code
          using FEMObjectType = itk::fem::FEMObject<3>;
-         FEMObjectObjectType::Pointer fem = FEMObjectObjectType::New();
+         auto fem = FEMObjectObjectType::New();
          ...
          using FEMSolverType = itk::fem::RobustSolver<3>;
-         FEMSolverType::Pointer solver = FEMSolverType::New();
+         auto solver = FEMSolverType::New();
 
          solver->SetInput( fem );
          solver->Update();
@@ -62,19 +60,7 @@ namespace fem
  *
  * \author Yixun Liu
  *
- * \par REFERENCE
- * O. Clatz, H. Delingette, I.-F. Talos, A. Golby, R. Kikinis, F. Jolesz,
- * N. Ayache, and S. Warfield, "Robust non-rigid registration to capture
- * brain shift from intra-operative MRI", IEEE Trans. Med. Imag., vol. 24,
- * no. 11, pp. 1417-1427, 2005.
- *
- *
- * \par REFERENCE
- * Yixun Liu, Andriy Fedorov, Ron Kikinis and Nikos Chrisochoides, "Real-time Non-rigid
- * Registration of Medical Images on a Cooperative Parallel Architecture",
- * IEEE International Conference on Bioinformatics & Biomedicine, pp. 401- 4,
- * November 2009.
- *
+ * For algorithmic details see \cite clatz2005 and \cite liu2009.
  *
  * \ingroup ITKFEM
  */
@@ -94,24 +80,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(RobustSolver, Solver);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RobustSolver);
 
   /** Inherit some types from the superclass. */
-  using VectorType = typename Superclass::VectorType;
-  using Float = typename Superclass::Float;
-  using InterpolationGridType = typename Superclass::InterpolationGridType;
-  using InterpolationGridPointerType = typename Superclass::InterpolationGridPointerType;
-  using InterpolationGridSizeType = typename Superclass::InterpolationGridSizeType;
-  using InterpolationGridRegionType = typename Superclass::InterpolationGridRegionType;
-  using InterpolationGridPointType = typename Superclass::InterpolationGridPointType;
-  using InterpolationGridSpacingType = typename Superclass::InterpolationGridSpacingType;
-  using InterpolationGridIndexType = typename Superclass::InterpolationGridIndexType;
+  using typename Superclass::VectorType;
+  using typename Superclass::Float;
+  using typename Superclass::InterpolationGridType;
+  using typename Superclass::InterpolationGridPointerType;
+  using typename Superclass::InterpolationGridSizeType;
+  using typename Superclass::InterpolationGridRegionType;
+  using typename Superclass::InterpolationGridPointType;
+  using typename Superclass::InterpolationGridSpacingType;
+  using typename Superclass::InterpolationGridIndexType;
   using InterpolationGridDirectionType = typename InterpolationGridType::DirectionType;
 
   static constexpr unsigned int FEMDimension = VDimension;
 
-  using FEMObjectType = typename Superclass::FEMObjectType;
+  using typename Superclass::FEMObjectType;
 
   /** Some convenient types */
   using MatrixType = typename Element::MatrixType;
@@ -263,7 +249,7 @@ protected:
   ComputeLandmarkTensor();
 
   /** Get scaling factor. */
-  float
+  [[nodiscard]] float
   GetLandmarkTensorPonderation() const;
 
   /**
@@ -312,7 +298,7 @@ protected:
   RescaleLandmarkStiffnessMatrix(double oldPointTensorPonderation);
 
   /**
-   * Calculate KU, which will  be added on the righ hand side to reach
+   * Calculate KU, which will  be added on the right hand side to reach
    * the effect of zeroing mesh energy
    */
   void
@@ -330,30 +316,30 @@ private:
    * The number of outlier rejection.
    * Note that outlier rejection is performed from approximation to interpolation
    */
-  unsigned int m_OutlierRejectionSteps;
+  unsigned int m_OutlierRejectionSteps{};
 
   /**
    * The number of approximation to interpolation without outlier rejection.
    */
-  unsigned int m_ApproximationSteps;
+  unsigned int m_ApproximationSteps{};
 
 
   /** Represents the index of the vector and matrix. */
   using FEMIndexType = unsigned int;
 
-  FEMIndexType m_ForceIndex;
-  FEMIndexType m_LandmarkForceIndex;
-  FEMIndexType m_ExternalForceIndex;
-  FEMIndexType m_SolutionIndex;
-  FEMIndexType m_MeshStiffnessMatrixIndex;
-  FEMIndexType m_LandmarkStiffnessMatrixIndex;
-  FEMIndexType m_StiffnessMatrixIndex;
+  FEMIndexType m_ForceIndex{};
+  FEMIndexType m_LandmarkForceIndex{};
+  FEMIndexType m_ExternalForceIndex{};
+  FEMIndexType m_SolutionIndex{};
+  FEMIndexType m_MeshStiffnessMatrixIndex{};
+  FEMIndexType m_LandmarkStiffnessMatrixIndex{};
+  FEMIndexType m_StiffnessMatrixIndex{};
 
-  double m_TradeOffImageMeshEnergy;
+  double m_TradeOffImageMeshEnergy{};
 
-  double m_ToleranceToLargestDisplacement;
-  double m_ConjugateGradientPrecision;
-  double m_FractionErrorRejected;
+  double m_ToleranceToLargestDisplacement{};
+  double m_ConjugateGradientPrecision{};
+  double m_FractionErrorRejected{};
 
   /**
    * Use interpolation grid to initialize the landmarks or not.  If use the
@@ -361,9 +347,9 @@ private:
    * points) are usually the grid points if these landmarks come from a feature
    * point detection algorithm applied on an image.
    */
-  bool m_UseInterpolationGrid;
+  bool m_UseInterpolationGrid{};
 
-  LinearSystemWrapperItpack m_Itpack;
+  LinearSystemWrapperItpack m_Itpack{};
 };
 
 /**
@@ -385,8 +371,7 @@ public:
   }
 };
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMRobustSolver.hxx"

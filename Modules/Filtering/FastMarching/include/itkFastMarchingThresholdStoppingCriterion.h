@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,8 @@ namespace itk
  * \ingroup ITKFastMarching
  */
 template <typename TInput, typename TOutput>
-class FastMarchingThresholdStoppingCriterion : public FastMarchingStoppingCriterionBase<TInput, TOutput>
+class ITK_TEMPLATE_EXPORT FastMarchingThresholdStoppingCriterion
+  : public FastMarchingStoppingCriterionBase<TInput, TOutput>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(FastMarchingThresholdStoppingCriterion);
@@ -45,23 +46,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingThresholdStoppingCriterion, FastMarchingStoppingCriterionBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingThresholdStoppingCriterion);
 
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using NodeType = typename Superclass::NodeType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::NodeType;
 
   /** Get/set the threshold used by the stopping criteria. */
+  /** @ITKStartGrouping */
   itkSetMacro(Threshold, OutputPixelType);
   itkGetMacro(Threshold, OutputPixelType);
-
-  bool
+  /** @ITKEndGrouping */
+  [[nodiscard]] bool
   IsSatisfied() const override
   {
     return (this->m_CurrentValue >= this->m_Threshold);
   }
 
-  std::string
+  [[nodiscard]] std::string
   GetDescription() const override
   {
     return "Current Value >= Threshold";
@@ -70,12 +72,12 @@ public:
 protected:
   FastMarchingThresholdStoppingCriterion()
     : Superclass()
-    , m_Threshold(NumericTraits<OutputPixelType>::ZeroValue())
+    , m_Threshold(OutputPixelType{})
   {}
 
   ~FastMarchingThresholdStoppingCriterion() override = default;
 
-  OutputPixelType m_Threshold;
+  OutputPixelType m_Threshold{};
 
   void
   SetCurrentNode(const NodeType &) override

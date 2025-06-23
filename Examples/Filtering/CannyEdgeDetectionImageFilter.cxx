@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 //  achieve this end, Canny edge detection is implemented internally as a
 //  multi-stage algorithm, which involves Gaussian smoothing to remove noise,
 //  calculation of gradient magnitudes to localize edge features, non-maximum
-//  suppression to remove suprious features, and finally thresholding to yield
+//  suppression to remove spurious features, and finally thresholding to yield
 //  a binary image. Though the specifics of this internal pipeline are largely
 //  abstracted from the user of the class, it is nonetheless beneficial to
 //  have a general understanding of these components so that parameters can be
@@ -131,11 +131,11 @@ main(int argc, char * argv[])
 
   // Setting the IO
 
-  ReaderType::Pointer           reader = ReaderType::New();
-  CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
-  CannyFilterType::Pointer      cannyFilter = CannyFilterType::New();
-  RescaleFilterType::Pointer    rescale = RescaleFilterType::New();
-  WriterType::Pointer           writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto toReal = CastToRealFilterType::New();
+  auto cannyFilter = CannyFilterType::New();
+  auto rescale = RescaleFilterType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(inputFilename);
   writer->SetFileName(outputFilename);
@@ -167,7 +167,7 @@ main(int argc, char * argv[])
   //  Software Guide : BeginLatex
   //
   //  Finally, \code{Update()} is called on \code{writer} to trigger
-  //  excecution of the pipeline.  As usual, the call is wrapped in a
+  //  execution of the pipeline.  As usual, the call is wrapped in a
   //  \code{try/catch} block.
   //
   //  Software Guide : EndLatex

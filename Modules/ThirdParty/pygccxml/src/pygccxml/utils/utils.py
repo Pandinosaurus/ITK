@@ -26,18 +26,25 @@ def is_str(string):
         bool: True or False
 
     """
+    warnings.warn(
+        "The is_str function is deprecated. \
+        Use isinstance(string, str) instead.",
+        DeprecationWarning)
+
     if sys.version_info[:2] >= (3, 0):
         return isinstance(string, str)
 
     return isinstance(string, basestring)
 
 
-def find_xml_generator(name="castxml"):
+def find_xml_generator(name="castxml", search_path=None):
     """
     Try to find a c++ parser (xml generator)
 
     Args:
         name (str): name of the c++ parser (e.g. castxml)
+        search_path (str): helps finding castxml
+                           (for example in jupyter notebooks, use sys.path)
 
     Returns:
         path (str), name (str): path to the xml generator and it's name
@@ -48,32 +55,10 @@ def find_xml_generator(name="castxml"):
 
     """
 
-    if sys.version_info[:2] >= (3, 3):
-        path = _find_xml_generator_for_python_greater_equals_33(name)
-    else:
-        path = _find_xml_generator_for_legacy_python(name)
-
+    path = shutil.which(name, path=search_path)
     if path == "" or path is None:
         raise Exception("No c++ parser found. Please install castxml.")
     return path.rstrip(), name
-
-
-def _find_xml_generator_for_python_greater_equals_33(name):
-    return shutil.which(name)
-
-
-def _find_xml_generator_for_legacy_python(name):
-    if platform.system() == "Windows":
-        command = "where"
-    else:
-        command = "which"
-    p = subprocess.Popen([command, name], stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    path = p.stdout.read().decode("utf-8")
-    p.wait()
-    p.stdout.close()
-    p.stderr.close()
-    return path.rstrip()
 
 
 def _create_logger_(name):
@@ -162,8 +147,7 @@ def remove_file_no_raise(file_name, config):
             file_name, str(error))
 
 
-# pylint: disable=W0622
-def create_temp_file_name(suffix, prefix=None, dir=None, directory=None):
+def create_temp_file_name(suffix, prefix=None, directory=None):
     """
     Small convenience function that creates temporary files.
 
@@ -171,12 +155,6 @@ def create_temp_file_name(suffix, prefix=None, dir=None, directory=None):
     function tempfile.mkstemp.
 
     """
-    if dir is not None:
-        warnings.warn(
-            "The dir argument is deprecated.\n" +
-            "Please use the directory argument instead.", DeprecationWarning)
-        # Deprecated since 1.9.0, will be removed in 2.0.0
-        directory = dir
 
     if not prefix:
         prefix = tempfile.gettempprefix()
@@ -299,8 +277,12 @@ class cxx_standard(object):
         '-std=c++17': 201703,
         '-std=gnu++1z': 201703,
         '-std=gnu++17': 201703,
-        '-std=c++2a': float('inf'),
-        '-std=gnu++2a': float('inf'),
+        '-std=c++2a': 202002,
+        '-std=gnu++2a': 202002,
+        '-std=c++20': 202002,
+        '-std=gnu++20': 202002,
+        '-std=c++23': float('inf'),
+        '-std=gnu++23': float('inf'),
     }
 
     def __init__(self, cflags):

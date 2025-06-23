@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,14 +46,14 @@ public:
   using ScalarType = double;
   using VectorType = Vector<double, TDimension>;
   using PointType = Point<double, TDimension>;
-  using TransformType = typename Superclass::TransformType;
+  using typename Superclass::TransformType;
   using MatrixType = typename TransformType::MatrixType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Method for creation through the object factory. */
-  itkTypeMacro(ArrowSpatialObject, SpatialObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ArrowSpatialObject);
 
   /** Reset the spatial object to its initial condition, yet preserves
    *   Id, Parent, and Child information */
@@ -89,28 +89,27 @@ public:
   GetPositionInWorldSpace() const;
   VectorType
   GetDirectionInWorldSpace() const;
-  double
+  [[nodiscard]] double
   GetLengthInWorldSpace() const;
 
 protected:
-  /** Compute the Object bounding box */
+  /** Compute the Object bounding box. */
   void
   ComputeMyBoundingBox() override;
 
   ArrowSpatialObject();
   ~ArrowSpatialObject() override = default;
 
-  /** Method to print the object.*/
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
 private:
-  VectorType m_DirectionInObjectSpace;
-  PointType  m_PositionInObjectSpace;
-  double     m_LengthInObjectSpace;
+  VectorType m_DirectionInObjectSpace{};
+  PointType  m_PositionInObjectSpace{};
+  double     m_LengthInObjectSpace{};
 };
 
 } // end namespace itk

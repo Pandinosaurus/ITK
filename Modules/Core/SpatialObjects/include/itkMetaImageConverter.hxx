@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,44 +18,52 @@
 #ifndef itkMetaImageConverter_hxx
 #define itkMetaImageConverter_hxx
 
-#include "itkMetaImageConverter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMath.h"
 
 namespace itk
 {
-template <unsigned int NDimensions, typename PixelType, typename TSpatialObjectType>
-typename MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::MetaObjectType *
-MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::CreateMetaObject()
+template <unsigned int VDimension, typename PixelType, typename TSpatialObjectType>
+auto
+MetaImageConverter<VDimension, PixelType, TSpatialObjectType>::CreateMetaObject() -> MetaObjectType *
 {
-  return dynamic_cast<MetaObjectType *>(new ImageMetaObjectType);
+  auto * mo = dynamic_cast<MetaObjectType *>(new ImageMetaObjectType);
+  mo->APIVersion(1);
+  mo->FileFormatVersion(1);
+  return mo;
 }
 
-template <unsigned int NDimensions, typename PixelType, typename TSpatialObjectType>
+template <unsigned int VDimension, typename PixelType, typename TSpatialObjectType>
 const char *
-MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::GetMetaObjectSubType()
+MetaImageConverter<VDimension, PixelType, TSpatialObjectType>::GetMetaObjectSubType()
 {
   return "Image";
 }
 
-template <unsigned int NDimensions, typename PixelType, typename TSpatialObjectType>
-typename MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::ImageType::Pointer
-MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::AllocateImage(const ImageMetaObjectType * image)
+template <unsigned int VDimension, typename PixelType, typename TSpatialObjectType>
+auto
+MetaImageConverter<VDimension, PixelType, TSpatialObjectType>::AllocateImage(const ImageMetaObjectType * image) ->
+  typename ImageType::Pointer
 {
-  typename ImageType::Pointer rval = ImageType::New();
+  auto rval = ImageType::New();
 
   using SizeType = typename ImageType::SizeType;
   using SpacingType = typename ImageType::SpacingType;
+  using DirectionType = typename ImageType::DirectionType;
+  using PointType = typename ImageType::PointType;
   using RegionType = typename ImageType::RegionType;
 
-  SizeType    size;
-  SpacingType spacing;
+  SizeType      size;
+  PointType     origin;
+  SpacingType   spacing;
+  DirectionType direction;
 
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     size[i] = image->DimSize()[i];
-    if (Math::ExactlyEquals(image->ElementSpacing()[i], NumericTraits<typename SpacingType::ValueType>::ZeroValue()))
+    origin[i] = image->ElementOrigin()[i];
+    if (Math::ExactlyEquals(image->ElementSpacing()[i], typename SpacingType::ValueType{}))
     {
       spacing[i] = 1;
     }
@@ -63,37 +71,39 @@ MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::AllocateImage(co
     {
       spacing[i] = image->ElementSpacing()[i];
     }
+    for (unsigned int j = 0; j < VDimension; ++j)
+    {
+      direction[i][j] = image->ElementDirection(i, j);
+    }
   }
 
-  RegionType region;
-  region.SetSize(size);
-  itk::Index<NDimensions> zeroIndex;
-  zeroIndex.Fill(0);
-  region.SetIndex(zeroIndex);
-  rval->SetLargestPossibleRegion(region);
-  rval->SetBufferedRegion(region);
-  rval->SetRequestedRegion(region);
+  const RegionType region(size);
+  rval->SetRegions(region);
+  rval->SetOrigin(origin);
   rval->SetSpacing(spacing);
+  rval->SetDirection(direction);
   rval->Allocate();
   return rval;
 }
 
 /** Convert a metaImage into an ImageMaskSpatialObject  */
-template <unsigned int NDimensions, typename PixelType, typename TSpatialObjectType>
-typename MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::SpatialObjectPointer
-MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+template <unsigned int VDimension, typename PixelType, typename TSpatialObjectType>
+auto
+MetaImageConverter<VDimension, PixelType, TSpatialObjectType>::MetaObjectToSpatialObject(const MetaObjectType * mo)
+  -> SpatialObjectPointer
 {
   const auto * imageMO = dynamic_cast<const ImageMetaObjectType *>(mo);
 
   if (imageMO == nullptr)
   {
-    itkExceptionMacro(<< "Can't convert MetaObject to MetaImage");
+    itkExceptionMacro("Can't convert MetaObject to MetaImage");
   }
 
-  ImageSpatialObjectPointer imageSO = ImageSpatialObjectType::New();
+  const ImageSpatialObjectPointer imageSO = ImageSpatialObjectType::New();
 
+  const typename ImageType::Pointer myImage = this->AllocateImage(imageMO);
 
-  typename ImageType::Pointer myImage = this->AllocateImage(imageMO);
+  this->MetaObjectToSpatialObjectBase(imageMO, imageSO);
 
   itk::ImageRegionIteratorWithIndex<ImageType> it(myImage, myImage->GetLargestPossibleRegion());
   for (unsigned int i = 0; !it.IsAtEnd(); i++, ++it)
@@ -102,39 +112,51 @@ MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::MetaObjectToSpat
   }
 
   imageSO->SetImage(myImage);
-  imageSO->SetId(imageMO->ID());
-  imageSO->SetParentId(imageMO->ParentID());
-  imageSO->GetProperty().SetName(imageMO->Name());
 
   return imageSO.GetPointer();
 }
 
 
 /** Convert an Image SpatialObject into a metaImage */
-template <unsigned int NDimensions, typename PixelType, typename TSpatialObjectType>
-typename MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::MetaObjectType *
-MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+template <unsigned int VDimension, typename PixelType, typename TSpatialObjectType>
+auto
+MetaImageConverter<VDimension, PixelType, TSpatialObjectType>::SpatialObjectToMetaObject(const SpatialObjectType * so)
+  -> MetaObjectType *
 {
   const ImageSpatialObjectConstPointer imageSO = dynamic_cast<const ImageSpatialObjectType *>(so);
 
   if (imageSO.IsNull())
   {
-    itkExceptionMacro(<< "Can't downcast SpatialObject to ImageSpatialObject");
+    itkExceptionMacro("Can't downcast SpatialObject to ImageSpatialObject");
   }
   using ImageConstPointer = typename ImageType::ConstPointer;
 
-  ImageConstPointer SOImage = imageSO->GetImage();
+  const ImageConstPointer SOImage = imageSO->GetImage();
 
-  float spacing[NDimensions];
-  int   size[NDimensions];
+  int    size[VDimension];
+  double spacing[VDimension];
+  double direction[VDimension * VDimension];
+  double origin[VDimension];
 
-  for (unsigned int i = 0; i < NDimensions; i++)
+  for (unsigned int i = 0; i < VDimension; ++i)
   {
     size[i] = SOImage->GetLargestPossibleRegion().GetSize()[i];
     spacing[i] = SOImage->GetSpacing()[i];
+    origin[i] = SOImage->GetOrigin()[i];
+    for (unsigned int j = 0; j < VDimension; ++j)
+    {
+      direction[i * VDimension + j] = SOImage->GetDirection()[i][j];
+    }
   }
 
-  auto * imageMO = new MetaImage(NDimensions, size, spacing, MET_GetPixelType(typeid(PixelType)));
+  auto * imageMO = new MetaImage(VDimension, size, spacing, MET_GetPixelType(typeid(PixelType)));
+  imageMO->APIVersion(1);
+  imageMO->FileFormatVersion(1);
+
+  this->SpatialObjectToMetaObjectBase(imageSO, imageMO);
+
+  imageMO->ElementOrigin(origin);
+  imageMO->ElementDirection(direction);
 
   itk::ImageRegionConstIterator<ImageType> it(SOImage, SOImage->GetLargestPossibleRegion());
   for (unsigned int i = 0; !it.IsAtEnd(); i++, ++it)
@@ -142,11 +164,8 @@ MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::SpatialObjectToM
     imageMO->ElementData(i, it.Get());
   }
 
-  imageMO->ID(imageSO->GetId());
   imageMO->BinaryData(true);
-
   imageMO->ElementDataFileName("LOCAL");
-
   imageMO->ObjectSubTypeName(this->GetMetaObjectSubType());
 
   if (this->GetWriteImagesInSeparateFile())
@@ -164,6 +183,7 @@ MetaImageConverter<NDimensions, PixelType, TSpatialObjectType>::SpatialObjectToM
       imageMO->ElementDataFileName(filename.c_str());
     }
   }
+
   return imageMO;
 }
 

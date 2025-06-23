@@ -1,12 +1,21 @@
 %module(package="itk") pyBasePython
 
+%insert("begin") %{
+// Needed by SWIG for free/malloc, but not included by Python.h with recent versions of the Stable ABI
+#include "stdlib.h"
+%}
+
 %pythonbegin %{
 from . import _ITKPyBasePython
 import collections
 
 from sys import version_info as _version_info
-if _version_info < (3, 6, 0):
-    raise RuntimeError("Python 3.6 or later required")
+# Set values below to the same value as
+# PYTHON_VERSION_MIN in ITKSetPython3Vars.cmake
+if _version_info < (3, 9, 0):
+    raise RuntimeError("Python 3.9 or later required")
+
+from . import _ITKCommonPython
 %}
 
 //By including pyabc.i and using the -py3 command line option when calling SWIG,
@@ -68,7 +77,7 @@ str = str
 
 // This macro replaces the use of itk::SmartPointer.
 // class_name is class name without namespace qualifiers.
-// Reference: http://www.nabble.com/attachment/16653644/0/SwigRefCount.i
+// Reference: https://www.nabble.com/attachment/16653644/0/SwigRefCount.i
 %define DECLARE_REF_COUNT_CLASS(class_name)
 
         // pointers and references
@@ -80,19 +89,19 @@ str = str
                 }
         }
 
-  // transform smart pointers in raw pointers
+        // transform smart pointers into raw pointers
         %typemap(out) class_name##_Pointer {
           // get the raw pointer from the smart pointer
           class_name * ptr = $1;
                 // always tell SWIG_NewPointerObj we're the owner
                 $result = SWIG_NewPointerObj((void *) ptr, $descriptor(class_name *), 1);
-                // register the object, it it exists
+                // register the object, if it exists
                 if (ptr) {
                         ptr->Register();
                 }
         }
 
-  // transform smart pointers in raw pointers
+        // transform smart pointers into raw pointers
         %typemap(out) class_name##_Pointer & {
           // get the raw pointer from the smart pointer
           class_name * ptr = *$1;
@@ -189,6 +198,24 @@ str = str
 //    $1 = ptr;
 //    }
 
+%define DECL_PYIMAGEFILTER_CLASS(swig_name)
+    %extend swig_name {
+        %pythoncode {
+            def Update(self):
+                """Internal method to pass a pointer to the Python object wrapper, then call Update() on the filter."""
+                self._SetSelf(self)
+                super().Update()
+            def UpdateLargestPossibleRegion(self):
+                """Internal method to pass a pointer to the Python object wrapper, then call UpdateLargestPossibleRegion() on the filter."""
+                self._SetSelf(self)
+                super().UpdateLargestPossibleRegion()
+            def UpdateOutputInformation(self):
+                """Internal method to pass a pointer to the Python object wrapper, then call UpdateOutputInformation() on the filter."""
+                self._SetSelf(self)
+                super().UpdateOutputInformation()
+        }
+    }
+%enddef
 
 %extend itkComponentTreeNode {
     %pythoncode {
@@ -248,7 +275,47 @@ str = str
             msg << "swig_name(" << self->GetIndex() << ", " << self->GetSize()  << ")";
             return msg.str();
     }
+        %pythoncode %{
+    def __getstate__(self):
+        """Get object state, necessary for serialization with pickle."""
+        state = (tuple(self.GetIndex()), tuple(self.GetSize()))
+        return state
+
+    def __setstate__(self, state):
+        """Set object state, necessary for serialization with pickle."""
+        self.__init__(*state)
+        %}
 }
+
+%enddef
+
+
+%define DECL_PYTHON_VARIABLELENGTHVECTOR_CLASS(swig_name, type)
+
+    %extend swig_name {
+        swig_name __add__(swig_name v2) {
+            return *self + v2;
+        }
+        swig_name __sub__(swig_name v2) {
+            return *self - v2;
+        }
+        type __getitem__(unsigned long d) {
+            if (d >= self->GetNumberOfElements()) { throw std::out_of_range("swig_name index out of range."); }
+            return self->operator[]( d );
+        }
+        void __setitem__(unsigned long d, type v) {
+            if (d >= self->GetNumberOfElements()) { throw std::out_of_range("swig_name index out of range."); }
+            self->operator[]( d ) = v;
+        }
+        unsigned int __len__() {
+            return self->GetNumberOfElements();
+        }
+        std::string __repr__() {
+            std::ostringstream msg;
+            msg << "swig_name (" << *self << ")";
+            return msg.str();
+        }
+    }
 
 %enddef
 
@@ -257,18 +324,10 @@ str = str
 
     %pythonprepend itkObject::AddObserver %{
         import itk
-        if len(args) == 3 and not issubclass(args[2].__class__, itk.Command) and callable(args[2]):
-            args = list(args)
+        if not issubclass(cmd.__class__, itk.Command) and callable(cmd):
             pycommand = itk.PyCommand.New()
-            pycommand.SetCommandCallable( args[2] )
-            args[2] = pycommand
-            args = tuple(args)
-        elif len(args) == 2 and not issubclass(args[1].__class__, itk.Command) and callable(args[1]):
-            args = list(args)
-            pycommand = itk.PyCommand.New()
-            pycommand.SetCommandCallable( args[1] )
-            args[1] = pycommand
-            args = tuple(args)
+            pycommand.SetCommandCallable( cmd )
+            cmd = pycommand
     %}
 
 %enddef
@@ -357,6 +416,66 @@ str = str
 %enddef
 
 
+%define DECL_PYTHON_TRANSFORMBASETEMPLATE_CLASS(swig_name)
+    %extend swig_name {
+        %pythoncode %{
+            def keys(self):
+                """
+                Return keys related to the transform's metadata.
+                These keys are used in the dictionary resulting from dict(transform).
+                """
+                result = ['transformType', 'name', 'inputSpaceName', 'outputSpaceName', 'numberOfParameters', 'numberOfFixedParameters', 'parameters', 'fixedParameters']
+                return result
+
+            def __getitem__(self, key):
+                """Access metadata keys, see help(transform.keys), for string keys."""
+                import itk
+                if isinstance(key, str):
+                    state = itk.dict_from_transform(self)
+                    return state[key]
+
+            def __setitem__(self, key, value):
+                if isinstance(key, str):
+                    import numpy as np
+                    if key == 'name':
+                        self.SetObjectName(value)
+                    elif key == 'inputSpaceName':
+                        self.SetInputSpaceName(value)
+                    elif key == 'outputSpaceName':
+                        self.SetOutputSpaceName(value)
+                    elif key == 'fixedParameters' or key == 'parameters':
+                        if key == 'fixedParameters':
+                            o1 = self.GetFixedParameters()
+                        else:
+                            o1 = self.GetParameters()
+
+                        o1.SetSize(value.shape[0])
+                        for i, v in enumerate(value):
+                            o1.SetElement(i, v)
+
+                        if key == 'fixedParameters':
+                            self.SetFixedParameters(o1)
+                        else:
+                            self.SetParameters(o1)
+
+
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.dict_from_transform(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                import itk
+                deserialized = itk.transform_from_dict(state)
+                self.__dict__['this'] = deserialized
+            %}
+    }
+
+%enddef
+
+
 %define DECL_PYTHON_IMAGEBASE_CLASS(swig_name, template_params)
     %inline %{
     #include "itkContinuousIndexSwigInterface.h"
@@ -365,27 +484,19 @@ str = str
     %rename(__SetDirection_orig__) swig_name::SetDirection;
     %extend swig_name {
         itkIndex##template_params TransformPhysicalPointToIndex( itkPointD##template_params & point ) {
-            itkIndex##template_params idx;
-            self->TransformPhysicalPointToIndex<double>( point, idx );
-            return idx;
+            return self->TransformPhysicalPointToIndex( point );
          }
 
         itkContinuousIndexD##template_params TransformPhysicalPointToContinuousIndex( itkPointD##template_params & point ) {
-            itkContinuousIndexD##template_params idx;
-            self->TransformPhysicalPointToContinuousIndex<double>( point, idx );
-            return idx;
+            return self->TransformPhysicalPointToContinuousIndex<itkContinuousIndexD##template_params::ValueType>( point );
         }
 
         itkPointD##template_params TransformContinuousIndexToPhysicalPoint( itkContinuousIndexD##template_params & idx ) {
-            itkPointD##template_params point;
-            self->TransformContinuousIndexToPhysicalPoint<double>( idx, point );
-            return point;
+            return self->TransformContinuousIndexToPhysicalPoint<double>( idx );
         }
 
         itkPointD##template_params TransformIndexToPhysicalPoint( itkIndex##template_params & idx ) {
-            itkPointD##template_params point;
-            self->TransformIndexToPhysicalPoint<double>( idx, point );
-            return point;
+            return self->TransformIndexToPhysicalPoint<double>( idx );
         }
 
         %pythoncode %{
@@ -395,30 +506,44 @@ str = str
 
             @property
             def ndim(self):
-                """Equivalant to the np.ndarray ndim attribute when converted
+                """Equivalent to the np.ndarray ndim attribute when converted
                 to an image with itk.array_view_from_image."""
+                import itk
+
                 spatial_dims = self.GetImageDimension()
-                if self.GetNumberOfComponentsPerPixel() > 1:
+                if self.GetNumberOfComponentsPerPixel() > 1 or isinstance(self, itk.VectorImage):
                     return spatial_dims + 1
                 else:
                     return spatial_dims
 
             @property
             def shape(self):
-                """Equivalant to the np.ndarray shape attribute when converted
+                """Equivalent to the np.ndarray shape attribute when converted
                 to an image with itk.array_view_from_image."""
+                import itk
+
                 itksize = self.GetLargestPossibleRegion().GetSize()
                 dim = len(itksize)
                 result = [int(itksize[idx]) for idx in range(dim)]
 
-                if(self.GetNumberOfComponentsPerPixel() > 1):
+                if self.GetNumberOfComponentsPerPixel() > 1 or isinstance(self, itk.VectorImage):
                     result = [self.GetNumberOfComponentsPerPixel(), ] + result
-                result.reverse()
+                # ITK is C-order. The shape needs to be reversed unless we are a view on
+                # a NumPy array that is Fortran-order.
+                reverse = True
+                base = self
+                while hasattr(base, 'base'):
+                    if hasattr(base, 'flags'):
+                        reverse = not base.flags.f_contiguous
+                        break
+                    base = base.base
+                if reverse:
+                    result.reverse()
                 return tuple(result)
 
             @property
             def dtype(self):
-                """Equivalant to the np.ndarray dtype attribute when converted
+                """Equivalent to the np.ndarray dtype attribute when converted
                 to an image with itk.array_view_from_image."""
                 import itk
                 first_template_arg = itk.template(self)[1][0]
@@ -435,8 +560,13 @@ str = str
                 import numpy as np
                 from itk.support import types
 
-                # if both a numpy dtype and a ctype exist, use the latter.
+                # Convert numpy type to dtype object for consistency
+                # i.e. <np.float32> -> np.dtype('float32')
                 if type(pixel_type) is type:
+                    pixel_type = np.dtype(pixel_type)
+
+                # if both a numpy dtype and an ITK ctype exist, use the latter.
+                if issubclass(type(pixel_type), np.dtype):
                     c_pixel_type = types.itkCType.GetCTypeForDType(pixel_type)
                     if c_pixel_type is not None:
                         pixel_type = c_pixel_type
@@ -522,6 +652,23 @@ str = str
                     import itk
                     itk.array_view_from_image(self).__setitem__(key, value)
 
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.dict_from_image(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                import itk
+                import numpy as np
+                deserialized = itk.image_from_dict(state)
+                self.__dict__['this'] = deserialized
+                self.SetOrigin(state['origin'])
+                self.SetSpacing(state['spacing'])
+                direction = np.asarray(self.GetDirection())
+                self.SetDirection(direction)
+
             %}
 
         // TODO: also add that method. But with which types?
@@ -545,6 +692,175 @@ str = str
   }
 %enddef
 
+%define DECL_PYTHON_POINTSETBASE_CLASS(swig_name)
+    %rename(__SetPointsByCoordinates_orig__) swig_name::SetPointsByCoordinates;
+    %extend swig_name {
+        %pythoncode %{
+            def SetPointsByCoordinates(self, points):
+                """Set the points of the pointset by providing their coordinates
+                as a NumPy array."""
+                import numpy as np
+                if hasattr(points, 'ndim') and points.ndim != 1:
+                    self.__SetPointsByCoordinates_orig__(points.ravel())
+                else:
+                    self.__SetPointsByCoordinates_orig__(points)
+
+            def GetPointsByCoordinates(self):
+                """Get the points of the pointset by providing their coordinates
+                as a NumPy array. The array will have a shape of (n_points, dimension)."""
+                import itk
+                points = self.GetPoints()
+                points_array = itk.array_from_vector_container(points)
+                points_array = points_array.reshape(-1, self.GetPointDimension())
+                return points_array
+            %}
+    }
+
+%enddef
+
+%define DECL_PYTHON_POINTSET_CLASS(swig_name)
+    %extend swig_name {
+        %pythoncode %{
+            def keys(self):
+                """
+                Return keys related to the pointset's metadata.
+                These keys are used in the dictionary resulting from dict(pointset).
+                """
+                result = ['name', 'dimension', 'numberOfPoints', 'points', 'numberOfPointPixels', 'pointData']
+                return result
+
+            def __getitem__(self, key):
+                """Access metadata keys, see help(pointset.keys), for string keys."""
+                import itk
+                if isinstance(key, str):
+                    state = itk.dict_from_pointset(self)
+                    return state[key]
+
+            def __setitem__(self, key, value):
+                if isinstance(key, str):
+                    import numpy as np
+                    if key == 'name':
+                        self.SetObjectName(value)
+                    elif key == 'points':
+                        self.SetPoints(itk.vector_container_from_array(value))
+                    elif key == 'pointData':
+                        self.SetPointData(itk.vector_container_from_array(value))
+
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.dict_from_pointset(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                import itk
+                import numpy as np
+                deserialized = itk.pointset_from_dict(state)
+                self.__dict__['this'] = deserialized
+            %}
+    }
+
+%enddef
+
+%define DECL_PYTHON_POLYLINEPARAMETRICPATH_CLASS(swig_name)
+    %extend swig_name {
+        %pythoncode %{
+            def keys(self):
+                """
+                Return keys related to the polyline's metadata.
+                These keys are used in the dictionary resulting from dict(polyline).
+                """
+                result = ['name', 'vertexList']
+                return result
+
+            def __getitem__(self, key):
+                """Access metadata keys, see help(pointset.keys), for string keys."""
+                import itk
+                if isinstance(key, str):
+                    state = itk.dict_from_polyline(self)
+                    return state[key]
+
+            def __setitem__(self, key, value):
+                if isinstance(key, str):
+                    import numpy as np
+                    if key == 'name':
+                        self.SetObjectName(value)
+                    elif key == 'vertexList':
+                        self.GetVertexList().Initialize()
+                        for vertex in value:
+                            polyline.AddVertex(vertex)
+
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.dict_from_polyline(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                import itk
+                deserialized = itk.polyline_from_dict(state)
+                self.__dict__['this'] = deserialized
+            %}
+    }
+
+%enddef
+
+%define DECL_PYTHON_MESH_CLASS(swig_name)
+    %extend swig_name {
+        %pythoncode %{
+            def keys(self):
+                """
+                Return keys related to the mesh's metadata.
+                These keys are used in the dictionary resulting from dict(mesh).
+                """
+                result = ['meshType', 'name', 'dimension', 'numberOfPoints', 'points', 'numberOfPointPixels', 'pointData',
+                            'numberOfCells', 'cells', 'numberOfCellPixels', 'cellData', 'cellBufferSize']
+                return result
+
+            def __getitem__(self, key):
+                """Access metadata keys, see help(mesh.keys), for string keys."""
+                import itk
+                if isinstance(key, str):
+                    state = itk.dict_from_mesh(self)
+                    return state[key]
+
+            def __setitem__(self, key, value):
+                """Set metadata keys, see help(image.keys), for string
+                keys, otherwise provide NumPy indexing to the pixel buffer
+                array view. The index order follows NumPy array indexing
+                order, i.e. [z, y, x] versus [x, y, z]."""
+                if isinstance(key, str):
+                    import numpy as np
+                    if key == 'name':
+                        self.SetObjectName(value)
+                    elif key == 'points':
+                        self.SetPoints(itk.vector_container_from_array(value))
+                    elif key == 'cells':
+                        self.SetCellsArray(itk.vector_container_from_array(value))
+                    elif key == 'pointData':
+                        self.SetPointData(itk.vector_container_from_array(value))
+                    elif key == 'cellData':
+                        self.SetCellData(itk.vector_container_from_array(value))
+
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.dict_from_mesh(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                import itk
+                import numpy as np
+                deserialized = itk.mesh_from_dict(state)
+                self.__dict__['this'] = deserialized
+            %}
+    }
+
+%enddef
+
 
 %define DECL_PYTHON_ITK_MATRIX(class_name)
   %rename(__GetVnlMatrix_orig__) class_name::GetVnlMatrix;
@@ -554,6 +870,31 @@ str = str
                 vnl_reference = self.__GetVnlMatrix_orig__()
                 vnl_copy = type(vnl_reference)(vnl_reference)
                 return vnl_copy
+
+            def __repr__(self):
+                vnl_mat = self.GetVnlMatrix()
+                python_list_mat = [
+                  [vnl_mat.get(i, j) for j in range(vnl_mat.cols())]
+                  for i in range(vnl_mat.rows())
+                ]
+                return type(self).__name__ + " (" + repr(python_list_mat) + ")"
+
+            def __array__(self, dtype=None):
+                import itk
+                import numpy as np
+                array = itk.array_from_matrix(self)
+                return np.asarray(array, dtype=dtype)
+
+            def __getstate__(self):
+                """Get object state, necessary for serialization with pickle."""
+                import itk
+                state = itk.array_from_matrix(self)
+                return state
+
+            def __setstate__(self, state):
+                """Set object state, necessary for serialization with pickle."""
+                matrix = itk.matrix_from_array(state)
+                self.__init__(matrix)
             %}
         }
 
@@ -603,9 +944,11 @@ str = str
                     } else if (PyFloat_Check(o)) {
                         itks[i] = (type)PyFloat_AsDouble(o);
                     } else {
+                        SWIG_Py_DECREF(o);
                         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int or float");
                         return NULL;
                     }
+                    SWIG_Py_DECREF(o);
                 }
                 $1 = &itks;
             }else if (PyInt_Check($input)) {
@@ -649,9 +992,11 @@ str = str
                     } else if (PyFloat_Check(o)) {
                         itks[i] = (type)PyFloat_AsDouble(o);
                     } else {
+                        SWIG_Py_DECREF(o);
                         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int or float");
                         return NULL;
                     }
+                    SWIG_Py_DECREF(o);
                 }
                 $1 = itks;
             }else if (PyInt_Check($input)) {
@@ -723,74 +1068,78 @@ str = str
                 } else if (PyFloat_Check(o)) {
                     itks[i] = (value_type)PyFloat_AsDouble(o);
                 } else {
+                    SWIG_Py_DECREF(o);
                     PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int or float");
                     return NULL;
                 }
+                SWIG_Py_DECREF(o);
             }
             $1 = &itks;
         }
-}
-
-%typemap(typecheck) type & {
-    void *ptr;
-    if (SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) == -1
-        && !PySequence_Check($input) ) {
-        _v = 0;
-        PyErr_Clear();
-    } else {
-        _v = 1;
     }
-}
 
-%typemap(in) type (type itks) {
-    type * s;
-    if ((SWIG_ConvertPtr($input,(void **)(&s),$descriptor(type *), 0)) == -1) {
-        PyErr_Clear();
-        itks = type( PyObject_Length($input) );
-        for (unsigned int i =0; i < itks.Size(); i++) {
-            PyObject *o = PySequence_GetItem($input,i);
-            if (PyInt_Check(o)) {
-                itks[i] = (value_type)PyInt_AsLong(o);
-            } else if (PyFloat_Check(o)) {
-                itks[i] = (value_type)PyFloat_AsDouble(o);
-            } else {
-                PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int or float");
-                return NULL;
-            }
+    %typemap(typecheck) type & {
+        void *ptr;
+        if (SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) == -1
+            && !PySequence_Check($input) ) {
+            _v = 0;
+            PyErr_Clear();
+        } else {
+            _v = 1;
         }
-        $1 = itks;
     }
-}
 
-%typemap(typecheck) type {
-    void *ptr;
-    if (SWIG_ConvertPtr($input, &ptr, $descriptor(type *), 0) == -1
-        && !PySequence_Check($input) ) {
-        _v = 0;
-        PyErr_Clear();
-    } else {
-        _v = 1;
+    %typemap(in) type (type itks) {
+        type * s;
+        if ((SWIG_ConvertPtr($input,(void **)(&s),$descriptor(type *), 0)) == -1) {
+            PyErr_Clear();
+            itks = type( PyObject_Length($input) );
+            for (unsigned int i =0; i < itks.Size(); i++) {
+                PyObject *o = PySequence_GetItem($input,i);
+                if (PyInt_Check(o)) {
+                    itks[i] = (value_type)PyInt_AsLong(o);
+                } else if (PyFloat_Check(o)) {
+                    itks[i] = (value_type)PyFloat_AsDouble(o);
+                } else {
+                    SWIG_Py_DECREF(o);
+                    PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int or float");
+                    return NULL;
+                }
+                SWIG_Py_DECREF(o);
+            }
+            $1 = itks;
+        }
     }
-}
 
-%extend type {
-    value_type __getitem__(unsigned long dim) {
-        if (dim >= self->Size()) { throw std::out_of_range("type index out of range."); }
-        return self->operator[]( dim );
+    %typemap(typecheck) type {
+        void *ptr;
+        if (SWIG_ConvertPtr($input, &ptr, $descriptor(type *), 0) == -1
+            && !PySequence_Check($input) ) {
+            _v = 0;
+            PyErr_Clear();
+        } else {
+            _v = 1;
+        }
     }
-    void __setitem__(unsigned long dim, value_type v) {
-        if (dim >= self->Size()) { throw std::out_of_range("type index out of range."); }
-        self->operator[]( dim ) = v;
+
+    %extend type {
+        value_type __getitem__(unsigned long dim) {
+            if (dim >= self->Size()) { throw std::out_of_range("type index out of range."); }
+            return self->operator[]( dim );
+        }
+        void __setitem__(unsigned long dim, value_type v) {
+            if (dim >= self->Size()) { throw std::out_of_range("type index out of range."); }
+            self->operator[]( dim ) = v;
+        }
+        unsigned int __len__() {
+            return self->Size();
+        }
+        std::string __repr__() {
+            std::ostringstream msg;
+            msg << "swig_name (" << *self << ")";
+            return msg.str();
+        }
     }
-    unsigned int __len__() {
-        return self->Size();
-    }
-    std::string __repr__() {
-        std::ostringstream msg;
-        msg << "swig_name (" << *self << ")";
-        return msg.str();
-    }
-}
 
 %enddef
 
@@ -806,9 +1155,11 @@ str = str
                     if (PyInt_Check(o) || PyLong_Check(o)) {
                         itks[i] = PyInt_AsLong(o);
                     } else {
+                        SWIG_Py_DECREF(o);
                         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int (or long)");
                         return NULL;
                     }
+                    SWIG_Py_DECREF(o);
                 }
                 $1 = &itks;
             }else if (PyInt_Check($input) || PyLong_Check($input)) {
@@ -845,9 +1196,11 @@ str = str
                     if (PyInt_Check(o) || PyLong_Check(o)) {
                         itks[i] = PyInt_AsLong(o);
                     } else {
+                        SWIG_Py_DECREF(o);
                         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of int (or long)");
                         return NULL;
                     }
+                    SWIG_Py_DECREF(o);
                 }
                 $1 = itks;
             }else if (PyInt_Check($input) || PyLong_Check($input)) {
@@ -932,9 +1285,11 @@ str = str
                     if(SWIG_ConvertPtr(o,(void **)(&raw_ptr),$descriptor(swig_name *), 0) == 0) {
                         vec_smartptr.push_back(raw_ptr);
                     } else {
+                        SWIG_Py_DECREF(o);
                         PyErr_SetString(PyExc_ValueError,"Expecting a sequence of raw pointers (" #swig_name ")." );
                         SWIG_fail;
                     }
+                    SWIG_Py_DECREF(o);
                 }
                 $1 = vec_smartptr;
             }

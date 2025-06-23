@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,39 +18,30 @@
 #ifndef itkNeighborhoodBinaryThresholdImageFunction_hxx
 #define itkNeighborhoodBinaryThresholdImageFunction_hxx
 
-#include "itkNeighborhoodBinaryThresholdImageFunction.h"
 #include "itkNumericTraits.h"
 #include "itkConstNeighborhoodIterator.h"
 
 namespace itk
 {
-/**
- * Constructor
- */
-template <typename TInputImage, typename TCoordRep>
-NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordRep>::NeighborhoodBinaryThresholdImageFunction()
+
+template <typename TInputImage, typename TCoordinate>
+NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordinate>::NeighborhoodBinaryThresholdImageFunction()
 {
   m_Radius.Fill(1);
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 void
-NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
+NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordinate>::PrintSelf(std::ostream & os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "Radius: " << m_Radius << std::endl;
 }
 
-/**
- *
- */
-template <typename TInputImage, typename TCoordRep>
+template <typename TInputImage, typename TCoordinate>
 bool
-NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const IndexType & index) const
+NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordinate>::EvaluateAtIndex(const IndexType & index) const
 {
   if (!this->GetInputImage())
   {
@@ -71,8 +62,8 @@ NeighborhoodBinaryThresholdImageFunction<TInputImage, TCoordRep>::EvaluateAtInde
 
   // Walk the neighborhood
   bool               allInside = true;
-  PixelType          lower = this->GetLower();
-  PixelType          upper = this->GetUpper();
+  const PixelType    lower = this->GetLower();
+  const PixelType    upper = this->GetUpper();
   PixelType          value;
   const unsigned int size = it.Size();
   for (unsigned int i = 0; i < size; ++i)

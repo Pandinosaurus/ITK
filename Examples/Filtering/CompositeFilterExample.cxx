@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -86,7 +86,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information */
-  itkTypeMacro(CompositeExampleImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(CompositeExampleImageFilter);
 
   //  Software Guide : BeginLatex
   //
@@ -161,12 +161,15 @@ namespace itk
 //  Software Guide : BeginCodeSnippet
 template <typename TImage>
 CompositeExampleImageFilter<TImage>::CompositeExampleImageFilter()
+  : m_GradientFilter(GradientType::New())
+  , m_ThresholdFilter(ThresholdType::New())
+  , m_RescaleFilter(RescalerType::New())
+  , m_Threshold(1)
 {
-  m_Threshold = 1;
-  m_GradientFilter = GradientType::New();
-  m_ThresholdFilter = ThresholdType::New();
+
+
   m_ThresholdFilter->SetInput(m_GradientFilter->GetOutput());
-  m_RescaleFilter = RescalerType::New();
+
   m_RescaleFilter->SetInput(m_ThresholdFilter->GetOutput());
   m_RescaleFilter->SetOutputMinimum(
     NumericTraits<PixelType>::NonpositiveMin());
@@ -208,7 +211,7 @@ template <typename TImage>
 void
 CompositeExampleImageFilter<TImage>::GenerateData()
 {
-  typename ImageType::Pointer input = ImageType::New();
+  auto input = ImageType::New();
   input->Graft(const_cast<ImageType *>(this->GetInput()));
   m_GradientFilter->SetInput(input);
 
@@ -237,7 +240,7 @@ CompositeExampleImageFilter<TImage>::PrintSelf(std::ostream & os,
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "Threshold:" << this->m_Threshold << std::endl;
+  os << indent << "Threshold: " << m_Threshold << std::endl;
 }
 
 } // end namespace itk
@@ -271,16 +274,16 @@ main(int argc, char * argv[])
   using ImageType = itk::Image<short, 2>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using FilterType = itk::CompositeExampleImageFilter<ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   filter->SetInput(reader->GetOutput());
   filter->SetThreshold(20);
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 

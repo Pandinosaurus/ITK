@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,12 +19,12 @@
 #define itkRegularStepGradientDescentOptimizerv4_h
 
 #include "itkGradientDescentOptimizerv4.h"
-#include <itkCompensatedSummation.h>
+#include "itkCompensatedSummation.h"
 
 namespace itk
 {
 /**
- *\class RegularStepGradientDescentOptimizerv4
+ * \class RegularStepGradientDescentOptimizerv4
  *  \brief Regular Step Gradient descent optimizer.
  *
  *   This optimizer is a variant of gradient descent that attempts to prevent it
@@ -36,7 +36,7 @@ namespace itk
  *   The default value for the initial step length is 1, and this value can only
  *   be changed manually via SetLearningRate() since this optimizer does not use
  *   the ScaleEstimator to automatically estimate the learning rate.
- *   Also note that unlike the previous version of ReuglarStepGradientDescentOptimizer,
+ *   Also note that unlike the previous version of RegularStepGradientDescentOptimizer,
  *   ITKv4 does not have a "maximize/minimize" option to modify the effect of
  *   the metric derivative. The assigned metric is assumed to return a parameter
  *   derivative result that "improves" the optimization.
@@ -56,8 +56,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegularStepGradientDescentOptimizerv4, GradientDescentOptimizerv4Template);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegularStepGradientDescentOptimizerv4);
 
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
@@ -67,13 +67,13 @@ public:
   using InternalComputationValueType = TInternalComputationValueType;
 
   /** Derivative type. */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Metric type over which this class is templated. */
-  using MeasureType = typename Superclass::MeasureType;
-  using IndexRangeType = typename Superclass::IndexRangeType;
-  using ScalesType = typename Superclass::ScalesType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::IndexRangeType;
+  using typename Superclass::ScalesType;
+  using typename Superclass::ParametersType;
 
   /** Compensated summation type. */
   using CompensatedSummationType = CompensatedSummation<InternalComputationValueType>;
@@ -87,21 +87,25 @@ public:
    *
    *  The default value is set to 1e-4 to pass all tests.
    */
+  /** @ITKStartGrouping */
   itkSetMacro(MinimumStepLength, TInternalComputationValueType);
   itkGetConstReferenceMacro(MinimumStepLength, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get relaxation factor value. */
+  /** @ITKStartGrouping */
   itkSetMacro(RelaxationFactor, TInternalComputationValueType);
   itkGetConstReferenceMacro(RelaxationFactor, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get gradient magnitude tolerance value for convergence checking. */
+  /** @ITKStartGrouping */
   itkSetMacro(GradientMagnitudeTolerance, TInternalComputationValueType);
   itkGetConstReferenceMacro(GradientMagnitudeTolerance, TInternalComputationValueType);
-
+  /** @ITKEndGrouping */
   /** Set/Get current scale for learning rate. */
+  /** @ITKStartGrouping */
   itkSetMacro(CurrentLearningRateRelaxation, MeasureType);
   itkGetConstReferenceMacro(CurrentLearningRateRelaxation, MeasureType);
-
+  /** @ITKEndGrouping */
   /** Start and run the optimization. */
   void
   StartOptimization(bool doOnlyInitialization = false) override;
@@ -111,7 +115,7 @@ public:
   EstimateLearningRate() override;
 
   /** Get current gradient step value. */
-  double
+  [[nodiscard]] double
   GetCurrentStepLength() const;
 
 protected:
@@ -121,11 +125,12 @@ protected:
   AdvanceOneStep() override;
 
   /** Modify the input gradient over a given index range. */
+  /** @ITKStartGrouping */
   void
   ModifyGradientByScalesOverSubRange(const IndexRangeType & subrange) override;
   void
   ModifyGradientByLearningRateOverSubRange(const IndexRangeType & subrange) override;
-
+  /** @ITKEndGrouping */
 
   /** Default constructor. */
   RegularStepGradientDescentOptimizerv4();
@@ -138,13 +143,13 @@ protected:
 
 
 private:
-  TInternalComputationValueType m_RelaxationFactor;
+  TInternalComputationValueType m_RelaxationFactor{};
 
-  TInternalComputationValueType m_MinimumStepLength;
+  TInternalComputationValueType m_MinimumStepLength{};
 
-  TInternalComputationValueType m_GradientMagnitudeTolerance;
+  TInternalComputationValueType m_GradientMagnitudeTolerance{};
 
-  MeasureType m_CurrentLearningRateRelaxation;
+  MeasureType m_CurrentLearningRateRelaxation{};
 };
 
 } // end namespace itk

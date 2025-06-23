@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ namespace itk
 {
 
 /**
- *\class ObjectToObjectMetric
+ * \class ObjectToObjectMetric
  * \brief Computes similarity between regions of two objects.
  *
  * This class is templated over the dimensionality of the two input objects.
@@ -48,7 +48,7 @@ namespace itk
  *
  * Similarity is evaluated using fixed and moving transforms.
  * Both transforms are initialized to an IdentityTransform, and can be
- * set by the user using SetFixedTranform() and SetMovingTransform().
+ * set by the user using SetFixedTransform() and SetMovingTransform().
  *
  * Virtual Domain
  *
@@ -100,8 +100,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ObjectToObjectMetric, ObjectToObjectMetricBaseTemplate);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ObjectToObjectMetric);
 
   /** Type used for representing object components  */
   using CoordinateRepresentationType = TParametersValueType;
@@ -110,20 +110,20 @@ public:
   using InternalComputationValueType = TParametersValueType;
 
   /**  Type of the measure. */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /**  Type of object. */
   using ObjectType = typename Superclass::Object;
 
   /**  Type of the derivative. */
-  using DerivativeType = typename Superclass::DerivativeType;
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeValueType;
 
   /**  Type of the parameters. */
-  using ParametersType = typename Superclass::ParametersType;
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::NumberOfParametersType;
 
-  using GradientSourceEnum = typename Superclass::GradientSourceEnum;
+  using typename Superclass::GradientSourceEnum;
 
   /** Dimension type */
   using DimensionType = SizeValueType;
@@ -309,11 +309,12 @@ public:
    * \note Returns true if the virtual domain has not been defined. This
    * allows, for example, use in point set metrics where the virtual domain
    * is implicitly defined by the point sets and transforms. */
+  /** @ITKStartGrouping */
   bool
   IsInsideVirtualDomain(const VirtualPointType & point) const;
   bool
   IsInsideVirtualDomain(const VirtualIndexType & index) const;
-
+  /** @ITKEndGrouping */
   using MetricCategoryType = typename Superclass::MetricCategoryEnum;
 
   /** Get metric category */
@@ -357,14 +358,14 @@ protected:
   VerifyNumberOfValidPoints(MeasureType & value, DerivativeType & derivative) const;
 
   /** Transforms */
-  FixedTransformPointer  m_FixedTransform;
-  MovingTransformPointer m_MovingTransform;
+  FixedTransformPointer  m_FixedTransform{};
+  MovingTransformPointer m_MovingTransform{};
 
-  VirtualImagePointer m_VirtualImage;
+  VirtualImagePointer m_VirtualImage{};
 
   /** Flag that is set when user provides a virtual domain, either via
    * SetVirtualDomain() or SetVirtualDomainFromImage(). */
-  bool m_UserHasSetVirtualDomain;
+  bool m_UserHasSetVirtualDomain{};
 
   /** Store the number of points used during most recent value and derivative
    * calculation.

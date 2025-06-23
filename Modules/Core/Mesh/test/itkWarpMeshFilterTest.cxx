@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkWarpMeshFilter.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkImage.h"
+#include "itkTestingMacros.h"
 
 int
 itkWarpMeshFilterTest(int, char *[])
@@ -35,7 +36,7 @@ itkWarpMeshFilterTest(int, char *[])
   using PointType = SphereMeshSourceType::PointType;
   using VectorType = SphereMeshSourceType::VectorType;
 
-  SphereMeshSourceType::Pointer sphereMeshSource = SphereMeshSourceType::New();
+  auto sphereMeshSource = SphereMeshSourceType::New();
 
   PointType center;
   center[0] = 25.0;
@@ -56,7 +57,7 @@ itkWarpMeshFilterTest(int, char *[])
   using VectorType = itk::Vector<double, Dimension>;
   using DisplacementFieldType = itk::Image<VectorType, Dimension>;
 
-  DisplacementFieldType::Pointer deformationField = DisplacementFieldType::New();
+  auto deformationField = DisplacementFieldType::New();
 
   DisplacementFieldType::IndexType start;
   start[0] = 0;
@@ -68,9 +69,7 @@ itkWarpMeshFilterTest(int, char *[])
   size[1] = 25;
   size[2] = 25;
 
-  DisplacementFieldType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+  const DisplacementFieldType::RegionType region{ start, size };
 
   deformationField->SetRegions(region);
 
@@ -100,42 +99,45 @@ itkWarpMeshFilterTest(int, char *[])
   // Declare the Warping filter
   using WarpFilterType = itk::WarpMeshFilter<MeshType, MeshType, DisplacementFieldType>;
 
-  WarpFilterType::Pointer warpFilter = WarpFilterType::New();
+  auto warpFilter = WarpFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(warpFilter, WarpMeshFilter, MeshToMeshFilter);
+
+
+  // Test exceptions
+  ITK_TRY_EXPECT_EXCEPTION(warpFilter->Update());
 
   warpFilter->SetInput(sphereMeshSource->GetOutput());
 
+  // Test exceptions
+  ITK_TRY_EXPECT_EXCEPTION(warpFilter->Update());
+
+
   warpFilter->SetDisplacementField(deformationField);
 
-  try
-  {
-    warpFilter->Update();
-  }
-  catch (const itk::ExceptionObject & excp)
-  {
-    std::cerr << "Exception: " << excp << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(warpFilter->Update());
 
-  MeshType::Pointer      outputMesh = warpFilter->GetOutput();
-  MeshType::ConstPointer inputMesh = warpFilter->GetInput();
 
-  MeshType::PointsContainerPointer      outPoints = outputMesh->GetPoints();
-  MeshType::PointsContainerConstPointer inPoints = inputMesh->GetPoints();
+  const MeshType::Pointer      outputMesh = warpFilter->GetOutput();
+  const MeshType::ConstPointer inputMesh = warpFilter->GetInput();
+
+  const MeshType::PointsContainerPointer      outPoints = outputMesh->GetPoints();
+  const MeshType::PointsContainerConstPointer inPoints = inputMesh->GetPoints();
 
   MeshType::PointsContainer::ConstIterator inputPoint = inPoints->Begin();
   MeshType::PointsContainer::ConstIterator outputPoint = outPoints->Begin();
 
-  MeshType::PointsContainer::ConstIterator lastInputPoint = inPoints->End();
-  MeshType::PointsContainer::ConstIterator lastOutputPoint = outPoints->End();
+  const MeshType::PointsContainer::ConstIterator lastInputPoint = inPoints->End();
+  const MeshType::PointsContainer::ConstIterator lastOutputPoint = outPoints->End();
 
-  const double tolerance = 1e-8;
+  constexpr double tolerance = 1e-8;
 
   while (inputPoint != lastInputPoint && outputPoint != lastOutputPoint)
   {
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
       const double distance = outputPoint.Value()[i] - inputPoint.Value()[i];
-      if (std::fabs(distance - simpleVector[i]) > tolerance)
+      if (itk::Math::abs(distance - simpleVector[i]) > tolerance)
       {
         std::cerr << "Filter failed" << std::endl;
         std::cerr << "Expected displacement = " << simpleVector[i] << std::endl;

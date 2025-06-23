@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,70 +59,77 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType = double,
-          unsigned int NDimensions = 3,
-          unsigned int NSubDimensions = NDimensions>
-class ITK_TEMPLATE_EXPORT MultiTransform : public Transform<TParametersValueType, NDimensions, NSubDimensions>
+template <typename TParametersValueType = double, unsigned int VDimension = 3, unsigned int VSubDimensions = VDimension>
+class ITK_TEMPLATE_EXPORT MultiTransform : public Transform<TParametersValueType, VDimension, VSubDimensions>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(MultiTransform);
 
   /** Standard class type aliases. */
   using Self = MultiTransform;
-  using Superclass = Transform<TParametersValueType, NDimensions, NSubDimensions>;
+  using Superclass = Transform<TParametersValueType, VDimension, VSubDimensions>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiTransform, Transform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiTransform);
 
   /** Sub transform type **/
-  using TransformType = Transform<TParametersValueType, NSubDimensions, NSubDimensions>;
+  using TransformType = Transform<TParametersValueType, VSubDimensions, VSubDimensions>;
   using TransformTypePointer = typename TransformType::Pointer;
 
   /* Types common to both container and sub transforms */
 
   /** Parameters type. */
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
   using ScalarType = ParametersValueType;
+
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
+
   /** Jacobian type. */
-  using JacobianType = typename Superclass::JacobianType;
-  using JacobianPositionType = typename Superclass::JacobianPositionType;
-  using InverseJacobianPositionType = typename Superclass::InverseJacobianPositionType;
+  using typename Superclass::JacobianType;
+  using typename Superclass::JacobianPositionType;
+  using typename Superclass::InverseJacobianPositionType;
+
   /** Transform category type. */
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /* Types relative to the container transform. */
 
   /** InverseTransform type. */
-  using InverseTransformBasePointer = typename Superclass::InverseTransformBasePointer;
+  using typename Superclass::InverseTransformBasePointer;
 
   /** Standard coordinate point type for this class. */
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
+
   /** Standard vector type for this class. */
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
+
   /** Standard covariant vector type for this class */
-  using InputCovariantVectorType = typename Superclass::InputCovariantVectorType;
-  using OutputCovariantVectorType = typename Superclass::OutputCovariantVectorType;
+  using typename Superclass::InputCovariantVectorType;
+  using typename Superclass::OutputCovariantVectorType;
+
   /** Standard vnl_vector type for this class. */
-  using InputVnlVectorType = typename Superclass::InputVnlVectorType;
-  using OutputVnlVectorType = typename Superclass::OutputVnlVectorType;
+  using typename Superclass::InputVnlVectorType;
+  using typename Superclass::OutputVnlVectorType;
+
   /** Standard Vectorpixel type for this class */
-  using InputVectorPixelType = typename Superclass::InputVectorPixelType;
-  using OutputVectorPixelType = typename Superclass::OutputVectorPixelType;
+  using typename Superclass::InputVectorPixelType;
+  using typename Superclass::OutputVectorPixelType;
+
   /** Standard DiffusionTensor3D type alias for this class */
-  using InputDiffusionTensor3DType = typename Superclass::InputDiffusionTensor3DType;
-  using OutputDiffusionTensor3DType = typename Superclass::OutputDiffusionTensor3DType;
+  using typename Superclass::InputDiffusionTensor3DType;
+  using typename Superclass::OutputDiffusionTensor3DType;
+
   /** Standard SymmetricSecondRankTensor type alias for this class */
-  using InputSymmetricSecondRankTensorType = typename Superclass::InputSymmetricSecondRankTensorType;
-  using OutputSymmetricSecondRankTensorType = typename Superclass::OutputSymmetricSecondRankTensorType;
+  using typename Superclass::InputSymmetricSecondRankTensorType;
+  using typename Superclass::OutputSymmetricSecondRankTensorType;
 
   /* Types relative to the sub transform type. */
 
@@ -133,14 +140,14 @@ public:
   using TransformQueueType = std::deque<TransformTypePointer>;
 
   /** The number of parameters defining this transform. */
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::NumberOfParametersType;
 
   /** Dimension of the domain spaces. */
-  static constexpr unsigned int InputDimension = NDimensions;
-  static constexpr unsigned int OutputDimension = NDimensions;
+  static constexpr unsigned int InputDimension = VDimension;
+  static constexpr unsigned int OutputDimension = VDimension;
 
-  static constexpr unsigned int SubInputDimension = NSubDimensions;
-  static constexpr unsigned int SubOutputDimension = NSubDimensions;
+  static constexpr unsigned int SubInputDimension = VSubDimensions;
+  static constexpr unsigned int SubOutputDimension = VSubDimensions;
 
   /** Functionality for sub transforms */
 
@@ -302,7 +309,7 @@ public:
   //  virtual void FlattenTransformQueue();
 
 protected:
-  MultiTransform();
+  MultiTransform() = default;
   ~MultiTransform() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -336,11 +343,11 @@ protected:
   }
 
   /** Transform container object. */
-  mutable TransformQueueType m_TransformQueue;
+  mutable TransformQueueType m_TransformQueue{};
 
   /** Cache to save time returning the number of local parameters */
-  mutable NumberOfParametersType m_NumberOfLocalParameters;
-  mutable ModifiedTimeType       m_LocalParametersUpdateTime;
+  mutable NumberOfParametersType m_NumberOfLocalParameters{};
+  mutable ModifiedTimeType       m_LocalParametersUpdateTime{};
 };
 
 } // end namespace itk

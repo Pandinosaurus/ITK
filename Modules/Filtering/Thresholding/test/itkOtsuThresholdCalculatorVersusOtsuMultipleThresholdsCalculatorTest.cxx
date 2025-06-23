@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,23 +48,23 @@ itkOtsuThresholdCalculatorVersusOtsuMultipleThresholdsCalculatorTest(int argc, c
 
   int numberOfThresholds = 1;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
   reader->Update();
 
   using HistogramGeneratorType = itk::Statistics::ScalarImageToHistogramGenerator<InputImageType>;
   using HistogramType = HistogramGeneratorType::HistogramType;
-  HistogramGeneratorType::Pointer histogramGenerator = HistogramGeneratorType::New();
+  auto histogramGenerator = HistogramGeneratorType::New();
   histogramGenerator->SetInput(reader->GetOutput());
 
   // Compute the OtsuThreshold for the input image.
   using OtsuCalculatorType = itk::OtsuThresholdCalculator<HistogramType>;
-  OtsuCalculatorType::Pointer otsuCalculator = OtsuCalculatorType::New();
+  auto otsuCalculator = OtsuCalculatorType::New();
   otsuCalculator->SetInput(histogramGenerator->GetOutput());
 
   // Compute the OtsuMultipleThresholds for the input image
   using OtsuMultipleCalculatorType = itk::OtsuMultipleThresholdsCalculator<HistogramType>;
-  OtsuMultipleCalculatorType::Pointer otsuMultipleCalculator = OtsuMultipleCalculatorType::New();
+  auto otsuMultipleCalculator = OtsuMultipleCalculatorType::New();
   otsuMultipleCalculator->SetInputHistogram(histogramGenerator->GetOutput());
   otsuMultipleCalculator->SetNumberOfThresholds(numberOfThresholds);
 
@@ -80,9 +80,9 @@ itkOtsuThresholdCalculatorVersusOtsuMultipleThresholdsCalculatorTest(int argc, c
     if (itk::Math::NotAlmostEquals(otsuCalculator->GetThreshold(), otsuMultipleCalculator->GetOutput()[0]))
     {
       std::cerr << "Test failed!" << std::endl;
-      std::cerr << "Error in itk::OtsuThresholdCalculator::GetThreshold() or \
-                 itk::OtsuMultipleThresholdsCalculator::GetOutput()"
-                << std::endl;
+      std::cerr
+        << "Error in itk::OtsuThresholdCalculator::GetThreshold() or itk::OtsuMultipleThresholdsCalculator::GetOutput()"
+        << std::endl;
       std::cout << "Computed Otsu threshold: " << otsuCalculator->GetThreshold()
                 << " is different from computed Otsu multiple threshold: " << otsuMultipleCalculator->GetOutput()[0]
                 << std::endl;

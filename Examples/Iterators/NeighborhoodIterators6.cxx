@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,13 +67,12 @@ main(int argc, char ** argv)
   using FastMarchingFilterType =
     itk::FastMarchingImageFilter<ImageType, ImageType>;
 
-  FastMarchingFilterType::Pointer fastMarching =
-    FastMarchingFilterType::New();
+  auto fastMarching = FastMarchingFilterType::New();
 
   using NodeContainer = FastMarchingFilterType::NodeContainer;
   using NodeType = FastMarchingFilterType::NodeType;
 
-  NodeContainer::Pointer seeds = NodeContainer::New();
+  auto seeds = NodeContainer::New();
 
   ImageType::IndexType seedPosition;
 
@@ -83,7 +82,7 @@ main(int argc, char ** argv)
 
   NodeType node;
 
-  const double seedValue = -initialDistance;
+  constexpr double seedValue = -initialDistance;
 
   ImageType::SizeType size = { { 256, 256 } };
 
@@ -95,10 +94,8 @@ main(int argc, char ** argv)
   fastMarching->SetTrialPoints(seeds);
   fastMarching->SetSpeedConstant(1.0);
 
-  itk::AddImageFilter<ImageType, ImageType, ImageType>::Pointer adder =
-    itk::AddImageFilter<ImageType, ImageType, ImageType>::New();
-  itk::RandomImageSource<ImageType>::Pointer noise =
-    itk::RandomImageSource<ImageType>::New();
+  auto adder = itk::AddImageFilter<ImageType, ImageType, ImageType>::New();
+  auto noise = itk::RandomImageSource<ImageType>::New();
 
   noise->SetSize(size.m_InternalArray);
   noise->SetMin(-.7);
@@ -120,7 +117,7 @@ main(int argc, char ** argv)
     return EXIT_FAILURE;
   }
 
-  ImageType::Pointer input = adder->GetOutput();
+  const ImageType::Pointer input = adder->GetOutput();
 
   // Software Guide : BeginLatex
   //
@@ -132,8 +129,8 @@ main(int argc, char ** argv)
 
   // Software Guide : BeginCodeSnippet
   ImageType::IndexType index;
-  index[0] = ::std::stoi(argv[2]);
-  index[1] = ::std::stoi(argv[3]);
+  index[0] = std::stoi(argv[2]);
+  index[1] = std::stoi(argv[3]);
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -144,8 +141,7 @@ main(int argc, char ** argv)
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  auto radius = itk::MakeFilled<NeighborhoodIteratorType::RadiusType>(1);
   NeighborhoodIteratorType it(radius, input, input->GetRequestedRegion());
 
   it.SetLocation(index);
@@ -167,13 +163,12 @@ main(int argc, char ** argv)
   bool flag = true;
   while (flag == true)
   {
-    NeighborhoodIteratorType::OffsetType nextMove;
-    nextMove.Fill(0);
+    NeighborhoodIteratorType::OffsetType nextMove{};
 
     flag = false;
 
     PixelType min = it.GetCenterPixel();
-    for (unsigned i = 0; i < it.Size(); i++)
+    for (unsigned int i = 0; i < it.Size(); ++i)
     {
       if (it.GetPixel(i) < min)
       {
@@ -215,13 +210,13 @@ main(int argc, char ** argv)
   using RescaleFilterType =
     itk::RescaleIntensityImageFilter<ImageType, WriteImageType>;
 
-  RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  auto rescaler = RescaleFilterType::New();
 
   rescaler->SetOutputMinimum(0);
   rescaler->SetOutputMaximum(255);
   rescaler->SetInput(input);
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[1]);
   writer->SetInput(rescaler->GetOutput());
   try

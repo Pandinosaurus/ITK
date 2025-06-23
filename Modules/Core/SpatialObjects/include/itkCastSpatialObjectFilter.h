@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,23 +21,23 @@
 
 #include <list>
 
-#include <itkSpatialObject.h>
+#include "itkSpatialObject.h"
 
-#include <itkArrowSpatialObject.h>
-#include <itkBlobSpatialObject.h>
-#include <itkBoxSpatialObject.h>
-#include <itkContourSpatialObject.h>
-#include <itkEllipseSpatialObject.h>
-#include <itkGaussianSpatialObject.h>
-#include <itkGroupSpatialObject.h>
-#include <itkImageMaskSpatialObject.h>
-#include <itkImageSpatialObject.h>
-#include <itkLandmarkSpatialObject.h>
-#include <itkLineSpatialObject.h>
-#include <itkPointBasedSpatialObject.h>
-#include <itkPolygonSpatialObject.h>
-#include <itkSurfaceSpatialObject.h>
-#include <itkTubeSpatialObject.h>
+#include "itkArrowSpatialObject.h"
+#include "itkBlobSpatialObject.h"
+#include "itkBoxSpatialObject.h"
+#include "itkContourSpatialObject.h"
+#include "itkEllipseSpatialObject.h"
+#include "itkGaussianSpatialObject.h"
+#include "itkGroupSpatialObject.h"
+#include "itkImageMaskSpatialObject.h"
+#include "itkImageSpatialObject.h"
+#include "itkLandmarkSpatialObject.h"
+#include "itkLineSpatialObject.h"
+#include "itkPointBasedSpatialObject.h"
+#include "itkPolygonSpatialObject.h"
+#include "itkSurfaceSpatialObject.h"
+#include "itkTubeSpatialObject.h"
 
 namespace itk
 {
@@ -46,7 +46,7 @@ namespace itk
  * \brief This filter casts one spatialobject to another, when the class
  * hierarchy supports it (e.g., Tube to PointBased).
  * Particularly useful in Python where casting objects without public
- * contructors (e.g., objects managed by smartpointers) is problematic.
+ * constructors (e.g., objects managed by smartpointers) is problematic.
  * \ingroup ITKSpatialObjects
  */
 
@@ -64,7 +64,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(CastSpatialObjectFilter, Object);
+  itkOverrideGetNameOfClassMacro(CastSpatialObjectFilter);
 
   using InputSpatialObjectType = SpatialObject<ObjectDimension>;
 
@@ -77,15 +77,15 @@ public:
   std::list<typename OutputSpatialObjectT::Pointer> *
   GetOutput() const
   {
-    typedef OutputSpatialObjectT                       OutObjectType;
-    typedef std::list<typename OutObjectType::Pointer> OutListType;
+    using OutObjectType = OutputSpatialObjectT;
+    using OutListType = std::list<typename OutObjectType::Pointer>;
 
     auto * outputList = new OutListType;
 
     auto * obj = dynamic_cast<OutObjectType *>(m_Input.GetPointer());
     if (obj != nullptr)
     {
-      typename OutObjectType::Pointer sObj = OutObjectType::New();
+      auto sObj = OutObjectType::New();
       sObj = obj;
       outputList->push_back(sObj);
     }
@@ -96,7 +96,7 @@ public:
       obj = dynamic_cast<OutObjectType *>(it->GetPointer());
       if (obj != nullptr)
       {
-        typename OutObjectType::Pointer sObj = OutObjectType::New();
+        auto sObj = OutObjectType::New();
         sObj = obj;
         outputList->push_back(sObj);
       }
@@ -229,7 +229,7 @@ protected:
 
 
 private:
-  typename InputSpatialObjectType::Pointer m_Input;
+  typename InputSpatialObjectType::Pointer m_Input{};
 
 }; // End class CastSpatialObjectFilter
 

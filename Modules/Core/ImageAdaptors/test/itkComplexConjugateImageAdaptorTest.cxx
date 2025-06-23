@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkComplexConjugateImageAdaptor.h"
 #include "itkImageRegionIterator.h"
+#include <random>
 
 
 using PixelType = std::complex<float>;
@@ -28,26 +29,24 @@ int
 itkComplexConjugateImageAdaptorTest(int, char *[])
 {
   // Create a test image.
-  ImageType::Pointer  image = ImageType::New();
-  ImageType::SizeType size = { { 10, 10 } };
+  auto                          image = ImageType::New();
+  constexpr ImageType::SizeType size = { { 10, 10 } };
   image->SetRegions(size);
   image->Allocate();
-  ImageType::RegionType region = image->GetLargestPossibleRegion();
+  const ImageType::RegionType region = image->GetLargestPossibleRegion();
 
-  srand(50L);
+  std::mt19937                          randomNumberEngine;
+  std::uniform_real_distribution<float> randomNumberDistribution;
 
   itk::ImageRegionIterator<ImageType> iter(image, region);
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
-    auto      randMax = static_cast<float>(RAND_MAX);
-    PixelType pixel(static_cast<float>(rand()) / randMax, static_cast<float>(rand()) / randMax);
+    const PixelType pixel(randomNumberDistribution(randomNumberEngine), randomNumberDistribution(randomNumberEngine));
     iter.Set(pixel);
   }
 
-  image->FillBuffer(PixelType(2.0, -3.7));
-
   // Create adaptor.
-  AdaptorType::Pointer adaptor = AdaptorType::New();
+  auto adaptor = AdaptorType::New();
   adaptor->SetImage(image);
 
   // Iterate over the pixels and check the functioning of the adaptor.
@@ -56,8 +55,8 @@ itkComplexConjugateImageAdaptorTest(int, char *[])
 
   for (iterA.GoToBegin(), iterB.GoToBegin(); !iterA.IsAtEnd(); ++iterA, ++iterB)
   {
-    PixelType imageValue = iterA.Get();
-    PixelType adaptedValue = iterB.Get();
+    const PixelType imageValue = iterA.Get();
+    const PixelType adaptedValue = iterB.Get();
 
     // Check that the adapted value is as expected.
     if (imageValue != std::conj(adaptedValue))
@@ -69,7 +68,7 @@ itkComplexConjugateImageAdaptorTest(int, char *[])
 
     // Try setting the value and reading it again.
     iterB.Set(adaptedValue);
-    PixelType newValue = iterB.Get();
+    const PixelType newValue = iterB.Get();
     if (adaptedValue != newValue)
     {
       std::cerr << "Setting adapted pixel value failed." << std::endl;

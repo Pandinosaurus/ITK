@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,15 +26,9 @@
 namespace itk
 {
 // Default constructor
-SiemensVisionImageIO::SiemensVisionImageIO()
-{
-  // Purposefully left blank
-}
+SiemensVisionImageIO::SiemensVisionImageIO() = default;
 
-SiemensVisionImageIO::~SiemensVisionImageIO()
-{
-  // Purposefully left blank
-}
+SiemensVisionImageIO::~SiemensVisionImageIO() = default;
 
 bool
 SiemensVisionImageIO::CanReadFile(const char * FileNameToRead)
@@ -47,11 +41,11 @@ SiemensVisionImageIO::CanReadFile(const char * FileNameToRead)
   {
     this->OpenFileForReading(f, FileNameToRead);
   }
-  catch (ExceptionObject &)
+  catch (const ExceptionObject &)
   {
     return false;
   }
-  int matrixX;
+  int matrixX = 0;
   //
   // another lame heuristic, check the actual file size against
   // the image size suggested in header + the header size.
@@ -60,7 +54,7 @@ SiemensVisionImageIO::CanReadFile(const char * FileNameToRead)
     return false;
   }
 
-  if ((HDR_TOTAL_LENGTH + (matrixX * matrixX * 2)) != (int)itksys::SystemTools::FileLength(FileNameToRead))
+  if ((HDR_TOTAL_LENGTH + (matrixX * matrixX * 2)) != static_cast<int>(itksys::SystemTools::FileLength(FileNameToRead)))
   {
     return false;
   }
@@ -75,17 +69,15 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   {
     RAISE_EXCEPTION();
   }
-  int    tmpInt;
-  double tmpDble;
 
   // #define DEBUGHEADER
 #if defined(DEBUGHEADER)
-#  define DB(x) std::cerr << #  x << " " << x << std::endl
+#  define DB(x) std::cerr << #x << ' ' << x << std::endl
 #else
 #  define DB(x)
 #endif
 
-#define GE_PROD_STR "SIEMENS"
+// #define GE_PROD_STR "SIEMENS"
 #define TEMPLEN 2048
   auto * hdr = new GEImageHeader;
   if (hdr == nullptr)
@@ -99,7 +91,7 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   std::ifstream f;
   this->OpenFileForReading(f, FileNameToRead);
 
-  sprintf(hdr->scanner, "GE-ADW");
+  snprintf(hdr->scanner, sizeof(hdr->scanner), "GE-ADW");
 
   // Set modality to UNKNOWN
   strcpy(hdr->modality, "UNK");
@@ -116,21 +108,20 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   hdr->name[HDR_PAT_NAME_LEN] = '\0';
   DB(hdr->name);
 
-  int year, month, day, hour, minute, second;
-
+  int year = 0;
   this->GetIntAt(f, HDR_REG_YEAR, &year);
-
+  int month = 0;
   this->GetIntAt(f, HDR_REG_MONTH, &month);
-
+  int day = 0;
   this->GetIntAt(f, HDR_REG_DAY, &day);
-
+  int hour = 0;
   this->GetIntAt(f, HDR_REG_HOUR, &hour);
-
+  int minute = 0;
   this->GetIntAt(f, HDR_REG_MIN, &minute);
-
+  int second = 0;
   this->GetIntAt(f, HDR_REG_SEC, &second);
 
-  sprintf(hdr->date, "%d/%d/%d %d:%d:%d", year, month, day, hour, minute, second);
+  snprintf(hdr->date, sizeof(hdr->date), "%d/%d/%d %d:%d:%d", year, month, day, hour, minute, second);
   DB(hdr->date);
 
   this->GetStringAt(f, HDR_INSTUTE_NAME, hdr->hospital, HDR_INSTUTE_NAME_LEN);
@@ -140,7 +131,7 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   this->GetStringAt(f, HDR_MODEL_NAME, hdr->scanner, HDR_MODEL_NAME_LEN);
   hdr->scanner[HDR_MODEL_NAME_LEN] = '\0';
   DB(hdr->scanner);
-  for (unsigned int i = 0; i < strlen(hdr->scanner); i++)
+  for (unsigned int i = 0; i < strlen(hdr->scanner); ++i)
   {
     if (hdr->scanner[i] == ' ')
     {
@@ -149,8 +140,6 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   }
 
   char tmpStr[TEMPLEN];
-  char tmpStr2[TEMPLEN];
-
   this->GetStringAt(f, TEXT_STUDY_NUM2, tmpStr, TEXT_STUDY_NUM2_LEN);
   tmpStr[TEXT_STUDY_NUM2_LEN] = '\0';
   hdr->seriesNumber = std::stoi(tmpStr);
@@ -167,11 +156,11 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   hdr->sliceGap = 0.0f;
 
   DB(hdr->sliceThickness);
-
+  int tmpInt = 0;
   this->GetIntAt(f, HDR_DISPLAY_SIZE, &tmpInt, sizeof(int));
-  hdr->imageXsize = (int)tmpInt;
+  hdr->imageXsize = static_cast<int>(tmpInt);
   DB(hdr->imageXsize);
-  hdr->imageYsize = (int)tmpInt;
+  hdr->imageYsize = static_cast<int>(tmpInt);
   DB(hdr->imageYsize);
 
   this->GetStringAt(f, TEXT_ACQ_MTRX_FREQ, tmpStr, TEXT_ACQ_MTRX_FREQ_LEN);
@@ -194,17 +183,19 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
   hdr->yFOV = static_cast<float>(std::stod(tmpStr));
   DB(hdr->yFOV);
 
+  double tmpDble = NAN;
   this->GetDoubleAt(f, HDR_PIXELSIZE_ROW, &tmpDble, sizeof(double));
-  hdr->imageXres = (float)tmpDble;
+  hdr->imageXres = static_cast<float>(tmpDble);
   DB(hdr->imageXres);
 
   this->GetDoubleAt(f, HDR_PIXELSIZE_CLMN, &tmpDble, sizeof(double));
-  hdr->imageYres = (float)tmpDble;
+  hdr->imageYres = static_cast<float>(tmpDble);
   DB(hdr->imageYres);
 
   this->GetStringAt(f, TEXT_ANGLE_FLAG1, tmpStr, TEXT_ANGLE_FLAG1_LEN);
   tmpStr[TEXT_ANGLE_FLAG1_LEN] = '\0';
 
+  char tmpStr2[TEMPLEN];
   this->GetStringAt(f, TEXT_ANGLE_FLAG3, tmpStr2, TEXT_ANGLE_FLAG3_LEN);
   tmpStr2[TEXT_ANGLE_FLAG3_LEN] = '\0';
 
@@ -220,72 +211,72 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
                        text_angle_len.end()); // Remove all whitespace
   if (strcmp(tmpStr, "Cor") == 0)
   {
-    if (text_angle_len.empty() || std::fabs(std::stod(text_angle_len)) <= 45.0)
+    if (text_angle_len.empty() || itk::Math::abs(std::stod(text_angle_len)) <= 45.0)
     {
       // hdr->imagePlane = itk::IOCommon::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+      hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RSP);
     }
     else
     {
       if (strcmp(tmpStr2, "Sag") == 0)
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::AIR);
       }
       else
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RAI);
       }
     }
   }
   else if (strcmp(tmpStr, "Sag") == 0)
   {
-    if (text_angle_len.empty() || std::fabs(std::stod(text_angle_len)) <= 45.0)
+    if (text_angle_len.empty() || itk::Math::abs(std::stod(text_angle_len)) <= 45.0)
     {
       // hdr->imagePlane =
-      // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR;
+      // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
+      hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::AIR);
     }
     else
     {
       if (strcmp(tmpStr2, "Cor") == 0)
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RSP);
       }
       else
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RAI);
       }
     }
   }
   else
   {
-    if (text_angle_len.empty() || std::fabs(std::stod(text_angle_len)) <= 45.0)
+    if (text_angle_len.empty() || itk::Math::abs(std::stod(text_angle_len)) <= 45.0)
     {
       // hdr->imagePlane =
-      // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
-      hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI;
+      // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_TRANSVERSE;
+      hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RAI);
     }
     else
     {
       if (strcmp(tmpStr2, "Cor") == 0)
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSP;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_CORONAL;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::RSP);
       }
       else
       {
         // hdr->imagePlane =
-        // itk::SpatialOrientation::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
-        hdr->coordinateOrientation = itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIR;
+        // itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_ANALYZE_ORIENTATION_IRP_SAGITTAL;
+        hdr->coordinateOrientation = AnatomicalOrientation(itk::AnatomicalOrientation::NegativeEnum::AIR);
       }
     }
   }
@@ -298,24 +289,24 @@ SiemensVisionImageIO::ReadHeader(const char * FileNameToRead)
 
   /* fprintf(stderr, "Slice Location %f\n", hdr->sliceLocation); */
   this->GetDoubleAt(f, HDR_TR, &tmpDble, sizeof(double));
-  hdr->TR = (float)tmpDble / 1000.0f;
+  hdr->TR = static_cast<float>(tmpDble) / 1000.0f;
   DB(hdr->TR);
 
   this->GetDoubleAt(f, HDR_TE + 8, &tmpDble, sizeof(double));
-  hdr->TI = (float)tmpDble / 1000.0f;
+  hdr->TI = static_cast<float>(tmpDble) / 1000.0f;
   DB(hdr->TI);
 
   this->GetDoubleAt(f, HDR_TE, &tmpDble, sizeof(double));
-  hdr->TE = (float)tmpDble / 1000.0f;
+  hdr->TE = static_cast<float>(tmpDble) / 1000.0f;
   DB(hdr->TE);
 
   this->GetStringAt(f, TEXT_ECHO_NUM, tmpStr, TEXT_ECHO_NUM_LEN);
   tmpStr[TEXT_ECHO_NUM_LEN] = '\0';
-  hdr->echoNumber = (int)std::stoi(tmpStr);
+  hdr->echoNumber = static_cast<int>(std::stoi(tmpStr));
   DB(hdr->echoNumber);
 
   this->GetDoubleAt(f, HDR_FLIP_ANGLE, &tmpDble, sizeof(double));
-  hdr->flipAngle = (int)tmpDble;
+  hdr->flipAngle = static_cast<int>(tmpDble);
   DB(hdr->flipAngle);
 
   this->GetStringAt(f, HDR_SEQPROG_NAME, hdr->pulseSequence, HDR_SEQPROG_NAME_LEN);

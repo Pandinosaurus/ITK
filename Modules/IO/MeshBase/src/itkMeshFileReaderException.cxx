@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,17 +21,10 @@ namespace itk
 {
 MeshFileReaderException::~MeshFileReaderException() noexcept = default;
 
-MeshFileReaderException::MeshFileReaderException(const char * file,
+MeshFileReaderException::MeshFileReaderException(std::string  file,
                                                  unsigned int line,
-                                                 const char * message,
-                                                 const char * loc)
-  : ExceptionObject(file, line, message, loc)
-{}
-
-MeshFileReaderException::MeshFileReaderException(const std::string & file,
-                                                 unsigned int        line,
-                                                 const char *        message,
-                                                 const char *        loc)
-  : ExceptionObject(file, line, message, loc)
+                                                 std::string  message,
+                                                 std::string  location)
+  : ExceptionObject(std::move(file), line, std::move(message), std::move(location))
 {}
 } // namespace itk

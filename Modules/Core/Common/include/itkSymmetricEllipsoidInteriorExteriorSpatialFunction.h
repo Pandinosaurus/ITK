@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,23 +52,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time information. */
-  itkTypeMacro(SymmetricEllipsoidInteriorExteriorSpatialFunction, InteriorExteriorSpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SymmetricEllipsoidInteriorExteriorSpatialFunction);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Evaluates the function at a given position. */
   OutputType
   Evaluate(const InputType & position) const override;
 
   /** Get and set the center of the ellipsoid. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Center, InputType);
   itkSetMacro(Center, InputType);
-
+  /** @ITKEndGrouping */
   /** Set the orientation vector of the ellipsoid's unique axis and axes lengths.
    * Must be normalized!!!!! */
   void
@@ -83,7 +84,7 @@ protected:
 
 private:
   /** The center of the ellipsoid. */
-  InputType m_Center;
+  InputType m_Center{};
 
   /** The unique axis length of the ellipsoid. */
   double m_UniqueAxis{ 10 };
@@ -92,7 +93,7 @@ private:
   double m_SymmetricAxes{ 5 };
 
   /** The orientation vector of the ellipsoid's unique axis. */
-  Vector<double, VDimension> m_Orientation;
+  Vector<double, VDimension> m_Orientation{};
 
   /** The vector ratio. */
   double m_VectorRatio{ 0.0 };

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,18 +59,18 @@ itkImageFilterToVideoFilterWrapperTest(int argc, char * argv[])
   using VideoReaderType = itk::VideoFileReader<VideoType>;
   using VideoWriterType = itk::VideoFileWriter<VideoType>;
 
-  // Register FileListIO with the factory -- shouldn't have to do this. Needs fixing
+  // Register FileListVideoIO with the factory -- shouldn't have to do this. Needs fixing
   itk::ObjectFactoryBase::RegisterFactory(itk::FileListVideoIOFactory::New());
 
   // Set up reader and writer
-  VideoReaderType::Pointer reader = VideoReaderType::New();
-  VideoWriterType::Pointer writer = VideoWriterType::New();
+  auto reader = VideoReaderType::New();
+  auto writer = VideoWriterType::New();
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[2]);
 
   // Instantiate a new video filter and an image filter
-  GaussianImageFilterType::Pointer imgGauss = GaussianImageFilterType::New();
-  GaussianVideoFilterType::Pointer vidGauss = GaussianVideoFilterType::New();
+  auto imgGauss = GaussianImageFilterType::New();
+  auto vidGauss = GaussianVideoFilterType::New();
 
   // Set the parameters on the image filter and plug it into the video filter
   imgGauss->SetSigma(3);
@@ -88,9 +88,9 @@ itkImageFilterToVideoFilterWrapperTest(int argc, char * argv[])
   //
   using ImageReaderType = itk::ImageFileReader<FrameType>;
   using DifferenceFilterType = itk::Testing::ComparisonImageFilter<FrameType, FrameType>;
-  ImageReaderType::Pointer      imReader1 = ImageReaderType::New();
-  ImageReaderType::Pointer      imReader2 = ImageReaderType::New();
-  DifferenceFilterType::Pointer differ = DifferenceFilterType::New();
+  auto imReader1 = ImageReaderType::New();
+  auto imReader2 = ImageReaderType::New();
+  auto differ = DifferenceFilterType::New();
 
   imgGauss->SetInput(imReader1->GetOutput());
   differ->SetValidInput(imgGauss->GetOutput());

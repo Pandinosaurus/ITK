@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -136,40 +136,15 @@ namespace itk
  *  FiniteDifferenceFunction to use for calculations.  This is set using the
  *  method SetDifferenceFunction in the parent class.
  *
- * \par REFERENCES
- * Whitaker, Ross. A Level-Set Approach to 3D Reconstruction from Range Data.
- * International Journal of Computer Vision.  V. 29 No. 3, 203-231. 1998.
+ * For algorithmic details see \cite whitaker1998 and \cite sethian1996.
  *
- * \par
- * Sethian, J.A. Level Set Methods. Cambridge University Press. 1996.
- *
- *
- *
- * This code was adapted from the paper
- *
- *        "An active contour model without edges"
- *         T. Chan and L. Vese.
- *         In Scale-Space Theories in Computer Vision, pages 141-151, 1999.
+ * This code was adapted from \cite chan1999.
  *
  * \author Mosaliganti K., Smith B., Gelas A., Gouaillard A., Megason S.
  *
- *  This code was taken from the Insight Journal paper:
- *
- *      "Cell Tracking using Coupled Active Surfaces for Nuclei and Membranes"
- *      http://www.insight-journal.org/browse/publication/642
- *      https://hdl.handle.net/10380/3055
- *
- *  That is based on the papers:
- *
- *      "Level Set Segmentation: Active Contours without edge"
- *      http://www.insight-journal.org/browse/publication/322
- *      https://hdl.handle.net/1926/1532
- *
- *      and
- *
- *      "Level set segmentation using coupled active surfaces"
- *      http://www.insight-journal.org/browse/publication/323
- *      https://hdl.handle.net/1926/1533
+ *  This code was taken from the Insight Journal paper \cite Mosaliganti_2009_c
+ *  that is based on the papers \cite Mosaliganti_2009_a and
+ *  \cite  Mosaliganti_2009_b.
  *
  * \ingroup ITKReview
  */
@@ -194,47 +169,47 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiphaseSparseFiniteDifferenceImageFilter, MultiphaseFiniteDifferenceImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MultiphaseSparseFiniteDifferenceImageFilter);
 
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /**Typedefs from the superclass */
-  using TimeStepType = typename Superclass::TimeStepType;
+  using typename Superclass::TimeStepType;
 
   /** Information derived from the image types. */
-  using InputImageType = typename Superclass::InputImageType;
-  using InputImagePointer = typename Superclass::InputImagePointer;
-  using InputRegionType = typename Superclass::InputRegionType;
-  using InputSizeType = typename Superclass::InputSizeType;
-  using InputSizeValueType = typename Superclass::InputSizeValueType;
-  using InputIndexType = typename Superclass::InputIndexType;
-  using InputIndexValueType = typename Superclass::InputIndexValueType;
-  using InputPixelType = typename Superclass::InputPixelType;
-  using InputPointType = typename Superclass::InputPointType;
-  using InputSpacingType = typename Superclass::InputSpacingType;
-  using InputOffsetValueType = typename Superclass::InputOffsetValueType;
+  using typename Superclass::InputImageType;
+  using typename Superclass::InputImagePointer;
+  using typename Superclass::InputRegionType;
+  using typename Superclass::InputSizeType;
+  using typename Superclass::InputSizeValueType;
+  using typename Superclass::InputIndexType;
+  using typename Superclass::InputIndexValueType;
+  using typename Superclass::InputPixelType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::InputSpacingType;
+  using typename Superclass::InputOffsetValueType;
 
-  using FeatureImageType = typename Superclass::FeatureImageType;
-  using FeatureSizeType = typename Superclass::FeatureSizeType;
-  using FeatureImagePointer = typename Superclass::FeatureImagePointer;
-  using FeatureRegionType = typename Superclass::FeatureRegionType;
-  using FeatureSpacingType = typename Superclass::FeatureSpacingType;
-  using FeaturePointType = typename Superclass::FeaturePointType;
+  using typename Superclass::FeatureImageType;
+  using typename Superclass::FeatureSizeType;
+  using typename Superclass::FeatureImagePointer;
+  using typename Superclass::FeatureRegionType;
+  using typename Superclass::FeatureSpacingType;
+  using typename Superclass::FeaturePointType;
 
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputRegionType = typename Superclass::OutputRegionType;
-  using OutputSizeType = typename Superclass::OutputSizeType;
-  using OutputIndexType = typename Superclass::OutputIndexType;
-  using OutputIndexValueType = typename Superclass::OutputIndexValueType;
-  using OutputPixelType = typename Superclass::OutputPixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputRegionType;
+  using typename Superclass::OutputSizeType;
+  using typename Superclass::OutputIndexType;
+  using typename Superclass::OutputIndexValueType;
+  using typename Superclass::OutputPixelType;
 
   using ValueType = typename InputImageType::ValueType;
-  using IdCellType = typename Superclass::IdCellType;
+  using typename Superclass::IdCellType;
 
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
-  using FiniteDifferenceFunctionPointer = typename Superclass::FiniteDifferenceFunctionPointer;
+  using typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::FiniteDifferenceFunctionPointer;
   using FiniteDifferenceFunctionFloatOffsetType = typename FiniteDifferenceFunctionType::FloatOffsetType;
 
   /** Node type used in sparse field layer lists. */
@@ -301,19 +276,15 @@ public:
 
     m_SparseData.resize(this->m_FunctionCount, nullptr);
 
-    for (IdCellType i = 0; i < this->m_FunctionCount; i++)
+    for (IdCellType i = 0; i < this->m_FunctionCount; ++i)
     {
       m_SparseData[i] = new SparseDataStruct(i);
     }
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, typename TOutputImage::PixelType>));
   itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
   MultiphaseSparseFiniteDifferenceImageFilter();
@@ -333,10 +304,10 @@ protected:
   struct SparseDataStruct
   {
     SparseDataStruct(const IdCellType & index)
+      : m_LayerNodeStore(LayerNodeStorageType::New())
+      , m_Index(index)
     {
-      m_LayerNodeStore = LayerNodeStorageType::New();
       m_LayerNodeStore->SetGrowthStrategyToExponential();
-      m_Index = index;
     }
 
     /** An array which contains all of the layers needed in the sparse
@@ -359,10 +330,10 @@ protected:
   };
 
   /** Connectivity information for examining neighbor pixels.   */
-  NeighborListType m_NeighborList;
+  NeighborListType m_NeighborList{};
 
   /** Stores the distance between pixels in the neighborhood iterator. */
-  std::vector<ValueType> m_PixelDistance;
+  std::vector<ValueType> m_PixelDistance{};
 
   /**This function allows a subclass to override the way in which updates to
    * output values are applied during each iteration.  The default simply
@@ -519,34 +490,34 @@ protected:
       meaningful status. */
   static const StatusType m_StatusNull;
 
-  std::vector<SparseDataStruct *> m_SparseData;
+  std::vector<SparseDataStruct *> m_SparseData{};
 
   /** The number of layers to use in the sparse field.  Sparse field will
    * consist of m_NumberOfLayers layers on both sides of a single active layer.
    * This active layer is the interface of interest, i.e. the zero level set. */
-  unsigned int m_NumberOfLayers;
+  unsigned int m_NumberOfLayers{};
 
   /** The value in the input which represents the isosurface of interest. */
-  ValueType m_IsoSurfaceValue;
+  ValueType m_IsoSurfaceValue{};
 
   /** The value of the pixel outside the sparse layers */
-  ValueType m_BackgroundValue;
+  ValueType m_BackgroundValue{};
 
   /** This flag tells the solver whether or not to interpolate for the actual
       surface location when calculating change at each active layer node.  By
       default this is turned on. Subclasses which do not sample propagation
       (speed), advection, or curvature terms should turn this flag off. */
-  bool m_InterpolateSurfaceLocation;
+  bool m_InterpolateSurfaceLocation{};
 
 private:
-  unsigned int m_CurrentFunctionIndex;
+  unsigned int m_CurrentFunctionIndex{};
 
   double       m_RMSSum{ 0. };
   unsigned int m_RMSCounter{ 0 };
 
   /** This flag is true when methods need to check boundary conditions and
       false when methods do not need to check for boundary conditions. */
-  bool m_BoundsCheckingActive;
+  bool m_BoundsCheckingActive{};
 };
 } // end namespace itk
 

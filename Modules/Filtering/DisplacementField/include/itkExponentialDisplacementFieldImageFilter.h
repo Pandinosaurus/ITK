@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ namespace itk
  * \author Tom Vercauteren, INRIA & Mauna Kea Technologies
  *
  * This implementation was taken from the Insight Journal paper:
- * https://www.insight-journal.org/browse/publication/154
+ * https://doi.org/10.54294/ux2obj
  *
  * \ingroup ITKDisplacementField
  */
@@ -73,8 +73,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExponentialDisplacementFieldImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExponentialDisplacementFieldImageFilter);
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -88,40 +88,39 @@ public:
   using OutputPixelType = typename OutputImageType::PixelType;
 
   /** Specify the maximum number of iteration. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumNumberOfIterations, unsigned int);
   itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
-
+  /** @ITKEndGrouping */
   /** If AutomaticNumberOfIterations is off, the number of iterations is
    * given by MaximumNumberOfIterations. If it is on, we try to get
    * the lowest good number (which may not be larger than
    * MaximumNumberOfIterations ) */
+  /** @ITKStartGrouping */
   itkSetMacro(AutomaticNumberOfIterations, bool);
   itkGetConstMacro(AutomaticNumberOfIterations, bool);
   itkBooleanMacro(AutomaticNumberOfIterations);
-
+  /** @ITKEndGrouping */
   /** If ComputeInverse is on, the filter will compute the exponential
    * of the opposite (minus) of the input vector field. The output displacement
    * fields computed with ComputeInverse set to on and off respectively
    * therefore represent spatial transformations that are inverses of
    * each other. */
+  /** @ITKStartGrouping */
   itkSetMacro(ComputeInverse, bool);
   itkGetConstMacro(ComputeInverse, bool);
   itkBooleanMacro(ComputeInverse);
-
+  /** @ITKEndGrouping */
   /** Image dimension. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int PixelDimension = InputPixelType::Dimension;
   static constexpr unsigned int OutputPixelDimension = OutputPixelType::Dimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(OutputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename OutputPixelType::ValueType>));
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<ImageDimension, PixelDimension>));
   itkConceptMacro(SameDimensionCheck3, (Concept::SameDimension<ImageDimension, OutputPixelDimension>));
-  // End concept checking
-#endif
 
 protected:
   ExponentialDisplacementFieldImageFilter();
@@ -157,15 +156,15 @@ protected:
   using AdderPointer = typename AdderType::Pointer;
 
 private:
-  bool         m_AutomaticNumberOfIterations;
-  unsigned int m_MaximumNumberOfIterations;
+  bool         m_AutomaticNumberOfIterations{};
+  unsigned int m_MaximumNumberOfIterations{};
 
-  bool m_ComputeInverse;
+  bool m_ComputeInverse{};
 
-  DivideByConstantPointer m_Divider;
-  CasterPointer           m_Caster;
-  VectorWarperPointer     m_Warper;
-  AdderPointer            m_Adder;
+  DivideByConstantPointer m_Divider{};
+  CasterPointer           m_Caster{};
+  VectorWarperPointer     m_Warper{};
+  AdderPointer            m_Adder{};
 };
 } // end namespace itk
 

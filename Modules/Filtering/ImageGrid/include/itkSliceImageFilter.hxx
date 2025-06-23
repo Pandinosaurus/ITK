@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@
 #ifndef itkSliceImageFilter_hxx
 #define itkSliceImageFilter_hxx
 
-#include "itkSliceImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMath.h"
 #include "itkContinuousIndex.h"
@@ -64,9 +63,8 @@ template <class TInputImage, class TOutputImage>
 void
 SliceImageFilter<TInputImage, TOutputImage>::SetStart(typename TInputImage::IndexType::IndexValueType start)
 {
-  unsigned int j;
 
-  for (j = 0; j < ImageDimension; ++j)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (start != m_Start[j])
     {
@@ -82,9 +80,8 @@ template <class TInputImage, class TOutputImage>
 void
 SliceImageFilter<TInputImage, TOutputImage>::SetStop(typename TInputImage::IndexType::IndexValueType stop)
 {
-  unsigned int j;
 
-  for (j = 0; j < ImageDimension; ++j)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (stop != m_Stop[j])
     {
@@ -100,9 +97,8 @@ template <class TInputImage, class TOutputImage>
 void
 SliceImageFilter<TInputImage, TOutputImage>::SetStep(int step)
 {
-  unsigned int j;
 
-  for (j = 0; j < ImageDimension; ++j)
+  for (unsigned int j = 0; j < ImageDimension; ++j)
   {
     if (step != m_Step[j])
     {
@@ -119,8 +115,8 @@ void
 SliceImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   const OutputImageRegionType & outputRegionForThread)
 {
-  InputImageConstPointer inputPtr = this->GetInput();
-  OutputImagePointer     outputPtr = this->GetOutput();
+  const InputImageConstPointer inputPtr = this->GetInput();
+  const OutputImagePointer     outputPtr = this->GetOutput();
 
   TotalProgressReporter progress(this, outputPtr->GetRequestedRegion().GetNumberOfPixels());
 
@@ -131,18 +127,16 @@ SliceImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
   InputIndexType start;
   for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
-    start[i] = std::max(m_Start[i], inputIndex[i]);
-    start[i] = std::min(start[i], static_cast<IndexValueType>(inputIndex[i] + inputSize[i] - 1));
+    start[i] = std::clamp(m_Start[i], inputIndex[i], static_cast<IndexValueType>(inputIndex[i] + inputSize[i] - 1));
   }
 
   // Define/declare an iterator that will walk the output region for this thread
   using OutputIterator = ImageRegionIteratorWithIndex<TOutputImage>;
-  OutputIterator outIt(outputPtr, outputRegionForThread);
 
   OutputIndexType destIndex;
   InputIndexType  srcIndex;
 
-  while (!outIt.IsAtEnd())
+  for (OutputIterator outIt(outputPtr, outputRegionForThread); !outIt.IsAtEnd(); ++outIt)
   {
     // Determine the index and physical location of the output pixel
     destIndex = outIt.GetIndex();
@@ -154,7 +148,6 @@ SliceImageFilter<TInputImage, TOutputImage>::DynamicThreadedGenerateData(
 
     // Copy the input pixel to the output
     outIt.Set(inputPtr->GetPixel(srcIndex));
-    ++outIt;
     progress.CompletedPixel();
   }
 }
@@ -167,8 +160,8 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 
 
   // Get pointers to the input and output
-  InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
-  OutputImagePointer outputPtr = this->GetOutput();
+  const InputImagePointer  inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const OutputImagePointer outputPtr = this->GetOutput();
 
   const typename TOutputImage::SizeType &  outputRequestedRegionSize = outputPtr->GetRequestedRegion().GetSize();
   const typename TOutputImage::IndexType & outputRequestedRegionStartIndex = outputPtr->GetRequestedRegion().GetIndex();
@@ -182,13 +175,11 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   {
     // clamp to valid index range and don't include one past end, so
     // that a zero size RR would be valid
-    start[i] = std::max(m_Start[i], inputIndex[i]);
-    start[i] = std::min(start[i], static_cast<IndexValueType>(inputIndex[i] + inputSize[i] - 1));
+    start[i] = std::clamp(m_Start[i], inputIndex[i], static_cast<IndexValueType>(inputIndex[i] + inputSize[i] - 1));
   }
 
 
-  typename TInputImage::SizeType inputRequestedRegionSize;
-  inputRequestedRegionSize.Fill(0);
+  typename TInputImage::SizeType inputRequestedRegionSize{};
   for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     if (outputRequestedRegionSize[i] > 0)
@@ -210,9 +201,7 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   }
 
 
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion.SetIndex(inputRequestedRegionIndex);
-  inputRequestedRegion.SetSize(inputRequestedRegionSize);
+  const typename TInputImage::RegionType inputRequestedRegion(inputRequestedRegionIndex, inputRequestedRegionSize);
 
   // test if input RR is completely inside input largest region
   if (inputRequestedRegion.GetNumberOfPixels() > 0 &&
@@ -234,8 +223,8 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   Superclass::GenerateOutputInformation();
 
   // Get pointers to the input and output
-  InputImageConstPointer inputPtr = this->GetInput();
-  OutputImagePointer     outputPtr = this->GetOutput();
+  const InputImageConstPointer inputPtr = this->GetInput();
+  const OutputImagePointer     outputPtr = this->GetOutput();
 
   // Compute the output spacing, the output image size, and the
   // output image start index
@@ -247,21 +236,22 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   typename TOutputImage::SpacingType outputSpacing;
   typename TOutputImage::SizeType    outputSize;
 
-  typename TOutputImage::IndexType outputStartIndex;
-  outputStartIndex.Fill(0);
-
   for (unsigned int i = 0; i < TOutputImage::ImageDimension; ++i)
   {
     outputSpacing[i] = inputSpacing[i] * itk::Math::abs(m_Step[i]);
 
     // clamp start, inclusive start interval
-    IndexValueType start = std::max(m_Start[i], inputIndex[i] - int(m_Step[i] < 0));
-    start = std::min(start, static_cast<IndexValueType>(inputIndex[i] + inputSize[i]) - int(m_Step[i] < 0));
+    const IndexValueType start =
+      std::clamp(m_Start[i],
+                 inputIndex[i] - static_cast<int>(m_Step[i] < 0),
+                 static_cast<IndexValueType>(inputIndex[i] + inputSize[i]) - static_cast<int>(m_Step[i] < 0));
 
     // clamp stop as open interval
     // Based on the sign of the step include 1 after the end.
-    IndexValueType stop = std::max(m_Stop[i], inputIndex[i] - int(m_Step[i] < 0));
-    stop = std::min(stop, static_cast<IndexValueType>(inputIndex[i] + inputSize[i]) - int(m_Step[i] < 0));
+    const IndexValueType stop =
+      std::clamp(m_Stop[i],
+                 inputIndex[i] - static_cast<int>(m_Step[i] < 0),
+                 static_cast<IndexValueType>(inputIndex[i] + inputSize[i]) - static_cast<int>(m_Step[i] < 0));
 
     // If both the numerator and the denominator have the same sign,
     // then the range is a valid and non-zero sized. Truncation is the
@@ -299,9 +289,8 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
   outputPtr->SetOrigin(outputOrigin);
 
   // Set region
-  typename TOutputImage::RegionType outputLargestPossibleRegion;
-  outputLargestPossibleRegion.SetSize(outputSize);
-  outputLargestPossibleRegion.SetIndex(outputStartIndex);
+
+  const typename TOutputImage::RegionType outputLargestPossibleRegion(outputSize);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 }
@@ -309,7 +298,7 @@ SliceImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 
 template <class TInputImage, class TOutputImage>
 void
-SliceImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CONST
+SliceImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() const
 {
 
   Superclass::VerifyInputInformation();
@@ -318,7 +307,7 @@ SliceImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() ITKv5_CONS
   {
     if (m_Step[i] == 0)
     {
-      itkExceptionMacro("Step size is zero " << m_Step << "!");
+      itkExceptionMacro("Step size is zero " << m_Step << '!');
     }
   }
 }

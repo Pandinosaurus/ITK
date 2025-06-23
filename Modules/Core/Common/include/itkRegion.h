@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,6 +65,8 @@ namespace itk
 class ITKCommon_EXPORT Region
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(Region);
+
   /** Standard class type aliases. */
   using Self = Region;
 
@@ -75,12 +77,12 @@ public:
   static constexpr RegionEnum ITK_STRUCTURED_REGION = RegionEnum::ITK_STRUCTURED_REGION;
 #endif
 
-  /** Standard part of all itk objects. */
-  itkTypeMacroNoParent(Region);
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(Region);
 
   /** Subclasses must return a region type describing whether the region
    * is structured or unstructured. */
-  virtual RegionEnum
+  [[nodiscard]] virtual RegionEnum
   GetRegionType() const = 0;
 
   /** Print the region. */

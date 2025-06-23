@@ -30,7 +30,7 @@ public:
   void
   Aprod1(unsigned int m, unsigned int n, const double * x, double * y) const override
   {
-    vnl_vector_ref<double> x_ref(n, const_cast<double *>(x));
+    const vnl_vector_ref<double> x_ref(n, const_cast<double *>(x));
     vnl_vector_ref<double> y_ref(m, y);
 
     vnl_vector_ref<double> tmp(m, rw);
@@ -49,7 +49,7 @@ public:
   Aprod2(unsigned int m, unsigned int n, double * x, const double * y) const override
   {
     vnl_vector_ref<double> x_ref(n, x);
-    vnl_vector_ref<double> y_ref(m, const_cast<double *>(y));
+    const vnl_vector_ref<double> y_ref(m, const_cast<double *>(y));
 
     vnl_vector_ref<double> tmp(n, this->rw);
     this->ls_->transpose_multiply(y_ref, tmp);
@@ -123,23 +123,17 @@ vnl_lsqr::aprod_(const long * mode,
 int
 vnl_lsqr::minimize(vnl_vector<double> & result)
 {
-  long m = ls_->get_number_of_residuals();
-  long n = ls_->get_number_of_unknowns();
-  double damp = 0;
+  const long m = ls_->get_number_of_residuals();
+  const long n = ls_->get_number_of_unknowns();
+  const double damp = 0;
 
   // NOTE: rw is a scratch space used for both intermediate residual and unknown computations
   std::vector<double> rw(std::max(m, n));
-  std::vector<double> v(n);
+  const std::vector<double> v(n);
   std::vector<double> se(n);
 
-  double atol = 0;
-  double btol = 0;
-#ifdef THIS_CODE_IS_DISABLED_BECAUSE_THE_LSQR_CODE_FROM_NETLIB_WAS_COPYRIGHTED_BY_ACM
-  double conlim = 0;
-  long nout = -1;
-  double acond, rnorm, xnorm;
-#endif
-  double anorm, arnorm;
+  const double atol = 0;
+  const double btol = 0;
 
   vnl_vector<double> rhs(m);
   ls_->get_rhs(rhs);
@@ -156,50 +150,12 @@ vnl_lsqr::minimize(vnl_vector<double> & result)
 
   solver.Solve(m, n, rhs.data_block(), result.data_block());
 
-#ifdef THIS_CODE_IS_DISABLED_BECAUSE_THE_LSQR_CODE_FROM_NETLIB_WAS_COPYRIGHTED_BY_ACM
-  v3p_netlib_lsqr_(&m,
-                   &n,
-                   aprod_,
-                   &damp,
-                   &leniw,
-                   &lenrw,
-                   iw,
-                   &rw[0],
-                   rhs.data_block(),
-                   &v[0],
-                   &w[0],
-                   result.data_block(),
-                   &se[0],
-                   &atol,
-                   &btol,
-                   &conlim,
-                   &max_iter_,
-                   &nout,
-                   &return_code_,
-                   &num_iter_,
-                   &anorm,
-                   &acond,
-                   &rnorm,
-                   &arnorm,
-                   &xnorm,
-                   this);
-#endif
 
   resid_norm_estimate_ = solver.GetFinalEstimateOfNormRbar();
   result_norm_estimate_ = solver.GetFinalEstimateOfNormOfX();
   A_condition_estimate_ = solver.GetConditionNumberEstimateOfAbar();
-  return_code_ = solver.GetStoppingReason();
   num_iter_ = solver.GetNumberOfIterationsPerformed();
-  anorm = solver.GetFrobeniusNormEstimateOfAbar();
-  arnorm = solver.GetFinalEstimateOfNormOfResiduals();
-
-#ifdef THIS_CODE_IS_DISABLED_BECAUSE_THE_LSQR_CODE_FROM_NETLIB_WAS_COPYRIGHTED_BY_ACM
-  std::cerr << "A Fro norm estimate      = " << anorm << std::endl
-            << "A condition estimate     = " << acond << std::endl
-            << "Residual norm estimate   = " << rnorm << std::endl
-            << "A'(Ax - b) norm estimate = " << arnorm << std::endl
-            << "x norm estimate          = " << xnorm << std::endl;
-#endif
+  return_code_ = solver.GetStoppingReason();
 
   // We should return the return code, as translate_return_code is public and
   // it is very misleading that the return code from this function can't be fed

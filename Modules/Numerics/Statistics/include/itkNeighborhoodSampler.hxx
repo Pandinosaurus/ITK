@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,7 @@
 #ifndef itkNeighborhoodSampler_hxx
 #define itkNeighborhoodSampler_hxx
 
-#include "itkNeighborhoodSampler.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 
 template <typename TSample>
@@ -57,7 +53,6 @@ NeighborhoodSampler<TSample>::PrintSelf(std::ostream & os, Indent indent) const
   // m_Radius
   os << indent << "Radius: " << this->GetRadiusInput() << std::endl;
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

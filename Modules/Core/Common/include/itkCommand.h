@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,8 +53,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Command, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Command);
 
   /** Abstract method that defines the action to be taken by the command. */
   virtual void
@@ -89,9 +89,10 @@ public:
   ITK_DISALLOW_COPY_AND_MOVE(MemberCommand);
 
   /** pointer to a member function that takes a Object* and the event */
+  /** @ITKStartGrouping */
   using TMemberFunctionPointer = void (T::*)(Object *, const EventObject &);
   using TConstMemberFunctionPointer = void (T::*)(const Object *, const EventObject &);
-
+  /** @ITKEndGrouping */
   /** Standard class type aliases. */
   using Self = MemberCommand;
   using Pointer = SmartPointer<Self>;
@@ -99,8 +100,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MemberCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MemberCommand);
 
   /**  Set the callback function along with the object that it will
    *  be invoked on. */
@@ -124,7 +125,7 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))(caller, event);
+      (m_This->*(m_MemberFunction))(caller, event);
     }
   }
 
@@ -134,20 +135,16 @@ public:
   {
     if (m_ConstMemberFunction)
     {
-      ((*m_This).*(m_ConstMemberFunction))(caller, event);
+      (m_This->*(m_ConstMemberFunction))(caller, event);
     }
   }
 
 protected:
-  T *                         m_This;
-  TMemberFunctionPointer      m_MemberFunction;
-  TConstMemberFunctionPointer m_ConstMemberFunction;
+  T *                         m_This{ nullptr };
+  TMemberFunctionPointer      m_MemberFunction{ nullptr };
+  TConstMemberFunctionPointer m_ConstMemberFunction{ nullptr };
 
-  MemberCommand()
-    : m_This(nullptr)
-    , m_MemberFunction(nullptr)
-    , m_ConstMemberFunction(nullptr)
-  {}
+  MemberCommand() = default;
 
   ~MemberCommand() override = default;
 };
@@ -177,8 +174,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ReceptorMemberCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ReceptorMemberCommand);
 
   /**  Set the callback function along with the object that it will
    *  be invoked on. */
@@ -195,7 +192,7 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))(event);
+      (m_This->*(m_MemberFunction))(event);
     }
   }
 
@@ -205,18 +202,15 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))(event);
+      (m_This->*(m_MemberFunction))(event);
     }
   }
 
 protected:
-  T *                    m_This;
-  TMemberFunctionPointer m_MemberFunction;
+  T *                    m_This{ nullptr };
+  TMemberFunctionPointer m_MemberFunction{ nullptr };
 
-  ReceptorMemberCommand()
-    : m_This(nullptr)
-    , m_MemberFunction(nullptr)
-  {}
+  ReceptorMemberCommand() = default;
 
   ~ReceptorMemberCommand() override = default;
 };
@@ -243,8 +237,8 @@ public:
   using Self = SimpleMemberCommand;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimpleMemberCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimpleMemberCommand);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -263,7 +257,7 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))();
+      (m_This->*(m_MemberFunction))();
     }
   }
 
@@ -272,18 +266,15 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))();
+      (m_This->*(m_MemberFunction))();
     }
   }
 
 protected:
-  T *                    m_This;
-  TMemberFunctionPointer m_MemberFunction;
+  T *                    m_This{ nullptr };
+  TMemberFunctionPointer m_MemberFunction{ nullptr };
 
-  SimpleMemberCommand()
-    : m_This(nullptr)
-    , m_MemberFunction(nullptr)
-  {}
+  SimpleMemberCommand() = default;
 
   ~SimpleMemberCommand() override = default;
 };
@@ -310,8 +301,8 @@ public:
   using Self = SimpleConstMemberCommand;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SimpleConstMemberCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SimpleConstMemberCommand);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -330,7 +321,7 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))();
+      (m_This->*(m_MemberFunction))();
     }
   }
 
@@ -339,18 +330,15 @@ public:
   {
     if (m_MemberFunction)
     {
-      ((*m_This).*(m_MemberFunction))();
+      (m_This->*(m_MemberFunction))();
     }
   }
 
 protected:
-  const T *              m_This;
-  TMemberFunctionPointer m_MemberFunction;
+  const T *              m_This{ nullptr };
+  TMemberFunctionPointer m_MemberFunction{ nullptr };
 
-  SimpleConstMemberCommand()
-    : m_This(nullptr)
-    , m_MemberFunction(nullptr)
-  {}
+  SimpleConstMemberCommand() = default;
 
   ~SimpleConstMemberCommand() override = default;
 };
@@ -371,16 +359,17 @@ class ITKCommon_EXPORT CStyleCommand : public Command
 {
 public:
   /** Typedefs for C-style callbacks. */
+  /** @ITKStartGrouping */
   using FunctionPointer = void (*)(Object *, const EventObject &, void *);
   using ConstFunctionPointer = void (*)(const Object *, const EventObject &, void *);
   using DeleteDataFunctionPointer = void (*)(void *);
-
+  /** @ITKEndGrouping */
   /** Standard class type aliases. */
   using Self = CStyleCommand;
   using Pointer = SmartPointer<Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CStyleCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CStyleCommand);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -391,11 +380,12 @@ public:
   SetClientData(void * cd);
 
   /** Set the C callback function pointer to be called at Execute time. */
+  /** @ITKStartGrouping */
   void
   SetCallback(FunctionPointer f);
   void
   SetConstCallback(ConstFunctionPointer f);
-
+  /** @ITKEndGrouping */
   /** Set the callback to delete the client data. */
   void
   SetClientDataDeleteCallback(DeleteDataFunctionPointer f);
@@ -437,8 +427,8 @@ public:
 
   using FunctionObjectType = std::function<void(const EventObject &)>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FunctionCommand, Command);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FunctionCommand);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -460,7 +450,7 @@ protected:
   ~FunctionCommand() override;
 
 
-  FunctionObjectType m_FunctionObject;
+  FunctionObjectType m_FunctionObject{};
 };
 
 } // end namespace itk

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ itkGPUKernelClassMacro(GPUCastImageFilterKernel);
  * Scientific Research (NWO NRG-2010.02 and NWO 639.021.124).
  *
  * \note Imported from elastix. More information can be found in the Insight Journal
- * article: https://www.insight-journal.org/browse/publication/884
+ * article: https://doi.org/10.54294/j5h811
  *
  * \ingroup ITKGPUImageFilterBase
  */
@@ -93,8 +93,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(GPUCastImageFilter, GPUUnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(GPUCastImageFilter);
 
   /** Pixel types. */
   using InputPixelType = typename TInputImage::PixelType;

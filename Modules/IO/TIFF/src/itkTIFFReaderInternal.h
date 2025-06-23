@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,9 +40,9 @@ public:
   CanRead();
 
   int
-  Open(const char * filename);
+  Open(const char * filename, bool silent = false);
 
-  TIFF *   m_Image;
+  TIFF *   m_Image{ nullptr };
   bool     m_IsOpen;
   uint32_t m_Width;
   uint32_t m_Height;
@@ -66,6 +66,9 @@ public:
   float    m_XResolution;
   float    m_YResolution;
   uint16_t m_SampleFormat;
+
+  bool m_WarningSilence{ false };
+  bool m_ErrorSilence{ false };
 };
 
 } // namespace itk

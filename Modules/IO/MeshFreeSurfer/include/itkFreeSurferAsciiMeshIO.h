@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "ITKIOMeshFreeSurferExport.h"
 
 #include "itkMeshIOBase.h"
+#include "itkMakeUniqueForOverwrite.h"
 
 #include <fstream>
 
@@ -49,13 +50,13 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FreeSurferAsciiMeshIO, MeshIOBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FreeSurferAsciiMeshIO);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
   /** Determine if the file can be read with this MeshIO implementation.
-   * \param FileNameToRead The name of the file to test for reading.
+   * \param fileName The name of the file to test for reading.
    * \post Sets classes MeshIOBase::m_FileName variable to be FileNameToWrite
    * \return Returns true if this MeshIO can read the file specified.
    */
@@ -82,7 +83,7 @@ public:
   /*-------- This part of the interfaces deals with writing data. ----- */
 
   /** Determine if the file can be written with this MeshIO implementation.
-   * \param FileNameToWrite The name of the file to test for writing.
+   * \param fileName The name of the file to test for writing.
    * \post Sets classes MeshIOBase::m_FileName variable to be FileNameToWrite
    * \return Returns true if this MeshIO can write the file specified.
    */
@@ -114,13 +115,13 @@ protected:
   /** Write points to output stream */
   template <typename T>
   void
-  WritePoints(T * buffer, std::ofstream & outputFile, T label = itk::NumericTraits<T>::ZeroValue())
+  WritePoints(T * buffer, std::ofstream & outputFile, T label = T{})
   {
     outputFile.precision(6);
     SizeValueType index = 0;
-    for (SizeValueType ii = 0; ii < this->m_NumberOfPoints; ii++)
+    for (SizeValueType ii = 0; ii < this->m_NumberOfPoints; ++ii)
     {
-      for (unsigned int jj = 0; jj < this->m_PointDimension; jj++)
+      for (unsigned int jj = 0; jj < this->m_PointDimension; ++jj)
       {
         outputFile << std::fixed << buffer[index++] << "  ";
       }
@@ -128,39 +129,40 @@ protected:
     }
   }
 
+  /** Write cells to output stream */
   template <typename T>
   void
-  WriteCells(T * buffer, std::ofstream & outputFile, T label = itk::NumericTraits<T>::ZeroValue())
+  WriteCells(T * buffer, std::ofstream & outputFile, T label = T{})
   {
     constexpr unsigned int numberOfCellPoints = 3;
     SizeValueType          index = 0;
 
-    auto * data = new T[this->m_NumberOfCells * numberOfCellPoints];
+    const auto data = make_unique_for_overwrite<T[]>(this->m_NumberOfCells * numberOfCellPoints);
 
-    ReadCellsBuffer(buffer, data);
+    ReadCellsBuffer(buffer, data.get());
 
-    for (SizeValueType ii = 0; ii < this->m_NumberOfCells; ii++)
+    for (SizeValueType ii = 0; ii < this->m_NumberOfCells; ++ii)
     {
-      for (unsigned int jj = 0; jj < numberOfCellPoints; jj++)
+      for (unsigned int jj = 0; jj < numberOfCellPoints; ++jj)
       {
         outputFile << data[index++] << "  ";
       }
       outputFile << label << '\n';
     }
-    delete[] data;
   }
 
-  /** Read cells from a data buffer, used when writting cells */
+  /** Read cells from a data buffer, used when writing cells */
   template <typename TInput, typename TOutput>
   void
   ReadCellsBuffer(TInput * input, TOutput * output)
   {
     if (input && output)
     {
-      for (SizeValueType ii = 0; ii < this->m_NumberOfCells; ii++)
+      for (SizeValueType ii = 0; ii < this->m_NumberOfCells; ++ii)
       {
-        for (unsigned int jj = 0; jj < 3; jj++)
+        for (unsigned int jj = 0; jj < 3; ++jj)
         {
+
           /** point identifiers start from the third elements, first element is cellType, the second is numberOfPoints
            */
           output[ii * 3 + jj] = static_cast<TOutput>(input[5 * ii + jj + 2]);
@@ -182,7 +184,7 @@ protected:
   CloseFile();
 
 private:
-  std::ifstream m_InputFile;
+  std::ifstream m_InputFile{};
 };
 } // end namespace itk
 

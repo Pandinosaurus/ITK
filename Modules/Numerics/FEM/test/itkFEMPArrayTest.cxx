@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ int
 itkFEMPArrayTest(int, char *[])
 {
   // Need to register default FEM object types,
-  // and setup SpatialReader to recognize FEM types
+  // and setup spatialReader to recognize FEM types
   // which is all currently done as a HACK in
   // the initialization of the itk::FEMFactoryBase::GetFactory()
   itk::FEMFactoryBase::GetFactory()->RegisterDefaultTypes();
@@ -37,7 +37,7 @@ itkFEMPArrayTest(int, char *[])
 
   ArrayType array;
 
-  NodeType::Pointer       n1 = NodeType::New();
+  auto                    n1 = NodeType::New();
   ElementType::VectorType pt(2);
 
   pt[0] = 0.;
@@ -81,7 +81,7 @@ itkFEMPArrayTest(int, char *[])
   }
 
   // try an element with GN larger than the array size
-  NodeType::Pointer n2 = NodeType::New();
+  auto n2 = NodeType::New();
   pt[0] = 0.;
   pt[1] = 3.;
   n2->SetCoordinates(pt);

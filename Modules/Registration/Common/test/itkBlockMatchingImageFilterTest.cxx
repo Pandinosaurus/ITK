@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,6 +33,7 @@
 #include "itkScalarToRGBColormapImageFilter.h"
 #include "itkTranslationTransform.h"
 #include "itkResampleImageFilter.h"
+#include "itkTestingMacros.h"
 
 
 int
@@ -41,7 +42,7 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
   if (argc < 2)
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << " itkitkBlockMatchingImageFilterTest inputImageFile outputImageFile [Mask File]" << std::endl;
+    std::cerr << itkNameOfTestExecutableMacro(argv) << " inputImageFile outputImageFile [Mask File]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -56,31 +57,23 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
 
   // Parameters used for FS and BM
   using RadiusType = InputImageType::SizeType;
-  RadiusType blockRadius;
-  blockRadius.Fill(2);
+  auto blockRadius = itk::MakeFilled<RadiusType>(2);
 
-  RadiusType searchRadius;
-  searchRadius.Fill(7);
+  auto searchRadius = itk::MakeFilled<RadiusType>(7);
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
   // Set up the reader
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Error in reading the input image: " << e << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   // Reduce region of interest by SEARCH_RADIUS
   using RegionOfInterestFilterType = itk::RegionOfInterestImageFilter<InputImageType, InputImageType>;
 
-  RegionOfInterestFilterType::Pointer regionOfInterestFilter = RegionOfInterestFilterType::New();
+  auto regionOfInterestFilter = RegionOfInterestFilterType::New();
 
   regionOfInterestFilter->SetInput(reader->GetOutput());
 
@@ -101,7 +94,7 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
   using PointSetType = FeatureSelectionFilterType::FeaturePointsType;
 
   // Feature Selection
-  FeatureSelectionFilterType::Pointer featureSelectionFilter = FeatureSelectionFilterType::New();
+  auto featureSelectionFilter = FeatureSelectionFilterType::New();
 
   featureSelectionFilter->SetInput(regionOfInterestFilter->GetOutput());
   featureSelectionFilter->SetSelectFraction(selectFraction);
@@ -110,7 +103,7 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
 
   // Create transformed image from input to match with
   using TranslationTransformType = itk::TranslationTransform<double, Dimension>;
-  TranslationTransformType::Pointer          transform = TranslationTransformType::New();
+  auto                                       transform = TranslationTransformType::New();
   TranslationTransformType::OutputVectorType translation;
   // move each pixel in input image 5 pixels along first(0) dimension
   translation[0] = 20.0;
@@ -119,14 +112,17 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
   transform->Translate(translation);
 
   using ResampleImageFilterType = itk::ResampleImageFilter<InputImageType, InputImageType>;
-  ResampleImageFilterType::Pointer resampleFilter = ResampleImageFilterType::New();
+  auto resampleFilter = ResampleImageFilterType::New();
   resampleFilter->SetTransform(transform);
   resampleFilter->SetInput(reader->GetOutput());
   resampleFilter->SetReferenceImage(reader->GetOutput());
   resampleFilter->UseReferenceImageOn();
 
   using BlockMatchingFilterType = itk::BlockMatchingImageFilter<InputImageType>;
-  BlockMatchingFilterType::Pointer blockMatchingFilter = BlockMatchingFilterType::New();
+  auto blockMatchingFilter = BlockMatchingFilterType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(blockMatchingFilter, BlockMatchingImageFilter, MeshToMeshFilter);
+
 
   // inputs (all required)
   blockMatchingFilter->SetFixedImage(resampleFilter->GetOutput());
@@ -135,18 +131,15 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
 
   // parameters (all optional)
   blockMatchingFilter->SetBlockRadius(blockRadius);
+  ITK_TEST_SET_GET_VALUE(blockRadius, blockMatchingFilter->GetBlockRadius());
+
   blockMatchingFilter->SetSearchRadius(searchRadius);
+  ITK_TEST_SET_GET_VALUE(searchRadius, blockMatchingFilter->GetSearchRadius());
 
   std::cout << "Block matching: " << blockMatchingFilter << std::endl;
-  try
-  {
-    blockMatchingFilter->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(blockMatchingFilter->Update());
+
 
   // Exercise the following methods
   BlockMatchingFilterType::DisplacementsType * displacements = blockMatchingFilter->GetDisplacements();
@@ -164,29 +157,23 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
 
   // create RGB copy of input image
   using RGBFilterType = itk::ScalarToRGBColormapImageFilter<InputImageType, OutputImageType>;
-  RGBFilterType::Pointer colormapImageFilter = RGBFilterType::New();
+  auto colormapImageFilter = RGBFilterType::New();
 
   colormapImageFilter->SetColormap(itk::ScalarToRGBColormapImageFilterEnums::RGBColormapFilter::Grey);
   colormapImageFilter->SetInput(reader->GetOutput());
-  try
-  {
-    colormapImageFilter->Update();
-  }
-  catch (const itk::ExceptionObject & err)
-  {
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-  }
 
-  OutputImageType::Pointer outputImage = colormapImageFilter->GetOutput();
+  ITK_TRY_EXPECT_NO_EXCEPTION(colormapImageFilter->Update());
+
+
+  const OutputImageType::Pointer outputImage = colormapImageFilter->GetOutput();
 
   // Highlight the feature points identified in the output image
   using PointIteratorType = PointSetType::PointsContainer::ConstIterator;
   using PointDataIteratorType = BlockMatchingFilterType::DisplacementsType::PointDataContainer::ConstIterator;
 
-  PointIteratorType     pointItr = featureSelectionFilter->GetOutput()->GetPoints()->Begin();
-  PointIteratorType     pointEnd = featureSelectionFilter->GetOutput()->GetPoints()->End();
-  PointDataIteratorType displItr = displacements->GetPointData()->Begin();
+  PointIteratorType       pointItr = featureSelectionFilter->GetOutput()->GetPoints()->Begin();
+  const PointIteratorType pointEnd = featureSelectionFilter->GetOutput()->GetPoints()->End();
+  PointDataIteratorType   displItr = displacements->GetPointData()->Begin();
 
   // define colors
   OutputPixelType red;
@@ -209,8 +196,8 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
   {
     if (outputImage->TransformPhysicalPointToIndex(pointItr.Value(), index))
     {
-      OutputImageType::IndexType displ;
-      outputImage->TransformPhysicalPointToIndex(pointItr.Value() + displItr.Value(), displ);
+      const OutputImageType::IndexType displ =
+        outputImage->TransformPhysicalPointToIndex(pointItr.Value() + displItr.Value());
 
       // draw line between old and new location of a point in blue
       itk::LineIterator<OutputImageType> lineIter(outputImage, index, displ);
@@ -231,19 +218,13 @@ itkBlockMatchingImageFilterTest(int argc, char * argv[])
 
   // Set up the writer
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[2]);
   writer->SetInput(outputImage);
-  try
-  {
-    writer->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Error in writing the output image:" << e << std::endl;
-    return EXIT_FAILURE;
-  }
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

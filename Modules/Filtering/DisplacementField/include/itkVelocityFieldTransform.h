@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,65 +32,68 @@ namespace itk
  *
  * \ingroup ITKDisplacementField
  */
-template <typename TParametersValueType, unsigned int NDimensions>
-class ITK_TEMPLATE_EXPORT VelocityFieldTransform : public DisplacementFieldTransform<TParametersValueType, NDimensions>
+template <typename TParametersValueType, unsigned int VDimension>
+class ITK_TEMPLATE_EXPORT VelocityFieldTransform : public DisplacementFieldTransform<TParametersValueType, VDimension>
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(VelocityFieldTransform);
 
   /** Standard class type aliases. */
   using Self = VelocityFieldTransform;
-  using Superclass = DisplacementFieldTransform<TParametersValueType, NDimensions>;
+  using Superclass = DisplacementFieldTransform<TParametersValueType, VDimension>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VelocityFieldTransform, DisplacementFieldTransform);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VelocityFieldTransform);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);
 
   /** InverseTransform type. */
-  using InverseTransformBasePointer = typename Superclass::InverseTransformBasePointer;
+  using typename Superclass::InverseTransformBasePointer;
 
   /** Scalar type. */
-  using ScalarType = typename Superclass::ScalarType;
+  using typename Superclass::ScalarType;
 
   /** Type of the input parameters. */
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
 
   /** Transform category type. */
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /** The number of parameters defining this transform. */
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::NumberOfParametersType;
 
   /** Standard coordinate point type for this class. */
-  using InputPointType = typename Superclass::InputPointType;
-  using OutputPointType = typename Superclass::OutputPointType;
+  using typename Superclass::InputPointType;
+  using typename Superclass::OutputPointType;
 
   /** Standard vector type for this class. */
-  using InputVectorType = typename Superclass::InputVectorType;
-  using OutputVectorType = typename Superclass::OutputVectorType;
+  using typename Superclass::InputVectorType;
+  using typename Superclass::OutputVectorType;
 
-  using InputVectorPixelType = typename Superclass::InputVectorPixelType;
-  using OutputVectorPixelType = typename Superclass::OutputVectorPixelType;
+  using typename Superclass::InputVectorPixelType;
+  using typename Superclass::OutputVectorPixelType;
 
   /** Derivative type */
-  using DerivativeType = typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeType;
 
   /** Dimension of the velocity field . */
-  static constexpr unsigned int VelocityFieldDimension = NDimensions + 1;
+  static constexpr unsigned int VelocityFieldDimension = VDimension + 1;
 
   /** Dimension of the vector spaces. */
-  static constexpr unsigned int Dimension = NDimensions;
+  static constexpr unsigned int Dimension = VDimension;
 
   /** Define the displacement field type and corresponding interpolator type. */
-  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
+  using typename Superclass::DisplacementFieldType;
   using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
+
+  /** Define alternate displacement field interface. */
+  using typename Superclass::VectorImageDisplacementFieldType;
 
   /** Define the displacement field type and corresponding interpolator type. */
   using VelocityFieldType = Image<OutputVectorType, VelocityFieldDimension>;
@@ -112,22 +115,28 @@ public:
   using OptimizerParametersHelperType =
     ImageVectorOptimizerParametersHelper<ScalarType, Dimension, VelocityFieldDimension>;
 
+  using Superclass::SetDisplacementField;
+
   /** Get/Set the velocity field.
    * Set the displacement field. Create special set accessor to update
    * interpolator and assign displacement field to transform parameters
    * container. */
+  /** @ITKStartGrouping */
   virtual void
   SetVelocityField(VelocityFieldType *);
   itkGetModifiableObjectMacro(VelocityField, VelocityFieldType);
+  /** @ITKEndGrouping */
 
   void
   SetFixedParameters(const FixedParametersType &) override;
 
   /** Get/Set the interpolator.
    * Create out own set accessor that assigns the velocity field */
+  /** @ITKStartGrouping */
   virtual void
   SetVelocityFieldInterpolator(VelocityFieldInterpolatorType *);
   itkGetModifiableObjectMacro(VelocityFieldInterpolator, VelocityFieldInterpolatorType);
+  /** @ITKEndGrouping */
 
   /** Get the modification time of velocity field */
   itkGetConstReferenceMacro(VelocityFieldSetTime, unsigned long);
@@ -151,17 +160,18 @@ public:
   void
   UpdateTransformParameters(const DerivativeType & update, ScalarType factor = 1.0) override;
 
-  /** Return an inverse of this transform. */
+  /** Get the inverse of the transform. */
   bool
   GetInverse(Self * inverse) const;
 
-  /** Return an inverse of this transform. */
+  /** Get the inverse of the transform. */
   InverseTransformBasePointer
   GetInverseTransform() const override;
 
   /** Trigger the computation of the displacement field by integrating the velocity field. */
   virtual void
-  IntegrateVelocityField(){};
+  IntegrateVelocityField()
+  {}
 
   /**
    * Set the lower time bound defining the integration domain of the transform.
@@ -204,25 +214,25 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Clone the current transform */
-  typename LightObject::Pointer
+  [[nodiscard]] typename LightObject::Pointer
   InternalClone() const override;
 
   typename DisplacementFieldType::Pointer
   CopyDisplacementField(const DisplacementFieldType *) const;
 
-  ScalarType m_LowerTimeBound;
-  ScalarType m_UpperTimeBound;
+  ScalarType m_LowerTimeBound{};
+  ScalarType m_UpperTimeBound{};
 
-  unsigned int m_NumberOfIntegrationSteps;
+  unsigned int m_NumberOfIntegrationSteps{};
 
-  VelocityFieldPointer m_VelocityField;
+  VelocityFieldPointer m_VelocityField{};
 
   /** The interpolator. */
-  typename VelocityFieldInterpolatorType::Pointer m_VelocityFieldInterpolator;
+  typename VelocityFieldInterpolatorType::Pointer m_VelocityFieldInterpolator{};
 
   /** Track when the VELOCITY field was last set/assigned, as
    * distinct from when it may have had its contents modified. */
-  unsigned long m_VelocityFieldSetTime;
+  unsigned long m_VelocityFieldSetTime{};
 
 private:
   /**

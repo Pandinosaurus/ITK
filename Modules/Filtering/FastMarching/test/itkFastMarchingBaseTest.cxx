@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,8 @@
  *=========================================================================*/
 
 #include "itkFastMarchingBase.h"
+#include "itkFastMarchingThresholdStoppingCriterion.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -34,23 +36,23 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingBaseTestHelper, FastMarchingBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FastMarchingBaseTestHelper);
 
-  using Traits = typename Superclass::Traits;
-  using OutputDomainType = typename Superclass::OutputDomainType;
+  using typename Superclass::Traits;
+  using typename Superclass::OutputDomainType;
 
-  //  using NodeContainerType = typename Superclass::NodeContainerType;
-  using NodeType = typename Superclass::NodeType;
+  //  using typename Superclass::NodeContainerType;
+  using typename Superclass::NodeType;
 
-  using OutputPixelType = typename Superclass::OutputPixelType;
-  using LabelType = typename Superclass::LabelType;
+  using typename Superclass::OutputPixelType;
+  using typename Superclass::LabelType;
 
 protected:
   FastMarchingBaseTestHelper() = default;
   ~FastMarchingBaseTestHelper() override = default;
 
-  IdentifierType
+  [[nodiscard]] IdentifierType
   GetTotalNumberOfNodes() const override
   {
     return 1;
@@ -63,7 +65,7 @@ protected:
   const OutputPixelType
   GetOutputValue(OutputDomainType *, const NodeType &) const override
   {
-    return NumericTraits<OutputPixelType>::ZeroValue();
+    return OutputPixelType{};
   }
 
   unsigned char
@@ -103,68 +105,107 @@ itkFastMarchingBaseTest(int argc, char * argv[])
 {
   if (argc != 2)
   {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " useMeshVsImage" << std::endl;
     return EXIT_FAILURE;
   }
 
+  constexpr unsigned int Dimension = 3;
   using PixelType = float;
 
-  bool exception_caught = false;
+  auto useMeshVsImage = std::stoul(argv[1]);
 
-  if (std::stoi(argv[1]) == 0)
+  if (useMeshVsImage == 0)
   {
-    constexpr unsigned Dimension = 3;
     using ImageType = itk::Image<PixelType, Dimension>;
 
-    ImageType::Pointer input = ImageType::New();
+    auto input = ImageType::New();
 
     using ImageFastMarching = itk::FastMarchingBaseTestHelper<ImageType, ImageType>;
-    ImageFastMarching::Pointer fmm = ImageFastMarching::New();
+    auto fmm = ImageFastMarching::New();
+
+    // Check default values
+    auto topologyCheck = ImageFastMarching::TopologyCheckEnum::Nothing;
+    ITK_TEST_SET_GET_VALUE(topologyCheck, fmm->GetTopologyCheck());
+
+    ITK_TEST_SET_GET_NULL_VALUE(fmm->GetTrialPoints());
+
+    ITK_TEST_SET_GET_NULL_VALUE(fmm->GetAlivePoints());
+
+    ITK_TEST_SET_GET_NULL_VALUE(fmm->GetProcessedPoints());
+
+    ITK_TEST_SET_GET_NULL_VALUE(fmm->GetForbiddenPoints());
+
+    ITK_TEST_SET_GET_NULL_VALUE(fmm->GetStoppingCriterion());
+
+    double speedConstant = 1.0;
+    ITK_TEST_SET_GET_VALUE(speedConstant, fmm->GetSpeedConstant());
+
+    double normalizationFactor = 1.0;
+    ITK_TEST_SET_GET_VALUE(normalizationFactor, fmm->GetNormalizationFactor());
+
+    constexpr typename ImageFastMarching::OutputPixelType targetReachedValue{};
+    ITK_TEST_EXPECT_EQUAL(targetReachedValue, fmm->GetTargetReachedValue());
+
+    bool collectPoints = false;
+    ITK_TEST_EXPECT_EQUAL(collectPoints, fmm->GetCollectPoints());
+
+    // Check other values
+    topologyCheck = ImageFastMarching::TopologyCheckEnum::Strict;
+    fmm->SetTopologyCheck(topologyCheck);
+    ITK_TEST_SET_GET_VALUE(topologyCheck, fmm->GetTopologyCheck());
+
+    auto                                     processedPoints = ImageFastMarching::NodePairContainerType::New();
+    typename ImageFastMarching::NodePairType node_pair;
+    constexpr ImageType::OffsetType          offset = { { 28, 35 } };
+
+    constexpr itk::Index<Dimension> index{};
+
+    node_pair.SetValue(0.0);
+    node_pair.SetNode(index + offset);
+    processedPoints->push_back(node_pair);
+
+    fmm->SetProcessedPoints(processedPoints);
+    ITK_TEST_SET_GET_VALUE(processedPoints, fmm->GetProcessedPoints());
+
+    auto stoppingCriterion = itk::FastMarchingThresholdStoppingCriterion<ImageType, ImageType>::New();
+    fmm->SetStoppingCriterion(stoppingCriterion);
+    ITK_TEST_SET_GET_VALUE(stoppingCriterion, fmm->GetStoppingCriterion());
+
+    speedConstant = 2.0;
+    fmm->SetSpeedConstant(speedConstant);
+    ITK_TEST_SET_GET_VALUE(speedConstant, fmm->GetSpeedConstant());
+
+    normalizationFactor = 2.0;
+    fmm->SetNormalizationFactor(normalizationFactor);
+    ITK_TEST_SET_GET_VALUE(normalizationFactor, fmm->GetNormalizationFactor());
+
+    collectPoints = true;
+    ITK_TEST_SET_GET_BOOLEAN(fmm, CollectPoints, collectPoints);
+
     fmm->SetInput(input);
 
-    try
-    {
-      fmm->Update();
-    }
-    catch (const itk::ExceptionObject & excep)
-    {
-      std::cerr << "Exception caught !" << std::endl;
-      std::cerr << excep << std::endl;
-      exception_caught = true;
-    }
+    ITK_TRY_EXPECT_EXCEPTION(fmm->Update());
+
 
     using OutputImageType = ImageFastMarching::OutputDomainType;
-    OutputImageType::Pointer output = fmm->GetOutput();
-
-    (void)output;
+    [[maybe_unused]] const OutputImageType::Pointer output = fmm->GetOutput();
   }
-  else
+  else if (useMeshVsImage == 1)
   {
-    if (std::stoi(argv[1]) == 1)
-    {
-      using MeshType = itk::QuadEdgeMesh<PixelType, 3, itk::QuadEdgeMeshTraits<PixelType, 3, bool, bool>>;
+    using MeshType = itk::QuadEdgeMesh<PixelType, Dimension, itk::QuadEdgeMeshTraits<PixelType, Dimension, bool, bool>>;
 
-      MeshType::Pointer input = MeshType::New();
+    auto input = MeshType::New();
 
-      using MeshFastMarching = itk::FastMarchingBaseTestHelper<MeshType, MeshType>;
-      MeshFastMarching::Pointer fmm = MeshFastMarching::New();
-      fmm->SetInput(input);
+    using MeshFastMarching = itk::FastMarchingBaseTestHelper<MeshType, MeshType>;
+    auto fmm = MeshFastMarching::New();
+    fmm->SetInput(input);
 
-      try
-      {
-        fmm->Update();
-      }
-      catch (const itk::ExceptionObject & excep)
-      {
-        std::cerr << "Exception caught !" << std::endl;
-        std::cerr << excep << std::endl;
-        exception_caught = true;
-      }
+    ITK_TRY_EXPECT_EXCEPTION(fmm->Update());
 
-      using OutputMeshType = MeshFastMarching::OutputDomainType;
-      OutputMeshType::Pointer output = fmm->GetOutput();
 
-      (void)output;
-    }
+    using OutputMeshType = MeshFastMarching::OutputDomainType;
+    [[maybe_unused]] const OutputMeshType::Pointer output = fmm->GetOutput();
   }
 
   // Test streaming enumeration for FastMarchingTraitsEnums::TopologyCheck elements
@@ -178,12 +219,6 @@ itkFastMarchingBaseTest(int argc, char * argv[])
     std::cout << "STREAMED ENUM VALUE FastMarchingTraitsEnums::TopologyCheck: " << ee << std::endl;
   }
 
-  if (exception_caught)
-  {
-    return EXIT_SUCCESS;
-  }
-  else
-  {
-    return EXIT_FAILURE;
-  }
+
+  return EXIT_SUCCESS;
 }

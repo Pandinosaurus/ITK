@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageSink_hxx
 #define itkImageSink_hxx
 
-#include "itkImageSink.h"
 #include "itkProgressTransformer.h"
 #include "itkInputDataObjectConstIterator.h"
 #include "itkMultiThreaderBase.h"
@@ -47,36 +46,36 @@ ImageSink<TInputImage>::SetInput(const InputImageType * input)
 
 
 template <typename TInputImage>
-const typename ImageSink<TInputImage>::InputImageType *
-ImageSink<TInputImage>::GetInput() const
+auto
+ImageSink<TInputImage>::GetInput() const -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<const TInputImage *>(this->ProcessObject::GetPrimaryInput());
 }
 
 
 template <typename TInputImage>
-const typename ImageSink<TInputImage>::InputImageType *
-ImageSink<TInputImage>::GetInput(unsigned int idx) const
+auto
+ImageSink<TInputImage>::GetInput(unsigned int idx) const -> const InputImageType *
 {
   const auto * in = dynamic_cast<const TInputImage *>(this->ProcessObject::GetInput(idx));
 
   if (in == nullptr && this->ProcessObject::GetInput(idx) != nullptr)
   {
-    itkWarningMacro(<< "Unable to convert input number " << idx << " to type " << typeid(InputImageType).name());
+    itkWarningMacro("Unable to convert input number " << idx << " to type " << typeid(InputImageType).name());
   }
   return in;
 }
 
 
 template <typename TInputImage>
-const typename ImageSink<TInputImage>::InputImageType *
-ImageSink<TInputImage>::GetInput(const DataObjectIdentifierType & key) const
+auto
+ImageSink<TInputImage>::GetInput(const DataObjectIdentifierType & key) const -> const InputImageType *
 {
   const auto * in = dynamic_cast<const TInputImage *>(this->ProcessObject::GetInput(key));
 
   if (in == nullptr && this->ProcessObject::GetInput(key) != nullptr)
   {
-    itkWarningMacro(<< "Unable to convert input \"" << key << "\" to type " << typeid(InputImageType).name());
+    itkWarningMacro("Unable to convert input \"" << key << "\" to type " << typeid(InputImageType).name());
   }
   return in;
 }
@@ -117,8 +116,8 @@ template <typename TInputImage>
 unsigned int
 ImageSink<TInputImage>::GetNumberOfInputRequestedRegions()
 {
-  const InputImageType * inputPtr = const_cast<InputImageType *>(this->GetInput());
-  InputImageRegionType   inputImageRegion = inputPtr->GetLargestPossibleRegion();
+  const InputImageType *     inputPtr = const_cast<InputImageType *>(this->GetInput());
+  const InputImageRegionType inputImageRegion = inputPtr->GetLargestPossibleRegion();
 
   return this->GetRegionSplitter()->GetNumberOfSplits(inputImageRegion, this->m_NumberOfStreamDivisions);
 }
@@ -160,7 +159,6 @@ ImageSink<TInputImage>::GenerateNthInputRequestedRegion(unsigned int inputReques
         continue;
       }
       // copy the requested region of the first input to the others
-      InputImageRegionType inputRegion;
       input->SetRequestedRegion(m_CurrentInputRegion);
     }
   }
@@ -169,7 +167,7 @@ ImageSink<TInputImage>::GenerateNthInputRequestedRegion(unsigned int inputReques
 
 template <typename TInputImage>
 void
-ImageSink<TInputImage>::VerifyInputInformation() ITKv5_CONST
+ImageSink<TInputImage>::VerifyInputInformation() const
 {
   using ImageBaseType = const ImageBase<InputImageDimension>;
 
@@ -205,41 +203,44 @@ ImageSink<TInputImage>::VerifyInputInformation() ITKv5_CONST
       // tolerance for origin and spacing depends on the size of pixel
       // tolerance for directions a fraction of the unit cube.
       const SpacePrecisionType coordinateTol =
-        std::abs(this->m_CoordinateTolerance * inputPtr1->GetSpacing()[0]); // use first dimension spacing
+        itk::Math::abs(this->m_CoordinateTolerance * inputPtr1->GetSpacing()[0]); // use first dimension spacing
 
       if (!inputPtr1->GetOrigin().GetVnlVector().is_equal(inputPtrN->GetOrigin().GetVnlVector(), coordinateTol) ||
           !inputPtr1->GetSpacing().GetVnlVector().is_equal(inputPtrN->GetSpacing().GetVnlVector(), coordinateTol) ||
-          !inputPtr1->GetDirection().GetVnlMatrix().as_ref().is_equal(inputPtrN->GetDirection().GetVnlMatrix().as_ref(),
-                                                                      this->m_DirectionTolerance))
+          !inputPtr1->GetDirection().GetVnlMatrix().is_equal(inputPtrN->GetDirection().GetVnlMatrix(),
+                                                             this->m_DirectionTolerance))
       {
-        std::ostringstream originString, spacingString, directionString;
+        std::ostringstream originString;
         if (!inputPtr1->GetOrigin().GetVnlVector().is_equal(inputPtrN->GetOrigin().GetVnlVector(), coordinateTol))
         {
           originString.setf(std::ios::scientific);
           originString.precision(7);
-          originString << "InputImage Origin: " << inputPtr1->GetOrigin() << ", InputImage" << it.GetName()
+          originString << "InputImage Origin: " << inputPtr1->GetOrigin() << ", InputImage " << it.GetName()
                        << " Origin: " << inputPtrN->GetOrigin() << std::endl;
           originString << "\tTolerance: " << coordinateTol << std::endl;
         }
+        std::ostringstream spacingString;
         if (!inputPtr1->GetSpacing().GetVnlVector().is_equal(inputPtrN->GetSpacing().GetVnlVector(), coordinateTol))
         {
           spacingString.setf(std::ios::scientific);
           spacingString.precision(7);
-          spacingString << "InputImage Spacing: " << inputPtr1->GetSpacing() << ", InputImage" << it.GetName()
+          spacingString << "InputImage Spacing: " << inputPtr1->GetSpacing() << ", InputImage " << it.GetName()
                         << " Spacing: " << inputPtrN->GetSpacing() << std::endl;
           spacingString << "\tTolerance: " << coordinateTol << std::endl;
         }
-        if (!inputPtr1->GetDirection().GetVnlMatrix().as_ref().is_equal(
-              inputPtrN->GetDirection().GetVnlMatrix().as_ref(), this->m_DirectionTolerance))
+        std::ostringstream directionString;
+        if (!inputPtr1->GetDirection().GetVnlMatrix().is_equal(inputPtrN->GetDirection().GetVnlMatrix(),
+                                                               this->m_DirectionTolerance))
         {
           directionString.setf(std::ios::scientific);
           directionString.precision(7);
-          directionString << "InputImage Direction: " << inputPtr1->GetDirection() << ", InputImage" << it.GetName()
+          directionString << "InputImage Direction: " << inputPtr1->GetDirection() << ", InputImage " << it.GetName()
                           << " Direction: " << inputPtrN->GetDirection() << std::endl;
           directionString << "\tTolerance: " << this->m_DirectionTolerance << std::endl;
         }
-        itkExceptionMacro(<< "Inputs do not occupy the same physical space! " << std::endl
-                          << originString.str() << spacingString.str() << directionString.str());
+        itkExceptionMacro("Inputs do not occupy the same physical space! " << std::endl
+                                                                           << originString.str() << spacingString.str()
+                                                                           << directionString.str());
       }
     }
   }
@@ -254,8 +255,8 @@ ImageSink<TInputImage>::StreamedGenerateData(unsigned int inputRequestedRegionNu
 
   // calculate the progress range for this streamed chunk
   const ThreadIdType  total = this->GetNumberOfInputRequestedRegions();
-  const float         oldProgress = float(inputRequestedRegionNumber) / (total);
-  const float         newProgress = float(inputRequestedRegionNumber + 1) / (total);
+  const float         oldProgress = static_cast<float>(inputRequestedRegionNumber) / (total);
+  const float         newProgress = static_cast<float>(inputRequestedRegionNumber + 1) / (total);
   ProgressTransformer pt(oldProgress, newProgress, this);
 
 

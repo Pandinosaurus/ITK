@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -120,7 +120,7 @@ main(int, char *[])
   constexpr unsigned int measurementVectorLength = 1;
   using MeasurementVectorType = itk::Vector<double, measurementVectorLength>;
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   // length of measurement vectors in the sample.
   sample->SetMeasurementVectorSize(measurementVectorLength);
 
@@ -154,7 +154,7 @@ main(int, char *[])
 
   // Software Guide : BeginCodeSnippet
   using NormalGeneratorType = itk::Statistics::NormalVariateGenerator;
-  NormalGeneratorType::Pointer normalGenerator = NormalGeneratorType::New();
+  auto normalGenerator = NormalGeneratorType::New();
 
   normalGenerator->Initialize(101);
 
@@ -253,17 +253,19 @@ main(int, char *[])
   using MembershipFunctionType =
     itk::Statistics::GaussianMembershipFunction<MeasurementVectorType>;
   using DecisionRuleType = itk::Statistics::MaximumRatioDecisionRule;
-  DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
+  auto decisionRule = DecisionRuleType::New();
 
   DecisionRuleType::PriorProbabilityVectorType aPrioris;
-  aPrioris.push_back((double)classSamples[0]->GetTotalFrequency() /
-                     (double)sample->GetTotalFrequency());
-  aPrioris.push_back((double)classSamples[1]->GetTotalFrequency() /
-                     (double)sample->GetTotalFrequency());
+  aPrioris.push_back(
+    static_cast<double>(classSamples[0]->GetTotalFrequency()) /
+    static_cast<double>(sample->GetTotalFrequency()));
+  aPrioris.push_back(
+    static_cast<double>(classSamples[1]->GetTotalFrequency()) /
+    static_cast<double>(sample->GetTotalFrequency()));
   decisionRule->SetPriorProbabilities(aPrioris);
 
   using ClassifierType = itk::Statistics::SampleClassifierFilter<SampleType>;
-  ClassifierType::Pointer classifier = ClassifierType::New();
+  auto classifier = ClassifierType::New();
 
   classifier->SetDecisionRule(decisionRule);
   classifier->SetInput(sample);
@@ -273,13 +275,12 @@ main(int, char *[])
     ClassifierType::ClassLabelVectorObjectType;
   using ClassLabelVectorType = ClassifierType::ClassLabelVectorType;
 
-  ClassLabelVectorObjectType::Pointer classLabelVectorObject =
-    ClassLabelVectorObjectType::New();
+  auto classLabelVectorObject = ClassLabelVectorObjectType::New();
   ClassLabelVectorType classLabelVector = classLabelVectorObject->Get();
 
-  ClassifierType::ClassLabelType class1 = 100;
+  constexpr ClassifierType::ClassLabelType class1 = 100;
   classLabelVector.push_back(class1);
-  ClassifierType::ClassLabelType class2 = 200;
+  constexpr ClassifierType::ClassLabelType class2 = 200;
   classLabelVector.push_back(class2);
 
   classLabelVectorObject->Set(classLabelVector);
@@ -315,19 +316,18 @@ main(int, char *[])
   using MembershipFunctionVectorType =
     ClassifierType::MembershipFunctionVectorType;
 
-  MembershipFunctionVectorObjectType::Pointer membershipFunctionVectorObject =
+  auto membershipFunctionVectorObject =
     MembershipFunctionVectorObjectType::New();
   MembershipFunctionVectorType membershipFunctionVector =
     membershipFunctionVectorObject->Get();
 
   for (unsigned int i = 0; i < 2; ++i)
   {
-    MembershipFunctionType::Pointer membershipFunction =
-      MembershipFunctionType::New();
+    auto membershipFunction = MembershipFunctionType::New();
     membershipFunction->SetMean(covarianceEstimators[i]->GetMean());
     membershipFunction->SetCovariance(
       covarianceEstimators[i]->GetCovarianceMatrix());
-    membershipFunctionVector.push_back(membershipFunction);
+    membershipFunctionVector.emplace_back(membershipFunction);
   }
   membershipFunctionVectorObject->Set(membershipFunctionVector);
   classifier->SetMembershipFunctions(membershipFunctionVectorObject);

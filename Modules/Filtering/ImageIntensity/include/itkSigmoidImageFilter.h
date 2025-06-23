@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class SigmoidImageFilter
+ * \class SigmoidImageFilter
  * \brief Computes the sigmoid function pixel-wise
  *
  * A linear transformation is applied first on the argument of
@@ -53,31 +53,22 @@ class Sigmoid
 {
 public:
   Sigmoid()
-  {
-    m_Alpha = 1.0;
-    m_Beta = 0.0;
-    m_OutputMinimum = NumericTraits<TOutput>::min();
-    m_OutputMaximum = NumericTraits<TOutput>::max();
-  }
+    : m_OutputMinimum(NumericTraits<TOutput>::min())
+    , m_OutputMaximum(NumericTraits<TOutput>::max())
+  {}
 
   ~Sigmoid() = default;
-  bool
-  operator!=(const Sigmoid & other) const
-  {
-    if (Math::NotExactlyEquals(m_Alpha, other.m_Alpha) || Math::NotExactlyEquals(m_Beta, other.m_Beta) ||
-        Math::NotExactlyEquals(m_OutputMaximum, other.m_OutputMaximum) ||
-        Math::NotExactlyEquals(m_OutputMinimum, other.m_OutputMinimum))
-    {
-      return true;
-    }
-    return false;
-  }
+
 
   bool
   operator==(const Sigmoid & other) const
   {
-    return !(*this != other);
+    return Math::ExactlyEquals(m_Alpha, other.m_Alpha) && Math::ExactlyEquals(m_Beta, other.m_Beta) &&
+           Math::ExactlyEquals(m_OutputMaximum, other.m_OutputMaximum) &&
+           Math::ExactlyEquals(m_OutputMinimum, other.m_OutputMinimum);
   }
+
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Sigmoid);
 
   inline TOutput
   operator()(const TInput & A) const
@@ -101,13 +92,13 @@ public:
     m_Beta = beta;
   }
 
-  double
+  [[nodiscard]] double
   GetAlpha() const
   {
     return m_Alpha;
   }
 
-  double
+  [[nodiscard]] double
   GetBeta() const
   {
     return m_Beta;
@@ -125,21 +116,21 @@ public:
     m_OutputMaximum = max;
   }
 
-  TOutput
+  [[nodiscard]] TOutput
   GetOutputMinimum() const
   {
     return m_OutputMinimum;
   }
 
-  TOutput
+  [[nodiscard]] TOutput
   GetOutputMaximum() const
   {
     return m_OutputMaximum;
   }
 
 private:
-  double  m_Alpha;
-  double  m_Beta;
+  double  m_Alpha{ 1.0 };
+  double  m_Beta{ 0.0 };
   TOutput m_OutputMinimum;
   TOutput m_OutputMaximum;
 };
@@ -169,8 +160,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Macro that provides the GetNameOfClass() method */
-  itkTypeMacro(SigmoidImageFilter, UnaryFunctorImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SigmoidImageFilter);
 
   void
   SetAlpha(double alpha)
@@ -183,7 +174,7 @@ public:
     this->Modified();
   }
 
-  double
+  [[nodiscard]] double
   GetAlpha() const
   {
     return this->GetFunctor().GetAlpha();
@@ -200,7 +191,7 @@ public:
     this->Modified();
   }
 
-  double
+  [[nodiscard]] double
   GetBeta() const
   {
     return this->GetFunctor().GetBeta();
@@ -240,16 +231,12 @@ public:
     return this->GetFunctor().GetOutputMaximum();
   }
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(InputConvertibleToDoubleCheck, (Concept::Convertible<typename TInputImage::PixelType, double>));
   itkConceptMacro(OutputAdditiveOperatorsCheck, (Concept::AdditiveOperators<OutputPixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck, (Concept::Convertible<double, OutputPixelType>));
   itkConceptMacro(OutputTimesDoubleCheck, (Concept::MultiplyOperator<OutputPixelType, double>));
   itkConceptMacro(OutputDoubleAdditiveOperatorsCheck,
                   (Concept::AdditiveOperators<OutputPixelType, OutputPixelType, double>));
-  // End concept checking
-#endif
 
 protected:
   SigmoidImageFilter() = default;

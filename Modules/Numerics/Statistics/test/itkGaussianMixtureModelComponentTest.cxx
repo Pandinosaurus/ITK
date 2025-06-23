@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,10 +36,10 @@ itkGaussianMixtureModelComponentTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  char * dataFileName = argv[1];
-  int    dataSize = 2000;
+  char *        dataFileName = argv[1];
+  constexpr int dataSize = 2000;
   using ParametersType = itk::Array<double>;
-  unsigned int numberOfClasses = 2;
+  constexpr unsigned int numberOfClasses = 2;
 
   ParametersType params(6);
 
@@ -69,15 +69,14 @@ itkGaussianMixtureModelComponentTest(int argc, char * argv[])
   initialProportions[1] = 0.5;
 
   /* Loading point data */
-  PointSetType::Pointer                pointSet = PointSetType::New();
-  PointSetType::PointsContainerPointer pointsContainer = PointSetType::PointsContainer::New();
+  auto                                       pointSet = PointSetType::New();
+  const PointSetType::PointsContainerPointer pointsContainer = PointSetType::PointsContainer::New();
   pointsContainer->Reserve(dataSize);
   pointSet->SetPoints(pointsContainer);
 
   PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin();
-  PointSetType::PointType               point;
-  double                                temp;
-  std::ifstream                         dataStream(dataFileName);
+
+  std::ifstream dataStream(dataFileName);
   if (!dataStream)
   {
     std::cout << "ERROR: fail to open the data file." << std::endl;
@@ -86,8 +85,10 @@ itkGaussianMixtureModelComponentTest(int argc, char * argv[])
 
   while (p_iter != pointsContainer->End())
   {
-    for (unsigned int i = 0; i < PointSetType::PointDimension; i++)
+    PointSetType::PointType point;
+    for (unsigned int i = 0; i < PointSetType::PointDimension; ++i)
     {
+      double temp = NAN;
       dataStream >> temp;
       point[i] = temp;
     }
@@ -98,21 +99,21 @@ itkGaussianMixtureModelComponentTest(int argc, char * argv[])
   dataStream.close();
 
   /* Importing the point set to the sample */
-  DataSampleType::Pointer sample = DataSampleType::New();
+  auto sample = DataSampleType::New();
 
   sample->SetPointSet(pointSet);
 
   /* Preparing the gaussian mixture components */
   using ComponentPointer = ComponentType::Pointer;
   std::vector<ComponentPointer> components;
-  for (unsigned int i = 0; i < numberOfClasses; i++)
+  for (unsigned int i = 0; i < numberOfClasses; ++i)
   {
     components.push_back(ComponentType::New());
     (components[i])->SetSample(sample);
     (components[i])->SetParameters(initialParameters[i]);
   }
 
-  ComponentPointer testComponent = ComponentType::New();
+  const ComponentPointer testComponent = ComponentType::New();
 
   std::cout << testComponent->GetNameOfClass() << std::endl;
   testComponent->Print(std::cout);

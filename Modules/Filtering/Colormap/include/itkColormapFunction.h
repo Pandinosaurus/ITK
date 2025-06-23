@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,7 @@
 #include "itkNumericTraits.h"
 #include "itkRGBPixel.h"
 
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 /**
  * \class ColormapFunction
@@ -37,7 +35,7 @@ namespace Function
  * This code was contributed in the Insight Journal paper:
  *
  * "Meeting Andy Warhol Somewhere Over the Rainbow: RGB Colormapping and ITK"
- * https://www.insight-journal.org/browse/publication/285
+ * https://doi.org/10.54294/tmojbk
  *
  * \ingroup ITKColormap
  */
@@ -52,8 +50,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ColormapFunction, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ColormapFunction);
 
   using RGBPixelType = TRGBPixel;
   using RGBComponentType = typename TRGBPixel::ComponentType;
@@ -72,29 +70,16 @@ public:
   itkSetMacro(MaximumInputValue, ScalarType);
   itkGetConstMacro(MaximumInputValue, ScalarType);
 
-  virtual bool
-  operator!=(const ColormapFunction &) const
-  {
-    return false;
-  }
-
-  virtual bool
-  operator==(const ColormapFunction & other) const
-  {
-    return !(*this != other);
-  }
-
   virtual RGBPixelType
   operator()(const ScalarType &) const = 0;
 
 protected:
   ColormapFunction()
-  {
-    this->m_MinimumInputValue = NumericTraits<TScalar>::min();
-    this->m_MaximumInputValue = NumericTraits<TScalar>::max();
-    this->m_MinimumRGBComponentValue = NumericTraits<RGBComponentType>::min();
-    this->m_MaximumRGBComponentValue = NumericTraits<RGBComponentType>::max();
-  }
+    : m_MinimumInputValue(NumericTraits<TScalar>::min())
+    , m_MaximumInputValue(NumericTraits<TScalar>::max())
+    , m_MinimumRGBComponentValue(NumericTraits<RGBComponentType>::min())
+    , m_MaximumRGBComponentValue(NumericTraits<RGBComponentType>::max())
+  {}
 
   ~ColormapFunction() override = default;
 
@@ -109,9 +94,7 @@ protected:
 
     auto     d = static_cast<RealType>(maxInputValue - minInputValue);
     RealType value = (static_cast<RealType>(v) - static_cast<RealType>(minInputValue)) / d;
-
-    value = std::max(0.0, value);
-    value = std::min(1.0, value);
+    value = std::clamp(value, 0.0, 1.0);
     return value;
   }
 
@@ -145,13 +128,12 @@ protected:
   }
 
 private:
-  ScalarType m_MinimumInputValue;
-  ScalarType m_MaximumInputValue;
+  ScalarType m_MinimumInputValue{};
+  ScalarType m_MaximumInputValue{};
 
-  RGBComponentType m_MinimumRGBComponentValue;
-  RGBComponentType m_MaximumRGBComponentValue;
+  RGBComponentType m_MinimumRGBComponentValue{};
+  RGBComponentType m_MaximumRGBComponentValue{};
 };
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

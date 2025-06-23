@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,10 @@ namespace itk
  *
  * \ingroup ITKMetricsv4
  */
-template <typename TFixedImageType, typename TMovingImageType, typename TVirtualImageType, typename TCoordRep = double>
+template <typename TFixedImageType,
+          typename TMovingImageType,
+          typename TVirtualImageType,
+          typename TCoordinate = double>
 class DefaultImageToImageMetricTraitsv4
 {
 public:
@@ -52,7 +55,7 @@ public:
   using FixedImagePixelType = typename FixedImageType::PixelType;
   using MovingImagePixelType = typename MovingImageType::PixelType;
 
-  using CoordinateRepresentationType = TCoordRep;
+  using CoordinateRepresentationType = TCoordinate;
 
   /* Image dimension accessors */
   using ImageDimensionType = unsigned int;
@@ -92,7 +95,7 @@ public:
     GradientRecursiveGaussianImageFilter<MovingImageType, MovingImageGradientImageType>;
 
   /** Image gradient calculator types. The TOutput template parameter
-   * is chosen to match that of CentralDiffererenceImageFunction. */
+   * is chosen to match that of CentralDifferenceImageFunction. */
   using FixedImageGradientCalculatorType =
     ImageFunction<FixedImageType, CovariantVector<double, Self::FixedImageDimension>, CoordinateRepresentationType>;
   using MovingImageGradientCalculatorType =
@@ -103,18 +106,18 @@ public:
   using DefaultMovingImageGradientCalculator =
     CentralDifferenceImageFunction<MovingImageType, CoordinateRepresentationType>;
 
-/** Only floating-point images are currently supported. To support integer images,
- * several small changes must be made to use an internal floating-point type for
- * computations rather than the image pixel type itself. */
-#ifdef ITK_USE_CONCEPT_CHECKING
+  /** Only floating-point images are currently supported. To support integer images,
+   * several small changes must be made to use an internal floating-point type for
+   * computations rather than the image pixel type itself. */
+  /** @ITKStartGrouping */
   itkConceptMacro(OnlyDefinedForFloatingPointTypes0, (itk::Concept::IsFloatingPoint<FixedRealType>));
   itkConceptMacro(OnlyDefinedForFloatingPointTypes1, (itk::Concept::IsFloatingPoint<MovingRealType>));
-#endif // ITK_USE_CONCEPT_CHECKING
+  /** @ITKEndGrouping */
 };
 } // end namespace itk
 
-//#ifndef ITK_MANUAL_INSTANTIATION
-//#include "itkDefaultImageToImageMetricTraitsv4.hxx"
-//#endif
+// #ifndef ITK_MANUAL_INSTANTIATION
+// #include "itkDefaultImageToImageMetricTraitsv4.hxx"
+// #endif
 
 #endif

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +32,8 @@ namespace itk
  */
 
 /* Can we template of Image type instead, but require that Image be of type
- * Image< Vector< TValue, NVectorDimension >, VImageDimension > ? */
-template <typename TValue, unsigned int NVectorDimension, unsigned int VImageDimension>
+ * Image< Vector< TValue, VVectorDimension >, VImageDimension > ? */
+template <typename TValue, unsigned int VVectorDimension, unsigned int VImageDimension>
 class ITK_TEMPLATE_EXPORT ImageVectorOptimizerParametersHelper : public OptimizerParametersHelper<TValue>
 {
 public:
@@ -43,18 +43,18 @@ public:
   using Superclass = OptimizerParametersHelper<TValue>;
 
   /** Image type that this class expects. */
-  using ParameterImageType = Image<Vector<TValue, NVectorDimension>, VImageDimension>;
+  using ParameterImageType = Image<Vector<TValue, VVectorDimension>, VImageDimension>;
   using ParameterImagePointer = typename ParameterImageType::Pointer;
 
   /** Type of the common data object used in OptimizerParameters */
-  using CommonContainerType = typename Superclass::CommonContainerType;
+  using typename Superclass::CommonContainerType;
 
   /** Default constructor. */
-  ImageVectorOptimizerParametersHelper();
+  ImageVectorOptimizerParametersHelper() = default;
 
   /** Set a new data pointer for *both* the Array and parameter image,
    * pointing both to a different memory block.
-   * The size of the new memroy block must be the same as current size of
+   * The size of the new memory block must be the same as current size of
    * Array and the parameter image's buffer, in elements of TValue.
    * Memory must be managed by caller afterwards. */
   void
@@ -74,7 +74,7 @@ public:
 
 private:
   /** The parameter image used by the class */
-  ParameterImagePointer m_ParameterImage;
+  ParameterImagePointer m_ParameterImage{};
 };
 
 } // namespace itk

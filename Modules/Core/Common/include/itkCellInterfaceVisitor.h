@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,8 +54,8 @@ public:
   using ConstPointer = SmartPointer<const Self>;
   using CellIdentifier = typename TCellTraits::CellIdentifier;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CellInterfaceVisitor, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CellInterfaceVisitor);
 
   /** This method is called by each cell as it visits this visitor. */
   virtual void
@@ -112,8 +112,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(CellInterfaceVisitorImplementation, LightObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(CellInterfaceVisitorImplementation);
 
   /** Call the static method GetTopologyId for the CellTopology type that
    * we are templated over. */
@@ -124,7 +124,7 @@ public:
   }
 
   /** Call the method Visit from the UserVisitor template parameter that
-   * this class inherits from.  I am my own gradpa... */
+   * this class inherits from.  I am my own grandpa... */
   void
   VisitFromCell(CellIdentifier cellId, CellInterface<TPixelType, TCellTraits> * c) override
   {

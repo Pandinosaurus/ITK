@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,14 +25,14 @@ namespace itk
 {
 
 /**
- *\class VideoSource
+ * \class VideoSource
  * \brief A TemporalProcessObject that produces a VideoStream
  *
  * VideoSource acts as the base class for all TemporalProcess objects that
  * produce a VideoStream as their output. This class defines GetOutput() which
  * returns a pointer to the VideoStream object on output port 0.
  *
- * The other roll that VideoSource plays is to implement the framework for
+ * The other role that VideoSource plays is to implement the framework for
  * spatial streaming to complement the temporal streaming implemented in
  * TemporalProcessObject. This implementation mirrors the implementation in
  * ImageSource except that each thread will be able to operate on a spatial
@@ -67,12 +67,12 @@ public:
 
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VideoSource, TemporalProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VideoSource);
 
   /*-PUBLIC METHODS----------------------------------------------------------*/
 
-  /** Access the spacial dimensionality of the frames */
+  /** Access the spatial dimensionality of the frames */
   static constexpr unsigned int OutputFrameDimension = OutputFrameType::ImageDimension;
   static unsigned int
   GetOutputFrameDimension()
@@ -155,7 +155,7 @@ protected:
   AllocateOutputs();
 
   /** Method that gets called before threads are dispatched from
-   * TemporalStreamingGeneratData */
+   * TemporalStreamingGenerateData */
   virtual void
   BeforeThreadedGenerateData()
   {}

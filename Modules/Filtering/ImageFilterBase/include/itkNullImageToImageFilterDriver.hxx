@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,7 +48,8 @@ class NullImageToImageFilterDriver
 {
 public:
   NullImageToImageFilterDriver()
-    : m_Filter(nullptr){};
+    : m_Filter(nullptr)
+  {}
 
   using ImageSizeType = typename TInputImage::SizeType;
   using InputPixelType = typename TInputImage::PixelType;
@@ -114,7 +115,7 @@ NullImageToImageFilterDriver<TInputImage, TOutputImage>::InitializePixel(const D
 {
   for (unsigned int i = 0; i < InputPixelDimension; ++i)
   {
-    pixel[i] = NumericTraits<typename PixelTraits<InputPixelType>::ValueType>::ZeroValue();
+    pixel[i] = typename PixelTraits<InputPixelType>::ValueType{};
   }
 }
 
@@ -122,7 +123,7 @@ template <typename TInputImage, typename TOutputImage>
 void
 NullImageToImageFilterDriver<TInputImage, TOutputImage>::InitializePixel(const Dispatch<1> &, InputPixelType & pixel)
 {
-  pixel = NumericTraits<InputPixelType>::ZeroValue();
+  pixel = InputPixelType{};
 }
 
 /**
@@ -138,19 +139,17 @@ NullImageToImageFilterDriver<TInputImage, TOutputImage>::Execute()
   };
 
   // Set up input images
-  typename TInputImage::Pointer     ip = TInputImage::New();
-  typename TOutputImage::IndexType  index;
-  typename TOutputImage::RegionType region;
+  auto                             ip = TInputImage::New();
+  typename TOutputImage::IndexType index;
 
   for (unsigned int i = 0; i < ImageDimension; ++i)
+  {
     index[i] = 0;
-  region.SetSize(m_ImageSize);
-  region.SetIndex(index);
+  }
+  const typename TOutputImage::RegionType region(index, m_ImageSize);
 
   // Allocate the input
-  ip->SetLargestPossibleRegion(region);
-  ip->SetBufferedRegion(region);
-  ip->SetRequestedRegion(region);
+  ip->SetRegions(region);
   ip->Allocate();
 
   // Construct a pixel to fill the image
@@ -166,18 +165,18 @@ NullImageToImageFilterDriver<TInputImage, TOutputImage>::Execute()
   //            << m_Filter->GetOutput() << std::endl;
 
   using ImageFilterType = ImageToImageFilter<TInputImage, TOutputImage>;
-  typename ImageFilterType::Pointer sourceBefore =
+  const typename ImageFilterType::Pointer sourceBefore =
     dynamic_cast<ImageFilterType *>(m_Filter->GetOutput()->GetSource().GetPointer());
 
   // Execute the filter
-  clock_t start = ::clock();
+  const clock_t start = ::clock();
   m_Filter->UpdateLargestPossibleRegion();
-  clock_t stop = ::clock();
+  const clock_t stop = ::clock();
 
   // print out the output object so we can see it modified times and regions
   std::cout << "Output object after filter execution" << std::endl << m_Filter->GetOutput() << std::endl;
 
-  typename ImageFilterType::Pointer sourceAfter =
+  const typename ImageFilterType::Pointer sourceAfter =
     dynamic_cast<ImageFilterType *>(m_Filter->GetOutput()->GetSource().GetPointer());
 
   std::cout << sourceBefore.GetPointer() << ", " << sourceAfter.GetPointer() << std::endl;

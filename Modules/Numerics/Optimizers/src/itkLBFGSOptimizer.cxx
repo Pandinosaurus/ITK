@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,24 +24,18 @@ namespace itk
 /**
  * Constructor
  */
-LBFGSOptimizer ::LBFGSOptimizer()
-{
-  m_OptimizerInitialized = false;
-  m_VnlOptimizer = nullptr;
-  m_Trace = false;
-  m_MaximumNumberOfFunctionEvaluations = 2000;
-  m_GradientConvergenceTolerance = 1e-5;
-  m_LineSearchAccuracy = 0.9;
-  m_DefaultStepLength = 1.0;
-}
+LBFGSOptimizer::LBFGSOptimizer()
+  : m_VnlOptimizer(nullptr)
+  , m_MaximumNumberOfFunctionEvaluations(2000)
+  , m_GradientConvergenceTolerance(1e-5)
+  , m_LineSearchAccuracy(0.9)
+  , m_DefaultStepLength(1.0)
+{}
 
 /**
  * Destructor
  */
-LBFGSOptimizer::~LBFGSOptimizer()
-{
-  delete m_VnlOptimizer;
-}
+LBFGSOptimizer::~LBFGSOptimizer() = default;
 
 /**
  * PrintSelf
@@ -185,14 +179,9 @@ LBFGSOptimizer::SetCostFunction(SingleValuedCostFunction * costFunction)
 
   adaptor->SetCostFunction(costFunction);
 
-  if (m_OptimizerInitialized)
-  {
-    delete m_VnlOptimizer;
-  }
-
   this->SetCostFunctionAdaptor(adaptor);
 
-  m_VnlOptimizer = new vnl_lbfgs(*adaptor);
+  m_VnlOptimizer = std::make_unique<vnl_lbfgs>(*adaptor);
 
   // set the optimizer parameters
   m_VnlOptimizer->set_trace(m_Trace);
@@ -244,7 +233,7 @@ LBFGSOptimizer::StartOptimization()
   {
     // set current position to initial position and throw an exception
     this->SetCurrentPosition(currentPositionInternalValue);
-    itkExceptionMacro(<< "Error occurred in optimization");
+    itkExceptionMacro("Error occurred in optimization");
   }
 
   // we scale the vnlCompatibleParameters down if scales are defined
@@ -265,10 +254,10 @@ LBFGSOptimizer::StartOptimization()
 vnl_lbfgs *
 LBFGSOptimizer::GetOptimizer()
 {
-  return m_VnlOptimizer;
+  return m_VnlOptimizer.get();
 }
 
-const std::string
+std::string
 LBFGSOptimizer::GetStopConditionDescription() const
 {
   m_StopConditionDescription.str("");
@@ -280,6 +269,14 @@ LBFGSOptimizer::GetStopConditionDescription() const
       case vnl_nonlinear_minimizer::ERROR_FAILURE:
         m_StopConditionDescription << "Failure";
         break;
+#if VXL_VERSION_MAJOR >= 4
+      case vnl_nonlinear_minimizer::ABNORMAL_TERMINATION_IN_LNSRCH:
+        m_StopConditionDescription
+          << "Abnormal termination in line search.  Often caused by "
+          << "rounding errors dominating computation.  This can occur if the function is a very "
+          << "flat surface, or has oscillations.";
+        break;
+#endif
       case vnl_nonlinear_minimizer::ERROR_DODGY_INPUT:
         m_StopConditionDescription << "Dodgy input";
         break;
@@ -314,9 +311,7 @@ LBFGSOptimizer::GetStopConditionDescription() const
     }
     return m_StopConditionDescription.str();
   }
-  else
-  {
-    return std::string("");
-  }
+
+  return {};
 }
 } // end namespace itk

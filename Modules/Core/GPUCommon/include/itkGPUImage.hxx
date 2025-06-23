@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUImage_hxx
 #define itkGPUImage_hxx
 
-#include "itkGPUImage.h"
 
 namespace itk
 {
@@ -108,7 +107,8 @@ GPUImage<TPixel, VImageDimension>::GetPixel(const IndexType & index)
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-TPixel & GPUImage<TPixel, VImageDimension>::operator[](const IndexType & index)
+TPixel &
+GPUImage<TPixel, VImageDimension>::operator[](const IndexType & index)
 {
   /* Original version - very conservative
   m_DataManager->SetGPUBufferDirty();
@@ -119,7 +119,8 @@ TPixel & GPUImage<TPixel, VImageDimension>::operator[](const IndexType & index)
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-const TPixel & GPUImage<TPixel, VImageDimension>::operator[](const IndexType & index) const
+const TPixel &
+GPUImage<TPixel, VImageDimension>::operator[](const IndexType & index) const
 {
   m_DataManager->UpdateCPUBuffer();
   return Superclass::operator[](index);
@@ -198,7 +199,7 @@ template <typename TPixel, unsigned int VImageDimension>
 void
 GPUImage<TPixel, VImageDimension>::Graft(const DataObject * data)
 {
-  const Self * ptr = dynamic_cast<const Self *>(data);
+  const auto * ptr = dynamic_cast<const Self *>(data);
   if (ptr)
   {
     this->Graft(ptr);
@@ -206,8 +207,8 @@ GPUImage<TPixel, VImageDimension>::Graft(const DataObject * data)
   else
   {
     // pointer could not be cast back down
-    itkExceptionMacro(<< "itk::GPUImage::Graft() cannot cast " << typeid(data).name() << " to "
-                      << typeid(const Self *).name());
+    itkExceptionMacro("itk::GPUImage::Graft() cannot cast " << typeid(data).name() << " to "
+                                                            << typeid(const Self *).name());
   }
 }
 

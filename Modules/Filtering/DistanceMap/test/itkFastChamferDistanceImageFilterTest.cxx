@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,12 +26,11 @@ template <typename TPoint>
 double
 SimpleSignedDistance(const TPoint & p)
 {
-  TPoint center;
-  center.Fill(16);
-  double radius = 10;
+  auto             center = itk::MakeFilled<TPoint>(16);
+  constexpr double radius = 10;
 
   double accum = 0.0;
-  for (unsigned int j = 0; j < TPoint::PointDimension; j++)
+  for (unsigned int j = 0; j < TPoint::PointDimension; ++j)
   {
     accum += static_cast<double>(itk::Math::sqr(p[j] - center[j]));
   }
@@ -42,10 +41,8 @@ SimpleSignedDistance(const TPoint & p)
     {
       return radius;
     }
-    else
-    {
-      return -radius;
-    }
+
+    return -radius;
   }
   else
   {
@@ -67,18 +64,12 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
   using ImageType = itk::Image<PixelType, VDimension>;
   using PointType = itk::Point<double, VDimension>;
 
-  typename ImageType::SizeType size;
-  size.Fill(32);
-  typename ImageType::IndexType index;
-  index.Fill(0);
-  typename ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  auto                                 size = ImageType::SizeType::Filled(32);
+  const typename ImageType::IndexType  index{};
+  const typename ImageType::RegionType region{ index, size };
 
-  typename ImageType::Pointer inputImage = ImageType::New();
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  auto inputImage = ImageType::New();
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
@@ -95,11 +86,11 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
 
   /* Create Fast Chamfer Distance filter */
   using ChamferFilterType = itk::FastChamferDistanceImageFilter<ImageType, ImageType>;
-  typename ChamferFilterType::Pointer filter = ChamferFilterType::New();
+  auto filter = ChamferFilterType::New();
 
   filter->SetInput(inputImage);
 
-  typename ImageType::Pointer outputImage = filter->GetOutput();
+  const typename ImageType::Pointer outputImage = filter->GetOutput();
 
   try
   {
@@ -117,7 +108,7 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
   // Create NarrowBand
   using NarrowBandType = typename ChamferFilterType::NarrowBandType;
 
-  typename NarrowBandType::Pointer band = NarrowBandType::New();
+  auto band = NarrowBandType::New();
   band->SetTotalRadius(4);
   band->SetInnerRadius(2);
   filter->SetMaximumDistance(5);
@@ -128,9 +119,8 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
   std::cout << "Band size: " << band->Size() << std::endl;
 
   // Loop through the band
-  using itNBType = typename NarrowBandType::ConstIterator;
-  itNBType itNB = band->Begin();
-  itNBType itNBend = band->End();
+  auto       itNB = band->Begin();
+  const auto itNBend = band->End();
 
   //  BandNodeType *tmp;
   unsigned int innerpositive = 0;
@@ -173,7 +163,7 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
 
   // Exercising filter methods
   float inweights[VDimension];
-  for (unsigned int dim = 0; dim < VDimension; dim++)
+  for (unsigned int dim = 0; dim < VDimension; ++dim)
   {
     if (dim == 0)
     {
@@ -200,7 +190,7 @@ FastChamferDistanceImageFilterTest(unsigned int iPositive, unsigned int iNegativ
   }
   /* For debugging write the result
   using WriterType = itk::ImageFileWriter< ImageType >;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName("chamferoutput.mhd");
   writer->SetInput(filter->GetOutput());
@@ -223,7 +213,7 @@ itkFastChamferDistanceImageFilterTest(int argc, char * argv[])
     return EXIT_FAILURE;
   }
 
-  int Dimension = std::stoi(argv[1]);
+  const int Dimension = std::stoi(argv[1]);
 
   std::cout << "Dimension = " << Dimension << std::endl;
   if (Dimension == 1)

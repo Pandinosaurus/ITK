@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,17 +22,19 @@
 #include "itkImageFileWriter.h"
 #include "itkTextOutput.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkTestingMacros.h"
 
 int
-itkVectorConfidenceConnectedImageFilterTest(int ac, char * av[])
+itkVectorConfidenceConnectedImageFilterTest(int argc, char * argv[])
 {
   // Comment the following if you want to use the itk text output window
   itk::OutputWindow::SetInstance(itk::TextOutput::New());
 
-  if (ac < 9)
+  if (argc < 9)
   {
-    std::cerr << "Usage: " << av[0] << " InputImage BaselineImage seed1X seed1Y seed2X seed2Y multiplier iterations\n";
-    return -1;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " InputImage BaselineImage seed1X seed1Y seed2X seed2Y multiplier iterations\n";
+    return EXIT_FAILURE;
   }
 
   constexpr unsigned int Dimension = 2;
@@ -47,14 +49,14 @@ itkVectorConfidenceConnectedImageFilterTest(int ac, char * av[])
 
   using ReaderType = itk::ImageFileReader<ImageType>;
 
-  ReaderType::Pointer input = ReaderType::New();
-  input->SetFileName(av[1]);
+  auto input = ReaderType::New();
+  input->SetFileName(argv[1]);
 
   // Create a filter
   using FilterType = itk::VectorConfidenceConnectedImageFilter<ImageType, OutputImageType>;
 
-  FilterType::Pointer      filter = FilterType::New();
-  itk::SimpleFilterWatcher filterWatch(filter);
+  auto                           filter = FilterType::New();
+  const itk::SimpleFilterWatcher filterWatch(filter);
 
   filter->SetInput(input->GetOutput());
   filter->SetInitialNeighborhoodRadius(3); // measured in pixels
@@ -62,38 +64,32 @@ itkVectorConfidenceConnectedImageFilterTest(int ac, char * av[])
   FilterType::IndexType seed1;
   FilterType::IndexType seed2;
 
-  seed1[0] = std::stoi(av[3]);
-  seed1[1] = std::stoi(av[4]);
+  seed1[0] = std::stoi(argv[3]);
+  seed1[1] = std::stoi(argv[4]);
 
-  seed2[0] = std::stoi(av[5]);
-  seed2[1] = std::stoi(av[6]);
+  seed2[0] = std::stoi(argv[5]);
+  seed2[1] = std::stoi(argv[6]);
 
   filter->AddSeed(seed1);
   filter->AddSeed(seed2);
 
   filter->SetReplaceValue(255);
-  filter->SetMultiplier(std::stod(av[7]));
-  filter->SetNumberOfIterations(std::stoi(av[8]));
+  filter->SetMultiplier(std::stod(argv[7]));
+  filter->SetNumberOfIterations(std::stoi(argv[8]));
 
-  try
-  {
-    input->Update();
-    filter->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "Exception detected: " << e.GetDescription();
-    return -1;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(input->Update());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
 
   // Test the GetMacros
-  double doubleMultiplier = filter->GetMultiplier();
+  const double doubleMultiplier = filter->GetMultiplier();
   std::cout << "filter->GetMultiplier(): " << doubleMultiplier << std::endl;
 
-  unsigned int uintNumberOfIterations = filter->GetNumberOfIterations();
+  const unsigned int uintNumberOfIterations = filter->GetNumberOfIterations();
   std::cout << "filter->GetNumberOfIterations(): " << uintNumberOfIterations << std::endl;
 
-  OutputPixelType pixelReplaceValue = filter->GetReplaceValue();
+  const OutputPixelType pixelReplaceValue = filter->GetReplaceValue();
   std::cout << "filter->GetReplaceValue(): "
             << static_cast<itk::NumericTraits<OutputPixelType>::PrintType>(pixelReplaceValue) << std::endl;
 
@@ -102,10 +98,10 @@ itkVectorConfidenceConnectedImageFilterTest(int ac, char * av[])
 
   // Generate test image
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(filter->GetOutput());
-  writer->SetFileName(av[2]);
+  writer->SetFileName(argv[2]);
   writer->Update();
 
   // Exercise SetSeed() method
@@ -115,19 +111,19 @@ itkVectorConfidenceConnectedImageFilterTest(int ac, char * av[])
   using VectorImageType = itk::VectorImage<PixelComponentType, Dimension>;
 
   using VectorReaderType = itk::ImageFileReader<VectorImageType>;
-  VectorReaderType::Pointer vinput = VectorReaderType::New();
-  vinput->SetFileName(av[1]);
+  auto vinput = VectorReaderType::New();
+  vinput->SetFileName(argv[1]);
 
   using VectorFilterType = itk::VectorConfidenceConnectedImageFilter<VectorImageType, OutputImageType>;
-  VectorFilterType::Pointer vFilter = VectorFilterType::New();
+  auto vFilter = VectorFilterType::New();
 
   vFilter->SetInput(vinput->GetOutput());
   vFilter->SetInitialNeighborhoodRadius(3); // measured in pixels
   vFilter->AddSeed(seed1);
   vFilter->AddSeed(seed2);
   vFilter->SetReplaceValue(255);
-  vFilter->SetMultiplier(std::stod(av[7]));
-  vFilter->SetNumberOfIterations(std::stoi(av[8]));
+  vFilter->SetMultiplier(std::stod(argv[7]));
+  vFilter->SetNumberOfIterations(std::stoi(argv[8]));
   vFilter->Update();
 
 

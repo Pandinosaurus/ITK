@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 namespace itk
 {
 /**
- *\class ParametricPath
+ * \class ParametricPath
  * \brief  Represent a parametric path through ND Space
  *
  * This virtual class is intended to represent a parametric path through an
@@ -67,21 +67,22 @@ public:
 
   /** Standard class type aliases. */
   using Self = ParametricPath;
-  /** All paths must be mapable to index space */
+
+  /** All paths must be mappable to index space */
   using ContinuousIndexType = ContinuousIndex<SpacePrecisionType, VDimension>;
   using Superclass = Path<double, ContinuousIndexType, VDimension>;
 
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ParametricPath, Path);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ParametricPath);
 
   /** Input type */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   using IndexType = Index<VDimension>;
   using OffsetType = Offset<VDimension>;
@@ -132,13 +133,13 @@ protected:
    * value used by the default implementation of EvaluateDerivative() for
    * numerically approximating the derivative with the change over a single
    * default-sized step.  (NOTE that the default implementation of
-   * EvaluateDerivative() should never be used in practice, but users or lazzy
+   * EvaluateDerivative() should never be used in practice, but users or lazy
    * developers may nevertheless unwisely choose to do so anyway.)  For integer-
    * input-types, 1 is probably the correct value.  For double-input-types,
    * either 1 or 0.1 are probably good values.  This value should be set in the
    * constructor of all instantiable children.  Values set in child constructors
    * overwrite values set in parent constructors. */
-  InputType m_DefaultInputStepSize;
+  InputType m_DefaultInputStepSize{};
 };
 
 } // namespace itk

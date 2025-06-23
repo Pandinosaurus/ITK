@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ namespace itk
  * It has configurable amount, radius (sigma) and threshold,
  * and whether to clamp the resulting values to the range of output type.
  *
- * Formula: sharpened=original+[abs(original-blurred)-threshold]*amount
+ * Formula: sharpened=original+[itk::Math::abs(original-blurred)-threshold]*amount
  *
  * If clamping is turned off (it is on by default),
  * casting to output pixel format is done using C++ defaults,
@@ -93,18 +93,16 @@ public:
   /**
    * Run-time type information (and related methods)
    */
-  itkTypeMacro(UnsharpMaskImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(UnsharpMaskImageFilter);
 
   /**
    * Method for creation through the object factory.
    */
   itkNewMacro(Self);
 
-#ifdef ITK_USE_CONCEPT_CHECKING
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, ImageDimension>));
   itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<OutputPixelType>));
   itkConceptMacro(InternalTypeIsFloatingPoint, (Concept::IsFloatingPoint<TInternalPrecision>));
-#endif
 
   using GaussianType =
     SmoothingRecursiveGaussianImageFilter<TInputImage, Image<TInternalPrecision, TOutputImage::ImageDimension>>;
@@ -112,34 +110,39 @@ public:
   using SigmaArrayType = typename GaussianType::SigmaArrayType;
 
   /** Set/Get Sigma values measured in the units of image spacing. Default: 1.0. */
+  /** @ITKStartGrouping */
   itkSetMacro(Sigmas, SigmaArrayType);
   itkGetConstMacro(Sigmas, SigmaArrayType);
+  /** @ITKEndGrouping */
 
   /** Convenience method for setting all dimensional parameters
    * to the same values. */
   void
   SetSigma(const typename SigmaArrayType::ValueType sigma)
   {
-    SigmaArrayType sigmas;
-    sigmas.Fill(sigma);
+    auto sigmas = MakeFilled<SigmaArrayType>(sigma);
     this->SetSigmas(sigmas); // checks whether it is actually modified
   }
 
   /** Set/Get amount of enhancement. Usual range: 0.1 to 2.0. Default: 0.5. */
+  /** @ITKStartGrouping */
   itkSetMacro(Amount, TInternalPrecision);
   itkGetConstMacro(Amount, TInternalPrecision);
-
+  /** @ITKEndGrouping */
 
   /** Set/Get threshold for enhancement. Default: 0. */
+  /** @ITKStartGrouping */
   itkSetMacro(Threshold, TInternalPrecision);
   itkGetConstMacro(Threshold, TInternalPrecision);
+  /** @ITKEndGrouping */
 
   /** Set/Get whether to clamp values to supported
    * range of output type. Default: On. */
+  /** @ITKStartGrouping */
   itkSetMacro(Clamp, bool);
   itkGetConstMacro(Clamp, bool);
   itkBooleanMacro(Clamp);
-
+  /** @ITKEndGrouping */
 protected:
   UnsharpMaskImageFilter();
   ~UnsharpMaskImageFilter() override = default;
@@ -155,7 +158,7 @@ protected:
   GenerateInputRequestedRegion() override;
 
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
   void
   GenerateData() override;
 
@@ -164,10 +167,10 @@ protected:
 
 private:
   /** The edge amplification amount */
-  TInternalPrecision m_Amount;
-  TInternalPrecision m_Threshold;
-  SigmaArrayType     m_Sigmas;
-  bool               m_Clamp;
+  TInternalPrecision m_Amount{};
+  TInternalPrecision m_Threshold{};
+  SigmaArrayType     m_Sigmas{};
+  bool               m_Clamp{};
 
   template <typename InPixelType, typename FunctorRealType = TInternalPrecision, typename OutPixelType = InPixelType>
   class UnsharpMaskingFunctor
@@ -193,16 +196,12 @@ private:
     }
 
     bool
-    operator==(const UnsharpMaskingFunctor & other)
+    operator==(const UnsharpMaskingFunctor & other) const
     {
       return (m_Amount == other.m_Amount) && (m_Threshold == other.m_Threshold) && (m_Clamp == other.m_Clamp);
     }
 
-    bool
-    operator!=(const UnsharpMaskingFunctor & other)
-    {
-      return !(*this == other);
-    }
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(UnsharpMaskingFunctor);
 
     inline OutPixelType
     operator()(const InPixelType & v, const FunctorRealType & s) const
@@ -228,7 +227,7 @@ private:
         {
           return itk::NumericTraits<OutPixelType>::NonpositiveMin();
         }
-        else if (result > itk::NumericTraits<OutPixelType>::max())
+        if (result > itk::NumericTraits<OutPixelType>::max())
         {
           return itk::NumericTraits<OutPixelType>::max();
         }
@@ -237,7 +236,7 @@ private:
       return static_cast<OutPixelType>(result);
     }
   }; // end UnsharpMaskingFunctor
-};   // end UnsharpMaskImageFilter
+}; // end UnsharpMaskImageFilter
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION

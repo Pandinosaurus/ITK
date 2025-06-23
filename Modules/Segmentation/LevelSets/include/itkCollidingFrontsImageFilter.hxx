@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkCollidingFrontsImageFilter_hxx
 #define itkCollidingFrontsImageFilter_hxx
-#include "itkCollidingFrontsImageFilter.h"
 
 #include "itkMultiplyImageFilter.h"
 #include "itkBinaryThresholdImageFunction.h"
@@ -27,20 +26,17 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
 CollidingFrontsImageFilter<TInputImage, TOutputImage>::CollidingFrontsImageFilter()
-{
-  m_SeedPoints1 = nullptr;
-  m_SeedPoints2 = nullptr;
-  m_StopOnTargets = false;
-  m_ApplyConnectivity = true;
-  m_NegativeEpsilon = -1E-6;
-}
+  : m_SeedPoints1(nullptr)
+  , m_SeedPoints2(nullptr)
+  , m_ApplyConnectivity(true)
+  , m_NegativeEpsilon(-1E-6)
+{}
 
 template <typename TInputImage, typename TOutputImage>
 void
 CollidingFrontsImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  typename FastMarchingUpwindGradientImageFilterType::Pointer fastMarchingFilter1 =
-    FastMarchingUpwindGradientImageFilterType::New();
+  auto fastMarchingFilter1 = FastMarchingUpwindGradientImageFilterType::New();
   fastMarchingFilter1->SetInput(this->GetInput());
   fastMarchingFilter1->SetTrialPoints(m_SeedPoints1);
   fastMarchingFilter1->SetTargetPoints(m_SeedPoints2);
@@ -59,8 +55,7 @@ CollidingFrontsImageFilter<TInputImage, TOutputImage>::GenerateData()
   }
   fastMarchingFilter1->Update();
 
-  typename FastMarchingUpwindGradientImageFilterType::Pointer fastMarchingFilter2 =
-    FastMarchingUpwindGradientImageFilterType::New();
+  auto fastMarchingFilter2 = FastMarchingUpwindGradientImageFilterType::New();
   fastMarchingFilter2->SetInput(this->GetInput());
   fastMarchingFilter2->SetTrialPoints(m_SeedPoints2);
   fastMarchingFilter2->SetTargetPoints(m_SeedPoints1);
@@ -81,21 +76,21 @@ CollidingFrontsImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   using MultiplyFilterType = itk::MultiplyImageFilter<GradientImageType, GradientImageType, OutputImageType>;
 
-  typename MultiplyFilterType::Pointer multiplyFilter = MultiplyFilterType::New();
+  auto multiplyFilter = MultiplyFilterType::New();
   multiplyFilter->SetInput1(fastMarchingFilter1->GetGradientImage());
   multiplyFilter->SetInput2(fastMarchingFilter2->GetGradientImage());
   multiplyFilter->Update();
 
-  OutputImagePointer                    multipliedImage = multiplyFilter->GetOutput();
-  typename NodeContainer::ConstIterator pointsIter1 = m_SeedPoints1->Begin();
-  typename NodeContainer::ConstIterator pointsEnd1 = m_SeedPoints1->End();
+  const OutputImagePointer                    multipliedImage = multiplyFilter->GetOutput();
+  typename NodeContainer::ConstIterator       pointsIter1 = m_SeedPoints1->Begin();
+  const typename NodeContainer::ConstIterator pointsEnd1 = m_SeedPoints1->End();
   for (; pointsIter1 != pointsEnd1; ++pointsIter1)
   {
     multipliedImage->SetPixel(pointsIter1.Value().GetIndex(), m_NegativeEpsilon);
   }
 
-  typename NodeContainer::ConstIterator pointsIter2 = m_SeedPoints2->Begin();
-  typename NodeContainer::ConstIterator pointsEnd2 = m_SeedPoints2->End();
+  typename NodeContainer::ConstIterator       pointsIter2 = m_SeedPoints2->Begin();
+  const typename NodeContainer::ConstIterator pointsEnd2 = m_SeedPoints2->End();
   for (; pointsIter2 != pointsEnd2; ++pointsIter2)
   {
     multipliedImage->SetPixel(pointsIter2.Value().GetIndex(), m_NegativeEpsilon);
@@ -103,17 +98,16 @@ CollidingFrontsImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   if (m_ApplyConnectivity)
   {
-    OutputImagePointer outputImage = this->GetOutput();
+    const OutputImagePointer outputImage = this->GetOutput();
 
-    OutputImageRegionType region = outputImage->GetRequestedRegion();
+    const OutputImageRegionType region = outputImage->GetRequestedRegion();
     outputImage->SetBufferedRegion(region);
-    outputImage->Allocate();
-    outputImage->FillBuffer(NumericTraits<OutputPixelType>::ZeroValue());
+    outputImage->AllocateInitialized();
 
     using FunctionType = BinaryThresholdImageFunction<OutputImageType>;
     using IteratorType = FloodFilledImageFunctionConditionalConstIterator<OutputImageType, FunctionType>;
 
-    typename FunctionType::Pointer function = FunctionType::New();
+    auto function = FunctionType::New();
     function->SetInputImage(multipliedImage);
     function->ThresholdBelow(m_NegativeEpsilon);
 
@@ -151,11 +145,14 @@ void
 CollidingFrontsImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "ApplyConnectivity = " << m_ApplyConnectivity << std::endl;
-  os << indent << "SeedPoints1: " << m_SeedPoints1.GetPointer() << std::endl;
-  os << indent << "SeedPoints2: " << m_SeedPoints2.GetPointer() << std::endl;
+
+  itkPrintSelfObjectMacro(SeedPoints1);
+  itkPrintSelfObjectMacro(SeedPoints2);
+
+  itkPrintSelfBooleanMacro(StopOnTargets);
+  itkPrintSelfBooleanMacro(ApplyConnectivity);
+
   os << indent << "NegativeEpsilon: " << m_NegativeEpsilon << std::endl;
-  os << indent << "StopOnTargets: " << m_StopOnTargets << std::endl;
 }
 } // end namespace itk
 

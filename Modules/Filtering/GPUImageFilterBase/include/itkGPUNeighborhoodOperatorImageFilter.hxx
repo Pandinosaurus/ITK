@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,6 @@
 #include "itkImageRegionIterator.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkProgressReporter.h"
-#include "itkGPUNeighborhoodOperatorImageFilter.h"
 
 namespace itk
 {
@@ -48,8 +47,7 @@ GPUNeighborhoodOperatorImageFilter< TInputImage, TOutputImage, TOperatorValueTyp
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius( m_Operator.GetRadius() );
@@ -93,7 +91,7 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
     itkExceptionMacro("GPUneighborhoodOperatorImageFilter supports 1/2/3D image.");
   }
 
-  defines << "#define DIM_" << TInputImage::ImageDimension << "\n";
+  defines << "#define DIM_" << TInputImage::ImageDimension << '\n';
 
   defines << "#define INTYPE ";
   GetTypenameInString(typeid(typename TInputImage::PixelType), defines);
@@ -124,17 +122,15 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
   /** Create GPU memory for operator coefficients */
   m_NeighborhoodGPUBuffer->Initialize();
 
-  typename NeighborhoodGPUBufferType::IndexType  index;
-  typename NeighborhoodGPUBufferType::SizeType   size;
-  typename NeighborhoodGPUBufferType::RegionType region;
+  typename NeighborhoodGPUBufferType::IndexType index;
+  typename NeighborhoodGPUBufferType::SizeType  size;
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     index[i] = 0;
-    size[i] = (unsigned int)(p.GetSize(i));
+    size[i] = static_cast<unsigned int>(p.GetSize(i));
   }
-  region.SetSize(size);
-  region.SetIndex(index);
+  const typename NeighborhoodGPUBufferType::RegionType region(index, size);
 
   m_NeighborhoodGPUBuffer->SetRegions(region);
   m_NeighborhoodGPUBuffer->Allocate();
@@ -177,9 +173,9 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
   radius[0] = radius[1] = radius[2] = 0;
   imgSize[0] = imgSize[1] = imgSize[2] = 1;
 
-  int ImageDim = (int)TInputImage::ImageDimension;
+  int ImageDim = static_cast<int>(TInputImage::ImageDimension);
 
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
     radius[i] = (this->GetOperator()).GetRadius(i);
     imgSize[i] = outSize[i];
@@ -187,13 +183,11 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
 
   size_t localSize[3], globalSize[3];
   localSize[0] = localSize[1] = localSize[2] = OpenCLGetLocalBlockSize(ImageDim);
-  for (int i = 0; i < ImageDim; i++)
+  for (int i = 0; i < ImageDim; ++i)
   {
-    globalSize[i] = localSize[i] * (unsigned int)ceil((float)outSize[i] / (float)localSize[i]); //
-                                                                                                // total
-                                                                                                // #
-                                                                                                // of
-                                                                                                // threads
+    // total # of threads
+    globalSize[i] =
+      localSize[i] * static_cast<unsigned int>(ceil(static_cast<float>(outSize[i]) / static_cast<float>(localSize[i])));
   }
 
   // arguments set up
@@ -204,12 +198,12 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
     kHd, argidx, otPtr->GetModifiableDataManager());
   this->m_GPUKernelManager->SetKernelArgWithImage(kHd, argidx++, m_NeighborhoodGPUBuffer->GetGPUDataManager());
 
-  for (int i = 0; i < (int)TInputImage::ImageDimension; i++)
+  for (int i = 0; i < static_cast<int>(TInputImage::ImageDimension); ++i)
   {
     this->m_GPUKernelManager->SetKernelArg(kHd, argidx++, sizeof(int), &(radius[i]));
   }
 
-  // for(int i=0; i<(int)TInputImage::ImageDimension; i++)
+  // for(int i=0; i<static_cast<int>(TInputImage::ImageDimension); i++)
   //  {
   //  this->m_GPUKernelManager->SetKernelArg(kHd, argidx++, sizeof(int), &(imgSize[i]) );
   //  }
@@ -230,7 +224,7 @@ GPUNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TOperatorValueType
   // This filter can only operate on data types that are signed.
    if ( !NumericTraits< typename NumericTraits< OutputPixelType  >::ValueType >::is_signed )
     {
-    itkExceptionMacro(<< "This filter can only create images of signed data type.");
+    itkExceptionMacro("This filter can only create images of signed data type.");
     }
 
   // Allocate output

@@ -8,7 +8,7 @@
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0.txt
+#          https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,7 +70,7 @@ fi
 
 # Get the latest ITK git tag
 latest_git_tag=$(git ls-remote --tags \
-git://github.com/InsightSoftwareConsortium/ITK.git | \
+https://github.com/InsightSoftwareConsortium/ITK.git | \
 awk -F/ '{ print $3 }' | egrep -v 'a0|b0|rc|}' | \
 sort -n - | tail -n1)
 
@@ -82,12 +82,13 @@ current_git_str=($(grep $git_tag_label $azure_pipelines_ci_filename))
 current_git_tag=${current_git_str[1]}
 
 # Sed the latest ITK git tag in the Azure pipelines config file
-sed -i "s/${git_tag_label}${current_git_tag}/${git_tag_label}${latest_git_tag}/g" $azure_pipelines_ci_filename
+sed -i.bak -e "s/${git_tag_label}${current_git_tag}/${git_tag_label}${latest_git_tag}/g" $azure_pipelines_ci_filename
+rm "${azure_pipelines_ci_filename}.bak"
 
 
 # Get the latest ITK Python git tag
 latest_git_tag=$(git ls-remote --tags \
-git://github.com/InsightSoftwareConsortium/ITKPythonBuilds.git | \
+https://github.com/InsightSoftwareConsortium/ITKPythonBuilds.git | \
 awk -F/ '{ print $3 }' | egrep -v 'a0|b0|rc|}' | \
 sort -n - | tail -n1)
 
@@ -98,7 +99,8 @@ current_git_str=($(grep $python_git_tag_label $azure_pipelines_ci_filename))
 current_git_tag=${current_git_str[1]}
 
 # Sed the latest ITK git tag in the Azure pipelines config file
-sed -i "s/${python_git_tag_label}${current_git_tag}/${python_git_tag_label}${latest_git_tag}/g" $azure_pipelines_ci_filename
+sed -i.bak -e "s/${python_git_tag_label}${current_git_tag}/${python_git_tag_label}${latest_git_tag}/g" $azure_pipelines_ci_filename
+rm "${azure_pipelines_ci_filename}.bak"
 
 # Python setup file
 
@@ -115,7 +117,8 @@ git_install_req_tag_arr=($(echo $git_install_req_tag | tr "=" " "))
 current_git_tag=${git_install_req_tag_arr[-1]}
 
 # Sed the latest ITK git tag in the Python setup file
-sed -i "s/${current_git_tag}/${latest_git_tag}'/g" $python_setup_filename
+sed -i.bak -e "s/${current_git_tag}/${latest_git_tag}'/g" $python_setup_filename
+rm "${python_setup_filename}.bak"
 
 pckg_version_label='version'
 
@@ -139,4 +142,5 @@ new_pckg_patch_version=$((pckg_patch_version + 1))
 # Update to a new major version
 new_pckg_version="${pckg_version_tag_str::-2}${new_pckg_patch_version}'"
 
-sed -i "s/${pckg_version_tag_str}/${new_pckg_version}/g" $python_setup_filename
+sed -i.bak -e "s/${pckg_version_tag_str}/${new_pckg_version}/g" $python_setup_filename
+rm "${python_setup_filename}.bak"

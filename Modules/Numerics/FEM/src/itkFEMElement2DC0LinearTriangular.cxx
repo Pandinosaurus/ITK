@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,9 @@
 
 #include "itkFEMElement2DC0LinearTriangular.h"
 
-namespace itk
+namespace itk::fem
 {
-namespace fem
-{
-const double Element2DC0LinearTriangular ::trigGaussRuleInfo[6][7][4] = {
+const double Element2DC0LinearTriangular::trigGaussRuleInfo[6][7][4] = {
   { // order=0, never used
     { 0.0 } },
   { // order=1
@@ -165,22 +163,18 @@ Element2DC0LinearTriangular::GetLocalFromGlobalCoordinates(const VectorType & gl
 Element2DC0LinearTriangular::Float
 Element2DC0LinearTriangular::JacobianDeterminant(const VectorType & pt, const MatrixType * pJ) const
 {
-
-  MatrixType * pJlocal = nullptr;
+  MatrixType jlocal{};
 
   // If Jacobian was not provided, we
   // need to compute it here
   if (pJ == nullptr)
   {
-    pJlocal = new MatrixType();
-    this->Jacobian(pt, *pJlocal);
-    pJ = pJlocal;
+    this->Jacobian(pt, jlocal);
+    pJ = &jlocal;
   }
 
   Float det = (((*pJ)[1][0] - (*pJ)[0][0]) * ((*pJ)[2][1] - (*pJ)[0][1])) -
               (((*pJ)[0][1] - (*pJ)[1][1]) * ((*pJ)[0][0] - (*pJ)[2][0]));
-
-  delete pJlocal;
 
   return det;
 }
@@ -188,15 +182,14 @@ Element2DC0LinearTriangular::JacobianDeterminant(const VectorType & pt, const Ma
 void
 Element2DC0LinearTriangular::JacobianInverse(const VectorType & pt, MatrixType & invJ, const MatrixType * pJ) const
 {
-  MatrixType * pJlocal = nullptr;
+  MatrixType jlocal{};
 
   // If Jacobian was not provided, we
   // need to compute it here
   if (pJ == nullptr)
   {
-    pJlocal = new MatrixType();
-    this->Jacobian(pt, *pJlocal);
-    pJ = pJlocal;
+    this->Jacobian(pt, jlocal);
+    pJ = &jlocal;
   }
 
   // Note that inverse of Jacobian is not quadratic matrix
@@ -210,8 +203,6 @@ Element2DC0LinearTriangular::JacobianInverse(const VectorType & pt, MatrixType &
   invJ[1][0] = idet * ((*pJ)[2][0] - (*pJ)[1][0]);
   invJ[1][1] = idet * ((*pJ)[0][0] - (*pJ)[2][0]);
   invJ[1][2] = idet * ((*pJ)[1][0] - (*pJ)[0][0]);
-
-  delete pJlocal;
 }
 
 void
@@ -244,5 +235,4 @@ Element2DC0LinearTriangular::PrintSelf(std::ostream & os, Indent indent) const
   Superclass::PrintSelf(os, indent);
 }
 
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem

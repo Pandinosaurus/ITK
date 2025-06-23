@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkVoronoiPartitioningImageFilter_hxx
 #define itkVoronoiPartitioningImageFilter_hxx
-#include "itkVoronoiPartitioningImageFilter.h"
 
 #include "itkImageRegionIteratorWithIndex.h"
 
@@ -34,7 +33,7 @@ VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::ClassifyDiagram()
   IndexList       PixelPool;
 
   this->m_NumberOfBoundary = 0;
-  for (int i = 0; i < this->GetNumberOfSeeds(); i++)
+  for (int i = 0; i < this->GetNumberOfSeeds(); ++i)
   {
     CellAutoPointer currCell;
     this->m_WorkingVD->GetCellId(i, currCell);
@@ -91,7 +90,7 @@ template <typename TInputImage, typename TOutputImage>
 void
 VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::MakeSegmentBoundary()
 {
-  RegionType region = this->GetInput()->GetRequestedRegion();
+  const RegionType region = this->GetInput()->GetRequestedRegion();
 
   itk::ImageRegionIteratorWithIndex<OutputImageType> oit(this->GetOutput(), region);
   while (!oit.IsAtEnd())
@@ -102,7 +101,7 @@ VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::MakeSegmentBoundary()
 
   NeighborIdIterator nit;
   NeighborIdIterator nitend;
-  for (int i = 0; i < this->GetNumberOfSeeds(); i++)
+  for (int i = 0; i < this->GetNumberOfSeeds(); ++i)
   {
     nitend = this->m_WorkingVD->NeighborIdsEnd(i);
     for (nit = this->m_WorkingVD->NeighborIdsBegin(i); nit != nitend; ++nit)
@@ -119,7 +118,7 @@ template <typename TInputImage, typename TOutputImage>
 void
 VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::MakeSegmentObject()
 {
-  RegionType region = this->GetInput()->GetRequestedRegion();
+  const RegionType region = this->GetInput()->GetRequestedRegion();
 
   itk::ImageRegionIteratorWithIndex<OutputImageType> oit(this->GetOutput(), region);
   while (!oit.IsAtEnd())
@@ -131,7 +130,7 @@ VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::MakeSegmentObject()
   PointIdIterator currPitEnd;
   PointType       currP;
   PointTypeDeque  VertList;
-  for (int i = 0; i < this->GetNumberOfSeeds(); i++)
+  for (int i = 0; i < this->GetNumberOfSeeds(); ++i)
   {
     CellAutoPointer currCell;
     this->m_WorkingVD->GetCellId(i, currCell);
@@ -151,29 +150,23 @@ template <typename TInputImage, typename TOutputImage>
 bool
 VoronoiPartitioningImageFilter<TInputImage, TOutputImage>::TestHomogeneity(IndexList & Plist)
 {
-  auto          num = static_cast<SizeValueType>(Plist.size());
-  SizeValueType i;
-  double        getp;
-  double        addp = 0;
-  double        addpp = 0;
+  const auto num = static_cast<SizeValueType>(Plist.size());
+  double     addp = 0;
+  double     addpp = 0;
 
   const InputImageType * inputImage = this->GetInput();
 
-  for (i = 0; i < num; i++)
+  for (SizeValueType i = 0; i < num; ++i)
   {
-    getp = (double)(inputImage->GetPixel(Plist[i]));
+    const auto getp = static_cast<double>(inputImage->GetPixel(Plist[i]));
     addp = addp + getp;
     addpp = addpp + getp * getp;
   }
 
-  double savevar;
+  double savevar = -1;
   if (num > 1)
   {
     savevar = std::sqrt((addpp - (addp * addp) / static_cast<double>(num)) / (static_cast<double>(num) - 1.0));
-  }
-  else
-  {
-    savevar = -1;
   }
 
   return (savevar >= 0 && std::sqrt(savevar) < m_SigmaThreshold);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkWeightedMeanSampleFilter.h"
 #include "itkWeightedCovarianceSampleFilter.h"
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /**
- *\class GaussianMixtureModelComponent
+ * \class GaussianMixtureModelComponent
  * \brief is a component (derived from MixtureModelComponentBase) for
  * Gaussian class. This class is used in
  * ExpectationMaximizationMixtureModelEstimator.
@@ -57,16 +55,17 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /**Standard Macros */
-  itkTypeMacro(GaussianMixtureModelComponent, MixtureModelComponentBase);
+  /** Standard Macros */
+  /** @ITKStartGrouping */
+  itkOverrideGetNameOfClassMacro(GaussianMixtureModelComponent);
   itkNewMacro(Self);
-
+  /** @ITKEndGrouping */
   /** Typedefs from the superclass */
-  using MeasurementVectorType = typename Superclass::MeasurementVectorType;
-  using MeasurementVectorSizeType = typename Superclass::MeasurementVectorSizeType;
-  using MembershipFunctionType = typename Superclass::MembershipFunctionType;
-  using WeightArrayType = typename Superclass::WeightArrayType;
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::MeasurementVectorType;
+  using typename Superclass::MeasurementVectorSizeType;
+  using typename Superclass::MembershipFunctionType;
+  using typename Superclass::WeightArrayType;
+  using typename Superclass::ParametersType;
 
   /** Type of the membership function. Gaussian density function */
   using NativeMembershipFunctionType = GaussianMembershipFunction<MeasurementVectorType>;
@@ -106,18 +105,17 @@ protected:
   GenerateData() override;
 
 private:
-  typename NativeMembershipFunctionType::Pointer m_GaussianMembershipFunction;
+  typename NativeMembershipFunctionType::Pointer m_GaussianMembershipFunction{};
 
-  typename MeanEstimatorType::MeasurementVectorType m_Mean;
+  typename MeanEstimatorType::MeasurementVectorType m_Mean{};
 
-  typename CovarianceEstimatorType::MatrixType m_Covariance;
+  typename CovarianceEstimatorType::MatrixType m_Covariance{};
 
-  typename MeanEstimatorType::Pointer m_MeanEstimator;
+  typename MeanEstimatorType::Pointer m_MeanEstimator{};
 
-  typename CovarianceEstimatorType::Pointer m_CovarianceEstimator;
+  typename CovarianceEstimatorType::Pointer m_CovarianceEstimator{};
 }; // end of class
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkGaussianMixtureModelComponent.hxx"

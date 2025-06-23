@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,18 +21,18 @@
 namespace itk
 {
 ChainCodePath2D::OutputType
-ChainCodePath2D ::Evaluate(const InputType & input) const
+ChainCodePath2D::Evaluate(const InputType & input) const
 {
   return DecodeOffset(m_Chain2D[input]);
 }
 
 ChainCodePath2D::IndexType
-ChainCodePath2D ::EvaluateToIndex(const InputType & input) const
+ChainCodePath2D::EvaluateToIndex(const InputType & input) const
 {
   IndexType index = GetStart();
 
   // Iterate through the chaincode, summing the offsets as we go.
-  for (InputType i = 0; i < input; i++)
+  for (InputType i = 0; i < input; ++i)
   {
     index += DecodeOffset(m_Chain2D[i]);
   }
@@ -41,24 +41,22 @@ ChainCodePath2D ::EvaluateToIndex(const InputType & input) const
 }
 
 ChainCodePath2D::OffsetType
-ChainCodePath2D ::IncrementInput(InputType & input) const
+ChainCodePath2D::IncrementInput(InputType & input) const
 {
   if (input < NumberOfSteps())
   {
     return DecodeOffset(m_Chain2D[input++]);
   }
-  else
-  {
-    return this->GetZeroOffset();
-  }
+
+  return this->GetZeroOffset();
 }
 
 std::string
-ChainCodePath2D ::GetChainCodeAsString() const
+ChainCodePath2D::GetChainCodeAsString() const
 {
   std::string printableChain;
 
-  for (unsigned int i = 0; i < m_Chain2D.size(); i++)
+  for (unsigned int i = 0; i < m_Chain2D.size(); ++i)
   {
     // Make a single char string out of the current step
     std::ostringstream printableStep;
@@ -72,7 +70,7 @@ ChainCodePath2D ::GetChainCodeAsString() const
 }
 
 /** Constructor */
-ChainCodePath2D ::ChainCodePath2D()
+ChainCodePath2D::ChainCodePath2D()
 {
   // Most of the work is done in the parent constructor.
 
@@ -129,7 +127,7 @@ ChainCodePath2D::~ChainCodePath2D() = default;
 
 /** Standard "PrintSelf" method */
 void
-ChainCodePath2D ::PrintSelf(std::ostream & os, Indent indent) const
+ChainCodePath2D::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Chain code 2D:  " << GetChainCodeAsString() << std::endl;

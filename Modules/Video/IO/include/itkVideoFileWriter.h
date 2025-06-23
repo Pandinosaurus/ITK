@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ namespace itk
 {
 
 /**
- *\class VideoFileWriter
+ * \class VideoFileWriter
  * \brief Writer that takes in a VideoStream and writes the frames to a file
  *
  * This class is a subclass of TemporalProcessObject which specifically takes a
@@ -60,36 +60,41 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(VideoFileWriter, TemporalProcessObject);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(VideoFileWriter);
 
 
   /** Specify the file to read. This is forwarded to the IO instance. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
-
+  /** @ITKEndGrouping */
   /** Specify the output FpS. */
+  /** @ITKStartGrouping */
   itkSetMacro(FramesPerSecond, TemporalRatioType);
   itkGetMacro(FramesPerSecond, TemporalRatioType);
-
+  /** @ITKEndGrouping */
   /** Specify the FourCC to use for video encoding. FourCC, or four character
    * code, is commonly used to denote the codec to be used to encode video by
-   * many libraries. See http://en.wikipedia.org/wiki/FourCC for more
+   * many libraries. See https://en.wikipedia.org/wiki/FourCC for more
    * information. */
+  /** @ITKStartGrouping */
   itkSetStringMacro(FourCC);
   itkGetStringMacro(FourCC);
-
+  /** @ITKEndGrouping */
   /** Get/Set the OutputTemporalRegion */
+  /** @ITKStartGrouping */
   itkSetMacro(OutputTemporalRegion, TemporalRegion);
   itkGetMacro(OutputTemporalRegion, TemporalRegion);
-
+  /** @ITKEndGrouping */
   /** Set/Get the input video pointer */
+  /** @ITKStartGrouping */
   using Superclass::SetInput;
   void
   SetInput(const VideoStreamType * input);
   const VideoStreamType *
   GetInput();
-
+  /** @ITKEndGrouping */
   /** Manually set the VideoIO to use */
   void
   SetVideoIO(IOBasePointer videoIO);
@@ -136,20 +141,20 @@ protected:
 
 private:
   /** The file to write. */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** The VideoIO used for writing. */
-  IOBasePointer m_VideoIO;
+  IOBasePointer m_VideoIO{};
 
   /** TemporalRegion to write out. */
-  TemporalRegion m_OutputTemporalRegion;
+  TemporalRegion m_OutputTemporalRegion{};
 
   /** Parameters for writing. */
   TemporalRatioType          m_FramesPerSecond{ 24 };
-  std::string                m_FourCC;
-  std::vector<SizeValueType> m_Dimensions;
+  std::string                m_FourCC{};
+  std::vector<SizeValueType> m_Dimensions{};
   SizeValueType              m_NumberOfComponents{ 0 };
-  IOComponentEnum            m_ComponentType;
+  IOComponentEnum            m_ComponentType{};
 };
 
 } // end namespace itk

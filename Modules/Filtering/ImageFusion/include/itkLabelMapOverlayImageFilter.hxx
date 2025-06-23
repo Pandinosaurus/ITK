@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkLabelMapOverlayImageFilter_hxx
 #define itkLabelMapOverlayImageFilter_hxx
 
-#include "itkLabelMapOverlayImageFilter.h"
 #include "itkNumericTraits.h"
 #include "itkProgressReporter.h"
 #include "itkImageScanlineIterator.h"
@@ -29,9 +28,9 @@ namespace itk
 
 template <typename TLabelMap, typename TFeatureImage, typename TOutputImage>
 LabelMapOverlayImageFilter<TLabelMap, TFeatureImage, TOutputImage>::LabelMapOverlayImageFilter()
+  : m_Opacity(0.5)
 {
   this->SetNumberOfRequiredInputs(2);
-  m_Opacity = 0.5;
   this->DynamicMultiThreadingOn();
 }
 
@@ -43,7 +42,7 @@ LabelMapOverlayImageFilter<TLabelMap, TFeatureImage, TOutputImage>::GenerateInpu
   Superclass::GenerateInputRequestedRegion();
 
   // We need all the input.
-  LabelMapPointer input = const_cast<LabelMapType *>(this->GetInput());
+  const LabelMapPointer input = const_cast<LabelMapType *>(this->GetInput());
   if (!input)
   {
     return;
@@ -101,8 +100,8 @@ LabelMapOverlayImageFilter<TLabelMap, TFeatureImage, TOutputImage>::DynamicThrea
   function.SetBackgroundValue(input->GetBackgroundValue());
   function.SetOpacity(m_Opacity);
 
-  ImageScanlineConstIterator<FeatureImageType> featureIt(input2, outputRegionForThread);
-  ImageScanlineIterator<OutputImageType>       outputIt(output, outputRegionForThread);
+  ImageScanlineConstIterator featureIt(input2, outputRegionForThread);
+  ImageScanlineIterator      outputIt(output, outputRegionForThread);
 
   while (!featureIt.IsAtEnd())
   {

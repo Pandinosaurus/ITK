@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkImageFileWriter_hxx
 #define itkImageFileWriter_hxx
 
-#include "itkImageFileWriter.h"
 #include "itkDataObject.h"
 #include "itkObjectFactoryBase.h"
 #include "itkImageIOFactory.h"
@@ -47,16 +46,16 @@ ImageFileWriter<TInputImage>::SetInput(const InputImageType * input)
 
 //---------------------------------------------------------
 template <typename TInputImage>
-const typename ImageFileWriter<TInputImage>::InputImageType *
-ImageFileWriter<TInputImage>::GetInput()
+auto
+ImageFileWriter<TInputImage>::GetInput() -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<TInputImage *>(this->GetPrimaryInput());
 }
 
 //---------------------------------------------------------
 template <typename TInputImage>
-const typename ImageFileWriter<TInputImage>::InputImageType *
-ImageFileWriter<TInputImage>::GetInput(unsigned int idx)
+auto
+ImageFileWriter<TInputImage>::GetInput(unsigned int idx) -> const InputImageType *
 {
   return itkDynamicCastInDebugMode<TInputImage *>(this->ProcessObject::GetInput(idx));
 }
@@ -82,19 +81,19 @@ ImageFileWriter<TInputImage>::Write()
 {
   const InputImageType * input = this->GetInput();
 
-  itkDebugMacro(<< "Writing an image file");
+  itkDebugMacro("Writing an image file");
 
   // Make sure input is available
   if (input == nullptr)
   {
-    itkExceptionMacro(<< "No input to writer!");
+    itkExceptionMacro("No input to writer!");
   }
 
   // Make sure that we can write the file given the name
   //
   if (m_FileName.empty())
   {
-    itkExceptionMacro(<< "No filename was specified");
+    itkExceptionMacro("No filename was specified");
   }
 
   if (m_ImageIO.IsNull() || (m_FactorySpecifiedImageIO && !m_ImageIO->CanWriteFile(m_FileName.c_str())))
@@ -102,12 +101,12 @@ ImageFileWriter<TInputImage>::Write()
     // try creating via factory
     if (m_ImageIO.IsNull())
     {
-      itkDebugMacro(<< "Attempting factory creation of ImageIO for file: " << m_FileName);
+      itkDebugMacro("Attempting factory creation of ImageIO for file: " << m_FileName);
     }
     else // ( m_FactorySpecifiedImageIO && !m_ImageIO->CanWriteFile( m_FileName.c_str() )
     {
-      itkDebugMacro(<< "ImageIO exists but doesn't know how to write file:" << m_FileName);
-      itkDebugMacro(<< "Attempting creation of ImageIO with a factory for file:" << m_FileName);
+      itkDebugMacro("ImageIO exists but doesn't know how to write file:" << m_FileName);
+      itkDebugMacro("Attempting creation of ImageIO with a factory for file:" << m_FileName);
     }
     m_ImageIO = ImageIOFactory::CreateImageIO(m_FileName.c_str(), ImageIOFactory::IOFileModeEnum::WriteMode);
     m_FactorySpecifiedImageIO = true;
@@ -115,10 +114,10 @@ ImageFileWriter<TInputImage>::Write()
 
   if (m_ImageIO.IsNull())
   {
-    ImageFileWriterException        e(__FILE__, __LINE__);
-    std::ostringstream              msg;
-    std::list<LightObject::Pointer> allobjects = ObjectFactoryBase::CreateAllInstance("itkImageIOBase");
-    msg << " Could not create IO object for writing file " << m_FileName.c_str() << std::endl;
+    ImageFileWriterException              e(__FILE__, __LINE__);
+    std::ostringstream                    msg;
+    const std::list<LightObject::Pointer> allobjects = ObjectFactoryBase::CreateAllInstance("itkImageIOBase");
+    msg << " Could not create IO object for writing file " << m_FileName << std::endl;
     if (!allobjects.empty())
     {
       msg << "  Tried to create one of the following:" << std::endl;
@@ -127,13 +126,16 @@ ImageFileWriter<TInputImage>::Write()
         auto * io = dynamic_cast<ImageIOBase *>(allobject.GetPointer());
         msg << "    " << io->GetNameOfClass() << std::endl;
       }
-      msg << "  You probably failed to set a file suffix, or" << std::endl;
-      msg << "    set the suffix to an unsupported type." << std::endl;
+      msg << "  You probably failed to set a file suffix, or" << std::endl
+          << "    set the suffix to an unsupported type." << std::endl;
     }
     else
     {
-      msg << "  There are no registered IO factories." << std::endl;
-      msg << "  Please visit https://www.itk.org/Wiki/ITK/FAQ#NoFactoryException to diagnose the problem." << std::endl;
+      msg
+        << "  There are no registered IO factories." << std::endl
+        << "  Please visit https://insightsoftwareconsortium.github.io/ITKWikiArchive/Wiki/ITK/FAQ#NoFactoryException "
+           "to diagnose the problem."
+        << std::endl;
     }
     e.SetDescription(msg.str().c_str());
     e.SetLocation(ITK_LOCATION);
@@ -168,7 +170,7 @@ ImageFileWriter<TInputImage>::Write()
   // Setup the ImageIO
   //
   m_ImageIO->SetNumberOfDimensions(TInputImage::ImageDimension);
-  InputImageRegionType                        largestRegion = input->GetLargestPossibleRegion();
+  const InputImageRegionType                  largestRegion = input->GetLargestPossibleRegion();
   const typename TInputImage::SpacingType &   spacing = input->GetSpacing();
   const typename TInputImage::DirectionType & direction = input->GetDirection();
   // BUG 8436: Wrong origin when writing a file with non-zero index
@@ -177,7 +179,7 @@ ImageFileWriter<TInputImage>::Write()
   typename TInputImage::PointType         origin;
   input->TransformIndexToPhysicalPoint(startIndex, origin);
 
-  for (unsigned int i = 0; i < TInputImage::ImageDimension; i++)
+  for (unsigned int i = 0; i < TInputImage::ImageDimension; ++i)
   {
     m_ImageIO->SetDimensions(i, largestRegion.GetSize(i));
     m_ImageIO->SetSpacing(i, spacing[i]);
@@ -185,7 +187,7 @@ ImageFileWriter<TInputImage>::Write()
     vnl_vector<double> axisDirection(TInputImage::ImageDimension);
     // Please note: direction cosines are stored as columns of the
     // direction matrix
-    for (unsigned int j = 0; j < TInputImage::ImageDimension; j++)
+    for (unsigned int j = 0; j < TInputImage::ImageDimension; ++j)
     {
       axisDirection[j] = direction[j][i];
     }
@@ -243,25 +245,23 @@ ImageFileWriter<TInputImage>::Write()
   // largest region or not.
   if (!largestIORegion.IsInside(pasteIORegion))
   {
-    itkExceptionMacro(<< "Largest possible region does not fully contain requested paste IO region"
-                      << "Paste IO region: " << pasteIORegion << "Largest possible region: " << largestRegion);
+    itkExceptionMacro("Largest possible region does not fully contain requested paste IO region. Paste IO region: "
+                      << pasteIORegion << "Largest possible region: " << largestRegion);
   }
 
-  // Determin the actual number of divisions of the input. This is determined
+  // Determine the actual number of divisions of the input. This is determined
   // by what the ImageIO can do
-  unsigned int numDivisions;
 
   // this may fail and throw an exception if the configuration is not supported
-  numDivisions =
+  unsigned int numDivisions =
     m_ImageIO->GetActualNumberOfSplitsForWriting(m_NumberOfStreamDivisions, pasteIORegion, largestIORegion);
 
   /**
    * Loop over the number of pieces, execute the upstream pipeline on each
    * piece, and copy the results into the output image.
    */
-  unsigned int piece;
 
-  for (piece = 0; piece < numDivisions && !this->GetAbortGenerateData(); piece++)
+  for (unsigned int piece = 0; piece < numDivisions && !this->GetAbortGenerateData(); ++piece)
   {
     // get the actual piece to write
     ImageIORegion streamIORegion =
@@ -271,14 +271,15 @@ ImageFileWriter<TInputImage>::Write()
     // largest region or not.
     if (!pasteIORegion.IsInside(streamIORegion))
     {
-      itkExceptionMacro(<< "ImageIO returns streamable region that is not fully contain in paste IO region"
-                        << "Paste IO region: " << pasteIORegion << "Streamable region: " << streamIORegion);
+      itkExceptionMacro(
+        << "ImageIO returns streamable region that is not fully contain in paste IO region. Paste IO region: "
+        << pasteIORegion << "Streamable region: " << streamIORegion);
     }
 
     InputImageRegionType streamRegion;
     ImageIORegionAdaptor<TInputImage::ImageDimension>::Convert(streamIORegion, streamRegion, largestRegion.GetIndex());
 
-    // execute the the upstream pipeline with the requested
+    // execute the upstream pipeline with the requested
     // region for streaming
     nonConstInput->SetRequestedRegion(streamRegion);
     nonConstInput->PropagateRequestedRegion();
@@ -295,7 +296,7 @@ ImageFileWriter<TInputImage>::Write()
     // check to see if we tried to stream but got the largest possible region
     if (piece == 0 && streamRegion != largestRegion)
     {
-      InputImageRegionType bufferedRegion = input->GetBufferedRegion();
+      const InputImageRegionType bufferedRegion = input->GetBufferedRegion();
       if (bufferedRegion == largestRegion)
       {
         // if so, then just write the entire image
@@ -328,11 +329,11 @@ template <typename TInputImage>
 void
 ImageFileWriter<TInputImage>::GenerateData()
 {
-  const InputImageType * input = this->GetInput();
-  InputImageRegionType   largestRegion = input->GetLargestPossibleRegion();
-  InputImagePointer      cacheImage;
+  const InputImageType *     input = this->GetInput();
+  const InputImageRegionType largestRegion = input->GetLargestPossibleRegion();
+  InputImagePointer          cacheImage;
 
-  itkDebugMacro(<< "Writing file: " << m_FileName);
+  itkDebugMacro("Writing file: " << m_FileName);
 
   // now extract the data as a raw buffer pointer
   const void * dataPtr = input->GetBufferPointer();
@@ -342,7 +343,7 @@ ImageFileWriter<TInputImage>::GenerateData()
   InputImageRegionType ioRegion;
   ImageIORegionAdaptor<TInputImage::ImageDimension>::Convert(
     m_ImageIO->GetIORegion(), ioRegion, largestRegion.GetIndex());
-  InputImageRegionType bufferedRegion = input->GetBufferedRegion();
+  const InputImageRegionType bufferedRegion = input->GetBufferedRegion();
 
   // before this test, bad stuff would happened when they don't match
   if (bufferedRegion != ioRegion)
@@ -365,11 +366,10 @@ ImageFileWriter<TInputImage>::GenerateData()
     {
       ImageFileWriterException e(__FILE__, __LINE__);
       std::ostringstream       msg;
-      msg << "Did not get requested region!" << std::endl;
-      msg << "Requested:" << std::endl;
-      msg << ioRegion;
-      msg << "Actual:" << std::endl;
-      msg << bufferedRegion;
+      msg << "Did not get requested region!" << std::endl
+          << "Requested:" << std::endl
+          << ioRegion << "Actual:" << std::endl
+          << bufferedRegion;
       e.SetDescription(msg.str().c_str());
       e.SetLocation(ITK_LOCATION);
       throw e;
@@ -386,48 +386,16 @@ ImageFileWriter<TInputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "File Name: " << (m_FileName.data() ? m_FileName.data() : "(none)") << std::endl;
+  os << indent << "FileName: " << m_FileName << std::endl;
 
-  os << indent << "Image IO: ";
-  if (m_ImageIO.IsNull())
-  {
-    os << "(none)\n";
-  }
-  else
-  {
-    os << m_ImageIO << "\n";
-  }
+  itkPrintSelfObjectMacro(ImageIO);
 
-  os << indent << "IO Region: " << m_PasteIORegion << "\n";
-  os << indent << "Number of Stream Divisions: " << m_NumberOfStreamDivisions << "\n";
-  os << indent << "CompressionLevel: " << m_CompressionLevel << "\n";
-
-  if (m_UseCompression)
-  {
-    os << indent << "Compression: On\n";
-  }
-  else
-  {
-    os << indent << "Compression: Off\n";
-  }
-
-  if (m_UseInputMetaDataDictionary)
-  {
-    os << indent << "UseInputMetaDataDictionary: On\n";
-  }
-  else
-  {
-    os << indent << "UseInputMetaDataDictionary: Off\n";
-  }
-
-  if (m_FactorySpecifiedImageIO)
-  {
-    os << indent << "FactorySpecifiedmageIO: On\n";
-  }
-  else
-  {
-    os << indent << "FactorySpecifiedmageIO: Off\n";
-  }
+  os << indent << "PasteIORegion: " << m_PasteIORegion << std::endl;
+  os << indent << "NumberOfStreamDivisions: " << m_NumberOfStreamDivisions << std::endl;
+  os << indent << "CompressionLevel: " << m_CompressionLevel << std::endl;
+  itkPrintSelfBooleanMacro(UseCompression);
+  itkPrintSelfBooleanMacro(UseInputMetaDataDictionary);
+  itkPrintSelfBooleanMacro(FactorySpecifiedImageIO);
 }
 } // end namespace itk
 

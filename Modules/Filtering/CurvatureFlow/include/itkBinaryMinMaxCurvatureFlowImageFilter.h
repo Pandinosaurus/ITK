@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,11 +24,11 @@
 namespace itk
 {
 /**
- *\class BinaryMinMaxCurvatureFlowImageFilter
+ * \class BinaryMinMaxCurvatureFlowImageFilter
  * \brief Denoise a binary image using min/max curvature flow.
  *
  * BinaryMinMaxCurvatureFlowImageFilter implements a curvature driven image
- * denoising algorithm. This filter assumes that the image is essentially
+ * denoising algorithm \cite sethian1999. This filter assumes that the image is essentially
  * binary: consisting of two classes. Iso-brightness contours in the input
  * image are viewed as a level set. The level set is then evolved using
  * a curvature-based speed function:
@@ -60,10 +60,6 @@ namespace itk
  * same dimensions. This filter also requires that the output image pixels
  * are of a real type. This filter works for any dimensional images.
  *
- * Reference:
- * "Level Set Methods and Fast Marching Methods", J.A. Sethian,
- * Cambridge Press, Chapter 16, Second edition, 1999.
- *
  * \sa BinaryMinMaxCurvatureFlowFunction
  * \sa CurvatureFlowImageFilter
  * \sa MinMaxCurvatureFlowImageFilter
@@ -93,12 +89,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryMinMaxCurvatureFlowImageFilter, MinMaxCurvatureFlowImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMinMaxCurvatureFlowImageFilter);
 
   /** Inherit type alias from Superclass. */
-  using FiniteDifferenceFunctionType = typename Superclass::FiniteDifferenceFunctionType;
-  using OutputImageType = typename Superclass::OutputImageType;
+  using typename Superclass::FiniteDifferenceFunctionType;
+  using typename Superclass::OutputImageType;
 
   /** BinaryMinMaxCurvatureFlowFunction type. */
   using BinaryMinMaxCurvatureFlowFunctionType = BinaryMinMaxCurvatureFlowFunction<OutputImageType>;
@@ -108,15 +104,12 @@ public:
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Set/Get the threshold value. */
+  /** @ITKStartGrouping */
   itkSetMacro(Threshold, double);
   itkGetConstMacro(Threshold, double);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
-  // End concept checking
-#endif
 
 protected:
 protected:
@@ -131,7 +124,7 @@ protected:
   InitializeIteration() override;
 
 private:
-  double m_Threshold;
+  double m_Threshold{};
 };
 } // namespace itk
 

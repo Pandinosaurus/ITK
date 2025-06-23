@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +74,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using PixelType = unsigned char;
-  using AccumulatorPixelType = unsigned;
+  using AccumulatorPixelType = unsigned int;
   using RadiusPixelType = float;
   constexpr unsigned int Dimension = 2;
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -88,12 +88,10 @@ main(int argc, char * argv[])
   //
   //  Software Guide : EndLatex
   // Software Guide : BeginCodeSnippet
-  using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
+  ImageType::Pointer localImage;
   try
   {
-    reader->Update();
+    localImage = itk::ReadImage<ImageType>(argv[1]);
   }
   catch (const itk::ExceptionObject & excep)
   {
@@ -101,7 +99,6 @@ main(int argc, char * argv[])
     std::cerr << excep << std::endl;
     return EXIT_FAILURE;
   }
-  ImageType::Pointer localImage = reader->GetOutput();
   // Software Guide : EndCodeSnippet
 
 
@@ -120,8 +117,7 @@ main(int argc, char * argv[])
     itk::HoughTransform2DCirclesImageFilter<PixelType,
                                             AccumulatorPixelType,
                                             RadiusPixelType>;
-  HoughTransformFilterType::Pointer houghFilter =
-    HoughTransformFilterType::New();
+  auto houghFilter = HoughTransformFilterType::New();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -147,7 +143,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  houghFilter->SetInput(reader->GetOutput());
+  houghFilter->SetInput(localImage);
 
   houghFilter->SetNumberOfCircles(std::stoi(argv[3]));
   houghFilter->SetMinimumRadius(std::stod(argv[4]));
@@ -171,7 +167,8 @@ main(int argc, char * argv[])
   }
 
   houghFilter->Update();
-  AccumulatorImageType::Pointer localAccumulator = houghFilter->GetOutput();
+  const AccumulatorImageType::Pointer localAccumulator =
+    houghFilter->GetOutput();
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -198,7 +195,7 @@ main(int argc, char * argv[])
   using OutputPixelType = unsigned char;
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
-  OutputImageType::Pointer localOutputImage = OutputImageType::New();
+  auto localOutputImage = OutputImageType::New();
 
   OutputImageType::RegionType region;
   region.SetSize(localImage->GetLargestPossibleRegion().GetSize());
@@ -216,14 +213,12 @@ main(int argc, char * argv[])
   //
   //  Software Guide : EndLatex
   // Software Guide : BeginCodeSnippet
-  using CirclesListType = HoughTransformFilterType::CirclesListType;
-  CirclesListType::const_iterator itCircles = circles.begin();
 
-  while (itCircles != circles.end())
+  for (auto & circle : circles)
   {
     std::cout << "Center: ";
-    std::cout << (*itCircles)->GetCenterInObjectSpace() << std::endl;
-    std::cout << "Radius: " << (*itCircles)->GetRadiusInObjectSpace()[0]
+    std::cout << circle->GetCenterInObjectSpace() << std::endl;
+    std::cout << "Radius: " << circle->GetRadiusInObjectSpace()[0]
               << std::endl;
     // Software Guide : EndCodeSnippet
 
@@ -238,15 +233,15 @@ main(int argc, char * argv[])
          angle += itk::Math::pi / 60.0)
     {
       const HoughTransformFilterType::CircleType::PointType centerPoint =
-        (*itCircles)->GetCenterInObjectSpace();
+        circle->GetCenterInObjectSpace();
       using IndexValueType = ImageType::IndexType::IndexValueType;
       localIndex[0] = itk::Math::Round<IndexValueType>(
         centerPoint[0] +
-        (*itCircles)->GetRadiusInObjectSpace()[0] * std::cos(angle));
+        circle->GetRadiusInObjectSpace()[0] * std::cos(angle));
       localIndex[1] = itk::Math::Round<IndexValueType>(
         centerPoint[1] +
-        (*itCircles)->GetRadiusInObjectSpace()[0] * std::sin(angle));
-      OutputImageType::RegionType outputRegion =
+        circle->GetRadiusInObjectSpace()[0] * std::sin(angle));
+      const OutputImageType::RegionType outputRegion =
         localOutputImage->GetLargestPossibleRegion();
 
       if (outputRegion.IsInside(localIndex))
@@ -254,7 +249,6 @@ main(int argc, char * argv[])
         localOutputImage->SetPixel(localIndex, 255);
       }
     }
-    itCircles++;
   }
   // Software Guide : EndCodeSnippet
 
@@ -265,15 +259,10 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
-
-  writer->SetFileName(argv[2]);
-  writer->SetInput(localOutputImage);
 
   try
   {
-    writer->Update();
+    itk::WriteImage(localOutputImage, argv[2]);
   }
   catch (const itk::ExceptionObject & excep)
   {

@@ -82,7 +82,7 @@ static void PrintVersion(ArgvInfo *argTable);
  *
  * Quick replacement for strtol which eliminates the undesirable property
  * of interpreting numbers with leading '0' characters as octal, while
- * retaining "0x" as indicating a hexidecimal number.
+ * retaining "0x" as indicating a hexadecimal number.
  */
 long int
 ParseLong(const char *argPtr, char **endPtr)
@@ -111,6 +111,16 @@ ParseLong(const char *argPtr, char **endPtr)
  *	Process an argv array according to a table of expected
  *	command-line options.  See the manual page for more details.
  *
+ * argcPtr: Number of arguments in argv.  Modified to hold # args left in argv
+ *          at end.
+ *
+ * argv: Array of arguments.  Modified to hold those that couldn't be processed
+ *       here.
+ *
+ * argTable: Array of option descriptions
+ *
+ * flags: Or'ed combination of various flag bits, such as ARGV_NO_DEFAULTS.
+ *
  * Results:
  *	The return value is a Boolean value with non-zero indicating an 
  *      error.  
@@ -126,14 +136,7 @@ ParseLong(const char *argPtr, char **endPtr)
  */
 
 int
-ParseArgv(argcPtr, argv, argTable, flags)
-    int *argcPtr;		/* Number of arguments in argv.  Modified
-				 * to hold # args left in argv at end. */
-    char **argv;		/* Array of arguments.  Modified to hold
-				 * those that couldn't be processed here. */
-    ArgvInfo *argTable;	/* Array of option descriptions */
-    int flags;			/* Or'ed combination of various flag bits,
-				 * such as ARGV_NO_DEFAULTS. */
+ParseArgv(int *argcPtr, char **argv, ArgvInfo *argTable, int flags)
 {
    ArgvInfo *infoPtr;
 				/* Pointer to the current entry in the
@@ -173,7 +176,7 @@ ParseArgv(argcPtr, argv, argTable, flags)
       length = strlen(curArg);
       
       /*
-       * Loop throught the argument descriptors searching for one with
+       * Loop through the argument descriptors searching for one with
        * the matching key string.  If found, leave a pointer to it in
        * matchPtr.
        */
@@ -315,7 +318,8 @@ ParseArgv(argcPtr, argv, argTable, flags)
          }
          break;
       case ARGV_FUNC: {
-         int (*handlerProc)() =  (int (*)())(uintptr_t)infoPtr->src;
+         typedef int (*handlerProcType)(void*, const char*, char*);
+         handlerProcType handlerProc = (handlerProcType)(uintptr_t)infoPtr->src;
 		
          if ((*handlerProc)(infoPtr->dst, infoPtr->key,
                             argv[srcIndex])) {
@@ -325,7 +329,8 @@ ParseArgv(argcPtr, argv, argTable, flags)
          break;
       }
       case ARGV_GENFUNC: {
-         int (*handlerProc)() = (int (*)())(uintptr_t)infoPtr->src;
+         typedef int (*handlerProcType)(void*, const char*, int, char**);
+         handlerProcType handlerProc = (handlerProcType)(uintptr_t)infoPtr->src;
 
          argc = (*handlerProc)(infoPtr->dst, infoPtr->key,
                                argc, argv+srcIndex);

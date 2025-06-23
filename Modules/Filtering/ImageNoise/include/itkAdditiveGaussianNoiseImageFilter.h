@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- *\class AdditiveGaussianNoiseImageFilter
+ * \class AdditiveGaussianNoiseImageFilter
  *
  * \brief Alter an image with additive Gaussian white noise.
  *
@@ -46,7 +46,7 @@ namespace itk
  * \author Gaetan Lehmann
  *
  * This code was contributed in the Insight Journal paper "Noise
- * Simulation". https://www.insight-journal.org/browse/publication/721
+ * Simulation". https://doi.org/10.54294/vh6vbw
  *
  * \ingroup ITKImageNoise
  */
@@ -65,14 +65,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AdditiveGaussianNoiseImageFilter, NoiseBaseImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(AdditiveGaussianNoiseImageFilter);
 
   /** Superclass type alias. */
-  using OutputImageType = typename Superclass::OutputImageType;
-  using OutputImagePointer = typename Superclass::OutputImagePointer;
-  using OutputImageRegionType = typename Superclass::OutputImageRegionType;
-  using OutputImagePixelType = typename Superclass::OutputImagePixelType;
+  using typename Superclass::OutputImageType;
+  using typename Superclass::OutputImagePointer;
+  using typename Superclass::OutputImageRegionType;
+  using typename Superclass::OutputImagePixelType;
 
   /** Some convenient type alias. */
   using InputImageType = TInputImage;
@@ -83,20 +83,18 @@ public:
 
   /** Set/Get the mean of the Gaussian distribution.
    * Defaults to 0.0. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Mean, double);
   itkSetMacro(Mean, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the standard deviation of the Gaussian distribution.
    * Defaults to 1.0. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(StandardDeviation, double);
   itkSetMacro(StandardDeviation, double);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
+  /** @ITKEndGrouping */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
-  /** End concept checking */
-#endif
 
 protected:
   AdditiveGaussianNoiseImageFilter();

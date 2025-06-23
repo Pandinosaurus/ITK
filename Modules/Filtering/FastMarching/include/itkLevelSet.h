@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ public:
 };
 
 /**
- *\class AuxVarTypeDefault
+ * \class AuxVarTypeDefault
  * \brief Level set auxiliary variables type information.
  *
  * \brief AuxVarTypeDefault is a simple class that holds type information
@@ -100,10 +100,10 @@ public:
   /** AuxVector type alias support */
   using AuxValueVectorType = Vector<TPixel, VAuxDimension>;
 
-  /** AuxContainer typdef support. */
+  /** AuxContainer typedef support. */
   using AuxValueContainer = VectorContainer<unsigned int, AuxValueVectorType>;
 
-  /** AuxImage typdef support. */
+  /** AuxImage typedef support. */
   using AuxImageType = Image<AuxValueType, VSetDimension>;
 
   /** AuxImagePointer type alias support */

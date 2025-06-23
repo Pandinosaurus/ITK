@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,54 +19,51 @@
 #include <fstream>
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTestingMacros.h"
 
 
 // Specific ImageIO test
 
 int
-itkJPEGImageIOTest(int ac, char * av[])
+itkJPEGImageIOTest(int argc, char * argv[])
 {
 
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "Usage: " << av[0] << " Input Output\n";
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " inputFilename outputFilename" << std::endl;
     return EXIT_FAILURE;
   }
 
   // ATTENTION THIS IS THE PIXEL TYPE FOR
   // THE RESULTING IMAGE
+  constexpr unsigned int Dimension = 2;
   using PixelType = unsigned char;
 
-  using myImage = itk::Image<PixelType, 2>;
+  using myImage = itk::Image<PixelType, Dimension>;
 
-  itk::ImageFileReader<myImage>::Pointer reader = itk::ImageFileReader<myImage>::New();
+  const itk::ImageFileReader<myImage>::Pointer reader = itk::ImageFileReader<myImage>::New();
 
-  reader->SetFileName(av[1]);
+  reader->SetFileName(argv[1]);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  myImage::Pointer image = reader->GetOutput();
+
+  const myImage::Pointer image = reader->GetOutput();
 
   image->Print(std::cout);
 
-  myImage::RegionType region = image->GetLargestPossibleRegion();
+  const myImage::RegionType region = image->GetLargestPossibleRegion();
   std::cout << "region " << region;
 
   // Generate test image
-  itk::ImageFileWriter<myImage>::Pointer writer;
-  writer = itk::ImageFileWriter<myImage>::New();
+  const itk::ImageFileWriter<myImage>::Pointer writer = itk::ImageFileWriter<myImage>::New();
   writer->SetInput(reader->GetOutput());
-  writer->SetFileName(av[2]);
-  writer->Update();
+  writer->SetFileName(argv[2]);
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
+
 
   return EXIT_SUCCESS;
 }

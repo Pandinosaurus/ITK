@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,10 +30,10 @@
  * If this test succeeds, this bug has been fixed.
  */
 int
-itkNrrdMetaDataTest(int ac, char * av[])
+itkNrrdMetaDataTest(int argc, char * argv[])
 {
 
-  if (ac < 2)
+  if (argc < 2)
   {
     std::cerr << "Missing data directory argument" << std::endl;
     return EXIT_FAILURE;
@@ -42,8 +42,8 @@ itkNrrdMetaDataTest(int ac, char * av[])
   // Image type
   using ImageType = itk::Image<unsigned char, 3>;
   // create dummy image
-  ImageType::Pointer  image1 = ImageType::New();
-  ImageType::SizeType size = { { 2, 2, 2 } };
+  auto                          image1 = ImageType::New();
+  constexpr ImageType::SizeType size = { { 2, 2, 2 } };
   image1->SetRegions(size);
   image1->Allocate();
   image1->FillBuffer(1);
@@ -58,15 +58,15 @@ itkNrrdMetaDataTest(int ac, char * av[])
   using ImageReaderType = itk::ImageFileReader<ImageType>;
 
   // test uses 1st arg to specify where to drop data
-  std::string fname = av[1];
+  std::string fname = argv[1];
   fname += "/metadatatest.nrrd";
   // set up writer
-  ImageWriterType::Pointer writer = ImageWriterType::New();
+  auto writer = ImageWriterType::New();
   writer->SetImageIO(itk::NrrdImageIO::New());
   writer->SetFileName(fname.c_str());
   writer->SetInput(image1);
   // set up reader
-  ImageReaderType::Pointer reader = ImageReaderType::New();
+  auto reader = ImageReaderType::New();
   reader->SetFileName(fname.c_str());
   reader->SetImageIO(itk::NrrdImageIO::New());
   ImageType::Pointer image2;

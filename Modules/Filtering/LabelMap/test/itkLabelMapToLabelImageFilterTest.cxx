@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,7 @@ itkLabelMapToLabelImageFilterTest(int argc, char * argv[])
 
   using LabelMapToLabelImageFilterType = itk::LabelMapToLabelImageFilter<LabelMapType, ImageType>;
 
-  LabelMapType::Pointer map = LabelMapType::New();
+  auto map = LabelMapType::New();
 
   SizeType sizeIn;
   sizeIn[0] = 11;
@@ -57,33 +57,32 @@ itkLabelMapToLabelImageFilterTest(int argc, char * argv[])
 
   IndexType idxVertical;
   idxVertical[0] = 5;
-  for (int ctr = 0; ctr < 5; ctr++)
+  for (int ctr = 0; ctr < 5; ++ctr)
   {
     idxVertical[1] = ctr;
     map->SetPixel(idxVertical, 1);
   }
-  for (int ctr = 6; ctr < 11; ctr++)
+  for (int ctr = 6; ctr < 11; ++ctr)
   {
     idxVertical[1] = ctr;
     map->SetPixel(idxVertical, 1);
   }
 
-  LabelMapToLabelImageFilterType::Pointer conversion = LabelMapToLabelImageFilterType::New();
+  auto conversion = LabelMapToLabelImageFilterType::New();
   conversion->SetInput(map);
   conversion->Update();
 
   ImageType::Pointer image;
   image = conversion->GetOutput();
 
-  for (int ctrI = 0; ctrI < 11; ctrI++)
+  for (int ctrI = 0; ctrI < 11; ++ctrI)
   {
-    for (int ctrJ = 0; ctrJ < 11; ctrJ++)
+    for (int ctrJ = 0; ctrJ < 11; ++ctrJ)
     {
       IndexType index;
       index[0] = ctrI;
       index[1] = ctrJ;
-      unsigned char val;
-      val = image->GetPixel(index);
+      const unsigned char val = image->GetPixel(index);
       if ((ctrI == 5) || (ctrJ == 5))
       {
         itkAssertOrThrowMacro((val == 1), "Error in Label Image.");

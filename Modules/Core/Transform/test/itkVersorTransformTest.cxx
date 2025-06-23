@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ itkVersorTransformTest(int, char *[])
 
   using ValueType = double;
 
-  const ValueType epsilon = 1e-12;
+  constexpr ValueType epsilon = 1e-12;
 
   //  Versor Transform type
   using TransformType = itk::VersorTransform<ValueType>;
@@ -63,11 +63,11 @@ itkVersorTransformTest(int, char *[])
   {
     std::cout << "Test default constructor... ";
 
-    TransformType::Pointer transform = TransformType::New();
+    auto transform = TransformType::New();
 
-    VectorType axis(1.5);
+    auto axis = itk::MakeFilled<VectorType>(1.5);
 
-    ValueType angle = 120.0 * std::atan(1.0) / 45.0;
+    const ValueType angle = 120.0 * std::atan(1.0) / 45.0;
 
     VersorType versor;
     versor.Set(axis, angle);
@@ -80,18 +80,13 @@ itkVersorTransformTest(int, char *[])
 
     transform->SetParameters(parameters);
 
-    if (0.0 > epsilon)
-    {
-      std::cout << "Error ! " << std::endl;
-      return EXIT_FAILURE;
-    }
     std::cout << " PASSED !" << std::endl;
   }
 
   {
     std::cout << "Test initial rotation matrix " << std::endl;
-    TransformType::Pointer transform = TransformType::New();
-    MatrixType             matrix = transform->GetMatrix();
+    auto             transform = TransformType::New();
+    const MatrixType matrix = transform->GetMatrix();
     std::cout << "Matrix = " << std::endl;
     std::cout << matrix << std::endl;
   }
@@ -101,9 +96,9 @@ itkVersorTransformTest(int, char *[])
   {
     bool Ok = true;
 
-    TransformType::Pointer rotation = TransformType::New();
+    auto rotation = TransformType::New();
 
-    itk::Vector<double, 3> axis(1);
+    auto axis = itk::MakeFilled<itk::Vector<double, 3>>(1);
 
     const double angle = (std::atan(1.0) / 45.0) * 120.0; // turn 120 degrees
 
@@ -113,9 +108,9 @@ itkVersorTransformTest(int, char *[])
     TransformType::OffsetType offset = rotation->GetOffset();
     std::cout << "pure Rotation test:  ";
     std::cout << offset << std::endl;
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      if (std::fabs(offset[i] - 0.0) > epsilon)
+      if (itk::Math::abs(offset[i] - 0.0) > epsilon)
       {
         Ok = false;
         break;
@@ -133,16 +128,16 @@ itkVersorTransformTest(int, char *[])
 
     {
       // Rotate an itk::Point
-      TransformType::InputPointType::ValueType pInit[3] = { 1, 4, 9 };
-      TransformType::InputPointType            p = pInit;
-      TransformType::OutputPointType           q;
+      constexpr TransformType::InputPointType::ValueType pInit[3] = { 1, 4, 9 };
+      const TransformType::InputPointType                p = pInit;
+      TransformType::OutputPointType                     q;
       q = versor.Transform(p);
 
       TransformType::OutputPointType r;
       r = rotation->TransformPoint(p);
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(q[i] - r[i]) > epsilon)
+        if (itk::Math::abs(q[i] - r[i]) > epsilon)
         {
           Ok = false;
           break;
@@ -155,24 +150,22 @@ itkVersorTransformTest(int, char *[])
         std::cerr << "Reported Result is   : " << r << std::endl;
         return EXIT_FAILURE;
       }
-      else
-      {
-        std::cout << "Ok rotating an itk::Point " << std::endl;
-      }
+
+      std::cout << "Ok rotating an itk::Point " << std::endl;
     }
 
     {
       // Translate an itk::Vector
       TransformType::InputVectorType::ValueType pInit[3] = { 1, 4, 9 };
-      TransformType::InputVectorType            p = pInit;
+      const TransformType::InputVectorType      p = pInit;
       TransformType::OutputVectorType           q;
       q = versor.Transform(p);
 
       TransformType::OutputVectorType r;
       r = rotation->TransformVector(p);
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(q[i] - r[i]) > epsilon)
+        if (itk::Math::abs(q[i] - r[i]) > epsilon)
         {
           Ok = false;
           break;
@@ -185,24 +178,22 @@ itkVersorTransformTest(int, char *[])
         std::cerr << "Reported Result is    : " << r << std::endl;
         return EXIT_FAILURE;
       }
-      else
-      {
-        std::cout << "Ok rotating an itk::Vector " << std::endl;
-      }
+
+      std::cout << "Ok rotating an itk::Vector " << std::endl;
     }
 
     {
       // Translate an itk::CovariantVector
       TransformType::InputCovariantVectorType::ValueType pInit[3] = { 1, 4, 9 };
-      TransformType::InputCovariantVectorType            p = pInit;
+      const TransformType::InputCovariantVectorType      p = pInit;
       TransformType::OutputCovariantVectorType           q;
       q = versor.Transform(p);
 
       TransformType::OutputCovariantVectorType r;
       r = rotation->TransformCovariantVector(p);
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(q[i] - r[i]) > epsilon)
+        if (itk::Math::abs(q[i] - r[i]) > epsilon)
         {
           Ok = false;
           break;
@@ -215,10 +206,8 @@ itkVersorTransformTest(int, char *[])
         std::cerr << "Reported Result is              : " << r << std::endl;
         return EXIT_FAILURE;
       }
-      else
-      {
-        std::cout << "Ok rotating an itk::CovariantVector " << std::endl;
-      }
+
+      std::cout << "Ok rotating an itk::CovariantVector " << std::endl;
     }
 
     {
@@ -233,9 +222,9 @@ itkVersorTransformTest(int, char *[])
 
       TransformType::OutputVnlVectorType r;
       r = rotation->TransformVector(p);
-      for (unsigned int i = 0; i < 3; i++)
+      for (unsigned int i = 0; i < 3; ++i)
       {
-        if (std::fabs(q[i] - r[i]) > epsilon)
+        if (itk::Math::abs(q[i] - r[i]) > epsilon)
         {
           Ok = false;
           break;
@@ -248,10 +237,8 @@ itkVersorTransformTest(int, char *[])
         std::cerr << "Reported Result is        : " << r << std::endl;
         return EXIT_FAILURE;
       }
-      else
-      {
-        std::cout << "Ok rotating an vnl_Vector " << std::endl;
-      }
+
+      std::cout << "Ok rotating an vnl_Vector " << std::endl;
     }
   }
 
@@ -259,9 +246,9 @@ itkVersorTransformTest(int, char *[])
   {
     bool Ok = true;
 
-    TransformType::Pointer transform = TransformType::New();
+    auto transform = TransformType::New();
 
-    itk::Vector<double, 3> axis(1);
+    auto axis = itk::MakeFilled<itk::Vector<double, 3>>(1);
 
     const double angle = (std::atan(1.0) / 45.0) * 30.0; // turn 30 degrees
 
@@ -276,9 +263,9 @@ itkVersorTransformTest(int, char *[])
 
     TransformType::OutputPointType transformedPoint;
     transformedPoint = transform->TransformPoint(center);
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      if (std::fabs(center[i] - transformedPoint[i]) > epsilon)
+      if (itk::Math::abs(center[i] - transformedPoint[i]) > epsilon)
       {
         Ok = false;
         break;
@@ -290,16 +277,15 @@ itkVersorTransformTest(int, char *[])
       std::cerr << "The center point was not invariant to rotation " << std::endl;
       return EXIT_FAILURE;
     }
-    else
-    {
-      std::cout << "Ok center is invariant to rotation." << std::endl;
-    }
+
+    std::cout << "Ok center is invariant to rotation." << std::endl;
+
 
     const unsigned int np = transform->GetNumberOfParameters();
 
     ParametersType parameters(np); // Number of parameters
 
-    VersorType versor;
+    constexpr VersorType versor;
 
     parameters[0] = versor.GetX(); // Rotation axis * std::sin(t/2)
     parameters[1] = versor.GetY();
@@ -309,10 +295,10 @@ itkVersorTransformTest(int, char *[])
 
     ParametersType parameters2 = transform->GetParameters();
 
-    const double tolerance = 1e-8;
-    for (unsigned int p = 0; p < np; p++)
+    constexpr double tolerance = 1e-8;
+    for (unsigned int p = 0; p < np; ++p)
     {
-      if (std::fabs(parameters[p] - parameters2[p]) > tolerance)
+      if (itk::Math::abs(parameters[p] - parameters2[p]) > tolerance)
       {
         std::cerr << "Output parameter does not match input " << std::endl;
         return EXIT_FAILURE;
@@ -344,9 +330,9 @@ itkVersorTransformTest(int, char *[])
     TheoreticalJacobian[0][2] = 84.0;
     TheoreticalJacobian[1][2] = -42.0;
     TheoreticalJacobian[2][2] = 0.0;
-    for (unsigned int ii = 0; ii < 3; ii++)
+    for (unsigned int ii = 0; ii < 3; ++ii)
     {
-      for (unsigned int jj = 0; jj < 3; jj++)
+      for (unsigned int jj = 0; jj < 3; ++jj)
       {
         if (itk::Math::abs(TheoreticalJacobian[ii][jj] - jacobian[ii][jj]) > 1e-5)
         {
@@ -366,25 +352,22 @@ itkVersorTransformTest(int, char *[])
   {
     // Testing SetMatrix()
     std::cout << "Testing SetMatrix() ... ";
-    unsigned int par;
-    bool         Ok;
-
     MatrixType matrix;
 
-    TransformType::Pointer t = TransformType::New();
+    auto t = TransformType::New();
 
     // attempt to set an non-orthogonal matrix
-    par = 0;
-    for (unsigned int row = 0; row < 3; row++)
+    unsigned int par = 0;
+    for (unsigned int row = 0; row < 3; ++row)
     {
-      for (unsigned int col = 0; col < 3; col++)
+      for (unsigned int col = 0; col < 3; ++col)
       {
         matrix[row][col] = static_cast<double>(par + 1);
         ++par;
       }
     }
 
-    Ok = false;
+    bool Ok = false;
     try
     {
       t->SetMatrix(matrix);
@@ -410,7 +393,7 @@ itkVersorTransformTest(int, char *[])
     // attempt to set an orthogonal matrix
     matrix.GetVnlMatrix().set_identity();
 
-    double a = 1.0 / 180.0 * itk::Math::pi;
+    constexpr double a = 1.0 / 180.0 * itk::Math::pi;
     matrix[0][0] = std::cos(a);
     matrix[0][1] = -1.0 * std::sin(a);
     matrix[1][0] = std::sin(a);
@@ -440,8 +423,7 @@ itkVersorTransformTest(int, char *[])
 
     // Check the computed parameters
 
-    VectorType axis;
-    axis.Fill(0.0);
+    VectorType axis{};
     axis[2] = 1.0;
     VersorType v;
     v.Set(axis, a);
@@ -454,13 +436,13 @@ itkVersorTransformTest(int, char *[])
     t = TransformType::New();
     t->SetParameters(e);
 
-    TransformType::Pointer t2 = TransformType::New();
+    auto t2 = TransformType::New();
     t2->SetMatrix(t->GetMatrix());
 
     ParametersType p = t2->GetParameters();
-    for (unsigned int k = 0; k < e.GetSize(); k++)
+    for (unsigned int k = 0; k < e.GetSize(); ++k)
     {
-      if (std::fabs(e[k] - p[k]) > epsilon)
+      if (itk::Math::abs(e[k] - p[k]) > epsilon)
       {
         std::cout << " [ FAILED ] " << std::endl;
         std::cout << "Expected parameters: " << e << std::endl;
@@ -470,7 +452,36 @@ itkVersorTransformTest(int, char *[])
     }
 
     {
-      TransformType::Pointer tInverse = TransformType::New();
+      // Check that setting parameters updates the transformation offset
+      t = TransformType::New();
+
+      const TransformType::InputPointType center = itk::MakePoint(2, 4, 8);
+
+      // 90 degree rotation around x axis
+      ParametersType q(3);
+      q[0] = itk::Math::sqrt1_2;
+      q[1] = 0.0;
+      q[2] = 0.0;
+
+      t->SetCenter(center);
+      t->SetParameters(q);
+
+      constexpr double expectedOffset[] = { 0.0, 12.0, 4.0 };
+
+      TransformType::OffsetType offset = t->GetOffset();
+      for (unsigned int k = 0; k < 3; ++k)
+      {
+        if (itk::Math::abs(expectedOffset[k] - offset[k]) > epsilon)
+        {
+          std::cerr << " [ FAILED ] " << std::endl;
+          std::cerr << "Expected offset: " << expectedOffset << std::endl;
+          std::cerr << "but got: " << offset << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+    }
+    {
+      auto tInverse = TransformType::New();
       if (!t->GetInverse(tInverse))
       {
         std::cout << "Cannot create inverse transform" << std::endl;

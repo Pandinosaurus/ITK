@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "itkVersorRigid3DTransform.h"
+#include "itkSimilarity3DTransform.h"
 #include "itkRigid2DTransform.h"
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
@@ -43,6 +44,7 @@ namespace itk
  *
  * Currently, the  following transforms are supported by the class:
  *    VersorRigid3DTransform
+ *    Similarity3DTransform
  *    Rigid2DTransform
  *    AffineTransform
  *    BSplineTransform
@@ -65,16 +67,12 @@ namespace itk
  * The class is based in part on Hybrid/vtkLandmarkTransform originally
  * implemented in python by David G. Gobbi.
  *
- * The solution is based on
- * Berthold K. P. Horn (1987), "Closed-form solution of absolute orientation
- * using unit quaternions,"
- * http://people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
+ * The solution is based on \cite horn1987.
+ * https://people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
  *
  * The Affine Transform initializer is based on an algorithm by H Spaeth,
- * and is described in the Insight Journal Article
- * "Affine Transformation for Landmark Based Registration Initializer
- * in ITK" by Kim E.Y., Johnson H., Williams N.
- * available at  http://midasjournal.com/browse/publication/825
+ * and is described in \cite kim2011, available at
+ * https://doi.org/10.54294/fge470
  *
  * \ingroup ITKRegistrationCommon
  *
@@ -99,10 +97,10 @@ public:
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(LandmarkBasedTransformInitializer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LandmarkBasedTransformInitializer);
 
-  /** Type of the transform to initialize */
+  /** Type of the transform to initialize. */
   using TransformType = TTransform;
   using TransformPointer = typename TransformType::Pointer;
 
@@ -110,17 +108,17 @@ public:
   static constexpr unsigned int InputSpaceDimension = TransformType::InputSpaceDimension;
   static constexpr unsigned int OutputSpaceDimension = TransformType::OutputSpaceDimension;
 
-  /** Set the transform to be initialized */
+  /** Set the transform to be initialized. */
   itkSetObjectMacro(Transform, TransformType);
 
-  /** Image Types to use in the initialization of the transform */
+  /** Image Types to use in the initialization of the transform. */
   using FixedImageType = TFixedImage;
   using MovingImageType = TMovingImage;
 
-  /** Set the reference image to define the parametric domain for the BSpline transform */
+  /** Set the reference image to define the parametric domain for the BSpline transform. */
   itkSetConstObjectMacro(ReferenceImage, FixedImageType);
 
-  /** Set the number of control points to define the parametric domain for the BSpline transform */
+  /** Set the number of control points to define the parametric domain for the BSpline transform. */
   itkSetMacro(BSplineNumberOfControlPoints, unsigned int);
 
   using FixedImagePointer = typename FixedImageType::ConstPointer;
@@ -129,10 +127,11 @@ public:
   /** Determine the image dimension. */
   static constexpr unsigned int ImageDimension = FixedImageType::ImageDimension;
 
-  /** Convenience type alias */
+  /** Convenience type alias. */
   using InputPointType = typename TransformType::InputPointType;
   using OutputVectorType = typename TransformType::OutputVectorType;
 
+  using PointType3D = Point<double, 3>;
   using LandmarkPointType = Point<double, ImageDimension>;
   using LandmarkPointContainer = std::vector<LandmarkPointType>;
   using PointsContainerConstIterator = typename LandmarkPointContainer::const_iterator;
@@ -142,14 +141,14 @@ public:
   using LandmarkWeightType = std::vector<double>;
   using LandmarkWeightConstIterator = LandmarkWeightType::const_iterator;
 
-  /** Set the Fixed landmark point containers */
+  /** Set the Fixed landmark point containers. */
   void
   SetFixedLandmarks(const LandmarkPointContainer & fixedLandmarks)
   {
     this->m_FixedLandmarks = fixedLandmarks;
   }
 
-  /** Set the Moving landmark point containers */
+  /** Set the Moving landmark point containers. */
   void
   SetMovingLandmarks(const LandmarkPointContainer & movingLandmarks)
   {
@@ -157,7 +156,7 @@ public:
   }
 
   /** Set the landmark weight point containers
-   *  Weight includes diagonal elements of weight matrix
+   *  Weight includes diagonal elements of weight matrix.
    */
   void
   SetLandmarkWeight(LandmarkWeightType & landmarkWeight)
@@ -165,49 +164,61 @@ public:
     this->m_LandmarkWeight = landmarkWeight;
   }
 
-  /**  Supported Transform type alias */
+  /**  Supported Transform type alias. */
   using VersorRigid3DTransformType = VersorRigid3DTransform<ParametersValueType>;
+  using Similarity3DTransformType = Similarity3DTransform<ParametersValueType>;
   using Rigid2DTransformType = Rigid2DTransform<ParametersValueType>;
   using AffineTransformType = AffineTransform<ParametersValueType, FixedImageType::ImageDimension>;
 
-  constexpr static unsigned int SplineOrder = 3;
+  static constexpr unsigned int SplineOrder = 3;
   using BSplineTransformType = BSplineTransform<ParametersValueType, FixedImageType::ImageDimension, SplineOrder>;
 
-  /** Initialize the transform from the landmarks */
+  /** Initialize the transform from the landmarks. */
   virtual void
   InitializeTransform();
 
 protected:
-  LandmarkBasedTransformInitializer();
+  LandmarkBasedTransformInitializer() = default;
   ~LandmarkBasedTransformInitializer() override = default;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  /** fallback Initializer just sets transform to identity */
+  /** Fallback Initializer just sets transform to identity. */
   template <typename TTransform2>
   void
   InternalInitializeTransform(TTransform2 *);
-  /** Initializer for VersorRigid3D */
+  /** Initializer for VersorRigid3D. */
   void
   InternalInitializeTransform(VersorRigid3DTransformType *);
-  /** Initializer for Rigid2DTransform */
+  /** Initializer for Similarity3DTransform. */
+  void
+  InternalInitializeTransform(Similarity3DTransformType *);
+  /** Initializer for Rigid2DTransform. */
   void
   InternalInitializeTransform(Rigid2DTransformType *);
-  /** Initializer for AffineTransform */
+  /** Initializer for AffineTransform. */
   void
   InternalInitializeTransform(AffineTransformType *);
-  /** Initializer for BSplineTransform */
+  /** Initializer for BSplineTransform. */
   void
   InternalInitializeTransform(BSplineTransformType *);
 
-  FixedImagePointer      m_ReferenceImage;
-  TransformPointer       m_Transform;
-  LandmarkPointContainer m_FixedLandmarks;
-  LandmarkPointContainer m_MovingLandmarks;
-  /** weights for affine landmarks */
-  LandmarkWeightType m_LandmarkWeight;
+  PointType3D
+  ComputeCentroid(const LandmarkPointContainer);
+
+  void
+  CreateMatrix(itk::Matrix<ParametersValueType, 4, 4> &,
+               const itk::Matrix<ParametersValueType, ImageDimension, ImageDimension>);
+
+  FixedImagePointer      m_ReferenceImage{};
+  TransformPointer       m_Transform{};
+  LandmarkPointContainer m_FixedLandmarks{};
+  LandmarkPointContainer m_MovingLandmarks{};
+
+  /** Weights for affine landmarks. */
+  LandmarkWeightType m_LandmarkWeight{};
   unsigned int       m_BSplineNumberOfControlPoints{ 4 };
 
 }; // class LandmarkBasedTransformInitializer

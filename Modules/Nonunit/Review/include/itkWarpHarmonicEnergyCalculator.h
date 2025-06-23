@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ namespace itk
  * \author Tom Vercauteren, INRIA & Mauna Kea Technologies
  *
  * This implementation was taken from the Insight Journal paper:
- * https://hdl.handle.net/1926/510
+ * https://doi.org/10.54294/ux2obj
  *
  * \ingroup Operators
  * \ingroup ITKReview
@@ -56,8 +56,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(WarpHarmonicEnergyCalculator, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(WarpHarmonicEnergyCalculator);
 
   /** Type definition for the input image. */
   using ImageType = TInputImage;
@@ -139,16 +139,16 @@ protected:
 
 private:
   double            m_HarmonicEnergy{ 0.0 };
-  ImageConstPointer m_Image;
+  ImageConstPointer m_Image{};
 
-  RegionType m_Region;
+  RegionType m_Region{};
   bool       m_RegionSetByUser{ false };
 
   bool m_UseImageSpacing{ true };
 
-  WeightsType m_DerivativeWeights;
+  WeightsType m_DerivativeWeights{};
 
-  RadiusType m_NeighborhoodRadius;
+  RadiusType m_NeighborhoodRadius{};
 };
 } // end namespace itk
 

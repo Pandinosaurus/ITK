@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ public:
 
   /** Set output using the value in input */
   inline void
-  Set(InternalType & output, const ExternalType & input, const unsigned long offset) const
+  Set(InternalType & output, const ExternalType & input, const SizeValueType offset) const
   {
     InternalType * truePixel = (&output) + offset * m_OffsetMultiplier;
 
@@ -74,7 +74,7 @@ public:
   }
 
   /** Get the value from input */
-  inline ExternalType
+  [[nodiscard]] inline ExternalType
   Get(const InternalType & input, const SizeValueType offset) const
   {
     // Do not create a local for this method, to use return value
@@ -91,7 +91,7 @@ public:
   }
 
   /** Get Vector lengths */
-  VectorLengthType
+  [[nodiscard]] VectorLengthType
   GetVectorLength() const
   {
     return m_VectorLength;
@@ -101,10 +101,9 @@ public:
 
   /** Constructor to initialize VectorLength at construction time */
   DefaultVectorPixelAccessor(VectorLengthType l)
-  {
-    m_VectorLength = l;
-    m_OffsetMultiplier = l - 1;
-  }
+    : m_VectorLength(l)
+    , m_OffsetMultiplier(l - 1)
+  {}
 
   ~DefaultVectorPixelAccessor() = default;
 

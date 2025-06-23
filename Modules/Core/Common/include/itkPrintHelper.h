@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,13 +21,19 @@
 
 #include <iostream>
 #include <iterator>
+
+// Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=112467
+#if defined(ITK_WRAPPING_PARSER) && defined(__GNUC__) && !defined(__clang__)
+#  define __clang__
+#  define ITK_CASTXML_GCC_VECTOR_WORKAROUND
+#endif
 #include <vector>
+#if defined(ITK_CASTXML_GCC_VECTOR_WORKAROUND)
+#  undef __clang__
+#  undef ITK_CASTXML_GCC_VECTOR_WORKAROUND
+#endif
 
-
-namespace itk
-{
-
-namespace print_helper
+namespace itk::print_helper
 {
 
 template <typename T>
@@ -39,12 +45,11 @@ operator<<(std::ostream & os, const std::vector<T> & v)
     return os << "()";
   }
 
-  os << "(";
+  os << '(';
   std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
-  return os << v.back() << ")";
+  return os << v.back() << ')';
 }
 
-} // end namespace print_helper
-} // end namespace itk
+} // namespace itk::print_helper
 
 #endif // itkPrintHelper_h

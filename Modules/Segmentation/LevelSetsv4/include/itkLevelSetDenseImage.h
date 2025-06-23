@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,34 +58,35 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetDenseImage, DiscreteLevelSetImage);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetDenseImage);
 
   static constexpr unsigned int Dimension = Superclass::Dimension;
 
-  using InputType = typename Superclass::InputType;
-  using OutputType = typename Superclass::OutputType;
-  using OutputRealType = typename Superclass::OutputRealType;
-  using GradientType = typename Superclass::GradientType;
-  using HessianType = typename Superclass::HessianType;
-  using LevelSetDataType = typename Superclass::LevelSetDataType;
+  using typename Superclass::InputType;
+  using typename Superclass::OutputType;
+  using typename Superclass::OutputRealType;
+  using typename Superclass::GradientType;
+  using typename Superclass::HessianType;
+  using typename Superclass::LevelSetDataType;
 
   virtual void
   SetImage(ImageType * inputImage);
   itkGetModifiableObjectMacro(Image, ImageType);
 
   /** Returns the value of the level set function at a given location inputIndex */
+  /** @ITKStartGrouping */
   OutputType
   Evaluate(const InputType & inputIndex) const override;
   void
   Evaluate(const InputType & inputIndex, LevelSetDataType & data) const override;
-
+  /** @ITKEndGrouping */
 protected:
   LevelSetDenseImage() = default;
 
   ~LevelSetDenseImage() override = default;
 
-  ImagePointer m_Image;
+  ImagePointer m_Image{};
 
   bool
   IsInsideDomain(const InputType & inputIndex) const override;

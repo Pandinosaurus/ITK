@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -97,7 +97,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  using PixelType = signed short;
+  using PixelType = short;
   constexpr unsigned int Dimension = 3;
 
   using ImageType = itk::Image<PixelType, Dimension>;
@@ -130,8 +130,7 @@ main(int argc, char * argv[])
   using SpatialObjectToImageFilterType =
     itk::SpatialObjectToImageFilter<GroupType, ImageType>;
 
-  SpatialObjectToImageFilterType::Pointer imageFilter =
-    SpatialObjectToImageFilterType::New();
+  auto imageFilter = SpatialObjectToImageFilterType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -170,9 +169,9 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  EllipseType::Pointer ellipse = EllipseType::New();
-  TubeType::Pointer    tube1 = TubeType::New();
-  TubeType::Pointer    tube2 = TubeType::New();
+  auto ellipse = EllipseType::New();
+  auto tube1 = TubeType::New();
+  auto tube2 = TubeType::New();
   // Software Guide : EndCodeSnippet
 
 
@@ -235,9 +234,9 @@ main(int argc, char * argv[])
   // Software Guide : BeginCodeSnippet
   using TransformType = GroupType::TransformType;
 
-  TransformType::Pointer transform1 = TransformType::New();
-  TransformType::Pointer transform2 = TransformType::New();
-  TransformType::Pointer transform3 = TransformType::New();
+  auto transform1 = TransformType::New();
+  auto transform2 = TransformType::New();
+  auto transform3 = TransformType::New();
 
   transform1->SetIdentity();
   transform2->SetIdentity();
@@ -284,7 +283,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  GroupType::Pointer group = GroupType::New();
+  auto group = GroupType::New();
   group->AddChild(ellipse);
   group->AddChild(tube1);
   group->AddChild(tube2);
@@ -312,7 +311,7 @@ main(int argc, char * argv[])
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  const PixelType     airHounsfieldUnits = -1000;
+  constexpr PixelType airHounsfieldUnits = -1000;
   constexpr PixelType boneHounsfieldUnits = 800;
 
   ellipse->SetDefaultInsideValue(boneHounsfieldUnits);
@@ -339,7 +338,7 @@ main(int argc, char * argv[])
 
   // Software Guide : BeginCodeSnippet
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetFileName(argv[1]);
   writer->SetInput(imageFilter->GetOutput());

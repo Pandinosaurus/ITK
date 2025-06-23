@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,24 +18,18 @@
 #ifndef itkParametricSpaceToImageSpaceMeshFilter_hxx
 #define itkParametricSpaceToImageSpaceMeshFilter_hxx
 
-#include "itkParametricSpaceToImageSpaceMeshFilter.h"
 #include "itkMacro.h"
 #include "itkProgressReporter.h"
 
 namespace itk
 {
-/**
- *
- */
+
 template <typename TInputMesh, typename TOutputMesh>
 ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::ParametricSpaceToImageSpaceMeshFilter()
 {
   this->SetNumberOfRequiredInputs(1);
 }
 
-/**
- *
- */
 template <typename TInputMesh, typename TOutputMesh>
 void
 ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::PrintSelf(std::ostream & os, Indent indent) const
@@ -43,9 +37,6 @@ ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::PrintSelf(std::o
   Superclass::PrintSelf(os, indent);
 }
 
-/**
- * This method causes the filter to generate its output.
- */
 template <typename TInputMesh, typename TOutputMesh>
 void
 ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
@@ -60,28 +51,28 @@ ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
 
   using OutputPointDataContainerPointer = typename TOutputMesh::PointDataContainerPointer;
 
-  const InputMeshType * inputMesh = this->GetInput();
-  OutputMeshPointer     outputMesh = this->GetOutput();
+  const InputMeshType *   inputMesh = this->GetInput();
+  const OutputMeshPointer outputMesh = this->GetOutput();
 
   if (!inputMesh)
   {
-    itkExceptionMacro(<< "Missing Input Mesh");
+    itkExceptionMacro("Missing Input Mesh");
   }
 
   if (!outputMesh)
   {
-    itkExceptionMacro(<< "Missing Output Mesh");
+    itkExceptionMacro("Missing Output Mesh");
   }
 
   outputMesh->SetBufferedRegion(outputMesh->GetRequestedRegion());
 
-  const InputPointsContainer * inPoints = inputMesh->GetPoints();
-  OutputPointsContainerPointer outPoints = OutputPointsContainer::New();
+  const InputPointsContainer *       inPoints = inputMesh->GetPoints();
+  const OutputPointsContainerPointer outPoints = OutputPointsContainer::New();
 
   outPoints->Reserve(inputMesh->GetNumberOfPoints());
 
-  const InputPointDataContainer * inData = inputMesh->GetPointData();
-  OutputPointDataContainerPointer outData = OutputPointDataContainer::New();
+  const InputPointDataContainer *       inData = inputMesh->GetPointData();
+  const OutputPointDataContainerPointer outData = OutputPointDataContainer::New();
 
   outData->Reserve(inputMesh->GetNumberOfPoints());
 
@@ -98,9 +89,9 @@ ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
     return;
   }
 
-  typename InputPointsContainer::ConstIterator    inputPointIt = inPoints->Begin();
-  typename InputPointsContainer::ConstIterator    inputPointEnd = inPoints->End();
-  typename InputPointDataContainer::ConstIterator inputDataIt = inData->Begin();
+  typename InputPointsContainer::ConstIterator       inputPointIt = inPoints->Begin();
+  const typename InputPointsContainer::ConstIterator inputPointEnd = inPoints->End();
+  typename InputPointDataContainer::ConstIterator    inputDataIt = inData->Begin();
 
   typename OutputPointsContainer::Iterator    outputPointIt = outPoints->Begin();
   typename OutputPointDataContainer::Iterator outputDataIt = outData->Begin();
@@ -114,9 +105,9 @@ ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
 
   while (inputPointIt != inputPointEnd)
   {
-    for (unsigned int i = 0; i < OutputDimension; i++)
+    for (unsigned int i = 0; i < OutputDimension; ++i)
     {
-      // Conver Index coordinates to MeshSpace
+      // Convert Index coordinates to MeshSpace
       point[i] = inputDataIt.Value()[i];
     }
 
@@ -131,9 +122,6 @@ ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateData()
   }
 }
 
-/**
- * copy information from first input to all outputs
- */
 template <typename TInputMesh, typename TOutputMesh>
 void
 ParametricSpaceToImageSpaceMeshFilter<TInputMesh, TOutputMesh>::GenerateOutputInformation()

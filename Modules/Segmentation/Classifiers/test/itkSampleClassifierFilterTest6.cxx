@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
 
-// run sample classifier using std::vector type measurment vector
+// run sample classifier using std::vector type measurement vector
 int
 itkSampleClassifierFilterTest6(int, char *[])
 {
@@ -43,11 +43,11 @@ itkSampleClassifierFilterTest6(int, char *[])
   using EstimatorType = itk::Statistics::KdTreeBasedKmeansEstimator<GeneratorType::KdTreeType>;
 
   // Generate a sample list
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
   sample->SetMeasurementVectorSize(numberOfComponents);
 
   using NormalGeneratorType = itk::Statistics::NormalVariateGenerator;
-  NormalGeneratorType::Pointer normalGenerator = NormalGeneratorType::New();
+  auto normalGenerator = NormalGeneratorType::New();
   normalGenerator->Initialize(101);
 
   // Populate the list with samples from two normal distributions
@@ -64,9 +64,9 @@ itkSampleClassifierFilterTest6(int, char *[])
 
   MeasurementVectorType mv;
   itk::NumericTraits<MeasurementVectorType>::SetLength(mv, numberOfComponents);
-  double       mean = mean1[0];
-  double       standardDeviation = 0.1;
-  unsigned int numberOfSampleEachClass = 10;
+  double                 mean = mean1[0];
+  double                 standardDeviation = 0.1;
+  constexpr unsigned int numberOfSampleEachClass = 10;
 
   // Add sample from the first gaussian
   for (unsigned int i = 0; i < numberOfSampleEachClass; ++i)
@@ -88,23 +88,23 @@ itkSampleClassifierFilterTest6(int, char *[])
   using ClassLabelVectorObjectType = FilterType::ClassLabelVectorObjectType;
   using ClassLabelVectorType = FilterType::ClassLabelVectorType;
 
-  ClassLabelVectorObjectType::Pointer classLabelsObject = ClassLabelVectorObjectType::New();
+  auto classLabelsObject = ClassLabelVectorObjectType::New();
 
   /* Creating k-d tree */
-  GeneratorType::Pointer generator = GeneratorType::New();
+  auto generator = GeneratorType::New();
   generator->SetSample(sample);
-  unsigned int bucketSize = 1;
+  constexpr unsigned int bucketSize = 1;
   generator->SetBucketSize(bucketSize);
   generator->GenerateData();
 
   /* Searching kmeans */
-  EstimatorType::Pointer estimator = EstimatorType::New();
+  auto estimator = EstimatorType::New();
 
   itk::Array<double> initialMeans(2);
   initialMeans[0] = 5;
   initialMeans[1] = 70;
   estimator->SetParameters(initialMeans);
-  unsigned int maximumIteration = 100;
+  constexpr unsigned int maximumIteration = 100;
   estimator->SetMaximumIteration(maximumIteration);
   estimator->SetKdTree(generator->GetOutput());
   estimator->SetCentroidPositionChangesThreshold(0.0);
@@ -116,16 +116,16 @@ itkSampleClassifierFilterTest6(int, char *[])
 
   using ClassLabelType = FilterType::ClassLabelType;
 
-  ClassLabelType class1 = 0;
+  constexpr ClassLabelType class1 = 0;
   classLabelVector.push_back(class1);
 
-  ClassLabelType class2 = 1;
+  constexpr ClassLabelType class2 = 1;
   classLabelVector.push_back(class2);
 
   // Set a decision rule type
   using DecisionRuleType = itk::Statistics::MinimumDecisionRule;
 
-  DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
+  auto decisionRule = DecisionRuleType::New();
 
   const FilterType::MembershipFunctionVectorObjectType * membershipFunctionsObject = estimator->GetOutput();
 
@@ -137,16 +137,14 @@ itkSampleClassifierFilterTest6(int, char *[])
 
   auto end = membershipFunctions.end();
 
-  FilterType::MembershipFunctionVectorType::const_iterator functionIter;
-
-  functionIter = begin;
+  auto functionIter = begin;
 
 
   unsigned int counter = 1;
   while (functionIter != end)
   {
-    FilterType::MembershipFunctionPointer membershipFunction = *functionIter;
-    const auto *                          distanceMemberShpFunction =
+    const FilterType::MembershipFunctionPointer membershipFunction = *functionIter;
+    const auto *                                distanceMemberShpFunction =
       dynamic_cast<const EstimatorType::DistanceToCentroidMembershipFunctionType *>(membershipFunction.GetPointer());
     std::cout << "Centroid of the " << counter << " membership function " << distanceMemberShpFunction->GetCentroid()
               << std::endl;
@@ -155,7 +153,7 @@ itkSampleClassifierFilterTest6(int, char *[])
   }
 
   // Instantiate and pass all the required inputs to the filter
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(sample);
   filter->SetNumberOfClasses(numberOfClasses);
@@ -184,7 +182,7 @@ itkSampleClassifierFilterTest6(int, char *[])
     {
       if (iter.GetClassLabel() != class1)
       {
-        std::cerr << "Classification error: " << sampleCounter << "\t" << iter.GetClassLabel() << "\tclass1=" << class1
+        std::cerr << "Classification error: " << sampleCounter << '\t' << iter.GetClassLabel() << "\tclass1=" << class1
                   << std::endl;
         return EXIT_FAILURE;
       }
@@ -193,7 +191,7 @@ itkSampleClassifierFilterTest6(int, char *[])
     {
       if (iter.GetClassLabel() != class2)
       {
-        std::cerr << "Classification error: " << sampleCounter << "\t" << iter.GetClassLabel() << "\tclass2=" << class2
+        std::cerr << "Classification error: " << sampleCounter << '\t' << iter.GetClassLabel() << "\tclass2=" << class2
                   << std::endl;
         return EXIT_FAILURE;
       }

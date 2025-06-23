@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,12 +28,9 @@
 #include "itkSize.h"
 #include <vector>
 
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 /** \class MeasurementVectorTraits
- * \brief
  * \ingroup Statistics
  * \ingroup ITKStatistics
  */
@@ -46,7 +43,7 @@ public:
       the frequency by one does not change the total frequency (because of lack of
       precision). Using double type will also ultimately fall into the same problem.
       Hence in the new statistics framework, InstanceIdentifier/FrequencyTypes are
-      set to the the largest possible integer on the machine */
+      set to the largest possible integer on the machine */
   using InstanceIdentifier = IdentifierType;
 
   /** Type defined for representing the frequency of measurement vectors */
@@ -55,7 +52,7 @@ public:
   using TotalAbsoluteFrequencyType = NumericTraits<AbsoluteFrequencyType>::AccumulateType;
   using TotalRelativeFrequencyType = NumericTraits<RelativeFrequencyType>::AccumulateType;
 
-  using MeasurementVectorLength = std::size_t;
+  using MeasurementVectorLength = size_t;
 
   template <typename TVectorType>
   static bool
@@ -66,8 +63,7 @@ public:
     // If the default constructor creates a vector of
     // length zero, we assume that it is resizable,
     // otherwise that is a pretty useless measurement vector.
-    TVectorType             m;
-    MeasurementVectorLength len = NumericTraits<TVectorType>::GetLength(m);
+    const MeasurementVectorLength len = NumericTraits<TVectorType>::GetLength({});
 
     return (len == 0);
   }
@@ -194,7 +190,7 @@ public:
     {
       return VLength;
     }
-    else if (b->Size() != VLength)
+    if (b->Size() != VLength)
     {
       itkGenericExceptionMacro(<< errMsg);
     }
@@ -211,12 +207,9 @@ public:
     {
       return VLength;
     }
-    if (b.Size() != 0)
+    if (b.Size() != VLength)
     {
-      if (b.Size() != VLength)
-      {
-        itkGenericExceptionMacro(<< errMsg);
-      }
+      itkGenericExceptionMacro(<< errMsg);
     }
     return 0;
   }
@@ -231,7 +224,7 @@ public:
     {
       return VLength;
     }
-    else if (b->Size() != VLength)
+    if (b->Size() != VLength)
     {
       itkGenericExceptionMacro(<< errMsg);
     }
@@ -246,12 +239,9 @@ public:
     {
       return VLength;
     }
-    if (!b.empty())
+    if (b.size() != VLength)
     {
-      if (b.size() != VLength)
-      {
-        itkGenericExceptionMacro(<< errMsg);
-      }
+      itkGenericExceptionMacro(<< errMsg);
     }
     return 0;
   }
@@ -264,7 +254,7 @@ public:
     {
       return VLength;
     }
-    else if (b->size() != VLength)
+    if (b->size() != VLength)
     {
       itkGenericExceptionMacro(<< errMsg);
     }
@@ -279,7 +269,7 @@ public:
     {
       return VLength;
     }
-    else if (l != VLength)
+    if (l != VLength)
     {
       itkGenericExceptionMacro(<< errMsg);
     }
@@ -294,7 +284,7 @@ public:
     {
       return VLength;
     }
-    else if (l != VLength)
+    if (l != VLength)
     {
       itkGenericExceptionMacro(<< errMsg);
     }
@@ -411,7 +401,6 @@ public:
 };
 
 /** \class MeasurementVectorTraitsTypes
- * \brief
  * \ingroup Statistics
  * \ingroup ITKStatistics
  */
@@ -475,10 +464,10 @@ public:
 };
 
 template <>
-class MeasurementVectorPixelTraits<signed short>
+class MeasurementVectorPixelTraits<short>
 {
 public:
-  using MeasurementVectorType = FixedArray<signed short, 1>;
+  using MeasurementVectorType = FixedArray<short, 1>;
 };
 
 template <>
@@ -489,10 +478,10 @@ public:
 };
 
 template <>
-class MeasurementVectorPixelTraits<signed int>
+class MeasurementVectorPixelTraits<int>
 {
 public:
-  using MeasurementVectorType = FixedArray<signed int, 1>;
+  using MeasurementVectorType = FixedArray<int, 1>;
 };
 
 template <>
@@ -503,10 +492,10 @@ public:
 };
 
 template <>
-class MeasurementVectorPixelTraits<signed long>
+class MeasurementVectorPixelTraits<long>
 {
 public:
-  using MeasurementVectorType = FixedArray<signed long, 1>;
+  using MeasurementVectorType = FixedArray<long, 1>;
 };
 
 template <>
@@ -517,10 +506,10 @@ public:
 };
 
 template <>
-class MeasurementVectorPixelTraits<signed long long>
+class MeasurementVectorPixelTraits<long long>
 {
 public:
-  using MeasurementVectorType = FixedArray<signed long long, 1>;
+  using MeasurementVectorType = FixedArray<long long, 1>;
 };
 
 template <>
@@ -539,7 +528,7 @@ public:
 
 /// \endcond
 
-} // namespace Statistics
-} // namespace itk
+} // namespace itk::Statistics
+
 
 #endif // itkMeasurementVectorTraits_h

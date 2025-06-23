@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,12 +23,10 @@
 #include "itkWatershedSegmentTable.h"
 #include "itkEquivalencyTable.h"
 
-namespace itk
-{
-namespace watershed
+namespace itk::watershed
 {
 /**
- *\class Segmenter
+ * \class Segmenter
  *
  * This filter implements the first step in the N-d watershed segmentation
  * algorithm.  It produces a segmented, labeled image from a scalar-valued
@@ -107,11 +105,13 @@ public:
 
   /** Methods to implement smart pointers and work with the itk object factory
    */
+  /** @ITKStartGrouping */
   using Superclass = ProcessObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(WatershedSegmenter, ProcessObject);
+  itkOverrideGetNameOfClassMacro(Segmenter);
+  /** @ITKEndGrouping */
 
   /** Typedefs necessary on microsoft VC++ to avoid internal compiler errors */
   using InputImageTypePointer = typename InputImageType::Pointer;
@@ -190,6 +190,7 @@ public:
    * complete volume being streamed.  The member variables controlled by
    * this method will not be modified by the Itk pipeline and are necessary
    * for analysis of boundaries.   */
+  /** @ITKStartGrouping */
   void
   SetLargestPossibleRegion(ImageRegionType reg)
   {
@@ -206,6 +207,7 @@ public:
   {
     return m_LargestPossibleRegion;
   }
+  /** @ITKEndGrouping */
 
   /** Helper function.  Other classes may have occasion to use this. Relabels
       an image according to a table of equivalencies. */
@@ -219,8 +221,10 @@ public:
 
   /** Gets/Sets the initial label (IdentifierType integer value) used
    * by the labeling algorithm.  Only necessary for streaming applications. */
+  /** @ITKStartGrouping */
   itkSetMacro(CurrentLabel, IdentifierType);
   itkGetConstMacro(CurrentLabel, IdentifierType);
+  /** @ITKEndGrouping */
 
   /** Gets/Sets the input threshold. Threshold is specified as a percentage
    * (0.0 - 1.0) of the maximum height of the image. This filter thresholds the
@@ -232,22 +236,27 @@ public:
    * segmentation with fewer segments.  The assumption is that the "shallow"
    * regions that this thresholding eliminates are generally not of
    * interest. */
+  /** @ITKStartGrouping */
   itkSetClampMacro(Threshold, double, 0.0, 1.0);
   itkGetConstMacro(Threshold, double);
+  /** @ITKEndGrouping */
 
   /** Turns on special labeling of the boundaries for streaming applications.
    * The default value is FALSE, meaning that boundary analysis is turned
    * off.   */
+  /** @ITKStartGrouping */
   itkSetMacro(DoBoundaryAnalysis, bool);
   itkGetConstMacro(DoBoundaryAnalysis, bool);
+  /** @ITKEndGrouping */
 
   /** Determines whether the algorithm will sort the adjacencies in its
    * SegmentTable before returning.  Default is true.  This is an option only
    * useful for streaming applications where the sorting only needs to be done
    * after all iterations have taken place. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(SortEdgeLists, bool);
   itkSetMacro(SortEdgeLists, bool);
-
+  /** @ITKEndGrouping */
 protected:
   /** Structure storing information about image flat regions.
    * Flat regions are connected pixels of the same value.  */
@@ -379,7 +388,7 @@ protected:
 
   /** Holds generalized connectivity information for connected component
    * labeling and gradient descent analysis in pixel neighborhoods.  */
-  connectivity_t m_Connectivity;
+  connectivity_t m_Connectivity{};
 
 private:
   /** Helper, debug method.   */
@@ -388,16 +397,15 @@ private:
   /** This is the actual data set size.  The pipeline will alter its
    *  LargestPossibleRegion, so we need to preserve it here explicitly for
    *  streaming applications*/
-  ImageRegionType m_LargestPossibleRegion;
+  ImageRegionType m_LargestPossibleRegion{};
 
-  bool           m_SortEdgeLists;
-  bool           m_DoBoundaryAnalysis;
-  double         m_Threshold;
-  double         m_MaximumFloodLevel;
-  IdentifierType m_CurrentLabel;
+  bool           m_SortEdgeLists{};
+  bool           m_DoBoundaryAnalysis{};
+  double         m_Threshold{};
+  double         m_MaximumFloodLevel{};
+  IdentifierType m_CurrentLabel{};
 };
-} // end namespace watershed
-} // end namespace itk
+} // namespace itk::watershed
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkWatershedSegmenter.hxx"

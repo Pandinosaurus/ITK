@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
  *         The Pennsylvania State University 2005
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://hdl.handle.net/1926/1381
+ * https://doi.org/10.54294/o8w4c0
  *
  */
 
@@ -42,24 +42,33 @@
 #include "itkVectorContainer.h"
 #include "vnl/vnl_vector_fixed.h"
 
-#define RESEARCH_IMAGE_EXPORT_TOOL_V3 30
-#define RESEARCH_IMAGE_EXPORT_TOOL_V4 40
-#define RESEARCH_IMAGE_EXPORT_TOOL_V4_1 41
-#define RESEARCH_IMAGE_EXPORT_TOOL_V4_2 42
-#define RESEARCH_IMAGE_EXPORT_TOOL_UNKNOWN -1
+enum
+{
+  RESEARCH_IMAGE_EXPORT_TOOL_V3 = 30,
+  RESEARCH_IMAGE_EXPORT_TOOL_V4 = 40,
+  RESEARCH_IMAGE_EXPORT_TOOL_V4_1 = 41,
+  RESEARCH_IMAGE_EXPORT_TOOL_V4_2 = 42,
+  RESEARCH_IMAGE_EXPORT_TOOL_UNKNOWN = -1
+};
 
-#define PAR_DEFAULT_STRING_LENGTH 32
-#define PAR_DEFAULT_TRIGGER_TIMES_SIZE 128
-#define PAR_DEFAULT_ECHO_TIMES_SIZE 128
-#define PAR_DEFAULT_REP_TIMES_SIZE 128
-#define PAR_DEFAULT_IMAGE_TYPES_SIZE 8
-#define PAR_DEFAULT_SCAN_SEQUENCE_SIZE 8
-#define PAR_RESCALE_VALUES_SIZE 3
-#define PAR_DIFFUSION_VALUES_SIZE 3
+enum
+{
+  PAR_DEFAULT_STRING_LENGTH = 32,
+  PAR_DEFAULT_TRIGGER_TIMES_SIZE = 128,
+  PAR_DEFAULT_ECHO_TIMES_SIZE = 128,
+  PAR_DEFAULT_REP_TIMES_SIZE = 128,
+  PAR_DEFAULT_IMAGE_TYPES_SIZE = 8,
+  PAR_DEFAULT_SCAN_SEQUENCE_SIZE = 8,
+  PAR_RESCALE_VALUES_SIZE = 3,
+  PAR_DIFFUSION_VALUES_SIZE = 3
+};
 
-#define PAR_SLICE_ORIENTATION_TRANSVERSAL 1
-#define PAR_SLICE_ORIENTATION_SAGITTAL 2
-#define PAR_SLICE_ORIENTATION_CORONAL 3
+enum
+{
+  PAR_SLICE_ORIENTATION_TRANSVERSAL = 1,
+  PAR_SLICE_ORIENTATION_SAGITTAL = 2,
+  PAR_SLICE_ORIENTATION_CORONAL = 3
+};
 
 namespace itk
 {
@@ -102,7 +111,7 @@ struct par_parameter // par_parameter
   char patient_position[PAR_DEFAULT_STRING_LENGTH];       // Patient position
   char prep_direction[PAR_DEFAULT_STRING_LENGTH];         // Preparation
                                                           // direction
-  short int bit;                                          // Image pixel size [8
+  short bit;                                              // Image pixel size [8
                                                           // or 16 bits]
   char technique[PAR_DEFAULT_STRING_LENGTH];              // Technique
   char scan_mode[PAR_DEFAULT_STRING_LENGTH];              // Scan mode
@@ -222,8 +231,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(PhilipsPAR, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(PhilipsPAR);
 
   // Reads the PAR file parameters in "parFile" and stores the PAR parameters in
   // pPar.
@@ -308,10 +317,10 @@ private:
   GetGeneralInfoString(std::string file, int lineNum);
 
   /** Filename to read. */
-  std::string m_FileName;
+  std::string m_FileName{};
 
   /** Vector of strings for storing each line of PAR file. */
-  std::vector<std::string> m_PARFileLines;
+  std::vector<std::string> m_PARFileLines{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,13 +26,13 @@ using ThreaderEnum = itk::MultiThreaderBase::ThreaderEnum;
 bool
 checkThreaderByName(ThreaderEnum expectedThreaderType)
 {
-  using ImageType = itk::Image<unsigned, 3>;
+  using ImageType = itk::Image<unsigned int, 3>;
   // any filter type which does not manually specify threader type will do
   using FilterType = itk::AbsImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  std::string realThreaderName = filter->GetMultiThreader()->GetNameOfClass();
-  std::string expectedThreaderName =
+  const std::string realThreaderName = filter->GetMultiThreader()->GetNameOfClass();
+  const std::string expectedThreaderName =
     itk::MultiThreaderBase::ThreaderTypeToString(expectedThreaderType) + "MultiThreader";
   if (realThreaderName != expectedThreaderName)
   {
@@ -54,8 +54,8 @@ itkMultiThreaderTypeFromEnvironmentTest(int argc, char * argv[])
 
   bool success = true;
 
-  ThreaderEnum expectedThreaderType = itk::MultiThreaderBase::ThreaderTypeFromString(argv[1]);
-  ThreaderEnum realThreaderType = itk::MultiThreaderBase::GetGlobalDefaultThreader();
+  const ThreaderEnum expectedThreaderType = itk::MultiThreaderBase::ThreaderTypeFromString(argv[1]);
+  const ThreaderEnum realThreaderType = itk::MultiThreaderBase::GetGlobalDefaultThreader();
 
   if (realThreaderType != expectedThreaderType)
   {
@@ -67,10 +67,13 @@ itkMultiThreaderTypeFromEnvironmentTest(int argc, char * argv[])
   success &= checkThreaderByName(expectedThreaderType);
 
   // check that developer's choice for default is respected
-  std::set<ThreaderEnum> threadersToTest = { ThreaderEnum::Platform, ThreaderEnum::Pool };
+  const std::set<ThreaderEnum> threadersToTest = {
+    ThreaderEnum::Platform,
+    ThreaderEnum::Pool,
 #ifdef ITK_USE_TBB
-  threadersToTest.insert(ThreaderEnum::TBB);
+    ThreaderEnum::TBB,
 #endif // ITK_USE_TBB
+  };
   for (auto thType : threadersToTest)
   {
     itk::MultiThreaderBase::SetGlobalDefaultThreader(thType);
@@ -79,7 +82,7 @@ itkMultiThreaderTypeFromEnvironmentTest(int argc, char * argv[])
 
   // When implementing a new multi-threader:
   // 1. insert it into threadersToTest set
-  // 2. add tests to Modules/Core/Common/test/CMakeLists.txt similarily to tests for other multi-threaders
+  // 2. add tests to Modules/Core/Common/test/CMakeLists.txt similarly to tests for other multi-threaders
   // 3. rewrite the condition below to use whatever is really the last threader type
   itkAssertOrThrowMacro(ThreaderEnum::TBB == ThreaderEnum::Last,
                         "All multi-threader implementation have to be tested!");
@@ -89,8 +92,6 @@ itkMultiThreaderTypeFromEnvironmentTest(int argc, char * argv[])
     std::cout << "Test PASSED!" << std::endl;
     return EXIT_SUCCESS;
   }
-  else
-  {
-    return EXIT_FAILURE;
-  }
+
+  return EXIT_FAILURE;
 }

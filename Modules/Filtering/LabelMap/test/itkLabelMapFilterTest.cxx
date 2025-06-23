@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ itkLabelMapFilterTest(int argc, char * argv[])
 
   using LabelMapFilterType = itk::LabelMapFilter<LabelMapType, ImageType>;
 
-  LabelMapType::Pointer map = LabelMapType::New();
+  auto map = LabelMapType::New();
 
   SizeType sizeIn;
   sizeIn[0] = 11;
@@ -58,18 +58,18 @@ itkLabelMapFilterTest(int argc, char * argv[])
 
   IndexType idxVertical;
   idxVertical[0] = 5;
-  for (int ctr = 0; ctr < 5; ctr++)
+  for (int ctr = 0; ctr < 5; ++ctr)
   {
     idxVertical[1] = ctr;
     map->SetPixel(idxVertical, 1);
   }
-  for (int ctr = 6; ctr < 11; ctr++)
+  for (int ctr = 6; ctr < 11; ++ctr)
   {
     idxVertical[1] = ctr;
     map->SetPixel(idxVertical, 1);
   }
 
-  LabelMapFilterType::Pointer conversion = LabelMapFilterType::New();
+  auto conversion = LabelMapFilterType::New();
   conversion->SetInput(map);
   conversion->GenerateInputRequestedRegion();
   conversion->EnlargeOutputRequestedRegion(nullptr);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,13 @@
 #ifndef itkFiniteDifferenceSparseImageFilter_hxx
 #define itkFiniteDifferenceSparseImageFilter_hxx
 
-#include "itkFiniteDifferenceSparseImageFilter.h"
 
 namespace itk
 {
 template <typename TInputImageType, typename TSparseOutputImageType>
 FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::FiniteDifferenceSparseImageFilter()
-{
-  m_SparseFunction = nullptr;
-  m_PrecomputeFlag = false;
-}
+  : m_SparseFunction(nullptr)
+{}
 
 template <typename TInputImageType, typename TSparseOutputImageType>
 void
@@ -69,7 +66,7 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::GetS
   splitRegion.first = m_RegionList[i].first;
   splitRegion.last = m_RegionList[i].last;
   return num;
-  // check this last line with the ITKdevelopers. not sure what this is doing
+  // check this last line with the ITKDevelopers. not sure what this is doing
   // copied it from FiniteDifferenceImageFilter class
 }
 
@@ -83,32 +80,27 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Appl
   str.Filter = this;
   str.TimeStep = dt;
   this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-  this->GetMultiThreader()->SetSingleMethod(this->ApplyUpdateThreaderCallback, &str);
-  // Multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->ApplyUpdateThreaderCallback, &str);
 }
 
 template <typename TInputImageType, typename TSparseOutputImageType>
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::ApplyUpdateThreaderCallback(void * arg)
 {
-  FDThreadStruct * str;
-  ThreadIdType     total, threadId, threadCount;
-
-  threadId = ((MultiThreaderBase::WorkUnitInfo *)(arg))->WorkUnitID;
-  threadCount = ((MultiThreaderBase::WorkUnitInfo *)(arg))->NumberOfWorkUnits;
-  str = (FDThreadStruct *)(((MultiThreaderBase::WorkUnitInfo *)(arg))->UserData);
+  const ThreadIdType workUnitID = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->WorkUnitID;
+  const ThreadIdType workUnitCount = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->NumberOfWorkUnits;
+  auto *             str = (FDThreadStruct *)((static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->UserData);
 
   // Execute the actual method with appropriate output region
   // first find out how many pieces extent can be split into.
   // Use GetSplitRegion to access partition previously computed by
   // the SplitRegions function in the SparseFieldLayer class.
-  ThreadRegionType splitRegion;
-  total = str->Filter->GetSplitRegion(threadId, threadCount, splitRegion);
+  ThreadRegionType   splitRegion;
+  const ThreadIdType total = str->Filter->GetSplitRegion(workUnitID, workUnitCount, splitRegion);
 
-  if (threadId < total)
+  if (workUnitID < total)
   {
-    str->Filter->ThreadedApplyUpdate(str->TimeStep, splitRegion, threadId);
+    str->Filter->ThreadedApplyUpdate(str->TimeStep, splitRegion, workUnitID);
   }
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
@@ -121,9 +113,7 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Thre
   const ThreadRegionType & regionToProcess,
   ThreadIdType)
 {
-  typename NodeListType::Iterator it;
-
-  for (it = regionToProcess.first; it != regionToProcess.last; ++it)
+  for (auto it = regionToProcess.first; it != regionToProcess.last; ++it)
   {
     // all sparse image node types must have Data and Update members to be used
     // with this filter
@@ -141,17 +131,14 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Prec
   str.Filter = this;
 
   this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-  this->GetMultiThreader()->SetSingleMethod(this->PrecalculateChangeThreaderCallback, &str);
-
-  // Multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->PrecalculateChangeThreaderCallback, &str);
 }
 
 template <typename TInputImageType, typename TSparseOutputImageType>
-typename FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::TimeStepType
-FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::CalculateChange()
+auto
+FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::CalculateChange() -> TimeStepType
 {
-  if (m_PrecomputeFlag == true)
+  if (m_PrecomputeFlag)
   {
     this->PrecalculateChange();
   }
@@ -159,29 +146,26 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Calc
   // Set up for multithreaded processing.
   FDThreadStruct str;
   str.Filter = this;
-  str.TimeStep = NumericTraits<TimeStepType>::ZeroValue();
+  str.TimeStep = TimeStepType{};
   // Not used during the calculate change step for normals.
 
   this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
-  this->GetMultiThreader()->SetSingleMethod(this->CalculateChangeThreaderCallback, &str);
 
   // Initialize the list of time step values that will be generated by the
   // various threads.  There is one distinct slot for each possible thread,
   // so this data structure is thread-safe.  All of the time steps calculated
-  // in each thread will be combined in the ResolveTimeStepMethod.
-  ThreadIdType threadCount = this->GetMultiThreader()->GetNumberOfWorkUnits();
+  // in each thread will be combined in the ResolveTimeStep method.
+  const ThreadIdType workUnitCount = this->GetMultiThreader()->GetNumberOfWorkUnits();
 
-  str.TimeStepList.resize(threadCount, false);
-  str.ValidTimeStepList.resize(threadCount);
+  str.TimeStepList.resize(workUnitCount, false);
+  str.ValidTimeStepList.resize(workUnitCount);
 
-
-  // Multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
+  this->GetMultiThreader()->SetSingleMethodAndExecute(this->CalculateChangeThreaderCallback, &str);
 
   // Resolve the single value time step to return.  The default implementation
   // of ResolveTimeStep is to return the lowest value in the list that it is
   // given.
-  TimeStepType dt = this->ResolveTimeStep(str.TimeStepList, str.ValidTimeStepList);
+  const TimeStepType dt = this->ResolveTimeStep(str.TimeStepList, str.ValidTimeStepList);
 
   return dt;
 }
@@ -190,25 +174,22 @@ template <typename TInputImageType, typename TSparseOutputImageType>
 ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::CalculateChangeThreaderCallback(void * arg)
 {
-  FDThreadStruct * str;
-  ThreadIdType     total, threadId, threadCount;
+  const ThreadIdType workUnitID = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->WorkUnitID;
+  const ThreadIdType workUnitCount = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->NumberOfWorkUnits;
 
-  threadId = ((MultiThreaderBase::WorkUnitInfo *)(arg))->WorkUnitID;
-  threadCount = ((MultiThreaderBase::WorkUnitInfo *)(arg))->NumberOfWorkUnits;
-
-  str = (FDThreadStruct *)(((MultiThreaderBase::WorkUnitInfo *)(arg))->UserData);
+  auto * str = (FDThreadStruct *)((static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->UserData);
 
   // Execute the actual method with appropriate output region
   // first find out how many pieces extent can be split into.
   // Use GetSplitRegion to access partition previously computed by
-  // the Splitegions function in the SparseFieldLayer class.
-  ThreadRegionType splitRegion;
-  total = str->Filter->GetSplitRegion(threadId, threadCount, splitRegion);
+  // the SplitRegions function in the SparseFieldLayer class.
+  ThreadRegionType   splitRegion;
+  const ThreadIdType total = str->Filter->GetSplitRegion(workUnitID, workUnitCount, splitRegion);
 
-  if (threadId < total)
+  if (workUnitID < total)
   {
-    str->TimeStepList[threadId] = str->Filter->ThreadedCalculateChange(splitRegion, threadId);
-    str->ValidTimeStepList[threadId] = true;
+    str->TimeStepList[workUnitID] = str->Filter->ThreadedCalculateChange(splitRegion, workUnitID);
+    str->ValidTimeStepList[workUnitID] = true;
   }
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
@@ -219,41 +200,35 @@ ITK_THREAD_RETURN_FUNCTION_CALL_CONVENTION
 FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::PrecalculateChangeThreaderCallback(
   void * arg)
 {
-  FDThreadStruct * str;
-  ThreadIdType     total, threadId, threadCount;
+  const ThreadIdType workUnitID = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->WorkUnitID;
+  const ThreadIdType workUnitCount = (static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->NumberOfWorkUnits;
 
-  threadId = ((MultiThreaderBase::WorkUnitInfo *)(arg))->WorkUnitID;
-  threadCount = ((MultiThreaderBase::WorkUnitInfo *)(arg))->NumberOfWorkUnits;
-
-  str = (FDThreadStruct *)(((MultiThreaderBase::WorkUnitInfo *)(arg))->UserData);
+  auto * str = (FDThreadStruct *)((static_cast<MultiThreaderBase::WorkUnitInfo *>(arg))->UserData);
 
   // Execute the actual method with appropriate output region
   // first find out how many pieces extent can be split into.
   // Use GetSplitRegion to access partition previously computed by
-  // the Splitegions function in the SparseFieldLayer class.
-  ThreadRegionType splitRegion;
-  total = str->Filter->GetSplitRegion(threadId, threadCount, splitRegion);
+  // the SplitRegions function in the SparseFieldLayer class.
+  ThreadRegionType   splitRegion;
+  const ThreadIdType total = str->Filter->GetSplitRegion(workUnitID, workUnitCount, splitRegion);
 
-  if (threadId < total)
+  if (workUnitID < total)
   {
-    str->Filter->ThreadedPrecalculateChange(splitRegion, threadId);
+    str->Filter->ThreadedPrecalculateChange(splitRegion, workUnitID);
   }
 
   return ITK_THREAD_RETURN_DEFAULT_VALUE;
 }
 
 template <typename TInputImageType, typename TSparseOutputImageType>
-typename FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::TimeStepType
+auto
 FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::ThreadedCalculateChange(
   const ThreadRegionType & regionToProcess,
-  ThreadIdType)
+  ThreadIdType) -> TimeStepType
 {
   using NeighborhoodIteratorType = typename FiniteDifferenceFunctionType::NeighborhoodType;
 
-  typename SparseOutputImageType::Pointer output = this->GetOutput();
-
-  TimeStepType timeStep;
-  void *       globalData;
+  const typename SparseOutputImageType::Pointer output = this->GetOutput();
 
   const SizeType radius = m_SparseFunction->GetRadius();
 
@@ -261,13 +236,12 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Thre
   // manage any global values it needs.  We'll pass this back to the function
   // object at each calculation so that the function object can use it to
   // determine a time step for this iteration.
-  globalData = m_SparseFunction->GetGlobalDataPointer();
+  void * globalData = m_SparseFunction->GetGlobalDataPointer();
 
-  typename NodeListType::Iterator bandIt;
-  NeighborhoodIteratorType        outputIt(radius, output, output->GetRequestedRegion());
+  NeighborhoodIteratorType outputIt(radius, output, output->GetRequestedRegion());
 
   // compute the update variables
-  for (bandIt = regionToProcess.first; bandIt != regionToProcess.last; ++bandIt)
+  for (typename NodeListType::Iterator bandIt = regionToProcess.first; bandIt != regionToProcess.last; ++bandIt)
   {
     outputIt.SetLocation(bandIt->m_Index);
     outputIt.GetCenterPixel()->m_Update = m_SparseFunction->ComputeSparseUpdate(outputIt, globalData);
@@ -276,7 +250,7 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Thre
   // Ask the finite difference function to compute the time step for
   // this iteration.  We give it the global data pointer to use, then
   // ask it to free the global data memory.
-  timeStep = m_SparseFunction->ComputeGlobalTimeStep(globalData);
+  const TimeStepType timeStep = m_SparseFunction->ComputeGlobalTimeStep(globalData);
   m_SparseFunction->ReleaseGlobalDataPointer(globalData);
 
   return timeStep;
@@ -290,17 +264,16 @@ FiniteDifferenceSparseImageFilter<TInputImageType, TSparseOutputImageType>::Thre
 {
   using NeighborhoodIteratorType = typename FiniteDifferenceFunctionType::NeighborhoodType;
 
-  typename SparseOutputImageType::Pointer output = this->GetOutput();
+  const typename SparseOutputImageType::Pointer output = this->GetOutput();
 
   const SizeType radius = m_SparseFunction->GetRadius();
 
-  typename NodeListType::Iterator bandIt;
-  NeighborhoodIteratorType        outputIt(radius, output, output->GetRequestedRegion());
+  NeighborhoodIteratorType outputIt(radius, output, output->GetRequestedRegion());
 
   // the step for computing the flux variables
   // these are used for computing the update in diffusion processes
   // can disable these lines for non-diffusion processes
-  for (bandIt = regionToProcess.first; bandIt != regionToProcess.last; ++bandIt)
+  for (typename NodeListType::Iterator bandIt = regionToProcess.first; bandIt != regionToProcess.last; ++bandIt)
   {
     outputIt.SetLocation(bandIt->m_Index);
     m_SparseFunction->PrecomputeSparseUpdate(outputIt);

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,18 +21,20 @@
 #include "itkDCMTKImageIO.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkRGBPixel.h"
+#include "itkTestingMacros.h"
 
 #include <fstream>
 
 // Specific ImageIO test
 
 int
-itkDCMTKRGBImageIOTest(int ac, char * av[])
+itkDCMTKRGBImageIOTest(int argc, char * argv[])
 {
 
-  if (ac < 3)
+  if (argc < 3)
   {
-    std::cerr << "Usage: " << av[0] << " DicomImage OutputImage\n";
+    std::cerr << "Missing Parameters" << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv) << " DicomImage OutputImage" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -41,41 +43,27 @@ itkDCMTKRGBImageIOTest(int ac, char * av[])
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
   using ImageIOType = itk::DCMTKImageIO;
-  ImageIOType::Pointer dcmtkImageIO = ImageIOType::New();
+  auto dcmtkImageIO = ImageIOType::New();
 
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(av[1]);
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
   reader->SetImageIO(dcmtkImageIO);
 
-  try
-  {
-    reader->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file reader " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
+
 
   using WriteImageType = itk::Image<PixelType, 2>;
   using Writer2Type = itk::ImageFileWriter<WriteImageType>;
-  Writer2Type::Pointer writer2 = Writer2Type::New();
-  writer2->SetFileName(av[2]);
+  auto writer2 = Writer2Type::New();
+  writer2->SetFileName(argv[2]);
   writer2->SetInput(reader->GetOutput());
 
-  try
-  {
-    writer2->Update();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cerr << "exception in file writer " << std::endl;
-    std::cerr << e << std::endl;
-    return EXIT_FAILURE;
-  }
+  ITK_TRY_EXPECT_NO_EXCEPTION(writer2->Update());
+
 
   dcmtkImageIO->Print(std::cout);
 
+
+  std::cout << "Test finished" << std::endl;
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@
 namespace itk
 {
 /**
- *\class Transform
+ * \class Transform
  * \brief Transform points and vectors from an input space to an output space.
  *
  * This abstract class defines the generic interface for a geometric
@@ -71,7 +71,7 @@ namespace itk
  *                                                             const InputPointType & x,
  *                                                             JacobianPositionType &jacobian ) const;<br>
  *
- * Since TranformVector and TransformCovariantVector have multiple
+ * Since TransformVector and TransformCovariantVector have multiple
  * overloaded methods from the base class, subclasses must specify:<br>
  *  using Superclass::TransformVector;<br>
  *  using Superclass::TransformCovariantVector;<br>
@@ -79,7 +79,7 @@ namespace itk
  *
  * \ingroup ITKTransform
  */
-template <typename TParametersValueType, unsigned int NInputDimensions = 3, unsigned int NOutputDimensions = 3>
+template <typename TParametersValueType, unsigned int VInputDimension = 3, unsigned int VOutputDimension = 3>
 class ITK_TEMPLATE_EXPORT Transform : public TransformBaseTemplate<TParametersValueType>
 {
 public:
@@ -91,12 +91,12 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Transform, TransformBaseTemplate);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(Transform);
 
   /** Dimension of the domain space. */
-  static constexpr unsigned int InputSpaceDimension = NInputDimensions;
-  static constexpr unsigned int OutputSpaceDimension = NOutputDimensions;
+  static constexpr unsigned int InputSpaceDimension = VInputDimension;
+  static constexpr unsigned int OutputSpaceDimension = VOutputDimension;
 
   /** define the Clone method */
   itkCloneMacro(Self);
@@ -105,21 +105,21 @@ public:
   unsigned int
   GetInputSpaceDimension() const override
   {
-    return NInputDimensions;
+    return VInputDimension;
   }
 
   /** Get the size of the output space */
   unsigned int
   GetOutputSpaceDimension() const override
   {
-    return NOutputDimensions;
+    return VOutputDimension;
   }
 
   /** Type of the input parameters. */
-  using FixedParametersType = typename Superclass::FixedParametersType;
-  using FixedParametersValueType = typename Superclass::FixedParametersValueType;
-  using ParametersType = typename Superclass::ParametersType;
-  using ParametersValueType = typename Superclass::ParametersValueType;
+  using typename Superclass::FixedParametersType;
+  using typename Superclass::FixedParametersValueType;
+  using typename Superclass::ParametersType;
+  using typename Superclass::ParametersValueType;
   using DerivativeType = Array<ParametersValueType>;
 
   /** Type of the scalar representing coordinate and vector elements. */
@@ -127,41 +127,41 @@ public:
 
   /** Type of the Jacobian matrix. */
   using JacobianType = Array2D<ParametersValueType>;
-  using JacobianPositionType = vnl_matrix_fixed<ParametersValueType, NOutputDimensions, NInputDimensions>;
-  using InverseJacobianPositionType = vnl_matrix_fixed<ParametersValueType, NInputDimensions, NOutputDimensions>;
+  using JacobianPositionType = vnl_matrix_fixed<ParametersValueType, VOutputDimension, VInputDimension>;
+  using InverseJacobianPositionType = vnl_matrix_fixed<ParametersValueType, VInputDimension, VOutputDimension>;
 
   /** Standard vector type for this class. */
-  using InputVectorType = Vector<TParametersValueType, NInputDimensions>;
-  using OutputVectorType = Vector<TParametersValueType, NOutputDimensions>;
+  using InputVectorType = Vector<TParametersValueType, VInputDimension>;
+  using OutputVectorType = Vector<TParametersValueType, VOutputDimension>;
 
   /** Standard variable length vector type for this class
    *  this provides an interface for the VectorImage class */
   using InputVectorPixelType = VariableLengthVector<TParametersValueType>;
   using OutputVectorPixelType = VariableLengthVector<TParametersValueType>;
 
-  /* Standard symmetric second rank tenosr type for this class */
-  using InputSymmetricSecondRankTensorType = SymmetricSecondRankTensor<TParametersValueType, NInputDimensions>;
-  using OutputSymmetricSecondRankTensorType = SymmetricSecondRankTensor<TParametersValueType, NOutputDimensions>;
+  /* Standard symmetric second rank tensor type for this class */
+  using InputSymmetricSecondRankTensorType = SymmetricSecondRankTensor<TParametersValueType, VInputDimension>;
+  using OutputSymmetricSecondRankTensorType = SymmetricSecondRankTensor<TParametersValueType, VOutputDimension>;
 
   /* Standard tensor type for this class */
   using InputDiffusionTensor3DType = DiffusionTensor3D<TParametersValueType>;
   using OutputDiffusionTensor3DType = DiffusionTensor3D<TParametersValueType>;
 
   /** Standard covariant vector type for this class */
-  using InputCovariantVectorType = CovariantVector<TParametersValueType, NInputDimensions>;
-  using OutputCovariantVectorType = CovariantVector<TParametersValueType, NOutputDimensions>;
+  using InputCovariantVectorType = CovariantVector<TParametersValueType, VInputDimension>;
+  using OutputCovariantVectorType = CovariantVector<TParametersValueType, VOutputDimension>;
 
   /** Standard vnl_vector type for this class. */
-  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, NInputDimensions>;
-  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, NOutputDimensions>;
+  using InputVnlVectorType = vnl_vector_fixed<TParametersValueType, VInputDimension>;
+  using OutputVnlVectorType = vnl_vector_fixed<TParametersValueType, VOutputDimension>;
 
   /** Standard coordinate point type for this class */
-  using InputPointType = Point<TParametersValueType, NInputDimensions>;
-  using OutputPointType = Point<TParametersValueType, NOutputDimensions>;
+  using InputPointType = Point<TParametersValueType, VInputDimension>;
+  using OutputPointType = Point<TParametersValueType, VOutputDimension>;
 
   /** Base inverse transform type. This type should not be changed to the
    * concrete inverse transform type or inheritance would be lost. */
-  using InverseTransformBaseType = Transform<TParametersValueType, NOutputDimensions, NInputDimensions>;
+  using InverseTransformBaseType = Transform<TParametersValueType, VOutputDimension, VInputDimension>;
 
   using InverseTransformBasePointer = typename InverseTransformBaseType::Pointer;
 
@@ -171,7 +171,7 @@ public:
   using InputDirectionMatrix = Matrix<double, Self::InputSpaceDimension, Self::InputSpaceDimension>;
   using DirectionChangeMatrix = Matrix<double, Self::OutputSpaceDimension, Self::InputSpaceDimension>;
 
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
+  using typename Superclass::NumberOfParametersType;
 
   /**  Method to transform a point.
    * \warning This method must be thread-safe. See, e.g., its use
@@ -236,6 +236,7 @@ public:
                       "unimplemented for "
                       << this->GetNameOfClass());
   }
+
   /** Method to transform a CovariantVector, using a point. Global transforms
    * can ignore the \c point parameter. Local transforms (e.g. deformation
    * field transform) must override and provide required behavior.
@@ -330,7 +331,7 @@ public:
   /** Set the transformation parameters and update internal transformation.
    * SetParameters gives the transform the option to set it's
    * parameters by keeping a reference to the parameters, or by
-   * copying.  To force the transform to copy it's parameters call
+   * copying.  To force the transform to copy its parameters call
    * SetParametersByValue.
    * \sa SetParametersByValue
    */
@@ -407,14 +408,14 @@ public:
     return this->GetNumberOfParameters();
   }
 
-  /** Return the number of parameters that completely define the Transfom  */
+  /** Return the number of parameters that completely define the Transform  */
   NumberOfParametersType
   GetNumberOfParameters() const override
   {
     return this->m_Parameters.Size();
   }
 
-  /** Return the number of parameters that define the constant elements of a Transfom  */
+  /** Return the number of parameters that define the constant elements of a Transform  */
   virtual NumberOfParametersType
   GetNumberOfFixedParameters() const
   {
@@ -426,7 +427,7 @@ public:
    * the transform is returned in the inverseTransform variable passed by the
    * user.  The inverse is recomputed if this current transform has been
    * modified.
-   * This method is intended to be overriden as needed by derived classes.
+   * This method is intended to be overridden as needed by derived classes.
    *
    */
   bool
@@ -451,7 +452,7 @@ public:
   std::string
   GetTransformTypeAsString() const override;
 
-  using TransformCategoryEnum = typename Superclass::TransformCategoryEnum;
+  using typename Superclass::TransformCategoryEnum;
 
   /** Indicates the category transform.
    *  e.g. an affine transform, or a local one, e.g. a deformation field.
@@ -529,9 +530,11 @@ public:
                       " is unimplemented for "
                       << this->GetNameOfClass());
   }
-  itkLegacyMacro(virtual void ComputeJacobianWithRespectToPosition(const InputPointType & x, JacobianType & jacobian)
-                   const);
 
+#if !defined(ITK_LEGACY_REMOVE)
+  itkLegacyMacro(virtual void ComputeJacobianWithRespectToPosition(const InputPointType & x, JacobianType & jacobian)
+                   const;)
+#endif
 
   /** This provides the ability to get a local jacobian value
    *  in a dense/local transform, e.g. DisplacementFieldTransform. For such
@@ -540,8 +543,11 @@ public:
    *  since there is no change with respect to position. */
   virtual void
   ComputeInverseJacobianWithRespectToPosition(const InputPointType & pnt, InverseJacobianPositionType & jacobian) const;
+
+#if !defined(ITK_LEGACY_REMOVE)
   itkLegacyMacro(virtual void ComputeInverseJacobianWithRespectToPosition(const InputPointType & x,
-                                                                          JacobianType &         jacobian) const);
+                                                                          JacobianType &         jacobian) const;)
+#endif
 
   /** Apply this transform to an image without resampling.
    *
@@ -552,18 +558,17 @@ public:
    *
    * The image parameter may be either a SmartPointer or a raw pointer.
    * */
+  /** @ITKStartGrouping */
   template <typename TImage>
-  typename std::enable_if<TImage::ImageDimension == NInputDimensions && TImage::ImageDimension == NOutputDimensions,
-                          void>::type
+  std::enable_if_t<TImage::ImageDimension == VInputDimension && TImage::ImageDimension == VOutputDimension, void>
   ApplyToImageMetadata(TImage * image) const;
   template <typename TImage>
-  typename std::enable_if<TImage::ImageDimension == NInputDimensions && TImage::ImageDimension == NOutputDimensions,
-                          void>::type
+  std::enable_if_t<TImage::ImageDimension == VInputDimension && TImage::ImageDimension == VOutputDimension, void>
   ApplyToImageMetadata(SmartPointer<TImage> image) const
   {
     this->ApplyToImageMetadata(image.GetPointer()); // Delegate to the raw pointer signature
   }
-
+  /** @ITKEndGrouping */
 protected:
   /**
    * Clone the current transform.
@@ -573,26 +578,28 @@ protected:
   typename LightObject::Pointer
   InternalClone() const override;
 
-  Transform();
+  /** Default-constructor. Creates a transform, having empty `Parameters` and `FixedParameters`. */
+  Transform() = default;
+
   Transform(NumberOfParametersType numberOfParameters);
-#if defined(__GNUC__)
-  // A bug in some versions of the GCC and Clang compilers
-  // result in an ICE or linker error when "= default" is requested.
-  // This was observed in at least gcc 4.8 and 5.4.0, and
-  // AppleClang 7.0.2 and 8.0.0. Probably others too.
-  // "= default" doesn't gain us much, so just don't use it here.
-  ~Transform() override{};
-#else
   ~Transform() override = default;
-#endif
-  mutable ParametersType      m_Parameters;
-  mutable FixedParametersType m_FixedParameters;
+
+  mutable ParametersType      m_Parameters{};
+  mutable FixedParametersType m_FixedParameters{};
 
   OutputDiffusionTensor3DType
   PreservationOfPrincipalDirectionDiffusionTensor3DReorientation(const InputDiffusionTensor3DType &,
                                                                  const InverseJacobianPositionType &) const;
 
-  mutable DirectionChangeMatrix m_DirectionChange;
+  /** Returns the inverse of the specified transform. Returns null if it cannot invert the transform. Helper function
+   * for the implementation of `GetInverseTransform()` in derived transform classes. */
+  template <typename TTransform>
+  static InverseTransformBasePointer
+  InvertTransform(const TTransform & transform)
+  {
+    const auto inverse = TTransform::New();
+    return transform.GetInverse(inverse) ? inverse.GetPointer() : nullptr;
+  }
 
 private:
   template <typename TType>

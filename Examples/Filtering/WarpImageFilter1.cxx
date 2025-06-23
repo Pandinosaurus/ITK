@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -86,18 +86,18 @@ main(int argc, char * argv[])
   using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
   // Software Guide : EndCodeSnippet
 
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
 
   reader->SetFileName(argv[1]);
   writer->SetFileName(argv[3]);
 
   // Software Guide : BeginCodeSnippet
-  FieldReaderType::Pointer fieldReader = FieldReaderType::New();
+  auto fieldReader = FieldReaderType::New();
   fieldReader->SetFileName(argv[2]);
   fieldReader->Update();
 
-  DisplacementFieldType::ConstPointer deformationField =
+  const DisplacementFieldType::ConstPointer deformationField =
     fieldReader->GetOutput();
   // Software Guide : EndCodeSnippet
 
@@ -112,7 +112,7 @@ main(int argc, char * argv[])
   using FilterType =
     itk::WarpImageFilter<ImageType, ImageType, DisplacementFieldType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
   // Software Guide : EndCodeSnippet
 
   // Software Guide : BeginLatex
@@ -129,7 +129,7 @@ main(int argc, char * argv[])
   using InterpolatorType =
     itk::LinearInterpolateImageFunction<ImageType, double>;
 
-  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  auto interpolator = InterpolatorType::New();
 
   filter->SetInterpolator(interpolator);
   // Software Guide : EndCodeSnippet

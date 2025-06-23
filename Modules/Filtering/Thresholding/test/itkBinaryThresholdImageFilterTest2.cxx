@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,12 +50,12 @@ itkBinaryThresholdImageFilterTest2(int argc, char * argv[])
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
-  ReaderType::Pointer reader2 = ReaderType::New();
+  auto reader2 = ReaderType::New();
   reader2->SetFileName(argv[2]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader2->Update());
@@ -66,8 +66,8 @@ itkBinaryThresholdImageFilterTest2(int argc, char * argv[])
   using ThresholdType = itk::BinaryThresholdImageFilter<InputImageType, OutputImageType>;
 
   // Create the filters
-  StatisticsType::Pointer statistics = StatisticsType::New();
-  ThresholdType::Pointer  threshold = ThresholdType::New();
+  auto statistics = StatisticsType::New();
+  auto threshold = ThresholdType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(threshold, BinaryThresholdImageFilter, UnaryFunctorImageFilter);
 
@@ -85,7 +85,7 @@ itkBinaryThresholdImageFilterTest2(int argc, char * argv[])
 
   // Write the output
   using WriterType = itk::ImageFileWriter<OutputImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetFileName(argv[3]);
   writer->SetInput(threshold->GetOutput());
 

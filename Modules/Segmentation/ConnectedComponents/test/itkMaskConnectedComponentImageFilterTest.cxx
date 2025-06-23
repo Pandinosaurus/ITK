@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,49 +57,47 @@ itkMaskConnectedComponentImageFilterTest(int argc, char * argv[])
   using RelabelType = itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>;
 
 
-  ReaderType::Pointer          reader = ReaderType::New();
-  WriterType::Pointer          writer = WriterType::New();
-  ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
-  FilterType::Pointer          filter = FilterType::New();
-  RelabelType::Pointer         relabel = RelabelType::New();
+  auto reader = ReaderType::New();
+  auto writer = WriterType::New();
+  auto threshold = ThresholdFilterType::New();
+  auto filter = FilterType::New();
+  auto relabel = RelabelType::New();
 
   itk::SimpleFilterWatcher watcher(filter);
   watcher.QuietOn();
 
   reader->SetFileName(argv[1]);
 
-  InternalPixelType threshold_low, threshold_hi;
-  threshold_low = std::stoi(argv[3]);
-  threshold_hi = std::stoi(argv[4]);
+  const InternalPixelType threshold_low = std::stoi(argv[3]);
+  const InternalPixelType threshold_hi = std::stoi(argv[4]);
 
   threshold->SetInput(reader->GetOutput());
   threshold->SetInsideValue(itk::NumericTraits<InternalPixelType>::OneValue());
-  threshold->SetOutsideValue(itk::NumericTraits<InternalPixelType>::ZeroValue());
+  threshold->SetOutsideValue(InternalPixelType{});
   threshold->SetLowerThreshold(threshold_low);
   threshold->SetUpperThreshold(threshold_hi);
   threshold->Update();
 
   // create a mask containing the upper left hand corner and
   // a chunk out of the middle
-  MaskImageType::Pointer mask = MaskImageType::New();
+  auto mask = MaskImageType::New();
   mask->SetRegions(threshold->GetOutput()->GetLargestPossibleRegion());
   mask->CopyInformation(threshold->GetOutput());
   mask->Allocate();
-  mask->FillBuffer(itk::NumericTraits<MaskPixelType>::ZeroValue());
+  mask->FillBuffer(MaskPixelType{});
 
-  MaskImageType::RegionType maskRegion = mask->GetLargestPossibleRegion();
-  MaskImageType::SizeType   maskSize = maskRegion.GetSize();
-
-  MaskImageType::RegionType region;
-  MaskImageType::SizeType   size;
-  MaskImageType::IndexType  index;
+  const MaskImageType::RegionType maskRegion = mask->GetLargestPossibleRegion();
+  MaskImageType::SizeType         maskSize = maskRegion.GetSize();
 
   // use upper left corner
-  index.Fill(0);
-  for (unsigned int i = 0; i < MaskImageType::ImageDimension; i++)
+  MaskImageType::SizeType size;
+  for (unsigned int i = 0; i < MaskImageType::ImageDimension; ++i)
   {
     size[i] = static_cast<unsigned long>(0.375 * maskSize[i]);
   }
+
+  MaskImageType::IndexType  index{};
+  MaskImageType::RegionType region;
   region.SetIndex(index);
   region.SetSize(size);
 
@@ -111,7 +109,7 @@ itkMaskConnectedComponentImageFilterTest(int argc, char * argv[])
   }
 
   // use middle section
-  for (unsigned int i = 0; i < MaskImageType::ImageDimension; i++)
+  for (unsigned int i = 0; i < MaskImageType::ImageDimension; ++i)
   {
     index[i] = static_cast<long>(0.375 * maskSize[i]);
     size[i] = static_cast<unsigned long>(0.25 * maskSize[i]);
@@ -131,13 +129,13 @@ itkMaskConnectedComponentImageFilterTest(int argc, char * argv[])
 
   if (argc > 5)
   {
-    int fullyConnected = std::stoi(argv[5]);
+    const int fullyConnected = std::stoi(argv[5]);
     filter->SetFullyConnected(fullyConnected);
   }
   relabel->SetInput(filter->GetOutput());
   if (argc > 6)
   {
-    int minSize = std::stoi(argv[6]);
+    const int minSize = std::stoi(argv[6]);
     relabel->SetMinimumObjectSize(minSize);
     std::cerr << "minSize: " << minSize << std::endl;
   }
@@ -153,18 +151,18 @@ itkMaskConnectedComponentImageFilterTest(int argc, char * argv[])
   }
 
   // Remap the labels to viewable colors
-  RGBImageType::Pointer colored = RGBImageType::New();
+  auto colored = RGBImageType::New();
   colored->SetRegions(filter->GetOutput()->GetBufferedRegion());
   colored->Allocate();
 
-  unsigned short numObjects = relabel->GetNumberOfObjects();
+  const unsigned short numObjects = relabel->GetNumberOfObjects();
 
   std::vector<RGBPixelType> colormap;
-  RGBPixelType              px;
   colormap.resize(numObjects + 1);
-  itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer rvgen =
+  const itk::Statistics::MersenneTwisterRandomVariateGenerator::Pointer rvgen =
     itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance();
   rvgen->SetSeed(1031571);
+  RGBPixelType px;
   for (auto & i : colormap)
   {
     px.SetRed(static_cast<unsigned char>(255 * rvgen->GetUniformVariate(0.3333, 1.0)));
@@ -181,7 +179,7 @@ itkMaskConnectedComponentImageFilterTest(int argc, char * argv[])
   {
     if (it.Get() == 0)
     {
-      cit.Set(RGBPixelType(static_cast<unsigned char>(0)));
+      cit.Set(RGBPixelType());
     }
     else
     {

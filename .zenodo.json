@@ -19,14 +19,14 @@
       "name": "King, Brad"
     },
     {
-      "affiliation": "Mayo Clinic, Mayo Clinic Graduate School for Biomedical Sciences",
-      "name": "Blezek, Daniel",
-      "orcid": "0000-0002-6498-6273"
-    },
-    {
       "affiliation": "University of Iowa",
       "name": "Johnson, Hans",
       "orcid": "0000-0001-9513-2660"
+    },
+    {
+      "affiliation": "Mayo Clinic, Mayo Clinic Graduate School for Biomedical Sciences",
+      "name": "Blezek, Daniel",
+      "orcid": "0000-0002-6498-6273"
     },
     {
       "name": "Lowekamp, Bradley"
@@ -44,6 +44,19 @@
     },
     {
       "name": "Cates, Josh"
+    },
+    {
+      "name": "Dekker, Niels"
+    },
+    {
+      "affiliation": "Universit\u00e9 de Sherbrooke",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
+    },
+    {
+      "affiliation": "Kitware Inc, University of Siegen",
+      "name": "Zuki\u0107, D\u017eenan",
+      "orcid": "0000-0002-9546-9703"
     },
     {
       "affiliation": "Allen Institute for Brain Science",
@@ -71,17 +84,12 @@
       "name": "Williams, Kent"
     },
     {
-      "name": "Budin, Francois"
-    },
-    {
       "affiliation": "Kitware Inc",
       "name": "R. Aylward, Stephen",
       "orcid": "0000-0002-7862-8856"
     },
     {
-      "affiliation": "Kitware Inc, University of Siegen",
-      "name": "Zuki\u0107, D\u017eenan",
-      "orcid": "0000-0002-9546-9703"
+      "name": "Budin, Francois"
     },
     {
       "affiliation": "Universit\u00e9 de Sherbrooke",
@@ -101,7 +109,12 @@
       "orcid": "0000-0002-4212-3362"
     },
     {
-      "name": "Dekker, Niels"
+      "affiliation": "Kitware Inc",
+      "name": "McCormick, Matthew",
+      "orcid": "0000-0001-9475-3756"
+    },
+    {
+      "name": "McBride, Sean"
     },
     {
       "name": "Noe, Aljaz"
@@ -113,10 +126,17 @@
       "name": "Hart, Gabe"
     },
     {
-      "name": "McBride, Sean"
+      "affiliation": "Kitware Inc, University of Siegen",
+      "name": "Zuki\u0107, D\u017eenan",
+      "orcid": "0000-0002-9546-9703"
     },
     {
       "name": "Sundaram, Tessa"
+    },
+    {
+      "affiliation": "University of Iowa",
+      "name": "Johnson, Hans",
+      "orcid": "0000-0001-9513-2660"
     },
     {
       "name": "Gouaillard, Alexandre"
@@ -154,6 +174,10 @@
       "name": "Quammen, Cory"
     },
     {
+      "name": "Hernandez-Cerdan, Pablo",
+      "orcid": "0000-0002-1689-3451"
+    },
+    {
       "name": "Jin, Yinpeng"
     },
     {
@@ -173,14 +197,15 @@
       "name": "Tamburo, Robert"
     },
     {
-      "name": "Hernandez-Cerdan, Pablo",
-      "orcid": "0000-0002-1689-3451"
-    },
-    {
       "name": "Audette, Michel"
     },
     {
       "name": "Foskey, Mark"
+    },
+    {
+      "affiliation": "University of California Irvine, University of Virginia, Washington University in Saint Louis, Brigham Young University",
+      "name": "Tustison, Nick",
+      "orcid": "0000-0001-9418-5103"
     },
     {
       "name": "Hughett, Paul"
@@ -189,16 +214,24 @@
       "name": "Doria, David"
     },
     {
+      "affiliation": "Kitware Inc",
+      "name": "Fillion-Robin, Jean-Christophe",
+      "orcid": "0000-0002-9688-8950"
+    },
+    {
       "name": "Kindlmann, Gordon"
+    },
+    {
+      "affiliation": "Kitware Inc",
+      "name": "Newberg, Lee",
+      "orcid": "0000-0003-4644-8874"
     },
     {
       "affiliation": "Kitware Inc",
       "name": "Cole, David"
     },
     {
-      "affiliation": "Kitware Inc",
-      "name": "Fillion-Robin, Jean-Christophe",
-      "orcid": "0000-0002-9688-8950"
+      "name": "S. FONOV, Vladimir"
     },
     {
       "affiliation": "Kitware Inc",
@@ -206,9 +239,6 @@
     },
     {
       "name": "Chen, Sophie"
-    },
-    {
-      "name": "S. FONOV, Vladimir"
     },
     {
       "name": "Tasdizen, Tolga"
@@ -230,6 +260,9 @@
       "name": "Mosaliganti, Kishore"
     },
     {
+      "name": "Isakov, Mihail"
+    },
+    {
       "name": "Chandra, Parag"
     },
     {
@@ -243,6 +276,11 @@
     },
     {
       "name": "Zhuge, Ying"
+    },
+    {
+      "affiliation": "University of Lyon, CREATIS",
+      "name": "Rit, Simon",
+      "orcid": "0000-0003-2530-1013"
     },
     {
       "affiliation": "Tufts University School of Medicine",
@@ -269,20 +307,10 @@
       "name": "Wyman, Brad"
     },
     {
-      "affiliation": "Kitware Inc",
-      "name": "Newberg, Lee",
-      "orcid": "0000-0003-4644-8874"
-    },
-    {
       "name": "Chang, Wilson"
     },
     {
       "name": "Guyon, Jean-Philippe"
-    },
-    {
-      "affiliation": "University of Lyon, CREATIS",
-      "name": "Rit, Simon",
-      "orcid": "0000-0003-2530-1013"
     },
     {
       "name": "Botha, Charl"
@@ -309,6 +337,10 @@
       "name": "Venkatram, Raghu"
     },
     {
+      "name": "Yaniv, Ziv",
+      "orcid": "0000-0003-0315-7727"
+    },
+    {
       "name": "Zygmunt, Kris"
     },
     {
@@ -333,17 +365,16 @@
       "name": "Cheung, Ho"
     },
     {
-      "name": "Aaron Cois, C."
+      "name": "Greer, Hastings"
     },
     {
       "name": "Gandel, Lucas"
     },
     {
-      "name": "Kaucic, Robert"
+      "name": "Aaron Cois, C."
     },
     {
-      "name": "Yaniv, Ziv",
-      "orcid": "0000-0003-0315-7727"
+      "name": "Kaucic, Robert"
     },
     {
       "name": "D. Hanwell, Marcus"
@@ -355,20 +386,23 @@
       "name": "Bertel, Fran\u00e7ois"
     },
     {
-      "name": "Greer, Hastings"
-    },
-    {
       "name": "Hipwell, John"
     },
     {
       "name": "Chandrashekara, Raghavendra"
     },
     {
-      "name": "C. Bigler, Don"
+      "name": "Beare, Richard"
     },
     {
       "affiliation": "Kitware Inc",
       "name": "Gerber, Samuel"
+    },
+    {
+      "name": "C. Bigler, Don"
+    },
+    {
+      "name": "Straing, Marius"
     },
     {
       "name": "Styner, Martin"
@@ -386,9 +420,6 @@
       "name": "Neundorf, Alexander"
     },
     {
-      "name": "Isakov, Mihail"
-    },
-    {
       "name": "Lamb, Peter"
     },
     {
@@ -402,9 +433,6 @@
     },
     {
       "name": "Rannou, Nicolas"
-    },
-    {
-      "name": "Beare, Richard"
     },
     {
       "name": "ITK Community Members"

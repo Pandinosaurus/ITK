@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,20 +44,20 @@ TransformIOBaseTemplate<TParametersValueType>::CreateTransform(TransformPointer 
 
   // Instantiate the transform
   itkDebugMacro("About to call ObjectFactory");
-  LightObject::Pointer i = ObjectFactoryBase::CreateInstance(ClassName.c_str());
+  const LightObject::Pointer i = ObjectFactoryBase::CreateInstance(ClassName.c_str());
   itkDebugMacro("After call ObjectFactory");
   ptr = dynamic_cast<TransformType *>(i.GetPointer());
   if (ptr.IsNull())
   {
     std::ostringstream msg;
-    msg << "Could not create an instance of \"" << ClassName << "\"" << std::endl
+    msg << "Could not create an instance of \"" << ClassName << '"' << std::endl
         << "The usual cause of this error is not registering the "
         << "transform with TransformFactory" << std::endl;
     msg << "Currently registered Transforms: " << std::endl;
-    std::list<std::string> names = theFactory->GetClassOverrideWithNames();
+    const std::list<std::string> names = theFactory->GetClassOverrideWithNames();
     for (auto & name : names)
     {
-      msg << "\t\"" << name << "\"" << std::endl;
+      msg << "\t\"" << name << '"' << std::endl;
     }
     itkExceptionMacro(<< msg.str());
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,9 @@
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMaskNegatedImageFilter.h"
+#include "itkVectorImage.h"
+#include "itkTestingMacros.h"
+
 
 int
 itkMaskNegatedImageFilterTest(int, char *[])
@@ -42,8 +45,8 @@ itkMaskNegatedImageFilterTest(int, char *[])
   using myRegionType = itk::ImageRegion<myDimension>;
 
   // Create two images
-  InputImageType::Pointer inputImage = InputImageType::New();
-  MaskImageType::Pointer  inputMask = MaskImageType::New();
+  auto inputImage = InputImageType::New();
+  auto inputMask = MaskImageType::New();
 
   // Define their size, and start index
   mySizeType size;
@@ -56,20 +59,14 @@ itkMaskNegatedImageFilterTest(int, char *[])
   start[1] = 0;
   start[2] = 0;
 
-  myRegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
+  const myRegionType region{ start, size };
 
   // Initialize the image
-  inputImage->SetLargestPossibleRegion(region);
-  inputImage->SetBufferedRegion(region);
-  inputImage->SetRequestedRegion(region);
+  inputImage->SetRegions(region);
   inputImage->Allocate();
 
   // Initialize the mask
-  inputMask->SetLargestPossibleRegion(region);
-  inputMask->SetBufferedRegion(region);
-  inputMask->SetRequestedRegion(region);
+  inputMask->SetRegions(region);
   inputMask->Allocate();
 
 
@@ -97,7 +94,9 @@ itkMaskNegatedImageFilterTest(int, char *[])
   // Set to mask first 2 pixels and last 2 pixels and leave the rest as is
   std::cout << "Second operand " << std::endl;
   for (unsigned int i = 0; i < 2; ++i, ++maskIterator)
+  {
     maskIterator.Set(0);
+  }
 
   while (!maskIterator.IsAtEnd())
   {
@@ -106,7 +105,9 @@ itkMaskNegatedImageFilterTest(int, char *[])
   }
 
   for (unsigned int i = 0; i < 3; ++i, --maskIterator)
+  {
     maskIterator.Set(0);
+  }
 
   maskIterator.GoToBegin();
   while (!maskIterator.IsAtEnd())
@@ -120,7 +121,7 @@ itkMaskNegatedImageFilterTest(int, char *[])
 
 
   // Create an MaskNegated Filter
-  myFilterType::Pointer filter = myFilterType::New();
+  auto filter = myFilterType::New();
 
 
   // Connect the input images
@@ -129,7 +130,7 @@ itkMaskNegatedImageFilterTest(int, char *[])
   filter->SetOutsideValue(50);
 
   // Get the Smart Pointer to the Filter Output
-  OutputImageType::Pointer outputImage = filter->GetOutput();
+  const OutputImageType::Pointer outputImage = filter->GetOutput();
 
 
   // Execute the filter
@@ -138,7 +139,7 @@ itkMaskNegatedImageFilterTest(int, char *[])
   // Create an iterator for going through the image output
   OutputIteratorType outputIterator(outputImage, outputImage->GetBufferedRegion());
 
-  //  Print the content of the result image
+  // Print the content of the result image
   std::cout << " Result " << std::endl;
   while (!outputIterator.IsAtEnd())
   {
@@ -152,13 +153,47 @@ itkMaskNegatedImageFilterTest(int, char *[])
   // Test named mutator/accessors
   {
     filter->SetMaskImage(inputMask);
-    myFilterType::MaskImageType::ConstPointer retrievedMask = filter->GetMaskImage();
+    const myFilterType::MaskImageType::ConstPointer retrievedMask = filter->GetMaskImage();
     if (retrievedMask != inputMask)
     {
       std::cerr << "Mask not retrieved successfully!" << std::endl;
       return EXIT_FAILURE;
     }
   }
+
+  // Vector image tests
+  using myVectorImageType = itk::VectorImage<float, myDimension>;
+
+  auto inputVectorImage = myVectorImageType::New();
+  inputVectorImage->SetRegions(region);
+  inputVectorImage->SetNumberOfComponentsPerPixel(3);
+  inputVectorImage->Allocate();
+
+  using myVectorFilterType = itk::MaskNegatedImageFilter<myVectorImageType, MaskImageType, myVectorImageType>;
+
+  auto vectorFilter = myVectorFilterType::New();
+  vectorFilter->SetInput1(inputVectorImage);
+  vectorFilter->SetMaskImage(inputMask);
+
+  const myVectorImageType::PixelType outsideValue = vectorFilter->GetOutsideValue();
+  ITK_TEST_EXPECT_EQUAL(outsideValue.GetSize(), 0);
+
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(vectorFilter->Update());
+
+  // Check that the outside value consists of three zeros.
+  const myVectorImageType::PixelType outsideValue3 = vectorFilter->GetOutsideValue();
+  myVectorImageType::PixelType       threeZeros(3);
+  threeZeros.Fill(0.0f);
+  ITK_TEST_EXPECT_EQUAL(outsideValue3, threeZeros);
+
+  // Reset the outside value to zero vector of length 23.
+  myVectorImageType::PixelType zeros23(23);
+  zeros23.Fill(1.0f);
+  vectorFilter->SetOutsideValue(zeros23);
+
+  ITK_TRY_EXPECT_EXCEPTION(vectorFilter->Update());
+
 
   // All objects should be automatically destroyed at this point
   return EXIT_SUCCESS;

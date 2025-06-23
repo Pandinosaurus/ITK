@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   using PointSetType = itk::PointSet<unsigned int, Dimension>;
 
   using PointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType>;
-  PointSetMetricType::Pointer metric = PointSetMetricType::New();
+  auto metric = PointSetMetricType::New();
 
   using PointSetType = PointSetMetricType::FixedPointSetType;
   using PointType = PointSetType::PointType;
@@ -41,26 +41,24 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   using MovingImageType = itk::Image<PixelType, Dimension>;
 
 
-  PointSetType::Pointer fixedPoints = PointSetType::New();
-  fixedPoints->Initialize();
+  auto fixedPoints = PointSetType::New();
 
-  PointSetType::Pointer movingPoints = PointSetType::New();
-  movingPoints->Initialize();
+  auto movingPoints = PointSetType::New();
 
   // two circles with a small offset
   PointType offset;
-  for (unsigned int d = 0; d < Dimension; d++)
+  for (unsigned int d = 0; d < Dimension; ++d)
   {
     offset[d] = 2.0;
   }
   unsigned long count = 0;
   for (float theta = 0; theta < 2.0 * itk::Math::pi; theta += 0.1)
   {
-    PointType fixedPoint;
-    float     radius = 100.0;
+    PointType       fixedPoint;
+    constexpr float radius = 100.0;
     fixedPoint[0] = radius * std::cos(theta);
     fixedPoint[1] = radius * std::sin(theta);
-    if (PointSetType::PointDimension > 2)
+    if constexpr (PointSetType::PointDimension > 2)
     {
       fixedPoint[2] = radius * std::sin(theta);
     }
@@ -69,7 +67,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
     PointType movingPoint;
     movingPoint[0] = fixedPoint[0] + offset[0];
     movingPoint[1] = fixedPoint[1] + offset[1];
-    if (PointSetType::PointDimension > 2)
+    if constexpr (PointSetType::PointDimension > 2)
     {
       movingPoint[2] = fixedPoint[2] + offset[2];
     }
@@ -89,7 +87,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   fixedImageDirection.SetIdentity();
   fixedImageSpacing.Fill(1);
 
-  FixedImageType::Pointer fixedImage = FixedImageType::New();
+  auto fixedImage = FixedImageType::New();
   fixedImage->SetRegions(fixedImageSize);
   fixedImage->SetOrigin(fixedImageOrigin);
   fixedImage->SetDirection(fixedImageDirection);
@@ -97,7 +95,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   fixedImage->Allocate();
 
   using AffineTransformType = itk::AffineTransform<double, Dimension>;
-  AffineTransformType::Pointer transform = AffineTransformType::New();
+  auto transform = AffineTransformType::New();
   transform->SetIdentity();
 
   metric->SetFixedPointSet(fixedPoints);
@@ -110,10 +108,10 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
   using VelocityFieldRegistrationType =
     itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<FixedImageType, MovingImageType>;
-  VelocityFieldRegistrationType::Pointer velocityFieldRegistration = VelocityFieldRegistrationType::New();
+  auto velocityFieldRegistration = VelocityFieldRegistrationType::New();
 
   using OutputTransformType = VelocityFieldRegistrationType::OutputTransformType;
-  OutputTransformType::Pointer outputTransform = OutputTransformType::New();
+  auto outputTransform = OutputTransformType::New();
   velocityFieldRegistration->SetInitialTransform(outputTransform);
   velocityFieldRegistration->InPlaceOn();
 
@@ -147,7 +145,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
   using VectorType = itk::Vector<PixelType, Dimension>;
   using TimeVaryingVelocityFieldControlPointLatticeType = itk::Image<VectorType, Dimension + 1>;
-  TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
+  const TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
     TimeVaryingVelocityFieldControlPointLatticeType::New();
 
   // Determine the parameters (size, spacing, etc) for the time-varying velocity field
@@ -164,13 +162,13 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   transformDomainSpacing.Fill(1.0);
   transformDomainSize.Fill(10);
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     transformDomainOrigin[i] = fixedImageOrigin[i];
     transformDomainMeshSize[i] = 8;
     transformDomainSpacing[i] = fixedImageSpacing[i];
     transformDomainSize[i] = fixedImageSize[i];
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
       transformDomainDirection[i][j] = fixedImageDirection[i][j];
     }
@@ -180,7 +178,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
   using VelocityFieldTransformAdaptorType =
     itk::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TransformType>;
-  VelocityFieldTransformAdaptorType::Pointer initialFieldTransformAdaptor = VelocityFieldTransformAdaptorType::New();
+  auto initialFieldTransformAdaptor = VelocityFieldTransformAdaptorType::New();
   initialFieldTransformAdaptor->SetSplineOrder(outputTransform->GetSplineOrder());
   initialFieldTransformAdaptor->SetRequiredTransformDomainOrigin(transformDomainOrigin);
   initialFieldTransformAdaptor->SetRequiredTransformDomainSpacing(transformDomainSpacing);
@@ -188,7 +186,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize(transformDomainMeshSize);
   initialFieldTransformAdaptor->SetRequiredTransformDomainDirection(transformDomainDirection);
 
-  VectorType zeroVector(0.0);
+  constexpr VectorType zeroVector{};
 
   velocityFieldLattice->SetOrigin(initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin());
   velocityFieldLattice->SetSpacing(initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing());
@@ -207,12 +205,12 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
   velocityFieldSize.Fill(velocityFieldRegistration->GetNumberOfTimePointSamples());
   velocityFieldDirection.SetIdentity();
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     velocityFieldOrigin[i] = fixedImage->GetOrigin()[i];
     velocityFieldSpacing[i] = fixedImage->GetSpacing()[i];
     velocityFieldSize[i] = fixedImage->GetRequestedRegion().GetSize()[i];
-    for (unsigned int j = 0; j < Dimension; j++)
+    for (unsigned int j = 0; j < Dimension; ++j)
     {
       velocityFieldDirection[i][j] = fixedImage->GetDirection()[i][j];
     }
@@ -227,10 +225,10 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
   VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
-  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++)
+  for (unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); ++level)
   {
     using ShrinkFilterType = itk::ShrinkImageFilter<FixedImageType, FixedImageType>;
-    ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+    auto shrinkFilter = ShrinkFilterType::New();
     shrinkFilter->SetShrinkFactors(shrinkFactorsPerLevel[level]);
     shrinkFilter->SetInput(fixedImage);
     shrinkFilter->Update();
@@ -248,7 +246,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
     fixedImageSpacing = shrinkFilter->GetOutput()->GetSpacing();
     fixedImageDirection = shrinkFilter->GetOutput()->GetDirection();
 
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
       velocityFieldSize[i] = fixedImageSize[i];
       velocityFieldOrigin[i] = fixedImageOrigin[i];
@@ -256,13 +254,13 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
       transformDomainMeshSize[i] <<= 1;
 
-      for (unsigned int j = 0; j < Dimension; j++)
+      for (unsigned int j = 0; j < Dimension; ++j)
       {
         velocityFieldDirection[i][j] = fixedImageDirection[i][j];
       }
     }
 
-    VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor = VelocityFieldTransformAdaptorType::New();
+    auto fieldTransformAdaptor = VelocityFieldTransformAdaptorType::New();
     fieldTransformAdaptor->SetSplineOrder(outputTransform->GetSplineOrder());
     fieldTransformAdaptor->SetRequiredTransformDomainSpacing(velocityFieldSpacing);
     fieldTransformAdaptor->SetRequiredTransformDomainSize(velocityFieldSize);
@@ -270,7 +268,7 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
     fieldTransformAdaptor->SetRequiredTransformDomainOrigin(velocityFieldOrigin);
     fieldTransformAdaptor->SetRequiredTransformDomainMeshSize(transformDomainMeshSize);
 
-    adaptors.push_back(fieldTransformAdaptor);
+    adaptors.emplace_back(fieldTransformAdaptor);
   }
   velocityFieldRegistration->SetTransformParametersAdaptorsPerLevel(adaptors);
 
@@ -287,28 +285,28 @@ itkTimeVaryingBSplineVelocityFieldPointSetRegistrationTest(int itkNotUsed(argc),
 
   // applying the resultant transform to moving points and verify result
   std::cout << "Fixed\tMoving\tMovingTransformed\tFixedTransformed\tDiff" << std::endl;
-  PointType::ValueType tolerance = 0.55;
+  constexpr PointType::ValueType tolerance = 0.55;
 
   float averageError = 0.0;
-  for (unsigned int n = 0; n < movingPoints->GetNumberOfPoints(); n++)
+  for (unsigned int n = 0; n < movingPoints->GetNumberOfPoints(); ++n)
   {
     // compare the points in virtual domain
     PointType transformedMovingPoint =
       velocityFieldRegistration->GetModifiableTransform()->GetInverseTransform()->TransformPoint(
         movingPoints->GetPoint(n));
-    PointType fixedPoint = fixedPoints->GetPoint(n);
-    PointType transformedFixedPoint =
+    PointType       fixedPoint = fixedPoints->GetPoint(n);
+    const PointType transformedFixedPoint =
       velocityFieldRegistration->GetModifiableTransform()->TransformPoint(fixedPoints->GetPoint(n));
     PointType difference;
     difference[0] = transformedMovingPoint[0] - fixedPoint[0];
     difference[1] = transformedMovingPoint[1] - fixedPoint[1];
-    std::cout << fixedPoints->GetPoint(n) << "\t" << movingPoints->GetPoint(n) << "\t" << transformedMovingPoint << "\t"
-              << transformedFixedPoint << "\t" << difference << std::endl;
+    std::cout << fixedPoints->GetPoint(n) << '\t' << movingPoints->GetPoint(n) << '\t' << transformedMovingPoint << '\t'
+              << transformedFixedPoint << '\t' << difference << std::endl;
 
     averageError += ((difference.GetVectorFromOrigin()).GetSquaredNorm());
   }
 
-  unsigned int numberOfPoints = movingPoints->GetNumberOfPoints();
+  const unsigned int numberOfPoints = movingPoints->GetNumberOfPoints();
   if (numberOfPoints > 0)
   {
     averageError /= static_cast<float>(numberOfPoints);

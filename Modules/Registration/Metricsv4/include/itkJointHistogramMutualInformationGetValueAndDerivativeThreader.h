@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,8 @@
 #define itkJointHistogramMutualInformationGetValueAndDerivativeThreader_h
 
 #include "itkImageToImageMetricv4GetValueAndDerivativeThreader.h"
+
+#include <memory> // For unique_ptr.
 
 namespace itk
 {
@@ -43,26 +45,25 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
-  itkTypeMacro(JointHistogramMutualInformationGetValueAndDerivativeThreader,
-               ImageToImageMetricv4GetValueAndDerivativeThreader);
+  itkOverrideGetNameOfClassMacro(JointHistogramMutualInformationGetValueAndDerivativeThreader);
 
   itkNewMacro(Self);
 
-  using DomainType = typename Superclass::DomainType;
-  using AssociateType = typename Superclass::AssociateType;
+  using typename Superclass::DomainType;
+  using typename Superclass::AssociateType;
 
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using VirtualIndexType = typename Superclass::VirtualIndexType;
-  using FixedImagePointType = typename Superclass::FixedImagePointType;
-  using FixedImagePixelType = typename Superclass::FixedImagePixelType;
-  using FixedImageGradientType = typename Superclass::FixedImageGradientType;
-  using MovingImagePointType = typename Superclass::MovingImagePointType;
-  using MovingImagePixelType = typename Superclass::MovingImagePixelType;
-  using MovingImageGradientType = typename Superclass::MovingImageGradientType;
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
-  using JacobianType = typename Superclass::JacobianType;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::VirtualIndexType;
+  using typename Superclass::FixedImagePointType;
+  using typename Superclass::FixedImagePixelType;
+  using typename Superclass::FixedImageGradientType;
+  using typename Superclass::MovingImagePointType;
+  using typename Superclass::MovingImagePixelType;
+  using typename Superclass::MovingImageGradientType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeValueType;
+  using typename Superclass::JacobianType;
 
   using JointHistogramMetricType = TJointHistogramMetric;
   using InternalComputationValueType = typename JointHistogramMetricType::InternalComputationValueType;
@@ -79,7 +80,7 @@ public:
 
 protected:
   JointHistogramMutualInformationGetValueAndDerivativeThreader();
-  ~JointHistogramMutualInformationGetValueAndDerivativeThreader() override;
+  ~JointHistogramMutualInformationGetValueAndDerivativeThreader() override = default;
 
   using JointHistogramType = Image<SizeValueType, 2>;
 
@@ -122,18 +123,18 @@ protected:
   itkAlignedTypedef(ITK_CACHE_LINE_ALIGNMENT,
                     PaddedJointHistogramMIPerThreadStruct,
                     AlignedJointHistogramMIPerThreadStruct);
-  AlignedJointHistogramMIPerThreadStruct * m_JointHistogramMIPerThreadVariables;
+  std::unique_ptr<AlignedJointHistogramMIPerThreadStruct[]> m_JointHistogramMIPerThreadVariables;
 
 private:
   /** Internal pointer to the metric object in use by this threader.
    *  This will avoid costly dynamic casting in tight loops. */
-  TJointHistogramMetric * m_JointAssociate;
+  TJointHistogramMetric * m_JointAssociate{};
 };
 
 } // end namespace itk
 
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkJointHistogramMutualInformationGetValueAndDerivativeThreader.hxx"
 #endif
 
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "itkJointHistogramMutualInformationGetValueAndDerivativeThreader.hxx"
 #endif

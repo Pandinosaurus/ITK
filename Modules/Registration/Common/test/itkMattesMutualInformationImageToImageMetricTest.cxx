@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@
 #include "itkBSplineTransform.h"
 #include "itkImageMaskSpatialObject.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkTestingMacros.h"
 
 /**
  *  This templated function test the MattesMutualInformationImageToMetric
@@ -60,9 +61,7 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
 
   typename MovingImageType::SizeType   size = { { 100, 100 } };
   typename MovingImageType::IndexType  index = { { 0, 0 } };
-  typename MovingImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  typename MovingImageType::RegionType region{ index, size };
 
   typename MovingImageType::SpacingType imgSpacing;
   imgSpacing[0] = 3.0;
@@ -72,18 +71,14 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   imgOrigin[0] = 0.0;
   imgOrigin[1] = 0.0;
 
-  typename MovingImageType::Pointer imgMoving = MovingImageType::New();
-  imgMoving->SetLargestPossibleRegion(region);
-  imgMoving->SetBufferedRegion(region);
-  imgMoving->SetRequestedRegion(region);
+  auto imgMoving = MovingImageType::New();
+  imgMoving->SetRegions(region);
   imgMoving->Allocate();
   imgMoving->SetSpacing(imgSpacing);
   imgMoving->SetOrigin(imgOrigin);
 
-  typename FixedImageType::Pointer imgFixed = FixedImageType::New();
-  imgFixed->SetLargestPossibleRegion(region);
-  imgFixed->SetBufferedRegion(region);
-  imgFixed->SetRequestedRegion(region);
+  auto imgFixed = FixedImageType::New();
+  imgFixed->SetRegions(region);
   imgFixed->Allocate();
   imgFixed->SetSpacing(imgSpacing);
   imgFixed->SetOrigin(imgOrigin);
@@ -93,10 +88,10 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   using TargetIteratorType = itk::ImageRegionIterator<FixedImageType>;
 
   itk::Point<double, 2> center;
-  center[0] = (double)region.GetSize()[0] / 2.0;
-  center[1] = (double)region.GetSize()[1] / 2.0;
+  center[0] = static_cast<double>(region.GetSize()[0]) / 2.0;
+  center[1] = static_cast<double>(region.GetSize()[1]) / 2.0;
 
-  const double s = (double)region.GetSize()[0] / 2.0;
+  const double s = static_cast<double>(region.GetSize()[0]) / 2.0;
 
   itk::Point<double, 2>  p;
   itk::Vector<double, 2> d;
@@ -117,7 +112,7 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
     d += displacement;
     const double x = d[0];
     const double y = d[1];
-    ri.Set((unsigned char)(200.0 * std::exp(-(x * x + y * y) / (s * s))));
+    ri.Set(static_cast<unsigned char>(200.0 * std::exp(-(x * x + y * y) / (s * s))));
     ++ri;
   }
 
@@ -129,22 +124,20 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
     d = p - center;
     const double x = d[0];
     const double y = d[1];
-    ti.Set((unsigned char)(200.0 * std::exp(-(x * x + y * y) / (s * s))));
+    ti.Set(static_cast<unsigned char>(200.0 * std::exp(-(x * x + y * y) / (s * s))));
     ++ti;
   }
 
   // Setup a fixed image mask for the image
-  typename MovingImageType::Pointer imgMovingMask = MovingImageType::New();
+  auto imgMovingMask = MovingImageType::New();
   imgMovingMask->CopyInformation(imgMoving);
   imgMovingMask->SetRegions(region);
-  imgMovingMask->Allocate(true); // initialize
-                                 // buffer to zero
+  imgMovingMask->AllocateInitialized();
 
-  typename FixedImageType::Pointer imgFixedMask = FixedImageType::New();
+  auto imgFixedMask = FixedImageType::New();
   imgFixedMask->CopyInformation(imgFixed);
   imgFixedMask->SetRegions(region);
-  imgFixedMask->Allocate(true); // initialize
-                                // buffer to zero
+  imgFixedMask->AllocateInitialized();
 
   int NumberFixedImageMaskVoxels = 0;
   { // Set up a mask that only has every 10th voxel listed is used in
@@ -184,14 +177,17 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   using TransformType = itk::AffineTransform<double, ImageDimension>;
   using ParametersType = typename TransformType::ParametersType;
 
-  typename TransformType::Pointer transformer = TransformType::New();
+  auto transformer = TransformType::New();
 
   //------------------------------------------------------------
   // Set up the metric
   //------------------------------------------------------------
   using MetricType = itk::MattesMutualInformationImageToImageMetric<FixedImageType, MovingImageType>;
 
-  typename MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(metric, MattesMutualInformationImageToImageMetric, ImageToImageMetric);
+
 
   // Sanity check before metric is run, these should be nullptr;
   if (metric->GetJointPDFDerivatives().IsNotNull())
@@ -214,16 +210,19 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   metric->SetMovingImage(imgMoving);
 
   // set the number of histogram bins
-  metric->SetNumberOfHistogramBins(50);
+  constexpr itk::SizeValueType numberOfHistogramBins = 50;
+  metric->SetNumberOfHistogramBins(numberOfHistogramBins);
+  ITK_TEST_SET_GET_VALUE(numberOfHistogramBins, metric->GetNumberOfHistogramBins());
 
-  metric->SetUseExplicitPDFDerivatives(useExplicitJointPDFDerivatives);
+  ITK_TEST_SET_GET_BOOLEAN(metric, UseExplicitPDFDerivatives, useExplicitJointPDFDerivatives);
+
   metric->SetUseCachingOfBSplineWeights(useCachingBSplineWeights);
-  metric->ReinitializeSeed(121212);
+  metric->ReinitializeSeed(itk::Statistics::MersenneTwisterRandomVariateGenerator::DefaultSeed);
 
   metric->SetFixedImageSamplesIntensityThreshold(100);
   if (metric->GetFixedImageSamplesIntensityThreshold() != 100)
   {
-    std::cout << "ERROR: SetFixedImageSamplesIntensityThreshold(100) failed: " << __FILE__ << " " << __LINE__
+    std::cout << "ERROR: SetFixedImageSamplesIntensityThreshold(100) failed: " << __FILE__ << ' ' << __LINE__
               << std::endl;
     return EXIT_FAILURE;
   }
@@ -231,20 +230,20 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
                                                      // explicitly.
   if (metric->GetFixedImageSamplesIntensityThreshold() != 0)
   {
-    std::cout << "ERROR: SetFixedImageSamplesIntensityThreshold(0) failed: " << __FILE__ << " " << __LINE__
+    std::cout << "ERROR: SetFixedImageSamplesIntensityThreshold(0) failed: " << __FILE__ << ' ' << __LINE__
               << std::endl;
     return EXIT_FAILURE;
   }
   metric->UseAllPixelsOn();
   if (metric->GetUseAllPixels() != true)
   {
-    std::cout << "ERROR: UseAllPixelsOn() failed: " << __FILE__ << " " << __LINE__ << std::endl;
+    std::cout << "ERROR: UseAllPixelsOn() failed: " << __FILE__ << ' ' << __LINE__ << std::endl;
     return EXIT_FAILURE;
   }
   metric->UseAllPixelsOff(); // This should be the default, but exercise this function explicitly.
   if (metric->GetUseAllPixels() != false)
   {
-    std::cout << "ERROR: UseAllPixelsOff() failed: " << __FILE__ << " " << __LINE__ << std::endl;
+    std::cout << "ERROR: UseAllPixelsOff() failed: " << __FILE__ << ' ' << __LINE__ << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -259,11 +258,11 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
       // convert mask image to mask
 
       using ImageMaskSpatialObjectType = itk::ImageMaskSpatialObject<ImageDimension>;
-      typename ImageMaskSpatialObjectType::Pointer soMovingMask = ImageMaskSpatialObjectType::New();
+      auto soMovingMask = ImageMaskSpatialObjectType::New();
       soMovingMask->SetImage(imgMovingMask);
       soMovingMask->Update();
 
-      typename ImageMaskSpatialObjectType::Pointer soFixedMask = ImageMaskSpatialObjectType::New();
+      auto soFixedMask = ImageMaskSpatialObjectType::New();
       soFixedMask->SetImage(imgFixedMask);
       soFixedMask->Update();
 
@@ -271,14 +270,14 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
       metric->SetFixedImageMask(soFixedMask);
 
       // Make the mask const to enhance code coverage
-      typename ImageMaskSpatialObjectType::ConstPointer soMovingConstMask = soMovingMask;
-      typename ImageMaskSpatialObjectType::ConstPointer soFixedConstMask = soFixedMask;
+      const typename ImageMaskSpatialObjectType::ConstPointer soMovingConstMask = soMovingMask;
+      const typename ImageMaskSpatialObjectType::ConstPointer soFixedConstMask = soFixedMask;
       metric->SetMovingImageMask(soMovingConstMask);
       metric->SetFixedImageMask(soFixedConstMask);
 
       // metric->SetNumberOfSpatialSamples(
-      //  static_cast<unsigned long int>(NumberFixedImageMaskVoxels*.2) );
-      metric->SetNumberOfSpatialSamples(static_cast<unsigned long int>(NumberFixedImageMaskVoxels * 2));
+      //  static_cast<unsigned long>(NumberFixedImageMaskVoxels*.2) );
+      metric->SetNumberOfSpatialSamples(static_cast<unsigned long>(NumberFixedImageMaskVoxels * 2));
     }
   }
   else
@@ -299,18 +298,18 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   metric->DebugOff();
 
   //------------------------------------------------------------
-  // Set up a affine transform parameters
+  // Set up an affine transform parameters
   //------------------------------------------------------------
-  unsigned int   numberOfParameters = transformer->GetNumberOfParameters();
-  ParametersType parameters(numberOfParameters);
+  const unsigned int numberOfParameters = transformer->GetNumberOfParameters();
+  ParametersType     parameters(numberOfParameters);
 
   // set the parameters to the identity
   unsigned long count = 0;
 
   // initialize the linear/matrix part
-  for (unsigned int row = 0; row < ImageDimension; row++)
+  for (unsigned int row = 0; row < ImageDimension; ++row)
   {
-    for (unsigned int col = 0; col < ImageDimension; col++)
+    for (unsigned int col = 0; col < ImageDimension; ++col)
     {
       parameters[count] = 0;
       if (row == col)
@@ -322,7 +321,7 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   }
 
   // initialize the offset/vector part
-  for (unsigned int k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; ++k)
   {
     parameters[count] = 0;
     ++count;
@@ -333,18 +332,18 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   // for parameters[4] = {-10,10} (arbitrary choice)
   //---------------------------------------------------------
 
-  typename MetricType::MeasureType    measure, measure2;
   typename MetricType::DerivativeType derivative(numberOfParameters);
 
   std::cout << "param[4]\tMI\tMI2\tdMI/dparam[4]" << std::endl;
 
+  typename MetricType::MeasureType measure;
   for (double trans = -10; trans <= 5; trans += 0.5)
   {
     parameters[4] = trans;
     metric->GetValueAndDerivative(parameters, measure, derivative);
-    measure2 = metric->GetValue(parameters);
+    const typename MetricType::MeasureType measure2 = metric->GetValue(parameters);
 
-    std::cout << trans << "\t" << measure << "\t" << measure2 << "\t" << derivative[4] << std::endl;
+    std::cout << trans << '\t' << measure << '\t' << measure2 << '\t' << derivative[4] << std::endl;
 
     // exercise the other functions
     metric->GetDerivative(parameters, derivative);
@@ -361,7 +360,7 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
   typename MetricType::MeasureType measurePlus;
   typename MetricType::MeasureType measureMinus;
 
-  double delta = 0.001;
+  constexpr double delta = 0.001;
 
   bool testFailed = false;
 
@@ -385,14 +384,14 @@ TestMattesMetricWithAffineTransform(TInterpolator * interpolator,
     measurePlus = metric->GetValue(parametersPlus);
     measureMinus = metric->GetValue(parametersMinus);
 
-    double approxDerivative = (measurePlus - measureMinus) / (2 * delta);
-    double ratio = derivative[i] / approxDerivative;
+    const double approxDerivative = (measurePlus - measureMinus) / (2 * delta);
+    const double ratio = derivative[i] / approxDerivative;
 
-    std::cout << i << "\t";
-    std::cout << parameters[i] << "\t";
-    std::cout << derivative[i] << "\t";
-    std::cout << approxDerivative << "\t";
-    std::cout << ratio << "\t";
+    std::cout << i << '\t';
+    std::cout << parameters[i] << '\t';
+    std::cout << derivative[i] << '\t';
+    std::cout << approxDerivative << '\t';
+    std::cout << ratio << '\t';
     std::cout << std::endl;
 
     if (itk::Math::abs(ratio - 1.0) > 0.012)
@@ -459,11 +458,9 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
     ImageDimension = MovingImageType::ImageDimension
   };
 
-  typename MovingImageType::SizeType   size = { { 100, 100 } };
-  typename MovingImageType::IndexType  index = { { 0, 0 } };
-  typename MovingImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(index);
+  const typename MovingImageType::SizeType   size = { { 100, 100 } };
+  const typename MovingImageType::IndexType  index = { { 0, 0 } };
+  const typename MovingImageType::RegionType region{ index, size };
 
   typename MovingImageType::SpacingType imgSpacing;
   imgSpacing[0] = 1.5;
@@ -473,18 +470,14 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   imgOrigin[0] = 0.0;
   imgOrigin[1] = 0.0;
 
-  typename MovingImageType::Pointer imgMoving = MovingImageType::New();
-  imgMoving->SetLargestPossibleRegion(region);
-  imgMoving->SetBufferedRegion(region);
-  imgMoving->SetRequestedRegion(region);
+  auto imgMoving = MovingImageType::New();
+  imgMoving->SetRegions(region);
   imgMoving->Allocate();
   imgMoving->SetSpacing(imgSpacing);
   imgMoving->SetOrigin(imgOrigin);
 
-  typename FixedImageType::Pointer imgFixed = FixedImageType::New();
-  imgFixed->SetLargestPossibleRegion(region);
-  imgFixed->SetBufferedRegion(region);
-  imgFixed->SetRequestedRegion(region);
+  auto imgFixed = FixedImageType::New();
+  imgFixed->SetRegions(region);
   imgFixed->Allocate();
   imgFixed->SetSpacing(imgSpacing);
   imgFixed->SetOrigin(imgOrigin);
@@ -494,10 +487,10 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   using TargetIteratorType = itk::ImageRegionIterator<FixedImageType>;
 
   itk::Point<double, 2> center;
-  center[0] = (double)region.GetSize()[0] / 2.0;
-  center[1] = (double)region.GetSize()[1] / 2.0;
+  center[0] = static_cast<double>(region.GetSize()[0]) / 2.0;
+  center[1] = static_cast<double>(region.GetSize()[1]) / 2.0;
 
-  const double s = (double)region.GetSize()[0] / 2.0;
+  const double s = static_cast<double>(region.GetSize()[0]) / 2.0;
 
   itk::Point<double, 2>  p;
   itk::Vector<double, 2> d;
@@ -518,7 +511,7 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
     d += displacement;
     const double x = d[0];
     const double y = d[1];
-    ri.Set((unsigned char)(200.0 * std::exp(-(x * x + y * y) / (s * s))));
+    ri.Set(static_cast<unsigned char>(200.0 * std::exp(-(x * x + y * y) / (s * s))));
     ++ri;
   }
 
@@ -530,7 +523,7 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
     d = p - center;
     const double x = d[0];
     const double y = d[1];
-    ti.Set((unsigned char)(200.0 * std::exp(-(x * x + y * y) / (s * s))));
+    ti.Set(static_cast<unsigned char>(200.0 * std::exp(-(x * x + y * y) / (s * s))));
     ++ti;
   }
 
@@ -540,14 +533,13 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   using TransformType = itk::BSplineTransform<double, ImageDimension, 3>;
   using ParametersType = typename TransformType::ParametersType;
   typename TransformType::PhysicalDimensionsType dimensions;
-  for (unsigned int dim = 0; dim < ImageDimension; dim++)
+  for (unsigned int dim = 0; dim < ImageDimension; ++dim)
   {
     dimensions[dim] = imgFixed->GetSpacing()[dim] * (imgFixed->GetLargestPossibleRegion().GetSize()[dim] - 1);
   }
-  typename TransformType::MeshSizeType meshSize;
-  meshSize.Fill(4);
+  auto meshSize = TransformType::MeshSizeType::Filled(4);
 
-  typename TransformType::Pointer transformer = TransformType::New();
+  auto transformer = TransformType::New();
 
   transformer->SetTransformDomainPhysicalDimensions(dimensions);
   transformer->SetTransformDomainOrigin(imgFixed->GetOrigin());
@@ -561,7 +553,7 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   //------------------------------------------------------------
   using MetricType = itk::MattesMutualInformationImageToImageMetric<FixedImageType, MovingImageType>;
 
-  typename MetricType::Pointer metric = MetricType::New();
+  auto metric = MetricType::New();
 
   // connect the interpolator
   metric->SetInterpolator(interpolator);
@@ -598,8 +590,8 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   //------------------------------------------------------------
   // Set up a B-spline deformable transform parameters
   //------------------------------------------------------------
-  unsigned int   numberOfParameters = transformer->GetNumberOfParameters();
-  ParametersType parameters(numberOfParameters);
+  const unsigned int numberOfParameters = transformer->GetNumberOfParameters();
+  ParametersType     parameters(numberOfParameters);
   parameters.Fill(0.0);
 
   //---------------------------------------------------------
@@ -607,9 +599,8 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   // for parameters between {-10,10} (arbitrary choice)
   //---------------------------------------------------------
 
-  typename MetricType::MeasureType    measure, measure2;
   typename MetricType::DerivativeType derivative(numberOfParameters);
-  unsigned int                        q = numberOfParameters / 4;
+  const unsigned int                  q = numberOfParameters / 4;
 
   std::cout << "q = " << q << std::endl;
   std::cout << "param[q]\tMI\tMI2\tdMI/dparam[q]" << std::endl;
@@ -618,10 +609,11 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   {
     // parameters[q] = trans;
     parameters.Fill(trans);
+    typename MetricType::MeasureType measure;
     metric->GetValueAndDerivative(parameters, measure, derivative);
-    measure2 = metric->GetValue(parameters);
+    const typename MetricType::MeasureType measure2 = metric->GetValue(parameters);
 
-    std::cout << trans << "\t" << measure << "\t" << measure2 << "\t" << derivative[q] << std::endl;
+    std::cout << trans << '\t' << measure << '\t' << measure2 << '\t' << derivative[q] << std::endl;
 
     // exercise the other functions
     metric->GetDerivative(parameters, derivative);
@@ -631,14 +623,16 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
   // Check output gradients for numerical accuracy
   //---------------------------------------------------------
   parameters.Fill(4.5 * imgSpacing[0]);
-  metric->GetValueAndDerivative(parameters, measure, derivative);
-
+  {
+    typename MetricType::MeasureType measure;
+    metric->GetValueAndDerivative(parameters, measure, derivative);
+  }
   ParametersType                   parametersPlus(numberOfParameters);
   ParametersType                   parametersMinus(numberOfParameters);
   typename MetricType::MeasureType measurePlus;
   typename MetricType::MeasureType measureMinus;
 
-  double delta = 0.1 * imgSpacing[0];
+  const double delta = 0.1 * imgSpacing[0];
 
   bool testFailed = false;
 
@@ -672,14 +666,14 @@ TestMattesMetricWithBSplineTransform(TInterpolator * interpolator,
     {
       continue;
     }
-    double approxDerivative = (measurePlus - measureMinus) / (2 * delta);
-    double ratio = derivative[i] / approxDerivative;
+    const double approxDerivative = (measurePlus - measureMinus) / (2 * delta);
+    const double ratio = derivative[i] / approxDerivative;
 
-    std::cout << i << "\t";
-    std::cout << parameters[i] << "\t";
-    std::cout << derivative[i] << "\t";
-    std::cout << approxDerivative << "\t";
-    std::cout << ratio << "\t";
+    std::cout << i << '\t';
+    std::cout << parameters[i] << '\t';
+    std::cout << derivative[i] << '\t';
+    std::cout << approxDerivative << '\t';
+    std::cout << ratio << '\t';
     std::cout << std::endl;
 
     if (itk::Math::abs(ratio - 1.0) > 0.05 && itk::Math::abs(derivative[i]) > 1e-4)
@@ -714,7 +708,6 @@ itkMattesMutualInformationImageToImageMetricTest(int argc, char * argv[])
     useCachingBSplineWeights = std::stoi(argv[2]);
   }
 
-  int failed;
   using ImageType = itk::Image<unsigned char, 2>;
 
   bool useSampling = true;
@@ -724,9 +717,9 @@ itkMattesMutualInformationImageToImageMetricTest(int argc, char * argv[])
   // Test metric with a linear interpolator
   using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, double>;
 
-  LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+  auto linearInterpolator = LinearInterpolatorType::New();
 
-  failed = TestMattesMetricWithAffineTransform<ImageType, LinearInterpolatorType>(
+  int failed = TestMattesMetricWithAffineTransform<ImageType, LinearInterpolatorType>(
     linearInterpolator, useSampling, useExplicitJointPDFDerivatives, useCachingBSplineWeights);
 
   if (failed)
@@ -748,7 +741,7 @@ itkMattesMutualInformationImageToImageMetricTest(int argc, char * argv[])
   // Test metric with a BSpline interpolator
   using BSplineInterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, double>;
 
-  BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
+  auto bSplineInterpolator = BSplineInterpolatorType::New();
 
   bSplineInterpolator->SetSplineOrder(3);
 

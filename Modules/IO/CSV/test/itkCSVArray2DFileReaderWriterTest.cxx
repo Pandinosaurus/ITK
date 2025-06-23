@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@
 #include "itkMath.h"
 #include "itkTestingMacros.h"
 
-const double epsilon = 1e-20;
+constexpr double epsilon = 1e-20;
 
 // function for comparing matrices
 template <typename T>
@@ -36,9 +36,9 @@ testArray(const itk::Array2D<T> & m1, const itk::Array2D<T> & m2)
     return pass;
   }
 
-  for (unsigned int i = 0; i < m1.rows(); i++)
+  for (unsigned int i = 0; i < m1.rows(); ++i)
   {
-    for (unsigned int j = 0; j < m1.cols(); j++)
+    for (unsigned int j = 0; j < m1.cols(); ++j)
     {
       // We need to test whether m1 is a NaN and/or m2 is a NaN.
       // If they are both NaN, then they are the same.
@@ -46,14 +46,14 @@ testArray(const itk::Array2D<T> & m1, const itk::Array2D<T> & m2)
       // Without such a test, the comparison of the difference being greater than epsilon will pass.
       // The equality and inequality predicates are non-signaling so x = x returning false can be used to test if x is a
       // quiet NaN.
-      bool m1_isNaN = (itk::Math::ExactlyEquals(m1[i][j], m1[i][j]));
-      bool m2_isNaN = (itk::Math::ExactlyEquals(m2[i][j], m2[i][j]));
+      const bool m1_isNaN = (itk::Math::ExactlyEquals(m1[i][j], m1[i][j]));
+      const bool m2_isNaN = (itk::Math::ExactlyEquals(m2[i][j], m2[i][j]));
       if ((m1_isNaN && !m2_isNaN) || (!m1_isNaN && m2_isNaN))
       {
         pass = false;
         return pass;
       }
-      if (std::fabs(m1[i][j] - m2[i][j]) > epsilon)
+      if (itk::Math::abs(m1[i][j] - m2[i][j]) > epsilon)
       {
         pass = false;
         return pass;
@@ -66,7 +66,7 @@ testArray(const itk::Array2D<T> & m1, const itk::Array2D<T> & m2)
 int
 itkCSVFileReaderWriterTest_Func(int argc, char * argv[], bool headers)
 {
-  double nan = std::numeric_limits<double>::quiet_NaN();
+  constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 
   using MatrixType = itk::Array2D<double>;
   constexpr unsigned int ARows = 3;
@@ -93,7 +93,7 @@ itkCSVFileReaderWriterTest_Func(int argc, char * argv[], bool headers)
 
   // write out the array2D object
   using WriterType = itk::CSVNumericObjectFileWriter<double, ARows, ACols>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   if (argc < 2)
   {
@@ -134,7 +134,7 @@ itkCSVFileReaderWriterTest_Func(int argc, char * argv[], bool headers)
   }
 
   using ReaderType = itk::CSVArray2DFileReader<double>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(filename);
   reader->SetFieldDelimiterCharacter(',');
   reader->SetStringDelimiterCharacter('"');
@@ -157,8 +157,8 @@ itkCSVFileReaderWriterTest_Func(int argc, char * argv[], bool headers)
   reader->Print(std::cout);
 
   using DataFrameObjectType = itk::CSVArray2DDataObject<double>;
-  DataFrameObjectType::Pointer dfo = reader->GetOutput();
-  MatrixType                   test_matrix = dfo->GetMatrix();
+  const DataFrameObjectType::Pointer dfo = reader->GetOutput();
+  const MatrixType                   test_matrix = dfo->GetMatrix();
 
   std::cout << "Actual array: " << std::endl;
   std::cout << matrix << std::endl;
@@ -190,11 +190,11 @@ itkCSVArray2DFileReaderWriterTest(int argc, char * argv[])
 
   // test reading and writing data without headers
   std::cout << std::endl << "Test Without Headers" << std::endl;
-  int fail1 = itkCSVFileReaderWriterTest_Func(argc, argv, false);
+  const int fail1 = itkCSVFileReaderWriterTest_Func(argc, argv, false);
 
   // test reading and writing data with headers
   std::cout << std::endl << "Test With Headers." << std::endl;
-  int fail2 = itkCSVFileReaderWriterTest_Func(argc, argv, true);
+  const int fail2 = itkCSVFileReaderWriterTest_Func(argc, argv, true);
 
   if (fail1 || fail2)
   {

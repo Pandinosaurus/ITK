@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkLaplacianImageFilter_hxx
 #define itkLaplacianImageFilter_hxx
-#include "itkLaplacianImageFilter.h"
 
 #include "itkNeighborhoodOperatorImageFilter.h"
 #include "itkLaplacianOperator.h"
@@ -30,7 +29,8 @@ void
 LaplacianImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "UseImageSpacing = " << m_UseImageSpacing << std::endl;
+
+  itkPrintSelfBooleanMacro(UseImageSpacing);
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -42,7 +42,7 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
+  const InputImagePointer inputPtr = const_cast<TInputImage *>(this->GetInput());
 
   if (!inputPtr)
   {
@@ -55,8 +55,7 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
+  typename TInputImage::RegionType inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
   inputRequestedRegion.PadByRadius(oper.GetRadius());
@@ -67,21 +66,19 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateInputRequestedRegion()
     inputPtr->SetRequestedRegion(inputRequestedRegion);
     return;
   }
-  else
-  {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
 
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion(inputRequestedRegion);
+  // Couldn't crop the region (requested region is outside the largest
+  // possible region).  Throw an exception.
 
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    e.SetLocation(ITK_LOCATION);
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-  }
+  // store what we tried to request (prior to trying to crop)
+  inputPtr->SetRequestedRegion(inputRequestedRegion);
+
+  // build an exception
+  InvalidRequestedRegionError e(__FILE__, __LINE__);
+  e.SetLocation(ITK_LOCATION);
+  e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
+  e.SetDataObject(inputPtr);
+  throw e;
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -90,7 +87,7 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   double s[ImageDimension];
 
-  typename TOutputImage::Pointer output = this->GetOutput();
+  const typename TOutputImage::Pointer output = this->GetOutput();
   output->SetBufferedRegion(output->GetRequestedRegion());
   output->Allocate();
 
@@ -98,27 +95,34 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // Create the Laplacian operator
   LaplacianOperator<OutputPixelType, ImageDimension> oper;
-  for (unsigned i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
-    if (this->GetInput()->GetSpacing()[i] == 0.0)
+    if (m_UseImageSpacing)
     {
-      itkExceptionMacro(<< "Image spacing cannot be zero");
+      if (this->GetInput()->GetSpacing()[i] == 0.0)
+      {
+        itkExceptionMacro("Image spacing cannot be zero");
+      }
+      else
+      {
+        s[i] = 1.0 / this->GetInput()->GetSpacing()[i];
+      }
     }
     else
     {
-      s[i] = 1.0 / this->GetInput()->GetSpacing()[i];
+      s[i] = 1.0;
     }
   }
   oper.SetDerivativeScalings(s);
   oper.CreateOperator();
 
   using NOIF = NeighborhoodOperatorImageFilter<InputImageType, OutputImageType>;
-  typename NOIF::Pointer filter = NOIF::New();
+  auto filter = NOIF::New();
 
   filter->OverrideBoundaryCondition(&nbc);
 
   // Create a process accumulator for tracking the progress of this minipipeline
-  ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Register the filter with the with progress accumulator using
@@ -126,7 +130,7 @@ LaplacianImageFilter<TInputImage, TOutputImage>::GenerateData()
   progress->RegisterInternalFilter(filter, 1.0f);
 
   //
-  // set up the mini-pipline
+  // set up the mini-pipeline
   //
   filter->SetOperator(oper);
   filter->SetInput(this->GetInput());

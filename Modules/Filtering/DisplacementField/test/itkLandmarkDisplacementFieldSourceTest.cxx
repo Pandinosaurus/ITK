@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #include "itkLandmarkDisplacementFieldSource.h"
 #include "itkImageFileWriter.h"
 #include "itkSimpleFilterWatcher.h"
+#include "itkThinPlateSplineKernelTransform.h"
 
 #include <fstream>
 #include "itkTestingMacros.h"
@@ -45,55 +46,66 @@ itkLandmarkDisplacementFieldSourceTest(int argc, char * argv[])
 
   using FilterType = itk::LandmarkDisplacementFieldSource<DisplacementFieldType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
-  itk::SimpleFilterWatcher watcher(filter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, LandmarkDisplacementFieldSource, ImageSource);
 
-  DisplacementFieldType::SpacingType spacing;
-  spacing.Fill(1.0);
 
-  DisplacementFieldType::PointType origin;
-  origin.Fill(0.0);
+  const itk::SimpleFilterWatcher watcher(filter);
 
-  DisplacementFieldType::RegionType region;
-  DisplacementFieldType::SizeType   size;
-  DisplacementFieldType::IndexType  start;
 
+  DisplacementFieldType::SizeType size;
   size[0] = 128;
   size[1] = 128;
-
+  DisplacementFieldType::IndexType start;
   start[0] = 0;
   start[1] = 0;
-
-  region.SetSize(size);
-  region.SetIndex(start);
-
-  DisplacementFieldType::DirectionType direction;
+  const DisplacementFieldType::RegionType region{ start, size };
+  DisplacementFieldType::DirectionType    direction;
   direction.SetIdentity();
 
+  auto kernelTransform = itk::ThinPlateSplineKernelTransform<double, FilterType::ImageDimension>::New();
+  filter->SetKernelTransform(kernelTransform);
+  ITK_TEST_SET_GET_VALUE(kernelTransform, filter->GetKernelTransform());
 
-  filter->SetOutputSpacing(spacing);
-  filter->SetOutputOrigin(origin);
+  // Test default values
+  auto spacingDefault = itk::MakeFilled<DisplacementFieldType::SpacingType>(1.0);
+  ITK_TEST_SET_GET_VALUE(spacingDefault, filter->GetOutputSpacing());
+
+  constexpr DisplacementFieldType::PointType originDefault{};
+  ITK_TEST_SET_GET_VALUE(originDefault, filter->GetOutputOrigin());
+
+  // Test non-default values
+  auto spacingNonDefault = itk::MakeFilled<DisplacementFieldType::SpacingType>(9876.0);
+  filter->SetOutputSpacing(spacingNonDefault);
+  ITK_TEST_SET_GET_VALUE(spacingNonDefault, filter->GetOutputSpacing());
+
+  constexpr auto originNonDefault = itk::MakeFilled<DisplacementFieldType::PointType>(1235.0);
+  filter->SetOutputOrigin(originNonDefault);
+  ITK_TEST_SET_GET_VALUE(originNonDefault, filter->GetOutputOrigin());
+
   filter->SetOutputRegion(region);
+  ITK_TEST_SET_GET_VALUE(region, filter->GetOutputRegion());
+
   filter->SetOutputDirection(direction);
+  ITK_TEST_SET_GET_VALUE(direction, filter->GetOutputDirection());
 
   //  Create source and target landmarks.
   //
   using LandmarkContainerType = FilterType::LandmarkContainer;
   using LandmarkPointType = FilterType::LandmarkPointType;
 
-  LandmarkContainerType::Pointer sourceLandmarks = LandmarkContainerType::New();
-  LandmarkContainerType::Pointer targetLandmarks = LandmarkContainerType::New();
-
-  LandmarkPointType sourcePoint;
-  LandmarkPointType targetPoint;
+  auto sourceLandmarks = LandmarkContainerType::New();
+  auto targetLandmarks = LandmarkContainerType::New();
 
   std::ifstream pointsFile;
   pointsFile.open(argv[1]);
 
   unsigned int pointId = 0;
 
+  LandmarkPointType sourcePoint;
   pointsFile >> sourcePoint;
+  LandmarkPointType targetPoint;
   pointsFile >> targetPoint;
 
   while (!pointsFile.fail())
@@ -127,7 +139,7 @@ itkLandmarkDisplacementFieldSourceTest(int argc, char * argv[])
   // Write an image for regression testing
   using WriterType = itk::ImageFileWriter<DisplacementFieldType>;
 
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);

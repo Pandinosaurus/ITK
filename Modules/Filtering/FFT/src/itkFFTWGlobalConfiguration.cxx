@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,10 +45,10 @@ namespace itk
 struct FFTWGlobalConfigurationGlobals
 {
   FFTWGlobalConfigurationGlobals()
-    : m_Instance(nullptr){};
+    : m_Instance(nullptr) {};
 
   FFTWGlobalConfiguration::Pointer m_Instance;
-  std::mutex                       m_CreationLock;
+  std::mutex                       m_CreationMutex;
 };
 
 WisdomFilenameGeneratorBase::WisdomFilenameGeneratorBase() = default;
@@ -106,11 +106,11 @@ FFTWGlobalConfiguration::GetPlanRigorValue(const std::string & name)
   {
     return FFTW_EXHAUSTIVE;
   }
-  itkGenericExceptionMacro(<< "Unknown plan rigor: " << name);
+  itkGenericExceptionMacro("Unknown plan rigor: " << name);
 }
 
 std::string
-FFTWGlobalConfiguration::GetPlanRigorName(const int & value)
+FFTWGlobalConfiguration::GetPlanRigorName(const int value)
 {
   switch (value)
   {
@@ -123,7 +123,7 @@ FFTWGlobalConfiguration::GetPlanRigorName(const int & value)
     case FFTW_EXHAUSTIVE:
       return "FFTW_EXHAUSTIVE";
     default:
-      itkGenericExceptionMacro(<< "Unknown plan rigor: " << value);
+      itkGenericExceptionMacro("Unknown plan rigor: " << value);
   }
 }
 
@@ -148,7 +148,7 @@ FFTWGlobalConfiguration::GetInstance()
   itkInitGlobalsMacro(PimplGlobals);
   if (!m_PimplGlobals->m_Instance)
   {
-    m_PimplGlobals->m_CreationLock.lock();
+    const std::lock_guard<std::mutex> lockGuard(m_PimplGlobals->m_CreationMutex);
     // Need to make sure that during gaining access
     // to the lock that some other thread did not
     // initialize the singleton.
@@ -157,15 +157,9 @@ FFTWGlobalConfiguration::GetInstance()
       m_PimplGlobals->m_Instance = Self::New();
       if (!m_PimplGlobals->m_Instance)
       {
-        std::ostringstream message;
-        message << "itk::ERROR: "
-                << "FFTWGlobalConfiguration"
-                << " Valid FFTWGlobalConfiguration instance not created";
-        ::itk::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(), ITK_LOCATION);
-        throw e_; /* Explicit naming to work around Intel compiler bug.  */
+        itkGenericExceptionMacro("Valid FFTWGlobalConfiguration instance not created");
       }
     }
-    m_PimplGlobals->m_CreationLock.unlock();
   }
   return m_PimplGlobals->m_Instance;
 }
@@ -184,19 +178,19 @@ HardwareWisdomFilenameGenerator::GenerateWisdomFilename(const std::string & base
 
   if (this->m_UseOSName)
   {
-    OSD << hardwareInfo.GetOSName() << "_";
+    OSD << hardwareInfo.GetOSName() << '_';
   }
   if (this->m_UseOSRelease)
   {
-    OSD << hardwareInfo.GetOSRelease() << "_";
+    OSD << hardwareInfo.GetOSRelease() << '_';
   }
   if (this->m_UseOSVersion)
   {
-    OSD << hardwareInfo.GetOSVersion() << "_";
+    OSD << hardwareInfo.GetOSVersion() << '_';
   }
   if (this->m_UseOSPlatform)
   {
-    OSD << hardwareInfo.GetOSPlatform() << "_";
+    OSD << hardwareInfo.GetOSPlatform() << '_';
   }
   if (this->m_UseOSBitSize)
   {
@@ -205,27 +199,27 @@ HardwareWisdomFilenameGenerator::GenerateWisdomFilename(const std::string & base
   }
   if (this->m_UseNumberOfProcessors)
   {
-    OSD << hardwareInfo.GetNumberOfLogicalCPU() << "x" << hardwareInfo.GetNumberOfPhysicalCPU() << "_";
+    OSD << hardwareInfo.GetNumberOfLogicalCPU() << 'x' << hardwareInfo.GetNumberOfPhysicalCPU() << '_';
   }
   if (this->m_UseVendorString)
   {
-    OSD << hardwareInfo.GetVendorString() << "_";
+    OSD << hardwareInfo.GetVendorString() << '_';
   }
   if (this->m_UseVendorID)
   {
-    OSD << hardwareInfo.GetVendorID() << "_";
+    OSD << hardwareInfo.GetVendorID() << '_';
   }
   if (this->m_UseTypeID)
   {
-    OSD << hardwareInfo.GetTypeID() << "_";
+    OSD << hardwareInfo.GetTypeID() << '_';
   }
   if (this->m_UseFamilyID)
   {
-    OSD << hardwareInfo.GetFamilyID() << "_";
+    OSD << hardwareInfo.GetFamilyID() << '_';
   }
   if (this->m_UseModelID)
   {
-    OSD << hardwareInfo.GetModelID() << "_";
+    OSD << hardwareInfo.GetModelID() << '_';
   }
   if (this->m_UseSteppingCode)
   {
@@ -372,7 +366,7 @@ HardwareWisdomFilenameGenerator::GetUseSteppingCode() const
 }
 
 
-FFTWGlobalConfiguration ::FFTWGlobalConfiguration()
+FFTWGlobalConfiguration::FFTWGlobalConfiguration()
   : m_WisdomCacheBase("")
 {
   { // Configure default method for creating WISDOM_CACHE files
@@ -385,7 +379,7 @@ FFTWGlobalConfiguration ::FFTWGlobalConfiguration()
     }
     else
     {
-      // In the abscence of explicit specification, point to
+      // In the absence of explicit specification, point to
       // the DefaultFilenameGenerator for creating the name
       auto * DefaultFilenameGenerator = new HardwareWisdomFilenameGenerator;
       this->m_WisdomFilenameGenerator = DefaultFilenameGenerator;
@@ -477,7 +471,7 @@ FFTWGlobalConfiguration ::FFTWGlobalConfiguration()
 
   if (this->m_ReadWisdomCache)
   {
-    std::string cachePath = m_WisdomFilenameGenerator->GenerateWisdomFilename(m_WisdomCacheBase);
+    const std::string cachePath = m_WisdomFilenameGenerator->GenerateWisdomFilename(m_WisdomCacheBase);
 #  if defined(ITK_USE_FFTWF)
     fftwf_import_system_wisdom();
     ImportWisdomFileFloat(cachePath + "f");
@@ -493,7 +487,7 @@ FFTWGlobalConfiguration::~FFTWGlobalConfiguration()
 {
   if (this->m_WriteWisdomCache && this->m_NewWisdomAvailable)
   {
-    std::string cachePath = m_WisdomFilenameGenerator->GenerateWisdomFilename(m_WisdomCacheBase);
+    const std::string cachePath = m_WisdomFilenameGenerator->GenerateWisdomFilename(m_WisdomCacheBase);
 #  if defined(ITK_USE_FFTWF)
     {
       // import the wisdom files again to be sure to not erase the wisdom saved in another process
@@ -740,11 +734,11 @@ FFTWGlobalConfiguration::ExportWisdomFileDouble(const std::string &
 std::mutex &
 FFTWGlobalConfiguration::GetLockMutex()
 {
-  return GetInstance()->m_Lock;
+  return GetInstance()->m_Mutex;
 }
 
 void
-FFTWGlobalConfiguration::SetNewWisdomAvailable(const bool & v)
+FFTWGlobalConfiguration::SetNewWisdomAvailable(const bool v)
 {
   itkInitGlobalsMacro(PimplGlobals);
   GetInstance()->m_NewWisdomAvailable = v;
@@ -758,7 +752,7 @@ FFTWGlobalConfiguration::GetNewWisdomAvailable()
 }
 
 void
-FFTWGlobalConfiguration::SetPlanRigor(const int & v)
+FFTWGlobalConfiguration::SetPlanRigor(const int v)
 {
   itkInitGlobalsMacro(PimplGlobals);
   // use that method to check the value
@@ -781,11 +775,11 @@ FFTWGlobalConfiguration::SetPlanRigor(const std::string & name)
 }
 
 void
-FFTWGlobalConfiguration::SetReadWisdomCache(const bool & v)
+FFTWGlobalConfiguration::SetReadWisdomCache(const bool v)
 {
   itkInitGlobalsMacro(PimplGlobals);
   GetInstance()->m_ReadWisdomCache = v;
-  if (v == true)
+  if (v)
   {
     ImportDefaultWisdomFile();
   }
@@ -799,7 +793,7 @@ FFTWGlobalConfiguration::GetReadWisdomCache()
 }
 
 void
-FFTWGlobalConfiguration::SetWriteWisdomCache(const bool & v)
+FFTWGlobalConfiguration::SetWriteWisdomCache(const bool v)
 {
   itkInitGlobalsMacro(PimplGlobals);
   GetInstance()->m_WriteWisdomCache = v;

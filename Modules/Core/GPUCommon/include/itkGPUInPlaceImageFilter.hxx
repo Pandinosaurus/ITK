@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkGPUInPlaceImageFilter_hxx
 #define itkGPUInPlaceImageFilter_hxx
 
-#include "itkGPUInPlaceImageFilter.h"
 
 namespace itk
 {
@@ -74,9 +73,7 @@ GPUInPlaceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::AllocateOu
       {
         // if we cannot cast the input to an output type, then allocate
         // an output usual.
-        OutputImagePointer outputPtr;
-
-        outputPtr = this->GetOutput(0);
+        OutputImagePointer outputPtr = this->GetOutput(0);
         outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
         outputPtr->Allocate();
       }
@@ -85,7 +82,7 @@ GPUInPlaceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::AllocateOu
       typename ImageBaseType::Pointer outputPtr;
 
       // If there are more than one outputs, allocate the remaining outputs
-      for (unsigned int i = 1; i < this->GetNumberOfOutputs(); i++)
+      for (unsigned int i = 1; i < this->GetNumberOfOutputs(); ++i)
       {
         // Check whether the output is an image of the appropriate
         // dimension (use ProcessObject's version of the GetInput()
@@ -99,7 +96,7 @@ GPUInPlaceImageFilter<TInputImage, TOutputImage, TParentImageFilter>::AllocateOu
           outputPtr->SetBufferedRegion(outputPtr->GetRequestedRegion());
           outputPtr->Allocate();
         }
-        // if the output is not of simular type then it is assumed the
+        // if the output is not of similar type then it is assumed the
         // the derived class allocated the output if needed.
       }
     }

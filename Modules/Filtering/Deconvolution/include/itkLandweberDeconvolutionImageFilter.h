@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ namespace itk
 namespace Functor
 {
 /**
- *\class LandweberMethod
+ * \class LandweberMethod
  * \brief Functor class for computing a Landweber iteration.
  * \ingroup ITKDeconvolution
  */
@@ -36,20 +36,13 @@ template <typename TInput1, typename TInput2, typename TInput3, typename TOutput
 class ITK_TEMPLATE_EXPORT LandweberMethod
 {
 public:
-  LandweberMethod() = default;
-  ~LandweberMethod() = default;
-
   bool
-  operator!=(const LandweberMethod &) const
+  operator==(const LandweberMethod &) const
   {
-    return false;
+    return true;
   }
 
-  bool
-  operator==(const LandweberMethod & other) const
-  {
-    return !(*this != other);
-  }
+  ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(LandweberMethod);
 
   inline TOutput
   operator()(const TInput1 & estimateFT, const TInput2 & kernelFT, const TInput2 & inputFT) const
@@ -63,13 +56,12 @@ public:
 } // end namespace Functor
 
 /**
- *\class LandweberDeconvolutionImageFilter
+ * \class LandweberDeconvolutionImageFilter
  * \brief Deconvolve an image using the Landweber deconvolution
  * algorithm.
  *
- * This filter implements the Landweber deconvolution algorthim as
- * defined in Bertero M and Boccacci P, "Introduction to Inverse
- * Problems in Imaging", 1998. The algorithm assumes that the input
+ * This filter implements the Landweber deconvolution algorithm as
+ * defined in \cite bertero1998. The algorithm assumes that the input
  * image has been formed by a linear shift-invariant system with a
  * known kernel.
  *
@@ -89,7 +81,7 @@ public:
  *
  * "Deconvolution: infrastructure and reference algorithms"
  * by Gaetan Lehmann
- * https://www.insight-journal.org/browse/publication/753
+ * https://doi.org/10.54294/tvgfv1
  *
  * \author Gaetan Lehmann, Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France
  * \author Cory Quammen, The University of North Carolina at Chapel Hill
@@ -121,22 +113,23 @@ public:
   using OutputImageType = TOutputImage;
 
   /** Internal types used by the FFT filters. */
-  using InternalImageType = typename Superclass::InternalImageType;
-  using InternalImagePointerType = typename Superclass::InternalImagePointerType;
-  using InternalComplexType = typename Superclass::InternalComplexType;
-  using InternalComplexImageType = typename Superclass::InternalComplexImageType;
-  using InternalComplexImagePointerType = typename Superclass::InternalComplexImagePointerType;
+  using typename Superclass::InternalImageType;
+  using typename Superclass::InternalImagePointerType;
+  using typename Superclass::InternalComplexType;
+  using typename Superclass::InternalComplexImageType;
+  using typename Superclass::InternalComplexImagePointerType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Runtime information support. */
-  itkTypeMacro(LandweberDeconvolutionImageFilter, IterativeDeconvolutionImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LandweberDeconvolutionImageFilter);
 
   /** Set/get relaxation factor. */
+  /** @ITKStartGrouping */
   itkSetMacro(Alpha, double);
   itkGetMacro(Alpha, double);
-
+  /** @ITKEndGrouping */
 protected:
   LandweberDeconvolutionImageFilter();
   ~LandweberDeconvolutionImageFilter() override;
@@ -150,16 +143,16 @@ protected:
   void
   Finish(ProgressAccumulator * progress, float progressWeight) override;
 
-  using FFTFilterType = typename Superclass::FFTFilterType;
-  using IFFTFilterType = typename Superclass::IFFTFilterType;
+  using typename Superclass::FFTFilterType;
+  using typename Superclass::IFFTFilterType;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  double m_Alpha;
+  double m_Alpha{};
 
-  InternalComplexImagePointerType m_TransformedInput;
+  InternalComplexImagePointerType m_TransformedInput{};
 
   using LandweberFunctor =
     Functor::LandweberMethod<InternalComplexType, InternalComplexType, InternalComplexType, InternalComplexType>;
@@ -168,8 +161,8 @@ private:
                                                           InternalComplexImageType,
                                                           InternalComplexImageType>;
 
-  typename LandweberFilterType::Pointer m_LandweberFilter;
-  typename IFFTFilterType::Pointer      m_IFFTFilter;
+  typename LandweberFilterType::Pointer m_LandweberFilter{};
+  typename IFFTFilterType::Pointer      m_IFFTFilter{};
 };
 
 } // end namespace itk

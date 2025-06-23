@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,10 @@
 #include "itkLevelSetEquationTermBase.h"
 #include "itkObject.h"
 
-#include <unordered_map>
-
+#include <atomic>
 #include <map>
 #include <string>
+#include <unordered_map>
 
 namespace itk
 {
@@ -34,7 +34,7 @@ namespace itk
  *  \brief Class for container holding the terms of a given level set update equation
  *
  *  \tparam TInputImage Input image or speed image or feature image for segmentation
- *  \tparam TLevelSetContainer Container holding the all the level set functions
+ *  \tparam TLevelSetContainer Container holding all the level set functions
  *
  *  \ingroup ITKLevelSetsv4
  */
@@ -52,8 +52,8 @@ public:
   /** Method for creation through object factory */
   itkNewMacro(Self);
 
-  /** Run-time type information */
-  itkTypeMacro(LevelSetEquationTermContainer, Object);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(LevelSetEquationTermContainer);
 
   using TermIdType = unsigned int;
 
@@ -78,9 +78,10 @@ public:
   using TermPointer = typename TermType::Pointer;
 
   /** Set/Get the input image to be segmented. */
+  /** @ITKStartGrouping */
   itkSetObjectMacro(Input, InputImageType);
   itkGetModifiableObjectMacro(Input, InputImageType);
-
+  /** @ITKEndGrouping */
   itkSetMacro(CurrentLevelSetId, LevelSetIdentifierType);
   itkGetMacro(CurrentLevelSetId, LevelSetIdentifierType);
 
@@ -155,8 +156,16 @@ public:
     ConstIterator(const Iterator & it)
       : m_Iterator(it.m_Iterator)
     {}
-    ConstIterator & operator*() { return *this; }
-    ConstIterator * operator->() { return this; }
+    ConstIterator &
+    operator*()
+    {
+      return *this;
+    }
+    ConstIterator *
+    operator->()
+    {
+      return this;
+    }
     ConstIterator &
     operator++()
     {
@@ -188,28 +197,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
-    TermIdType
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] TermIdType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    TermType *
+    [[nodiscard]] TermType *
     GetTerm() const
     {
       return m_Iterator->second;
@@ -232,8 +237,16 @@ public:
     {}
     ~Iterator() = default;
 
-    Iterator & operator*() { return *this; }
-    Iterator * operator->() { return this; }
+    Iterator &
+    operator*()
+    {
+      return *this;
+    }
+    Iterator *
+    operator->()
+    {
+      return this;
+    }
 
     Iterator &
     operator++()
@@ -267,28 +280,24 @@ public:
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const Iterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(Iterator);
+
     bool
     operator==(const ConstIterator & it) const
     {
       return (m_Iterator == it.m_Iterator);
     }
-    bool
-    operator!=(const ConstIterator & it) const
-    {
-      return (m_Iterator != it.m_Iterator);
-    }
-    TermIdType
+
+    ITK_UNEQUAL_OPERATOR_MEMBER_FUNCTION(ConstIterator);
+
+    [[nodiscard]] TermIdType
     GetIdentifier() const
     {
       return m_Iterator->first;
     }
 
-    TermType *
+    [[nodiscard]] TermType *
     GetTerm() const
     {
       return m_Iterator->second;
@@ -314,25 +323,25 @@ protected:
 
   ~LevelSetEquationTermContainer() override = default;
 
-  LevelSetIdentifierType   m_CurrentLevelSetId;
-  LevelSetContainerPointer m_LevelSetContainer;
+  LevelSetIdentifierType   m_CurrentLevelSetId{};
+  LevelSetContainerPointer m_LevelSetContainer{};
 
-  InputImagePointer m_Input;
+  InputImagePointer m_Input{};
 
   using HashMapStringTermContainerType = std::unordered_map<std::string, TermPointer>;
 
-  HashMapStringTermContainerType m_NameContainer;
+  HashMapStringTermContainerType m_NameContainer{};
 
   using RequiredDataType = typename TermType::RequiredDataType;
-  RequiredDataType m_RequiredData;
+  RequiredDataType m_RequiredData{};
 
-  MapTermContainerType m_Container;
+  MapTermContainerType m_Container{};
 
-  using MapCFLContainerType = std::map<TermIdType, LevelSetOutputRealType>;
+  using MapCFLContainerType = std::map<TermIdType, std::atomic<LevelSetOutputRealType>>;
   using MapCFLContainerIterator = typename MapCFLContainerType::iterator;
   using MapCFLContainerConstIterator = typename MapCFLContainerType::const_iterator;
 
-  MapCFLContainerType m_TermContribution;
+  MapCFLContainerType m_TermContribution{};
 };
 
 } // namespace itk

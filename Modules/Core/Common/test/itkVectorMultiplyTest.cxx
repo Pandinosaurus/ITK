@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,8 +27,8 @@ itkVectorMultiplyTest(int, char *[])
   VecImageType::SizeType size;
   size[0] = size[1] = size[2] = 2;
 
-  VecImageType::Pointer   images[2];
-  MultFilterType::Pointer mult = MultFilterType::New();
+  VecImageType::Pointer images[2];
+  auto                  mult = MultFilterType::New();
   for (unsigned int i = 0; i < 2; ++i)
   {
     images[i] = VecImageType::New();

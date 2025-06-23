@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,16 +24,19 @@
 
 
 #include "itkDynamicLoader.h"
+#include "itkTestingMacros.h"
 
 using PRODUCER_FUNCTION = itk::Object * (*)();
-using DYNAMIC_DOWNCAST_FUNCTION = int (*)(const char * type, const char * instanceSource, itk::Object const * base);
+using DYNAMIC_DOWNCAST_FUNCTION = int (*)(const char * type, const char * instanceSource, const itk::Object * base);
 
 int
 itkDownCastTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cerr << "Usage: " << argv[0] << " <LibraryBFilePath>" << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cerr << " LibraryBFilePath" << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -69,7 +72,7 @@ itkDownCastTest(int argc, char * argv[])
   }
 
 
-  itk::Object const * equivalencyTableA = libraryAProducer.EquivalencyTable();
+  const itk::Object * equivalencyTableA = libraryAProducer.EquivalencyTable();
   dynamic_castFailures +=
     LibraryA::dynamic_castDownCastEquivalencyTable("EquivalencyTable", "library A ", equivalencyTableA);
   dynamic_castFailures +=
@@ -84,7 +87,7 @@ itkDownCastTest(int argc, char * argv[])
     std::cerr << "Could not get the EquivalencyTable function symbol." << std::endl;
     return EXIT_FAILURE;
   }
-  itk::Object const * equivalencyTableB = (*equivalencyTableFunction)();
+  const itk::Object * equivalencyTableB = (*equivalencyTableFunction)();
   dynamic_castFailures +=
     LibraryA::dynamic_castDownCastEquivalencyTable("EquivalencyTable", "library B ", equivalencyTableB);
   dynamic_castFailures +=
@@ -92,7 +95,7 @@ itkDownCastTest(int argc, char * argv[])
   dynamic_castFailures +=
     LibraryC::dynamic_castDownCastEquivalencyTable("EquivalencyTable", "library B ", equivalencyTableB);
 
-  itk::Object const * equivalencyTableC = libraryCProducer.EquivalencyTable();
+  const itk::Object * equivalencyTableC = libraryCProducer.EquivalencyTable();
   dynamic_castFailures +=
     LibraryA::dynamic_castDownCastEquivalencyTable("EquivalencyTable", "library C ", equivalencyTableC);
   dynamic_castFailures +=
@@ -100,7 +103,7 @@ itkDownCastTest(int argc, char * argv[])
   dynamic_castFailures +=
     LibraryC::dynamic_castDownCastEquivalencyTable("EquivalencyTable", "library C ", equivalencyTableC);
 
-  itk::Object const * imageA = libraryAProducer.Image();
+  const itk::Object * imageA = libraryAProducer.Image();
   dynamic_castFailures += LibraryA::dynamic_castDownCastImage("Image           ", "library A ", imageA);
   dynamic_castFailures += libraryBdynamic_castDownCastImage("Image           ", "library A ", imageA);
   dynamic_castFailures += LibraryC::dynamic_castDownCastImage("Image           ", "library A ", imageA);
@@ -111,12 +114,12 @@ itkDownCastTest(int argc, char * argv[])
     std::cerr << "Could not get the Image function symbol." << std::endl;
     return EXIT_FAILURE;
   }
-  itk::Object const * imageB = (*imageFunction)();
+  const itk::Object * imageB = (*imageFunction)();
   dynamic_castFailures += LibraryA::dynamic_castDownCastImage("Image           ", "library B ", imageB);
   dynamic_castFailures += libraryBdynamic_castDownCastImage("Image           ", "library B ", imageB);
   dynamic_castFailures += LibraryC::dynamic_castDownCastImage("Image           ", "library B ", imageB);
 
-  itk::Object const * imageC = libraryCProducer.Image();
+  const itk::Object * imageC = libraryCProducer.Image();
   dynamic_castFailures += LibraryA::dynamic_castDownCastImage("Image           ", "library C ", imageC);
   dynamic_castFailures += libraryBdynamic_castDownCastImage("Image           ", "library C ", imageC);
   dynamic_castFailures += LibraryC::dynamic_castDownCastImage("Image           ", "library C ", imageC);

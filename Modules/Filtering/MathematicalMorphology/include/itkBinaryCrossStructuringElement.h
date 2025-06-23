@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ namespace itk
  * This class defines a Neighborhood whose elements are either on or off
  * depending on whether they are the face connected neighbors of the
  * neighborhood center when the radii are all 1.
- * The neighorhood is a cross for any size radius.
+ * The neighborhood is a cross for any size radius.
  * By default, the Neighborhood is defined to be of radii 1
  * (i.e. 3x3x...).
  * This can be changed explicitly using the SetRadius() method.
@@ -72,25 +72,24 @@ public:
   using ConstIterator = typename AllocatorType::const_iterator;
 
   /** Size and value type alias support */
-  using SizeType = typename Superclass::SizeType;
-  using SizeValueType = typename Superclass::SizeValueType;
+  using typename Superclass::SizeType;
+  using typename Superclass::SizeValueType;
 
   /** Offset and value type alias support */
-  using OffsetType = typename Superclass::OffsetType;
+  using typename Superclass::OffsetType;
   using OffsetValueType = typename OffsetType::OffsetValueType;
 
   /** Radius type alias support */
-  using RadiusType = typename Superclass::RadiusType;
+  using typename Superclass::RadiusType;
 
-  /** External slice iterator type type alias support */
+  /** External slice iterator type alias support */
   using SliceIteratorType = SliceIterator<TPixel, Self>;
 
   /** Default constructor. */
   BinaryCrossStructuringElement()
   {
     // Default structuring element is defined to be 3x3x3...
-    RadiusType radius;
-    radius.Fill(1);
+    constexpr auto radius = MakeFilled<RadiusType>(1);
     Self::SetRadius(radius);
     Self::CreateStructuringElement();
   }

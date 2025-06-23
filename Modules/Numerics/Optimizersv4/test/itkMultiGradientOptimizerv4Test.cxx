@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
  *
  *=========================================================================*/
 #include "itkMultiGradientOptimizerv4.h"
+#include "itkTestingMacros.h"
 
 /**
  *  \class MultiGradientOptimizerv4TestMetric
@@ -49,7 +50,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(MultiGradientOptimizerv4TestMetric, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(MultiGradientOptimizerv4TestMetric);
 
   enum
   {
@@ -71,20 +72,22 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    derivative.Fill(itk::NumericTraits<ParametersValueType>::ZeroValue());
+    derivative.Fill(ParametersValueType{});
   }
 
   void
   GetValueAndDerivative(MeasureType & value, DerivativeType & derivative) const override
   {
     if (derivative.Size() != 2)
+    {
       derivative.SetSize(2);
+    }
 
-    double x = (*m_Parameters)[0];
-    double y = (*m_Parameters)[1];
+    const double x = (*m_Parameters)[0];
+    const double y = (*m_Parameters)[1];
 
     std::cout << "GetValueAndDerivative( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = " << std::endl;
 
     value = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
@@ -104,9 +107,9 @@ public:
   MeasureType
   GetValue() const override
   {
-    double x = (*m_Parameters)[0];
-    double y = (*m_Parameters)[1];
-    double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const double x = (*m_Parameters)[0];
+    const double y = (*m_Parameters)[1];
+    const double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
     std::cout << (*m_Parameters) << " metric " << metric << std::endl;
     return metric;
   }
@@ -162,7 +165,7 @@ public:
   using Pointer = itk::SmartPointer<Self>;
   using ConstPointer = itk::SmartPointer<const Self>;
   itkNewMacro(Self);
-  itkTypeMacro(MultiGradientOptimizerv4TestMetric2, ObjectToObjectMetricBase);
+  itkOverrideGetNameOfClassMacro(MultiGradientOptimizerv4TestMetric2);
 
   enum
   {
@@ -184,20 +187,22 @@ public:
   void
   GetDerivative(DerivativeType & derivative) const override
   {
-    derivative.Fill(itk::NumericTraits<ParametersValueType>::ZeroValue());
+    derivative.Fill(ParametersValueType{});
   }
 
   void
   GetValueAndDerivative(MeasureType & value, DerivativeType & derivative) const override
   {
     if (derivative.Size() != 2)
+    {
       derivative.SetSize(2);
+    }
 
-    double x = (*m_Parameters)[0];
-    double y = (*m_Parameters)[1];
+    const double x = (*m_Parameters)[0];
+    const double y = (*m_Parameters)[1];
 
     std::cout << "GetValueAndDerivative( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = " << std::endl;
 
     value = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - x + 4 * y;
@@ -217,9 +222,9 @@ public:
   MeasureType
   GetValue() const override
   {
-    double x = (*m_Parameters)[0];
-    double y = (*m_Parameters)[1];
-    double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - x + 4 * y;
+    const double x = (*m_Parameters)[0];
+    const double y = (*m_Parameters)[1];
+    const double metric = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - x + 4 * y;
     std::cout << (*m_Parameters) << " metric " << metric << std::endl;
     return metric;
   }
@@ -290,12 +295,14 @@ MultiGradientOptimizerv4RunTest(itk::MultiGradientOptimizerv4::Pointer & itkOpti
     return EXIT_FAILURE;
   }
 
+  std::cout << "StopCondition: " << itkOptimizer->GetStopCondition() << std::endl;
+
   using ParametersType = MultiGradientOptimizerv4TestMetric::ParametersType;
   ParametersType finalPosition = itkOptimizer->GetMetric()->GetParameters();
 
   std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << finalPosition[0] << ',';
+  std::cout << finalPosition[1] << ')' << std::endl;
 
   //
   // check results to see if it is within range
@@ -303,9 +310,9 @@ MultiGradientOptimizerv4RunTest(itk::MultiGradientOptimizerv4::Pointer & itkOpti
   ParametersType trueParameters(2);
   trueParameters[0] = 1.5;
   trueParameters[1] = -1.5;
-  for (itk::SizeValueType j = 0; j < 2; j++)
+  for (itk::SizeValueType j = 0; j < 2; ++j)
   {
-    if (fabs(finalPosition[j] - trueParameters[j]) > 0.01)
+    if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
     {
       std::cerr << "Results do not match: " << std::endl
                 << "expected: " << trueParameters << std::endl
@@ -326,20 +333,23 @@ itkMultiGradientOptimizerv4Test(int, char *[])
   using OptimizerType = itk::MultiGradientOptimizerv4;
   using ParametersType = MultiGradientOptimizerv4TestMetric::ParametersType;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, MultiGradientOptimizerv4Template, GradientDescentOptimizerv4Template);
+
 
   // Declaration of the Metric
-  MultiGradientOptimizerv4TestMetric::Pointer  metric = MultiGradientOptimizerv4TestMetric::New();
-  MultiGradientOptimizerv4TestMetric2::Pointer metric2 = MultiGradientOptimizerv4TestMetric2::New();
-  constexpr unsigned int                       spaceDimension = 2;
+  auto                   metric = MultiGradientOptimizerv4TestMetric::New();
+  auto                   metric2 = MultiGradientOptimizerv4TestMetric2::New();
+  constexpr unsigned int spaceDimension = 2;
   itkOptimizer->SetMetric(metric);
   itkOptimizer->SetNumberOfIterations(50);
 
   OptimizerType::OptimizersListType optimizersList = itkOptimizer->GetOptimizersList();
 
   /** Declare the first optimizer for metric 1 */
-  OptimizerType::LocalOptimizerPointer locoptimizer = OptimizerType::LocalOptimizerType::New();
+  const OptimizerType::LocalOptimizerPointer locoptimizer = OptimizerType::LocalOptimizerType::New();
   locoptimizer->SetLearningRate(1.e-1);
   locoptimizer->SetNumberOfIterations(25);
   locoptimizer->SetMetric(metric);
@@ -347,7 +357,7 @@ itkMultiGradientOptimizerv4Test(int, char *[])
   optimizersList.push_back(locoptimizer);
 
   /** Declare the 2nd optimizer for metric 2 */
-  OptimizerType::LocalOptimizerPointer locoptimizer2 = OptimizerType::LocalOptimizerType::New();
+  const OptimizerType::LocalOptimizerPointer locoptimizer2 = OptimizerType::LocalOptimizerType::New();
   locoptimizer2->SetLearningRate(1.e-1);
   locoptimizer2->SetNumberOfIterations(25);
   locoptimizer2->SetMetric(metric2);
@@ -362,8 +372,8 @@ itkMultiGradientOptimizerv4Test(int, char *[])
    */
   // We start not so far from  | 1.5 -1.5 |
   ParametersType testPosition(spaceDimension);
-  testPosition[0] = (double)7.5;
-  testPosition[1] = (double)9.5;
+  testPosition[0] = 7.5;
+  testPosition[1] = 9.5;
   /** Note: both metrics have the same transforms and parameters */
   /** We need the parameters to be the same object across all metric instances*/
   metric->SetParameters(testPosition);

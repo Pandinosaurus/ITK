@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,39 +46,41 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(SphereSpatialFunction, InteriorExteriorSpatialFunction);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(SphereSpatialFunction);
 
   /** Input type for the function. */
-  using InputType = typename Superclass::InputType;
+  using typename Superclass::InputType;
 
   /** Output type for the function. */
-  using OutputType = typename Superclass::OutputType;
+  using typename Superclass::OutputType;
 
   /** Evaluates the function at a given position */
   OutputType
   Evaluate(const InputType & position) const override;
 
   /** Get and set the center of the sphere. */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Center, InputType);
   itkSetMacro(Center, InputType);
-
+  /** @ITKEndGrouping */
   /** Get and set the radius of the sphere */
+  /** @ITKStartGrouping */
   itkGetConstMacro(Radius, double);
   itkSetMacro(Radius, double);
-
+  /** @ITKEndGrouping */
 protected:
-  SphereSpatialFunction();
+  SphereSpatialFunction() = default;
   ~SphereSpatialFunction() override = default;
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   /** The center of the sphere (of the same type as Input). */
-  InputType m_Center;
+  InputType m_Center{};
 
   /** The radius of the sphere. */
-  double m_Radius;
+  double m_Radius{ 1.0 };
 };
 } // end namespace itk
 

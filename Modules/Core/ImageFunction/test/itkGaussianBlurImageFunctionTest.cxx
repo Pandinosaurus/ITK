@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@
 
 #include "itkMath.h"
 #include "itkGaussianBlurImageFunction.h"
+#include "itkTestingMacros.h"
 
 int
 itkGaussianBlurImageFunctionTest(int, char *[])
@@ -28,7 +29,7 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   using GFunctionType = itk::GaussianBlurImageFunction<ImageType>;
 
   // Create and allocate the image
-  ImageType::Pointer    image = ImageType::New();
+  auto                  image = ImageType::New();
   ImageType::SizeType   size;
   ImageType::IndexType  start;
   ImageType::RegionType region;
@@ -41,10 +42,10 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   region.SetSize(size);
 
   image->SetRegions(region);
-  image->Allocate(true); // initialize buffer to zero
+  image->AllocateInitialized();
 
   // Fill the image with a straight line
-  for (unsigned int i = 0; i < 50; i++)
+  for (unsigned int i = 0; i < 50; ++i)
   {
     ImageType::IndexType ind;
     ind[0] = i;
@@ -55,17 +56,16 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   }
 
   // Test the derivative of Gaussian image function
-  GFunctionType::Pointer gaussianFunction = GFunctionType::New();
+  auto gaussianFunction = GFunctionType::New();
   gaussianFunction->SetInputImage(image);
-  itk::Index<2> index;
-  index.Fill(25);
+  auto index = itk::Index<2>::Filled(25);
 
   // Testing Set/GetVariance()
   std::cout << "Testing Set/GetVariance(): ";
   gaussianFunction->SetSigma(5.0);
   const GFunctionType::SigmaArrayType & sigma = gaussianFunction->GetSigma();
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     if (sigma[i] != 5.0)
     {
@@ -75,13 +75,16 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   }
   std::cout << "[PASSED] " << std::endl;
 
+  gaussianFunction->SetSigma(sigma);
+  ITK_TEST_SET_GET_VALUE(sigma, gaussianFunction->GetSigma());
+
   // Testing Set/GetExtent()
   std::cout << "Testing Set/GetExtent(): ";
 
   gaussianFunction->SetExtent(5.0);
   const GFunctionType::ExtentArrayType & ext = gaussianFunction->GetExtent();
 
-  for (unsigned int i = 0; i < Dimension; i++)
+  for (unsigned int i = 0; i < Dimension; ++i)
   {
     if (ext[i] != 5.0)
     {
@@ -91,20 +94,21 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   }
   std::cout << "[PASSED] " << std::endl;
 
+  gaussianFunction->SetExtent(ext);
+  ITK_TEST_SET_GET_VALUE(ext, gaussianFunction->GetExtent());
+
 
   // Testing Set/GetMaximumError()
   {
     std::cout << "Testing Set/GetMaximumError(): ";
-    GFunctionType::ErrorArrayType setError;
-
-    setError.Fill(0.05);
+    auto setError = itk::MakeFilled<GFunctionType::ErrorArrayType>(0.05);
     gaussianFunction->SetMaximumError(setError);
 
     const GFunctionType::ErrorArrayType & readError = gaussianFunction->GetMaximumError();
 
-    for (unsigned int i = 0; i < Dimension; i++)
+    for (unsigned int i = 0; i < Dimension; ++i)
     {
-      if (std::fabs(setError[i] - readError[i]) > 1e-6)
+      if (itk::Math::abs(setError[i] - readError[i]) > 1e-6)
       {
         std::cerr << "[FAILED]" << std::endl;
         return EXIT_FAILURE;
@@ -116,11 +120,11 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   // Testing Set/GetMaximumKernelWidth()
   {
     std::cout << "Testing Set/GetMaximumKernelWidth(): ";
-    int setKernelWidth = 47;
+    constexpr int setKernelWidth = 47;
 
     gaussianFunction->SetMaximumKernelWidth(setKernelWidth);
 
-    int readKernelWidth = gaussianFunction->GetMaximumKernelWidth();
+    const int readKernelWidth = gaussianFunction->GetMaximumKernelWidth();
 
     if (readKernelWidth != setKernelWidth)
     {
@@ -171,24 +175,21 @@ itkGaussianBlurImageFunctionTest(int, char *[])
   }
 
 
-  GFunctionType::OutputType blurredvalue_index;
-  blurredvalue_index = gaussianFunction->EvaluateAtIndex(index);
+  const GFunctionType::OutputType blurredvalue_index = gaussianFunction->EvaluateAtIndex(index);
 
   GFunctionType::PointType pt;
   pt[0] = 25.0;
   pt[1] = 25.0;
-  GFunctionType::OutputType blurredvalue_point;
-  blurredvalue_point = gaussianFunction->Evaluate(pt);
+  const GFunctionType::OutputType blurredvalue_point = gaussianFunction->Evaluate(pt);
 
 
-  GFunctionType::ContinuousIndexType continuousIndex;
-  continuousIndex.Fill(25);
-  GFunctionType::OutputType blurredvalue_continuousIndex;
-  blurredvalue_continuousIndex = gaussianFunction->EvaluateAtContinuousIndex(continuousIndex);
+  auto                            continuousIndex = itk::MakeFilled<GFunctionType::ContinuousIndexType>(25);
+  const GFunctionType::OutputType blurredvalue_continuousIndex =
+    gaussianFunction->EvaluateAtContinuousIndex(continuousIndex);
 
 
   std::cout << "Testing Evaluate(), EvaluateAtIndex() and EvaluateIndex: ";
-  if ((std::fabs(blurredvalue_index - blurredvalue_point) > 0.01) ||
+  if ((itk::Math::abs(blurredvalue_index - blurredvalue_point) > 0.01) ||
       itk::Math::NotAlmostEquals(blurredvalue_point, blurredvalue_continuousIndex))
   {
     std::cerr << "[FAILED] : " << blurredvalue_index << " : " << blurredvalue_point << " : "
@@ -200,7 +201,7 @@ itkGaussianBlurImageFunctionTest(int, char *[])
 
   std::cout << "Testing Evaluate() : ";
 
-  if (std::fabs(blurredvalue_point - 0.158) > 0.1)
+  if (itk::Math::abs(blurredvalue_point - 0.158) > 0.1)
   {
     std::cerr << "[FAILED]" << std::endl;
     return EXIT_FAILURE;

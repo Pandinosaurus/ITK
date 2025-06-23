@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,15 +99,15 @@ public:
 
   using CirclesListSizeType = typename CirclesListType::size_type;
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(HoughTransform2DCirclesImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(HoughTransform2DCirclesImageFilter);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Verifies the preconditions of this filter. */
   void
-  VerifyPreconditions() ITKv5_CONST override;
+  VerifyPreconditions() const override;
 
   /** Method for evaluating the implicit function over the image. */
   void
@@ -118,13 +118,15 @@ public:
   SetRadius(double radius);
 
   /** Set the minimum radius value the filter should look for. */
+  /** @ITKStartGrouping */
   itkSetMacro(MinimumRadius, double);
   itkGetConstMacro(MinimumRadius, double);
-
+  /** @ITKEndGrouping */
   /** Set the maximum radius value the filter should look for. */
+  /** @ITKStartGrouping */
   itkSetMacro(MaximumRadius, double);
   itkGetConstMacro(MaximumRadius, double);
-
+  /** @ITKEndGrouping */
   /** Set the threshold above which the filter should consider
    * the point as a valid point. */
   itkSetMacro(Threshold, double);
@@ -134,9 +136,10 @@ public:
 
   /** Threshold for the norm of the gradient: Only pixels whose gradient norm is
    * above this threshold are processed by the filter. The threshold must be >= 0. */
+  /** @ITKStartGrouping */
   itkSetMacro(GradientNormThreshold, double);
   itkGetConstMacro(GradientNormThreshold, double);
-
+  /** @ITKEndGrouping */
   /** Get the radius image. */
   itkGetModifiableObjectMacro(RadiusImage, RadiusImageType);
 
@@ -154,36 +157,36 @@ public:
   GetCircles();
 
   /** Set/Get the number of circles to extract. */
+  /** @ITKStartGrouping */
   itkSetMacro(NumberOfCircles, CirclesListSizeType);
   itkGetConstMacro(NumberOfCircles, CirclesListSizeType);
-
+  /** @ITKEndGrouping */
   /** Set/Get the radius of the disc to remove from the accumulator
    * for each circle found. */
+  /** @ITKStartGrouping */
   itkSetMacro(DiscRadiusRatio, double);
   itkGetConstMacro(DiscRadiusRatio, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the variance of the Gaussian blurring for the accumulator. */
+  /** @ITKStartGrouping */
   itkSetMacro(Variance, double);
   itkGetConstMacro(Variance, double);
-
+  /** @ITKEndGrouping */
   /** Set/Get the sweep angle. */
+  /** @ITKStartGrouping */
   itkSetMacro(SweepAngle, double);
   itkGetConstMacro(SweepAngle, double);
-
+  /** @ITKEndGrouping */
   /** Specifies whether to use the spacing of the input image internally, when
    * doing Gaussian Derivative calculation and Gaussian image filtering. */
+  /** @ITKStartGrouping */
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstMacro(UseImageSpacing, bool);
-
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
+  /** @ITKEndGrouping */
   itkConceptMacro(IntConvertibleToOutputCheck, (Concept::Convertible<int, TOutputPixelType>));
   itkConceptMacro(InputGreaterThanDoubleCheck, (Concept::GreaterThanComparable<PixelType, double>));
   itkConceptMacro(OutputPlusIntCheck, (Concept::AdditiveOperators<TOutputPixelType, int>));
   itkConceptMacro(OutputDividedByIntCheck, (Concept::DivisionOperators<TOutputPixelType, int>));
-  // End concept checking
-#endif
 
 protected:
   HoughTransform2DCirclesImageFilter();
@@ -213,8 +216,8 @@ private:
   double m_GradientNormThreshold{ 1.0 };
   double m_SigmaGradient{ 1.0 };
 
-  RadiusImagePointer  m_RadiusImage;
-  CirclesListType     m_CirclesList;
+  RadiusImagePointer  m_RadiusImage{};
+  CirclesListType     m_CirclesList{};
   CirclesListSizeType m_NumberOfCircles{ 1 };
   double              m_DiscRadiusRatio{ 1 };
   double              m_Variance{ 10 };

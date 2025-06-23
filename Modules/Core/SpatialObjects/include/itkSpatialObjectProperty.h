@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,7 +61,7 @@ public:
     return m_Color;
   }
 
-  const ColorType &
+  [[nodiscard]] const ColorType &
   GetColor() const
   {
     return m_Color;
@@ -72,22 +72,22 @@ public:
 
   void
   SetRed(double r);
-  double
+  [[nodiscard]] double
   GetRed() const;
 
   void
   SetGreen(double g);
-  double
+  [[nodiscard]] double
   GetGreen() const;
 
   void
   SetBlue(double b);
-  double
+  [[nodiscard]] double
   GetBlue() const;
 
   void
   SetAlpha(double a);
-  double
+  [[nodiscard]] double
   GetAlpha() const;
 
   void
@@ -96,13 +96,15 @@ public:
     m_Name = name;
   }
 
+#if !defined(ITK_WRAPPING_PARSER)
   std::string &
   GetName()
   {
     return m_Name;
   }
+#endif
 
-  const std::string &
+  [[nodiscard]] const std::string &
   GetName() const
   {
     return m_Name;
@@ -115,16 +117,30 @@ public:
 
   bool
   GetTagScalarValue(const std::string & tag, double & value) const;
+  [[nodiscard]] double
+  GetTagScalarValue(const std::string & tag) const
+  {
+    double value = 0;
+    this->GetTagScalarValue(tag, value);
+    return value;
+  }
+
+
+#if !defined(ITK_WRAPPING_PARSER)
   bool
   GetTagStringValue(const std::string & tag, std::string & value) const;
+#endif
+  [[nodiscard]] std::string
+  GetTagStringValue(const std::string & tag) const;
+
 
   std::map<std::string, double> &
   GetTagScalarDictionary();
-  const std::map<std::string, double> &
+  [[nodiscard]] const std::map<std::string, double> &
   GetTagScalarDictionary() const;
   std::map<std::string, std::string> &
   GetTagStringDictionary();
-  const std::map<std::string, std::string> &
+  [[nodiscard]] const std::map<std::string, std::string> &
   GetTagStringDictionary() const;
 
   void
@@ -146,12 +162,12 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const;
 
 private:
-  ColorType m_Color;
+  ColorType m_Color{};
 
-  std::string m_Name;
+  std::string m_Name{};
 
-  std::map<std::string, double>      m_ScalarDictionary;
-  std::map<std::string, std::string> m_StringDictionary;
+  std::map<std::string, double>      m_ScalarDictionary{};
+  std::map<std::string, std::string> m_StringDictionary{};
 };
 
 } // namespace itk

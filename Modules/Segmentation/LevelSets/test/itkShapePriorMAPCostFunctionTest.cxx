@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,8 +48,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
    * Set up the shape signed distance function
    */
   using ShapeFunctionType = itk::SphereSignedDistanceFunction<double, Dimension>;
-  ShapeFunctionType::Pointer shape = ShapeFunctionType::New();
-  shape->Initialize();
+  auto shape = ShapeFunctionType::New();
 
   /**
    * Set up a statistical model of the shape parameters.
@@ -82,24 +81,23 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
   /**
    * Create an input level set and active region container
    */
-  ImageType::SizeType size;
-  size.Fill(128);
+  auto                  size = ImageType::SizeType::Filled(128);
   ImageType::RegionType region;
   region.SetSize(size);
 
-  ImageType::Pointer input = ImageType::New();
+  auto input = ImageType::New();
   input->SetRegions(region);
   input->Allocate();
 
-  NodeContainerType::Pointer activeRegion = NodeContainerType::New();
+  auto activeRegion = NodeContainerType::New();
 
 
   using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
   Iterator iter(input, region);
   iter.GoToBegin();
 
-  unsigned int counter = 0;
-  PixelType    activeRegionThreshold = 3.0;
+  unsigned int        counter = 0;
+  constexpr PixelType activeRegionThreshold = 3.0;
 
   while (!iter.IsAtEnd())
   {
@@ -108,7 +106,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
     index = iter.GetIndex();
     input->TransformIndexToPhysicalPoint(index, point);
 
-    float value = shape->Evaluate(point);
+    const float value = shape->Evaluate(point);
     iter.Set(value);
 
     if (itk::Math::abs(value) < activeRegionThreshold)
@@ -127,7 +125,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
   /**
    * Create a dummy edge potential image.
    */
-  ImageType::Pointer edgeMap = ImageType::New();
+  auto edgeMap = ImageType::New();
   edgeMap->SetRegions(region);
   edgeMap->Allocate();
   edgeMap->FillBuffer(1.0);
@@ -136,7 +134,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
   /**
    * Set up the cost function
    */
-  CostFunctionType::Pointer costFunction = CostFunctionType::New();
+  auto costFunction = CostFunctionType::New();
 
   costFunction->SetShapeFunction(shape);
   costFunction->SetActiveRegion(activeRegion);
@@ -150,8 +148,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
   costFunction->SetShapeParameterMeans(shapeMean);
   costFunction->SetShapeParameterStandardDeviations(shapeStdDev);
 
-  CostFunctionType::WeightsType weights;
-  weights.Fill(1.5);
+  auto weights = itk::MakeFilled<CostFunctionType::WeightsType>(1.5);
 
   costFunction->SetWeights(weights);
 
@@ -191,7 +188,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
    * Attempt to plug the cost function into an optimizer
    */
   using OptimizerType = itk::AmoebaOptimizer;
-  OptimizerType::Pointer optimizer = OptimizerType::New();
+  auto optimizer = OptimizerType::New();
 
   optimizer->SetCostFunction(costFunction);
   optimizer->SetInitialPosition(mean);
@@ -212,7 +209,7 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
   std::cout << "Target parameters: " << parameters << std::endl;
   std::cout << "Final parameters: " << optimizer->GetCurrentPosition() << std::endl;
 
-  for (unsigned int j = 0; j < costFunction->GetNumberOfParameters(); j++)
+  for (unsigned int j = 0; j < costFunction->GetNumberOfParameters(); ++j)
   {
     if (itk::Math::abs(parameters[j] - optimizer->GetCurrentPosition()[j]) > 0.5)
     {
@@ -223,28 +220,28 @@ itkShapePriorMAPCostFunctionTest(int, char *[])
 
   // exercise error testing
 
-  bool pass;
+  bool pass = false;
 
-#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent)                                          \
-  costFunction->Set##ComponentName(badComponent);                                                                      \
-  try                                                                                                                  \
-  {                                                                                                                    \
-    pass = false;                                                                                                      \
-    costFunction->Initialize();                                                                                        \
-  }                                                                                                                    \
-  catch (const itk::ExceptionObject & err)                                                                             \
-  {                                                                                                                    \
-    std::cout << "Caught expected ExceptionObject" << std::endl;                                                       \
-    std::cout << err << std::endl;                                                                                     \
-    pass = true;                                                                                                       \
-  }                                                                                                                    \
-  costFunction->Set##ComponentName(goodComponent);                                                                     \
-                                                                                                                       \
-  if (!pass)                                                                                                           \
-  {                                                                                                                    \
-    std::cout << "Test failed." << std::endl;                                                                          \
-    return EXIT_FAILURE;                                                                                               \
-  }                                                                                                                    \
+#define TEST_INITIALIZATION_ERROR(ComponentName, badComponent, goodComponent) \
+  costFunction->Set##ComponentName(badComponent);                             \
+  try                                                                         \
+  {                                                                           \
+    pass = false;                                                             \
+    costFunction->Initialize();                                               \
+  }                                                                           \
+  catch (const itk::ExceptionObject & err)                                    \
+  {                                                                           \
+    std::cout << "Caught expected ExceptionObject" << std::endl;              \
+    std::cout << err << std::endl;                                            \
+    pass = true;                                                              \
+  }                                                                           \
+  costFunction->Set##ComponentName(goodComponent);                            \
+                                                                              \
+  if (!pass)                                                                  \
+  {                                                                           \
+    std::cout << "Test failed." << std::endl;                                 \
+    return EXIT_FAILURE;                                                      \
+  }                                                                           \
   ITK_MACROEND_NOOP_STATEMENT
 
   TEST_INITIALIZATION_ERROR(ShapeFunction, nullptr, shape);

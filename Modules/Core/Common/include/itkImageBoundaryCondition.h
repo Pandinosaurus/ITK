@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@
 namespace itk
 {
 /**
- *\class ImageBoundaryCondition
+ * \class ImageBoundaryCondition
  * \brief A virtual base object that defines an interface to a class of
  * boundary condition objects for use by neighborhood iterators.
  *
@@ -78,18 +78,14 @@ public:
   /** Default constructor. */
   ImageBoundaryCondition() = default;
 
-  /** Runtime information support. */
-  virtual const char *
-  GetNameOfClass() const
-  {
-    return "itkImageBoundaryCondition";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(ImageBoundaryCondition);
 
   /** Utility for printing the boundary condition. */
   virtual void
   Print(std::ostream & os, Indent i = 0) const
   {
-    os << i << this->GetNameOfClass() << " (" << this << ")" << std::endl;
+    os << i << this->GetNameOfClass() << " (" << this << ')' << std::endl;
   }
 
   /** Returns a value for a given out-of-bounds pixel.  The arguments are the
@@ -132,10 +128,10 @@ public:
    * \return The necessary input region required to determine the
    * pixel values in the outputRequestedRegion.
    */
-  virtual RegionType
-  GetInputRequestedRegion(const RegionType & inputLargestPossibleRegion, const RegionType & outputRequestedRegion) const
+  [[nodiscard]] virtual RegionType
+  GetInputRequestedRegion(const RegionType &                  inputLargestPossibleRegion,
+                          [[maybe_unused]] const RegionType & itkNotUsed(outputRequestedRegion)) const
   {
-    (void)outputRequestedRegion;
     return inputLargestPossibleRegion;
   }
 

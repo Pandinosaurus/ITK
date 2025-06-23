@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,14 +44,14 @@ public:
     {
       return;
     }
-    std::cout << " " << processObject->GetProgress();
+    std::cout << ' ' << processObject->GetProgress();
   }
 };
 
 int
 itkMultiThreaderParallelizeArrayTest(int argc, char * argv[])
 {
-  itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+  const itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
   if (mt.IsNull())
   {
     std::cerr << "MultiThreaderBase could not be instantiated!" << std::endl;
@@ -59,19 +59,18 @@ itkMultiThreaderParallelizeArrayTest(int argc, char * argv[])
   }
   if (argc >= 2)
   {
-    unsigned threadCount = static_cast<unsigned>(std::stoi(argv[1]));
-    mt->SetNumberOfWorkUnits(threadCount);
+    const unsigned int workUnitCount = static_cast<unsigned int>(std::stoi(argv[1]));
+    mt->SetNumberOfWorkUnits(workUnitCount);
   }
 
-  constexpr unsigned    size = 1029;
-  std::vector<unsigned> vec(size);
+  constexpr unsigned int    size = 1029;
+  std::vector<unsigned int> vec(size);
 
   using SomeProcessObject = itk::AbsImageFilter<itk::Image<char>, itk::Image<char>>;
-  SomeProcessObject::Pointer progressPO = SomeProcessObject::New();
-  ShowProgress::Pointer      showProgress = ShowProgress::New();
+  auto progressPO = SomeProcessObject::New();
+  auto showProgress = ShowProgress::New();
   progressPO->AddObserver(itk::ProgressEvent(), showProgress);
-  mt->ParallelizeArray(
-    1, size, [&vec](int i) { vec[i] = i; }, progressPO);
+  mt->ParallelizeArray(1, size, [&vec](int i) { vec[i] = i; }, progressPO);
 
   int result = EXIT_SUCCESS;
   if (vec[0] != 0)
@@ -80,7 +79,7 @@ itkMultiThreaderParallelizeArrayTest(int argc, char * argv[])
     result = EXIT_FAILURE;
   }
 
-  for (unsigned i = 1; i < size; ++i)
+  for (unsigned int i = 1; i < size; ++i)
   {
     if (vec[i] != i)
     {

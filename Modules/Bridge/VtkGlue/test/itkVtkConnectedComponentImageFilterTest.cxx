@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,15 +37,16 @@
 #include <sstream>
 #include <map>
 #include "QuickView.h"
+#include "itkTestingMacros.h"
 
 int
 itkVtkConnectedComponentImageFilterTest(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    std::cout << "Usage: " << argv[0];
-    std::cout << " inputImageFile";
-    std::cerr << std::endl;
+    std::cerr << "Missing parameters." << std::endl;
+    std::cout << "Usage: " << itkNameOfTestExecutableMacro(argv);
+    std::cout << " inputImageFile" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -76,7 +77,7 @@ itkVtkConnectedComponentImageFilterTest(int argc, char * argv[])
 
   using ReaderType = itk::ImageFileReader<InputImageType>;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   QuickView viewer;
@@ -102,22 +103,21 @@ itkVtkConnectedComponentImageFilterTest(int argc, char * argv[])
   filterContainer["Triangle"] = TriangleFilterType::New();
   filterContainer["Yen"] = YenFilterType::New();
 
-  auto it = filterContainer.begin();
-  for (it = filterContainer.begin(); it != filterContainer.end(); ++it)
+  for (auto it = filterContainer.begin(); it != filterContainer.end(); ++it)
   {
-    (*it).second->SetInsideValue(255);
-    (*it).second->SetOutsideValue(0);
-    (*it).second->SetNumberOfHistogramBins(256);
-    (*it).second->SetInput(reader->GetOutput());
-    (*it).second->Update();
+    it->second->SetInsideValue(255);
+    it->second->SetOutsideValue(0);
+    it->second->SetNumberOfHistogramBins(256);
+    it->second->SetInput(reader->GetOutput());
+    it->second->Update();
 
-    ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
-    connected->SetInput((*it).second->GetOutput());
+    auto connected = ConnectedComponentImageFilterType::New();
+    connected->SetInput(it->second->GetOutput());
 
-    RGBFilterType::Pointer rgbFilter = RGBFilterType::New();
+    auto rgbFilter = RGBFilterType::New();
     rgbFilter->SetInput(connected->GetOutput());
     std::stringstream desc;
-    desc << (*it).first << " threshold = " << (*it).second->GetThreshold();
+    desc << it->first << " threshold = " << it->second->GetThreshold();
     viewer.AddRGBImage(rgbFilter->GetOutput(), true, desc.str());
   }
 
@@ -125,5 +125,7 @@ itkVtkConnectedComponentImageFilterTest(int argc, char * argv[])
   // For testing, turn off interaction
   viewer.Visualize(false);
 
+
+  std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }

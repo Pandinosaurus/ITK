@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class ExhaustiveOptimizerv4
+ * \class ExhaustiveOptimizerv4
  * \brief Optimizer that fully samples a grid on the parametric space.
  *
  * This optimizer is equivalent to an exhaustive search in a discrete grid
@@ -36,7 +36,7 @@ namespace itk
  * is. An example is given below, where it is desired to plot the metric
  * space with respect to translations along x, y and z in a 3D registration
  * application:
- *     Here it is assumed that the transform is Euler3DTransform.
+ *     Here it is assumed that the transform is TranslationTransform.
  *
    \code
     OptimizerType::StepsType steps( m_Transform->GetNumberOfParameters() );
@@ -69,9 +69,14 @@ namespace itk
  * of [0.5 1 4] along with a step length of 2 will cause the optimizer
  * to search the metric space on a grid with x,y,z spacing of [1 2 8].
  *
- * Physical dimensions of the grid are influenced by both the scales and
- * the number of steps along each dimension, a side of the region is
- * stepLength*(2*numberOfSteps[d]+1)*scaling[d].
+ * The number of samples for each dimension of the parameter grid are
+ * influenced by both the scales and the number of steps along each
+ * dimension:
+ *
+ * parameter_samples[d] = stepLength*(2*numberOfSteps[d]+1)*scaling[d]
+ *
+ * start_parameter[d] = - stepLength * scaling[d] * numberOfSteps[d]
+ *   end_parameter[d] = + stepLength * scaling[d] * numberOfSteps[d]
  *
  * \ingroup ITKOptimizersv4
  */
@@ -91,20 +96,20 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ExhaustiveOptimizerv4, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ExhaustiveOptimizerv4);
 
   /** Steps type */
   using StepsType = Array<SizeValueType>;
 
   /** Measure type */
-  using MeasureType = typename Superclass::MeasureType;
+  using typename Superclass::MeasureType;
 
   /** Parameters type */
-  using ParametersType = typename Superclass::ParametersType;
+  using typename Superclass::ParametersType;
 
   /** Scales type */
-  using ScalesType = typename Superclass::ScalesType;
+  using typename Superclass::ScalesType;
 
   void
   StartOptimization(bool doOnlyInitialization = false) override;
@@ -133,7 +138,7 @@ public:
   itkGetConstReferenceMacro(CurrentIndex, ParametersType);
 
   /** Get the reason for termination */
-  const std::string
+  std::string
   GetStopConditionDescription() const override;
 
   /**  Set the position to initialize the optimization. */
@@ -161,19 +166,19 @@ protected:
   IncrementIndex(ParametersType & newPosition);
 
 protected:
-  ParametersType m_InitialPosition;
-  MeasureType    m_CurrentValue;
-  StepsType      m_NumberOfSteps;
+  ParametersType m_InitialPosition{};
+  MeasureType    m_CurrentValue{ 0 };
+  StepsType      m_NumberOfSteps{ 0 };
   bool           m_Stop{ false };
   double         m_StepLength{ 1.0 };
-  ParametersType m_CurrentIndex;
-  MeasureType    m_MaximumMetricValue;
-  MeasureType    m_MinimumMetricValue;
-  ParametersType m_MinimumMetricValuePosition;
-  ParametersType m_MaximumMetricValuePosition;
+  ParametersType m_CurrentIndex{ 0 };
+  MeasureType    m_MaximumMetricValue{ 0.0 };
+  MeasureType    m_MinimumMetricValue{ 0.0 };
+  ParametersType m_MinimumMetricValuePosition{};
+  ParametersType m_MaximumMetricValuePosition{};
 
 private:
-  std::ostringstream m_StopConditionDescription;
+  std::ostringstream m_StopConditionDescription{ "" };
 };
 } // end namespace itk
 

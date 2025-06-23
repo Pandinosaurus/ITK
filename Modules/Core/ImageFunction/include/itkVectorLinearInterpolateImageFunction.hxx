@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,41 +18,27 @@
 #ifndef itkVectorLinearInterpolateImageFunction_hxx
 #define itkVectorLinearInterpolateImageFunction_hxx
 
-#include "itkVectorLinearInterpolateImageFunction.h"
 
 #include "itkMath.h"
+#include <algorithm> // For min and max.
 
 namespace itk
 {
-/**
- * Define the number of neighbors
- */
-template <typename TInputImage, typename TCoordRep>
-const unsigned long VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::m_Neighbors =
+
+template <typename TInputImage, typename TCoordinate>
+const unsigned long VectorLinearInterpolateImageFunction<TInputImage, TCoordinate>::m_Neighbors =
   1 << TInputImage::ImageDimension;
 
-/**
- * PrintSelf
- */
-template <typename TInputImage, typename TCoordRep>
-void
-VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
-{
-  this->Superclass::PrintSelf(os, indent);
-}
 
-/**
- * Evaluate at image index position
- */
-template <typename TInputImage, typename TCoordRep>
-typename VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::OutputType
-VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::EvaluateAtContinuousIndex(
-  const ContinuousIndexType & index) const
+template <typename TInputImage, typename TCoordinate>
+auto
+VectorLinearInterpolateImageFunction<TInputImage, TCoordinate>::EvaluateAtContinuousIndex(
+  const ContinuousIndexType & index) const -> OutputType
 {
-  /**
-   * Compute base index = closet index below point
-   * Compute distance from point to base index
-   */
+  //
+  // Compute base index = closet index below point
+  // Compute distance from point to base index
+  //
   IndexType                 baseIndex;
   InternalComputationType   distance[ImageDimension];
   const TInputImage * const inputImgPtr = this->GetInputImage();
@@ -67,11 +53,10 @@ VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::EvaluateAtContinuo
    * neighbors. The weight for each neighbor is the fraction overlap
    * of the neighbor pixel with respect to a pixel centered on point.
    */
-  OutputType output;
-  output.Fill(0.0);
+  OutputType output{};
 
   using ScalarRealType = typename NumericTraits<PixelType>::ScalarRealType;
-  ScalarRealType totalOverlap = NumericTraits<ScalarRealType>::ZeroValue();
+  ScalarRealType totalOverlap{};
 
   for (unsigned int counter = 0; counter < m_Neighbors; ++counter)
   {
@@ -87,10 +72,7 @@ VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::EvaluateAtContinuo
         neighIndex[dim] = baseIndex[dim] + 1;
         // Take care of the case where the pixel is just
         // in the outer upper boundary of the image grid.
-        if (neighIndex[dim] > this->m_EndIndex[dim])
-        {
-          neighIndex[dim] = this->m_EndIndex[dim];
-        }
+        neighIndex[dim] = std::min(neighIndex[dim], this->m_EndIndex[dim]);
         overlap *= distance[dim];
       }
       else
@@ -98,10 +80,7 @@ VectorLinearInterpolateImageFunction<TInputImage, TCoordRep>::EvaluateAtContinuo
         neighIndex[dim] = baseIndex[dim];
         // Take care of the case where the pixel is just
         // in the outer lower boundary of the image grid.
-        if (neighIndex[dim] < this->m_StartIndex[dim])
-        {
-          neighIndex[dim] = this->m_StartIndex[dim];
-        }
+        neighIndex[dim] = std::max(neighIndex[dim], this->m_StartIndex[dim]);
         overlap *= 1.0 - distance[dim];
       }
       upper >>= 1;

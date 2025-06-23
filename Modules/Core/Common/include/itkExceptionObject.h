@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,12 +16,15 @@
  *
  *=========================================================================*/
 #ifndef itkExceptionObject_h
-#  error "Do not include itkExceptionObject.h directly,  include itkMacro.h instead."
-#else // itkExceptionObject_h
+#define itkExceptionObject_h
 
-#  include <memory> // For shared_ptr.
-#  include <string>
-#  include <stdexcept>
+// NOTE: This itkExceptionObject.h file is included by itkMacro.h, and should never be included directly.
+#ifndef allow_inclusion_of_itkExceptionObject_h
+#  error "Do not include itkExceptionObject.h directly,  include itkMacro.h instead."
+#endif
+
+#include <memory> // For shared_ptr.
+#include <string>
 
 namespace itk
 {
@@ -53,14 +56,10 @@ public:
   /** Explicitly-defaulted default-constructor. Creates an empty exception object. */
   ExceptionObject() noexcept = default;
 
-  explicit ExceptionObject(const char * file,
-                           unsigned int lineNumber = 0,
-                           const char * desc = "None",
-                           const char * loc = "Unknown");
   explicit ExceptionObject(std::string  file,
                            unsigned int lineNumber = 0,
-                           std::string  desc = "None",
-                           std::string  loc = "Unknown");
+                           std::string  description = "None",
+                           std::string  location = {});
 
   /** Copy-constructor. */
   ExceptionObject(const ExceptionObject &) noexcept = default;
@@ -84,11 +83,8 @@ public:
   virtual bool
   operator==(const ExceptionObject & orig) const;
 
-  virtual const char *
-  GetNameOfClass() const
-  {
-    return "ExceptionObject";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkVirtualGetNameOfClassMacro(ExceptionObject);
 
   /** Print exception information.  This method can be overridden by
    * specific exception subtypes.  The default is to print out the
@@ -112,22 +108,22 @@ public:
   virtual void
   SetDescription(const char * s);
 
-  virtual const char *
+  [[nodiscard]] virtual const char *
   GetLocation() const;
 
-  virtual const char *
+  [[nodiscard]] virtual const char *
   GetDescription() const;
 
   /** What file did the exception occur in? */
-  virtual const char *
+  [[nodiscard]] virtual const char *
   GetFile() const;
 
   /** What line did the exception occur in? */
-  virtual unsigned int
+  [[nodiscard]] virtual unsigned int
   GetLine() const;
 
   /** Provide std::exception::what() implementation. */
-  const char *
+  [[nodiscard]] const char *
   what() const noexcept override;
 
 private:
@@ -140,7 +136,7 @@ private:
 inline std::ostream &
 operator<<(std::ostream & os, const ExceptionObject & e)
 {
-  (&e)->Print(os);
+  e.Print(os);
   return os;
 }
 
@@ -159,11 +155,8 @@ public:
   // Inherit the constructors from its base class.
   using ExceptionObject::ExceptionObject;
 
-  const char *
-  GetNameOfClass() const override
-  {
-    return "MemoryAllocationError";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(MemoryAllocationError);
 };
 
 /** \class RangeError
@@ -177,11 +170,8 @@ public:
   // Inherit the constructors from its base class.
   using ExceptionObject::ExceptionObject;
 
-  const char *
-  GetNameOfClass() const override
-  {
-    return "RangeError";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RangeError);
 };
 
 /** \class InvalidArgumentError
@@ -196,11 +186,8 @@ public:
   // Inherit the constructors from its base class.
   using ExceptionObject::ExceptionObject;
 
-  const char *
-  GetNameOfClass() const override
-  {
-    return "InvalidArgumentError";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InvalidArgumentError);
 };
 
 /** \class IncompatibleOperandsError
@@ -214,11 +201,8 @@ public:
   // Inherit the constructors from its base class.
   using ExceptionObject::ExceptionObject;
 
-  const char *
-  GetNameOfClass() const override
-  {
-    return "IncompatibleOperandsError";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(IncompatibleOperandsError);
 };
 
 /** \class ProcessAborted
@@ -238,25 +222,35 @@ public:
   }
 
   /** Constructor. Needed to ensure the exception object can be copied. */
-  ProcessAborted(const char * file, unsigned int lineNumber)
-    : ExceptionObject(file, lineNumber)
-  {
-    this->SetDescription("Filter execution was aborted by an external request");
-  }
+  ProcessAborted(std::string file, unsigned int lineNumber)
+    : ExceptionObject(std::move(file), lineNumber, "Filter execution was aborted by an external request")
+  {}
 
-  /** Constructor. Needed to ensure the exception object can be copied. */
-  ProcessAborted(const std::string & file, unsigned int lineNumber)
-    : ExceptionObject(file, lineNumber)
-  {
-    this->SetDescription("Filter execution was aborted by an external request");
-  }
-
-  const char *
-  GetNameOfClass() const override
-  {
-    return "ProcessAborted";
-  }
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ProcessAborted);
 };
-} // end namespace itk
 
+// Forward declaration in Macro.h, implementation here to avoid circular dependency
+template <typename TTarget, typename TSource>
+TTarget
+itkDynamicCastInDebugMode(TSource x)
+{
+#ifndef NDEBUG
+  if (x == nullptr)
+  {
+    return nullptr;
+  }
+  auto rval = dynamic_cast<TTarget>(x);
+  if (rval == nullptr)
+  {
+    itkGenericExceptionMacro("Failed dynamic cast to " << typeid(TTarget).name()
+                                                       << " object type = " << x->GetNameOfClass());
+  }
+  return rval;
+#else
+  return static_cast<TTarget>(x);
+#endif
+}
+
+} // end namespace itk
 #endif // itkExceptionObject_h

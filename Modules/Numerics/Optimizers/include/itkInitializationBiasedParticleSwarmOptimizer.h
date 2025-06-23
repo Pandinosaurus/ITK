@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,10 +28,7 @@ namespace itk
  * \brief Implementation of a biased/regularized Particle Swarm Optimization
  *        (PSO) algorithm.
  *
- * This PSO algorithm was originally described in:
- * M. P. Wachowiak, R. Smolikova, Y. Zheng, J. M. Zurada, A. S. Elmaghraby,
- * "An approach to multimodal biomedical image registration utilizing particle
- * swarm optimization", IEEE Trans. Evol. Comput., vol. 8(3): 289-301, 2004.
+ * This PSO algorithm was originally described in \cite wachowiak2004.
  *
  * The algorithm uses a stochastic optimization approach. Optimization
  * is performed by maintaining a swarm (flock) of
@@ -85,8 +82,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(InitializationBiasedParticleSwarmOptimizer, ParticleSwarmOptimizerBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(InitializationBiasedParticleSwarmOptimizer);
 
   /** The Particle swarm optimizer uses the following update formula:
    * \f[c_3 =  c_{3initial}(1.0 - IterationIndex/MaximalNumberOfIterations)\f]
@@ -104,6 +101,7 @@ public:
    * \f$p_g\f$ - parameters yielding the best function value obtained by all particles
    * \f$x_{init}\f$ - initial parameter values provided by user
    */
+  /** @ITKStartGrouping */
   itkSetMacro(InertiaCoefficient, CoefficientType);
   itkGetMacro(InertiaCoefficient, CoefficientType);
   itkSetMacro(PersonalCoefficient, CoefficientType);
@@ -112,7 +110,7 @@ public:
   itkGetMacro(GlobalCoefficient, CoefficientType);
   itkSetMacro(InitializationCoefficient, CoefficientType);
   itkGetMacro(InitializationCoefficient, CoefficientType);
-
+  /** @ITKEndGrouping */
 protected:
   InitializationBiasedParticleSwarmOptimizer();
   ~InitializationBiasedParticleSwarmOptimizer() override = default;
@@ -122,10 +120,10 @@ protected:
   UpdateSwarm() override;
 
 private:
-  ParametersType::ValueType m_InertiaCoefficient;
-  ParametersType::ValueType m_PersonalCoefficient;
-  ParametersType::ValueType m_GlobalCoefficient;
-  ParametersType::ValueType m_InitializationCoefficient;
+  ParametersType::ValueType m_InertiaCoefficient{};
+  ParametersType::ValueType m_PersonalCoefficient{};
+  ParametersType::ValueType m_GlobalCoefficient{};
+  ParametersType::ValueType m_InitializationCoefficient{};
 };
 
 } // end namespace itk

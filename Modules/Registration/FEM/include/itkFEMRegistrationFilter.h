@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,18 +51,16 @@
 #include <iostream>
 #include <string>
 
-namespace itk
+namespace itk::fem
 {
-namespace fem
-{
-/**\class FEMRegistrationFilterEnums
+/** \class FEMRegistrationFilterEnums
  * \brief Contains all enum classes used by FEMRegistrationFilter class.
  * \ingroup ITKFEMRegistration
  */
 class FEMRegistrationFilterEnums
 {
 public:
-  /**\class Sign
+  /** \class Sign
    * \ingroup ITKFEMRegistration
    */
   enum class Sign : uint8_t
@@ -77,7 +75,7 @@ extern ITKFEMRegistration_EXPORT std::ostream &
 
 /** \class FEMRegistrationFilter
  *  \brief FEM Image registration filter.
- * The image registration problem is modelled here with the finite
+ * The image registration problem is modeled here with the finite
  * element method. Image registration is, in general, an ill-posed
  * problem. Thus, we use an optimization scheme where the
  * optimization criterion is given by a regularized variational
@@ -149,8 +147,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods) */
-  itkTypeMacro(FEMRegistrationFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(FEMRegistrationFilter);
 
   using MovingImageType = TMovingImage;
   using FixedImageType = TFixedImage;
@@ -190,11 +188,15 @@ public:
   using IndexSelectCasterType = itk::VectorIndexSelectionCastImageFilter<FieldType, FloatImageType>;
 
   /** Typedef support for the interpolation function */
-  using CoordRepType = double;
-  using InterpolatorType = VectorInterpolateImageFunction<FieldType, CoordRepType>;
+  using CoordinateType = double;
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using CoordRepType ITK_FUTURE_DEPRECATED(
+    "ITK 6 discourages using `CoordRepType`. Please use `CoordinateType` instead!") = CoordinateType;
+#endif
+  using InterpolatorType = VectorInterpolateImageFunction<FieldType, CoordinateType>;
   using InterpolatorPointer = typename InterpolatorType::Pointer;
 
-  using DefaultInterpolatorType = VectorLinearInterpolateImageFunction<FieldType, CoordRepType>;
+  using DefaultInterpolatorType = VectorLinearInterpolateImageFunction<FieldType, CoordinateType>;
 
   using InterpolationGridType = typename itk::Image<Element::ConstPointer, ImageDimension>;
   using InterpolationGridSizeType = typename InterpolationGridType::SizeType;
@@ -666,28 +668,28 @@ private:
   unsigned int m_LineSearchMaximumIterations{ 100 };
 
   /** Parameters used to define Multi-resolution registration. */
-  vnl_vector<unsigned int> m_NumberOfIntegrationPoints; // resolution of integration
-  vnl_vector<unsigned int> m_MetricWidth;               // number of iterations at each level
-  vnl_vector<unsigned int> m_Maxiters;
+  vnl_vector<unsigned int> m_NumberOfIntegrationPoints{}; // resolution of integration
+  vnl_vector<unsigned int> m_MetricWidth{};               // number of iterations at each level
+  vnl_vector<unsigned int> m_Maxiters{};
   unsigned int             m_TotalIterations{ 0 }; // total number of iterations that were run
   unsigned int             m_MaxLevel{ 1 };
   unsigned int             m_FileCount{ 0 };    // keeps track of number of files written
   unsigned int             m_CurrentLevel{ 0 }; // current resolution level
 
-  typename FixedImageType::SizeType m_CurrentLevelImageSize;
+  typename FixedImageType::SizeType m_CurrentLevelImageSize{};
 
   unsigned int m_WhichMetric{ 0 };
 
   /** Stores the number of  pixels per element  of the mesh for each
       resolution of the multi-resolution pyramid */
-  vnl_vector<unsigned int> m_MeshPixelsPerElementAtEachResolution;
+  vnl_vector<unsigned int> m_MeshPixelsPerElementAtEachResolution{};
 
   Float             m_TimeStep{ 1 };
-  vnl_vector<Float> m_E;
-  vnl_vector<Float> m_Rho;
-  vnl_vector<Float> m_Gamma;
+  vnl_vector<Float> m_E{};
+  vnl_vector<Float> m_Rho{};
+  vnl_vector<Float> m_Gamma{};
   Float             m_Energy{ 0.0 };      // current value of energy
-  Float             m_MinE;               // minimum recorded energy
+  Float             m_MinE{};             // minimum recorded energy
   Float             m_MinJacobian{ 1.0 }; // minimum recorded energy
   Float             m_Alpha{ 1.0 };
 
@@ -698,52 +700,51 @@ private:
   unsigned int  m_EmployRegridding{ 1 };
   SignEnum      m_DescentDirection{ SignEnum::positive };
   Float         m_EnergyReductionFactor{ 0.0 };
-  ImageSizeType m_FullImageSize;
-  ImageSizeType m_ImageOrigin;
+  ImageSizeType m_FullImageSize{};
+  ImageSizeType m_ImageOrigin{};
 
   /** Gives the ratio of original image size to current image size - for
    * dealing with multi-resolution. */
-  ImageSizeType                  m_ImageScaling;
-  ImageSizeType                  m_CurrentImageScaling;
-  typename FieldType::RegionType m_FieldRegion;
-  typename FieldType::SizeType   m_FieldSize;
-  typename FieldType::Pointer    m_Field;
+  ImageSizeType                  m_ImageScaling{};
+  ImageSizeType                  m_CurrentImageScaling{};
+  typename FieldType::RegionType m_FieldRegion{};
+  typename FieldType::SizeType   m_FieldSize{};
+  typename FieldType::Pointer    m_Field{};
 
   // Only use TotalField if re-gridding is employed.
-  typename FieldType::Pointer           m_TotalField;
-  typename ImageMetricLoadType::Pointer m_Load; // Defines the load to use
+  typename FieldType::Pointer           m_TotalField{};
+  typename ImageMetricLoadType::Pointer m_Load{}; // Defines the load to use
 
   // Define the warper
-  typename WarperType::Pointer m_Warper;
+  typename WarperType::Pointer m_Warper{};
 
   // Declare a new image to hold the warped reference
-  typename FixedImageType::Pointer    m_WarpedImage;
-  typename FloatImageType::Pointer    m_FloatImage;
-  typename FixedImageType::RegionType m_Wregion;
-  typename FixedImageType::IndexType  m_Windex;
+  typename FixedImageType::Pointer    m_WarpedImage{};
+  typename FloatImageType::Pointer    m_FloatImage{};
+  typename FixedImageType::RegionType m_Wregion{};
+  typename FixedImageType::IndexType  m_Windex{};
 
   // Declare images for target and reference
-  typename MovingImageType::Pointer m_MovingImage;
-  typename MovingImageType::Pointer m_OriginalMovingImage;
-  typename FixedImageType::Pointer  m_FixedImage;
+  typename MovingImageType::Pointer m_MovingImage{};
+  typename MovingImageType::Pointer m_OriginalMovingImage{};
+  typename FixedImageType::Pointer  m_FixedImage{};
 
   // Element and metric pointers
-  typename Element::Pointer       m_Element;
-  typename MaterialType::Pointer  m_Material;
-  MetricBaseTypePointer           m_Metric;
-  typename FEMObjectType::Pointer m_FEMObject;
+  typename Element::Pointer       m_Element{};
+  typename MaterialType::Pointer  m_Material{};
+  MetricBaseTypePointer           m_Metric{};
+  typename FEMObjectType::Pointer m_FEMObject{};
 
-  LandmarkArrayType   m_LandmarkArray;
-  InterpolatorPointer m_Interpolator;
+  LandmarkArrayType   m_LandmarkArray{};
+  InterpolatorPointer m_Interpolator{};
 
   double m_MaximumError{ 0.1 };
 
   unsigned int m_MaximumKernelWidth{ 30 };
 
-  StandardDeviationsType m_StandardDeviations;
+  StandardDeviationsType m_StandardDeviations{};
 };
-} // end namespace fem
-} // end namespace itk
+} // namespace itk::fem
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #  include "itkFEMRegistrationFilter.hxx"

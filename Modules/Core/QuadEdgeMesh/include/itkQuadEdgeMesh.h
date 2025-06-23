@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ namespace itk
  * \author Alexandre Gouaillard, Leonardo Florez-Valencia, Eric Boix
  *
  * This implementation was contributed as a paper to the Insight Journal
- * https://www.insight-journal.org/browse/publication/122
+ * https://doi.org/10.54294/4mx7kk
  *
  * \ingroup ITKQuadEdgeMesh
  */
@@ -70,64 +70,64 @@ public:
   static constexpr unsigned int MaxTopologicalDimension = Traits::MaxTopologicalDimension;
 
   /** Types defined in superclass. */
-  using CellPixelType = typename Superclass::CellPixelType;
-  using CoordRepType = typename Superclass::CoordRepType;
-  using PointIdentifier = typename Superclass::PointIdentifier;
-  using PointHashType = typename Superclass::PointHashType;
-  using PointType = typename Superclass::PointType;
-  using CellTraits = typename Superclass::CellTraits;
+  using typename Superclass::CellPixelType;
+  using typename Superclass::CoordinateType;
+  using typename Superclass::PointIdentifier;
+  using typename Superclass::PointHashType;
+  using typename Superclass::PointType;
+  using typename Superclass::CellTraits;
 
   using PointIdInternalIterator = typename CellTraits::PointIdInternalIterator;
   using PointIdIterator = typename CellTraits::PointIdIterator;
 
   // Point section:
-  using PointsContainer = typename Superclass::PointsContainer;
-  using PointsContainerPointer = typename Superclass::PointsContainerPointer;
-  using CoordRepArrayType = CoordRepType[Self::PointDimension];
+  using typename Superclass::PointsContainer;
+  using typename Superclass::PointsContainerPointer;
+  using CoordRepArrayType = CoordinateType[Self::PointDimension];
 
   // Point data section:
-  using PointDataContainer = typename Superclass::PointDataContainer;
-  using PointDataContainerPointer = typename Superclass::PointDataContainerPointer;
-  using PointDataContainerIterator = typename Superclass::PointDataContainerIterator;
-  using PointsContainerConstIterator = typename Superclass::PointsContainerConstIterator;
-  using PointsContainerIterator = typename Superclass::PointsContainerIterator;
+  using typename Superclass::PointDataContainer;
+  using typename Superclass::PointDataContainerPointer;
+  using typename Superclass::PointDataContainerIterator;
+  using typename Superclass::PointsContainerConstIterator;
+  using typename Superclass::PointsContainerIterator;
 
   // Cell section:
-  using CellIdentifier = typename Superclass::CellIdentifier;
-  using CellType = typename Superclass::CellType;
-  using CellAutoPointer = typename Superclass::CellAutoPointer;
-  using CellFeatureIdentifier = typename Superclass::CellFeatureIdentifier;
-  using CellFeatureCount = typename Superclass::CellFeatureCount;
-  using CellMultiVisitorType = typename Superclass::CellMultiVisitorType;
-  using CellsContainer = typename Superclass::CellsContainer;
-  using CellsContainerPointer = typename Superclass::CellsContainerPointer;
+  using typename Superclass::CellIdentifier;
+  using typename Superclass::CellType;
+  using typename Superclass::CellAutoPointer;
+  using typename Superclass::CellFeatureIdentifier;
+  using typename Superclass::CellFeatureCount;
+  using typename Superclass::CellMultiVisitorType;
+  using typename Superclass::CellsContainer;
+  using typename Superclass::CellsContainerPointer;
 
-  using CellsContainerConstIterator = typename Superclass::CellsContainerConstIterator;
-  using CellsContainerIterator = typename Superclass::CellsContainerIterator;
+  using typename Superclass::CellsContainerConstIterator;
+  using typename Superclass::CellsContainerIterator;
 
-  using CellLinksContainer = typename Superclass::CellLinksContainer;
-  using CellLinksContainerPointer = typename Superclass::CellLinksContainerPointer;
-  using CellLinksContainerIterator = typename Superclass::CellLinksContainerIterator;
+  using typename Superclass::CellLinksContainer;
+  using typename Superclass::CellLinksContainerPointer;
+  using typename Superclass::CellLinksContainerIterator;
 
   // Cell data section:
-  using CellDataContainer = typename Superclass::CellDataContainer;
-  using CellDataContainerPointer = typename Superclass::CellDataContainerPointer;
-  using CellDataContainerIterator = typename Superclass::CellDataContainerIterator;
+  using typename Superclass::CellDataContainer;
+  using typename Superclass::CellDataContainerPointer;
+  using typename Superclass::CellDataContainerIterator;
 
   // Point / Cell correspondence section:
-  using PointCellLinksContainer = typename Superclass::PointCellLinksContainer;
-  using PointCellLinksContainerIterator = typename Superclass::PointCellLinksContainerIterator;
+  using typename Superclass::PointCellLinksContainer;
+  using typename Superclass::PointCellLinksContainerIterator;
 
-  // BoundaryAssignMents section:
-  using BoundaryAssignmentsContainer = typename Superclass::BoundaryAssignmentsContainer;
-  using BoundaryAssignmentsContainerPointer = typename Superclass::BoundaryAssignmentsContainerPointer;
-  using BoundaryAssignmentsContainerVector = typename Superclass::BoundaryAssignmentsContainerVector;
+  // BoundaryAssignments section:
+  using typename Superclass::BoundaryAssignmentsContainer;
+  using typename Superclass::BoundaryAssignmentsContainerPointer;
+  using typename Superclass::BoundaryAssignmentsContainerVector;
 
   // Miscellaneous section:
-  using BoundingBoxPointer = typename Superclass::BoundingBoxPointer;
-  using BoundingBoxType = typename Superclass::BoundingBoxType;
-  using RegionType = typename Superclass::RegionType;
-  using InterpolationWeightType = typename Superclass::InterpolationWeightType;
+  using typename Superclass::BoundingBoxPointer;
+  using typename Superclass::BoundingBoxType;
+  using typename Superclass::RegionType;
+  using typename Superclass::InterpolationWeightType;
 
   /** Specific types for a quad-edge structure. */
   using PrimalDataType = typename Traits::PrimalDataType;
@@ -152,8 +152,9 @@ public:
   /** Auxiliary types. */
   using PointIdList = std::vector<PointIdentifier>;
   using EdgeListType = std::list<QEPrimal *>;
-  using EdgeListPointerType = EdgeListType *;
-
+#ifndef ITK_FUTURE_LEGACY_REMOVE
+  using EdgeListPointerType [[deprecated("Please just use `EdgeListType *` instead!")]] = EdgeListType *;
+#endif
   using MeshClassCellsAllocationMethodEnum = itk::MeshEnums::MeshClassCellsAllocationMethod;
 
   /** Reserved PointIdentifier designated to represent the absence of Point */
@@ -164,8 +165,10 @@ public:
 
 public:
   /** Basic Object interface. */
+  /** @ITKStartGrouping */
   itkNewMacro(Self);
-  itkTypeMacro(QuadEdgeMesh, Mesh);
+  itkOverrideGetNameOfClassMacro(QuadEdgeMesh);
+  /** @ITKEndGrouping */
 
 #if !defined(ITK_WRAPPING_PARSER)
   /** FrontIterator definitions */
@@ -210,15 +213,13 @@ public:
 
   /** Overloaded to avoid a bug in Mesh that prevents proper inheritance
    * Refer to
-   * http://public.kitware.com/pipermail/insight-users/2005-March/012459.html
+   * https://public.kitware.com/pipermail/insight-users/2005-March/012459.html
    * and
-   * http://public.kitware.com/pipermail/insight-users/2005-April/012613.html
+   * https://public.kitware.com/pipermail/insight-users/2005-April/012613.html
    */
   void
-  CopyInformation(const DataObject * data) override
-  {
-    (void)data;
-  }
+  CopyInformation(const DataObject * itkNotUsed(data)) override
+  {}
   void
   Graft(const DataObject * data) override;
 
@@ -234,25 +235,20 @@ public:
 #if !defined(ITK_WRAPPING_PARSER)
   /** overloaded method for backward compatibility */
   void
-  SetBoundaryAssignments(int dimension, BoundaryAssignmentsContainer * container)
-  {
-    (void)dimension;
-    (void)container;
-  }
+  SetBoundaryAssignments(int itkNotUsed(dimension), BoundaryAssignmentsContainer * itkNotUsed(container))
+  {}
 
   /** overloaded method for backward compatibility */
   BoundaryAssignmentsContainerPointer
-  GetBoundaryAssignments(int dimension)
+  GetBoundaryAssignments(int itkNotUsed(dimension))
   {
-    (void)dimension;
     return (nullptr);
   }
 
   /** overloaded method for backward compatibility */
   const BoundaryAssignmentsContainerPointer
-  GetBoundaryAssignments(int dimension) const
+  GetBoundaryAssignments(int itkNotUsed(dimension)) const
   {
-    (void)dimension;
     return (nullptr);
   }
 
@@ -260,87 +256,65 @@ public:
 
   /** overloaded method for backward compatibility */
   void
-  SetBoundaryAssignment(int                   dimension,
-                        CellIdentifier        cellId,
-                        CellFeatureIdentifier featureId,
-                        CellIdentifier        boundaryId)
-  {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
-    (void)boundaryId;
-  }
+  SetBoundaryAssignment(int                   itkNotUsed(dimension),
+                        CellIdentifier        itkNotUsed(cellId),
+                        CellFeatureIdentifier itkNotUsed(featureId),
+                        CellIdentifier        itkNotUsed(boundaryId))
+  {}
 
   /** overloaded method for backward compatibility */
   bool
-  GetBoundaryAssignment(int                   dimension,
-                        CellIdentifier        cellId,
-                        CellFeatureIdentifier featureId,
-                        CellIdentifier *      boundaryId) const
+  GetBoundaryAssignment(int                   itkNotUsed(dimension),
+                        CellIdentifier        itkNotUsed(cellId),
+                        CellFeatureIdentifier itkNotUsed(featureId),
+                        CellIdentifier *      itkNotUsed(boundaryId))
   {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
-    (void)boundaryId;
     return (false); // ALEX: is it the good way?
   }
 
   /** overloaded method for backward compatibility */
   bool
-  RemoveBoundaryAssignment(int dimension, CellIdentifier cellId, CellFeatureIdentifier featureId)
+  RemoveBoundaryAssignment(int                   itkNotUsed(dimension),
+                           CellIdentifier        itkNotUsed(cellId),
+                           CellFeatureIdentifier itkNotUsed(featureId))
   {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
     return (false); // ALEX: is it the good way?
   }
 
   /** overloaded method for backward compatibility */
   bool
-  GetCellBoundaryFeature(int                   dimension,
-                         CellIdentifier        cellId,
-                         CellFeatureIdentifier featureId,
-                         CellAutoPointer &     cellAP) const
+  GetCellBoundaryFeature(int                   itkNotUsed(dimension),
+                         CellIdentifier        itkNotUsed(cellId),
+                         CellFeatureIdentifier itkNotUsed(featureId),
+                         CellAutoPointer &     itkNotUsed(cellAP)) const
   {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
-    (void)cellAP;
     return (false);
   }
 
   /** overloaded method for backward compatibility */
   CellIdentifier
-  GetCellBoundaryFeatureNeighbors(int                        dimension,
-                                  CellIdentifier             cellId,
-                                  CellFeatureIdentifier      featureId,
-                                  std::set<CellIdentifier> * cellSet)
+  GetCellBoundaryFeatureNeighbors(int                        itkNotUsed(dimension),
+                                  CellIdentifier             itkNotUsed(cellId),
+                                  CellFeatureIdentifier      itkNotUsed(featureId),
+                                  std::set<CellIdentifier> * itkNotUsed(cellSet))
   {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
-    (void)cellSet;
-    return NumericTraits<CellIdentifier>::ZeroValue();
+    return CellIdentifier{};
   }
 
   /** NOTE ALEX: this method do not use CellFeature and thus could be recoded */
   CellIdentifier
   GetCellNeighbors(CellIdentifier itkNotUsed(cellId), std::set<CellIdentifier> * itkNotUsed(cellSet))
   {
-    return NumericTraits<CellIdentifier>::ZeroValue();
+    return CellIdentifier{};
   }
 
   /** overloaded method for backward compatibility */
   bool
-  GetAssignedCellBoundaryIfOneExists(int                   dimension,
-                                     CellIdentifier        cellId,
-                                     CellFeatureIdentifier featureId,
-                                     CellAutoPointer &     cellAP) const
+  GetAssignedCellBoundaryIfOneExists(int                   itkNotUsed(dimension),
+                                     CellIdentifier        itkNotUsed(cellId),
+                                     CellFeatureIdentifier itkNotUsed(featureId),
+                                     CellAutoPointer &     itkNotUsed(cellAP)) const
   {
-    (void)dimension;
-    (void)cellId;
-    (void)featureId;
-    (void)cellAP;
     return (false); // ALEX: is it the good way?
   }
 
@@ -437,8 +411,8 @@ public:
   virtual EdgeCellType *
   FindEdgeCell(const PointIdentifier & pid0, const PointIdentifier & pid1) const;
 
-  ///  Compute the euclidian length of argument edge
-  CoordRepType
+  ///  Compute the euclidean length of argument edge
+  CoordinateType
   ComputeEdgeLength(QEPrimal * e);
 
   PointIdentifier
@@ -452,11 +426,6 @@ public:
 
   PointIdentifier
   Splice(QEPrimal * a, QEPrimal * b);
-
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
-  // End concept checking
-#endif
 
   // for reusability of a mesh in the MeshToMesh filter
   void
@@ -485,22 +454,23 @@ public:
 
 protected:
   /** Constructor and Destructor. */
+  /** @ITKStartGrouping */
   QuadEdgeMesh();
   ~QuadEdgeMesh() override;
-
+  /** @ITKEndGrouping */
   /** Release the memory of each one of the cells independently. */
   virtual void
   ClearCellsContainer();
 
-  CellsContainerPointer m_EdgeCellsContainer;
+  CellsContainerPointer m_EdgeCellsContainer{};
 
 private:
-  CellIdentifier m_NumberOfFaces;
-  CellIdentifier m_NumberOfEdges;
+  CellIdentifier m_NumberOfFaces{};
+  CellIdentifier m_NumberOfEdges{};
 
 protected:
-  FreePointIndexesType m_FreePointIndexes;
-  FreeCellIndexesType  m_FreeCellIndexes;
+  FreePointIndexesType m_FreePointIndexes{};
+  FreeCellIndexesType  m_FreeCellIndexes{};
 };
 } // namespace itk
 

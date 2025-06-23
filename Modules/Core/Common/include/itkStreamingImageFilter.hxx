@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
  *=========================================================================*/
 #ifndef itkStreamingImageFilter_hxx
 #define itkStreamingImageFilter_hxx
-#include "itkStreamingImageFilter.h"
 #include "itkCommand.h"
 #include "itkImageAlgorithm.h"
 #include "itkImageRegionSplitterSlowDimension.h"
@@ -29,10 +28,8 @@ namespace itk
  */
 template <typename TInputImage, typename TOutputImage>
 StreamingImageFilter<TInputImage, TOutputImage>::StreamingImageFilter()
+  : m_NumberOfStreamDivisions(10) // default to 10 divisions
 {
-  // default to 10 divisions
-  m_NumberOfStreamDivisions = 10;
-
   // create default region splitter
   m_RegionSplitter = ImageRegionSplitterSlowDimension::New();
 }
@@ -118,13 +115,12 @@ StreamingImageFilter<TInputImage, TOutputImage>::UpdateOutputData(DataObject * i
   const itk::ProcessObject::DataObjectPointerArraySizeType ninputs = this->GetNumberOfValidRequiredInputs();
   if (ninputs < this->GetNumberOfRequiredInputs())
   {
-    itkExceptionMacro(<< "At least " << this->GetNumberOfRequiredInputs() << " inputs are required but only " << ninputs
-                      << " are specified.");
-    return;
+    itkExceptionMacro("At least " << this->GetNumberOfRequiredInputs() << " inputs are required but only " << ninputs
+                                  << " are specified.");
   }
 
   /**
-   * Tell all Observers that the filter is starting, before emiting
+   * Tell all Observers that the filter is starting, before emitting
    * the 0.0 Progress event
    */
   this->InvokeEvent(StartEvent());
@@ -153,10 +149,9 @@ StreamingImageFilter<TInputImage, TOutputImage>::UpdateOutputData(DataObject * i
    * minimum of what the user specified via SetNumberOfStreamDivisions()
    * and what the Splitter thinks is a reasonable value.
    */
-  unsigned int numDivisions, numDivisionsFromSplitter;
-
-  numDivisions = m_NumberOfStreamDivisions;
-  numDivisionsFromSplitter = m_RegionSplitter->GetNumberOfSplits(outputRegion, m_NumberOfStreamDivisions);
+  unsigned int       numDivisions = m_NumberOfStreamDivisions;
+  const unsigned int numDivisionsFromSplitter =
+    m_RegionSplitter->GetNumberOfSplits(outputRegion, m_NumberOfStreamDivisions);
   if (numDivisionsFromSplitter < numDivisions)
   {
     numDivisions = numDivisionsFromSplitter;

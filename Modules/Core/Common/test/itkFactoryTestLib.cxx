@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,13 +37,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(TestImportImageContainer);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(TestImportImageContainer, ImportImageContainer);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(TestImportImageContainer);
 
-  using ElementIdentifier = typename Superclass::ElementIdentifier;
-  using Element = typename Superclass::Element;
-
-  using Allocator = std::allocator<TElement>;
+  using typename Superclass::ElementIdentifier;
+  using typename Superclass::Element;
 
   // Methods from itkObject
   virtual ~TestImportImageContainer()
@@ -67,21 +65,9 @@ protected:
     TElement * data;
     try
     {
-      // allocate normally only requires 1 argument.
-      // MSVC 6.0 makes it require 2, we set the second to be
-      // a null pointer which means no allocation hint
-      // Sun cc compiler needs a cast to assign a void pointer to another pointer
-      data = static_cast<TElement *>(m_Allocator.allocate(size, 0));
-      if (data)
-      {
-        new (data) Element[size];
-      }
+      data = new Element[size];
     }
     catch (...)
-    {
-      data = 0;
-    }
-    if (!data)
     {
       // We cannot construct an error string here because we may be out
       // of memory.  Do not use the exception macro.
@@ -91,7 +77,7 @@ protected:
     m_TotalSize = size * sizeof(TElement);
     itkTotalMemoryUsed += m_TotalSize;
 
-    m_MemoryAllocatedByAllocator = true;
+    m_MemoryAllocatedByTestImportImageContainer = true;
 
     std::cout << "TestImportImageContainer: Total memory used is " << itkTotalMemoryUsed << " bytes" << std::endl;
 
@@ -105,16 +91,9 @@ protected:
               << typeid(TElement).name() << " totaling " << sizeof(TElement) * this->Capacity() << " bytes"
               << std::endl;
 
-    if (m_MemoryAllocatedByAllocator)
+    if (m_MemoryAllocatedByTestImportImageContainer)
     {
-      TElement *             ptr = this->GetImportPointer();
-      const TElement * const end = ptr + this->Capacity();
-      for (TElement * base = ptr; base < end; ++base)
-      {
-        m_Allocator.destroy(base);
-      }
-      m_Allocator.deallocate(ptr, this->Capacity());
-
+      delete[] this->GetImportPointer();
       this->SetImportPointer(0);
       this->SetCapacity(0);
       this->SetSize(0);
@@ -130,8 +109,7 @@ protected:
 private:
   mutable TElementIdentifier m_TotalSize;
 
-  mutable Allocator m_Allocator;
-  mutable bool      m_MemoryAllocatedByAllocator{ false };
+  mutable bool m_MemoryAllocatedByTestImportImageContainer{ false };
 };
 
 class ImportImageContainerFactory : public itk::ObjectFactoryBase
@@ -159,23 +137,23 @@ public:
   /** Method for class instantiation. */
   itkFactorylessNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImportImageContainerFactory, itk::ObjectFactoryBase);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ImportImageContainerFactory);
 
   /** Register one factory of this type  */
   static void
   RegisterOneFactory()
   {
-    ImportImageContainerFactory::Pointer factory = ImportImageContainerFactory::New();
+    auto factory = ImportImageContainerFactory::New();
     itk::ObjectFactoryBase::RegisterFactory(factory);
   }
 
 private:
-#define OverrideTypeMacro(t)                                                                                           \
-  this->RegisterOverride(typeid(itk::ImportImageContainer<unsigned long, t>).name(),                                   \
-                         typeid(TestImportImageContainer<unsigned long, t>).name(),                                    \
-                         "Test ImportImageContainerOverride",                                                          \
-                         true,                                                                                         \
+#define OverrideTypeMacro(t)                                                         \
+  this->RegisterOverride(typeid(itk::ImportImageContainer<unsigned long, t>).name(), \
+                         typeid(TestImportImageContainer<unsigned long, t>).name(),  \
+                         "Test ImportImageContainerOverride",                        \
+                         true,                                                       \
                          itk::CreateObjectFunction<TestImportImageContainer<unsigned long, t>>::New())
 
 

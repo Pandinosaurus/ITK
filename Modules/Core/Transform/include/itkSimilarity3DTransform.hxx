@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@
 #ifndef itkSimilarity3DTransform_hxx
 #define itkSimilarity3DTransform_hxx
 
-#include "itkSimilarity3DTransform.h"
 #include "itkMath.h"
 #include "vnl/vnl_det.h"
 
@@ -38,6 +37,7 @@ Similarity3DTransform<TParametersValueType>::Similarity3DTransform(unsigned int 
   , m_Scale(1.0)
 {}
 
+#if !defined(ITK_LEGACY_REMOVE)
 // Constructor with arguments
 template <typename TParametersValueType>
 Similarity3DTransform<TParametersValueType>::Similarity3DTransform(const MatrixType &       matrix,
@@ -45,6 +45,7 @@ Similarity3DTransform<TParametersValueType>::Similarity3DTransform(const MatrixT
   : Superclass(matrix, offset)
   , m_Scale(1.0)
 {}
+#endif
 
 // / Set the parameters to the IdentityTransform
 template <typename TParametersValueType>
@@ -62,6 +63,7 @@ Similarity3DTransform<TParametersValueType>::SetScale(ScaleType scale)
 {
   m_Scale = scale;
   this->ComputeMatrix();
+  this->ComputeOffset();
 }
 
 // Directly set the matrix
@@ -82,11 +84,11 @@ Similarity3DTransform<TParametersValueType>::SetMatrix(const MatrixType & matrix
   // multiplied by the scale factor, then its determinant
   // must be equal to the cube of the scale factor.
   //
-  double det = vnl_det(matrix.GetVnlMatrix());
+  const double det = vnl_det(matrix.GetVnlMatrix());
 
   if (det == 0.0)
   {
-    itkExceptionMacro(<< "Attempting to set a matrix with a zero determinant");
+    itkExceptionMacro("Attempting to set a matrix with a zero determinant");
   }
 
   //
@@ -94,7 +96,7 @@ Similarity3DTransform<TParametersValueType>::SetMatrix(const MatrixType & matrix
   // It will imply a reflection of the coordinate system.
   //
 
-  double s = itk::Math::cbrt(det);
+  const double s = itk::Math::cbrt(det);
 
   //
   // A negative scale is not acceptable
@@ -102,7 +104,7 @@ Similarity3DTransform<TParametersValueType>::SetMatrix(const MatrixType & matrix
   //
   if (s <= 0.0)
   {
-    itkExceptionMacro(<< "Attempting to set a matrix with a negative trace");
+    itkExceptionMacro("Attempting to set a matrix with a negative trace");
   }
 
   MatrixType testForOrthogonal = matrix;
@@ -110,7 +112,7 @@ Similarity3DTransform<TParametersValueType>::SetMatrix(const MatrixType & matrix
 
   if (!this->MatrixIsOrthogonal(testForOrthogonal, tolerance))
   {
-    itkExceptionMacro(<< "Attempting to set a non-orthogonal matrix (after removing scaling)");
+    itkExceptionMacro("Attempting to set a non-orthogonal matrix (after removing scaling)");
   }
 
   using Baseclass = MatrixOffsetTransformBase<TParametersValueType, 3, 3>;
@@ -122,7 +124,7 @@ template <typename TParametersValueType>
 void
 Similarity3DTransform<TParametersValueType>::SetParameters(const ParametersType & parameters)
 {
-  itkDebugMacro(<< "Setting parameters " << parameters);
+  itkDebugMacro("Setting parameters " << parameters);
 
   // Save parameters. Needed for proper operation of TransformUpdateParameters.
   if (&parameters != &(this->m_Parameters))
@@ -145,7 +147,7 @@ Similarity3DTransform<TParametersValueType>::SetParameters(const ParametersType 
     norm = std::sqrt(norm);
   }
 
-  double epsilon = 1e-10;
+  constexpr double epsilon = 1e-10;
   if (norm >= 1.0 - epsilon)
   {
     axis = axis / (norm + epsilon * norm);
@@ -156,7 +158,7 @@ Similarity3DTransform<TParametersValueType>::SetParameters(const ParametersType 
   m_Scale = parameters[6]; // must be set before calling ComputeMatrix();
   this->ComputeMatrix();
 
-  itkDebugMacro(<< "Versor is now " << this->GetVersor());
+  itkDebugMacro("Versor is now " << this->GetVersor());
 
   // Transfer the translation part
   TranslationType newTranslation;
@@ -170,7 +172,7 @@ Similarity3DTransform<TParametersValueType>::SetParameters(const ParametersType 
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 
-  itkDebugMacro(<< "After setting parameters ");
+  itkDebugMacro("After setting parameters ");
 }
 
 //
@@ -184,10 +186,10 @@ Similarity3DTransform<TParametersValueType>::SetParameters(const ParametersType 
 //
 
 template <typename TParametersValueType>
-const typename Similarity3DTransform<TParametersValueType>::ParametersType &
-Similarity3DTransform<TParametersValueType>::GetParameters() const
+auto
+Similarity3DTransform<TParametersValueType>::GetParameters() const -> const ParametersType &
 {
-  itkDebugMacro(<< "Getting parameters ");
+  itkDebugMacro("Getting parameters ");
 
   this->m_Parameters[0] = this->GetVersor().GetX();
   this->m_Parameters[1] = this->GetVersor().GetY();
@@ -200,7 +202,7 @@ Similarity3DTransform<TParametersValueType>::GetParameters() const
 
   this->m_Parameters[6] = this->GetScale();
 
-  itkDebugMacro(<< "After getting parameters " << this->m_Parameters);
+  itkDebugMacro("After getting parameters " << this->m_Parameters);
 
   return this->m_Parameters;
 }
@@ -296,13 +298,13 @@ Similarity3DTransform<TParametersValueType>::ComputeMatrixParameters()
   this->SetVarVersor(v);
 }
 
-// Print self
 template <typename TParametersValueType>
 void
 Similarity3DTransform<TParametersValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "Scale = " << m_Scale << std::endl;
+
+  os << indent << "Scale: " << static_cast<typename NumericTraits<ScaleType>::PrintType>(m_Scale) << std::endl;
 }
 
 } // namespace itk

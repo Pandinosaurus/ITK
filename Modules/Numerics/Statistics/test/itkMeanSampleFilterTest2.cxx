@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,24 +28,23 @@ itkMeanSampleFilterTest2(int, char *[])
 
   constexpr unsigned int MeasurementVectorSize = 2;
   constexpr unsigned int numberOfMeasurementVectors = 2;
-  unsigned int           counter;
 
   using MeasurementVectorType = itk::FixedArray<int, MeasurementVectorSize>;
 
   using SampleType = itk::Statistics::ListSample<MeasurementVectorType>;
 
-  SampleType::Pointer sample = SampleType::New();
+  auto sample = SampleType::New();
 
   sample->SetMeasurementVectorSize(MeasurementVectorSize);
 
   MeasurementVectorType measure;
 
-  counter = 0;
+  unsigned int counter = 0;
 
   std::cout << "Input sample values " << std::endl;
   while (counter < numberOfMeasurementVectors)
   {
-    for (unsigned int i = 0; i < MeasurementVectorSize; i++)
+    for (unsigned int i = 0; i < MeasurementVectorSize; ++i)
     {
       measure[i] = counter;
     }
@@ -56,7 +55,7 @@ itkMeanSampleFilterTest2(int, char *[])
 
   using FilterType = itk::Statistics::MeanSampleFilter<SampleType>;
 
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   filter->SetInput(sample);
 
@@ -77,13 +76,14 @@ itkMeanSampleFilterTest2(int, char *[])
   expectedMean[0] = 0.5;
   expectedMean[1] = 0.5;
 
-  std::cout << meanOutput[0] << " " << expectedMean[0] << " " << meanOutput[1] << " " << expectedMean[1] << " "
+  std::cout << meanOutput[0] << ' ' << expectedMean[0] << ' ' << meanOutput[1] << ' ' << expectedMean[1] << ' '
             << std::endl;
 
   // FilterType::MeasurementVectorType::ValueType is an int in this case
-  FilterType::MeasurementVectorType::ValueType epsilon = 0;
+  constexpr FilterType::MeasurementVectorType::ValueType epsilon = 0;
 
-  if ((std::fabs(meanOutput[0] - expectedMean[0]) > epsilon) || (std::fabs(meanOutput[1] - expectedMean[1]) > epsilon))
+  if ((itk::Math::abs(meanOutput[0] - expectedMean[0]) > epsilon) ||
+      (itk::Math::abs(meanOutput[1] - expectedMean[1]) > epsilon))
   {
     pass = false;
     failureMeassage = "The result is not what is expected";

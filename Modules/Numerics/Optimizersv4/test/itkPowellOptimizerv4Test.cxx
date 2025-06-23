@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,15 @@
  *=========================================================================*/
 
 #include "itkPowellOptimizerv4.h"
+#include "itkTestingMacros.h"
 
+namespace
+{
 int POWELL_CALLS_TO_GET_VALUE = 0;
+}
 
 /**
- *  The objectif function is the quadratic form:
+ *  The objective function is the quadratic form:
  *
  *  1/2 x^T A x - b^T x
  *
@@ -55,21 +59,21 @@ public:
   using MeasureType = Superclass::MeasureType;
 
 
-  PowellBoundedMetric() { m_HasLocalSupport = false; }
+  PowellBoundedMetric() = default;
 
   MeasureType
   GetValue() const override
   {
     ++POWELL_CALLS_TO_GET_VALUE;
 
-    double x = this->m_Parameters[0];
-    double y = m_Parameters[1];
+    const double x = this->m_Parameters[0];
+    const double y = m_Parameters[1];
 
     std::cout << "      GetValue( ";
-    std::cout << x << " ";
+    std::cout << x << ' ';
     std::cout << y << ") = ";
 
-    MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
+    const MeasureType measure = 0.5 * (3 * x * x + 4 * x * y + 6 * y * y) - 2 * x + 8 * y;
 
     std::cout << measure << std::endl;
 
@@ -135,24 +139,33 @@ public:
 
 private:
   ParametersType m_Parameters;
-  bool           m_HasLocalSupport;
+  bool           m_HasLocalSupport{ false };
 };
 
 
 int
-itkPowellOptimizerv4Test(int, char *[])
+itkPowellOptimizerv4Test(int argc, char * argv[])
 {
-  std::cout << "PowellOptimizerv4 Test ";
-  std::cout << std::endl << std::endl;
+  if (argc != 8)
+  {
+    std::cerr << "Missing parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " stepLength stepTolerance valueTolerance maximumIteration maximumLineIteration "
+                 "catchGetValueException metricWorstPossibleValue"
+              << std::endl;
+    return EXIT_FAILURE;
+  }
 
   using OptimizerType = itk::PowellOptimizerv4<double>;
 
-  // Declaration of a itkOptimizer
-  OptimizerType::Pointer itkOptimizer = OptimizerType::New();
+  // Declaration of an itkOptimizer
+  auto itkOptimizer = OptimizerType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(itkOptimizer, PowellOptimizerv4, ObjectToObjectOptimizerBaseTemplate);
 
 
   // Declaration of the CostFunction
-  PowellBoundedMetric::Pointer metric = PowellBoundedMetric::New();
+  auto metric = PowellBoundedMetric::New();
 
 
   itkOptimizer->SetMetric(metric);
@@ -173,48 +186,59 @@ itkPowellOptimizerv4Test(int, char *[])
   std::cout << "Set metric parameters." << std::endl;
   metric->SetParameters(initialPosition);
 
-  itkOptimizer->SetStepLength(10);
-  itkOptimizer->SetStepTolerance(0.01);
-  itkOptimizer->SetValueTolerance(0.1);
-  itkOptimizer->SetMaximumIteration(100);
 
-  try
-  {
-    itkOptimizer->StartOptimization();
-  }
-  catch (const itk::ExceptionObject & e)
-  {
-    std::cout << "Exception thrown ! " << std::endl;
-    std::cout << "An error occurred during Optimization" << std::endl;
-    std::cout << "Location    = " << e.GetLocation() << std::endl;
-    std::cout << "Description = " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-  }
+  auto stepLength = std::stod(argv[1]);
+  itkOptimizer->SetStepLength(stepLength);
+  ITK_TEST_SET_GET_VALUE(stepLength, itkOptimizer->GetStepLength());
+
+  auto stepTolerance = std::stod(argv[2]);
+  itkOptimizer->SetStepTolerance(stepTolerance);
+  ITK_TEST_SET_GET_VALUE(stepTolerance, itkOptimizer->GetStepTolerance());
+
+  auto valueTolerance = std::stod(argv[3]);
+  itkOptimizer->SetValueTolerance(valueTolerance);
+  ITK_TEST_SET_GET_VALUE(valueTolerance, itkOptimizer->GetValueTolerance());
+
+  auto maximumIteration = static_cast<unsigned int>(std::stoi(argv[4]));
+  itkOptimizer->SetMaximumIteration(maximumIteration);
+  ITK_TEST_SET_GET_VALUE(maximumIteration, itkOptimizer->GetMaximumIteration());
+
+  auto maximumLineIteration = static_cast<unsigned int>(std::stoi(argv[5]));
+  itkOptimizer->SetMaximumLineIteration(maximumLineIteration);
+  ITK_TEST_SET_GET_VALUE(maximumLineIteration, itkOptimizer->GetMaximumLineIteration());
+
+  auto catchGetValueException = static_cast<bool>(std::stoi(argv[6]));
+  ITK_TEST_SET_GET_BOOLEAN(itkOptimizer, CatchGetValueException, catchGetValueException);
+
+  auto metricWorstPossibleValue = std::stod(argv[7]);
+  itkOptimizer->SetMetricWorstPossibleValue(metricWorstPossibleValue);
+  ITK_TEST_SET_GET_VALUE(metricWorstPossibleValue, itkOptimizer->GetMetricWorstPossibleValue());
+
+  ITK_TRY_EXPECT_NO_EXCEPTION(itkOptimizer->StartOptimization());
+
 
   ParametersType finalPosition = itkOptimizer->GetCurrentPosition();
-  std::cout << "Solution        = (";
-  std::cout << finalPosition[0] << ",";
-  std::cout << finalPosition[1] << ")" << std::endl;
+  std::cout << "Solution        = (" << finalPosition[0] << ',' << finalPosition[1] << ')' << std::endl;
   std::cout << "StopConditionDescription: " << itkOptimizer->GetStopConditionDescription() << std::endl;
 
   //
   // check results to see if it is within range
   //
-  bool   pass = true;
-  double trueParameters[2] = { 2, -2 };
-  for (unsigned int j = 0; j < 2; j++)
+  bool             pass = true;
+  constexpr double trueParameters[2] = { 2, -2 };
+  for (unsigned int j = 0; j < 2; ++j)
   {
     if (itk::Math::abs(finalPosition[j] - trueParameters[j]) > 0.01)
+    {
       pass = false;
+    }
   }
 
   // Exercise various member functions.
-  std::cout << "StepLength: " << itkOptimizer->GetStepLength();
-  std::cout << std::endl;
-  std::cout << "CurrentIteration: " << itkOptimizer->GetCurrentIteration();
-  std::cout << std::endl;
-
-  itkOptimizer->Print(std::cout);
+  std::cout << "CurrentIteration: " << itkOptimizer->GetCurrentIteration() << std::endl;
+  std::cout << "CurrentCost: " << itkOptimizer->GetCurrentCost() << std::endl;
+  std::cout << "CurrentCost (through GetValue): " << itkOptimizer->GetValue() << std::endl;
+  std::cout << "CurrentLineIteration: " << itkOptimizer->GetCurrentLineIteration() << std::endl;
 
   std::cout << "Calls to GetValue = " << POWELL_CALLS_TO_GET_VALUE << std::endl;
 

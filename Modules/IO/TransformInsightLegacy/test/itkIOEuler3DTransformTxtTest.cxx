@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,18 +36,17 @@ itkIOEuler3DTransformTxtTest(int argc, char * argv[])
   itk::ObjectFactoryBase::RegisterFactory(itk::TxtTransformIOFactory::New());
 
   using TransformType = itk::Euler3DTransform<double>;
-  TransformType::Pointer oldStyleInput, newStyleInput;
-
   using ReaderType = itk::TransformFileReaderTemplate<double>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
 
   using WriterType = itk::TransformFileWriterTemplate<double>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
 
   // read old style format in
   reader->SetFileName(argv[1]);
   reader->Update();
-  oldStyleInput = static_cast<TransformType *>((reader->GetTransformList()->begin())->GetPointer());
+  const TransformType::Pointer oldStyleInput =
+    static_cast<TransformType *>((reader->GetTransformList()->begin())->GetPointer());
 
   // modify the interpretation of the Euler angles
   oldStyleInput->SetComputeZYX(true);
@@ -60,7 +59,8 @@ itkIOEuler3DTransformTxtTest(int argc, char * argv[])
   // read new style format back in
   reader->SetFileName(argv[2]);
   reader->Update();
-  newStyleInput = static_cast<TransformType *>((reader->GetTransformList()->begin())->GetPointer());
+  const TransformType::Pointer newStyleInput =
+    static_cast<TransformType *>((reader->GetTransformList()->begin())->GetPointer());
 
   const TransformType::MatrixType & oldStyleMat = oldStyleInput->GetMatrix();
   const TransformType::MatrixType & newStyleMat = newStyleInput->GetMatrix();

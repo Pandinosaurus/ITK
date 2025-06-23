@@ -27,7 +27,7 @@ class TransferSyntax;
 /**
  * \brief PixelFormat
  * \details 
- * By default the Pixel Type will be instanciated with the following
+ * By default the Pixel Type will be instantiated with the following
  * parameters:
  * - SamplesPerPixel : 1
  * - BitsAllocated : 8
@@ -47,7 +47,7 @@ class GDCM_EXPORT PixelFormat
   friend class Bitmap;
   friend std::ostream& operator<<(std::ostream &_os, const PixelFormat &pf);
 public:
-  // When adding a type please add its dual type (its unsigned conterpart)
+  // When adding a type please add its dual type (its unsigned counterpart)
   typedef enum {
     UINT8,
     INT8,

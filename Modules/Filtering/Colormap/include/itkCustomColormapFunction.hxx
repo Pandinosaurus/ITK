@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,18 +18,14 @@
 #ifndef itkCustomColormapFunction_hxx
 #define itkCustomColormapFunction_hxx
 
-#include "itkCustomColormapFunction.h"
-
-namespace itk
-{
-namespace Function
+namespace itk::Function
 {
 template <typename TScalar, typename TRGBPixel>
-typename CustomColormapFunction<TScalar, TRGBPixel>::RGBPixelType
-CustomColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
+auto
+CustomColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const -> RGBPixelType
 {
   // Map the input scalar between [0, 1].
-  RealType value = this->RescaleInputValue(v);
+  const RealType value = this->RescaleInputValue(v);
 
   // Setup some arrays and apply color mapping
   enum ColorNames
@@ -43,8 +39,8 @@ CustomColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
 
   for (size_t color = RED; color <= BLUE; ++color) // Go through all the colors
   {
-    size_t size = ColorChannel[color]->size();
-    auto   index = Math::Ceil<size_t, RealType>(value * static_cast<RealType>(size - 1));
+    const size_t size = ColorChannel[color]->size();
+    auto         index = Math::Ceil<size_t, RealType>(value * static_cast<RealType>(size - 1));
 
     if (size == 1 || index < 1)
     {
@@ -52,9 +48,9 @@ CustomColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
     }
     else if (size > 1)
     {
-      RealType p1 = (*ColorChannel[color])[index];
-      RealType m1 = (*ColorChannel[color])[index - 1u];
-      RealType d = p1 - m1;
+      const RealType p1 = (*ColorChannel[color])[index];
+      const RealType m1 = (*ColorChannel[color])[index - 1u];
+      const RealType d = p1 - m1;
       RGBValue[color] = d * (size - 1) * (value - (index - 1) / static_cast<RealType>(size - 1)) + m1;
     }
   }
@@ -63,14 +59,13 @@ CustomColormapFunction<TScalar, TRGBPixel>::operator()(const TScalar & v) const
   RGBPixelType pixel;
   NumericTraits<TRGBPixel>::SetLength(pixel, 3);
 
-  for (auto color = static_cast<size_t>(RED); color <= static_cast<size_t>(BLUE); ++color)
+  for (size_t color{ RED }; color <= size_t{ BLUE }; ++color)
   {
     pixel[color] = this->RescaleRGBComponentValue(RGBValue[color]);
   }
 
   return pixel;
 }
-} // end namespace Function
-} // end namespace itk
+} // namespace itk::Function
 
 #endif

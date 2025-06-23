@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,13 +30,7 @@ namespace itk
  * for each voxel between two images, with speed optimizations for dense
  * registration.
  *
- * Please cite this reference for more details:
- *
- * Brian B. Avants, Nicholas J. Tustison, Gang Song, Philip A. Cook,
- * Arno Klein, James C. Gee, A reproducible evaluation of ANTs similarity metric
- * performance in brain image registration, NeuroImage, Volume 54, Issue 3,
- * 1 February 2011, Pages 2033-2044, ISSN 1053-8119,
- * DOI: 10.1016/j.neuroimage.2010.09.025.
+ * Please see \cite avants2011 for more details.
  *
  * Around each voxel, the neighborhood is defined as a N-Dimensional
  * rectangle centered at the voxel. The size of the rectangle is 2*radius+1.
@@ -84,11 +78,6 @@ namespace itk
  * derived classes, operate on meshes, images, etc.  This class computes a
  * value that measures the similarity between the two objects.
  *
- * \note Sparse sampling is not supported by this metric. An exception will be
- * thrown if m_UseSampledPointSet is set. Support for sparse sampling
- * will require a parallel implementation of the neighborhood scanning, which
- * currently caches information as the neighborhood window moves.
- *
  * \ingroup ITKMetricsv4
  */
 template <typename TFixedImage,
@@ -113,40 +102,40 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(Self, Superclass);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(ANTSNeighborhoodCorrelationImageToImageMetricv4);
 
   /** superclass types */
-  using MeasureType = typename Superclass::MeasureType;
-  using DerivativeType = typename Superclass::DerivativeType;
-  using DerivativeValueType = typename Superclass::DerivativeValueType;
-  using VirtualPointType = typename Superclass::VirtualPointType;
-  using FixedImagePointType = typename Superclass::FixedImagePointType;
-  using FixedImagePixelType = typename Superclass::FixedImagePixelType;
-  using FixedTransformType = typename Superclass::FixedTransformType;
-  using FixedImageGradientType = typename Superclass::FixedImageGradientType;
+  using typename Superclass::MeasureType;
+  using typename Superclass::DerivativeType;
+  using typename Superclass::DerivativeValueType;
+  using typename Superclass::VirtualPointType;
+  using typename Superclass::FixedImagePointType;
+  using typename Superclass::FixedImagePixelType;
+  using typename Superclass::FixedTransformType;
+  using typename Superclass::FixedImageGradientType;
   using FixedImageJacobianType = typename FixedTransformType::JacobianType;
 
-  using MovingImagePointType = typename Superclass::MovingImagePointType;
-  using MovingImagePixelType = typename Superclass::MovingImagePixelType;
-  using MovingImageGradientType = typename Superclass::MovingImageGradientType;
-  using MovingTransformType = typename Superclass::MovingTransformType;
+  using typename Superclass::MovingImagePointType;
+  using typename Superclass::MovingImagePixelType;
+  using typename Superclass::MovingImageGradientType;
+  using typename Superclass::MovingTransformType;
   using MovingImageJacobianType = typename MovingTransformType::JacobianType;
-  using JacobianType = typename Superclass::JacobianType;
+  using typename Superclass::JacobianType;
 
-  using VirtualImageGradientType = typename Superclass::VirtualImageGradientType;
+  using typename Superclass::VirtualImageGradientType;
 
-  using FixedImageType = typename Superclass::FixedImageType;
-  using MovingImageType = typename Superclass::MovingImageType;
+  using typename Superclass::FixedImageType;
+  using typename Superclass::MovingImageType;
   using VirtualImageType = typename Superclass::VirtualImageType;
-  using FixedOutputPointType = typename Superclass::FixedOutputPointType;
-  using MovingOutputPointType = typename Superclass::MovingOutputPointType;
+  using typename Superclass::FixedOutputPointType;
+  using typename Superclass::MovingOutputPointType;
 
   using FixedTransformJacobianType = typename Superclass::FixedTransformType::JacobianType;
   using MovingTransformJacobianType = typename Superclass::MovingTransformType::JacobianType;
 
-  using NumberOfParametersType = typename Superclass::NumberOfParametersType;
-  using ImageDimensionType = typename Superclass::ImageDimensionType;
+  using typename Superclass::NumberOfParametersType;
+  using typename Superclass::ImageDimensionType;
 
   using ImageRegionType = typename VirtualImageType::RegionType;
   using RadiusType = typename VirtualImageType::SizeType;
@@ -198,7 +187,7 @@ protected:
 
 private:
   // Radius of the neighborhood window centered at each pixel
-  RadiusType m_Radius;
+  RadiusType m_Radius{};
 };
 
 } // end namespace itk

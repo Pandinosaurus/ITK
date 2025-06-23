@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 namespace itk
 {
 /**
- *\class RegionOfInterestImageFilter
+ * \class RegionOfInterestImageFilter
  * \brief Extract a region of interest from the input image.
  *
  *  This filter produces an output image of the same dimension as the input
@@ -61,13 +61,13 @@ public:
   using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
-  using InputImageRegionType = typename Superclass::InputImageRegionType;
+  using typename Superclass::InputImageRegionType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(RegionOfInterestImageFilter, ImageToImageFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(RegionOfInterestImageFilter);
 
   /** Typedef to describe the input image region types. */
   using RegionType = typename TInputImage::RegionType;
@@ -79,19 +79,16 @@ public:
   using InputImagePixelType = typename TInputImage::PixelType;
 
   /** Set/Get the output image region. */
+  /** @ITKStartGrouping */
   itkSetMacro(RegionOfInterest, RegionType);
   itkGetConstMacro(RegionOfInterest, RegionType);
-
+  /** @ITKEndGrouping */
   /** ImageDimension enumeration */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-#ifdef ITK_USE_CONCEPT_CHECKING
-  // Begin concept checking
   itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  // End concept checking
-#endif
 
 protected:
   RegionOfInterestImageFilter();
@@ -128,7 +125,7 @@ protected:
   DynamicThreadedGenerateData(const RegionType & outputRegionForThread) override;
 
 private:
-  RegionType m_RegionOfInterest;
+  RegionType m_RegionOfInterest{};
 };
 } // end namespace itk
 

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,8 +67,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(BinaryMaskToNarrowBandPointSetFilter, ImageToMeshFilter);
+  /** \see LightObject::GetNameOfClass() */
+  itkOverrideGetNameOfClassMacro(BinaryMaskToNarrowBandPointSetFilter);
 
   /** Some type alias associated with the input images. */
   using InputImageType = TInputImage;
@@ -108,7 +108,7 @@ public:
   using NodeType = typename NodeContainer::Element;
 
   /** The ReinitializeLevelSetImageFilter expect the input to be binary
-      within the range [-0.5:0.5]. This filte will scale the input to
+      within the range [-0.5:0.5]. This filter will scale the input to
       fit in this range. */
   using RescaleFilterType = RescaleIntensityImageFilter<InputImageType, RealImageType>;
 
@@ -126,9 +126,10 @@ public:
       maximum distance from the binary mask edges to
       the points in the narrow band. The full width of
       the full narrow band will be double of this value. */
+  /** @ITKStartGrouping */
   itkSetMacro(BandWidth, float);
   itkGetConstMacro(BandWidth, float);
-
+  /** @ITKEndGrouping */
 protected:
   BinaryMaskToNarrowBandPointSetFilter();
   ~BinaryMaskToNarrowBandPointSetFilter() override = default;
@@ -141,13 +142,14 @@ protected:
 
   /** Some type alias associated with the output mesh. */
   void
-  GenerateOutputInformation() override;
+  GenerateOutputInformation() override
+  {}
 
 private:
-  DistanceFilterPointer m_DistanceFilter;
-  RescaleFilterPointer  m_RescaleFilter;
+  DistanceFilterPointer m_DistanceFilter{};
+  RescaleFilterPointer  m_RescaleFilter{};
 
-  float m_BandWidth;
+  float m_BandWidth{};
 };
 } // end namespace itk
 

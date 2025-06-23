@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,51 +22,42 @@
 #include "itkBinaryFillholeImageFilter.h"
 #include "itkTestingMacros.h"
 
-
-int
-itkBinaryFillholeImageFilterTest1(int argc, char * argv[])
+namespace // Anonymous namespace avoids name collisions
 {
-
-  if (argc != 5)
-  {
-    std::cerr << "Missing Parameters." << std::endl;
-    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
-              << " inputFileName outputFileName fullyConnected foregroundValue" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  constexpr unsigned int Dimension = 2;
-
+template <unsigned Dimension>
+int
+DoIt(char * argv[])
+{
   using PixelType = unsigned char;
 
   using ImageType = itk::Image<PixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(reader->Update());
 
 
   using FilterType = itk::BinaryFillholeImageFilter<ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, BinaryFillholeImageFilter, ImageToImageFilter);
 
 
-  itk::SimpleFilterWatcher watcher(filter, "filter");
+  const itk::SimpleFilterWatcher watcher(filter, "filter");
 
   auto fullyConnected = static_cast<bool>(std::stoi(argv[3]));
   ITK_TEST_SET_GET_BOOLEAN(filter, FullyConnected, fullyConnected);
 
-  typename FilterType::InputImagePixelType foregroundValue = std::stoi(argv[4]);
+  const typename FilterType::InputImagePixelType foregroundValue = std::stoi(argv[4]);
   filter->SetForegroundValue(foregroundValue);
   ITK_TEST_SET_GET_VALUE(foregroundValue, filter->GetForegroundValue());
 
   filter->SetInput(reader->GetOutput());
 
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);
 
@@ -75,4 +66,35 @@ itkBinaryFillholeImageFilterTest1(int argc, char * argv[])
 
   std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
+}
+} // namespace
+
+int
+itkBinaryFillholeImageFilterTest1(int argc, char * argv[])
+{
+  if (argc != 5)
+  {
+    std::cerr << "Missing Parameters." << std::endl;
+    std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv)
+              << " inputFileName outputFileName fullyConnected foregroundValue" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  using ImageType = itk::Image<short>;
+  using ReaderType = itk::ImageFileReader<ImageType>;
+  auto reader = ReaderType::New();
+  reader->SetFileName(argv[1]);
+  ITK_TRY_EXPECT_NO_EXCEPTION(reader->UpdateOutputInformation());
+
+  const unsigned dim = reader->GetImageIO()->GetNumberOfDimensions();
+  switch (dim)
+  {
+    case 2:
+      return DoIt<2>(argv);
+    case 3:
+      return DoIt<3>(argv);
+    default:
+      itkGenericExceptionMacro("Only image dimensions 2 and 3 are supported, but " << argv[1]
+                                                                                   << " has dimension: " << dim);
+  }
 }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,7 @@
 #ifndef itkScalarImageToCooccurrenceListSampleFilter_hxx
 #define itkScalarImageToCooccurrenceListSampleFilter_hxx
 
-#include "itkScalarImageToCooccurrenceListSampleFilter.h"
-
-namespace itk
-{
-namespace Statistics
+namespace itk::Statistics
 {
 template <typename TImage>
 ScalarImageToCooccurrenceListSampleFilter<TImage>::ScalarImageToCooccurrenceListSampleFilter()
@@ -56,8 +52,8 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::GetInput() const
 }
 
 template <typename TImage>
-const typename ScalarImageToCooccurrenceListSampleFilter<TImage>::SampleType *
-ScalarImageToCooccurrenceListSampleFilter<TImage>::GetOutput() const
+auto
+ScalarImageToCooccurrenceListSampleFilter<TImage>::GetOutput() const -> const SampleType *
 {
   const auto * output = static_cast<const SampleType *>(this->ProcessObject::GetOutput(0));
 
@@ -66,7 +62,7 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::GetOutput() const
 
 template <typename TImage>
 typename ScalarImageToCooccurrenceListSampleFilter<TImage>::DataObjectPointer
-  ScalarImageToCooccurrenceListSampleFilter<TImage>::MakeOutput(DataObjectPointerArraySizeType)
+ScalarImageToCooccurrenceListSampleFilter<TImage>::MakeOutput(DataObjectPointerArraySizeType)
 {
   return SampleType::New().GetPointer();
 }
@@ -75,14 +71,11 @@ template <typename TImage>
 void
 ScalarImageToCooccurrenceListSampleFilter<TImage>::GenerateData()
 {
-  typename ShapedNeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto radius = MakeFilled<typename ShapedNeighborhoodIteratorType::RadiusType>(1);
 
   using FaceCalculatorType = itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<ImageType>;
 
-  FaceCalculatorType                                  faceCalculator;
-  typename FaceCalculatorType::FaceListType           faceList;
-  typename FaceCalculatorType::FaceListType::iterator fit;
+  FaceCalculatorType faceCalculator;
 
   using ShapeNeighborhoodIterator = typename ShapedNeighborhoodIteratorType::ConstIterator;
 
@@ -94,27 +87,24 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::GenerateData()
 
   auto * output = static_cast<SampleType *>(this->ProcessObject::GetOutput(0));
 
-  // constant for a coocurrence matrix.
+  // constant for a cooccurrence matrix.
   constexpr unsigned int measurementVectorSize = 2;
 
   output->SetMeasurementVectorSize(measurementVectorSize);
 
-  faceList = faceCalculator(input, input->GetRequestedRegion(), radius);
+  const typename FaceCalculatorType::FaceListType faceList = faceCalculator(input, input->GetRequestedRegion(), radius);
 
-  OffsetType center_offset;
-  center_offset.Fill(0);
+  constexpr OffsetType center_offset{};
 
-  bool isInside;
-
-  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  for (const auto & face : faceList)
   {
-    ShapedNeighborhoodIteratorType it(radius, input, *fit);
+    ShapedNeighborhoodIteratorType it(radius, input, face);
 
     auto iter = m_OffsetTable.begin();
     while (iter != m_OffsetTable.end())
     {
       it.ActivateOffset(*iter);
-      iter++;
+      ++iter;
     }
 
     for (it.GoToBegin(); !it.IsAtEnd(); ++it)
@@ -127,6 +117,7 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::GenerateData()
 
         // Check if the point is inside and add the measurement vector
         // only if its inside
+        bool            isInside = false;
         const PixelType pixel_intensity = it.GetPixel(ci.GetNeighborhoodIndex(), isInside);
         if (isInside)
         {
@@ -138,7 +129,7 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::GenerateData()
           coords[1] = pixel_intensity;
 
           output->PushBack(coords);
-          // std::cout << "Pushing: " << coords[0] << "\t" << coords[1] <<
+          // std::cout << "Pushing: " << coords[0] << '\t' << coords[1] <<
           // std::endl;
         }
 
@@ -155,7 +146,7 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::UseNeighbor(const OffsetType 
   // Don't add the center pixel
   bool isTheCenterPixel = true;
 
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < ImageDimension; ++i)
   {
     if (offset[i] != 0)
     {
@@ -169,7 +160,6 @@ ScalarImageToCooccurrenceListSampleFilter<TImage>::UseNeighbor(const OffsetType 
     m_OffsetTable.push_back(offset);
   }
 }
-} // end of namespace Statistics
-} // end of namespace itk
+} // namespace itk::Statistics
 
 #endif

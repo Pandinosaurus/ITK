@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@
 #ifndef itkIntensityWindowingImageFilter_hxx
 #define itkIntensityWindowingImageFilter_hxx
 
-#include "itkIntensityWindowingImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
+#include <algorithm> // For min.
 
 namespace itk
 {
@@ -50,34 +50,30 @@ IntensityWindowingImageFilter<TInputImage, TOutputImage>::SetWindowLevel(const I
                                                                          const InputPixelType & level)
 {
   using InputRealType = typename NumericTraits<InputPixelType>::RealType;
-  InputRealType tmp1, tmp2;
 
-  tmp1 = static_cast<InputRealType>(level) - (static_cast<InputRealType>(window) / 2.0);
+  InputRealType tmp1 = static_cast<InputRealType>(level) - (static_cast<InputRealType>(window) / 2.0);
   if (tmp1 < NumericTraits<InputPixelType>::NonpositiveMin())
   {
     tmp1 = 0.0;
   }
 
-  tmp2 = static_cast<InputRealType>(level) + (static_cast<InputRealType>(window) / 2.0);
-  if (tmp2 > NumericTraits<InputPixelType>::max())
-  {
-    tmp2 = NumericTraits<InputPixelType>::max();
-  }
+  InputRealType tmp2 = static_cast<InputRealType>(level) + (static_cast<InputRealType>(window) / 2.0);
+  tmp2 = std::min<InputRealType>(tmp2, NumericTraits<InputPixelType>::max());
 
   this->m_WindowMinimum = static_cast<InputPixelType>(tmp1);
   this->m_WindowMaximum = static_cast<InputPixelType>(tmp2);
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename IntensityWindowingImageFilter<TInputImage, TOutputImage>::InputPixelType
-IntensityWindowingImageFilter<TInputImage, TOutputImage>::GetWindow() const
+auto
+IntensityWindowingImageFilter<TInputImage, TOutputImage>::GetWindow() const -> InputPixelType
 {
   return this->m_WindowMaximum - this->m_WindowMinimum;
 }
 
 template <typename TInputImage, typename TOutputImage>
-typename IntensityWindowingImageFilter<TInputImage, TOutputImage>::InputPixelType
-IntensityWindowingImageFilter<TInputImage, TOutputImage>::GetLevel() const
+auto
+IntensityWindowingImageFilter<TInputImage, TOutputImage>::GetLevel() const -> InputPixelType
 {
   return (this->m_WindowMaximum + this->m_WindowMinimum) / 2;
 }

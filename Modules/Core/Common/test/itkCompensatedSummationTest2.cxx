@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,9 +60,9 @@ public:
     void
     BeforeThreadedExecution() override
     {
-      const itk::ThreadIdType numThreadsUsed = this->GetNumberOfWorkUnitsUsed();
-      this->m_PerThreadCompensatedSum.resize(numThreadsUsed);
-      for (itk::ThreadIdType i = 0; i < numThreadsUsed; ++i)
+      const itk::ThreadIdType numWorkUnitsUsed = this->GetNumberOfWorkUnitsUsed();
+      this->m_PerThreadCompensatedSum.resize(numWorkUnitsUsed);
+      for (itk::ThreadIdType i = 0; i < numWorkUnitsUsed; ++i)
       {
         this->m_PerThreadCompensatedSum[i].ResetToZero();
       }
@@ -71,10 +71,9 @@ public:
     void
     ThreadedExecution(const DomainType & subdomain, const itk::ThreadIdType threadId) override
     {
-      itk::CompensatedSummation<double> compensatedSum;
+      constexpr double value = 1.0 / 7;
       for (DomainType::IndexValueType i = subdomain[0]; i <= subdomain[1]; ++i)
       {
-        double value = itk::NumericTraits<double>::OneValue() / 7;
         this->m_PerThreadCompensatedSum[threadId].AddElement(value);
       }
     }
@@ -82,12 +81,12 @@ public:
     void
     AfterThreadedExecution() override
     {
-      this->m_Associate->m_UncompensatedSumOfThreads = itk::NumericTraits<double>::ZeroValue();
+      this->m_Associate->m_UncompensatedSumOfThreads = 0.0;
       this->m_Associate->m_CompensatedSumOfThreads.ResetToZero();
 
-      for (itk::ThreadIdType i = 0, numThreadsUsed = this->GetNumberOfWorkUnitsUsed(); i < numThreadsUsed; ++i)
+      for (itk::ThreadIdType i = 0, numWorkUnitsUsed = this->GetNumberOfWorkUnitsUsed(); i < numWorkUnitsUsed; ++i)
       {
-        double sum = this->m_PerThreadCompensatedSum[i].GetSum();
+        const double sum = this->m_PerThreadCompensatedSum[i].GetSum();
         std::cout << i << ": " << sum << std::endl;
         this->m_Associate->m_CompensatedSumOfThreads.AddElement(sum);
         this->m_Associate->m_UncompensatedSumOfThreads += sum;
@@ -99,10 +98,9 @@ public:
   }; // end TestDomainThreader class
 
   CompensatedSummationTest2Associate()
+    : m_ClassDescriptor("enclosing class")
   {
     m_TestDomainThreader = TestDomainThreader::New();
-    m_ClassDescriptor = "enclosing class";
-    m_UncompensatedSumOfThreads = 0.0;
   }
 
   double
@@ -111,7 +109,7 @@ public:
     return this->m_CompensatedSumOfThreads.GetSum();
   }
 
-  double
+  [[nodiscard]] double
   GetUncompensatedSumOfThreads() const
   {
     return this->m_UncompensatedSumOfThreads;
@@ -134,14 +132,15 @@ private:
 
   std::string                       m_ClassDescriptor;
   itk::CompensatedSummation<double> m_CompensatedSumOfThreads;
-  double                            m_UncompensatedSumOfThreads;
+  double                            m_UncompensatedSumOfThreads{ 0.0 };
 };
 
 int
 itkCompensatedSummationTest2(int, char *[])
 {
-  CompensatedSummationTest2Associate                              enclosingClass;
-  CompensatedSummationTest2Associate::TestDomainThreader::Pointer domainThreader = enclosingClass.GetDomainThreader();
+  CompensatedSummationTest2Associate                                    enclosingClass;
+  const CompensatedSummationTest2Associate::TestDomainThreader::Pointer domainThreader =
+    enclosingClass.GetDomainThreader();
 
   /* Check # of threads */
   std::cout << "GetGlobalMaximumNumberOfThreads: "
@@ -152,12 +151,12 @@ itkCompensatedSummationTest2(int, char *[])
   using DomainType = CompensatedSummationTest2Associate::TestDomainThreader::DomainType;
   DomainType domain;
 
-  itk::ThreadIdType maxNumberOfThreads = domainThreader->GetMultiThreader()->GetGlobalMaximumNumberOfThreads();
+  const itk::ThreadIdType maxNumberOfThreads = domainThreader->GetMultiThreader()->GetGlobalMaximumNumberOfThreads();
   domain[0] = 0;
   domain[1] = maxNumberOfThreads * 10000;
 
   /* Test with single thread. We should get the same result. */
-  itk::ThreadIdType numberOfThreads = 1;
+  constexpr itk::ThreadIdType numberOfThreads = 1;
   domainThreader->SetMaximumNumberOfThreads(numberOfThreads);
   domainThreader->SetNumberOfWorkUnits(numberOfThreads);
   std::cout << "Testing with " << numberOfThreads << " threads and domain " << domain << " ..." << std::endl;
@@ -184,7 +183,7 @@ itkCompensatedSummationTest2(int, char *[])
   }
 
   /* Store result as reference */
-  double referenceSum = enclosingClass.GetCompensatedSumOfThreads();
+  const double referenceSum = enclosingClass.GetCompensatedSumOfThreads();
 
   /* Test with maximum threads. We need at least three threads to see a difference. */
   if (domainThreader->GetMultiThreader()->GetGlobalMaximumNumberOfThreads() > 2)
@@ -200,7 +199,7 @@ itkCompensatedSummationTest2(int, char *[])
     if (domainThreader->GetNumberOfWorkUnitsUsed() != maxNumberOfThreads)
     {
       std::cerr << "Error: Expected to use " << maxNumberOfThreads << "threads, but used "
-                << domainThreader->GetNumberOfWorkUnitsUsed() << "." << std::endl;
+                << domainThreader->GetNumberOfWorkUnitsUsed() << '.' << std::endl;
       return EXIT_FAILURE;
     }
     std::cout << "# of digits precision in double: " << std::numeric_limits<double>::digits10 << std::endl;
@@ -218,8 +217,8 @@ itkCompensatedSummationTest2(int, char *[])
      * optimizations that were not handled by the CompensatedSummation class
      * pragmas, or perhaps because of differences in math coprocessors, or
      * something else. It's not clear. */
-    if (std::fabs(referenceSum - enclosingClass.GetCompensatedSumOfThreads()) >
-        std::fabs(referenceSum - enclosingClass.GetUncompensatedSumOfThreads()))
+    if (itk::Math::abs(referenceSum - enclosingClass.GetCompensatedSumOfThreads()) >
+        itk::Math::abs(referenceSum - enclosingClass.GetUncompensatedSumOfThreads()))
     {
       std::cerr << "Error. Expected the compensated sum of threads to be closer "
                 << "to reference than the uncompensated sum, or the same value. " << std::endl;

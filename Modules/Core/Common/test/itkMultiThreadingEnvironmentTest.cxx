@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,15 +29,16 @@ itkMultiThreadingEnvironmentTest(int argc, char * argv[])
   }
   const auto requiredValue = static_cast<unsigned int>(std::stoi(argv[1]));
 
-  itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
+  const itk::MultiThreaderBase::Pointer threader = itk::MultiThreaderBase::New();
   if (threader.IsNull())
   {
     return EXIT_FAILURE;
   }
-  if (itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads() != requiredValue)
+  const auto actualValue = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
+  if ((actualValue != requiredValue) && (actualValue != itk::ITK_MAX_THREADS))
   {
-    std::cout << "ERROR: Wrong number of maximum number of threads set from environment. " << requiredValue
-              << " != " << itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads() << std::endl;
+    std::cout << "ERROR: Wrong number of maximum number of threads set from environment. " << actualValue
+              << " != " << requiredValue << " or " << itk::ITK_MAX_THREADS << std::endl;
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,8 +54,7 @@ itkLevelSetEquationBinaryMaskTermTest(int, char *[])
   using InputImageIteratorType = itk::ImageRegionIteratorWithIndex<InputImageType>;
 
   // load binary mask
-  InputImageType::SizeType size;
-  size.Fill(50);
+  auto size = InputImageType::SizeType::Filled(50);
 
   InputImageType::PointType origin;
   origin[0] = 0.0;
@@ -65,20 +64,17 @@ itkLevelSetEquationBinaryMaskTermTest(int, char *[])
   spacing[0] = 1.0;
   spacing[1] = 1.0;
 
-  InputImageType::IndexType index;
-  index.Fill(0);
+  InputImageType::IndexType index{};
 
-  InputImageType::RegionType region;
-  region.SetIndex(index);
-  region.SetSize(size);
+  InputImageType::RegionType region{ index, size };
 
   // Binary initialization
-  InputImageType::Pointer binary = InputImageType::New();
+  auto binary = InputImageType::New();
   binary->SetRegions(region);
   binary->SetSpacing(spacing);
   binary->SetOrigin(origin);
   binary->Allocate();
-  binary->FillBuffer(itk::NumericTraits<InputPixelType>::ZeroValue());
+  binary->FillBuffer(InputPixelType{});
 
   index.Fill(10);
   size.Fill(30);
@@ -95,43 +91,47 @@ itkLevelSetEquationBinaryMaskTermTest(int, char *[])
   }
 
   // Convert binary mask to sparse level set
-  BinaryToSparseAdaptorType::Pointer adaptor1 = BinaryToSparseAdaptorType::New();
+  auto adaptor1 = BinaryToSparseAdaptorType::New();
   adaptor1->SetInputImage(binary);
   adaptor1->Initialize();
   std::cout << "Finished converting levelset1 to sparse format" << std::endl;
 
-  SparseLevelSetType::Pointer level_set1 = adaptor1->GetModifiableLevelSet();
+  const SparseLevelSetType::Pointer level_set1 = adaptor1->GetModifiableLevelSet();
 
   IdListType list_ids;
   list_ids.push_back(1);
 
-  IdListImageType::Pointer id_image = IdListImageType::New();
+  auto id_image = IdListImageType::New();
   id_image->SetRegions(binary->GetLargestPossibleRegion());
   id_image->Allocate();
   id_image->FillBuffer(list_ids);
 
-  DomainMapImageFilterType::Pointer domainMapFilter = DomainMapImageFilterType::New();
+  auto domainMapFilter = DomainMapImageFilterType::New();
   domainMapFilter->SetInput(id_image);
   domainMapFilter->Update();
   std::cout << "Domain map computed" << std::endl;
 
   // Define the Heaviside function
-  HeavisideFunctionBaseType::Pointer heaviside = HeavisideFunctionBaseType::New();
+  auto heaviside = HeavisideFunctionBaseType::New();
   heaviside->SetEpsilon(2.0);
 
   // Insert the levelsets in a levelset container
-  LevelSetContainerType::Pointer lscontainer = LevelSetContainerType::New();
+  auto lscontainer = LevelSetContainerType::New();
   lscontainer->SetHeaviside(heaviside);
   lscontainer->SetDomainMapFilter(domainMapFilter);
 
-  bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set1, false);
+  const bool LevelSetNotYetAdded = lscontainer->AddLevelSet(0, level_set1, false);
   if (!LevelSetNotYetAdded)
   {
     return EXIT_FAILURE;
   }
 
   // Create overlap penalty term
-  BinaryMaskTermType::Pointer maskTerm0 = BinaryMaskTermType::New();
+  auto maskTerm0 = BinaryMaskTermType::New();
+
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(maskTerm0, LevelSetEquationBinaryMaskTerm, LevelSetEquationTermBase);
+
+
   maskTerm0->SetInput(binary);
   maskTerm0->SetMask(binary);
   maskTerm0->SetCoefficient(1000.0);
@@ -167,8 +167,7 @@ itkLevelSetEquationBinaryMaskTermTest(int, char *[])
   index[1] = 20;
 
   std::cout << maskTerm0->Evaluate(index) << std::endl;
-  if (itk::Math::NotAlmostEquals(maskTerm0->Evaluate(index),
-                                 itk::NumericTraits<BinaryMaskTermType::LevelSetOutputRealType>::ZeroValue()))
+  if (itk::Math::NotAlmostEquals(maskTerm0->Evaluate(index), BinaryMaskTermType::LevelSetOutputRealType{}))
   {
     return EXIT_FAILURE;
   }

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,13 +25,13 @@
 namespace itk
 {
 /**
- *\class LineSpatialObjectPoint
+ * \class LineSpatialObjectPoint
  * \brief Point used for a line definition
  *
  * This class contains all the functions necessary to define a point
  * that can be used to build lines.
  * This Class derives from SpatialObjectPoint.
- * A LineSpatialObjectPoint has NDimension-1 normals.
+ * A LineSpatialObjectPoint has VDimension-1 normals.
  * \ingroup ITKSpatialObjects
  *
  * \sphinx
@@ -43,6 +43,8 @@ template <unsigned int TPointDimension = 3>
 class ITK_TEMPLATE_EXPORT LineSpatialObjectPoint : public SpatialObjectPoint<TPointDimension>
 {
 public:
+  ITK_DEFAULT_COPY_AND_MOVE(LineSpatialObjectPoint);
+
   using Self = LineSpatialObjectPoint;
   using Superclass = SpatialObjectPoint<TPointDimension>;
   using PointType = Point<double, TPointDimension>;
@@ -52,26 +54,19 @@ public:
   /** Constructor */
   LineSpatialObjectPoint();
 
-  /** Copy Constructor */
-  LineSpatialObjectPoint(const LineSpatialObjectPoint & other);
-
   /** Destructor */
   ~LineSpatialObjectPoint() override = default;
 
-  /** Get Normal */
-  const CovariantVectorType &
+  /** Get the normal. */
+  [[nodiscard]] const CovariantVectorType &
   GetNormalInObjectSpace(unsigned int index) const;
 
-  /** Set Normal */
+  /** Set the normal. */
   void
   SetNormalInObjectSpace(CovariantVectorType & normal, unsigned int index);
 
-  /** Copy one LineSpatialObjectPoint to another */
-  Self &
-  operator=(const LineSpatialObjectPoint & rhs);
-
 protected:
-  NormalArrayType m_NormalArrayInObjectSpace;
+  NormalArrayType m_NormalArrayInObjectSpace{};
 
   /** Method to print the object. */
   void

@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,11 @@ public:
   {}
 
   /** Overload operator ->.  */
-  ObjectType * operator->() const { return m_Pointer; }
+  ObjectType *
+  operator->() const
+  {
+    return m_Pointer;
+  }
 
   /** Return pointer to object.  */
   operator ObjectType *() const { return m_Pointer; }
@@ -76,29 +80,31 @@ public:
     return (m_Pointer == (ObjectType *)r);
   }
 
+#ifndef ITK_EXPERIMENTAL_CXX20_REWRITTEN_UNEQUAL_OPERATOR
   template <typename R>
   bool
   operator!=(R r) const
   {
-    return (m_Pointer != (ObjectType *)r);
+    return !(this->operator==(r));
   }
+#endif
 
   /** Access function to pointer. */
-  ObjectType *
+  [[nodiscard]] ObjectType *
   GetPointer() const
   {
     return m_Pointer;
   }
 
   /** Test if the pointer is not NULL. */
-  bool
+  [[nodiscard]] bool
   IsNotNull() const
   {
     return m_Pointer != nullptr;
   }
 
   /** Test if the pointer is NULL. */
-  bool
+  [[nodiscard]] bool
   IsNull() const
   {
     return m_Pointer == nullptr;
@@ -143,7 +149,7 @@ public:
     else
     {
       // This prints the object pointed to by the pointer
-      (*m_Pointer).Print(os);
+      m_Pointer->Print(os);
     }
     return m_Pointer;
   }

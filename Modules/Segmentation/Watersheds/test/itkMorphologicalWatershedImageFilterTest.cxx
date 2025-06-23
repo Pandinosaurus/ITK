@@ -6,7 +6,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,18 +48,18 @@ itkMorphologicalWatershedImageFilterTest(int argc, char * argv[])
   using ImageType = itk::Image<PixelType, Dimension>;
 
   using ReaderType = itk::ImageFileReader<ImageType>;
-  ReaderType::Pointer reader = ReaderType::New();
+  auto reader = ReaderType::New();
   reader->SetFileName(argv[1]);
 
   using FilterType = itk::MorphologicalWatershedImageFilter<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
+  auto filter = FilterType::New();
 
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, MorphologicalWatershedImageFilter, ImageToImageFilter);
 
-  bool markWatershedLine = std::stoi(argv[3]);
+  const bool markWatershedLine = std::stoi(argv[3]);
   ITK_TEST_SET_GET_BOOLEAN(filter, MarkWatershedLine, markWatershedLine);
 
-  bool fullyConnected = std::stoi(argv[4]);
+  const bool fullyConnected = std::stoi(argv[4]);
   ITK_TEST_SET_GET_BOOLEAN(filter, FullyConnected, fullyConnected);
 
   auto level = static_cast<FilterType::InputImagePixelType>(std::stod(argv[5]));
@@ -69,28 +69,28 @@ itkMorphologicalWatershedImageFilterTest(int argc, char * argv[])
 
   filter->SetInput(reader->GetOutput());
 
-  itk::SimpleFilterWatcher watcher(filter, "MorphologicalWatershedImageFilter");
+  const itk::SimpleFilterWatcher watcher(filter, "MorphologicalWatershedImageFilter");
 
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
 
   // Rescale the output to have a better display
   using MaxCalculatorType = itk::MinimumMaximumImageCalculator<ImageType>;
-  MaxCalculatorType::Pointer minMaxCalculator = MaxCalculatorType::New();
+  auto minMaxCalculator = MaxCalculatorType::New();
   minMaxCalculator->SetImage(filter->GetOutput());
   minMaxCalculator->Compute();
 
   using RescaleType = itk::IntensityWindowingImageFilter<ImageType, ImageType>;
-  RescaleType::Pointer rescaler = RescaleType::New();
+  auto rescaler = RescaleType::New();
   rescaler->SetInput(filter->GetOutput());
-  rescaler->SetWindowMinimum(itk::NumericTraits<PixelType>::ZeroValue());
+  rescaler->SetWindowMinimum(PixelType{});
   rescaler->SetWindowMaximum(minMaxCalculator->GetMaximum());
   rescaler->SetOutputMaximum(itk::NumericTraits<PixelType>::max());
-  rescaler->SetOutputMinimum(itk::NumericTraits<PixelType>::ZeroValue());
+  rescaler->SetOutputMinimum(PixelType{});
 
   // Write output image
   using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
+  auto writer = WriterType::New();
   writer->SetInput(rescaler->GetOutput());
   writer->SetFileName(argv[2]);
 
@@ -103,12 +103,12 @@ itkMorphologicalWatershedImageFilterTest(int argc, char * argv[])
 
     using OverlayType = itk::LabelOverlayImageFilter<ImageType, ImageType, RGBImageType>;
 
-    OverlayType::Pointer overlay = OverlayType::New();
+    auto overlay = OverlayType::New();
     overlay->SetInput(reader->GetOutput());
     overlay->SetLabelImage(filter->GetOutput());
 
     using RGBWriterType = itk::ImageFileWriter<RGBImageType>;
-    RGBWriterType::Pointer rgbwriter = RGBWriterType::New();
+    auto rgbwriter = RGBWriterType::New();
     rgbwriter->SetInput(overlay->GetOutput());
     rgbwriter->SetFileName(argv[6]);
 
